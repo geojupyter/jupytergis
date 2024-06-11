@@ -18,12 +18,9 @@ class YDocConnector(Widget):
                 ext = path.split(".")[1].lower()
             except Exception:
                 raise Exception("Can not detect file extension!")
-            if ext == "fcstd":
-                self._format = "base64"
-                self._contentType = "FCStd"
-            elif ext == "jcad":
+            if ext == "jgis":
                 self._format = "text"
-                self._contentType = "jcad"
+                self._contentType = "jgis"
             else:
                 raise Exception("File extension is not supported!")
         comm_data = {
