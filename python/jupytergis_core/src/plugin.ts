@@ -15,13 +15,13 @@ import { WidgetTracker } from '@jupyterlab/apputils';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ITranslator } from '@jupyterlab/translation';
 
-import { JupyterCadFormSchemaRegistry } from './schemaregistry';
-import { JupyterCadExternalCommandRegistry } from './externalcommand';
+import { JupyterGISFormSchemaRegistry } from './schemaregistry';
+import { JupyterGISExternalCommandRegistry } from './externalcommand';
 
-const NAME_SPACE = 'jupytercad';
+const NAME_SPACE = 'jupytergis';
 
 export const trackerPlugin: JupyterFrontEndPlugin<IJupyterGISTracker> = {
-  id: 'jupytercad:core:tracker',
+  id: 'jupytergis:core:tracker',
   autoStart: true,
   requires: [ITranslator],
   optional: [IMainMenu],
@@ -34,31 +34,31 @@ export const trackerPlugin: JupyterFrontEndPlugin<IJupyterGISTracker> = {
     const tracker = new WidgetTracker<JupyterGISWidget>({
       namespace: NAME_SPACE
     });
-    console.log('jupytercad:core:tracker is activated!');
+    console.log('jupytergis:core:tracker is activated!');
     return tracker;
   }
 };
 
 export const formSchemaRegistryPlugin: JupyterFrontEndPlugin<IJGISFormSchemaRegistry> =
   {
-    id: 'jupytercad:core:form-schema-registry',
+    id: 'jupytergis:core:form-schema-registry',
     autoStart: true,
     requires: [],
     provides: IJGISFormSchemaRegistryToken,
     activate: (app: JupyterFrontEnd): IJGISFormSchemaRegistry => {
-      const registry = new JupyterCadFormSchemaRegistry();
+      const registry = new JupyterGISFormSchemaRegistry();
       return registry;
     }
   };
 
 export const externalCommandRegistryPlugin: JupyterFrontEndPlugin<IJGISExternalCommandRegistry> =
   {
-    id: 'jupytercad:core:external-command-registry',
+    id: 'jupytergis:core:external-command-registry',
     autoStart: true,
     requires: [],
     provides: IJGISExternalCommandRegistryToken,
     activate: (app: JupyterFrontEnd): IJGISExternalCommandRegistry => {
-      const registry = new JupyterCadExternalCommandRegistry();
+      const registry = new JupyterGISExternalCommandRegistry();
       return registry;
     }
   };
