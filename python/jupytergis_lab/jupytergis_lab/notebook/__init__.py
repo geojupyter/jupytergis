@@ -1,1 +1,1 @@
-from .gis_document import CadDocument  # noqa
+from .gis_document import GISDocument  # noqa

@@ -9,7 +9,7 @@ except ImportError:
     warnings.warn("Importing 'jupytergis_lab' outside a proper installation.")
     __version__ = "dev"
 
-from .notebook import CadDocument  # noqa
+from .notebook import GISDocument  # noqa
 
 
 def _jupyter_labextension_paths():

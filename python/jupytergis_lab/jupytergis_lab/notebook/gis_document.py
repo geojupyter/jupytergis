@@ -22,16 +22,16 @@ from .utils import normalize_path
 logger = logging.getLogger(__file__)
 
 
-class CadDocument(CommWidget):
+class GISDocument(CommWidget):
     """
-    Create a new CadDocument object.
+    Create a new GISDocument object.
 
     :param path: the path to the file that you would like to open.
     If not provided, a new empty document will be created.
     """
 
     def __init__(self, path: Optional[str] = None):
-        comm_metadata = CadDocument._path_to_comm(path)
+        comm_metadata = GISDocument._path_to_comm(path)
 
         ydoc = Doc()
 
@@ -81,13 +81,13 @@ class CadDocument(CommWidget):
             data = json.loads(self._get_yobject_by_name(name).to_py())
             return OBJECT_FACTORY.create_object(data, self)
 
-    def remove(self, name: str) -> CadDocument:
+    def remove(self, name: str) -> GISDocument:
         index = self._get_yobject_index_by_name(name)
         if self._objects_array and index != -1:
             self._objects_array.pop(index)
         return self
 
-    def add_object(self, new_object: "PythonJGISObject") -> CadDocument:
+    def add_object(self, new_object: "PythonJGISObject") -> GISDocument:
         if self._objects_array is not None and not self.check_exist(new_object.name):
             obj_dict = json.loads(new_object.json())
             obj_dict["visible"] = True
@@ -158,12 +158,12 @@ class PythonJGISObject(BaseModel):
         IChamfer,
     ]
     metadata: Optional[ShapeMetadata]
-    _gisdoc = Optional[CadDocument]
-    _parent = Optional[CadDocument]
+    _gisdoc = Optional[GISDocument]
+    _parent = Optional[GISDocument]
 
     def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
         super().__init__(**data)
-        __pydantic_self__._gisdoc = CadDocument()
+        __pydantic_self__._gisdoc = GISDocument()
         __pydantic_self__._gisdoc.add_object(__pydantic_self__)
         __pydantic_self__._parent = parent
 
@@ -187,7 +187,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
             self._factories[shape_type] = cls
 
     def create_object(
-        self, data: Dict, parent: Optional[CadDocument] = None
+        self, data: Dict, parent: Optional[GISDocument] = None
     ) -> Optional[PythonJGISObject]:
         object_type = data.get("shape", None)
         name: str = data.get("name", None)
