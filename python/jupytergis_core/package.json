@@ -1,7 +1,7 @@
 {
   "name": "@jupytergis/jupytergis-core",
   "version": "0.1.0",
-  "description": "JupyterCad core extension",
+  "description": "JupyterGIS core extension",
   "keywords": [
     "jupyter",
     "jupyterlab",
@@ -12,7 +12,7 @@
     "url": "https://github.com/QuantStack/jupytergis/issues"
   },
   "license": "BSD-3-Clause",
-  "author": "JupyterCad contributors",
+  "author": "JupyterGIS contributors",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"

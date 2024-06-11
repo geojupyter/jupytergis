@@ -41,7 +41,7 @@ test.describe('Tree UI test', () => {
     // Close the property panel
     await page
       .getByRole('tablist', { name: 'alternate sidebar' })
-      .getByRole('tab', { name: 'JupyterCad Control Panel' })
+      .getByRole('tab', { name: 'JupyterGIS Control Panel' })
       .click();
 
     await page

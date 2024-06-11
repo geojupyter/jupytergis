@@ -7,7 +7,7 @@ import {
 } from './interfaces';
 
 export const IJupyterGISDocTracker = new Token<IJupyterGISTracker>(
-  'jupyterCadDocTracker'
+  'jupyterGISDocTracker'
 );
 
 export const IJGISFormSchemaRegistryToken = new Token<IJGISFormSchemaRegistry>(

@@ -1,4 +1,4 @@
-import jcadPlugin from './jgisplugin/plugins';
+import jgisPlugin from './jgisplugin/plugins';
 import {
   externalCommandRegistryPlugin,
   formSchemaRegistryPlugin,
@@ -8,7 +8,7 @@ import {
 export * from './factory';
 export default [
   trackerPlugin,
-  jcadPlugin,
+  jgisPlugin,
   formSchemaRegistryPlugin,
   externalCommandRegistryPlugin
 ];

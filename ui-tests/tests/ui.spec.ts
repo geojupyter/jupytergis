@@ -62,11 +62,11 @@ test.describe('UI Test', () => {
         }
         await page
           .getByRole('tablist', { name: 'main sidebar' })
-          .getByRole('tab', { name: 'JupyterCad Control Panel' })
+          .getByRole('tab', { name: 'JupyterGIS Control Panel' })
           .click();
         await page
           .getByRole('tablist', { name: 'alternate sidebar' })
-          .getByRole('tab', { name: 'JupyterCad Control Panel' })
+          .getByRole('tab', { name: 'JupyterGIS Control Panel' })
           .click();
         await page.waitForTimeout(1000);
         const main = await page.$('#jp-main-split-panel');
@@ -127,11 +127,11 @@ test.describe('UI Test', () => {
 
       await page
         .getByRole('tablist', { name: 'main sidebar' })
-        .getByRole('tab', { name: 'JupyterCad Control Panel' })
+        .getByRole('tab', { name: 'JupyterGIS Control Panel' })
         .click();
       await page
         .getByRole('tablist', { name: 'alternate sidebar' })
-        .getByRole('tab', { name: 'JupyterCad Control Panel' })
+        .getByRole('tab', { name: 'JupyterGIS Control Panel' })
         .click();
 
       await page.waitForTimeout(1000);
@@ -165,11 +165,11 @@ test.describe('UI Test', () => {
 
       await page
         .getByRole('tablist', { name: 'main sidebar' })
-        .getByRole('tab', { name: 'JupyterCad Control Panel' })
+        .getByRole('tab', { name: 'JupyterGIS Control Panel' })
         .click();
       await page
         .getByRole('tablist', { name: 'alternate sidebar' })
-        .getByRole('tab', { name: 'JupyterCad Control Panel' })
+        .getByRole('tab', { name: 'JupyterGIS Control Panel' })
         .click();
 
       await page.waitForTimeout(1000);
@@ -213,11 +213,11 @@ test.describe('UI Test', () => {
       // Hide side bars for the screenshot
       await page
         .getByRole('tablist', { name: 'main sidebar' })
-        .getByRole('tab', { name: 'JupyterCad Control Panel' })
+        .getByRole('tab', { name: 'JupyterGIS Control Panel' })
         .click();
       await page
         .getByRole('tablist', { name: 'alternate sidebar' })
-        .getByRole('tab', { name: 'JupyterCad Control Panel' })
+        .getByRole('tab', { name: 'JupyterGIS Control Panel' })
         .click();
 
       await page.waitForTimeout(1000);

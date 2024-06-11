@@ -14,7 +14,7 @@ import {
   IJupyterGISModel,
   IUserData,
 } from './interfaces';
-import jcadSchema from './schema/jgis.json';
+import jgisSchema from './schema/jgis.json';
 
 
 export class JupyterGISModel implements IJupyterGISModel {
@@ -131,7 +131,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   fromString(data: string): void {
     const jsonData: IJGISContent = JSON.parse(data);
     const ajv = new Ajv();
-    const validate = ajv.compile(jcadSchema);
+    const validate = ajv.compile(jgisSchema);
     const valid = validate(jsonData);
 
     if (!valid) {

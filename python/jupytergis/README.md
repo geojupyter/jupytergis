@@ -1,1 +1,1 @@
-# JupyterCad meta-package
+# JupyterGIS meta-package
