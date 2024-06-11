@@ -5,32 +5,28 @@ import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 
-import { IJCadContent, IJCadModel } from './_interface/jcad';
-import { JupyterCadDoc } from './doc';
+import { IJGISContent, IJGISLayers } from './_interface/jgis';
+import { JupyterGISDoc } from './doc';
 import {
-  Camera,
-  IAnnotationModel,
-  IJGISLayersDocChange,
-  IJupyterCadClientState,
-  IJupyterCadDoc,
-  IJupyterCadModel,
-  ISelection,
+  IJGISLayerDocChange,
+  IJupyterGISClientState,
+  IJupyterGISDoc,
+  IJupyterGISModel,
   IUserData,
-  Pointer
 } from './interfaces';
-import jcadSchema from './schema/jcad.json';
+import jcadSchema from './schema/jgis.json';
 
-export class JupyterCadModel implements IJupyterCadModel {
-  constructor(options: JupyterCadModel.IOptions) {
-    const { annotationModel, sharedModel } = options;
+
+export class JupyterGISModel implements IJupyterGISModel {
+  constructor(options: DocumentRegistry.IModelOptions<IJupyterGISDoc>) {
+    const { sharedModel } = options;
     if (sharedModel) {
       this._sharedModel = sharedModel;
     } else {
-      this._sharedModel = JupyterCadDoc.create();
+      this._sharedModel = JupyterGISDoc.create();
       this._sharedModel.changed.connect(this._onSharedModelChanged);
     }
     this.sharedModel.awareness.on('change', this._onClientStateChanged);
-    this.annotationModel = annotationModel;
   }
 
   private _onSharedModelChanged = (sender: any, changes: any): void => {
@@ -42,7 +38,7 @@ export class JupyterCadModel implements IJupyterCadModel {
 
   readonly collaborative = true;
 
-  get sharedModel(): IJupyterCadDoc {
+  get sharedModel(): IJupyterGISDoc {
     return this._sharedModel;
   }
 
@@ -98,23 +94,23 @@ export class JupyterCadModel implements IJupyterCadModel {
     this._readOnly = value;
   }
 
-  get localState(): IJupyterCadClientState | null {
-    return this.sharedModel.awareness.getLocalState() as IJupyterCadClientState | null;
+  get localState(): IJupyterGISClientState | null {
+    return this.sharedModel.awareness.getLocalState() as IJupyterGISClientState | null;
   }
 
-  get clientStateChanged(): ISignal<this, Map<number, IJupyterCadClientState>> {
+  get clientStateChanged(): ISignal<this, Map<number, IJupyterGISClientState>> {
     return this._clientStateChanged;
   }
 
-  get sharedOptionsChanged(): ISignal<IJupyterCadDoc, MapChange> {
+  get sharedOptionsChanged(): ISignal<IJupyterGISDoc, MapChange> {
     return this.sharedModel.optionsChanged;
   }
 
-  get sharedLayersChanged(): ISignal<IJupyterCadDoc, IJGISLayersDocChange> {
+  get sharedLayersChanged(): ISignal<IJupyterGISDoc, IJGISLayerDocChange> {
     return this.sharedModel.layersChanged;
   }
 
-  get disposed(): ISignal<JupyterCadModel, void> {
+  get disposed(): ISignal<JupyterGISModel, void> {
     return this._disposed;
   }
 
@@ -133,7 +129,7 @@ export class JupyterCadModel implements IJupyterCadModel {
   }
 
   fromString(data: string): void {
-    const jsonData: IJCadContent = JSON.parse(data);
+    const jsonData: IJGISContent = JSON.parse(data);
     const ajv = new Ajv();
     const validate = ajv.compile(jcadSchema);
     const valid = validate(jsonData);
@@ -143,7 +139,7 @@ export class JupyterCadModel implements IJupyterCadModel {
     }
 
     this.sharedModel.transact(() => {
-      this.sharedModel.addObjects(jsonData.objects);
+      this.sharedModel.addLayers(jsonData.layers);
       this.sharedModel.setOptions(jsonData.options ?? {});
     });
     this.dirty = true;
@@ -162,39 +158,18 @@ export class JupyterCadModel implements IJupyterCadModel {
   }
 
   getWorker(): Worker {
-    return JupyterCadModel.worker;
+    return JupyterGISModel.worker;
   }
 
-  getContent(): IJCadContent {
+  getContent(): IJGISContent {
     return {
-      objects: this.sharedModel.objects,
+      layers: this.sharedModel.layers,
       options: this.sharedModel.options
     };
   }
 
-  getLayers(): IJCadModel {
+  getLayers(): IJGISLayers {
     return this.sharedModel.layers;
-  }
-
-  syncPointer(pointer?: Pointer, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('pointer', {
-      value: pointer,
-      emitter: emitter
-    });
-  }
-
-  syncCamera(camera?: Camera, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('camera', {
-      value: camera,
-      emitter: emitter
-    });
-  }
-
-  syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('selected', {
-      value,
-      emitter: emitter
-    });
   }
 
   syncSelectedPropField(data: {
@@ -221,18 +196,10 @@ export class JupyterCadModel implements IJupyterCadModel {
     return this.sharedModel.awareness.clientID;
   }
 
-  addMetadata(key: string, value: string): void {
-    this.sharedModel.setMetadata(key, value);
-  }
-
-  removeMetadata(key: string): void {
-    this.sharedModel.removeMetadata(key);
-  }
-
   private _onClientStateChanged = changed => {
     const clients = this.sharedModel.awareness.getStates() as Map<
       number,
-      IJupyterCadClientState
+      IJupyterGISClientState
     >;
 
     this._clientStateChanged.emit(clients);
@@ -246,9 +213,8 @@ export class JupyterCadModel implements IJupyterCadModel {
 
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
-  readonly annotationModel?: IAnnotationModel;
 
-  private _sharedModel: IJupyterCadDoc;
+  private _sharedModel: IJupyterGISDoc;
 
   private _dirty = false;
   private _readOnly = false;
@@ -263,15 +229,8 @@ export class JupyterCadModel implements IJupyterCadModel {
   private _themeChanged = new Signal<this, IChangedArgs<any>>(this);
   private _clientStateChanged = new Signal<
     this,
-    Map<number, IJupyterCadClientState>
+    Map<number, IJupyterGISClientState>
   >(this);
 
   static worker: Worker;
-}
-
-export namespace JupyterCadModel {
-  export interface IOptions
-    extends DocumentRegistry.IModelOptions<IJupyterCadDoc> {
-    annotationModel?: IAnnotationModel;
-  }
 }
