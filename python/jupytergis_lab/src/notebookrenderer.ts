@@ -1,7 +1,7 @@
 import { WebSocketProvider } from '@jupyter/docprovider';
-import { JupyterCadPanel } from '@jupytergis/base';
+import { JupyterGISPanel } from '@jupytergis/base';
 import {
-  JupyterCadModel
+  JupyterGISModel
 } from '@jupytergis/schema';
 
 import {
@@ -29,37 +29,37 @@ export interface ICommMetadata {
 }
 
 const Y_DOCUMENT_PROVIDER_URL = 'api/collaboration/room';
-export const CLASS_NAME = 'jupytercad-notebook-widget';
+export const CLASS_NAME = 'jupytergis-notebook-widget';
 
-export class YJupyterCADModel extends JupyterYModel {
-  jupyterCADModel: JupyterCadModel;
+export class YJupyterGISModel extends JupyterYModel {
+  jupyterGISModel: JupyterGISModel;
 }
 
-export class YJupyterCADLuminoWidget extends Panel {
+export class YJupyterGISLuminoWidget extends Panel {
   constructor(options: {
-    model: JupyterCadModel;
+    model: JupyterGISModel;
   }) {
     super();
 
     this.addClass(CLASS_NAME);
-    this._jcadWidget = new JupyterCadPanel(options);
-    this.addWidget(this._jcadWidget);
+    this._jgisWidget = new JupyterGISPanel(options);
+    this.addWidget(this._jgisWidget);
   }
 
   onResize = (): void => {
-    if (this._jcadWidget) {
+    if (this._jgisWidget) {
       MessageLoop.sendMessage(
-        this._jcadWidget,
+        this._jgisWidget,
         Widget.ResizeMessage.UnknownSize
       );
     }
   };
 
-  private _jcadWidget: JupyterCadPanel;
+  private _jgisWidget: JupyterGISPanel;
 }
 
 export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
-  id: 'jupytercad:yjswidget-plugin',
+  id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
   optional: [IJupyterYWidgetManager, ITranslator],
   activate: (
@@ -72,11 +72,11 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
       return;
     }
     const labTranslator = translator ?? nullTranslator;
-    class YJupyterCADModelFactory extends YJupyterCADModel {
+    class YJupyterGISModelFactory extends YJupyterGISModel {
       ydocFactory(commMetadata: ICommMetadata): Y.Doc {
         const { path, format, contentType } = commMetadata;
 
-        this.jupyterCADModel = new JupyterCadModel({});
+        this.jupyterGISModel = new JupyterGISModel({});
         const user = app.serviceManager.user;
         if (path && format && contentType) {
           const server = ServerConnection.makeSettings();
@@ -86,15 +86,15 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
             path,
             format,
             contentType,
-            model: this.jupyterCADModel.sharedModel,
+            model: this.jupyterGISModel.sharedModel,
             user,
             translator: labTranslator.load('jupyterlab')
           });
-          this.jupyterCADModel.disposed.connect(() => {
+          this.jupyterGISModel.disposed.connect(() => {
             ywsProvider.dispose();
           });
         } else {
-          const awareness = this.jupyterCADModel.sharedModel.awareness;
+          const awareness = this.jupyterGISModel.sharedModel.awareness;
           const _onUserChanged = (user: User.IManager) => {
             awareness.setLocalStateField('user', user.identity);
           };
@@ -106,17 +106,17 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
           user.userChanged.connect(_onUserChanged, this);
         }
 
-        return this.jupyterCADModel.sharedModel.ydoc;
+        return this.jupyterGISModel.sharedModel.ydoc;
       }
     }
 
-    class YJupyterCADWidget implements IJupyterYWidget {
-      constructor(yModel: YJupyterCADModel, node: HTMLElement) {
+    class YJupyterGISWidget implements IJupyterYWidget {
+      constructor(yModel: YJupyterGISModel, node: HTMLElement) {
         this.yModel = yModel;
         this.node = node;
 
-        const widget = new YJupyterCADLuminoWidget({
-          model: yModel.jupyterCADModel
+        const widget = new YJupyterGISLuminoWidget({
+          model: yModel.jupyterGISModel
         });
         // Widget.attach(widget, node);
 
@@ -125,14 +125,14 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
         MessageLoop.sendMessage(widget, Widget.Msg.AfterAttach);
       }
 
-      readonly yModel: YJupyterCADModel;
+      readonly yModel: YJupyterGISModel;
       readonly node: HTMLElement;
     }
 
     yWidgetManager.registerWidget(
-      '@jupytercad:widget',
-      YJupyterCADModelFactory,
-      YJupyterCADWidget
+      '@jupytergis:widget',
+      YJupyterGISModelFactory,
+      YJupyterGISWidget
     );
   }
 };

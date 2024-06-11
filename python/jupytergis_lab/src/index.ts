@@ -29,14 +29,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:lab:main-menu',
   autoStart: true,
   requires: [
-    IJupyterGISDocTracker,
-    IJGISFormSchemaRegistryToken,
+    IJupyterGISDocTracker
   ],
   optional: [IMainMenu, ITranslator],
   activate: (
     app: JupyterFrontEnd,
     tracker: WidgetTracker<JupyterGISWidget>,
-    formSchemaRegistry: IJGISFormSchemaRegistry,
     mainMenu?: IMainMenu,
     translator?: ITranslator
   ): void => {
@@ -49,7 +47,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       );
     };
 
-    addCommands(app, tracker, translator, formSchemaRegistry);
+    addCommands(app, tracker, translator);
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }
