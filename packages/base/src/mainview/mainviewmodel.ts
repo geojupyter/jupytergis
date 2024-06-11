@@ -1,5 +1,5 @@
 import {
-  IjGISLayerDocChange,
+  IJGISLayerDocChange,
   IJupyterGISDoc,
   IJupyterGISModel,
 } from '@jupytergis/schema';
@@ -50,9 +50,9 @@ export class MainViewModel implements IDisposable {
 
   private async _onsharedLayersChanged(
     _: IJupyterGISDoc,
-    change: IjGISLayerDocChange
+    change: IJGISLayerDocChange
   ): Promise<void> {
-    if (change.objectChange) {
+    if (change.layerChange) {
       // TODO STUFF with the new updated shared model
     }
   }

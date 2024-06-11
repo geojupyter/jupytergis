@@ -44,10 +44,6 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onClientSharedStateChanged,
       this
     );
-    this._model.sharedMetadataChanged.connect(
-      this._onSharedMetadataChanged,
-      this
-    );
 
     this.state = {
       id: this._mainViewModel.id,
@@ -80,25 +76,12 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onClientSharedStateChanged,
       this
     );
-    this._model.sharedMetadataChanged.disconnect(
-      this._onSharedMetadataChanged,
-      this
-    );
 
     this._mainViewModel.dispose();
   }
 
   generateScene = (): void => {
     // TODO Create the OpenLayers map
-  };
-
-  private _onSharedMetadataChanged = (
-    _: IJupyterGISDoc,
-    changes: MapChange
-  ) => {
-    changes.forEach((val, key) => {
-      // TODO SOMETHING
-    });
   };
 
   private _onClientSharedStateChanged = (

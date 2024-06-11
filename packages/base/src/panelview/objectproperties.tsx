@@ -2,7 +2,7 @@ import {
   IDict,
   IJGISFormSchemaRegistry,
   IJGISModel,
-  IjGISLayerDocChange,
+  IJGISLayerDocChange,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
@@ -159,7 +159,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
 
   private _sharedJGISModelChanged = (
     _: IJupyterGISDoc,
-    changed: IjGISLayerDocChange
+    changed: IJGISLayerDocChange
   ): void => {
     this.setState(old => {
       if (old.selectedObject) {
