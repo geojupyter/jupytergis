@@ -14,7 +14,7 @@ def install_dev():
     build_js = "jlpm build"
 
     python_package_prefix = "python"
-    python_packages = ["jupytergis_core", "jupytergis_lab", "jupytergis_app"]
+    python_packages = ["jupytergis_core", "jupytergis_lab"]
 
     execute(install_build_deps)
     execute(install_js_deps)
@@ -27,10 +27,9 @@ def install_dev():
         if py_package == "jupytergis_core":
             execute("jupyter server extension enable jupytergis_core")
 
-        if py_package != "jupytergis_app":
-            execute(
-                f"jupyter labextension develop {python_package_prefix}/{py_package} --overwrite"
-            )
+        execute(
+            f"jupyter labextension develop {python_package_prefix}/{py_package} --overwrite"
+        )
 
 
 if __name__ == "__main__":
