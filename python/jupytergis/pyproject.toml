@@ -1,0 +1,40 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling>=1.5.0,<2"]
+
+[project]
+classifiers = [
+  "Framework :: Jupyter",
+  "Framework :: Jupyter :: JupyterLab",
+  "Framework :: Jupyter :: JupyterLab :: 4",
+  "Framework :: Jupyter :: JupyterLab :: Extensions",
+  "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+  "jupytercad_core>=2.0.0a0,<3",
+  "jupytercad_lab>=2.0.0a0,<3",
+  "jupytercad_app>=2.0.0a0,<3",
+]
+dynamic = ["version"]
+license = {file = "LICENSE"}
+name = "jupytercad"
+readme = "README.md"
+requires-python = ">=3.8"
+
+
+[tool.hatch.version]
+path = "jupytergis/__init__.py"
+
+[tool.jupyter-releaser.options]
+version_cmd = "hatch version"
+
+[tool.check-wheel-contents]
+ignore = ["W002"]

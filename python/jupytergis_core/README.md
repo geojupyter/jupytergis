@@ -1,0 +1,1 @@
+# JupyterGIS Core package

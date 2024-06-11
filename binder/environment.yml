@@ -1,0 +1,14 @@
+name: base
+channels:
+  - conda-forge
+dependencies:
+  # runtime dependencies
+  - python >=3.9,<3.10.0a0
+  - nodejs >=16,<17
+  - yarn
+
+  # Dependencies
+  - jupyterlab >=4.0.0,<5
+
+  # Binder
+  - jupyterlab-link-share=0.2

@@ -1,0 +1,47 @@
+{
+  "type": "object",
+  "title": "IJGISContent",
+  "required": ["layers"],
+  "additionalProperties": false,
+  "properties": {
+    "layers": {
+      "$ref": "#/definitions/jGISLayers"
+    },
+    "options": {
+      "$ref": "#/definitions/jGISOptions"
+    }
+  },
+  "definitions": {
+    "jGISLayer": {
+      "title": "IJGISLayer",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "visible"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "visible": {
+          "type": "boolean"
+        }
+      }
+    },
+    "jGISLayers": {
+      "title": "IJGISLayers",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/definitions/jGISLayer"
+      }
+    },
+    "jGISOptions": {
+      "title": "IJGISOptions",
+      "type": "object",
+      "default": {},
+      "additionalProperties": false,
+      "properties": {
+
+      }
+    }
+  }
+}

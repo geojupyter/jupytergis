@@ -1,0 +1,36 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling>=1.5.0,<2"]
+
+[project]
+name = "jupytergis-root"
+readme = "README.md"
+license = { file = "LICENSE" }
+dynamic = ["version"]
+
+
+[tool.hatch.version]
+path = "python/jupytergis/jupytergis/__init__.py"
+
+[tool.jupyter-releaser]
+skip = [ "check-python" ]
+
+
+[tool.jupyter-releaser.options]
+version-cmd = "python scripts/bump-version.py"
+python_packages = [
+    "python/jupytergis:jupytergis",
+    "python/jupytergis_core:jupytergis_core",
+    "python/jupytergis_lab:jupytergis_lab",
+]
+
+[tool.jupyter-releaser.hooks]
+before-bump-version = ["python -m pip install hatch 'jupyterlab>=4.0.0'"]
+before-build-npm = [
+    "python -m pip install datamodel-code-generator",
+    "jlpm",
+    "jlpm build:prod",
+]
+
+[tool.check-wheel-contents]
+ignore = ["W002"]

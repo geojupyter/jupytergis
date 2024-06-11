@@ -1,0 +1,400 @@
+@import url('~@deathbeds/jupyterlab-rjsf/style/index.css');
+
+.jGIS-Spinner {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  background: #00000075;
+}
+
+.jGIS-SpinnerContent {
+  border: solid #f376269e;
+  margin: 50px auto;
+  text-indent: -9999em;
+  width: 6em;
+  height: 6em;
+  border-radius: 50%;
+  position: relative;
+  animation:
+    load3 1s infinite linear,
+    fadeIn 1s;
+}
+
+.jGIS-SpinnerContent:before {
+  width: 50%;
+  height: 50%;
+  background: #f3762605;
+  border-radius: 100% 0 100% 0;
+  box-shadow: inset 6px 5px 0 1px #f37626;
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: '';
+}
+
+.jGIS-SpinnerContent:after {
+  width: 75%;
+  height: 75%;
+  border-radius: 50%;
+  content: '';
+  margin: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+.jGIS-camera-client {
+  width: 15px;
+  height: 15px;
+  position: absolute;
+  z-index: 10;
+  background-color: var(--jp-private-notebook-active-color);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.jGIS-control-panel {
+  color: var(--jp-ui-font-color1);
+  background: var(--jp-layout-color1);
+  height: 100%;
+}
+
+.jGIS-control-panel * {
+  font-family: var(--jp-ui-font-family);
+}
+
+.jGIS-control-panel-title {
+  border-bottom: solid var(--jp-border-width) var(--jp-border-color1);
+  box-shadow: var(--jp-toolbar-box-shadow);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 24px;
+  height: var(--jp-debugger-header-height);
+  background-color: var(--jp-layout-color2);
+}
+
+.jGIS-control-panel-title h2 {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color1);
+  padding-left: 8px;
+  padding-right: 4px;
+}
+
+.jGIS-sidepanel-widget {
+  height: 100%;
+}
+
+.jGIS-sidebar-treepanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 50px;
+  padding-top: 3px;
+}
+
+.jGIS-sidebar-propertiespanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 50px;
+  padding-top: 3px;
+}
+
+.jGIS-treeview-wrapper {
+  overflow: auto;
+  height: 100%;
+}
+
+.jGIS-treeview-wrapper > div {
+  padding: 0 !important;
+}
+/* TODO: More robust selector */
+.jGIS-treeview-wrapper div[style*='align-items: center;']:first-of-type {
+  flex-grow: 1;
+}
+
+.jGIS-control-panel-tree {
+  flex-grow: 1;
+}
+
+.jGIS-sidebar-propertiespanel > div {
+  overflow: auto;
+}
+
+.jGIS-property-outer {
+  padding: 10px;
+  flex-grow: 1;
+  overflow: auto;
+}
+
+.jGIS-property-buttons {
+  display: flex;
+  justify-content: end;
+  padding: 10px;
+}
+
+.jGIS-property-panel {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.jGIS-hidden-field {
+  display: none;
+}
+
+div.field.field-array > label + span {
+  display: none;
+}
+
+.jGIS-property-FormDialog .jp-Dialog-footer button {
+  display: none;
+}
+
+.jGIS-property-FormDialog .jp-Dialog-content {
+  width: 60%;
+}
+
+.jGIS-property-FormDialog form {
+  padding: 10px;
+}
+
+/* TODO Upstream this to jupyterlab jrfs */
+.jp-SchemaForm .control-label,
+.jp-SchemaForm legend {
+  position: inherit;
+}
+
+div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
+  flex-grow: 1;
+}
+
+.jGIS-toolbar-usertoolbar {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row-reverse;
+}
+.jGIS-toolbar-react-widget {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.jGIS-Toolbar-Separator {
+  width: var(--jp-border-width);
+  background-color: var(--jp-border-color1);
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+}
+
+.jGIS-toolbar-usertoolbar .jp-MenuBar-anonymousIcon,
+.jGIS-toolbar-usertoolbar .jp-MenuBar-imageIcon {
+  position: unset !important;
+  margin-right: 2px;
+  height: 22px;
+  box-sizing: border-box;
+}
+
+.jGIS-toolbar-usertoolbar .jp-MenuBar-anonymousIcon.selected,
+.jGIS-toolbar-usertoolbar .jp-MenuBar-imageIcon.selected {
+  border: solid 1.5px red;
+}
+
+.jGIS-Mainview {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.jGIS-Annotation-Wrapper {
+  position: absolute;
+  opacity: 1;
+  transition: opacity 0.1s linear 0.15s;
+}
+
+.jGIS-Annotation {
+  z-index: 1;
+  margin-left: 1px;
+  margin-top: 1px;
+  padding: 1em;
+  color: #fff;
+  background: var(--jp-layout-color1);
+  border-radius: 0.5em;
+  font-size: 12px;
+  line-height: 1.2;
+  transition: opacity 0.5s;
+}
+
+.jGIS-FloatingAnnotation {
+  position: absolute;
+  width: 250px;
+  box-shadow: var(--jp-elevation-z6);
+}
+
+.jGIS-Annotations {
+  overflow: auto;
+}
+
+.jGIS-Annotations-Separator {
+  border-color: var(--jp-layout-color4);
+  border-style: solid;
+  border-width: 1px;
+}
+
+.jGIS-Annotation-Handler {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #ffffffc2;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 63%);
+  cursor: pointer;
+  transition-property: width, height, left, top;
+  transition-duration: 0.2s;
+  z-index: 1000;
+}
+
+.jGIS-Annotation-Handler:hover {
+  top: -9px;
+  left: -9px;
+  width: 16px;
+  height: 16px;
+}
+
+.jGIS-Annotation-Message {
+  display: flex;
+  margin-top: 10px;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+}
+
+.jGIS-Annotation-Message .jGIS-Annotation-User-Icon {
+  border-radius: 100%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  vertical-align: middle;
+  color: var(--jp-ui-font-color1);
+}
+
+.jGIS-Annotation-Message textarea {
+  border-radius: var(--jp-border-radius);
+  background: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color2);
+  flex-grow: 1;
+  resize: none;
+}
+
+.jGIS-Annotation-Message-Content {
+  background: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color2);
+  border-radius: var(--jp-border-radius);
+  flex-grow: 1;
+}
+
+.jGIS-Annotation-Topbar {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.jGIS-Annotation-TopBarIcon {
+  margin: 3px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.jGIS-Annotation-TopBarIcon > svg {
+  width: 20px;
+  height: 20px;
+}
+
+.jGIS-Annotation-Submit > svg {
+  width: 30px;
+  height: 30px;
+}
+
+.jGIS-Annotation-Submit g {
+  fill: #f6f7f8 !important;
+}
+
+.jGIS-Annotation-Submit:hover {
+  opacity: 70%;
+  cursor: pointer;
+}
+
+.jGIS-Annotation-Submit {
+  background-color: var(--jp-brand-color1);
+  border-radius: 100%;
+  width: 30px;
+  height: 30px;
+}
+
+/* Hack to remove the malformed form button */
+.object-property-expand {
+  display: none;
+}
+
+.jGIS-sketcher-SketcherDialog .jp-Dialog-content {
+  max-width: unset !important;
+  max-height: unset !important;
+  width: 75vw;
+  height: 75vh;
+}
+
+.jGIS-sketcher-Sketcher {
+  background-color: var(--jp-layout-color2);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+.jGIS-sketcher-Sketcher-Toolbar {
+  min-height: var(--jp-private-toolbar-height);
+  width: 100%;
+  height: 29px;
+  display: flex;
+}
+
+.jGIS-sketcher-Sketcher-Statusbar {
+  height: 20px;
+  position: absolute;
+  bottom: 0;
+  right: 5px;
+  font-size: var(--jp-ui-font-size0);
+}
+
+.highlight {
+  background-color: var(--jp-layout-color2) !important;
+}
+.jupytercad-notebook-widget {
+  height: 600px;
+  width: 100%;
+}
+.jupytercad-notebook-widget > div {
+  height: 100%;
+  width: 100%;
+}
+
+.jp-SchemaForm .control-label,
+.jp-SchemaForm legend {
+  width: 100%;
+}

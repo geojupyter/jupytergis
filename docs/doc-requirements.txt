@@ -1,0 +1,3 @@
+pydata-sphinx-theme
+sphinx-autodoc-typehints
+sphinx_copybutton

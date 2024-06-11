@@ -1,0 +1,122 @@
+{
+  "name": "@jupytergis/jupytergis-lab",
+  "version": "0.1.0",
+  "description": "JupyterGIS Lab extension.",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension"
+  ],
+  "homepage": "https://github.com/QuantStack/jupytergis",
+  "bugs": {
+    "url": "https://github.com/QuantStack/jupytergis/issues"
+  },
+  "license": "BSD-3-Clause",
+  "author": "JupyterGIS contributors",
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "style": "style/index.css",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QuantStack/jupytergis.git"
+  },
+  "scripts": {
+    "build": "jlpm build:lib && jlpm build:labextension:dev",
+    "build:prod": "jlpm clean && jlpm build:lib:prod && jlpm build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "build:lib": "tsc --sourceMap",
+    "build:lib:prod": "tsc",
+    "clean": "jlpm clean:lib",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "clean:lintcache": "rimraf .eslintcache .stylelintcache",
+    "clean:labextension": "rimraf jupytergis_lab/labextension jupytergis_lab/_version.py",
+    "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:lintcache",
+    "eslint": "jlpm eslint:check --fix",
+    "eslint:check": "eslint . --cache --ext .ts,.tsx",
+    "install:extension": "jlpm build",
+    "lint": "jlpm stylelint && jlpm prettier && jlpm eslint",
+    "lint:check": "jlpm stylelint:check && jlpm prettier:check && jlpm eslint:check",
+    "prettier": "jlpm prettier:base --write",
+    "prettier:base": "prettier \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
+    "prettier:check": "jlpm prettier:base --check",
+    "stylelint": "jlpm stylelint:check --fix",
+    "stylelint:check": "stylelint --cache \"style/**/*.css\"",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:src": "tsc -w --sourceMap",
+    "watch:labextension": "jupyter labextension watch ."
+  },
+  "dependencies": {
+    "@jupyter/docprovider": "^2.0.0",
+    "@jupytergis/base": "^0.1.0",
+    "@jupytergis/jupytergis-core": "^0.1.0",
+    "@jupytergis/schema": "^0.1.0",
+    "@jupyterlab/application": "^4.0.0",
+    "@jupyterlab/apputils": "^4.0.0",
+    "@jupyterlab/coreutils": "^6.0.0",
+    "@jupyterlab/docregistry": "^4.0.0",
+    "@jupyterlab/filebrowser": "^4.0.0",
+    "@jupyterlab/launcher": "^4.0.0",
+    "@jupyterlab/mainmenu": "^4.0.0",
+    "@jupyterlab/services": "^7.0.0",
+    "@jupyterlab/translation": "^4.0.0",
+    "@jupyterlab/ui-components": "^4.0.0",
+    "@lumino/messaging": "^2.0.0",
+    "@lumino/widgets": "^2.0.0",
+    "react": "^18.0.1",
+    "yjs-widgets": "^0.3.3"
+  },
+  "devDependencies": {
+    "@jupyterlab/builder": "^4.0.0",
+    "css-loader": "^6.7.1",
+    "mkdirp": "^1.0.3",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.2",
+    "typescript": "^5",
+    "yjs": "^13.5.0"
+  },
+  "sideEffects": [
+    "style/*.css",
+    "style/index.js"
+  ],
+  "styleModule": "style/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "jupyterlab": {
+    "discovery": {
+      "server": {
+        "managers": [
+          "pip"
+        ],
+        "base": {
+          "name": "jupytergis_lab"
+        }
+      }
+    },
+    "extension": true,
+    "outputDir": "jupytergis_lab/labextension",
+    "sharedPackages": {
+      "@jupytergis/base": {
+        "singleton": true,
+        "bundled": false
+      },
+      "@jupytergis/schema": {
+        "singleton": true,
+        "bundled": false
+      },
+      "@jupytergis/jupytergis-core": {
+        "singleton": true,
+        "bundled": false
+      },
+      "@jupyter/docprovider": {
+        "singleton": true,
+        "bundled": false
+      }
+    }
+  }
+}

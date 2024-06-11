@@ -1,0 +1,94 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = [
+  "hatchling>=1.5.0",
+  "jupyterlab>=4.0.0,<5",
+  "hatch-nodejs-version>=0.3.2",
+]
+
+[project]
+classifiers = [
+  "Framework :: Jupyter",
+  "Framework :: Jupyter :: JupyterLab",
+  "Framework :: Jupyter :: JupyterLab :: 4",
+  "Framework :: Jupyter :: JupyterLab :: Extensions",
+  "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+  "jupyter_server>=2.0.1,<3",
+  "jupyter-ydoc>=2,<3",
+  "jupyterlab>=4,<5",
+  "jupyter-collaboration>=2,<3",
+  "ypywidgets>=0.6.5,<0.7",
+  "yjs-widgets>=0.3.4,<0.4",
+  "comm>=0.1.2,<0.2.0",
+  "pydantic>=2,<3",
+  "jupytergis_core>=0.1.0,<1",
+]
+dynamic = ["version", "description", "authors", "urls", "keywords"]
+license = {file = "LICENSE"}
+name = "jupytergis_lab"
+readme = "README.md"
+requires-python = ">=3.8"
+
+[tool.hatch.version]
+source = "nodejs"
+
+[tool.hatch.metadata.hooks.nodejs]
+fields = ["description", "authors", "urls"]
+
+[tool.hatch.build.targets.sdist]
+artifacts = ["jupytergis_lab/labextension", "/jupytergis_lab/notebook/objects/_schema/*.py"]
+exclude = [".github", "binder"]
+
+[tool.hatch.build.targets.wheel]
+artifacts = ["/jupytergis_lab/notebook/objects/_schema/*.py"]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"install.json" = "share/jupyter/labextensions/@jupytergis/jupytergis-lab/install.json"
+"jupytergis_lab/labextension" = "share/jupyter/labextensions/@jupytergis/jupytergis-lab"
+
+[tool.hatch.build.hooks.version]
+path = "jupytergis_lab/_version.py"
+
+[tool.hatch.build.hooks.jupyter-builder]
+build-function = "hatch_jupyter_builder.npm_builder"
+dependencies = ["hatch-jupyter-builder>=0.5"]
+ensured-targets = [
+  "jupytergis_lab/labextension/static/style.js",
+  "jupytergis_lab/labextension/package.json",
+  "jupytergis_lab/notebook/objects/_schema/box.py",
+]
+skip-if-exists = ["jupytergis_lab/labextension/static/style.js"]
+
+[tool.hatch.build.hooks.jupyter-builder.build-kwargs]
+build_cmd = "build:prod"
+npm = ["jlpm"]
+
+[tool.hatch.build.hooks.jupyter-builder.editable-build-kwargs]
+build_cmd = "install:extension"
+build_dir = "jupytergis_lab/labextension"
+npm = ["jlpm"]
+source_dir = "src"
+
+[tool.jupyter-releaser.options]
+version_cmd = "hatch version"
+
+[tool.jupyter-releaser.hooks]
+before-build-npm = [
+  "python -m pip install 'jupyterlab>=4.0.0,<5'",
+  "jlpm",
+  "jlpm build:prod",
+]
+before-build-python = ["jlpm clean:all"]
+
+[tool.check-wheel-contents]
+ignore = ["W002"]

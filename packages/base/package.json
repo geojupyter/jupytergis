@@ -1,0 +1,84 @@
+{
+  "name": "@jupytergis/base",
+  "version": "0.1.0",
+  "description": "A JupyterLab extension for 3D modelling.",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension"
+  ],
+  "homepage": "https://github.com/QuantStack/jupytergis",
+  "bugs": {
+    "url": "https://github.com/QuantStack/jupytergis/issues"
+  },
+  "license": "BSD-3-Clause",
+  "author": {
+    "name": "JupyterGIS contributors"
+  },
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "style": "style/index.css",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QuantStack/jupytergis.git"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "build:prod": "jlpm run clean && jlpm run build",
+    "clean": "rimraf tsconfig.tsbuildinfo",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "clean:all": "jlpm run clean:lib",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "@deathbeds/jupyterlab-rjsf": "^1.1.0",
+    "@jupyter/docprovider": "^2.0.0",
+    "@jupyter/ydoc": "^1.0.0",
+    "@jupytergis/schema": "^0.1.0",
+    "@jupyterlab/application": "^4.0.0",
+    "@jupyterlab/apputils": "^4.0.0",
+    "@jupyterlab/coreutils": "^6.0.0",
+    "@jupyterlab/docregistry": "^4.0.0",
+    "@jupyterlab/filebrowser": "^4.0.0",
+    "@jupyterlab/launcher": "^4.0.0",
+    "@jupyterlab/observables": "^5.0.0",
+    "@jupyterlab/services": "^7.0.0",
+    "@jupyterlab/translation": "^4.0.0",
+    "@jupyterlab/ui-components": "^4.0.0",
+    "@lumino/commands": "^2.0.0",
+    "@lumino/coreutils": "^2.0.0",
+    "@lumino/messaging": "^2.0.0",
+    "@lumino/signaling": "^2.0.0",
+    "@lumino/widgets": "^2.0.0",
+    "@naisutech/react-tree": "^3.0.1",
+    "@rjsf/core": "^4.2.0",
+    "@types/d3-color": "^3.1.0",
+    "@types/three": "^0.134.0",
+    "d3-color": "^3.1.0",
+    "react": "^18.0.1",
+    "styled-components": "^5.3.6",
+    "three": "^0.135.0",
+    "three-mesh-bvh": "^0.5.17",
+    "uuid": "^8.3.2",
+    "yjs-widgets": "^0.3.3"
+  },
+  "devDependencies": {
+    "@apidevtools/json-schema-ref-parser": "^9.0.9",
+    "@types/node": "^18.15.11",
+    "@types/three": "^0.135.0",
+    "rimraf": "^3.0.2",
+    "typescript": "^5"
+  },
+  "sideEffects": [
+    "style/*.css",
+    "style/index.js"
+  ],
+  "styleModule": "style/index.js",
+  "publishConfig": {
+    "access": "public"
+  }
+}
