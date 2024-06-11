@@ -3,13 +3,11 @@ import {
   SharedDocumentFactory
 } from '@jupyter/docprovider';
 import {
-  IAnnotationModel,
-  IAnnotationToken,
-  IJCadExternalCommandRegistry,
-  IJCadExternalCommandRegistryToken,
-  IJupyterCadDocTracker,
-  IJupyterCadWidget,
-  JupyterCadDoc
+  IJGISExternalCommandRegistry,
+  IJGISExternalCommandRegistryToken,
+  IJupyterGISDocTracker,
+  IJupyterGISWidget,
+  JupyterGISDoc
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -24,32 +22,31 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { fileIcon } from '@jupyterlab/ui-components';
 
-import { JupyterCadWidgetFactory } from '../factory';
-import { JupyterCadJcadModelFactory } from './modelfactory';
+import { JupyterGISWidgetFactory } from '../factory';
+import { JupyterGISModelFactory } from './modelfactory';
 
-const FACTORY = 'JupyterCAD .jcad Viewer';
-const PALETTE_CATEGORY = 'JupyterCAD';
+const FACTORY = 'JupyterGIS .jgis Viewer';
+const PALETTE_CATEGORY = 'JupyterGIS';
 
 namespace CommandIDs {
-  export const createNew = 'jupytercad:create-new-jGIS-file';
+  export const createNew = 'jupytergis:create-new-jGIS-file';
 }
 
 const activate = (
   app: JupyterFrontEnd,
-  tracker: WidgetTracker<IJupyterCadWidget>,
+  tracker: WidgetTracker<IJupyterGISWidget>,
   themeManager: IThemeManager,
-  annotationModel: IAnnotationModel,
   browserFactory: IFileBrowserFactory,
-  externalCommandRegistry: IJCadExternalCommandRegistry,
+  externalCommandRegistry: IJGISExternalCommandRegistry,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
   drive: ICollaborativeDrive | null
 ): void => {
-  const widgetFactory = new JupyterCadWidgetFactory({
+  const widgetFactory = new JupyterGISWidgetFactory({
     name: FACTORY,
-    modelName: 'jupytercad-jcadmodel',
-    fileTypes: ['jcad'],
-    defaultFor: ['jcad'],
+    modelName: 'jupytergis-jgismodel',
+    fileTypes: ['jgis'],
+    defaultFor: ['jgis'],
     tracker,
     commands: app.commands,
     externalCommandRegistry
@@ -58,27 +55,25 @@ const activate = (
   app.docRegistry.addWidgetFactory(widgetFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
-  const modelFactory = new JupyterCadJcadModelFactory({
-    annotationModel
-  });
+  const modelFactory = new JupyterGISModelFactory();
   app.docRegistry.addModelFactory(modelFactory);
   // register the filetype
   app.docRegistry.addFileType({
-    name: 'jcad',
-    displayName: 'JCAD',
+    name: 'jgis',
+    displayName: 'JGIS',
     mimeTypes: ['text/json'],
-    extensions: ['.jcad', '.JCAD'],
+    extensions: ['.jgis', '.JGIS'],
     fileFormat: 'text',
-    contentType: 'jcad'
+    contentType: 'jgis'
   });
 
-  const jcadSharedModelFactory: SharedDocumentFactory = () => {
-    return new JupyterCadDoc();
+  const jGISSharedModelFactory: SharedDocumentFactory = () => {
+    return new JupyterGISDoc();
   };
   if (drive) {
     drive.sharedModelFactory.registerDocumentFactory(
-      'jcad',
-      jcadSharedModelFactory
+      'jGIS',
+      jGISSharedModelFactory
     );
   }
 
@@ -90,16 +85,16 @@ const activate = (
       widget.context.model.themeChanged.emit(changes)
     );
     tracker.add(widget);
-    app.shell.activateById('jupytercad::leftControlPanel');
-    app.shell.activateById('jupytercad::rightControlPanel');
+    app.shell.activateById('jupytergis::leftControlPanel');
+    app.shell.activateById('jupytergis::rightControlPanel');
   });
 
   app.commands.addCommand(CommandIDs.createNew, {
-    label: args => 'New JCAD File',
-    caption: 'Create a new JCAD Editor',
+    label: args => 'New JGIS File',
+    caption: 'Create a new JGIS Editor',
     icon: args => (args['isPalette'] ? undefined : fileIcon),
     execute: async args => {
-      // Get the directory in which the JCAD file must be created;
+      // Get the directory in which the JGIS file must be created;
       // otherwise take the current filebrowser directory
       const cwd = (args['cwd'] ||
         browserFactory.tracker.currentWidget?.model.path) as string;
@@ -108,7 +103,7 @@ const activate = (
       let model = await app.serviceManager.contents.newUntitled({
         path: cwd,
         type: 'file',
-        ext: '.jcad'
+        ext: '.jGIS'
       });
 
       model = await app.serviceManager.contents.save(model.path, {
@@ -146,18 +141,17 @@ const activate = (
   }
 };
 
-const jcadPlugin: JupyterFrontEndPlugin<void> = {
-  id: 'jupytercad:jcadplugin',
+const jGISPlugin: JupyterFrontEndPlugin<void> = {
+  id: 'jupyterGIS:jGISplugin',
   requires: [
-    IJupyterCadDocTracker,
+    IJupyterGISDocTracker,
     IThemeManager,
-    IAnnotationToken,
     IFileBrowserFactory,
-    IJCadExternalCommandRegistryToken
+    IJGISExternalCommandRegistryToken
   ],
   optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
   autoStart: true,
   activate
 };
 
-export default jcadPlugin;
+export default jGISPlugin;

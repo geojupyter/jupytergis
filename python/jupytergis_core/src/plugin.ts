@@ -1,11 +1,11 @@
-import { JupyterCadWidget } from '@jupytergis/base';
+import { JupyterGISWidget } from '@jupytergis/base';
 import {
-  IJCadExternalCommandRegistry,
-  IJCadExternalCommandRegistryToken,
-  IJCadFormSchemaRegistry,
-  IJCadFormSchemaRegistryToken,
-  IJupyterCadDocTracker,
-  IJupyterCadTracker
+  IJGISExternalCommandRegistry,
+  IJGISExternalCommandRegistryToken,
+  IJGISFormSchemaRegistry,
+  IJGISFormSchemaRegistryToken,
+  IJupyterGISDocTracker,
+  IJupyterGISTracker
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -20,18 +20,18 @@ import { JupyterCadExternalCommandRegistry } from './externalcommand';
 
 const NAME_SPACE = 'jupytercad';
 
-export const trackerPlugin: JupyterFrontEndPlugin<IJupyterCadTracker> = {
+export const trackerPlugin: JupyterFrontEndPlugin<IJupyterGISTracker> = {
   id: 'jupytercad:core:tracker',
   autoStart: true,
   requires: [ITranslator],
   optional: [IMainMenu],
-  provides: IJupyterCadDocTracker,
+  provides: IJupyterGISDocTracker,
   activate: (
     app: JupyterFrontEnd,
     translator: ITranslator,
     mainMenu?: IMainMenu
-  ): IJupyterCadTracker => {
-    const tracker = new WidgetTracker<JupyterCadWidget>({
+  ): IJupyterGISTracker => {
+    const tracker = new WidgetTracker<JupyterGISWidget>({
       namespace: NAME_SPACE
     });
     console.log('jupytercad:core:tracker is activated!');
@@ -39,25 +39,25 @@ export const trackerPlugin: JupyterFrontEndPlugin<IJupyterCadTracker> = {
   }
 };
 
-export const formSchemaRegistryPlugin: JupyterFrontEndPlugin<IJCadFormSchemaRegistry> =
+export const formSchemaRegistryPlugin: JupyterFrontEndPlugin<IJGISFormSchemaRegistry> =
   {
     id: 'jupytercad:core:form-schema-registry',
     autoStart: true,
     requires: [],
-    provides: IJCadFormSchemaRegistryToken,
-    activate: (app: JupyterFrontEnd): IJCadFormSchemaRegistry => {
+    provides: IJGISFormSchemaRegistryToken,
+    activate: (app: JupyterFrontEnd): IJGISFormSchemaRegistry => {
       const registry = new JupyterCadFormSchemaRegistry();
       return registry;
     }
   };
 
-export const externalCommandRegistryPlugin: JupyterFrontEndPlugin<IJCadExternalCommandRegistry> =
+export const externalCommandRegistryPlugin: JupyterFrontEndPlugin<IJGISExternalCommandRegistry> =
   {
     id: 'jupytercad:core:external-command-registry',
     autoStart: true,
     requires: [],
-    provides: IJCadExternalCommandRegistryToken,
-    activate: (app: JupyterFrontEnd): IJCadExternalCommandRegistry => {
+    provides: IJGISExternalCommandRegistryToken,
+    activate: (app: JupyterFrontEnd): IJGISExternalCommandRegistry => {
       const registry = new JupyterCadExternalCommandRegistry();
       return registry;
     }

@@ -1,27 +1,27 @@
 import {
-  JupyterCadModel,
-  IJupyterCadTracker,
-  IJCadExternalCommandRegistry
+  JupyterGISModel,
+  IJupyterGISTracker,
+  IJGISExternalCommandRegistry
 } from '@jupytergis/schema';
 import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
 import { CommandRegistry } from '@lumino/commands';
 
 import {
-  JupyterCadPanel,
-  JupyterCadWidget,
+  JupyterGISPanel,
+  JupyterGISWidget,
   ToolbarWidget
 } from '@jupytergis/base';
 
 interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
-  tracker: IJupyterCadTracker;
+  tracker: IJupyterGISTracker;
   commands: CommandRegistry;
-  externalCommandRegistry: IJCadExternalCommandRegistry;
+  externalCommandRegistry: IJGISExternalCommandRegistry;
   backendCheck?: () => boolean;
 }
 
-export class JupyterCadWidgetFactory extends ABCWidgetFactory<
-  JupyterCadWidget,
-  JupyterCadModel
+export class JupyterGISWidgetFactory extends ABCWidgetFactory<
+  JupyterGISWidget,
+  JupyterGISModel
 > {
   constructor(options: IOptions) {
     const { backendCheck, externalCommandRegistry, ...rest } = options;
@@ -38,8 +38,8 @@ export class JupyterCadWidgetFactory extends ABCWidgetFactory<
    * @returns The widget
    */
   protected createNewWidget(
-    context: DocumentRegistry.IContext<JupyterCadModel>
-  ): JupyterCadWidget {
+    context: DocumentRegistry.IContext<JupyterGISModel>
+  ): JupyterGISWidget {
     if (this._backendCheck) {
       const checked = this._backendCheck();
       if (!checked) {
@@ -47,7 +47,7 @@ export class JupyterCadWidgetFactory extends ABCWidgetFactory<
       }
     }
     const { model } = context;
-    const content = new JupyterCadPanel({
+    const content = new JupyterGISPanel({
       model
     });
     const toolbar = new ToolbarWidget({
@@ -55,10 +55,10 @@ export class JupyterCadWidgetFactory extends ABCWidgetFactory<
       model,
       externalCommands: this._externalCommandRegistry.getCommands()
     });
-    return new JupyterCadWidget({ context, content, toolbar });
+    return new JupyterGISWidget({ context, content, toolbar });
   }
 
   private _commands: CommandRegistry;
-  private _externalCommandRegistry: IJCadExternalCommandRegistry;
+  private _externalCommandRegistry: IJGISExternalCommandRegistry;
   private _backendCheck?: () => boolean;
 }

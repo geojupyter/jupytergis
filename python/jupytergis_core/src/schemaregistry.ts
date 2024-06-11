@@ -1,7 +1,7 @@
-import { IDict, IJCadFormSchemaRegistry } from '@jupytergis/schema';
+import { IDict, IJGISFormSchemaRegistry } from '@jupytergis/schema';
 import formSchema from '@jupytergis/schema/lib/_interface/forms.json';
 
-export class JupyterCadFormSchemaRegistry implements IJCadFormSchemaRegistry {
+export class JupyterGISFormSchemaRegistry implements IJGISFormSchemaRegistry {
   constructor() {
     this._registry = new Map<string, IDict>(Object.entries(formSchema));
   }

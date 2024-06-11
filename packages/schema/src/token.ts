@@ -6,7 +6,7 @@ import {
   IJGISExternalCommandRegistry
 } from './interfaces';
 
-export const IJupyterCadDocTracker = new Token<IJupyterGISTracker>(
+export const IJupyterGISDocTracker = new Token<IJupyterGISTracker>(
   'jupyterCadDocTracker'
 );
 

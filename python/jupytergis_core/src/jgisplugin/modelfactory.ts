@@ -1,21 +1,16 @@
 import {
-  IAnnotationModel,
-  IJupyterCadDoc,
-  JupyterCadModel
+  IJupyterGISDoc,
+  JupyterGISModel
 } from '@jupytergis/schema';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 
 /**
- * A Model factory to create new instances of JupyterCadModel.
+ * A Model factory to create new instances of JupyterGISModel.
  */
-export class JupyterCadJcadModelFactory
-  implements DocumentRegistry.IModelFactory<JupyterCadModel>
+export class JupyterGISModelFactory
+  implements DocumentRegistry.IModelFactory<JupyterGISModel>
 {
-  constructor(options: JupyterCadJcadModelFactory.IOptions) {
-    this._annotationModel = options.annotationModel;
-  }
-
   /**
    * Whether the model is collaborative or not.
    */
@@ -27,7 +22,7 @@ export class JupyterCadJcadModelFactory
    * @returns The name
    */
   get name(): string {
-    return 'jupytercad-jcadmodel';
+    return 'jupytergis-jgismodel';
   }
 
   /**
@@ -36,7 +31,7 @@ export class JupyterCadJcadModelFactory
    * @returns The content type
    */
   get contentType(): Contents.ContentType {
-    return 'jcad';
+    return 'jgis';
   }
 
   /**
@@ -75,27 +70,19 @@ export class JupyterCadJcadModelFactory
   }
 
   /**
-   * Create a new instance of JupyterCadModel.
+   * Create a new instance of JupyterGISModel.
    *
    * @returns The model
    */
   createNew(
-    options: DocumentRegistry.IModelOptions<IJupyterCadDoc>
-  ): JupyterCadModel {
-    const model = new JupyterCadModel({
+    options: DocumentRegistry.IModelOptions<IJupyterGISDoc>
+  ): JupyterGISModel {
+    const model = new JupyterGISModel({
       sharedModel: options.sharedModel,
-      languagePreference: options.languagePreference,
-      annotationModel: this._annotationModel
+      languagePreference: options.languagePreference
     });
     return model;
   }
 
-  private _annotationModel: IAnnotationModel;
   private _disposed = false;
-}
-
-export namespace JupyterCadJcadModelFactory {
-  export interface IOptions {
-    annotationModel: IAnnotationModel;
-  }
 }

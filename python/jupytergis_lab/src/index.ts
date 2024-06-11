@@ -1,17 +1,16 @@
 import {
   ControlPanelModel,
-  jcLightIcon,
-  JupyterCadWidget,
+  JupyterGISWidget,
   LeftPanelWidget,
   RightPanelWidget,
   addCommands,
   CommandIDs
 } from '@jupytergis/base';
 import {
-  IJCadFormSchemaRegistry,
-  IJCadFormSchemaRegistryToken,
-  IJupyterCadDocTracker,
-  IJupyterCadTracker
+  IJGISFormSchemaRegistry,
+  IJGISFormSchemaRegistryToken,
+  IJupyterGISDocTracker,
+  IJupyterGISTracker
 } from '@jupytergis/schema';
 import {
   ILayoutRestorer,
@@ -24,24 +23,24 @@ import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 
 import { notebookRenderePlugin } from './notebookrenderer';
 
-const NAME_SPACE = 'jupytercad';
+const NAME_SPACE = 'jupytergis';
 
 const plugin: JupyterFrontEndPlugin<void> = {
-  id: 'jupytercad:lab:main-menu',
+  id: 'jupytergis:lab:main-menu',
   autoStart: true,
   requires: [
-    IJupyterCadDocTracker,
-    IJCadFormSchemaRegistryToken,
+    IJupyterGISDocTracker,
+    IJGISFormSchemaRegistryToken,
   ],
   optional: [IMainMenu, ITranslator],
   activate: (
     app: JupyterFrontEnd,
-    tracker: WidgetTracker<JupyterCadWidget>,
-    formSchemaRegistry: IJCadFormSchemaRegistry,
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
     mainMenu?: IMainMenu,
     translator?: ITranslator
   ): void => {
-    console.log('jupytercad:lab:main-menu is activated!');
+    console.log('jupytergis:lab:main-menu is activated!');
     translator = translator ?? nullTranslator;
     const isEnabled = (): boolean => {
       return (
@@ -58,18 +57,18 @@ const plugin: JupyterFrontEndPlugin<void> = {
 };
 
 const controlPanel: JupyterFrontEndPlugin<void> = {
-  id: 'jupytercad:lab:controlpanel',
+  id: 'jupytergis:lab:controlpanel',
   autoStart: true,
   requires: [
     ILayoutRestorer,
-    IJupyterCadDocTracker,
-    IJCadFormSchemaRegistryToken
+    IJupyterGISDocTracker,
+    IJGISFormSchemaRegistryToken
   ],
   activate: (
     app: JupyterFrontEnd,
     restorer: ILayoutRestorer,
-    tracker: IJupyterCadTracker,
-    formSchemaRegistry: IJCadFormSchemaRegistry
+    tracker: IJupyterGISTracker,
+    formSchemaRegistry: IJGISFormSchemaRegistry
   ) => {
     const controlModel = new ControlPanelModel({ tracker });
 
@@ -77,18 +76,20 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
       model: controlModel,
       tracker
     });
-    leftControlPanel.id = 'jupytercad::leftControlPanel';
-    leftControlPanel.title.caption = 'JupyterCad Control Panel';
-    leftControlPanel.title.icon = jcLightIcon;
+    leftControlPanel.id = 'jupytergis::leftControlPanel';
+    leftControlPanel.title.caption = 'JupyterGIS Control Panel';
+    // TODO Need an icon
+    // leftControlPanel.title.icon = jcLightIcon;
 
     const rightControlPanel = new RightPanelWidget({
       model: controlModel,
       tracker,
       formSchemaRegistry
     });
-    rightControlPanel.id = 'jupytercad::rightControlPanel';
-    rightControlPanel.title.caption = 'JupyterCad Control Panel';
-    rightControlPanel.title.icon = jcLightIcon;
+    rightControlPanel.id = 'jupytergis::rightControlPanel';
+    rightControlPanel.title.caption = 'JupyterGIS Control Panel';
+    // TODO Need an icon
+    // rightControlPanel.title.icon = jcLightIcon;
 
     if (restorer) {
       restorer.add(leftControlPanel, NAME_SPACE);
@@ -103,9 +104,6 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
  * Populates the application menus for the notebook.
  */
 function populateMenus(mainMenu: IMainMenu, isEnabled: () => boolean): void {
-  mainMenu.fileMenu.addItem({
-    command: CommandIDs.exportJcad
-  });
   // Add undo/redo hooks to the edit menu.
   mainMenu.editMenu.undoers.redo.add({
     id: CommandIDs.redo,

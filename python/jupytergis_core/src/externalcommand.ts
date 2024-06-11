@@ -1,22 +1,22 @@
 import {
-  IJCadExternalCommand,
-  IJCadExternalCommandRegistry
+  IJGISExternalCommand,
+  IJGISExternalCommandRegistry
 } from '@jupytergis/schema';
 
 export class JupyterCadExternalCommandRegistry
-  implements IJCadExternalCommandRegistry
+  implements IJGISExternalCommandRegistry
 {
   constructor() {
     this._registry = new Set();
   }
 
-  registerCommand(cmd: IJCadExternalCommand): void {
+  registerCommand(cmd: IJGISExternalCommand): void {
     this._registry.add(cmd);
   }
 
-  getCommands(): IJCadExternalCommand[] {
+  getCommands(): IJGISExternalCommand[] {
     return [...this._registry];
   }
 
-  private _registry: Set<IJCadExternalCommand>;
+  private _registry: Set<IJGISExternalCommand>;
 }
