@@ -37,8 +37,6 @@ class GISDocument(CommWidget):
         )
 
         self.ydoc["layers"] = self._layers = Array()
-        self.ydoc["metadata"] = self._metadata = Map()
-        self.ydoc["outputs"] = self._outputs = Map()
         self.ydoc["options"] = self._options = Map()
 
     @property
