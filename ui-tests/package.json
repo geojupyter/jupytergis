@@ -1,5 +1,5 @@
 {
-  "name": "jupytercad-ui-tests",
+  "name": "jupytergis-ui-tests",
   "version": "1.0.0",
   "description": "JupyterCad Integration Tests",
   "private": true,

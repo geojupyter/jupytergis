@@ -34,7 +34,7 @@
     "clean": "jlpm clean:lib",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
     "clean:lintcache": "rimraf .eslintcache .stylelintcache",
-    "clean:labextension": "rimraf jupytercad_core/labextension jupytercad_core/_version.py",
+    "clean:labextension": "rimraf jupytergis_core/labextension jupytergis_core/_version.py",
     "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:lintcache",
     "eslint": "jlpm eslint:check --fix",
     "eslint:check": "eslint . --cache --ext .ts,.tsx",
@@ -96,12 +96,12 @@
           "pip"
         ],
         "base": {
-          "name": "jupytercad_core"
+          "name": "jupytergis_core"
         }
       }
     },
     "extension": true,
-    "outputDir": "jupytercad_core/labextension",
+    "outputDir": "jupytergis_core/labextension",
     "sharedPackages": {
       "@jupytergis/base": {
         "singleton": true,

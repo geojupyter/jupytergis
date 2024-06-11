@@ -385,11 +385,11 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 .highlight {
   background-color: var(--jp-layout-color2) !important;
 }
-.jupytercad-notebook-widget {
+.jupytergis-notebook-widget {
   height: 600px;
   width: 100%;
 }
-.jupytercad-notebook-widget > div {
+.jupytergis-notebook-widget > div {
   height: 100%;
   width: 100%;
 }

@@ -1,1 +1,1 @@
-# jupytercad_lab
+# jupytergis_lab

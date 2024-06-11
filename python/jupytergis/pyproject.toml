@@ -19,13 +19,13 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "jupytercad_core>=2.0.0a0,<3",
-  "jupytercad_lab>=2.0.0a0,<3",
-  "jupytercad_app>=2.0.0a0,<3",
+  "jupytergis_core>=2.0.0a0,<3",
+  "jupytergis_lab>=2.0.0a0,<3",
+  "jupytergis_app>=2.0.0a0,<3",
 ]
 dynamic = ["version"]
 license = {file = "LICENSE"}
-name = "jupytercad"
+name = "jupytergis"
 readme = "README.md"
 requires-python = ">=3.8"
 

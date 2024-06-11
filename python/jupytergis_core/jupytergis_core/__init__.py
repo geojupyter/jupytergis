@@ -6,7 +6,7 @@ except ImportError:
     # the package from a stable release or in editable mode: https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs
     import warnings
 
-    warnings.warn("Importing 'jupytercad_core' outside a proper installation.")
+    warnings.warn("Importing 'jupytergis_core' outside a proper installation.")
     __version__ = "dev"
 
 

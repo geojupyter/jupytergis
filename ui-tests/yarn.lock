@@ -2763,9 +2763,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jupytercad-ui-tests@workspace:.":
+"jupytergis-ui-tests@workspace:.":
   version: 0.0.0-use.local
-  resolution: "jupytercad-ui-tests@workspace:."
+  resolution: "jupytergis-ui-tests@workspace:."
   dependencies:
     "@jupyterlab/galata": ^5.1.0
     "@playwright/test": ^1.32.0

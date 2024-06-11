@@ -11,8 +11,8 @@ export const IJupyterGISDocTracker = new Token<IJupyterGISTracker>(
 );
 
 export const IJGISFormSchemaRegistryToken = new Token<IJGISFormSchemaRegistry>(
-  'jupytercadFormSchemaRegistry'
+  'jupytergisFormSchemaRegistry'
 );
 
 export const IJGISExternalCommandRegistryToken =
-  new Token<IJGISExternalCommandRegistry>('jupytercadExternalCommandRegistry');
+  new Token<IJGISExternalCommandRegistry>('jupytergisExternalCommandRegistry');

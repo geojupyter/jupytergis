@@ -48,7 +48,7 @@ class CadDocument(CommWidget):
         ydoc = Doc()
 
         super().__init__(
-            comm_metadata=dict(ymodel_name="@jupytercad:widget", **comm_metadata),
+            comm_metadata=dict(ymodel_name="@jupytergis:widget", **comm_metadata),
             ydoc=ydoc,
         )
 
