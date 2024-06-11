@@ -1,28 +1,18 @@
 import { Token } from '@lumino/coreutils';
 
 import {
-  IJCadWorkerRegistry,
-  IJupyterCadTracker,
-  IAnnotationModel,
-  IJCadFormSchemaRegistry,
-  IJCadExternalCommandRegistry
+  IJupyterGISTracker,
+  IJGISFormSchemaRegistry,
+  IJGISExternalCommandRegistry
 } from './interfaces';
 
-export const IJupyterCadDocTracker = new Token<IJupyterCadTracker>(
+export const IJupyterCadDocTracker = new Token<IJupyterGISTracker>(
   'jupyterCadDocTracker'
 );
 
-export const IAnnotationToken = new Token<IAnnotationModel>(
-  'jupytercadAnnotationModel'
-);
-
-export const IJCadWorkerRegistryToken = new Token<IJCadWorkerRegistry>(
-  'jupytercadWorkerRegistry'
-);
-
-export const IJCadFormSchemaRegistryToken = new Token<IJCadFormSchemaRegistry>(
+export const IJGISFormSchemaRegistryToken = new Token<IJGISFormSchemaRegistry>(
   'jupytercadFormSchemaRegistry'
 );
 
-export const IJCadExternalCommandRegistryToken =
-  new Token<IJCadExternalCommandRegistry>('jupytercadExternalCommandRegistry');
+export const IJGISExternalCommandRegistryToken =
+  new Token<IJGISExternalCommandRegistry>('jupytercadExternalCommandRegistry');

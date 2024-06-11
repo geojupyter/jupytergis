@@ -1,7 +1,6 @@
 import {
   JupyterCadModel,
   IJupyterCadTracker,
-  IJCadWorkerRegistry,
   IJCadExternalCommandRegistry
 } from '@jupytergis/schema';
 import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
@@ -16,7 +15,6 @@ import {
 interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   tracker: IJupyterCadTracker;
   commands: CommandRegistry;
-  workerRegistry: IJCadWorkerRegistry;
   externalCommandRegistry: IJCadExternalCommandRegistry;
   backendCheck?: () => boolean;
 }
@@ -30,7 +28,6 @@ export class JupyterCadWidgetFactory extends ABCWidgetFactory<
     super(rest);
     this._backendCheck = backendCheck;
     this._commands = options.commands;
-    this._workerRegistry = options.workerRegistry;
     this._externalCommandRegistry = externalCommandRegistry;
   }
 
@@ -51,8 +48,7 @@ export class JupyterCadWidgetFactory extends ABCWidgetFactory<
     }
     const { model } = context;
     const content = new JupyterCadPanel({
-      model,
-      workerRegistry: this._workerRegistry
+      model
     });
     const toolbar = new ToolbarWidget({
       commands: this._commands,
@@ -63,7 +59,6 @@ export class JupyterCadWidgetFactory extends ABCWidgetFactory<
   }
 
   private _commands: CommandRegistry;
-  private _workerRegistry: IJCadWorkerRegistry;
   private _externalCommandRegistry: IJCadExternalCommandRegistry;
   private _backendCheck?: () => boolean;
 }

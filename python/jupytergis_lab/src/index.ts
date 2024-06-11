@@ -8,12 +8,8 @@ import {
   CommandIDs
 } from '@jupytergis/base';
 import {
-  IAnnotationModel,
-  IAnnotationToken,
   IJCadFormSchemaRegistry,
   IJCadFormSchemaRegistryToken,
-  IJCadWorkerRegistry,
-  IJCadWorkerRegistryToken,
   IJupyterCadDocTracker,
   IJupyterCadTracker
 } from '@jupytergis/schema';
@@ -36,14 +32,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
   requires: [
     IJupyterCadDocTracker,
     IJCadFormSchemaRegistryToken,
-    IJCadWorkerRegistryToken
   ],
   optional: [IMainMenu, ITranslator],
   activate: (
     app: JupyterFrontEnd,
     tracker: WidgetTracker<JupyterCadWidget>,
     formSchemaRegistry: IJCadFormSchemaRegistry,
-    workerRegistry: IJCadWorkerRegistry,
     mainMenu?: IMainMenu,
     translator?: ITranslator
   ): void => {
@@ -56,7 +50,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       );
     };
 
-    addCommands(app, tracker, translator, formSchemaRegistry, workerRegistry);
+    addCommands(app, tracker, translator, formSchemaRegistry);
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }
@@ -69,21 +63,18 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
   requires: [
     ILayoutRestorer,
     IJupyterCadDocTracker,
-    IAnnotationToken,
     IJCadFormSchemaRegistryToken
   ],
   activate: (
     app: JupyterFrontEnd,
     restorer: ILayoutRestorer,
     tracker: IJupyterCadTracker,
-    annotationModel: IAnnotationModel,
     formSchemaRegistry: IJCadFormSchemaRegistry
   ) => {
     const controlModel = new ControlPanelModel({ tracker });
 
     const leftControlPanel = new LeftPanelWidget({
       model: controlModel,
-      annotationModel,
       tracker
     });
     leftControlPanel.id = 'jupytercad::leftControlPanel';

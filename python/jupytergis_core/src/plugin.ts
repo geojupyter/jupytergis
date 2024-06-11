@@ -1,13 +1,9 @@
-import { AnnotationModel, JupyterCadWidget } from '@jupytergis/base';
+import { JupyterCadWidget } from '@jupytergis/base';
 import {
-  IAnnotationModel,
-  IAnnotationToken,
   IJCadExternalCommandRegistry,
   IJCadExternalCommandRegistryToken,
   IJCadFormSchemaRegistry,
   IJCadFormSchemaRegistryToken,
-  IJCadWorkerRegistry,
-  IJCadWorkerRegistryToken,
   IJupyterCadDocTracker,
   IJupyterCadTracker
 } from '@jupytergis/schema';
@@ -19,7 +15,6 @@ import { WidgetTracker } from '@jupyterlab/apputils';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ITranslator } from '@jupyterlab/translation';
 
-import { JupyterCadWorkerRegistry } from './workerregistry';
 import { JupyterCadFormSchemaRegistry } from './schemaregistry';
 import { JupyterCadExternalCommandRegistry } from './externalcommand';
 
@@ -43,35 +38,6 @@ export const trackerPlugin: JupyterFrontEndPlugin<IJupyterCadTracker> = {
     return tracker;
   }
 };
-
-export const annotationPlugin: JupyterFrontEndPlugin<IAnnotationModel> = {
-  id: 'jupytercad:core:annotation',
-  autoStart: true,
-  requires: [IJupyterCadDocTracker],
-  provides: IAnnotationToken,
-  activate: (app: JupyterFrontEnd, tracker: IJupyterCadTracker) => {
-    const annotationModel = new AnnotationModel({
-      context: tracker.currentWidget?.context
-    });
-
-    tracker.currentChanged.connect((_, changed) => {
-      annotationModel.context = changed?.context || undefined;
-    });
-    return annotationModel;
-  }
-};
-
-export const workerRegistryPlugin: JupyterFrontEndPlugin<IJCadWorkerRegistry> =
-  {
-    id: 'jupytercad:core:worker-registry',
-    autoStart: true,
-    requires: [],
-    provides: IJCadWorkerRegistryToken,
-    activate: (app: JupyterFrontEnd): IJCadWorkerRegistry => {
-      const workerRegistry = new JupyterCadWorkerRegistry();
-      return workerRegistry;
-    }
-  };
 
 export const formSchemaRegistryPlugin: JupyterFrontEndPlugin<IJCadFormSchemaRegistry> =
   {

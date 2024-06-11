@@ -1,8 +1,6 @@
 import { WebSocketProvider } from '@jupyter/docprovider';
 import { JupyterCadPanel } from '@jupytergis/base';
 import {
-  IJCadWorkerRegistry,
-  IJCadWorkerRegistryToken,
   JupyterCadModel
 } from '@jupytergis/schema';
 
@@ -40,7 +38,6 @@ export class YJupyterCADModel extends JupyterYModel {
 export class YJupyterCADLuminoWidget extends Panel {
   constructor(options: {
     model: JupyterCadModel;
-    workerRegistry: IJCadWorkerRegistry;
   }) {
     super();
 
@@ -64,11 +61,9 @@ export class YJupyterCADLuminoWidget extends Panel {
 export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytercad:yjswidget-plugin',
   autoStart: true,
-  requires: [IJCadWorkerRegistryToken],
   optional: [IJupyterYWidgetManager, ITranslator],
   activate: (
     app: JupyterFrontEnd,
-    workerRegistry: IJCadWorkerRegistry,
     yWidgetManager?: IJupyterYWidgetManager,
     translator?: ITranslator
   ): void => {
@@ -121,8 +116,7 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
         this.node = node;
 
         const widget = new YJupyterCADLuminoWidget({
-          model: yModel.jupyterCADModel,
-          workerRegistry
+          model: yModel.jupyterCADModel
         });
         // Widget.attach(widget, node);
 
