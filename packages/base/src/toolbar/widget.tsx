@@ -8,10 +8,10 @@ import {
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { Widget } from '@lumino/widgets';
-import * as React from 'react';
 
 import { CommandIDs } from '../commands';
 import { UsersItem } from './usertoolbaritem';
+import * as React from 'react';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
 
@@ -55,6 +55,14 @@ export class ToolbarWidget extends Toolbar {
       this.addItem('separator1', new Separator());
 
       // Add more commands here
+
+      this.addItem('spacer', Toolbar.createSpacerItem());
+
+      // Users
+      this.addItem(
+        'users',
+        ReactWidget.create(<UsersItem model={options.model} />)
+      );
     }
   }
 }

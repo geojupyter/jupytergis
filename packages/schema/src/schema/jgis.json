@@ -23,6 +23,9 @@
         },
         "visible": {
           "type": "boolean"
+        },
+        "parameters": {
+          "type": "object"
         }
       }
     },

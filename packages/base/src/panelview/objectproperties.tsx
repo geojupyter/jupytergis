@@ -1,14 +1,14 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
-  IJGISModel,
+  IJGISLayers,
   IJGISLayerDocChange,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
   IJupyterGISTracker
 } from '@jupytergis/schema';
-import { ReactWidget, showErrorMessage } from '@jupyterlab/apputils';
+import { ReactWidget } from '@jupyterlab/apputils';
 import { PanelWithToolbar } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import * as React from 'react';
@@ -42,7 +42,7 @@ export class ObjectProperties extends PanelWithToolbar {
 interface IStates {
   jGISOption?: IDict;
   filePath?: string;
-  jGISObject?: IJGISModel;
+  jGISLayers?: IJGISLayers;
   selectedObjectData?: IDict;
   selectedObject?: string;
   schema?: IDict;
@@ -62,11 +62,10 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     super(props);
     this.state = {
       filePath: this.props.cpModel.filePath,
-      jGISObject: this.props.cpModel.jGISModel?.getLayers(),
+      jGISLayers: this.props.cpModel.jGISModel?.getLayers(),
       clientId: null,
       id: uuid()
     };
-    this._formSchema = props.formSchemaRegistry.getSchemas();
 
     this.props.cpModel.jGISModel?.sharedLayersChanged.connect(
       this._sharedJGISModelChanged
@@ -85,14 +84,14 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         this.setState(old => ({
           ...old,
           filePath: changed.context.localPath,
-          jGISObject: this.props.cpModel.jGISModel?.getLayers(),
+          jGISLayers: this.props.cpModel.jGISModel?.getLayers(),
           clientId: changed.context.model.getClientId()
         }));
       } else {
         this.setState({
           jGISOption: undefined,
           filePath: undefined,
-          jGISObject: undefined,
+          jGISLayers: undefined,
           selectedObjectData: undefined,
           selectedObject: undefined,
           schema: undefined
@@ -101,11 +100,11 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     });
   }
 
-  async syncObjectProperties(
+  async syncLayerProperties(
     objectName: string | undefined,
     properties: { [key: string]: any }
   ) {
-    if (!this.state.jGISObject || !objectName) {
+    if (!this.state.jGISLayers || !objectName) {
       return;
     }
 
@@ -122,7 +121,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
 
     // getContent already returns a deep copy of the content, we can change it safely here
     const updatedContent = model.getContent();
-    for (const object of updatedContent.objects) {
+    for (const object of updatedContent.layers) {
       if (object.name === objectName) {
         object.parameters = {
           ...object.parameters,
@@ -131,9 +130,9 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       }
     }
 
-    const obj = model.sharedModel.getObjectByName(objectName);
+    const obj = model.sharedModel.getLayerByName(objectName);
     if (obj) {
-      model.sharedModel.updateObjectByName(objectName, 'parameters', {
+      model.sharedModel.updateLayerByName(objectName, 'parameters', {
         ...obj['parameters'],
         ...properties
       });
@@ -163,16 +162,16 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   ): void => {
     this.setState(old => {
       if (old.selectedObject) {
-        const jGISObject = this.props.cpModel.jGISModel?.getLayers();
-        if (jGISObject) {
-          const selectedObj = itemFromName(old.selectedObject, jGISObject);
+        const jGISLayers = this.props.cpModel.jGISModel?.getLayers();
+        if (jGISLayers) {
+          const selectedObj = itemFromName(old.selectedObject, jGISLayers);
           if (!selectedObj) {
             return old;
           }
           const selectedObjectData = selectedObj['parameters'];
           return {
             ...old,
-            jGISObject: jGISObject,
+            jGISLayers: jGISLayers,
             selectedObjectData
           };
         } else {
@@ -181,7 +180,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       } else {
         return {
           ...old,
-          jGISObject: this.props.cpModel.jGISModel?.getLayers()
+          jGISLayers: this.props.cpModel.jGISModel?.getLayers()
         };
       }
     });
@@ -192,7 +191,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     clients: Map<number, IJupyterGISClientState>
   ): void => {
     const remoteUser = this.props.cpModel.jGISModel?.localState?.remoteUser;
-    const clientId = this.state.clientId;
     let newState: IJupyterGISClientState | undefined;
     if (remoteUser) {
       newState = clients.get(remoteUser);
@@ -210,7 +208,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         );
       }
     } else {
-      const localState = clientId ? clients.get(clientId) : null;
       if (this._lastSelectedPropFieldId) {
         removeStyleFromProperty(
           `${this.state.filePath}::panel`,
@@ -219,58 +216,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         );
 
         this._lastSelectedPropFieldId = undefined;
-      }
-      if (
-        localState &&
-        localState.selected?.emitter &&
-        localState.selected.emitter !== this.state.id &&
-        localState.selected?.value
-      ) {
-        newState = localState;
-      }
-    }
-    if (newState) {
-      const selection = newState.selected.value;
-      const selectedObjectNames = Object.keys(selection || {});
-      // Only show object properties if ONE object is selected and it's a shape
-      if (selection === undefined || selectedObjectNames.length !== 1) {
-        this.setState(old => ({
-          ...old,
-          schema: undefined,
-          selectedObject: '',
-          selectedObjectData: undefined
-        }));
-        return;
-      }
-
-      let selectedObject = selectedObjectNames[0];
-      if (
-        selection[selectedObject] &&
-        selection[selectedObject].type !== 'shape'
-      ) {
-        selectedObject = selection[selectedObject].parent as string;
-      }
-
-      if (selectedObject !== this.state.selectedObject) {
-        const objectData = this.props.cpModel.jGISModel?.getLayers();
-        if (objectData) {
-          let schema;
-          const selectedObj = itemFromName(selectedObject, objectData);
-          if (!selectedObj) {
-            return;
-          }
-
-          if (selectedObj.shape) {
-            schema = this._formSchema.get(selectedObj.shape);
-          }
-          const selectedObjectData = selectedObj['parameters'];
-          this.setState(old => ({
-            ...old,
-            selectedObjectData,
-            selectedObject,
-            schema
-          }));
-        }
       }
     }
   };
@@ -283,7 +228,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         schema={this.state.schema}
         sourceData={this.state.selectedObjectData}
         syncData={(properties: { [key: string]: any }) => {
-          this.syncObjectProperties(this.state.selectedObject, properties);
+          this.syncLayerProperties(this.state.selectedObject, properties);
         }}
         syncSelectedField={this.syncSelectedField}
       />
@@ -293,7 +238,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   }
 
   private _lastSelectedPropFieldId?: string;
-  private _formSchema: Map<string, IDict>;
 }
 
 export namespace ObjectProperties {
