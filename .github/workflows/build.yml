@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build jupytercad
+    name: Build jupytergis
     runs-on: ubuntu-latest
 
     steps:
