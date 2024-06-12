@@ -87,7 +87,6 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   generateScene = (): void => {
-    // TODO Create the OpenLayers map
     if (this.divRef.current) {
       this._openLayersMap = new OpenLayer.Map({
         target: this.divRef.current,
