@@ -40,9 +40,9 @@ class GISDocument(CommWidget):
         self.ydoc["options"] = self._options = Map()
 
     @property
-    def objects(self) -> List[str]:
+    def layers(self) -> List[str]:
         """
-        Get the list of objects that the document contains as a list of strings.
+        Get the list of layers that the document contains as a list of strings.
         """
         if self._layers:
             return [x["name"] for x in self._layers]

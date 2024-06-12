@@ -111,7 +111,7 @@ const activate = (
         format: 'text',
         size: undefined,
         content:
-          '{\n\t"layers": [],\n\t"options": {},\n\t}'
+          '{\n\t"layers": [],\n\t"options": {}\n}'
       });
 
       // Open the newly created file with the 'Editor'
