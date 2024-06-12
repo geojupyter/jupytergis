@@ -46,28 +46,14 @@ jobs:
           restore-keys: |
             yarn-
 
-      - name: Setup OpenCascade build cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            packages/opencascade/lib/jupytercad.opencascade.js
-            packages/opencascade/lib/jupytercad.opencascade.wasm
-            packages/opencascade/lib/jupytercad.opencascade.d.ts
-            packages/opencascade/lib/jupytercad.opencascade.version
-          key: ${{ hashFiles('packages/opencascade/build.yml') }}
-
       - name: Build the extension
         shell: bash -l {0}
         run: |
           set -eux
           yarn install
           yarn dev
-          jupyter labextension list 2>&1 | grep -ie "jupytercad-core.*OK"
-          jupyter labextension list 2>&1 | grep -ie "jupytercad-lab.*OK"
-
-      - name: Test import
-        shell: bash -l {0}
-        run: python -c "import jupytercad_app"
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
 
       - name: Package the extension
         shell: bash -l {0}
