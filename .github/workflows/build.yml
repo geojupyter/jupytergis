@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build jupytercad
+    name: Build jupytergis
     runs-on: ubuntu-latest
 
     steps:
@@ -18,7 +18,7 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-name: cad
+          environment-name: gis
           create-args: >-
             python=3.9
             jupyterlab=4
@@ -46,28 +46,14 @@ jobs:
           restore-keys: |
             yarn-
 
-      - name: Setup OpenCascade build cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            packages/opencascade/lib/jupytercad.opencascade.js
-            packages/opencascade/lib/jupytercad.opencascade.wasm
-            packages/opencascade/lib/jupytercad.opencascade.d.ts
-            packages/opencascade/lib/jupytercad.opencascade.version
-          key: ${{ hashFiles('packages/opencascade/build.yml') }}
-
       - name: Build the extension
         shell: bash -l {0}
         run: |
           set -eux
           yarn install
           yarn dev
-          jupyter labextension list 2>&1 | grep -ie "jupytercad-core.*OK"
-          jupyter labextension list 2>&1 | grep -ie "jupytercad-lab.*OK"
-
-      - name: Test import
-        shell: bash -l {0}
-        run: python -c "import jupytercad_app"
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
+          jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
 
       - name: Package the extension
         shell: bash -l {0}
@@ -81,9 +67,8 @@ jobs:
         with:
           name: extension-artifacts
           path: |
-            python/jupytercad_core/dist/jupytercad*
-            python/jupytercad_lab/dist/jupytercad*
-            python/jupytercad_app/dist/jupytercad*
+            python/jupytergis_core/dist/jupytergis*
+            python/jupytergis_lab/dist/jupytergis*
           if-no-files-found: error
 
   test_isolated:
@@ -109,12 +94,11 @@ jobs:
           sudo rm -rf $(which node)
           sudo rm -rf $(which node)
 
-          cp ./jupytercad_core/dist/jupytercad*.whl ./jupytercad_lab/dist/jupytercad*.whl ./jupytercad_app/dist/jupytercad*.whl .
-          python -m pip install "jupyterlab>=4.0.0" jupytercad*.whl
+          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl .
+          python -m pip install "jupyterlab>=4.0.0" jupytergis*.whl
 
           jupyter labextension list
-          jupyter labextension list 2>&1 | grep -ie "jupytercad.*OK"
-          jupyter cad --version
+          jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
           # jupyterlab.browser_check will fail due to the core extension jupyterlab_pygments.
           # It does not support lab v4.0.0
           #python -m jupyterlab.browser_check --no-chrome-test
@@ -135,7 +119,7 @@ jobs:
         uses: mamba-org/setup-micromamba@v1
         with:
           micromamba-version: '1.5.5-0'
-          environment-name: cad
+          environment-name: gis
           create-args: >-
             python=3.9
             jupyterlab
@@ -150,8 +134,8 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          cp ./jupytercad_core/dist/jupytercad*.whl ./jupytercad_lab/dist/jupytercad*.whl ./jupytercad_app/dist/jupytercad*.whl .
-          python -m pip install jupytercad*.whl
+          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl .
+          python -m pip install jupytergis*.whl
 
       - name: Install dependencies
         shell: bash -l {0}
@@ -182,7 +166,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: jupytercad-playwright-tests
+          name: jupytergis-playwright-tests
           path: |
             ui-tests/test-results
             ui-tests/playwright-report
@@ -225,15 +209,15 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          cp ./jupytercad_core/dist/jupytercad*.whl ./jupytercad_lab/dist/jupytercad*.whl ./jupytercad_app/dist/jupytercad*.whl .
-          python -m pip install jupytercad*.whl
+          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl .
+          python -m pip install jupytergis*.whl
 
       - name: Build the lite site
         shell: bash -l {0}
         working-directory: lite
         run: |
           set -eux
-          mkdir -p content && cp ../examples/test.jcad ./content
+          mkdir -p content && cp ../examples/test.jGIS ./content
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload artifact

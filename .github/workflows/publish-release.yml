@@ -19,7 +19,7 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-name: cad
+          environment-name: gis
           create-args: >-
             python=3.9
             jupyterlab=4.0.12
