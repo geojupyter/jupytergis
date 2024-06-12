@@ -1,0 +1,74 @@
+name: Update Galata References
+
+on:
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  update-reference-screenshots:
+    name: Update Galata References
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git to use https
+        run: git config --global hub.protocol https
+
+      - name: Install hub
+        run: sudo apt-get update && sudo apt-get install -y hub
+
+      - name: Checkout the branch from the PR that triggered the job
+        run: hub pr checkout ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download extension package
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          pr: ${{github.event.issue.number}}
+          workflow: 'build.yml'
+          workflow_conclusion: ''
+          name: extension-artifacts
+
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-name: cad
+          create-args: >-
+            python=3.9
+            jupyterlab=4
+            pythonocc-core=7.7.0
+
+      - name: Install the extension
+        shell: bash -l {0}
+        run: |
+          whereis python
+          cp ./jupytercad_core/dist/jupytercad*.whl ./jupytercad_lab/dist/jupytercad*.whl ./jupytercad_app/dist/jupytercad*.whl .
+          python -m pip install jupytercad*.whl
+
+      - name: Install dependencies
+        shell: bash -l {0}
+        working-directory: ui-tests
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        run: jlpm install
+
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@main
+        with:
+          npm_client: jlpm
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          start_server_script: 'null'
+          test_folder: ui-tests

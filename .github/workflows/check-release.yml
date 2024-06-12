@@ -1,0 +1,37 @@
+name: Check Release
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['*']
+
+jobs:
+  check_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-name: cad
+          create-args: >-
+            python=3.9
+            jupyterlab=4
+            yarn=3
+            pip
+            jupyter-releaser
+
+      - name: Check Release
+        uses: jupyter-server/jupyter_releaser/.github/actions/check-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version_spec: next
+          shell: bash -l {0}
+
+      - name: Upload Distributions
+        uses: actions/upload-artifact@v3
+        with:
+          name: jupytercad-releaser-dist-${{ github.run_number }}
+          path: .jupyter_releaser_checkout/dist
