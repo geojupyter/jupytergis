@@ -15,7 +15,7 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-name: cad
+          environment-name: gis
           create-args: >-
             python=3.9
             jupyterlab=4
@@ -33,5 +33,5 @@ jobs:
       - name: Upload Distributions
         uses: actions/upload-artifact@v3
         with:
-          name: jupytercad-releaser-dist-${{ github.run_number }}
+          name: jupytergis-releaser-dist-${{ github.run_number }}
           path: .jupyter_releaser_checkout/dist

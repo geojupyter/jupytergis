@@ -18,7 +18,7 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-name: cad
+          environment-name: gis
           create-args: >-
             python=3.9
             jupyterlab=4
@@ -99,7 +99,6 @@ jobs:
 
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
-          jupyter cad --version
           # jupyterlab.browser_check will fail due to the core extension jupyterlab_pygments.
           # It does not support lab v4.0.0
           #python -m jupyterlab.browser_check --no-chrome-test
@@ -120,7 +119,7 @@ jobs:
         uses: mamba-org/setup-micromamba@v1
         with:
           micromamba-version: '1.5.5-0'
-          environment-name: cad
+          environment-name: gis
           create-args: >-
             python=3.9
             jupyterlab
