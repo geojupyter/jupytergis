@@ -67,9 +67,8 @@ jobs:
         with:
           name: extension-artifacts
           path: |
-            python/jupytercad_core/dist/jupytercad*
-            python/jupytercad_lab/dist/jupytercad*
-            python/jupytercad_app/dist/jupytercad*
+            python/jupytergis_core/dist/jupytergis*
+            python/jupytergis_lab/dist/jupytergis*
           if-no-files-found: error
 
   test_isolated:
@@ -95,11 +94,11 @@ jobs:
           sudo rm -rf $(which node)
           sudo rm -rf $(which node)
 
-          cp ./jupytercad_core/dist/jupytercad*.whl ./jupytercad_lab/dist/jupytercad*.whl ./jupytercad_app/dist/jupytercad*.whl .
-          python -m pip install "jupyterlab>=4.0.0" jupytercad*.whl
+          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl .
+          python -m pip install "jupyterlab>=4.0.0" jupytergis*.whl
 
           jupyter labextension list
-          jupyter labextension list 2>&1 | grep -ie "jupytercad.*OK"
+          jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
           jupyter cad --version
           # jupyterlab.browser_check will fail due to the core extension jupyterlab_pygments.
           # It does not support lab v4.0.0
@@ -136,8 +135,8 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          cp ./jupytercad_core/dist/jupytercad*.whl ./jupytercad_lab/dist/jupytercad*.whl ./jupytercad_app/dist/jupytercad*.whl .
-          python -m pip install jupytercad*.whl
+          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl .
+          python -m pip install jupytergis*.whl
 
       - name: Install dependencies
         shell: bash -l {0}
@@ -168,7 +167,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: jupytercad-playwright-tests
+          name: jupytergis-playwright-tests
           path: |
             ui-tests/test-results
             ui-tests/playwright-report
@@ -211,8 +210,8 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          cp ./jupytercad_core/dist/jupytercad*.whl ./jupytercad_lab/dist/jupytercad*.whl ./jupytercad_app/dist/jupytercad*.whl .
-          python -m pip install jupytercad*.whl
+          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl .
+          python -m pip install jupytergis*.whl
 
       - name: Build the lite site
         shell: bash -l {0}
