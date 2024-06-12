@@ -353,35 +353,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   display: none;
 }
 
-.jGIS-sketcher-SketcherDialog .jp-Dialog-content {
-  max-width: unset !important;
-  max-height: unset !important;
-  width: 75vw;
-  height: 75vh;
-}
-
-.jGIS-sketcher-Sketcher {
-  background-color: var(--jp-layout-color2);
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
-}
-
-.jGIS-sketcher-Sketcher-Toolbar {
-  min-height: var(--jp-private-toolbar-height);
-  width: 100%;
-  height: 29px;
-  display: flex;
-}
-
-.jGIS-sketcher-Sketcher-Statusbar {
-  height: 20px;
-  position: absolute;
-  bottom: 0;
-  right: 5px;
-  font-size: var(--jp-ui-font-size0);
-}
-
 .highlight {
   background-color: var(--jp-layout-color2) !important;
 }
