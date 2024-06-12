@@ -9,6 +9,12 @@ import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
 import * as React from 'react';
 
+import * as OpenLayer from 'ol';
+import TileLayer from 'ol/layer/Tile';
+import XYZ from 'ol/source/XYZ';
+
+import 'ol/ol.css';
+
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
@@ -82,6 +88,26 @@ export class MainView extends React.Component<IProps, IStates> {
 
   generateScene = (): void => {
     // TODO Create the OpenLayers map
+    if (this.divRef.current) {
+      this._openLayersMap = new OpenLayer.Map({
+        target: this.divRef.current,
+        layers: [
+          new TileLayer({
+            source: new XYZ({
+              url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+            })
+          })
+        ],
+        view: new OpenLayer.View({
+          center: [0, 0],
+          zoom: 2
+        })
+      });
+
+      console.log('created map', this._openLayersMap);
+
+      this.setState(old => ({ ...old, loading: false }));
+    }
   };
 
   private _onClientSharedStateChanged = (
@@ -141,6 +167,8 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
+
+  private _openLayersMap: OpenLayer.Map;
 
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
