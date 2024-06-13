@@ -5,7 +5,7 @@ import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 
-import { IJGISContent, IJGISLayers } from './_interface/jgis';
+import { IJGISContent, IJGISLayer, IJGISLayers, IJGISSource, IJGISSources } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
   IJGISLayerDocChange,
@@ -139,8 +139,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     this.sharedModel.transact(() => {
-      this.sharedModel.addLayers(jsonData.layers);
-      this.sharedModel.setOptions(jsonData.options ?? {});
+      this.sharedModel.sources = jsonData.sources ?? {};
+      this.sharedModel.layers = jsonData.layers ?? {};
+      this.sharedModel.options = jsonData.options ?? {};
     });
     this.dirty = true;
   }
@@ -163,6 +164,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getContent(): IJGISContent {
     return {
+      sources: this.sharedModel.sources,
       layers: this.sharedModel.layers,
       options: this.sharedModel.options
     };
@@ -170,6 +172,18 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getLayers(): IJGISLayers {
     return this.sharedModel.layers;
+  }
+
+  getSources(): IJGISSources {
+    return this.sharedModel.sources;
+  }
+
+  getLayer(id: string): IJGISLayer | undefined {
+    return this.sharedModel.getLayer(id);
+  }
+
+  getSource(id: string): IJGISSource | undefined {
+    return this.sharedModel.getSource(id);
   }
 
   syncSelectedPropField(data: {

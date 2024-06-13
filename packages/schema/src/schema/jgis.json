@@ -1,25 +1,43 @@
 {
   "type": "object",
   "title": "IJGISContent",
-  "required": ["layers"],
+  "required": ["layers", "sources"],
   "additionalProperties": false,
   "properties": {
     "layers": {
       "$ref": "#/definitions/jGISLayers"
+    },
+    "sources": {
+      "$ref": "#/definitions/jGISSources"
     },
     "options": {
       "$ref": "#/definitions/jGISOptions"
     }
   },
   "definitions": {
+    "layerType": {
+      "type": "string",
+      "enum": [
+        "RasterLayer"
+      ]
+    },
+    "sourceType": {
+      "type": "string",
+      "enum": [
+        "RasterSource"
+      ]
+    },
     "jGISLayer": {
       "title": "IJGISLayer",
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "visible"],
+      "required": ["name", "type", "visible"],
       "properties": {
         "name": {
           "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/layerType"
         },
         "visible": {
           "type": "boolean"
@@ -29,12 +47,37 @@
         }
       }
     },
+    "jGISSource": {
+      "title": "IJGISSource",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/sourceType"
+        },
+        "parameters": {
+          "type": "object"
+        }
+      }
+    },
     "jGISLayers": {
       "title": "IJGISLayers",
-      "type": "array",
-      "default": [],
-      "items": {
+      "type": "object",
+      "default": {},
+      "additionalProperties": {
         "$ref": "#/definitions/jGISLayer"
+      }
+    },
+    "jGISSources": {
+      "title": "IJGISSources",
+      "type": "object",
+      "default": {},
+      "additionalProperties": {
+        "$ref": "#/definitions/jGISSource"
       }
     },
     "jGISOptions": {

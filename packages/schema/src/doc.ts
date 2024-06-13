@@ -3,10 +3,11 @@ import { JSONExt, JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import * as Y from 'yjs';
 
-import { IJGISLayer, IJGISOptions } from './_interface/jgis';
+import { IJGISLayer, IJGISLayers, IJGISOptions, IJGISSource, IJGISSources } from './_interface/jgis';
 import {
   IDict,
   IJGISLayerDocChange,
+  IJGISSourceDocChange,
   IJupyterGISDoc,
   IJupyterGISDocChange
 } from './interfaces';
@@ -19,11 +20,14 @@ export class JupyterGISDoc
     super();
 
     this._options = this.ydoc.getMap<Y.Map<any>>('options');
-    this._layers = this.ydoc.getArray<Y.Map<any>>('layers');
+    this._layers = this.ydoc.getMap<Y.Map<any>>('layers');
+    this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
     this.undoManager.addToScope(this._layers);
+    this.undoManager.addToScope(this._sources);
 
-    this._layers.observeDeep(this._layersObserver);
-    this._options.observe(this._optionsObserver);
+    this._layers.observeDeep(this._layersObserver.bind(this));
+    this._sources.observeDeep(this._sourcesObserver.bind(this));
+    this._options.observe(this._optionsObserver.bind(this));
   }
 
   dispose(): void {
@@ -34,11 +38,50 @@ export class JupyterGISDoc
     return '0.1.0';
   }
 
-  get layers(): Array<IJGISLayer> {
-    const objs = this._layers.map(
-      obj => JSONExt.deepCopy(obj.toJSON()) as IJGISLayer
-    );
-    return objs;
+  get layers(): IJGISLayers {
+    return JSONExt.deepCopy(this._layers.toJSON());
+  }
+
+  set layers(layers: IJGISLayers) {
+    this.transact(() => {
+      for (const [key, value] of Object.entries(layers)) {
+        this._layers.set(key, value);
+      }
+    });
+  }
+
+  set sources(sources: IJGISSources) {
+    this.transact(() => {
+      for (const [key, value] of Object.entries(sources)) {
+        this._sources.set(key, value);
+      }
+    });
+  }
+
+  get sources(): IJGISSources {
+    return JSONExt.deepCopy(this._sources.toJSON());
+  }
+
+  getLayer(id: string): IJGISLayer | undefined {
+    if (!this._layers.has(id)) {
+      return undefined;
+    }
+    return JSONExt.deepCopy(this._layers.get(id));
+  }
+
+  getSource(id: string): IJGISSource | undefined {
+    if (!this._sources.has(id)) {
+      return undefined;
+    }
+    return JSONExt.deepCopy(this._sources.get(id));
+  }
+
+  set options(options: IJGISOptions) {
+    this.transact(() => {
+      for (const [key, value] of Object.entries(options)) {
+        this._options.set(key, value);
+      }
+    });
   }
 
   get options(): JSONObject {
@@ -49,60 +92,94 @@ export class JupyterGISDoc
     return this._layersChanged;
   }
 
+  get sourcesChanged(): ISignal<IJupyterGISDoc, IJGISSourceDocChange> {
+    return this._sourcesChanged;
+  }
+
   get optionsChanged(): ISignal<IJupyterGISDoc, MapChange> {
     return this._optionsChanged;
   }
 
-  layerExists(name: string): boolean {
-    return Boolean(this._getLayertAsYMapByName(name));
+  layerExists(id: string): boolean {
+    return Boolean(this._getLayerAsYMap(id));
   }
 
-  getLayerByName(name: string): IJGISLayer | undefined {
-    const obj = this._getLayertAsYMapByName(name);
-    if (obj) {
-      return JSONExt.deepCopy(obj.toJSON()) as IJGISLayer;
-    }
-    return undefined;
-  }
-
-  removeLayerByName(name: string): void {
-    let index = 0;
-    for (const obj of this._layers) {
-      if (obj.get('name') === name) {
-        break;
-      }
-      index++;
-    }
-
-    if (this._layers.length > index) {
-      this.transact(() => {
-        this._layers.delete(index);
-      });
-    }
-  }
-
-  addLayer(value: IJGISLayer): void {
-    this.addLayers([value]);
-  }
-
-  addLayers(value: Array<IJGISLayer>): void {
+  removeLayer(id: string): void {
     this.transact(() => {
-      value.map(obj => {
-        if (!this.layerExists(obj.name)) {
-          this._layers.push([new Y.Map(Object.entries(obj))]);
-        } else {
-          console.error('There is already a layer with the name:', obj.name);
-        }
-      });
+      this._layers.delete(id);
     });
   }
 
-  updateLayerByName(name: string, key: string, value: any): void {
-    const obj = this._getLayertAsYMapByName(name);
+  addLayer(id: string, value: IJGISLayer): void {
+    this.transact(() => {
+      this._layers.set(id, value);
+    });
+  }
+
+  updateLayer(id: string, value: IJGISLayer): void {
+    const obj = this._getLayerAsYMap(id);
     if (!obj) {
       return;
     }
-    this.transact(() => obj.set(key, value));
+    this.transact(() => obj.set(id, value));
+  }
+
+  getObject(id: string): IJGISLayer | IJGISSource | undefined {
+    const layer = this.getLayer(id);
+    if (layer) {
+      return layer;
+    }
+
+    const source = this.getSource(id);
+    if (source) {
+      return source;
+    }
+  }
+
+  updateObjectParameters(id: string, value: IJGISLayer['parameters'] | IJGISSource['parameters']) {
+    const layer = this.getLayer(id);
+    if (layer) {
+      layer.parameters = {
+        ...layer.parameters,
+        ...value
+      };
+
+      this.updateLayer(id, layer);
+    }
+
+    const source = this.getSource(id);
+    if (source) {
+      source.parameters = {
+        ...source.parameters,
+        ...value
+      };
+
+      this.updateSource(id, source);
+    }
+  }
+
+  sourceExists(id: string): boolean {
+    return Boolean(this._getSourceAsYMap(id));
+  }
+
+  removeSource(id: string): void {
+    this.transact(() => {
+      this._sources.delete(id);
+    });
+  }
+
+  addSource(id: string, value: IJGISSource): void {
+    this.transact(() => {
+      this._sources.set(id, value);
+    });
+  }
+
+  updateSource(id: string, value: any): void {
+    const obj = this._getSourceAsYMap(id);
+    if (!obj) {
+      return;
+    }
+    this.transact(() => obj.set(id, value));
   }
 
   getOption(key: keyof IJGISOptions): IDict | undefined {
@@ -117,67 +194,84 @@ export class JupyterGISDoc
     this.transact(() => void this._options.set(key, value));
   }
 
-  setOptions(options: IJGISOptions): void {
-    this.transact(() => {
-      for (const [key, value] of Object.entries(options)) {
-        this._options.set(key, value);
-      }
-    });
-  }
-
   static create(): IJupyterGISDoc {
     return new JupyterGISDoc();
   }
 
   editable = true;
 
-  private _getLayertAsYMapByName(name: string): Y.Map<any> | undefined {
-    for (const obj of this._layers) {
-      if (obj.get('name') === name) {
-        return obj;
-      }
+  private _getLayerAsYMap(id: string): Y.Map<any> | undefined {
+    if (this._layers.has(id)) {
+      return this._layers.get(id);
     }
     return undefined;
   }
 
-  private _layersObserver = (events: Y.YEvent<any>[]): void => {
+  private _getSourceAsYMap(id: string): Y.Map<any> | undefined {
+    if (this._sources.has(id)) {
+      return this._sources.get(id);
+    }
+    return undefined;
+  }
+
+  private _layersObserver(events: Y.YEvent<any>[]): void {
     const changes: Array<{
-      name: string;
-      key: keyof IJGISLayer;
+      id: string;
       newValue: IJGISLayer;
     }> = [];
     let needEmit = false;
     events.forEach(event => {
-      const name = event.target.get('name');
-
-      if (name) {
-        event.keys.forEach((change, key) => {
-          if (!needEmit) {
-            needEmit = true;
-          }
-          changes.push({
-            name,
-            key: key as any,
-            newValue: JSONExt.deepCopy(event.target.toJSON())
-          });
+      event.keys.forEach((change, key) => {
+        if (!needEmit) {
+          needEmit = true;
+        }
+        changes.push({
+          id: key as string,
+          newValue: JSONExt.deepCopy(event.target.toJSON()[key])
         });
-      }
+      });
     });
     needEmit = changes.length === 0 ? true : needEmit;
     if (needEmit) {
       this._layersChanged.emit({ layerChange: changes });
     }
-    this._changed.emit({ layerChange: changes });
+  };
+
+  private _sourcesObserver(events: Y.YEvent<any>[]): void {
+    const changes: Array<{
+      id: string;
+      newValue: IJGISSource;
+    }> = [];
+    let needEmit = false;
+    events.forEach(event => {
+      event.keys.forEach((change, key) => {
+        if (!needEmit) {
+          needEmit = true;
+        }
+        changes.push({
+          id: key as string,
+          newValue: JSONExt.deepCopy(event.target.toJSON()[key])
+        });
+      });
+    });
+    needEmit = changes.length === 0 ? true : needEmit;
+    if (needEmit) {
+      this._sourcesChanged.emit({ sourceChange: changes });
+    }
   };
 
   private _optionsObserver = (event: Y.YMapEvent<Y.Map<string>>): void => {
     this._optionsChanged.emit(event.keys);
   };
 
-  private _layers: Y.Array<Y.Map<any>>;
+  private _layers: Y.Map<any>;
+  private _sources: Y.Map<any>;
   private _options: Y.Map<any>;
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
+    this
+  );
+  private _sourcesChanged = new Signal<IJupyterGISDoc, IJGISSourceDocChange>(
     this
   );
 }

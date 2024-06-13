@@ -54,6 +54,15 @@ export class ToolbarWidget extends Toolbar {
 
       this.addItem('separator1', new Separator());
 
+      this.addItem(
+        'newRasterLayer',
+        new CommandToolbarButton({
+          id: CommandIDs.newRasterLayer,
+          label: '',
+          commands: options.commands
+        })
+      );
+
       // Add more commands here
 
       this.addItem('spacer', Toolbar.createSpacerItem());

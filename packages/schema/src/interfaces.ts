@@ -9,14 +9,15 @@ import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 import { User } from '@jupyterlab/services';
 import { ReactWidget } from '@jupyterlab/ui-components';
-import { JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 
 import {
   IJGISContent,
   IJGISLayers,
   IJGISLayer,
-  IJGISOptions
+  IJGISSource,
+  IJGISOptions,
+  IJGISSources
 } from './_interface/jgis';
 
 export interface IDict<T = any> {
@@ -25,9 +26,15 @@ export interface IDict<T = any> {
 
 export interface IJGISLayerDocChange {
   layerChange?: Array<{
-    name: string;
-    key: keyof IJGISLayer;
+    id: string;
     newValue: IJGISLayer | undefined;
+  }>;
+}
+
+export interface IJGISSourceDocChange {
+  sourceChange?: Array<{
+    id: string;
+    newValue: IJGISSource | undefined;
   }>;
 }
 
@@ -43,25 +50,34 @@ export interface IJupyterGISClientState {
 }
 
 export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
-  layers: Array<IJGISLayer>;
-  options: JSONObject;
+  options: IJGISOptions;
+  layers: IJGISLayers;
+  sources: IJGISSources;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
 
-  layerExists(name: string): boolean;
-  getLayerByName(name: string): IJGISLayer | undefined;
-  removeLayerByName(name: string): void;
-  addLayer(value: IJGISLayer): void;
-  addLayers(value: Array<IJGISLayer>): void;
-  updateLayerByName(name: string, key: string, value: any): void;
+  layerExists(id: string): boolean;
+  getLayer(id: string): IJGISLayer | undefined;
+  removeLayer(id: string): void;
+  addLayer(id: string, value: IJGISLayer): void;
+  updateLayer(id: string, value: IJGISLayer): void;
+
+  sourceExists(id: string): boolean;
+  getSource(id: string): IJGISSource | undefined;
+  removeSource(id: string): void;
+  addSource(id: string, value: IJGISSource): void;
+  updateSource(id: string, value: IJGISSource): void;
+
+  updateObjectParameters(id: string, value: IJGISLayer['parameters'] | IJGISSource['parameters']): void;
+  getObject(id: string): IJGISLayer | IJGISSource | undefined;
 
   getOption(key: keyof IJGISOptions): IDict | undefined;
   setOption(key: keyof IJGISOptions, value: IDict): void;
-  setOptions(options: IJGISOptions): void;
 
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
+  sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
 }
 
 export interface IJupyterGISDocChange extends DocumentChange {
@@ -94,6 +110,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
+  getLayer(id: string): IJGISLayer | undefined;
+  getSources(): IJGISSources;
+  getSource(id: string): IJGISSource | undefined;
 
   syncSelectedPropField(data: {
     id: string | null;
