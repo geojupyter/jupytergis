@@ -2,7 +2,7 @@ import {
   DocumentChange,
   MapChange,
   StateChange,
-  YDocument,
+  YDocument
 } from '@jupyter/ydoc';
 import { IWidgetTracker } from '@jupyterlab/apputils';
 import { IChangedArgs } from '@jupyterlab/coreutils';
@@ -17,7 +17,7 @@ import {
   IJGISLayer,
   IJGISSource,
   IJGISOptions,
-  IJGISSources,
+  IJGISSources
 } from './_interface/jgis';
 
 export interface IDict<T = any> {
@@ -71,7 +71,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
 
   updateObjectParameters(
     id: string,
-    value: IJGISLayer['parameters'] | IJGISSource['parameters'],
+    value: IJGISLayer['parameters'] | IJGISSource['parameters']
   ): void;
   getObject(id: string): IJGISLayer | IJGISSource | undefined;
 

@@ -1,7 +1,7 @@
 import {
   IDict,
   IJupyterGISClientState,
-  IJupyterGISModel,
+  IJupyterGISModel
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -19,7 +19,7 @@ export interface IFormDialogOptions {
   syncSelectedPropField?: (
     id: string | null,
     value: any,
-    parentType: 'dialog' | 'panel',
+    parentType: 'dialog' | 'panel'
   ) => void;
   context: DocumentRegistry.IContext<IJupyterGISModel>;
 }
@@ -53,7 +53,7 @@ export class FormDialog extends Dialog<IDict> {
     let lastSelectedPropFieldId;
     const onClientSharedStateChanged = (
       sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>,
+      clients: Map<number, IJupyterGISClientState>
     ): void => {
       const remoteUser = jGISModel?.localState?.remoteUser;
       if (remoteUser) {
@@ -68,7 +68,7 @@ export class FormDialog extends Dialog<IDict> {
             id,
             value,
             newState?.user?.color,
-            lastSelectedPropFieldId,
+            lastSelectedPropFieldId
           );
         }
       } else {
@@ -76,7 +76,7 @@ export class FormDialog extends Dialog<IDict> {
           removeStyleFromProperty(
             `${filePath}::dialog`,
             lastSelectedPropFieldId,
-            ['border-color', 'box-shadow'],
+            ['border-color', 'box-shadow']
           );
 
           lastSelectedPropFieldId = undefined;

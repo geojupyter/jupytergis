@@ -4,7 +4,7 @@ import {
   ReactWidget,
   redoIcon,
   Toolbar,
-  undoIcon,
+  undoIcon
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { Widget } from '@lumino/widgets';
@@ -38,8 +38,8 @@ export class ToolbarWidget extends Toolbar {
           id: CommandIDs.undo,
           label: '',
           icon: undoIcon,
-          commands: options.commands,
-        }),
+          commands: options.commands
+        })
       );
 
       this.addItem(
@@ -48,8 +48,8 @@ export class ToolbarWidget extends Toolbar {
           id: CommandIDs.redo,
           label: '',
           icon: redoIcon,
-          commands: options.commands,
-        }),
+          commands: options.commands
+        })
       );
 
       this.addItem('separator1', new Separator());
@@ -59,8 +59,8 @@ export class ToolbarWidget extends Toolbar {
         new CommandToolbarButton({
           id: CommandIDs.newRasterLayer,
           label: '',
-          commands: options.commands,
-        }),
+          commands: options.commands
+        })
       );
 
       // Add more commands here
@@ -70,7 +70,7 @@ export class ToolbarWidget extends Toolbar {
       // Users
       this.addItem(
         'users',
-        ReactWidget.create(<UsersItem model={options.model} />),
+        ReactWidget.create(<UsersItem model={options.model} />)
       );
     }
   }

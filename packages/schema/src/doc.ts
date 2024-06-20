@@ -8,14 +8,14 @@ import {
   IJGISLayers,
   IJGISOptions,
   IJGISSource,
-  IJGISSources,
+  IJGISSources
 } from './_interface/jgis';
 import {
   IDict,
   IJGISLayerDocChange,
   IJGISSourceDocChange,
   IJupyterGISDoc,
-  IJupyterGISDocChange,
+  IJupyterGISDocChange
 } from './interfaces';
 
 export class JupyterGISDoc
@@ -144,13 +144,13 @@ export class JupyterGISDoc
 
   updateObjectParameters(
     id: string,
-    value: IJGISLayer['parameters'] | IJGISSource['parameters'],
+    value: IJGISLayer['parameters'] | IJGISSource['parameters']
   ) {
     const layer = this.getLayer(id);
     if (layer) {
       layer.parameters = {
         ...layer.parameters,
-        ...value,
+        ...value
       };
 
       this.updateLayer(id, layer);
@@ -160,7 +160,7 @@ export class JupyterGISDoc
     if (source) {
       source.parameters = {
         ...source.parameters,
-        ...value,
+        ...value
       };
 
       this.updateSource(id, source);
@@ -229,14 +229,14 @@ export class JupyterGISDoc
       newValue: IJGISLayer;
     }> = [];
     let needEmit = false;
-    events.forEach((event) => {
+    events.forEach(event => {
       event.keys.forEach((change, key) => {
         if (!needEmit) {
           needEmit = true;
         }
         changes.push({
           id: key as string,
-          newValue: JSONExt.deepCopy(event.target.toJSON()[key]),
+          newValue: JSONExt.deepCopy(event.target.toJSON()[key])
         });
       });
     });
@@ -252,14 +252,14 @@ export class JupyterGISDoc
       newValue: IJGISSource;
     }> = [];
     let needEmit = false;
-    events.forEach((event) => {
+    events.forEach(event => {
       event.keys.forEach((change, key) => {
         if (!needEmit) {
           needEmit = true;
         }
         changes.push({
           id: key as string,
-          newValue: JSONExt.deepCopy(event.target.toJSON()[key]),
+          newValue: JSONExt.deepCopy(event.target.toJSON()[key])
         });
       });
     });
@@ -278,9 +278,9 @@ export class JupyterGISDoc
   private _options: Y.Map<any>;
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
-    this,
+    this
   );
   private _sourcesChanged = new Signal<IJupyterGISDoc, IJGISSourceDocChange>(
-    this,
+    this
   );
 }

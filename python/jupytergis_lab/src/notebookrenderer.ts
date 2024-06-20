@@ -4,7 +4,7 @@ import { JupyterGISModel } from '@jupytergis/schema';
 
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin,
+  JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection, User } from '@jupyterlab/services';
@@ -15,7 +15,7 @@ import * as Y from 'yjs';
 import {
   IJupyterYWidget,
   IJupyterYWidgetManager,
-  JupyterYModel,
+  JupyterYModel
 } from 'yjs-widgets';
 
 export interface ICommMetadata {
@@ -46,7 +46,7 @@ export class YJupyterGISLuminoWidget extends Panel {
     if (this._jgisWidget) {
       MessageLoop.sendMessage(
         this._jgisWidget,
-        Widget.ResizeMessage.UnknownSize,
+        Widget.ResizeMessage.UnknownSize
       );
     }
   };
@@ -61,7 +61,7 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
   activate: (
     app: JupyterFrontEnd,
     yWidgetManager?: IJupyterYWidgetManager,
-    translator?: ITranslator,
+    translator?: ITranslator
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -84,7 +84,7 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
             contentType,
             model: this.jupyterGISModel.sharedModel,
             user,
-            translator: labTranslator.load('jupyterlab'),
+            translator: labTranslator.load('jupyterlab')
           });
           this.jupyterGISModel.disposed.connect(() => {
             ywsProvider.dispose();
@@ -98,7 +98,7 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
             .then(() => {
               _onUserChanged(user);
             })
-            .catch((e) => console.error(e));
+            .catch(e => console.error(e));
           user.userChanged.connect(_onUserChanged, this);
         }
 
@@ -112,7 +112,7 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
         this.node = node;
 
         const widget = new YJupyterGISLuminoWidget({
-          model: yModel.jupyterGISModel,
+          model: yModel.jupyterGISModel
         });
         // Widget.attach(widget, node);
 
@@ -128,7 +128,7 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
     yWidgetManager.registerWidget(
       '@jupytergis:widget',
       YJupyterGISModelFactory,
-      YJupyterGISWidget,
+      YJupyterGISWidget
     );
-  },
+  }
 };

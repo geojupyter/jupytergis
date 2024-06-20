@@ -1,4 +1,4 @@
-@import url("~@deathbeds/jupyterlab-rjsf/style/index.css");
+@import url('~@deathbeds/jupyterlab-rjsf/style/index.css');
 
 .jGIS-Spinner {
   position: absolute;
@@ -36,14 +36,14 @@
   position: absolute;
   top: 0;
   left: 0;
-  content: "";
+  content: '';
 }
 
 .jGIS-SpinnerContent:after {
   width: 75%;
   height: 75%;
   border-radius: 50%;
-  content: "";
+  content: '';
   margin: auto;
   position: absolute;
   top: 0;
@@ -121,7 +121,7 @@
   padding: 0 !important;
 }
 /* TODO: More robust selector */
-.jGIS-treeview-wrapper div[style*="align-items: center;"]:first-of-type {
+.jGIS-treeview-wrapper div[style*='align-items: center;']:first-of-type {
   flex-grow: 1;
 }
 

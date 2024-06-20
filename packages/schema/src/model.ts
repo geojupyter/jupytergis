@@ -10,7 +10,7 @@ import {
   IJGISLayer,
   IJGISLayers,
   IJGISSource,
-  IJGISSources,
+  IJGISSources
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
@@ -18,7 +18,7 @@ import {
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
-  IUserData,
+  IUserData
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
 
@@ -171,7 +171,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return {
       sources: this.sharedModel.sources,
       layers: this.sharedModel.layers,
-      options: this.sharedModel.options,
+      options: this.sharedModel.options
     };
   }
 
@@ -215,7 +215,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.awareness.clientID;
   }
 
-  private _onClientStateChanged = (changed) => {
+  private _onClientStateChanged = changed => {
     const clients = this.sharedModel.awareness.getStates() as Map<
       number,
       IJupyterGISClientState
@@ -223,7 +223,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._clientStateChanged.emit(clients);
 
-    this._sharedModel.awareness.on('change', (update) => {
+    this._sharedModel.awareness.on('change', update => {
       if (update.added.length || update.removed.length) {
         this._userChanged.emit(this.users);
       }

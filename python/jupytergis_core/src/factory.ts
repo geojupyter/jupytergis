@@ -1,7 +1,7 @@
 import {
   JupyterGISModel,
   IJupyterGISTracker,
-  IJGISExternalCommandRegistry,
+  IJGISExternalCommandRegistry
 } from '@jupytergis/schema';
 import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
 import { CommandRegistry } from '@lumino/commands';
@@ -9,7 +9,7 @@ import { CommandRegistry } from '@lumino/commands';
 import {
   JupyterGISPanel,
   JupyterGISWidget,
-  ToolbarWidget,
+  ToolbarWidget
 } from '@jupytergis/base';
 
 interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
@@ -38,7 +38,7 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
    * @returns The widget
    */
   protected createNewWidget(
-    context: DocumentRegistry.IContext<JupyterGISModel>,
+    context: DocumentRegistry.IContext<JupyterGISModel>
   ): JupyterGISWidget {
     if (this._backendCheck) {
       const checked = this._backendCheck();
@@ -48,12 +48,12 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
     }
     const { model } = context;
     const content = new JupyterGISPanel({
-      model,
+      model
     });
     const toolbar = new ToolbarWidget({
       commands: this._commands,
       model,
-      externalCommands: this._externalCommandRegistry.getCommands(),
+      externalCommands: this._externalCommandRegistry.getCommands()
     });
     return new JupyterGISWidget({ context, content, toolbar });
   }

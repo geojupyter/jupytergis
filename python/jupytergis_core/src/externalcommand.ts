@@ -1,6 +1,6 @@
 import {
   IJGISExternalCommand,
-  IJGISExternalCommandRegistry,
+  IJGISExternalCommandRegistry
 } from '@jupytergis/schema';
 
 export class JupyterGISExternalCommandRegistry

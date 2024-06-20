@@ -14,7 +14,7 @@ export class JupyterGISWidget
   implements IJupyterGISWidget
 {
   constructor(
-    options: DocumentWidget.IOptions<JupyterGISPanel, IJupyterGISModel>,
+    options: DocumentWidget.IOptions<JupyterGISPanel, IJupyterGISModel>
   ) {
     super(options);
   }
@@ -44,7 +44,7 @@ export class JupyterGISPanel extends ReactWidget {
     this._view = new ObservableMap<JSONValue>();
     this._mainViewModel = new MainViewModel({
       jGISModel: options.model,
-      viewSetting: this._view,
+      viewSetting: this._view
     });
   }
 

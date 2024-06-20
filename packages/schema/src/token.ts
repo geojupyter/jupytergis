@@ -3,15 +3,15 @@ import { Token } from '@lumino/coreutils';
 import {
   IJupyterGISTracker,
   IJGISFormSchemaRegistry,
-  IJGISExternalCommandRegistry,
+  IJGISExternalCommandRegistry
 } from './interfaces';
 
 export const IJupyterGISDocTracker = new Token<IJupyterGISTracker>(
-  'jupyterGISDocTracker',
+  'jupyterGISDocTracker'
 );
 
 export const IJGISFormSchemaRegistryToken = new Token<IJGISFormSchemaRegistry>(
-  'jupytergisFormSchemaRegistry',
+  'jupytergisFormSchemaRegistry'
 );
 
 export const IJGISExternalCommandRegistryToken =

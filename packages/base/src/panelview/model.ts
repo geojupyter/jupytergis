@@ -2,7 +2,7 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   IJupyterGISTracker,
-  IJupyterGISWidget,
+  IJupyterGISWidget
 } from '@jupytergis/schema';
 import { ISignal } from '@lumino/signaling';
 
@@ -31,13 +31,13 @@ export class ControlPanelModel implements IControlPanelModel {
   }
 
   disconnect(f: any): void {
-    this._tracker.forEach((w) => {
+    this._tracker.forEach(w => {
       w.context.model.sharedLayersChanged.disconnect(f);
       w.context.model.sharedOptionsChanged.disconnect(f);
     });
-    this._tracker.forEach((w) => w.context.model.themeChanged.disconnect(f));
-    this._tracker.forEach((w) =>
-      w.context.model.clientStateChanged.disconnect(f),
+    this._tracker.forEach(w => w.context.model.themeChanged.disconnect(f));
+    this._tracker.forEach(w =>
+      w.context.model.clientStateChanged.disconnect(f)
     );
   }
 

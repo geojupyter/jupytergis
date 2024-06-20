@@ -6,7 +6,7 @@ export class ControlPanelHeader extends Widget {
    */
   constructor() {
     super({ node: createHeader() });
-    this.title.changed.connect((_) => {
+    this.title.changed.connect(_ => {
       this.node.textContent = this.title.label;
     });
   }

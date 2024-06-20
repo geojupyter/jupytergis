@@ -1,7 +1,7 @@
 import {
   IJGISFormSchemaRegistry,
   IJupyterGISTracker,
-  JupyterGISDoc,
+  JupyterGISDoc
 } from '@jupytergis/schema';
 import { SidePanel } from '@jupyterlab/ui-components';
 
@@ -19,7 +19,7 @@ export class RightPanelWidget extends SidePanel {
     const properties = new ObjectProperties({
       controlPanelModel: this._model,
       formSchemaRegistry: options.formSchemaRegistry,
-      tracker: options.tracker,
+      tracker: options.tracker
     });
 
     this.addWidget(properties);

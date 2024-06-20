@@ -4,7 +4,7 @@ import {
   IJupyterGISDoc,
   IDict,
   IJupyterGISTracker,
-  IJupyterGISWidget,
+  IJupyterGISWidget
 } from '@jupytergis/schema';
 
 export { IDict };

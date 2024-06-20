@@ -18,9 +18,9 @@ export class UsersItem extends React.Component<IProps, IState> {
   }
 
   componentDidMount(): void {
-    this.setState((old) => ({ ...old, usersList: this._model.users }));
+    this.setState(old => ({ ...old, usersList: this._model.users }));
     this._model.userChanged.connect((_, usersList) => {
-      this.setState((old) => ({ ...old, usersList: usersList }));
+      this.setState(old => ({ ...old, usersList: usersList }));
     });
   }
 
@@ -30,10 +30,10 @@ export class UsersItem extends React.Component<IProps, IState> {
       selected = user;
     }
     this.setState(
-      (old) => ({ ...old, selectedUser: selected }),
+      old => ({ ...old, selectedUser: selected }),
       () => {
         this._model.setUserToFollow(selected?.userId);
-      },
+      }
     );
   };
 
@@ -74,7 +74,7 @@ export class UsersItem extends React.Component<IProps, IState> {
   render(): React.ReactNode {
     return (
       <div className="jGIS-toolbar-usertoolbar">
-        {this.state.usersList.map((item) => {
+        {this.state.usersList.map(item => {
           if (item.userId !== this._model.currentUserId) {
             return this.createUserIcon(item);
           }

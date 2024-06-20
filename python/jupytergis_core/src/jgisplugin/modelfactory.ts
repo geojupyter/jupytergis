@@ -72,11 +72,11 @@ export class JupyterGISModelFactory
    * @returns The model
    */
   createNew(
-    options: DocumentRegistry.IModelOptions<IJupyterGISDoc>,
+    options: DocumentRegistry.IModelOptions<IJupyterGISDoc>
   ): JupyterGISModel {
     const model = new JupyterGISModel({
       sharedModel: options.sharedModel,
-      languagePreference: options.languagePreference,
+      languagePreference: options.languagePreference
     });
     return model;
   }
