@@ -192,7 +192,8 @@ jobs:
         shell: bash -l {0}
         run: |
           jlpm install
-          jlpm run lint:check
+          jlpm run eslint:check
+          jlpm run prettier:check
 
   check_links:
     name: Check Links
