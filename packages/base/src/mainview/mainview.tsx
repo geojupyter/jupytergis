@@ -136,7 +136,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       switch (layer.type) {
-        case 'RasterLayer':
+        case 'RasterLayer': {
           const sourceId = layer.parameters?.source;
           const source = this.getSource<IRasterSource>(sourceId);
 
@@ -165,6 +165,7 @@ export class MainView extends React.Component<IProps, IStates> {
             minzoom: source.minZoom || 0,
             maxzoom: source.maxZoom || 24,
           });
+        }
       }
     }
   }
