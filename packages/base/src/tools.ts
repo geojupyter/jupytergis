@@ -37,18 +37,6 @@ export function throttle<T extends (...args: any[]) => void>(
   } as T;
 }
 
-export function itemFromName<T extends { name: string }>(
-  name: string,
-  arr: T[]
-): T | undefined {
-  for (const it of arr) {
-    if (it.name === name) {
-      return it;
-    }
-  }
-  return undefined;
-}
-
 export function focusInputField(
   filePath?: string,
   fieldId?: string | null,

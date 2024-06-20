@@ -2,7 +2,7 @@ import json
 from typing import Any, Callable
 from functools import partial
 
-from pycrdt import Array, Map, Text
+from pycrdt import Map, Text
 from jupyter_ydoc.ybasedoc import YBaseDoc
 
 
@@ -10,7 +10,8 @@ class YJGIS(YBaseDoc):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._ydoc["source"] = self._ysource = Text()
-        self._ydoc["layers"] = self._ylayers = Array()
+        self._ydoc["layers"] = self._ylayers = Map()
+        self._ydoc["sources"] = self._ysources = Map()
         self._ydoc["options"] = self._yoptions = Map()
 
     def version(self) -> str:
@@ -23,9 +24,10 @@ class YJGIS(YBaseDoc):
         :rtype: Any
         """
         layers = self._ylayers.to_py()
+        sources = self._ysources.to_py()
         options = self._yoptions.to_py()
         return json.dumps(
-            dict(layers=layers, options=options),
+            dict(layers=layers, sources=sources, options=options),
             indent=2,
         )
 
@@ -36,12 +38,12 @@ class YJGIS(YBaseDoc):
         :type value: Any
         """
         valueDict = json.loads(value)
-        newObj = []
-        for obj in valueDict["layers"]:
-            newObj.append(Map(obj))
 
         self._ylayers.clear()
-        self._ylayers.extend(newObj)
+        self._ylayers.update(valueDict.get("layers", {}))
+
+        self._ysources.clear()
+        self._ysources.update(valueDict.get("sources", {}))
 
         self._yoptions.clear()
         self._yoptions.update(valueDict.get("options", {}))
@@ -56,6 +58,9 @@ class YJGIS(YBaseDoc):
         )
         self._subscriptions[self._ylayers] = self._ylayers.observe_deep(
             partial(callback, "layers")
+        )
+        self._subscriptions[self._ysources] = self._ysources.observe_deep(
+            partial(callback, "sources")
         )
         self._subscriptions[self._yoptions] = self._yoptions.observe_deep(
             partial(callback, "options")

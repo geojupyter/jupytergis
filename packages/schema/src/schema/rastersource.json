@@ -1,0 +1,25 @@
+{
+    "type": "object",
+    "description": "RasterSource",
+    "title": "IRasterSource",
+    "required": ["url", "maxZoom", "minZoom"],
+    "additionalProperties": false,
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "The url to the tile provider"
+      },
+      "maxZoom": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 24,
+        "description": "The maximum zoom level for the raster source"
+      },
+      "minZoom": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 24,
+        "description": "The minimum zoom level for the raster source"
+      }
+    }
+}

@@ -1,4 +1,24 @@
 {
-  "layers": [],
+  "sources": {
+    "699facc9-e7c4-4f38-acf1-1fd7f02d9f36": {
+      "type": "RasterSource",
+      "name": "RasterSource",
+      "parameters": {
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "minZoom": 0,
+        "maxZoom": 24
+      }
+    }
+  },
+  "layers": {
+    "2467576f-b527-4cb7-998d-fa1d056fb8a1": {
+      "type": "RasterLayer",
+      "parameters": {
+        "source": "699facc9-e7c4-4f38-acf1-1fd7f02d9f36"
+      },
+      "visible": true,
+      "name": "RasterSource Layer"
+    }
+  },
   "options": {}
 }

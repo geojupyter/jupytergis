@@ -1,7 +1,6 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
-  IJGISLayers,
   IJGISLayerDocChange,
   IJupyterGISClientState,
   IJupyterGISDoc,
@@ -16,7 +15,6 @@ import { v4 as uuid } from 'uuid';
 
 import {
   focusInputField,
-  itemFromName,
   removeStyleFromProperty
 } from '../tools';
 import { IControlPanelModel } from '../types';
@@ -42,7 +40,6 @@ export class ObjectProperties extends PanelWithToolbar {
 interface IStates {
   jGISOption?: IDict;
   filePath?: string;
-  jGISLayers?: IJGISLayers;
   selectedObjectData?: IDict;
   selectedObject?: string;
   schema?: IDict;
@@ -62,7 +59,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     super(props);
     this.state = {
       filePath: this.props.cpModel.filePath,
-      jGISLayers: this.props.cpModel.jGISModel?.getLayers(),
       clientId: null,
       id: uuid()
     };
@@ -84,14 +80,12 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         this.setState(old => ({
           ...old,
           filePath: changed.context.localPath,
-          jGISLayers: this.props.cpModel.jGISModel?.getLayers(),
           clientId: changed.context.model.getClientId()
         }));
       } else {
         this.setState({
           jGISOption: undefined,
           filePath: undefined,
-          jGISLayers: undefined,
           selectedObjectData: undefined,
           selectedObject: undefined,
           schema: undefined
@@ -100,11 +94,11 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     });
   }
 
-  async syncLayerProperties(
-    objectName: string | undefined,
+  async syncObjectProperties(
+    id: string | undefined,
     properties: { [key: string]: any }
   ) {
-    if (!this.state.jGISLayers || !objectName) {
+    if (!id) {
       return;
     }
 
@@ -119,24 +113,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       return;
     }
 
-    // getContent already returns a deep copy of the content, we can change it safely here
-    const updatedContent = model.getContent();
-    for (const object of updatedContent.layers) {
-      if (object.name === objectName) {
-        object.parameters = {
-          ...object.parameters,
-          ...properties
-        };
-      }
-    }
-
-    const obj = model.sharedModel.getLayerByName(objectName);
-    if (obj) {
-      model.sharedModel.updateLayerByName(objectName, 'parameters', {
-        ...obj['parameters'],
-        ...properties
-      });
-    }
+    model.sharedModel.updateObjectParameters(id, properties);
   }
 
   syncSelectedField = (
@@ -162,26 +139,18 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   ): void => {
     this.setState(old => {
       if (old.selectedObject) {
-        const jGISLayers = this.props.cpModel.jGISModel?.getLayers();
-        if (jGISLayers) {
-          const selectedObj = itemFromName(old.selectedObject, jGISLayers);
-          if (!selectedObj) {
-            return old;
-          }
-          const selectedObjectData = selectedObj['parameters'];
+        const selectedObject = this.props.cpModel.jGISModel?.sharedModel.getObject(old.selectedObject);
+        if (selectedObject) {
+          const selectedObjectData = selectedObject.parameters;
           return {
             ...old,
-            jGISLayers: jGISLayers,
             selectedObjectData
           };
         } else {
           return old;
         }
       } else {
-        return {
-          ...old,
-          jGISLayers: this.props.cpModel.jGISModel?.getLayers()
-        };
+        return old;
       }
     });
   };
@@ -228,7 +197,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         schema={this.state.schema}
         sourceData={this.state.selectedObjectData}
         syncData={(properties: { [key: string]: any }) => {
-          this.syncLayerProperties(this.state.selectedObject, properties);
+          this.syncObjectProperties(this.state.selectedObject, properties);
         }}
         syncSelectedField={this.syncSelectedField}
       />

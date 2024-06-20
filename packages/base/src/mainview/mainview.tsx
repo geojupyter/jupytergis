@@ -1,19 +1,19 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
+  IJGISLayerDocChange,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
+  IRasterSource,
 } from '@jupytergis/schema';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
 import * as React from 'react';
 
-import * as OpenLayer from 'ol';
-import TileLayer from 'ol/layer/Tile';
-import XYZ from 'ol/source/XYZ';
+import * as MapLibre from 'maplibre-gl';
 
-import 'ol/ol.css';
+// import 'maplibre-gl.css';
 
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
@@ -48,6 +48,11 @@ export class MainView extends React.Component<IProps, IStates> {
     );
     this._model.clientStateChanged.connect(
       this._onClientSharedStateChanged,
+      this
+    );
+
+    this._model.sharedLayersChanged.connect(
+      this._onLayersChanged,
       this
     );
 
@@ -88,22 +93,9 @@ export class MainView extends React.Component<IProps, IStates> {
 
   generateScene = (): void => {
     if (this.divRef.current) {
-      this._openLayersMap = new OpenLayer.Map({
-        target: this.divRef.current,
-        layers: [
-          new TileLayer({
-            source: new XYZ({
-              url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-            })
-          })
-        ],
-        view: new OpenLayer.View({
-          center: [0, 0],
-          zoom: 2
-        })
+      this._Map = new MapLibre.Map({
+        container: this.divRef.current
       });
-
-      console.log('created map', this._openLayersMap);
 
       this.setState(old => ({ ...old, loading: false }));
     }
@@ -128,6 +120,68 @@ export class MainView extends React.Component<IProps, IStates> {
     change: IObservableMap.IChangedArgs<JSONValue>
   ): void {
     // TODO SOMETHING
+  }
+
+  private _onLayersChanged(
+    sender: IJupyterGISDoc,
+    change: IJGISLayerDocChange
+  ): void {
+    // TODO Why is this empty?? We need this for granular updates
+    // change.layerChange?.forEach((change) => {
+    //   console.log('new change', change);
+    // })
+
+    for (const layerId of Object.keys(this._model.sharedModel.layers)) {
+      const layer = this._model.sharedModel.getLayer(layerId);
+
+      if (!layer) {
+        console.log(`Layer id ${layerId} does not exist`);
+        continue;
+      }
+
+      switch(layer.type) {
+        case 'RasterLayer':
+          const sourceId = layer.parameters?.source;
+          const source = this.getSource<IRasterSource>(sourceId);
+
+          if (!source) {
+            continue;
+          }
+
+          // Workaround stupid maplibre issue
+          this._Map._lazyInitEmptyStyle();
+
+          // If the source does not exist, create it
+          if (!this._Map.getSource(sourceId)) {
+            this._Map.addSource(sourceId, {
+              type: 'raster',
+              tiles: [source.url],
+              tileSize: 256,
+            });
+          } else {
+            // TODO If the source already existed, update it
+          }
+
+          this._Map.addLayer({
+            id: layerId,
+            type: 'raster',
+            source: sourceId,
+            minzoom: source.minZoom || 0,
+            maxzoom: source.maxZoom || 24,
+          });
+      }
+    }
+  }
+
+  private getSource<T>(id: string): T | undefined {
+    const source = this._model.sharedModel.getSource(id);
+
+    if (!source || !source.parameters) {
+      console.log(`Source id ${id} does not exist`);
+      return;
+    }
+
+    return source.parameters as T;
   }
 
   private _handleThemeChange = (): void => {
@@ -167,7 +221,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
 
-  private _openLayersMap: OpenLayer.Map;
+  private _Map: MapLibre.Map;
 
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
