@@ -171,6 +171,30 @@ jobs:
             ui-tests/test-results
             ui-tests/playwright-report
 
+  check_linting:
+    name: Lint check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-name: gis
+          create-args: >-
+            python=3.9
+            jupyterlab=4
+            yarn=3
+
+      - name: Build the extension
+        shell: bash -l {0}
+        run: |
+          set -eux
+          yarn install
+          yarn run lint:check
+
   check_links:
     name: Check Links
     runs-on: ubuntu-latest
