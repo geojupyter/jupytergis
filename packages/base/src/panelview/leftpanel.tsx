@@ -1,12 +1,8 @@
-import {
-  JupyterGISDoc,
-  IJupyterGISTracker
-} from '@jupytergis/schema';
+import { JupyterGISDoc, IJupyterGISTracker } from '@jupytergis/schema';
 import { SidePanel } from '@jupyterlab/ui-components';
 
 import { IControlPanelModel } from '../types';
 import { ControlPanelHeader } from './header';
-
 
 export class LeftPanelWidget extends SidePanel {
   constructor(options: LeftPanelWidget.IOptions) {
@@ -16,7 +12,7 @@ export class LeftPanelWidget extends SidePanel {
     const header = new ControlPanelHeader();
     this.header.addWidget(header);
 
-    console.log(this._model)
+    console.log(this._model);
     // const datasources = new DataSourceList({ controlPanelModel: this._model });
     // this.addWidget(datasources);
 

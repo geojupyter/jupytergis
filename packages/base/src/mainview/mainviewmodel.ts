@@ -7,7 +7,6 @@ import { ObservableMap } from '@jupyterlab/observables';
 import { JSONValue } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
 
-
 export class MainViewModel implements IDisposable {
   constructor(options: MainViewModel.IOptions) {
     this._jGISModel = options.jGISModel;
@@ -36,7 +35,7 @@ export class MainViewModel implements IDisposable {
     }
     this._jGISModel.sharedLayersChanged.disconnect(
       this._onsharedLayersChanged,
-      this
+      this,
     );
     this._isDisposed = true;
   }
@@ -44,13 +43,13 @@ export class MainViewModel implements IDisposable {
   initSignal(): void {
     this._jGISModel.sharedLayersChanged.connect(
       this._onsharedLayersChanged,
-      this
+      this,
     );
   }
 
   private async _onsharedLayersChanged(
     _: IJupyterGISDoc,
-    change: IJGISLayerDocChange
+    change: IJGISLayerDocChange,
   ): Promise<void> {
     if (change.layerChange) {
       // TODO STUFF with the new updated shared model

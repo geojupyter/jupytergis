@@ -5,11 +5,11 @@ import {
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
   IJupyterGISDocTracker,
-  IJupyterGISTracker
+  IJupyterGISTracker,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { IMainMenu } from '@jupyterlab/mainmenu';
@@ -29,14 +29,14 @@ export const trackerPlugin: JupyterFrontEndPlugin<IJupyterGISTracker> = {
   activate: (
     app: JupyterFrontEnd,
     translator: ITranslator,
-    mainMenu?: IMainMenu
+    mainMenu?: IMainMenu,
   ): IJupyterGISTracker => {
     const tracker = new WidgetTracker<JupyterGISWidget>({
-      namespace: NAME_SPACE
+      namespace: NAME_SPACE,
     });
     console.log('jupytergis:core:tracker is activated!');
     return tracker;
-  }
+  },
 };
 
 export const formSchemaRegistryPlugin: JupyterFrontEndPlugin<IJGISFormSchemaRegistry> =
@@ -48,7 +48,7 @@ export const formSchemaRegistryPlugin: JupyterFrontEndPlugin<IJGISFormSchemaRegi
     activate: (app: JupyterFrontEnd): IJGISFormSchemaRegistry => {
       const registry = new JupyterGISFormSchemaRegistry();
       return registry;
-    }
+    },
   };
 
 export const externalCommandRegistryPlugin: JupyterFrontEndPlugin<IJGISExternalCommandRegistry> =
@@ -60,5 +60,5 @@ export const externalCommandRegistryPlugin: JupyterFrontEndPlugin<IJGISExternalC
     activate: (app: JupyterFrontEnd): IJGISExternalCommandRegistry => {
       const registry = new JupyterGISExternalCommandRegistry();
       return registry;
-    }
+    },
   };

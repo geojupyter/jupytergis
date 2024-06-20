@@ -9,13 +9,12 @@ import * as React from 'react';
 import { MainView } from './mainview';
 import { MainViewModel } from './mainview/mainviewmodel';
 
-
 export class JupyterGISWidget
   extends DocumentWidget<JupyterGISPanel, IJupyterGISModel>
   implements IJupyterGISWidget
 {
   constructor(
-    options: DocumentWidget.IOptions<JupyterGISPanel, IJupyterGISModel>
+    options: DocumentWidget.IOptions<JupyterGISPanel, IJupyterGISModel>,
   ) {
     super(options);
   }
@@ -39,15 +38,13 @@ export class JupyterGISPanel extends ReactWidget {
    *
    * @param context - The documents context.
    */
-  constructor(options: {
-    model: IJupyterGISModel;
-  }) {
+  constructor(options: { model: IJupyterGISModel }) {
     super();
     this.addClass('jp-jupytergis-panel');
     this._view = new ObservableMap<JSONValue>();
     this._mainViewModel = new MainViewModel({
       jGISModel: options.model,
-      viewSetting: this._view
+      viewSetting: this._view,
     });
   }
 

@@ -17,15 +17,11 @@
   "definitions": {
     "layerType": {
       "type": "string",
-      "enum": [
-        "RasterLayer"
-      ]
+      "enum": ["RasterLayer"]
     },
     "sourceType": {
       "type": "string",
-      "enum": [
-        "RasterSource"
-      ]
+      "enum": ["RasterSource"]
     },
     "jGISLayer": {
       "title": "IJGISLayer",
@@ -85,9 +81,7 @@
       "type": "object",
       "default": {},
       "additionalProperties": false,
-      "properties": {
-
-      }
+      "properties": {}
     }
   }
 }

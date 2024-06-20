@@ -1,13 +1,13 @@
 {
-    "type": "object",
-    "description": "RasterLayer",
-    "title": "IRasterLayer",
-    "required": ["source"],
-    "additionalProperties": false,
-    "properties": {
-      "source": {
-        "type": "string",
-        "description": "The id of the source"
-      }
+  "type": "object",
+  "description": "RasterLayer",
+  "title": "IRasterLayer",
+  "required": ["source"],
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "The id of the source"
     }
   }
+}

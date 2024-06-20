@@ -1,22 +1,22 @@
 import {
   ICollaborativeDrive,
-  SharedDocumentFactory
+  SharedDocumentFactory,
 } from '@jupyter/docprovider';
 import {
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
   IJupyterGISDocTracker,
   IJupyterGISWidget,
-  JupyterGISDoc
+  JupyterGISDoc,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import {
   ICommandPalette,
   IThemeManager,
-  WidgetTracker
+  WidgetTracker,
 } from '@jupyterlab/apputils';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -40,7 +40,7 @@ const activate = (
   externalCommandRegistry: IJGISExternalCommandRegistry,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
-  drive: ICollaborativeDrive | null
+  drive: ICollaborativeDrive | null,
 ): void => {
   const widgetFactory = new JupyterGISWidgetFactory({
     name: FACTORY,
@@ -49,7 +49,7 @@ const activate = (
     defaultFor: ['jgis'],
     tracker,
     commands: app.commands,
-    externalCommandRegistry
+    externalCommandRegistry,
   });
   // Registering the widget factory
   app.docRegistry.addWidgetFactory(widgetFactory);
@@ -64,7 +64,7 @@ const activate = (
     mimeTypes: ['text/json'],
     extensions: ['.jgis', '.JGIS'],
     fileFormat: 'text',
-    contentType: 'jgis'
+    contentType: 'jgis',
   });
 
   const jGISSharedModelFactory: SharedDocumentFactory = () => {
@@ -73,7 +73,7 @@ const activate = (
   if (drive) {
     drive.sharedModelFactory.registerDocumentFactory(
       'jGIS',
-      jGISSharedModelFactory
+      jGISSharedModelFactory,
     );
   }
 
@@ -82,7 +82,7 @@ const activate = (
       tracker.save(widget);
     });
     themeManager.themeChanged.connect((_, changes) =>
-      widget.context.model.themeChanged.emit(changes)
+      widget.context.model.themeChanged.emit(changes),
     );
     tracker.add(widget);
     app.shell.activateById('jupytergis::leftControlPanel');
@@ -90,10 +90,10 @@ const activate = (
   });
 
   app.commands.addCommand(CommandIDs.createNew, {
-    label: args => 'New JGIS File',
+    label: (args) => 'New JGIS File',
     caption: 'Create a new JGIS Editor',
-    icon: args => (args['isPalette'] ? undefined : fileIcon),
-    execute: async args => {
+    icon: (args) => (args['isPalette'] ? undefined : fileIcon),
+    execute: async (args) => {
       // Get the directory in which the JGIS file must be created;
       // otherwise take the current filebrowser directory
       const cwd = (args['cwd'] ||
@@ -103,23 +103,22 @@ const activate = (
       let model = await app.serviceManager.contents.newUntitled({
         path: cwd,
         type: 'file',
-        ext: '.jGIS'
+        ext: '.jGIS',
       });
 
       model = await app.serviceManager.contents.save(model.path, {
         ...model,
         format: 'text',
         size: undefined,
-        content:
-          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {}\n}'
+        content: '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {}\n}',
       });
 
       // Open the newly created file with the 'Editor'
       return app.commands.execute('docmanager:open', {
         path: model.path,
-        factory: FACTORY
+        factory: FACTORY,
       });
-    }
+    },
   });
 
   // Add the command to the launcher
@@ -127,7 +126,7 @@ const activate = (
     launcher.add({
       command: CommandIDs.createNew,
       category: 'Other',
-      rank: 1
+      rank: 1,
     });
   }
 
@@ -136,7 +135,7 @@ const activate = (
     palette.addItem({
       command: CommandIDs.createNew,
       args: { isPalette: true },
-      category: PALETTE_CATEGORY
+      category: PALETTE_CATEGORY,
     });
   }
 };
@@ -147,11 +146,11 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IJupyterGISDocTracker,
     IThemeManager,
     IFileBrowserFactory,
-    IJGISExternalCommandRegistryToken
+    IJGISExternalCommandRegistryToken,
   ],
   optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
   autoStart: true,
-  activate
+  activate,
 };
 
 export default jGISPlugin;

@@ -5,7 +5,7 @@ import {
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
-  IJupyterGISTracker
+  IJupyterGISTracker,
 } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/apputils';
 import { PanelWithToolbar } from '@jupyterlab/ui-components';
@@ -13,10 +13,7 @@ import { Panel } from '@lumino/widgets';
 import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 
-import {
-  focusInputField,
-  removeStyleFromProperty
-} from '../tools';
+import { focusInputField, removeStyleFromProperty } from '../tools';
 import { IControlPanelModel } from '../types';
 import { ObjectPropertiesForm } from './formbuilder';
 import { JupyterGISWidget } from '../widget';
@@ -30,7 +27,7 @@ export class ObjectProperties extends PanelWithToolbar {
         cpModel={params.controlPanelModel}
         tracker={params.tracker}
         formSchemaRegistry={params.formSchemaRegistry}
-      />
+      />,
     );
     this.addWidget(body);
     this.addClass('jGIS-sidebar-propertiespanel');
@@ -60,11 +57,11 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     this.state = {
       filePath: this.props.cpModel.filePath,
       clientId: null,
-      id: uuid()
+      id: uuid(),
     };
 
     this.props.cpModel.jGISModel?.sharedLayersChanged.connect(
-      this._sharedJGISModelChanged
+      this._sharedJGISModelChanged,
     );
     this.props.cpModel.documentChanged.connect((_, changed) => {
       if (changed) {
@@ -72,15 +69,15 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         this.props.cpModel.disconnect(this._onClientSharedStateChanged);
 
         changed.context.model.sharedLayersChanged.connect(
-          this._sharedJGISModelChanged
+          this._sharedJGISModelChanged,
         );
         changed.context.model.clientStateChanged.connect(
-          this._onClientSharedStateChanged
+          this._onClientSharedStateChanged,
         );
-        this.setState(old => ({
+        this.setState((old) => ({
           ...old,
           filePath: changed.context.localPath,
-          clientId: changed.context.model.getClientId()
+          clientId: changed.context.model.getClientId(),
         }));
       } else {
         this.setState({
@@ -88,7 +85,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
           filePath: undefined,
           selectedObjectData: undefined,
           selectedObject: undefined,
-          schema: undefined
+          schema: undefined,
         });
       }
     });
@@ -96,7 +93,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
 
   async syncObjectProperties(
     id: string | undefined,
-    properties: { [key: string]: any }
+    properties: { [key: string]: any },
   ) {
     if (!id) {
       return;
@@ -119,7 +116,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   syncSelectedField = (
     id: string | null,
     value: any,
-    parentType: 'panel' | 'dialog'
+    parentType: 'panel' | 'dialog',
   ) => {
     let property: string | null = null;
     if (id) {
@@ -129,22 +126,25 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     this.props.cpModel.jGISModel?.syncSelectedPropField({
       parentType,
       id: property,
-      value
+      value,
     });
   };
 
   private _sharedJGISModelChanged = (
     _: IJupyterGISDoc,
-    changed: IJGISLayerDocChange
+    changed: IJGISLayerDocChange,
   ): void => {
-    this.setState(old => {
+    this.setState((old) => {
       if (old.selectedObject) {
-        const selectedObject = this.props.cpModel.jGISModel?.sharedModel.getObject(old.selectedObject);
+        const selectedObject =
+          this.props.cpModel.jGISModel?.sharedModel.getObject(
+            old.selectedObject,
+          );
         if (selectedObject) {
           const selectedObjectData = selectedObject.parameters;
           return {
             ...old,
-            selectedObjectData
+            selectedObjectData,
           };
         } else {
           return old;
@@ -157,7 +157,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
 
   private _onClientSharedStateChanged = (
     sender: IJupyterGISModel,
-    clients: Map<number, IJupyterGISClientState>
+    clients: Map<number, IJupyterGISClientState>,
   ): void => {
     const remoteUser = this.props.cpModel.jGISModel?.localState?.remoteUser;
     let newState: IJupyterGISClientState | undefined;
@@ -173,7 +173,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
           id,
           value,
           newState?.user?.color,
-          this._lastSelectedPropFieldId
+          this._lastSelectedPropFieldId,
         );
       }
     } else {
@@ -181,7 +181,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         removeStyleFromProperty(
           `${this.state.filePath}::panel`,
           this._lastSelectedPropFieldId,
-          ['border-color', 'box-shadow']
+          ['border-color', 'box-shadow'],
         );
 
         this._lastSelectedPropFieldId = undefined;

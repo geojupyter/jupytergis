@@ -2,10 +2,9 @@ import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import * as d3Color from 'd3-color';
 
-
 export const debounce = (
   func: CallableFunction,
-  timeout = 100
+  timeout = 100,
 ): CallableFunction => {
   let timeoutId;
   return (...args) => {
@@ -18,7 +17,7 @@ export const debounce = (
 
 export function throttle<T extends (...args: any[]) => void>(
   callback: T,
-  delay = 100
+  delay = 100,
 ): T {
   let last: number;
   let timer: any;
@@ -42,7 +41,7 @@ export function focusInputField(
   fieldId?: string | null,
   value?: any,
   color?: string,
-  lastSelectedPropFieldId?: string
+  lastSelectedPropFieldId?: string,
 ): string | undefined {
   const propsToRemove = ['border-color', 'box-shadow'];
   let newSelected: string | undefined;
@@ -74,7 +73,7 @@ export function focusInputField(
 
 export function getElementFromProperty(
   filePath?: string | null,
-  prop?: string | null
+  prop?: string | null,
 ): HTMLElement | undefined | null {
   if (!filePath || !prop) {
     return;
@@ -90,14 +89,14 @@ export function getElementFromProperty(
 export function removeStyleFromProperty(
   filePath: string | null | undefined,
   prop: string | null | undefined,
-  properties: string[]
+  properties: string[],
 ): void {
   if (!filePath || !prop || properties.length === 0) {
     return;
   }
   const el = getElementFromProperty(filePath, prop);
   if (el) {
-    properties.forEach(prop => el.style.removeProperty(prop));
+    properties.forEach((prop) => el.style.removeProperty(prop));
   }
 }
 
@@ -126,7 +125,7 @@ export function getCSSVariableColor(name: string): string {
  */
 export async function requestAPI<T>(
   endPoint = '',
-  init: RequestInit = {}
+  init: RequestInit = {},
 ): Promise<T> {
   // Make request to Jupyter API
   const settings = ServerConnection.makeSettings();

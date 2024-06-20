@@ -1,21 +1,20 @@
 /**
  * Configuration for Playwright using default from @jupyterlab/galata
  */
-const baseConfig = require('@jupyterlab/galata/lib/playwright-config');
+const baseConfig = require("@jupyterlab/galata/lib/playwright-config");
 
 module.exports = {
   ...baseConfig,
   webServer: {
-    command: 'jlpm start',
-    url: 'http://localhost:8888/lab',
+    command: "jlpm start",
+    url: "http://localhost:8888/lab",
     timeout: 120 * 1000,
-    reuseExistingServer: false
+    reuseExistingServer: false,
   },
   retries: 1,
   use: {
     ...baseConfig.use,
-    trace: 'off',
-
+    trace: "off",
   },
   expect: {
     toMatchSnapshot: {

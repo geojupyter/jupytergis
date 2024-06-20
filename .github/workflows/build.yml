@@ -4,7 +4,7 @@ on:
   push:
     branches: main
   pull_request:
-    branches: '*'
+    branches: "*"
 
 jobs:
   build:
@@ -79,8 +79,8 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
-          architecture: 'x64'
+          python-version: "3.9"
+          architecture: "x64"
 
       - uses: actions/download-artifact@v3
         with:
@@ -118,7 +118,7 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          micromamba-version: '1.5.5-0'
+          micromamba-version: "1.5.5-0"
           environment-name: gis
           create-args: >-
             python=3.9
@@ -192,7 +192,7 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          micromamba-version: '1.5.5-0'
+          micromamba-version: "1.5.5-0"
           environment-name: build-env
           create-args: >-
             python=3.10

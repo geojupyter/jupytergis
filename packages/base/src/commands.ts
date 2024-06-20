@@ -4,10 +4,15 @@ import { ITranslator } from '@jupyterlab/translation';
 import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
 
 import { JupyterGISWidget } from './widget';
-import { IDict, IJGISFormSchemaRegistry, IJGISLayer, IJGISSource, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IDict,
+  IJGISFormSchemaRegistry,
+  IJGISLayer,
+  IJGISSource,
+  IJupyterGISModel,
+} from '@jupytergis/schema';
 import { FormDialog } from './formdialog';
 import { UUID } from '@lumino/coreutils';
-
 
 /**
  * Add the commands to the application's command registry.
@@ -16,7 +21,7 @@ export function addCommands(
   app: JupyterFrontEnd,
   tracker: WidgetTracker<JupyterGISWidget>,
   translator: ITranslator,
-  formSchemaRegistry: IJGISFormSchemaRegistry
+  formSchemaRegistry: IJGISFormSchemaRegistry,
 ): void {
   Private.updateFormSchema(formSchemaRegistry);
   const trans = translator.load('jupyterlab');
@@ -28,14 +33,14 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: args => {
+    execute: (args) => {
       const current = tracker.currentWidget;
 
       if (current) {
         return current.context.model.sharedModel.redo();
       }
     },
-    icon: redoIcon
+    icon: redoIcon,
   });
 
   commands.addCommand(CommandIDs.undo, {
@@ -45,14 +50,14 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: args => {
+    execute: (args) => {
       const current = tracker.currentWidget;
 
       if (current) {
         return current.context.model.sharedModel.undo();
       }
     },
-    icon: undoIcon
+    icon: undoIcon,
   });
 
   commands.addCommand(CommandIDs.newRasterLayer, {
@@ -63,7 +68,7 @@ export function addCommands(
         : false;
     },
     iconClass: 'fa fa-map',
-    execute: Private.createRasterSourceAndLayer(tracker)
+    execute: Private.createRasterSourceAndLayer(tracker),
   });
 }
 
@@ -77,12 +82,11 @@ export namespace CommandIDs {
   export const newRasterLayer = 'jupytergis:newRasterLayer';
 }
 
-
 namespace Private {
   export const FORM_SCHEMA = {};
 
   export function updateFormSchema(
-    formSchemaRegistry: IJGISFormSchemaRegistry
+    formSchemaRegistry: IJGISFormSchemaRegistry,
   ) {
     if (Object.keys(FORM_SCHEMA).length > 0) {
       return;
@@ -93,7 +97,7 @@ namespace Private {
       value['required'] = ['name', ...value['required']];
       value['properties'] = {
         name: { type: 'string', description: 'The name of the layer/source' },
-        ...value['properties']
+        ...value['properties'],
       };
     });
   }
@@ -102,7 +106,7 @@ namespace Private {
   // TODO Allow for creating only a layer (e.g. creating a vector layer given a source selected from a dropdown)
 
   export function createRasterSourceAndLayer(
-    tracker: WidgetTracker<JupyterGISWidget>
+    tracker: WidgetTracker<JupyterGISWidget>,
   ) {
     return async (args: any) => {
       const current = tracker.currentWidget;
@@ -116,11 +120,11 @@ namespace Private {
         default: (model: IJupyterGISModel) => {
           return {
             name: 'RasterSource',
-            url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             maxZoom: 24,
-            minZoom: 0
+            minZoom: 0,
           };
-        }
+        },
       };
 
       current.context.model.syncFormData(form);
@@ -128,7 +132,7 @@ namespace Private {
       const syncSelectedField = (
         id: string | null,
         value: any,
-        parentType: 'panel' | 'dialog'
+        parentType: 'panel' | 'dialog',
       ): void => {
         let property: string | null = null;
         if (id) {
@@ -138,7 +142,7 @@ namespace Private {
         current.context.model.syncSelectedPropField({
           id: property,
           value,
-          parentType
+          parentType,
         });
       };
 
@@ -146,7 +150,7 @@ namespace Private {
         context: current.context,
         title: form.title,
         sourceData: form.default(current.context.model),
-        schema: FORM_SCHEMA["RasterSource"],
+        schema: FORM_SCHEMA['RasterSource'],
         syncData: (props: IDict) => {
           const sharedModel = current.context.model.sharedModel;
           if (!sharedModel) {
@@ -158,34 +162,33 @@ namespace Private {
           const sourceId = UUID.uuid4();
 
           const sourceModel: IJGISSource = {
-            type: "RasterSource",
+            type: 'RasterSource',
             name,
             parameters: {
               url: parameters.url,
               minZoom: parameters.minZoom,
-              maxZoom: parameters.maxZoom
-            }
+              maxZoom: parameters.maxZoom,
+            },
           };
 
           const layerModel: IJGISLayer = {
-            type: "RasterLayer",
+            type: 'RasterLayer',
             parameters: {
-              source: sourceId
+              source: sourceId,
             },
             visible: true,
-            name: name + " Layer"
+            name: name + ' Layer',
           };
 
-          sharedModel.addSource(sourceId, sourceModel)
+          sharedModel.addSource(sourceId, sourceModel);
           sharedModel.addLayer(UUID.uuid4(), layerModel);
         },
         cancelButton: () => {
           current.context.model.syncFormData(undefined);
         },
-        syncSelectedPropField: syncSelectedField
+        syncSelectedPropField: syncSelectedField,
       });
       await dialog.launch();
     };
   }
-
 }

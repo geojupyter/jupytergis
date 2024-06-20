@@ -1,9 +1,9 @@
 name: Check Release
 on:
   push:
-    branches: ['main']
+    branches: ["main"]
   pull_request:
-    branches: ['*']
+    branches: ["*"]
 
 jobs:
   check_release:

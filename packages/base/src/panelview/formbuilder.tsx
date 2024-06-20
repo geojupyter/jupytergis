@@ -18,7 +18,7 @@ interface IProps {
   syncSelectedField?: (
     id: string | null,
     value: any,
-    parentType: 'panel' | 'dialog'
+    parentType: 'panel' | 'dialog',
   ) => void;
   schema?: IDict;
   cancel?: () => void;
@@ -27,7 +27,7 @@ interface IProps {
 // Reusing the datalayer/jupyter-react component:
 // https://github.com/datalayer/jupyter-react/blob/main/packages/react/src/jupyter/lumino/Lumino.tsx
 export const LuminoSchemaForm = (
-  props: React.PropsWithChildren<any>
+  props: React.PropsWithChildren<any>,
 ): JSX.Element => {
   const ref = React.useRef<HTMLDivElement>(null);
   const { children } = props;
@@ -58,7 +58,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     super(props);
     this.state = {
       internalData: { ...this.props.sourceData },
-      schema: props.schema
+      schema: props.schema,
     };
   }
 
@@ -68,17 +68,17 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
       return;
     }
     this.setState(
-      old => ({
+      (old) => ({
         ...old,
-        internalData: { ...old.internalData, [key]: floatValue }
+        internalData: { ...old.internalData, [key]: floatValue },
       }),
-      () => this.props.syncData({ [key]: floatValue })
+      () => this.props.syncData({ [key]: floatValue }),
     );
   };
 
   componentDidUpdate(prevProps: IProps, prevState: IStates): void {
     if (prevProps.sourceData !== this.props.sourceData) {
-      this.setState(old => ({ ...old, internalData: this.props.sourceData }));
+      this.setState((old) => ({ ...old, internalData: this.props.sourceData }));
     }
   }
 
@@ -97,7 +97,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
             <input
               type="number"
               value={this.state.internalData[key]}
-              onChange={e => this.setStateByKey(key, e.target.value)}
+              onChange={(e) => this.setStateByKey(key, e.target.value)}
             />
           </div>
         );
@@ -114,8 +114,8 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
           'ui:options': {
             orderable: false,
             removable: false,
-            addable: false
-          }
+            addable: false,
+          },
         };
       } else if (v['type'] === 'object') {
         uiSchema[k] = {};
@@ -128,8 +128,8 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     const uiSchema = {
       additionalProperties: {
         'ui:label': false,
-        classNames: 'jGIS-hidden-field'
-      }
+        classNames: 'jGIS-hidden-field',
+      },
     };
     this.removeArrayButton(schema, uiSchema);
     return uiSchema;
@@ -139,14 +139,14 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     const internalData = { ...this.state.internalData };
     Object.entries(e.formData).forEach(([k, v]) => (internalData[k] = v));
     this.setState(
-      old => ({
+      (old) => ({
         ...old,
-        internalData
+        internalData,
       }),
       () => {
         this.props.syncData(e.formData);
         this.props.cancel && this.props.cancel();
-      }
+      },
     );
   };
 
@@ -173,7 +173,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
         uiSchema: this.generateUiSchema(this.props.schema),
         children: (
           <button ref={submitRef} type="submit" style={{ display: 'none' }} />
-        )
+        ),
       });
       return (
         <div

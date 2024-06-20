@@ -32,7 +32,6 @@ interface IStates {
   firstLoad: boolean;
 }
 
-
 export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
@@ -44,23 +43,20 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._model.sharedOptionsChanged.connect(
       this._onSharedOptionsChanged,
-      this
+      this,
     );
     this._model.clientStateChanged.connect(
       this._onClientSharedStateChanged,
-      this
+      this,
     );
 
-    this._model.sharedLayersChanged.connect(
-      this._onLayersChanged,
-      this
-    );
+    this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
 
     this.state = {
       id: this._mainViewModel.id,
       lightTheme: isLightTheme(),
       loading: true,
-      firstLoad: true
+      firstLoad: true,
     };
   }
 
@@ -74,18 +70,18 @@ export class MainView extends React.Component<IProps, IStates> {
     window.removeEventListener('resize', this._handleWindowResize);
     this._mainViewModel.viewSettingChanged.disconnect(
       this._onViewChanged,
-      this
+      this,
     );
 
     this._model.themeChanged.disconnect(this._handleThemeChange, this);
     this._model.sharedOptionsChanged.disconnect(
       this._onSharedOptionsChanged,
-      this
+      this,
     );
 
     this._model.clientStateChanged.disconnect(
       this._onClientSharedStateChanged,
-      this
+      this,
     );
 
     this._mainViewModel.dispose();
@@ -94,37 +90,37 @@ export class MainView extends React.Component<IProps, IStates> {
   generateScene = (): void => {
     if (this.divRef.current) {
       this._Map = new MapLibre.Map({
-        container: this.divRef.current
+        container: this.divRef.current,
       });
 
-      this.setState(old => ({ ...old, loading: false }));
+      this.setState((old) => ({ ...old, loading: false }));
     }
   };
 
   private _onClientSharedStateChanged = (
     sender: IJupyterGISModel,
-    clients: Map<number, IJupyterGISClientState>
+    clients: Map<number, IJupyterGISClientState>,
   ): void => {
     // TODO SOMETHING
   };
 
   private _onSharedOptionsChanged(
     sender: IJupyterGISDoc,
-    change: MapChange
+    change: MapChange,
   ): void {
     // TODO SOMETHING
   }
 
   private _onViewChanged(
     sender: ObservableMap<JSONValue>,
-    change: IObservableMap.IChangedArgs<JSONValue>
+    change: IObservableMap.IChangedArgs<JSONValue>,
   ): void {
     // TODO SOMETHING
   }
 
   private _onLayersChanged(
     sender: IJupyterGISDoc,
-    change: IJGISLayerDocChange
+    change: IJGISLayerDocChange,
   ): void {
     // TODO Why is this empty?? We need this for granular updates
     // change.layerChange?.forEach((change) => {
@@ -139,7 +135,7 @@ export class MainView extends React.Component<IProps, IStates> {
         continue;
       }
 
-      switch(layer.type) {
+      switch (layer.type) {
         case 'RasterLayer':
           const sourceId = layer.parameters?.source;
           const source = this.getSource<IRasterSource>(sourceId);
@@ -189,7 +185,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     // TODO SOMETHING
 
-    this.setState(old => ({ ...old, lightTheme }));
+    this.setState((old) => ({ ...old, lightTheme }));
   };
 
   private _handleWindowResize = (): void => {
@@ -203,7 +199,7 @@ export class MainView extends React.Component<IProps, IStates> {
         style={{
           border: this.state.remoteUser
             ? `solid 3px ${this.state.remoteUser.color}`
-            : 'unset'
+            : 'unset',
         }}
       >
         <Spinner loading={this.state.loading} />
@@ -212,7 +208,7 @@ export class MainView extends React.Component<IProps, IStates> {
           ref={this.divRef}
           style={{
             width: '100%',
-            height: 'calc(100%)'
+            height: 'calc(100%)',
           }}
         />
       </div>

@@ -4,18 +4,18 @@ import {
   LeftPanelWidget,
   RightPanelWidget,
   addCommands,
-  CommandIDs
+  CommandIDs,
 } from '@jupytergis/base';
 import {
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
   IJupyterGISDocTracker,
-  IJupyterGISTracker
+  IJupyterGISTracker,
 } from '@jupytergis/schema';
 import {
   ILayoutRestorer,
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { IMainMenu } from '@jupyterlab/mainmenu';
@@ -28,17 +28,14 @@ const NAME_SPACE = 'jupytergis';
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:lab:main-menu',
   autoStart: true,
-  requires: [
-    IJupyterGISDocTracker,
-    IJGISFormSchemaRegistryToken
-  ],
+  requires: [IJupyterGISDocTracker, IJGISFormSchemaRegistryToken],
   optional: [IMainMenu, ITranslator],
   activate: (
     app: JupyterFrontEnd,
     tracker: WidgetTracker<JupyterGISWidget>,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     mainMenu?: IMainMenu,
-    translator?: ITranslator
+    translator?: ITranslator,
   ): void => {
     console.log('jupytergis:lab:main-menu is activated!');
     translator = translator ?? nullTranslator;
@@ -53,7 +50,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }
-  }
+  },
 };
 
 const controlPanel: JupyterFrontEndPlugin<void> = {
@@ -62,19 +59,19 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
   requires: [
     ILayoutRestorer,
     IJupyterGISDocTracker,
-    IJGISFormSchemaRegistryToken
+    IJGISFormSchemaRegistryToken,
   ],
   activate: (
     app: JupyterFrontEnd,
     restorer: ILayoutRestorer,
     tracker: IJupyterGISTracker,
-    formSchemaRegistry: IJGISFormSchemaRegistry
+    formSchemaRegistry: IJGISFormSchemaRegistry,
   ) => {
     const controlModel = new ControlPanelModel({ tracker });
 
     const leftControlPanel = new LeftPanelWidget({
       model: controlModel,
-      tracker
+      tracker,
     });
     leftControlPanel.id = 'jupytergis::leftControlPanel';
     leftControlPanel.title.caption = 'JupyterGIS Control Panel';
@@ -84,7 +81,7 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     const rightControlPanel = new RightPanelWidget({
       model: controlModel,
       tracker,
-      formSchemaRegistry
+      formSchemaRegistry,
     });
     rightControlPanel.id = 'jupytergis::rightControlPanel';
     rightControlPanel.title.caption = 'JupyterGIS Control Panel';
@@ -97,7 +94,7 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     }
     app.shell.add(leftControlPanel, 'left', { rank: 2000 });
     app.shell.add(rightControlPanel, 'right', { rank: 2000 });
-  }
+  },
 };
 
 /**
@@ -107,11 +104,11 @@ function populateMenus(mainMenu: IMainMenu, isEnabled: () => boolean): void {
   // Add undo/redo hooks to the edit menu.
   mainMenu.editMenu.undoers.redo.add({
     id: CommandIDs.redo,
-    isEnabled
+    isEnabled,
   });
   mainMenu.editMenu.undoers.undo.add({
     id: CommandIDs.undo,
-    isEnabled
+    isEnabled,
   });
 }
 
