@@ -6,6 +6,4 @@ coverage
 tests
 ui-tests
 **/build/
-jupytercad/
 examples/
-packages/opencascade/build.yml

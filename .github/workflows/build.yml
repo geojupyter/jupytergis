@@ -188,12 +188,11 @@ jobs:
             jupyterlab=4
             yarn=3
 
-      - name: Build the extension
+      - name: Lint
         shell: bash -l {0}
         run: |
-          set -eux
-          yarn install
-          yarn run lint:check
+          jlpm install
+          jlpm run lint:check
 
   check_links:
     name: Check Links
