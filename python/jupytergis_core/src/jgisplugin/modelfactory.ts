@@ -1,7 +1,4 @@
-import {
-  IJupyterGISDoc,
-  JupyterGISModel
-} from '@jupytergis/schema';
+import { IJupyterGISDoc, JupyterGISModel } from '@jupytergis/schema';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 

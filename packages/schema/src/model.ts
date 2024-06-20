@@ -5,17 +5,22 @@ import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 
-import { IJGISContent, IJGISLayer, IJGISLayers, IJGISSource, IJGISSources } from './_interface/jgis';
+import {
+  IJGISContent,
+  IJGISLayer,
+  IJGISLayers,
+  IJGISSource,
+  IJGISSources
+} from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
   IJGISLayerDocChange,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
-  IUserData,
+  IUserData
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
-
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: DocumentRegistry.IModelOptions<IJupyterGISDoc>) {

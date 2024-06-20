@@ -3,7 +3,13 @@ import { JSONExt, JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import * as Y from 'yjs';
 
-import { IJGISLayer, IJGISLayers, IJGISOptions, IJGISSource, IJGISSources } from './_interface/jgis';
+import {
+  IJGISLayer,
+  IJGISLayers,
+  IJGISOptions,
+  IJGISSource,
+  IJGISSources
+} from './_interface/jgis';
 import {
   IDict,
   IJGISLayerDocChange,
@@ -136,7 +142,10 @@ export class JupyterGISDoc
     }
   }
 
-  updateObjectParameters(id: string, value: IJGISLayer['parameters'] | IJGISSource['parameters']) {
+  updateObjectParameters(
+    id: string,
+    value: IJGISLayer['parameters'] | IJGISSource['parameters']
+  ) {
     const layer = this.getLayer(id);
     if (layer) {
       layer.parameters = {
@@ -235,7 +244,7 @@ export class JupyterGISDoc
     if (needEmit) {
       this._layersChanged.emit({ layerChange: changes });
     }
-  };
+  }
 
   private _sourcesObserver(events: Y.YEvent<any>[]): void {
     const changes: Array<{
@@ -258,7 +267,7 @@ export class JupyterGISDoc
     if (needEmit) {
       this._sourcesChanged.emit({ sourceChange: changes });
     }
-  };
+  }
 
   private _optionsObserver = (event: Y.YMapEvent<Y.Map<string>>): void => {
     this._optionsChanged.emit(event.keys);

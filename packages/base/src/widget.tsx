@@ -9,7 +9,6 @@ import * as React from 'react';
 import { MainView } from './mainview';
 import { MainViewModel } from './mainview/mainviewmodel';
 
-
 export class JupyterGISWidget
   extends DocumentWidget<JupyterGISPanel, IJupyterGISModel>
   implements IJupyterGISWidget
@@ -39,9 +38,7 @@ export class JupyterGISPanel extends ReactWidget {
    *
    * @param context - The documents context.
    */
-  constructor(options: {
-    model: IJupyterGISModel;
-  }) {
+  constructor(options: { model: IJupyterGISModel }) {
     super();
     this.addClass('jp-jupytergis-panel');
     this._view = new ObservableMap<JSONValue>();

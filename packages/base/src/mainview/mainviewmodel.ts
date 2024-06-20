@@ -1,12 +1,11 @@
 import {
   IJGISLayerDocChange,
   IJupyterGISDoc,
-  IJupyterGISModel,
+  IJupyterGISModel
 } from '@jupytergis/schema';
 import { ObservableMap } from '@jupyterlab/observables';
 import { JSONValue } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
-
 
 export class MainViewModel implements IDisposable {
   constructor(options: MainViewModel.IOptions) {

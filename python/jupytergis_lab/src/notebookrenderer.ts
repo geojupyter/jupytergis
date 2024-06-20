@@ -1,8 +1,6 @@
 import { WebSocketProvider } from '@jupyter/docprovider';
 import { JupyterGISPanel } from '@jupytergis/base';
-import {
-  JupyterGISModel
-} from '@jupytergis/schema';
+import { JupyterGISModel } from '@jupytergis/schema';
 
 import {
   JupyterFrontEnd,
@@ -36,9 +34,7 @@ export class YJupyterGISModel extends JupyterYModel {
 }
 
 export class YJupyterGISLuminoWidget extends Panel {
-  constructor(options: {
-    model: JupyterGISModel;
-  }) {
+  constructor(options: { model: JupyterGISModel }) {
     super();
 
     this.addClass(CLASS_NAME);

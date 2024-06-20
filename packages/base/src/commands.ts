@@ -4,10 +4,15 @@ import { ITranslator } from '@jupyterlab/translation';
 import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
 
 import { JupyterGISWidget } from './widget';
-import { IDict, IJGISFormSchemaRegistry, IJGISLayer, IJGISSource, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IDict,
+  IJGISFormSchemaRegistry,
+  IJGISLayer,
+  IJGISSource,
+  IJupyterGISModel
+} from '@jupytergis/schema';
 import { FormDialog } from './formdialog';
 import { UUID } from '@lumino/coreutils';
-
 
 /**
  * Add the commands to the application's command registry.
@@ -77,7 +82,6 @@ export namespace CommandIDs {
   export const newRasterLayer = 'jupytergis:newRasterLayer';
 }
 
-
 namespace Private {
   export const FORM_SCHEMA = {};
 
@@ -116,7 +120,7 @@ namespace Private {
         default: (model: IJupyterGISModel) => {
           return {
             name: 'RasterSource',
-            url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             maxZoom: 24,
             minZoom: 0
           };
@@ -146,7 +150,7 @@ namespace Private {
         context: current.context,
         title: form.title,
         sourceData: form.default(current.context.model),
-        schema: FORM_SCHEMA["RasterSource"],
+        schema: FORM_SCHEMA['RasterSource'],
         syncData: (props: IDict) => {
           const sharedModel = current.context.model.sharedModel;
           if (!sharedModel) {
@@ -158,7 +162,7 @@ namespace Private {
           const sourceId = UUID.uuid4();
 
           const sourceModel: IJGISSource = {
-            type: "RasterSource",
+            type: 'RasterSource',
             name,
             parameters: {
               url: parameters.url,
@@ -168,15 +172,15 @@ namespace Private {
           };
 
           const layerModel: IJGISLayer = {
-            type: "RasterLayer",
+            type: 'RasterLayer',
             parameters: {
               source: sourceId
             },
             visible: true,
-            name: name + " Layer"
+            name: name + ' Layer'
           };
 
-          sharedModel.addSource(sourceId, sourceModel)
+          sharedModel.addSource(sourceId, sourceModel);
           sharedModel.addLayer(UUID.uuid4(), layerModel);
         },
         cancelButton: () => {
@@ -187,5 +191,4 @@ namespace Private {
       await dialog.launch();
     };
   }
-
 }

@@ -4,7 +4,7 @@ import {
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
-  IRasterSource,
+  IRasterSource
 } from '@jupytergis/schema';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
@@ -32,7 +32,6 @@ interface IStates {
   firstLoad: boolean;
 }
 
-
 export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
@@ -51,10 +50,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this
     );
 
-    this._model.sharedLayersChanged.connect(
-      this._onLayersChanged,
-      this
-    );
+    this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -139,8 +135,8 @@ export class MainView extends React.Component<IProps, IStates> {
         continue;
       }
 
-      switch(layer.type) {
-        case 'RasterLayer':
+      switch (layer.type) {
+        case 'RasterLayer': {
           const sourceId = layer.parameters?.source;
           const source = this.getSource<IRasterSource>(sourceId);
 
@@ -156,7 +152,7 @@ export class MainView extends React.Component<IProps, IStates> {
             this._Map.addSource(sourceId, {
               type: 'raster',
               tiles: [source.url],
-              tileSize: 256,
+              tileSize: 256
             });
           } else {
             // TODO If the source already existed, update it
@@ -167,8 +163,9 @@ export class MainView extends React.Component<IProps, IStates> {
             type: 'raster',
             source: sourceId,
             minzoom: source.minZoom || 0,
-            maxzoom: source.maxZoom || 24,
+            maxzoom: source.maxZoom || 24
           });
+        }
       }
     }
   }

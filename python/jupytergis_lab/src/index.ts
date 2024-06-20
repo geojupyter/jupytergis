@@ -28,10 +28,7 @@ const NAME_SPACE = 'jupytergis';
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:lab:main-menu',
   autoStart: true,
-  requires: [
-    IJupyterGISDocTracker,
-    IJGISFormSchemaRegistryToken
-  ],
+  requires: [IJupyterGISDocTracker, IJGISFormSchemaRegistryToken],
   optional: [IMainMenu, ITranslator],
   activate: (
     app: JupyterFrontEnd,

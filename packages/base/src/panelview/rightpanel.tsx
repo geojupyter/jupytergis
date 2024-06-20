@@ -9,7 +9,6 @@ import { IControlPanelModel } from '../types';
 import { ControlPanelHeader } from './header';
 import { ObjectProperties } from './objectproperties';
 
-
 export class RightPanelWidget extends SidePanel {
   constructor(options: RightPanelWidget.IOptions) {
     super();

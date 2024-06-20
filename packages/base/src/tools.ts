@@ -2,7 +2,6 @@ import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import * as d3Color from 'd3-color';
 
-
 export const debounce = (
   func: CallableFunction,
   timeout = 100

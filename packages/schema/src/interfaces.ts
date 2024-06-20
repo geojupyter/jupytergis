@@ -69,7 +69,10 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   addSource(id: string, value: IJGISSource): void;
   updateSource(id: string, value: IJGISSource): void;
 
-  updateObjectParameters(id: string, value: IJGISLayer['parameters'] | IJGISSource['parameters']): void;
+  updateObjectParameters(
+    id: string,
+    value: IJGISLayer['parameters'] | IJGISSource['parameters']
+  ): void;
   getObject(id: string): IJGISLayer | IJGISSource | undefined;
 
   getOption(key: keyof IJGISOptions): IDict | undefined;

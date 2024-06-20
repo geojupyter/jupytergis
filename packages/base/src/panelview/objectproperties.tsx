@@ -13,10 +13,7 @@ import { Panel } from '@lumino/widgets';
 import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 
-import {
-  focusInputField,
-  removeStyleFromProperty
-} from '../tools';
+import { focusInputField, removeStyleFromProperty } from '../tools';
 import { IControlPanelModel } from '../types';
 import { ObjectPropertiesForm } from './formbuilder';
 import { JupyterGISWidget } from '../widget';
@@ -139,7 +136,10 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   ): void => {
     this.setState(old => {
       if (old.selectedObject) {
-        const selectedObject = this.props.cpModel.jGISModel?.sharedModel.getObject(old.selectedObject);
+        const selectedObject =
+          this.props.cpModel.jGISModel?.sharedModel.getObject(
+            old.selectedObject
+          );
         if (selectedObject) {
           const selectedObjectData = selectedObject.parameters;
           return {
