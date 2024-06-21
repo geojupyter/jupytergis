@@ -14,7 +14,9 @@ import { UUID } from '@lumino/coreutils';
 import { FormDialog } from './formdialog';
 
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
+import { LayerBrowserWidget } from './layerBrowser/layerBrowserDialog';
 import { IRasterLayerGalleryEntry } from './types';
+import { JupyterGISWidget } from './widget';
 
 const RASTER_THUMBNAILS: { [key: string]: HTMLImageElement } = {};
 
