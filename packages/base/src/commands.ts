@@ -1,3 +1,4 @@
+import { UUID } from '@lumino/coreutils';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
@@ -12,7 +13,43 @@ import {
   IJupyterGISModel
 } from '@jupytergis/schema';
 import { FormDialog } from './formdialog';
-import { UUID } from '@lumino/coreutils';
+
+import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
+import { IRasterLayerGalleryEntry } from './types';
+
+const RASTER_THUMBNAILS: { [key: string]: HTMLImageElement } = {};
+
+// @ts-ignore Load all images from the 'raster_thumbnails' directory
+const importAll = (r: __WebpackModuleApi.RequireContext) => {
+  r.keys().forEach((key) => {
+    const imageName = key.replace('./', '');
+    const img = new Image();
+    img.src = r(key);
+    RASTER_THUMBNAILS[imageName] = img;
+  });
+};
+
+// @ts-ignore
+const context = require.context('../rasterlayer_gallery', false, /\.(png|jpe?g|gif|svg)$/);
+importAll(context);
+
+
+function getRasterLayerGallery(): IRasterLayerGalleryEntry[] {
+  const gallery: IRasterLayerGalleryEntry[] = []
+  for (const entry of Object.keys(RASTER_LAYER_GALLERY)) {
+    const xyzprovider = RASTER_LAYER_GALLERY[entry];
+    gallery.push({
+      name: entry,
+      thumbnail: RASTER_THUMBNAILS[xyzprovider["thumbnailPath"]],
+      source: {
+        url: xyzprovider["attrs"]["url"],
+        minZoom: xyzprovider["attrs"]["min_zoom"] | 0,
+        maxZoom: xyzprovider["attrs"]["max_zoom"] | 24
+      }
+    })
+  }
+  return gallery;
+}
 
 /**
  * Add the commands to the application's command registry.
@@ -26,6 +63,9 @@ export function addCommands(
   Private.updateFormSchema(formSchemaRegistry);
   const trans = translator.load('jupyterlab');
   const { commands } = app;
+
+  console.log('raster layers gallery', getRasterLayerGallery());
+
   commands.addCommand(CommandIDs.redo, {
     label: trans.__('Redo'),
     isEnabled: () => {

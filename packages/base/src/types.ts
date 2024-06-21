@@ -4,7 +4,8 @@ import {
   IJupyterGISDoc,
   IDict,
   IJupyterGISTracker,
-  IJupyterGISWidget
+  IJupyterGISWidget,
+  IRasterSource
 } from '@jupytergis/schema';
 
 export { IDict };
@@ -16,4 +17,10 @@ export interface IControlPanelModel {
   filePath: string | undefined;
   jGISModel: IJupyterGISModel | undefined;
   sharedModel: IJupyterGISDoc | undefined;
+}
+
+export interface IRasterLayerGalleryEntry {
+  name: string;
+  thumbnail: HTMLImageElement;
+  source: IRasterSource;
 }
