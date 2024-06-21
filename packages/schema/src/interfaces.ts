@@ -13,10 +13,11 @@ import { ISignal, Signal } from '@lumino/signaling';
 
 import {
   IJGISContent,
-  IJGISLayers,
   IJGISLayer,
-  IJGISSource,
+  IJGISLayers,
+  IJGISLayerGroup,
   IJGISOptions,
+  IJGISSource,
   IJGISSources
 } from './_interface/jgis';
 
@@ -28,6 +29,13 @@ export interface IJGISLayerDocChange {
   layerChange?: Array<{
     id: string;
     newValue: IJGISLayer | undefined;
+  }>;
+}
+
+export interface IJGISLayerTreeDocChange {
+  layerTreeChange?: Array<{
+    id: string;
+    newValue: IJGISLayerGroup | string | undefined;
   }>;
 }
 
@@ -53,6 +61,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   options: IJGISOptions;
   layers: IJGISLayers;
   sources: IJGISSources;
+  layerTree: IJGISLayerGroup;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
@@ -62,6 +71,8 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   removeLayer(id: string): void;
   addLayer(id: string, value: IJGISLayer): void;
   updateLayer(id: string, value: IJGISLayer): void;
+
+  getTreeLayers(): (IJGISLayerGroup | string)[];
 
   sourceExists(id: string): boolean;
   getSource(id: string): IJGISSource | undefined;
@@ -81,6 +92,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
+  layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
 }
 
 export interface IJupyterGISDocChange extends DocumentChange {
@@ -90,6 +102,10 @@ export interface IJupyterGISDocChange extends DocumentChange {
     name: string;
     key: string;
     newValue: IJGISLayer | undefined;
+  }>;
+  layerTreeChange?: Array<{
+    id: string;
+    newValue: IJGISLayerGroup | string | undefined;
   }>;
   optionChange?: MapChange;
   stateChange?: StateChange<any>[];
@@ -116,6 +132,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getLayer(id: string): IJGISLayer | undefined;
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
+  getTreeLayers(): (IJGISLayerGroup | string)[];
 
   syncSelectedPropField(data: {
     id: string | null;

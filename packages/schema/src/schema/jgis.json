@@ -10,6 +10,9 @@
     "sources": {
       "$ref": "#/definitions/jGISSources"
     },
+    "layerTree": {
+      "$ref": "#/definitions/jGISLayerGroup"
+    },
     "options": {
       "$ref": "#/definitions/jGISOptions"
     }
@@ -54,6 +57,38 @@
         },
         "type": {
           "$ref": "#/definitions/sourceType"
+        },
+        "parameters": {
+          "type": "object"
+        }
+      }
+    },
+    "jGISLayerGroup": {
+      "title": "IJGISLayerGroup",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "layers"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "default": ""
+        },
+        "layers": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/definitions/jGISLayerGroup"
+                }
+            ]
+          }
+        },
+        "visible": {
+          "type": "boolean"
         },
         "parameters": {
           "type": "object"
