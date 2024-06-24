@@ -20,5 +20,9 @@
       "name": "RasterSource Layer"
     }
   },
+  "layerTree": {
+    "name": "",
+    "layers": ["2467576f-b527-4cb7-998d-fa1d056fb8a1"]
+  },
   "options": {}
 }

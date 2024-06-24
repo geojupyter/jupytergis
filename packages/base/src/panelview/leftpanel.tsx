@@ -2,6 +2,7 @@ import { JupyterGISDoc, IJupyterGISTracker } from '@jupytergis/schema';
 import { SidePanel } from '@jupyterlab/ui-components';
 
 import { IControlPanelModel } from '../types';
+import { LayersPanel } from './components/layers';
 import { ControlPanelHeader } from './header';
 
 export class LeftPanelWidget extends SidePanel {
@@ -12,16 +13,18 @@ export class LeftPanelWidget extends SidePanel {
     const header = new ControlPanelHeader();
     this.header.addWidget(header);
 
-    console.log(this._model);
     // const datasources = new DataSourceList({ controlPanelModel: this._model });
     // this.addWidget(datasources);
 
-    // const layersList = new LayersList({ controlPanelModel: this._model });
-    // this.addWidget(layersList);
+    const layersTree = new LayersPanel({ model: this._model.jGISModel });
+    layersTree.title.caption = 'The layer tree';
+    layersTree.title.label = 'Layers';
+    this.addWidget(layersTree);
 
     options.tracker.currentChanged.connect((_, changed) => {
       if (changed) {
         header.title.label = changed.context.localPath;
+        layersTree.model = this._model.jGISModel;
       } else {
         header.title.label = '-';
       }
