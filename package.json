@@ -68,5 +68,10 @@
     "rimraf": "^3.0.2",
     "typescript": "^5",
     "webpack": "^5.76.3"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.5.2",
+    "@fortawesome/free-solid-svg-icons": "^6.5.2",
+    "@fortawesome/react-fontawesome": "latest"
   }
 }
