@@ -110,7 +110,8 @@ const activate = (
         ...model,
         format: 'text',
         size: undefined,
-        content: '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {}\n, "layerTree": {"name": "", "layers": []}\n}'
+        content:
+          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {}\n, "layerTree": {"name": "", "layers": []}\n}'
       });
 
       // Open the newly created file with the 'Editor'

@@ -162,7 +162,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.sharedModel.transact(() => {
       this.sharedModel.sources = jsonData.sources ?? {};
       this.sharedModel.layers = jsonData.layers ?? {};
-      this.sharedModel.layerTree = jsonData.layerTree ?? {name: '', layers: []};
+      this.sharedModel.layerTree = jsonData.layerTree ?? {
+        name: '',
+        layers: []
+      };
       this.sharedModel.options = jsonData.options ?? {};
     });
     this.dirty = true;

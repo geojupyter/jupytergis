@@ -73,7 +73,7 @@ export class JupyterGISDoc
   }
 
   get layerTree(): IJGISLayerGroup {
-    return JSONExt.deepCopy(this._layerTree.toJSON()) as IJGISLayerGroup;
+    return this._layerTree.toJSON() as IJGISLayerGroup;
   }
 
   set layerTree(layerTree: IJGISLayerGroup) {
@@ -275,22 +275,15 @@ export class JupyterGISDoc
       id: string;
       newValue: IJGISLayerGroup;
     }> = [];
-    let needEmit = false;
     events.forEach(event => {
       event.keys.forEach((change, key) => {
-        if (!needEmit) {
-          needEmit = true;
-        }
         changes.push({
           id: key as string,
-          newValue: JSONExt.deepCopy(event.target.toJSON()[key])
+          newValue: event.target.toJSON()[key]
         });
       });
     });
-    needEmit = changes.length === 0 ? true : needEmit;
-    if (needEmit) {
-      this._layerTreeChanged.emit({ layerTreeChange: changes });
-    }
+    this._layerTreeChanged.emit({ layerTreeChange: changes });
   }
 
   private _sourcesObserver(events: Y.YEvent<any>[]): void {
@@ -328,9 +321,10 @@ export class JupyterGISDoc
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
     this
   );
-  private _layerTreeChanged = new Signal<IJupyterGISDoc, IJGISLayerTreeDocChange>(
-    this
-  );
+  private _layerTreeChanged = new Signal<
+    IJupyterGISDoc,
+    IJGISLayerTreeDocChange
+  >(this);
   private _sourcesChanged = new Signal<IJupyterGISDoc, IJGISSourceDocChange>(
     this
   );

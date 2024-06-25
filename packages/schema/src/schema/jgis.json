@@ -78,12 +78,12 @@
           "default": [],
           "items": {
             "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "$ref": "#/definitions/jGISLayerGroup"
-                }
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/definitions/jGISLayerGroup"
+              }
             ]
           }
         },

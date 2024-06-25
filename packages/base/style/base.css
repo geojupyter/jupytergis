@@ -42,8 +42,8 @@
 }
 
 .jp-gis-layerItem.jp-mod-selected {
-	color: var(--jp-ui-inverse-font-color1);
-	background: var(--jp-brand-color1);
+  color: var(--jp-ui-inverse-font-color1);
+  background: var(--jp-brand-color1);
 }
 
 .jp-gis-layerItem:hover {

@@ -1,4 +1,8 @@
-import { IJGISLayer, IJGISLayerGroup, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IJGISLayer,
+  IJGISLayerGroup,
+  IJupyterGISModel
+} from '@jupytergis/schema';
 import { LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
 import { ISignal, Signal } from '@lumino/signaling';
 import { Panel } from '@lumino/widgets';
@@ -11,24 +15,42 @@ const LAYERS_GROUP_HEADER_CLASS = 'jp-gis-layerGroupHeader';
 const LAYERS_GROUP_COLLAPSER_CLASS = 'jp-gis-layerGroupCollapser';
 const LAYERS_ITEM_CLASS = 'jp-gis-layerItem';
 
+/**
+ * The namespace for the layer panel.
+ */
 export namespace LayersPanel {
+  /**
+   * Options of the layer panel widget.
+   */
   export interface IOptions {
     model: IJupyterGISModel | undefined;
   }
+  /**
+   * Properties of the layer body component.
+   */
   export interface IBodyProps extends IOptions {
     modelChanged: ISignal<LayersPanel, IJupyterGISModel | undefined>;
     onSelect: (layer?: IJGISLayer) => void;
   }
+  /**
+   * Properties of the layer group component.
+   */
   export interface ILayerGroupProps extends IOptions {
     group: IJGISLayerGroup | undefined;
     onClick: (item?: IJGISLayer) => void;
   }
+  /**
+   * Properties of the layer item component.
+   */
   export interface ILayerItemProps extends IOptions {
     layer: IJGISLayer | undefined;
     onClick: (item?: IJGISLayer) => void;
   }
 }
 
+/**
+ * The layer panel widget.
+ */
 export class LayersPanel extends Panel {
   constructor(options: LayersPanel.IOptions) {
     super();
@@ -46,15 +68,26 @@ export class LayersPanel extends Panel {
     );
   }
 
+  /**
+   * Set the GIS model associated to the widget.
+   */
   set model(value: IJupyterGISModel | undefined) {
     this._model = value;
     this._modelChanged.emit(value);
   }
 
+  /**
+   * A signal emitting when the GIS model changed.
+   */
   get modelChanged(): ISignal<LayersPanel, IJupyterGISModel | undefined> {
     return this._modelChanged;
   }
 
+  /**
+   * Function to call when a layer is selected from a component of the panel.
+   *
+   * @param layer - the selected layer.
+   */
   private _onSelect = (layer?: IJGISLayer) => {
     if (this._model) {
       this._model.currentLayer = layer ?? null;
@@ -62,33 +95,46 @@ export class LayersPanel extends Panel {
   };
 
   private _model: IJupyterGISModel | undefined;
-  private _modelChanged = new Signal<LayersPanel, IJupyterGISModel | undefined>(this);
+  private _modelChanged = new Signal<LayersPanel, IJupyterGISModel | undefined>(
+    this
+  );
 }
 
+/**
+ * The body component of the panel.
+ */
 export function LayersBody(props: LayersPanel.IBodyProps): JSX.Element {
   const [model, setModel] = useState<IJupyterGISModel | undefined>(props.model);
   const [treeLayers, setTreeLayers] = useState<(string | IJGISLayerGroup)[]>(
     props.model?.getTreeLayers() || []
   );
 
+  /**
+   * Propagate the layer selection.
+   */
   const onItemClick = (item?: IJGISLayer) => {
     props.onSelect(item);
   };
 
+  /**
+   * Listen to the layers and layer tree changes.
+   */
   useEffect(() => {
     const updateLayers = () => {
       setTreeLayers(model?.getTreeLayers() || []);
-    }
+    };
     model?.sharedModel.layersChanged.connect(updateLayers);
     model?.sharedModel.layerTreeChanged.connect(updateLayers);
 
     return () => {
       model?.sharedModel.layersChanged.disconnect(updateLayers);
       model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
-    }
-  }, [model])
+    };
+  }, [model]);
 
-
+  /**
+   * Update the model when it changes.
+   */
   props.modelChanged.connect((_, model) => {
     setModel(model);
     setTreeLayers(model?.getTreeLayers() || []);
@@ -96,19 +142,24 @@ export function LayersBody(props: LayersPanel.IBodyProps): JSX.Element {
 
   return (
     <div>
-      {treeLayers.map(layer => (
-        typeof layer === 'string'
-          ? <LayerItem
-              model={model}
-              layer={model?.getLayer(layer)}
-              onClick={onItemClick}
-            />
-          : <LayerGroup model={model} group={layer} onClick={onItemClick}/>
-      ))}
+      {treeLayers.map(layer =>
+        typeof layer === 'string' ? (
+          <LayerItem
+            model={model}
+            layer={model?.getLayer(layer)}
+            onClick={onItemClick}
+          />
+        ) : (
+          <LayerGroup model={model} group={layer} onClick={onItemClick} />
+        )
+      )}
     </div>
   );
 }
 
+/**
+ * The component to handle group of layers.
+ */
 function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);
   const name = props.group?.name ?? 'Undefined group';
@@ -120,8 +171,7 @@ function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
         <LabIcon.resolveReact
           icon={caretDownIcon}
           className={
-            LAYERS_GROUP_COLLAPSER_CLASS +
-            (open ? ' jp-mod-expanded' : '')
+            LAYERS_GROUP_COLLAPSER_CLASS + (open ? ' jp-mod-expanded' : '')
           }
           tag={'span'}
         />
@@ -129,22 +179,30 @@ function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
       </div>
       {open && (
         <div>
-          {layers.map(layer => (
-            typeof layer === 'string'
-              ? <LayerItem
-                  model={props.model}
-                  layer={props.model?.getLayer(layer)}
-                  onClick={props.onClick}
-                />
-              : <LayerGroup model={props.model} group={layer} onClick={props.onClick}/>
-          ))}
+          {layers.map(layer =>
+            typeof layer === 'string' ? (
+              <LayerItem
+                model={props.model}
+                layer={props.model?.getLayer(layer)}
+                onClick={props.onClick}
+              />
+            ) : (
+              <LayerGroup
+                model={props.model}
+                group={layer}
+                onClick={props.onClick}
+              />
+            )
+          )}
         </div>
       )}
     </li>
   );
 }
 
-
+/**
+ * The component to display a single layer.
+ */
 function LayerItem(props: LayersPanel.ILayerItemProps): JSX.Element {
   if (props.layer === undefined) {
     return <></>;
@@ -154,16 +212,20 @@ function LayerItem(props: LayersPanel.ILayerItemProps): JSX.Element {
   );
   const name = props.layer.name;
 
+  /**
+   * Listen to the changes on the current layer.
+   */
   useEffect(() => {
     const isSelected = () => {
       setSelected(props.model?.currentLayer === props.layer);
-    }
+    };
     props.model?.currentLayerChanged.connect(isSelected);
 
     return () => {
       props.model?.currentLayerChanged.disconnect(isSelected);
-    }
-  }, [])
+    };
+  }, []);
+
   return (
     <li
       className={`${LAYERS_ENTRY_CLASS} ${LAYERS_ITEM_CLASS} ${selected ? 'jp-mod-selected' : ''}`}
