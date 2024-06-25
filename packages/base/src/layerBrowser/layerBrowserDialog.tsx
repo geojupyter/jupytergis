@@ -1,4 +1,8 @@
-import { faMagnifyingGlass, faPlus } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCheck,
+  faMagnifyingGlass,
+  faPlus
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IJGISLayer, IJGISSource, IJupyterGISDoc } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/ui-components';
@@ -16,9 +20,10 @@ export const LayerBrowserComponent = ({
   sharedModel
 }: ILayerBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
+  //TODO: Temp way to track layers to see icon change
+  const [layers, setLayers] = useState<string[]>([]);
 
   const gallery = getRasterLayerGallery();
-  console.log('gallery', gallery);
 
   useEffect(() => {
     const dialog = document.getElementsByClassName('jp-Dialog-content');
@@ -58,6 +63,8 @@ export const LayerBrowserComponent = ({
 
     sharedModel.addSource(sourceId, sourceModel);
     sharedModel.addLayer(UUID.uuid4(), layerModel);
+
+    setLayers([...layers, tile.name]);
   };
 
   return (
@@ -91,9 +98,16 @@ export const LayerBrowserComponent = ({
           >
             <div className="jgis-layer-browser-tile-img-container">
               <img className="jgis-layer-browser-img" src={tile.thumbnail} />
-              <div className="jgis-layer-browser-icon">
-                <FontAwesomeIcon style={{ height: 20 }} icon={faPlus} />
-              </div>
+              {layers.indexOf(tile.name) === -1 ? (
+                <div className="jgis-layer-browser-icon">
+                  <FontAwesomeIcon style={{ height: 20 }} icon={faPlus} />
+                </div>
+              ) : (
+                <div className="jgis-layer-browser-icon jgis-layer-browser-added">
+                  <FontAwesomeIcon style={{ height: 20 }} icon={faCheck} />
+                  <p className="jgis-layer-browser-text-general">Added!</p>
+                </div>
+              )}
             </div>
             <div className="jgis-layer-browser-text-container">
               <div className="jgis-layer-browser-text-info">

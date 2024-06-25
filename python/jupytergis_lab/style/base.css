@@ -505,6 +505,14 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   opacity: 0;
 }
 
+.jgis-layer-browser-added {
+  display: inline-flex;
+  gap: 0.35rem;
+  opacity: 1 !important;
+  width: 7rem;
+  color: var(--jp-ui-inverse-font-color1);
+}
+
 .jgis-layer-browser-text-container {
   padding-inline: 4px;
   display: flex;
