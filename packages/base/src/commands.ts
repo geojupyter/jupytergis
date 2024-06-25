@@ -48,7 +48,8 @@ export function getRasterLayerGallery(): IRasterLayerGalleryEntry[] {
       source: {
         url: xyzprovider['attrs']['url'],
         minZoom: xyzprovider['attrs']['min_zoom'] || 0,
-        maxZoom: xyzprovider['attrs']['max_zoom'] || 24
+        maxZoom: xyzprovider['attrs']['max_zoom'] || 24,
+        attribution: xyzprovider['attrs']['attribution'] || ''
       }
     });
   }

@@ -2,7 +2,7 @@
   "type": "object",
   "description": "RasterSource",
   "title": "IRasterSource",
-  "required": ["url", "maxZoom", "minZoom"],
+  "required": ["url", "maxZoom", "minZoom", "attribution"],
   "additionalProperties": false,
   "properties": {
     "url": {
@@ -20,6 +20,10 @@
       "minimum": 0,
       "maximum": 24,
       "description": "The minimum zoom level for the raster source"
+    },
+    "attribution": {
+      "type": "string",
+      "description": "The attributions for the raster source"
     }
   }
 }

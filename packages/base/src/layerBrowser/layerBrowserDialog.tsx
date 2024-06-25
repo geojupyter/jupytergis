@@ -63,9 +63,7 @@ export const LayerBrowserComponent = ({
   return (
     <div className="jgis-layer-browser-container">
       <div className="jgis-layer-browser-header">
-        <h2 className="jgis-layer-browser-text-general jgis-layer-browser-header-text">
-          Layer Browser
-        </h2>
+        <h2 className="jgis-layer-browser-header-text">Layer Browser</h2>
         <input
           type="text"
           placeholder="Search..."
@@ -73,6 +71,10 @@ export const LayerBrowserComponent = ({
           onChange={handleChange}
           className="jgis-layer-browser-header-search"
         />
+      </div>
+      <div className="jgis-layer-browser-categories">
+        <span>Categories Placeholder</span>
+        <span>Categories Placeholder</span>
       </div>
       <div className="jgis-layer-browser-grid">
         {filteredGallery.map(tile => (
@@ -91,13 +93,13 @@ export const LayerBrowserComponent = ({
                 <h3 className="jgis-layer-browser-text-header jgis-layer-browser-text-general">
                   {tile.name}
                 </h3>
-                <p className="jgis-layer-browser-text-general jgis-layer-browser-text-description">
-                  {/* {tile.description} */}
+                {/* <p className="jgis-layer-browser-text-general jgis-layer-browser-text-description">
+                  {tile.description}
                   placeholder
-                </p>
+                </p> */}
               </div>
               <p className="jgis-layer-browser-text-general jgis-layer-browser-text-source">
-                Global * Source * date
+                {tile.source.attribution}
               </p>
             </div>
           </div>

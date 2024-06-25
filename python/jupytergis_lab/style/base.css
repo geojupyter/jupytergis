@@ -371,6 +371,10 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   width: 100%;
 }
 
+.jgis-layer-browser-container * {
+  box-sizing: border-box;
+}
+
 .jgis-layer-browser-container {
   display: flex;
   flex-direction: column;
@@ -379,15 +383,31 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 .jgis-layer-browser-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 1rem 2rem;
 }
 
 .jgis-layer-browser-header-text {
-  padding: 0 2rem;
+  padding-right: 1rem;
+  font-weight: bold;
 }
 
 .jgis-layer-browser-header-search {
-  width: 80%;
-  margin: 0 2rem;
+  box-shadow: none;
+  flex: 1 1 0%;
+  height: 40px;
+  padding: 1rem 2rem;
+  background-color: transparent;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 8px;
+  color: var(--jp-ui-font-color1);
+}
+
+.jgis-layer-browser-categories {
+  display: flex;
+  gap: 1rem;
+  padding: 0 2rem;
 }
 
 .jgis-layer-browser-grid {
@@ -430,7 +450,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   /* background: transparent; */
   /* padding: 0px; */
   /* width: 100%; */
-  aspect-ratio: 1.77778 / 1;
+  aspect-ratio: 16 / 10;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -502,7 +522,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 
 .jgis-layer-browser-text-source {
   overflow: hidden;
-  color: gray;
+  font-size: 0.75rem;
   font-weight: lighter;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -517,8 +537,5 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 }
 
 .jgis-layer-browser-text-general {
-  /* text-wrap: wrap; */
   margin: 0;
-  padding: 0;
-  line-height: 20px;
 }
