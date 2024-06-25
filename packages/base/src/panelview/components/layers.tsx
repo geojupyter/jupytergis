@@ -7,6 +7,7 @@ import { LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
 import { ISignal, Signal } from '@lumino/signaling';
 import { Panel } from '@lumino/widgets';
 import React, { useEffect, useState } from 'react';
+import { rasterIcon } from '../../icons';
 
 const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
 const LAYERS_ENTRY_CLASS = 'jp-gis-layerEntry';
@@ -231,6 +232,9 @@ function LayerItem(props: LayersPanel.ILayerItemProps): JSX.Element {
       className={`${LAYERS_ENTRY_CLASS} ${LAYERS_ITEM_CLASS} ${selected ? 'jp-mod-selected' : ''}`}
       onClick={() => props.onClick(props.layer)}
     >
+      {props.layer.type === 'RasterLayer' && (
+        <LabIcon.resolveReact icon={rasterIcon}/>
+      )}
       <span>{name}</span>
     </li>
   );
