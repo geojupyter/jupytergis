@@ -8,7 +8,7 @@
 }
 
 .jp-gis-layerEntry {
-  padding: 4px 12px;
+  padding: 2px 12px;
 }
 
 .jp-gis-layerGroup {
@@ -18,7 +18,7 @@
 
 .jp-gis-layerGroupHeader {
   display: flex;
-  margin-left: -4px;
+  margin-left: -2px;
   padding-bottom: 4px;
 }
 
@@ -48,4 +48,8 @@
 
 .jp-gis-layerItem:hover {
   cursor: pointer;
+}
+
+.jp-gis-layerItem .jp-gis-layerIcon {
+  padding-right: 4px;
 }

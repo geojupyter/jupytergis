@@ -15,6 +15,7 @@ const LAYERS_GROUP_CLASS = 'jp-gis-layerGroup';
 const LAYERS_GROUP_HEADER_CLASS = 'jp-gis-layerGroupHeader';
 const LAYERS_GROUP_COLLAPSER_CLASS = 'jp-gis-layerGroupCollapser';
 const LAYERS_ITEM_CLASS = 'jp-gis-layerItem';
+const LAYERS_ICON_CLASS = 'jp-gis-layerIcon';
 
 /**
  * The namespace for the layer panel.
@@ -233,7 +234,7 @@ function LayerItem(props: LayersPanel.ILayerItemProps): JSX.Element {
       onClick={() => props.onClick(props.layer)}
     >
       {props.layer.type === 'RasterLayer' && (
-        <LabIcon.resolveReact icon={rasterIcon}/>
+        <LabIcon.resolveReact icon={rasterIcon} className={LAYERS_ICON_CLASS} />
       )}
       <span>{name}</span>
     </li>
