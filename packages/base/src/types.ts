@@ -21,6 +21,6 @@ export interface IControlPanelModel {
 
 export interface IRasterLayerGalleryEntry {
   name: string;
-  thumbnail: HTMLImageElement;
+  thumbnail: string;
   source: IRasterSource;
 }

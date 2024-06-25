@@ -18,15 +18,15 @@ import { LayerBrowserWidget } from './layerBrowser/layerBrowserDialog';
 import { IRasterLayerGalleryEntry } from './types';
 import { JupyterGISWidget } from './widget';
 
-const RASTER_THUMBNAILS: { [key: string]: HTMLImageElement } = {};
+const RASTER_THUMBNAILS: { [key: string]: string } = {};
 
 // @ts-ignore Load all images from the 'raster_thumbnails' directory
 const importAll = (r: __WebpackModuleApi.RequireContext) => {
   r.keys().forEach(key => {
-    const imageName = key.replace('./', '');
-    const img = new Image();
-    img.src = r(key);
-    RASTER_THUMBNAILS[imageName] = img;
+    const imageName = key.replace('./', '').replace(/\.\w+$/, '');
+    // const img = new Image();
+    // img.src = r(key);
+    RASTER_THUMBNAILS[imageName] = r(key);
   });
 };
 
@@ -38,13 +38,13 @@ const context = require.context(
 );
 importAll(context);
 
-function getRasterLayerGallery(): IRasterLayerGalleryEntry[] {
+export function getRasterLayerGallery(): IRasterLayerGalleryEntry[] {
   const gallery: IRasterLayerGalleryEntry[] = [];
   for (const entry of Object.keys(RASTER_LAYER_GALLERY)) {
     const xyzprovider = RASTER_LAYER_GALLERY[entry];
     gallery.push({
       name: entry,
-      thumbnail: RASTER_THUMBNAILS[xyzprovider['thumbnailPath']],
+      thumbnail: RASTER_THUMBNAILS[xyzprovider['name']],
       source: {
         url: xyzprovider['attrs']['url'],
         minZoom: xyzprovider['attrs']['min_zoom'] | 0,
