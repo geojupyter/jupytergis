@@ -1,4 +1,5 @@
 @import url('~@deathbeds/jupyterlab-rjsf/style/index.css');
+@import url('~@jupytergis/base/style/index.css');
 
 .jGIS-Spinner {
   position: absolute;

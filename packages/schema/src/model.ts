@@ -44,6 +44,17 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   readonly collaborative = true;
 
+  /**
+   * Getter and setter for the current selected layer.
+   */
+  get currentLayer(): IJGISLayer | null {
+    return this._currentLayer;
+  }
+  set currentLayer(layer: IJGISLayer | null) {
+    this._currentLayer = layer;
+    this._currentLayerChanged.emit(layer);
+  }
+
   get sharedModel(): IJupyterGISDoc {
     return this._sharedModel;
   }
@@ -114,6 +125,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get sharedLayersChanged(): ISignal<IJupyterGISDoc, IJGISLayerDocChange> {
     return this.sharedModel.layersChanged;
+  }
+
+  get currentLayerChanged(): ISignal<this, IJGISLayer | null> {
+    return this._currentLayerChanged;
   }
 
   get disposed(): ISignal<JupyterGISModel, void> {
@@ -257,6 +272,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     this,
     Map<number, IJupyterGISClientState>
   >(this);
+
+  private _currentLayer: IJGISLayer | null = null;
+  private _currentLayerChanged = new Signal<this, IJGISLayer | null>(this);
 
   static worker: Worker;
 }

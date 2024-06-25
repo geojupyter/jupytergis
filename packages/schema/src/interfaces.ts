@@ -115,6 +115,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isDisposed: boolean;
   sharedModel: IJupyterGISDoc;
   localState: IJupyterGISClientState | null;
+  currentLayer: IJGISLayer | null;
 
   themeChanged: Signal<
     IJupyterGISModel,
@@ -124,6 +125,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     Map<number, IJupyterGISClientState>
   >;
+  currentLayerChanged: ISignal<IJupyterGISModel, IJGISLayer | null>;
   sharedOptionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
 
