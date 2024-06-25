@@ -1,12 +1,20 @@
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { IJGISLayer, IJGISSource, IJupyterGISDoc } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/ui-components';
-
+import { UUID } from '@lumino/coreutils';
 import React, { useEffect, useState } from 'react';
 import { getRasterLayerGallery } from '../commands';
+import { IRasterLayerGalleryEntry } from '../types';
+
+interface ILayerBrowserDialogProps {
+  sharedModel: IJupyterGISDoc;
+}
 
 //TODO take the browser options as prop? or pull from somewhere else
-const LayerBrowserComponent = () => {
+export const LayerBrowserComponent = ({
+  sharedModel
+}: ILayerBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const gallery = getRasterLayerGallery();
@@ -22,9 +30,35 @@ const LayerBrowserComponent = () => {
     setSearchTerm(event.target.value.toLowerCase());
   };
 
-  const filteredItems = gallery.filter(item =>
+  const filteredGallery = gallery.filter(item =>
     item.name.toLowerCase().includes(searchTerm)
   );
+
+  const handleClick = (tile: IRasterLayerGalleryEntry) => {
+    const sourceId = UUID.uuid4();
+
+    const sourceModel: IJGISSource = {
+      type: 'RasterSource',
+      name: tile.name,
+      parameters: {
+        url: tile.source.url,
+        minZoom: tile.source.minZoom,
+        maxZoom: tile.source.maxZoom
+      }
+    };
+
+    const layerModel: IJGISLayer = {
+      type: 'RasterLayer',
+      parameters: {
+        source: sourceId
+      },
+      visible: true,
+      name: tile.name + ' Layer'
+    };
+
+    sharedModel.addSource(sourceId, sourceModel);
+    sharedModel.addLayer(UUID.uuid4(), layerModel);
+  };
 
   return (
     <div className="jgis-layer-browser-container">
@@ -41,8 +75,11 @@ const LayerBrowserComponent = () => {
         />
       </div>
       <div className="jgis-layer-browser-grid">
-        {filteredItems.map(tile => (
-          <div className="jgis-layer-browser-tile">
+        {filteredGallery.map(tile => (
+          <div
+            className="jgis-layer-browser-tile"
+            onClick={() => handleClick(tile)}
+          >
             <div className="jgis-layer-browser-tile-img-container">
               <img className="jgis-layer-browser-img" src={tile.thumbnail} />
               <div className="jgis-layer-browser-icon">
@@ -71,11 +108,15 @@ const LayerBrowserComponent = () => {
 };
 
 export class LayerBrowserWidget extends ReactWidget {
-  constructor() {
+  sharedModel: IJupyterGISDoc;
+  handleClose: void;
+
+  constructor(sharedModel: IJupyterGISDoc) {
     super();
+    this.sharedModel = sharedModel;
   }
 
   render() {
-    return <LayerBrowserComponent />;
+    return <LayerBrowserComponent sharedModel={this.sharedModel} />;
   }
 }
