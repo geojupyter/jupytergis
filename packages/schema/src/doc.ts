@@ -147,11 +147,9 @@ export class JupyterGISDoc
   }
 
   updateLayer(id: string, value: IJGISLayer): void {
-    const obj = this._getLayerAsYMap(id);
-    if (!obj) {
-      return;
-    }
-    this.transact(() => obj.set(id, value));
+    this.transact(() => {
+      this._layers.set(id, value);
+    })
   }
 
   getObject(id: string): IJGISLayer | IJGISSource | undefined {

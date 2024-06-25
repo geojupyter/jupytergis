@@ -1,0 +1,74 @@
+/* -----------------------------------------------------------------------------
+| Copyright (c) Jupyter Development Team.
+| Distributed under the terms of the Modified BSD License.
+|---------------------------------------------------------------------------- */
+
+.jp-gis-layerEntry {
+	padding: 2px 0 2px 12px;
+}
+
+.jp-gis-layerGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-gis-layerGroupHeader {
+  display: flex;
+  margin-left: -2px;
+  padding-bottom: 4px;
+}
+
+.jp-gis-layerGroupHeader:hover {
+  cursor: pointer;
+}
+
+.jp-gis-layerGroupCollapser {
+  transform: rotate(-90deg);
+  margin: auto 0;
+  height: 16px;
+}
+
+.jp-gis-layerGroupCollapser.jp-mod-expanded {
+  transform: rotate(0deg);
+}
+
+.jp-gis-layerItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.jp-gis-layerItem.jp-mod-selected {
+  background: var(--jp-editor-selected-background);
+}
+
+.jp-gis-layerItem:hover {
+  cursor: pointer;
+  color: var(--jp-ui-inverse-font-color1);
+  background: var(--jp-brand-color1);
+}
+
+.jp-gis-layerItem:hover .jp-icon3[fill] {
+  fill: var(--jp-layout-color3);
+}
+
+.jp-gis-layerIcon {
+  display: flex;
+  align-items: center;
+}
+
+.jp-gis-layerItemTitle {
+  display: flex;
+}
+
+.jp-gis-layerItemTitle .jp-gis-layerIcon {
+  padding-right: 4px;
+}
+
+.jp-gis-layerItem button {
+  margin-left: auto;
+  min-height: unset;
+  min-width: unset;
+  padding: unset;
+  margin-right: 4px;
+}

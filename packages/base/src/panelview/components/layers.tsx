@@ -1,13 +1,9 @@
-import {
-  IJGISLayer,
-  IJGISLayerGroup,
-  IJupyterGISModel
-} from '@jupytergis/schema';
-import { LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
+import {IJGISLayerGroup, IJupyterGISModel} from '@jupytergis/schema';
+import { Button, LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
 import { ISignal, Signal } from '@lumino/signaling';
 import { Panel } from '@lumino/widgets';
 import React, { useEffect, useState } from 'react';
-import { rasterIcon } from '../../icons';
+import { nonVisibilityIcon, rasterIcon, visibilityIcon } from '../../icons';
 
 const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
 const LAYERS_ENTRY_CLASS = 'jp-gis-layerEntry';
@@ -15,6 +11,7 @@ const LAYERS_GROUP_CLASS = 'jp-gis-layerGroup';
 const LAYERS_GROUP_HEADER_CLASS = 'jp-gis-layerGroupHeader';
 const LAYERS_GROUP_COLLAPSER_CLASS = 'jp-gis-layerGroupCollapser';
 const LAYERS_ITEM_CLASS = 'jp-gis-layerItem';
+const LAYERS_ITEM_TITLE_CLASS = 'jp-gis-layerItemTitle';
 const LAYERS_ICON_CLASS = 'jp-gis-layerIcon';
 
 /**
@@ -32,21 +29,21 @@ export namespace LayersPanel {
    */
   export interface IBodyProps extends IOptions {
     modelChanged: ISignal<LayersPanel, IJupyterGISModel | undefined>;
-    onSelect: (layer?: IJGISLayer) => void;
+    onSelect: (layer?: string) => void;
   }
   /**
    * Properties of the layer group component.
    */
   export interface ILayerGroupProps extends IOptions {
     group: IJGISLayerGroup | undefined;
-    onClick: (item?: IJGISLayer) => void;
+    onClick: (item?: string) => void;
   }
   /**
    * Properties of the layer item component.
    */
   export interface ILayerItemProps extends IOptions {
-    layer: IJGISLayer | undefined;
-    onClick: (item?: IJGISLayer) => void;
+    layerId: string;
+    onClick: (item?: string) => void;
   }
 }
 
@@ -90,7 +87,7 @@ export class LayersPanel extends Panel {
    *
    * @param layer - the selected layer.
    */
-  private _onSelect = (layer?: IJGISLayer) => {
+  private _onSelect = (layer?: string) => {
     if (this._model) {
       this._model.currentLayer = layer ?? null;
     }
@@ -114,7 +111,7 @@ export function LayersBody(props: LayersPanel.IBodyProps): JSX.Element {
   /**
    * Propagate the layer selection.
    */
-  const onItemClick = (item?: IJGISLayer) => {
+  const onItemClick = (item?: string) => {
     props.onSelect(item);
   };
 
@@ -148,7 +145,7 @@ export function LayersBody(props: LayersPanel.IBodyProps): JSX.Element {
         typeof layer === 'string' ? (
           <LayerItem
             model={model}
-            layer={model?.getLayer(layer)}
+            layerId={layer}
             onClick={onItemClick}
           />
         ) : (
@@ -163,12 +160,16 @@ export function LayersBody(props: LayersPanel.IBodyProps): JSX.Element {
  * The component to handle group of layers.
  */
 function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
+  const { group, model } = props;
+  if (group === undefined) {
+    return <></>;
+  }
   const [open, setOpen] = useState<boolean>(false);
-  const name = props.group?.name ?? 'Undefined group';
-  const layers = props.group?.layers ?? [];
+  const name = group?.name ?? 'Undefined group';
+  const layers = group?.layers ?? [];
 
   return (
-    <li className={`${LAYERS_ENTRY_CLASS} ${LAYERS_GROUP_CLASS}`}>
+    <div className={`${LAYERS_ENTRY_CLASS} ${LAYERS_GROUP_CLASS}`}>
       <div onClick={() => setOpen(!open)} className={LAYERS_GROUP_HEADER_CLASS}>
         <LabIcon.resolveReact
           icon={caretDownIcon}
@@ -184,13 +185,13 @@ function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
           {layers.map(layer =>
             typeof layer === 'string' ? (
               <LayerItem
-                model={props.model}
-                layer={props.model?.getLayer(layer)}
+                model={model}
+                layerId={layer}
                 onClick={props.onClick}
               />
             ) : (
               <LayerGroup
-                model={props.model}
+                model={model}
                 group={layer}
                 onClick={props.onClick}
               />
@@ -198,7 +199,7 @@ function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
           )}
         </div>
       )}
-    </li>
+    </div>
   );
 }
 
@@ -206,37 +207,59 @@ function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
  * The component to display a single layer.
  */
 function LayerItem(props: LayersPanel.ILayerItemProps): JSX.Element {
-  if (props.layer === undefined) {
+  const { layerId, model } = props;
+  const layer = model?.getLayer(layerId);
+  if (layer === undefined) {
     return <></>;
   }
   const [selected, setSelected] = useState<boolean>(
-    props.model?.currentLayer === props.layer
+    model?.currentLayer === layerId
   );
-  const name = props.layer.name;
+  const name = layer.name;
 
   /**
    * Listen to the changes on the current layer.
    */
   useEffect(() => {
     const isSelected = () => {
-      setSelected(props.model?.currentLayer === props.layer);
+      setSelected(model?.currentLayer === layerId);
     };
-    props.model?.currentLayerChanged.connect(isSelected);
+    model?.currentLayerChanged.connect(isSelected);
 
     return () => {
-      props.model?.currentLayerChanged.disconnect(isSelected);
+      model?.currentLayerChanged.disconnect(isSelected);
     };
-  }, []);
+  }, [model]);
+
+  /**
+   * Toggle layer visibility.
+   */
+  const toggleVisibility = () => {
+    layer.visible = !layer.visible;
+    model?.sharedModel.updateLayer(layerId, layer);
+  }
 
   return (
-    <li
+    <div
       className={`${LAYERS_ENTRY_CLASS} ${LAYERS_ITEM_CLASS} ${selected ? 'jp-mod-selected' : ''}`}
-      onClick={() => props.onClick(props.layer)}
     >
-      {props.layer.type === 'RasterLayer' && (
-        <LabIcon.resolveReact icon={rasterIcon} className={LAYERS_ICON_CLASS} />
-      )}
-      <span>{name}</span>
-    </li>
+      <div className={LAYERS_ITEM_TITLE_CLASS} onClick={() => props.onClick(layerId)}>
+        {layer.type === 'RasterLayer' && (
+          <LabIcon.resolveReact icon={rasterIcon} className={LAYERS_ICON_CLASS} />
+        )}
+        <span>{name}</span>
+      </div>
+      <Button
+        title={layer.visible ? 'Hide layer' : 'Show layer'}
+        onClick={toggleVisibility}
+        minimal
+      >
+        <LabIcon.resolveReact
+          icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
+          className={LAYERS_ICON_CLASS}
+          tag='span'
+        />
+      </Button>
+    </div>
   );
 }

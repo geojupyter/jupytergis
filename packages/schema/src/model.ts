@@ -47,10 +47,10 @@ export class JupyterGISModel implements IJupyterGISModel {
   /**
    * Getter and setter for the current selected layer.
    */
-  get currentLayer(): IJGISLayer | null {
+  get currentLayer(): string | null {
     return this._currentLayer;
   }
-  set currentLayer(layer: IJGISLayer | null) {
+  set currentLayer(layer: string | null) {
     this._currentLayer = layer;
     this._currentLayerChanged.emit(layer);
   }
@@ -127,7 +127,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.layersChanged;
   }
 
-  get currentLayerChanged(): ISignal<this, IJGISLayer | null> {
+  get currentLayerChanged(): ISignal<this, string | null> {
     return this._currentLayerChanged;
   }
 
@@ -276,8 +276,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     Map<number, IJupyterGISClientState>
   >(this);
 
-  private _currentLayer: IJGISLayer | null = null;
-  private _currentLayerChanged = new Signal<this, IJGISLayer | null>(this);
+  private _currentLayer: string | null = null;
+  private _currentLayerChanged = new Signal<this, string | null>(this);
 
   static worker: Worker;
 }
