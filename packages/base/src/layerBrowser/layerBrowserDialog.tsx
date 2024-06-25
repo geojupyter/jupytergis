@@ -1,4 +1,4 @@
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faMagnifyingGlass, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IJGISLayer, IJGISSource, IJupyterGISDoc } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/ui-components';
@@ -64,13 +64,20 @@ export const LayerBrowserComponent = ({
     <div className="jgis-layer-browser-container">
       <div className="jgis-layer-browser-header">
         <h2 className="jgis-layer-browser-header-text">Layer Browser</h2>
-        <input
-          type="text"
-          placeholder="Search..."
-          value={searchTerm}
-          onChange={handleChange}
-          className="jgis-layer-browser-header-search"
-        />
+        <div className="jgis-layer-browser-header-search-container">
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchTerm}
+            onChange={handleChange}
+            className="jgis-layer-browser-header-search"
+          />
+          <FontAwesomeIcon
+            className="jgis-layer-browser-header-search-icon"
+            style={{ height: 20 }}
+            icon={faMagnifyingGlass}
+          />
+        </div>
       </div>
       <div className="jgis-layer-browser-categories">
         <span>Categories Placeholder</span>

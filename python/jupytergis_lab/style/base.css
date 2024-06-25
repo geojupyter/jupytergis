@@ -393,11 +393,26 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   font-weight: bold;
 }
 
+.jgis-layer-browser-header-search-container {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  position: relative;
+}
+
+.jgis-layer-browser-header-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  transform: translateY(-50%);
+}
+
 .jgis-layer-browser-header-search {
   box-shadow: none;
   flex: 1 1 0%;
   height: 40px;
   padding: 1rem 2rem;
+  padding-left: 2.5rem;
   background-color: transparent;
   border: 1px solid var(--jp-border-color1);
   border-radius: 8px;
