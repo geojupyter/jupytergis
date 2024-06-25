@@ -3,56 +3,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ReactWidget } from '@jupyterlab/ui-components';
 
 import React, { useEffect, useState } from 'react';
-
-const temp = [
-  {
-    name: 'bathy',
-    description: 'ocean coloring',
-    // thumbnail: HTMLImageElement;
-    // source: IRasterSource;
-    url: 'https://library-thumbnails.felt.com/Bathymetry-q80.jpg'
-  },
-  {
-    name: 'bicylce',
-    description: 'bike lanes',
-    url: 'https://library-thumbnails.felt.com/Bicycle%20Lanes-q80.jpg'
-    // thumbnail: HTMLImageElement;
-    // source: IRasterSource;
-  },
-  {
-    name: 'bathyksdbfjkbsdjkfbksdbfksdfkjgsdjkfbjksdfuijsdghfkjbsdkfuoehrfjlkdnfkjnsdbfjksdhfjksdbkf',
-    description: 'ocean coloring',
-    // thumbnail: HTMLImageElement;
-    // source: IRasterSource;
-    url: 'https://library-thumbnails.felt.com/Bathymetry-q80.jpg'
-  },
-  {
-    name: 'bicylce',
-    description:
-      'bike laneslkas dnfjkwesh ofhweiop fhiowenflmwe sdnfoiw ehfiopwe joh bwesojfhweokhfesdjbfjsd rfjkwesdiojfhwesoj fwoef oiwehfioweshfownef weihfoiwe fewoif oweihfo ',
-    url: 'https://library-thumbnails.felt.com/Bicycle%20Lanes-q80.jpg'
-    // thumbnail: HTMLImageElement;
-    // source: IRasterSource;
-  },
-  {
-    name: 'bathy',
-    description: 'ocean coloring',
-    // thumbnail: HTMLImageElement;
-    // source: IRasterSource;
-    url: 'https://library-thumbnails.felt.com/Bathymetry-q80.jpg'
-  },
-  {
-    name: 'bicylce',
-    description: 'bike lanes',
-    url: 'https://library-thumbnails.felt.com/Bicycle%20Lanes-q80.jpg'
-    // thumbnail: HTMLImageElement;
-    // source: IRasterSource;
-  }
-];
+import { getRasterLayerGallery } from '../commands';
 
 //TODO take the browser options as prop? or pull from somewhere else
 const LayerBrowserComponent = () => {
   const [searchTerm, setSearchTerm] = useState('');
+
+  const gallery = getRasterLayerGallery();
+  console.log('gallery', gallery);
 
   useEffect(() => {
     const dialog = document.getElementsByClassName('jp-Dialog-content');
@@ -64,7 +22,7 @@ const LayerBrowserComponent = () => {
     setSearchTerm(event.target.value.toLowerCase());
   };
 
-  const filteredItems = temp.filter(item =>
+  const filteredItems = gallery.filter(item =>
     item.name.toLowerCase().includes(searchTerm)
   );
 
@@ -86,7 +44,7 @@ const LayerBrowserComponent = () => {
         {filteredItems.map(tile => (
           <div className="jgis-layer-browser-tile">
             <div className="jgis-layer-browser-tile-img-container">
-              <img className="jgis-layer-browser-img" src={tile.url} />
+              <img className="jgis-layer-browser-img" src={tile.thumbnail} />
               <div className="jgis-layer-browser-icon">
                 <FontAwesomeIcon style={{ height: 20 }} icon={faPlus} />
               </div>
@@ -97,7 +55,8 @@ const LayerBrowserComponent = () => {
                   {tile.name}
                 </h3>
                 <p className="jgis-layer-browser-text-general jgis-layer-browser-text-description">
-                  {tile.description}
+                  {/* {tile.description} */}
+                  placeholder
                 </p>
               </div>
               <p className="jgis-layer-browser-text-general jgis-layer-browser-text-source">
