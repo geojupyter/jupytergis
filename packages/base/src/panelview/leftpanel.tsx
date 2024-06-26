@@ -17,7 +17,7 @@ export class LeftPanelWidget extends SidePanel {
     // this.addWidget(datasources);
 
     const layersTree = new LayersPanel({ model: this._model.jGISModel });
-    layersTree.title.caption = 'The layer tree';
+    layersTree.title.caption = 'Layer tree';
     layersTree.title.label = 'Layers';
     this.addWidget(layersTree);
 

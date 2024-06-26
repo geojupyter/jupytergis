@@ -4,7 +4,7 @@
 |---------------------------------------------------------------------------- */
 
 .jp-gis-layerEntry {
-	padding: 2px 0 2px 12px;
+  padding: 2px 0 2px 12px;
 }
 
 .jp-gis-layerGroup {
@@ -42,14 +42,17 @@
   background: var(--jp-editor-selected-background);
 }
 
-.jp-gis-layerItem:hover {
+.jp-gis-layerItem:has(.jp-gis-layerItemTitle:hover) {
   cursor: pointer;
-  color: var(--jp-ui-inverse-font-color1);
-  background: var(--jp-brand-color1);
+  background: var(--jp-brand-color2);
 }
 
-.jp-gis-layerItem:hover .jp-icon3[fill] {
-  fill: var(--jp-layout-color3);
+.jp-gis-layerItem button {
+  margin-left: auto;
+  min-height: unset;
+  min-width: unset;
+  padding: unset;
+  margin-right: 4px;
 }
 
 .jp-gis-layerIcon {
@@ -59,16 +62,9 @@
 
 .jp-gis-layerItemTitle {
   display: flex;
+  flex-grow: 1;
 }
 
 .jp-gis-layerItemTitle .jp-gis-layerIcon {
   padding-right: 4px;
-}
-
-.jp-gis-layerItem button {
-  margin-left: auto;
-  min-height: unset;
-  min-width: unset;
-  padding: unset;
-  margin-right: 4px;
 }

@@ -149,7 +149,7 @@ export class JupyterGISDoc
   updateLayer(id: string, value: IJGISLayer): void {
     this.transact(() => {
       this._layers.set(id, value);
-    })
+    });
   }
 
   getObject(id: string): IJGISLayer | IJGISSource | undefined {

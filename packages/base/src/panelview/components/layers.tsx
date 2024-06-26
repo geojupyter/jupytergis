@@ -1,5 +1,10 @@
-import {IJGISLayerGroup, IJupyterGISModel} from '@jupytergis/schema';
-import { Button, LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
+import { IJGISLayerGroup, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  Button,
+  LabIcon,
+  ReactWidget,
+  caretDownIcon
+} from '@jupyterlab/ui-components';
 import { ISignal, Signal } from '@lumino/signaling';
 import { Panel } from '@lumino/widgets';
 import React, { useEffect, useState } from 'react';
@@ -54,7 +59,7 @@ export class LayersPanel extends Panel {
   constructor(options: LayersPanel.IOptions) {
     super();
     this._model = options.model;
-    this.id = 'Layer tree';
+    this.id = 'jupytergis::layerTree';
     this.addClass(LAYERS_PANEL_CLASS);
     this.addWidget(
       ReactWidget.create(
@@ -143,11 +148,7 @@ export function LayersBody(props: LayersPanel.IBodyProps): JSX.Element {
     <div>
       {treeLayers.map(layer =>
         typeof layer === 'string' ? (
-          <LayerItem
-            model={model}
-            layerId={layer}
-            onClick={onItemClick}
-          />
+          <LayerItem model={model} layerId={layer} onClick={onItemClick} />
         ) : (
           <LayerGroup model={model} group={layer} onClick={onItemClick} />
         )
@@ -190,11 +191,7 @@ function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
                 onClick={props.onClick}
               />
             ) : (
-              <LayerGroup
-                model={model}
-                group={layer}
-                onClick={props.onClick}
-              />
+              <LayerGroup model={model} group={layer} onClick={props.onClick} />
             )
           )}
         </div>
@@ -237,15 +234,21 @@ function LayerItem(props: LayersPanel.ILayerItemProps): JSX.Element {
   const toggleVisibility = () => {
     layer.visible = !layer.visible;
     model?.sharedModel.updateLayer(layerId, layer);
-  }
+  };
 
   return (
     <div
-      className={`${LAYERS_ENTRY_CLASS} ${LAYERS_ITEM_CLASS} ${selected ? 'jp-mod-selected' : ''}`}
+      className={`${LAYERS_ENTRY_CLASS} ${LAYERS_ITEM_CLASS}${selected ? ' jp-mod-selected' : ''}`}
     >
-      <div className={LAYERS_ITEM_TITLE_CLASS} onClick={() => props.onClick(layerId)}>
+      <div
+        className={LAYERS_ITEM_TITLE_CLASS}
+        onClick={() => props.onClick(layerId)}
+      >
         {layer.type === 'RasterLayer' && (
-          <LabIcon.resolveReact icon={rasterIcon} className={LAYERS_ICON_CLASS} />
+          <LabIcon.resolveReact
+            icon={rasterIcon}
+            className={LAYERS_ICON_CLASS}
+          />
         )}
         <span>{name}</span>
       </div>
@@ -257,7 +260,7 @@ function LayerItem(props: LayersPanel.ILayerItemProps): JSX.Element {
         <LabIcon.resolveReact
           icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
           className={LAYERS_ICON_CLASS}
-          tag='span'
+          tag="span"
         />
       </Button>
     </div>
