@@ -72,7 +72,7 @@ const activate = (
   };
   if (drive) {
     drive.sharedModelFactory.registerDocumentFactory(
-      'jGIS',
+      'jgis',
       jGISSharedModelFactory
     );
   }
