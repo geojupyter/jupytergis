@@ -1,10 +1,14 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
+  IJGISLayer,
   IJGISLayerDocChange,
+  IJGISLayersTreeDocChange,
+  IJGISSourceDocChange,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
-  IRasterSource
+  IRasterSource,
+  JupyterGISModel
 } from '@jupytergis/schema';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
@@ -51,6 +55,8 @@ export class MainView extends React.Component<IProps, IStates> {
     );
 
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
+    this._model.sharedLayersTreeChanged.connect(this._onLayerTreeChange, this);
+    this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -97,6 +103,52 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   };
 
+  saveRasterSource(id: string, source: IRasterSource): void {
+    // Workaround stupid maplibre issue
+    this._Map._lazyInitEmptyStyle();
+
+    // If the source does not exist, create it
+    if (!this._Map.getSource(id)) {
+      this._Map.addSource(id, {
+        type: 'raster',
+        tiles: [source.url],
+        tileSize: 256
+      });
+    } else {
+      // TODO If the source already existed, update it
+    }
+  }
+
+  saveRasterLayer(id: string, layer: IJGISLayer): void {
+    const sourceId = layer.parameters?.source;
+    const source = this.getSource<IRasterSource>(sourceId);
+    if (!source) {
+      return;
+    }
+
+    // Check if the layer already exist in the map.
+    const mapLayer = this._Map.getLayer(id);
+    if (!mapLayer) {
+      this._Map.addLayer({
+        id: id,
+        type: 'raster',
+        layout: {
+          visibility: layer.visible ? 'visible' : 'none'
+        },
+        source: sourceId,
+        minzoom: source.minZoom || 0,
+        maxzoom: source.maxZoom || 24
+      });
+    } else {
+      mapLayer.source = sourceId;
+      this._Map.setLayoutProperty(
+        id,
+        'visibility',
+        layer.visible ? 'visible' : 'none'
+      );
+    }
+  }
+
   private _onClientSharedStateChanged = (
     sender: IJupyterGISModel,
     clients: Map<number, IJupyterGISClientState>
@@ -123,11 +175,10 @@ export class MainView extends React.Component<IProps, IStates> {
     change: IJGISLayerDocChange
   ): void {
     // TODO Why is this empty?? We need this for granular updates
-    // change.layerChange?.forEach((change) => {
-    //   console.log('new change', change);
-    // })
-
-    for (const layerId of Object.keys(this._model.sharedModel.layers)) {
+    change.layerChange?.forEach((change) => {
+      console.log('new layer change', change);
+    });
+    for (const layerId of JupyterGISModel.getOrderedLayerIds(this._model)) {
       const layer = this._model.sharedModel.getLayer(layerId);
 
       if (!layer) {
@@ -143,41 +194,69 @@ export class MainView extends React.Component<IProps, IStates> {
           if (!source) {
             continue;
           }
+          this.saveRasterSource(sourceId, source);
+          this.saveRasterLayer(layerId, layer);
+        }
+      }
+    }
+  }
 
-          // Workaround stupid maplibre issue
-          this._Map._lazyInitEmptyStyle();
+  private _onLayerTreeChange(
+    sender: IJupyterGISDoc,
+    change: IJGISLayersTreeDocChange
+  ): void {
+    change.layersTreeChange?.forEach((change) => {
+      console.log('new tree change', change);
+    });
+    for (const layerId of JupyterGISModel.getOrderedLayerIds(this._model)) {
+      const layer = this._model.sharedModel.getLayer(layerId);
 
-          // If the source does not exist, create it
-          if (!this._Map.getSource(sourceId)) {
-            this._Map.addSource(sourceId, {
-              type: 'raster',
-              tiles: [source.url],
-              tileSize: 256
-            });
-          } else {
-            // TODO If the source already existed, update it
+      if (!layer) {
+        console.log(`Layer id ${layerId} does not exist`);
+        continue;
+      }
+
+      switch (layer.type) {
+        case 'RasterLayer': {
+          const sourceId = layer.parameters?.source;
+          const source = this.getSource<IRasterSource>(sourceId);
+
+          if (!source) {
+            continue;
           }
+          this.saveRasterSource(sourceId, source);
+          this.saveRasterLayer(layerId, layer);
+        }
+      }
+    }
+  }
 
-          const mapLayer = this._Map.getLayer(layerId);
-          if (!mapLayer) {
-            this._Map.addLayer({
-              id: layerId,
-              type: 'raster',
-              layout: {
-                visibility: layer.visible ? 'visible' : 'none'
-              },
-              source: sourceId,
-              minzoom: source.minZoom || 0,
-              maxzoom: source.maxZoom || 24
-            });
-          } else {
-            mapLayer.source = sourceId;
-            this._Map.setLayoutProperty(
-              layerId,
-              'visibility',
-              layer.visible ? 'visible' : 'none'
-            );
+
+  private _onSourcesChange(
+    sender: IJupyterGISDoc,
+    change: IJGISSourceDocChange
+  ): void {
+    change.sourceChange?.forEach((change) => {
+      console.log('new source change', change);
+    });
+    for (const layerId of JupyterGISModel.getOrderedLayerIds(this._model)) {
+      const layer = this._model.sharedModel.getLayer(layerId);
+
+      if (!layer) {
+        console.log(`Layer id ${layerId} does not exist`);
+        continue;
+      }
+
+      switch (layer.type) {
+        case 'RasterLayer': {
+          const sourceId = layer.parameters?.source;
+          const source = this.getSource<IRasterSource>(sourceId);
+
+          if (!source) {
+            continue;
           }
+          this.saveRasterSource(sourceId, source);
+          this.saveRasterLayer(layerId, layer);
         }
       }
     }

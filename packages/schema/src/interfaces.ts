@@ -122,6 +122,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   currentLayerChanged: ISignal<IJupyterGISModel, string | null>;
   sharedOptionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
+  sharedLayersTreeChanged: ISignal<IJupyterGISDoc, IJGISLayersTreeDocChange>;
+  sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
 
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
