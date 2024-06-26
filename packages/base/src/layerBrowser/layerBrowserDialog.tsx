@@ -20,7 +20,7 @@ export const LayerBrowserComponent = ({
 }: ILayerBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   //TODO: Temp way to track layers to see icon change
-  const [layers, setLayers] = useState<string[]>([]);
+  const [activeLayers, setActiveLayers] = useState<string[]>([]);
 
   const gallery = getRasterLayerGallery();
   const filteredGallery = gallery.filter(item =>
@@ -32,9 +32,18 @@ export const LayerBrowserComponent = ({
   useEffect(() => {
     const dialog = document.getElementsByClassName('jp-Dialog-content');
     dialog[0].classList.add('jgis-dialog-override');
+
+    sharedModel.layersChanged.connect(handleLayerChange);
   }, []);
 
-  const handleChange = event => {
+  const handleLayerChange = () => {
+    // Get rid of the 'Layer' part of the name to match the names in the gallery
+    setActiveLayers(
+      Object.values(sharedModel.layers).map(layer => layer.name.split(' ')[0])
+    );
+  };
+
+  const handleSearchInput = event => {
     setSearchTerm(event.target.value.toLowerCase());
   };
 
@@ -62,8 +71,6 @@ export const LayerBrowserComponent = ({
 
     sharedModel.addSource(sourceId, sourceModel);
     sharedModel.addLayer(UUID.uuid4(), layerModel);
-
-    setLayers([...layers, tile.name]);
   };
 
   return (
@@ -75,7 +82,7 @@ export const LayerBrowserComponent = ({
             type="text"
             placeholder="Search..."
             value={searchTerm}
-            onChange={handleChange}
+            onChange={handleSearchInput}
             className="jgis-layer-browser-header-search"
           />
           <FontAwesomeIcon
@@ -98,7 +105,7 @@ export const LayerBrowserComponent = ({
           >
             <div className="jgis-layer-browser-tile-img-container">
               <img className="jgis-layer-browser-img" src={tile.thumbnail} />
-              {layers.indexOf(tile.name) === -1 ? (
+              {activeLayers.indexOf(tile.name) === -1 ? (
                 <div className="jgis-layer-browser-icon">
                   <FontAwesomeIcon style={{ height: 20 }} icon={faPlus} />
                 </div>
