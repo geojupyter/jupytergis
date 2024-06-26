@@ -15,7 +15,6 @@ interface ILayerBrowserDialogProps {
   sharedModel: IJupyterGISDoc;
 }
 
-//TODO take the browser options as prop? or pull from somewhere else
 export const LayerBrowserComponent = ({
   sharedModel
 }: ILayerBrowserDialogProps) => {
@@ -24,20 +23,20 @@ export const LayerBrowserComponent = ({
   const [layers, setLayers] = useState<string[]>([]);
 
   const gallery = getRasterLayerGallery();
+  const filteredGallery = gallery.filter(item =>
+    item.name.toLowerCase().includes(searchTerm)
+  );
+
+  const providers = [...new Set(gallery.map(item => item.source.provider))];
 
   useEffect(() => {
     const dialog = document.getElementsByClassName('jp-Dialog-content');
-
     dialog[0].classList.add('jgis-dialog-override');
   }, []);
 
   const handleChange = event => {
     setSearchTerm(event.target.value.toLowerCase());
   };
-
-  const filteredGallery = gallery.filter(item =>
-    item.name.toLowerCase().includes(searchTerm)
-  );
 
   const handleClick = (tile: IRasterLayerGalleryEntry) => {
     const sourceId = UUID.uuid4();
@@ -87,8 +86,9 @@ export const LayerBrowserComponent = ({
         </div>
       </div>
       <div className="jgis-layer-browser-categories">
-        <span>Categories Placeholder</span>
-        <span>Categories Placeholder</span>
+        {providers.map(provider => (
+          <span>{provider}</span>
+        ))}
       </div>
       <div className="jgis-layer-browser-grid">
         {filteredGallery.map(tile => (

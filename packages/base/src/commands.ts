@@ -50,7 +50,8 @@ export function getRasterLayerGallery(): IRasterLayerGalleryEntry[] {
         addToGallery(
           gallery,
           xyzprovider[mapName]['name'],
-          xyzprovider[mapName]
+          xyzprovider[mapName],
+          entry
         );
       });
     }
@@ -60,7 +61,7 @@ export function getRasterLayerGallery(): IRasterLayerGalleryEntry[] {
   return gallery;
 }
 
-function addToGallery(gallery, entry, xyzprovider) {
+function addToGallery(gallery, entry, xyzprovider, provider?) {
   gallery.push({
     name: entry,
     thumbnail: RASTER_THUMBNAILS[xyzprovider['name'].replace('.', '-')],
@@ -69,7 +70,7 @@ function addToGallery(gallery, entry, xyzprovider) {
       minZoom: xyzprovider['min_zoom'] || 0,
       maxZoom: xyzprovider['max_zoom'] || 24,
       attribution: xyzprovider['attribution'] || '',
-      provider: entry
+      provider: provider ?? entry
     }
   });
 }
