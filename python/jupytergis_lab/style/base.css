@@ -419,12 +419,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   color: var(--jp-ui-font-color1);
 }
 
-.jgis-layer-browser-categories {
-  display: flex;
-  gap: 1rem;
-  padding: 0 2rem;
-}
-
 .jgis-layer-browser-grid {
   display: grid;
   gap: 1.25rem;
@@ -438,6 +432,45 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   max-width: 100%;
   height: calc(100% - 2rem);
   max-height: 100%;
+}
+
+.jgis-layer-browser-categories {
+  display: flex;
+  gap: 2rem;
+  padding: 0 2rem;
+  border-bottom: 2px solid var(--jp-border-color1);
+}
+
+.jgis-layer-browser-category {
+  position: relative;
+  opacity: 0.5;
+  padding: 4px 0 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.jgis-layer-browser-category::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0px;
+  height: 3px;
+  transition:
+    background-color 300ms ease-in,
+    width 300ms ease-in,
+    opacity 300ms ease-in;
+  background-color: transparent;
+}
+
+.jgis-layer-browser-category.jgis-layer-browser-category-selected::after {
+  width: 100%;
+  background-color: black;
+}
+
+.jgis-layer-browser-category.jgis-layer-browser-category-selected {
+  opacity: 1;
+  font-weight: bold;
 }
 
 .jgis-layer-browser-tile {

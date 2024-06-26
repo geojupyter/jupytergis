@@ -21,6 +21,7 @@ export const LayerBrowserComponent = ({
   const [searchTerm, setSearchTerm] = useState('');
   //TODO: Temp way to track layers to see icon change
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<HTMLElement>();
 
   const gallery = getRasterLayerGallery();
   const filteredGallery = gallery.filter(item =>
@@ -47,7 +48,13 @@ export const LayerBrowserComponent = ({
     setSearchTerm(event.target.value.toLowerCase());
   };
 
-  const handleClick = (tile: IRasterLayerGalleryEntry) => {
+  const handleCategoryClick = (event: any) => {
+    selectedCategory?.classList.remove('jgis-layer-browser-category-selected');
+    event.target.classList.add('jgis-layer-browser-category-selected');
+    setSelectedCategory(event.target);
+  };
+
+  const handleTileClick = (tile: IRasterLayerGalleryEntry) => {
     const sourceId = UUID.uuid4();
 
     const sourceModel: IJGISSource = {
@@ -94,14 +101,19 @@ export const LayerBrowserComponent = ({
       </div>
       <div className="jgis-layer-browser-categories">
         {providers.map(provider => (
-          <span>{provider}</span>
+          <span
+            className="jgis-layer-browser-category"
+            onClick={handleCategoryClick}
+          >
+            {provider}
+          </span>
         ))}
       </div>
       <div className="jgis-layer-browser-grid">
         {filteredGallery.map(tile => (
           <div
             className="jgis-layer-browser-tile"
-            onClick={() => handleClick(tile)}
+            onClick={() => handleTileClick(tile)}
           >
             <div className="jgis-layer-browser-tile-img-container">
               <img className="jgis-layer-browser-img" src={tile.thumbnail} />
