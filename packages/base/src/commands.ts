@@ -42,18 +42,36 @@ export function getRasterLayerGallery(): IRasterLayerGalleryEntry[] {
   const gallery: IRasterLayerGalleryEntry[] = [];
   for (const entry of Object.keys(RASTER_LAYER_GALLERY)) {
     const xyzprovider = RASTER_LAYER_GALLERY[entry];
-    gallery.push({
-      name: entry,
-      thumbnail: RASTER_THUMBNAILS[xyzprovider['name']],
-      source: {
-        url: xyzprovider['attrs']['url'],
-        minZoom: xyzprovider['attrs']['min_zoom'] || 0,
-        maxZoom: xyzprovider['attrs']['max_zoom'] || 24,
-        attribution: xyzprovider['attrs']['attribution'] || ''
-      }
-    });
+
+    if ('url' in xyzprovider) {
+      addToGallery(gallery, entry, xyzprovider);
+    } else {
+      Object.keys(xyzprovider).forEach(mapName => {
+        addToGallery(
+          gallery,
+          xyzprovider[mapName]['name'],
+          xyzprovider[mapName]
+        );
+      });
+    }
   }
+
+  console.log('gallery', gallery);
   return gallery;
+}
+
+function addToGallery(gallery, entry, xyzprovider) {
+  gallery.push({
+    name: entry,
+    thumbnail: RASTER_THUMBNAILS[xyzprovider['name'].replace('.', '-')],
+    source: {
+      url: xyzprovider['url'],
+      minZoom: xyzprovider['min_zoom'] || 0,
+      maxZoom: xyzprovider['max_zoom'] || 24,
+      attribution: xyzprovider['attribution'] || '',
+      provider: entry
+    }
+  });
 }
 
 /**
@@ -68,8 +86,6 @@ export function addCommands(
   Private.updateFormSchema(formSchemaRegistry);
   const trans = translator.load('jupyterlab');
   const { commands } = app;
-
-  console.log('raster layers gallery', getRasterLayerGallery());
 
   commands.addCommand(CommandIDs.redo, {
     label: trans.__('Redo'),

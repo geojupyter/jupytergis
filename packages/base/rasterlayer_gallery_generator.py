@@ -187,15 +187,17 @@ for provider in thumbnails_providers_positions.keys():
 
         file_path = download_thumbnail(url_template, name, position, tile_size)
         raster_provider_gallery[name] = dict(
-            name=name,
+            # jgisname=name,
             thumbnailPath=file_path,
-            attrs=xyzprovider
+            **xyzprovider
         )
 
         continue
 
+    providers_maps = {}
     for map_name in xyzprovider.keys():
         print(f"Process {provider} {map_name}")
+
 
         try:
             if map_name in thumbnails_providers_positions[provider]['Special Rules'].keys():
@@ -215,11 +217,13 @@ for provider in thumbnails_providers_positions.keys():
             tile_size = thumbnails_providers_positions[provider].get('TileSize', 256)
 
             file_path = download_thumbnail(url_template, name, position, tile_size)
-            raster_provider_gallery[name] = dict(
-                name=name,
+            providers_maps[map_name] = dict(
+                # jgisname=name,
                 thumbnailPath=file_path,
-                attrs=tile_provider
+                **tile_provider
             )
+
+            raster_provider_gallery[provider] = providers_maps
 
         except Exception as e:
             print('Failed...', e)

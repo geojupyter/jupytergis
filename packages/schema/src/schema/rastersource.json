@@ -24,6 +24,10 @@
     "attribution": {
       "type": "string",
       "description": "The attributions for the raster source"
+    },
+    "provider": {
+      "type": "string",
+      "description": "The map provider"
     }
   }
 }
