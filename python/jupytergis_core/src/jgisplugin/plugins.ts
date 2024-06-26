@@ -99,7 +99,7 @@ const activate = (
       const cwd = (args['cwd'] ||
         browserFactory.tracker.currentWidget?.model.path) as string;
 
-      // Create a new untitled Blockly file
+      // Create a new untitled GIS file
       let model = await app.serviceManager.contents.newUntitled({
         path: cwd,
         type: 'file',
@@ -111,7 +111,7 @@ const activate = (
         format: 'text',
         size: undefined,
         content:
-          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {}\n, "layerTree": {"name": "", "layers": []}\n}'
+          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {},\n\t"layersTree": []\n}'
       });
 
       // Open the newly created file with the 'Editor'

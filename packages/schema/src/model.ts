@@ -8,8 +8,8 @@ import Ajv from 'ajv';
 import {
   IJGISContent,
   IJGISLayer,
-  IJGISLayerGroup,
   IJGISLayers,
+  IJGISLayersTree,
   IJGISSource,
   IJGISSources
 } from './_interface/jgis';
@@ -162,10 +162,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.sharedModel.transact(() => {
       this.sharedModel.sources = jsonData.sources ?? {};
       this.sharedModel.layers = jsonData.layers ?? {};
-      this.sharedModel.layerTree = jsonData.layerTree ?? {
-        name: '',
-        layers: []
-      };
+      this.sharedModel.layersTree = jsonData.layersTree ?? [];
       this.sharedModel.options = jsonData.options ?? {};
     });
     this.dirty = true;
@@ -191,7 +188,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return {
       sources: this.sharedModel.sources,
       layers: this.sharedModel.layers,
-      layerTree: this.sharedModel.layerTree,
+      layersTree: this.sharedModel.layersTree,
       options: this.sharedModel.options
     };
   }
@@ -204,8 +201,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.sources;
   }
 
-  getTreeLayers(): (IJGISLayerGroup | string)[] {
-    return this.sharedModel.getTreeLayers();
+  getLayersTree(): IJGISLayersTree {
+    return this.sharedModel.layersTree;
   }
 
   getLayer(id: string): IJGISLayer | undefined {

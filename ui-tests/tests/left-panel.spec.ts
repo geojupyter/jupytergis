@@ -17,15 +17,15 @@ async function openLeftPanel(page: IJupyterLabPageFixture): Promise<Locator> {
   return sidePanel;
 }
 
-async function openLayerTree(page: IJupyterLabPageFixture): Promise<Locator> {
+async function openLayersTree(page: IJupyterLabPageFixture): Promise<Locator> {
   const sidePanel = await openLeftPanel(page);
-  const layerTree = sidePanel.locator('.jp-gis-layerPanel');
-  if (!(await layerTree.isVisible())) {
+  const layersTree = sidePanel.locator('.jp-gis-layerPanel');
+  if (!(await layersTree.isVisible())) {
     const layerTitle = sidePanel.getByTitle('Layer tree');
     await layerTitle.click();
-    await page.waitForCondition(async () => await layerTree.isVisible());
+    await page.waitForCondition(async () => await layersTree.isVisible());
   }
-  return layerTree;
+  return layersTree;
 }
 
 test.describe('#overview', () => {
@@ -45,8 +45,8 @@ test.describe('#overview', () => {
 test.describe('#layersPanel', () => {
   test.describe('without GIS document', () => {
     test('should have empty layer panel', async ({ page }) => {
-      const layerTree = await openLayerTree(page);
-      await expect(layerTree).toBeEmpty();
+      const layersTree = await openLayersTree(page);
+      await expect(layersTree).toBeEmpty();
     });
   });
 
@@ -64,28 +64,28 @@ test.describe('#layersPanel', () => {
     });
 
     test('should have layer panel with content', async ({ page }) => {
-      const layerTree = await openLayerTree(page);
-      await expect(layerTree).not.toBeEmpty();
+      const layersTree = await openLayersTree(page);
+      await expect(layersTree).not.toBeEmpty();
     });
 
     test('raster layer should have icons', async ({ page }) => {
-      const layerTree = await openLayerTree(page);
-      const layerItemsIcon = layerTree.locator(
-        '.jp-gis-layerItem .jp-gis-layerIcon svg'
+      const layersTree = await openLayersTree(page);
+      const layerIcons = layersTree.locator(
+        '.jp-gis-layer .jp-gis-layerIcon svg'
       );
 
-      expect(await layerItemsIcon.first().screenshot()).toMatchSnapshot(
+      expect(await layerIcons.first().screenshot()).toMatchSnapshot(
         'raster-layer-icon.png'
       );
     });
 
     test('should navigate in nested groups', async ({ page }) => {
-      const layerTree = await openLayerTree(page);
-      const layerEntries = layerTree.locator('.jp-gis-layerEntry');
+      const layersTree = await openLayersTree(page);
+      const layerEntries = layersTree.locator('.jp-gis-layerItem');
 
       await expect(layerEntries).toHaveCount(2);
-      await expect(layerEntries.first()).toHaveClass(/jp-gis-layerItem/);
-      await expect(layerEntries.last()).toHaveClass(/jp-gis-layerGroup/);
+      await expect(layerEntries.first()).toHaveClass(/jp-gis-layer/);
+      await expect(layerEntries.last()).toHaveClass(/jp-gis-layersGroup/);
 
       // Open the first level group
       await layerEntries.last().click();
@@ -97,39 +97,39 @@ test.describe('#layersPanel', () => {
     });
 
     test('clicking a layer should select it', async ({ page }) => {
-      const layerTree = await openLayerTree(page);
-      const layerGroup = layerTree.locator('.jp-gis-layerGroup');
-      const layerItems = layerTree.locator('.jp-gis-layerItem');
+      const layersTree = await openLayersTree(page);
+      const layersGroup = layersTree.locator('.jp-gis-layersGroup');
+      const layer = layersTree.locator('.jp-gis-layer');
 
       // Open the first level group
-      await layerGroup.last().click();
+      await layersGroup.last().click();
 
-      await expect(layerItems.first()).not.toHaveClass(/jp-mod-selected/);
-      expect(await layerItems.first().screenshot()).toMatchSnapshot(
+      await expect(layer.first()).not.toHaveClass(/jp-mod-selected/);
+      expect(await layer.first().screenshot()).toMatchSnapshot(
         'layer-not-selected.png'
       );
 
-      await layerItems.first().hover();
-      expect(await layerItems.first().screenshot()).toMatchSnapshot(
+      await layer.first().hover();
+      expect(await layer.first().screenshot()).toMatchSnapshot(
         'layer-hover.png'
       );
 
-      await layerItems.first().click();
-      await layerItems.last().hover();
-      await expect(layerItems.first()).toHaveClass(/jp-mod-selected/);
-      expect(await layerItems.first().screenshot()).toMatchSnapshot(
+      await layer.first().click();
+      await layer.last().hover();
+      await expect(layer.first()).toHaveClass(/jp-mod-selected/);
+      expect(await layer.first().screenshot()).toMatchSnapshot(
         'layer-selected.png'
       );
 
-      await layerItems.last().click();
-      await expect(layerItems.first()).not.toHaveClass(/jp-mod-selected/);
-      await expect(layerItems.last()).toHaveClass(/jp-mod-selected/);
+      await layer.last().click();
+      await expect(layer.first()).not.toHaveClass(/jp-mod-selected/);
+      await expect(layer.last()).toHaveClass(/jp-mod-selected/);
     });
 
     test('should have visibility icon', async ({ page }) => {
-      const layerTree = await openLayerTree(page);
-      const hideLayerButton = layerTree.getByTitle('Hide layer');
-      const showLayerButton = layerTree.getByTitle('Show layer');
+      const layersTree = await openLayersTree(page);
+      const hideLayerButton = layersTree.getByTitle('Hide layer');
+      const showLayerButton = layersTree.getByTitle('Show layer');
 
       await expect(hideLayerButton).toHaveCount(1);
       await expect(showLayerButton).toHaveCount(0);

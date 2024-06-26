@@ -38,7 +38,7 @@ class GISDocument(CommWidget):
 
         self.ydoc["layers"] = self._layers = Array()
         self.ydoc["options"] = self._options = Map()
-        self.ydoc["layerTree"] = self._layerTree = Map()
+        self.ydoc["layersTree"] = self._layersTree = Array()
 
     @property
     def layers(self) -> List[str]:
@@ -50,12 +50,12 @@ class GISDocument(CommWidget):
         return []
 
     @property
-    def treeLayers(self) -> List[str | Dict]:
+    def layersTree(self) -> List[str | Dict]:
         """
         Get the first level layers list of the tree.
         """
-        if self._layerTree:
-            return self._layerTree["layers"]
+        if self._layersTree:
+            return self._layersTree
         return []
 
     @classmethod

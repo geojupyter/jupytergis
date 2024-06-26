@@ -1,4 +1,5 @@
 import {
+  Delta,
   DocumentChange,
   MapChange,
   StateChange,
@@ -14,8 +15,9 @@ import { ISignal, Signal } from '@lumino/signaling';
 import {
   IJGISContent,
   IJGISLayer,
+  IJGISLayerItem,
   IJGISLayers,
-  IJGISLayerGroup,
+  IJGISLayersTree,
   IJGISOptions,
   IJGISSource,
   IJGISSources
@@ -32,11 +34,8 @@ export interface IJGISLayerDocChange {
   }>;
 }
 
-export interface IJGISLayerTreeDocChange {
-  layerTreeChange?: Array<{
-    id: string;
-    newValue: IJGISLayerGroup | string | undefined;
-  }>;
+export interface IJGISLayersTreeDocChange {
+  layersTreeChange?: Delta<IJGISLayerItem[]>;
 }
 
 export interface IJGISSourceDocChange {
@@ -61,7 +60,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   options: IJGISOptions;
   layers: IJGISLayers;
   sources: IJGISSources;
-  layerTree: IJGISLayerGroup;
+  layersTree: IJGISLayersTree;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
@@ -71,8 +70,6 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   removeLayer(id: string): void;
   addLayer(id: string, value: IJGISLayer): void;
   updateLayer(id: string, value: IJGISLayer): void;
-
-  getTreeLayers(): (IJGISLayerGroup | string)[];
 
   sourceExists(id: string): boolean;
   getSource(id: string): IJGISSource | undefined;
@@ -92,7 +89,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
-  layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
+  layersTreeChanged: ISignal<IJupyterGISDoc, IJGISLayersTreeDocChange>;
 }
 
 export interface IJupyterGISDocChange extends DocumentChange {
@@ -103,10 +100,7 @@ export interface IJupyterGISDocChange extends DocumentChange {
     key: string;
     newValue: IJGISLayer | undefined;
   }>;
-  layerTreeChange?: Array<{
-    id: string;
-    newValue: IJGISLayerGroup | string | undefined;
-  }>;
+  layersTreeChange?: Delta<IJGISLayerItem[]>;
   optionChange?: MapChange;
   stateChange?: StateChange<any>[];
 }
@@ -134,7 +128,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getLayer(id: string): IJGISLayer | undefined;
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
-  getTreeLayers(): (IJGISLayerGroup | string)[];
+  getLayersTree(): IJGISLayersTree;
 
   syncSelectedPropField(data: {
     id: string | null;

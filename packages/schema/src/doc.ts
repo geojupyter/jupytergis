@@ -1,12 +1,13 @@
-import { MapChange, YDocument } from '@jupyter/ydoc';
+import { Delta, MapChange, YDocument } from '@jupyter/ydoc';
 import { JSONExt, JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import * as Y from 'yjs';
 
 import {
   IJGISLayer,
-  IJGISLayerGroup,
+  IJGISLayerItem,
   IJGISLayers,
+  IJGISLayersTree,
   IJGISOptions,
   IJGISSource,
   IJGISSources
@@ -14,7 +15,7 @@ import {
 import {
   IDict,
   IJGISLayerDocChange,
-  IJGISLayerTreeDocChange,
+  IJGISLayersTreeDocChange,
   IJGISSourceDocChange,
   IJupyterGISDoc,
   IJupyterGISDocChange
@@ -29,13 +30,13 @@ export class JupyterGISDoc
 
     this._options = this.ydoc.getMap<Y.Map<any>>('options');
     this._layers = this.ydoc.getMap<Y.Map<any>>('layers');
-    this._layerTree = this.ydoc.getMap<Y.Map<any>>('layerTree');
+    this._layersTree = this.ydoc.getArray<IJGISLayerItem>('layersTree');
     this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
 
     this._layers.observeDeep(this._layersObserver.bind(this));
-    this._layerTree.observeDeep(this._layerTreeObserver.bind(this));
+    this._layersTree.observe(this._layersTreeObserver.bind(this));
     this._sources.observeDeep(this._sourcesObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
   }
@@ -72,15 +73,14 @@ export class JupyterGISDoc
     return JSONExt.deepCopy(this._sources.toJSON());
   }
 
-  get layerTree(): IJGISLayerGroup {
-    return this._layerTree.toJSON() as IJGISLayerGroup;
+  get layersTree(): IJGISLayersTree {
+    return this._layersTree.toJSON() as IJGISLayersTree;
   }
 
-  set layerTree(layerTree: IJGISLayerGroup) {
+  set layersTree(layersTree: IJGISLayersTree) {
     this.transact(() => {
-      for (const [key, value] of Object.entries(layerTree)) {
-        this._layerTree.set(key, value);
-      }
+      this._layersTree.delete(0, this._layersTree.length);
+      this._layersTree.push(layersTree);
     });
   }
 
@@ -89,10 +89,6 @@ export class JupyterGISDoc
       return undefined;
     }
     return JSONExt.deepCopy(this._layers.get(id));
-  }
-
-  getTreeLayers(): (IJGISLayerGroup | string)[] {
-    return JSONExt.deepCopy(this._layerTree.get('layers') || []);
   }
 
   getSource(id: string): IJGISSource | undefined {
@@ -118,8 +114,8 @@ export class JupyterGISDoc
     return this._layersChanged;
   }
 
-  get layerTreeChanged(): ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange> {
-    return this._layerTreeChanged;
+  get layersTreeChanged(): ISignal<IJupyterGISDoc, IJGISLayersTreeDocChange> {
+    return this._layersTreeChanged;
   }
 
   get sourcesChanged(): ISignal<IJupyterGISDoc, IJGISSourceDocChange> {
@@ -268,20 +264,9 @@ export class JupyterGISDoc
     }
   }
 
-  private _layerTreeObserver(events: Y.YEvent<any>[]): void {
-    const changes: Array<{
-      id: string;
-      newValue: IJGISLayerGroup;
-    }> = [];
-    events.forEach(event => {
-      event.keys.forEach((change, key) => {
-        changes.push({
-          id: key as string,
-          newValue: event.target.toJSON()[key]
-        });
-      });
-    });
-    this._layerTreeChanged.emit({ layerTreeChange: changes });
+  private _layersTreeObserver(event: Y.YArrayEvent<IJGISLayerItem>): void {
+    const layerTreeChanges = event.delta as Delta<IJGISLayerItem[]>;
+    this._layersTreeChanged.emit({ layersTreeChange: layerTreeChanges });
   }
 
   private _sourcesObserver(events: Y.YEvent<any>[]): void {
@@ -312,16 +297,16 @@ export class JupyterGISDoc
   };
 
   private _layers: Y.Map<any>;
-  private _layerTree: Y.Map<any>;
+  private _layersTree: Y.Array<IJGISLayerItem>;
   private _sources: Y.Map<any>;
   private _options: Y.Map<any>;
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
     this
   );
-  private _layerTreeChanged = new Signal<
+  private _layersTreeChanged = new Signal<
     IJupyterGISDoc,
-    IJGISLayerTreeDocChange
+    IJGISLayersTreeDocChange
   >(this);
   private _sourcesChanged = new Signal<IJupyterGISDoc, IJGISSourceDocChange>(
     this

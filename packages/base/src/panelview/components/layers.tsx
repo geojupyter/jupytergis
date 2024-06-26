@@ -1,4 +1,8 @@
-import { IJGISLayerGroup, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IJGISLayersGroup,
+  IJGISLayersTree,
+  IJupyterGISModel
+} from '@jupytergis/schema';
 import {
   Button,
   LabIcon,
@@ -11,63 +15,42 @@ import React, { useEffect, useState } from 'react';
 import { nonVisibilityIcon, rasterIcon, visibilityIcon } from '../../icons';
 
 const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
-const LAYERS_ENTRY_CLASS = 'jp-gis-layerEntry';
-const LAYERS_GROUP_CLASS = 'jp-gis-layerGroup';
-const LAYERS_GROUP_HEADER_CLASS = 'jp-gis-layerGroupHeader';
-const LAYERS_GROUP_COLLAPSER_CLASS = 'jp-gis-layerGroupCollapser';
-const LAYERS_ITEM_CLASS = 'jp-gis-layerItem';
-const LAYERS_ITEM_TITLE_CLASS = 'jp-gis-layerItemTitle';
-const LAYERS_ICON_CLASS = 'jp-gis-layerIcon';
+const LAYERS_GROUP_CLASS = 'jp-gis-layersGroup';
+const LAYERS_GROUP_HEADER_CLASS = 'jp-gis-layersGroupHeader';
+const LAYERS_GROUP_COLLAPSER_CLASS = 'jp-gis-layersGroupCollapser';
+const LAYER_ITEM_CLASS = 'jp-gis-layerItem';
+const LAYER_CLASS = 'jp-gis-layer';
+const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
+const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
 
 /**
- * The namespace for the layer panel.
+ * The namespace for the layers panel.
  */
 export namespace LayersPanel {
   /**
-   * Options of the layer panel widget.
+   * Options of the layers panel widget.
    */
   export interface IOptions {
     model: IJupyterGISModel | undefined;
   }
-  /**
-   * Properties of the layer body component.
-   */
-  export interface IBodyProps extends IOptions {
-    modelChanged: ISignal<LayersPanel, IJupyterGISModel | undefined>;
-    onSelect: (layer?: string) => void;
-  }
-  /**
-   * Properties of the layer group component.
-   */
-  export interface ILayerGroupProps extends IOptions {
-    group: IJGISLayerGroup | undefined;
-    onClick: (item?: string) => void;
-  }
-  /**
-   * Properties of the layer item component.
-   */
-  export interface ILayerItemProps extends IOptions {
-    layerId: string;
-    onClick: (item?: string) => void;
-  }
 }
 
 /**
- * The layer panel widget.
+ * The layers panel widget.
  */
 export class LayersPanel extends Panel {
   constructor(options: LayersPanel.IOptions) {
     super();
     this._model = options.model;
-    this.id = 'jupytergis::layerTree';
+    this.id = 'jupytergis::layersTree';
     this.addClass(LAYERS_PANEL_CLASS);
     this.addWidget(
       ReactWidget.create(
-        <LayersBody
+        <LayersBodyComponent
           model={this._model}
           modelChanged={this._modelChanged}
           onSelect={this._onSelect}
-        ></LayersBody>
+        ></LayersBodyComponent>
       )
     );
   }
@@ -105,12 +88,20 @@ export class LayersPanel extends Panel {
 }
 
 /**
+ * Properties of the layers body component.
+ */
+interface IBodyProps extends LayersPanel.IOptions {
+  modelChanged: ISignal<LayersPanel, IJupyterGISModel | undefined>;
+  onSelect: (layer?: string) => void;
+}
+
+/**
  * The body component of the panel.
  */
-export function LayersBody(props: LayersPanel.IBodyProps): JSX.Element {
+function LayersBodyComponent(props: IBodyProps): JSX.Element {
   const [model, setModel] = useState<IJupyterGISModel | undefined>(props.model);
-  const [treeLayers, setTreeLayers] = useState<(string | IJGISLayerGroup)[]>(
-    props.model?.getTreeLayers() || []
+  const [layersTree, setLayersTree] = useState<IJGISLayersTree>(
+    model?.getLayersTree() || []
   );
 
   /**
@@ -121,18 +112,18 @@ export function LayersBody(props: LayersPanel.IBodyProps): JSX.Element {
   };
 
   /**
-   * Listen to the layers and layer tree changes.
+   * Listen to the layers and layers tree changes.
    */
   useEffect(() => {
     const updateLayers = () => {
-      setTreeLayers(model?.getTreeLayers() || []);
+      setLayersTree(model?.getLayersTree() || []);
     };
     model?.sharedModel.layersChanged.connect(updateLayers);
-    model?.sharedModel.layerTreeChanged.connect(updateLayers);
+    model?.sharedModel.layersTreeChanged.connect(updateLayers);
 
     return () => {
       model?.sharedModel.layersChanged.disconnect(updateLayers);
-      model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
+      model?.sharedModel.layersTreeChanged.disconnect(updateLayers);
     };
   }, [model]);
 
@@ -141,16 +132,20 @@ export function LayersBody(props: LayersPanel.IBodyProps): JSX.Element {
    */
   props.modelChanged.connect((_, model) => {
     setModel(model);
-    setTreeLayers(model?.getTreeLayers() || []);
+    setLayersTree(model?.getLayersTree() || []);
   });
 
   return (
     <div>
-      {treeLayers.map(layer =>
+      {layersTree.map(layer =>
         typeof layer === 'string' ? (
-          <LayerItem model={model} layerId={layer} onClick={onItemClick} />
+          <LayerComponent model={model} layerId={layer} onClick={onItemClick} />
         ) : (
-          <LayerGroup model={model} group={layer} onClick={onItemClick} />
+          <LayersGroupComponent
+            model={model}
+            group={layer}
+            onClick={onItemClick}
+          />
         )
       )}
     </div>
@@ -158,9 +153,17 @@ export function LayersBody(props: LayersPanel.IBodyProps): JSX.Element {
 }
 
 /**
+ * Properties of the layers group component.
+ */
+interface ILayersGroupProps extends LayersPanel.IOptions {
+  group: IJGISLayersGroup | undefined;
+  onClick: (item?: string) => void;
+}
+
+/**
  * The component to handle group of layers.
  */
-function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
+function LayersGroupComponent(props: ILayersGroupProps): JSX.Element {
   const { group, model } = props;
   if (group === undefined) {
     return <></>;
@@ -170,7 +173,7 @@ function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
   const layers = group?.layers ?? [];
 
   return (
-    <div className={`${LAYERS_ENTRY_CLASS} ${LAYERS_GROUP_CLASS}`}>
+    <div className={`${LAYER_ITEM_CLASS} ${LAYERS_GROUP_CLASS}`}>
       <div onClick={() => setOpen(!open)} className={LAYERS_GROUP_HEADER_CLASS}>
         <LabIcon.resolveReact
           icon={caretDownIcon}
@@ -185,13 +188,17 @@ function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
         <div>
           {layers.map(layer =>
             typeof layer === 'string' ? (
-              <LayerItem
+              <LayerComponent
                 model={model}
                 layerId={layer}
                 onClick={props.onClick}
               />
             ) : (
-              <LayerGroup model={model} group={layer} onClick={props.onClick} />
+              <LayersGroupComponent
+                model={model}
+                group={layer}
+                onClick={props.onClick}
+              />
             )
           )}
         </div>
@@ -201,9 +208,17 @@ function LayerGroup(props: LayersPanel.ILayerGroupProps): JSX.Element {
 }
 
 /**
+ * Properties of the layer component.
+ */
+interface ILayerProps extends LayersPanel.IOptions {
+  layerId: string;
+  onClick: (item?: string) => void;
+}
+
+/**
  * The component to display a single layer.
  */
-function LayerItem(props: LayersPanel.ILayerItemProps): JSX.Element {
+function LayerComponent(props: ILayerProps): JSX.Element {
   const { layerId, model } = props;
   const layer = model?.getLayer(layerId);
   if (layer === undefined) {
@@ -238,16 +253,13 @@ function LayerItem(props: LayersPanel.ILayerItemProps): JSX.Element {
 
   return (
     <div
-      className={`${LAYERS_ENTRY_CLASS} ${LAYERS_ITEM_CLASS}${selected ? ' jp-mod-selected' : ''}`}
+      className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
     >
-      <div
-        className={LAYERS_ITEM_TITLE_CLASS}
-        onClick={() => props.onClick(layerId)}
-      >
+      <div className={LAYER_TITLE_CLASS} onClick={() => props.onClick(layerId)}>
         {layer.type === 'RasterLayer' && (
           <LabIcon.resolveReact
             icon={rasterIcon}
-            className={LAYERS_ICON_CLASS}
+            className={LAYER_ICON_CLASS}
           />
         )}
         <span>{name}</span>
@@ -259,7 +271,7 @@ function LayerItem(props: LayersPanel.ILayerItemProps): JSX.Element {
       >
         <LabIcon.resolveReact
           icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
-          className={LAYERS_ICON_CLASS}
+          className={LAYER_ICON_CLASS}
           tag="span"
         />
       </Button>
