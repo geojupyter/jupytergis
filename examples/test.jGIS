@@ -1,75 +1,76 @@
 {
-  "sources": {
-    "699facc9-e7c4-4f38-acf1-1fd7f02d9f36": {
-      "type": "RasterSource",
-      "name": "Open Street Map",
-      "parameters": {
-        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "minZoom": 0,
-        "maxZoom": 24
-      }
-    },
-    "5fd42e3b-4681-4607-b15d-65c3a3e89b32": {
-      "type": "RasterSource",
-      "name": "Open Topo Map",
-      "parameters": {
-        "url": "https://tile.opentopomap.org/{z}/{x}/{y}.png ",
-        "minZoom": 0,
-        "maxZoom": 24
-      }
-    },
-    "f22850a8-bfd5-4dfb-ba1e-c3f2c3ccf93b": {
-      "type": "RasterSource",
-      "name": "Open Street Map 2",
-      "parameters": {
-        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "minZoom": 0,
-        "maxZoom": 24
-      }
-    }
-  },
   "layers": {
-    "2467576f-b527-4cb7-998d-fa1d056fb8a1": {
-      "type": "RasterLayer",
-      "parameters": {
-        "source": "699facc9-e7c4-4f38-acf1-1fd7f02d9f36"
-      },
-      "visible": true,
-      "name": "Open Street Map"
-    },
     "a0044fd7-f167-445f-b3d1-620a8f94b498": {
+      "visible": true,
+      "name": "Open Topo Map",
       "type": "RasterLayer",
       "parameters": {
         "source": "5fd42e3b-4681-4607-b15d-65c3a3e89b32"
-      },
+      }
+    },
+    "2467576f-b527-4cb7-998d-fa1d056fb8a1": {
+      "name": "Open Street Map",
       "visible": true,
-      "name": "Open Topo Map"
+      "parameters": {
+        "source": "699facc9-e7c4-4f38-acf1-1fd7f02d9f36"
+      },
+      "type": "RasterLayer"
     },
     "a5ac7671-74bb-4c99-a494-916348397d01": {
-      "type": "RasterLayer",
+      "visible": true,
       "parameters": {
         "source": "f22850a8-bfd5-4dfb-ba1e-c3f2c3ccf93b"
       },
-      "visible": true,
-      "name": "Open Street Map 2"
+      "name": "Open Street Map 2",
+      "type": "RasterLayer"
     }
   },
+  "sources": {
+    "699facc9-e7c4-4f38-acf1-1fd7f02d9f36": {
+      "parameters": {
+        "maxZoom": 24.0,
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+      },
+      "type": "RasterSource",
+      "name": "Open Street Map"
+    },
+    "f22850a8-bfd5-4dfb-ba1e-c3f2c3ccf93b": {
+      "name": "Open Street Map 2",
+      "parameters": {
+        "maxZoom": 24.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "minZoom": 0.0
+      },
+      "type": "RasterSource"
+    },
+    "5fd42e3b-4681-4607-b15d-65c3a3e89b32": {
+      "name": "Open Topo Map",
+      "type": "RasterSource",
+      "parameters": {
+        "minZoom": 0.0,
+        "url": "https://tile.opentopomap.org/{z}/{x}/{y}.png ",
+        "maxZoom": 24.0
+      }
+    }
+  },
+  "options": {},
   "layerTree": {
-    "name": "",
     "layers": [
       "2467576f-b527-4cb7-998d-fa1d056fb8a1",
       {
-        "name": "level 1 group",
         "layers": [
           "a0044fd7-f167-445f-b3d1-620a8f94b498",
           {
             "name": "level 2 group",
-            "layers": ["a5ac7671-74bb-4c99-a494-916348397d01"]
-
+            "layers": [
+              "a5ac7671-74bb-4c99-a494-916348397d01"
+            ]
           }
-          ]
+        ],
+        "name": "level 1 group"
       }
-    ]
-  },
-  "options": {}
+    ],
+    "name": ""
+  }
 }
