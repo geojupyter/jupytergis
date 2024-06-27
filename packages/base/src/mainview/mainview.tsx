@@ -3,11 +3,11 @@ import {
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayersTreeDocChange,
+  IJGISSource,
   IJGISSourceDocChange,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
-  IRasterSource,
   JupyterGISModel
 } from '@jupytergis/schema';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -103,49 +103,168 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   };
 
-  saveRasterSource(id: string, source: IRasterSource): void {
+  /**
+   * Add or update a source in the map.
+   *
+   * @param id - the source id.
+   * @param source - the source object.
+   */
+  setSource(id: string, source: IJGISSource): void {
     // Workaround stupid maplibre issue
     this._Map._lazyInitEmptyStyle();
 
-    // If the source does not exist, create it
-    if (!this._Map.getSource(id)) {
-      this._Map.addSource(id, {
-        type: 'raster',
-        tiles: [source.url],
-        tileSize: 256
-      });
-    } else {
-      // TODO If the source already existed, update it
+    switch (source.type) {
+      case 'RasterSource': {
+        const mapSource = this._Map.getSource(id) as MapLibre.RasterTileSource;
+        if (mapSource) {
+          mapSource.setTiles([source.parameters?.url]);
+        } else {
+          this._Map.addSource(id, {
+            type: 'raster',
+            tiles: [source.parameters?.url],
+            tileSize: 256
+          });
+        }
+      }
     }
   }
 
-  saveRasterLayer(id: string, layer: IJGISLayer): void {
-    const sourceId = layer.parameters?.source;
-    const source = this.getSource<IRasterSource>(sourceId);
-    if (!source) {
-      return;
+  /**
+   * Remove a source from the map.
+   *
+   * @param id - the source id.
+   */
+  removeSource(id: string): void {
+    const mapLayer = this._Map.getLayer(id);
+    if (mapLayer) {
+      this._Map.removeSource(id);
+    }
+  }
+
+  /**
+   * Add or move the layers of the map.
+   *
+   * @param layerIds - the list of layers in the depth order (beneath first).
+   */
+  updateLayers(layerIds: string[]) {
+    const update = () => {
+      const previousLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
+      let beforeId: string | undefined = undefined;
+
+      // we use the reverse order of the list to add the layer from the top to the
+      // bottom.
+      // This is to ensure that the beforeId (layer on top of the one we move or add)
+      // is already added in the map.
+      layerIds.slice().reverse().forEach(layerId => {
+        const layer = this._model.sharedModel.getLayer(layerId);
+
+        if (!layer) {
+          console.log(`Layer id ${layerId} does not exist`);
+          return;
+        }
+
+        if (this._Map.getLayer(layerId)) {
+          this._Map.moveLayer(layerId, beforeId);
+        } else {
+          const sourceId = layer.parameters?.source;
+          const source = this._model.sharedModel.getSource(sourceId);
+          if (!source) {
+            return;
+          }
+
+          if (!this._Map.getSource(sourceId)) {
+            this.setSource(sourceId, source);
+          }
+
+          switch (layer.type) {
+            case 'RasterLayer': {
+              this._Map.addLayer(
+                {
+                  id: layerId,
+                  type: 'raster',
+                  layout: {
+                    visibility: layer.visible ? 'visible' : 'none'
+                  },
+                  source: sourceId,
+                  minzoom: source.parameters?.minZoom || 0,
+                  maxzoom: source.parameters?.maxZoom || 24
+                },
+                beforeId
+              );
+            }
+          }
+        }
+        beforeId = layerId;
+
+        // remove the element of the previous list as treated.
+        const index = previousLayerIds.indexOf(layerId, 0);
+        if (index > -1) {
+          previousLayerIds.splice(index, 1);
+        }
+      });
+
+      // Remove the layers not used anymore.
+      previousLayerIds.forEach(layerId => {
+        this._Map.removeLayer(layerId);
+      })
     }
 
+    // Workaround to avoid "Map.style undefined" error
+    if(this._Map.loaded()) {
+      update();
+    } else {
+      this._Map.on('load', update);
+    }
+  }
+
+  /**
+   * Update a layer of the map.
+   *
+   * @param id - id of the layer.
+   * @param layer - the layer object.
+   */
+  updateLayer(id: string, layer: IJGISLayer): void {
+    const update = () => {
+      const sourceId = layer.parameters?.source;
+      const source = this._model.sharedModel.getSource(sourceId);
+      if (!source) {
+        return;
+      }
+
+      if (!this._Map.getSource(sourceId)) {
+        this.setSource(sourceId, source);
+      }
+
+      // Check if the layer already exist in the map.
+      const mapLayer = this._Map.getLayer(id);
+      if (mapLayer) {
+        mapLayer.source = sourceId;
+        this._Map.setLayoutProperty(
+          id,
+          'visibility',
+          layer.visible ? 'visible' : 'none'
+        );
+      }
+    }
+
+    // Workaround to avoid "Map.style undefined" error
+    if(this._Map.loaded()) {
+      update();
+    } else {
+      this._Map.on('load', update);
+    }
+  }
+
+  /**
+   * Remove a layer from the map.
+   *
+   * @param id - the id of the layer.
+   */
+  removeLayer(id: string): void {
     // Check if the layer already exist in the map.
     const mapLayer = this._Map.getLayer(id);
-    if (!mapLayer) {
-      this._Map.addLayer({
-        id: id,
-        type: 'raster',
-        layout: {
-          visibility: layer.visible ? 'visible' : 'none'
-        },
-        source: sourceId,
-        minzoom: source.minZoom || 0,
-        maxzoom: source.maxZoom || 24
-      });
-    } else {
-      mapLayer.source = sourceId;
-      this._Map.setLayoutProperty(
-        id,
-        'visibility',
-        layer.visible ? 'visible' : 'none'
-      );
+    if (mapLayer) {
+      this._Map.removeLayer(id);
     }
   }
 
@@ -171,97 +290,45 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _onLayersChanged(
-    sender: IJupyterGISDoc,
+    _: IJupyterGISDoc,
     change: IJGISLayerDocChange
   ): void {
-    // TODO Why is this empty?? We need this for granular updates
     change.layerChange?.forEach((change) => {
-      console.log('new layer change', change);
-    });
-    for (const layerId of JupyterGISModel.getOrderedLayerIds(this._model)) {
-      const layer = this._model.sharedModel.getLayer(layerId);
-
+      const layer = change.newValue;
       if (!layer) {
-        console.log(`Layer id ${layerId} does not exist`);
-        continue;
+        this.removeLayer(change.id);
+      } else {
+        this.updateLayer(change.id, layer);
       }
-
-      switch (layer.type) {
-        case 'RasterLayer': {
-          const sourceId = layer.parameters?.source;
-          const source = this.getSource<IRasterSource>(sourceId);
-
-          if (!source) {
-            continue;
-          }
-          this.saveRasterSource(sourceId, source);
-          this.saveRasterLayer(layerId, layer);
-        }
-      }
-    }
+    });
   }
 
   private _onLayerTreeChange(
     sender: IJupyterGISDoc,
     change: IJGISLayersTreeDocChange
   ): void {
-    change.layersTreeChange?.forEach((change) => {
-      console.log('new tree change', change);
-    });
-    for (const layerId of JupyterGISModel.getOrderedLayerIds(this._model)) {
-      const layer = this._model.sharedModel.getLayer(layerId);
-
-      if (!layer) {
-        console.log(`Layer id ${layerId} does not exist`);
-        continue;
-      }
-
-      switch (layer.type) {
-        case 'RasterLayer': {
-          const sourceId = layer.parameters?.source;
-          const source = this.getSource<IRasterSource>(sourceId);
-
-          if (!source) {
-            continue;
-          }
-          this.saveRasterSource(sourceId, source);
-          this.saveRasterLayer(layerId, layer);
-        }
-      }
-    }
+    // We can't properly use the change, because of the nested groups in the the shared
+    // document which is flattened for the map tool.
+    this.updateLayers(JupyterGISModel.getOrderedLayerIds(this._model));
   }
 
-
   private _onSourcesChange(
-    sender: IJupyterGISDoc,
+    _: IJupyterGISDoc,
     change: IJGISSourceDocChange
   ): void {
     change.sourceChange?.forEach((change) => {
-      console.log('new source change', change);
-    });
-    for (const layerId of JupyterGISModel.getOrderedLayerIds(this._model)) {
-      const layer = this._model.sharedModel.getLayer(layerId);
-
-      if (!layer) {
-        console.log(`Layer id ${layerId} does not exist`);
-        continue;
-      }
-
-      switch (layer.type) {
-        case 'RasterLayer': {
-          const sourceId = layer.parameters?.source;
-          const source = this.getSource<IRasterSource>(sourceId);
-
-          if (!source) {
-            continue;
-          }
-          this.saveRasterSource(sourceId, source);
-          this.saveRasterLayer(layerId, layer);
+      if (!change.newValue) {
+        this.removeSource(change.id);
+      } else {
+        const source = this._model.getSource(change.id);
+        if (source) {
+          this.setSource(change.id, source);
         }
       }
-    }
+    });
   }
 
+  // @ts-ignore
   private getSource<T>(id: string): T | undefined {
     const source = this._model.sharedModel.getSource(id);
 
