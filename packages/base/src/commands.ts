@@ -68,7 +68,6 @@ function addToGallery(
   xyzprovider: { [x: string]: any },
   provider?: string | undefined
 ) {
-  console.log('xyzprovider', xyzprovider);
   gallery.push({
     name: entry,
     thumbnail: RASTER_THUMBNAILS[xyzprovider['name'].replace('.', '-')],
@@ -196,7 +195,7 @@ namespace Private {
       }
 
       const dialog = new Dialog({
-        body: new LayerBrowserWidget(current.context.model.sharedModel),
+        body: new LayerBrowserWidget(current.context.model),
         buttons: [Dialog.cancelButton(), Dialog.okButton()]
       });
       await dialog.launch();

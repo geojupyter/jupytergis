@@ -4,7 +4,12 @@ import {
   faPlus
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { IJGISLayer, IJGISSource, IJupyterGISDoc } from '@jupytergis/schema';
+import {
+  IJGISLayer,
+  IJGISLayerDocChange,
+  IJGISSource,
+  IJupyterGISModel
+} from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/ui-components';
 import { UUID } from '@lumino/coreutils';
 import React, {
@@ -18,12 +23,10 @@ import { getRasterLayerGallery } from '../commands';
 import { IRasterLayerGalleryEntry } from '../types';
 
 interface ILayerBrowserDialogProps {
-  sharedModel: IJupyterGISDoc;
+  model: IJupyterGISModel;
 }
 
-export const LayerBrowserComponent = ({
-  sharedModel
-}: ILayerBrowserDialogProps) => {
+export const LayerBrowserComponent = ({ model }: ILayerBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] =
@@ -47,17 +50,28 @@ export const LayerBrowserComponent = ({
     dialogHeader[0].setAttribute('style', 'padding: 0');
     dialog[0].classList.add('jgis-dialog-override');
 
-    sharedModel.layersChanged.connect(handleLayerChange);
+    model.sharedModel.layersChanged.connect(handleLayerChange);
 
     return () => {
-      sharedModel.layersChanged.disconnect(handleLayerChange);
+      model.sharedModel.layersChanged.disconnect(handleLayerChange);
     };
   }, []);
 
-  const handleLayerChange = () => {
-    // Get rid of the 'Layer' part of the name to match the names in the gallery
+  const handleLayerChange = (_, change: IJGISLayerDocChange) => {
+    const newLayers: string[] = [];
+    if (change.layerChange) {
+      change.layerChange.forEach(layer => {
+        newLayers.push(layer.id);
+      });
+
+      model.sharedModel.layersTree = [...model.getLayersTree(), ...newLayers];
+    }
+
+    // The split is to get rid of the 'Layer' part of the name to match the names in the gallery
     setActiveLayers(
-      Object.values(sharedModel.layers).map(layer => layer.name.split(' ')[0])
+      Object.values(model.sharedModel.layers).map(
+        layer => layer.name.split(' ')[0]
+      )
     );
   };
 
@@ -105,8 +119,8 @@ export const LayerBrowserComponent = ({
       name: tile.name + ' Layer'
     };
 
-    sharedModel.addSource(sourceId, sourceModel);
-    sharedModel.addLayer(UUID.uuid4(), layerModel);
+    model.sharedModel.addSource(sourceId, sourceModel);
+    model.sharedModel.addLayer(UUID.uuid4(), layerModel);
   };
 
   return (
@@ -181,15 +195,15 @@ export const LayerBrowserComponent = ({
 };
 
 export class LayerBrowserWidget extends ReactWidget {
-  sharedModel: IJupyterGISDoc;
-  handleClose: void;
+  private _model: IJupyterGISModel;
 
-  constructor(sharedModel: IJupyterGISDoc) {
+  constructor(model: IJupyterGISModel) {
     super();
-    this.sharedModel = sharedModel;
+    this.id = 'jupytergis::layersBrowser';
+    this._model = model;
   }
 
   render() {
-    return <LayerBrowserComponent sharedModel={this.sharedModel} />;
+    return <LayerBrowserComponent model={this._model} />;
   }
 }
