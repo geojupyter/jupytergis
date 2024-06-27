@@ -380,6 +380,13 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   flex-direction: column;
 }
 
+.jgis-layer-browser-header-container {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: var(--jp-layout-color0);
+}
+
 .jgis-layer-browser-header {
   display: flex;
   justify-content: space-between;

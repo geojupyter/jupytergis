@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IJGISLayer, IJGISSource, IJupyterGISDoc } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/ui-components';
 import { UUID } from '@lumino/coreutils';
-import React, { useEffect, useState } from 'react';
+import React, { MouseEvent, useEffect, useMemo, useState } from 'react';
 import { getRasterLayerGallery } from '../commands';
 import { IRasterLayerGalleryEntry } from '../types';
 
@@ -19,16 +19,19 @@ export const LayerBrowserComponent = ({
   sharedModel
 }: ILayerBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  //TODO: Temp way to track layers to see icon change
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<HTMLElement>();
+  const [selectedCategory, setSelectedCategory] =
+    useState<HTMLElement | null>();
 
-  const gallery = getRasterLayerGallery();
+  const gallery = useMemo(() => {
+    return getRasterLayerGallery();
+  }, []);
+
+  const providers = [...new Set(gallery.map(item => item.source.provider))];
+
   const filteredGallery = gallery.filter(item =>
     item.name.toLowerCase().includes(searchTerm)
   );
-
-  const providers = [...new Set(gallery.map(item => item.source.provider))];
 
   useEffect(() => {
     const dialog = document.getElementsByClassName('jp-Dialog-content');
@@ -48,10 +51,14 @@ export const LayerBrowserComponent = ({
     setSearchTerm(event.target.value.toLowerCase());
   };
 
-  const handleCategoryClick = (event: any) => {
+  const handleCategoryClick = (event: MouseEvent) => {
+    const categoryTab = event.target as HTMLElement;
+    const sameAsOld = categoryTab.innerText === selectedCategory?.innerText;
+
+    categoryTab.classList.toggle('jgis-layer-browser-category-selected');
     selectedCategory?.classList.remove('jgis-layer-browser-category-selected');
-    event.target.classList.add('jgis-layer-browser-category-selected');
-    setSelectedCategory(event.target);
+
+    setSelectedCategory(sameAsOld ? null : categoryTab);
   };
 
   const handleTileClick = (tile: IRasterLayerGalleryEntry) => {
@@ -82,32 +89,34 @@ export const LayerBrowserComponent = ({
 
   return (
     <div className="jgis-layer-browser-container">
-      <div className="jgis-layer-browser-header">
-        <h2 className="jgis-layer-browser-header-text">Layer Browser</h2>
-        <div className="jgis-layer-browser-header-search-container">
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={handleSearchInput}
-            className="jgis-layer-browser-header-search"
-          />
-          <FontAwesomeIcon
-            className="jgis-layer-browser-header-search-icon"
-            style={{ height: 20 }}
-            icon={faMagnifyingGlass}
-          />
+      <div className="jgis-layer-browser-header-container">
+        <div className="jgis-layer-browser-header">
+          <h2 className="jgis-layer-browser-header-text">Layer Browser</h2>
+          <div className="jgis-layer-browser-header-search-container">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={handleSearchInput}
+              className="jgis-layer-browser-header-search"
+            />
+            <FontAwesomeIcon
+              className="jgis-layer-browser-header-search-icon"
+              style={{ height: 20 }}
+              icon={faMagnifyingGlass}
+            />
+          </div>
         </div>
-      </div>
-      <div className="jgis-layer-browser-categories">
-        {providers.map(provider => (
-          <span
-            className="jgis-layer-browser-category"
-            onClick={handleCategoryClick}
-          >
-            {provider}
-          </span>
-        ))}
+        <div className="jgis-layer-browser-categories">
+          {providers.map(provider => (
+            <span
+              className="jgis-layer-browser-category"
+              onClick={handleCategoryClick}
+            >
+              {provider}
+            </span>
+          ))}
+        </div>
       </div>
       <div className="jgis-layer-browser-grid">
         {filteredGallery.map(tile => (
