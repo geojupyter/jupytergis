@@ -61,7 +61,14 @@ export function getRasterLayerGallery(): IRasterLayerGalleryEntry[] {
   return gallery;
 }
 
-function addToGallery(gallery, entry, xyzprovider, provider?) {
+// TODO: These need better names
+function addToGallery(
+  gallery: IRasterLayerGalleryEntry[],
+  entry: string,
+  xyzprovider: { [x: string]: any },
+  provider?: string | undefined
+) {
+  console.log('xyzprovider', xyzprovider);
   gallery.push({
     name: entry,
     thumbnail: RASTER_THUMBNAILS[xyzprovider['name'].replace('.', '-')],
@@ -70,7 +77,11 @@ function addToGallery(gallery, entry, xyzprovider, provider?) {
       minZoom: xyzprovider['min_zoom'] || 0,
       maxZoom: xyzprovider['max_zoom'] || 24,
       attribution: xyzprovider['attribution'] || '',
-      provider: provider ?? entry
+      provider: provider ?? entry,
+      time: encodeURIComponent(new Date().toISOString()),
+      variant: xyzprovider['variant'] || '',
+      tileMatrixSet: xyzprovider['tilematrixset'] || '',
+      format: xyzprovider['format'] || ''
     }
   });
 }
