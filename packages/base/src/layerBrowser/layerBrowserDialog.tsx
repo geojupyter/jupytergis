@@ -23,18 +23,24 @@ export const LayerBrowserComponent = ({
   const [selectedCategory, setSelectedCategory] =
     useState<HTMLElement | null>();
 
+  const [filteredCategory, setFilteredCategory] = useState<
+    IRasterLayerGalleryEntry[]
+  >(getRasterLayerGallery());
+  // const [gallery, setGallery] = useState(getRasterLayerGallery());
+
   const gallery = useMemo(() => {
     return getRasterLayerGallery();
   }, []);
-
   const providers = [...new Set(gallery.map(item => item.source.provider))];
 
-  const filteredGallery = gallery.filter(item =>
-    item.name.toLowerCase().includes(searchTerm)
-  );
+  // let filteredGallery = gallery.filter(item =>
+  //   item.name.toLowerCase().includes(searchTerm)
+  // );
 
   useEffect(() => {
     const dialog = document.getElementsByClassName('jp-Dialog-content');
+    const dialogHeader = document.getElementsByClassName('jp-Dialog-header');
+    dialogHeader[0].setAttribute('style', 'padding: 0');
     dialog[0].classList.add('jgis-dialog-override');
 
     sharedModel.layersChanged.connect(handleLayerChange);
@@ -48,6 +54,11 @@ export const LayerBrowserComponent = ({
   };
 
   const handleSearchInput = event => {
+    const fg = gallery.filter(item =>
+      item.name.toLowerCase().includes(event.target.value.toLowerCase())
+    );
+
+    setFilteredCategory(fg);
     setSearchTerm(event.target.value.toLowerCase());
   };
 
@@ -57,6 +68,17 @@ export const LayerBrowserComponent = ({
 
     categoryTab.classList.toggle('jgis-layer-browser-category-selected');
     selectedCategory?.classList.remove('jgis-layer-browser-category-selected');
+
+    const filteredGallery = sameAsOld
+      ? gallery
+      : gallery.filter(item =>
+          item.source.provider?.includes(categoryTab.innerText)
+        );
+
+    console.log('filteredGallery', filteredGallery);
+
+    setFilteredCategory(filteredGallery);
+    // setGallery(l);
 
     setSelectedCategory(sameAsOld ? null : categoryTab);
   };
@@ -119,7 +141,7 @@ export const LayerBrowserComponent = ({
         </div>
       </div>
       <div className="jgis-layer-browser-grid">
-        {filteredGallery.map(tile => (
+        {filteredCategory.map(tile => (
           <div
             className="jgis-layer-browser-tile"
             onClick={() => handleTileClick(tile)}

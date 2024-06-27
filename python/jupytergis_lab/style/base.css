@@ -384,7 +384,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   position: sticky;
   top: 0;
   z-index: 40;
-  background-color: var(--jp-layout-color0);
+  background-color: var(--jp-layout-color1);
 }
 
 .jgis-layer-browser-header {
