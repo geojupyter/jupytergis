@@ -7,7 +7,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IJGISLayer, IJGISSource, IJupyterGISDoc } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/ui-components';
 import { UUID } from '@lumino/coreutils';
-import React, { MouseEvent, useEffect, useMemo, useState } from 'react';
+import React, {
+  ChangeEvent,
+  MouseEvent,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import { getRasterLayerGallery } from '../commands';
 import { IRasterLayerGalleryEntry } from '../types';
 
@@ -23,19 +29,17 @@ export const LayerBrowserComponent = ({
   const [selectedCategory, setSelectedCategory] =
     useState<HTMLElement | null>();
 
-  const [filteredCategory, setFilteredCategory] = useState<
-    IRasterLayerGalleryEntry[]
-  >(getRasterLayerGallery());
-  // const [gallery, setGallery] = useState(getRasterLayerGallery());
-
   const gallery = useMemo(() => {
     return getRasterLayerGallery();
   }, []);
+  const [galleryWithCategory, setgalleryWithCategory] =
+    useState<IRasterLayerGalleryEntry[]>(gallery);
+
   const providers = [...new Set(gallery.map(item => item.source.provider))];
 
-  // let filteredGallery = gallery.filter(item =>
-  //   item.name.toLowerCase().includes(searchTerm)
-  // );
+  const filteredGallery = galleryWithCategory.filter(item =>
+    item.name.toLowerCase().includes(searchTerm)
+  );
 
   useEffect(() => {
     const dialog = document.getElementsByClassName('jp-Dialog-content');
@@ -44,6 +48,10 @@ export const LayerBrowserComponent = ({
     dialog[0].classList.add('jgis-dialog-override');
 
     sharedModel.layersChanged.connect(handleLayerChange);
+
+    return () => {
+      sharedModel.layersChanged.disconnect(handleLayerChange);
+    };
   }, []);
 
   const handleLayerChange = () => {
@@ -53,16 +61,11 @@ export const LayerBrowserComponent = ({
     );
   };
 
-  const handleSearchInput = event => {
-    const fg = gallery.filter(item =>
-      item.name.toLowerCase().includes(event.target.value.toLowerCase())
-    );
-
-    setFilteredCategory(fg);
+  const handleSearchInput = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value.toLowerCase());
   };
 
-  const handleCategoryClick = (event: MouseEvent) => {
+  const handleCategoryClick = (event: MouseEvent<HTMLSpanElement>) => {
     const categoryTab = event.target as HTMLElement;
     const sameAsOld = categoryTab.innerText === selectedCategory?.innerText;
 
@@ -75,11 +78,8 @@ export const LayerBrowserComponent = ({
           item.source.provider?.includes(categoryTab.innerText)
         );
 
-    console.log('filteredGallery', filteredGallery);
-
-    setFilteredCategory(filteredGallery);
-    // setGallery(l);
-
+    setgalleryWithCategory(filteredGallery);
+    setSearchTerm('');
     setSelectedCategory(sameAsOld ? null : categoryTab);
   };
 
@@ -141,7 +141,7 @@ export const LayerBrowserComponent = ({
         </div>
       </div>
       <div className="jgis-layer-browser-grid">
-        {filteredCategory.map(tile => (
+        {filteredGallery.map(tile => (
           <div
             className="jgis-layer-browser-tile"
             onClick={() => handleTileClick(tile)}
