@@ -1,7 +1,9 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISLayerDocChange,
+  IJGISSource,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
@@ -38,8 +40,11 @@ interface IStates {
   jGISOption?: IDict;
   filePath?: string;
   selectedObjectData?: IDict;
+  selectedObjectSourceData?: IDict;
   selectedObject?: string;
+  selectedObjectSource?: string;
   schema?: IDict;
+  sourceSchema?: IDict;
   clientId: number | null; // ID of the yjs client
   id: string; // ID of the component, it is used to identify which component
   //is the source of awareness updates.
@@ -59,6 +64,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       clientId: null,
       id: uuid()
     };
+    this._formSchema = props.formSchemaRegistry.getSchemas();
 
     this.props.cpModel.jGISModel?.sharedLayersChanged.connect(
       this._sharedJGISModelChanged
@@ -84,8 +90,11 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
           jGISOption: undefined,
           filePath: undefined,
           selectedObjectData: undefined,
+          selectedObjectSourceData: undefined,
           selectedObject: undefined,
-          schema: undefined
+          selectedObjectSource: undefined,
+          schema: undefined,
+          sourceSchema: undefined
         });
       }
     });
@@ -136,6 +145,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   ): void => {
     this.setState(old => {
       if (old.selectedObject) {
+        // TODO Handle update on the source too
         const selectedObject =
           this.props.cpModel.jGISModel?.sharedModel.getObject(
             old.selectedObject
@@ -161,6 +171,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   ): void => {
     const remoteUser = this.props.cpModel.jGISModel?.localState?.remoteUser;
     let newState: IJupyterGISClientState | undefined;
+    const clientId = this.state.clientId;
     if (remoteUser) {
       newState = clients.get(remoteUser);
 
@@ -177,6 +188,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         );
       }
     } else {
+      const localState = clientId ? clients.get(clientId) : null;
       if (this._lastSelectedPropFieldId) {
         removeStyleFromProperty(
           `${this.state.filePath}::panel`,
@@ -186,27 +198,155 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
 
         this._lastSelectedPropFieldId = undefined;
       }
+      if (
+        localState &&
+        localState.selected?.emitter &&
+        localState.selected.emitter !== this.state.id &&
+        localState.selected?.value
+      ) {
+        newState = localState;
+      }
+    }
+    if (newState) {
+      const selection = newState.selected.value;
+      const selectedObjectNames = Object.keys(selection || {});
+      // Only show object properties if ONE object is selected
+      if (selection === undefined || selectedObjectNames.length !== 1) {
+        this.setState(old => ({
+          ...old,
+          selectedObject: undefined,
+          selectedObjectSource: undefined,
+          selectedObjectData: undefined,
+          selectedObjectSourceData: undefined,
+          schema: undefined,
+          sourceSchema: undefined
+        }));
+        return;
+      }
+
+      const selectedObject = selectedObjectNames[0];
+      if (selectedObject !== this.state.selectedObject) {
+        let selectedObj: IJGISLayer | IJGISSource | undefined;
+        // This will be the layer source in case where the selected object is a layer
+        let selectedObjSource: IJGISSource | undefined;
+        if (selection[selectedObject].type === 'layer') {
+          selectedObj = this.props.cpModel.jGISModel?.getLayer(selectedObject);
+
+          if (selectedObj && selectedObj.parameters?.source) {
+            selectedObjSource = this.props.cpModel.jGISModel?.getSource(
+              selectedObj!.parameters?.source
+            );
+          }
+        } else {
+          selectedObj = this.props.cpModel.jGISModel?.getSource(selectedObject);
+        }
+
+        if (!selectedObj) {
+          return;
+        }
+
+        let schema: IDict<any> | undefined;
+        const selectedObjectData = selectedObj.parameters;
+        if (selectedObj.type) {
+          schema = this._formSchema.get(selectedObj.type);
+
+          // Generate dropdown for layer source entry
+          if (
+            schema &&
+            schema.properties.source &&
+            selectedObjectData &&
+            selectedObjectData.source
+          ) {
+            const sourceNames: string[] = [];
+            for (const sourceId of Object.keys(
+              this.props.cpModel.jGISModel?.getSources() || {}
+            )) {
+              const source = this.props.cpModel.jGISModel?.getSource(sourceId);
+              if (source) {
+                sourceNames.push(source.name);
+              }
+            }
+            selectedObjectData.source = this.props.cpModel.jGISModel?.getSource(
+              selectedObjectData.source
+            )?.name;
+            schema.properties.source.enum = sourceNames;
+          }
+        }
+
+        let sourceSchema: IDict<any> | undefined;
+        let selectedObjectSourceData: IDict<any> | undefined;
+        if (selectedObjSource) {
+          sourceSchema = this._formSchema.get(selectedObjSource.type);
+          selectedObjectSourceData = selectedObjSource.parameters;
+        }
+
+        this.setState(old => ({
+          ...old,
+          selectedObjectData,
+          selectedObject,
+          selectedObjectSource: selectedObj.parameters?.source,
+          schema,
+          selectedObjectSourceData,
+          sourceSchema
+        }));
+      }
     }
   };
 
   render(): React.ReactNode {
     return this.state.schema && this.state.selectedObjectData ? (
-      <ObjectPropertiesForm
-        parentType="panel"
-        filePath={`${this.state.filePath}::panel`}
-        schema={this.state.schema}
-        sourceData={this.state.selectedObjectData}
-        syncData={(properties: { [key: string]: any }) => {
-          this.syncObjectProperties(this.state.selectedObject, properties);
-        }}
-        syncSelectedField={this.syncSelectedField}
-      />
+      <div>
+        <h3>Layer Properties</h3>
+        <ObjectPropertiesForm
+          parentType="panel"
+          filePath={`${this.state.filePath}::panel`}
+          schema={this.state.schema}
+          sourceData={this.state.selectedObjectData}
+          syncData={(properties: { [key: string]: any }) => {
+            if (properties.source) {
+              const sources = this.props.cpModel.jGISModel?.getSources();
+              if (!sources) {
+                throw Error('Unreachable');
+              }
+
+              for (const source of Object.keys(sources)) {
+                if (sources[source].name === properties.source) {
+                  properties.source = source;
+                  break;
+                }
+              }
+            }
+
+            this.syncObjectProperties(this.state.selectedObject, properties);
+          }}
+          syncSelectedField={this.syncSelectedField}
+        />
+        {this.state.selectedObjectSourceData && this.state.sourceSchema && (
+          <>
+            <h3>Source Properties</h3>
+            <ObjectPropertiesForm
+              parentType="panel"
+              filePath={`${this.state.filePath}::panel`}
+              schema={this.state.sourceSchema}
+              sourceData={this.state.selectedObjectSourceData}
+              syncData={(properties: { [key: string]: any }) => {
+                this.syncObjectProperties(
+                  this.state.selectedObjectSource,
+                  properties
+                );
+              }}
+              syncSelectedField={this.syncSelectedField}
+            />
+          </>
+        )}
+      </div>
     ) : (
       <div></div>
     );
   }
 
   private _lastSelectedPropFieldId?: string;
+  private _formSchema: Map<string, IDict>;
 }
 
 export namespace ObjectProperties {

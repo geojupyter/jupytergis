@@ -16,13 +16,12 @@ export class LeftPanelWidget extends SidePanel {
     // const datasources = new DataSourceList({ controlPanelModel: this._model });
     // this.addWidget(datasources);
 
-    const layersTree = new LayersPanel({ model: this._model.jGISModel });
+    const layersTree = new LayersPanel({ model: this._model });
     layersTree.title.caption = 'Layer tree';
     layersTree.title.label = 'Layers';
     this.addWidget(layersTree);
 
     options.tracker.currentChanged.connect((_, changed) => {
-      layersTree.model = this._model.jGISModel;
       if (changed) {
         header.title.label = changed.context.localPath;
       } else {
