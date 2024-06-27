@@ -9,9 +9,9 @@ module.exports = {
     command: "jlpm start",
     url: "http://localhost:8888/lab",
     timeout: 120 * 1000,
-    reuseExistingServer: false,
+    reuseExistingServer: !process.env.CI,
   },
-  retries: 1,
+  retries: process.env.CI ? 1 : 0,
   use: {
     ...baseConfig.use,
     trace: "off",

@@ -1,0 +1,70 @@
+/* -----------------------------------------------------------------------------
+| Copyright (c) Jupyter Development Team.
+| Distributed under the terms of the Modified BSD License.
+|---------------------------------------------------------------------------- */
+
+.jp-gis-layerItem {
+  padding: 2px 0 2px 12px;
+}
+
+.jp-gis-layersGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-gis-layersGroupHeader {
+  display: flex;
+  margin-left: -2px;
+  padding-bottom: 4px;
+}
+
+.jp-gis-layersGroupHeader:hover {
+  cursor: pointer;
+}
+
+.jp-gis-layersGroupCollapser {
+  transform: rotate(-90deg);
+  margin: auto 0;
+  height: 16px;
+}
+
+.jp-gis-layersGroupCollapser.jp-mod-expanded {
+  transform: rotate(0deg);
+}
+
+.jp-gis-layer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.jp-gis-layer.jp-mod-selected {
+  background: var(--jp-editor-selected-background);
+}
+
+.jp-gis-layer:has(.jp-gis-layerTitle:hover) {
+  cursor: pointer;
+  background: var(--jp-brand-color2);
+}
+
+.jp-gis-layer button {
+  margin-left: auto;
+  min-height: unset;
+  min-width: unset;
+  padding: unset;
+  margin-right: 4px;
+}
+
+.jp-gis-layerIcon {
+  display: flex;
+  align-items: center;
+}
+
+.jp-gis-layerTitle {
+  display: flex;
+  flex-grow: 1;
+}
+
+.jp-gis-layerTitle .jp-gis-layerIcon {
+  padding-right: 4px;
+}

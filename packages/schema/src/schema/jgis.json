@@ -10,6 +10,9 @@
     "sources": {
       "$ref": "#/definitions/jGISSources"
     },
+    "layersTree": {
+      "$ref": "#/definitions/jGISLayersTree"
+    },
     "options": {
       "$ref": "#/definitions/jGISOptions"
     }
@@ -60,6 +63,31 @@
         }
       }
     },
+    "jGISLayersGroup": {
+      "title": "IJGISLayersGroup",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "layers"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "default": ""
+        },
+        "layers": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/definitions/jGISLayerItem"
+          }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "parameters": {
+          "type": "object"
+        }
+      }
+    },
     "jGISLayers": {
       "title": "IJGISLayers",
       "type": "object",
@@ -76,12 +104,31 @@
         "$ref": "#/definitions/jGISSource"
       }
     },
+    "jGISLayersTree": {
+      "title": "IJGISLayersTree",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/definitions/jGISLayerItem"
+      }
+    },
     "jGISOptions": {
       "title": "IJGISOptions",
       "type": "object",
       "default": {},
       "additionalProperties": false,
       "properties": {}
+    },
+    "jGISLayerItem": {
+      "title": "IJGISLayerItem",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/jGISLayersGroup"
+        }
+      ]
     }
   }
 }

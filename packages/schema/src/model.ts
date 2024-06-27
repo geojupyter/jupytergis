@@ -9,6 +9,7 @@ import {
   IJGISContent,
   IJGISLayer,
   IJGISLayers,
+  IJGISLayersTree,
   IJGISSource,
   IJGISSources
 } from './_interface/jgis';
@@ -42,6 +43,17 @@ export class JupyterGISModel implements IJupyterGISModel {
   };
 
   readonly collaborative = true;
+
+  /**
+   * Getter and setter for the current selected layer.
+   */
+  get currentLayer(): string | null {
+    return this._currentLayer;
+  }
+  set currentLayer(layer: string | null) {
+    this._currentLayer = layer;
+    this._currentLayerChanged.emit(layer);
+  }
 
   get sharedModel(): IJupyterGISDoc {
     return this._sharedModel;
@@ -115,6 +127,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.layersChanged;
   }
 
+  get currentLayerChanged(): ISignal<this, string | null> {
+    return this._currentLayerChanged;
+  }
+
   get disposed(): ISignal<JupyterGISModel, void> {
     return this._disposed;
   }
@@ -146,6 +162,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.sharedModel.transact(() => {
       this.sharedModel.sources = jsonData.sources ?? {};
       this.sharedModel.layers = jsonData.layers ?? {};
+      this.sharedModel.layersTree = jsonData.layersTree ?? [];
       this.sharedModel.options = jsonData.options ?? {};
     });
     this.dirty = true;
@@ -171,6 +188,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return {
       sources: this.sharedModel.sources,
       layers: this.sharedModel.layers,
+      layersTree: this.sharedModel.layersTree,
       options: this.sharedModel.options
     };
   }
@@ -181,6 +199,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getSources(): IJGISSources {
     return this.sharedModel.sources;
+  }
+
+  getLayersTree(): IJGISLayersTree {
+    return this.sharedModel.layersTree;
   }
 
   getLayer(id: string): IJGISLayer | undefined {
@@ -250,6 +272,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     this,
     Map<number, IJupyterGISClientState>
   >(this);
+
+  private _currentLayer: string | null = null;
+  private _currentLayerChanged = new Signal<this, string | null>(this);
 
   static worker: Worker;
 }

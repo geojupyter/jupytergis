@@ -158,13 +158,26 @@ export class MainView extends React.Component<IProps, IStates> {
             // TODO If the source already existed, update it
           }
 
-          this._Map.addLayer({
-            id: layerId,
-            type: 'raster',
-            source: sourceId,
-            minzoom: source.minZoom || 0,
-            maxzoom: source.maxZoom || 24
-          });
+          const mapLayer = this._Map.getLayer(layerId);
+          if (!mapLayer) {
+            this._Map.addLayer({
+              id: layerId,
+              type: 'raster',
+              layout: {
+                visibility: layer.visible ? 'visible' : 'none'
+              },
+              source: sourceId,
+              minzoom: source.minZoom || 0,
+              maxzoom: source.maxZoom || 24
+            });
+          } else {
+            mapLayer.source = sourceId;
+            this._Map.setLayoutProperty(
+              layerId,
+              'visibility',
+              layer.visible ? 'visible' : 'none'
+            );
+          }
         }
       }
     }

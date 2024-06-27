@@ -1,4 +1,5 @@
 import {
+  Delta,
   DocumentChange,
   MapChange,
   StateChange,
@@ -13,10 +14,12 @@ import { ISignal, Signal } from '@lumino/signaling';
 
 import {
   IJGISContent,
-  IJGISLayers,
   IJGISLayer,
-  IJGISSource,
+  IJGISLayerItem,
+  IJGISLayers,
+  IJGISLayersTree,
   IJGISOptions,
+  IJGISSource,
   IJGISSources
 } from './_interface/jgis';
 
@@ -29,6 +32,10 @@ export interface IJGISLayerDocChange {
     id: string;
     newValue: IJGISLayer | undefined;
   }>;
+}
+
+export interface IJGISLayersTreeDocChange {
+  layersTreeChange?: Delta<IJGISLayerItem[]>;
 }
 
 export interface IJGISSourceDocChange {
@@ -53,6 +60,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   options: IJGISOptions;
   layers: IJGISLayers;
   sources: IJGISSources;
+  layersTree: IJGISLayersTree;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
@@ -81,6 +89,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
+  layersTreeChanged: ISignal<IJupyterGISDoc, IJGISLayersTreeDocChange>;
 }
 
 export interface IJupyterGISDocChange extends DocumentChange {
@@ -91,6 +100,7 @@ export interface IJupyterGISDocChange extends DocumentChange {
     key: string;
     newValue: IJGISLayer | undefined;
   }>;
+  layersTreeChange?: Delta<IJGISLayerItem[]>;
   optionChange?: MapChange;
   stateChange?: StateChange<any>[];
 }
@@ -99,6 +109,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isDisposed: boolean;
   sharedModel: IJupyterGISDoc;
   localState: IJupyterGISClientState | null;
+  currentLayer: string | null;
 
   themeChanged: Signal<
     IJupyterGISModel,
@@ -108,6 +119,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     Map<number, IJupyterGISClientState>
   >;
+  currentLayerChanged: ISignal<IJupyterGISModel, string | null>;
   sharedOptionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
 
@@ -116,6 +128,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getLayer(id: string): IJGISLayer | undefined;
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
+  getLayersTree(): IJGISLayersTree;
 
   syncSelectedPropField(data: {
     id: string | null;
