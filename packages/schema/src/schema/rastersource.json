@@ -23,11 +23,49 @@
     },
     "attribution": {
       "type": "string",
-      "description": "The attributions for the raster source"
+      "description": "The attribution for the raster source"
+    },
+    "htmlAttribution": {
+      "type": "string",
+      "description": "The html attribution for the raster source"
     },
     "provider": {
       "type": "string",
       "description": "The map provider"
+    },
+    "bounds": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "description": "The bounds of the source"
+    },
+    "format": {
+      "type": "string",
+      "description": "The file format of the source"
+    },
+    "time": {
+      "type": "string",
+      "description": "Time to use for source"
+    },
+    "tileMatrixSet": {
+      "type": "string",
+      "description": "The tile matrix set"
+    },
+    "variant": {
+      "type": "string",
+      "description": "The variant of the source"
+    },
+    "opacity": {
+      "type": "number",
+      "description": "The opcaity of the source"
+    },
+    "status": {
+      "type": "string",
+      "descriptions": "The status of the source"
     }
   }
 }
