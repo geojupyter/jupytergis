@@ -167,7 +167,6 @@ export function createDefaultLayerRegistry(
 ): void {
   const RASTER_THUMBNAILS: { [key: string]: string } = {};
 
-  // @ts-ignore Load all images from the 'raster_thumbnails' directory
   const importAll = (r: __WebpackModuleApi.RequireContext) => {
     r.keys().forEach(key => {
       const imageName = key.replace('./', '').replace(/\.\w+$/, '');
@@ -175,7 +174,6 @@ export function createDefaultLayerRegistry(
     });
   };
 
-  // @ts-ignore
   const context = require.context(
     '../rasterlayer_gallery',
     false,
