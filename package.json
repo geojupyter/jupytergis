@@ -33,6 +33,7 @@
     "build": "lerna run build",
     "build:prod": "lerna run build:prod",
     "build:test": "lerna run build:test",
+    "build:dev": "lerna run build:dev",
     "bump:js:version": "lerna version --no-push --force-publish --no-git-tag-version --yes",
     "clean": "lerna run clean",
     "clean:all": "lerna run clean:all",
