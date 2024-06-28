@@ -104,27 +104,64 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   /**
-   * Add or update a source in the map.
+   * MapLibre function to execute operation on `style` (add/update/remove layer/source),
+   * avoiding "Map.style undefined" error.
+   * This is required because of the lack of 'ready' promise in the Map object.
+   *
+   * @param callback - the function updating the Map.
+   */
+  private _mapLibreExecute(callback: () => void) {
+    // Workaround to avoid "Map.style undefined" error, because of the miss of a
+    // 'ready' promise.
+    if (this._Map.loaded()) {
+      callback();
+    } else {
+      this._Map.on('load', callback);
+    }
+  }
+
+  /**
+   * Add a source in the map.
    *
    * @param id - the source id.
    * @param source - the source object.
    */
-  setSource(id: string, source: IJGISSource): void {
+  addSource(id: string, source: IJGISSource): void {
     // Workaround stupid maplibre issue
     this._Map._lazyInitEmptyStyle();
 
     switch (source.type) {
       case 'RasterSource': {
         const mapSource = this._Map.getSource(id) as MapLibre.RasterTileSource;
-        if (mapSource) {
-          mapSource.setTiles([source.parameters?.url]);
-        } else {
+        if (!mapSource) {
           this._Map.addSource(id, {
             type: 'raster',
             tiles: [source.parameters?.url],
             tileSize: 256
           });
         }
+      }
+    }
+  }
+
+  /**
+   * Update a source in the map.
+   *
+   * @param id - the source id.
+   * @param source - the source object.
+   */
+  updateSource(id: string, source: IJGISSource): void {
+    // Workaround stupid maplibre issue
+    this._Map._lazyInitEmptyStyle();
+
+    switch (source.type) {
+      case 'RasterSource': {
+        const mapSource = this._Map.getSource(id) as MapLibre.RasterTileSource;
+        if (!mapSource) {
+          console.log(`Source id ${id} does not exist`);
+          return;
+        }
+        mapSource.setTiles([source.parameters?.url]);
       }
     }
   }
@@ -147,16 +184,15 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param layerIds - the list of layers in the depth order (beneath first).
    */
   updateLayers(layerIds: string[]) {
-    const update = () => {
+    const callback = () => {
       const previousLayerIds = this._Map
         .getStyle()
         .layers.map(layer => layer.id);
-      let beforeId: string | undefined = undefined;
 
       // We use the reverse order of the list to add the layer from the top to the
       // bottom.
-      // This is to ensure that the beforeId (layer on top of the one we move or add)
-      // is already added in the map.
+      // This is to ensure that the beforeId (layer on top of the one we add/move)
+      // is already added/moved in the map.
       layerIds
         .slice()
         .reverse()
@@ -168,41 +204,27 @@ export class MainView extends React.Component<IProps, IStates> {
             return;
           }
 
-          if (this._Map.getLayer(layerId)) {
-            this._Map.moveLayer(layerId, beforeId);
-          } else {
-            const sourceId = layer.parameters?.source;
-            const source = this._model.sharedModel.getSource(sourceId);
-            if (!source) {
-              return;
-            }
-
-            if (!this._Map.getSource(sourceId)) {
-              this.setSource(sourceId, source);
-            }
-
-            switch (layer.type) {
-              case 'RasterLayer': {
-                this._Map.addLayer(
-                  {
-                    id: layerId,
-                    type: 'raster',
-                    layout: {
-                      visibility: layer.visible ? 'visible' : 'none'
-                    },
-                    source: sourceId,
-                    minzoom: source.parameters?.minZoom || 0,
-                    maxzoom: source.parameters?.maxZoom || 24
-                  },
-                  beforeId
-                );
-              }
+          // Get the expected index in the map.
+          const currentLayerIds = this._Map
+            .getStyle()
+            .layers.map(layer => layer.id);
+          let indexInMap = currentLayerIds.length;
+          const nextLayer = layerIds[layerIds.indexOf(layerId) + 1];
+          if (nextLayer !== undefined) {
+            indexInMap = currentLayerIds.indexOf(nextLayer);
+            if (indexInMap === -1) {
+              indexInMap = currentLayerIds.length;
             }
           }
-          beforeId = layerId;
 
-          // remove the element of the previous list as treated.
-          const index = previousLayerIds.indexOf(layerId, 0);
+          if (this._Map.getLayer(layerId)) {
+            this.moveLayer(layerId, indexInMap);
+          } else {
+            this.addLayer(layerId, layer, indexInMap);
+          }
+
+          // Remove the element of the previous list as treated.
+          const index = previousLayerIds.indexOf(layerId);
           if (index > -1) {
             previousLayerIds.splice(index, 1);
           }
@@ -214,12 +236,66 @@ export class MainView extends React.Component<IProps, IStates> {
       });
     };
 
-    // Workaround to avoid "Map.style undefined" error
-    if (this._Map.loaded()) {
-      update();
-    } else {
-      this._Map.on('load', update);
+    this._mapLibreExecute(callback);
+  }
+
+  /**
+   * Add a layer to the map.
+   *
+   * @param id - id of the layer.
+   * @param layer - the layer object.
+   * @param index - expected index of the layer.
+   */
+  addLayer(id: string, layer: IJGISLayer, index: number) {
+    // Add the source if necessary.
+    const sourceId = layer.parameters?.source;
+    const source = this._model.sharedModel.getSource(sourceId);
+    if (!source) {
+      return;
     }
+    if (!this._Map.getSource(sourceId)) {
+      this.addSource(sourceId, source);
+    }
+
+    // Get the beforeId value according to the expected index.
+    const currentLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
+    let beforeId: string | undefined = undefined;
+    if (index < currentLayerIds.length && index !== -1) {
+      beforeId = currentLayerIds[index];
+    }
+    switch (layer.type) {
+      case 'RasterLayer': {
+        this._Map.addLayer(
+          {
+            id: id,
+            type: 'raster',
+            layout: {
+              visibility: layer.visible ? 'visible' : 'none'
+            },
+            source: sourceId,
+            minzoom: source.parameters?.minZoom || 0,
+            maxzoom: source.parameters?.maxZoom || 24
+          },
+          beforeId
+        );
+      }
+    }
+  }
+
+  /**
+   * Move a layer in the stack.
+   *
+   * @param id - id of the layer.
+   * @param index - expected index of the layer.
+   */
+  moveLayer(id: string, index: number | undefined) {
+    // Get the beforeId value according to the expected index.
+    const currentLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
+    let beforeId: string | undefined = undefined;
+    if (!(index === undefined) && index < currentLayerIds.length) {
+      beforeId = currentLayerIds[index + 1];
+    }
+    this._Map.moveLayer(id, beforeId);
   }
 
   /**
@@ -229,7 +305,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param layer - the layer object.
    */
   updateLayer(id: string, layer: IJGISLayer): void {
-    const update = () => {
+    const callback = () => {
       const sourceId = layer.parameters?.source;
       const source = this._model.sharedModel.getSource(sourceId);
       if (!source) {
@@ -237,7 +313,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       if (!this._Map.getSource(sourceId)) {
-        this.setSource(sourceId, source);
+        this.addSource(sourceId, source);
       }
 
       // Check if the layer already exist in the map.
@@ -252,12 +328,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
     };
 
-    // Workaround to avoid "Map.style undefined" error
-    if (this._Map.loaded()) {
-      update();
-    } else {
-      this._Map.on('load', update);
-    }
+    this._mapLibreExecute(callback);
   }
 
   /**
@@ -266,7 +337,6 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - the id of the layer.
    */
   removeLayer(id: string): void {
-    // Check if the layer already exist in the map.
     const mapLayer = this._Map.getLayer(id);
     if (mapLayer) {
       this._Map.removeLayer(id);
@@ -327,7 +397,7 @@ export class MainView extends React.Component<IProps, IStates> {
       } else {
         const source = this._model.getSource(change.id);
         if (source) {
-          this.setSource(change.id, source);
+          this.updateSource(change.id, source);
         }
       }
     });
