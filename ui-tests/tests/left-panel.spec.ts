@@ -63,6 +63,10 @@ test.describe('#layersPanel', () => {
       await page.filebrowser.open('examples/test.jGIS');
     });
 
+    test.afterEach(async ({ page }) => {
+      await page.activity.closeAll();
+    });
+
     test('should have layer panel with content', async ({ page }) => {
       const layersTree = await openLayersTree(page);
       await expect(layersTree).not.toBeEmpty();
@@ -145,6 +149,57 @@ test.describe('#layersPanel', () => {
       expect(await showLayerButton.screenshot()).toMatchSnapshot(
         'layer-not-visible-icon.png'
       );
+
+      await hideLayerButton.click();
+      await expect(hideLayerButton).toHaveCount(1);
+      await expect(showLayerButton).toHaveCount(0);
+    });
+
+    test('should hide the top layer', async ({ page }) => {
+      const notHiddenScreenshot = 'top-layer-not-hidden.png';
+      const layersTree = await openLayersTree(page);
+      const layersGroup = layersTree.locator('.jp-gis-layersGroup');
+      const main = page.locator('.jGIS-Mainview');
+
+      // Open the first level group
+      await layersGroup.last().click();
+      await page.waitForCondition(
+        async () => (await layersGroup.count()) === 2
+      );
+      // Open the second level group
+      await layersGroup.last().click();
+
+      // Wait for the layer to be hidden.
+      expect(await main.screenshot()).toMatchSnapshot({
+        name: notHiddenScreenshot,
+        maxDiffPixelRatio: 0.01
+      });
+
+      const hideLayerButton = layersTree.getByTitle('Hide layer');
+
+      // Hide the last layer (top in z-index).
+      await hideLayerButton.last().click();
+      // wait for a significant change in the screenshots (1%).
+      await page.waitForCondition(async () => {
+        try {
+          expect(await main.screenshot()).not.toMatchSnapshot({
+            name: notHiddenScreenshot,
+            maxDiffPixelRatio: 0.1
+          });
+          return true;
+        } catch {
+          return false;
+        }
+      });
+
+      // Wait for the layer to be hidden.
+      expect(await main.screenshot()).toMatchSnapshot({
+        name: 'top-layer-hidden.png',
+        maxDiffPixelRatio: 0.01
+      });
+
+      // restore the visibility of the layer.
+      await hideLayerButton.last().click();
     });
   });
 });
