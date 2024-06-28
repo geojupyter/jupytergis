@@ -1,0 +1,231 @@
+.jgis-layer-browser-container * {
+  box-sizing: border-box;
+}
+
+.jgis-layer-browser-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.jgis-layer-browser-header-container {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: var(--jp-layout-color1);
+}
+
+.jgis-layer-browser-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 1rem 2rem;
+}
+
+.jgis-layer-browser-header-text {
+  padding-right: 1rem;
+  font-weight: bold;
+}
+
+.jgis-layer-browser-header-search-container {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  position: relative;
+}
+
+.jgis-layer-browser-header-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  transform: translateY(-50%);
+}
+
+.jgis-layer-browser-header-search {
+  box-shadow: none;
+  flex: 1 1 0%;
+  height: 40px;
+  padding: 1rem 2rem;
+  padding-left: 2.5rem;
+  background-color: transparent;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 8px;
+  color: var(--jp-ui-font-color1);
+}
+
+.jgis-layer-browser-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-rows: 1fr;
+  grid-template-columns: repeat(5, minmax(0px, 1fr));
+  padding: 1rem 2rem;
+}
+
+.jgis-dialog-override {
+  width: calc(100% - 4rem);
+  max-width: 100%;
+  height: calc(100% - 2rem);
+  max-height: 100%;
+}
+
+.jgis-layer-browser-categories {
+  display: flex;
+  gap: 2rem;
+  padding: 0 2rem;
+  border-bottom: 2px solid var(--jp-border-color1);
+}
+
+.jgis-layer-browser-category {
+  position: relative;
+  opacity: 0.7;
+  padding: 4px 0 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.jgis-layer-browser-category::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0px;
+  height: 3px;
+  transition:
+    background-color 300ms ease-in,
+    width 300ms ease-in,
+    opacity 300ms ease-in;
+  background-color: transparent;
+}
+
+.jgis-layer-browser-category.jgis-layer-browser-category-selected::after {
+  width: 100%;
+  background-color: var(--jp-inverse-layout-color2);
+}
+
+.jgis-layer-browser-category.jgis-layer-browser-category-selected {
+  opacity: 1;
+  font-weight: bold;
+}
+
+.jgis-layer-browser-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  margin-top: 4px;
+  padding: 8px;
+  transition: transform 150ms ease-out;
+  cursor: pointer;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 8px;
+}
+
+.jgis-layer-browser-tile:hover {
+  box-shadow: var(--jp-layout-color2);
+  transform: translateY(-4px);
+  background-color: var(--jp-brand-color2);
+}
+
+.jgis-layer-browser-tile-img-container {
+  /* isolation: isolate; */
+  /* border: medium; */
+  /* background: transparent; */
+  /* padding: 0px; */
+  /* width: 100%; */
+  aspect-ratio: 16 / 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.jgis-layer-browser-img {
+  /* position: absolute; */
+  /* height: 100%; */
+  /* object-fit: cover; */
+  /* box-sizing: border-box; */
+  width: 100%;
+}
+
+.jgis-layer-browser-icon {
+  padding-inline: 8px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  transition:
+    width 125ms ease-in-out,
+    background-color 125ms ease-in-out,
+    opacity 150ms ease-out;
+  background-color: var(--jp-accent-color1);
+  border-radius: 20px;
+}
+
+.jgis-layer-browser-tile:not(.jgis-layer-browser-tile:hover)
+  .jgis-layer-browser-icon {
+  opacity: 0;
+}
+
+.jgis-layer-browser-added {
+  display: inline-flex;
+  gap: 0.35rem;
+  opacity: 1 !important;
+  width: 7rem;
+  color: var(--jp-ui-inverse-font-color1);
+}
+
+.jgis-layer-browser-text-container {
+  padding-inline: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 1 1 0%;
+  box-sizing: border-box;
+}
+
+.jgis-layer-browser-text-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.jgis-layer-browser-text-header {
+  overflow: hidden;
+  font-weight: bold;
+  text-transform: capitalize;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jgis-layer-browser-text-p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jgis-layer-browser-text-source {
+  overflow: hidden;
+  font-size: 0.75rem;
+  font-weight: lighter;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jgis-layer-browser-text-description {
+  -webkit-line-clamp: 2;
+  -moz-box-orient: vertical;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jgis-layer-browser-text-general {
+  margin: 0;
+}
