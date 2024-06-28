@@ -41,17 +41,18 @@ class YJGIS(YBaseDoc):
         """
         valueDict = json.loads(value)
 
-        self._ylayers.clear()
-        self._ylayers.update(valueDict.get("layers", {}))
+        with self._ydoc.transaction():
+            self._ylayers.clear()
+            self._ylayers.update(valueDict.get("layers", {}))
 
-        self._ysources.clear()
-        self._ysources.update(valueDict.get("sources", {}))
+            self._ysources.clear()
+            self._ysources.update(valueDict.get("sources", {}))
 
-        self._yoptions.clear()
-        self._yoptions.update(valueDict.get("options", {}))
+            self._yoptions.clear()
+            self._yoptions.update(valueDict.get("options", {}))
 
-        self._ylayersTree.clear()
-        self._ylayersTree.extend(valueDict.get("layersTree", []))
+            self._ylayersTree.clear()
+            self._ylayersTree.extend(valueDict.get("layersTree", []))
 
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()

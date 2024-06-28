@@ -8,6 +8,7 @@ import Ajv from 'ajv';
 import {
   IJGISContent,
   IJGISLayer,
+  IJGISLayerItem,
   IJGISLayers,
   IJGISLayersTree,
   IJGISSource,
@@ -16,6 +17,8 @@ import {
 import { JupyterGISDoc } from './doc';
 import {
   IJGISLayerDocChange,
+  IJGISLayersTreeDocChange,
+  IJGISSourceDocChange,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
@@ -125,6 +128,17 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get sharedLayersChanged(): ISignal<IJupyterGISDoc, IJGISLayerDocChange> {
     return this.sharedModel.layersChanged;
+  }
+
+  get sharedLayersTreeChanged(): ISignal<
+    IJupyterGISDoc,
+    IJGISLayersTreeDocChange
+  > {
+    return this.sharedModel.layersTreeChanged;
+  }
+
+  get sharedSourcesChanged(): ISignal<IJupyterGISDoc, IJGISSourceDocChange> {
+    return this.sharedModel.sourcesChanged;
   }
 
   get currentLayerChanged(): ISignal<this, string | null> {
@@ -277,4 +291,32 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _currentLayerChanged = new Signal<this, string | null>(this);
 
   static worker: Worker;
+}
+
+export namespace JupyterGISModel {
+  /**
+   * Function to get the ordered list of layers according to the tree.
+   */
+  export function getOrderedLayerIds(model: IJupyterGISModel): string[] {
+    return Private.layerTreeRecursion(model.sharedModel.layersTree);
+  }
+}
+
+namespace Private {
+  /**
+   * Recursive function through the layer tree.
+   */
+  export function layerTreeRecursion(
+    items: IJGISLayerItem[],
+    current: string[] = []
+  ): string[] {
+    for (const layer of items) {
+      if (typeof layer === 'string') {
+        current.push(layer);
+      } else {
+        current.push(...layerTreeRecursion(layer.layers));
+      }
+    }
+    return current;
+  }
 }
