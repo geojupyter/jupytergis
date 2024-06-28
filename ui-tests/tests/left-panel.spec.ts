@@ -150,7 +150,7 @@ test.describe('#layersPanel', () => {
         'layer-not-visible-icon.png'
       );
 
-      await hideLayerButton.click();
+      await showLayerButton.click();
       await expect(hideLayerButton).toHaveCount(1);
       await expect(showLayerButton).toHaveCount(0);
     });
@@ -198,8 +198,9 @@ test.describe('#layersPanel', () => {
         maxDiffPixelRatio: 0.01
       });
 
-      // restore the visibility of the layer.
-      await hideLayerButton.last().click();
+      // Restore the visibility of the layer.
+      const showLayerButton = layersTree.getByTitle('Show layer');
+      await showLayerButton.last().click();
     });
   });
 });
