@@ -27,7 +27,7 @@
     "url": "https://github.com/QuantStack/jupytergis.git"
   },
   "scripts": {
-    "build": "tsc -b && jlpm run build:gallery",
+    "build": "jlpm run build:gallery && tsc -b",
     "build:gallery": "python rasterlayer_gallery_generator.py",
     "build:prod": "jlpm run clean && jlpm run build",
     "build:dev": "tsc -b",
