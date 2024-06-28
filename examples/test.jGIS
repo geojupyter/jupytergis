@@ -3,7 +3,7 @@
     "a5ac7671-74bb-4c99-a494-916348397d01": {
       "name": "Open Street Map 2",
       "type": "RasterLayer",
-      "visible": false,
+      "visible": true,
       "parameters": {
         "source": "f22850a8-bfd5-4dfb-ba1e-c3f2c3ccf93b"
       }

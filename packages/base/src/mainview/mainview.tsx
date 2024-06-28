@@ -148,69 +148,74 @@ export class MainView extends React.Component<IProps, IStates> {
    */
   updateLayers(layerIds: string[]) {
     const update = () => {
-      const previousLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
+      const previousLayerIds = this._Map
+        .getStyle()
+        .layers.map(layer => layer.id);
       let beforeId: string | undefined = undefined;
 
-      // we use the reverse order of the list to add the layer from the top to the
+      // We use the reverse order of the list to add the layer from the top to the
       // bottom.
       // This is to ensure that the beforeId (layer on top of the one we move or add)
       // is already added in the map.
-      layerIds.slice().reverse().forEach(layerId => {
-        const layer = this._model.sharedModel.getLayer(layerId);
+      layerIds
+        .slice()
+        .reverse()
+        .forEach(layerId => {
+          const layer = this._model.sharedModel.getLayer(layerId);
 
-        if (!layer) {
-          console.log(`Layer id ${layerId} does not exist`);
-          return;
-        }
-
-        if (this._Map.getLayer(layerId)) {
-          this._Map.moveLayer(layerId, beforeId);
-        } else {
-          const sourceId = layer.parameters?.source;
-          const source = this._model.sharedModel.getSource(sourceId);
-          if (!source) {
+          if (!layer) {
+            console.log(`Layer id ${layerId} does not exist`);
             return;
           }
 
-          if (!this._Map.getSource(sourceId)) {
-            this.setSource(sourceId, source);
-          }
+          if (this._Map.getLayer(layerId)) {
+            this._Map.moveLayer(layerId, beforeId);
+          } else {
+            const sourceId = layer.parameters?.source;
+            const source = this._model.sharedModel.getSource(sourceId);
+            if (!source) {
+              return;
+            }
 
-          switch (layer.type) {
-            case 'RasterLayer': {
-              this._Map.addLayer(
-                {
-                  id: layerId,
-                  type: 'raster',
-                  layout: {
-                    visibility: layer.visible ? 'visible' : 'none'
+            if (!this._Map.getSource(sourceId)) {
+              this.setSource(sourceId, source);
+            }
+
+            switch (layer.type) {
+              case 'RasterLayer': {
+                this._Map.addLayer(
+                  {
+                    id: layerId,
+                    type: 'raster',
+                    layout: {
+                      visibility: layer.visible ? 'visible' : 'none'
+                    },
+                    source: sourceId,
+                    minzoom: source.parameters?.minZoom || 0,
+                    maxzoom: source.parameters?.maxZoom || 24
                   },
-                  source: sourceId,
-                  minzoom: source.parameters?.minZoom || 0,
-                  maxzoom: source.parameters?.maxZoom || 24
-                },
-                beforeId
-              );
+                  beforeId
+                );
+              }
             }
           }
-        }
-        beforeId = layerId;
+          beforeId = layerId;
 
-        // remove the element of the previous list as treated.
-        const index = previousLayerIds.indexOf(layerId, 0);
-        if (index > -1) {
-          previousLayerIds.splice(index, 1);
-        }
-      });
+          // remove the element of the previous list as treated.
+          const index = previousLayerIds.indexOf(layerId, 0);
+          if (index > -1) {
+            previousLayerIds.splice(index, 1);
+          }
+        });
 
       // Remove the layers not used anymore.
       previousLayerIds.forEach(layerId => {
         this._Map.removeLayer(layerId);
-      })
-    }
+      });
+    };
 
     // Workaround to avoid "Map.style undefined" error
-    if(this._Map.loaded()) {
+    if (this._Map.loaded()) {
       update();
     } else {
       this._Map.on('load', update);
@@ -245,10 +250,10 @@ export class MainView extends React.Component<IProps, IStates> {
           layer.visible ? 'visible' : 'none'
         );
       }
-    }
+    };
 
     // Workaround to avoid "Map.style undefined" error
-    if(this._Map.loaded()) {
+    if (this._Map.loaded()) {
       update();
     } else {
       this._Map.on('load', update);
@@ -293,7 +298,7 @@ export class MainView extends React.Component<IProps, IStates> {
     _: IJupyterGISDoc,
     change: IJGISLayerDocChange
   ): void {
-    change.layerChange?.forEach((change) => {
+    change.layerChange?.forEach(change => {
       const layer = change.newValue;
       if (!layer) {
         this.removeLayer(change.id);
@@ -316,7 +321,7 @@ export class MainView extends React.Component<IProps, IStates> {
     _: IJupyterGISDoc,
     change: IJGISSourceDocChange
   ): void {
-    change.sourceChange?.forEach((change) => {
+    change.sourceChange?.forEach(change => {
       if (!change.newValue) {
         this.removeSource(change.id);
       } else {

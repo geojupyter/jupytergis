@@ -130,7 +130,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.layersChanged;
   }
 
-  get sharedLayersTreeChanged(): ISignal<IJupyterGISDoc, IJGISLayersTreeDocChange> {
+  get sharedLayersTreeChanged(): ISignal<
+    IJupyterGISDoc,
+    IJGISLayersTreeDocChange
+  > {
     return this.sharedModel.layersTreeChanged;
   }
 
@@ -311,7 +314,7 @@ namespace Private {
       if (typeof layer === 'string') {
         current.push(layer);
       } else {
-        current.push(...layerTreeRecursion(layer.layers))
+        current.push(...layerTreeRecursion(layer.layers));
       }
     }
     return current;
