@@ -2,6 +2,9 @@ import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import * as d3Color from 'd3-color';
 
+import { IJGISLayerBrowserRegistry } from '@jupytergis/schema';
+import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
+
 export const debounce = (
   func: CallableFunction,
   timeout = 100
@@ -157,4 +160,70 @@ export async function requestAPI<T>(
 
 export function isLightTheme(): boolean {
   return document.body.getAttribute('data-jp-theme-light') === 'true';
+}
+
+export function createDefaultLayerRegistry(
+  layerBrowserRegistry: IJGISLayerBrowserRegistry
+): void {
+  const RASTER_THUMBNAILS: { [key: string]: string } = {};
+
+  // @ts-ignore Load all images from the 'raster_thumbnails' directory
+  const importAll = (r: __WebpackModuleApi.RequireContext) => {
+    r.keys().forEach(key => {
+      const imageName = key.replace('./', '').replace(/\.\w+$/, '');
+      RASTER_THUMBNAILS[imageName] = r(key);
+    });
+  };
+
+  // @ts-ignore
+  const context = require.context(
+    '../rasterlayer_gallery',
+    false,
+    /\.(png|jpe?g|gif|svg)$/
+  );
+  importAll(context);
+
+  for (const entry of Object.keys(RASTER_LAYER_GALLERY)) {
+    const xyzprovider = RASTER_LAYER_GALLERY[entry];
+
+    if ('url' in xyzprovider) {
+      const tile = convertToRegistryEntry(entry, xyzprovider);
+      layerBrowserRegistry.registerProvider(tile);
+    } else {
+      Object.keys(xyzprovider).forEach(mapName => {
+        const tile = convertToRegistryEntry(
+          xyzprovider[mapName]['name'],
+          xyzprovider[mapName],
+          entry
+        );
+
+        layerBrowserRegistry.registerProvider(tile);
+      });
+    }
+
+    console.log('register', layerBrowserRegistry.getProviders());
+  }
+
+  // TODO: These need better names
+  function convertToRegistryEntry(
+    entry: string,
+    xyzprovider: { [x: string]: any },
+    provider?: string | undefined
+  ) {
+    return {
+      name: entry,
+      thumbnail: RASTER_THUMBNAILS[xyzprovider['name'].replace('.', '-')],
+      source: {
+        url: xyzprovider['url'],
+        minZoom: xyzprovider['min_zoom'] || 0,
+        maxZoom: xyzprovider['max_zoom'] || 24,
+        attribution: xyzprovider['attribution'] || '',
+        provider: provider ?? entry,
+        time: encodeURIComponent(new Date().toISOString()),
+        variant: xyzprovider['variant'] || '',
+        tileMatrixSet: xyzprovider['tilematrixset'] || '',
+        format: xyzprovider['format'] || ''
+      }
+    };
+  }
 }

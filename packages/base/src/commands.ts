@@ -7,83 +7,15 @@ import {
   IDict,
   IJGISFormSchemaRegistry,
   IJGISLayer,
+  IJGISLayerBrowserRegistry,
   IJGISSource,
   IJupyterGISModel
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { FormDialog } from './formdialog';
 
-import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
 import { LayerBrowserWidget } from './layerBrowser/layerBrowserDialog';
-import { IRasterLayerGalleryEntry } from './types';
 import { JupyterGISWidget } from './widget';
-
-const RASTER_THUMBNAILS: { [key: string]: string } = {};
-
-// @ts-ignore Load all images from the 'raster_thumbnails' directory
-const importAll = (r: __WebpackModuleApi.RequireContext) => {
-  r.keys().forEach(key => {
-    const imageName = key.replace('./', '').replace(/\.\w+$/, '');
-    // const img = new Image();
-    // img.src = r(key);
-    RASTER_THUMBNAILS[imageName] = r(key);
-  });
-};
-
-// @ts-ignore
-const context = require.context(
-  '../rasterlayer_gallery',
-  false,
-  /\.(png|jpe?g|gif|svg)$/
-);
-importAll(context);
-
-export function getRasterLayerGallery(): IRasterLayerGalleryEntry[] {
-  const gallery: IRasterLayerGalleryEntry[] = [];
-  for (const entry of Object.keys(RASTER_LAYER_GALLERY)) {
-    const xyzprovider = RASTER_LAYER_GALLERY[entry];
-
-    if ('url' in xyzprovider) {
-      addToGallery(gallery, entry, xyzprovider);
-    } else {
-      Object.keys(xyzprovider).forEach(mapName => {
-        addToGallery(
-          gallery,
-          xyzprovider[mapName]['name'],
-          xyzprovider[mapName],
-          entry
-        );
-      });
-    }
-  }
-
-  console.log('gallery', gallery);
-  return gallery;
-}
-
-// TODO: These need better names
-function addToGallery(
-  gallery: IRasterLayerGalleryEntry[],
-  entry: string,
-  xyzprovider: { [x: string]: any },
-  provider?: string | undefined
-) {
-  gallery.push({
-    name: entry,
-    thumbnail: RASTER_THUMBNAILS[xyzprovider['name'].replace('.', '-')],
-    source: {
-      url: xyzprovider['url'],
-      minZoom: xyzprovider['min_zoom'] || 0,
-      maxZoom: xyzprovider['max_zoom'] || 24,
-      attribution: xyzprovider['attribution'] || '',
-      provider: provider ?? entry,
-      time: encodeURIComponent(new Date().toISOString()),
-      variant: xyzprovider['variant'] || '',
-      tileMatrixSet: xyzprovider['tilematrixset'] || '',
-      format: xyzprovider['format'] || ''
-    }
-  });
-}
 
 /**
  * Add the commands to the application's command registry.
@@ -92,7 +24,8 @@ export function addCommands(
   app: JupyterFrontEnd,
   tracker: WidgetTracker<JupyterGISWidget>,
   translator: ITranslator,
-  formSchemaRegistry: IJGISFormSchemaRegistry
+  formSchemaRegistry: IJGISFormSchemaRegistry,
+  layerBrowserRegistry: IJGISLayerBrowserRegistry
 ): void {
   Private.updateFormSchema(formSchemaRegistry);
   const trans = translator.load('jupyterlab');
@@ -151,7 +84,7 @@ export function addCommands(
         : false;
     },
     iconClass: 'fa fa-book-open',
-    execute: Private.createLayerBrowser(tracker)
+    execute: Private.createLayerBrowser(tracker, layerBrowserRegistry)
   });
 }
 
@@ -186,7 +119,10 @@ namespace Private {
     });
   }
 
-  export function createLayerBrowser(tracker: WidgetTracker<JupyterGISWidget>) {
+  export function createLayerBrowser(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    layerBrowserRegistry: IJGISLayerBrowserRegistry
+  ) {
     return async (args: any) => {
       const current = tracker.currentWidget;
 
@@ -195,7 +131,10 @@ namespace Private {
       }
 
       const dialog = new Dialog({
-        body: new LayerBrowserWidget(current.context.model),
+        body: new LayerBrowserWidget(
+          current.context.model,
+          layerBrowserRegistry.getProviders()
+        ),
         buttons: [Dialog.cancelButton(), Dialog.okButton()]
       });
       await dialog.launch();

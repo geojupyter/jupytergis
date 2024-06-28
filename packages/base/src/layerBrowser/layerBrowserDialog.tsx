@@ -8,37 +8,31 @@ import {
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISSource,
-  IJupyterGISModel
+  IJupyterGISModel,
+  IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/ui-components';
 import { UUID } from '@lumino/coreutils';
-import React, {
-  ChangeEvent,
-  MouseEvent,
-  useEffect,
-  useMemo,
-  useState
-} from 'react';
-import { getRasterLayerGallery } from '../commands';
-import { IRasterLayerGalleryEntry } from '../types';
+import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 
 interface ILayerBrowserDialogProps {
   model: IJupyterGISModel;
+  registry: IRasterLayerGalleryEntry[];
 }
 
-export const LayerBrowserComponent = ({ model }: ILayerBrowserDialogProps) => {
+export const LayerBrowserComponent = ({
+  model,
+  registry
+}: ILayerBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] =
     useState<HTMLElement | null>();
 
-  const gallery = useMemo(() => {
-    return getRasterLayerGallery();
-  }, []);
   const [galleryWithCategory, setgalleryWithCategory] =
-    useState<IRasterLayerGalleryEntry[]>(gallery);
+    useState<IRasterLayerGalleryEntry[]>(registry);
 
-  const providers = [...new Set(gallery.map(item => item.source.provider))];
+  const providers = [...new Set(registry.map(item => item.source.provider))];
 
   const filteredGallery = galleryWithCategory.filter(item =>
     item.name.toLowerCase().includes(searchTerm)
@@ -87,8 +81,8 @@ export const LayerBrowserComponent = ({ model }: ILayerBrowserDialogProps) => {
     selectedCategory?.classList.remove('jgis-layer-browser-category-selected');
 
     const filteredGallery = sameAsOld
-      ? gallery
-      : gallery.filter(item =>
+      ? registry
+      : registry.filter(item =>
           item.source.provider?.includes(categoryTab.innerText)
         );
 
@@ -196,14 +190,18 @@ export const LayerBrowserComponent = ({ model }: ILayerBrowserDialogProps) => {
 
 export class LayerBrowserWidget extends ReactWidget {
   private _model: IJupyterGISModel;
+  private _registry: IRasterLayerGalleryEntry[];
 
-  constructor(model: IJupyterGISModel) {
+  constructor(model: IJupyterGISModel, registry: IRasterLayerGalleryEntry[]) {
     super();
     this.id = 'jupytergis::layersBrowser';
     this._model = model;
+    this._registry = registry;
   }
 
   render() {
-    return <LayerBrowserComponent model={this._model} />;
+    return (
+      <LayerBrowserComponent model={this._model} registry={this._registry} />
+    );
   }
 }

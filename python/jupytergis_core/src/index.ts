@@ -2,6 +2,7 @@ import jgisPlugin from './jgisplugin/plugins';
 import {
   externalCommandRegistryPlugin,
   formSchemaRegistryPlugin,
+  layerBrowserRegistryPlugin,
   trackerPlugin
 } from './plugin';
 
@@ -10,5 +11,6 @@ export default [
   trackerPlugin,
   jgisPlugin,
   formSchemaRegistryPlugin,
-  externalCommandRegistryPlugin
+  externalCommandRegistryPlugin,
+  layerBrowserRegistryPlugin
 ];

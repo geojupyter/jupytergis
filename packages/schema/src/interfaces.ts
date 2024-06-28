@@ -22,6 +22,7 @@ import {
   IJGISSource,
   IJGISSources
 } from './_interface/jgis';
+import { IRasterSource } from './_interface/rastersource';
 
 export interface IDict<T = any> {
   [key: string]: T;
@@ -210,4 +211,15 @@ export interface IJGISExternalCommand {
 export interface IJGISExternalCommandRegistry {
   getCommands(): IJGISExternalCommand[];
   registerCommand(command: IJGISExternalCommand): void;
+}
+
+export interface IRasterLayerGalleryEntry {
+  name: string;
+  thumbnail: string;
+  source: IRasterSource;
+}
+
+export interface IJGISLayerBrowserRegistry {
+  getProviders(): IRasterLayerGalleryEntry[];
+  registerProvider(data: IRasterLayerGalleryEntry): void;
 }

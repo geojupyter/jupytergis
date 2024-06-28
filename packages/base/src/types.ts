@@ -1,12 +1,11 @@
-import { ISignal } from '@lumino/signaling';
 import {
-  IJupyterGISModel,
-  IJupyterGISDoc,
   IDict,
+  IJupyterGISDoc,
+  IJupyterGISModel,
   IJupyterGISTracker,
-  IJupyterGISWidget,
-  IRasterSource
+  IJupyterGISWidget
 } from '@jupytergis/schema';
+import { ISignal } from '@lumino/signaling';
 
 export { IDict };
 export type ValueOf<T> = T[keyof T];
@@ -17,10 +16,4 @@ export interface IControlPanelModel {
   filePath: string | undefined;
   jGISModel: IJupyterGISModel | undefined;
   sharedModel: IJupyterGISDoc | undefined;
-}
-
-export interface IRasterLayerGalleryEntry {
-  name: string;
-  thumbnail: string;
-  source: IRasterSource;
 }

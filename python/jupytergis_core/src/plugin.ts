@@ -4,6 +4,8 @@ import {
   IJGISExternalCommandRegistryToken,
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
+  IJGISLayerBrowserRegistry,
+  IJGISLayerBrowserRegistryToken,
   IJupyterGISDocTracker,
   IJupyterGISTracker
 } from '@jupytergis/schema';
@@ -15,8 +17,9 @@ import { WidgetTracker } from '@jupyterlab/apputils';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ITranslator } from '@jupyterlab/translation';
 
-import { JupyterGISFormSchemaRegistry } from './schemaregistry';
 import { JupyterGISExternalCommandRegistry } from './externalcommand';
+import { JupyterGISLayerBrowserRegistry } from './layerBrowserRegistry';
+import { JupyterGISFormSchemaRegistry } from './schemaregistry';
 
 const NAME_SPACE = 'jupytergis';
 
@@ -59,6 +62,20 @@ export const externalCommandRegistryPlugin: JupyterFrontEndPlugin<IJGISExternalC
     provides: IJGISExternalCommandRegistryToken,
     activate: (app: JupyterFrontEnd): IJGISExternalCommandRegistry => {
       const registry = new JupyterGISExternalCommandRegistry();
+      return registry;
+    }
+  };
+
+export const layerBrowserRegistryPlugin: JupyterFrontEndPlugin<IJGISLayerBrowserRegistry> =
+  {
+    id: 'jupytergis:core:layer-browser-registry',
+    autoStart: true,
+    requires: [],
+    provides: IJGISLayerBrowserRegistryToken,
+    activate: (app: JupyterFrontEnd) => {
+      console.log('jupytergis:core:layer-browser-registry is activated');
+
+      const registry = new JupyterGISLayerBrowserRegistry();
       return registry;
     }
   };
