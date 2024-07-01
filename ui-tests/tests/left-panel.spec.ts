@@ -72,6 +72,12 @@ test.describe('#layersPanel', () => {
       await expect(layersTree).not.toBeEmpty();
     });
 
+    test('should restore empty layer panel', async ({ page }) => {
+      const layersTree = await openLayersTree(page);
+      await page.activity.closeAll();
+      await expect(layersTree).toBeEmpty();
+    });
+
     test('raster layer should have icons', async ({ page }) => {
       const layersTree = await openLayersTree(page);
       const layerIcons = layersTree.locator(
