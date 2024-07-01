@@ -7,32 +7,6 @@ import {
 import { Locator } from '@playwright/test';
 import path from 'path';
 
-// async function openLayerBrowser(
-//   page: IJupyterLabPageFixture
-// ): Promise<Locator> {
-//   const mainDockPanel = page.locator('#jp-main-dock-panel');
-//   if (!(await mainDockPanel.isVisible())) {
-//     const panelIcon = page.getByTitle('JupyterGIS Control Panel');
-//     await panelIcon.first().click();
-//     await page.waitForCondition(async () => await mainDockPanel.isVisible());
-//   }
-//   return mainDockPanel;
-// }
-
-// test.describe('#overview', () => {
-//   test('should have a left panel', async ({ page }) => {
-//     const panelIcon = page.getByTitle('JupyterGIS Control Panel');
-//     await expect(panelIcon).toHaveCount(2);
-
-//     await panelIcon.first().click();
-
-//     const sidePanel = page.locator('#jupytergis\\:\\:leftControlPanel');
-//     await expect(sidePanel).toBeVisible();
-
-//     await expect(sidePanel.getByTitle('Layer tree')).toHaveCount(1);
-//   });
-// });
-
 async function openLayerBrowser(
   page: IJupyterLabPageFixture
 ): Promise<Locator> {
@@ -89,7 +63,7 @@ test.describe('#layerBrowser', () => {
     const gridTiles = layerBrowser.locator(
       '.jgis-layer-browser-container .jgis-layer-browser-grid .jgis-layer-browser-tile'
     );
-    await expect(gridTiles).toHaveCount(32);
+    await expect(gridTiles).toHaveCount(37);
   });
 
   test('search bar should filter tiles', async ({ page }) => {
@@ -111,17 +85,6 @@ test.describe('#layerBrowser', () => {
     const gridTiles = await getGridTiles(page);
     await page.getByText('WaymarkedTrails', { exact: true }).click();
     await page.getByText('WaymarkedTrails', { exact: true }).click();
-    await expect(gridTiles).toHaveCount(32);
+    await expect(gridTiles).toHaveCount(37);
   });
-
-  //   test('raster layer should have icons', async ({ page }) => {
-  //     const layersTree = await openLayerBrowser(page);
-  //     const layerIcons = layersTree.locator(
-  //       '.jp-gis-layer .jp-gis-layerIcon svg'
-  //     );
-
-  //     expect(await layerIcons.first().screenshot()).toMatchSnapshot(
-  //       'raster-layer-icon.png'
-  //     );
-  //   });
 });
