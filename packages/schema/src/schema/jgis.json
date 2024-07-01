@@ -70,8 +70,7 @@
       "required": ["name", "layers"],
       "properties": {
         "name": {
-          "type": "string",
-          "default": ""
+          "type": "string"
         },
         "layers": {
           "type": "array",

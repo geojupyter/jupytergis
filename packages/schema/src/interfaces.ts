@@ -74,7 +74,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layerExists(id: string): boolean;
   getLayer(id: string): IJGISLayer | undefined;
   removeLayer(id: string): void;
-  addLayer(id: string, value: IJGISLayer): void;
+  addLayer(id: string, value: IJGISLayer, groupName?: string, position?: number): void;
   updateLayer(id: string, value: IJGISLayer): void;
 
   sourceExists(id: string): boolean;
@@ -82,6 +82,9 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   removeSource(id: string): void;
   addSource(id: string, value: IJGISSource): void;
   updateSource(id: string, value: IJGISSource): void;
+
+  addLayersTreeItem(index: number, item: IJGISLayerItem): void;
+  updateLayersTreeItem(index: number, item: IJGISLayerItem): void;
 
   updateObjectParameters(
     id: string,
@@ -136,6 +139,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getSource(id: string): IJGISSource | undefined;
   getLayersTree(): IJGISLayersTree;
 
+  addLayer(id: string, layer: IJGISLayer, groupName?: string, position?: number): void;
+  
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   syncSelectedPropField(data: {
     id: string | null;

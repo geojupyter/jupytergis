@@ -10,6 +10,7 @@ import {
   IJGISLayer,
   IJGISLayerItem,
   IJGISLayers,
+  IJGISLayersGroup,
   IJGISLayersTree,
   IJGISSource,
   IJGISSources
@@ -213,6 +214,22 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.getSource(id);
   }
 
+  addGroup(name: string, groupName?: string, position?: number): void {
+    const item: IJGISLayersGroup = {
+      name,
+      layers: []
+    };
+    this._addLayersTreeItem(item, groupName, position);
+  }
+
+  addLayer(id: string, layer: IJGISLayer, groupName?: string, position?: number): void {
+    if (!this.getLayer(id)) {
+      this.sharedModel.addLayer(id, layer);
+    }
+
+    this._addLayersTreeItem(id, groupName, position);
+  }
+
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('selected', {
       value,
@@ -242,6 +259,36 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getClientId(): number {
     return this.sharedModel.awareness.clientID;
+  }
+
+  private _addLayersTreeItem(item: IJGISLayerItem, groupName?: string, index?: number) {
+    if (groupName) {
+      const layersTree = this.getLayersTree();
+      const indexesPath = Private.findGroupPath(layersTree, groupName);
+      if (!indexesPath.length) {
+        console.warn(`The group "${groupName}" does not exist in the layers tree`);
+        return;
+      }
+
+      const mainGroupIndex = indexesPath.shift();
+      if (mainGroupIndex === undefined) {
+        return;
+      }
+      const mainGroup = layersTree[mainGroupIndex] as IJGISLayersGroup;
+      let workingGroup = mainGroup;
+      while(indexesPath.length) {
+        const groupIndex = indexesPath.shift();
+        if (groupIndex === undefined) {
+          break;
+        }
+        workingGroup = workingGroup.layers[groupIndex] as IJGISLayersGroup;
+      }
+      workingGroup.layers.splice(index ?? workingGroup.layers.length, 0, item);
+
+      this._sharedModel.updateLayersTreeItem(mainGroupIndex, mainGroup);
+    } else {
+      this.sharedModel.addLayersTreeItem(index ?? this.getLayersTree.length, item);
+    }
   }
 
   private _onClientStateChanged = changed => {
@@ -294,7 +341,10 @@ export namespace JupyterGISModel {
 
 namespace Private {
   /**
-   * Recursive function through the layer tree.
+   * Recursive function through the layers tree to retrieve the flattened layers order.
+   *
+   * @param items - the items list being scanned.
+   * @param current - the current flattened layers.
    */
   export function layerTreeRecursion(
     items: IJGISLayerItem[],
@@ -308,5 +358,36 @@ namespace Private {
       }
     }
     return current;
+  }
+
+  /**
+   * Recursive function through the layers tree to retrieve the indexes path to a group.
+   *
+   * @param items - the items list being scanned.
+   * @param groupName - the target group name.
+   * @param indexes - the current indexes path to the group
+   */
+  export function findGroupPath(
+    items: IJGISLayerItem[],
+    groupName: string,
+    indexes: number[] = []
+  ): number[] {
+    for (let index = 0; index < items.length; index++) {
+      const item = items[index];
+      if (typeof item === 'string') {
+        continue;
+      } else {
+        const workingIndexes = [...indexes];
+        workingIndexes.push(index);
+        if (item.name === groupName) {
+          return workingIndexes;
+        }
+        const foundIndexes = findGroupPath(item.layers, groupName, workingIndexes);
+        if (foundIndexes.length > workingIndexes.length) {
+          return foundIndexes;
+        }
+      }
+    }
+    return indexes;
   }
 }

@@ -74,7 +74,7 @@ export class JupyterGISDoc
   }
 
   get layersTree(): IJGISLayersTree {
-    return this._layersTree.toJSON() as IJGISLayersTree;
+    return JSONExt.deepCopy(this._layersTree.toJSON());
   }
 
   set layersTree(layersTree: IJGISLayersTree) {
@@ -145,6 +145,19 @@ export class JupyterGISDoc
   updateLayer(id: string, value: IJGISLayer): void {
     this.transact(() => {
       this._layers.set(id, value);
+    });
+  }
+
+  addLayersTreeItem(index: number, item: IJGISLayerItem) {
+    this.transact(() => {
+      this._layersTree.insert(index, [item]);
+    });
+  }
+
+  updateLayersTreeItem(index: number, item: IJGISLayerItem) {
+    this.transact(() => {
+      this._layersTree.delete(index);
+      this._layersTree.insert(index, [item]);
     });
   }
 
