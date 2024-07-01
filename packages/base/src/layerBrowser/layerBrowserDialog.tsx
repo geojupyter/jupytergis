@@ -29,7 +29,7 @@ export const LayerBrowserComponent = ({
   const [selectedCategory, setSelectedCategory] =
     useState<HTMLElement | null>();
 
-  const [galleryWithCategory, setgalleryWithCategory] =
+  const [galleryWithCategory, setGalleryWithCategory] =
     useState<IRasterLayerGalleryEntry[]>(registry);
 
   const providers = [...new Set(registry.map(item => item.source.provider))];
@@ -77,7 +77,7 @@ export const LayerBrowserComponent = ({
           item.source.provider?.includes(categoryTab.innerText)
         );
 
-    setgalleryWithCategory(filteredGallery);
+    setGalleryWithCategory(filteredGallery);
     setSearchTerm('');
     setSelectedCategory(sameAsOld ? null : categoryTab);
   };

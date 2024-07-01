@@ -123,7 +123,7 @@ namespace Private {
     tracker: WidgetTracker<JupyterGISWidget>,
     layerBrowserRegistry: IJGISLayerBrowserRegistry
   ) {
-    return async (args: any) => {
+    return async () => {
       const current = tracker.currentWidget;
 
       if (!current) {
