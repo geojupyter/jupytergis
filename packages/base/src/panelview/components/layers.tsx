@@ -11,7 +11,6 @@ import {
   ReactWidget,
   caretDownIcon
 } from '@jupyterlab/ui-components';
-import { ISignal, Signal } from '@lumino/signaling';
 import { Panel } from '@lumino/widgets';
 import React, { useEffect, useState } from 'react';
 import { nonVisibilityIcon, rasterIcon, visibilityIcon } from '../../icons';
@@ -34,7 +33,7 @@ export namespace LayersPanel {
    * Options of the layers panel widget.
    */
   export interface IOptions {
-    model: IControlPanelModel | undefined;
+    model: IControlPanelModel;
   }
 }
 
@@ -51,26 +50,10 @@ export class LayersPanel extends Panel {
       ReactWidget.create(
         <LayersBodyComponent
           model={this._model}
-          modelChanged={this._modelChanged}
           onSelect={this._onSelect}
         ></LayersBodyComponent>
       )
     );
-  }
-
-  /**
-   * Set the GIS model associated to the widget.
-   */
-  set model(value: IControlPanelModel | undefined) {
-    this._model = value;
-    this._modelChanged.emit(value);
-  }
-
-  /**
-   * A signal emitting when the GIS model changed.
-   */
-  get modelChanged(): ISignal<LayersPanel, IControlPanelModel | undefined> {
-    return this._modelChanged;
   }
 
   /**
@@ -80,7 +63,6 @@ export class LayersPanel extends Panel {
    */
   private _onSelect = (layer?: string) => {
     if (this._model) {
-      // this._model.currentLayer = layer ?? null;
       const selection: { [key: string]: ISelection } = {};
       if (layer) {
         selection[layer] = {
@@ -92,17 +74,13 @@ export class LayersPanel extends Panel {
   };
 
   private _model: IControlPanelModel | undefined;
-  private _modelChanged = new Signal<
-    LayersPanel,
-    IControlPanelModel | undefined
-  >(this);
 }
 
 /**
  * Properties of the layers body component.
  */
-interface IBodyProps extends LayersPanel.IOptions {
-  modelChanged: ISignal<LayersPanel, IControlPanelModel | undefined>;
+interface IBodyProps {
+  model: IControlPanelModel;
   onSelect: (layer?: string) => void;
 }
 
@@ -110,12 +88,14 @@ interface IBodyProps extends LayersPanel.IOptions {
  * The body component of the panel.
  */
 function LayersBodyComponent(props: IBodyProps): JSX.Element {
-  const [model, setModel] = useState<IControlPanelModel | undefined>(
-    props.model
+  const [model, setModel] = useState<IJupyterGISModel | undefined>(
+    props.model?.jGISModel
   );
   const [layersTree, setLayersTree] = useState<IJGISLayersTree>(
-    model?.jGISModel?.getLayersTree() || []
+    model?.getLayersTree() || []
   );
+
+  console.log('first render of the tree', model?.getLayersTree());
 
   /**
    * Propagate the layer selection.
@@ -129,7 +109,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
    */
   useEffect(() => {
     const updateLayers = () => {
-      setLayersTree(model?.jGISModel?.getLayersTree() || []);
+      setLayersTree(model?.getLayersTree() || []);
     };
     model?.sharedModel?.layersChanged.connect(updateLayers);
     model?.sharedModel?.layersTreeChanged.connect(updateLayers);
@@ -143,19 +123,19 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
   /**
    * Update the model when it changes.
    */
-  props.modelChanged.connect((_, model) => {
-    setModel(model);
-    setLayersTree(model?.jGISModel?.getLayersTree() || []);
+  props.model?.documentChanged.connect((_, widget) => {
+    setModel(widget?.context.model);
+    setLayersTree(widget?.context.model?.getLayersTree() || []);
   });
 
   return (
     <div>
       {layersTree.map(layer =>
         typeof layer === 'string' ? (
-          <LayerComponent model={model} layerId={layer} onClick={onItemClick} />
+          <LayerComponent gisModel={model} layerId={layer} onClick={onItemClick} />
         ) : (
           <LayersGroupComponent
-            model={model}
+            gisModel={model}
             group={layer}
             onClick={onItemClick}
           />
@@ -168,7 +148,8 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
 /**
  * Properties of the layers group component.
  */
-interface ILayersGroupProps extends LayersPanel.IOptions {
+interface ILayersGroupProps {
+  gisModel: IJupyterGISModel | undefined;
   group: IJGISLayersGroup | undefined;
   onClick: (item?: string) => void;
 }
@@ -177,7 +158,7 @@ interface ILayersGroupProps extends LayersPanel.IOptions {
  * The component to handle group of layers.
  */
 function LayersGroupComponent(props: ILayersGroupProps): JSX.Element {
-  const { group, model } = props;
+  const { group, gisModel } = props;
   if (group === undefined) {
     return <></>;
   }
@@ -202,13 +183,13 @@ function LayersGroupComponent(props: ILayersGroupProps): JSX.Element {
           {layers.map(layer =>
             typeof layer === 'string' ? (
               <LayerComponent
-                model={model}
+                gisModel={gisModel}
                 layerId={layer}
                 onClick={props.onClick}
               />
             ) : (
               <LayersGroupComponent
-                model={model}
+                gisModel={gisModel}
                 group={layer}
                 onClick={props.onClick}
               />
@@ -223,15 +204,16 @@ function LayersGroupComponent(props: ILayersGroupProps): JSX.Element {
 /**
  * Properties of the layer component.
  */
-interface ILayerProps extends LayersPanel.IOptions {
+interface ILayerProps {
+  gisModel: IJupyterGISModel | undefined;
   layerId: string;
   onClick: (item?: string) => void;
 }
 
-function isSelected(layerId: string, model: IControlPanelModel | undefined) {
+function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
   return (
-    (model?.jGISModel?.localState?.selected?.value &&
-      Object.keys(model?.jGISModel?.localState?.selected?.value).includes(
+    (model?.localState?.selected?.value &&
+      Object.keys(model?.localState?.selected?.value).includes(
         layerId
       )) ||
     false
@@ -242,14 +224,14 @@ function isSelected(layerId: string, model: IControlPanelModel | undefined) {
  * The component to display a single layer.
  */
 function LayerComponent(props: ILayerProps): JSX.Element {
-  const { layerId, model } = props;
-  const layer = model?.jGISModel?.getLayer(layerId);
+  const { layerId, gisModel } = props;
+  const layer = gisModel?.getLayer(layerId);
   if (layer === undefined) {
     return <></>;
   }
   const [selected, setSelected] = useState<boolean>(
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
-    isSelected(layerId, model)
+    isSelected(layerId, gisModel)
   );
   const name = layer.name;
 
@@ -262,23 +244,23 @@ function LayerComponent(props: ILayerProps): JSX.Element {
       clients: Map<number, IJupyterGISClientState>
     ) => {
       // TODO Support follow mode and remoteUser state
-      setSelected(isSelected(layerId, model));
+      setSelected(isSelected(layerId, gisModel));
     };
-    model?.jGISModel?.clientStateChanged.connect(onClientSharedStateChanged);
+    gisModel?.clientStateChanged.connect(onClientSharedStateChanged);
 
     return () => {
-      model?.jGISModel?.clientStateChanged.disconnect(
+      gisModel?.clientStateChanged.disconnect(
         onClientSharedStateChanged
       );
     };
-  }, [model]);
+  }, [gisModel]);
 
   /**
    * Toggle layer visibility.
    */
   const toggleVisibility = () => {
     layer.visible = !layer.visible;
-    model?.sharedModel?.updateLayer(layerId, layer);
+    gisModel?.sharedModel?.updateLayer(layerId, layer);
   };
 
   return (
