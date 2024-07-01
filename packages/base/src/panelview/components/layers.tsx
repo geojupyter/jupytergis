@@ -132,7 +132,11 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
     <div>
       {layersTree.map(layer =>
         typeof layer === 'string' ? (
-          <LayerComponent gisModel={model} layerId={layer} onClick={onItemClick} />
+          <LayerComponent
+            gisModel={model}
+            layerId={layer}
+            onClick={onItemClick}
+          />
         ) : (
           <LayersGroupComponent
             gisModel={model}
@@ -213,9 +217,7 @@ interface ILayerProps {
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
   return (
     (model?.localState?.selected?.value &&
-      Object.keys(model?.localState?.selected?.value).includes(
-        layerId
-      )) ||
+      Object.keys(model?.localState?.selected?.value).includes(layerId)) ||
     false
   );
 }
@@ -249,9 +251,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
     gisModel?.clientStateChanged.connect(onClientSharedStateChanged);
 
     return () => {
-      gisModel?.clientStateChanged.disconnect(
-        onClientSharedStateChanged
-      );
+      gisModel?.clientStateChanged.disconnect(onClientSharedStateChanged);
     };
   }, [gisModel]);
 
