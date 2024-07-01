@@ -42,7 +42,7 @@ interface IStates {
   selectedObjectData?: IDict;
   selectedObjectSourceData?: IDict;
   selectedObject?: string;
-  selectedObjectType?: "layer" | "source";
+  selectedObjectType?: 'layer' | 'source';
   selectedObjectSource?: string;
   schema?: IDict;
   sourceSchema?: IDict;
