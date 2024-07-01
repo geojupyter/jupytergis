@@ -202,11 +202,7 @@ export class JupyterGISDoc
   }
 
   updateSource(id: string, value: any): void {
-    const obj = this._getSourceAsYMap(id);
-    if (!obj) {
-      return;
-    }
-    this.transact(() => obj.set(id, value));
+    this.transact(() => this._sources.set(id, value));
   }
 
   getOption(key: keyof IJGISOptions): IDict | undefined {

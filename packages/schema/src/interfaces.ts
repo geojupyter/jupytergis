@@ -45,7 +45,13 @@ export interface IJGISSourceDocChange {
   }>;
 }
 
+export interface ISelection {
+  type: 'layer' | 'source';
+  parent?: string;
+}
+
 export interface IJupyterGISClientState {
+  selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
   selectedPropField?: {
     id: string | null;
     value: any;
@@ -109,7 +115,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isDisposed: boolean;
   sharedModel: IJupyterGISDoc;
   localState: IJupyterGISClientState | null;
-  currentLayer: string | null;
 
   themeChanged: Signal<
     IJupyterGISModel,
@@ -119,7 +124,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     Map<number, IJupyterGISClientState>
   >;
-  currentLayerChanged: ISignal<IJupyterGISModel, string | null>;
   sharedOptionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sharedLayersTreeChanged: ISignal<IJupyterGISDoc, IJGISLayersTreeDocChange>;
@@ -132,11 +136,12 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getSource(id: string): IJGISSource | undefined;
   getLayersTree(): IJGISLayersTree;
 
+  syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   syncSelectedPropField(data: {
     id: string | null;
     value: any;
     parentType: 'panel' | 'dialog';
-  });
+  }): void;
   setUserToFollow(userId?: number): void;
   syncFormData(form: any): void;
 

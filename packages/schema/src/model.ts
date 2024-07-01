@@ -22,6 +22,7 @@ import {
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
+  ISelection,
   IUserData
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
@@ -46,17 +47,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   };
 
   readonly collaborative = true;
-
-  /**
-   * Getter and setter for the current selected layer.
-   */
-  get currentLayer(): string | null {
-    return this._currentLayer;
-  }
-  set currentLayer(layer: string | null) {
-    this._currentLayer = layer;
-    this._currentLayerChanged.emit(layer);
-  }
 
   get sharedModel(): IJupyterGISDoc {
     return this._sharedModel;
@@ -141,10 +131,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.sourcesChanged;
   }
 
-  get currentLayerChanged(): ISignal<this, string | null> {
-    return this._currentLayerChanged;
-  }
-
   get disposed(): ISignal<JupyterGISModel, void> {
     return this._disposed;
   }
@@ -227,6 +213,13 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.getSource(id);
   }
 
+  syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField('selected', {
+      value,
+      emitter: emitter
+    });
+  }
+
   syncSelectedPropField(data: {
     id: string | null;
     value: any;
@@ -286,9 +279,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     this,
     Map<number, IJupyterGISClientState>
   >(this);
-
-  private _currentLayer: string | null = null;
-  private _currentLayerChanged = new Signal<this, string | null>(this);
 
   static worker: Worker;
 }
