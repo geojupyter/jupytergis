@@ -169,9 +169,7 @@ test.describe('#layersPanel', () => {
 
       // Open the first level group
       await layerGroup.last().click();
-      await page.waitForCondition(
-        async () => (await layerGroup.count()) === 2
-      );
+      await page.waitForCondition(async () => (await layerGroup.count()) === 2);
       // Open the second level group
       await layerGroup.last().click();
 
