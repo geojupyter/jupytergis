@@ -22,9 +22,9 @@ export class LeftPanelWidget extends SidePanel {
     this.addWidget(layersTree);
 
     options.tracker.currentChanged.connect((_, changed) => {
+      layersTree.model = this._model.jGISModel;
       if (changed) {
         header.title.label = changed.context.localPath;
-        layersTree.model = this._model.jGISModel;
       } else {
         header.title.label = '-';
       }
