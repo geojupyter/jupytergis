@@ -19,4 +19,12 @@ export class JupyterGISLayerBrowserRegistry
   registerProvider(data: IRasterLayerGalleryEntry): void {
     this._registry.push(data);
   }
+
+  removeProvider(name: string): void {
+    this._registry = this._registry.filter(item => item.name !== name);
+  }
+
+  clearRegistry(): void {
+    this._registry = [];
+  }
 }
