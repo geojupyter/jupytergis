@@ -133,7 +133,7 @@ namespace Private {
       const dialog = new Dialog({
         body: new LayerBrowserWidget(
           current.context.model,
-          layerBrowserRegistry.getProviders()
+          layerBrowserRegistry.getRegistryLayers()
         ),
         buttons: [Dialog.cancelButton(), Dialog.okButton()]
       });

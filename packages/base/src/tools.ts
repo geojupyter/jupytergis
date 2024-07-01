@@ -186,7 +186,7 @@ export function createDefaultLayerRegistry(
 
     if ('url' in xyzprovider) {
       const tile = convertToRegistryEntry(entry, xyzprovider);
-      layerBrowserRegistry.registerProvider(tile);
+      layerBrowserRegistry.addRegistryLayer(tile);
     } else {
       Object.keys(xyzprovider).forEach(mapName => {
         const tile = convertToRegistryEntry(
@@ -195,11 +195,11 @@ export function createDefaultLayerRegistry(
           entry
         );
 
-        layerBrowserRegistry.registerProvider(tile);
+        layerBrowserRegistry.addRegistryLayer(tile);
       });
     }
 
-    console.log('register', layerBrowserRegistry.getProviders());
+    console.log('register', layerBrowserRegistry.getRegistryLayers());
   }
 
   // TODO: These need better names
