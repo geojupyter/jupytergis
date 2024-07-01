@@ -214,7 +214,21 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.getSource(id);
   }
 
+  /**
+   * Add a layers group in the layers tree.
+   *
+   * @param name - the name of the group.
+   * @param groupName - (optional) the name of the parent group in which to include the
+   *   new group.
+   * @param position - (optional) the index of the new group in its parent group or
+   *   from root of layers tree.
+   */
   addGroup(name: string, groupName?: string, position?: number): void {
+    const indexesPath = Private.findGroupPath(this.getLayersTree(), name);
+    if (indexesPath.length) {
+      console.warn(`The group "${groupName}" already exist in the layers tree`);
+      return;
+    }
     const item: IJGISLayersGroup = {
       name,
       layers: []
@@ -222,7 +236,22 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._addLayersTreeItem(item, groupName, position);
   }
 
-  addLayer(id: string, layer: IJGISLayer, groupName?: string, position?: number): void {
+  /**
+   * Add a layer in the layers tree and the layers list.
+   *
+   * @param id - the ID of the layer.
+   * @param layer - the layer object.
+   * @param groupName - optional) the name of the group in which to include the new
+   *   layer.
+   * @param position - (optional) the index of the new layer in its parent group or
+   *   from root of layers tree.
+   */
+  addLayer(
+    id: string,
+    layer: IJGISLayer,
+    groupName?: string,
+    position?: number
+  ): void {
     if (!this.getLayer(id)) {
       this.sharedModel.addLayer(id, layer);
     }
@@ -261,12 +290,27 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.awareness.clientID;
   }
 
-  private _addLayersTreeItem(item: IJGISLayerItem, groupName?: string, index?: number) {
+  /**
+   * Add an item in the layer tree.
+   *
+   * @param item - the item to add.
+   * @param groupName - (optional) the name of the parent group in which to include the
+   *   new item.
+   * @param index - (optional) the index of the new item in its parent group or
+   *   from root of layers tree.
+   */
+  private _addLayersTreeItem(
+    item: IJGISLayerItem,
+    groupName?: string,
+    index?: number
+  ): void {
     if (groupName) {
       const layersTree = this.getLayersTree();
       const indexesPath = Private.findGroupPath(layersTree, groupName);
       if (!indexesPath.length) {
-        console.warn(`The group "${groupName}" does not exist in the layers tree`);
+        console.warn(
+          `The group "${groupName}" does not exist in the layers tree`
+        );
         return;
       }
 
@@ -276,7 +320,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       }
       const mainGroup = layersTree[mainGroupIndex] as IJGISLayersGroup;
       let workingGroup = mainGroup;
-      while(indexesPath.length) {
+      while (indexesPath.length) {
         const groupIndex = indexesPath.shift();
         if (groupIndex === undefined) {
           break;
@@ -287,7 +331,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
       this._sharedModel.updateLayersTreeItem(mainGroupIndex, mainGroup);
     } else {
-      this.sharedModel.addLayersTreeItem(index ?? this.getLayersTree.length, item);
+      this.sharedModel.addLayersTreeItem(
+        index ?? this.getLayersTree.length,
+        item
+      );
     }
   }
 
@@ -382,7 +429,11 @@ namespace Private {
         if (item.name === groupName) {
           return workingIndexes;
         }
-        const foundIndexes = findGroupPath(item.layers, groupName, workingIndexes);
+        const foundIndexes = findGroupPath(
+          item.layers,
+          groupName,
+          workingIndexes
+        );
         if (foundIndexes.length > workingIndexes.length) {
           return foundIndexes;
         }

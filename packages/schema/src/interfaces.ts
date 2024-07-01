@@ -74,7 +74,12 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layerExists(id: string): boolean;
   getLayer(id: string): IJGISLayer | undefined;
   removeLayer(id: string): void;
-  addLayer(id: string, value: IJGISLayer, groupName?: string, position?: number): void;
+  addLayer(
+    id: string,
+    value: IJGISLayer,
+    groupName?: string,
+    position?: number
+  ): void;
   updateLayer(id: string, value: IJGISLayer): void;
 
   sourceExists(id: string): boolean;
@@ -139,8 +144,13 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getSource(id: string): IJGISSource | undefined;
   getLayersTree(): IJGISLayersTree;
 
-  addLayer(id: string, layer: IJGISLayer, groupName?: string, position?: number): void;
-  
+  addLayer(
+    id: string,
+    layer: IJGISLayer,
+    groupName?: string,
+    position?: number
+  ): void;
+
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   syncSelectedPropField(data: {
     id: string | null;
