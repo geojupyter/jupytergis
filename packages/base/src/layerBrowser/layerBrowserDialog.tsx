@@ -52,15 +52,6 @@ export const LayerBrowserComponent = ({
   }, []);
 
   const handleLayerChange = (_, change: IJGISLayerDocChange) => {
-    const newLayers: string[] = [];
-    if (change.layerChange) {
-      change.layerChange.forEach(layer => {
-        newLayers.push(layer.id);
-      });
-
-      model.sharedModel.layersTree = [...model.getLayersTree(), ...newLayers];
-    }
-
     // The split is to get rid of the 'Layer' part of the name to match the names in the gallery
     setActiveLayers(
       Object.values(model.sharedModel.layers).map(
