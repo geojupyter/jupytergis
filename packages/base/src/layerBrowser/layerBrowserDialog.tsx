@@ -185,7 +185,7 @@ export class LayerBrowserWidget extends ReactWidget {
 
   constructor(model: IJupyterGISModel, registry: IRasterLayerGalleryEntry[]) {
     super();
-    this.id = 'jupytergis::layersBrowser';
+    this.id = 'jupytergis::layerBrowser';
     this._model = model;
     this._registry = registry;
   }
