@@ -42,6 +42,7 @@ interface IStates {
   selectedObjectData?: IDict;
   selectedObjectSourceData?: IDict;
   selectedObject?: string;
+  selectedObjectType?: "layer" | "source";
   selectedObjectSource?: string;
   schema?: IDict;
   sourceSchema?: IDict;
@@ -145,20 +146,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   ): void => {
     this.setState(old => {
       if (old.selectedObject) {
-        // TODO Handle update on the source too
-        const selectedObject =
-          this.props.cpModel.jGISModel?.sharedModel.getObject(
-            old.selectedObject
-          );
-        if (selectedObject) {
-          const selectedObjectData = selectedObject.parameters;
-          return {
-            ...old,
-            selectedObjectData
-          };
-        } else {
-          return old;
-        }
+        return this.getStateForSelection(old, old.selectedObject);
       } else {
         return old;
       }
@@ -209,9 +197,9 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     }
     if (newState) {
       const selection = newState.selected.value;
-      const selectedObjectNames = Object.keys(selection || {});
+      const selectedObjectIds = Object.keys(selection || {});
       // Only show object properties if ONE object is selected
-      if (selection === undefined || selectedObjectNames.length !== 1) {
+      if (selection === undefined || selectedObjectIds.length !== 1) {
         this.setState(old => ({
           ...old,
           selectedObject: undefined,
@@ -224,74 +212,90 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         return;
       }
 
-      const selectedObject = selectedObjectNames[0];
+      const selectedObject = selectedObjectIds[0];
       if (selectedObject !== this.state.selectedObject) {
-        let selectedObj: IJGISLayer | IJGISSource | undefined;
-        // This will be the layer source in case where the selected object is a layer
-        let selectedObjSource: IJGISSource | undefined;
-        if (selection[selectedObject].type === 'layer') {
-          selectedObj = this.props.cpModel.jGISModel?.getLayer(selectedObject);
-
-          if (selectedObj && selectedObj.parameters?.source) {
-            selectedObjSource = this.props.cpModel.jGISModel?.getSource(
-              selectedObj!.parameters?.source
-            );
-          }
-        } else {
-          selectedObj = this.props.cpModel.jGISModel?.getSource(selectedObject);
-        }
-
-        if (!selectedObj) {
-          return;
-        }
-
-        let schema: IDict<any> | undefined;
-        const selectedObjectData = selectedObj.parameters;
-        if (selectedObj.type) {
-          schema = this._formSchema.get(selectedObj.type);
-
-          // Generate dropdown for layer source entry
-          if (
-            schema &&
-            schema.properties.source &&
-            selectedObjectData &&
-            selectedObjectData.source
-          ) {
-            const sourceNames: string[] = [];
-            for (const sourceId of Object.keys(
-              this.props.cpModel.jGISModel?.getSources() || {}
-            )) {
-              const source = this.props.cpModel.jGISModel?.getSource(sourceId);
-              if (source) {
-                sourceNames.push(source.name);
-              }
-            }
-            selectedObjectData.source = this.props.cpModel.jGISModel?.getSource(
-              selectedObjectData.source
-            )?.name;
-            schema.properties.source.enum = sourceNames;
-          }
-        }
-
-        let sourceSchema: IDict<any> | undefined;
-        let selectedObjectSourceData: IDict<any> | undefined;
-        if (selectedObjSource) {
-          sourceSchema = this._formSchema.get(selectedObjSource.type);
-          selectedObjectSourceData = selectedObjSource.parameters;
-        }
-
-        this.setState(old => ({
-          ...old,
-          selectedObjectData,
-          selectedObject,
-          selectedObjectSource: selectedObj.parameters?.source,
-          schema,
-          selectedObjectSourceData,
-          sourceSchema
-        }));
+        this.setState(old => {
+          return this.getStateForSelection(old, selectedObject);
+        });
       }
     }
   };
+
+  private getStateForSelection(old: IStates, selectedObject: string): IStates {
+    let selectedObj: IJGISLayer | IJGISSource | undefined;
+    // This will be the layer source in case where the selected object is a layer
+    let selectedObjSource: IJGISSource | undefined;
+
+    selectedObj = this.props.cpModel.jGISModel?.getLayer(selectedObject);
+
+    if (!selectedObj) {
+      selectedObj = this.props.cpModel.jGISModel?.getSource(selectedObject);
+    }
+
+    if (selectedObj && selectedObj.parameters?.source) {
+      selectedObjSource = this.props.cpModel.jGISModel?.getSource(
+        selectedObj!.parameters?.source
+      );
+    }
+
+    if (!selectedObj) {
+      return {
+        ...old,
+        selectedObject: undefined,
+        selectedObjectSource: undefined,
+        selectedObjectData: undefined,
+        selectedObjectSourceData: undefined,
+        schema: undefined,
+        sourceSchema: undefined
+      };
+    }
+
+    let schema: IDict<any> | undefined;
+    const selectedObjectData = selectedObj.parameters;
+    if (selectedObj.type) {
+      schema = this._formSchema.get(selectedObj.type);
+
+      // Generate dropdown for layer source entry
+      if (
+        schema &&
+        schema.properties.source &&
+        selectedObjectData &&
+        selectedObjectData.source
+      ) {
+        const sourceNames: string[] = [];
+        for (const sourceId of Object.keys(
+          this.props.cpModel.jGISModel?.getSources() || {}
+        )) {
+          const source = this.props.cpModel.jGISModel?.getSource(sourceId);
+          if (source) {
+            sourceNames.push(source.name);
+          }
+        }
+        selectedObjectData.source = this.props.cpModel.jGISModel?.getSource(
+          selectedObjectData.source
+        )?.name;
+        schema.properties.source.enum = sourceNames;
+      }
+    }
+
+    let sourceSchema: IDict<any> | undefined;
+    let selectedObjectSourceData: IDict<any> | undefined;
+    if (selectedObjSource) {
+      sourceSchema = this._formSchema.get(selectedObjSource.type);
+      selectedObjectSourceData = selectedObjSource.parameters;
+    }
+
+    return {
+      ...old,
+      selectedObjectData,
+      selectedObject,
+      selectedObjectType: selectedObjSource === undefined ? 'source' : 'layer',
+      selectedObjectSource: selectedObj.parameters?.source,
+      schema,
+      selectedObjectSourceData,
+      sourceSchema
+    };
+  }
 
   render(): React.ReactNode {
     return this.state.schema && this.state.selectedObjectData ? (
