@@ -251,6 +251,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     }
 
     let schema: IDict<any> | undefined;
+    let selectedObjectSourceId: string | undefined;
     const selectedObjectData = selectedObj.parameters;
     if (selectedObj.type) {
       schema = this._formSchema.get(selectedObj.type);
@@ -271,6 +272,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
             sourceNames.push(source.name);
           }
         }
+        selectedObjectSourceId = selectedObjectData.source;
         selectedObjectData.source = this.props.cpModel.jGISModel?.getSource(
           selectedObjectData.source
         )?.name;
@@ -290,7 +292,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       selectedObjectData,
       selectedObject,
       selectedObjectType: selectedObjSource === undefined ? 'source' : 'layer',
-      selectedObjectSource: selectedObj.parameters?.source,
+      selectedObjectSource: selectedObjectSourceId,
       schema,
       selectedObjectSourceData,
       sourceSchema
