@@ -2,14 +2,13 @@ import json
 from typing import Any, Callable
 from functools import partial
 
-from pycrdt import Array, Map, Text
+from pycrdt import Array, Map
 from jupyter_ydoc.ybasedoc import YBaseDoc
 
 
 class YJGIS(YBaseDoc):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._ydoc["source"] = self._ysource = Text()
         self._ydoc["layers"] = self._ylayers = Map()
         self._ydoc["sources"] = self._ysources = Map()
         self._ydoc["options"] = self._yoptions = Map()
@@ -58,9 +57,6 @@ class YJGIS(YBaseDoc):
         self.unobserve()
         self._subscriptions[self._ystate] = self._ystate.observe(
             partial(callback, "state")
-        )
-        self._subscriptions[self._ysource] = self._ysource.observe(
-            partial(callback, "source")
         )
         self._subscriptions[self._ylayers] = self._ylayers.observe_deep(
             partial(callback, "layers")
