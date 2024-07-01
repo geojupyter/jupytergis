@@ -95,8 +95,6 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
     model?.getLayersTree() || []
   );
 
-  console.log('first render of the tree', model?.getLayersTree());
-
   /**
    * Propagate the layer selection.
    */
