@@ -16,10 +16,10 @@ export class LeftPanelWidget extends SidePanel {
     // const datasources = new DataSourceList({ controlPanelModel: this._model });
     // this.addWidget(datasources);
 
-    const layersTree = new LayersPanel({ model: this._model });
-    layersTree.title.caption = 'Layer tree';
-    layersTree.title.label = 'Layers';
-    this.addWidget(layersTree);
+    const layerTree = new LayersPanel({ model: this._model });
+    layerTree.title.caption = 'Layer tree';
+    layerTree.title.label = 'Layers';
+    this.addWidget(layerTree);
 
     options.tracker.currentChanged.connect((_, changed) => {
       if (changed) {

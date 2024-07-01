@@ -17,7 +17,7 @@ import {
   IJGISLayer,
   IJGISLayerItem,
   IJGISLayers,
-  IJGISLayersTree,
+  IJGISLayerTree,
   IJGISOptions,
   IJGISSource,
   IJGISSources
@@ -34,8 +34,8 @@ export interface IJGISLayerDocChange {
   }>;
 }
 
-export interface IJGISLayersTreeDocChange {
-  layersTreeChange?: Delta<IJGISLayerItem[]>;
+export interface IJGISLayerTreeDocChange {
+  layerTreeChange?: Delta<IJGISLayerItem[]>;
 }
 
 export interface IJGISSourceDocChange {
@@ -66,7 +66,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   options: IJGISOptions;
   layers: IJGISLayers;
   sources: IJGISSources;
-  layersTree: IJGISLayersTree;
+  layerTree: IJGISLayerTree;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
@@ -88,8 +88,8 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   addSource(id: string, value: IJGISSource): void;
   updateSource(id: string, value: IJGISSource): void;
 
-  addLayersTreeItem(index: number, item: IJGISLayerItem): void;
-  updateLayersTreeItem(index: number, item: IJGISLayerItem): void;
+  addLayerTreeItem(index: number, item: IJGISLayerItem): void;
+  updateLayerTreeItem(index: number, item: IJGISLayerItem): void;
 
   updateObjectParameters(
     id: string,
@@ -103,7 +103,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
-  layersTreeChanged: ISignal<IJupyterGISDoc, IJGISLayersTreeDocChange>;
+  layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
 }
 
 export interface IJupyterGISDocChange extends DocumentChange {
@@ -114,7 +114,7 @@ export interface IJupyterGISDocChange extends DocumentChange {
     key: string;
     newValue: IJGISLayer | undefined;
   }>;
-  layersTreeChange?: Delta<IJGISLayerItem[]>;
+  layerTreeChange?: Delta<IJGISLayerItem[]>;
   optionChange?: MapChange;
   stateChange?: StateChange<any>[];
 }
@@ -134,7 +134,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   >;
   sharedOptionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
-  sharedLayersTreeChanged: ISignal<IJupyterGISDoc, IJGISLayersTreeDocChange>;
+  sharedLayerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
 
   getContent(): IJGISContent;
@@ -142,8 +142,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getLayer(id: string): IJGISLayer | undefined;
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
-  getLayersTree(): IJGISLayersTree;
-
+  getLayerTree(): IJGISLayerTree;
   addLayer(
     id: string,
     layer: IJGISLayer,

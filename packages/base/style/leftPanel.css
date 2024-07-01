@@ -7,28 +7,28 @@
   padding: 2px 0 2px 12px;
 }
 
-.jp-gis-layersGroup {
+.jp-gis-layerGroup {
   display: flex;
   flex-direction: column;
 }
 
-.jp-gis-layersGroupHeader {
+.jp-gis-layerGroupHeader {
   display: flex;
   margin-left: -2px;
   padding-bottom: 4px;
 }
 
-.jp-gis-layersGroupHeader:hover {
+.jp-gis-layerGroupHeader:hover {
   cursor: pointer;
 }
 
-.jp-gis-layersGroupCollapser {
+.jp-gis-layerGroupCollapser {
   transform: rotate(-90deg);
   margin: auto 0;
   height: 16px;
 }
 
-.jp-gis-layersGroupCollapser.jp-mod-expanded {
+.jp-gis-layerGroupCollapser.jp-mod-expanded {
   transform: rotate(0deg);
 }
 

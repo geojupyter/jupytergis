@@ -7,7 +7,7 @@ import {
   IJGISLayer,
   IJGISLayerItem,
   IJGISLayers,
-  IJGISLayersTree,
+  IJGISLayerTree,
   IJGISOptions,
   IJGISSource,
   IJGISSources
@@ -15,7 +15,7 @@ import {
 import {
   IDict,
   IJGISLayerDocChange,
-  IJGISLayersTreeDocChange,
+  IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
   IJupyterGISDoc,
   IJupyterGISDocChange
@@ -30,13 +30,13 @@ export class JupyterGISDoc
 
     this._options = this.ydoc.getMap<Y.Map<any>>('options');
     this._layers = this.ydoc.getMap<Y.Map<any>>('layers');
-    this._layersTree = this.ydoc.getArray<IJGISLayerItem>('layersTree');
+    this._layerTree = this.ydoc.getArray<IJGISLayerItem>('layerTree');
     this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
 
     this._layers.observeDeep(this._layersObserver.bind(this));
-    this._layersTree.observe(this._layersTreeObserver.bind(this));
+    this._layerTree.observe(this._layerTreeObserver.bind(this));
     this._sources.observeDeep(this._sourcesObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
   }
@@ -73,14 +73,14 @@ export class JupyterGISDoc
     return JSONExt.deepCopy(this._sources.toJSON());
   }
 
-  get layersTree(): IJGISLayersTree {
-    return JSONExt.deepCopy(this._layersTree.toJSON());
+  get layerTree(): IJGISLayerTree {
+    return JSONExt.deepCopy(this._layerTree.toJSON());
   }
 
-  set layersTree(layersTree: IJGISLayersTree) {
+  set layerTree(layerTree: IJGISLayerTree) {
     this.transact(() => {
-      this._layersTree.delete(0, this._layersTree.length);
-      this._layersTree.push(layersTree);
+      this._layerTree.delete(0, this._layerTree.length);
+      this._layerTree.push(layerTree);
     });
   }
 
@@ -114,8 +114,8 @@ export class JupyterGISDoc
     return this._layersChanged;
   }
 
-  get layersTreeChanged(): ISignal<IJupyterGISDoc, IJGISLayersTreeDocChange> {
-    return this._layersTreeChanged;
+  get layerTreeChanged(): ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange> {
+    return this._layerTreeChanged;
   }
 
   get sourcesChanged(): ISignal<IJupyterGISDoc, IJGISSourceDocChange> {
@@ -148,16 +148,16 @@ export class JupyterGISDoc
     });
   }
 
-  addLayersTreeItem(index: number, item: IJGISLayerItem) {
+  addLayerTreeItem(index: number, item: IJGISLayerItem) {
     this.transact(() => {
-      this._layersTree.insert(index, [item]);
+      this._layerTree.insert(index, [item]);
     });
   }
 
-  updateLayersTreeItem(index: number, item: IJGISLayerItem) {
+  updateLayerTreeItem(index: number, item: IJGISLayerItem) {
     this.transact(() => {
-      this._layersTree.delete(index);
-      this._layersTree.insert(index, [item]);
+      this._layerTree.delete(index);
+      this._layerTree.insert(index, [item]);
     });
   }
 
@@ -273,9 +273,9 @@ export class JupyterGISDoc
     }
   }
 
-  private _layersTreeObserver(event: Y.YArrayEvent<IJGISLayerItem>): void {
+  private _layerTreeObserver(event: Y.YArrayEvent<IJGISLayerItem>): void {
     const layerTreeChanges = event.delta as Delta<IJGISLayerItem[]>;
-    this._layersTreeChanged.emit({ layersTreeChange: layerTreeChanges });
+    this._layerTreeChanged.emit({ layerTreeChange: layerTreeChanges });
   }
 
   private _sourcesObserver(events: Y.YEvent<any>[]): void {
@@ -306,16 +306,16 @@ export class JupyterGISDoc
   };
 
   private _layers: Y.Map<any>;
-  private _layersTree: Y.Array<IJGISLayerItem>;
+  private _layerTree: Y.Array<IJGISLayerItem>;
   private _sources: Y.Map<any>;
   private _options: Y.Map<any>;
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
     this
   );
-  private _layersTreeChanged = new Signal<
+  private _layerTreeChanged = new Signal<
     IJupyterGISDoc,
-    IJGISLayersTreeDocChange
+    IJGISLayerTreeDocChange
   >(this);
   private _sourcesChanged = new Signal<IJupyterGISDoc, IJGISSourceDocChange>(
     this
