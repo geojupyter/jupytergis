@@ -136,7 +136,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
             onClick={onItemClick}
           />
         ) : (
-          <LayersGroupComponent
+          <LayerGroupComponent
             gisModel={model}
             group={layer}
             onClick={onItemClick}
@@ -150,7 +150,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
 /**
  * Properties of the layer group component.
  */
-interface ILayersGroupProps {
+interface ILayerGroupProps {
   gisModel: IJupyterGISModel | undefined;
   group: IJGISLayerGroup | undefined;
   onClick: (item?: string) => void;
