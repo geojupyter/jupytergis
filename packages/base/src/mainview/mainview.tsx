@@ -373,7 +373,9 @@ export class MainView extends React.Component<IProps, IStates> {
       if (!layer) {
         this.removeLayer(change.id);
       } else {
-        this.updateLayer(change.id, layer);
+        if (JupyterGISModel.getOrderedLayerIds(this._model).includes(change.id)) {
+          this.updateLayer(change.id, layer);
+        }
       }
     });
   }
