@@ -190,10 +190,10 @@ for provider in thumbnails_providers_positions.keys():
 
         tile_size = thumbnails_providers_positions[provider].get('TileSize', 256)
 
-        # file_path = download_thumbnail(url_template, name, position, tile_size)
+        file_path = download_thumbnail(url_template, name, position, tile_size)
         raster_provider_gallery[name] = dict(
             # jgisname=name,
-            thumbnailPath='file_path',
+            thumbnailPath=file_path,
             **xyzprovider
         )
 
@@ -221,10 +221,10 @@ for provider in thumbnails_providers_positions.keys():
             url_template = tile_provider.build_url(time=yesterday)
             tile_size = thumbnails_providers_positions[provider].get('TileSize', 256)
 
-            # file_path = download_thumbnail(url_template, name, position, tile_size)
+            file_path = download_thumbnail(url_template, name, position, tile_size)
             providers_maps[map_name] = dict(
                 # jgisname=name,
-                thumbnailPath='file_path',
+                thumbnailPath=file_path,
                 **tile_provider
             )
 
