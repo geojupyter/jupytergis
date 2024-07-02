@@ -332,7 +332,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._sharedModel.updateLayerTreeItem(mainGroupIndex, mainGroup);
     } else {
       this.sharedModel.addLayerTreeItem(
-        index ?? this.getLayerTree.length,
+        index ?? this.getLayerTree().length,
         item
       );
     }
