@@ -2,7 +2,7 @@ import { MapChange } from '@jupyter/ydoc';
 import {
   IJGISLayer,
   IJGISLayerDocChange,
-  IJGISLayersTreeDocChange,
+  IJGISLayerTreeDocChange,
   IJGISSource,
   IJGISSourceDocChange,
   IJupyterGISClientState,
@@ -55,7 +55,7 @@ export class MainView extends React.Component<IProps, IStates> {
     );
 
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
-    this._model.sharedLayersTreeChanged.connect(this._onLayerTreeChange, this);
+    this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
 
     this.state = {
@@ -380,7 +380,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _onLayerTreeChange(
     sender: IJupyterGISDoc,
-    change: IJGISLayersTreeDocChange
+    change: IJGISLayerTreeDocChange
   ): void {
     // We can't properly use the change, because of the nested groups in the the shared
     // document which is flattened for the map tool.

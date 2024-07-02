@@ -1,6 +1,6 @@
 import {
-  IJGISLayersGroup,
-  IJGISLayersTree,
+  IJGISLayerGroup,
+  IJGISLayerTree,
   IJupyterGISClientState,
   IJupyterGISModel,
   ISelection
@@ -17,9 +17,9 @@ import { nonVisibilityIcon, rasterIcon, visibilityIcon } from '../../icons';
 import { IControlPanelModel } from '../../types';
 
 const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
-const LAYERS_GROUP_CLASS = 'jp-gis-layersGroup';
-const LAYERS_GROUP_HEADER_CLASS = 'jp-gis-layersGroupHeader';
-const LAYERS_GROUP_COLLAPSER_CLASS = 'jp-gis-layersGroupCollapser';
+const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
+const LAYER_GROUP_HEADER_CLASS = 'jp-gis-layerGroupHeader';
+const LAYER_GROUP_COLLAPSER_CLASS = 'jp-gis-layerGroupCollapser';
 const LAYER_ITEM_CLASS = 'jp-gis-layerItem';
 const LAYER_CLASS = 'jp-gis-layer';
 const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
@@ -44,7 +44,7 @@ export class LayersPanel extends Panel {
   constructor(options: LayersPanel.IOptions) {
     super();
     this._model = options.model;
-    this.id = 'jupytergis::layersTree';
+    this.id = 'jupytergis::layerTree';
     this.addClass(LAYERS_PANEL_CLASS);
     this.addWidget(
       ReactWidget.create(
@@ -91,8 +91,8 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
   const [model, setModel] = useState<IJupyterGISModel | undefined>(
     props.model?.jGISModel
   );
-  const [layersTree, setLayersTree] = useState<IJGISLayersTree>(
-    model?.getLayersTree() || []
+  const [layerTree, setLayerTree] = useState<IJGISLayerTree>(
+    model?.getLayerTree() || []
   );
 
   /**
@@ -103,18 +103,18 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
   };
 
   /**
-   * Listen to the layers and layers tree changes.
+   * Listen to the layers and layer tree changes.
    */
   useEffect(() => {
     const updateLayers = () => {
-      setLayersTree(model?.getLayersTree() || []);
+      setLayerTree(model?.getLayerTree() || []);
     };
-    model?.sharedModel?.layersChanged.connect(updateLayers);
-    model?.sharedModel?.layersTreeChanged.connect(updateLayers);
+    model?.sharedModel.layersChanged.connect(updateLayers);
+    model?.sharedModel.layerTreeChanged.connect(updateLayers);
 
     return () => {
-      model?.sharedModel?.layersChanged.disconnect(updateLayers);
-      model?.sharedModel?.layersTreeChanged.disconnect(updateLayers);
+      model?.sharedModel.layersChanged.disconnect(updateLayers);
+      model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
     };
   }, [model]);
 
@@ -123,12 +123,12 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
    */
   props.model?.documentChanged.connect((_, widget) => {
     setModel(widget?.context.model);
-    setLayersTree(widget?.context.model?.getLayersTree() || []);
+    setLayerTree(widget?.context.model?.getLayerTree() || []);
   });
 
   return (
     <div>
-      {layersTree.map(layer =>
+      {layerTree.map(layer =>
         typeof layer === 'string' ? (
           <LayerComponent
             gisModel={model}
@@ -136,7 +136,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
             onClick={onItemClick}
           />
         ) : (
-          <LayersGroupComponent
+          <LayerGroupComponent
             gisModel={model}
             group={layer}
             onClick={onItemClick}
@@ -148,18 +148,18 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
 }
 
 /**
- * Properties of the layers group component.
+ * Properties of the layer group component.
  */
-interface ILayersGroupProps {
+interface ILayerGroupProps {
   gisModel: IJupyterGISModel | undefined;
-  group: IJGISLayersGroup | undefined;
+  group: IJGISLayerGroup | undefined;
   onClick: (item?: string) => void;
 }
 
 /**
  * The component to handle group of layers.
  */
-function LayersGroupComponent(props: ILayersGroupProps): JSX.Element {
+function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
   const { group, gisModel } = props;
   if (group === undefined) {
     return <></>;
@@ -169,12 +169,12 @@ function LayersGroupComponent(props: ILayersGroupProps): JSX.Element {
   const layers = group?.layers ?? [];
 
   return (
-    <div className={`${LAYER_ITEM_CLASS} ${LAYERS_GROUP_CLASS}`}>
-      <div onClick={() => setOpen(!open)} className={LAYERS_GROUP_HEADER_CLASS}>
+    <div className={`${LAYER_ITEM_CLASS} ${LAYER_GROUP_CLASS}`}>
+      <div onClick={() => setOpen(!open)} className={LAYER_GROUP_HEADER_CLASS}>
         <LabIcon.resolveReact
           icon={caretDownIcon}
           className={
-            LAYERS_GROUP_COLLAPSER_CLASS + (open ? ' jp-mod-expanded' : '')
+            LAYER_GROUP_COLLAPSER_CLASS + (open ? ' jp-mod-expanded' : '')
           }
           tag={'span'}
         />
@@ -190,7 +190,7 @@ function LayersGroupComponent(props: ILayersGroupProps): JSX.Element {
                 onClick={props.onClick}
               />
             ) : (
-              <LayersGroupComponent
+              <LayerGroupComponent
                 gisModel={gisModel}
                 group={layer}
                 onClick={props.onClick}

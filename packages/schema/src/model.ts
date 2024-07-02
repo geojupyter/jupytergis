@@ -10,14 +10,15 @@ import {
   IJGISLayer,
   IJGISLayerItem,
   IJGISLayers,
-  IJGISLayersTree,
+  IJGISLayerGroup,
+  IJGISLayerTree,
   IJGISSource,
   IJGISSources
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
   IJGISLayerDocChange,
-  IJGISLayersTreeDocChange,
+  IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
   IJupyterGISClientState,
   IJupyterGISDoc,
@@ -120,11 +121,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.layersChanged;
   }
 
-  get sharedLayersTreeChanged(): ISignal<
+  get sharedLayerTreeChanged(): ISignal<
     IJupyterGISDoc,
-    IJGISLayersTreeDocChange
+    IJGISLayerTreeDocChange
   > {
-    return this.sharedModel.layersTreeChanged;
+    return this.sharedModel.layerTreeChanged;
   }
 
   get sharedSourcesChanged(): ISignal<IJupyterGISDoc, IJGISSourceDocChange> {
@@ -162,7 +163,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.sharedModel.transact(() => {
       this.sharedModel.sources = jsonData.sources ?? {};
       this.sharedModel.layers = jsonData.layers ?? {};
-      this.sharedModel.layersTree = jsonData.layersTree ?? [];
+      this.sharedModel.layerTree = jsonData.layerTree ?? [];
       this.sharedModel.options = jsonData.options ?? {};
     });
     this.dirty = true;
@@ -188,7 +189,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return {
       sources: this.sharedModel.sources,
       layers: this.sharedModel.layers,
-      layersTree: this.sharedModel.layersTree,
+      layerTree: this.sharedModel.layerTree,
       options: this.sharedModel.options
     };
   }
@@ -201,8 +202,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.sources;
   }
 
-  getLayersTree(): IJGISLayersTree {
-    return this.sharedModel.layersTree;
+  getLayerTree(): IJGISLayerTree {
+    return this.sharedModel.layerTree;
   }
 
   getLayer(id: string): IJGISLayer | undefined {
@@ -211,6 +212,51 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getSource(id: string): IJGISSource | undefined {
     return this.sharedModel.getSource(id);
+  }
+
+  /**
+   * Add a layer group in the layer tree.
+   *
+   * @param name - the name of the group.
+   * @param groupName - (optional) the name of the parent group in which to include the
+   *   new group.
+   * @param position - (optional) the index of the new group in its parent group or
+   *   from root of layer tree.
+   */
+  addGroup(name: string, groupName?: string, position?: number): void {
+    const indexesPath = Private.findGroupPath(this.getLayerTree(), name);
+    if (indexesPath.length) {
+      console.warn(`The group "${groupName}" already exist in the layer tree`);
+      return;
+    }
+    const item: IJGISLayerGroup = {
+      name,
+      layers: []
+    };
+    this._addLayerTreeItem(item, groupName, position);
+  }
+
+  /**
+   * Add a layer in the layer tree and the layers list.
+   *
+   * @param id - the ID of the layer.
+   * @param layer - the layer object.
+   * @param groupName - optional) the name of the group in which to include the new
+   *   layer.
+   * @param position - (optional) the index of the new layer in its parent group or
+   *   from root of layer tree.
+   */
+  addLayer(
+    id: string,
+    layer: IJGISLayer,
+    groupName?: string,
+    position?: number
+  ): void {
+    if (!this.getLayer(id)) {
+      this.sharedModel.addLayer(id, layer);
+    }
+
+    this._addLayerTreeItem(id, groupName, position);
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
@@ -242,6 +288,54 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getClientId(): number {
     return this.sharedModel.awareness.clientID;
+  }
+
+  /**
+   * Add an item in the layer tree.
+   *
+   * @param item - the item to add.
+   * @param groupName - (optional) the name of the parent group in which to include the
+   *   new item.
+   * @param index - (optional) the index of the new item in its parent group or
+   *   from root of layer tree.
+   */
+  private _addLayerTreeItem(
+    item: IJGISLayerItem,
+    groupName?: string,
+    index?: number
+  ): void {
+    if (groupName) {
+      const layerTree = this.getLayerTree();
+      const indexesPath = Private.findGroupPath(layerTree, groupName);
+      if (!indexesPath.length) {
+        console.warn(
+          `The group "${groupName}" does not exist in the layer tree`
+        );
+        return;
+      }
+
+      const mainGroupIndex = indexesPath.shift();
+      if (mainGroupIndex === undefined) {
+        return;
+      }
+      const mainGroup = layerTree[mainGroupIndex] as IJGISLayerGroup;
+      let workingGroup = mainGroup;
+      while (indexesPath.length) {
+        const groupIndex = indexesPath.shift();
+        if (groupIndex === undefined) {
+          break;
+        }
+        workingGroup = workingGroup.layers[groupIndex] as IJGISLayerGroup;
+      }
+      workingGroup.layers.splice(index ?? workingGroup.layers.length, 0, item);
+
+      this._sharedModel.updateLayerTreeItem(mainGroupIndex, mainGroup);
+    } else {
+      this.sharedModel.addLayerTreeItem(
+        index ?? this.getLayerTree.length,
+        item
+      );
+    }
   }
 
   private _onClientStateChanged = changed => {
@@ -288,13 +382,16 @@ export namespace JupyterGISModel {
    * Function to get the ordered list of layers according to the tree.
    */
   export function getOrderedLayerIds(model: IJupyterGISModel): string[] {
-    return Private.layerTreeRecursion(model.sharedModel.layersTree);
+    return Private.layerTreeRecursion(model.sharedModel.layerTree);
   }
 }
 
 namespace Private {
   /**
-   * Recursive function through the layer tree.
+   * Recursive function through the layer tree to retrieve the flattened layers order.
+   *
+   * @param items - the items list being scanned.
+   * @param current - the current flattened layers.
    */
   export function layerTreeRecursion(
     items: IJGISLayerItem[],
@@ -308,5 +405,40 @@ namespace Private {
       }
     }
     return current;
+  }
+
+  /**
+   * Recursive function through the layer tree to retrieve the indexes path to a group.
+   *
+   * @param items - the items list being scanned.
+   * @param groupName - the target group name.
+   * @param indexes - the current indexes path to the group
+   */
+  export function findGroupPath(
+    items: IJGISLayerItem[],
+    groupName: string,
+    indexes: number[] = []
+  ): number[] {
+    for (let index = 0; index < items.length; index++) {
+      const item = items[index];
+      if (typeof item === 'string') {
+        continue;
+      } else {
+        const workingIndexes = [...indexes];
+        workingIndexes.push(index);
+        if (item.name === groupName) {
+          return workingIndexes;
+        }
+        const foundIndexes = findGroupPath(
+          item.layers,
+          groupName,
+          workingIndexes
+        );
+        if (foundIndexes.length > workingIndexes.length) {
+          return foundIndexes;
+        }
+      }
+    }
+    return indexes;
   }
 }

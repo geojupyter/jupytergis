@@ -181,7 +181,7 @@ namespace Private {
           };
 
           sharedModel.addSource(sourceId, sourceModel);
-          sharedModel.addLayer(UUID.uuid4(), layerModel);
+          current.context.model.addLayer(UUID.uuid4(), layerModel);
         },
         cancelButton: () => {
           current.context.model.syncFormData(undefined);
