@@ -2,7 +2,7 @@
   "type": "object",
   "description": "RasterSource",
   "title": "IRasterSource",
-  "required": ["url", "maxZoom", "minZoom", "attribution"],
+  "required": ["url", "maxZoom", "minZoom"],
   "additionalProperties": false,
   "properties": {
     "url": {
