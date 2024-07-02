@@ -105,7 +105,7 @@ export const LayerBrowserComponent = ({
     };
 
     model.sharedModel.addSource(sourceId, sourceModel);
-    model.sharedModel.addLayer(UUID.uuid4(), layerModel);
+    model.addLayer(UUID.uuid4(), layerModel);
   };
 
   return (
