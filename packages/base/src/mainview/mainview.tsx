@@ -293,7 +293,7 @@ export class MainView extends React.Component<IProps, IStates> {
     const currentLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
     let beforeId: string | undefined = undefined;
     if (!(index === undefined) && index < currentLayerIds.length) {
-      beforeId = currentLayerIds[index + 1];
+      beforeId = currentLayerIds[index];
     }
     this._Map.moveLayer(id, beforeId);
   }
