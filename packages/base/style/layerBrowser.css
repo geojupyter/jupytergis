@@ -57,8 +57,14 @@
   display: grid;
   gap: 1.25rem;
   grid-template-rows: 1fr;
-  grid-template-columns: repeat(5, minmax(0px, 1fr));
+  grid-template-columns: repeat(3, minmax(0px, 1fr));
   padding: 1rem 2rem;
+}
+
+@media (min-width: 1400px) {
+  .jgis-layer-browser-grid {
+    grid-template-columns: repeat(5, minmax(0px, 1fr));
+  }
 }
 
 .jgis-dialog-override {
