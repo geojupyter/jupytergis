@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from urllib.parse import unquote
 from uuid import uuid4
@@ -87,7 +88,7 @@ def import_project_from_qgis(path: str | Path):
     if isinstance(path, Path):
         path = str(path)
 
-    QgsApplication.setPrefixPath("", True)
+    QgsApplication.setPrefixPath(shutil.witch("qgis"), True)
     qgs = QgsApplication([], False)
     qgs.initQgis()
 
