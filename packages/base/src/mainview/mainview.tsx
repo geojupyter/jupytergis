@@ -293,7 +293,7 @@ export class MainView extends React.Component<IProps, IStates> {
     const currentLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
     let beforeId: string | undefined = undefined;
     if (!(index === undefined) && index < currentLayerIds.length) {
-      beforeId = currentLayerIds[index + 1];
+      beforeId = currentLayerIds[index];
     }
     this._Map.moveLayer(id, beforeId);
   }
@@ -373,7 +373,11 @@ export class MainView extends React.Component<IProps, IStates> {
       if (!layer) {
         this.removeLayer(change.id);
       } else {
-        this.updateLayer(change.id, layer);
+        if (
+          JupyterGISModel.getOrderedLayerIds(this._model).includes(change.id)
+        ) {
+          this.updateLayer(change.id, layer);
+        }
       }
     });
   }
