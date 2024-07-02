@@ -213,6 +213,13 @@ export interface IJGISExternalCommandRegistry {
   registerCommand(command: IJGISExternalCommand): void;
 }
 
+/**
+ * Defines the structure for entries in a raster layer gallery.
+ * Each entry consists of a name, a thumbnail URL, and source information.
+ * The source information is expected to conform to the IRasterSource interface.
+ *
+ * @interface IRasterLayerGalleryEntry
+ */
 export interface IRasterLayerGalleryEntry {
   name: string;
   thumbnail: string;

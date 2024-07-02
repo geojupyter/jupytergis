@@ -39,6 +39,7 @@ export const LayerBrowserComponent = ({
   );
 
   useEffect(() => {
+    // Override default dialog style
     const dialog = document.getElementsByClassName('jp-Dialog-content');
     const dialogHeader = document.getElementsByClassName('jp-Dialog-header');
     dialogHeader[0].setAttribute('style', 'padding: 0');
@@ -51,6 +52,9 @@ export const LayerBrowserComponent = ({
     };
   }, []);
 
+  /**
+   * Track which layers are currently added to the map
+   */
   const handleLayerChange = (_, change: IJGISLayerDocChange) => {
     // The split is to get rid of the 'Layer' part of the name to match the names in the gallery
     setActiveLayers(
@@ -82,6 +86,10 @@ export const LayerBrowserComponent = ({
     setSelectedCategory(sameAsOld ? null : categoryTab);
   };
 
+  /**
+   * Add tile layer and source to model
+   * @param tile Tile to add
+   */
   const handleTileClick = (tile: IRasterLayerGalleryEntry) => {
     const sourceId = UUID.uuid4();
 

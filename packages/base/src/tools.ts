@@ -162,11 +162,19 @@ export function isLightTheme(): boolean {
   return document.body.getAttribute('data-jp-theme-light') === 'true';
 }
 
+/**
+ * Create a default layer registry
+ *
+ * @param layerBrowserRegistry Registry to add layers to
+ */
 export function createDefaultLayerRegistry(
   layerBrowserRegistry: IJGISLayerBrowserRegistry
 ): void {
   const RASTER_THUMBNAILS: { [key: string]: string } = {};
 
+  /**
+   * Generate object to hold thumbnail URLs
+   */
   const importAll = (r: __WebpackModuleApi.RequireContext) => {
     r.keys().forEach(key => {
       const imageName = key.replace('./', '').replace(/\.\w+$/, '');
@@ -203,6 +211,14 @@ export function createDefaultLayerRegistry(
   }
 
   // TODO: These need better names
+  /**
+   * Parse tile information from providers to be useable in the layer registry
+   *
+   * @param entry - The name of the entry, which may also serve as the default provider name if none is specified.
+   * @param xyzprovider - An object containing the XYZ provider's details, including name, URL, zoom levels, attribution, and possibly other properties relevant to the provider.
+   * @param provider - Optional. Specifies the provider name. If not provided, the `entry` parameter is used as the default provider name.
+   * @returns - An object representing the registry entry
+   */
   function convertToRegistryEntry(
     entry: string,
     xyzprovider: { [x: string]: any },
