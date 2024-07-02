@@ -33,6 +33,7 @@
     "build": "lerna run build",
     "build:prod": "lerna run build:prod",
     "build:test": "lerna run build:test",
+    "build:dev": "lerna run build:dev",
     "bump:js:version": "lerna version --no-push --force-publish --no-git-tag-version --yes",
     "clean": "lerna run clean",
     "clean:all": "lerna run clean:all",
@@ -56,6 +57,7 @@
     "@jupyterlab/services": " ^7.0.0"
   },
   "devDependencies": {
+    "@types/webpack-env": "^1.18.5",
     "@typescript-eslint/eslint-plugin": "5.55.0",
     "@typescript-eslint/parser": "5.55.0",
     "copy-webpack-plugin": "^10.0.0",
@@ -68,5 +70,10 @@
     "rimraf": "^3.0.2",
     "typescript": "^5",
     "webpack": "^5.76.3"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.5.2",
+    "@fortawesome/free-solid-svg-icons": "^6.5.2",
+    "@fortawesome/react-fontawesome": "latest"
   }
 }

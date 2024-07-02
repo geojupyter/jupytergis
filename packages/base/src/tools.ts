@@ -2,6 +2,9 @@ import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import * as d3Color from 'd3-color';
 
+import { IJGISLayerBrowserRegistry } from '@jupytergis/schema';
+import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
+
 export const debounce = (
   func: CallableFunction,
   timeout = 100
@@ -157,4 +160,84 @@ export async function requestAPI<T>(
 
 export function isLightTheme(): boolean {
   return document.body.getAttribute('data-jp-theme-light') === 'true';
+}
+
+/**
+ * Create a default layer registry
+ *
+ * @param layerBrowserRegistry Registry to add layers to
+ */
+export function createDefaultLayerRegistry(
+  layerBrowserRegistry: IJGISLayerBrowserRegistry
+): void {
+  const RASTER_THUMBNAILS: { [key: string]: string } = {};
+
+  /**
+   * Generate object to hold thumbnail URLs
+   */
+  const importAll = (r: __WebpackModuleApi.RequireContext) => {
+    r.keys().forEach(key => {
+      const imageName = key.replace('./', '').replace(/\.\w+$/, '');
+      RASTER_THUMBNAILS[imageName] = r(key);
+    });
+  };
+
+  const context = require.context(
+    '../rasterlayer_gallery',
+    false,
+    /\.(png|jpe?g|gif|svg)$/
+  );
+  importAll(context);
+
+  for (const entry of Object.keys(RASTER_LAYER_GALLERY)) {
+    const xyzprovider = RASTER_LAYER_GALLERY[entry];
+
+    if ('url' in xyzprovider) {
+      const tile = convertToRegistryEntry(entry, xyzprovider);
+      layerBrowserRegistry.addRegistryLayer(tile);
+    } else {
+      Object.keys(xyzprovider).forEach(mapName => {
+        const tile = convertToRegistryEntry(
+          xyzprovider[mapName]['name'],
+          xyzprovider[mapName],
+          entry
+        );
+
+        layerBrowserRegistry.addRegistryLayer(tile);
+      });
+    }
+
+    console.log('register', layerBrowserRegistry.getRegistryLayers());
+  }
+
+  // TODO: These need better names
+  /**
+   * Parse tile information from providers to be useable in the layer registry
+   *
+   * @param entry - The name of the entry, which may also serve as the default provider name if none is specified.
+   * @param xyzprovider - An object containing the XYZ provider's details, including name, URL, zoom levels, attribution, and possibly other properties relevant to the provider.
+   * @param provider - Optional. Specifies the provider name. If not provided, the `entry` parameter is used as the default provider name.
+   * @returns - An object representing the registry entry
+   */
+  function convertToRegistryEntry(
+    entry: string,
+    xyzprovider: { [x: string]: any },
+    provider?: string | undefined
+  ) {
+    return {
+      name: entry,
+      thumbnail: RASTER_THUMBNAILS[xyzprovider['name'].replace('.', '-')],
+      source: {
+        url: xyzprovider['url'],
+        minZoom: xyzprovider['min_zoom'] || 0,
+        maxZoom: xyzprovider['max_zoom'] || 24,
+        attribution: xyzprovider['attribution'] || '',
+        provider: provider ?? entry,
+        time: encodeURIComponent(new Date().toISOString()),
+        variant: xyzprovider['variant'] || '',
+        tileMatrixSet: xyzprovider['tilematrixset'] || '',
+        format: xyzprovider['format'] || ''
+      }
+    };
+  }
 }

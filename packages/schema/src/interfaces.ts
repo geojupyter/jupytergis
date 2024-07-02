@@ -22,6 +22,7 @@ import {
   IJGISSource,
   IJGISSources
 } from './_interface/jgis';
+import { IRasterSource } from './_interface/rastersource';
 
 export interface IDict<T = any> {
   [key: string]: T;
@@ -210,4 +211,24 @@ export interface IJGISExternalCommand {
 export interface IJGISExternalCommandRegistry {
   getCommands(): IJGISExternalCommand[];
   registerCommand(command: IJGISExternalCommand): void;
+}
+
+/**
+ * Defines the structure for entries in a raster layer gallery.
+ * Each entry consists of a name, a thumbnail URL, and source information.
+ * The source information is expected to conform to the IRasterSource interface.
+ *
+ * @interface IRasterLayerGalleryEntry
+ */
+export interface IRasterLayerGalleryEntry {
+  name: string;
+  thumbnail: string;
+  source: IRasterSource;
+}
+
+export interface IJGISLayerBrowserRegistry {
+  getRegistryLayers(): IRasterLayerGalleryEntry[];
+  addRegistryLayer(data: IRasterLayerGalleryEntry): void;
+  removeRegistryLayer(name: string): void;
+  clearRegistry(): void;
 }

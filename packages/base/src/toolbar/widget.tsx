@@ -2,16 +2,16 @@ import { IJGISExternalCommand, JupyterGISModel } from '@jupytergis/schema';
 import { CommandToolbarButton } from '@jupyterlab/apputils';
 import {
   ReactWidget,
-  redoIcon,
   Toolbar,
+  redoIcon,
   undoIcon
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { Widget } from '@lumino/widgets';
 
+import * as React from 'react';
 import { CommandIDs } from '../commands';
 import { UsersItem } from './usertoolbaritem';
-import * as React from 'react';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
 
@@ -58,6 +58,15 @@ export class ToolbarWidget extends Toolbar {
         'newRasterLayer',
         new CommandToolbarButton({
           id: CommandIDs.newRasterLayer,
+          label: '',
+          commands: options.commands
+        })
+      );
+
+      this.addItem(
+        'openLayerBrowser',
+        new CommandToolbarButton({
+          id: CommandIDs.openLayerBrowser,
           label: '',
           commands: options.commands
         })

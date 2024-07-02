@@ -1,18 +1,21 @@
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { WidgetTracker } from '@jupyterlab/apputils';
+import { Dialog, WidgetTracker } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
 import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
 
-import { JupyterGISWidget } from './widget';
 import {
   IDict,
   IJGISFormSchemaRegistry,
   IJGISLayer,
+  IJGISLayerBrowserRegistry,
   IJGISSource,
   IJupyterGISModel
 } from '@jupytergis/schema';
-import { FormDialog } from './formdialog';
 import { UUID } from '@lumino/coreutils';
+import { FormDialog } from './formdialog';
+
+import { LayerBrowserWidget } from './layerBrowser/layerBrowserDialog';
+import { JupyterGISWidget } from './widget';
 
 /**
  * Add the commands to the application's command registry.
@@ -21,11 +24,13 @@ export function addCommands(
   app: JupyterFrontEnd,
   tracker: WidgetTracker<JupyterGISWidget>,
   translator: ITranslator,
-  formSchemaRegistry: IJGISFormSchemaRegistry
+  formSchemaRegistry: IJGISFormSchemaRegistry,
+  layerBrowserRegistry: IJGISLayerBrowserRegistry
 ): void {
   Private.updateFormSchema(formSchemaRegistry);
   const trans = translator.load('jupyterlab');
   const { commands } = app;
+
   commands.addCommand(CommandIDs.redo, {
     label: trans.__('Redo'),
     isEnabled: () => {
@@ -70,6 +75,17 @@ export function addCommands(
     iconClass: 'fa fa-map',
     execute: Private.createRasterSourceAndLayer(tracker)
   });
+
+  commands.addCommand(CommandIDs.openLayerBrowser, {
+    label: trans.__('Open Layer Browser'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    iconClass: 'fa fa-book-open',
+    execute: Private.createLayerBrowser(tracker, layerBrowserRegistry)
+  });
 }
 
 /**
@@ -80,6 +96,7 @@ export namespace CommandIDs {
   export const undo = 'jupytergis:undo';
 
   export const newRasterLayer = 'jupytergis:newRasterLayer';
+  export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 }
 
 namespace Private {
@@ -102,9 +119,30 @@ namespace Private {
     });
   }
 
+  export function createLayerBrowser(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    layerBrowserRegistry: IJGISLayerBrowserRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new Dialog({
+        body: new LayerBrowserWidget(
+          current.context.model,
+          layerBrowserRegistry.getRegistryLayers()
+        ),
+        buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      });
+      await dialog.launch();
+    };
+  }
+
   // TODO Allow for creating only a source (e.g. loading a CSV file)
   // TODO Allow for creating only a layer (e.g. creating a vector layer given a source selected from a dropdown)
-
   export function createRasterSourceAndLayer(
     tracker: WidgetTracker<JupyterGISWidget>
   ) {

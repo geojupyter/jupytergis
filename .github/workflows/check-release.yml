@@ -22,6 +22,9 @@ jobs:
             yarn=3
             pip
             jupyter-releaser
+            pillow
+            mercantile
+            xyzservices
 
       - name: Check Release
         uses: jupyter-server/jupyter_releaser/.github/actions/check-release@v2

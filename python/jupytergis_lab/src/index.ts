@@ -1,14 +1,17 @@
 import {
+  CommandIDs,
   ControlPanelModel,
   JupyterGISWidget,
   LeftPanelWidget,
   RightPanelWidget,
   addCommands,
-  CommandIDs
+  createDefaultLayerRegistry
 } from '@jupytergis/base';
 import {
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
+  IJGISLayerBrowserRegistry,
+  IJGISLayerBrowserRegistryToken,
   IJupyterGISDocTracker,
   IJupyterGISTracker
 } from '@jupytergis/schema';
@@ -28,12 +31,17 @@ const NAME_SPACE = 'jupytergis';
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:lab:main-menu',
   autoStart: true,
-  requires: [IJupyterGISDocTracker, IJGISFormSchemaRegistryToken],
+  requires: [
+    IJupyterGISDocTracker,
+    IJGISFormSchemaRegistryToken,
+    IJGISLayerBrowserRegistryToken
+  ],
   optional: [IMainMenu, ITranslator],
   activate: (
     app: JupyterFrontEnd,
     tracker: WidgetTracker<JupyterGISWidget>,
     formSchemaRegistry: IJGISFormSchemaRegistry,
+    layerBrowserRegistry: IJGISLayerBrowserRegistry,
     mainMenu?: IMainMenu,
     translator?: ITranslator
   ): void => {
@@ -46,7 +54,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
       );
     };
 
-    addCommands(app, tracker, translator, formSchemaRegistry);
+    createDefaultLayerRegistry(layerBrowserRegistry);
+
+    addCommands(
+      app,
+      tracker,
+      translator,
+      formSchemaRegistry,
+      layerBrowserRegistry
+    );
+
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }

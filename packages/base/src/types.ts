@@ -1,11 +1,11 @@
-import { ISignal } from '@lumino/signaling';
 import {
-  IJupyterGISModel,
-  IJupyterGISDoc,
   IDict,
+  IJupyterGISDoc,
+  IJupyterGISModel,
   IJupyterGISTracker,
   IJupyterGISWidget
 } from '@jupytergis/schema';
+import { ISignal } from '@lumino/signaling';
 
 export { IDict };
 export type ValueOf<T> = T[keyof T];
