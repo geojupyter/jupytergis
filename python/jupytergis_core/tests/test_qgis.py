@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from jupytergis_core.qgis import import_project_from_qgis
-
 from dirty_equals import IsPartialDict, IsStr
+
+from utils import import_project_from_qgis
 
 
 FILES = Path(__file__).parent / "files"

@@ -37,8 +37,5 @@ jobs:
         environment-name: jupytergis
         create-args: python=${{ matrix.python-version }}
 
-    - name: Build and install jupytergis_core
-      run: python scripts/dev-install.py
-
     - name: Run tests
       run: pytest --color=yes -v python/jupytergis_core/tests

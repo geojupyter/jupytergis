@@ -88,7 +88,7 @@ def import_project_from_qgis(path: str | Path):
     if isinstance(path, Path):
         path = str(path)
 
-    QgsApplication.setPrefixPath(shutil.witch("qgis"), True)
+    QgsApplication.setPrefixPath(shutil.which("qgis"), True)
     qgs = QgsApplication([], False)
     qgs.initQgis()
 
