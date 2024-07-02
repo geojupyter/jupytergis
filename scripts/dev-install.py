@@ -24,9 +24,6 @@ def install_dev():
         execute("jlpm clean:all", cwd=root_path / "python" / py_package)
         execute(f"pip install -e {python_package_prefix}/{py_package}")
 
-        if py_package == "jupytergis_core":
-            execute("jupyter server extension enable jupytergis_core")
-
         execute(
             f"jupyter labextension develop {python_package_prefix}/{py_package} --overwrite"
         )
