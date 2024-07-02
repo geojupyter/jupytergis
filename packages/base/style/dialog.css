@@ -3,6 +3,16 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
-@import url('./dialog.css');
-@import url('./layerBrowser.css');
-@import url('./leftPanel.css');
+.jp-gis-jsonErrorBody > :not(:first-child) {
+  padding-top: 1.5em;
+}
+
+.jp-gis-jsonErrorHeader {
+  display: flex;
+  align-items: center;
+}
+
+.jp-gis-jsonErrorDetails {
+  background-color: var(--md-grey-100);
+  font-size: var(--jp-content-font-size0);
+}

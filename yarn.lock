@@ -927,7 +927,9 @@ __metadata:
     "@types/d3-color": ^3.1.0
     "@types/node": ^18.15.11
     "@types/three": ^0.135.0
+    ajv: ^8.14.0
     d3-color: ^3.1.0
+    geojson-schema: ^1.0.5
     maplibre-gl: ^4.4.1
     react: ^18.0.1
     rimraf: ^3.0.2
@@ -3917,7 +3919,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ajv@npm:^8.0.0, ajv@npm:^8.12.0, ajv@npm:^8.9.0":
+"ajv@npm:^8.0.0, ajv@npm:^8.12.0, ajv@npm:^8.14.0, ajv@npm:^8.9.0":
   version: 8.16.0
   resolution: "ajv@npm:8.16.0"
   dependencies:
@@ -6266,6 +6268,13 @@ __metadata:
     strip-ansi: ^6.0.1
     wide-align: ^1.1.5
   checksum: 788b6bfe52f1dd8e263cda800c26ac0ca2ff6de0b6eee2fe0d9e3abf15e149b651bd27bf5226be10e6e3edb5c4e5d5985a5a1a98137e7a892f75eff76467ad2d
+  languageName: node
+  linkType: hard
+
+"geojson-schema@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "geojson-schema@npm:1.0.5"
+  checksum: 638da9d7ea15eef85cb8fa3ac6264c70acb256c0897214d5dbc1cfbcba0050032ca490b85c8007d84dfa88d49aa65388ef4f47c5bdb919e0d437026b5bb572e1
   languageName: node
   linkType: hard
 

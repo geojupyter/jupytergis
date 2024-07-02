@@ -1,15 +1,38 @@
+import { ICollaborativeDrive } from '@jupyter/docprovider';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { WidgetTracker } from '@jupyterlab/apputils';
+import {
+  InputDialog,
+  WidgetTracker,
+  showErrorMessage
+} from '@jupyterlab/apputils';
+import { PathExt } from '@jupyterlab/coreutils';
 import { ITranslator } from '@jupyterlab/translation';
 import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
-
 import {
   IJGISFormSchemaRegistry,
-  IJGISLayerBrowserRegistry
+  IJGISLayerBrowserRegistry,
+  IJGISSource
 } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
+import { Ajv } from 'ajv';
+import * as geojson from 'geojson-schema/GeoJSON.json';
 
+import { JSONErrorDialog } from './formdialog';
+import { geoJSONIcon } from './icons';
 import { LayerBrowserWidget } from './layerBrowser/layerBrowserDialog';
 import { JupyterGISWidget } from './widget';
+
+/**
+ * The command IDs.
+ */
+export namespace CommandIDs {
+  export const redo = 'jupytergis:redo';
+  export const undo = 'jupytergis:undo';
+
+  export const openLayerBrowser = 'jupytergis:openLayerBrowser';
+
+  export const newGeoJSONData = 'jupytergis:newGeoJSONData';
+}
 
 /**
  * Add the commands to the application's command registry.
@@ -19,7 +42,8 @@ export function addCommands(
   tracker: WidgetTracker<JupyterGISWidget>,
   translator: ITranslator,
   formSchemaRegistry: IJGISFormSchemaRegistry,
-  layerBrowserRegistry: IJGISLayerBrowserRegistry
+  layerBrowserRegistry: IJGISLayerBrowserRegistry,
+  drive?: ICollaborativeDrive
 ): void {
   Private.updateFormSchema(formSchemaRegistry);
   const trans = translator.load('jupyterlab');
@@ -73,16 +97,19 @@ export function addCommands(
       formSchemaRegistry
     )
   });
-}
 
-/**
- * The command IDs.
- */
-export namespace CommandIDs {
-  export const redo = 'jupytergis:redo';
-  export const undo = 'jupytergis:undo';
-
-  export const openLayerBrowser = 'jupytergis:openLayerBrowser';
+  if (drive) {
+    commands.addCommand(CommandIDs.newGeoJSONData, {
+      label: trans.__('Add GeoJSON data from file'),
+      isEnabled: () => {
+        return tracker.currentWidget
+          ? tracker.currentWidget.context.model.sharedModel.editable
+          : false;
+      },
+      icon: geoJSONIcon,
+      execute: Private.createGeoJSONSource(tracker, drive)
+    });
+  }
 }
 
 namespace Private {
@@ -123,6 +150,69 @@ namespace Private {
         formSchemaRegistry
       });
       await dialog.launch();
+    };
+  }
+
+  export function createGeoJSONSource(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    drive: ICollaborativeDrive
+  ) {
+    const ajv = new Ajv();
+    const validate = ajv.compile(geojson);
+
+    return async (args: any) => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      let filepath: string | null = (args.path as string) ?? null;
+      if (filepath === null) {
+        filepath = (
+          await InputDialog.getText({
+            label: 'File path',
+            placeholder: '/path/to/the/GeoJSON/file',
+            title: 'Path of the GeoJSON file'
+          })
+        ).value;
+      }
+
+      if (!filepath) {
+        return;
+      }
+
+      drive
+        .get(filepath)
+        .then(async contentModel => {
+          const name = PathExt.basename(contentModel.name, '.json');
+          const geoJSONData = JSON.parse(contentModel.content);
+          const valid = validate(geoJSONData);
+          if (!valid) {
+            const dialog = new JSONErrorDialog({ errors: validate.errors });
+            const toContinue = await dialog.launch();
+            if (!toContinue.button.accept) {
+              return;
+            }
+          }
+          const sourceModel: IJGISSource = {
+            type: 'GeoJSON',
+            name,
+            parameters: {
+              filename: contentModel.path,
+              valid: valid
+            }
+          };
+
+          current.context.model.sharedModel.addSource(
+            UUID.uuid4(),
+            sourceModel
+          );
+        })
+        .catch(e => {
+          showErrorMessage('Error opening GeoJSON file', e);
+          return;
+        });
     };
   }
 }

@@ -63,6 +63,15 @@ export class ToolbarWidget extends Toolbar {
         })
       );
 
+      this.addItem(
+        'Add GeoJSON data',
+        new CommandToolbarButton({
+          id: CommandIDs.newGeoJSONData,
+          label: '',
+          commands: options.commands
+        })
+      );
+
       // Add more commands here
 
       this.addItem('spacer', Toolbar.createSpacerItem());

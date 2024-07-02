@@ -1,3 +1,4 @@
+import { ICollaborativeDrive } from '@jupyter/docprovider';
 import {
   CommandIDs,
   ControlPanelModel,
@@ -36,14 +37,15 @@ const plugin: JupyterFrontEndPlugin<void> = {
     IJGISFormSchemaRegistryToken,
     IJGISLayerBrowserRegistryToken
   ],
-  optional: [IMainMenu, ITranslator],
+  optional: [IMainMenu, ITranslator, ICollaborativeDrive],
   activate: (
     app: JupyterFrontEnd,
     tracker: WidgetTracker<JupyterGISWidget>,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
     mainMenu?: IMainMenu,
-    translator?: ITranslator
+    translator?: ITranslator,
+    drive?: ICollaborativeDrive
   ): void => {
     console.log('jupytergis:lab:main-menu is activated!');
     translator = translator ?? nullTranslator;
@@ -61,7 +63,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
       tracker,
       translator,
       formSchemaRegistry,
-      layerBrowserRegistry
+      layerBrowserRegistry,
+      drive
     );
 
     if (mainMenu) {
