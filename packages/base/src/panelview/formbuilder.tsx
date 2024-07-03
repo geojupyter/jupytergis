@@ -107,19 +107,40 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     return inputs;
   }
 
-  removeArrayButton(schema: IDict, uiSchema: IDict): void {
+  protected processSchema(data: IDict<any> | undefined, schema: IDict) {
+    // This is a no-op here
+  }
+
+  protected processUISchema(schema: IDict, uiSchema: IDict): void {
+    if (!schema['properties']) {
+      return;
+    }
+
     Object.entries(schema['properties'] as IDict).forEach(([k, v]) => {
+      uiSchema[k] = {};
+
       if (v['type'] === 'array') {
+        // Remove array buttons
         uiSchema[k] = {
           'ui:options': {
             orderable: false,
             removable: false,
             addable: false
-          }
+          },
+          ...uiSchema[k]
         };
-      } else if (v['type'] === 'object') {
-        uiSchema[k] = {};
-        this.removeArrayButton(v, uiSchema[k]);
+      }
+
+      if (v['type'] === 'object') {
+        this.processUISchema(v, uiSchema[k]);
+      }
+
+      // Don't show readOnly properties when coming from the properties panel
+      if (v['readOnly'] && this.props.parentType === 'panel') {
+        uiSchema[k] = {
+          'ui:widget': 'hidden',
+          ...uiSchema[k]
+        };
       }
     });
   }
@@ -131,7 +152,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
         classNames: 'jGIS-hidden-field'
       }
     };
-    this.removeArrayButton(schema, uiSchema);
+    this.processUISchema(schema, uiSchema);
     return uiSchema;
   }
 
@@ -153,12 +174,14 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
   render(): React.ReactNode {
     if (this.props.schema) {
       const schema = { ...this.props.schema, additionalProperties: true };
+      const formData = this.state.internalData;
+      this.processSchema(formData, schema);
 
       const submitRef = React.createRef<HTMLButtonElement>();
 
-      const formSchema = new SchemaForm(schema ?? {}, {
+      const formSchema = new SchemaForm(schema, {
         liveValidate: true,
-        formData: this.state.internalData,
+        formData,
         onSubmit: this.onFormSubmit,
         onFocus: (id, value) => {
           this.props.syncSelectedField
@@ -204,6 +227,48 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
       );
     } else {
       return <div>{this.buildForm()}</div>;
+    }
+  }
+}
+
+export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
+  processSchema(data: IDict<any> | undefined, schema: IDict) {
+    super.processSchema(data, schema);
+
+    console.log('source data', this.props.sourceData);
+    console.log('internal data', data);
+    console.log('process schema', schema);
+
+    if (!schema.properties || !data || !data.urlParameters) {
+      return;
+    }
+
+    // Dynamically inject url parameters schema
+    const propertiesSchema = {};
+    schema.properties.urlParameters = {
+      type: 'object',
+      required: Object.keys(data.urlParameters),
+      properties: propertiesSchema
+    };
+    for (const parameterName of Object.keys(data.urlParameters)) {
+      switch (parameterName) {
+        case 'time':
+          propertiesSchema[parameterName] = {
+            type: 'string',
+            format: 'date'
+          };
+          break;
+        case 'variant':
+          propertiesSchema[parameterName] = {
+            type: 'string'
+          };
+          break;
+        case 'format':
+          propertiesSchema[parameterName] = {
+            type: 'string'
+          };
+          break;
+      }
     }
   }
 }

@@ -17,7 +17,7 @@ import { v4 as uuid } from 'uuid';
 
 import { focusInputField, removeStyleFromProperty } from '../tools';
 import { IControlPanelModel } from '../types';
-import { ObjectPropertiesForm } from './formbuilder';
+import { RasterSourcePropertiesForm } from './formbuilder';
 import { JupyterGISWidget } from '../widget';
 
 export class ObjectProperties extends PanelWithToolbar {
@@ -303,7 +303,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     return this.state.schema && this.state.selectedObjectData ? (
       <div>
         <h3>Layer Properties</h3>
-        <ObjectPropertiesForm
+        <RasterSourcePropertiesForm
           parentType="panel"
           filePath={`${this.state.filePath}::panel`}
           schema={this.state.schema}
@@ -330,7 +330,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         {this.state.selectedObjectSourceData && this.state.sourceSchema && (
           <>
             <h3>Source Properties</h3>
-            <ObjectPropertiesForm
+            <RasterSourcePropertiesForm
               parentType="panel"
               filePath={`${this.state.filePath}::panel`}
               schema={this.state.sourceSchema}

@@ -196,6 +196,8 @@ for provider in thumbnails_providers_positions.keys():
             thumbnailPath=file_path,
             **xyzprovider
         )
+        if "time" in raster_provider_gallery[name]:
+            raster_provider_gallery[name]["time"] = yesterday
 
         continue
 
@@ -225,8 +227,10 @@ for provider in thumbnails_providers_positions.keys():
             providers_maps[map_name] = dict(
                 # jgisname=name,
                 thumbnailPath=file_path,
-                **tile_provider
+                **tile_provider,
             )
+            if "time" in providers_maps[map_name]:
+                providers_maps[map_name]["time"] = yesterday
 
             raster_provider_gallery[provider] = providers_maps
 

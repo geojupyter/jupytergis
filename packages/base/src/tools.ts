@@ -2,7 +2,10 @@ import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import * as d3Color from 'd3-color';
 
-import { IJGISLayerBrowserRegistry } from '@jupytergis/schema';
+import {
+  IJGISLayerBrowserRegistry,
+  IRasterLayerGalleryEntry
+} from '@jupytergis/schema';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
 
 export const debounce = (
@@ -223,7 +226,21 @@ export function createDefaultLayerRegistry(
     entry: string,
     xyzprovider: { [x: string]: any },
     provider?: string | undefined
-  ) {
+  ): IRasterLayerGalleryEntry {
+    const urlParameters: any = {};
+    if (xyzprovider.time) {
+      urlParameters.time = xyzprovider.time;
+    }
+    if (xyzprovider.variant) {
+      urlParameters.variant = xyzprovider.variant;
+    }
+    if (xyzprovider.tilematrixset) {
+      urlParameters.tilematrixset = xyzprovider.tilematrixset;
+    }
+    if (xyzprovider.format) {
+      urlParameters.format = xyzprovider.format;
+    }
+
     return {
       name: entry,
       thumbnail: RASTER_THUMBNAILS[xyzprovider['name'].replace('.', '-')],
@@ -233,10 +250,7 @@ export function createDefaultLayerRegistry(
         maxZoom: xyzprovider['max_zoom'] || 24,
         attribution: xyzprovider['attribution'] || '',
         provider: provider ?? entry,
-        time: encodeURIComponent(new Date().toISOString()),
-        variant: xyzprovider['variant'] || '',
-        tileMatrixSet: xyzprovider['tilematrixset'] || '',
-        format: xyzprovider['format'] || ''
+        urlParameters
       }
     };
   }
