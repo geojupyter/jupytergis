@@ -8,6 +8,7 @@ import {
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
+  IRasterSource,
   JupyterGISModel
 } from '@jupytergis/schema';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -136,12 +137,32 @@ export class MainView extends React.Component<IProps, IStates> {
         if (!mapSource) {
           this._Map.addSource(id, {
             type: 'raster',
-            tiles: [source.parameters?.url],
+            tiles: [this.computeSourceUrl(source)],
             tileSize: 256
           });
         }
       }
     }
+  }
+
+  private computeSourceUrl(source: IJGISSource): string {
+    const parameters = source.parameters as IRasterSource;
+    const urlParameters = parameters.urlParameters || {};
+    let url: string = parameters.url;
+
+    for (const parameterName of Object.keys(urlParameters)) {
+      url = url.replace(`{${parameterName}}`, urlParameters[parameterName]);
+    }
+
+    // Special case for max_zoom and min_zoom
+    if (url.includes('{max_zoom}')) {
+      url = url.replace('{max_zoom}', parameters.maxZoom.toString());
+    }
+    if (url.includes('{min_zoom}')) {
+      url = url.replace('{min_zoom}', parameters.minZoom.toString());
+    }
+
+    return url;
   }
 
   /**
@@ -161,7 +182,7 @@ export class MainView extends React.Component<IProps, IStates> {
           console.log(`Source id ${id} does not exist`);
           return;
         }
-        mapSource.setTiles([source.parameters?.url]);
+        mapSource.setTiles([this.computeSourceUrl(source)]);
       }
     }
   }
