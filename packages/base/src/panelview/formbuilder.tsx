@@ -235,10 +235,6 @@ export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
   processSchema(data: IDict<any> | undefined, schema: IDict) {
     super.processSchema(data, schema);
 
-    console.log('source data', this.props.sourceData);
-    console.log('internal data', data);
-    console.log('process schema', schema);
-
     if (!schema.properties || !data || !data.urlParameters) {
       return;
     }

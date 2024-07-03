@@ -256,6 +256,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     if (selectedObj.type) {
       schema = this._formSchema.get(selectedObj.type);
 
+      // TODO Move this in a RasterLayerPropertiesForm class
       // Generate dropdown for layer source entry
       if (
         schema &&
@@ -309,6 +310,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
           schema={this.state.schema}
           sourceData={this.state.selectedObjectData}
           syncData={(properties: { [key: string]: any }) => {
+            // TODO Move this in a RasterLayerPropertiesForm class
             if (properties.source) {
               const sources = this.props.cpModel.jGISModel?.getSources();
               if (!sources) {
