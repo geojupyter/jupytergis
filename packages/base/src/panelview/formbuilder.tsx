@@ -5,6 +5,7 @@ import { ISubmitEvent } from '@rjsf/core';
 import * as React from 'react';
 
 import { IDict } from '../types';
+import { IJupyterGISModel } from '@jupytergis/schema';
 
 interface IStates {
   internalData?: IDict;
@@ -14,6 +15,7 @@ interface IProps {
   parentType: 'dialog' | 'panel';
   sourceData: IDict | undefined;
   filePath?: string;
+  model: IJupyterGISModel;
   syncData: (properties: IDict) => void;
   syncSelectedField?: (
     id: string | null,
@@ -56,8 +58,10 @@ export const LuminoSchemaForm = (
 export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
+    const sourceData = { ...this.props.sourceData };
+    this.processSourceData(sourceData);
     this.state = {
-      internalData: { ...this.props.sourceData },
+      internalData: sourceData,
       schema: props.schema
     };
   }
@@ -72,39 +76,16 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
         ...old,
         internalData: { ...old.internalData, [key]: floatValue }
       }),
-      () => this.props.syncData({ [key]: floatValue })
+      () => this.syncData({ [key]: floatValue })
     );
   };
 
   componentDidUpdate(prevProps: IProps, prevState: IStates): void {
     if (prevProps.sourceData !== this.props.sourceData) {
-      this.setState(old => ({ ...old, internalData: this.props.sourceData }));
+      const sourceData = { ...this.props.sourceData };
+      this.processSourceData(sourceData);
+      this.setState(old => ({ ...old, internalData: sourceData }));
     }
-  }
-
-  buildForm(): JSX.Element[] {
-    if (!this.props.sourceData || !this.state.internalData) {
-      return [];
-    }
-    const inputs: JSX.Element[] = [];
-
-    for (const [key, value] of Object.entries(this.props.sourceData)) {
-      let input: JSX.Element;
-      if (typeof value === 'string' || typeof value === 'number') {
-        input = (
-          <div key={key}>
-            <label htmlFor="">{key}</label>
-            <input
-              type="number"
-              value={this.state.internalData[key]}
-              onChange={e => this.setStateByKey(key, e.target.value)}
-            />
-          </div>
-        );
-        inputs.push(input);
-      }
-    }
-    return inputs;
   }
 
   protected processSchema(data: IDict<any> | undefined, schema: IDict) {
@@ -145,7 +126,15 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     });
   }
 
-  generateUiSchema(schema: IDict): IDict {
+  protected syncData(properties: IDict<any>) {
+    this.props.syncData(properties);
+  }
+
+  protected processSourceData(sourceData: IDict<any>) {
+    // This is a no-op here
+  }
+
+  private generateUiSchema(schema: IDict): IDict {
     const uiSchema = {
       additionalProperties: {
         'ui:label': false,
@@ -156,7 +145,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     return uiSchema;
   }
 
-  onFormSubmit = (e: ISubmitEvent<any>): void => {
+  private onFormSubmit = (e: ISubmitEvent<any>): void => {
     const internalData = { ...this.state.internalData };
     Object.entries(e.formData).forEach(([k, v]) => (internalData[k] = v));
     this.setState(
@@ -165,7 +154,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
         internalData
       }),
       () => {
-        this.props.syncData(e.formData);
+        this.syncData(e.formData);
         this.props.cancel && this.props.cancel();
       }
     );
@@ -225,14 +214,58 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
           </div>
         </div>
       );
-    } else {
-      return <div>{this.buildForm()}</div>;
     }
   }
 }
 
+export class RasterLayerPropertiesForm extends ObjectPropertiesForm {
+
+  protected processSourceData(sourceData: IDict<any>) {
+    // Replace the source id by its name in the form
+    sourceData.source = this.props.model.getSource(
+      sourceData.source
+    )?.name;
+  }
+
+  protected syncData(properties: IDict<any>): void {
+    // Replace selected source name by its id
+    const sources = this.props.model.getSources();
+    if (!sources) {
+      throw Error('Unreachable');
+    }
+
+    for (const source of Object.keys(sources)) {
+      if (sources[source].name === properties.source) {
+        properties.source = source;
+        break;
+      }
+    }
+
+    super.syncData(properties);
+  }
+
+  protected processSchema(data: IDict<any> | undefined, schema: IDict<any>): void {
+    super.processSchema(data, schema);
+
+    // Replace the source text box by a dropdown menu
+    const sourceNames: string[] = [];
+    for (const sourceId of Object.keys(this.props.model.getSources() || {})) {
+      const source = this.props.model.getSource(sourceId);
+      if (source) {
+        sourceNames.push(source.name);
+      }
+    }
+
+    if (schema.properties.source) {
+      schema.properties.source.enum = sourceNames;
+    }
+  }
+
+}
+
+
 export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
-  processSchema(data: IDict<any> | undefined, schema: IDict) {
+  protected processSchema(data: IDict<any> | undefined, schema: IDict) {
     super.processSchema(data, schema);
 
     if (!schema.properties || !data || !data.urlParameters) {

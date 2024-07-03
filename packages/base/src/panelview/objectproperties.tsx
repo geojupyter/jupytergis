@@ -17,7 +17,7 @@ import { v4 as uuid } from 'uuid';
 
 import { focusInputField, removeStyleFromProperty } from '../tools';
 import { IControlPanelModel } from '../types';
-import { RasterSourcePropertiesForm } from './formbuilder';
+import { RasterLayerPropertiesForm, RasterSourcePropertiesForm } from './formbuilder';
 import { JupyterGISWidget } from '../widget';
 
 export class ObjectProperties extends PanelWithToolbar {
@@ -256,28 +256,11 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     if (selectedObj.type) {
       schema = this._formSchema.get(selectedObj.type);
 
-      // TODO Move this in a RasterLayerPropertiesForm class
-      // Generate dropdown for layer source entry
       if (
-        schema &&
-        schema.properties.source &&
         selectedObjectData &&
         selectedObjectData.source
       ) {
-        const sourceNames: string[] = [];
-        for (const sourceId of Object.keys(
-          this.props.cpModel.jGISModel?.getSources() || {}
-        )) {
-          const source = this.props.cpModel.jGISModel?.getSource(sourceId);
-          if (source) {
-            sourceNames.push(source.name);
-          }
-        }
         selectedObjectSourceId = selectedObjectData.source;
-        selectedObjectData.source = this.props.cpModel.jGISModel?.getSource(
-          selectedObjectData.source
-        )?.name;
-        schema.properties.source.enum = sourceNames;
       }
     }
 
@@ -301,30 +284,17 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   }
 
   render(): React.ReactNode {
-    return this.state.schema && this.state.selectedObjectData ? (
+    const model = this.props.cpModel.jGISModel;
+    return this.state.schema && this.state.selectedObjectData && model ? (
       <div>
         <h3>Layer Properties</h3>
-        <RasterSourcePropertiesForm
+        <RasterLayerPropertiesForm
           parentType="panel"
+          model={model}
           filePath={`${this.state.filePath}::panel`}
           schema={this.state.schema}
           sourceData={this.state.selectedObjectData}
           syncData={(properties: { [key: string]: any }) => {
-            // TODO Move this in a RasterLayerPropertiesForm class
-            if (properties.source) {
-              const sources = this.props.cpModel.jGISModel?.getSources();
-              if (!sources) {
-                throw Error('Unreachable');
-              }
-
-              for (const source of Object.keys(sources)) {
-                if (sources[source].name === properties.source) {
-                  properties.source = source;
-                  break;
-                }
-              }
-            }
-
             this.syncObjectProperties(this.state.selectedObject, properties);
           }}
           syncSelectedField={this.syncSelectedField}
@@ -334,6 +304,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
             <h3>Source Properties</h3>
             <RasterSourcePropertiesForm
               parentType="panel"
+              model={model}
               filePath={`${this.state.filePath}::panel`}
               schema={this.state.sourceSchema}
               sourceData={this.state.selectedObjectSourceData}
