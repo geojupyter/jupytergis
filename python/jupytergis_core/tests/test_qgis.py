@@ -8,8 +8,8 @@ from utils import import_project_from_qgis
 FILES = Path(__file__).parent / "files"
 
 
-def test_qgis():
-    jgis_layer_tree = import_project_from_qgis(FILES / "project0.qgs")
+def test_qgis(qgis_app, qgis_new_project,):
+    jgis_layer_tree = import_project_from_qgis(FILES / "project0.qgs", qgis_app)
     source_id0 = IsStr()
     source_id1 = IsStr()
     source_id2 = IsStr()

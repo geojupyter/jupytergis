@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 from urllib.parse import unquote
 from uuid import uuid4
@@ -84,20 +83,14 @@ def qgis_to_jgis(
         }
 
 
-def import_project_from_qgis(path: str | Path):
+def import_project_from_qgis(path: str | Path, qgis_app: QgsQpplication):
     if isinstance(path, Path):
         path = str(path)
-
-    QgsApplication.setPrefixPath(shutil.which("qgis"), True)
-    qgs = QgsApplication([], False)
-    qgs.initQgis()
 
     project = QgsProject.instance()
     project.read(path)
     layer_tree_root = project.layerTreeRoot()
 
     jgis_layer_tree = qgis_to_jgis(layer_tree_root)
-
-    qgs.exitQgis()
 
     return jgis_layer_tree

@@ -4,5 +4,3 @@ channels:
 dependencies:
   - pip
   - qgis
-  - pytest
-  - dirty-equals
