@@ -293,6 +293,9 @@ export class MainView extends React.Component<IProps, IStates> {
             layout: {
               visibility: layer.visible ? 'visible' : 'none'
             },
+            paint: {
+              'raster-opacity': layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
+            },
             source: sourceId,
             minzoom: source.parameters?.minZoom || 0,
             maxzoom: source.parameters?.maxZoom || 24
@@ -346,6 +349,11 @@ export class MainView extends React.Component<IProps, IStates> {
           'visibility',
           layer.visible ? 'visible' : 'none'
         );
+        this._Map.setPaintProperty(
+          id,
+          'raster-opacity',
+          layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
+        )
       }
     };
 
