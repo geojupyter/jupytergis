@@ -3,16 +3,24 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
-.jp-gis-jsonErrorBody > :not(:first-child) {
+.jp-gis-addDataSourceBody > :not(:first-child) {
+  margin-top: 1em;
+}
+
+.jp-gis-addDataSourceBody label > :not(:first-child) {
+  margin-top: 0.5em;
+}
+
+.jp-gis-dataErrorBody > :not(:first-child) {
   padding-top: 1.5em;
 }
 
-.jp-gis-jsonErrorHeader {
+.jp-gis-dataErrorHeader {
   display: flex;
   align-items: center;
 }
 
-.jp-gis-jsonErrorDetails {
+.jp-gis-dataErrorDetails {
   background-color: var(--md-grey-100);
   font-size: var(--jp-content-font-size0);
 }

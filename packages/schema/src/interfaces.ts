@@ -24,6 +24,8 @@ import {
 } from './_interface/jgis';
 import { IRasterSource } from './_interface/rastersource';
 
+export { IGeoJSONSource } from './_interface/geojsonsource';
+
 export interface IDict<T = any> {
   [key: string]: T;
 }

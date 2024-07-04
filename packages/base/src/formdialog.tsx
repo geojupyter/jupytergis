@@ -2,6 +2,7 @@ import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { LabIcon, errorIcon } from '@jupyterlab/ui-components';
+import { Widget } from '@lumino/widgets';
 import { ErrorObject } from 'ajv';
 import * as React from 'react';
 
@@ -38,24 +39,95 @@ export class FormDialog extends Dialog<IDict> {
   }
 }
 
-export class JSONErrorDialog extends Dialog<null> {
-  constructor(options: { errors?: ErrorObject[] | null }) {
+/**
+ * The return value of the dialog to add a source.
+ */
+interface IDialogAddDataSourceValue {
+  /**
+   * The path of the data file.
+   */
+  path: string;
+  /**
+   * Whether to save date in the shared document or not.
+   */
+  saveDataInShared: boolean;
+}
+
+/**
+ * The body of the dialog to add a source.
+ */
+export class DialogAddDataSourceBody
+  extends Widget
+  implements Dialog.IBodyWidget<IDialogAddDataSourceValue>
+{
+  constructor() {
+    super();
+    this.addClass('jp-gis-addDataSourceBody');
+
+    const pathLabel = document.createElement('label');
+    const pathLabelText = document.createElement('div');
+    pathLabelText.textContent = 'Local path to the data file';
+    const pathInput = (this._pathInput = document.createElement('input'));
+    pathInput.type = 'text';
+    pathInput.placeholder = '/path/to/the/data/file';
+    pathLabel.append(pathLabelText, pathInput);
+
+    const saveSharedLabel = document.createElement('label');
+    pathLabelText.textContent = 'Local path to the data file';
+    const saveSharedLabelInput = (this._saveSharedInput =
+      document.createElement('input'));
+    saveSharedLabelInput.type = 'checkbox';
+    saveSharedLabel.append(saveSharedLabelInput, 'Save data in shared model');
+
+    this.node.append(pathLabel, saveSharedLabel);
+  }
+
+  /**
+   * Get the values specified by the user
+   */
+  getValue(): IDialogAddDataSourceValue {
+    return {
+      path: this._pathInput.value,
+      saveDataInShared: this._saveSharedInput.checked
+    };
+  }
+
+  private _pathInput: HTMLInputElement;
+  private _saveSharedInput: HTMLInputElement;
+}
+
+namespace DataErrorDialog {
+  /**
+   * The options for the data error dialog.
+   */
+  export interface IOptions {
+    title: string;
+    errors?: ErrorObject[] | null;
+    saveDataInShared?: boolean;
+  }
+}
+
+/**
+ * A dialog opened when a data file is invalid.
+ */
+export class DataErrorDialog extends Dialog<null> {
+  constructor(options: DataErrorDialog.IOptions) {
     const title = (
-      <div className={'jp-gis-jsonErrorHeader'}>
+      <div className={'jp-gis-dataErrorHeader'}>
         <LabIcon.resolveReact
           icon={errorIcon}
           height={32}
           width={32}
         ></LabIcon.resolveReact>
-        <div>GeoJSON file invalid</div>
+        <div>{options.title}</div>
       </div>
     );
     const body = (
-      <div className={'jp-gis-jsonErrorBody'}>
+      <div className={'jp-gis-dataErrorBody'}>
         <div>It can't be used as it in a layer.</div>
         <details>
           <summary>Errors</summary>
-          <pre className={'jp-gis-jsonErrorDetails'}>
+          <pre className={'jp-gis-dataErrorDetails'}>
             {options.errors?.reverse().map(error => (
               <>
                 {error.message}
@@ -64,14 +136,21 @@ export class JSONErrorDialog extends Dialog<null> {
             ))}
           </pre>
         </details>
-        <div>Do you want to save it in source and modify it later ?</div>
+        {!options.saveDataInShared && (
+          <div>Do you want to save it in source and modify it later ?</div>
+        )}
       </div>
     );
+
+    const buttons = [Dialog.okButton()];
+    if (!options.saveDataInShared) {
+      buttons.unshift(Dialog.cancelButton());
+    }
     super({
       title,
       body,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      buttons
     });
-    this.addClass('jp-gis-jsonError');
+    this.addClass('jp-gis-dataError');
   }
 }

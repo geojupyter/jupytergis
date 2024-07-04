@@ -1,14 +1,11 @@
 import { ICollaborativeDrive } from '@jupyter/docprovider';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import {
-  InputDialog,
-  WidgetTracker,
-  showErrorMessage
-} from '@jupyterlab/apputils';
+import { Dialog, WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
 import { ITranslator } from '@jupyterlab/translation';
 import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
 import {
+  IGeoJSONSource,
   IJGISFormSchemaRegistry,
   IJGISLayerBrowserRegistry,
   IJGISSource
@@ -17,7 +14,7 @@ import { UUID } from '@lumino/coreutils';
 import { Ajv } from 'ajv';
 import * as geojson from 'geojson-schema/GeoJSON.json';
 
-import { JSONErrorDialog } from './formdialog';
+import { DataErrorDialog, DialogAddDataSourceBody } from './formdialog';
 import { geoJSONIcon } from './icons';
 import { LayerBrowserWidget } from './layerBrowser/layerBrowserDialog';
 import { JupyterGISWidget } from './widget';
@@ -168,14 +165,18 @@ namespace Private {
       }
 
       let filepath: string | null = (args.path as string) ?? null;
+      let saveDataInShared: boolean = args.path ?? false;
+
       if (filepath === null) {
-        filepath = (
-          await InputDialog.getText({
-            label: 'File path',
-            placeholder: '/path/to/the/GeoJSON/file',
-            title: 'Path of the GeoJSON file'
-          })
-        ).value;
+        const dialog = new Dialog({
+          title: 'Path of the GeoJSON file',
+          body: new DialogAddDataSourceBody()
+        });
+        const value = (await dialog.launch()).value;
+        if (value) {
+          filepath = value.path;
+          saveDataInShared = value.saveDataInShared;
+        }
       }
 
       if (!filepath) {
@@ -189,19 +190,28 @@ namespace Private {
           const geoJSONData = JSON.parse(contentModel.content);
           const valid = validate(geoJSONData);
           if (!valid) {
-            const dialog = new JSONErrorDialog({ errors: validate.errors });
+            const dialog = new DataErrorDialog({
+              title: 'GeoJSON data invalid',
+              errors: validate.errors,
+              saveDataInShared
+            });
             const toContinue = await dialog.launch();
-            if (!toContinue.button.accept) {
+            if (!toContinue.button.accept || saveDataInShared) {
               return;
             }
           }
+
+          const parameters: IGeoJSONSource = {};
+          if (saveDataInShared) {
+            parameters.data = geoJSONData;
+          } else {
+            (parameters.path = contentModel.path), (parameters.valid = valid);
+          }
+
           const sourceModel: IJGISSource = {
             type: 'GeoJSON',
             name,
-            parameters: {
-              filename: contentModel.path,
-              valid: valid
-            }
+            parameters
           };
 
           current.context.model.sharedModel.addSource(
