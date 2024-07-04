@@ -17,7 +17,10 @@ import { v4 as uuid } from 'uuid';
 
 import { focusInputField, removeStyleFromProperty } from '../tools';
 import { IControlPanelModel } from '../types';
-import { RasterLayerPropertiesForm, RasterSourcePropertiesForm } from './formbuilder';
+import {
+  RasterLayerPropertiesForm,
+  RasterSourcePropertiesForm
+} from './formbuilder';
 import { JupyterGISWidget } from '../widget';
 
 export class ObjectProperties extends PanelWithToolbar {
@@ -39,13 +42,7 @@ export class ObjectProperties extends PanelWithToolbar {
 interface IStates {
   jGISOption?: IDict;
   filePath?: string;
-  selectedObjectData?: IDict;
-  selectedObjectSourceData?: IDict;
   selectedObject?: string;
-  selectedObjectType?: 'layer' | 'source';
-  selectedObjectSource?: string;
-  schema?: IDict;
-  sourceSchema?: IDict;
   clientId: number | null; // ID of the yjs client
   id: string; // ID of the component, it is used to identify which component
   //is the source of awareness updates.
@@ -90,12 +87,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         this.setState({
           jGISOption: undefined,
           filePath: undefined,
-          selectedObjectData: undefined,
-          selectedObjectSourceData: undefined,
-          selectedObject: undefined,
-          selectedObjectSource: undefined,
-          schema: undefined,
-          sourceSchema: undefined
+          selectedObject: undefined
         });
       }
     });
@@ -144,13 +136,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     _: IJupyterGISDoc,
     changed: IJGISLayerDocChange
   ): void => {
-    this.setState(old => {
-      if (old.selectedObject) {
-        return this.getStateForSelection(old, old.selectedObject);
-      } else {
-        return old;
-      }
-    });
+    this.forceUpdate();
   };
 
   private _onClientSharedStateChanged = (
@@ -202,26 +188,29 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       if (selection === undefined || selectedObjectIds.length !== 1) {
         this.setState(old => ({
           ...old,
-          selectedObject: undefined,
-          selectedObjectSource: undefined,
-          selectedObjectData: undefined,
-          selectedObjectSourceData: undefined,
-          schema: undefined,
-          sourceSchema: undefined
+          selectedObject: undefined
         }));
         return;
       }
 
       const selectedObject = selectedObjectIds[0];
       if (selectedObject !== this.state.selectedObject) {
-        this.setState(old => {
-          return this.getStateForSelection(old, selectedObject);
-        });
+        this.setState(old => ({
+          ...old,
+          selectedObject
+        }));
       }
     }
   };
 
-  private getStateForSelection(old: IStates, selectedObject: string): IStates {
+  render(): React.ReactNode {
+    const model = this.props.cpModel.jGISModel;
+    const selectedObject = this.state.selectedObject;
+
+    if (!selectedObject) {
+      return <div></div>;
+    }
+
     let selectedObj: IJGISLayer | IJGISSource | undefined;
     // This will be the layer source in case where the selected object is a layer
     let selectedObjSource: IJGISSource | undefined;
@@ -239,15 +228,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     }
 
     if (!selectedObj) {
-      return {
-        ...old,
-        selectedObject: undefined,
-        selectedObjectSource: undefined,
-        selectedObjectData: undefined,
-        selectedObjectSourceData: undefined,
-        schema: undefined,
-        sourceSchema: undefined
-      };
+      return <div></div>;
     }
 
     let schema: IDict<any> | undefined;
@@ -256,10 +237,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     if (selectedObj.type) {
       schema = this._formSchema.get(selectedObj.type);
 
-      if (
-        selectedObjectData &&
-        selectedObjectData.source
-      ) {
+      if (selectedObjectData && selectedObjectData.source) {
         selectedObjectSourceId = selectedObjectData.source;
       }
     }
@@ -271,48 +249,31 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       selectedObjectSourceData = selectedObjSource.parameters;
     }
 
-    return {
-      ...old,
-      selectedObjectData,
-      selectedObject,
-      selectedObjectType: selectedObjSource === undefined ? 'source' : 'layer',
-      selectedObjectSource: selectedObjectSourceId,
-      schema,
-      selectedObjectSourceData,
-      sourceSchema
-    };
-  }
-
-  render(): React.ReactNode {
-    const model = this.props.cpModel.jGISModel;
-    return this.state.schema && this.state.selectedObjectData && model ? (
+    return schema && selectedObjectData && model ? (
       <div>
         <h3>Layer Properties</h3>
         <RasterLayerPropertiesForm
           parentType="panel"
           model={model}
           filePath={`${this.state.filePath}::panel`}
-          schema={this.state.schema}
-          sourceData={this.state.selectedObjectData}
+          schema={schema}
+          sourceData={selectedObjectData}
           syncData={(properties: { [key: string]: any }) => {
             this.syncObjectProperties(this.state.selectedObject, properties);
           }}
           syncSelectedField={this.syncSelectedField}
         />
-        {this.state.selectedObjectSourceData && this.state.sourceSchema && (
+        {selectedObjectSourceData && sourceSchema && (
           <>
             <h3>Source Properties</h3>
             <RasterSourcePropertiesForm
               parentType="panel"
               model={model}
               filePath={`${this.state.filePath}::panel`}
-              schema={this.state.sourceSchema}
-              sourceData={this.state.selectedObjectSourceData}
+              schema={sourceSchema}
+              sourceData={selectedObjectSourceData}
               syncData={(properties: { [key: string]: any }) => {
-                this.syncObjectProperties(
-                  this.state.selectedObjectSource,
-                  properties
-                );
+                this.syncObjectProperties(selectedObjectSourceId, properties);
               }}
               syncSelectedField={this.syncSelectedField}
             />
