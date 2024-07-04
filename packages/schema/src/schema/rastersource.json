@@ -50,7 +50,10 @@
       "description": "The bounds of the source"
     },
     "urlParameters": {
-      "type": "object"
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   }
 }

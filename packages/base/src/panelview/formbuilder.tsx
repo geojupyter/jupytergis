@@ -171,6 +171,9 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
       const formSchema = new SchemaForm(schema, {
         liveValidate: true,
         formData,
+        onChange: (e) => {
+          console.log('e', e);
+        },
         onSubmit: this.onFormSubmit,
         onFocus: (id, value) => {
           this.props.syncSelectedField
@@ -218,7 +221,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
   }
 }
 
-export class RasterLayerPropertiesForm extends ObjectPropertiesForm {
+export class LayerPropertiesForm extends ObjectPropertiesForm {
   protected processSourceData(sourceData: IDict<any>) {
     // Replace the source id by its name in the form
     sourceData.source = this.props.model.getSource(sourceData.source)?.name;

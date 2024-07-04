@@ -18,7 +18,7 @@ import { v4 as uuid } from 'uuid';
 import { focusInputField, removeStyleFromProperty } from '../tools';
 import { IControlPanelModel } from '../types';
 import {
-  RasterLayerPropertiesForm,
+  LayerPropertiesForm,
   RasterSourcePropertiesForm
 } from './formbuilder';
 import { JupyterGISWidget } from '../widget';
@@ -251,7 +251,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       return (
         <div>
           <h3>Layer Properties</h3>
-          <RasterLayerPropertiesForm
+          <LayerPropertiesForm
             parentType="panel"
             model={model}
             filePath={`${this.state.filePath}::panel`}
@@ -273,7 +273,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     return (
       <div>
         <h3>Layer Properties</h3>
-        <RasterLayerPropertiesForm
+        <LayerPropertiesForm
           parentType="panel"
           model={model}
           filePath={`${this.state.filePath}::panel`}
