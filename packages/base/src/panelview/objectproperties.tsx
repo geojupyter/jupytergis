@@ -207,7 +207,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     const model = this.props.cpModel.jGISModel;
     const selectedObject = this.state.selectedObject;
 
-    if (!selectedObject) {
+    if (!selectedObject || !model) {
       return <div></div>;
     }
 
@@ -242,14 +242,35 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       }
     }
 
-    let sourceSchema: IDict<any> | undefined;
-    let selectedObjectSourceData: IDict<any> | undefined;
-    if (selectedObjSource) {
-      sourceSchema = this._formSchema.get(selectedObjSource.type);
-      selectedObjectSourceData = selectedObjSource.parameters;
+    if (!selectedObjectData) {
+      return <div></div>;
     }
 
-    return schema && selectedObjectData && model ? (
+    // We selected a source and only show a form for it
+    if (!selectedObjSource) {
+      return (
+        <div>
+          <h3>Layer Properties</h3>
+          <RasterLayerPropertiesForm
+            parentType="panel"
+            model={model}
+            filePath={`${this.state.filePath}::panel`}
+            schema={schema}
+            sourceData={selectedObjectData}
+            syncData={(properties: { [key: string]: any }) => {
+              this.syncObjectProperties(this.state.selectedObject, properties);
+            }}
+            syncSelectedField={this.syncSelectedField}
+          />
+        </div>
+      );
+    }
+
+    // We selected a layer, we show a form for the layer and one for its source
+    const sourceSchema = this._formSchema.get(selectedObjSource.type);
+    const selectedObjectSourceData = selectedObjSource.parameters;
+
+    return (
       <div>
         <h3>Layer Properties</h3>
         <RasterLayerPropertiesForm
@@ -263,25 +284,19 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
           }}
           syncSelectedField={this.syncSelectedField}
         />
-        {selectedObjectSourceData && sourceSchema && (
-          <>
-            <h3>Source Properties</h3>
-            <RasterSourcePropertiesForm
-              parentType="panel"
-              model={model}
-              filePath={`${this.state.filePath}::panel`}
-              schema={sourceSchema}
-              sourceData={selectedObjectSourceData}
-              syncData={(properties: { [key: string]: any }) => {
-                this.syncObjectProperties(selectedObjectSourceId, properties);
-              }}
-              syncSelectedField={this.syncSelectedField}
-            />
-          </>
-        )}
+        <h3>Source Properties</h3>
+        <RasterSourcePropertiesForm
+          parentType="panel"
+          model={model}
+          filePath={`${this.state.filePath}::panel`}
+          schema={sourceSchema}
+          sourceData={selectedObjectSourceData}
+          syncData={(properties: { [key: string]: any }) => {
+            this.syncObjectProperties(selectedObjectSourceId, properties);
+          }}
+          syncSelectedField={this.syncSelectedField}
+        />
       </div>
-    ) : (
-      <div></div>
     );
   }
 
