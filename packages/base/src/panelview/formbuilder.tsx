@@ -219,12 +219,9 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
 }
 
 export class RasterLayerPropertiesForm extends ObjectPropertiesForm {
-
   protected processSourceData(sourceData: IDict<any>) {
     // Replace the source id by its name in the form
-    sourceData.source = this.props.model.getSource(
-      sourceData.source
-    )?.name;
+    sourceData.source = this.props.model.getSource(sourceData.source)?.name;
   }
 
   protected syncData(properties: IDict<any>): void {
@@ -244,7 +241,10 @@ export class RasterLayerPropertiesForm extends ObjectPropertiesForm {
     super.syncData(properties);
   }
 
-  protected processSchema(data: IDict<any> | undefined, schema: IDict<any>): void {
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict<any>
+  ): void {
     super.processSchema(data, schema);
 
     // Replace the source text box by a dropdown menu
@@ -260,9 +260,7 @@ export class RasterLayerPropertiesForm extends ObjectPropertiesForm {
       schema.properties.source.enum = sourceNames;
     }
   }
-
 }
-
 
 export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
   protected processSchema(data: IDict<any> | undefined, schema: IDict) {
