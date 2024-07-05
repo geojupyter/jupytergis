@@ -215,6 +215,22 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
+   * Get a {[key: id]: name} dictionary of sources for a given source type
+   * @param type The required source type
+   */
+  getSourcesByType(type: string): { [key: string]: string } {
+    const sources: { [key: string]: string } = {};
+    for (const sourceId of Object.keys(this.getSources() || {})) {
+      const source = this.getSource(sourceId);
+      if (source?.type === type) {
+        sources[sourceId] = source.name;
+      }
+    }
+    console.log('available sources', sources);
+    return sources;
+  }
+
+  /**
    * Add a layer group in the layer tree.
    *
    * @param name - the name of the group.

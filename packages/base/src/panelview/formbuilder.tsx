@@ -11,6 +11,7 @@ interface IStates {
   internalData?: IDict;
   schema?: IDict;
 }
+
 interface IProps {
   parentType: 'dialog' | 'panel';
   sourceData: IDict | undefined;
@@ -224,27 +225,15 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
   }
 }
 
+interface ILayerProps extends IProps {
+  sourceType: string;
+}
+
 export class LayerPropertiesForm extends ObjectPropertiesForm {
-  protected processSourceData(sourceData: IDict<any>) {
-    // Replace the source id by its name in the form
-    sourceData.source = this.props.model.getSource(sourceData.source)?.name;
-  }
+  props: ILayerProps;
 
-  protected syncData(properties: IDict<any>): void {
-    // Replace selected source name by its id
-    const sources = this.props.model.getSources();
-    if (!sources) {
-      throw Error('Unreachable');
-    }
-
-    for (const source of Object.keys(sources)) {
-      if (sources[source].name === properties.source) {
-        properties.source = source;
-        break;
-      }
-    }
-
-    super.syncData(properties);
+  constructor(props: ILayerProps) {
+    super(props);
   }
 
   protected processSchema(
@@ -254,18 +243,17 @@ export class LayerPropertiesForm extends ObjectPropertiesForm {
   ): void {
     super.processSchema(data, schema, uiSchema);
 
-    // Replace the source text box by a dropdown menu
-    const sourceNames: string[] = [];
-    for (const sourceId of Object.keys(this.props.model.getSources() || {})) {
-      const source = this.props.model.getSource(sourceId);
-      if (source) {
-        sourceNames.push(source.name);
-      }
+    if (!schema.properties.source) {
+      return;
     }
 
-    if (schema.properties.source) {
-      schema.properties.source.enum = sourceNames;
-    }
+    // Replace the source text box by a dropdown menu
+    const availableSources = this.props.model.getSourcesByType(
+      this.props.sourceType
+    );
+
+    schema.properties.source.enumNames = Object.values(availableSources);
+    schema.properties.source.enum = Object.keys(availableSources);
   }
 }
 

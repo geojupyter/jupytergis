@@ -247,8 +247,8 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     if (!selectedObjSource) {
       return (
         <div>
-          <h3>Layer Properties</h3>
-          <LayerPropertiesForm
+          <h3>Source Properties</h3>
+          <RasterSourcePropertiesForm
             parentType="panel"
             model={model}
             filePath={`${this.state.filePath}::panel`}
@@ -272,6 +272,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         <h3>Layer Properties</h3>
         <LayerPropertiesForm
           parentType="panel"
+          sourceType={selectedObjSource.type}
           model={model}
           filePath={`${this.state.filePath}::panel`}
           schema={schema}
