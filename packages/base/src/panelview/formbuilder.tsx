@@ -60,31 +60,15 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
     const sourceData = { ...this.props.sourceData };
-    this.processSourceData(sourceData);
     this.state = {
       internalData: sourceData,
       schema: props.schema
     };
   }
 
-  setStateByKey = (key: string, value: any): void => {
-    const floatValue = parseFloat(value);
-    if (Number.isNaN(floatValue)) {
-      return;
-    }
-    this.setState(
-      old => ({
-        ...old,
-        internalData: { ...old.internalData, [key]: floatValue }
-      }),
-      () => this.syncData({ [key]: floatValue })
-    );
-  };
-
   componentDidUpdate(prevProps: IProps, prevState: IStates): void {
     if (prevProps.sourceData !== this.props.sourceData) {
       const sourceData = { ...this.props.sourceData };
-      this.processSourceData(sourceData);
       this.setState(old => ({ ...old, internalData: sourceData }));
     }
   }
@@ -129,10 +113,6 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
 
   protected syncData(properties: IDict<any>) {
     this.props.syncData(properties);
-  }
-
-  protected processSourceData(sourceData: IDict<any>) {
-    // This is a no-op here
   }
 
   protected onFormChange(e: IChangeEvent) {
@@ -260,12 +240,6 @@ export class LayerPropertiesForm extends ObjectPropertiesForm {
 export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
   private _urlParameters: string[] = [];
   private _url = '';
-
-  protected processSourceData(sourceData: IDict<any>) {
-    if (this._url) {
-      sourceData.url = this._url;
-    }
-  }
 
   protected processSchema(
     data: IDict<any> | undefined,

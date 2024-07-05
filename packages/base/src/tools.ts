@@ -3,6 +3,7 @@ import { ServerConnection } from '@jupyterlab/services';
 import * as d3Color from 'd3-color';
 
 import {
+  IDict,
   IJGISLayerBrowserRegistry,
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
@@ -163,6 +164,13 @@ export async function requestAPI<T>(
 
 export function isLightTheme(): boolean {
   return document.body.getAttribute('data-jp-theme-light') === 'true';
+}
+
+export function deepCopy<T = IDict<any>>(value: T): T {
+  if (!value) {
+    return value;
+  }
+  return JSON.parse(JSON.stringify(value));
 }
 
 /**

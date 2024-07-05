@@ -226,7 +226,6 @@ export class JupyterGISModel implements IJupyterGISModel {
         sources[sourceId] = source.name;
       }
     }
-    console.log('available sources', sources);
     return sources;
   }
 

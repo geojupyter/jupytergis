@@ -15,7 +15,7 @@ import { Panel } from '@lumino/widgets';
 import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { focusInputField, removeStyleFromProperty } from '../tools';
+import { focusInputField, removeStyleFromProperty, deepCopy } from '../tools';
 import { IControlPanelModel } from '../types';
 import { LayerPropertiesForm, RasterSourcePropertiesForm } from './formbuilder';
 import { JupyterGISWidget } from '../widget';
@@ -230,9 +230,9 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
 
     let schema: IDict<any> | undefined;
     let selectedObjectSourceId: string | undefined;
-    const selectedObjectData = selectedObj.parameters;
+    const selectedObjectData = deepCopy(selectedObj.parameters);
     if (selectedObj.type) {
-      schema = this._formSchema.get(selectedObj.type);
+      schema = deepCopy(this._formSchema.get(selectedObj.type));
 
       if (selectedObjectData && selectedObjectData.source) {
         selectedObjectSourceId = selectedObjectData.source;
@@ -246,26 +246,31 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     // We selected a source and only show a form for it
     if (!selectedObjSource) {
       return (
-        <div>
-          <h3>Source Properties</h3>
-          <RasterSourcePropertiesForm
-            parentType="panel"
-            model={model}
-            filePath={`${this.state.filePath}::panel`}
-            schema={schema}
-            sourceData={selectedObjectData}
-            syncData={(properties: { [key: string]: any }) => {
-              this.syncObjectProperties(this.state.selectedObject, properties);
-            }}
-            syncSelectedField={this.syncSelectedField}
-          />
-        </div>
+        selectedObjSource!.type === 'RasterSource' && (
+          <div>
+            <h3>Source Properties</h3>
+            <RasterSourcePropertiesForm
+              parentType="panel"
+              model={model}
+              filePath={`${this.state.filePath}::panel`}
+              schema={schema}
+              sourceData={selectedObjectData}
+              syncData={(properties: { [key: string]: any }) => {
+                this.syncObjectProperties(
+                  this.state.selectedObject,
+                  properties
+                );
+              }}
+              syncSelectedField={this.syncSelectedField}
+            />
+          </div>
+        )
       );
     }
 
     // We selected a layer, we show a form for the layer and one for its source
-    const sourceSchema = this._formSchema.get(selectedObjSource.type);
-    const selectedObjectSourceData = selectedObjSource.parameters;
+    const sourceSchema = deepCopy(this._formSchema.get(selectedObjSource.type));
+    const selectedObjectSourceData = deepCopy(selectedObjSource.parameters);
 
     return (
       <div>
@@ -296,6 +301,10 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
             syncSelectedField={this.syncSelectedField}
           />
         )}
+        {/* {selectedObjSource.type === 'GeoJSONSource' && (
+          <GeoJSONSourcePropertiesForm
+
+        } */}
       </div>
     );
   }
