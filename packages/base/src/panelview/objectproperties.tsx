@@ -283,17 +283,19 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
           syncSelectedField={this.syncSelectedField}
         />
         <h3>Source Properties</h3>
-        <RasterSourcePropertiesForm
-          parentType="panel"
-          model={model}
-          filePath={`${this.state.filePath}::panel`}
-          schema={sourceSchema}
-          sourceData={selectedObjectSourceData}
-          syncData={(properties: { [key: string]: any }) => {
-            this.syncObjectProperties(selectedObjectSourceId, properties);
-          }}
-          syncSelectedField={this.syncSelectedField}
-        />
+        {selectedObjSource.type === 'RasterSource' && (
+          <RasterSourcePropertiesForm
+            parentType="panel"
+            model={model}
+            filePath={`${this.state.filePath}::panel`}
+            schema={sourceSchema}
+            sourceData={selectedObjectSourceData}
+            syncData={(properties: { [key: string]: any }) => {
+              this.syncObjectProperties(selectedObjectSourceId, properties);
+            }}
+            syncSelectedField={this.syncSelectedField}
+          />
+        )}
       </div>
     );
   }
