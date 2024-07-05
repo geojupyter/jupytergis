@@ -17,10 +17,7 @@ import { v4 as uuid } from 'uuid';
 
 import { focusInputField, removeStyleFromProperty } from '../tools';
 import { IControlPanelModel } from '../types';
-import {
-  LayerPropertiesForm,
-  RasterSourcePropertiesForm
-} from './formbuilder';
+import { LayerPropertiesForm, RasterSourcePropertiesForm } from './formbuilder';
 import { JupyterGISWidget } from '../widget';
 
 export class ObjectProperties extends PanelWithToolbar {

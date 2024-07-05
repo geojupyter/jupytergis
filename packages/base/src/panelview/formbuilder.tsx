@@ -1,7 +1,7 @@
 import { SchemaForm } from '@deathbeds/jupyterlab-rjsf';
 import { MessageLoop } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
-import { ISubmitEvent } from '@rjsf/core';
+import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 import * as React from 'react';
 
 import { IDict } from '../types';
@@ -134,6 +134,10 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     // This is a no-op here
   }
 
+  protected onFormChange(e: IChangeEvent) {
+    // This is a no-op here
+  }
+
   private generateUiSchema(schema: IDict): IDict {
     const uiSchema = {
       additionalProperties: {
@@ -171,10 +175,8 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
       const formSchema = new SchemaForm(schema, {
         liveValidate: true,
         formData,
-        onChange: (e) => {
-          console.log('e', e);
-        },
-        onSubmit: this.onFormSubmit,
+        onChange: this.onFormChange.bind(this),
+        onSubmit: this.onFormSubmit.bind(this),
         onFocus: (id, value) => {
           this.props.syncSelectedField
             ? this.props.syncSelectedField(id, value, this.props.parentType)
@@ -300,5 +302,9 @@ export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
           break;
       }
     }
+  }
+
+  protected onFormChange(e: IChangeEvent) {
+    // TODO
   }
 }
