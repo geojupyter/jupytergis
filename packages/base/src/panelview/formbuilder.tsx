@@ -88,11 +88,11 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     }
   }
 
-  protected processSchema(data: IDict<any> | undefined, schema: IDict) {
-    // This is a no-op here
-  }
-
-  protected processUISchema(schema: IDict, uiSchema: IDict): void {
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ): void {
     if (!schema['properties']) {
       return;
     }
@@ -113,7 +113,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
       }
 
       if (v['type'] === 'object') {
-        this.processUISchema(v, uiSchema[k]);
+        this.processSchema(data, v, uiSchema[k]);
       }
 
       // Don't show readOnly properties when coming from the properties panel
@@ -138,15 +138,8 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     // This is a no-op here
   }
 
-  private generateUiSchema(schema: IDict): IDict {
-    const uiSchema = {
-      additionalProperties: {
-        'ui:label': false,
-        classNames: 'jGIS-hidden-field'
-      }
-    };
-    this.processUISchema(schema, uiSchema);
-    return uiSchema;
+  protected onFormBlur(id: string, value: any) {
+    // This is a no-op here
   }
 
   private onFormSubmit = (e: ISubmitEvent<any>): void => {
@@ -168,7 +161,14 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     if (this.props.schema) {
       const schema = { ...this.props.schema, additionalProperties: true };
       const formData = this.state.internalData;
-      this.processSchema(formData, schema);
+
+      const uiSchema = {
+        additionalProperties: {
+          'ui:label': false,
+          classNames: 'jGIS-hidden-field'
+        }
+      };
+      this.processSchema(formData, schema, uiSchema);
 
       const submitRef = React.createRef<HTMLButtonElement>();
 
@@ -186,8 +186,9 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
           this.props.syncSelectedField
             ? this.props.syncSelectedField(null, value, this.props.parentType)
             : null;
+          this.onFormBlur(id, value);
         },
-        uiSchema: this.generateUiSchema(this.props.schema),
+        uiSchema,
         children: (
           <button ref={submitRef} type="submit" style={{ display: 'none' }} />
         )
@@ -248,9 +249,10 @@ export class LayerPropertiesForm extends ObjectPropertiesForm {
 
   protected processSchema(
     data: IDict<any> | undefined,
-    schema: IDict<any>
+    schema: IDict,
+    uiSchema: IDict
   ): void {
-    super.processSchema(data, schema);
+    super.processSchema(data, schema, uiSchema);
 
     // Replace the source text box by a dropdown menu
     const sourceNames: string[] = [];
@@ -268,34 +270,60 @@ export class LayerPropertiesForm extends ObjectPropertiesForm {
 }
 
 export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
-  protected processSchema(data: IDict<any> | undefined, schema: IDict) {
-    super.processSchema(data, schema);
+  private _urlParameters: string[] = [];
+  private _url = '';
+
+  protected processSourceData(sourceData: IDict<any>) {
+    if (this._url) {
+      sourceData.url = this._url;
+    }
+  }
+
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ) {
+    super.processSchema(data, schema, uiSchema);
 
     if (!schema.properties || !data || !data.urlParameters) {
       return;
     }
 
-    // Dynamically inject url parameters schema
+    data.url = this._url || data.url;
+
+    // Grep all url-parameters from the url
+    const regex = /\{([^}]+)\}/g;
+    const matches: string[] = [];
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(data.url)) !== null) {
+      if (['x', 'y', 'z'].includes(match[1])) {
+        continue;
+      }
+      matches.push(match[1]);
+    }
+
+    this._urlParameters = matches;
+
+    // Dynamically inject url parameters schema based of the url
     const propertiesSchema = {};
     schema.properties.urlParameters = {
       type: 'object',
-      required: Object.keys(data.urlParameters),
+      required: this._urlParameters,
       properties: propertiesSchema
     };
-    for (const parameterName of Object.keys(data.urlParameters)) {
+
+    for (const parameterName of this._urlParameters) {
       switch (parameterName) {
+        // Special case for "time" where a date picker widget is nicer
         case 'time':
           propertiesSchema[parameterName] = {
             type: 'string',
             format: 'date'
           };
           break;
-        case 'variant':
-          propertiesSchema[parameterName] = {
-            type: 'string'
-          };
-          break;
-        case 'format':
+        default:
           propertiesSchema[parameterName] = {
             type: 'string'
           };
@@ -304,7 +332,14 @@ export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
     }
   }
 
-  protected onFormChange(e: IChangeEvent) {
-    // TODO
+  protected onFormBlur(id: string, value: any) {
+    // Is there a better way to spot the url text entry?
+    if (!id.endsWith('_url')) {
+      return;
+    }
+
+    this._url = value;
+
+    this.forceUpdate();
   }
 }
