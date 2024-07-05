@@ -298,7 +298,7 @@ export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(data.url)) !== null) {
-      if (['x', 'y', 'z'].includes(match[1])) {
+      if (['max_zoom', 'min_zoom', 'x', 'y', 'z'].includes(match[1])) {
         continue;
       }
       matches.push(match[1]);
