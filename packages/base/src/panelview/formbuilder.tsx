@@ -239,7 +239,6 @@ export class LayerPropertiesForm extends ObjectPropertiesForm {
 
 export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
   private _urlParameters: string[] = [];
-  private _url = '';
 
   protected processSchema(
     data: IDict<any> | undefined,
@@ -248,11 +247,9 @@ export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
   ) {
     super.processSchema(data, schema, uiSchema);
 
-    if (!schema.properties || !data || !data.urlParameters) {
+    if (!schema.properties || !data) {
       return;
     }
-
-    data.url = this._url || data.url;
 
     // Grep all url-parameters from the url
     const regex = /\{([^}]+)\}/g;
@@ -299,9 +296,11 @@ export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
     if (!id.endsWith('_url')) {
       return;
     }
-
-    this._url = value;
-
+    const internalData = this.state.internalData;
+    if (internalData) {
+      internalData.url = value;
+    }
+    this.setState({ internalData });
     this.forceUpdate();
   }
 }
