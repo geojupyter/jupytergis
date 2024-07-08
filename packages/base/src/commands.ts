@@ -167,23 +167,6 @@ namespace Private {
 
       current.context.model.syncFormData(form);
 
-      const syncSelectedField = (
-        id: string | null,
-        value: any,
-        parentType: 'panel' | 'dialog'
-      ): void => {
-        let property: string | null = null;
-        if (id) {
-          const prefix = id.split('_')[0];
-          property = id.substring(prefix.length);
-        }
-        current.context.model.syncSelectedPropField({
-          id: property,
-          value,
-          parentType
-        });
-      };
-
       const dialog = new FormDialog({
         context: current.context,
         title: form.title,
@@ -223,8 +206,7 @@ namespace Private {
         },
         cancelButton: () => {
           current.context.model.syncFormData(undefined);
-        },
-        syncSelectedPropField: syncSelectedField
+        }
       });
       await dialog.launch();
     };

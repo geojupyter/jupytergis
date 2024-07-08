@@ -14,16 +14,10 @@ interface IStates {
 }
 
 interface IProps {
-  parentType: 'dialog' | 'panel';
   sourceData: IDict | undefined;
   filePath?: string;
   model: IJupyterGISModel;
   syncData: (properties: IDict) => void;
-  syncSelectedField?: (
-    id: string | null,
-    value: any,
-    parentType: 'panel' | 'dialog'
-  ) => void;
   schema?: IDict;
   cancel?: () => void;
 }
@@ -104,7 +98,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
       }
 
       // Don't show readOnly properties when coming from the properties panel
-      if (v['readOnly'] && this.props.parentType === 'panel') {
+      if (v['readOnly']) {
         this.removeFormEntry(k, data, schema, uiSchema);
       }
     });
@@ -180,17 +174,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
         formData,
         onChange: this.onFormChange.bind(this),
         onSubmit: this.onFormSubmit.bind(this),
-        onFocus: (id, value) => {
-          this.props.syncSelectedField
-            ? this.props.syncSelectedField(id, value, this.props.parentType)
-            : null;
-        },
-        onBlur: (id, value) => {
-          this.props.syncSelectedField
-            ? this.props.syncSelectedField(null, value, this.props.parentType)
-            : null;
-          this.onFormBlur(id, value);
-        },
+        onBlur: this.onFormBlur.bind(this),
         uiSchema,
         children: (
           <button ref={submitRef} type="submit" style={{ display: 'none' }} />

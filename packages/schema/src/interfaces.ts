@@ -53,11 +53,6 @@ export interface ISelection {
 
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
-  selectedPropField?: {
-    id: string | null;
-    value: any;
-    parentType: 'panel' | 'dialog';
-  };
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
@@ -153,11 +148,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   ): void;
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
-  syncSelectedPropField(data: {
-    id: string | null;
-    value: any;
-    parentType: 'panel' | 'dialog';
-  }): void;
   setUserToFollow(userId?: number): void;
   syncFormData(form: any): void;
 
