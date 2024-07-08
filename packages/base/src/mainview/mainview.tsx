@@ -149,7 +149,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - the source id.
    * @param source - the source object.
    */
-  addSource(id: string, source: IJGISSource): void {
+  async addSource(id: string, source: IJGISSource): Promise<void> {
     // Workaround stupid maplibre issue
     this._Map._lazyInitEmptyStyle();
 
@@ -161,6 +161,19 @@ export class MainView extends React.Component<IProps, IStates> {
             type: 'raster',
             tiles: [this.computeSourceUrl(source)],
             tileSize: 256
+          });
+        }
+        break;
+      }
+      case 'GeoJSONSource': {
+        const mapSource = this._Map.getSource(id) as MapLibre.GeoJSONSource;
+        if (!mapSource) {
+          const data =
+            source.parameters?.data ||
+            (await this._model.readGeoJSON(source.parameters?.path));
+          this._Map.addSource(id, {
+            type: 'geojson',
+            data: data
           });
         }
       }
@@ -193,18 +206,28 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - the source id.
    * @param source - the source object.
    */
-  updateSource(id: string, source: IJGISSource): void {
+  async updateSource(id: string, source: IJGISSource): Promise<void> {
     // Workaround stupid maplibre issue
     this._Map._lazyInitEmptyStyle();
 
+    const mapSource = this._Map.getSource(id) as MapLibre.RasterTileSource;
+    if (!mapSource) {
+      console.log(`Source id ${id} does not exist`);
+      return;
+    }
     switch (source.type) {
       case 'RasterSource': {
-        const mapSource = this._Map.getSource(id) as MapLibre.RasterTileSource;
-        if (!mapSource) {
-          console.log(`Source id ${id} does not exist`);
-          return;
-        }
         mapSource.setTiles([this.computeSourceUrl(source)]);
+        break;
+      }
+      case 'GeoJSONSource': {
+        const data =
+          source.parameters?.data ||
+          (await this._model.readGeoJSON(source.parameters?.path));
+        this._Map.addSource(id, {
+          type: 'geojson',
+          data: data
+        });
       }
     }
   }
@@ -226,7 +249,7 @@ export class MainView extends React.Component<IProps, IStates> {
    *
    * @param layerIds - the list of layers in the depth order (beneath first).
    */
-  updateLayers(layerIds: string[]) {
+  updateLayers(layerIds: string[]): void {
     const callback = () => {
       const previousLayerIds = this._Map
         .getStyle()
@@ -239,7 +262,7 @@ export class MainView extends React.Component<IProps, IStates> {
       layerIds
         .slice()
         .reverse()
-        .forEach(layerId => {
+        .forEach(async layerId => {
           const layer = this._model.sharedModel.getLayer(layerId);
 
           if (!layer) {
@@ -263,7 +286,7 @@ export class MainView extends React.Component<IProps, IStates> {
           if (this._Map.getLayer(layerId)) {
             this.moveLayer(layerId, indexInMap);
           } else {
-            this.addLayer(layerId, layer, indexInMap);
+            await this.addLayer(layerId, layer, indexInMap);
           }
 
           // Remove the element of the previous list as treated.
@@ -277,6 +300,8 @@ export class MainView extends React.Component<IProps, IStates> {
       previousLayerIds.forEach(layerId => {
         this._Map.removeLayer(layerId);
       });
+
+      this._ready = true;
     };
 
     this._mapLibreExecute(callback);
@@ -289,7 +314,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param layer - the layer object.
    * @param index - expected index of the layer.
    */
-  addLayer(id: string, layer: IJGISLayer, index: number) {
+  async addLayer(id: string, layer: IJGISLayer, index: number): Promise<void> {
     // Add the source if necessary.
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getSource(sourceId);
@@ -297,7 +322,7 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
     if (!this._Map.getSource(sourceId)) {
-      this.addSource(sourceId, source);
+      await this.addSource(sourceId, source);
     }
 
     // Get the beforeId value according to the expected index.
@@ -327,6 +352,35 @@ export class MainView extends React.Component<IProps, IStates> {
           },
           beforeId
         );
+        break;
+      }
+      case 'VectorLayer': {
+        this._Map.addLayer(
+          {
+            id: id,
+            type: layer.parameters?.type,
+            layout: {
+              visibility: layer.visible ? 'visible' : 'none'
+            },
+            source: sourceId,
+            minzoom: source.parameters?.minZoom || 0,
+            maxzoom: source.parameters?.maxZoom || 24
+          },
+          beforeId
+        );
+        this._Map.setPaintProperty(
+          id,
+          `${layer.parameters?.type}-color`,
+          layer.parameters?.color !== undefined
+            ? layer.parameters.color
+            : '#FF0000'
+        );
+        this._Map.setPaintProperty(
+          id,
+          `${layer.parameters?.type}-opacity`,
+          layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
+        );
+        break;
       }
     }
   }
@@ -337,7 +391,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - id of the layer.
    * @param index - expected index of the layer.
    */
-  moveLayer(id: string, index: number | undefined) {
+  moveLayer(id: string, index: number | undefined): void {
     // Get the beforeId value according to the expected index.
     const currentLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
     let beforeId: string | undefined = undefined;
@@ -353,8 +407,8 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - id of the layer.
    * @param layer - the layer object.
    */
-  updateLayer(id: string, layer: IJGISLayer): void {
-    const callback = () => {
+  async updateLayer(id: string, layer: IJGISLayer): Promise<void> {
+    const callback = async () => {
       const sourceId = layer.parameters?.source;
       const source = this._model.sharedModel.getSource(sourceId);
       if (!source) {
@@ -362,7 +416,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       if (!this._Map.getSource(sourceId)) {
-        this.addSource(sourceId, source);
+        await this.addSource(sourceId, source);
       }
 
       // Check if the layer already exist in the map.
@@ -374,11 +428,35 @@ export class MainView extends React.Component<IProps, IStates> {
           'visibility',
           layer.visible ? 'visible' : 'none'
         );
-        this._Map.setPaintProperty(
-          id,
-          'raster-opacity',
-          layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
-        );
+        switch (layer.type) {
+          case 'RasterLayer': {
+            this._Map.setPaintProperty(
+              id,
+              'raster-opacity',
+              layer.parameters?.opacity !== undefined
+                ? layer.parameters.opacity
+                : 1
+            );
+            break;
+          }
+          case 'VectorLayer': {
+            this._Map.setPaintProperty(
+              id,
+              `${layer.parameters?.type}-color`,
+              layer.parameters?.color !== undefined
+                ? layer.parameters.color
+                : '#FF0000'
+            );
+            this._Map.setPaintProperty(
+              id,
+              `${layer.parameters?.type}-opacity`,
+              layer.parameters?.opacity !== undefined
+                ? layer.parameters.opacity
+                : 1
+            );
+            break;
+          }
+        }
       }
     };
 
@@ -436,6 +514,11 @@ export class MainView extends React.Component<IProps, IStates> {
     _: IJupyterGISDoc,
     change: IJGISLayerDocChange
   ): void {
+    // Avoid concurrency update on layers on first load, if layersTreeChanged and
+    // LayersChanged are triggered simultaneously.
+    if (!this._ready) {
+      return;
+    }
     change.layerChange?.forEach(change => {
       const layer = change.newValue;
       if (!layer) {
@@ -454,6 +537,7 @@ export class MainView extends React.Component<IProps, IStates> {
     sender: IJupyterGISDoc,
     change: IJGISLayerTreeDocChange
   ): void {
+    this._ready = false;
     // We can't properly use the change, because of the nested groups in the the shared
     // document which is flattened for the map tool.
     this.updateLayers(JupyterGISModel.getOrderedLayerIds(this._model));
@@ -529,4 +613,5 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
+  private _ready = false;
 }

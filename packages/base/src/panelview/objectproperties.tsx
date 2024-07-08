@@ -17,7 +17,11 @@ import { v4 as uuid } from 'uuid';
 
 import { deepCopy } from '../tools';
 import { IControlPanelModel } from '../types';
-import { LayerPropertiesForm, RasterSourcePropertiesForm } from './formbuilder';
+import {
+  LayerPropertiesForm,
+  ObjectPropertiesForm,
+  RasterSourcePropertiesForm
+} from './formbuilder';
 import { JupyterGISWidget } from '../widget';
 
 export class ObjectProperties extends PanelWithToolbar {
@@ -255,10 +259,15 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
             }}
           />
         )}
-        {/* {selectedObjSource.type === 'GeoJSONSource' && (
-          <GeoJSONSourcePropertiesForm
-
-        } */}
+        {selectedObjSource.type === 'GeoJSONSource' && (
+          <ObjectPropertiesForm
+            model={model}
+            sourceData={selectedObjectSourceData}
+            syncData={(properties: { [key: string]: any }) => {
+              this.syncObjectProperties(selectedObjectSourceId, properties);
+            }}
+          />
+        )}
       </div>
     );
   }

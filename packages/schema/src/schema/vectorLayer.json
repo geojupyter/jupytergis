@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "description": "VectorLayer",
+  "title": "IVectorLayer",
+  "required": ["source"],
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "The id of the source"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["circle", "fill", "line"],
+      "description": "The type of vector layer"
+    },
+    "color": {
+      "type": "string",
+      "description": "The color of the the object",
+      "default": "#FF0000"
+    },
+    "opacity": {
+      "type": "number",
+      "description": "The opacity of the the object",
+      "default": 1,
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}

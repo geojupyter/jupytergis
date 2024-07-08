@@ -29,6 +29,7 @@ export namespace CommandIDs {
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 
   export const newGeoJSONData = 'jupytergis:newGeoJSONData';
+  export const newVectorLayer = 'jupytergis:newVectorLayer';
 }
 
 /**
@@ -93,6 +94,17 @@ export function addCommands(
       layerBrowserRegistry,
       formSchemaRegistry
     )
+  });
+
+  commands.addCommand(CommandIDs.newVectorLayer, {
+    label: trans.__('New vector layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    icon: geoJSONIcon,
+    execute: Private.createVectorLayer(tracker)
   });
 
   if (drive) {
@@ -183,11 +195,16 @@ namespace Private {
         return;
       }
 
-      drive
-        .get(filepath)
-        .then(async contentModel => {
-          const name = PathExt.basename(contentModel.name, '.json');
-          const geoJSONData = JSON.parse(contentModel.content);
+      current.context.model
+        .readGeoJSON(filepath)
+        .then(async geoJSONData => {
+          if (geoJSONData === undefined) {
+            showErrorMessage(
+              'Error reading GeoJSON',
+              'An error occurred while reading the GeoJSON file'
+            );
+          }
+          const name = PathExt.basename(filepath, '.json');
           const valid = validate(geoJSONData);
           if (!valid) {
             const dialog = new DataErrorDialog({
@@ -205,11 +222,11 @@ namespace Private {
           if (saveDataInShared) {
             parameters.data = geoJSONData;
           } else {
-            (parameters.path = contentModel.path), (parameters.valid = valid);
+            (parameters.path = filepath), (parameters.valid = valid);
           }
 
           const sourceModel: IJGISSource = {
-            type: 'GeoJSON',
+            type: 'GeoJSONSource',
             name,
             parameters
           };
@@ -223,6 +240,67 @@ namespace Private {
           showErrorMessage('Error opening GeoJSON file', e);
           return;
         });
+    };
+  }
+
+  export function createVectorLayer(tracker: WidgetTracker<JupyterGISWidget>) {
+    return async (arg: any) => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const sources = current.context.model.getSourcesByType('GeoJSONSource');
+
+      const form = {
+        title: 'Vector Layer parameters',
+        default: (model: IJupyterGISModel) => {
+          return {
+            name: 'VectorSource',
+            source: sources[Object.keys(sources)[0]] ?? null
+          };
+        }
+      };
+
+      current.context.model.syncFormData(form);
+
+      const dialog = new FormDialog({
+        context: current.context,
+        title: form.title,
+        sourceData: form.default(current.context.model),
+        schema: FORM_SCHEMA['VectorLayer'],
+        syncData: (props: IDict) => {
+          const sharedModel = current.context.model.sharedModel;
+          if (!sharedModel) {
+            return;
+          }
+
+          const { name, ...parameters } = props;
+
+          const source = Object.keys(sources).find(
+            key => sources[key] === parameters.source
+          );
+
+          const layerModel: IJGISLayer = {
+            type: 'VectorLayer',
+            parameters: {
+              source,
+              type: parameters.type,
+              color: parameters.color,
+              opacity: parameters.opacity
+            },
+            visible: true,
+            name: name + ' Layer'
+          };
+
+          current.context.model.addLayer(UUID.uuid4(), layerModel);
+        },
+        cancelButton: () => {
+          current.context.model.syncFormData(undefined);
+        }
+      });
+      await dialog.launch();
     };
   }
 }

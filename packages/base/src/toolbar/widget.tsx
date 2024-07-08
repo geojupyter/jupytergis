@@ -64,9 +64,18 @@ export class ToolbarWidget extends Toolbar {
       );
 
       this.addItem(
-        'Add GeoJSON data',
+        'newGeoJSONData',
         new CommandToolbarButton({
           id: CommandIDs.newGeoJSONData,
+          label: '',
+          commands: options.commands
+        })
+      );
+
+      this.addItem(
+        'newVectorLayer',
+        new CommandToolbarButton({
+          id: CommandIDs.newVectorLayer,
           label: '',
           commands: options.commands
         })
