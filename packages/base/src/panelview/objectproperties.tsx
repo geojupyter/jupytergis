@@ -207,6 +207,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
           <div>
             <h3>Source Properties</h3>
             <RasterSourcePropertiesForm
+              formContext="update"
               model={model}
               filePath={`${this.state.filePath}::panel`}
               schema={schema}
@@ -231,6 +232,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       <div>
         <h3>Layer Properties</h3>
         <LayerPropertiesForm
+          formContext="update"
           sourceType={selectedObjSource.type}
           model={model}
           filePath={`${this.state.filePath}::panel`}
@@ -243,6 +245,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         <h3>Source Properties</h3>
         {selectedObjSource.type === 'RasterSource' && (
           <RasterSourcePropertiesForm
+            formContext="update"
             model={model}
             filePath={`${this.state.filePath}::panel`}
             schema={sourceSchema}

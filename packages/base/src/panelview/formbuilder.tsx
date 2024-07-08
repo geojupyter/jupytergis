@@ -9,17 +9,50 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import { deepCopy } from '../tools';
 
 interface IStates {
-  internalData?: IDict;
   schema?: IDict;
 }
 
 interface IProps {
+  /**
+   * The context of the form, whether it's for creating an object or updating its properties. This will have the effect of showing or not inputs for readonly properties.
+   */
+  formContext: 'update' | 'create';
+
+  /**
+   * The source data for filling the form
+   */
   sourceData: IDict | undefined;
+
+  /**
+   * Path to the file
+   */
   filePath?: string;
+
+  /**
+   * Current GIS model
+   */
   model: IJupyterGISModel;
+
+  /**
+   * callback for syncing back the data into the model upon form submit
+   * @param properties
+   */
   syncData: (properties: IDict) => void;
+
+  /**
+   * The schema for the rjsf form
+   */
   schema?: IDict;
-  cancel?: () => void;
+
+  /**
+   * Promise that gets resolved when the parent of the form gets disposed. The Promise gets resolved with a boolean value whether or not to submit the form.
+   */
+  onParentDispose?: Promise<boolean>;
+
+  /**
+   * Whether or not to show submit button
+   */
+  showSubmitButton?: boolean;
 }
 
 // Reusing the datalayer/jupyter-react component:
@@ -54,18 +87,25 @@ export const LuminoSchemaForm = (
 export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
-    const sourceData = { ...this.props.sourceData };
+    this.currentFormData = deepCopy(this.props.sourceData);
     this.state = {
-      internalData: sourceData,
       schema: props.schema
     };
+
+    if (this.props.onParentDispose) {
+      this.props.onParentDispose.then((submit: boolean) => {
+        if (submit) {
+          this.syncData(this.currentFormData);
+        }
+      });
+    }
   }
 
   componentDidUpdate(prevProps: IProps, prevState: IStates): void {
     if (prevProps.sourceData !== this.props.sourceData) {
-      const sourceData = deepCopy(this.props.sourceData);
+      this.currentFormData = deepCopy(this.props.sourceData);
       const schema = deepCopy(this.props.schema);
-      this.setState(old => ({ ...old, internalData: sourceData, schema }));
+      this.setState(old => ({ ...old, schema }));
     }
   }
 
@@ -97,8 +137,8 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
         this.processSchema(data, v, uiSchema[k]);
       }
 
-      // Don't show readOnly properties when coming from the properties panel
-      if (v['readOnly']) {
+      // Don't show readOnly properties when it's a form for updating an object
+      if (v['readOnly'] && this.props.formContext === 'update') {
         this.removeFormEntry(k, data, schema, uiSchema);
       }
     });
@@ -127,12 +167,16 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     }
   }
 
-  protected syncData(properties: IDict<any>) {
+  protected syncData(properties: IDict<any> | undefined) {
+    if (!properties) {
+      return;
+    }
+
     this.props.syncData(properties);
   }
 
   protected onFormChange(e: IChangeEvent) {
-    // This is a no-op here
+    this.currentFormData = e.formData;
   }
 
   protected onFormBlur(id: string, value: any) {
@@ -140,24 +184,15 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
   }
 
   private onFormSubmit = (e: ISubmitEvent<any>): void => {
-    const internalData = { ...this.state.internalData };
-    Object.entries(e.formData).forEach(([k, v]) => (internalData[k] = v));
-    this.setState(
-      old => ({
-        ...old,
-        internalData
-      }),
-      () => {
-        this.syncData(e.formData);
-        this.props.cancel && this.props.cancel();
-      }
-    );
+    this.currentFormData = e.formData;
+
+    this.syncData(this.currentFormData);
   };
 
   render(): React.ReactNode {
     if (this.props.schema) {
       const schema = { ...this.state.schema, additionalProperties: true };
-      const formData = this.state.internalData;
+      const formData = this.currentFormData;
 
       const uiSchema = {
         additionalProperties: {
@@ -188,27 +223,23 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
           <div className="jGIS-property-outer">
             <LuminoSchemaForm>{formSchema}</LuminoSchemaForm>
           </div>
-          <div className="jGIS-property-buttons">
-            {this.props.cancel ? (
+          {(this.props.showSubmitButton === undefined ||
+            this.props.showSubmitButton) && (
+            <div className="jGIS-property-buttons">
               <button
-                className="jp-Dialog-button jp-mod-reject jp-mod-styled"
-                onClick={this.props.cancel}
+                className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+                onClick={() => submitRef.current?.click()}
               >
-                <div className="jp-Dialog-buttonLabel">Cancel</div>
+                <div className="jp-Dialog-buttonLabel">Ok</div>
               </button>
-            ) : null}
-
-            <button
-              className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-              onClick={() => submitRef.current?.click()}
-            >
-              <div className="jp-Dialog-buttonLabel">Submit</div>
-            </button>
-          </div>
+            </div>
+          )}
         </div>
       );
     }
   }
+
+  protected currentFormData: IDict<any> | undefined;
 }
 
 interface ILayerProps extends IProps {
@@ -303,15 +334,14 @@ export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
   }
 
   protected onFormBlur(id: string, value: any) {
+    super.onFormBlur(id, value);
+
     // Is there a better way to spot the url text entry?
     if (!id.endsWith('_url')) {
       return;
     }
-    const internalData = this.state.internalData;
-    if (internalData) {
-      internalData.url = value;
-    }
-    this.setState({ internalData });
+
+    // Force a rerender on url change, as it probably changes the schema
     this.forceUpdate();
   }
 }

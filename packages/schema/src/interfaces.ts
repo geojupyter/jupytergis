@@ -149,7 +149,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   setUserToFollow(userId?: number): void;
-  syncFormData(form: any): void;
 
   getClientId(): number;
 

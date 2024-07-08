@@ -5,29 +5,38 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
+  IDict,
+  IJGISFormSchemaRegistry,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISSource,
   IJupyterGISModel,
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
-import { ReactWidget } from '@jupyterlab/ui-components';
 import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
+import { RasterSourcePropertiesForm } from '../panelview';
+import { deepCopy } from '../tools';
+import { Dialog } from '@jupyterlab/apputils';
 
 interface ILayerBrowserDialogProps {
   model: IJupyterGISModel;
   registry: IRasterLayerGalleryEntry[];
+  formSchemaRegistry: IJGISFormSchemaRegistry;
+  onParentDispose: Promise<boolean>;
 }
 
 export const LayerBrowserComponent = ({
   model,
-  registry
+  registry,
+  formSchemaRegistry,
+  onParentDispose
 }: ILayerBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] =
     useState<HTMLElement | null>();
+  const [creatingCustomRaster, setCreatingCustomRaster] = useState(false);
 
   const [galleryWithCategory, setGalleryWithCategory] =
     useState<IRasterLayerGalleryEntry[]>(registry);
@@ -39,12 +48,6 @@ export const LayerBrowserComponent = ({
   );
 
   useEffect(() => {
-    // Override default dialog style
-    const dialog = document.getElementsByClassName('jp-Dialog-content');
-    const dialogHeader = document.getElementsByClassName('jp-Dialog-header');
-    dialogHeader[0].setAttribute('style', 'padding: 0');
-    dialog[0].classList.add('jgis-dialog-override');
-
     model.sharedModel.layersChanged.connect(handleLayerChange);
 
     return () => {
@@ -86,6 +89,10 @@ export const LayerBrowserComponent = ({
     setSelectedCategory(sameAsOld ? null : categoryTab);
   };
 
+  const handleCustomTileClick = () => {
+    setCreatingCustomRaster(true);
+  };
+
   /**
    * Add tile layer and source to model
    * @param tile Tile to add
@@ -111,6 +118,75 @@ export const LayerBrowserComponent = ({
     model.sharedModel.addSource(sourceId, sourceModel);
     model.addLayer(UUID.uuid4(), layerModel);
   };
+
+  if (creatingCustomRaster) {
+    const schema = deepCopy(
+      formSchemaRegistry.getSchemas().get('RasterSource')
+    );
+    if (!schema) {
+      return;
+    }
+
+    // Inject name in schema
+    schema['required'] = ['name', ...schema['required']];
+    schema['properties'] = {
+      name: { type: 'string', description: 'The name of the raster layer' },
+      ...schema['properties']
+    };
+
+    const syncData = (props: IDict) => {
+      const sharedModel = model.sharedModel;
+      if (!sharedModel) {
+        return;
+      }
+
+      const { name, ...parameters } = props;
+
+      const sourceId = UUID.uuid4();
+
+      const sourceModel: IJGISSource = {
+        type: 'RasterSource',
+        name,
+        parameters: {
+          url: parameters.url,
+          minZoom: parameters.minZoom,
+          maxZoom: parameters.maxZoom
+        }
+      };
+
+      const layerModel: IJGISLayer = {
+        type: 'RasterLayer',
+        parameters: {
+          source: sourceId
+        },
+        visible: true,
+        name: name + ' Layer'
+      };
+
+      sharedModel.addSource(sourceId, sourceModel);
+      model.addLayer(UUID.uuid4(), layerModel);
+    };
+
+    return (
+      <div style={{ overflow: 'hidden' }}>
+        <RasterSourcePropertiesForm
+          formContext="create"
+          model={model}
+          sourceData={{
+            name: 'Custom Source',
+            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            maxZoom: 24,
+            minZoom: 0,
+            attribution: '(C) OpenStreetMap contributors'
+          }}
+          schema={schema}
+          syncData={syncData}
+          onParentDispose={onParentDispose}
+          showSubmitButton={false}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="jgis-layer-browser-container">
@@ -144,6 +220,26 @@ export const LayerBrowserComponent = ({
         </div>
       </div>
       <div className="jgis-layer-browser-grid">
+        <div
+          className="jgis-layer-browser-tile"
+          onClick={() => handleCustomTileClick()}
+        >
+          <div className="jgis-layer-browser-tile-img-container">
+            <div className="jgis-layer-browser-icon">
+              <FontAwesomeIcon style={{ height: 20 }} icon={faPlus} />
+            </div>
+          </div>
+          <div className="jgis-layer-browser-text-container">
+            <div className="jgis-layer-browser-text-info">
+              <h3 className="jgis-layer-browser-text-header jgis-layer-browser-text-general">
+                Custom Raster Layer
+              </h3>
+            </div>
+            <p className="jgis-layer-browser-text-general jgis-layer-browser-text-source">
+              Create A Custom Raster Layer
+            </p>
+          </div>
+        </div>
         {filteredGallery.map(tile => (
           <div
             className="jgis-layer-browser-tile"
@@ -183,20 +279,50 @@ export const LayerBrowserComponent = ({
   );
 };
 
-export class LayerBrowserWidget extends ReactWidget {
-  private _model: IJupyterGISModel;
-  private _registry: IRasterLayerGalleryEntry[];
-
-  constructor(model: IJupyterGISModel, registry: IRasterLayerGalleryEntry[]) {
-    super();
-    this.id = 'jupytergis::layerBrowser';
-    this._model = model;
-    this._registry = registry;
-  }
-
-  render() {
-    return (
-      <LayerBrowserComponent model={this._model} registry={this._registry} />
+export class LayerBrowserWidget extends Dialog<boolean> {
+  constructor(
+    model: IJupyterGISModel,
+    registry: IRasterLayerGalleryEntry[],
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    // This is a bit complex so that "this" is defined
+    let _disposeDialog: (result: boolean) => void;
+    let _setDisposeDialog: () => void;
+    const _onDisposeSet = new Promise<void>(resolve => {
+      _setDisposeDialog = resolve;
+    });
+    const onDispose = new Promise<boolean>(resolve => {
+      _disposeDialog = resolve;
+      _setDisposeDialog();
+    });
+    const body = (
+      <LayerBrowserComponent
+        model={model}
+        registry={registry}
+        formSchemaRegistry={formSchemaRegistry}
+        onParentDispose={onDispose}
+      />
     );
+
+    super({ body, buttons: [Dialog.cancelButton(), Dialog.okButton()] });
+    _onDisposeSet.then(() => {
+      this.disposeDialog = _disposeDialog;
+    });
+
+    // Override default dialog style
+    const dialog = this.node.getElementsByClassName('jp-Dialog-content');
+    const dialogHeader = this.node.getElementsByClassName('jp-Dialog-header');
+    dialogHeader[0].setAttribute('style', 'padding: 0');
+    dialog[0].classList.add('jgis-dialog-override');
   }
+
+  async launch(): Promise<Dialog.IResult<boolean>> {
+    return super.launch().then(result => {
+      this.disposeDialog(result.button.accept);
+
+      return result;
+    });
+  }
+
+  private disposeDialog: (result: boolean) => void;
 }

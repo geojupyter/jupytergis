@@ -1,18 +1,12 @@
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { Dialog, WidgetTracker } from '@jupyterlab/apputils';
+import { WidgetTracker } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
 import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
 
 import {
-  IDict,
   IJGISFormSchemaRegistry,
-  IJGISLayer,
-  IJGISLayerBrowserRegistry,
-  IJGISSource,
-  IJupyterGISModel
+  IJGISLayerBrowserRegistry
 } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
-import { FormDialog } from './formdialog';
 
 import { LayerBrowserWidget } from './layerBrowser/layerBrowserDialog';
 import { JupyterGISWidget } from './widget';
@@ -65,17 +59,6 @@ export function addCommands(
     icon: undoIcon
   });
 
-  commands.addCommand(CommandIDs.newRasterLayer, {
-    label: trans.__('New Tile Layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    iconClass: 'fa fa-map',
-    execute: Private.createRasterSourceAndLayer(tracker)
-  });
-
   commands.addCommand(CommandIDs.openLayerBrowser, {
     label: trans.__('Open Layer Browser'),
     isEnabled: () => {
@@ -84,7 +67,11 @@ export function addCommands(
         : false;
     },
     iconClass: 'fa fa-book-open',
-    execute: Private.createLayerBrowser(tracker, layerBrowserRegistry)
+    execute: Private.createLayerBrowser(
+      tracker,
+      layerBrowserRegistry,
+      formSchemaRegistry
+    )
   });
 }
 
@@ -95,7 +82,6 @@ export namespace CommandIDs {
   export const redo = 'jupytergis:redo';
   export const undo = 'jupytergis:undo';
 
-  export const newRasterLayer = 'jupytergis:newRasterLayer';
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 }
 
@@ -121,7 +107,8 @@ namespace Private {
 
   export function createLayerBrowser(
     tracker: WidgetTracker<JupyterGISWidget>,
-    layerBrowserRegistry: IJGISLayerBrowserRegistry
+    layerBrowserRegistry: IJGISLayerBrowserRegistry,
+    formSchemaRegistry: IJGISFormSchemaRegistry
   ) {
     return async () => {
       const current = tracker.currentWidget;
@@ -130,84 +117,11 @@ namespace Private {
         return;
       }
 
-      const dialog = new Dialog({
-        body: new LayerBrowserWidget(
-          current.context.model,
-          layerBrowserRegistry.getRegistryLayers()
-        ),
-        buttons: [Dialog.cancelButton(), Dialog.okButton()]
-      });
-      await dialog.launch();
-    };
-  }
-
-  // TODO Allow for creating only a source (e.g. loading a CSV file)
-  // TODO Allow for creating only a layer (e.g. creating a vector layer given a source selected from a dropdown)
-  export function createRasterSourceAndLayer(
-    tracker: WidgetTracker<JupyterGISWidget>
-  ) {
-    return async (args: any) => {
-      const current = tracker.currentWidget;
-
-      if (!current) {
-        return;
-      }
-
-      const form = {
-        title: 'Raster Layer parameters',
-        default: (model: IJupyterGISModel) => {
-          return {
-            name: 'RasterSource',
-            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            maxZoom: 24,
-            minZoom: 0
-          };
-        }
-      };
-
-      current.context.model.syncFormData(form);
-
-      const dialog = new FormDialog({
-        context: current.context,
-        title: form.title,
-        sourceData: form.default(current.context.model),
-        schema: FORM_SCHEMA['RasterSource'],
-        syncData: (props: IDict) => {
-          const sharedModel = current.context.model.sharedModel;
-          if (!sharedModel) {
-            return;
-          }
-
-          const { name, ...parameters } = props;
-
-          const sourceId = UUID.uuid4();
-
-          const sourceModel: IJGISSource = {
-            type: 'RasterSource',
-            name,
-            parameters: {
-              url: parameters.url,
-              minZoom: parameters.minZoom,
-              maxZoom: parameters.maxZoom
-            }
-          };
-
-          const layerModel: IJGISLayer = {
-            type: 'RasterLayer',
-            parameters: {
-              source: sourceId
-            },
-            visible: true,
-            name: name + ' Layer'
-          };
-
-          sharedModel.addSource(sourceId, sourceModel);
-          current.context.model.addLayer(UUID.uuid4(), layerModel);
-        },
-        cancelButton: () => {
-          current.context.model.syncFormData(undefined);
-        }
-      });
+      const dialog = new LayerBrowserWidget(
+        current.context.model,
+        layerBrowserRegistry.getRegistryLayers(),
+        formSchemaRegistry
+      );
       await dialog.launch();
     };
   }
