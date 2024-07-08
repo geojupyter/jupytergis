@@ -1,19 +1,23 @@
 import { SchemaForm } from '@deathbeds/jupyterlab-rjsf';
 import { MessageLoop } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
-import { ISubmitEvent } from '@rjsf/core';
+import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 import * as React from 'react';
 
 import { IDict } from '../types';
+import { IJupyterGISModel } from '@jupytergis/schema';
+import { deepCopy } from '../tools';
 
 interface IStates {
   internalData?: IDict;
   schema?: IDict;
 }
+
 interface IProps {
   parentType: 'dialog' | 'panel';
   sourceData: IDict | undefined;
   filePath?: string;
+  model: IJupyterGISModel;
   syncData: (properties: IDict) => void;
   syncSelectedField?: (
     id: string | null,
@@ -56,86 +60,92 @@ export const LuminoSchemaForm = (
 export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
+    const sourceData = { ...this.props.sourceData };
     this.state = {
-      internalData: { ...this.props.sourceData },
+      internalData: sourceData,
       schema: props.schema
     };
   }
 
-  setStateByKey = (key: string, value: any): void => {
-    const floatValue = parseFloat(value);
-    if (Number.isNaN(floatValue)) {
-      return;
-    }
-    this.setState(
-      old => ({
-        ...old,
-        internalData: { ...old.internalData, [key]: floatValue }
-      }),
-      () => this.props.syncData({ [key]: floatValue })
-    );
-  };
-
   componentDidUpdate(prevProps: IProps, prevState: IStates): void {
     if (prevProps.sourceData !== this.props.sourceData) {
-      this.setState(old => ({ ...old, internalData: this.props.sourceData }));
+      const sourceData = deepCopy(this.props.sourceData);
+      const schema = deepCopy(this.props.schema);
+      this.setState(old => ({ ...old, internalData: sourceData, schema }));
     }
   }
 
-  buildForm(): JSX.Element[] {
-    if (!this.props.sourceData || !this.state.internalData) {
-      return [];
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ): void {
+    if (!schema['properties']) {
+      return;
     }
-    const inputs: JSX.Element[] = [];
 
-    for (const [key, value] of Object.entries(this.props.sourceData)) {
-      let input: JSX.Element;
-      if (typeof value === 'string' || typeof value === 'number') {
-        input = (
-          <div key={key}>
-            <label htmlFor="">{key}</label>
-            <input
-              type="number"
-              value={this.state.internalData[key]}
-              onChange={e => this.setStateByKey(key, e.target.value)}
-            />
-          </div>
-        );
-        inputs.push(input);
-      }
-    }
-    return inputs;
-  }
-
-  removeArrayButton(schema: IDict, uiSchema: IDict): void {
     Object.entries(schema['properties'] as IDict).forEach(([k, v]) => {
+      uiSchema[k] = {};
+
       if (v['type'] === 'array') {
+        // Remove array buttons
         uiSchema[k] = {
           'ui:options': {
             orderable: false,
             removable: false,
             addable: false
-          }
+          },
+          ...uiSchema[k]
         };
-      } else if (v['type'] === 'object') {
-        uiSchema[k] = {};
-        this.removeArrayButton(v, uiSchema[k]);
+      }
+
+      if (v['type'] === 'object') {
+        this.processSchema(data, v, uiSchema[k]);
+      }
+
+      // Don't show readOnly properties when coming from the properties panel
+      if (v['readOnly'] && this.props.parentType === 'panel') {
+        this.removeFormEntry(k, data, schema, uiSchema);
       }
     });
   }
 
-  generateUiSchema(schema: IDict): IDict {
-    const uiSchema = {
-      additionalProperties: {
-        'ui:label': false,
-        classNames: 'jGIS-hidden-field'
-      }
-    };
-    this.removeArrayButton(schema, uiSchema);
-    return uiSchema;
+  /**
+   * Remove a specific entry from the form. Can be used in subclasses if needed while under processSchema.
+   * @param entry The entry name
+   * @param data The form data
+   * @param schema The form schema
+   * @param uiSchema The form uiSchema
+   */
+  protected removeFormEntry(
+    entry: string,
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ) {
+    if (data) {
+      delete data[entry];
+    }
+    delete schema.properties[entry];
+    delete uiSchema[entry];
+    if (schema.required && schema.required.includes(entry)) {
+      schema.required.splice(schema.required.indexOf(entry), 1);
+    }
   }
 
-  onFormSubmit = (e: ISubmitEvent<any>): void => {
+  protected syncData(properties: IDict<any>) {
+    this.props.syncData(properties);
+  }
+
+  protected onFormChange(e: IChangeEvent) {
+    // This is a no-op here
+  }
+
+  protected onFormBlur(id: string, value: any) {
+    // This is a no-op here
+  }
+
+  private onFormSubmit = (e: ISubmitEvent<any>): void => {
     const internalData = { ...this.state.internalData };
     Object.entries(e.formData).forEach(([k, v]) => (internalData[k] = v));
     this.setState(
@@ -144,7 +154,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
         internalData
       }),
       () => {
-        this.props.syncData(e.formData);
+        this.syncData(e.formData);
         this.props.cancel && this.props.cancel();
       }
     );
@@ -152,14 +162,24 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
 
   render(): React.ReactNode {
     if (this.props.schema) {
-      const schema = { ...this.props.schema, additionalProperties: true };
+      const schema = { ...this.state.schema, additionalProperties: true };
+      const formData = this.state.internalData;
+
+      const uiSchema = {
+        additionalProperties: {
+          'ui:label': false,
+          classNames: 'jGIS-hidden-field'
+        }
+      };
+      this.processSchema(formData, schema, uiSchema);
 
       const submitRef = React.createRef<HTMLButtonElement>();
 
-      const formSchema = new SchemaForm(schema ?? {}, {
+      const formSchema = new SchemaForm(schema, {
         liveValidate: true,
-        formData: this.state.internalData,
-        onSubmit: this.onFormSubmit,
+        formData,
+        onChange: this.onFormChange.bind(this),
+        onSubmit: this.onFormSubmit.bind(this),
         onFocus: (id, value) => {
           this.props.syncSelectedField
             ? this.props.syncSelectedField(id, value, this.props.parentType)
@@ -169,8 +189,9 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
           this.props.syncSelectedField
             ? this.props.syncSelectedField(null, value, this.props.parentType)
             : null;
+          this.onFormBlur(id, value);
         },
-        uiSchema: this.generateUiSchema(this.props.schema),
+        uiSchema,
         children: (
           <button ref={submitRef} type="submit" style={{ display: 'none' }} />
         )
@@ -202,8 +223,111 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
           </div>
         </div>
       );
-    } else {
-      return <div>{this.buildForm()}</div>;
     }
+  }
+}
+
+interface ILayerProps extends IProps {
+  sourceType: string;
+}
+
+export class LayerPropertiesForm extends ObjectPropertiesForm {
+  props: ILayerProps;
+
+  constructor(props: ILayerProps) {
+    super(props);
+  }
+
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ): void {
+    super.processSchema(data, schema, uiSchema);
+
+    if (!schema.properties.source) {
+      return;
+    }
+
+    // Replace the source text box by a dropdown menu
+    const availableSources = this.props.model.getSourcesByType(
+      this.props.sourceType
+    );
+
+    schema.properties.source.enumNames = Object.values(availableSources);
+    schema.properties.source.enum = Object.keys(availableSources);
+  }
+}
+
+export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
+  private _urlParameters: string[] = [];
+
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ) {
+    super.processSchema(data, schema, uiSchema);
+
+    if (!schema.properties || !data) {
+      return;
+    }
+
+    // Grep all url-parameters from the url
+    const regex = /\{([^}]+)\}/g;
+    const matches: string[] = [];
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(data.url)) !== null) {
+      if (['max_zoom', 'min_zoom', 'x', 'y', 'z'].includes(match[1])) {
+        continue;
+      }
+      matches.push(match[1]);
+    }
+
+    this._urlParameters = matches;
+
+    if (matches.length === 0) {
+      this.removeFormEntry('urlParameters', data, schema, uiSchema);
+      return;
+    }
+
+    // Dynamically inject url parameters schema based of the url
+    const propertiesSchema = {};
+    schema.properties.urlParameters = {
+      type: 'object',
+      required: this._urlParameters,
+      properties: propertiesSchema
+    };
+
+    for (const parameterName of this._urlParameters) {
+      switch (parameterName) {
+        // Special case for "time" where a date picker widget is nicer
+        case 'time':
+          propertiesSchema[parameterName] = {
+            type: 'string',
+            format: 'date'
+          };
+          break;
+        default:
+          propertiesSchema[parameterName] = {
+            type: 'string'
+          };
+          break;
+      }
+    }
+  }
+
+  protected onFormBlur(id: string, value: any) {
+    // Is there a better way to spot the url text entry?
+    if (!id.endsWith('_url')) {
+      return;
+    }
+    const internalData = this.state.internalData;
+    if (internalData) {
+      internalData.url = value;
+    }
+    this.setState({ internalData });
+    this.forceUpdate();
   }
 }

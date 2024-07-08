@@ -41,6 +41,7 @@ export class FormDialog extends Dialog<IDict> {
       <div style={{ overflow: 'hidden' }}>
         <ObjectPropertiesForm
           parentType="dialog"
+          model={jGISModel}
           filePath={`${filePath}::dialog`}
           sourceData={options.sourceData}
           schema={options.schema}
