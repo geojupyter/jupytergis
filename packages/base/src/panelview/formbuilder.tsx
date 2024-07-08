@@ -6,6 +6,7 @@ import * as React from 'react';
 
 import { IDict } from '../types';
 import { IJupyterGISModel } from '@jupytergis/schema';
+import { deepCopy } from '../tools';
 
 interface IStates {
   internalData?: IDict;
@@ -68,8 +69,9 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
 
   componentDidUpdate(prevProps: IProps, prevState: IStates): void {
     if (prevProps.sourceData !== this.props.sourceData) {
-      const sourceData = { ...this.props.sourceData };
-      this.setState(old => ({ ...old, internalData: sourceData }));
+      const sourceData = deepCopy(this.props.sourceData);
+      const schema = deepCopy(this.props.schema);
+      this.setState(old => ({ ...old, internalData: sourceData, schema }));
     }
   }
 
@@ -103,12 +105,32 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
 
       // Don't show readOnly properties when coming from the properties panel
       if (v['readOnly'] && this.props.parentType === 'panel') {
-        uiSchema[k] = {
-          'ui:widget': 'hidden',
-          ...uiSchema[k]
-        };
+        this.removeFormEntry(k, data, schema, uiSchema);
       }
     });
+  }
+
+  /**
+   * Remove a specific entry from the form. Can be used in subclasses if needed while under processSchema.
+   * @param entry The entry name
+   * @param data The form data
+   * @param schema The form schema
+   * @param uiSchema The form uiSchema
+   */
+  protected removeFormEntry(
+    entry: string,
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ) {
+    if (data) {
+      delete data[entry];
+    }
+    delete schema.properties[entry];
+    delete uiSchema[entry];
+    if (schema.required && schema.required.includes(entry)) {
+      schema.required.splice(schema.required.indexOf(entry), 1);
+    }
   }
 
   protected syncData(properties: IDict<any>) {
@@ -140,7 +162,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
 
   render(): React.ReactNode {
     if (this.props.schema) {
-      const schema = { ...this.props.schema, additionalProperties: true };
+      const schema = { ...this.state.schema, additionalProperties: true };
       const formData = this.state.internalData;
 
       const uiSchema = {
@@ -264,6 +286,11 @@ export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
     }
 
     this._urlParameters = matches;
+
+    if (matches.length === 0) {
+      this.removeFormEntry('urlParameters', data, schema, uiSchema);
+      return;
+    }
 
     // Dynamically inject url parameters schema based of the url
     const propertiesSchema = {};
