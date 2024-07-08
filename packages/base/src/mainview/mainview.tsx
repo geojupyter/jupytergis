@@ -250,7 +250,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param layerIds - the list of layers in the depth order (beneath first).
    */
   updateLayers(layerIds: string[]): void {
-    const callback = () => {
+    const callback = async () => {
       const previousLayerIds = this._Map
         .getStyle()
         .layers.map(layer => layer.id);
@@ -259,42 +259,41 @@ export class MainView extends React.Component<IProps, IStates> {
       // bottom.
       // This is to ensure that the beforeId (layer on top of the one we add/move)
       // is already added/moved in the map.
-      layerIds
-        .slice()
-        .reverse()
-        .forEach(async layerId => {
-          const layer = this._model.sharedModel.getLayer(layerId);
+      const reversedLayerIds = layerIds.slice().reverse();
 
-          if (!layer) {
-            console.log(`Layer id ${layerId} does not exist`);
-            return;
-          }
+      for (const layerId of reversedLayerIds) {
+        const layer = this._model.sharedModel.getLayer(layerId);
 
-          // Get the expected index in the map.
-          const currentLayerIds = this._Map
-            .getStyle()
-            .layers.map(layer => layer.id);
-          let indexInMap = currentLayerIds.length;
-          const nextLayer = layerIds[layerIds.indexOf(layerId) + 1];
-          if (nextLayer !== undefined) {
-            indexInMap = currentLayerIds.indexOf(nextLayer);
-            if (indexInMap === -1) {
-              indexInMap = currentLayerIds.length;
-            }
-          }
+        if (!layer) {
+          console.log(`Layer id ${layerId} does not exist`);
+          return;
+        }
 
-          if (this._Map.getLayer(layerId)) {
-            this.moveLayer(layerId, indexInMap);
-          } else {
-            await this.addLayer(layerId, layer, indexInMap);
+        // Get the expected index in the map.
+        const currentLayerIds = this._Map
+          .getStyle()
+          .layers.map(layer => layer.id);
+        let indexInMap = currentLayerIds.length;
+        const nextLayer = layerIds[layerIds.indexOf(layerId) + 1];
+        if (nextLayer !== undefined) {
+          indexInMap = currentLayerIds.indexOf(nextLayer);
+          if (indexInMap === -1) {
+            indexInMap = currentLayerIds.length;
           }
+        }
 
-          // Remove the element of the previous list as treated.
-          const index = previousLayerIds.indexOf(layerId);
-          if (index > -1) {
-            previousLayerIds.splice(index, 1);
-          }
-        });
+        if (this._Map.getLayer(layerId)) {
+          this.moveLayer(layerId, indexInMap);
+        } else {
+          await this.addLayer(layerId, layer, indexInMap);
+        }
+
+        // Remove the element of the previous list as treated.
+        const index = previousLayerIds.indexOf(layerId);
+        if (index > -1) {
+          previousLayerIds.splice(index, 1);
+        }
+      }
 
       // Remove the layers not used anymore.
       previousLayerIds.forEach(layerId => {
