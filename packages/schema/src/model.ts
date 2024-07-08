@@ -281,14 +281,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     });
   }
 
-  syncSelectedPropField(data: {
-    id: string | null;
-    value: any;
-    parentType: 'panel' | 'dialog';
-  }): void {
-    this.sharedModel.awareness.setLocalStateField('selectedPropField', data);
-  }
-
   setUserToFollow(userId?: number): void {
     if (this._sharedModel) {
       this._sharedModel.awareness.setLocalStateField('remoteUser', userId);

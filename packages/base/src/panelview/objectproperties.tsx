@@ -15,7 +15,7 @@ import { Panel } from '@lumino/widgets';
 import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { focusInputField, removeStyleFromProperty, deepCopy } from '../tools';
+import { deepCopy } from '../tools';
 import { IControlPanelModel } from '../types';
 import { LayerPropertiesForm, RasterSourcePropertiesForm } from './formbuilder';
 import { JupyterGISWidget } from '../widget';
@@ -112,23 +112,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     model.sharedModel.updateObjectParameters(id, properties);
   }
 
-  syncSelectedField = (
-    id: string | null,
-    value: any,
-    parentType: 'panel' | 'dialog'
-  ) => {
-    let property: string | null = null;
-    if (id) {
-      const prefix = id.split('_')[0];
-      property = id.substring(prefix.length);
-    }
-    this.props.cpModel.jGISModel?.syncSelectedPropField({
-      parentType,
-      id: property,
-      value
-    });
-  };
-
   private _sharedJGISModelChanged = (
     _: IJupyterGISDoc,
     changed: IJGISLayerDocChange
@@ -140,43 +123,17 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     sender: IJupyterGISModel,
     clients: Map<number, IJupyterGISClientState>
   ): void => {
-    const remoteUser = this.props.cpModel.jGISModel?.localState?.remoteUser;
     let newState: IJupyterGISClientState | undefined;
     const clientId = this.state.clientId;
-    if (remoteUser) {
-      newState = clients.get(remoteUser);
 
-      const id = newState?.selectedPropField?.id;
-      const value = newState?.selectedPropField?.value;
-      const parentType = newState?.selectedPropField?.parentType;
-      if (parentType === 'panel') {
-        this._lastSelectedPropFieldId = focusInputField(
-          `${this.state.filePath}::panel`,
-          id,
-          value,
-          newState?.user?.color,
-          this._lastSelectedPropFieldId
-        );
-      }
-    } else {
-      const localState = clientId ? clients.get(clientId) : null;
-      if (this._lastSelectedPropFieldId) {
-        removeStyleFromProperty(
-          `${this.state.filePath}::panel`,
-          this._lastSelectedPropFieldId,
-          ['border-color', 'box-shadow']
-        );
-
-        this._lastSelectedPropFieldId = undefined;
-      }
-      if (
-        localState &&
-        localState.selected?.emitter &&
-        localState.selected.emitter !== this.state.id &&
-        localState.selected?.value
-      ) {
-        newState = localState;
-      }
+    const localState = clientId ? clients.get(clientId) : null;
+    if (
+      localState &&
+      localState.selected?.emitter &&
+      localState.selected.emitter !== this.state.id &&
+      localState.selected?.value
+    ) {
+      newState = localState;
     }
     if (newState) {
       const selection = newState.selected.value;
@@ -250,7 +207,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
           <div>
             <h3>Source Properties</h3>
             <RasterSourcePropertiesForm
-              parentType="panel"
               model={model}
               filePath={`${this.state.filePath}::panel`}
               schema={schema}
@@ -261,7 +217,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
                   properties
                 );
               }}
-              syncSelectedField={this.syncSelectedField}
             />
           </div>
         )
@@ -276,7 +231,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       <div>
         <h3>Layer Properties</h3>
         <LayerPropertiesForm
-          parentType="panel"
           sourceType={selectedObjSource.type}
           model={model}
           filePath={`${this.state.filePath}::panel`}
@@ -285,12 +239,10 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
           syncData={(properties: { [key: string]: any }) => {
             this.syncObjectProperties(this.state.selectedObject, properties);
           }}
-          syncSelectedField={this.syncSelectedField}
         />
         <h3>Source Properties</h3>
         {selectedObjSource.type === 'RasterSource' && (
           <RasterSourcePropertiesForm
-            parentType="panel"
             model={model}
             filePath={`${this.state.filePath}::panel`}
             schema={sourceSchema}
@@ -298,7 +250,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
             syncData={(properties: { [key: string]: any }) => {
               this.syncObjectProperties(selectedObjectSourceId, properties);
             }}
-            syncSelectedField={this.syncSelectedField}
           />
         )}
         {/* {selectedObjSource.type === 'GeoJSONSource' && (
@@ -309,7 +260,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     );
   }
 
-  private _lastSelectedPropFieldId?: string;
   private _formSchema: Map<string, IDict>;
 }
 
