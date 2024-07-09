@@ -11,6 +11,7 @@ import {
   IRasterSource,
   JupyterGISModel
 } from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
@@ -354,10 +355,14 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'VectorLayer': {
+        const vectorLayerType = layer.parameters?.type;
+        if (!vectorLayerType) {
+          showErrorMessage('Vector layer error', 'The vector layer type is undefined');
+        }
         this._Map.addLayer(
           {
             id: id,
-            type: layer.parameters?.type,
+            type: vectorLayerType,
             layout: {
               visibility: layer.visible ? 'visible' : 'none'
             },
@@ -369,14 +374,14 @@ export class MainView extends React.Component<IProps, IStates> {
         );
         this._Map.setPaintProperty(
           id,
-          `${layer.parameters?.type}-color`,
+          `${vectorLayerType}-color`,
           layer.parameters?.color !== undefined
             ? layer.parameters.color
             : '#FF0000'
         );
         this._Map.setPaintProperty(
           id,
-          `${layer.parameters?.type}-opacity`,
+          `${vectorLayerType}-opacity`,
           layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
         );
         break;
@@ -408,6 +413,22 @@ export class MainView extends React.Component<IProps, IStates> {
    */
   async updateLayer(id: string, layer: IJGISLayer): Promise<void> {
     const callback = async () => {
+      // Check if the layer already exist in the map.
+      const mapLayer = this._Map.getLayer(id);
+      if (!mapLayer) {
+        return;
+      }
+
+      // If the layer is vector and the type has changed, let create a new layer.
+      // MapLibre does not support changing the type on fly, it lead to errors with
+      // the paint properties.
+      if (layer.parameters?.type && mapLayer.type !== layer.parameters?.type) {
+        const index = this._Map.getStyle().layers.findIndex(lay => lay.id === id);
+        this._Map.removeLayer(id);
+        this.addLayer(id, layer, index);
+        return;
+      }
+
       const sourceId = layer.parameters?.source;
       const source = this._model.sharedModel.getSource(sourceId);
       if (!source) {
@@ -418,43 +439,43 @@ export class MainView extends React.Component<IProps, IStates> {
         await this.addSource(sourceId, source);
       }
 
-      // Check if the layer already exist in the map.
-      const mapLayer = this._Map.getLayer(id);
-      if (mapLayer) {
-        mapLayer.source = sourceId;
-        this._Map.setLayoutProperty(
-          id,
-          'visibility',
-          layer.visible ? 'visible' : 'none'
-        );
-        switch (layer.type) {
-          case 'RasterLayer': {
-            this._Map.setPaintProperty(
-              id,
-              'raster-opacity',
-              layer.parameters?.opacity !== undefined
-                ? layer.parameters.opacity
-                : 1
-            );
-            break;
+      mapLayer.source = sourceId;
+      this._Map.setLayoutProperty(
+        id,
+        'visibility',
+        layer.visible ? 'visible' : 'none'
+      );
+      switch (layer.type) {
+        case 'RasterLayer': {
+          this._Map.setPaintProperty(
+            id,
+            'raster-opacity',
+            layer.parameters?.opacity !== undefined
+              ? layer.parameters.opacity
+              : 1
+          );
+          break;
+        }
+        case 'VectorLayer': {
+          const vectorLayerType = layer.parameters?.type;
+          if (!vectorLayerType) {
+            showErrorMessage('Vector layer error', 'The vector layer type is undefined');
           }
-          case 'VectorLayer': {
-            this._Map.setPaintProperty(
-              id,
-              `${layer.parameters?.type}-color`,
-              layer.parameters?.color !== undefined
-                ? layer.parameters.color
-                : '#FF0000'
-            );
-            this._Map.setPaintProperty(
-              id,
-              `${layer.parameters?.type}-opacity`,
-              layer.parameters?.opacity !== undefined
-                ? layer.parameters.opacity
-                : 1
-            );
-            break;
-          }
+          this._Map.setPaintProperty(
+            id,
+            `${vectorLayerType}-color`,
+            layer.parameters?.color !== undefined
+              ? layer.parameters.color
+              : '#FF0000'
+          );
+          this._Map.setPaintProperty(
+            id,
+            `${vectorLayerType}-opacity`,
+            layer.parameters?.opacity !== undefined
+              ? layer.parameters.opacity
+              : 1
+          );
+          break;
         }
       }
     };
