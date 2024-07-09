@@ -103,7 +103,7 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    icon: geoJSONIcon,
+    iconClass: 'fa fa-vector-square',
     execute: Private.createVectorLayer(tracker)
   });
 

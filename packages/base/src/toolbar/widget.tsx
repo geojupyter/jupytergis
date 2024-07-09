@@ -14,6 +14,7 @@ import { CommandIDs } from '../commands';
 import { UsersItem } from './usertoolbaritem';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
+export const TOOLBAR_GROUPNAME_CLASS = 'jGIS-Toolbar-GroupName';
 
 export class Separator extends Widget {
   /**
@@ -22,6 +23,18 @@ export class Separator extends Widget {
   constructor() {
     super();
     this.addClass(TOOLBAR_SEPARATOR_CLASS);
+  }
+}
+
+export class GroupName extends Widget {
+  /**
+   * Construct a new group name widget.
+   */
+  constructor(options: { name: string }) {
+    const span = document.createElement('span');
+    span.textContent = options.name;
+    super({ node: span });
+    this.addClass(TOOLBAR_GROUPNAME_CLASS);
   }
 }
 
@@ -53,6 +66,7 @@ export class ToolbarWidget extends Toolbar {
       );
 
       this.addItem('separator1', new Separator());
+      this.addItem('LayersGroup', new GroupName({ name: 'Layers' }));
 
       this.addItem(
         'openLayerBrowser',
@@ -64,18 +78,21 @@ export class ToolbarWidget extends Toolbar {
       );
 
       this.addItem(
-        'newGeoJSONData',
+        'newVectorLayer',
         new CommandToolbarButton({
-          id: CommandIDs.newGeoJSONData,
+          id: CommandIDs.newVectorLayer,
           label: '',
           commands: options.commands
         })
       );
 
+      this.addItem('separator2', new Separator());
+      this.addItem('SourcesGroup', new GroupName({ name: 'Sources' }));
+
       this.addItem(
-        'newVectorLayer',
+        'newGeoJSONData',
         new CommandToolbarButton({
-          id: CommandIDs.newVectorLayer,
+          id: CommandIDs.newGeoJSONData,
           label: '',
           commands: options.commands
         })
