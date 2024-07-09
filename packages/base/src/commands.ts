@@ -198,12 +198,6 @@ namespace Private {
       current.context.model
         .readGeoJSON(filepath)
         .then(async geoJSONData => {
-          if (geoJSONData === undefined) {
-            showErrorMessage(
-              'Error reading GeoJSON',
-              'An error occurred while reading the GeoJSON file'
-            );
-          }
           const name = PathExt.basename(filepath, '.json');
           const valid = validate(geoJSONData);
           if (!valid) {
@@ -258,13 +252,15 @@ namespace Private {
         default: (model: IJupyterGISModel) => {
           return {
             name: 'VectorSource',
-            source: sources[Object.keys(sources)[0]] ?? null
+            source: Object.keys(sources)[0] ?? null
           };
         }
       };
 
       current.context.model.syncFormData(form);
 
+      FORM_SCHEMA['VectorLayer'].properties.source.enumNames = Object.values(sources);
+      FORM_SCHEMA['VectorLayer'].properties.source.enum = Object.keys(sources);
       const dialog = new FormDialog({
         context: current.context,
         title: form.title,
@@ -278,14 +274,10 @@ namespace Private {
 
           const { name, ...parameters } = props;
 
-          const source = Object.keys(sources).find(
-            key => sources[key] === parameters.source
-          );
-
           const layerModel: IJGISLayer = {
             type: 'VectorLayer',
             parameters: {
-              source,
+              source: parameters.source,
               type: parameters.type,
               color: parameters.color,
               opacity: parameters.opacity

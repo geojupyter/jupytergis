@@ -1,6 +1,5 @@
 import { ICollaborativeDrive } from '@jupyter/docprovider';
 import { MapChange } from '@jupyter/ydoc';
-import { showErrorMessage } from '@jupyterlab/apputils';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { PartialJSONObject } from '@lumino/coreutils';
@@ -258,8 +257,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         return JSON.parse(contentModel.content);
       })
       .catch(e => {
-        showErrorMessage('Error opening GeoJSON file', e);
-        return;
+        throw(e);
       });
   }
 

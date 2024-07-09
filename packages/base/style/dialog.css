@@ -3,6 +3,10 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
+.jp-SchemaForm .jp-select-wrapper select {
+  background-image: unset;
+}
+
 .jp-gis-addDataSourceBody > :not(:first-child) {
   margin-top: 1em;
 }
