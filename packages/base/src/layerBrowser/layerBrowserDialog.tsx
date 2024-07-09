@@ -149,11 +149,7 @@ export const LayerBrowserComponent = ({
       const sourceModel: IJGISSource = {
         type: 'RasterSource',
         name,
-        parameters: {
-          url: parameters.url,
-          minZoom: parameters.minZoom,
-          maxZoom: parameters.maxZoom
-        }
+        parameters
       };
 
       const layerModel: IJGISLayer = {
