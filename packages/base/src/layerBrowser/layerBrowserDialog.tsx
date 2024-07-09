@@ -19,6 +19,8 @@ import { RasterSourcePropertiesForm } from '../panelview';
 import { deepCopy } from '../tools';
 import { Dialog } from '@jupyterlab/apputils';
 
+import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
+
 interface ILayerBrowserDialogProps {
   model: IJupyterGISModel;
   registry: IRasterLayerGalleryEntry[];
@@ -221,10 +223,11 @@ export const LayerBrowserComponent = ({
       </div>
       <div className="jgis-layer-browser-grid">
         <div
-          className="jgis-layer-browser-tile"
+          className="jgis-layer-browser-tile jgis-layer-browser-custom-tile"
           onClick={() => handleCustomTileClick()}
         >
           <div className="jgis-layer-browser-tile-img-container">
+            <img className="jgis-layer-browser-img" src={CUSTOM_RASTER_IMAGE} />
             <div className="jgis-layer-browser-icon">
               <FontAwesomeIcon style={{ height: 20 }} icon={faPlus} />
             </div>

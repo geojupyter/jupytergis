@@ -123,7 +123,13 @@
   transition: transform 150ms ease-out;
   cursor: pointer;
   border: 1px solid var(--jp-border-color1);
+  background-color: var(--jp-layout-color1);
   border-radius: 8px;
+}
+
+.jgis-layer-browser-custom-tile {
+  border: 1px solid var(--jp-border-color2);
+  background-color: var(--jp-layout-color2);
 }
 
 .jgis-layer-browser-tile:hover {
