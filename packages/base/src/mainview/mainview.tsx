@@ -357,7 +357,10 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'VectorLayer': {
         const vectorLayerType = layer.parameters?.type;
         if (!vectorLayerType) {
-          showErrorMessage('Vector layer error', 'The vector layer type is undefined');
+          showErrorMessage(
+            'Vector layer error',
+            'The vector layer type is undefined'
+          );
         }
         this._Map.addLayer(
           {
@@ -423,7 +426,9 @@ export class MainView extends React.Component<IProps, IStates> {
       // MapLibre does not support changing the type on fly, it lead to errors with
       // the paint properties.
       if (layer.parameters?.type && mapLayer.type !== layer.parameters?.type) {
-        const index = this._Map.getStyle().layers.findIndex(lay => lay.id === id);
+        const index = this._Map
+          .getStyle()
+          .layers.findIndex(lay => lay.id === id);
         this._Map.removeLayer(id);
         this.addLayer(id, layer, index);
         return;
@@ -459,7 +464,10 @@ export class MainView extends React.Component<IProps, IStates> {
         case 'VectorLayer': {
           const vectorLayerType = layer.parameters?.type;
           if (!vectorLayerType) {
-            showErrorMessage('Vector layer error', 'The vector layer type is undefined');
+            showErrorMessage(
+              'Vector layer error',
+              'The vector layer type is undefined'
+            );
           }
           this._Map.setPaintProperty(
             id,

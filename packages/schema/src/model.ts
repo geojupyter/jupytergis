@@ -257,7 +257,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         return JSON.parse(contentModel.content);
       })
       .catch(e => {
-        throw(e);
+        throw e;
       });
   }
 

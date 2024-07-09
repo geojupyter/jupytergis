@@ -259,7 +259,8 @@ namespace Private {
 
       current.context.model.syncFormData(form);
 
-      FORM_SCHEMA['VectorLayer'].properties.source.enumNames = Object.values(sources);
+      FORM_SCHEMA['VectorLayer'].properties.source.enumNames =
+        Object.values(sources);
       FORM_SCHEMA['VectorLayer'].properties.source.enum = Object.keys(sources);
       const dialog = new FormDialog({
         context: current.context,
