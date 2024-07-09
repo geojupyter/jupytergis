@@ -346,3 +346,33 @@ export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
     this.forceUpdate();
   }
 }
+
+export class VectorLayerPropertiesForm extends LayerPropertiesForm {
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ) {
+    super.processSchema(data, schema, uiSchema);
+    uiSchema['color'] = {
+      'ui:widget': 'color'
+    }
+  }
+}
+
+export class GeoJSONSourcePropertiesForm extends ObjectPropertiesForm {
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ) {
+    super.processSchema(data, schema, uiSchema);
+    if (!schema.properties || !data) {
+      return;
+    }
+
+    if (data.path !== '') {
+      this.removeFormEntry('data', data, schema, uiSchema);
+    }
+  }
+}

@@ -18,9 +18,11 @@ import { v4 as uuid } from 'uuid';
 import { deepCopy } from '../tools';
 import { IControlPanelModel } from '../types';
 import {
+  GeoJSONSourcePropertiesForm,
   LayerPropertiesForm,
   ObjectPropertiesForm,
-  RasterSourcePropertiesForm
+  RasterSourcePropertiesForm,
+  VectorLayerPropertiesForm
 } from './formbuilder';
 import { JupyterGISWidget } from '../widget';
 
@@ -232,10 +234,20 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     const sourceSchema = deepCopy(this._formSchema.get(selectedObjSource.type));
     const selectedObjectSourceData = deepCopy(selectedObjSource.parameters);
 
+    let LayerForm = LayerPropertiesForm;
+    let SourceForm = ObjectPropertiesForm;
+
+    if (selectedObjSource.type === 'RasterSource') {
+      SourceForm = RasterSourcePropertiesForm;
+    } else if (selectedObjSource.type === 'GeoJSONSource') {
+      LayerForm = VectorLayerPropertiesForm;
+      SourceForm = GeoJSONSourcePropertiesForm;
+    }
+
     return (
       <div>
         <h3>Layer Properties</h3>
-        <LayerPropertiesForm
+        <LayerForm
           formContext="update"
           sourceType={selectedObjSource.type}
           model={model}
@@ -247,27 +259,16 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
           }}
         />
         <h3>Source Properties</h3>
-        {selectedObjSource.type === 'RasterSource' && (
-          <RasterSourcePropertiesForm
-            formContext="update"
-            model={model}
-            filePath={`${this.state.filePath}::panel`}
-            schema={sourceSchema}
-            sourceData={selectedObjectSourceData}
-            syncData={(properties: { [key: string]: any }) => {
-              this.syncObjectProperties(selectedObjectSourceId, properties);
-            }}
-          />
-        )}
-        {selectedObjSource.type === 'GeoJSONSource' && (
-          <ObjectPropertiesForm
-            model={model}
-            sourceData={selectedObjectSourceData}
-            syncData={(properties: { [key: string]: any }) => {
-              this.syncObjectProperties(selectedObjectSourceId, properties);
-            }}
-          />
-        )}
+        <SourceForm
+          formContext="update"
+          model={model}
+          filePath={`${this.state.filePath}::panel`}
+          schema={sourceSchema}
+          sourceData={selectedObjectSourceData}
+          syncData={(properties: { [key: string]: any }) => {
+            this.syncObjectProperties(selectedObjectSourceId, properties);
+          }}
+        />
       </div>
     );
   }

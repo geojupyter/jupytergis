@@ -211,24 +211,21 @@ export class MainView extends React.Component<IProps, IStates> {
     // Workaround stupid maplibre issue
     this._Map._lazyInitEmptyStyle();
 
-    const mapSource = this._Map.getSource(id) as MapLibre.RasterTileSource;
+    const mapSource = this._Map.getSource(id);
     if (!mapSource) {
       console.log(`Source id ${id} does not exist`);
       return;
     }
     switch (source.type) {
       case 'RasterSource': {
-        mapSource.setTiles([this.computeSourceUrl(source)]);
+        (mapSource  as MapLibre.RasterTileSource).setTiles([this.computeSourceUrl(source)]);
         break;
       }
       case 'GeoJSONSource': {
         const data =
           source.parameters?.data ||
           (await this._model.readGeoJSON(source.parameters?.path));
-        this._Map.addSource(id, {
-          type: 'geojson',
-          data: data
-        });
+        (mapSource as MapLibre.GeoJSONSource).setData(data)
       }
     }
   }
