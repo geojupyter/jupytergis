@@ -77,7 +77,7 @@ export class DialogAddDataSourceBody
     const saveSharedLabelInput = (this._saveSharedInput =
       document.createElement('input'));
     saveSharedLabelInput.type = 'checkbox';
-    saveSharedLabel.append(saveSharedLabelInput, 'Save data in shared model');
+    saveSharedLabel.append(saveSharedLabelInput, 'Embed Data in File');
 
     this.node.append(pathLabel, saveSharedLabel);
   }
