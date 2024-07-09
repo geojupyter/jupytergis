@@ -2,6 +2,8 @@ import { SchemaForm } from '@deathbeds/jupyterlab-rjsf';
 import { MessageLoop } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
+import { Ajv, ValidateFunction } from 'ajv';
+import * as geojson from 'geojson-schema/GeoJSON.json';
 import * as React from 'react';
 
 import { IDict } from '../types';
@@ -10,6 +12,7 @@ import { deepCopy } from '../tools';
 
 interface IStates {
   schema?: IDict;
+  extraErrors?: any;
 }
 
 interface IProps {
@@ -208,7 +211,8 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
         uiSchema,
         children: (
           <button ref={submitRef} type="submit" style={{ display: 'none' }} />
-        )
+        ),
+        extraErrors: this.state.extraErrors
       });
       return (
         <div
@@ -361,6 +365,12 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
 }
 
 export class GeoJSONSourcePropertiesForm extends ObjectPropertiesForm {
+  constructor(props: IProps) {
+    super(props);
+    const ajv = new Ajv();
+    this._validate = ajv.compile(geojson);
+  }
+
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,
@@ -375,4 +385,50 @@ export class GeoJSONSourcePropertiesForm extends ObjectPropertiesForm {
       this.removeFormEntry('data', data, schema, uiSchema);
     }
   }
+
+  protected onFormBlur(id: string, value: any) {
+    // Is there a better way to spot the path text entry?
+    if (!id.endsWith('_path')) {
+      return;
+    }
+
+    this._validatePath(value);
+  }
+
+  /**
+   * Validate the path, to avoid invalid path or invalid GeoJSON.
+   *
+   * @param path - the path to validate.
+   */
+  private async _validatePath(path: string) {
+    const extraErrors: IDict = {
+      path: {
+        __errors: []
+      }
+    };
+
+    const internalData = this.state.internalData;
+    if (internalData) {
+      internalData.path = path;
+    }
+
+    this.props.model
+      .readGeoJSON(path)
+      .then(async geoJSONData => {
+        const valid = this._validate(geoJSONData);
+        if (!valid) {
+          extraErrors.path.__errors = ['GeoJSON data invalid'];
+          this._validate.errors?.reverse().forEach(error => {
+            extraErrors.path.__errors.push(error.message);
+          });
+        }
+        this.setState({ extraErrors, internalData });
+      })
+      .catch(e => {
+        extraErrors.path.__errors = ['Invalid path'];
+        this.setState({ extraErrors, internalData });
+      });
+  }
+
+  private _validate: ValidateFunction;
 }
