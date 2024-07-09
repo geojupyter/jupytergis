@@ -1,4 +1,3 @@
-import { ICollaborativeDrive } from '@jupyter/docprovider';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Dialog, WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
@@ -40,8 +39,7 @@ export function addCommands(
   tracker: WidgetTracker<JupyterGISWidget>,
   translator: ITranslator,
   formSchemaRegistry: IJGISFormSchemaRegistry,
-  layerBrowserRegistry: IJGISLayerBrowserRegistry,
-  drive?: ICollaborativeDrive
+  layerBrowserRegistry: IJGISLayerBrowserRegistry
 ): void {
   Private.updateFormSchema(formSchemaRegistry);
   const trans = translator.load('jupyterlab');
@@ -107,18 +105,16 @@ export function addCommands(
     execute: Private.createVectorLayer(tracker)
   });
 
-  if (drive) {
-    commands.addCommand(CommandIDs.newGeoJSONData, {
-      label: trans.__('Add GeoJSON data from file'),
-      isEnabled: () => {
-        return tracker.currentWidget
-          ? tracker.currentWidget.context.model.sharedModel.editable
-          : false;
-      },
-      icon: geoJSONIcon,
-      execute: Private.createGeoJSONSource(tracker, drive)
-    });
-  }
+  commands.addCommand(CommandIDs.newGeoJSONData, {
+    label: trans.__('Add GeoJSON data from file'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    icon: geoJSONIcon,
+    execute: Private.createGeoJSONSource(tracker)
+  });
 }
 
 namespace Private {
@@ -163,8 +159,7 @@ namespace Private {
   }
 
   export function createGeoJSONSource(
-    tracker: WidgetTracker<JupyterGISWidget>,
-    drive: ICollaborativeDrive
+    tracker: WidgetTracker<JupyterGISWidget>
   ) {
     const ajv = new Ajv();
     const validate = ajv.compile(geojson);
