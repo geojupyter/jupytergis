@@ -308,6 +308,8 @@ export class LayerBrowserWidget extends Dialog<boolean> {
       this.disposeDialog = _disposeDialog;
     });
 
+    this.id = 'jupytergis::layerBrowser';
+
     // Override default dialog style
     const dialog = this.node.getElementsByClassName('jp-Dialog-content');
     const dialogHeader = this.node.getElementsByClassName('jp-Dialog-header');
