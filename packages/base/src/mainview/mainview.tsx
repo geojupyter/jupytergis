@@ -218,14 +218,16 @@ export class MainView extends React.Component<IProps, IStates> {
     }
     switch (source.type) {
       case 'RasterSource': {
-        (mapSource  as MapLibre.RasterTileSource).setTiles([this.computeSourceUrl(source)]);
+        (mapSource as MapLibre.RasterTileSource).setTiles([
+          this.computeSourceUrl(source)
+        ]);
         break;
       }
       case 'GeoJSONSource': {
         const data =
           source.parameters?.data ||
           (await this._model.readGeoJSON(source.parameters?.path));
-        (mapSource as MapLibre.GeoJSONSource).setData(data)
+        (mapSource as MapLibre.GeoJSONSource).setData(data);
       }
     }
   }

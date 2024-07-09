@@ -356,7 +356,7 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
     super.processSchema(data, schema, uiSchema);
     uiSchema['color'] = {
       'ui:widget': 'color'
-    }
+    };
   }
 }
 
