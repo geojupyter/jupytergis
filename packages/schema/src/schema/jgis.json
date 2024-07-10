@@ -24,7 +24,7 @@
     },
     "sourceType": {
       "type": "string",
-      "enum": ["RasterSource", "GeoJSONSource"]
+      "enum": ["RasterSource", "VectorTileSource", "GeoJSONSource"]
     },
     "jGISLayer": {
       "title": "IJGISLayer",

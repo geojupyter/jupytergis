@@ -163,6 +163,16 @@ export class MainView extends React.Component<IProps, IStates> {
         }
         break;
       }
+      case 'VectorTileSource': {
+        const mapSource = this._Map.getSource(id) as MapLibre.VectorTileSource;
+        if (!mapSource) {
+          this._Map.addSource(id, {
+            type: 'vector',
+            tiles: [this.computeSourceUrl(source)]
+          });
+        }
+        break;
+      }
       case 'GeoJSONSource': {
         const mapSource = this._Map.getSource(id) as MapLibre.GeoJSONSource;
         if (!mapSource) {
@@ -212,6 +222,12 @@ export class MainView extends React.Component<IProps, IStates> {
     }
     switch (source.type) {
       case 'RasterSource': {
+        (mapSource as MapLibre.RasterTileSource).setTiles([
+          this.computeSourceUrl(source)
+        ]);
+        break;
+      }
+      case 'VectorTileSource': {
         (mapSource as MapLibre.RasterTileSource).setTiles([
           this.computeSourceUrl(source)
         ]);
@@ -361,7 +377,8 @@ export class MainView extends React.Component<IProps, IStates> {
         this._Map.addLayer(
           {
             id: id,
-            type: vectorLayerType,
+            type: 'line',
+            "source-layer": 'buildings',
             layout: {
               visibility: layer.visible ? 'visible' : 'none'
             },
@@ -371,18 +388,18 @@ export class MainView extends React.Component<IProps, IStates> {
           },
           beforeId
         );
-        this._Map.setPaintProperty(
-          id,
-          `${vectorLayerType}-color`,
-          layer.parameters?.color !== undefined
-            ? layer.parameters.color
-            : '#FF0000'
-        );
-        this._Map.setPaintProperty(
-          id,
-          `${vectorLayerType}-opacity`,
-          layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
-        );
+        // this._Map.setPaintProperty(
+        //   id,
+        //   `${vectorLayerType}-color`,
+        //   layer.parameters?.color !== undefined
+        //     ? layer.parameters.color
+        //     : '#FF0000'
+        // );
+        // this._Map.setPaintProperty(
+        //   id,
+        //   `${vectorLayerType}-opacity`,
+        //   layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
+        // );
         break;
       }
     }

@@ -1,0 +1,53 @@
+{
+  "layers": {
+    "f99eb7b0-5e38-4078-b310-36a0746472aa": {
+      "visible": true,
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "ed8628b0-3e0a-45d5-9cd0-65e2a7dd61f5"
+      },
+      "type": "RasterLayer"
+    },
+    "148f2fb3-3077-4dcb-8d70-831570d5021f": {
+      "type": "VectorLayer",
+      "parameters": {
+        "type": "line",
+        "source": "7a7ee6fd-c1e2-4c5d-a4e2-a7974db138a4"
+      },
+      "name": "Vector Tile Source Layer",
+      "visible": true
+    }
+  },
+  "sources": {
+    "ed8628b0-3e0a-45d5-9cd0-65e2a7dd61f5": {
+      "parameters": {
+        "urlParameters": {},
+        "provider": "OpenStreetMap",
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0
+      },
+      "type": "RasterSource",
+      "name": "OpenStreetMap.Mapnik"
+    },
+    "7a7ee6fd-c1e2-4c5d-a4e2-a7974db138a4": {
+      "type": "VectorTileSource",
+      "name": "Vector Tile Source",
+      "parameters": {
+        "url": "https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/{z}/{x}/{y}",
+        "minZoom": 0.0,
+        "maxZoom": 24.0
+      }
+    }
+  },
+  "options": {
+    "latitude": 41.91867,
+    "longitude": -88.10602,
+    "zoom": 15.0
+  },
+  "layerTree": [
+    "f99eb7b0-5e38-4078-b310-36a0746472aa",
+    "148f2fb3-3077-4dcb-8d70-831570d5021f"
+  ]
+}

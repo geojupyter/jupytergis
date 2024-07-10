@@ -1,0 +1,43 @@
+{
+    "type": "object",
+    "description": "VectorTileSource",
+    "title": "IVectorTileSource",
+    "required": ["url", "maxZoom", "minZoom"],
+    "additionalProperties": false,
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "The url to the tile provider"
+      },
+      "maxZoom": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 24,
+        "readOnly": true,
+        "description": "The maximum zoom level for the raster source"
+      },
+      "minZoom": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 24,
+        "readOnly": true,
+        "description": "The minimum zoom level for the raster source"
+      },
+      "attribution": {
+        "type": "string",
+        "readOnly": true,
+        "description": "The attribution for the raster source"
+      },
+      "provider": {
+        "type": "string",
+        "readOnly": true,
+        "description": "The map provider"
+      },
+      "urlParameters": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
+    }
+  }
