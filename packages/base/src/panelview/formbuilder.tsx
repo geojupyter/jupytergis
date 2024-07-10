@@ -407,11 +407,6 @@ export class GeoJSONSourcePropertiesForm extends ObjectPropertiesForm {
       }
     };
 
-    const internalData = this.state.internalData;
-    if (internalData) {
-      internalData.path = path;
-    }
-
     this.props.model
       .readGeoJSON(path)
       .then(async geoJSONData => {
@@ -422,11 +417,11 @@ export class GeoJSONSourcePropertiesForm extends ObjectPropertiesForm {
             extraErrors.path.__errors.push(error.message);
           });
         }
-        this.setState({ extraErrors, internalData });
+        this.setState({ extraErrors });
       })
       .catch(e => {
         extraErrors.path.__errors = ['Invalid path'];
-        this.setState({ extraErrors, internalData });
+        this.setState({ extraErrors });
       });
   }
 

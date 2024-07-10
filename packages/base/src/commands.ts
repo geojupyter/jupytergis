@@ -4,16 +4,19 @@ import { PathExt } from '@jupyterlab/coreutils';
 import { ITranslator } from '@jupyterlab/translation';
 import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
 import {
+  IDict,
   IGeoJSONSource,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISLayerBrowserRegistry,
-  IJGISSource
+  IJGISSource,
+  IJupyterGISModel
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { Ajv } from 'ajv';
 import * as geojson from 'geojson-schema/GeoJSON.json';
 
-import { DataErrorDialog, DialogAddDataSourceBody } from './formdialog';
+import { DataErrorDialog, DialogAddDataSourceBody, FormDialog } from './formdialog';
 import { geoJSONIcon } from './icons';
 import { LayerBrowserWidget } from './layerBrowser/layerBrowserDialog';
 import { JupyterGISWidget } from './widget';
@@ -252,8 +255,6 @@ namespace Private {
         }
       };
 
-      current.context.model.syncFormData(form);
-
       FORM_SCHEMA['VectorLayer'].properties.source.enumNames =
         Object.values(sources);
       FORM_SCHEMA['VectorLayer'].properties.source.enum = Object.keys(sources);
@@ -283,9 +284,6 @@ namespace Private {
           };
 
           current.context.model.addLayer(UUID.uuid4(), layerModel);
-        },
-        cancelButton: () => {
-          current.context.model.syncFormData(undefined);
         }
       });
       await dialog.launch();
