@@ -117,11 +117,11 @@ namespace Private {
         return;
       }
 
-      const dialog = new LayerBrowserWidget(
-        current.context.model,
-        layerBrowserRegistry.getRegistryLayers(),
+      const dialog = new LayerBrowserWidget({
+        model: current.context.model,
+        registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry
-      );
+      });
       await dialog.launch();
     };
   }

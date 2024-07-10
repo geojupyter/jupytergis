@@ -89,7 +89,7 @@ async function getGridTiles(page: IJupyterLabPageFixture): Promise<Locator> {
   const layerBrowser = await openLayerBrowser(page);
 
   const gridTiles = layerBrowser.locator(
-    '.jgis-layer-browser-container .jgis-layer-browser-grid .jgis-layer-browser-tile'
+    '.jGIS-layer-browser-container .jGIS-layer-browser-grid .jGIS-layer-browser-tile'
   );
 
   return gridTiles;
@@ -127,7 +127,7 @@ test.describe('#layerBrowser', () => {
     const layerBrowser = await openLayerBrowser(page);
 
     const gridTiles = layerBrowser.locator(
-      '.jgis-layer-browser-container .jgis-layer-browser-grid .jgis-layer-browser-tile'
+      '.jGIS-layer-browser-container .jGIS-layer-browser-grid .jGIS-layer-browser-tile'
     );
     const numberOfTiles = await gridTiles.count();
 

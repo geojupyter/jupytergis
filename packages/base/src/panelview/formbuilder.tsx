@@ -45,14 +45,9 @@ interface IProps {
   schema?: IDict;
 
   /**
-   * Promise that gets resolved when the parent of the form gets disposed. The Promise gets resolved with a boolean value whether or not to submit the form.
+   * Cancel callback, no cancel button will be displayed if not defined
    */
-  onParentDispose?: Promise<boolean>;
-
-  /**
-   * Whether or not to show submit button
-   */
-  showSubmitButton?: boolean;
+  cancel?: () => void;
 }
 
 // Reusing the datalayer/jupyter-react component:
@@ -91,14 +86,6 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     this.state = {
       schema: props.schema
     };
-
-    if (this.props.onParentDispose) {
-      this.props.onParentDispose.then((submit: boolean) => {
-        if (submit) {
-          this.syncData(this.currentFormData);
-        }
-      });
-    }
   }
 
   componentDidUpdate(prevProps: IProps, prevState: IStates): void {
@@ -193,6 +180,8 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     this.currentFormData = e.formData;
 
     this.syncData(this.currentFormData);
+
+    this.props.cancel && this.props.cancel();
   };
 
   render(): React.ReactNode {
@@ -229,17 +218,23 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
           <div className="jGIS-property-outer">
             <LuminoSchemaForm>{formSchema}</LuminoSchemaForm>
           </div>
-          {(this.props.showSubmitButton === undefined ||
-            this.props.showSubmitButton) && (
-            <div className="jGIS-property-buttons">
+          <div className="jGIS-property-buttons">
+            {this.props.cancel ? (
               <button
-                className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-                onClick={() => submitRef.current?.click()}
+                className="jp-Dialog-button jp-mod-reject jp-mod-styled"
+                onClick={this.props.cancel}
               >
-                <div className="jp-Dialog-buttonLabel">Ok</div>
+                <div className="jp-Dialog-buttonLabel">Cancel</div>
               </button>
-            </div>
-          )}
+            ) : null}
+
+            <button
+              className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+              onClick={() => submitRef.current?.click()}
+            >
+              <div className="jp-Dialog-buttonLabel">Ok</div>
+            </button>
+          </div>
         </div>
       );
     }
