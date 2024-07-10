@@ -115,6 +115,7 @@
       "title": "IJGISOptions",
       "type": "object",
       "default": {},
+      "required": ["latitude", "longitude", "zoom"],
       "additionalProperties": false,
       "properties": {
         "latitude": {
