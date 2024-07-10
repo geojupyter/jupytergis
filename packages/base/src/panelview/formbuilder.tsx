@@ -138,8 +138,14 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
       }
 
       // Don't show readOnly properties when it's a form for updating an object
-      if (v['readOnly'] && this.props.formContext === 'update') {
-        this.removeFormEntry(k, data, schema, uiSchema);
+      if (v['readOnly']) {
+        if (this.props.formContext === 'create') {
+          delete v['readOnly'];
+        }
+
+        if (this.props.formContext === 'update') {
+          this.removeFormEntry(k, data, schema, uiSchema);
+        }
       }
     });
   }
