@@ -9,11 +9,11 @@ import {
   IJupyterGISModel,
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
+import { Dialog } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 import { RasterSourcePropertiesForm } from '../panelview';
 import { deepCopy } from '../tools';
-import { Dialog } from '@jupyterlab/apputils';
 
 import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
 

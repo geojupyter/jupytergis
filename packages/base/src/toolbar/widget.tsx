@@ -26,18 +26,6 @@ export class Separator extends Widget {
   }
 }
 
-export class GroupName extends Widget {
-  /**
-   * Construct a new group name widget.
-   */
-  constructor(options: { name: string }) {
-    const span = document.createElement('span');
-    span.textContent = options.name;
-    super({ node: span });
-    this.addClass(TOOLBAR_GROUPNAME_CLASS);
-  }
-}
-
 export class ToolbarWidget extends Toolbar {
   constructor(options: ToolbarWidget.IOptions) {
     super(options);
@@ -66,7 +54,6 @@ export class ToolbarWidget extends Toolbar {
       );
 
       this.addItem('separator1', new Separator());
-      this.addItem('LayersGroup', new GroupName({ name: 'Layers' }));
 
       this.addItem(
         'openLayerBrowser',
@@ -78,21 +65,9 @@ export class ToolbarWidget extends Toolbar {
       );
 
       this.addItem(
-        'newVectorLayer',
+        'newGeoJSONLayer',
         new CommandToolbarButton({
-          id: CommandIDs.newVectorLayer,
-          label: '',
-          commands: options.commands
-        })
-      );
-
-      this.addItem('separator2', new Separator());
-      this.addItem('SourcesGroup', new GroupName({ name: 'Sources' }));
-
-      this.addItem(
-        'newGeoJSONData',
-        new CommandToolbarButton({
-          id: CommandIDs.newGeoJSONData,
+          id: CommandIDs.newGeoJSONLayer,
           label: '',
           commands: options.commands
         })

@@ -351,6 +351,9 @@ export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
   }
 }
 
+/**
+ * The form to modify a vector layer.
+ */
 export class VectorLayerPropertiesForm extends LayerPropertiesForm {
   protected processSchema(
     data: IDict<any> | undefined,
@@ -364,6 +367,9 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
   }
 }
 
+/**
+ * The form to modify a GeoJSON source.
+ */
 export class GeoJSONSourcePropertiesForm extends ObjectPropertiesForm {
   constructor(props: IProps) {
     super(props);
@@ -426,4 +432,20 @@ export class GeoJSONSourcePropertiesForm extends ObjectPropertiesForm {
   }
 
   private _validate: ValidateFunction;
+}
+
+/**
+ * The form to create a GeoJSON layer.
+ */
+export class GeoJSONLayerPropertiesForm extends GeoJSONSourcePropertiesForm {
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ) {
+    super.processSchema(data, schema, uiSchema);
+    uiSchema['color'] = {
+      'ui:widget': 'color'
+    };
+  }
 }

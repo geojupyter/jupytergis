@@ -7,6 +7,10 @@
   background-image: unset;
 }
 
+.jGIS-geoJSONLayer-FormDialog .jp-Dialog-footer button {
+  display: none;
+}
+
 .jp-gis-addDataSourceBody > :not(:first-child) {
   margin-top: 1em;
 }

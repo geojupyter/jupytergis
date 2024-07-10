@@ -22,7 +22,8 @@ import {
   FormDialog
 } from './formdialog';
 import { geoJSONIcon } from './icons';
-import { LayerBrowserWidget } from './layerBrowser/layerBrowserDialog';
+import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
+import { GeoJSONLayerDialog } from './dialogs/geoJsonLayerDialog';
 import { JupyterGISWidget } from './widget';
 
 /**
@@ -34,7 +35,8 @@ export namespace CommandIDs {
 
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 
-  export const newGeoJSONData = 'jupytergis:newGeoJSONData';
+  export const newGeoJSONLayer = 'jupytergis:newGeoJSONLayer';
+  export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
   export const newVectorLayer = 'jupytergis:newVectorLayer';
 }
 
@@ -101,6 +103,17 @@ export function addCommands(
     )
   });
 
+  commands.addCommand(CommandIDs.newGeoJSONLayer, {
+    label: trans.__('New vector layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    iconClass: 'fa fa-vector-square',
+    execute: Private.createGeoJSONLayer(tracker, formSchemaRegistry)
+  });
+
   commands.addCommand(CommandIDs.newVectorLayer, {
     label: trans.__('New vector layer'),
     isEnabled: () => {
@@ -112,7 +125,7 @@ export function addCommands(
     execute: Private.createVectorLayer(tracker)
   });
 
-  commands.addCommand(CommandIDs.newGeoJSONData, {
+  commands.addCommand(CommandIDs.newGeoJSONSource, {
     label: trans.__('Add GeoJSON data from file'),
     isEnabled: () => {
       return tracker.currentWidget
@@ -165,6 +178,33 @@ namespace Private {
     };
   }
 
+  /**
+   * Command to create a GeoJSON source and vector layer.
+   */
+  export function createGeoJSONLayer(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new GeoJSONLayerDialog({
+        model: current.context.model,
+        registry: formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  /**
+   * Command to create a GeoJSON source.
+   *
+   * This is currently not used.
+   */
   export function createGeoJSONSource(
     tracker: WidgetTracker<JupyterGISWidget>
   ) {
@@ -239,6 +279,11 @@ namespace Private {
     };
   }
 
+  /**
+   * Command to create a Vector layer.
+   *
+   * This is currently not used.
+   */
   export function createVectorLayer(tracker: WidgetTracker<JupyterGISWidget>) {
     return async (arg: any) => {
       const current = tracker.currentWidget;

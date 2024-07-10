@@ -1,58 +1,58 @@
 {
   "layers": {
     "57ef55ef-facb-48a2-ae1d-c9c824be3e8a": {
-      "name": "Regions France",
-      "type": "VectorLayer",
       "parameters": {
-        "opacity": 0.6,
-        "color": "#e66100",
         "source": "7d082e75-69d5-447a-82d8-b05cca5945ba",
-        "type": "line"
+        "type": "line",
+        "color": "#e66100",
+        "opacity": 0.6
       },
-      "visible": true
+      "name": "Regions France",
+      "visible": true,
+      "type": "VectorLayer"
     },
     "a0044fd7-f167-445f-b3d1-620a8f94b498": {
+      "type": "RasterLayer",
+      "visible": true,
       "name": "Open Topo Map",
       "parameters": {
         "source": "5fd42e3b-4681-4607-b15d-65c3a3e89b32"
-      },
-      "visible": true,
-      "type": "RasterLayer"
+      }
     },
     "2467576f-b527-4cb7-998d-fa1d056fb8a1": {
-      "type": "RasterLayer",
-      "name": "Open Street Map",
       "parameters": {
         "source": "699facc9-e7c4-4f38-acf1-1fd7f02d9f36"
       },
+      "type": "RasterLayer",
+      "name": "Open Street Map",
       "visible": true
     }
   },
   "sources": {
     "5fd42e3b-4681-4607-b15d-65c3a3e89b32": {
-      "type": "RasterSource",
       "name": "Open Topo Map",
       "parameters": {
         "minZoom": 0.0,
         "url": "https://tile.opentopomap.org/{z}/{x}/{y}.png ",
         "maxZoom": 24.0
-      }
+      },
+      "type": "RasterSource"
     },
     "7d082e75-69d5-447a-82d8-b05cca5945ba": {
       "name": "france_regions",
       "parameters": {
-        "valid": true,
-        "path": "examples/france_regions.json"
+        "path": "examples/france_regions.json",
+        "valid": true
       },
       "type": "GeoJSONSource"
     },
     "699facc9-e7c4-4f38-acf1-1fd7f02d9f36": {
-      "name": "Open Street Map",
       "type": "RasterSource",
+      "name": "Open Street Map",
       "parameters": {
+        "minZoom": 0.0,
         "maxZoom": 24.0,
-        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "minZoom": 0.0
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       }
     }
   },
