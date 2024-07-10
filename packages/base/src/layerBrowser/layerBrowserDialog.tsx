@@ -13,7 +13,7 @@ import {
   IJupyterGISModel,
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
+import { PromiseDelegate, UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 import { RasterSourcePropertiesForm } from '../panelview';
 import { deepCopy } from '../tools';
@@ -284,31 +284,20 @@ export class LayerBrowserWidget extends Dialog<boolean> {
     registry: IRasterLayerGalleryEntry[],
     formSchemaRegistry: IJGISFormSchemaRegistry
   ) {
-    // This is a bit complex so that "this" is defined
-    let _disposeDialog: (result: boolean) => void;
-    let _setDisposeDialog: () => void;
-    const _onDisposeSet = new Promise<void>(resolve => {
-      _setDisposeDialog = resolve;
-    });
-    const onDispose = new Promise<boolean>(resolve => {
-      _disposeDialog = resolve;
-      _setDisposeDialog();
-    });
+    const onDispose = new PromiseDelegate<boolean>();
     const body = (
       <LayerBrowserComponent
         model={model}
         registry={registry}
         formSchemaRegistry={formSchemaRegistry}
-        onParentDispose={onDispose}
+        onParentDispose={onDispose.promise}
       />
     );
 
     super({ body, buttons: [Dialog.cancelButton(), Dialog.okButton()] });
-    _onDisposeSet.then(() => {
-      this.disposeDialog = _disposeDialog;
-    });
 
     this.id = 'jupytergis::layerBrowser';
+    this.disposeDialog = onDispose;
 
     // Override default dialog style
     const dialog = this.node.getElementsByClassName('jp-Dialog-content');
@@ -319,11 +308,11 @@ export class LayerBrowserWidget extends Dialog<boolean> {
 
   async launch(): Promise<Dialog.IResult<boolean>> {
     return super.launch().then(result => {
-      this.disposeDialog(result.button.accept);
+      this.disposeDialog.resolve(result.button.accept);
 
       return result;
     });
   }
 
-  private disposeDialog: (result: boolean) => void;
+  private disposeDialog: PromiseDelegate<boolean>;
 }
