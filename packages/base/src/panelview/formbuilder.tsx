@@ -179,13 +179,13 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     // This is a no-op here
   }
 
-  private onFormSubmit = (e: ISubmitEvent<any>): void => {
+  protected onFormSubmit(e: ISubmitEvent<any>): void {
     this.currentFormData = e.formData;
 
     this.syncData(this.currentFormData);
 
     this.props.cancel && this.props.cancel();
-  };
+  }
 
   render(): React.ReactNode {
     if (this.props.schema) {
@@ -401,6 +401,13 @@ export class GeoJSONSourcePropertiesForm extends ObjectPropertiesForm {
     this._validatePath(value);
   }
 
+  protected onFormSubmit = (e: ISubmitEvent<any>) => {
+    if (this.state.extraErrors?.path?.__errors?.includes('Invalid path')) {
+      return;
+    }
+    super.onFormSubmit(e);
+  };
+
   /**
    * Validate the path, to avoid invalid path or invalid GeoJSON.
    *
@@ -418,7 +425,9 @@ export class GeoJSONSourcePropertiesForm extends ObjectPropertiesForm {
       .then(async geoJSONData => {
         const valid = this._validate(geoJSONData);
         if (!valid) {
-          extraErrors.path.__errors = ['GeoJSON data invalid'];
+          extraErrors.path.__errors = [
+            "GeoJSON data invalid (you can still validate but the source can't be used)"
+          ];
           this._validate.errors?.reverse().forEach(error => {
             extraErrors.path.__errors.push(error.message);
           });
