@@ -100,6 +100,28 @@ export class MainView extends React.Component<IProps, IStates> {
         container: this.divRef.current
       });
 
+      this._Map.on('zoomend', () => {
+        if (!this._initializedPosition) {
+          return;
+        }
+
+        const zoom = this._Map.getZoom();
+        this._model.setOptions({ ...this._model.getOptions(), zoom });
+      });
+
+      this._Map.on('moveend', () => {
+        if (!this._initializedPosition) {
+          return;
+        }
+
+        const center = this._Map.getCenter();
+        this._model.setOptions({
+          ...this._model.getOptions(),
+          latitude: center.lat,
+          longitude: center.lng
+        });
+      });
+
       this.setState(old => ({ ...old, loading: false }));
     }
   };
@@ -386,7 +408,21 @@ export class MainView extends React.Component<IProps, IStates> {
     sender: IJupyterGISDoc,
     change: MapChange
   ): void {
-    // TODO SOMETHING
+    if (!this._initializedPosition) {
+      const options = this._model.getOptions();
+
+      // It is important to call setZoom first, otherwise maplibre does set the center properly
+      this._Map.setZoom(options.zoom || 0);
+      this._Map.setCenter(
+        (options.longitude &&
+          options.latitude && {
+            lng: options.longitude,
+            lat: options.latitude
+          }) || [0, 0]
+      );
+
+      this._initializedPosition = true;
+    }
   }
 
   private _onViewChanged(
@@ -486,6 +522,7 @@ export class MainView extends React.Component<IProps, IStates> {
     );
   }
 
+  private _initializedPosition = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
 
   private _Map: MapLibre.Map;

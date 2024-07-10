@@ -146,6 +146,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     groupName?: string,
     position?: number
   ): void;
+  getOptions(): IJGISOptions;
+  setOptions(value: IJGISOptions): void;
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   setUserToFollow(userId?: number): void;
