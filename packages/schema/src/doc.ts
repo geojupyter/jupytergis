@@ -1,5 +1,5 @@
 import { Delta, MapChange, YDocument } from '@jupyter/ydoc';
-import { JSONExt, JSONObject } from '@lumino/coreutils';
+import { JSONExt } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import * as Y from 'yjs';
 
@@ -106,8 +106,8 @@ export class JupyterGISDoc
     });
   }
 
-  get options(): JSONObject {
-    return JSONExt.deepCopy(this._options.toJSON());
+  get options(): IJGISOptions {
+    return JSONExt.deepCopy(this._options.toJSON()) as IJGISOptions;
   }
 
   get layersChanged(): ISignal<IJupyterGISDoc, IJGISLayerDocChange> {

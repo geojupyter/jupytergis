@@ -165,7 +165,11 @@ export class JupyterGISModel implements IJupyterGISModel {
       this.sharedModel.sources = jsonData.sources ?? {};
       this.sharedModel.layers = jsonData.layers ?? {};
       this.sharedModel.layerTree = jsonData.layerTree ?? [];
-      this.sharedModel.options = jsonData.options ?? {};
+      this.sharedModel.options = jsonData.options ?? {
+        latitude: 0,
+        longitude: 0,
+        zoom: 0
+      };
     });
     this.dirty = true;
   }
