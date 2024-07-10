@@ -54,7 +54,11 @@
       }
     }
   },
-  "options": {},
+  "options": {
+    "latitude": 0,
+    "longitude": 0,
+    "zoom": 0
+  },
   "layerTree": [
     "2467576f-b527-4cb7-998d-fa1d056fb8a1",
     {

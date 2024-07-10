@@ -115,8 +115,22 @@
       "title": "IJGISOptions",
       "type": "object",
       "default": {},
+      "required": ["latitude", "longitude", "zoom"],
       "additionalProperties": false,
-      "properties": {}
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "default": 0
+        },
+        "longitude": {
+          "type": "number",
+          "default": 0
+        },
+        "zoom": {
+          "type": "number",
+          "default": 0
+        }
+      }
     },
     "jGISLayerItem": {
       "title": "IJGISLayerItem",

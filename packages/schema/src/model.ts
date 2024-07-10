@@ -13,7 +13,8 @@ import {
   IJGISLayerGroup,
   IJGISLayerTree,
   IJGISSource,
-  IJGISSources
+  IJGISSources,
+  IJGISOptions
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
@@ -164,7 +165,11 @@ export class JupyterGISModel implements IJupyterGISModel {
       this.sharedModel.sources = jsonData.sources ?? {};
       this.sharedModel.layers = jsonData.layers ?? {};
       this.sharedModel.layerTree = jsonData.layerTree ?? [];
-      this.sharedModel.options = jsonData.options ?? {};
+      this.sharedModel.options = jsonData.options ?? {
+        latitude: 0,
+        longitude: 0,
+        zoom: 0
+      };
     });
     this.dirty = true;
   }
@@ -272,6 +277,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     this._addLayerTreeItem(id, groupName, position);
+  }
+
+  setOptions(value: IJGISOptions) {
+    this._sharedModel.options = value;
+  }
+
+  getOptions(): IJGISOptions {
+    return this._sharedModel.options;
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
