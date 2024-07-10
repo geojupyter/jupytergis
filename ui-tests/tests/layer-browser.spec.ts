@@ -89,7 +89,7 @@ async function getGridTiles(page: IJupyterLabPageFixture): Promise<Locator> {
   const layerBrowser = await openLayerBrowser(page);
 
   const gridTiles = layerBrowser.locator(
-    '.jgis-layer-browser-container .jgis-layer-browser-grid .jgis-layer-browser-tile'
+    '.jGIS-layer-browser-container .jGIS-layer-browser-grid .jGIS-layer-browser-tile'
   );
 
   return gridTiles;
@@ -127,7 +127,7 @@ test.describe('#layerBrowser', () => {
     const layerBrowser = await openLayerBrowser(page);
 
     const gridTiles = layerBrowser.locator(
-      '.jgis-layer-browser-container .jgis-layer-browser-grid .jgis-layer-browser-tile'
+      '.jGIS-layer-browser-container .jGIS-layer-browser-grid .jGIS-layer-browser-tile'
     );
     const numberOfTiles = await gridTiles.count();
 
@@ -138,13 +138,13 @@ test.describe('#layerBrowser', () => {
     const gridTiles = await getGridTiles(page);
     await page.getByPlaceholder('Search...').click();
     await page.getByPlaceholder('Search...').fill('mapnik');
-    await expect(gridTiles).toHaveCount(1);
+    await expect(gridTiles).toHaveCount(2);
   });
 
   test('category filters should work', async ({ page }) => {
     const gridTiles = await getGridTiles(page);
     await page.getByText('Strava', { exact: true }).click();
-    await expect(gridTiles).toHaveCount(5);
+    await expect(gridTiles).toHaveCount(6);
   });
 
   test('clicking category filter twice should clear filter', async ({

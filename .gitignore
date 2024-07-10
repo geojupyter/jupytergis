@@ -130,5 +130,6 @@ jupytergis/_version.py
 python/jupytergis_lab/jupytergis_lab/labextension/
 python/jupytergis_lab/jupytergis_lab/notebook/objects/_schema
 packages/base/rasterlayer_gallery/*
+!packages/base/rasterlayer_gallery/custom_raster.png
 
 untitled*

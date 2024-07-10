@@ -1,33 +1,40 @@
-import {
-  faCheck,
-  faMagnifyingGlass,
-  faPlus
-} from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faPlus, faClose } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
+  IDict,
+  IJGISFormSchemaRegistry,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISSource,
   IJupyterGISModel,
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
-import { ReactWidget } from '@jupyterlab/ui-components';
 import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
+import { RasterSourcePropertiesForm } from '../panelview';
+import { deepCopy } from '../tools';
+import { Dialog } from '@jupyterlab/apputils';
+
+import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
 
 interface ILayerBrowserDialogProps {
   model: IJupyterGISModel;
   registry: IRasterLayerGalleryEntry[];
+  formSchemaRegistry: IJGISFormSchemaRegistry;
+  cancel: () => void;
 }
 
 export const LayerBrowserComponent = ({
   model,
-  registry
+  registry,
+  formSchemaRegistry,
+  cancel
 }: ILayerBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] =
     useState<HTMLElement | null>();
+  const [creatingCustomRaster, setCreatingCustomRaster] = useState(false);
 
   const [galleryWithCategory, setGalleryWithCategory] =
     useState<IRasterLayerGalleryEntry[]>(registry);
@@ -39,12 +46,6 @@ export const LayerBrowserComponent = ({
   );
 
   useEffect(() => {
-    // Override default dialog style
-    const dialog = document.getElementsByClassName('jp-Dialog-content');
-    const dialogHeader = document.getElementsByClassName('jp-Dialog-header');
-    dialogHeader[0].setAttribute('style', 'padding: 0');
-    dialog[0].classList.add('jgis-dialog-override');
-
     model.sharedModel.layersChanged.connect(handleLayerChange);
 
     return () => {
@@ -72,8 +73,8 @@ export const LayerBrowserComponent = ({
     const categoryTab = event.target as HTMLElement;
     const sameAsOld = categoryTab.innerText === selectedCategory?.innerText;
 
-    categoryTab.classList.toggle('jgis-layer-browser-category-selected');
-    selectedCategory?.classList.remove('jgis-layer-browser-category-selected');
+    categoryTab.classList.toggle('jGIS-layer-browser-category-selected');
+    selectedCategory?.classList.remove('jGIS-layer-browser-category-selected');
 
     const filteredGallery = sameAsOld
       ? registry
@@ -84,6 +85,10 @@ export const LayerBrowserComponent = ({
     setGalleryWithCategory(filteredGallery);
     setSearchTerm('');
     setSelectedCategory(sameAsOld ? null : categoryTab);
+  };
+
+  const handleCustomTileClick = () => {
+    setCreatingCustomRaster(true);
   };
 
   /**
@@ -112,30 +117,92 @@ export const LayerBrowserComponent = ({
     model.addLayer(UUID.uuid4(), layerModel);
   };
 
+  if (creatingCustomRaster) {
+    const schema = deepCopy(
+      formSchemaRegistry.getSchemas().get('RasterSource')
+    );
+    if (!schema) {
+      return;
+    }
+
+    // Inject name in schema
+    schema['required'] = ['name', ...schema['required']];
+    schema['properties'] = {
+      name: { type: 'string', description: 'The name of the raster layer' },
+      ...schema['properties']
+    };
+
+    const syncData = (props: IDict) => {
+      const sharedModel = model.sharedModel;
+      if (!sharedModel) {
+        return;
+      }
+
+      const { name, ...parameters } = props;
+
+      const sourceId = UUID.uuid4();
+
+      const sourceModel: IJGISSource = {
+        type: 'RasterSource',
+        name,
+        parameters
+      };
+
+      const layerModel: IJGISLayer = {
+        type: 'RasterLayer',
+        parameters: {
+          source: sourceId
+        },
+        visible: true,
+        name: name + ' Layer'
+      };
+
+      sharedModel.addSource(sourceId, sourceModel);
+      model.addLayer(UUID.uuid4(), layerModel);
+    };
+
+    return (
+      <div className="jGIS-customlayer-form">
+        <RasterSourcePropertiesForm
+          formContext="create"
+          model={model}
+          sourceData={{
+            name: 'Custom Source',
+            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            maxZoom: 24,
+            minZoom: 0,
+            attribution: '(C) OpenStreetMap contributors'
+          }}
+          schema={schema}
+          syncData={syncData}
+          cancel={cancel}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="jgis-layer-browser-container">
-      <div className="jgis-layer-browser-header-container">
-        <div className="jgis-layer-browser-header">
-          <h2 className="jgis-layer-browser-header-text">Layer Browser</h2>
-          <div className="jgis-layer-browser-header-search-container">
+    <div className="jGIS-layer-browser-container">
+      <div className="jGIS-layer-browser-header-container">
+        <div className="jGIS-layer-browser-header">
+          <h2 className="jGIS-layer-browser-header-text">Layer Browser</h2>
+          <div className="jGIS-layer-browser-header-search-container">
             <input
               type="text"
               placeholder="Search..."
               value={searchTerm}
               onChange={handleSearchInput}
-              className="jgis-layer-browser-header-search"
-            />
-            <FontAwesomeIcon
-              className="jgis-layer-browser-header-search-icon"
-              style={{ height: 20 }}
-              icon={faMagnifyingGlass}
+              className="jGIS-layer-browser-header-search"
             />
           </div>
+          <button className="jp-mod-reject jp-mod-styled" onClick={cancel}>
+            <FontAwesomeIcon icon={faClose} />
+          </button>
         </div>
-        <div className="jgis-layer-browser-categories">
+        <div className="jGIS-layer-browser-categories">
           {providers.map(provider => (
             <span
-              className="jgis-layer-browser-category"
+              className="jGIS-layer-browser-category"
               onClick={handleCategoryClick}
             >
               {provider}
@@ -143,36 +210,57 @@ export const LayerBrowserComponent = ({
           ))}
         </div>
       </div>
-      <div className="jgis-layer-browser-grid">
+      <div className="jGIS-layer-browser-grid">
+        <div
+          className="jGIS-layer-browser-tile jGIS-layer-browser-custom-tile"
+          onClick={() => handleCustomTileClick()}
+        >
+          <div className="jGIS-layer-browser-tile-img-container">
+            <img className="jGIS-layer-browser-img" src={CUSTOM_RASTER_IMAGE} />
+            <div className="jGIS-layer-browser-icon">
+              <FontAwesomeIcon style={{ height: 20 }} icon={faPlus} />
+            </div>
+          </div>
+          <div className="jGIS-layer-browser-text-container">
+            <div className="jGIS-layer-browser-text-info">
+              <h3 className="jGIS-layer-browser-text-header jGIS-layer-browser-text-general">
+                Custom Raster Layer
+              </h3>
+            </div>
+            <p className="jGIS-layer-browser-text-general jGIS-layer-browser-text-source">
+              Create A Custom Raster Layer
+            </p>
+          </div>
+        </div>
         {filteredGallery.map(tile => (
           <div
-            className="jgis-layer-browser-tile"
+            className="jGIS-layer-browser-tile"
             onClick={() => handleTileClick(tile)}
           >
-            <div className="jgis-layer-browser-tile-img-container">
-              <img className="jgis-layer-browser-img" src={tile.thumbnail} />
+            <div className="jGIS-layer-browser-tile-img-container">
+              <img className="jGIS-layer-browser-img" src={tile.thumbnail} />
               {activeLayers.indexOf(tile.name) === -1 ? (
-                <div className="jgis-layer-browser-icon">
+                <div className="jGIS-layer-browser-icon">
                   <FontAwesomeIcon style={{ height: 20 }} icon={faPlus} />
                 </div>
               ) : (
-                <div className="jgis-layer-browser-icon jgis-layer-browser-added">
+                <div className="jGIS-layer-browser-icon jGIS-layer-browser-added">
                   <FontAwesomeIcon style={{ height: 20 }} icon={faCheck} />
-                  <p className="jgis-layer-browser-text-general">Added!</p>
+                  <p className="jGIS-layer-browser-text-general">Added!</p>
                 </div>
               )}
             </div>
-            <div className="jgis-layer-browser-text-container">
-              <div className="jgis-layer-browser-text-info">
-                <h3 className="jgis-layer-browser-text-header jgis-layer-browser-text-general">
+            <div className="jGIS-layer-browser-text-container">
+              <div className="jGIS-layer-browser-text-info">
+                <h3 className="jGIS-layer-browser-text-header jGIS-layer-browser-text-general">
                   {tile.name}
                 </h3>
-                {/* <p className="jgis-layer-browser-text-general jgis-layer-browser-text-description">
+                {/* <p className="jGIS-layer-browser-text-general jGIS-layer-browser-text-description">
                   {tile.description}
                   placeholder
                 </p> */}
               </div>
-              <p className="jgis-layer-browser-text-general jgis-layer-browser-text-source">
+              <p className="jGIS-layer-browser-text-general jGIS-layer-browser-text-source">
                 {tile.source.attribution}
               </p>
             </div>
@@ -183,20 +271,33 @@ export const LayerBrowserComponent = ({
   );
 };
 
-export class LayerBrowserWidget extends ReactWidget {
-  private _model: IJupyterGISModel;
-  private _registry: IRasterLayerGalleryEntry[];
+export interface ILayerBrowserOptions {
+  model: IJupyterGISModel;
+  registry: IRasterLayerGalleryEntry[];
+  formSchemaRegistry: IJGISFormSchemaRegistry;
+}
 
-  constructor(model: IJupyterGISModel, registry: IRasterLayerGalleryEntry[]) {
-    super();
-    this.id = 'jupytergis::layerBrowser';
-    this._model = model;
-    this._registry = registry;
-  }
+export class LayerBrowserWidget extends Dialog<boolean> {
+  constructor(options: ILayerBrowserOptions) {
+    let cancelCallback: (() => void) | undefined = undefined;
+    cancelCallback = () => {
+      this.resolve(0);
+    };
 
-  render() {
-    return (
-      <LayerBrowserComponent model={this._model} registry={this._registry} />
+    const body = (
+      <LayerBrowserComponent
+        model={options.model}
+        registry={options.registry}
+        formSchemaRegistry={options.formSchemaRegistry}
+        cancel={cancelCallback}
+      />
     );
+
+    super({ body, buttons: [Dialog.cancelButton(), Dialog.okButton()] });
+
+    this.id = 'jupytergis::layerBrowser';
+
+    // Override default dialog style
+    this.addClass('jGIS-layerbrowser-FormDialog');
   }
 }

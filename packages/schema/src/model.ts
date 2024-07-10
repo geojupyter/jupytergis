@@ -287,12 +287,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
-  syncFormData(form: any): void {
-    if (this._sharedModel) {
-      this._sharedModel.awareness.setLocalStateField('toolbarForm', form);
-    }
-  }
-
   getClientId(): number {
     return this.sharedModel.awareness.clientID;
   }

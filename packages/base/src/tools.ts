@@ -168,8 +168,6 @@ export function createDefaultLayerRegistry(
         layerBrowserRegistry.addRegistryLayer(tile);
       });
     }
-
-    console.log('register', layerBrowserRegistry.getRegistryLayers());
   }
 
   // TODO: These need better names
