@@ -16,7 +16,11 @@ import { UUID } from '@lumino/coreutils';
 import { Ajv } from 'ajv';
 import * as geojson from 'geojson-schema/GeoJSON.json';
 
-import { DataErrorDialog, DialogAddDataSourceBody, FormDialog } from './formdialog';
+import {
+  DataErrorDialog,
+  DialogAddDataSourceBody,
+  FormDialog
+} from './formdialog';
 import { geoJSONIcon } from './icons';
 import { LayerBrowserWidget } from './layerBrowser/layerBrowserDialog';
 import { JupyterGISWidget } from './widget';
