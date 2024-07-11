@@ -19,8 +19,6 @@ import * as React from 'react';
 
 import * as MapLibre from 'maplibre-gl';
 
-import 'maplibre-gl/dist/maplibre-gl.css';
-
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
