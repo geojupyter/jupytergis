@@ -19,7 +19,7 @@ import * as React from 'react';
 
 import * as MapLibre from 'maplibre-gl';
 
-// import 'maplibre-gl.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
@@ -99,7 +99,14 @@ export class MainView extends React.Component<IProps, IStates> {
     if (this.divRef.current) {
       this._Map = new MapLibre.Map({
         container: this.divRef.current
-      });
+      })
+      .addControl(
+        new MapLibre.NavigationControl({
+            visualizePitch: true,
+            showZoom: true,
+            showCompass: true
+        })
+      );
 
       this._Map.on('zoomend', () => {
         if (!this._initializedPosition) {
@@ -160,6 +167,7 @@ export class MainView extends React.Component<IProps, IStates> {
         if (!mapSource) {
           this._Map.addSource(id, {
             type: 'raster',
+            attribution: source.parameters?.attribution,
             tiles: [this.computeSourceUrl(source)],
             tileSize: 256
           });
