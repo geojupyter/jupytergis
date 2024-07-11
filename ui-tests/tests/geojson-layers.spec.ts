@@ -36,7 +36,6 @@ test.beforeAll(async ({ request }) => {
 });
 
 test.describe('#geoJSONLayer', () => {
-
   test.beforeEach(async ({ request, tmpPath }) => {
     const content = galata.newContentsHelper(request);
     await content.uploadFile(
@@ -54,7 +53,9 @@ test.describe('#geoJSONLayer', () => {
 
   test('Add a GeoJSON layer', async ({ page, tmpPath }) => {
     const panel = await openGIS(page, tmpPath, FILENAME);
-    const button = panel?.locator('jp-button[data-command="jupytergis:newGeoJSONLayer"]');
+    const button = panel?.locator(
+      'jp-button[data-command="jupytergis:newGeoJSONLayer"]'
+    );
     const main = panel?.locator('.jGIS-Mainview');
 
     await button?.click();

@@ -99,12 +99,11 @@ export class MainView extends React.Component<IProps, IStates> {
     if (this.divRef.current) {
       this._Map = new MapLibre.Map({
         container: this.divRef.current
-      })
-      .addControl(
+      }).addControl(
         new MapLibre.NavigationControl({
-            visualizePitch: true,
-            showZoom: true,
-            showCompass: true
+          visualizePitch: true,
+          showZoom: true,
+          showCompass: true
         })
       );
 
