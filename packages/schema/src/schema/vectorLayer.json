@@ -23,6 +23,7 @@
       "type": "number",
       "description": "The opacity of the the object",
       "default": 1,
+      "multipleOf": 0.1,
       "minimum": 0,
       "maximum": 1
     }
