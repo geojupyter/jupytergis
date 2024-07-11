@@ -51,7 +51,7 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
     }
     const { model } = context;
     if (this._drive) {
-      model.setDrive(this._drive);
+      model.setDrive(this._drive, context.path);
     }
 
     const content = new JupyterGISPanel({
