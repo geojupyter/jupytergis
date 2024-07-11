@@ -167,7 +167,7 @@ export class MainView extends React.Component<IProps, IStates> {
         if (!mapSource) {
           this._Map.addSource(id, {
             type: 'raster',
-            attribution: source.parameters?.attribution,
+            attribution: source.parameters?.attribution || '',
             tiles: [this.computeSourceUrl(source)],
             tileSize: 256
           });
