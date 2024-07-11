@@ -64,7 +64,7 @@ test.describe('#geoJSONLayer', () => {
     await expect(dialog).toBeAttached();
 
     const fileInput = dialog.getByLabel('path');
-    await fileInput.fill('examples/france_regions.json');
+    await fileInput.fill('france_regions.json');
 
     const typeInput = dialog.getByLabel('type');
     typeInput.selectOption('line');
