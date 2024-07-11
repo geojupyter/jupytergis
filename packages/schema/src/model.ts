@@ -1,6 +1,6 @@
 import { ICollaborativeDrive } from '@jupyter/docprovider';
 import { MapChange } from '@jupyter/ydoc';
-import { IChangedArgs } from '@jupyterlab/coreutils';
+import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
@@ -202,8 +202,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
-  setDrive(value: ICollaborativeDrive): void {
+  setDrive(value: ICollaborativeDrive, filePath: string): void {
     this._drive = value;
+    this._filePath = filePath;
   }
 
   getLayers(): IJGISLayers {
@@ -251,8 +252,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     if (!this._drive) {
       return;
     }
+
+    const relativePath = PathExt.join(
+      PathExt.dirname(this._filePath).split(':')[1],
+      filepath
+    );
+
     return this._drive
-      .get(filepath)
+      .get(relativePath)
       .then(contentModel => {
         return JSON.parse(contentModel.content);
       })
@@ -398,6 +405,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly defaultKernelLanguage: string = '';
 
   private _sharedModel: IJupyterGISDoc;
+  private _filePath: string;
   private _drive?: ICollaborativeDrive;
   private _dirty = false;
   private _readOnly = false;
