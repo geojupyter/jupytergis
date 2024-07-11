@@ -1,3 +1,4 @@
+import { ICollaborativeDrive } from '@jupyter/docprovider';
 import {
   JupyterGISModel,
   IJupyterGISTracker,
@@ -17,6 +18,7 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   commands: CommandRegistry;
   externalCommandRegistry: IJGISExternalCommandRegistry;
   backendCheck?: () => boolean;
+  drive?: ICollaborativeDrive | null;
 }
 
 export class JupyterGISWidgetFactory extends ABCWidgetFactory<
@@ -29,6 +31,7 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
     this._backendCheck = backendCheck;
     this._commands = options.commands;
     this._externalCommandRegistry = externalCommandRegistry;
+    this._drive = options.drive;
   }
 
   /**
@@ -47,6 +50,10 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
       }
     }
     const { model } = context;
+    if (this._drive) {
+      model.setDrive(this._drive);
+    }
+
     const content = new JupyterGISPanel({
       model
     });
@@ -61,4 +68,5 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
   private _commands: CommandRegistry;
   private _externalCommandRegistry: IJGISExternalCommandRegistry;
   private _backendCheck?: () => boolean;
+  private _drive?: ICollaborativeDrive | null;
 }

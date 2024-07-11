@@ -49,7 +49,8 @@ const activate = (
     defaultFor: ['jgis'],
     tracker,
     commands: app.commands,
-    externalCommandRegistry
+    externalCommandRegistry,
+    drive
   });
   // Registering the widget factory
   app.docRegistry.addWidgetFactory(widgetFactory);

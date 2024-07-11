@@ -1,3 +1,4 @@
+import { ICollaborativeDrive } from '@jupyter/docprovider';
 import { MapChange } from '@jupyter/ydoc';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -28,10 +29,12 @@ import {
   IUserData
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
+import { GeoJSON } from './_interface/geojsonsource';
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: DocumentRegistry.IModelOptions<IJupyterGISDoc>) {
     const { sharedModel } = options;
+
     if (sharedModel) {
       this._sharedModel = sharedModel;
     } else {
@@ -199,6 +202,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
+  setDrive(value: ICollaborativeDrive): void {
+    this._drive = value;
+  }
+
   getLayers(): IJGISLayers {
     return this.sharedModel.layers;
   }
@@ -232,6 +239,26 @@ export class JupyterGISModel implements IJupyterGISModel {
       }
     }
     return sources;
+  }
+
+  /**
+   * Read a GeoJSON file.
+   *
+   * @param filepath - the path of the GeoJSON file.
+   * @returns a promise to the GeoJSON data.
+   */
+  async readGeoJSON(filepath: string): Promise<GeoJSON | undefined> {
+    if (!this._drive) {
+      return;
+    }
+    return this._drive
+      .get(filepath)
+      .then(contentModel => {
+        return JSON.parse(contentModel.content);
+      })
+      .catch(e => {
+        throw e;
+      });
   }
 
   /**
@@ -371,7 +398,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly defaultKernelLanguage: string = '';
 
   private _sharedModel: IJupyterGISDoc;
-
+  private _drive?: ICollaborativeDrive;
   private _dirty = false;
   private _readOnly = false;
   private _isDisposed = false;

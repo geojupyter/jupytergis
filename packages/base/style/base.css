@@ -3,5 +3,11 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
-@import url('./leftPanel.css');
+@import url('./dialog.css');
 @import url('./layerBrowser.css');
+@import url('./leftPanel.css');
+
+.jGIS-Toolbar-GroupName {
+  font-size: var(--jp-ui-font-size0);
+  padding-left: 3px;
+}

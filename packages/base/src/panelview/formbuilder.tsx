@@ -2,6 +2,8 @@ import { SchemaForm } from '@deathbeds/jupyterlab-rjsf';
 import { MessageLoop } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
+import { Ajv, ValidateFunction } from 'ajv';
+import * as geojson from 'geojson-schema/GeoJSON.json';
 import * as React from 'react';
 
 import { IDict } from '../types';
@@ -10,6 +12,7 @@ import { deepCopy } from '../tools';
 
 interface IStates {
   schema?: IDict;
+  extraErrors?: any;
 }
 
 interface IProps {
@@ -176,13 +179,13 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     // This is a no-op here
   }
 
-  private onFormSubmit = (e: ISubmitEvent<any>): void => {
+  protected onFormSubmit(e: ISubmitEvent<any>): void {
     this.currentFormData = e.formData;
 
     this.syncData(this.currentFormData);
 
     this.props.cancel && this.props.cancel();
-  };
+  }
 
   render(): React.ReactNode {
     if (this.props.schema) {
@@ -208,7 +211,8 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
         uiSchema,
         children: (
           <button ref={submitRef} type="submit" style={{ display: 'none' }} />
-        )
+        ),
+        extraErrors: this.state.extraErrors
       });
       return (
         <div
@@ -344,5 +348,113 @@ export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
 
     // Force a rerender on url change, as it probably changes the schema
     this.forceUpdate();
+  }
+}
+
+/**
+ * The form to modify a vector layer.
+ */
+export class VectorLayerPropertiesForm extends LayerPropertiesForm {
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ) {
+    super.processSchema(data, schema, uiSchema);
+    uiSchema['color'] = {
+      'ui:widget': 'color'
+    };
+  }
+}
+
+/**
+ * The form to modify a GeoJSON source.
+ */
+export class GeoJSONSourcePropertiesForm extends ObjectPropertiesForm {
+  constructor(props: IProps) {
+    super(props);
+    const ajv = new Ajv();
+    this._validate = ajv.compile(geojson);
+  }
+
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ) {
+    super.processSchema(data, schema, uiSchema);
+    if (!schema.properties || !data) {
+      return;
+    }
+
+    if (data.path !== '') {
+      this.removeFormEntry('data', data, schema, uiSchema);
+    }
+  }
+
+  protected onFormBlur(id: string, value: any) {
+    // Is there a better way to spot the path text entry?
+    if (!id.endsWith('_path')) {
+      return;
+    }
+
+    this._validatePath(value);
+  }
+
+  protected onFormSubmit = (e: ISubmitEvent<any>) => {
+    if (this.state.extraErrors?.path?.__errors?.includes('Invalid path')) {
+      return;
+    }
+    super.onFormSubmit(e);
+  };
+
+  /**
+   * Validate the path, to avoid invalid path or invalid GeoJSON.
+   *
+   * @param path - the path to validate.
+   */
+  private async _validatePath(path: string) {
+    const extraErrors: IDict = {
+      path: {
+        __errors: []
+      }
+    };
+
+    this.props.model
+      .readGeoJSON(path)
+      .then(async geoJSONData => {
+        const valid = this._validate(geoJSONData);
+        if (!valid) {
+          extraErrors.path.__errors = [
+            "GeoJSON data invalid (you can still validate but the source can't be used)"
+          ];
+          this._validate.errors?.reverse().forEach(error => {
+            extraErrors.path.__errors.push(error.message);
+          });
+        }
+        this.setState({ extraErrors });
+      })
+      .catch(e => {
+        extraErrors.path.__errors = ['Invalid path'];
+        this.setState({ extraErrors });
+      });
+  }
+
+  private _validate: ValidateFunction;
+}
+
+/**
+ * The form to create a GeoJSON layer.
+ */
+export class GeoJSONLayerPropertiesForm extends GeoJSONSourcePropertiesForm {
+  protected processSchema(
+    data: IDict<any> | undefined,
+    schema: IDict,
+    uiSchema: IDict
+  ) {
+    super.processSchema(data, schema, uiSchema);
+    uiSchema['color'] = {
+      'ui:widget': 'color'
+    };
   }
 }

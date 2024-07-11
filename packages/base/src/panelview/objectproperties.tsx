@@ -17,7 +17,13 @@ import { v4 as uuid } from 'uuid';
 
 import { deepCopy } from '../tools';
 import { IControlPanelModel } from '../types';
-import { LayerPropertiesForm, RasterSourcePropertiesForm } from './formbuilder';
+import {
+  GeoJSONSourcePropertiesForm,
+  LayerPropertiesForm,
+  ObjectPropertiesForm,
+  RasterSourcePropertiesForm,
+  VectorLayerPropertiesForm
+} from './formbuilder';
 import { JupyterGISWidget } from '../widget';
 
 export class ObjectProperties extends PanelWithToolbar {
@@ -228,10 +234,20 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     const sourceSchema = deepCopy(this._formSchema.get(selectedObjSource.type));
     const selectedObjectSourceData = deepCopy(selectedObjSource.parameters);
 
+    let LayerForm = LayerPropertiesForm;
+    let SourceForm = ObjectPropertiesForm;
+
+    if (selectedObjSource.type === 'RasterSource') {
+      SourceForm = RasterSourcePropertiesForm;
+    } else if (selectedObjSource.type === 'GeoJSONSource') {
+      LayerForm = VectorLayerPropertiesForm;
+      SourceForm = GeoJSONSourcePropertiesForm;
+    }
+
     return (
       <div>
         <h3>Layer Properties</h3>
-        <LayerPropertiesForm
+        <LayerForm
           formContext="update"
           sourceType={selectedObjSource.type}
           model={model}
@@ -243,22 +259,16 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
           }}
         />
         <h3>Source Properties</h3>
-        {selectedObjSource.type === 'RasterSource' && (
-          <RasterSourcePropertiesForm
-            formContext="update"
-            model={model}
-            filePath={`${this.state.filePath}::panel`}
-            schema={sourceSchema}
-            sourceData={selectedObjectSourceData}
-            syncData={(properties: { [key: string]: any }) => {
-              this.syncObjectProperties(selectedObjectSourceId, properties);
-            }}
-          />
-        )}
-        {/* {selectedObjSource.type === 'GeoJSONSource' && (
-          <GeoJSONSourcePropertiesForm
-
-        } */}
+        <SourceForm
+          formContext="update"
+          model={model}
+          filePath={`${this.state.filePath}::panel`}
+          schema={sourceSchema}
+          sourceData={selectedObjectSourceData}
+          syncData={(properties: { [key: string]: any }) => {
+            this.syncObjectProperties(selectedObjectSourceId, properties);
+          }}
+        />
       </div>
     );
   }

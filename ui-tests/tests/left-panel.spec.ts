@@ -161,7 +161,7 @@ test.describe('#layersPanel', () => {
       await expect(showLayerButton).toHaveCount(0);
     });
 
-    test('should hide the top layer', async ({ page }) => {
+    test('should hide the top raster layer', async ({ page }) => {
       const notHiddenScreenshot = 'top-layer-not-hidden.png';
       const layerTree = await openLayerTree(page);
       const layerGroup = layerTree.locator('.jp-gis-layerGroup');
@@ -170,10 +170,8 @@ test.describe('#layersPanel', () => {
       // Open the first level group
       await layerGroup.last().click();
       await page.waitForCondition(async () => (await layerGroup.count()) === 2);
-      // Open the second level group
-      await layerGroup.last().click();
 
-      // Wait for the layer to be hidden.
+      // Wait for the map to be displayed.
       expect(await main.screenshot()).toMatchSnapshot({
         name: notHiddenScreenshot,
         maxDiffPixelRatio: 0.01

@@ -14,6 +14,7 @@ import { CommandIDs } from '../commands';
 import { UsersItem } from './usertoolbaritem';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
+export const TOOLBAR_GROUPNAME_CLASS = 'jGIS-Toolbar-GroupName';
 
 export class Separator extends Widget {
   /**
@@ -58,6 +59,15 @@ export class ToolbarWidget extends Toolbar {
         'openLayerBrowser',
         new CommandToolbarButton({
           id: CommandIDs.openLayerBrowser,
+          label: '',
+          commands: options.commands
+        })
+      );
+
+      this.addItem(
+        'newGeoJSONLayer',
+        new CommandToolbarButton({
+          id: CommandIDs.newGeoJSONLayer,
           label: '',
           commands: options.commands
         })

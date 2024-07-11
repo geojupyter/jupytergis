@@ -1,3 +1,4 @@
+import { ICollaborativeDrive } from '@jupyter/docprovider';
 import {
   Delta,
   DocumentChange,
@@ -23,6 +24,9 @@ import {
   IJGISSources
 } from './_interface/jgis';
 import { IRasterSource } from './_interface/rastersource';
+import { GeoJSON } from './_interface/geojsonsource';
+
+export { IGeoJSONSource } from './_interface/geojsonsource';
 
 export interface IDict<T = any> {
   [key: string]: T;
@@ -133,6 +137,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedLayerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
 
+  setDrive(value: ICollaborativeDrive): void;
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
@@ -148,6 +153,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   ): void;
   getOptions(): IJGISOptions;
   setOptions(value: IJGISOptions): void;
+
+  readGeoJSON(filepath: string): Promise<GeoJSON | undefined>;
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   setUserToFollow(userId?: number): void;
