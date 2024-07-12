@@ -73,7 +73,7 @@ test.describe('#geoJSONLayer', () => {
 
     await expect(dialog).not.toBeAttached();
 
-    await new Promise((_) => setTimeout(_, 500));
+    await new Promise(_ => setTimeout(_, 500));
 
     expect(await main?.screenshot()).toMatchSnapshot('geoJSON-layer.png', {});
   });
