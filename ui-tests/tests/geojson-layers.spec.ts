@@ -26,21 +26,16 @@ const openGIS = async (
   return (await page.activity.getPanelLocator(filename)) as Locator;
 };
 
-test.beforeAll(async ({ request }) => {
-  const content = galata.newContentsHelper(request);
-  await content.deleteDirectory('/examples');
-  await content.uploadDirectory(
-    path.resolve(__dirname, '../../examples'),
-    '/examples'
-  );
-});
-
 test.describe('#geoJSONLayer', () => {
   test.beforeEach(async ({ request, tmpPath }) => {
     const content = galata.newContentsHelper(request);
     await content.uploadFile(
       path.resolve(__dirname, `./gis-files/${FILENAME}`),
       `/${tmpPath}/${FILENAME}`
+    );
+    await content.uploadFile(
+      path.resolve(__dirname, `./gis-files/france_regions.json`),
+      `/${tmpPath}/france_regions.json`
     );
   });
 
@@ -64,7 +59,7 @@ test.describe('#geoJSONLayer', () => {
     await expect(dialog).toBeAttached();
 
     const fileInput = dialog.getByLabel('path');
-    await fileInput.fill('examples/france_regions.json');
+    await fileInput.fill('france_regions.json');
 
     const typeInput = dialog.getByLabel('type');
     typeInput.selectOption('line');
@@ -72,6 +67,8 @@ test.describe('#geoJSONLayer', () => {
     await dialog.getByText('Ok', { exact: true }).first().click();
 
     await expect(dialog).not.toBeAttached();
+
+    await new Promise(_ => setTimeout(_, 1000));
 
     expect(await main?.screenshot()).toMatchSnapshot('geoJSON-layer.png', {});
   });

@@ -39,7 +39,8 @@
           "$ref": "#/definitions/layerType"
         },
         "visible": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         },
         "parameters": {
           "type": "object"
@@ -80,12 +81,24 @@
           }
         },
         "visible": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         },
         "parameters": {
           "type": "object"
         }
       }
+    },
+    "jGISLayerItem": {
+      "title": "IJGISLayerItem",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/jGISLayerGroup"
+        }
+      ]
     },
     "jGISLayers": {
       "title": "IJGISLayers",
@@ -131,17 +144,6 @@
           "default": 0
         }
       }
-    },
-    "jGISLayerItem": {
-      "title": "IJGISLayerItem",
-      "oneOf": [
-        {
-          "type": "string"
-        },
-        {
-          "$ref": "#/definitions/jGISLayerGroup"
-        }
-      ]
     }
   }
 }

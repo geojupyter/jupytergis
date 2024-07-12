@@ -14,29 +14,34 @@
       "minimum": 0,
       "maximum": 24,
       "readOnly": true,
-      "description": "The maximum zoom level for the raster source"
+      "description": "The maximum zoom level for the raster source",
+      "default": 24
     },
     "minZoom": {
       "type": "number",
       "minimum": 0,
       "maximum": 24,
       "readOnly": true,
-      "description": "The minimum zoom level for the raster source"
+      "description": "The minimum zoom level for the raster source",
+      "default": 0
     },
     "attribution": {
       "type": "string",
       "readOnly": true,
-      "description": "The attribution for the raster source"
+      "description": "The attribution for the raster source",
+      "default": ""
     },
     "htmlAttribution": {
       "type": "string",
       "readOnly": true,
-      "description": "The html attribution for the raster source"
+      "description": "The html attribution for the raster source",
+      "default": ""
     },
     "provider": {
       "type": "string",
       "readOnly": true,
-      "description": "The map provider"
+      "description": "The map provider",
+      "default": ""
     },
     "bounds": {
       "type": "array",
@@ -47,13 +52,15 @@
           "type": "number"
         }
       },
+      "default": [],
       "description": "The bounds of the source"
     },
     "urlParameters": {
       "type": "object",
       "additionalProperties": {
         "type": "string"
-      }
+      },
+      "default": {}
     }
   }
 }
