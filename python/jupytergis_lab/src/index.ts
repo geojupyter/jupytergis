@@ -64,6 +64,30 @@ const plugin: JupyterFrontEndPlugin<void> = {
       layerBrowserRegistry
     );
 
+    app.contextMenu.addItem({
+      command: CommandIDs.removeLayer,
+      selector: '.jp-gis-layerTitle',
+      rank: 1
+    });
+
+    app.contextMenu.addItem({
+      command: CommandIDs.renameLayer,
+      selector: '.jp-gis-layerTitle',
+      rank: 1
+    });
+
+    app.contextMenu.addItem({
+      command: CommandIDs.removeGroup,
+      selector: '.jp-gis-layerGroupHeader',
+      rank: 1
+    });
+
+    app.contextMenu.addItem({
+      command: CommandIDs.renameGroup,
+      selector: '.jp-gis-layerGroupHeader',
+      rank: 1
+    });
+
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }

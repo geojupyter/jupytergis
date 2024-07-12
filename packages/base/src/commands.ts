@@ -31,6 +31,7 @@ import { JupyterGISWidget } from './widget';
  * The command IDs.
  */
 export namespace CommandIDs {
+  export const createNew = 'jupytergis:create-new-jGIS-file';
   export const redo = 'jupytergis:redo';
   export const undo = 'jupytergis:undo';
 
@@ -154,30 +155,6 @@ export function addCommands(
         model?.renameLayerGroup(groupName, newName);
       });
     }
-  });
-
-  app.contextMenu.addItem({
-    command: CommandIDs.removeLayer,
-    selector: '.jp-gis-layerTitle',
-    rank: 1
-  });
-
-  app.contextMenu.addItem({
-    command: CommandIDs.renameLayer,
-    selector: '.jp-gis-layerTitle',
-    rank: 1
-  });
-
-  app.contextMenu.addItem({
-    command: CommandIDs.removeGroup,
-    selector: '.jp-gis-layerGroupHeader',
-    rank: 1
-  });
-
-  app.contextMenu.addItem({
-    command: CommandIDs.renameGroup,
-    selector: '.jp-gis-layerGroupHeader',
-    rank: 1
   });
 
   commands.addCommand(CommandIDs.newGeoJSONLayer, {
