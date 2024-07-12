@@ -13,19 +13,16 @@
         "type": "number",
         "minimum": 0,
         "maximum": 24,
-        "readOnly": true,
         "description": "The maximum zoom level for the raster source"
       },
       "minZoom": {
         "type": "number",
         "minimum": 0,
         "maximum": 24,
-        "readOnly": true,
         "description": "The minimum zoom level for the raster source"
       },
       "attribution": {
         "type": "string",
-        "readOnly": true,
         "description": "The attribution for the raster source"
       },
       "provider": {

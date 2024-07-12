@@ -229,7 +229,6 @@ namespace Private {
         default: (model: IJupyterGISModel) => {
           return {
             name: 'Vector Tile Source',
-            url: 'https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/{z}/{x}/{y}',
             maxZoom: 24,
             minZoom: 0
           };

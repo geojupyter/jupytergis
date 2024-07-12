@@ -10,7 +10,9 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   IRasterSource,
-  JupyterGISModel
+  JupyterGISModel,
+  IVectorLayer,
+  IVectorTileSource
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -166,8 +168,12 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'VectorTileSource': {
         const mapSource = this._Map.getSource(id) as MapLibre.VectorTileSource;
         if (!mapSource) {
+          const parameters = source.parameters as IVectorTileSource;
           this._Map.addSource(id, {
             type: 'vector',
+            minzoom: parameters.minZoom,
+            maxzoom: parameters.maxZoom,
+            attribution: parameters.attribution || '',
             tiles: [this.computeSourceUrl(source)]
           });
         }
@@ -367,39 +373,34 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'VectorLayer': {
-        const vectorLayerType = layer.parameters?.type;
-        if (!vectorLayerType) {
-          showErrorMessage(
-            'Vector layer error',
-            'The vector layer type is undefined'
-          );
-        }
-        this._Map.addLayer(
-          {
-            id: id,
-            type: 'line',
-            "source-layer": 'buildings',
-            layout: {
-              visibility: layer.visible ? 'visible' : 'none'
-            },
-            source: sourceId,
-            minzoom: source.parameters?.minZoom || 0,
-            maxzoom: source.parameters?.maxZoom || 24
+        const parameters = layer.parameters as IVectorLayer;
+        const layerSpecification: MapLibre.AddLayerObject = {
+          id,
+          type: parameters.type,
+          layout: {
+            visibility: layer.visible ? 'visible' : 'none'
           },
+          source: sourceId,
+        };
+
+        parameters.sourceLayer && (layerSpecification['source-layer'] = parameters.sourceLayer);
+
+        this._Map.addLayer(
+          layerSpecification,
           beforeId
         );
-        // this._Map.setPaintProperty(
-        //   id,
-        //   `${vectorLayerType}-color`,
-        //   layer.parameters?.color !== undefined
-        //     ? layer.parameters.color
-        //     : '#FF0000'
-        // );
-        // this._Map.setPaintProperty(
-        //   id,
-        //   `${vectorLayerType}-opacity`,
-        //   layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
-        // );
+        this._Map.setPaintProperty(
+          id,
+          `${parameters.type}-color`,
+          parameters.color !== undefined
+            ? parameters.color
+            : '#FF0000'
+        );
+        this._Map.setPaintProperty(
+          id,
+          `${parameters.type}-opacity`,
+          parameters.opacity !== undefined ? parameters.opacity : 1
+        );
         break;
       }
     }
