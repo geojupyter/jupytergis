@@ -118,6 +118,10 @@ class GISDocument(CommWidget):
         Add a GeoJSON Layer to the document.
 
         :param name: The name that will be used for the object in the document.
+        :param path: The path to the JSON file to embed into the jGIS file.
+        :param data: The raw GeoJSON data to embed into the jGIS file.
+        :param type: The type of the vector layer to create.
+        :param color: The color to apply to features.
         :param opacity: The opacity, between 0 and 1.
         """
         if path is None and data is None:
@@ -127,7 +131,8 @@ class GISDocument(CommWidget):
             raise ValueError("Cannot set GeoJSON layer data and path at the same time")
 
         if path is not None:
-            parameters = {"path": path}
+            with open(path, "r") as fobj:
+                parameters = {"data": json.loads(fobj.read())}
 
         if data is not None:
             parameters = {"data": data}
