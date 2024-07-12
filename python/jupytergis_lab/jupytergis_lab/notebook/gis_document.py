@@ -131,6 +131,10 @@ class GISDocument(CommWidget):
             raise ValueError("Cannot set GeoJSON layer data and path at the same time")
 
         if path is not None:
+            # We cannot put the path to the file in the model
+            # We don't know where the kernel runs/live
+            # The front-end would have no way of finding the file reliably
+            # TODO Support urls to JSON files, in that case, don't embed the data
             with open(path, "r") as fobj:
                 parameters = {"data": json.loads(fobj.read())}
 
