@@ -24,13 +24,14 @@ import { fileIcon } from '@jupyterlab/ui-components';
 
 import { JupyterGISWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
+import { CommandIDs } from '@jupytergis/base';
 
 const FACTORY = 'JupyterGIS .jgis Viewer';
 const PALETTE_CATEGORY = 'JupyterGIS';
 
-namespace CommandIDs {
-  export const createNew = 'jupytergis:create-new-jGIS-file';
-}
+// namespace CommandIDs {
+//   export const createNew = 'jupytergis:create-new-jGIS-file';
+// }
 
 const activate = (
   app: JupyterFrontEnd,
@@ -138,6 +139,25 @@ const activate = (
       command: CommandIDs.createNew,
       args: { isPalette: true },
       category: PALETTE_CATEGORY
+    });
+    palette.addItem({
+      command: CommandIDs.removeLayer,
+      category: 'Other'
+    });
+
+    palette.addItem({
+      command: CommandIDs.renameLayer,
+      category: 'Other'
+    });
+
+    palette.addItem({
+      command: CommandIDs.removeGroup,
+      category: 'Other'
+    });
+
+    palette.addItem({
+      command: CommandIDs.renameGroup,
+      category: 'Other'
     });
   }
 };
