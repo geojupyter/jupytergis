@@ -53,14 +53,14 @@ class GISDocument(CommWidget):
     @property
     def layers(self) -> Dict:
         """
-        Get the layers list
+        Get the layer list
         """
         return self._layers.to_py()
 
     @property
-    def layerTree(self) -> List[str | Dict]:
+    def layer_tree(self) -> List[str | Dict]:
         """
-        Get the layers tree
+        Get the layer tree
         """
         return self._layerTree.to_py()
 
