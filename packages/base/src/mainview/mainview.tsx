@@ -248,7 +248,6 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private async _updateLayersImpl(layerIds: string[]): Promise<void> {
-    console.log('updating layers', layerIds);
     const previousLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
 
     // We use the reverse order of the list to add the layer from the top to the
@@ -556,10 +555,6 @@ export class MainView extends React.Component<IProps, IStates> {
     sender?: IJupyterGISDoc,
     change?: IJGISLayerTreeDocChange
   ): void {
-    console.log(
-      'layers tree changed, update!',
-      JupyterGISModel.getOrderedLayerIds(this._model)
-    );
     this._ready = false;
     // We can't properly use the change, because of the nested groups in the the shared
     // document which is flattened for the map tool.
