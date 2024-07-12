@@ -3,6 +3,7 @@ import {
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
+  IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
   IJupyterGISClientState,
@@ -66,9 +67,9 @@ export class MainView extends React.Component<IProps, IStates> {
     };
   }
 
-  componentDidMount(): void {
+  async componentDidMount(): Promise<void> {
     window.addEventListener('resize', this._handleWindowResize);
-    this.generateScene();
+    await this.generateScene();
     this._mainViewModel.initSignal();
   }
 
@@ -93,7 +94,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._mainViewModel.dispose();
   }
 
-  generateScene = (): void => {
+  async generateScene(): Promise<void> {
     if (this.divRef.current) {
       this._Map = new MapLibre.Map({
         container: this.divRef.current
@@ -127,24 +128,18 @@ export class MainView extends React.Component<IProps, IStates> {
         });
       });
 
-      this.setState(old => ({ ...old, loading: false }));
-    }
-  };
+      // Workaround for broken intialization of maplibre
+      this._Map._lazyInitEmptyStyle();
 
-  /**
-   * MapLibre function to execute operation on `style` (add/update/remove layer/source),
-   * avoiding "Map.style undefined" error.
-   * This is required because of the lack of 'ready' promise in the Map object.
-   *
-   * @param callback - the function updating the Map.
-   */
-  private _mapLibreExecute(callback: () => void) {
-    // Workaround to avoid "Map.style undefined" error, because of the miss of a
-    // 'ready' promise.
-    if (this._Map.loaded()) {
-      callback();
-    } else {
-      this._Map.on('load', callback);
+      if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
+        await this._updateLayersImpl(
+          JupyterGISModel.getOrderedLayerIds(this._model)
+        );
+        const options = this._model.getOptions();
+        this.updateOptions(options);
+      }
+
+      this.setState(old => ({ ...old, loading: false }));
     }
   }
 
@@ -155,9 +150,6 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param source - the source object.
    */
   async addSource(id: string, source: IJGISSource): Promise<void> {
-    // Workaround stupid maplibre issue
-    this._Map._lazyInitEmptyStyle();
-
     switch (source.type) {
       case 'RasterSource': {
         const mapSource = this._Map.getSource(id) as MapLibre.RasterTileSource;
@@ -213,9 +205,6 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param source - the source object.
    */
   async updateSource(id: string, source: IJGISSource): Promise<void> {
-    // Workaround stupid maplibre issue
-    this._Map._lazyInitEmptyStyle();
-
     const mapSource = this._Map.getSource(id);
     if (!mapSource) {
       console.log(`Source id ${id} does not exist`);
@@ -255,60 +244,59 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param layerIds - the list of layers in the depth order (beneath first).
    */
   updateLayers(layerIds: string[]): void {
-    const callback = async () => {
-      const previousLayerIds = this._Map
+    this._updateLayersImpl(layerIds);
+  }
+
+  private async _updateLayersImpl(layerIds: string[]): Promise<void> {
+    console.log('updating layers', layerIds);
+    const previousLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
+
+    // We use the reverse order of the list to add the layer from the top to the
+    // bottom.
+    // This is to ensure that the beforeId (layer on top of the one we add/move)
+    // is already added/moved in the map.
+    const reversedLayerIds = layerIds.slice().reverse();
+
+    for (const layerId of reversedLayerIds) {
+      const layer = this._model.sharedModel.getLayer(layerId);
+
+      if (!layer) {
+        console.log(`Layer id ${layerId} does not exist`);
+        return;
+      }
+
+      // Get the expected index in the map.
+      const currentLayerIds = this._Map
         .getStyle()
         .layers.map(layer => layer.id);
-
-      // We use the reverse order of the list to add the layer from the top to the
-      // bottom.
-      // This is to ensure that the beforeId (layer on top of the one we add/move)
-      // is already added/moved in the map.
-      const reversedLayerIds = layerIds.slice().reverse();
-
-      for (const layerId of reversedLayerIds) {
-        const layer = this._model.sharedModel.getLayer(layerId);
-
-        if (!layer) {
-          console.log(`Layer id ${layerId} does not exist`);
-          return;
-        }
-
-        // Get the expected index in the map.
-        const currentLayerIds = this._Map
-          .getStyle()
-          .layers.map(layer => layer.id);
-        let indexInMap = currentLayerIds.length;
-        const nextLayer = layerIds[layerIds.indexOf(layerId) + 1];
-        if (nextLayer !== undefined) {
-          indexInMap = currentLayerIds.indexOf(nextLayer);
-          if (indexInMap === -1) {
-            indexInMap = currentLayerIds.length;
-          }
-        }
-
-        if (this._Map.getLayer(layerId)) {
-          this.moveLayer(layerId, indexInMap);
-        } else {
-          await this.addLayer(layerId, layer, indexInMap);
-        }
-
-        // Remove the element of the previous list as treated.
-        const index = previousLayerIds.indexOf(layerId);
-        if (index > -1) {
-          previousLayerIds.splice(index, 1);
+      let indexInMap = currentLayerIds.length;
+      const nextLayer = layerIds[layerIds.indexOf(layerId) + 1];
+      if (nextLayer !== undefined) {
+        indexInMap = currentLayerIds.indexOf(nextLayer);
+        if (indexInMap === -1) {
+          indexInMap = currentLayerIds.length;
         }
       }
 
-      // Remove the layers not used anymore.
-      previousLayerIds.forEach(layerId => {
-        this._Map.removeLayer(layerId);
-      });
+      if (this._Map.getLayer(layerId)) {
+        this.moveLayer(layerId, indexInMap);
+      } else {
+        await this.addLayer(layerId, layer, indexInMap);
+      }
 
-      this._ready = true;
-    };
+      // Remove the element of the previous list as treated.
+      const index = previousLayerIds.indexOf(layerId);
+      if (index > -1) {
+        previousLayerIds.splice(index, 1);
+      }
+    }
 
-    this._mapLibreExecute(callback);
+    // Remove the layers not used anymore.
+    previousLayerIds.forEach(layerId => {
+      this._Map.removeLayer(layerId);
+    });
+
+    this._ready = true;
   }
 
   /**
@@ -319,6 +307,11 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param index - expected index of the layer.
    */
   async addLayer(id: string, layer: IJGISLayer, index: number): Promise<void> {
+    if (this._Map.getLayer(id)) {
+      // Layer already exists
+      return;
+    }
+
     // Add the source if necessary.
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getSource(sourceId);
@@ -419,80 +412,70 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param layer - the layer object.
    */
   async updateLayer(id: string, layer: IJGISLayer): Promise<void> {
-    const callback = async () => {
-      // Check if the layer already exist in the map.
-      const mapLayer = this._Map.getLayer(id);
-      if (!mapLayer) {
-        return;
-      }
+    // Check if the layer already exist in the map.
+    const mapLayer = this._Map.getLayer(id);
+    if (!mapLayer) {
+      return;
+    }
 
-      // If the layer is vector and the type has changed, let create a new layer.
-      // MapLibre does not support changing the type on fly, it lead to errors with
-      // the paint properties.
-      if (layer.parameters?.type && mapLayer.type !== layer.parameters?.type) {
-        const index = this._Map
-          .getStyle()
-          .layers.findIndex(lay => lay.id === id);
-        this._Map.removeLayer(id);
-        this.addLayer(id, layer, index);
-        return;
-      }
+    // If the layer is vector and the type has changed, let create a new layer.
+    // MapLibre does not support changing the type on fly, it lead to errors with
+    // the paint properties.
+    if (layer.parameters?.type && mapLayer.type !== layer.parameters?.type) {
+      const index = this._Map.getStyle().layers.findIndex(lay => lay.id === id);
+      this._Map.removeLayer(id);
+      this.addLayer(id, layer, index);
+      return;
+    }
 
-      const sourceId = layer.parameters?.source;
-      const source = this._model.sharedModel.getSource(sourceId);
-      if (!source) {
-        return;
-      }
+    const sourceId = layer.parameters?.source;
+    const source = this._model.sharedModel.getSource(sourceId);
+    if (!source) {
+      return;
+    }
 
-      if (!this._Map.getSource(sourceId)) {
-        await this.addSource(sourceId, source);
-      }
+    if (!this._Map.getSource(sourceId)) {
+      await this.addSource(sourceId, source);
+    }
 
-      mapLayer.source = sourceId;
-      this._Map.setLayoutProperty(
-        id,
-        'visibility',
-        layer.visible ? 'visible' : 'none'
-      );
-      switch (layer.type) {
-        case 'RasterLayer': {
-          this._Map.setPaintProperty(
-            id,
-            'raster-opacity',
-            layer.parameters?.opacity !== undefined
-              ? layer.parameters.opacity
-              : 1
+    mapLayer.source = sourceId;
+    this._Map.setLayoutProperty(
+      id,
+      'visibility',
+      layer.visible ? 'visible' : 'none'
+    );
+    switch (layer.type) {
+      case 'RasterLayer': {
+        this._Map.setPaintProperty(
+          id,
+          'raster-opacity',
+          layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
+        );
+        break;
+      }
+      case 'VectorLayer': {
+        const vectorLayerType = layer.parameters?.type;
+        if (!vectorLayerType) {
+          showErrorMessage(
+            'Vector layer error',
+            'The vector layer type is undefined'
           );
-          break;
         }
-        case 'VectorLayer': {
-          const vectorLayerType = layer.parameters?.type;
-          if (!vectorLayerType) {
-            showErrorMessage(
-              'Vector layer error',
-              'The vector layer type is undefined'
-            );
-          }
-          this._Map.setPaintProperty(
-            id,
-            `${vectorLayerType}-color`,
-            layer.parameters?.color !== undefined
-              ? layer.parameters.color
-              : '#FF0000'
-          );
-          this._Map.setPaintProperty(
-            id,
-            `${vectorLayerType}-opacity`,
-            layer.parameters?.opacity !== undefined
-              ? layer.parameters.opacity
-              : 1
-          );
-          break;
-        }
+        this._Map.setPaintProperty(
+          id,
+          `${vectorLayerType}-color`,
+          layer.parameters?.color !== undefined
+            ? layer.parameters.color
+            : '#FF0000'
+        );
+        this._Map.setPaintProperty(
+          id,
+          `${vectorLayerType}-opacity`,
+          layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
+        );
+        break;
       }
-    };
-
-    this._mapLibreExecute(callback);
+    }
   }
 
   /**
@@ -515,24 +498,28 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _onSharedOptionsChanged(
-    sender: IJupyterGISDoc,
-    change: MapChange
+    sender?: IJupyterGISDoc,
+    change?: MapChange
   ): void {
     if (!this._initializedPosition) {
       const options = this._model.getOptions();
 
-      // It is important to call setZoom first, otherwise maplibre does set the center properly
-      this._Map.setZoom(options.zoom || 0);
-      this._Map.setCenter(
-        (options.longitude &&
-          options.latitude && {
-            lng: options.longitude,
-            lat: options.latitude
-          }) || [0, 0]
-      );
+      this.updateOptions(options);
 
       this._initializedPosition = true;
     }
+  }
+
+  private updateOptions(options: IJGISOptions) {
+    // It is important to call setZoom first, otherwise maplibre does set the center properly
+    this._Map.setZoom(options.zoom || 0);
+    this._Map.setCenter(
+      (options.longitude &&
+        options.latitude && {
+          lng: options.longitude,
+          lat: options.latitude
+        }) || [0, 0]
+    );
   }
 
   private _onViewChanged(
@@ -566,9 +553,13 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _onLayerTreeChange(
-    sender: IJupyterGISDoc,
-    change: IJGISLayerTreeDocChange
+    sender?: IJupyterGISDoc,
+    change?: IJGISLayerTreeDocChange
   ): void {
+    console.log(
+      'layers tree changed, update!',
+      JupyterGISModel.getOrderedLayerIds(this._model)
+    );
     this._ready = false;
     // We can't properly use the change, because of the nested groups in the the shared
     // document which is flattened for the map tool.
@@ -579,6 +570,10 @@ export class MainView extends React.Component<IProps, IStates> {
     _: IJupyterGISDoc,
     change: IJGISSourceDocChange
   ): void {
+    if (!this._ready) {
+      return;
+    }
+
     change.sourceChange?.forEach(change => {
       if (!change.newValue) {
         this.removeSource(change.id);
