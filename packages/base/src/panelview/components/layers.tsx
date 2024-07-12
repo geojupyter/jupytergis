@@ -1,5 +1,6 @@
 import {
   IJGISLayerGroup,
+  IJGISLayerItem,
   IJGISLayerTree,
   IJupyterGISClientState,
   IJupyterGISModel,
@@ -37,6 +38,13 @@ export namespace LayersPanel {
   export interface IOptions {
     model: IControlPanelModel;
   }
+
+  export interface IClickHandlerParams {
+    type: SelectionType;
+    item?: string;
+    nodeId?: string;
+    event: MouseEvent;
+  }
 }
 
 /**
@@ -48,6 +56,7 @@ export class LayersPanel extends Panel {
     this._model = options.model;
     this.id = 'jupytergis::layerTree';
     this.addClass(LAYERS_PANEL_CLASS);
+
     this.addWidget(
       ReactWidget.create(
         <LayersBodyComponent
@@ -61,24 +70,74 @@ export class LayersPanel extends Panel {
   /**
    * Function to call when a layer is selected from a component of the panel.
    *
-   * @param layerIdOrGroupName - the selected layer.
+   * @param item - the selected layer or group.
    */
-  private _onSelect = (
-    type: SelectionType,
-    layerIdOrGroupName?: string,
-    nodeId?: string
-  ) => {
+  private _onSelect = ({
+    type,
+    item,
+    nodeId,
+    event
+  }: LayersPanel.IClickHandlerParams) => {
     if (this._model) {
-      const selection: { [key: string]: ISelection } = {};
-      if (layerIdOrGroupName) {
-        selection[layerIdOrGroupName] = {
-          type,
-          selectedNodeId: nodeId
-        };
+      if (!event.ctrlKey) {
+        // No ctrl, then reset selected
+        this.resetSelected(type, nodeId, item);
+        return;
+      } else {
+        // If click is on different type, reset selected
+        const c = this._model.jGISModel?.localState?.selected?.value;
+
+        c &&
+          Object.values(c).forEach((v, i, a) => {
+            if (v.type !== type) {
+              this.resetSelected(type, nodeId, item);
+              return;
+            }
+          });
       }
-      this._model?.jGISModel?.syncSelected(selection, this.id);
+      // so not ctrl is being held
+      const select = this._model.jGISModel?.localState?.selected?.value;
+      if (!select) {
+        // selected is undefined, so this is the first selection
+        this.resetSelected(type, nodeId, item);
+      } else {
+        // ok now we're adding other selections
+        if (item && nodeId) {
+          select[item] = {
+            type,
+            selectedNodeId: nodeId
+          };
+        }
+        this._model?.jGISModel?.syncSelected(select, this.id);
+        console.log('celectec', select);
+      }
     }
   };
+
+  resetSelected(type: SelectionType, nodeId?: string, item?: string) {
+    const selection: { [key: string]: ISelection } = {};
+    if (item && nodeId) {
+      selection[item] = {
+        type,
+        selectedNodeId: nodeId
+      };
+    }
+    this._model?.jGISModel?.syncSelected(selection, this.id);
+  }
+
+  layerTreeRecursion(
+    items: IJGISLayerItem[],
+    current: string[] = []
+  ): string[] {
+    for (const layer of items) {
+      if (typeof layer === 'string') {
+        current.push(layer);
+      } else {
+        current.push(...this.layerTreeRecursion(layer.layers));
+      }
+    }
+    return current;
+  }
 
   private _model: IControlPanelModel | undefined;
 }
@@ -88,7 +147,7 @@ export class LayersPanel extends Panel {
  */
 interface IBodyProps {
   model: IControlPanelModel;
-  onSelect: (type: SelectionType, layer?: string, nodeId?: string) => void;
+  onSelect: ({ type, item, nodeId }: LayersPanel.IClickHandlerParams) => void;
 }
 
 /**
@@ -105,8 +164,13 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
   /**
    * Propagate the layer selection.
    */
-  const onItemClick = (type: SelectionType, item?: string, nodeId?: string) => {
-    props.onSelect(type, item, nodeId);
+  const onItemClick = ({
+    type,
+    item,
+    nodeId,
+    event
+  }: LayersPanel.IClickHandlerParams) => {
+    props.onSelect({ type, item, nodeId, event });
   };
 
   /**
@@ -114,14 +178,17 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
    */
   useEffect(() => {
     const updateLayers = () => {
+      console.log('updating layers');
       setLayerTree(model?.getLayerTree() || []);
     };
     model?.sharedModel.layersChanged.connect(updateLayers);
     model?.sharedModel.layerTreeChanged.connect(updateLayers);
+    model?.clientStateChanged.connect(updateLayers);
 
     return () => {
       model?.sharedModel.layersChanged.disconnect(updateLayers);
       model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
+      model?.clientStateChanged.disconnect(updateLayers);
     };
   }, [model]);
 
@@ -160,7 +227,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
 interface ILayerGroupProps {
   gisModel: IJupyterGISModel | undefined;
   group: IJGISLayerGroup | undefined;
-  onClick: (type: SelectionType, item?: string, nodeId?: string) => void;
+  onClick: ({ type, item, nodeId }: LayersPanel.IClickHandlerParams) => void;
 }
 
 /**
@@ -184,7 +251,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
 
   const handleRightClick = (event: MouseEvent<HTMLElement>) => {
     const childId = event.currentTarget.children.namedItem(id)?.id;
-    onClick('group', name, childId);
+    onClick({ type: 'group', item: name, nodeId: childId, event });
   };
 
   return (
@@ -232,10 +299,22 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
 interface ILayerProps {
   gisModel: IJupyterGISModel | undefined;
   layerId: string;
-  onClick: (type: SelectionType, item?: string, nodeId?: string) => void;
+  onClick: ({ type, item, nodeId }: LayersPanel.IClickHandlerParams) => void;
 }
 
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
+  const v = model?.localState?.selected?.value;
+  console.log(
+    'model?.localState?.selected?.value',
+    model?.localState?.selected?.value
+  );
+
+  v &&
+    console.log(
+      'Object.keys(model?.localState?.selected?.value).includes(layerId)',
+      Object.keys(v).includes(layerId)
+    );
+
   return (
     (model?.localState?.selected?.value &&
       Object.keys(model?.localState?.selected?.value).includes(layerId)) ||
@@ -292,7 +371,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
 
   const setSelection = (event: MouseEvent<HTMLElement>) => {
     const childId = event.currentTarget.children.namedItem(id)?.id;
-    onClick('layer', layerId, childId);
+    onClick({ type: 'layer', item: layerId, nodeId: childId, event });
   };
 
   return (
