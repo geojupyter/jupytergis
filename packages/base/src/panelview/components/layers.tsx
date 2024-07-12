@@ -184,7 +184,6 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
 
   const handleRightClick = (event: MouseEvent<HTMLElement>) => {
     const childId = event.currentTarget.children.namedItem(id)?.id;
-    console.log('childId', childId);
     onClick('group', name, childId);
   };
 
