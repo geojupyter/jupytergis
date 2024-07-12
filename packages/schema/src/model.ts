@@ -9,13 +9,13 @@ import Ajv from 'ajv';
 import {
   IJGISContent,
   IJGISLayer,
-  IJGISLayerItem,
-  IJGISLayers,
   IJGISLayerGroup,
+  IJGISLayerItem,
   IJGISLayerTree,
+  IJGISLayers,
+  IJGISOptions,
   IJGISSource,
-  IJGISSources,
-  IJGISOptions
+  IJGISSources
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
@@ -322,6 +322,21 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedModel.options;
   }
 
+  removeLayerTest(
+    id: string,
+    layer: IJGISLayer,
+    groupName?: string,
+    position?: number
+  ): void {
+    console.log('remove layer test1');
+    if (this.getLayer(id)) {
+      console.log('remove layer test2');
+      this.sharedModel.removeLayer(id);
+    }
+
+    // this._removeLayerTreeItem(id, groupName, position);
+  }
+
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('selected', {
       value,
@@ -354,37 +369,128 @@ export class JupyterGISModel implements IJupyterGISModel {
     index?: number
   ): void {
     if (groupName) {
-      const layerTree = this.getLayerTree();
-      const indexesPath = Private.findGroupPath(layerTree, groupName);
-      if (!indexesPath.length) {
-        console.warn(
-          `The group "${groupName}" does not exist in the layer tree`
+      // const layerTree = this.getLayerTree();
+      // const indexesPath = Private.findGroupPath(layerTree, groupName);
+      // if (!indexesPath.length) {
+      //   console.warn(
+      //     `The group "${groupName}" does not exist in the layer tree`
+      //   );
+      //   return;
+      // }
+
+      // const mainGroupIndex = indexesPath.shift();
+      // if (mainGroupIndex === undefined) {
+      //   return;
+      // }
+      // const mainGroup = layerTree[mainGroupIndex] as IJGISLayerGroup;
+      // let workingGroup = mainGroup;
+      // while (indexesPath.length) {
+      //   const groupIndex = indexesPath.shift();
+      //   if (groupIndex === undefined) {
+      //     break;
+      //   }
+      //   workingGroup = workingGroup.layers[groupIndex] as IJGISLayerGroup;
+      // }
+
+      const { workingGroup, mainGroup, mainGroupIndex } =
+        this._getLayerTreeInfo(groupName);
+
+      if (workingGroup && mainGroup) {
+        workingGroup.layers.splice(
+          index ?? workingGroup.layers.length,
+          0,
+          item
         );
-        return;
+        this._sharedModel.updateLayerTreeItem(mainGroupIndex, mainGroup);
       }
-
-      const mainGroupIndex = indexesPath.shift();
-      if (mainGroupIndex === undefined) {
-        return;
-      }
-      const mainGroup = layerTree[mainGroupIndex] as IJGISLayerGroup;
-      let workingGroup = mainGroup;
-      while (indexesPath.length) {
-        const groupIndex = indexesPath.shift();
-        if (groupIndex === undefined) {
-          break;
-        }
-        workingGroup = workingGroup.layers[groupIndex] as IJGISLayerGroup;
-      }
-      workingGroup.layers.splice(index ?? workingGroup.layers.length, 0, item);
-
-      this._sharedModel.updateLayerTreeItem(mainGroupIndex, mainGroup);
     } else {
       this.sharedModel.addLayerTreeItem(
         index ?? this.getLayerTree().length,
         item
       );
     }
+  }
+
+  renameLayerGroup(groupName: string, newName: string): void {
+    const { workingGroup, mainGroup, mainGroupIndex } =
+      this._getLayerTreeInfo(groupName);
+
+    if (workingGroup && mainGroup) {
+      workingGroup.name = newName;
+      this._sharedModel.updateLayerTreeItem(mainGroupIndex, mainGroup);
+    } else {
+      console.log('Something went wrong when renaming layer');
+    }
+  }
+
+  removeLayerGroup(groupName: string) {
+    const { mainGroupIndex } = this._getLayerTreeInfo(groupName);
+    const layerTree = this.getLayerTree();
+    const updatedLayerTree = removeLayerGroupItem(layerTree, groupName);
+
+    function removeLayerGroupItem(
+      layerTree: IJGISLayerItem[],
+      groupName: string
+    ): IJGISLayerItem[] {
+      const result: IJGISLayerItem[] = [];
+
+      for (const item of layerTree) {
+        if (typeof item === 'string') {
+          result.push(item); // Push layer IDs directly
+        } else if (item.name !== groupName) {
+          const filteredLayers = removeLayerGroupItem(item.layers, groupName);
+          result.push({ ...item, layers: filteredLayers }); // Update layers with filtered list
+        }
+      }
+
+      return result;
+    }
+
+    this._sharedModel.updateLayerTreeItem(
+      mainGroupIndex,
+      updatedLayerTree[mainGroupIndex]
+    );
+  }
+
+  private _getLayerTreeInfo(groupName: string): {
+    mainGroup: IJGISLayerGroup | null;
+    workingGroup: IJGISLayerGroup | null;
+    mainGroupIndex: number;
+  } {
+    const layerTree = this.getLayerTree();
+    const indexesPath = Private.findGroupPath(layerTree, groupName);
+    if (!indexesPath.length) {
+      console.warn(`The group "${groupName}" does not exist in the layer tree`);
+      return {
+        mainGroup: null,
+        workingGroup: null,
+        mainGroupIndex: -1
+      };
+    }
+
+    const mainGroupIndex = indexesPath.shift();
+    if (mainGroupIndex === undefined) {
+      return {
+        mainGroup: null,
+        workingGroup: null,
+        mainGroupIndex: -1
+      };
+    }
+    const mainGroup = layerTree[mainGroupIndex] as IJGISLayerGroup;
+    let workingGroup = mainGroup;
+    while (indexesPath.length) {
+      const groupIndex = indexesPath.shift();
+      if (groupIndex === undefined) {
+        break;
+      }
+      workingGroup = workingGroup.layers[groupIndex] as IJGISLayerGroup;
+    }
+
+    return {
+      mainGroup,
+      workingGroup,
+      mainGroupIndex
+    };
   }
 
   private _onClientStateChanged = changed => {

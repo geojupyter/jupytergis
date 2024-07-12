@@ -68,3 +68,17 @@
 .jp-gis-layerTitle .jp-gis-layerIcon {
   padding-right: 4px;
 }
+
+.jp-gis-left-panel-input {
+  background-color: transparent;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 8px;
+  color: var(--jp-ui-font-color1);
+  flex-grow: 1;
+  margin-right: 4px;
+  outline: none;
+}
+
+.jp-gis-left-panel-input:focus {
+  border: 1px solid var(--jp-brand-color1);
+}

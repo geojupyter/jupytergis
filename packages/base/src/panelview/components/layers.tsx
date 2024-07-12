@@ -3,8 +3,10 @@ import {
   IJGISLayerTree,
   IJupyterGISClientState,
   IJupyterGISModel,
-  ISelection
+  ISelection,
+  SelectionType
 } from '@jupytergis/schema';
+import { DOMUtils } from '@jupyterlab/apputils';
 import {
   Button,
   LabIcon,
@@ -12,7 +14,7 @@ import {
   caretDownIcon
 } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
-import React, { useEffect, useState } from 'react';
+import React, { MouseEvent, useEffect, useState } from 'react';
 import { nonVisibilityIcon, rasterIcon, visibilityIcon } from '../../icons';
 import { IControlPanelModel } from '../../types';
 
@@ -59,14 +61,19 @@ export class LayersPanel extends Panel {
   /**
    * Function to call when a layer is selected from a component of the panel.
    *
-   * @param layer - the selected layer.
+   * @param layerIdOrGroupName - the selected layer.
    */
-  private _onSelect = (layer?: string) => {
+  private _onSelect = (
+    type: SelectionType,
+    layerIdOrGroupName?: string,
+    nodeId?: string
+  ) => {
     if (this._model) {
       const selection: { [key: string]: ISelection } = {};
-      if (layer) {
-        selection[layer] = {
-          type: 'layer'
+      if (layerIdOrGroupName) {
+        selection[layerIdOrGroupName] = {
+          type,
+          selectedNodeId: nodeId
         };
       }
       this._model?.jGISModel?.syncSelected(selection, this.id);
@@ -81,7 +88,7 @@ export class LayersPanel extends Panel {
  */
 interface IBodyProps {
   model: IControlPanelModel;
-  onSelect: (layer?: string) => void;
+  onSelect: (type: SelectionType, layer?: string, nodeId?: string) => void;
 }
 
 /**
@@ -98,8 +105,8 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
   /**
    * Propagate the layer selection.
    */
-  const onItemClick = (item?: string) => {
-    props.onSelect(item);
+  const onItemClick = (type: SelectionType, item?: string, nodeId?: string) => {
+    props.onSelect(type, item, nodeId);
   };
 
   /**
@@ -153,24 +160,41 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
 interface ILayerGroupProps {
   gisModel: IJupyterGISModel | undefined;
   group: IJGISLayerGroup | undefined;
-  onClick: (item?: string) => void;
+  onClick: (type: SelectionType, item?: string, nodeId?: string) => void;
 }
 
 /**
  * The component to handle group of layers.
  */
 function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
-  const { group, gisModel } = props;
+  const { group, gisModel, onClick } = props;
+
   if (group === undefined) {
     return <></>;
   }
+
+  const [id, setId] = useState('');
   const [open, setOpen] = useState<boolean>(false);
   const name = group?.name ?? 'Undefined group';
   const layers = group?.layers ?? [];
 
+  useEffect(() => {
+    setId(DOMUtils.createDomID());
+  }, []);
+
+  const handleRightClick = (event: MouseEvent<HTMLElement>) => {
+    const childId = event.currentTarget.children.namedItem(id)?.id;
+    console.log('childId', childId);
+    onClick('group', name, childId);
+  };
+
   return (
     <div className={`${LAYER_ITEM_CLASS} ${LAYER_GROUP_CLASS}`}>
-      <div onClick={() => setOpen(!open)} className={LAYER_GROUP_HEADER_CLASS}>
+      <div
+        onClick={() => setOpen(!open)}
+        onContextMenu={handleRightClick}
+        className={LAYER_GROUP_HEADER_CLASS}
+      >
         <LabIcon.resolveReact
           icon={caretDownIcon}
           className={
@@ -178,7 +202,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
           }
           tag={'span'}
         />
-        <span>{name}</span>
+        <span id={id}>{name}</span>
       </div>
       {open && (
         <div>
@@ -187,13 +211,13 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
               <LayerComponent
                 gisModel={gisModel}
                 layerId={layer}
-                onClick={props.onClick}
+                onClick={onClick}
               />
             ) : (
               <LayerGroupComponent
                 gisModel={gisModel}
                 group={layer}
-                onClick={props.onClick}
+                onClick={onClick}
               />
             )
           )}
@@ -209,7 +233,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
 interface ILayerProps {
   gisModel: IJupyterGISModel | undefined;
   layerId: string;
-  onClick: (item?: string) => void;
+  onClick: (type: SelectionType, item?: string, nodeId?: string) => void;
 }
 
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
@@ -224,16 +248,22 @@ function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
  * The component to display a single layer.
  */
 function LayerComponent(props: ILayerProps): JSX.Element {
-  const { layerId, gisModel } = props;
+  const { layerId, gisModel, onClick } = props;
   const layer = gisModel?.getLayer(layerId);
   if (layer === undefined) {
     return <></>;
   }
+
+  const [id, setId] = useState('');
   const [selected, setSelected] = useState<boolean>(
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(layerId, gisModel)
   );
   const name = layer.name;
+
+  useEffect(() => {
+    setId(DOMUtils.createDomID());
+  }, []);
 
   /**
    * Listen to the changes on the current layer.
@@ -261,18 +291,27 @@ function LayerComponent(props: ILayerProps): JSX.Element {
     gisModel?.sharedModel?.updateLayer(layerId, layer);
   };
 
+  const setSelection = (event: MouseEvent<HTMLElement>) => {
+    const childId = event.currentTarget.children.namedItem(id)?.id;
+    onClick('layer', layerId, childId);
+  };
+
   return (
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
     >
-      <div className={LAYER_TITLE_CLASS} onClick={() => props.onClick(layerId)}>
+      <div
+        className={LAYER_TITLE_CLASS}
+        onClick={setSelection}
+        onContextMenu={setSelection}
+      >
         {layer.type === 'RasterLayer' && (
           <LabIcon.resolveReact
             icon={rasterIcon}
             className={LAYER_ICON_CLASS}
           />
         )}
-        <span>{name}</span>
+        <span id={id}>{name}</span>
       </div>
       <Button
         title={layer.visible ? 'Hide layer' : 'Show layer'}

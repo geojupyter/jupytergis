@@ -1,8 +1,3 @@
-import { JupyterFrontEnd } from '@jupyterlab/application';
-import { Dialog, WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
-import { PathExt } from '@jupyterlab/coreutils';
-import { ITranslator } from '@jupyterlab/translation';
-import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
 import {
   IDict,
   IGeoJSONSource,
@@ -10,20 +5,26 @@ import {
   IJGISLayer,
   IJGISLayerBrowserRegistry,
   IJGISSource,
-  IJupyterGISModel
+  IJupyterGISModel,
+  SelectionType
 } from '@jupytergis/schema';
+import { JupyterFrontEnd } from '@jupyterlab/application';
+import { Dialog, WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
+import { PathExt } from '@jupyterlab/coreutils';
+import { ITranslator } from '@jupyterlab/translation';
+import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
 import { UUID } from '@lumino/coreutils';
 import { Ajv } from 'ajv';
 import * as geojson from 'geojson-schema/GeoJSON.json';
 
+import { GeoJSONLayerDialog } from './dialogs/geoJsonLayerDialog';
+import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import {
   DataErrorDialog,
   DialogAddDataSourceBody,
   FormDialog
 } from './formdialog';
 import { geoJSONIcon } from './icons';
-import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
-import { GeoJSONLayerDialog } from './dialogs/geoJsonLayerDialog';
 import { JupyterGISWidget } from './widget';
 
 /**
@@ -41,6 +42,11 @@ export namespace CommandIDs {
   export const newVectorTileLayer = 'jupytergis:newVectorTileLayer';
 
   export const newVectorLayer = 'jupytergis:newVectorLayer';
+
+  export const renameLayer = 'jupytergis:renameLayer';
+  export const removeLayer = 'jupytergis:removeLayer';
+  export const renameGroup = 'jupytergis:renameGroup';
+  export const removeGroup = 'jupytergis:removeGroup';
 }
 
 /**
@@ -104,6 +110,74 @@ export function addCommands(
       layerBrowserRegistry,
       formSchemaRegistry
     )
+  });
+
+  commands.addCommand(CommandIDs.removeLayer, {
+    label: trans.__('Remove Layer'),
+    execute: () => {
+      const model = tracker.currentWidget?.context.model;
+      Private.removeSelectedItems(model, 'layer', selection => {
+        model?.sharedModel.removeLayer(selection);
+      });
+    }
+  });
+
+  commands.addCommand(CommandIDs.renameLayer, {
+    label: trans.__('Rename Layer'),
+    execute: async () => {
+      const model = tracker.currentWidget?.context.model;
+      await Private.renameSelectedItem(model, 'layer', (layerId, newName) => {
+        const layer = model?.getLayer(layerId);
+        if (layer) {
+          layer.name = newName;
+          model?.sharedModel.updateLayer(layerId, layer);
+        }
+      });
+    }
+  });
+
+  commands.addCommand(CommandIDs.removeGroup, {
+    label: trans.__('Remove Group'),
+    execute: async () => {
+      const model = tracker.currentWidget?.context.model;
+      Private.removeSelectedItems(model, 'group', selection => {
+        model?.removeLayerGroup(selection);
+      });
+    }
+  });
+
+  commands.addCommand(CommandIDs.renameGroup, {
+    label: trans.__('Rename Group'),
+    execute: async () => {
+      const model = tracker.currentWidget?.context.model;
+      await Private.renameSelectedItem(model, 'group', (groupName, newName) => {
+        model?.renameLayerGroup(groupName, newName);
+      });
+    }
+  });
+
+  app.contextMenu.addItem({
+    command: CommandIDs.removeLayer,
+    selector: '.jp-gis-layerTitle',
+    rank: 1
+  });
+
+  app.contextMenu.addItem({
+    command: CommandIDs.renameLayer,
+    selector: '.jp-gis-layerTitle',
+    rank: 1
+  });
+
+  app.contextMenu.addItem({
+    command: CommandIDs.removeGroup,
+    selector: '.jp-gis-layerGroupHeader',
+    rank: 1
+  });
+
+  app.contextMenu.addItem({
+    command: CommandIDs.renameGroup,
+    selector: '.jp-gis-layerGroupHeader',
+    rank: 1
   });
 
   commands.addCommand(CommandIDs.newGeoJSONLayer, {
@@ -415,5 +489,111 @@ namespace Private {
       });
       await dialog.launch();
     };
+  }
+
+  export async function getUserInputForRename(
+    text: HTMLElement,
+    input: HTMLInputElement,
+    original: string
+  ): Promise<string> {
+    const parent = text.parentElement as HTMLElement;
+    parent.replaceChild(input, text);
+    input.focus();
+
+    return new Promise<string>(resolve => {
+      input.addEventListener('blur', () => {
+        parent.replaceChild(text, input);
+        resolve(input.value);
+      });
+
+      input.addEventListener('keydown', (event: KeyboardEvent) => {
+        if (event.key === 'Enter') {
+          event.stopPropagation();
+          event.preventDefault();
+          input.blur();
+        } else if (event.key === 'Escape') {
+          event.stopPropagation();
+          event.preventDefault();
+          input.value = original;
+          input.blur();
+          text.focus();
+        }
+      });
+    });
+  }
+
+  export function removeSelectedItems(
+    model: IJupyterGISModel | undefined,
+    itemTypeToRemove: SelectionType,
+    removeFunction: (id: string) => void
+  ) {
+    const selected = model?.localState?.selected.value;
+
+    if (!selected) {
+      console.info('Nothing selected');
+      return;
+    }
+
+    for (const selection in selected) {
+      if (selected[selection].type === itemTypeToRemove) {
+        removeFunction(selection);
+      }
+    }
+  }
+
+  export async function renameSelectedItem(
+    model: IJupyterGISModel | undefined,
+    itemType: SelectionType,
+    callback: (itemId: string, newName: string) => void
+  ) {
+    const selectedItems = model?.localState?.selected.value;
+
+    if (!selectedItems) {
+      console.error(`No ${itemType} selected`);
+      return;
+    }
+
+    let itemId = '';
+
+    // If more then one item is selected, only rename the first
+    for (const id in selectedItems) {
+      if (selectedItems[id].type === itemType) {
+        itemId = id;
+        break;
+      }
+    }
+
+    if (!itemId) {
+      return;
+    }
+
+    const nodeId = selectedItems[itemId].selectedNodeId;
+    if (!nodeId) {
+      return;
+    }
+
+    const node = document.getElementById(nodeId);
+    if (!node) {
+      console.warn(`Node with ID ${nodeId} not found`);
+      return;
+    }
+
+    const edit = document.createElement('input');
+    edit.classList.add('jp-gis-left-panel-input');
+    const originalName = node.innerText;
+    const newName = await Private.getUserInputForRename(
+      node,
+      edit,
+      originalName
+    );
+
+    if (newName.trim() === '') {
+      console.warn('New name cannot be empty');
+      return;
+    }
+
+    if (newName !== originalName) {
+      callback(itemId, newName);
+    }
   }
 }

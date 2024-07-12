@@ -13,6 +13,7 @@ import { User } from '@jupyterlab/services';
 import { ReactWidget } from '@jupyterlab/ui-components';
 import { ISignal, Signal } from '@lumino/signaling';
 
+import { GeoJSON } from './_interface/geojsonsource';
 import {
   IJGISContent,
   IJGISLayer,
@@ -24,7 +25,6 @@ import {
   IJGISSources
 } from './_interface/jgis';
 import { IRasterSource } from './_interface/rastersource';
-import { GeoJSON } from './_interface/geojsonsource';
 
 export { IGeoJSONSource } from './_interface/geojsonsource';
 
@@ -50,9 +50,12 @@ export interface IJGISSourceDocChange {
   }>;
 }
 
+export type SelectionType = 'layer' | 'source' | 'group';
+
 export interface ISelection {
-  type: 'layer' | 'source';
+  type: SelectionType;
   parent?: string;
+  selectedNodeId?: string;
 }
 
 export interface IJupyterGISClientState {
@@ -80,6 +83,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
     groupName?: string,
     position?: number
   ): void;
+
   updateLayer(id: string, value: IJGISLayer): void;
 
   sourceExists(id: string): boolean;
@@ -155,6 +159,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setOptions(value: IJGISOptions): void;
 
   readGeoJSON(filepath: string): Promise<GeoJSON | undefined>;
+
+  removeLayerGroup(groupName: string): void;
+  renameLayerGroup(groupName: string, newName: string): void;
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   setUserToFollow(userId?: number): void;
