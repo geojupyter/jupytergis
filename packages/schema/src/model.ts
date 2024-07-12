@@ -253,13 +253,14 @@ export class JupyterGISModel implements IJupyterGISModel {
       return;
     }
 
-    const relativePath = PathExt.join(
-      PathExt.dirname(this._filePath).split(':')[1],
-      filepath
-    );
+    let dir = PathExt.dirname(this._filePath);
+    if (dir.includes(':')) {
+      dir = dir.split(':')[1];
+    }
+    const absolutePath = PathExt.join(dir, filepath);
 
     return this._drive
-      .get(relativePath)
+      .get(absolutePath)
       .then(contentModel => {
         return JSON.parse(contentModel.content);
       })
