@@ -20,6 +20,7 @@ from .objects import (
     SourceType,
     IRasterLayer,
     IRasterSource,
+    IVectorTileSource,
     IVectorLayer,
     IGeoJSONSource,
 )
@@ -35,7 +36,13 @@ class GISDocument(CommWidget):
     If not provided, a new empty document will be created.
     """
 
-    def __init__(self, path: Optional[str] = None):
+    def __init__(
+        self,
+        path: Optional[str] = None,
+        latitude: Optional[number] = None,
+        longitude: Optional[number] = None,
+        zoom: Optional[number] = None
+    ):
         comm_metadata = GISDocument._path_to_comm(path)
 
         ydoc = Doc()
@@ -49,6 +56,14 @@ class GISDocument(CommWidget):
         self.ydoc["sources"] = self._sources = Map()
         self.ydoc["options"] = self._options = Map()
         self.ydoc["layerTree"] = self._layerTree = Array()
+
+        if path is None:
+            if latitude is not None:
+                self._options['latitude'] = latitude
+            if longitude is not None:
+                self._options['longitude'] = longitude
+            if zoom is not None:
+                self._options['zoom'] = zoom
 
     @property
     def layers(self) -> Dict:
@@ -105,10 +120,64 @@ class GISDocument(CommWidget):
 
         self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
+    def add_vectortile_layer(
+        self,
+        url: str,
+        name: str = "Vector Tile Layer",
+        source_layer: str | None = None,
+        attribution: str = "",
+        min_zoom: number = 0,
+        max_zoom: number = 24,
+        type: "circle" | "fill" | "line" = "line",
+        color: str = "#FF0000",
+        opacity: float = 1,
+    ):
+        """
+        Add a Vector Tile Layer to the document.
+
+        :param name: The name that will be used for the object in the document.
+        :param url: The tiles url.
+        :param source_layer: The source layer to use.
+        :param attribution: The attribution.
+        :param opacity: The opacity, between 0 and 1.
+        """
+        source = {
+            "type": SourceType.VectorTileSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "minZoom": min_zoom,
+                "maxZoom": max_zoom,
+                "attribution": attribution,
+                "htmlAttribution": attribution,
+                "provider": "",
+                "bounds": [],
+                "urlParameters": {},
+            },
+        }
+
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.VectorLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {
+                "source": source_id,
+                "type": type,
+                "opacity": opacity,
+                "sourceLayer": source_layer,
+                "color": color,
+                "opacity": opacity,
+            },
+        }
+
+        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
     def add_geojson_layer(
         self,
-        path: str = None,
-        data: Dict = None,
+        path: str | None = None,
+        data: Dict | None = None,
         name: str = "GeoJSON Layer",
         type: "circle" | "fill" | "line" = "line",
         color: str = "#FF0000",
@@ -227,6 +296,7 @@ class JGISSource(BaseModel):
     type: SourceType
     parameters: Union[
         IRasterSource,
+        IVectorTileSource,
         IGeoJSONSource,
     ]
     _parent = Optional[GISDocument]
@@ -301,5 +371,6 @@ OBJECT_FACTORY = ObjectFactoryManager()
 OBJECT_FACTORY.register_factory(LayerType.RasterLayer, IRasterLayer)
 OBJECT_FACTORY.register_factory(LayerType.VectorLayer, IVectorLayer)
 
+OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterSource, IRasterSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoJSONSource, IGeoJSONSource)
