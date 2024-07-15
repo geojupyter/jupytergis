@@ -78,39 +78,38 @@ export class LayersPanel extends Panel {
     nodeId,
     event
   }: LayersPanel.IClickHandlerParams) => {
-    if (this._model) {
-      if (!event.ctrlKey) {
-        // No ctrl, then reset selected
+    if (!this._model) {
+      return;
+    }
+
+    const { jGISModel } = this._model;
+    const selectedValue = jGISModel?.localState?.selected?.value;
+
+    // Early return if Ctrl is not pressed or no selection exists
+    if (!event.ctrlKey || !selectedValue) {
+      this.resetSelected(type, nodeId, item);
+      return;
+    }
+
+    if (item && nodeId) {
+      // Check is new selection is the same type as previous selections
+      const isSelectedSameType = Object.values(selectedValue).some(
+        selection => selection.type === type
+      );
+
+      if (!isSelectedSameType) {
+        // Selecting a new type, so reset selected
         this.resetSelected(type, nodeId, item);
         return;
-      } else {
-        // If click is on different type, reset selected
-        const c = this._model.jGISModel?.localState?.selected?.value;
+      }
 
-        c &&
-          Object.values(c).forEach((v, i, a) => {
-            if (v.type !== type) {
-              this.resetSelected(type, nodeId, item);
-              return;
-            }
-          });
-      }
-      // so not ctrl is being held
-      const select = this._model.jGISModel?.localState?.selected?.value;
-      if (!select) {
-        // selected is undefined, so this is the first selection
-        this.resetSelected(type, nodeId, item);
-      } else {
-        // ok now we're adding other selections
-        if (item && nodeId) {
-          select[item] = {
-            type,
-            selectedNodeId: nodeId
-          };
-        }
-        this._model?.jGISModel?.syncSelected(select, this.id);
-        console.log('celectec', select);
-      }
+      // If types are the same add the selection
+      const updatedSelectedValue = {
+        ...selectedValue,
+        [item]: { type, selectedNodeId: nodeId }
+      };
+
+      jGISModel.syncSelected(updatedSelectedValue, this.id);
     }
   };
 
@@ -304,10 +303,6 @@ interface ILayerProps {
 
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
   const v = model?.localState?.selected?.value;
-  console.log(
-    'model?.localState?.selected?.value',
-    model?.localState?.selected?.value
-  );
 
   v &&
     console.log(
