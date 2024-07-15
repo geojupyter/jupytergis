@@ -380,21 +380,17 @@ export class MainView extends React.Component<IProps, IStates> {
           layout: {
             visibility: layer.visible ? 'visible' : 'none'
           },
-          source: sourceId,
+          source: sourceId
         };
 
-        parameters.sourceLayer && (layerSpecification['source-layer'] = parameters.sourceLayer);
+        parameters.sourceLayer &&
+          (layerSpecification['source-layer'] = parameters.sourceLayer);
 
-        this._Map.addLayer(
-          layerSpecification,
-          beforeId
-        );
+        this._Map.addLayer(layerSpecification, beforeId);
         this._Map.setPaintProperty(
           id,
           `${parameters.type}-color`,
-          parameters.color !== undefined
-            ? parameters.color
-            : '#FF0000'
+          parameters.color !== undefined ? parameters.color : '#FF0000'
         );
         this._Map.setPaintProperty(
           id,
