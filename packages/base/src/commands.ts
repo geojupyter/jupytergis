@@ -49,7 +49,7 @@ export namespace CommandIDs {
   export const renameGroup = 'jupytergis:renameGroup';
   export const removeGroup = 'jupytergis:removeGroup';
 
-  export const addLayersToGroup = 'jupytergis:addLayersToGroup';
+  export const moveLayersToGroup = 'jupytergis:moveLayersToGroup';
 }
 
 /**
@@ -159,9 +159,8 @@ export function addCommands(
     }
   });
 
-  commands.addCommand(CommandIDs.addLayersToGroup, {
+  commands.addCommand(CommandIDs.moveLayersToGroup, {
     label: args => args['label'] as string,
-    //TODO only enable when more than one selected
     execute: args => {
       const model = tracker.currentWidget?.context.model;
       console.log('first', model?.localState?.selected?.value);
