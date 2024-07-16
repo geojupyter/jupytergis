@@ -13,17 +13,17 @@
       "type": "number",
       "minimum": 0,
       "maximum": 24,
-      "description": "The maximum zoom level for the raster source"
+      "description": "The maximum zoom level for the vector source"
     },
     "minZoom": {
       "type": "number",
       "minimum": 0,
       "maximum": 24,
-      "description": "The minimum zoom level for the raster source"
+      "description": "The minimum zoom level for the vector source"
     },
     "attribution": {
       "type": "string",
-      "description": "The attribution for the raster source"
+      "description": "The attribution for the vector source"
     },
     "provider": {
       "type": "string",
