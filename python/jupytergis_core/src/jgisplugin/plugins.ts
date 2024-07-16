@@ -22,16 +22,12 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { fileIcon } from '@jupyterlab/ui-components';
 
+import { CommandIDs } from '@jupytergis/base';
 import { JupyterGISWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
-import { CommandIDs } from '@jupytergis/base';
 
 const FACTORY = 'JupyterGIS .jgis Viewer';
 const PALETTE_CATEGORY = 'JupyterGIS';
-
-// namespace CommandIDs {
-//   export const createNew = 'jupytergis:create-new-jGIS-file';
-// }
 
 const activate = (
   app: JupyterFrontEnd,

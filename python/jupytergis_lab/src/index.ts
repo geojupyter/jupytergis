@@ -90,7 +90,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
       submenu
     });
 
-    app.contextMenu.opened.connect(() => groupsMenu(app.contextMenu, tracker));
+    app.contextMenu.opened.connect(() =>
+      buildGroupsMenu(app.contextMenu, tracker)
+    );
 
     app.contextMenu.addItem({
       type: 'separator',
@@ -114,62 +116,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       populateMenus(mainMenu, isEnabled);
     }
   }
-};
-
-const groupsMenu = (
-  contextMenu: ContextMenu,
-  tracker: WidgetTracker<JupyterGISWidget>
-) => {
-  if (!tracker.currentWidget?.context.model) {
-    return;
-  }
-
-  const model = tracker.currentWidget?.context.model;
-
-  const submenu =
-    contextMenu.menu.items.find(item => item.type === 'submenu')?.submenu ??
-    null;
-
-  // Bail early if the submenu isn't found
-  if (!submenu) {
-    return;
-  }
-
-  submenu.clearItems();
-
-  // need a list of group name
-  const layerTree = model.getLayerTree();
-  const groupNames = getLayerGroupNames(layerTree);
-
-  function getLayerGroupNames(layerTree: IJGISLayerItem[]): string[] {
-    const result: string[] = [];
-
-    for (const item of layerTree) {
-      // Skip if the item is a layer id
-      if (typeof item === 'string') {
-        continue;
-      }
-
-      // Process group items
-      if (item.layers) {
-        result.push(item.name);
-
-        // Recursively process the layers of the current item
-        const nestedResults = getLayerGroupNames(item.layers);
-        // Append the results of the recursive call to the main result array
-        result.push(...nestedResults);
-      }
-    }
-
-    return result;
-  }
-
-  groupNames.forEach(name => {
-    submenu.addItem({
-      command: CommandIDs.moveLayersToGroup,
-      args: { label: name }
-    });
-  });
 };
 
 const controlPanel: JupyterFrontEndPlugin<void> = {
@@ -228,6 +174,65 @@ function populateMenus(mainMenu: IMainMenu, isEnabled: () => boolean): void {
   mainMenu.editMenu.undoers.undo.add({
     id: CommandIDs.undo,
     isEnabled
+  });
+}
+
+/**
+ * Populate submenu with current group names
+ */
+function buildGroupsMenu(
+  contextMenu: ContextMenu,
+  tracker: WidgetTracker<JupyterGISWidget>
+) {
+  if (!tracker.currentWidget?.context.model) {
+    return;
+  }
+
+  const model = tracker.currentWidget?.context.model;
+
+  const submenu =
+    contextMenu.menu.items.find(item => item.type === 'submenu')?.submenu ??
+    null;
+
+  // Bail early if the submenu isn't found
+  if (!submenu) {
+    return;
+  }
+
+  submenu.clearItems();
+
+  // need a list of group name
+  const layerTree = model.getLayerTree();
+  const groupNames = getLayerGroupNames(layerTree);
+
+  function getLayerGroupNames(layerTree: IJGISLayerItem[]): string[] {
+    const result: string[] = [];
+
+    for (const item of layerTree) {
+      // Skip if the item is a layer id
+      if (typeof item === 'string') {
+        continue;
+      }
+
+      // Process group items
+      if (item.layers) {
+        result.push(item.name);
+
+        // Recursively process the layers of the current item
+        const nestedResults = getLayerGroupNames(item.layers);
+        // Append the results of the recursive call to the main result array
+        result.push(...nestedResults);
+      }
+    }
+
+    return result;
+  }
+
+  groupNames.forEach(name => {
+    submenu.addItem({
+      command: CommandIDs.moveLayersToGroup,
+      args: { label: name }
+    });
   });
 }
 
