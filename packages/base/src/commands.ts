@@ -37,6 +37,9 @@ export namespace CommandIDs {
 
   export const newGeoJSONLayer = 'jupytergis:newGeoJSONLayer';
   export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
+
+  export const newVectorTileLayer = 'jupytergis:newVectorTileLayer';
+
   export const newVectorLayer = 'jupytergis:newVectorLayer';
 }
 
@@ -125,6 +128,17 @@ export function addCommands(
     execute: Private.createVectorLayer(tracker)
   });
 
+  commands.addCommand(CommandIDs.newVectorTileLayer, {
+    label: trans.__('New vector tile layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    iconClass: 'fa fa-vector-square',
+    execute: Private.createVectorTileLayer(tracker)
+  });
+
   commands.addCommand(CommandIDs.newGeoJSONSource, {
     label: trans.__('Add GeoJSON data from file'),
     isEnabled: () => {
@@ -195,6 +209,70 @@ namespace Private {
       const dialog = new GeoJSONLayerDialog({
         model: current.context.model,
         registry: formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createVectorTileLayer(
+    tracker: WidgetTracker<JupyterGISWidget>
+  ) {
+    return async (args: any) => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const form = {
+        title: 'Vector Tile Layer parameters',
+        default: (model: IJupyterGISModel) => {
+          return {
+            name: 'Vector Tile Source',
+            maxZoom: 24,
+            minZoom: 0
+          };
+        }
+      };
+
+      const dialog = new FormDialog({
+        context: current.context,
+        title: form.title,
+        sourceData: form.default(current.context.model),
+        schema: FORM_SCHEMA['VectorTileSource'],
+        syncData: (props: IDict) => {
+          const sharedModel = current.context.model.sharedModel;
+          if (!sharedModel) {
+            return;
+          }
+
+          const { name, ...parameters } = props;
+
+          const sourceId = UUID.uuid4();
+
+          const sourceModel: IJGISSource = {
+            type: 'VectorTileSource',
+            name,
+            parameters: {
+              url: parameters.url,
+              minZoom: parameters.minZoom,
+              maxZoom: parameters.maxZoom
+            }
+          };
+
+          const layerModel: IJGISLayer = {
+            type: 'VectorLayer',
+            parameters: {
+              type: 'line',
+              source: sourceId
+            },
+            visible: true,
+            name: name + ' Layer'
+          };
+
+          sharedModel.addSource(sourceId, sourceModel);
+          current.context.model.addLayer(UUID.uuid4(), layerModel);
+        }
       });
       await dialog.launch();
     };
