@@ -296,7 +296,7 @@ export class JupyterGISModel implements IJupyterGISModel {
    *
    * @param id - the ID of the layer.
    * @param layer - the layer object.
-   * @param groupName - optional) the name of the group in which to include the new
+   * @param groupName - (optional) the name of the group in which to include the new
    *   layer.
    * @param position - (optional) the index of the new layer in its parent group or
    *   from root of layer tree.
@@ -392,9 +392,9 @@ export class JupyterGISModel implements IJupyterGISModel {
   removeLayerGroup(groupName: string) {
     const layerTree = this.getLayerTree();
     const layerTreeInfo = this._getLayerTreeInfo(groupName);
-    const updatedLayerTree = removeLayerGroupItem(layerTree, groupName);
+    const updatedLayerTree = removeLayerGroupEntry(layerTree, groupName);
 
-    function removeLayerGroupItem(
+    function removeLayerGroupEntry(
       layerTree: IJGISLayerItem[],
       groupName: string
     ): IJGISLayerItem[] {
@@ -404,7 +404,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         if (typeof item === 'string') {
           result.push(item); // Push layer IDs directly
         } else if (item.name !== groupName) {
-          const filteredLayers = removeLayerGroupItem(item.layers, groupName);
+          const filteredLayers = removeLayerGroupEntry(item.layers, groupName);
           result.push({ ...item, layers: filteredLayers }); // Update layers with filtered list
         }
       }
