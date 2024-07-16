@@ -48,6 +48,8 @@ export namespace CommandIDs {
   export const removeLayer = 'jupytergis:removeLayer';
   export const renameGroup = 'jupytergis:renameGroup';
   export const removeGroup = 'jupytergis:removeGroup';
+
+  export const addLayersToGroup = 'jupytergis:addLayersToGroup';
 }
 
 /**
@@ -154,6 +156,25 @@ export function addCommands(
       await Private.renameSelectedItem(model, 'group', (groupName, newName) => {
         model?.renameLayerGroup(groupName, newName);
       });
+    }
+  });
+
+  commands.addCommand(CommandIDs.addLayersToGroup, {
+    label: args => args['label'] as string,
+    //TODO only enable when more than one selected
+    execute: args => {
+      const model = tracker.currentWidget?.context.model;
+      console.log('first', model?.localState?.selected?.value);
+      console.log('args[]', args['label']);
+      const groupName = args['label'] as string;
+
+      const selectedLayers = model?.localState?.selected?.value;
+
+      if (!selectedLayers) {
+        return;
+      }
+
+      model.moveSelectedLayersToGroup(selectedLayers, groupName);
     }
   });
 

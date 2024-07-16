@@ -162,6 +162,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   removeLayerGroup(groupName: string): void;
   renameLayerGroup(groupName: string, newName: string): void;
+  moveSelectedLayersToGroup(
+    selected: { [key: string]: ISelection },
+    groupName: string
+  ): void;
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   setUserToFollow(userId?: number): void;
