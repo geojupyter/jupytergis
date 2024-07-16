@@ -29,6 +29,7 @@ class YJGIS(YBaseDoc):
         layers_tree = self._ylayerTree.to_py()
         return json.dumps(
             dict(layers=layers, sources=sources, options=options, layerTree=layers_tree),
+            sort_keys=True,
             indent=2,
         )
 
