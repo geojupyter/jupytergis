@@ -84,7 +84,6 @@ jobs:
           create-args: >-
             python=3.9
             jupyterlab=4
-            pythonocc-core=7.7.0
 
       - name: Install the extension
         shell: bash -l {0}
