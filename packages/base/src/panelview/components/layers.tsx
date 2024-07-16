@@ -26,6 +26,7 @@ const LAYER_ITEM_CLASS = 'jp-gis-layerItem';
 const LAYER_CLASS = 'jp-gis-layer';
 const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
+const LAYER_TEXT_CLASS = 'jp-gis-layerText';
 
 /**
  * The namespace for the layers panel.
@@ -262,7 +263,9 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
           }
           tag={'span'}
         />
-        <span id={id}>{name}</span>
+        <span id={id} className={LAYER_TEXT_CLASS}>
+          {name}
+        </span>
       </div>
       {open && (
         <div>
@@ -371,7 +374,9 @@ function LayerComponent(props: ILayerProps): JSX.Element {
             className={LAYER_ICON_CLASS}
           />
         )}
-        <span id={id}>{name}</span>
+        <span id={id} className={LAYER_TEXT_CLASS}>
+          {name}
+        </span>
       </div>
       <Button
         title={layer.visible ? 'Hide layer' : 'Show layer'}
