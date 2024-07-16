@@ -225,7 +225,7 @@ namespace Private {
       }
 
       const form = {
-        title: 'Raster Layer parameters',
+        title: 'Vector Tile Layer parameters',
         default: (model: IJupyterGISModel) => {
           return {
             name: 'Vector Tile Source',
