@@ -126,7 +126,6 @@ jobs:
           create-args: >-
             python=3.9
             jupyterlab
-            pythonocc-core=7.7.0
 
       - name: Download extension package
         uses: actions/download-artifact@v3
