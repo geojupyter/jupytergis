@@ -237,11 +237,21 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     let LayerForm = LayerPropertiesForm;
     let SourceForm = ObjectPropertiesForm;
 
-    if (selectedObjSource.type === 'RasterSource') {
-      SourceForm = RasterSourcePropertiesForm;
-    } else if (selectedObjSource.type === 'GeoJSONSource') {
-      LayerForm = VectorLayerPropertiesForm;
-      SourceForm = GeoJSONSourcePropertiesForm;
+    switch (selectedObj.type) {
+      case 'VectorLayer':
+        LayerForm = VectorLayerPropertiesForm;
+        break;
+      // ADD MORE FORM TYPES HERE
+    }
+
+    switch (selectedObjSource.type) {
+      case 'GeoJSONSource':
+        SourceForm = GeoJSONSourcePropertiesForm;
+        break;
+      case 'RasterSource':
+        SourceForm = RasterSourcePropertiesForm;
+        break;
+      // ADD MORE FORM TYPES HERE
     }
 
     return (
