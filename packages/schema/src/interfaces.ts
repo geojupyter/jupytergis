@@ -17,6 +17,7 @@ import { GeoJSON } from './_interface/geojsonsource';
 import {
   IJGISContent,
   IJGISLayer,
+  IJGISLayerGroup,
   IJGISLayerItem,
   IJGISLayers,
   IJGISLayerTree,
@@ -165,6 +166,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   moveSelectedLayersToGroup(
     selected: { [key: string]: ISelection },
     groupName: string
+  ): void;
+  addNewLayerGroup(
+    selected: { [key: string]: ISelection },
+    group: IJGISLayerGroup
   ): void;
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;

@@ -4,6 +4,8 @@ import {
   IJGISFormSchemaRegistry,
   IJGISLayer,
   IJGISLayerBrowserRegistry,
+  IJGISLayerGroup,
+  IJGISLayerItem,
   IJGISSource,
   IJupyterGISModel,
   SelectionType
@@ -50,6 +52,7 @@ export namespace CommandIDs {
   export const removeGroup = 'jupytergis:removeGroup';
 
   export const moveLayersToGroup = 'jupytergis:moveLayersToGroup';
+  export const moveLayerToNewGroup = 'jupyterlab:moveLayerToNewGroup';
 }
 
 /**
@@ -163,8 +166,6 @@ export function addCommands(
     label: args => args['label'] as string,
     execute: args => {
       const model = tracker.currentWidget?.context.model;
-      console.log('first', model?.localState?.selected?.value);
-      console.log('args[]', args['label']);
       const groupName = args['label'] as string;
 
       const selectedLayers = model?.localState?.selected?.value;
@@ -174,6 +175,66 @@ export function addCommands(
       }
 
       model.moveSelectedLayersToGroup(selectedLayers, groupName);
+    }
+  });
+
+  commands.addCommand(CommandIDs.moveLayerToNewGroup, {
+    label: trans.__('Move layers to new group'),
+    execute: async () => {
+      const model = tracker.currentWidget?.context.model;
+      const selectedLayers = model?.localState?.selected?.value;
+
+      if (!selectedLayers) {
+        return;
+      }
+
+      function newGroupName() {
+        const input = document.createElement('input');
+        input.classList.add('jp-gis-left-panel-input');
+        const panel = document.getElementById('layertreepanel');
+        if (!panel) {
+          return;
+        }
+
+        panel.appendChild(input);
+
+        return new Promise<string>(resolve => {
+          input.addEventListener('blur', () => {
+            panel.removeChild(input);
+            resolve(input.value);
+          });
+
+          input.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.key === 'Enter') {
+              event.stopPropagation();
+              event.preventDefault();
+              input.blur();
+            } else if (event.key === 'Escape') {
+              event.stopPropagation();
+              event.preventDefault();
+              input.blur();
+            }
+          });
+        });
+      }
+
+      const newName = await newGroupName();
+      if (!newName) {
+        return;
+      }
+
+      const layers: IJGISLayerItem[] = [];
+
+      Object.keys(selectedLayers).forEach(key => {
+        layers.push(key);
+      });
+
+      const newLayerGroup: IJGISLayerGroup = {
+        name: newName,
+        layers: layers
+      };
+
+      model.addNewLayerGroup(selectedLayers, newLayerGroup);
     }
   });
 

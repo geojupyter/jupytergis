@@ -196,7 +196,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
   });
 
   return (
-    <div>
+    <div id="layertreepanel">
       {layerTree.map(layer =>
         typeof layer === 'string' ? (
           <LayerComponent

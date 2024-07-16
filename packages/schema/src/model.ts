@@ -390,6 +390,18 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
+  addNewLayerGroup(
+    selected: { [key: string]: ISelection },
+    group: IJGISLayerGroup
+  ) {
+    const layerTree = this.getLayerTree();
+    for (const item in selected) {
+      this._removeLayerTreeLayer(layerTree, item);
+    }
+
+    this._addLayerTreeItem(group);
+  }
+
   private _removeLayerTreeLayer(
     layerTree: IJGISLayerTree,
     layerIdToRemove: string

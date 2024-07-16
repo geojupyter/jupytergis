@@ -234,6 +234,10 @@ function buildGroupsMenu(
       args: { label: name }
     });
   });
+
+  submenu.addItem({
+    command: CommandIDs.moveLayerToNewGroup
+  });
 }
 
 export default [plugin, controlPanel, notebookRenderePlugin];
