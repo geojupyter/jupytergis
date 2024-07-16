@@ -1,8 +1,6 @@
 import {
-  IDict,
   IGeoJSONSource,
   IJGISFormSchemaRegistry,
-  IJGISLayer,
   IJGISLayerBrowserRegistry,
   IJGISLayerGroup,
   IJGISLayerItem,
@@ -24,7 +22,7 @@ import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import {
   DataErrorDialog,
   DialogAddDataSourceBody,
-  FormDialog
+  CreationFormDialog
 } from './dialogs/formdialog';
 import { geoJSONIcon } from './icons';
 import { JupyterGISWidget } from './widget';
@@ -272,7 +270,7 @@ export function addCommands(
         : false;
     },
     iconClass: 'fa fa-vector-square',
-    execute: Private.createVectorTileLayer(tracker)
+    execute: Private.createVectorTileLayer(tracker, formSchemaRegistry)
   });
 
   commands.addCommand(CommandIDs.newGeoJSONSource, {
@@ -351,7 +349,8 @@ namespace Private {
   }
 
   export function createVectorTileLayer(
-    tracker: WidgetTracker<JupyterGISWidget>
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
   ) {
     return async (args: any) => {
       const current = tracker.currentWidget;
@@ -360,55 +359,21 @@ namespace Private {
         return;
       }
 
-      const form = {
-        title: 'Vector Tile Layer parameters',
-        default: (model: IJupyterGISModel) => {
-          return {
-            name: 'Vector Tile Source',
-            maxZoom: 24,
-            minZoom: 0
-          };
-        }
-      };
-
-      const dialog = new FormDialog({
+      const dialog = new CreationFormDialog({
         context: current.context,
-        title: form.title,
-        sourceData: form.default(current.context.model),
-        schema: FORM_SCHEMA['VectorTileSource'],
-        syncData: (props: IDict) => {
-          const sharedModel = current.context.model.sharedModel;
-          if (!sharedModel) {
-            return;
-          }
-
-          const { name, ...parameters } = props;
-
-          const sourceId = UUID.uuid4();
-
-          const sourceModel: IJGISSource = {
-            type: 'VectorTileSource',
-            name,
-            parameters: {
-              url: parameters.url,
-              minZoom: parameters.minZoom,
-              maxZoom: parameters.maxZoom
-            }
-          };
-
-          const layerModel: IJGISLayer = {
-            type: 'VectorLayer',
-            parameters: {
-              type: 'line',
-              source: sourceId
-            },
-            visible: true,
-            name: name + ' Layer'
-          };
-
-          sharedModel.addSource(sourceId, sourceModel);
-          current.context.model.addLayer(UUID.uuid4(), layerModel);
-        }
+        title: 'Create Vector Tile Layer',
+        createLayer: true,
+        createSource: true,
+        sourceData: {
+          minZoom: 0,
+          maxZoom: 0,
+        },
+        layerData: {
+          name: 'Custom Vector Tile Layer'
+        },
+        sourceType: 'VectorTileSource',
+        layerType: 'VectorLayer',
+        formSchemaRegistry
       });
       await dialog.launch();
     };
@@ -506,50 +471,50 @@ namespace Private {
         return;
       }
 
-      const sources = current.context.model.getSourcesByType('GeoJSONSource');
+      //   const sources = current.context.model.getSourcesByType('GeoJSONSource');
 
-      const form = {
-        title: 'Vector Layer parameters',
-        default: (model: IJupyterGISModel) => {
-          return {
-            name: 'VectorSource',
-            source: Object.keys(sources)[0] ?? null
-          };
-        }
-      };
+      //   const form = {
+      //     title: 'Vector Layer parameters',
+      //     default: (model: IJupyterGISModel) => {
+      //       return {
+      //         name: 'VectorSource',
+      //         source: Object.keys(sources)[0] ?? null
+      //       };
+      //     }
+      //   };
 
-      FORM_SCHEMA['VectorLayer'].properties.source.enumNames =
-        Object.values(sources);
-      FORM_SCHEMA['VectorLayer'].properties.source.enum = Object.keys(sources);
-      const dialog = new FormDialog({
-        context: current.context,
-        title: form.title,
-        sourceData: form.default(current.context.model),
-        schema: FORM_SCHEMA['VectorLayer'],
-        syncData: (props: IDict) => {
-          const sharedModel = current.context.model.sharedModel;
-          if (!sharedModel) {
-            return;
-          }
+      //   FORM_SCHEMA['VectorLayer'].properties.source.enumNames =
+      //     Object.values(sources);
+      //   FORM_SCHEMA['VectorLayer'].properties.source.enum = Object.keys(sources);
+      //   const dialog = new FormDialog({
+      //     context: current.context,
+      //     title: form.title,
+      //     sourceData: form.default(current.context.model),
+      //     schema: FORM_SCHEMA['VectorLayer'],
+      //     syncData: (props: IDict) => {
+      //       const sharedModel = current.context.model.sharedModel;
+      //       if (!sharedModel) {
+      //         return;
+      //       }
 
-          const { name, ...parameters } = props;
+      //       const { name, ...parameters } = props;
 
-          const layerModel: IJGISLayer = {
-            type: 'VectorLayer',
-            parameters: {
-              source: parameters.source,
-              type: parameters.type,
-              color: parameters.color,
-              opacity: parameters.opacity
-            },
-            visible: true,
-            name: name + ' Layer'
-          };
+      //       const layerModel: IJGISLayer = {
+      //         type: 'VectorLayer',
+      //         parameters: {
+      //           source: parameters.source,
+      //           type: parameters.type,
+      //           color: parameters.color,
+      //           opacity: parameters.opacity
+      //         },
+      //         visible: true,
+      //         name: name + ' Layer'
+      //       };
 
-          current.context.model.addLayer(UUID.uuid4(), layerModel);
-        }
-      });
-      await dialog.launch();
+      //       current.context.model.addLayer(UUID.uuid4(), layerModel);
+      //     }
+      //   });
+      //   await dialog.launch();
     };
   }
 

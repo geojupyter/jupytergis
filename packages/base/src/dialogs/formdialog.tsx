@@ -1,105 +1,105 @@
-import {
-  IDict,
-  IJGISFormSchemaRegistry,
-  IJupyterGISModel,
-  LayerType,
-  SourceType
-} from '@jupytergis/schema';
+import { IDict } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { LabIcon, errorIcon } from '@jupyterlab/ui-components';
 import { Widget } from '@lumino/widgets';
 import { ErrorObject } from 'ajv';
 import * as React from 'react';
 
-import { BaseForm } from '../formbuilder/baseform';
-import { deepCopy } from '../tools';
+import { CreationForm, ICreationFormProps } from '../formbuilder';
+import { Signal } from '@lumino/signaling';
+import { PromiseDelegate } from '@lumino/coreutils';
 
-export interface ICreationFormDialogOptions {
-  /**
-   * The type of layer to create.
-   */
-  layerType?: LayerType;
-
-  /**
-   * The type of source to create.
-   */
-  sourceType?: SourceType;
-
-  /**
-   * The initial layer data, if it applies.
-   */
-  layerData?: IDict;
-
-  /**
-   * The initial source data, if it applies.
-   */
-  sourceData?: IDict;
-
-  formSchemaRegistry: IJGISFormSchemaRegistry;
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+export interface ICreationFormWrapperProps extends ICreationFormProps {
+  okSignalPromise: PromiseDelegate<Signal<Dialog<IDict>, number>>;
 }
+
+export interface ICreationFormDialogOptions extends ICreationFormProps {
+  title: string;
+}
+
+const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
+  const [ok, setOk] = React.useState<Signal<Dialog<IDict>, number> | undefined>(
+    undefined
+  );
+
+  props.okSignalPromise.promise.then(value => {
+    setOk(value);
+  });
+
+  return (
+    ok && (
+      <CreationForm
+        context={props.context}
+        formSchemaRegistry={props.formSchemaRegistry}
+        createLayer={props.createLayer}
+        createSource={props.createSource}
+        layerType={props.layerType}
+        sourceType={props.sourceType}
+        sourceData={props.sourceData}
+        layerData={props.layerData}
+        ok={ok}
+        cancel={props.cancel}
+      />
+    )
+  );
+};
 
 /**
  * Form for creating a source, a layer or both at the same time
  */
 export class CreationFormDialog extends Dialog<IDict> {
   constructor(options: ICreationFormDialogOptions) {
-    const filePath = options.context.path;
-    const jGISModel = options.context.model;
+    const cancelCallback = () => {
+      this.resolve(0);
+    };
 
-    let layerSchema: IDict | undefined = undefined;
-    if (options.layerType) {
-      layerSchema = deepCopy(
-        options.formSchemaRegistry.getSchemas().get(options.layerType)
-      );
-
-      if (!layerSchema) {
-        console.log(`Cannot find schema for ${options.layerType}`);
-        return;
-      }
-
-      // If a source is created as part of this form, remove the source selection from the layer form
-      if (options.sourceType) {
-        delete layerSchema.properties?.source;
-      }
-      layerSchema['properties'] = {
-        name: { type: 'string', description: 'The name of the layer' },
-        ...layerSchema['properties']
-      };
-    }
-
-    let sourceSchema: IDict | undefined = undefined;
-    if (options.sourceType) {
-      sourceSchema = deepCopy(
-        options.formSchemaRegistry.getSchemas().get(options.sourceType)
-      );
-    }
-
-    if (!layerSchema && !sourceSchema) {
-      // Unreachable
-      console.log(
-        `Cannot find schema for ${options.layerType}, ${options.sourceType}`
-      );
-      return;
-    }
+    const okSignalPromise = new PromiseDelegate<
+      Signal<Dialog<IDict>, number>
+    >();
 
     const body = (
-      <div style={{ overflow: 'hidden' }}>
-        <BaseForm
-          formContext="create"
-          model={jGISModel}
-          filePath={`${filePath}::dialog`}
+      <div style={{ overflow: 'auto' }}>
+        <CreationFormWrapper
+          context={options.context}
+          formSchemaRegistry={options.formSchemaRegistry}
+          createLayer={options.createLayer}
+          createSource={options.createSource}
+          layerType={options.layerType}
+          sourceType={options.sourceType}
           sourceData={options.sourceData}
-          schema={options.schema}
-          syncData={options.syncData}
+          layerData={options.layerData}
+          okSignalPromise={okSignalPromise}
+          cancel={cancelCallback}
         />
       </div>
     );
 
-    super({ title: options.title, body, buttons: [Dialog.cancelButton()] });
+    super({
+      title: options.title,
+      body,
+      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+    });
+
+    // Disable ok button by default. It will be enabled automatically once the form is valid.
+    this.node.getElementsByClassName('jp-mod-accept')[0].setAttribute('disabled', '');
+
+    this.okSignal = new Signal(this);
+    okSignalPromise.resolve(this.okSignal);
+
     this.addClass('jGIS-layer-CreationFormDialog');
   }
+
+  resolve(index?: number): void {
+    if (index === 0) {
+      super.resolve(index);
+    }
+
+    if (index === 1) {
+      this.okSignal.emit(1);
+    }
+  }
+
+  private okSignal: Signal<Dialog<any>, number>;
 }
 
 /**

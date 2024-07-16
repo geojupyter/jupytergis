@@ -1,6 +1,6 @@
-export * from './baseform';
-
-export * from './geojsonsource';
-export * from './layerform';
-export * from './tilesourceform';
-export * from './vectorlayerform';
+export * from './objectform/baseform';
+export * from './objectform/geojsonsource';
+export * from './objectform/layerform';
+export * from './objectform/tilesourceform';
+export * from './objectform/vectorlayerform';
+export * from './creationform';

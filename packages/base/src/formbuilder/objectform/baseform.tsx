@@ -4,11 +4,13 @@ import { Widget } from '@lumino/widgets';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 import * as React from 'react';
 
-import { IDict } from '../types';
+import { IDict } from '../../types';
 import { IJupyterGISModel } from '@jupytergis/schema';
-import { deepCopy } from '../tools';
+import { deepCopy } from '../../tools';
+import { Signal } from '@lumino/signaling';
+import { Dialog } from '@jupyterlab/apputils';
 
-interface IStates {
+export interface IBaseFormStates {
   schema?: IDict;
   extraErrors?: any;
 }
@@ -41,12 +43,17 @@ export interface IBaseFormProps {
   syncData: (properties: IDict) => void;
 
   /**
-   * The schema for the rjsf form
+   * The schema for the rjsf formk
    */
   schema?: IDict;
 
   /**
-   * Cancel callback, no cancel button will be displayed if not defined
+   * Ok signal. This is the signal sent by the parent dialog upon "Ok" button click. No ok button will be displayed if defined.
+   */
+  ok?: Signal<Dialog<any>, number>;
+
+  /**
+   * Cancel callback
    */
   cancel?: () => void;
 }
@@ -85,7 +92,7 @@ export const LuminoSchemaForm = (
  *
  * It will be up to the user of this class to actually perform the creation/edit using syncdata.
  */
-export class BaseForm extends React.Component<IBaseFormProps, IStates> {
+export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   constructor(props: IBaseFormProps) {
     super(props);
     this.currentFormData = deepCopy(this.props.sourceData);
@@ -94,7 +101,10 @@ export class BaseForm extends React.Component<IBaseFormProps, IStates> {
     };
   }
 
-  componentDidUpdate(prevProps: IBaseFormProps, prevState: IStates): void {
+  componentDidUpdate(
+    prevProps: IBaseFormProps,
+    prevState: IBaseFormStates
+  ): void {
     if (prevProps.sourceData !== this.props.sourceData) {
       this.currentFormData = deepCopy(this.props.sourceData);
       const schema = deepCopy(this.props.schema);
@@ -205,6 +215,11 @@ export class BaseForm extends React.Component<IBaseFormProps, IStates> {
 
       const submitRef = React.createRef<HTMLButtonElement>();
 
+      // When the parent "ok" button gets clicked, submit
+      this.props.ok?.connect(() => {
+        submitRef.current?.click();
+      });
+
       const formSchema = new SchemaForm(schema, {
         liveValidate: true,
         formData,
@@ -225,23 +240,17 @@ export class BaseForm extends React.Component<IBaseFormProps, IStates> {
           <div className="jGIS-property-outer">
             <LuminoSchemaForm>{formSchema}</LuminoSchemaForm>
           </div>
-          <div className="jGIS-property-buttons">
-            {this.props.cancel ? (
-              <button
-                className="jp-Dialog-button jp-mod-reject jp-mod-styled"
-                onClick={this.props.cancel}
-              >
-                <div className="jp-Dialog-buttonLabel">Cancel</div>
-              </button>
-            ) : null}
 
-            <button
-              className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-              onClick={() => submitRef.current?.click()}
-            >
-              <div className="jp-Dialog-buttonLabel">Ok</div>
-            </button>
-          </div>
+          {!this.props.ok && (
+            <div className="jGIS-property-buttons">
+              <button
+                className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+                onClick={() => submitRef.current?.click()}
+              >
+                <div className="jp-Dialog-buttonLabel">Ok</div>
+              </button>
+            </div>
+          )}
         </div>
       );
     }
