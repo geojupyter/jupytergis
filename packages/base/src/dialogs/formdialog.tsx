@@ -6,7 +6,7 @@ import { Widget } from '@lumino/widgets';
 import { ErrorObject } from 'ajv';
 import * as React from 'react';
 
-import { ObjectPropertiesForm } from './panelview/formbuilder';
+import { ObjectPropertiesForm } from '../formbuilder';
 
 export interface IFormDialogOptions {
   schema: IDict;

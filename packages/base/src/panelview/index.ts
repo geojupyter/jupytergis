@@ -1,4 +1,3 @@
-export * from './formbuilder';
 export * from './header';
 export * from './leftpanel';
 export * from './model';

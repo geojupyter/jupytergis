@@ -23,7 +23,7 @@ import {
   ObjectPropertiesForm,
   RasterSourcePropertiesForm,
   VectorLayerPropertiesForm
-} from './formbuilder';
+} from '../formbuilder';
 import { JupyterGISWidget } from '../widget';
 
 export class ObjectProperties extends PanelWithToolbar {

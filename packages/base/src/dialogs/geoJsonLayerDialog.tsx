@@ -10,7 +10,7 @@ import { PathExt } from '@jupyterlab/coreutils';
 import { UUID } from '@lumino/coreutils';
 import * as React from 'react';
 
-import { GeoJSONLayerPropertiesForm } from '../panelview/formbuilder';
+import { GeoJSONLayerPropertiesForm } from '../formbuilder';
 import { deepCopy } from '../tools';
 
 /**

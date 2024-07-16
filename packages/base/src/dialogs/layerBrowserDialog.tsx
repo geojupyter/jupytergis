@@ -12,7 +12,7 @@ import {
 import { Dialog } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
-import { RasterSourcePropertiesForm } from '../panelview';
+import { RasterSourcePropertiesForm } from '../formbuilder';
 import { deepCopy } from '../tools';
 
 import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';

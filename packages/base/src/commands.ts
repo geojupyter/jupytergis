@@ -25,7 +25,7 @@ import {
   DataErrorDialog,
   DialogAddDataSourceBody,
   FormDialog
-} from './formdialog';
+} from './dialogs/formdialog';
 import { geoJSONIcon } from './icons';
 import { JupyterGISWidget } from './widget';
 

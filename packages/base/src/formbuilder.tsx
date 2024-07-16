@@ -6,9 +6,9 @@ import { Ajv, ValidateFunction } from 'ajv';
 import * as geojson from 'geojson-schema/GeoJSON.json';
 import * as React from 'react';
 
-import { IDict } from '../types';
+import { IDict } from './types';
 import { IJupyterGISModel } from '@jupytergis/schema';
-import { deepCopy } from '../tools';
+import { deepCopy } from './tools';
 
 interface IStates {
   schema?: IDict;
