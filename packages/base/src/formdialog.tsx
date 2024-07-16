@@ -16,7 +16,6 @@ export interface IFormDialogOptions {
   context: DocumentRegistry.IContext<IJupyterGISModel>;
 }
 
-// TODO This is currently not used, shall we remove it or will we need it later?
 export class FormDialog extends Dialog<IDict> {
   constructor(options: IFormDialogOptions) {
     const filePath = options.context.path;
