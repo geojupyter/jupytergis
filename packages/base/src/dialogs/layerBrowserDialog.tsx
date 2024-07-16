@@ -12,7 +12,7 @@ import {
 import { Dialog } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
-import { RasterSourcePropertiesForm } from '../formbuilder';
+import { TileSourcePropertiesForm } from '../formbuilder';
 import { deepCopy } from '../tools';
 
 import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
@@ -163,7 +163,7 @@ export const LayerBrowserComponent = ({
 
     return (
       <div className="jGIS-customlayer-form">
-        <RasterSourcePropertiesForm
+        <TileSourcePropertiesForm
           formContext="create"
           model={model}
           sourceData={{

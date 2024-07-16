@@ -2,20 +2,18 @@ import { SchemaForm } from '@deathbeds/jupyterlab-rjsf';
 import { MessageLoop } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
-import { Ajv, ValidateFunction } from 'ajv';
-import * as geojson from 'geojson-schema/GeoJSON.json';
 import * as React from 'react';
 
-import { IDict } from './types';
+import { IDict } from '../types';
 import { IJupyterGISModel } from '@jupytergis/schema';
-import { deepCopy } from './tools';
+import { deepCopy } from '../tools';
 
 interface IStates {
   schema?: IDict;
   extraErrors?: any;
 }
 
-interface IProps {
+export interface IBaseFormProps {
   /**
    * The context of the form, whether it's for creating an object or updating its properties. This will have the effect of showing or not inputs for readonly properties.
    */
@@ -82,8 +80,13 @@ export const LuminoSchemaForm = (
   return <div ref={ref} />;
 };
 
-export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
-  constructor(props: IProps) {
+/**
+ * Generate a form to edit a layer/source type. This class is meant to be sub-classed to create more refined forms for specific layers/sources.
+ *
+ * It will be up to the user of this class to actually perform the creation/edit using syncdata.
+ */
+export class BaseForm extends React.Component<IBaseFormProps, IStates> {
+  constructor(props: IBaseFormProps) {
     super(props);
     this.currentFormData = deepCopy(this.props.sourceData);
     this.state = {
@@ -91,7 +94,7 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     };
   }
 
-  componentDidUpdate(prevProps: IProps, prevState: IStates): void {
+  componentDidUpdate(prevProps: IBaseFormProps, prevState: IStates): void {
     if (prevProps.sourceData !== this.props.sourceData) {
       this.currentFormData = deepCopy(this.props.sourceData);
       const schema = deepCopy(this.props.schema);
@@ -245,216 +248,4 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
   }
 
   protected currentFormData: IDict<any> | undefined;
-}
-
-interface ILayerProps extends IProps {
-  sourceType: string;
-}
-
-export class LayerPropertiesForm extends ObjectPropertiesForm {
-  props: ILayerProps;
-
-  constructor(props: ILayerProps) {
-    super(props);
-  }
-
-  protected processSchema(
-    data: IDict<any> | undefined,
-    schema: IDict,
-    uiSchema: IDict
-  ): void {
-    super.processSchema(data, schema, uiSchema);
-
-    if (!schema.properties.source) {
-      return;
-    }
-
-    // Replace the source text box by a dropdown menu
-    const availableSources = this.props.model.getSourcesByType(
-      this.props.sourceType
-    );
-
-    schema.properties.source.enumNames = Object.values(availableSources);
-    schema.properties.source.enum = Object.keys(availableSources);
-  }
-}
-
-export class RasterSourcePropertiesForm extends ObjectPropertiesForm {
-  private _urlParameters: string[] = [];
-
-  protected processSchema(
-    data: IDict<any> | undefined,
-    schema: IDict,
-    uiSchema: IDict
-  ) {
-    super.processSchema(data, schema, uiSchema);
-
-    if (!schema.properties || !data) {
-      return;
-    }
-
-    // Grep all url-parameters from the url
-    const regex = /\{([^}]+)\}/g;
-    const matches: string[] = [];
-    let match: RegExpExecArray | null;
-
-    while ((match = regex.exec(data.url)) !== null) {
-      if (['max_zoom', 'min_zoom', 'x', 'y', 'z'].includes(match[1])) {
-        continue;
-      }
-      matches.push(match[1]);
-    }
-
-    this._urlParameters = matches;
-
-    if (matches.length === 0) {
-      this.removeFormEntry('urlParameters', data, schema, uiSchema);
-      return;
-    }
-
-    // Dynamically inject url parameters schema based of the url
-    const propertiesSchema = {};
-    schema.properties.urlParameters = {
-      type: 'object',
-      required: this._urlParameters,
-      properties: propertiesSchema
-    };
-
-    for (const parameterName of this._urlParameters) {
-      switch (parameterName) {
-        // Special case for "time" where a date picker widget is nicer
-        case 'time':
-          propertiesSchema[parameterName] = {
-            type: 'string',
-            format: 'date'
-          };
-          break;
-        default:
-          propertiesSchema[parameterName] = {
-            type: 'string'
-          };
-          break;
-      }
-    }
-  }
-
-  protected onFormBlur(id: string, value: any) {
-    super.onFormBlur(id, value);
-
-    // Is there a better way to spot the url text entry?
-    if (!id.endsWith('_url')) {
-      return;
-    }
-
-    // Force a rerender on url change, as it probably changes the schema
-    this.forceUpdate();
-  }
-}
-
-/**
- * The form to modify a vector layer.
- */
-export class VectorLayerPropertiesForm extends LayerPropertiesForm {
-  protected processSchema(
-    data: IDict<any> | undefined,
-    schema: IDict,
-    uiSchema: IDict
-  ) {
-    super.processSchema(data, schema, uiSchema);
-    uiSchema['color'] = {
-      'ui:widget': 'color'
-    };
-  }
-}
-
-/**
- * The form to modify a GeoJSON source.
- */
-export class GeoJSONSourcePropertiesForm extends ObjectPropertiesForm {
-  constructor(props: IProps) {
-    super(props);
-    const ajv = new Ajv();
-    this._validate = ajv.compile(geojson);
-  }
-
-  protected processSchema(
-    data: IDict<any> | undefined,
-    schema: IDict,
-    uiSchema: IDict
-  ) {
-    super.processSchema(data, schema, uiSchema);
-    if (!schema.properties || !data) {
-      return;
-    }
-
-    if (data.path !== '') {
-      this.removeFormEntry('data', data, schema, uiSchema);
-    }
-  }
-
-  protected onFormBlur(id: string, value: any) {
-    // Is there a better way to spot the path text entry?
-    if (!id.endsWith('_path')) {
-      return;
-    }
-
-    this._validatePath(value);
-  }
-
-  protected onFormSubmit = (e: ISubmitEvent<any>) => {
-    if (this.state.extraErrors?.path?.__errors?.includes('Invalid path')) {
-      return;
-    }
-    super.onFormSubmit(e);
-  };
-
-  /**
-   * Validate the path, to avoid invalid path or invalid GeoJSON.
-   *
-   * @param path - the path to validate.
-   */
-  private async _validatePath(path: string) {
-    const extraErrors: IDict = {
-      path: {
-        __errors: []
-      }
-    };
-
-    this.props.model
-      .readGeoJSON(path)
-      .then(async geoJSONData => {
-        const valid = this._validate(geoJSONData);
-        if (!valid) {
-          extraErrors.path.__errors = [
-            "GeoJSON data invalid (you can still validate but the source can't be used)"
-          ];
-          this._validate.errors?.reverse().forEach(error => {
-            extraErrors.path.__errors.push(error.message);
-          });
-        }
-        this.setState({ extraErrors });
-      })
-      .catch(e => {
-        extraErrors.path.__errors = ['Invalid path'];
-        this.setState({ extraErrors });
-      });
-  }
-
-  private _validate: ValidateFunction;
-}
-
-/**
- * The form to create a GeoJSON layer.
- */
-export class GeoJSONLayerPropertiesForm extends GeoJSONSourcePropertiesForm {
-  protected processSchema(
-    data: IDict<any> | undefined,
-    schema: IDict,
-    uiSchema: IDict
-  ) {
-    super.processSchema(data, schema, uiSchema);
-    uiSchema['color'] = {
-      'ui:widget': 'color'
-    };
-  }
 }

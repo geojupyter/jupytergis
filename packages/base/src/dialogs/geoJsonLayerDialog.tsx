@@ -10,7 +10,7 @@ import { PathExt } from '@jupyterlab/coreutils';
 import { UUID } from '@lumino/coreutils';
 import * as React from 'react';
 
-import { GeoJSONLayerPropertiesForm } from '../formbuilder';
+import { VectorLayerPropertiesForm } from '../formbuilder';
 import { deepCopy } from '../tools';
 
 /**
@@ -78,7 +78,8 @@ export const GeoJSONLayerComponent = ({
   };
 
   return (
-    <GeoJSONLayerPropertiesForm
+    <VectorLayerPropertiesForm
+      sourceType="GeoJSONSource"
       formContext={'create'}
       model={model}
       schema={schema}

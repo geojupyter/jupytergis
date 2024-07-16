@@ -20,8 +20,8 @@ import { IControlPanelModel } from '../types';
 import {
   GeoJSONSourcePropertiesForm,
   LayerPropertiesForm,
-  ObjectPropertiesForm,
-  RasterSourcePropertiesForm,
+  BaseForm,
+  TileSourcePropertiesForm,
   VectorLayerPropertiesForm
 } from '../formbuilder';
 import { JupyterGISWidget } from '../widget';
@@ -212,7 +212,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         selectedObjSource!.type === 'RasterSource' && (
           <div>
             <h3>Source Properties</h3>
-            <RasterSourcePropertiesForm
+            <TileSourcePropertiesForm
               formContext="update"
               model={model}
               filePath={`${this.state.filePath}::panel`}
@@ -235,7 +235,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     const selectedObjectSourceData = deepCopy(selectedObjSource.parameters);
 
     let LayerForm = LayerPropertiesForm;
-    let SourceForm = ObjectPropertiesForm;
+    let SourceForm = BaseForm;
 
     switch (selectedObj.type) {
       case 'VectorLayer':
@@ -249,7 +249,8 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         SourceForm = GeoJSONSourcePropertiesForm;
         break;
       case 'RasterSource':
-        SourceForm = RasterSourcePropertiesForm;
+      case 'VectorTileSource':
+        SourceForm = TileSourcePropertiesForm;
         break;
       // ADD MORE FORM TYPES HERE
     }

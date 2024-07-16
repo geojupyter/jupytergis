@@ -1,4 +1,10 @@
-import { IDict, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IDict,
+  IJGISFormSchemaRegistry,
+  IJupyterGISModel,
+  LayerType,
+  SourceType
+} from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { LabIcon, errorIcon } from '@jupyterlab/ui-components';
@@ -6,23 +12,81 @@ import { Widget } from '@lumino/widgets';
 import { ErrorObject } from 'ajv';
 import * as React from 'react';
 
-import { ObjectPropertiesForm } from '../formbuilder';
+import { BaseForm } from '../formbuilder/baseform';
+import { deepCopy } from '../tools';
 
-export interface IFormDialogOptions {
-  schema: IDict;
-  sourceData: IDict;
-  title: string;
-  syncData: (props: IDict) => void;
+export interface ICreationFormDialogOptions {
+  /**
+   * The type of layer to create.
+   */
+  layerType?: LayerType;
+
+  /**
+   * The type of source to create.
+   */
+  sourceType?: SourceType;
+
+  /**
+   * The initial layer data, if it applies.
+   */
+  layerData?: IDict;
+
+  /**
+   * The initial source data, if it applies.
+   */
+  sourceData?: IDict;
+
+  formSchemaRegistry: IJGISFormSchemaRegistry;
   context: DocumentRegistry.IContext<IJupyterGISModel>;
 }
 
-export class FormDialog extends Dialog<IDict> {
-  constructor(options: IFormDialogOptions) {
+/**
+ * Form for creating a source, a layer or both at the same time
+ */
+export class CreationFormDialog extends Dialog<IDict> {
+  constructor(options: ICreationFormDialogOptions) {
     const filePath = options.context.path;
     const jGISModel = options.context.model;
+
+    let layerSchema: IDict | undefined = undefined;
+    if (options.layerType) {
+      layerSchema = deepCopy(
+        options.formSchemaRegistry.getSchemas().get(options.layerType)
+      );
+
+      if (!layerSchema) {
+        console.log(`Cannot find schema for ${options.layerType}`);
+        return;
+      }
+
+      // If a source is created as part of this form, remove the source selection from the layer form
+      if (options.sourceType) {
+        delete layerSchema.properties?.source;
+      }
+      layerSchema['properties'] = {
+        name: { type: 'string', description: 'The name of the layer' },
+        ...layerSchema['properties']
+      };
+    }
+
+    let sourceSchema: IDict | undefined = undefined;
+    if (options.sourceType) {
+      sourceSchema = deepCopy(
+        options.formSchemaRegistry.getSchemas().get(options.sourceType)
+      );
+    }
+
+    if (!layerSchema && !sourceSchema) {
+      // Unreachable
+      console.log(
+        `Cannot find schema for ${options.layerType}, ${options.sourceType}`
+      );
+      return;
+    }
+
     const body = (
       <div style={{ overflow: 'hidden' }}>
-        <ObjectPropertiesForm
+        <BaseForm
           formContext="create"
           model={jGISModel}
           filePath={`${filePath}::dialog`}
@@ -34,7 +98,7 @@ export class FormDialog extends Dialog<IDict> {
     );
 
     super({ title: options.title, body, buttons: [Dialog.cancelButton()] });
-    this.addClass('jGIS-property-FormDialog');
+    this.addClass('jGIS-layer-CreationFormDialog');
   }
 }
 

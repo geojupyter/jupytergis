@@ -23,7 +23,8 @@ import {
   IJGISLayerTree,
   IJGISOptions,
   IJGISSource,
-  IJGISSources
+  IJGISSources,
+  SourceType
 } from './_interface/jgis';
 import { IRasterSource } from './_interface/rastersource';
 
@@ -148,7 +149,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getLayer(id: string): IJGISLayer | undefined;
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
-  getSourcesByType(type: string): { [key: string]: string };
+  getSourcesByType(type: SourceType): { [key: string]: string };
   getLayerTree(): IJGISLayerTree;
   addLayer(
     id: string,
