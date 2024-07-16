@@ -1,6 +1,5 @@
 import {
   IJGISLayerGroup,
-  IJGISLayerItem,
   IJGISLayerTree,
   IJupyterGISClientState,
   IJupyterGISModel,
@@ -41,7 +40,7 @@ export namespace LayersPanel {
 
   export interface IClickHandlerParams {
     type: SelectionType;
-    item?: string;
+    item: string;
     nodeId?: string;
     event: MouseEvent;
   }
@@ -85,14 +84,25 @@ export class LayersPanel extends Panel {
     const { jGISModel } = this._model;
     const selectedValue = jGISModel?.localState?.selected?.value;
 
-    // Early return if Ctrl is not pressed or no selection exists
-    if (!event.ctrlKey || !selectedValue) {
+    // Early return if no selection exists
+    if (!selectedValue) {
       this.resetSelected(type, nodeId, item);
       return;
     }
 
-    if (item && nodeId) {
-      // Check is new selection is the same type as previous selections
+    // Don't want to reset selected if right clicking a selected item
+    if (!event.ctrlKey && event.button === 2 && item in selectedValue) {
+      return;
+    }
+
+    // Reset selection for normal left click
+    if (!event.ctrlKey) {
+      this.resetSelected(type, nodeId, item);
+      return;
+    }
+
+    if (nodeId) {
+      // Check if new selection is the same type as previous selections
       const isSelectedSameType = Object.values(selectedValue).some(
         selection => selection.type === type
       );
@@ -122,20 +132,6 @@ export class LayersPanel extends Panel {
       };
     }
     this._model?.jGISModel?.syncSelected(selection, this.id);
-  }
-
-  layerTreeRecursion(
-    items: IJGISLayerItem[],
-    current: string[] = []
-  ): string[] {
-    for (const layer of items) {
-      if (typeof layer === 'string') {
-        current.push(layer);
-      } else {
-        current.push(...this.layerTreeRecursion(layer.layers));
-      }
-    }
-    return current;
   }
 
   private _model: IControlPanelModel | undefined;
@@ -177,7 +173,6 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
    */
   useEffect(() => {
     const updateLayers = () => {
-      console.log('updating layers');
       setLayerTree(model?.getLayerTree() || []);
     };
     model?.sharedModel.layersChanged.connect(updateLayers);
@@ -302,14 +297,6 @@ interface ILayerProps {
 }
 
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
-  const v = model?.localState?.selected?.value;
-
-  v &&
-    console.log(
-      'Object.keys(model?.localState?.selected?.value).includes(layerId)',
-      Object.keys(v).includes(layerId)
-    );
-
   return (
     (model?.localState?.selected?.value &&
       Object.keys(model?.localState?.selected?.value).includes(layerId)) ||
