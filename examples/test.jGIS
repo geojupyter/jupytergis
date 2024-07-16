@@ -1,7 +1,6 @@
 {
   "layers": {
     "57ef55ef-facb-48a2-ae1d-c9c824be3e8a": {
-<<<<<<< HEAD
       "parameters": {
         "source": "7d082e75-69d5-447a-82d8-b05cca5945ba",
         "type": "line",
@@ -18,16 +17,6 @@
       "name": "Open Topo Map",
       "parameters": {
         "source": "5fd42e3b-4681-4607-b15d-65c3a3e89b32"
-=======
-      "visible": true,
-      "name": "Regions France",
-      "type": "VectorLayer",
-      "parameters": {
-        "color": "#26a269",
-        "source": "7d082e75-69d5-447a-82d8-b05cca5945ba",
-        "opacity": 1.0,
-        "type": "line"
->>>>>>> c391a08 (Vector tile source draft)
       }
     },
     "2467576f-b527-4cb7-998d-fa1d056fb8a1": {
@@ -37,29 +26,9 @@
       "type": "RasterLayer",
       "name": "Open Street Map",
       "visible": true
-    },
-    "a0044fd7-f167-445f-b3d1-620a8f94b498": {
-      "parameters": {
-        "source": "5fd42e3b-4681-4607-b15d-65c3a3e89b32"
-      },
-      "visible": true,
-      "name": "Open Topo Map",
-      "type": "RasterLayer"
-    },
-    "2112ce98-3cbb-4fae-bbff-655ee8cf205f": {
-      "visible": true,
-      "parameters": {
-        "color": "#FF0000",
-        "opacity": 1.0,
-        "type": "fill",
-        "source": "d52ab506-fd28-4708-b557-28b2b081ea20"
-      },
-      "name": "Vector layer test Layer",
-      "type": "VectorLayer"
     }
   },
   "sources": {
-<<<<<<< HEAD
     "5fd42e3b-4681-4607-b15d-65c3a3e89b32": {
       "name": "Open Topo Map",
       "parameters": {
@@ -68,16 +37,6 @@
         "maxZoom": 24.0
       },
       "type": "RasterSource"
-=======
-    "d52ab506-fd28-4708-b557-28b2b081ea20": {
-      "name": "Vector layer test",
-      "type": "VectorTileSource",
-      "parameters": {
-        "minZoom": null,
-        "maxZoom": null,
-        "url": "https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/{z}/{x}/{y}"
-      }
->>>>>>> c391a08 (Vector tile source draft)
     },
     "7d082e75-69d5-447a-82d8-b05cca5945ba": {
       "name": "france_regions",
@@ -87,17 +46,7 @@
       },
       "type": "GeoJSONSource"
     },
-    "5fd42e3b-4681-4607-b15d-65c3a3e89b32": {
-      "name": "Open Topo Map",
-      "parameters": {
-        "url": "https://tile.opentopomap.org/{z}/{x}/{y}.png ",
-        "maxZoom": 24.0,
-        "minZoom": 0.0
-      },
-      "type": "RasterSource"
-    },
     "699facc9-e7c4-4f38-acf1-1fd7f02d9f36": {
-<<<<<<< HEAD
       "type": "RasterSource",
       "name": "Open Street Map",
       "parameters": {
@@ -105,15 +54,6 @@
         "maxZoom": 24.0,
         "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       }
-=======
-      "name": "Open Street Map",
-      "parameters": {
-        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "minZoom": 0.0,
-        "maxZoom": 24.0
-      },
-      "type": "RasterSource"
->>>>>>> c391a08 (Vector tile source draft)
     }
   },
   "options": {
@@ -124,17 +64,16 @@
   "layerTree": [
     "a0044fd7-f167-445f-b3d1-620a8f94b498",
     {
+      "name": "level 1 group",
       "layers": [
         "2467576f-b527-4cb7-998d-fa1d056fb8a1",
         {
+          "name": "level 2 group",
           "layers": [
             "57ef55ef-facb-48a2-ae1d-c9c824be3e8a"
-          ],
-          "name": "level 2 group"
+          ]
         }
-      ],
-      "name": "level 1 group"
-    },
-    "2112ce98-3cbb-4fae-bbff-655ee8cf205f"
+      ]
+    }
   ]
 }
