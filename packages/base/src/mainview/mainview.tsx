@@ -553,7 +553,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
     change.layerChange?.forEach(change => {
       const layer = change.newValue;
-      if (!layer) {
+      if (!layer || Object.keys(layer).length === 0) {
         this.removeLayer(change.id);
       } else {
         if (

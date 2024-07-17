@@ -157,7 +157,9 @@ export class JupyterGISDoc
   updateLayerTreeItem(index: number, item: IJGISLayerItem) {
     this.transact(() => {
       this._layerTree.delete(index);
-      this._layerTree.insert(index, [item]);
+      if (item) {
+        this._layerTree.insert(index, [item]);
+      }
     });
   }
 

@@ -3,8 +3,10 @@ import {
   IJGISLayerTree,
   IJupyterGISClientState,
   IJupyterGISModel,
-  ISelection
+  ISelection,
+  SelectionType
 } from '@jupytergis/schema';
+import { DOMUtils } from '@jupyterlab/apputils';
 import {
   Button,
   LabIcon,
@@ -12,7 +14,7 @@ import {
   caretDownIcon
 } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
-import React, { useEffect, useState } from 'react';
+import React, { MouseEvent, useEffect, useState } from 'react';
 import { nonVisibilityIcon, rasterIcon, visibilityIcon } from '../../icons';
 import { IControlPanelModel } from '../../types';
 
@@ -24,6 +26,7 @@ const LAYER_ITEM_CLASS = 'jp-gis-layerItem';
 const LAYER_CLASS = 'jp-gis-layer';
 const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
+const LAYER_TEXT_CLASS = 'jp-gis-layerText';
 
 /**
  * The namespace for the layers panel.
@@ -34,6 +37,13 @@ export namespace LayersPanel {
    */
   export interface IOptions {
     model: IControlPanelModel;
+  }
+
+  export interface IClickHandlerParams {
+    type: SelectionType;
+    item: string;
+    nodeId?: string;
+    event: MouseEvent;
   }
 }
 
@@ -46,6 +56,7 @@ export class LayersPanel extends Panel {
     this._model = options.model;
     this.id = 'jupytergis::layerTree';
     this.addClass(LAYERS_PANEL_CLASS);
+
     this.addWidget(
       ReactWidget.create(
         <LayersBodyComponent
@@ -59,19 +70,70 @@ export class LayersPanel extends Panel {
   /**
    * Function to call when a layer is selected from a component of the panel.
    *
-   * @param layer - the selected layer.
+   * @param item - the selected layer or group.
    */
-  private _onSelect = (layer?: string) => {
-    if (this._model) {
-      const selection: { [key: string]: ISelection } = {};
-      if (layer) {
-        selection[layer] = {
-          type: 'layer'
-        };
+  private _onSelect = ({
+    type,
+    item,
+    nodeId,
+    event
+  }: LayersPanel.IClickHandlerParams) => {
+    if (!this._model) {
+      return;
+    }
+
+    const { jGISModel } = this._model;
+    const selectedValue = jGISModel?.localState?.selected?.value;
+
+    // Early return if no selection exists
+    if (!selectedValue) {
+      this.resetSelected(type, nodeId, item);
+      return;
+    }
+
+    // Don't want to reset selected if right clicking a selected item
+    if (!event.ctrlKey && event.button === 2 && item in selectedValue) {
+      return;
+    }
+
+    // Reset selection for normal left click
+    if (!event.ctrlKey) {
+      this.resetSelected(type, nodeId, item);
+      return;
+    }
+
+    if (nodeId) {
+      // Check if new selection is the same type as previous selections
+      const isSelectedSameType = Object.values(selectedValue).some(
+        selection => selection.type === type
+      );
+
+      if (!isSelectedSameType) {
+        // Selecting a new type, so reset selected
+        this.resetSelected(type, nodeId, item);
+        return;
       }
-      this._model?.jGISModel?.syncSelected(selection, this.id);
+
+      // If types are the same add the selection
+      const updatedSelectedValue = {
+        ...selectedValue,
+        [item]: { type, selectedNodeId: nodeId }
+      };
+
+      jGISModel.syncSelected(updatedSelectedValue, this.id);
     }
   };
+
+  resetSelected(type: SelectionType, nodeId?: string, item?: string) {
+    const selection: { [key: string]: ISelection } = {};
+    if (item && nodeId) {
+      selection[item] = {
+        type,
+        selectedNodeId: nodeId
+      };
+    }
+    this._model?.jGISModel?.syncSelected(selection, this.id);
+  }
 
   private _model: IControlPanelModel | undefined;
 }
@@ -81,7 +143,7 @@ export class LayersPanel extends Panel {
  */
 interface IBodyProps {
   model: IControlPanelModel;
-  onSelect: (layer?: string) => void;
+  onSelect: ({ type, item, nodeId }: LayersPanel.IClickHandlerParams) => void;
 }
 
 /**
@@ -98,8 +160,13 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
   /**
    * Propagate the layer selection.
    */
-  const onItemClick = (item?: string) => {
-    props.onSelect(item);
+  const onItemClick = ({
+    type,
+    item,
+    nodeId,
+    event
+  }: LayersPanel.IClickHandlerParams) => {
+    props.onSelect({ type, item, nodeId, event });
   };
 
   /**
@@ -111,10 +178,12 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
     };
     model?.sharedModel.layersChanged.connect(updateLayers);
     model?.sharedModel.layerTreeChanged.connect(updateLayers);
+    model?.clientStateChanged.connect(updateLayers);
 
     return () => {
       model?.sharedModel.layersChanged.disconnect(updateLayers);
       model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
+      model?.clientStateChanged.disconnect(updateLayers);
     };
   }, [model]);
 
@@ -127,7 +196,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
   });
 
   return (
-    <div>
+    <div id="jp-gis-layer-tree">
       {layerTree.map(layer =>
         typeof layer === 'string' ? (
           <LayerComponent
@@ -153,24 +222,40 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
 interface ILayerGroupProps {
   gisModel: IJupyterGISModel | undefined;
   group: IJGISLayerGroup | undefined;
-  onClick: (item?: string) => void;
+  onClick: ({ type, item, nodeId }: LayersPanel.IClickHandlerParams) => void;
 }
 
 /**
  * The component to handle group of layers.
  */
 function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
-  const { group, gisModel } = props;
+  const { group, gisModel, onClick } = props;
+
   if (group === undefined) {
     return <></>;
   }
+
+  const [id, setId] = useState('');
   const [open, setOpen] = useState<boolean>(false);
   const name = group?.name ?? 'Undefined group';
   const layers = group?.layers ?? [];
 
+  useEffect(() => {
+    setId(DOMUtils.createDomID());
+  }, []);
+
+  const handleRightClick = (event: MouseEvent<HTMLElement>) => {
+    const childId = event.currentTarget.children.namedItem(id)?.id;
+    onClick({ type: 'group', item: name, nodeId: childId, event });
+  };
+
   return (
     <div className={`${LAYER_ITEM_CLASS} ${LAYER_GROUP_CLASS}`}>
-      <div onClick={() => setOpen(!open)} className={LAYER_GROUP_HEADER_CLASS}>
+      <div
+        onClick={() => setOpen(!open)}
+        onContextMenu={handleRightClick}
+        className={LAYER_GROUP_HEADER_CLASS}
+      >
         <LabIcon.resolveReact
           icon={caretDownIcon}
           className={
@@ -178,7 +263,9 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
           }
           tag={'span'}
         />
-        <span>{name}</span>
+        <span id={id} className={LAYER_TEXT_CLASS}>
+          {name}
+        </span>
       </div>
       {open && (
         <div>
@@ -187,13 +274,13 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
               <LayerComponent
                 gisModel={gisModel}
                 layerId={layer}
-                onClick={props.onClick}
+                onClick={onClick}
               />
             ) : (
               <LayerGroupComponent
                 gisModel={gisModel}
                 group={layer}
-                onClick={props.onClick}
+                onClick={onClick}
               />
             )
           )}
@@ -209,7 +296,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
 interface ILayerProps {
   gisModel: IJupyterGISModel | undefined;
   layerId: string;
-  onClick: (item?: string) => void;
+  onClick: ({ type, item, nodeId }: LayersPanel.IClickHandlerParams) => void;
 }
 
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
@@ -224,16 +311,22 @@ function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
  * The component to display a single layer.
  */
 function LayerComponent(props: ILayerProps): JSX.Element {
-  const { layerId, gisModel } = props;
+  const { layerId, gisModel, onClick } = props;
   const layer = gisModel?.getLayer(layerId);
   if (layer === undefined) {
     return <></>;
   }
+
+  const [id, setId] = useState('');
   const [selected, setSelected] = useState<boolean>(
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(layerId, gisModel)
   );
   const name = layer.name;
+
+  useEffect(() => {
+    setId(DOMUtils.createDomID());
+  }, []);
 
   /**
    * Listen to the changes on the current layer.
@@ -261,18 +354,29 @@ function LayerComponent(props: ILayerProps): JSX.Element {
     gisModel?.sharedModel?.updateLayer(layerId, layer);
   };
 
+  const setSelection = (event: MouseEvent<HTMLElement>) => {
+    const childId = event.currentTarget.children.namedItem(id)?.id;
+    onClick({ type: 'layer', item: layerId, nodeId: childId, event });
+  };
+
   return (
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
     >
-      <div className={LAYER_TITLE_CLASS} onClick={() => props.onClick(layerId)}>
+      <div
+        className={LAYER_TITLE_CLASS}
+        onClick={setSelection}
+        onContextMenu={setSelection}
+      >
         {layer.type === 'RasterLayer' && (
           <LabIcon.resolveReact
             icon={rasterIcon}
             className={LAYER_ICON_CLASS}
           />
         )}
-        <span>{name}</span>
+        <span id={id} className={LAYER_TEXT_CLASS}>
+          {name}
+        </span>
       </div>
       <Button
         title={layer.visible ? 'Hide layer' : 'Show layer'}
