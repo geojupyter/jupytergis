@@ -68,6 +68,6 @@ class YJGIS(YBaseDoc):
         self._subscriptions[self._yoptions] = self._yoptions.observe_deep(
             partial(callback, "options")
         )
-        self._subscriptions[self._ylayerTree] = self._yoptions.observe(
+        self._subscriptions[self._ylayerTree] = self._ylayerTree.observe(
             partial(callback, "layerTree")
         )
