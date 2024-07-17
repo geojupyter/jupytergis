@@ -81,7 +81,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const submenu = new Menu({ commands: app.commands });
     submenu.title.label = translator
       .load('jupyterlab')
-      .__('Move layers to group');
+      .__('Move Layers to Group');
 
     app.contextMenu.addItem({
       type: 'submenu',
@@ -227,6 +227,11 @@ function buildGroupsMenu(
 
     return result;
   }
+
+  submenu.addItem({
+    command: CommandIDs.moveLayersToGroup,
+    args: { label: '' }
+  });
 
   groupNames.forEach(name => {
     submenu.addItem({

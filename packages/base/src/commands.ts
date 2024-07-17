@@ -163,7 +163,8 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.moveLayersToGroup, {
-    label: args => args['label'] as string,
+    label: args =>
+      args['label'] ? (args['label'] as string) : trans.__('Move to Root'),
     execute: args => {
       const model = tracker.currentWidget?.context.model;
       const groupName = args['label'] as string;
@@ -179,7 +180,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.moveLayerToNewGroup, {
-    label: trans.__('Move layers to new group'),
+    label: trans.__('Move Layers to New Group'),
     execute: async () => {
       const model = tracker.currentWidget?.context.model;
       const selectedLayers = model?.localState?.selected?.value;
@@ -556,6 +557,8 @@ namespace Private {
   ): Promise<string> {
     const parent = text.parentElement as HTMLElement;
     parent.replaceChild(input, text);
+    input.value = original;
+    input.select();
     input.focus();
 
     return new Promise<string>(resolve => {
