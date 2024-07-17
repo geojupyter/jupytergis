@@ -87,3 +87,7 @@
 .jp-gis-layerText {
   padding: 3px 0;
 }
+
+li .lm-Menu-itemLabel {
+  text-transform: capitalize;
+}

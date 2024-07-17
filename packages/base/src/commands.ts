@@ -52,7 +52,7 @@ export namespace CommandIDs {
   export const removeGroup = 'jupytergis:removeGroup';
 
   export const moveLayersToGroup = 'jupytergis:moveLayersToGroup';
-  export const moveLayerToNewGroup = 'jupyterlab:moveLayerToNewGroup';
+  export const moveLayerToNewGroup = 'jupytergis:moveLayerToNewGroup';
 }
 
 /**
@@ -192,12 +192,14 @@ export function addCommands(
       function newGroupName() {
         const input = document.createElement('input');
         input.classList.add('jp-gis-left-panel-input');
-        const panel = document.getElementById('layertreepanel');
+        input.style.marginLeft = '26px';
+        const panel = document.getElementById('jp-gis-layer-tree');
         if (!panel) {
           return;
         }
 
         panel.appendChild(input);
+        input.focus();
 
         return new Promise<string>(resolve => {
           input.addEventListener('blur', () => {
@@ -221,6 +223,7 @@ export function addCommands(
 
       const newName = await newGroupName();
       if (!newName) {
+        console.warn('New name cannot be empty');
         return;
       }
 
@@ -648,7 +651,7 @@ namespace Private {
       originalName
     );
 
-    if (newName.trim() === '') {
+    if (!newName) {
       console.warn('New name cannot be empty');
       return;
     }

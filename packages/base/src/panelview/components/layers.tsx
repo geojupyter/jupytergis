@@ -196,7 +196,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
   });
 
   return (
-    <div id="layertreepanel">
+    <div id="jp-gis-layer-tree">
       {layerTree.map(layer =>
         typeof layer === 'string' ? (
           <LayerComponent
