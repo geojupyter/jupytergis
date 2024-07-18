@@ -86,6 +86,9 @@ export class LayersPanel extends Panel {
     const { jGISModel } = this._model;
     const selectedValue = jGISModel?.localState?.selected?.value;
 
+    (event.target as HTMLElement).tabIndex = 0;
+    (event.target as HTMLElement).focus();
+
     // Early return if no selection exists
     if (!selectedValue) {
       this.resetSelected(type, nodeId, item);
