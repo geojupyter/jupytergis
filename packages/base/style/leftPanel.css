@@ -89,7 +89,7 @@
   align-items: center;
 }
 
-.jp-gis-layer:focus-within {
+.jp-gis-layerText:focus {
   outline: none;
 }
 

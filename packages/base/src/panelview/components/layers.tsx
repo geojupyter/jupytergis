@@ -115,15 +115,22 @@ export class LayersPanel extends Panel {
     nodeId,
     event
   }: LayersPanel.IClickHandlerParams) => {
-    if (!this._model) {
+    if (!this._model || !nodeId) {
       return;
     }
 
     const { jGISModel } = this._model;
     const selectedValue = jGISModel?.localState?.selected?.value;
+    const node = document.getElementById(nodeId);
 
-    (event.target as HTMLElement).tabIndex = 0;
-    (event.target as HTMLElement).focus();
+    if (!node) {
+      return;
+    }
+    // (event.target as HTMLElement).tabIndex = 0;
+    // (event.target as HTMLElement).focus();
+
+    node.tabIndex = 0;
+    node.focus();
 
     // Early return if no selection exists
     if (!selectedValue) {
