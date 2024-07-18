@@ -3,6 +3,7 @@ import { SidePanel } from '@jupyterlab/ui-components';
 
 import { IControlPanelModel } from '../types';
 import { LayersPanel } from './components/layers';
+import { SourcesPanel } from './components/sources';
 import { ControlPanelHeader } from './header';
 
 export class LeftPanelWidget extends SidePanel {
@@ -13,8 +14,8 @@ export class LeftPanelWidget extends SidePanel {
     const header = new ControlPanelHeader();
     this.header.addWidget(header);
 
-    // const datasources = new DataSourceList({ controlPanelModel: this._model });
-    // this.addWidget(datasources);
+    const datasources = new SourcesPanel({ model: this._model });
+    this.addWidget(datasources);
 
     const layerTree = new LayersPanel({ model: this._model });
     layerTree.title.caption = 'Layer tree';

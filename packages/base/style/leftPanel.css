@@ -3,7 +3,8 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
-.jp-gis-layerItem {
+.jp-gis-layerItem,
+.jp-gis-source {
   padding: 2px 0 2px 12px;
 }
 
@@ -32,22 +33,26 @@
   transform: rotate(0deg);
 }
 
-.jp-gis-layer {
+.jp-gis-layer,
+.jp-gis-source {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
 
-.jp-gis-layer.jp-mod-selected {
+.jp-gis-layer.jp-mod-selected,
+.jp-gis-source.jp-mod-selected {
   background: var(--jp-editor-selected-background);
 }
 
-.jp-gis-layer:has(.jp-gis-layerTitle:hover) {
+.jp-gis-layer:has(.jp-gis-layerTitle:hover),
+.jp-gis-source:has(.jp-gis-sourceTitle:hover) {
   cursor: pointer;
   background: var(--jp-brand-color2);
 }
 
-.jp-gis-layer button {
+.jp-gis-layer button,
+.jp-gis-source button {
   margin-left: auto;
   min-height: unset;
   min-width: unset;
@@ -55,12 +60,20 @@
   margin-right: 4px;
 }
 
-.jp-gis-layerIcon {
+.jp-gis-layerIcon,
+.jp-gis-sourceIcon {
   display: flex;
   align-items: center;
 }
 
-.jp-gis-layerTitle {
+.jp-gis-layerIcon > svg,
+.jp-gis-sourceIcon > svg {
+  height: 16px;
+  width: 16px;
+}
+
+.jp-gis-layerTitle,
+.jp-gis-sourceTitle {
   display: flex;
   flex-grow: 1;
 }
@@ -69,7 +82,8 @@
   outline: none;
 }
 
-.jp-gis-layerTitle .jp-gis-layerIcon {
+.jp-gis-layerTitle .jp-gis-layerIcon,
+.jp-gis-sourceTitle .jp-gis-sourceIcon {
   padding-right: 4px;
 }
 
