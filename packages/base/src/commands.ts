@@ -235,7 +235,7 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    iconClass: 'fa fa-vector-square',
+    icon: geoJSONIcon,
     execute: Private.createGeoJSONLayer(tracker, formSchemaRegistry)
   });
 
