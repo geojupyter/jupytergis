@@ -65,6 +65,10 @@
   flex-grow: 1;
 }
 
+.jp-gis-layer:focus-within {
+  outline: none;
+}
+
 .jp-gis-layerTitle .jp-gis-layerIcon {
   padding-right: 4px;
 }

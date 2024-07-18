@@ -1,8 +1,8 @@
 import {
+  IJupyterLabPageFixture,
   expect,
-  test,
   galata,
-  IJupyterLabPageFixture
+  test
 } from '@jupyterlab/galata';
 import { Locator } from '@playwright/test';
 import path from 'path';
