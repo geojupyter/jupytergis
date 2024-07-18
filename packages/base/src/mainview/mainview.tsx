@@ -10,9 +10,9 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   IRasterSource,
-  JupyterGISModel,
   IVectorLayer,
-  IVectorTileSource
+  IVectorTileSource,
+  JupyterGISModel
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -424,9 +424,12 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - id of the layer.
    * @param layer - the layer object.
    */
-  async updateLayer(id: string, layer: IJGISLayer): Promise<void> {
+  async updateLayer(
+    id: string,
+    layer: IJGISLayer,
+    mapLayer: ReturnType<typeof this._Map.getLayer>
+  ): Promise<void> {
     // Check if the layer already exist in the map.
-    const mapLayer = this._Map.getLayer(id);
     if (!mapLayer) {
       return;
     }
@@ -556,10 +559,15 @@ export class MainView extends React.Component<IProps, IStates> {
       if (!layer || Object.keys(layer).length === 0) {
         this.removeLayer(change.id);
       } else {
+        const mapLayer = this._Map.getLayer(change.id);
+
         if (
+          mapLayer &&
           JupyterGISModel.getOrderedLayerIds(this._model).includes(change.id)
         ) {
-          this.updateLayer(change.id, layer);
+          this.updateLayer(change.id, layer, mapLayer);
+        } else {
+          this.updateLayers(JupyterGISModel.getOrderedLayerIds(this._model));
         }
       }
     });
