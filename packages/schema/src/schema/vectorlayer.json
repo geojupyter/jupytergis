@@ -11,7 +11,7 @@
     },
     "type": {
       "type": "string",
-      "enum": ["circle", "fill", "line"],
+      "enum": ["circle", "fill", "line", "hillshade"],
       "default": "line",
       "description": "The type of vector layer"
     },

@@ -190,6 +190,18 @@ export class MainView extends React.Component<IProps, IStates> {
             data: data
           });
         }
+        break;
+      }
+      case 'RasterDemSource': {
+        const mapSource = this._Map.getSource(id) as MapLibre.GeoJSONSource;
+        if (!mapSource) {
+          this._Map.addSource(id, {
+            type: 'raster-dem',
+            tileSize: 256,
+            url: source.parameters!['url']
+          });
+        }
+        break;
       }
     }
   }
@@ -387,16 +399,24 @@ export class MainView extends React.Component<IProps, IStates> {
           (layerSpecification['source-layer'] = parameters.sourceLayer);
 
         this._Map.addLayer(layerSpecification, beforeId);
-        this._Map.setPaintProperty(
-          id,
-          `${parameters.type}-color`,
-          parameters.color !== undefined ? parameters.color : '#FF0000'
-        );
-        this._Map.setPaintProperty(
-          id,
-          `${parameters.type}-opacity`,
-          parameters.opacity !== undefined ? parameters.opacity : 1
-        );
+        if (parameters.type === 'hillshade') {
+          this._Map.setPaintProperty(
+            id,
+            'hillshade-shadow-color',
+            parameters.color !== undefined ? parameters.color : '#473B24'
+          );
+        } else {
+          this._Map.setPaintProperty(
+            id,
+            `${parameters.type}-color`,
+            parameters.color !== undefined ? parameters.color : '#FF0000'
+          );
+          this._Map.setPaintProperty(
+            id,
+            `${parameters.type}-opacity`,
+            parameters.opacity !== undefined ? parameters.opacity : 1
+          );
+        }
         break;
       }
     }
