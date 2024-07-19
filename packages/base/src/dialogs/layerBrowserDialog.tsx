@@ -122,9 +122,9 @@ export const LayerBrowserComponent = ({
 
   if (creatingCustomRaster) {
     // Disconnect any previous handler
-    okSignalPromise.promise.then((value) => {
+    okSignalPromise.promise.then(value => {
       value.disconnect(cancel, this);
-    })
+    });
 
     return (
       <div className="jGIS-customlayer-form">
@@ -152,7 +152,7 @@ export const LayerBrowserComponent = ({
   }
 
   // Ok is like cancel in the case of gallery item selections
-  okSignalPromise.promise.then((value) => {
+  okSignalPromise.promise.then(value => {
     value.connect(cancel, this);
   });
 
