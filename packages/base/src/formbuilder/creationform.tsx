@@ -144,17 +144,17 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
     // Perform the layer/source creation
     Promise.all(creationPromises).then(async () => {
       if (this.props.createSource) {
-        let { name, ...sourceData } =
+        let actualName = '';
+        const { name, ...sourceData } =
           (await sourceCreationPromise?.promise) as IDict;
 
-        if (!name) {
-          name =
-            ((await layerCreationPromise?.promise) as IDict).name + ' Source';
-        }
+        actualName =
+          name ||
+          ((await layerCreationPromise?.promise) as IDict).name + ' Source';
 
         const sourceModel: IJGISSource = {
           type: this.props.sourceType || 'RasterSource',
-          name,
+          name: actualName,
           parameters: sourceData
         };
 
