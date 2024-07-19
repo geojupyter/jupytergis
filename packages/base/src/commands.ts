@@ -62,7 +62,6 @@ export function addCommands(
   formSchemaRegistry: IJGISFormSchemaRegistry,
   layerBrowserRegistry: IJGISLayerBrowserRegistry
 ): void {
-  Private.updateFormSchema(formSchemaRegistry);
   const trans = translator.load('jupyterlab');
   const { commands } = app;
 
@@ -258,7 +257,7 @@ export function addCommands(
         : false;
     },
     iconClass: 'fa fa-vector-square',
-    execute: Private.createVectorLayer(tracker)
+    execute: Private.createVectorLayer(tracker, formSchemaRegistry)
   });
 
   commands.addCommand(CommandIDs.newVectorTileLayer, {
@@ -285,25 +284,6 @@ export function addCommands(
 }
 
 namespace Private {
-  export const FORM_SCHEMA = {};
-
-  export function updateFormSchema(
-    formSchemaRegistry: IJGISFormSchemaRegistry
-  ) {
-    if (Object.keys(FORM_SCHEMA).length > 0) {
-      return;
-    }
-    const formSchema = formSchemaRegistry.getSchemas();
-    formSchema.forEach((val, key) => {
-      const value = (FORM_SCHEMA[key] = JSON.parse(JSON.stringify(val)));
-      value['required'] = ['name', ...value['required']];
-      value['properties'] = {
-        name: { type: 'string', description: 'The name of the layer/source' },
-        ...value['properties']
-      };
-    });
-  }
-
   export function createLayerBrowser(
     tracker: WidgetTracker<JupyterGISWidget>,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
@@ -474,58 +454,30 @@ namespace Private {
    *
    * This is currently not used.
    */
-  export function createVectorLayer(tracker: WidgetTracker<JupyterGISWidget>) {
-    return async (arg: any) => {
+  export function createVectorLayer(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async (args: any) => {
       const current = tracker.currentWidget;
 
       if (!current) {
         return;
       }
 
-      //   const sources = current.context.model.getSourcesByType('GeoJSONSource');
-
-      //   const form = {
-      //     title: 'Vector Layer parameters',
-      //     default: (model: IJupyterGISModel) => {
-      //       return {
-      //         name: 'VectorSource',
-      //         source: Object.keys(sources)[0] ?? null
-      //       };
-      //     }
-      //   };
-
-      //   FORM_SCHEMA['VectorLayer'].properties.source.enumNames =
-      //     Object.values(sources);
-      //   FORM_SCHEMA['VectorLayer'].properties.source.enum = Object.keys(sources);
-      //   const dialog = new FormDialog({
-      //     context: current.context,
-      //     title: form.title,
-      //     sourceData: form.default(current.context.model),
-      //     schema: FORM_SCHEMA['VectorLayer'],
-      //     syncData: (props: IDict) => {
-      //       const sharedModel = current.context.model.sharedModel;
-      //       if (!sharedModel) {
-      //         return;
-      //       }
-
-      //       const { name, ...parameters } = props;
-
-      //       const layerModel: IJGISLayer = {
-      //         type: 'VectorLayer',
-      //         parameters: {
-      //           source: parameters.source,
-      //           type: parameters.type,
-      //           color: parameters.color,
-      //           opacity: parameters.opacity
-      //         },
-      //         visible: true,
-      //         name: name + ' Layer'
-      //       };
-
-      //       current.context.model.addLayer(UUID.uuid4(), layerModel);
-      //     }
-      //   });
-      //   await dialog.launch();
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create Vector Layer',
+        createLayer: true,
+        createSource: false,
+        layerData: {
+          name: 'Custom Vector Layer'
+        },
+        sourceType: 'GeoJSONSource',
+        layerType: 'VectorLayer',
+        formSchemaRegistry
+      });
+      await dialog.launch();
     };
   }
 
