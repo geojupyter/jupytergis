@@ -25,6 +25,9 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
       return;
     }
 
+    // This is not user-editable
+    delete schema.properties.valid;
+
     if (data.path !== '') {
       this.removeFormEntry('data', data, schema, uiSchema);
     }

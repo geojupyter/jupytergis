@@ -81,7 +81,9 @@ export class CreationFormDialog extends Dialog<IDict> {
     });
 
     // Disable ok button by default. It will be enabled automatically once the form is valid.
-    this.node.getElementsByClassName('jp-mod-accept')[0].setAttribute('disabled', '');
+    this.node
+      .getElementsByClassName('jp-mod-accept')[0]
+      .setAttribute('disabled', '');
 
     this.okSignal = new Signal(this);
     okSignalPromise.resolve(this.okSignal);

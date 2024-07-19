@@ -17,7 +17,6 @@ import { UUID } from '@lumino/coreutils';
 import { Ajv } from 'ajv';
 import * as geojson from 'geojson-schema/GeoJSON.json';
 
-import { GeoJSONLayerDialog } from './dialogs/geoJsonLayerDialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import {
   DataErrorDialog,
@@ -340,9 +339,21 @@ namespace Private {
         return;
       }
 
-      const dialog = new GeoJSONLayerDialog({
-        model: current.context.model,
-        registry: formSchemaRegistry
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create GeoJSON Layer',
+        createLayer: true,
+        createSource: true,
+        sourceData: {
+          minZoom: 0,
+          maxZoom: 0
+        },
+        layerData: {
+          name: 'Custom GeoJSON Layer'
+        },
+        sourceType: 'GeoJSONSource',
+        layerType: 'VectorLayer',
+        formSchemaRegistry
       });
       await dialog.launch();
     };
@@ -366,7 +377,7 @@ namespace Private {
         createSource: true,
         sourceData: {
           minZoom: 0,
-          maxZoom: 0,
+          maxZoom: 0
         },
         layerData: {
           name: 'Custom Vector Tile Layer'
