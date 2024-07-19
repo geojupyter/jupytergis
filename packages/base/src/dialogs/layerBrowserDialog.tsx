@@ -1,4 +1,4 @@
-import { faCheck, faPlus, faClose } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IDict,
@@ -10,24 +10,27 @@ import {
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
-import { UUID } from '@lumino/coreutils';
+import { PromiseDelegate, UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
-import { TileSourcePropertiesForm } from '../formbuilder';
-import { deepCopy } from '../tools';
 
 import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
+import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { CreationFormWrapper } from './formdialog';
+import { Signal } from '@lumino/signaling';
 
 interface ILayerBrowserDialogProps {
-  model: IJupyterGISModel;
+  context: DocumentRegistry.IContext<IJupyterGISModel>;
   registry: IRasterLayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
+  okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
   cancel: () => void;
 }
 
 export const LayerBrowserComponent = ({
-  model,
+  context,
   registry,
   formSchemaRegistry,
+  okSignalPromise,
   cancel
 }: ILayerBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -46,10 +49,10 @@ export const LayerBrowserComponent = ({
   );
 
   useEffect(() => {
-    model.sharedModel.layersChanged.connect(handleLayerChange);
+    context.model.sharedModel.layersChanged.connect(handleLayerChange);
 
     return () => {
-      model.sharedModel.layersChanged.disconnect(handleLayerChange);
+      context.model.sharedModel.layersChanged.disconnect(handleLayerChange);
     };
   }, []);
 
@@ -59,7 +62,7 @@ export const LayerBrowserComponent = ({
   const handleLayerChange = (_, change: IJGISLayerDocChange) => {
     // The split is to get rid of the 'Layer' part of the name to match the names in the gallery
     setActiveLayers(
-      Object.values(model.sharedModel.layers).map(
+      Object.values(context.model.sharedModel.layers).map(
         layer => layer.name.split(' ')[0]
       )
     );
@@ -113,73 +116,45 @@ export const LayerBrowserComponent = ({
       name: tile.name + ' Layer'
     };
 
-    model.sharedModel.addSource(sourceId, sourceModel);
-    model.addLayer(UUID.uuid4(), layerModel);
+    context.model.sharedModel.addSource(sourceId, sourceModel);
+    context.model.addLayer(UUID.uuid4(), layerModel);
   };
 
   if (creatingCustomRaster) {
-    const schema = deepCopy(
-      formSchemaRegistry.getSchemas().get('RasterSource')
-    );
-    if (!schema) {
-      return;
-    }
-
-    // Inject name in schema
-    schema['required'] = ['name', ...schema['required']];
-    schema['properties'] = {
-      name: { type: 'string', description: 'The name of the raster layer' },
-      ...schema['properties']
-    };
-
-    const syncData = (props: IDict) => {
-      const sharedModel = model.sharedModel;
-      if (!sharedModel) {
-        return;
-      }
-
-      const { name, ...parameters } = props;
-
-      const sourceId = UUID.uuid4();
-
-      const sourceModel: IJGISSource = {
-        type: 'RasterSource',
-        name,
-        parameters
-      };
-
-      const layerModel: IJGISLayer = {
-        type: 'RasterLayer',
-        parameters: {
-          source: sourceId
-        },
-        visible: true,
-        name: name + ' Layer'
-      };
-
-      sharedModel.addSource(sourceId, sourceModel);
-      model.addLayer(UUID.uuid4(), layerModel);
-    };
+    // Disconnect any previous handler
+    okSignalPromise.promise.then((value) => {
+      value.disconnect(cancel, this);
+    })
 
     return (
       <div className="jGIS-customlayer-form">
-        <TileSourcePropertiesForm
-          formContext="create"
-          model={model}
+        <CreationFormWrapper
+          context={context}
+          formSchemaRegistry={formSchemaRegistry}
+          createLayer={true}
+          createSource={true}
+          layerType={'RasterLayer'}
+          sourceType={'RasterSource'}
+          layerData={{
+            name: 'Custom Raster'
+          }}
           sourceData={{
-            name: 'Custom Source',
             url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             maxZoom: 24,
             minZoom: 0,
             attribution: '(C) OpenStreetMap contributors'
           }}
-          schema={schema}
-          syncData={syncData}
+          okSignalPromise={okSignalPromise}
           cancel={cancel}
         />
       </div>
     );
   }
+
+  // Ok is like cancel in the case of gallery item selections
+  okSignalPromise.promise.then((value) => {
+    value.connect(cancel, this);
+  });
 
   return (
     <div className="jGIS-layer-browser-container">
@@ -195,9 +170,6 @@ export const LayerBrowserComponent = ({
               className="jGIS-layer-browser-header-search"
             />
           </div>
-          <button className="jp-mod-reject jp-mod-styled" onClick={cancel}>
-            <FontAwesomeIcon icon={faClose} />
-          </button>
         </div>
         <div className="jGIS-layer-browser-categories">
           {providers.map(provider => (
@@ -272,7 +244,7 @@ export const LayerBrowserComponent = ({
 };
 
 export interface ILayerBrowserOptions {
-  model: IJupyterGISModel;
+  context: DocumentRegistry.IContext<IJupyterGISModel>;
   registry: IRasterLayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
 }
@@ -284,11 +256,16 @@ export class LayerBrowserWidget extends Dialog<boolean> {
       this.resolve(0);
     };
 
+    const okSignalPromise = new PromiseDelegate<
+      Signal<Dialog<IDict>, number>
+    >();
+
     const body = (
       <LayerBrowserComponent
-        model={options.model}
+        context={options.context}
         registry={options.registry}
         formSchemaRegistry={options.formSchemaRegistry}
+        okSignalPromise={okSignalPromise}
         cancel={cancelCallback}
       />
     );
@@ -297,7 +274,22 @@ export class LayerBrowserWidget extends Dialog<boolean> {
 
     this.id = 'jupytergis::layerBrowser';
 
+    this.okSignal = new Signal(this);
+    okSignalPromise.resolve(this.okSignal);
+
     // Override default dialog style
     this.addClass('jGIS-layerbrowser-FormDialog');
   }
+
+  resolve(index?: number): void {
+    if (index === 0) {
+      super.resolve(index);
+    }
+
+    if (index === 1) {
+      this.okSignal.emit(1);
+    }
+  }
+
+  private okSignal: Signal<Dialog<any>, number>;
 }

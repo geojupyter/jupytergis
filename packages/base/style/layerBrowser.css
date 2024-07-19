@@ -1,7 +1,3 @@
-.jGIS-layerbrowser-FormDialog .jp-Dialog-footer button {
-  display: none;
-}
-
 .jGIS-layerbrowser-FormDialog .jp-Dialog-header {
   padding: 0;
 }
@@ -19,7 +15,7 @@
 
 .jGIS-customlayer-form {
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .jGIS-layer-browser-container * {

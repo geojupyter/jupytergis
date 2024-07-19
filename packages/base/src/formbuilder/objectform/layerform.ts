@@ -8,10 +8,6 @@ export interface ILayerProps extends IBaseFormProps {
 export class LayerPropertiesForm extends BaseForm {
   props: ILayerProps;
 
-  constructor(props: ILayerProps) {
-    super(props);
-  }
-
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,

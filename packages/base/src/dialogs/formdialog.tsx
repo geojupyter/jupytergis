@@ -10,15 +10,15 @@ import { Signal } from '@lumino/signaling';
 import { PromiseDelegate } from '@lumino/coreutils';
 
 export interface ICreationFormWrapperProps extends ICreationFormProps {
-  okSignalPromise: PromiseDelegate<Signal<Dialog<IDict>, number>>;
+  okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
 }
 
 export interface ICreationFormDialogOptions extends ICreationFormProps {
   title: string;
 }
 
-const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
-  const [ok, setOk] = React.useState<Signal<Dialog<IDict>, number> | undefined>(
+export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
+  const [ok, setOk] = React.useState<Signal<Dialog<any>, number> | undefined>(
     undefined
   );
 

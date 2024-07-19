@@ -317,7 +317,7 @@ namespace Private {
       }
 
       const dialog = new LayerBrowserWidget({
-        model: current.context.model,
+        context: current.context,
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry
       });
