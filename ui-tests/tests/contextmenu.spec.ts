@@ -1,0 +1,224 @@
+import {
+  IJupyterLabPageFixture,
+  expect,
+  galata,
+  test
+} from '@jupyterlab/galata';
+import { Locator } from '@playwright/test';
+import path from 'path';
+
+async function openLeftPanel(page: IJupyterLabPageFixture): Promise<Locator> {
+  const sidePanel = page.locator('#jupytergis\\:\\:leftControlPanel');
+  if (!(await sidePanel.isVisible())) {
+    const panelIcon = page.getByTitle('JupyterGIS Control Panel');
+    await panelIcon.first().click();
+    await page.waitForCondition(async () => await sidePanel.isVisible());
+  }
+  return sidePanel;
+}
+
+async function openLayerTree(page: IJupyterLabPageFixture): Promise<Locator> {
+  const sidePanel = await openLeftPanel(page);
+  const layerTree = sidePanel.locator('.jp-gis-layerPanel');
+  if (!(await layerTree.isVisible())) {
+    const layerTitle = sidePanel.getByTitle('Layer tree');
+    await layerTitle.click();
+    await page.waitForCondition(async () => await layerTree.isVisible());
+  }
+  return layerTree;
+}
+
+test.describe('context menu', () => {
+  test.beforeAll(async ({ request }) => {
+    const content = galata.newContentsHelper(request);
+    await content.deleteDirectory('/examples');
+    await content.uploadDirectory(
+      path.resolve(__dirname, '../../examples'),
+      '/examples'
+    );
+  });
+
+  test.beforeEach(async ({ page }) => {
+    test.setTimeout(10000);
+    await page.filebrowser.open('examples/test.jGIS');
+  });
+
+  test.afterEach(async ({ page }) => {
+    await page.activity.closeAll();
+  });
+
+  test('right click on layer should open layer menu', async ({ page }) => {
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Open Topo Map')
+      .click({ button: 'right' });
+
+    const text = page.getByRole('menu').getByText('Remove Layer');
+    await expect(text).toBeVisible();
+  });
+
+  test('right click on group should open group menu', async ({ page }) => {
+    await page.getByText('level 1 group').click({ button: 'right' });
+
+    const text = page.getByRole('menu').getByText('Remove Group');
+    await expect(text).toBeVisible();
+  });
+
+  test('hover should display submenu', async ({ page }) => {
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Open Topo Map')
+      .click({ button: 'right' });
+
+    await page.getByRole('menu').hover();
+
+    const submenu = page.locator('div').filter({
+      hasText: 'Move to Rootlevel 1 grouplevel 2 groupMove Layers to New Group'
+    });
+
+    const firstItem = page.getByText('Move to Root');
+    await expect(firstItem).toBeVisible();
+    await expect(submenu).toBeVisible();
+  });
+
+  test('clicking remove layer should remove the layer from the tree', async ({
+    page
+  }) => {
+    const firstItem = page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Open Topo Map');
+
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Open Topo Map')
+      .click({ button: 'right' });
+
+    await page.getByRole('menu').getByText('Remove Layer').click();
+    await expect(firstItem).not.toBeVisible();
+  });
+
+  test('clicking remove group should remove the group from the tree', async ({
+    page
+  }) => {
+    const firstItem = page
+      .getByLabel('Layers', { exact: true })
+      .getByText('level 1 group');
+
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('level 1 group')
+      .click({ button: 'right' });
+
+    await page.getByRole('menu').getByText('Remove Group').click();
+    await expect(firstItem).not.toBeVisible();
+  });
+
+  test('pressing F2 should start rename for layer', async ({ page }) => {
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Open Topo Map')
+      .click();
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Open Topo Map')
+      .press('F2');
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByRole('textbox')
+      .fill('test name');
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByRole('textbox')
+      .press('Enter');
+
+    const newText = page.getByText('test name');
+
+    await expect(newText).toBeVisible();
+
+    // reset layer name
+    await page.locator('#jp-gis-layer-tree div').nth(2).click();
+    await page.locator('#jp-gis-layer-tree div').nth(2).press('F2');
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByRole('textbox')
+      .fill('Open Topo Map');
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByRole('textbox')
+      .press('Enter');
+
+    const restoredText = page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Open Topo Map');
+
+    await expect(restoredText).toBeVisible();
+  });
+
+  test('pressing F2 should start rename for group', async ({ page }) => {
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('level 1 group')
+      .click({ button: 'right' });
+
+    await page.getByLabel('Layers', { exact: true }).click();
+
+    await page.getByText('level 1 group').press('F2');
+    await page.getByRole('textbox').fill('test name');
+    await page.getByRole('textbox').press('Enter');
+
+    const newText = page.getByText('test name');
+
+    await expect(newText).toBeVisible();
+
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('test name')
+      .click({ button: 'right' });
+
+    await page.getByLabel('Layers', { exact: true }).click();
+    await page.getByText('test name').press('F2');
+    await page.getByRole('textbox').fill('level 1 group');
+    await page.getByRole('textbox').press('Enter');
+
+    const restoredText = page.getByText('level 1 group');
+
+    await expect(restoredText).toBeVisible();
+  });
+
+  test('move layer to group should move layer', async ({ page }) => {
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Open Topo Map')
+      .click({ button: 'right' });
+
+    await page.getByText('Move Layers to Group').hover();
+
+    await page.getByText('level 2 group').click();
+    await page.getByText('level 1 group').click();
+    await page.getByText('level 2 group').click();
+
+    const group = page.getByText('level 2 groupRegions FranceOpen Topo Map');
+
+    await expect(group).toHaveCount(1);
+  });
+
+  test('move layer to new group', async ({ page }) => {
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Open Topo Map')
+      .click({ button: 'right' });
+
+    await page.getByText('Move Layers to Group').hover();
+    await page.getByText('Move Layers to New Group').click();
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByRole('textbox')
+      .fill('new group');
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByRole('textbox')
+      .press('Enter');
+
+    await expect(page.getByText('new group')).toHaveCount(1);
+  });
+});
