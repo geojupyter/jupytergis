@@ -5,10 +5,7 @@ import {
   SelectionType
 } from '@jupytergis/schema';
 import { DOMUtils } from '@jupyterlab/apputils';
-import {
-  LabIcon,
-  ReactWidget,
-} from '@jupyterlab/ui-components';
+import { LabIcon, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { MouseEvent, useEffect, useState } from 'react';
 import { geoJSONIcon, rasterIcon } from '../../icons';
@@ -186,7 +183,6 @@ function SourcesBodyComponent(props: IBodyProps): JSX.Element {
     setModel(widget?.context.model);
   });
 
-
   return (
     <div id="jp-gis-sources">
       {sourceIds.map(sourceId => {
@@ -299,7 +295,9 @@ function SourceComponent(props: ISourceProps): JSX.Element {
 }
 
 namespace Private {
-  export function sortedSourceIds(model: IJupyterGISModel | undefined): string[] {
+  export function sortedSourceIds(
+    model: IJupyterGISModel | undefined
+  ): string[] {
     const sources = model?.getSources();
     if (sources === undefined) {
       return [];
