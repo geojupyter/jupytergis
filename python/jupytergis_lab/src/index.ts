@@ -82,6 +82,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     submenu.title.label = translator
       .load('jupyterlab')
       .__('Move Layers to Group');
+    submenu.id = 'jp-gis-contextmenu-movelayer';
 
     app.contextMenu.addItem({
       type: 'submenu',
@@ -191,8 +192,11 @@ function buildGroupsMenu(
   const model = tracker.currentWidget?.context.model;
 
   const submenu =
-    contextMenu.menu.items.find(item => item.type === 'submenu')?.submenu ??
-    null;
+    contextMenu.menu.items.find(
+      item =>
+        item.type === 'submenu' &&
+        item.submenu?.id === 'jp-gis-contextmenu-movelayer'
+    )?.submenu ?? null;
 
   // Bail early if the submenu isn't found
   if (!submenu) {
