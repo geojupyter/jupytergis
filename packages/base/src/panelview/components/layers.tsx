@@ -91,6 +91,8 @@ export class LayersPanel extends Panel {
       case 'mouseup':
         this._mouseUpEvent(event as MouseEvent);
         break;
+      default:
+        break;
     }
   }
 
@@ -126,8 +128,6 @@ export class LayersPanel extends Panel {
     if (!node) {
       return;
     }
-    // (event.target as HTMLElement).tabIndex = 0;
-    // (event.target as HTMLElement).focus();
 
     node.tabIndex = 0;
     node.focus();

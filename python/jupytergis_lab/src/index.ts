@@ -107,7 +107,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.commands.addKeyBinding({
       command: CommandIDs.removeLayer,
       keys: ['Delete'],
-      selector: '.jp-gis-layerTitle'
+      selector: '.jp-gis-layerTitle .jp-gis-layerText'
     });
 
     app.contextMenu.addItem({
@@ -119,7 +119,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.commands.addKeyBinding({
       command: CommandIDs.renameLayer,
       keys: ['F2'],
-      selector: '.jp-gis-layerTitle'
+      selector: '.jp-gis-layerTitle .jp-gis-layerText'
     });
 
     app.commands.addKeyBinding({
@@ -160,7 +160,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.commands.addKeyBinding({
       command: CommandIDs.removeGroup,
       keys: ['Delete'],
-      selector: '.jp-gis-layerGroupHeader'
+      selector: '.jp-gis-layerGroupHeader .jp-gis-layerText'
     });
 
     app.contextMenu.addItem({
@@ -172,7 +172,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.commands.addKeyBinding({
       command: CommandIDs.renameGroup,
       keys: ['F2'],
-      selector: '.jp-gis-layerGroupHeader'
+      selector: '.jp-gis-layerGroupHeader .jp-gis-layerText'
     });
 
     if (mainMenu) {
