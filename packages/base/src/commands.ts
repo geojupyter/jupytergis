@@ -262,7 +262,10 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.newGeoJSONSource, {
-    label: trans.__('Add GeoJSON data from file'),
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('GeoJSON')
+        : trans.__('Add GeoJSON data from file'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
