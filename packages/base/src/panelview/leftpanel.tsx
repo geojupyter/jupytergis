@@ -14,8 +14,10 @@ export class LeftPanelWidget extends SidePanel {
     const header = new ControlPanelHeader();
     this.header.addWidget(header);
 
-    const datasources = new SourcesPanel({ model: this._model });
-    this.addWidget(datasources);
+    const sourcesPanel = new SourcesPanel({ model: this._model });
+    sourcesPanel.title.caption = 'Sources';
+    sourcesPanel.title.label = 'Sources';
+    this.addWidget(sourcesPanel);
 
     const layerTree = new LayersPanel({ model: this._model });
     layerTree.title.caption = 'Layer tree';

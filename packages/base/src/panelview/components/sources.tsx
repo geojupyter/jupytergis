@@ -1,5 +1,4 @@
 import {
-  IJGISSources,
   IJupyterGISClientState,
   IJupyterGISModel,
   ISelection,
@@ -48,7 +47,7 @@ export class SourcesPanel extends Panel {
   constructor(options: SourcesPanel.IOptions) {
     super();
     this._model = options.model;
-    this.id = 'jupytergis::sourcePanel';
+    this.id = 'jupytergis::sourcesPanel';
     this.addClass(SOURCES_PANEL_CLASS);
 
     this.addWidget(
@@ -147,8 +146,8 @@ function SourcesBodyComponent(props: IBodyProps): JSX.Element {
   const [model, setModel] = useState<IJupyterGISModel | undefined>(
     props.model?.jGISModel
   );
-  const [sources, setSources] = useState<IJGISSources>(
-    model?.getSources() || {}
+  const [sourceIds, setSourceIds] = useState<string[]>(
+    Private.sortedSourceIds(model)
   );
 
   /**
@@ -168,11 +167,12 @@ function SourcesBodyComponent(props: IBodyProps): JSX.Element {
    */
   useEffect(() => {
     const updateSources = () => {
-      setSources(model?.getSources() || {});
+      setSourceIds(Private.sortedSourceIds(model));
     };
     model?.sharedModel.sourcesChanged.connect(updateSources);
     model?.clientStateChanged.connect(updateSources);
 
+    updateSources();
     return () => {
       model?.sharedModel.sourcesChanged.disconnect(updateSources);
       model?.clientStateChanged.disconnect(updateSources);
@@ -184,18 +184,20 @@ function SourcesBodyComponent(props: IBodyProps): JSX.Element {
    */
   props.model?.documentChanged.connect((_, widget) => {
     setModel(widget?.context.model);
-    setSources(widget?.context.model?.getSources() || {});
   });
+
 
   return (
     <div id="jp-gis-sources">
-      {Object.keys(sources).map(sourceId => (
-        <SourceComponent
-          gisModel={model}
-          sourceId={sourceId}
-          onClick={onItemClick}
-        />
-      ))}
+      {sourceIds.map(sourceId => {
+        return (
+          <SourceComponent
+            gisModel={model}
+            sourceId={sourceId}
+            onClick={onItemClick}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -292,17 +294,20 @@ function SourceComponent(props: ISourceProps): JSX.Element {
           {name}
         </span>
       </div>
-      {/* <Button
-        title={source.visible ? 'Hide layer' : 'Show layer'}
-        onClick={toggleVisibility}
-        minimal
-      >
-        <LabIcon.resolveReact
-          icon={source.visible ? visibilityIcon : nonVisibilityIcon}
-          className={SOURCE_ICON_CLASS}
-          tag="span"
-        />
-      </Button> */}
     </div>
   );
+}
+
+namespace Private {
+  export function sortedSourceIds(model: IJupyterGISModel | undefined): string[] {
+    const sources = model?.getSources();
+    if (sources === undefined) {
+      return [];
+    }
+    return Object.keys(sources).sort((id1: string, id2: string): number => {
+      const name1 = sources[id1].name.toLowerCase();
+      const name2 = sources[id2].name.toLowerCase();
+      return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
+    });
+  }
 }
