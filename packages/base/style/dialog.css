@@ -6,29 +6,3 @@
 .jp-SchemaForm .jp-select-wrapper select {
   background-image: unset;
 }
-
-.jGIS-geoJSONLayer-FormDialog .jp-Dialog-footer button {
-  display: none;
-}
-
-.jp-gis-addDataSourceBody > :not(:first-child) {
-  margin-top: 1em;
-}
-
-.jp-gis-addDataSourceBody label > :not(:first-child) {
-  margin-top: 0.5em;
-}
-
-.jp-gis-dataErrorBody > :not(:first-child) {
-  padding-top: 1.5em;
-}
-
-.jp-gis-dataErrorHeader {
-  display: flex;
-  align-items: center;
-}
-
-.jp-gis-dataErrorDetails {
-  background-color: var(--md-grey-100);
-  font-size: var(--jp-content-font-size0);
-}
