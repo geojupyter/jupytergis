@@ -286,6 +286,17 @@ export function addCommands(
     execute: Private.createVectorLayer(tracker, formSchemaRegistry),
     ...icons.get(CommandIDs.newVectorLayer)
   });
+
+  commands.addCommand(CommandIDs.newTerrain, {
+    label: trans.__('New Terrain'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    iconClass: 'fa fa-mountain',
+    execute: Private.createTerrain(tracker)
+  });
 }
 
 namespace Private {
@@ -544,5 +555,57 @@ namespace Private {
     if (newName !== originalName) {
       callback(itemId, newName);
     }
+  }
+
+  export function createTerrain(tracker: WidgetTracker<JupyterGISWidget>) {
+    return async (args: any) => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const form = {
+        title: 'Terrain Parameters',
+        default: (model: IJupyterGISModel) => {
+          return {
+            name: 'Terrain tile source',
+            tileSize: 256,
+            url: 'https://demotiles.maplibre.org/terrain-tiles/tiles.json',
+            source: '',
+            exaggeration: 1
+          };
+        }
+      };
+
+      const dialog = new FormDialog({
+        context: current.context,
+        title: form.title,
+        sourceData: form.default(current.context.model),
+        schema: FORM_SCHEMA['RasterDemSource'],
+        syncData: (props: IDict) => {
+          const sharedModel = current.context.model.sharedModel;
+          if (!sharedModel) {
+            return;
+          }
+
+          const { name, ...parameters } = props;
+
+          const sourceId = UUID.uuid4();
+
+          const sourceModel: IJGISSource = {
+            type: 'RasterDemSource',
+            name,
+            parameters: {
+              url: parameters.url,
+              tileSize: parameters.tileSize
+            }
+          };
+
+          sharedModel.addSource(sourceId, sourceModel);
+        }
+      });
+      await dialog.launch();
+    };
   }
 }

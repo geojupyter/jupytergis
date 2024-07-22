@@ -9,6 +9,7 @@ import {
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
+  IRasterDemSource,
   IRasterSource,
   IVectorLayer,
   IVectorTileSource,
@@ -193,14 +194,21 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'RasterDemSource': {
-        const mapSource = this._Map.getSource(id) as MapLibre.GeoJSONSource;
+        const mapSource = this._Map.getSource(
+          id
+        ) as MapLibre.RasterDEMTileSource;
         if (!mapSource) {
+          const parameters = source.parameters as IRasterDemSource;
           this._Map.addSource(id, {
             type: 'raster-dem',
-            tileSize: 256,
-            url: source.parameters!['url']
+            tileSize: parameters.tileSize,
+            url: parameters.url
           });
         }
+
+        // TODO Split this out to a separate terrain thing
+        this.addTerrain(id, 1);
+
         break;
       }
     }
@@ -235,9 +243,10 @@ export class MainView extends React.Component<IProps, IStates> {
   async updateSource(id: string, source: IJGISSource): Promise<void> {
     const mapSource = this._Map.getSource(id);
     if (!mapSource) {
-      console.log(`Source id ${id} does not exist`);
+      this.addSource(id, source);
       return;
     }
+
     switch (source.type) {
       case 'RasterSource': {
         (mapSource as MapLibre.RasterTileSource).setTiles([
@@ -256,6 +265,15 @@ export class MainView extends React.Component<IProps, IStates> {
           source.parameters?.data ||
           (await this._model.readGeoJSON(source.parameters?.path));
         (mapSource as MapLibre.GeoJSONSource).setData(data);
+        break;
+      }
+      case 'RasterDemSource': {
+        const parameters = source.parameters as IRasterDemSource;
+        (mapSource as MapLibre.RasterDEMTileSource).setTiles([parameters.url]);
+        break;
+      }
+      default: {
+        console.warn('Source type not found');
       }
     }
   }
@@ -351,6 +369,7 @@ export class MainView extends React.Component<IProps, IStates> {
     if (!source) {
       return;
     }
+
     if (!this._Map.getSource(sourceId)) {
       await this.addSource(sourceId, source);
     }
@@ -420,6 +439,26 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
     }
+  }
+
+  async addTerrain(sourceId: string, exaggeration: number) {
+    // Add the source if necessary.
+    const source = this._model.sharedModel.getSource(sourceId);
+    if (!source) {
+      return;
+    }
+
+    if (!this._Map.getSource(sourceId)) {
+      await this.addSource(sourceId, source);
+    }
+
+    this._Map.setTerrain({ source: sourceId, exaggeration });
+    this._Map.addControl(
+      new MapLibre.TerrainControl({
+        source: sourceId,
+        exaggeration
+      })
+    );
   }
 
   /**

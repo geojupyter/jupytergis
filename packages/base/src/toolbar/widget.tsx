@@ -82,6 +82,15 @@ export class ToolbarWidget extends Toolbar {
         })
       );
 
+      this.addItem(
+        'newTerrain',
+        new CommandToolbarButton({
+          id: CommandIDs.newTerrain,
+          label: '',
+          commands: options.commands
+        })
+      );
+
       // Add more commands here
 
       this.addItem('spacer', Toolbar.createSpacerItem());
