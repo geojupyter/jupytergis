@@ -3,6 +3,11 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
+.jp-gis-sourcePanel,
+.jp-gis-layerPanel {
+  min-height: 3em;
+}
+
 .jp-gis-layerItem,
 .jp-gis-source {
   padding: 2px 0 2px 12px;
