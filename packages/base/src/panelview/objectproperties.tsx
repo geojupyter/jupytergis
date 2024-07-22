@@ -58,7 +58,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     );
     this.props.cpModel.jGISModel?.sharedSourcesChanged.connect(
       this._sharedJGISModelChanged
-    )
+    );
     this.props.cpModel.documentChanged.connect((_, changed) => {
       if (changed) {
         this.props.cpModel.disconnect(this._sharedJGISModelChanged);
