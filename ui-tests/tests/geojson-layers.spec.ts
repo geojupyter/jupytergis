@@ -55,7 +55,7 @@ test.describe('#geoJSONLayer', () => {
 
     await button?.click();
 
-    const dialog = page.locator('.jGIS-geoJSONLayer-FormDialog');
+    const dialog = page.locator('.jp-Dialog-content');
     await expect(dialog).toBeAttached();
 
     const fileInput = dialog.getByLabel('path');

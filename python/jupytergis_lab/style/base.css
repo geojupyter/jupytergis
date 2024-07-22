@@ -161,15 +161,11 @@ div.field.field-array > label + span {
   display: none;
 }
 
-.jGIS-property-FormDialog .jp-Dialog-footer button {
-  display: none;
-}
-
-.jGIS-property-FormDialog .jp-Dialog-content {
+.jGIS-layer-CreationFormDialog .jp-Dialog-content {
   width: 60%;
 }
 
-.jGIS-property-FormDialog form {
+.jGIS-layer-CreationFormDialog form {
   padding: 10px;
 }
 

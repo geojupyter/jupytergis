@@ -1,9 +1,6 @@
 import {
-  IDict,
   IJGISFormSchemaRegistry,
-  IJGISLayer,
   IJGISLayerDocChange,
-  IJGISSource,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
@@ -15,16 +12,9 @@ import { Panel } from '@lumino/widgets';
 import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { deepCopy } from '../tools';
 import { IControlPanelModel } from '../types';
-import {
-  GeoJSONSourcePropertiesForm,
-  LayerPropertiesForm,
-  ObjectPropertiesForm,
-  RasterSourcePropertiesForm,
-  VectorLayerPropertiesForm
-} from './formbuilder';
-import { JupyterGISWidget } from '../widget';
+import { EditForm } from '../formbuilder/editform';
+import { DocumentRegistry } from '@jupyterlab/docregistry';
 
 export class ObjectProperties extends PanelWithToolbar {
   constructor(params: ObjectProperties.IOptions) {
@@ -43,8 +33,7 @@ export class ObjectProperties extends PanelWithToolbar {
 }
 
 interface IStates {
-  jGISOption?: IDict;
-  filePath?: string;
+  context: DocumentRegistry.IContext<IJupyterGISModel> | undefined;
   selectedObject?: string;
   clientId: number | null; // ID of the yjs client
   id: string; // ID of the component, it is used to identify which component
@@ -61,11 +50,10 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
     this.state = {
-      filePath: this.props.cpModel.filePath,
+      context: props.tracker.currentWidget?.context,
       clientId: null,
       id: uuid()
     };
-    this._formSchema = props.formSchemaRegistry.getSchemas();
 
     this.props.cpModel.jGISModel?.sharedLayersChanged.connect(
       this._sharedJGISModelChanged
@@ -83,39 +71,17 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         );
         this.setState(old => ({
           ...old,
+          context: changed.context,
           filePath: changed.context.localPath,
           clientId: changed.context.model.getClientId()
         }));
       } else {
         this.setState({
-          jGISOption: undefined,
-          filePath: undefined,
+          context: undefined,
           selectedObject: undefined
         });
       }
     });
-  }
-
-  async syncObjectProperties(
-    id: string | undefined,
-    properties: { [key: string]: any }
-  ) {
-    if (!id) {
-      return;
-    }
-
-    const currentWidget = this.props.tracker
-      .currentWidget as JupyterGISWidget | null;
-    if (!currentWidget) {
-      return;
-    }
-
-    const model = this.props.cpModel.jGISModel;
-    if (!model) {
-      return;
-    }
-
-    model.sharedModel.updateObjectParameters(id, properties);
   }
 
   private _sharedJGISModelChanged = (
@@ -164,126 +130,35 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   };
 
   render(): React.ReactNode {
-    const model = this.props.cpModel.jGISModel;
     const selectedObject = this.state.selectedObject;
 
-    if (!selectedObject || !model) {
+    if (!selectedObject || !this.state.context) {
       return <div></div>;
     }
 
-    let selectedObj: IJGISLayer | IJGISSource | undefined;
-    // This will be the layer source in case where the selected object is a layer
-    let selectedObjSource: IJGISSource | undefined;
+    let layerId: string | undefined = undefined;
+    let sourceId: string | undefined = undefined;
+    const layer = this.state.context.model.getLayer(selectedObject);
+    if (layer) {
+      layerId = selectedObject;
+      sourceId = layer.parameters?.source;
+    } else {
+      const source = this.state.context.model.getSource(selectedObject);
 
-    selectedObj = this.props.cpModel.jGISModel?.getLayer(selectedObject);
-
-    if (!selectedObj) {
-      selectedObj = this.props.cpModel.jGISModel?.getSource(selectedObject);
-    }
-
-    if (selectedObj && selectedObj.parameters?.source) {
-      selectedObjSource = this.props.cpModel.jGISModel?.getSource(
-        selectedObj!.parameters?.source
-      );
-    }
-
-    if (!selectedObj) {
-      return <div></div>;
-    }
-
-    let schema: IDict<any> | undefined;
-    let selectedObjectSourceId: string | undefined;
-    const selectedObjectData = deepCopy(selectedObj.parameters);
-    if (selectedObj.type) {
-      schema = deepCopy(this._formSchema.get(selectedObj.type));
-
-      if (selectedObjectData && selectedObjectData.source) {
-        selectedObjectSourceId = selectedObjectData.source;
+      if (source) {
+        sourceId = selectedObject;
       }
     }
 
-    if (!selectedObjectData) {
-      return <div></div>;
-    }
-
-    // We selected a source and only show a form for it
-    if (!selectedObjSource) {
-      return (
-        selectedObjSource!.type === 'RasterSource' && (
-          <div>
-            <h3>Source Properties</h3>
-            <RasterSourcePropertiesForm
-              formContext="update"
-              model={model}
-              filePath={`${this.state.filePath}::panel`}
-              schema={schema}
-              sourceData={selectedObjectData}
-              syncData={(properties: { [key: string]: any }) => {
-                this.syncObjectProperties(
-                  this.state.selectedObject,
-                  properties
-                );
-              }}
-            />
-          </div>
-        )
-      );
-    }
-
-    // We selected a layer, we show a form for the layer and one for its source
-    const sourceSchema = deepCopy(this._formSchema.get(selectedObjSource.type));
-    const selectedObjectSourceData = deepCopy(selectedObjSource.parameters);
-
-    let LayerForm = LayerPropertiesForm;
-    let SourceForm = ObjectPropertiesForm;
-
-    switch (selectedObj.type) {
-      case 'VectorLayer':
-        LayerForm = VectorLayerPropertiesForm;
-        break;
-      // ADD MORE FORM TYPES HERE
-    }
-
-    switch (selectedObjSource.type) {
-      case 'GeoJSONSource':
-        SourceForm = GeoJSONSourcePropertiesForm;
-        break;
-      case 'RasterSource':
-        SourceForm = RasterSourcePropertiesForm;
-        break;
-      // ADD MORE FORM TYPES HERE
-    }
-
     return (
-      <div>
-        <h3>Layer Properties</h3>
-        <LayerForm
-          formContext="update"
-          sourceType={selectedObjSource.type}
-          model={model}
-          filePath={`${this.state.filePath}::panel`}
-          schema={schema}
-          sourceData={selectedObjectData}
-          syncData={(properties: { [key: string]: any }) => {
-            this.syncObjectProperties(this.state.selectedObject, properties);
-          }}
-        />
-        <h3>Source Properties</h3>
-        <SourceForm
-          formContext="update"
-          model={model}
-          filePath={`${this.state.filePath}::panel`}
-          schema={sourceSchema}
-          sourceData={selectedObjectSourceData}
-          syncData={(properties: { [key: string]: any }) => {
-            this.syncObjectProperties(selectedObjectSourceId, properties);
-          }}
-        />
-      </div>
+      <EditForm
+        layer={layerId}
+        source={sourceId}
+        formSchemaRegistry={this.props.formSchemaRegistry}
+        context={this.state.context}
+      />
     );
   }
-
-  private _formSchema: Map<string, IDict>;
 }
 
 export namespace ObjectProperties {

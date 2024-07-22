@@ -138,22 +138,47 @@ const activate = (
     });
     palette.addItem({
       command: CommandIDs.removeLayer,
-      category: 'Other'
+      category: 'JupyterGIS'
     });
 
     palette.addItem({
       command: CommandIDs.renameLayer,
-      category: 'Other'
+      category: 'JupyterGIS'
     });
 
     palette.addItem({
       command: CommandIDs.removeGroup,
-      category: 'Other'
+      category: 'JupyterGIS'
     });
 
     palette.addItem({
       command: CommandIDs.renameGroup,
-      category: 'Other'
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
+      command: CommandIDs.openLayerBrowser,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
+      command: CommandIDs.newGeoJSONLayer,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
+      command: CommandIDs.newVectorTileLayer,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
+      command: CommandIDs.newGeoJSONSource,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
+      command: CommandIDs.newVectorLayer,
+      category: 'JupyterGIS'
     });
   }
 };
