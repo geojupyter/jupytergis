@@ -132,7 +132,6 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   render(): React.ReactNode {
     const selectedObject = this.state.selectedObject;
 
-
     if (!selectedObject || !this.state.context) {
       return <div></div>;
     }
