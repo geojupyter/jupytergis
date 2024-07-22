@@ -1,8 +1,6 @@
 import {
   IJGISFormSchemaRegistry,
-  IJGISLayerDocChange,
   IJupyterGISClientState,
-  IJupyterGISDoc,
   IJupyterGISModel,
   IJupyterGISTracker
 } from '@jupytergis/schema';
@@ -58,12 +56,18 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     this.props.cpModel.jGISModel?.sharedLayersChanged.connect(
       this._sharedJGISModelChanged
     );
+    this.props.cpModel.jGISModel?.sharedSourcesChanged.connect(
+      this._sharedJGISModelChanged
+    )
     this.props.cpModel.documentChanged.connect((_, changed) => {
       if (changed) {
         this.props.cpModel.disconnect(this._sharedJGISModelChanged);
         this.props.cpModel.disconnect(this._onClientSharedStateChanged);
 
         changed.context.model.sharedLayersChanged.connect(
+          this._sharedJGISModelChanged
+        );
+        changed.context.model.sharedSourcesChanged.connect(
           this._sharedJGISModelChanged
         );
         changed.context.model.clientStateChanged.connect(
@@ -84,10 +88,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     });
   }
 
-  private _sharedJGISModelChanged = (
-    _: IJupyterGISDoc,
-    changed: IJGISLayerDocChange
-  ): void => {
+  private _sharedJGISModelChanged = (): void => {
     this.forceUpdate();
   };
 
