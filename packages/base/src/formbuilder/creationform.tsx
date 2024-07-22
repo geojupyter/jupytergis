@@ -95,7 +95,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
       }
 
       // If a source is created as part of this form, remove the source selection from the layer form
-      if (this.props.sourceType) {
+      if (this.props.createSource) {
         delete layerSchema.properties?.source;
         layerData.source = sourceId;
       }
