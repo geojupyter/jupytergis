@@ -310,12 +310,17 @@ test.describe('#sourcePanel', () => {
         await expect(menu.getByText('Remove Source')).not.toBeAttached();
       });
 
-      test('should have context menu on empty part of panel', async ({ page }) => {
+      test('should have context menu on empty part of panel', async ({
+        page
+      }) => {
         const sourcePanel = await openSourcePanel(page);
         const menu = page.locator('.lm-Menu-content');
 
         // Right click on blank part.
-        await sourcePanel.click({ button: 'right', position: {x: 20, y: 100} });
+        await sourcePanel.click({
+          button: 'right',
+          position: { x: 20, y: 100 }
+        });
         await expect(menu).toBeVisible();
 
         // Expect the menu to have only 'Add Source' entry.
@@ -329,7 +334,10 @@ test.describe('#sourcePanel', () => {
         const sourcePanel = await openSourcePanel(page);
         const menu = page.locator('.lm-Menu-content');
 
-        await sourcePanel.click({ button: 'right', position: {x: 20, y: 100} });
+        await sourcePanel.click({
+          button: 'right',
+          position: { x: 20, y: 100 }
+        });
         await menu.getByText('Add Source').hover();
 
         const submenu = page.locator('#jp-gis-contextmenu-addSource');
@@ -342,7 +350,10 @@ test.describe('#sourcePanel', () => {
         const source = sourcePanel.locator('.jp-gis-source');
         const menu = page.locator('.lm-Menu-content');
 
-        await sourcePanel.click({ button: 'right', position: {x: 20, y: 100} });
+        await sourcePanel.click({
+          button: 'right',
+          position: { x: 20, y: 100 }
+        });
         await menu.getByText('Add Source').hover();
 
         // Add a source by filling the form.
@@ -368,7 +379,9 @@ test.describe('#sourcePanel', () => {
 
         await menu.getByText('Remove Source').click();
         await expect(source).toHaveCount(3);
-        await expect(sourcePanel.getByText('Custom GeoJSON Source(unused)')).not.toBeAttached();
+        await expect(
+          sourcePanel.getByText('Custom GeoJSON Source(unused)')
+        ).not.toBeAttached();
       });
     });
   });
