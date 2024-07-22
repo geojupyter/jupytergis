@@ -9,42 +9,11 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showErrorMessage, WidgetTracker } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
-import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
 
+import { CommandIDs, icons } from './constants';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { CreationFormDialog } from './dialogs/formdialog';
 import { JupyterGISWidget } from './widget';
-import { geoJSONIcon } from './icons';
-
-/**
- * The command IDs.
- */
-export namespace CommandIDs {
-  export const createNew = 'jupytergis:create-new-jGIS-file';
-  export const redo = 'jupytergis:redo';
-  export const undo = 'jupytergis:undo';
-
-  // Layers and sources commands
-  export const openLayerBrowser = 'jupytergis:openLayerBrowser';
-  export const newGeoJSONLayer = 'jupytergis:newGeoJSONLayer';
-  export const newVectorTileLayer = 'jupytergis:newVectorTileLayer';
-
-  // Sources only commands
-  export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
-  export const removeSource = 'jupytergis:removeSource';
-  export const renameSource = 'jupytergis:renameSource';
-
-  // Layers only commands
-  export const newVectorLayer = 'jupytergis:newVectorLayer';
-
-  export const renameLayer = 'jupytergis:renameLayer';
-  export const removeLayer = 'jupytergis:removeLayer';
-  export const renameGroup = 'jupytergis:renameGroup';
-  export const removeGroup = 'jupytergis:removeGroup';
-
-  export const moveLayersToGroup = 'jupytergis:moveLayersToGroup';
-  export const moveLayerToNewGroup = 'jupytergis:moveLayerToNewGroup';
-}
 
 /**
  * Add the commands to the application's command registry.
@@ -73,7 +42,7 @@ export function addCommands(
         return current.context.model.sharedModel.redo();
       }
     },
-    icon: redoIcon
+    ...icons.get(CommandIDs.redo)?.icon
   });
 
   commands.addCommand(CommandIDs.undo, {
@@ -90,7 +59,7 @@ export function addCommands(
         return current.context.model.sharedModel.undo();
       }
     },
-    icon: undoIcon
+    ...icons.get(CommandIDs.undo)
   });
 
   /**
@@ -103,23 +72,23 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    iconClass: 'fa fa-book-open',
     execute: Private.createLayerBrowser(
       tracker,
       layerBrowserRegistry,
       formSchemaRegistry
-    )
+    ),
+    ...icons.get(CommandIDs.openLayerBrowser)
   });
 
   commands.addCommand(CommandIDs.newGeoJSONLayer, {
-    label: trans.__('New vector layer'),
+    label: trans.__('New geoJSON layer'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    icon: geoJSONIcon,
-    execute: Private.createGeoJSONLayer(tracker, formSchemaRegistry)
+    execute: Private.createGeoJSONLayer(tracker, formSchemaRegistry),
+    ...icons.get(CommandIDs.newGeoJSONLayer)
   });
 
   commands.addCommand(CommandIDs.newVectorTileLayer, {
@@ -129,8 +98,8 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    iconClass: 'fa fa-vector-square',
-    execute: Private.createVectorTileLayer(tracker, formSchemaRegistry)
+    execute: Private.createVectorTileLayer(tracker, formSchemaRegistry),
+    ...icons.get(CommandIDs.newVectorTileLayer)
   });
 
   /**
@@ -146,8 +115,8 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    icon: geoJSONIcon,
-    execute: Private.createGeoJSONSource(tracker, formSchemaRegistry)
+    execute: Private.createGeoJSONSource(tracker, formSchemaRegistry),
+    ...icons.get(CommandIDs.newGeoJSONSource)?.icon
   });
 
   commands.addCommand(CommandIDs.removeSource, {
@@ -314,8 +283,8 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    iconClass: 'fa fa-vector-square',
-    execute: Private.createVectorLayer(tracker, formSchemaRegistry)
+    execute: Private.createVectorLayer(tracker, formSchemaRegistry),
+    ...icons.get(CommandIDs.newVectorLayer)
   });
 }
 

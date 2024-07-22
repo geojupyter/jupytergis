@@ -8,7 +8,7 @@ import { DOMUtils } from '@jupyterlab/apputils';
 import { LabIcon, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { MouseEvent, useEffect, useState } from 'react';
-import { geoJSONIcon, rasterIcon } from '../../icons';
+import { icons } from '../../constants';
 import { IControlPanelModel } from '../../types';
 
 const SOURCES_PANEL_CLASS = 'jp-gis-sourcePanel';
@@ -294,21 +294,9 @@ function SourceComponent(props: ISourceProps): JSX.Element {
         onClick={setSelection}
         onContextMenu={setSelection}
       >
-        {source.type === 'RasterSource' && (
+        {icons.has(source.type) && (
           <LabIcon.resolveReact
-            icon={rasterIcon}
-            className={SOURCE_ICON_CLASS}
-          />
-        )}
-        {source.type === 'GeoJSONSource' && (
-          <LabIcon.resolveReact
-            icon={geoJSONIcon}
-            className={SOURCE_ICON_CLASS}
-          />
-        )}
-        {source.type === 'VectorTileSource' && (
-          <LabIcon.resolveReact
-            iconClass={'fa fa-vector-square'}
+            {...icons.get(source.type)}
             className={SOURCE_ICON_CLASS}
           />
         )}
