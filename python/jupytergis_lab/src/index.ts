@@ -70,7 +70,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const newSourceSubMenu = new Menu({ commands: app.commands });
     newSourceSubMenu.title.label = translator
       .load('jupyterlab')
-      .__('Add source');
+      .__('Add Source');
     newSourceSubMenu.id = 'jp-gis-contextmenu-addSource';
 
     app.contextMenu.addItem({
