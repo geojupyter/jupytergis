@@ -3,7 +3,7 @@ import * as geojson from 'geojson-schema/GeoJSON.json';
 
 import { BaseForm, IBaseFormProps } from './baseform';
 import { IDict } from '@jupytergis/schema';
-import { ISubmitEvent } from '@rjsf/core';
+import { showErrorMessage } from '@jupyterlab/apputils';
 
 /**
  * The form to modify a GeoJSON source.
@@ -42,12 +42,18 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
     this._validatePath(value);
   }
 
-  protected onFormSubmit = (e: ISubmitEvent<any>) => {
-    if (this.state.extraErrors?.path?.__errors?.includes('Invalid path')) {
+  protected syncData(properties: IDict<any> | undefined) {
+    if (this.state.extraErrors?.path?.__errors?.length >= 1) {
+      showErrorMessage(
+        'Invalid JSON file',
+        this.state.extraErrors.path.__errors[0]
+      );
+
       return;
     }
-    super.onFormSubmit(e);
-  };
+
+    super.syncData(properties);
+  }
 
   /**
    * Validate the path, to avoid invalid path or invalid GeoJSON.
@@ -66,9 +72,7 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
       .then(async geoJSONData => {
         const valid = this._validate(geoJSONData);
         if (!valid) {
-          extraErrors.path.__errors = [
-            "GeoJSON data invalid (you can still validate but the source can't be used)"
-          ];
+          extraErrors.path.__errors = [`"${path}" is not a valid GeoJSON file`];
           this._validate.errors?.reverse().forEach(error => {
             extraErrors.path.__errors.push(error.message);
           });
@@ -76,7 +80,7 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
         this.setState({ extraErrors });
       })
       .catch(e => {
-        extraErrors.path.__errors = ['Invalid path'];
+        extraErrors.path.__errors = [`Cannot read "${path}"`];
         this.setState({ extraErrors });
       });
   }

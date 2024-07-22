@@ -1,30 +1,20 @@
 import {
-  IGeoJSONSource,
   IJGISFormSchemaRegistry,
   IJGISLayerBrowserRegistry,
   IJGISLayerGroup,
   IJGISLayerItem,
-  IJGISSource,
   IJupyterGISModel,
   SelectionType
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { Dialog, WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
-import { PathExt } from '@jupyterlab/coreutils';
+import { WidgetTracker } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
 import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
-import { UUID } from '@lumino/coreutils';
-import { Ajv } from 'ajv';
-import * as geojson from 'geojson-schema/GeoJSON.json';
 
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
-import {
-  DataErrorDialog,
-  DialogAddDataSourceBody,
-  CreationFormDialog
-} from './dialogs/formdialog';
-import { geoJSONIcon } from './icons';
+import { CreationFormDialog } from './dialogs/formdialog';
 import { JupyterGISWidget } from './widget';
+import { geoJSONIcon } from './icons';
 
 /**
  * The command IDs.
@@ -279,7 +269,7 @@ export function addCommands(
         : false;
     },
     icon: geoJSONIcon,
-    execute: Private.createGeoJSONSource(tracker)
+    execute: Private.createGeoJSONSource(tracker, formSchemaRegistry)
   });
 }
 
@@ -376,76 +366,28 @@ namespace Private {
    * This is currently not used.
    */
   export function createGeoJSONSource(
-    tracker: WidgetTracker<JupyterGISWidget>
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
   ) {
-    const ajv = new Ajv();
-    const validate = ajv.compile(geojson);
-
-    return async (args: any) => {
+    return async () => {
       const current = tracker.currentWidget;
 
       if (!current) {
         return;
       }
 
-      let filepath: string | null = (args.path as string) ?? null;
-      let saveDataInShared: boolean = args.path ?? false;
-
-      if (filepath === null) {
-        const dialog = new Dialog({
-          title: 'Path of the GeoJSON file',
-          body: new DialogAddDataSourceBody()
-        });
-        const value = (await dialog.launch()).value;
-        if (value) {
-          filepath = value.path;
-          saveDataInShared = value.saveDataInShared;
-        }
-      }
-
-      if (!filepath) {
-        return;
-      }
-
-      current.context.model
-        .readGeoJSON(filepath)
-        .then(async geoJSONData => {
-          const name = PathExt.basename(filepath, '.json');
-          const valid = validate(geoJSONData);
-          if (!valid) {
-            const dialog = new DataErrorDialog({
-              title: 'GeoJSON data invalid',
-              errors: validate.errors,
-              saveDataInShared
-            });
-            const toContinue = await dialog.launch();
-            if (!toContinue.button.accept || saveDataInShared) {
-              return;
-            }
-          }
-
-          const parameters: IGeoJSONSource = {};
-          if (saveDataInShared) {
-            parameters.data = geoJSONData;
-          } else {
-            (parameters.path = filepath), (parameters.valid = valid);
-          }
-
-          const sourceModel: IJGISSource = {
-            type: 'GeoJSONSource',
-            name,
-            parameters
-          };
-
-          current.context.model.sharedModel.addSource(
-            UUID.uuid4(),
-            sourceModel
-          );
-        })
-        .catch(e => {
-          showErrorMessage('Error opening GeoJSON file', e);
-          return;
-        });
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create GeoJSON Source',
+        createLayer: false,
+        createSource: true,
+        sourceData: {
+          name: 'Custom GeoJSON Source'
+        },
+        sourceType: 'GeoJSONSource',
+        formSchemaRegistry
+      });
+      await dialog.launch();
     };
   }
 
