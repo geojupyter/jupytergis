@@ -74,6 +74,7 @@ test.describe('#layersPanel', () => {
 
     test('should restore empty layer panel', async ({ page }) => {
       const layerTree = await openLayerTree(page);
+      await page.waitForTimeout(1000);
       await page.activity.closeAll();
       await expect(layerTree).toBeEmpty();
     });
