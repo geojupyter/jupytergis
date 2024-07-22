@@ -66,6 +66,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       layerBrowserRegistry
     );
 
+    // SOURCES context menu
     const newSourceSubMenu = new Menu({ commands: app.commands });
     newSourceSubMenu.title.label = translator
       .load('jupyterlab')
@@ -84,6 +85,19 @@ const plugin: JupyterFrontEndPlugin<void> = {
       args: { from: 'contextMenu' }
     });
 
+    app.contextMenu.addItem({
+      selector: '.jp-gis-source.jp-gis-sourceUnused',
+      rank: 1,
+      command: CommandIDs.removeSource
+    });
+
+    app.contextMenu.addItem({
+      selector: '.jp-gis-source',
+      rank: 1,
+      command: CommandIDs.renameSource
+    });
+
+    // LAYERS and LAYER GROUPS context menu
     app.contextMenu.addItem({
       command: CommandIDs.removeLayer,
       selector: '.jp-gis-layerTitle',

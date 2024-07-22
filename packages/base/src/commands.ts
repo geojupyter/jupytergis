@@ -7,7 +7,7 @@ import {
   SelectionType
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { WidgetTracker } from '@jupyterlab/apputils';
+import { showErrorMessage, WidgetTracker } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
 import { redoIcon, undoIcon } from '@jupyterlab/ui-components';
 
@@ -24,13 +24,17 @@ export namespace CommandIDs {
   export const redo = 'jupytergis:redo';
   export const undo = 'jupytergis:undo';
 
+  // Layers and sources commands
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
-
   export const newGeoJSONLayer = 'jupytergis:newGeoJSONLayer';
-  export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
-
   export const newVectorTileLayer = 'jupytergis:newVectorTileLayer';
 
+  // Sources only commands
+  export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
+  export const removeSource = 'jupytergis:removeSource';
+  export const renameSource = 'jupytergis:renameSource';
+
+  // Layers only commands
   export const newVectorLayer = 'jupytergis:newVectorLayer';
 
   export const renameLayer = 'jupytergis:renameLayer';
@@ -89,6 +93,9 @@ export function addCommands(
     icon: undoIcon
   });
 
+  /**
+   * SOURCES and LAYERS creation commands.
+   */
   commands.addCommand(CommandIDs.openLayerBrowser, {
     label: trans.__('Open Layer Browser'),
     isEnabled: () => {
@@ -104,6 +111,78 @@ export function addCommands(
     )
   });
 
+  commands.addCommand(CommandIDs.newGeoJSONLayer, {
+    label: trans.__('New vector layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    icon: geoJSONIcon,
+    execute: Private.createGeoJSONLayer(tracker, formSchemaRegistry)
+  });
+
+  commands.addCommand(CommandIDs.newVectorTileLayer, {
+    label: trans.__('New vector tile layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    iconClass: 'fa fa-vector-square',
+    execute: Private.createVectorTileLayer(tracker, formSchemaRegistry)
+  });
+
+  /**
+   * SOURCES only commands.
+   */
+  commands.addCommand(CommandIDs.newGeoJSONSource, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('GeoJSON')
+        : trans.__('Add GeoJSON data from file'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    icon: geoJSONIcon,
+    execute: Private.createGeoJSONSource(tracker, formSchemaRegistry)
+  });
+
+  commands.addCommand(CommandIDs.removeSource, {
+    label: trans.__('Remove Source'),
+    execute: () => {
+      const model = tracker.currentWidget?.context.model;
+      Private.removeSelectedItems(model, 'source', selection => {
+        if (!(model?.getLayersBySource(selection).length ?? true)) {
+          model?.sharedModel.removeSource(selection);
+        } else {
+          showErrorMessage(
+            'Remove source error',
+            'The source is used by a layer.'
+          );
+        }
+      });
+    }
+  });
+
+  commands.addCommand(CommandIDs.renameSource, {
+    label: trans.__('Rename Source'),
+    execute: async () => {
+      const model = tracker.currentWidget?.context.model;
+      await Private.renameSelectedItem(model, 'source', (sourceId, newName) => {
+        const source = model?.getSource(sourceId);
+        if (source) {
+          source.name = newName;
+          model?.sharedModel.updateSource(sourceId, source);
+        }
+      });
+    }
+  });
+  /**
+   * LAYERS and LAYER GROUPS only commands.
+   */
   commands.addCommand(CommandIDs.removeLayer, {
     label: trans.__('Remove Layer'),
     execute: () => {
@@ -228,17 +307,6 @@ export function addCommands(
     }
   });
 
-  commands.addCommand(CommandIDs.newGeoJSONLayer, {
-    label: trans.__('New vector layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    icon: geoJSONIcon,
-    execute: Private.createGeoJSONLayer(tracker, formSchemaRegistry)
-  });
-
   commands.addCommand(CommandIDs.newVectorLayer, {
     label: trans.__('New vector layer'),
     isEnabled: () => {
@@ -248,31 +316,6 @@ export function addCommands(
     },
     iconClass: 'fa fa-vector-square',
     execute: Private.createVectorLayer(tracker, formSchemaRegistry)
-  });
-
-  commands.addCommand(CommandIDs.newVectorTileLayer, {
-    label: trans.__('New vector tile layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    iconClass: 'fa fa-vector-square',
-    execute: Private.createVectorTileLayer(tracker, formSchemaRegistry)
-  });
-
-  commands.addCommand(CommandIDs.newGeoJSONSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('GeoJSON')
-        : trans.__('Add GeoJSON data from file'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    icon: geoJSONIcon,
-    execute: Private.createGeoJSONSource(tracker, formSchemaRegistry)
   });
 }
 

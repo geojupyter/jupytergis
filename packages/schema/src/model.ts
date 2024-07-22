@@ -243,6 +243,22 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
+   * Get the list of layers using a source.
+   *
+   * @param id - the source id.
+   * @returns a list of layer ids that use the source.
+   */
+  getLayersBySource(id: string): string[] {
+    const usingLayers: string[] = [];
+    Object.entries(this.getLayers() || {}).forEach(([layerId, layer]) => {
+      if (layer.parameters?.source === id) {
+        usingLayers.push(layerId);
+      }
+    });
+    return usingLayers;
+  }
+
+  /**
    * Read a GeoJSON file.
    *
    * @param filepath - the path of the GeoJSON file.

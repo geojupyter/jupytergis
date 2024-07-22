@@ -76,6 +76,7 @@
 .jp-gis-sourceTitle {
   display: flex;
   flex-grow: 1;
+  align-items: center;
 }
 
 .jp-gis-layer:focus-within {
@@ -108,4 +109,11 @@
 
 li .lm-Menu-itemLabel {
   text-transform: capitalize;
+}
+
+.jp-gis-sourceInfo {
+  font-size: var(--jp-ui-font-size0);
+  font-style: italic;
+  padding-left: 5px;
+  color: var(--jp-ui-font-color2);
 }

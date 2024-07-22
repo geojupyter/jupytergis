@@ -12,11 +12,12 @@ import { geoJSONIcon, rasterIcon } from '../../icons';
 import { IControlPanelModel } from '../../types';
 
 const SOURCES_PANEL_CLASS = 'jp-gis-sourcePanel';
-const SOURCES_ITEM_CLASS = 'jp-gis-sourceItem';
 const SOURCE_CLASS = 'jp-gis-source';
 const SOURCE_TITLE_CLASS = 'jp-gis-sourceTitle';
 const SOURCE_ICON_CLASS = 'jp-gis-sourceIcon';
 const SOURCE_TEXT_CLASS = 'jp-gis-sourceText';
+const SOURCE_UNUSED = 'jp-gis-sourceUnused';
+const SOURCE_INFO = 'jp-gis-sourceInfo';
 
 /**
  * The namespace for the sources panel.
@@ -164,7 +165,7 @@ function SourcesBodyComponent(props: IBodyProps): JSX.Element {
    */
   useEffect(() => {
     const updateSources = () => {
-      setSourceIds(Private.sortedSourceIds(model));
+      setSourceIds([...Private.sortedSourceIds(model)]);
     };
     model?.sharedModel.sourcesChanged.connect(updateSources);
     model?.clientStateChanged.connect(updateSources);
@@ -188,6 +189,7 @@ function SourcesBodyComponent(props: IBodyProps): JSX.Element {
       {sourceIds.map(sourceId => {
         return (
           <SourceComponent
+            key={`source-${sourceId}`}
             gisModel={model}
             sourceId={sourceId}
             onClick={onItemClick}
@@ -230,11 +232,30 @@ function SourceComponent(props: ISourceProps): JSX.Element {
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(sourceId, gisModel)
   );
+  const [unused, setUnused] = useState<boolean>(false);
   const name = source.name;
 
   useEffect(() => {
     setId(DOMUtils.createDomID());
   }, []);
+
+  /**
+   * Check if the source is used by a layer.
+   */
+  useEffect(() => {
+    const checkUsage = () => {
+      if (!(gisModel?.getLayersBySource(sourceId).length ?? true)) {
+        setUnused(true);
+      }
+    }
+
+    gisModel?.sharedLayersChanged.connect(checkUsage);
+    checkUsage();
+
+    return () => {
+      gisModel?.sharedLayersChanged.disconnect(checkUsage);
+    }
+  }, [gisModel]);
 
   /**
    * Listen to the changes on the current source.
@@ -259,10 +280,15 @@ function SourceComponent(props: ISourceProps): JSX.Element {
     onClick({ type: 'source', item: sourceId, nodeId: childId, event });
   };
 
+  let mainClasses = SOURCE_CLASS;
+  if (selected) {
+    mainClasses = mainClasses.concat(' jp-mod-selected');
+  }
+  if (unused) {
+    mainClasses = mainClasses.concat(` ${SOURCE_UNUSED}`);
+  }
   return (
-    <div
-      className={`${SOURCES_ITEM_CLASS} ${SOURCE_CLASS}${selected ? ' jp-mod-selected' : ''}`}
-    >
+    <div className={mainClasses}>
       <div
         className={SOURCE_TITLE_CLASS}
         onClick={setSelection}
@@ -289,6 +315,7 @@ function SourceComponent(props: ISourceProps): JSX.Element {
         <span id={id} className={SOURCE_TEXT_CLASS}>
           {name}
         </span>
+        {unused && <span className={SOURCE_INFO}>(unused)</span>}
       </div>
     </div>
   );
