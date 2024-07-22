@@ -1,0 +1,53 @@
+{
+  "layerTree": [
+    "a82ef521-e727-4209-a5a0-145d66f18a06",
+    "8e6bfdbe-9df3-43bd-8cf4-cecb3cce7464"
+  ],
+  "layers": {
+    "8e6bfdbe-9df3-43bd-8cf4-cecb3cce7464": {
+      "name": "hillShadeSource Layer",
+      "parameters": {
+        "source": "2cf63a44-59b4-45e6-89bb-f0e201db2168",
+        "type": "hillshade"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "a82ef521-e727-4209-a5a0-145d66f18a06": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "ceef4036-b757-44bf-8a21-42c6c99dab72"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "options": {
+    "latitude": 47.485192951215936,
+    "longitude": 11.797943115222893,
+    "zoom": 9.831150315981242
+  },
+  "sources": {
+   
+    "ceef4036-b757-44bf-8a21-42c6c99dab72": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "cffe76e7-fa97-445a-98dc-a2861f5782ca": {
+      "name": "Terrain tile source",
+      "parameters": {
+        "tileSize": 256.0,
+        "url": "https://demotiles.maplibre.org/terrain-tiles/tiles.json"
+      },
+      "type": "RasterDemSource"
+    }
+  }
+}
