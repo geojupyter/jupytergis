@@ -247,14 +247,14 @@ function SourceComponent(props: ISourceProps): JSX.Element {
       if (!(gisModel?.getLayersBySource(sourceId).length ?? true)) {
         setUnused(true);
       }
-    }
+    };
 
     gisModel?.sharedLayersChanged.connect(checkUsage);
     checkUsage();
 
     return () => {
       gisModel?.sharedLayersChanged.disconnect(checkUsage);
-    }
+    };
   }, [gisModel]);
 
   /**
