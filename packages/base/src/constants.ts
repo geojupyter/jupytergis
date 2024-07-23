@@ -29,6 +29,9 @@ export namespace CommandIDs {
 
   export const moveLayersToGroup = 'jupytergis:moveLayersToGroup';
   export const moveLayerToNewGroup = 'jupytergis:moveLayerToNewGroup';
+
+  export const newTerrain = 'jupytergis:newTerrain';
+  export const newRasterDemSource = 'jupytergis:newRasterDemSource';
 }
 
 interface IRegisteredIcon {

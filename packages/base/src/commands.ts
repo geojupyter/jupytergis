@@ -7,12 +7,11 @@ import {
   SelectionType
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { showErrorMessage, WidgetTracker } from '@jupyterlab/apputils';
+import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
-
 import { CommandIDs, icons } from './constants';
-import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { CreationFormDialog } from './dialogs/formdialog';
+import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { JupyterGISWidget } from './widget';
 
 /**
@@ -149,6 +148,18 @@ export function addCommands(
       });
     }
   });
+
+  commands.addCommand(CommandIDs.newRasterDemSource, {
+    label: trans.__('New Raster DEM Source'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    iconClass: 'fa fa-mountain',
+    execute: Private.createRasterDemSource(tracker, formSchemaRegistry)
+  });
+
   /**
    * LAYERS and LAYER GROUPS only commands.
    */
@@ -287,17 +298,6 @@ export function addCommands(
     ...icons.get(CommandIDs.newVectorLayer)
   });
 
-  commands.addCommand(CommandIDs.newRasterDemSource, {
-    label: trans.__('New Raster DEM Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    iconClass: 'fa fa-mountain',
-    execute: Private.createRasterDemSource(tracker)
-  });
-
   commands.addCommand(CommandIDs.newTerrain, {
     label: trans.__('New Terrain'),
     isEnabled: () => {
@@ -428,6 +428,36 @@ namespace Private {
           name: 'Custom GeoJSON Source'
         },
         sourceType: 'GeoJSONSource',
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createRasterDemSource(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+      console.log('formSchemaRegistry', formSchemaRegistry);
+      console.log('current', current);
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create Raster DEM Source',
+        createLayer: false,
+        createSource: true,
+        sourceData: {
+          name: 'Custom Raster DEM Source',
+          url: 'https://demotiles.maplibre.org/terrain-tiles/tiles.json',
+          tileSize: 256
+        },
+        sourceType: 'RasterDemSource',
         formSchemaRegistry
       });
       await dialog.launch();
@@ -572,59 +602,5 @@ namespace Private {
     if (newName !== originalName) {
       callback(itemId, newName);
     }
-  }
-
-  export function createRasterDemSource(
-    tracker: WidgetTracker<JupyterGISWidget>
-  ) {
-    return async (args: any) => {
-      const current = tracker.currentWidget;
-
-      if (!current) {
-        return;
-      }
-
-      const form = {
-        title: 'Raster DEM Parameters',
-        default: (model: IJupyterGISModel) => {
-          return {
-            name: 'Terrain tile source',
-            tileSize: 256,
-            url: 'https://demotiles.maplibre.org/terrain-tiles/tiles.json',
-            source: '',
-            exaggeration: 1
-          };
-        }
-      };
-
-      const dialog = new FormDialog({
-        context: current.context,
-        title: form.title,
-        sourceData: form.default(current.context.model),
-        schema: FORM_SCHEMA['RasterDemSource'],
-        syncData: (props: IDict) => {
-          const sharedModel = current.context.model.sharedModel;
-          if (!sharedModel) {
-            return;
-          }
-
-          const { name, ...parameters } = props;
-
-          const sourceId = UUID.uuid4();
-
-          const sourceModel: IJGISSource = {
-            type: 'RasterDemSource',
-            name,
-            parameters: {
-              url: parameters.url,
-              tileSize: parameters.tileSize
-            }
-          };
-
-          sharedModel.addSource(sourceId, sourceModel);
-        }
-      });
-      await dialog.launch();
-    };
   }
 }
