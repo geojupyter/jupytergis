@@ -207,10 +207,6 @@ export class MainView extends React.Component<IProps, IStates> {
             url: parameters.url
           });
         }
-
-        // TODO Split this out to a separate terrain thing
-        // this.addTerrain(id, 1);
-
         break;
       }
     }
@@ -454,13 +450,16 @@ export class MainView extends React.Component<IProps, IStates> {
       await this.addSource(sourceId, source);
     }
 
+    if (this._terrainControl) {
+      this._Map.removeControl(this._terrainControl);
+    }
+
+    this._terrainControl = new MapLibre.TerrainControl({
+      source: sourceId,
+      exaggeration
+    });
     this._Map.setTerrain({ source: sourceId, exaggeration });
-    this._Map.addControl(
-      new MapLibre.TerrainControl({
-        source: sourceId,
-        exaggeration
-      })
-    );
+    this._Map.addControl(this._terrainControl);
   }
 
   /**
@@ -729,4 +728,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;
+  private _terrainControl: MapLibre.TerrainControl | undefined;
 }
