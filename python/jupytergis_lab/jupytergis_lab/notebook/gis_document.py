@@ -56,6 +56,7 @@ class GISDocument(CommWidget):
         self.ydoc["sources"] = self._sources = Map()
         self.ydoc["options"] = self._options = Map()
         self.ydoc["layerTree"] = self._layerTree = Array()
+        self.ydoc["terrain"] = self._terrain = Map()
 
         if path is None:
             if latitude is not None:
@@ -64,6 +65,10 @@ class GISDocument(CommWidget):
                 self._options['longitude'] = longitude
             if zoom is not None:
                 self._options['zoom'] = zoom
+            if source is not None:
+                self._options['source'] = source
+            if exaggeration is not None:
+                self._options['exaggeration'] = exaggeration
 
     @property
     def layers(self) -> Dict:

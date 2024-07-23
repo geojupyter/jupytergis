@@ -99,6 +99,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   get dirty(): boolean {
     return this._dirty;
   }
+
   set dirty(value: boolean) {
     this._dirty = value;
   }
@@ -173,6 +174,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       this.sharedModel.sources = jsonData.sources ?? {};
       this.sharedModel.layers = jsonData.layers ?? {};
       this.sharedModel.layerTree = jsonData.layerTree ?? [];
+      this.sharedModel.terrain = jsonData.terrain ?? {
+        source: '',
+        exaggeration: 1
+      };
       this.sharedModel.options = jsonData.options ?? {
         latitude: 0,
         longitude: 0,
@@ -203,7 +208,8 @@ export class JupyterGISModel implements IJupyterGISModel {
       sources: this.sharedModel.sources,
       layers: this.sharedModel.layers,
       layerTree: this.sharedModel.layerTree,
-      options: this.sharedModel.options
+      options: this.sharedModel.options,
+      terrain: this.sharedModel.terrain
     };
   }
 
