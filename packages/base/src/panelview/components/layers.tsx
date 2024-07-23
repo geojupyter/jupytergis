@@ -13,8 +13,13 @@ import {
   ReactWidget,
   caretDownIcon
 } from '@jupyterlab/ui-components';
+import { Message } from '@lumino/messaging';
 import { Panel } from '@lumino/widgets';
-import React, { MouseEvent, useEffect, useState } from 'react';
+import React, {
+  MouseEvent as ReactMouseEvent,
+  useEffect,
+  useState
+} from 'react';
 import { icons } from '../../constants';
 import { nonVisibilityIcon, visibilityIcon } from '../../icons';
 import { IControlPanelModel } from '../../types';
@@ -44,7 +49,7 @@ export namespace LayersPanel {
     type: SelectionType;
     item: string;
     nodeId?: string;
-    event: MouseEvent;
+    event: ReactMouseEvent;
   }
 }
 
@@ -55,6 +60,7 @@ export class LayersPanel extends Panel {
   constructor(options: LayersPanel.IOptions) {
     super();
     this._model = options.model;
+    this._lastSelectedNodeId = '';
     this.id = 'jupytergis::layerTree';
     this.addClass(LAYERS_PANEL_CLASS);
 
@@ -68,6 +74,38 @@ export class LayersPanel extends Panel {
     );
   }
 
+  protected onAfterAttach(msg: Message): void {
+    super.onAfterAttach(msg);
+    const node = this.node;
+    node.addEventListener('mouseup', this);
+  }
+
+  protected onBeforeDetach(msg: Message): void {
+    super.onBeforeDetach(msg);
+    const node = this.node;
+    node.removeEventListener('mouseup', this);
+  }
+
+  handleEvent(event: Event): void {
+    switch (event.type) {
+      case 'mouseup':
+        this._mouseUpEvent(event as MouseEvent);
+        break;
+      default:
+        break;
+    }
+  }
+
+  private _mouseUpEvent(event: MouseEvent): void {
+    // If we click on empty space in the layer panel, keep the focus on the last selected element
+    const node = document.getElementById(this._lastSelectedNodeId);
+    if (!node) {
+      return;
+    }
+
+    node.focus();
+  }
+
   /**
    * Function to call when a layer is selected from a component of the panel.
    *
@@ -79,12 +117,20 @@ export class LayersPanel extends Panel {
     nodeId,
     event
   }: LayersPanel.IClickHandlerParams) => {
-    if (!this._model) {
+    if (!this._model || !nodeId) {
       return;
     }
 
     const { jGISModel } = this._model;
     const selectedValue = jGISModel?.localState?.selected?.value;
+    const node = document.getElementById(nodeId);
+
+    if (!node) {
+      return;
+    }
+
+    node.tabIndex = 0;
+    node.focus();
 
     // Early return if no selection exists
     if (!selectedValue) {
@@ -120,6 +166,7 @@ export class LayersPanel extends Panel {
         ...selectedValue,
         [item]: { type, selectedNodeId: nodeId }
       };
+      this._lastSelectedNodeId = nodeId;
 
       jGISModel.syncSelected(updatedSelectedValue, this.id);
     }
@@ -132,11 +179,13 @@ export class LayersPanel extends Panel {
         type,
         selectedNodeId: nodeId
       };
+      this._lastSelectedNodeId = nodeId;
     }
     this._model?.jGISModel?.syncSelected(selection, this.id);
   }
 
   private _model: IControlPanelModel | undefined;
+  private _lastSelectedNodeId: string;
 }
 
 /**
@@ -179,12 +228,10 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
     };
     model?.sharedModel.layersChanged.connect(updateLayers);
     model?.sharedModel.layerTreeChanged.connect(updateLayers);
-    model?.clientStateChanged.connect(updateLayers);
 
     return () => {
       model?.sharedModel.layersChanged.disconnect(updateLayers);
       model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
-      model?.clientStateChanged.disconnect(updateLayers);
     };
   }, [model]);
 
@@ -240,12 +287,31 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);
   const name = group?.name ?? 'Undefined group';
   const layers = group?.layers ?? [];
+  const [selected, setSelected] = useState<boolean>(
+    // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
+    isSelected(group.name, gisModel)
+  );
 
   useEffect(() => {
     setId(DOMUtils.createDomID());
   }, []);
 
-  const handleRightClick = (event: MouseEvent<HTMLElement>) => {
+  /**
+   * Listen to the changes on the current layer.
+   */
+  useEffect(() => {
+    const onClientSharedStateChanged = () => {
+      // TODO Support follow mode and remoteUser state
+      setSelected(isSelected(group.name, gisModel));
+    };
+    gisModel?.clientStateChanged.connect(onClientSharedStateChanged);
+
+    return () => {
+      gisModel?.clientStateChanged.disconnect(onClientSharedStateChanged);
+    };
+  }, [gisModel]);
+
+  const handleRightClick = (event: ReactMouseEvent<HTMLElement>) => {
     const childId = event.currentTarget.children.namedItem(id)?.id;
     onClick({ type: 'group', item: name, nodeId: childId, event });
   };
@@ -255,7 +321,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
       <div
         onClick={() => setOpen(!open)}
         onContextMenu={handleRightClick}
-        className={LAYER_GROUP_HEADER_CLASS}
+        className={`${LAYER_GROUP_HEADER_CLASS} ${selected ? ' jp-mod-selected' : ''}`}
       >
         <LabIcon.resolveReact
           icon={caretDownIcon}
@@ -355,7 +421,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
     gisModel?.sharedModel?.updateLayer(layerId, layer);
   };
 
-  const setSelection = (event: MouseEvent<HTMLElement>) => {
+  const setSelection = (event: ReactMouseEvent<HTMLElement>) => {
     const childId = event.currentTarget.children.namedItem(id)?.id;
     onClick({ type: 'layer', item: layerId, nodeId: childId, event });
   };

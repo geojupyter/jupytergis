@@ -3,6 +3,11 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
+.jp-gis-layerPanel {
+  display: flex;
+  flex-direction: column;
+}
+
 .jp-gis-sourcePanel,
 .jp-gis-layerPanel {
   min-height: 3em;
@@ -46,7 +51,8 @@
 }
 
 .jp-gis-layer.jp-mod-selected,
-.jp-gis-source.jp-mod-selected {
+.jp-gis-source.jp-mod-selected,
+.jp-gis-layerGroupHeader.jp-mod-selected {
   background: var(--jp-editor-selected-background);
 }
 
@@ -84,7 +90,7 @@
   align-items: center;
 }
 
-.jp-gis-layer:focus-within {
+.jp-gis-layerText:focus {
   outline: none;
 }
 
