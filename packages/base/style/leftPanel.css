@@ -51,7 +51,8 @@
 }
 
 .jp-gis-layer.jp-mod-selected,
-.jp-gis-source.jp-mod-selected {
+.jp-gis-source.jp-mod-selected,
+.jp-gis-layerGroupHeader.jp-mod-selected {
   background: var(--jp-editor-selected-background);
 }
 
