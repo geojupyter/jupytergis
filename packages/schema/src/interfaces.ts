@@ -150,6 +150,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getSources(): IJGISSources;
   getSource(id: string): IJGISSource | undefined;
   getSourcesByType(type: SourceType): { [key: string]: string };
+  getLayersBySource(id: string): string[];
   getLayerTree(): IJGISLayerTree;
   addLayer(
     id: string,

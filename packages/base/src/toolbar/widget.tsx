@@ -10,7 +10,7 @@ import { CommandRegistry } from '@lumino/commands';
 import { Widget } from '@lumino/widgets';
 
 import * as React from 'react';
-import { CommandIDs } from '../commands';
+import { CommandIDs } from '../constants';
 import { UsersItem } from './usertoolbaritem';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';

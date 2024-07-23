@@ -15,7 +15,8 @@ import {
 } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { MouseEvent, useEffect, useState } from 'react';
-import { nonVisibilityIcon, rasterIcon, visibilityIcon } from '../../icons';
+import { icons } from '../../constants';
+import { nonVisibilityIcon, visibilityIcon } from '../../icons';
 import { IControlPanelModel } from '../../types';
 
 const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
@@ -368,9 +369,9 @@ function LayerComponent(props: ILayerProps): JSX.Element {
         onClick={setSelection}
         onContextMenu={setSelection}
       >
-        {layer.type === 'RasterLayer' && (
+        {icons.has(layer.type) && (
           <LabIcon.resolveReact
-            icon={rasterIcon}
+            {...icons.get(layer.type)}
             className={LAYER_ICON_CLASS}
           />
         )}

@@ -66,6 +66,38 @@ const plugin: JupyterFrontEndPlugin<void> = {
       layerBrowserRegistry
     );
 
+    // SOURCES context menu
+    const newSourceSubMenu = new Menu({ commands: app.commands });
+    newSourceSubMenu.title.label = translator
+      .load('jupyterlab')
+      .__('Add Source');
+    newSourceSubMenu.id = 'jp-gis-contextmenu-addSource';
+
+    app.contextMenu.addItem({
+      type: 'submenu',
+      selector: '.jp-gis-sourcePanel',
+      rank: 2,
+      submenu: newSourceSubMenu
+    });
+
+    newSourceSubMenu.addItem({
+      command: CommandIDs.newGeoJSONSource,
+      args: { from: 'contextMenu' }
+    });
+
+    app.contextMenu.addItem({
+      selector: '.jp-gis-source.jp-gis-sourceUnused',
+      rank: 1,
+      command: CommandIDs.removeSource
+    });
+
+    app.contextMenu.addItem({
+      selector: '.jp-gis-source',
+      rank: 1,
+      command: CommandIDs.renameSource
+    });
+
+    // LAYERS and LAYER GROUPS context menu
     app.contextMenu.addItem({
       command: CommandIDs.removeLayer,
       selector: '.jp-gis-layerTitle',
@@ -78,17 +110,17 @@ const plugin: JupyterFrontEndPlugin<void> = {
       rank: 1
     });
 
-    const submenu = new Menu({ commands: app.commands });
-    submenu.title.label = translator
+    const moveLayerSubmenu = new Menu({ commands: app.commands });
+    moveLayerSubmenu.title.label = translator
       .load('jupyterlab')
       .__('Move Layers to Group');
-    submenu.id = 'jp-gis-contextmenu-movelayer';
+    moveLayerSubmenu.id = 'jp-gis-contextmenu-movelayer';
 
     app.contextMenu.addItem({
       type: 'submenu',
       selector: '.jp-gis-layerTitle',
       rank: 2,
-      submenu
+      submenu: moveLayerSubmenu
     });
 
     app.contextMenu.opened.connect(() =>

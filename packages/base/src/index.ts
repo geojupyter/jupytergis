@@ -1,4 +1,5 @@
 export * from './commands';
+export * from './constants';
 export * from './dialogs/formdialog';
 export * from './mainview';
 export * from './tools';
