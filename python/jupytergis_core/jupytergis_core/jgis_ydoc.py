@@ -13,7 +13,7 @@ class YJGIS(YBaseDoc):
         self._ydoc["sources"] = self._ysources = Map()
         self._ydoc["options"] = self._yoptions = Map()
         self._ydoc["layerTree"] = self._ylayerTree = Array()
-        self._ydoc["terrain"] = self._ylayerTree = Map()
+        self._ydoc["terrain"] = self._yterrain = Map()
 
     def version(self) -> str:
         return "0.1.0"
@@ -57,7 +57,7 @@ class YJGIS(YBaseDoc):
             self._ylayerTree.extend(valueDict.get("layerTree", []))
 
             self._yterrain.clear()
-            self._yterrain.extend(valueDict.get("terrain", []))
+            self._yterrain.update(valueDict.get("terrain", {}))
 
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()

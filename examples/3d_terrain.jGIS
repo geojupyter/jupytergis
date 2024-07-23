@@ -13,9 +13,9 @@
     }
   },
   "options": {
-    "latitude": 47.628495716196994,
-    "longitude": 11.75039291382518,
-    "zoom": 11.260333332023713
+    "latitude": 47.56633400505086,
+    "longitude": 11.726531982421875,
+    "zoom": 11.206877240190787
   },
   "sources": {
     "ceef4036-b757-44bf-8a21-42c6c99dab72": {
@@ -37,6 +37,12 @@
         "url": "https://demotiles.maplibre.org/terrain-tiles/tiles.json"
       },
       "type": "RasterDemSource"
+    }
+  },
+  "terrain": {
+    "terrain": {
+      "exaggeration": 1.0,
+      "source": "cffe76e7-fa97-445a-98dc-a2861f5782ca"
     }
   }
 }
