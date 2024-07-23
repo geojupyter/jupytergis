@@ -16,7 +16,8 @@ import {
   IJGISLayers,
   IJGISOptions,
   IJGISSource,
-  IJGISSources
+  IJGISSources,
+  IJGISTerrain
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
@@ -134,6 +135,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get sharedSourcesChanged(): ISignal<IJupyterGISDoc, IJGISSourceDocChange> {
     return this.sharedModel.sourcesChanged;
+  }
+
+  get terrainChanged(): ISignal<IJupyterGISDoc, IJGISTerrain> {
+    return this.sharedModel.terrainChanged;
   }
 
   get disposed(): ISignal<JupyterGISModel, void> {
@@ -328,6 +333,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     this._addLayerTreeItem(id, groupName, position);
+  }
+
+  setTerrain(terrain: IJGISTerrain) {
+    this._sharedModel.terrain = terrain;
   }
 
   setOptions(value: IJGISOptions) {

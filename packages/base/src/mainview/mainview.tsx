@@ -61,6 +61,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
+    this._model.terrainChanged.connect(this._onTerrainChange, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -198,6 +199,7 @@ export class MainView extends React.Component<IProps, IStates> {
           id
         ) as MapLibre.RasterDEMTileSource;
         if (!mapSource) {
+          console.log('adding dem');
           const parameters = source.parameters as IRasterDemSource;
           this._Map.addSource(id, {
             type: 'raster-dem',
@@ -207,7 +209,7 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         // TODO Split this out to a separate terrain thing
-        this.addTerrain(id, 1);
+        // this.addTerrain(id, 1);
 
         break;
       }
@@ -660,6 +662,16 @@ export class MainView extends React.Component<IProps, IStates> {
         }
       }
     });
+  }
+
+  private _onTerrainChange(sender: any, change: any) {
+    console.log('eeeeeeeeeee', change);
+    console.log('sender', sender);
+    console.log('terrain change signal');
+
+    console.log('pre terrain', this._Map.getTerrain());
+    this.addTerrain(change['terrain'].source, change['terrain'].exaggeration);
+    console.log('post terrain', this._Map.getTerrain());
   }
 
   // @ts-ignore

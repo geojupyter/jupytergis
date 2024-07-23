@@ -1,18 +1,8 @@
 {
   "layerTree": [
-    "a82ef521-e727-4209-a5a0-145d66f18a06",
-    "8e6bfdbe-9df3-43bd-8cf4-cecb3cce7464"
+    "a82ef521-e727-4209-a5a0-145d66f18a06"
   ],
   "layers": {
-    "8e6bfdbe-9df3-43bd-8cf4-cecb3cce7464": {
-      "name": "hillShadeSource Layer",
-      "parameters": {
-        "source": "2cf63a44-59b4-45e6-89bb-f0e201db2168",
-        "type": "hillshade"
-      },
-      "type": "VectorLayer",
-      "visible": true
-    },
     "a82ef521-e727-4209-a5a0-145d66f18a06": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
@@ -23,12 +13,11 @@
     }
   },
   "options": {
-    "latitude": 47.485192951215936,
-    "longitude": 11.797943115222893,
-    "zoom": 9.831150315981242
+    "latitude": 47.628495716196994,
+    "longitude": 11.75039291382518,
+    "zoom": 11.260333332023713
   },
   "sources": {
-   
     "ceef4036-b757-44bf-8a21-42c6c99dab72": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {

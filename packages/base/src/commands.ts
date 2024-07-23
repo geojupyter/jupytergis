@@ -287,6 +287,17 @@ export function addCommands(
     ...icons.get(CommandIDs.newVectorLayer)
   });
 
+  commands.addCommand(CommandIDs.newRasterDemSource, {
+    label: trans.__('New Raster DEM Source'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    iconClass: 'fa fa-mountain',
+    execute: Private.createRasterDemSource(tracker)
+  });
+
   commands.addCommand(CommandIDs.newTerrain, {
     label: trans.__('New Terrain'),
     isEnabled: () => {
@@ -295,7 +306,13 @@ export function addCommands(
         : false;
     },
     iconClass: 'fa fa-mountain',
-    execute: Private.createTerrain(tracker)
+    execute: () => {
+      console.log('terrain command');
+      tracker.currentWidget?.context.model.setTerrain({
+        source: 'cffe76e7-fa97-445a-98dc-a2861f5782ca',
+        exaggeration: 1
+      });
+    }
   });
 }
 
@@ -557,7 +574,9 @@ namespace Private {
     }
   }
 
-  export function createTerrain(tracker: WidgetTracker<JupyterGISWidget>) {
+  export function createRasterDemSource(
+    tracker: WidgetTracker<JupyterGISWidget>
+  ) {
     return async (args: any) => {
       const current = tracker.currentWidget;
 
@@ -566,7 +585,7 @@ namespace Private {
       }
 
       const form = {
-        title: 'Terrain Parameters',
+        title: 'Raster DEM Parameters',
         default: (model: IJupyterGISModel) => {
           return {
             name: 'Terrain tile source',

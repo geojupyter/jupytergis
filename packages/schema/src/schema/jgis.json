@@ -133,7 +133,7 @@
       }
     },
     "jGISTerrain": {
-      "title": "jGISTerrain",
+      "title": "IJGISTerrain",
       "type": "object",
       "default": {},
       "required": ["source", "exaggeration"],
