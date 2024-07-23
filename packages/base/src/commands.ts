@@ -12,6 +12,7 @@ import { ITranslator } from '@jupyterlab/translation';
 import { CommandIDs, icons } from './constants';
 import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
+import { TerrainDialogWidget } from './dialogs/terrainDialog';
 import { JupyterGISWidget } from './widget';
 
 /**
@@ -306,13 +307,7 @@ export function addCommands(
         : false;
     },
     iconClass: 'fa fa-mountain',
-    execute: () => {
-      console.log('terrain command');
-      tracker.currentWidget?.context.model.setTerrain({
-        source: 'cffe76e7-fa97-445a-98dc-a2861f5782ca',
-        exaggeration: 1
-      });
-    }
+    execute: Private.createTerrainDialog(tracker)
   });
 }
 
@@ -333,6 +328,23 @@ namespace Private {
         context: current.context,
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createTerrainDialog(
+    tracker: WidgetTracker<JupyterGISWidget>
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new TerrainDialogWidget({
+        context: current.context
       });
       await dialog.launch();
     };
