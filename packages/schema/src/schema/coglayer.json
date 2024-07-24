@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "description": "COGLayer",
+  "title": "ICOGLayer",
+  "required": ["source"],
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "The id of the source",
+      "default": ""
+    },
+    "url": {
+      "type": "string",
+      "description": "The tile url"
+    },
+    "bands": {
+      "type": "array",
+      "description": "The bands to use for RGB channels",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "colormap": {
+      "type": "string",
+      "description": "The colormap to use"
+    },
+    "opacity": {
+      "type": "number",
+      "description": "The opacity of the source",
+      "default": 1,
+      "multipleOf": 0.1,
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}

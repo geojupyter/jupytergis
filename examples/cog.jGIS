@@ -1,0 +1,70 @@
+{
+  "layerTree": [
+    "4b226610-4025-45b0-abb6-08ca6d1f9dac",
+    "94ba98fd-1a78-4c8d-8df0-d7f6615cd01a"
+  ],
+  "layers": {
+    "4b226610-4025-45b0-abb6-08ca6d1f9dac": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "84db4805-72fc-4ba9-91ee-004663df8f1a"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "94ba98fd-1a78-4c8d-8df0-d7f6615cd01a": {
+      "name": "Custom COG Layer Layer",
+      "parameters": {
+        "bands": [
+          "b1",
+          "b2",
+          "b2"
+        ],
+        "opacity": 1.0,
+        "source": "72e80a5d-f2d2-4054-b468-2799e9d0bbfa",
+        "url": "https://titiler.xyz/cog/WebMercatorQuad/tilejson.json?url=https%3A%2F%2Fgithub.com%2Fopengeos%2Fdata%2Freleases%2Fdownload%2Fraster%2FLibya-2023-09-13.tif&bidx=1&bidx=2&bidx=3"
+      },
+      "type": "COGLayer",
+      "visible": true
+    }
+  },
+  "options": {
+    "latitude": 32.75052266794987,
+    "longitude": 22.599490732206565,
+    "zoom": 12.718755021641389
+  },
+  "sources": {
+    "72e80a5d-f2d2-4054-b468-2799e9d0bbfa": {
+      "name": "Custom COG Layer Source",
+      "parameters": {
+        "bands": [
+          "b1",
+          "b2",
+          "b3"
+        ],
+        "bounds": [
+          22.599490732206565,
+          32.75052266794987,
+          22.65706605051743,
+          32.79916288270382
+        ],
+        "maxZoom": 19.0,
+        "minZoom": 12.0,
+        "url": "https://github.com/opengeos/data/releases/download/raster/Libya-2023-09-13.tif"
+      },
+      "type": "COGSource"
+    },
+    "84db4805-72fc-4ba9-91ee-004663df8f1a": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  }
+}

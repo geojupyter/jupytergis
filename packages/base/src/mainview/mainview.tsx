@@ -1,5 +1,7 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
+  ICOGLayer,
+  ICOGSource,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -399,6 +401,39 @@ export class MainView extends React.Component<IProps, IStates> {
         );
         break;
       }
+      case 'COGLayer': {
+        // The COG Layer has something specific where it owns the URL to the tiles (the URL to tiles depends on visual attributes e.g. colormap),
+        // not the source. So we'll create one source per-layer under the hood on Maplibre
+        const parameters = layer.parameters as ICOGLayer;
+        const cogSource = source.parameters as ICOGSource;
+
+        const actualSourceId = `${sourceId}-${id}`;
+
+        this._Map.addSource(actualSourceId, {
+          type: 'raster',
+          minzoom: cogSource.minZoom,
+          maxzoom: cogSource.maxZoom,
+          url: parameters.url,
+          bounds: cogSource.bounds
+        });
+        this._Map.addLayer(
+          {
+            id: id,
+            type: 'raster',
+            layout: {
+              visibility: layer.visible ? 'visible' : 'none'
+            },
+            paint: {
+              'raster-opacity':
+                layer.parameters?.opacity !== undefined
+                  ? layer.parameters.opacity
+                  : 1
+            },
+            source: actualSourceId
+          },
+          beforeId
+        );
+      }
     }
   }
 
@@ -491,6 +526,28 @@ export class MainView extends React.Component<IProps, IStates> {
         );
         break;
       }
+      case 'COGLayer': {
+        // The COG Layer has something specific where it owns the URL to the tiles (the URL to tiles depends on visual attributes e.g. colormap),
+        // not the source. So we'll create one source per-layer under the hood on Maplibre
+        const parameters = layer.parameters as ICOGLayer;
+        const actualSourceId = `${sourceId}-${id}`;
+
+        mapLayer.source = actualSourceId;
+
+        const mapSource = this._Map.getSource(
+          actualSourceId
+        ) as MapLibre.RasterTileSource;
+        if (mapSource) {
+          mapSource.setUrl(parameters.url || '');
+        }
+
+        this._Map.setPaintProperty(
+          id,
+          'raster-opacity',
+          parameters?.opacity !== undefined ? parameters.opacity : 1
+        );
+        break;
+      }
     }
   }
 
@@ -501,6 +558,7 @@ export class MainView extends React.Component<IProps, IStates> {
    */
   removeLayer(id: string): void {
     const mapLayer = this._Map.getLayer(id);
+    // TODO Special case for removing a COGLayer, remove the source
     if (mapLayer) {
       this._Map.removeLayer(id);
     }

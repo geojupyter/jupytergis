@@ -3,6 +3,8 @@ import { BaseForm, IBaseFormProps } from './baseform';
 
 export interface ILayerProps extends IBaseFormProps {
   sourceType: SourceType;
+
+  currentLayerSourceFormData: IDict<any>;
 }
 
 export class LayerPropertiesForm extends BaseForm {

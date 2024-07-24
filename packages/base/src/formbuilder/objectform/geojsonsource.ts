@@ -33,7 +33,7 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
     }
   }
 
-  protected onFormBlur(id: string, value: any) {
+  protected async onFormBlur(id: string, value: any) {
     // Is there a better way to spot the path text entry?
     if (!id.endsWith('_path')) {
       return;
@@ -52,7 +52,7 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
       return;
     }
 
-    super.syncData(properties);
+    return super.syncData(properties);
   }
 
   /**

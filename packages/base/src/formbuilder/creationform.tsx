@@ -74,6 +74,11 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
     this.jGISModel = props.context.model;
   }
 
+  private onSourceDataChange(formData: IDict<any>) {
+    this.currentSourceData = formData;
+    this.forceUpdate();
+  }
+
   render() {
     const sourceId = UUID.uuid4();
     let layerSchema: IDict | undefined = undefined;
@@ -98,7 +103,11 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
       if (this.props.createSource) {
         delete layerSchema.properties?.source;
         layerData.source = sourceId;
+      } else {
+        // TODO
+        // Set currentSourceData to the actual source properties
       }
+
       layerSchema['required'] = ['name', ...layerSchema['required']];
       layerSchema['properties'] = {
         name: { type: 'string', description: 'The name of the layer' },
@@ -190,6 +199,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               syncData={(properties: { [key: string]: any }) => {
                 sourceCreationPromise?.resolve(properties);
               }}
+              onChange={this.onSourceDataChange.bind(this)}
               ok={this.props.ok}
               cancel={this.props.cancel}
             />
@@ -204,6 +214,9 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               model={this.jGISModel}
               filePath={`${this.filePath}::panel`}
               schema={layerSchema}
+              currentLayerSourceFormData={
+                this.currentSourceData || this.props.sourceData || {}
+              }
               sourceData={layerData}
               syncData={(properties: { [key: string]: any }) => {
                 layerCreationPromise?.resolve(properties);
@@ -217,6 +230,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
     );
   }
 
+  private currentSourceData: IDict<any> | undefined;
   private jGISModel: IJupyterGISModel;
   private filePath: string;
 }

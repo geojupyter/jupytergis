@@ -16,6 +16,7 @@ export namespace CommandIDs {
 
   // Sources only commands
   export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
+  export const newCOGLayer = 'jupytergis:newCOGLayer';
   export const removeSource = 'jupytergis:removeSource';
   export const renameSource = 'jupytergis:renameSource';
 
@@ -47,7 +48,8 @@ const iconObject = {
   [CommandIDs.newGeoJSONLayer]: { icon: geoJSONIcon },
   [CommandIDs.newVectorTileLayer]: { iconClass: 'fa fa-vector-square' },
   [CommandIDs.newGeoJSONSource]: { icon: geoJSONIcon },
-  [CommandIDs.newVectorLayer]: { iconClass: 'fa fa-vector-square' }
+  [CommandIDs.newVectorLayer]: { iconClass: 'fa fa-vector-square' },
+  [CommandIDs.newCOGLayer]: { iconClass: 'fa fa-image' }
 };
 
 /**

@@ -119,6 +119,17 @@ export function addCommands(
     ...icons.get(CommandIDs.newGeoJSONSource)?.icon
   });
 
+  commands.addCommand(CommandIDs.newCOGLayer, {
+    label: trans.__('New COG Layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createCOGLayer(tracker, formSchemaRegistry),
+    ...icons.get(CommandIDs.newCOGLayer)
+  });
+
   commands.addCommand(CommandIDs.removeSource, {
     label: trans.__('Remove Source'),
     execute: () => {
@@ -304,6 +315,33 @@ namespace Private {
       const dialog = new LayerBrowserWidget({
         context: current.context,
         registry: layerBrowserRegistry.getRegistryLayers(),
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createCOGLayer(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create COG Source',
+        createLayer: true,
+        createSource: true,
+        layerData: {
+          name: 'Custom COG Layer'
+        },
+        sourceType: 'COGSource',
+        layerType: 'COGLayer',
         formSchemaRegistry
       });
       await dialog.launch();

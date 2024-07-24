@@ -94,11 +94,12 @@ export class EditForm extends React.Component<IEditFormProps, any> {
           <div>
             <h3>Layer Properties</h3>
             <LayerForm
-              formContext="create"
+              formContext="update"
               sourceType={source?.type || 'RasterSource'}
               model={this.props.context.model}
               filePath={`${this.props.context.path}::panel`}
               schema={layerSchema}
+              currentLayerSourceFormData={sourceData || {}}
               sourceData={layerData}
               syncData={(properties: { [key: string]: any }) => {
                 this.syncObjectProperties(this.props.layer, properties);
@@ -110,7 +111,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
           <div>
             <h3>Source Properties</h3>
             <SourceForm
-              formContext="create"
+              formContext="update"
               model={this.props.context.model}
               filePath={`${this.props.context.path}::panel`}
               schema={sourceSchema}

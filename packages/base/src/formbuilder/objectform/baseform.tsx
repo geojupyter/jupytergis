@@ -11,7 +11,16 @@ import { Signal } from '@lumino/signaling';
 import { Dialog } from '@jupyterlab/apputils';
 
 export interface IBaseFormStates {
+  /**
+   * The form schema
+   */
   schema?: IDict;
+
+  /**
+   * The current form data
+   */
+  data?: IDict;
+
   extraErrors?: any;
 }
 
@@ -46,6 +55,11 @@ export interface IBaseFormProps {
    * The schema for the rjsf formk
    */
   schema?: IDict;
+
+  /**
+   * Onchange callback
+   */
+  onChange?: (formData: IDict<any>) => void;
 
   /**
    * Ok signal. This is the signal sent by the parent dialog upon "Ok" button click. No ok button will be displayed if defined.
@@ -95,8 +109,8 @@ export const LuminoSchemaForm = (
 export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   constructor(props: IBaseFormProps) {
     super(props);
-    this.currentFormData = deepCopy(this.props.sourceData);
     this.state = {
+      data: this.props.sourceData,
       schema: props.schema
     };
   }
@@ -106,9 +120,9 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
     prevState: IBaseFormStates
   ): void {
     if (prevProps.sourceData !== this.props.sourceData) {
-      this.currentFormData = deepCopy(this.props.sourceData);
+      const data = deepCopy(this.props.sourceData);
       const schema = deepCopy(this.props.schema);
-      this.setState(old => ({ ...old, schema }));
+      this.setState(old => ({ ...old, data, schema }));
     }
   }
 
@@ -188,14 +202,14 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
     this.currentFormData = e.formData;
   }
 
-  protected onFormBlur(id: string, value: any) {
-    // This is a no-op here
+  protected async onFormBlur(id: string, value: any) {
+    this.setState({ ...this.state, data: this.currentFormData });
+
+    this.props.onChange && this.props.onChange(this.currentFormData || {});
   }
 
   protected onFormSubmit(e: ISubmitEvent<any>): void {
-    this.currentFormData = e.formData;
-
-    this.syncData(this.currentFormData);
+    this.syncData(this.state.data);
 
     this.props.cancel && this.props.cancel();
   }
@@ -203,7 +217,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   render(): React.ReactNode {
     if (this.props.schema) {
       const schema = { ...this.state.schema, additionalProperties: true };
-      const formData = this.currentFormData;
+      const formData = (this.currentFormData = deepCopy(this.state.data));
 
       const uiSchema = {
         additionalProperties: {

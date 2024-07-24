@@ -20,11 +20,11 @@
   "definitions": {
     "layerType": {
       "type": "string",
-      "enum": ["RasterLayer", "VectorLayer"]
+      "enum": ["RasterLayer", "VectorLayer", "COGLayer"]
     },
     "sourceType": {
       "type": "string",
-      "enum": ["RasterSource", "VectorTileSource", "GeoJSONSource"]
+      "enum": ["RasterSource", "VectorTileSource", "GeoJSONSource", "COGSource"]
     },
     "jGISLayer": {
       "title": "IJGISLayer",

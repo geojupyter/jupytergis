@@ -177,6 +177,11 @@ const activate = (
     });
 
     palette.addItem({
+      command: CommandIDs.newCOGLayer,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
       command: CommandIDs.newVectorLayer,
       category: 'JupyterGIS'
     });

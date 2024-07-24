@@ -1,0 +1,48 @@
+{
+  "type": "object",
+  "description": "COGSource",
+  "title": "ICOGSource",
+  "required": ["url"],
+  "additionalProperties": false,
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "The url to the source file",
+      "format": "uri"
+    },
+    "bands": {
+      "type": "array",
+      "readOnly": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "bounds": {
+      "type": "array",
+      "readOnly": true,
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "number"
+      },
+      "default": [],
+      "description": "The bounds of the source"
+    },
+    "maxZoom": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "readOnly": true,
+      "description": "The maximum zoom level for the source",
+      "default": 24
+    },
+    "minZoom": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "readOnly": true,
+      "description": "The minimum zoom level for the source",
+      "default": 0
+    }
+  }
+}

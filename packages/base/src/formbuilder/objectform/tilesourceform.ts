@@ -60,7 +60,7 @@ export class TileSourcePropertiesForm extends BaseForm {
     }
   }
 
-  protected onFormBlur(id: string, value: any) {
+  protected async onFormBlur(id: string, value: any) {
     super.onFormBlur(id, value);
 
     // Is there a better way to spot the url text entry?
