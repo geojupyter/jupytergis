@@ -254,8 +254,8 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - the source id.
    */
   removeSource(id: string): void {
-    const mapLayer = this._Map.getLayer(id);
-    if (mapLayer) {
+    const mapSource = this._Map.getSource(id);
+    if (mapSource) {
       this._Map.removeSource(id);
     }
   }
