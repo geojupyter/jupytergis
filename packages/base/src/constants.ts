@@ -1,5 +1,5 @@
 import { LabIcon, redoIcon, undoIcon } from '@jupyterlab/ui-components';
-import { geoJSONIcon, rasterIcon } from './icons';
+import { geoJSONIcon, moundIcon, rasterIcon } from './icons';
 
 /**
  * The command IDs.
@@ -52,7 +52,7 @@ const iconObject = {
   [CommandIDs.newVectorTileLayer]: { iconClass: 'fa fa-vector-square' },
   [CommandIDs.newGeoJSONSource]: { icon: geoJSONIcon },
   [CommandIDs.newVectorLayer]: { iconClass: 'fa fa-vector-square' },
-  [CommandIDs.newHillshadeLayer]: { iconClass: 'fa fa-mound' }
+  [CommandIDs.newHillshadeLayer]: { icon: moundIcon }
 };
 
 /**
