@@ -1,5 +1,6 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
+  IHillshadeLayer,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -416,24 +417,38 @@ export class MainView extends React.Component<IProps, IStates> {
           (layerSpecification['source-layer'] = parameters.sourceLayer);
 
         this._Map.addLayer(layerSpecification, beforeId);
-        if (parameters.type === 'hillshade') {
-          this._Map.setPaintProperty(
-            id,
-            'hillshade-shadow-color',
-            parameters.color !== undefined ? parameters.color : '#473B24'
-          );
-        } else {
-          this._Map.setPaintProperty(
-            id,
-            `${parameters.type}-color`,
-            parameters.color !== undefined ? parameters.color : '#FF0000'
-          );
-          this._Map.setPaintProperty(
-            id,
-            `${parameters.type}-opacity`,
-            parameters.opacity !== undefined ? parameters.opacity : 1
-          );
-        }
+        this._Map.setPaintProperty(
+          id,
+          `${parameters.type}-color`,
+          parameters.color !== undefined ? parameters.color : '#FF0000'
+        );
+        this._Map.setPaintProperty(
+          id,
+          `${parameters.type}-opacity`,
+          parameters.opacity !== undefined ? parameters.opacity : 1
+        );
+        break;
+      }
+      case 'HillshadeLayer': {
+        const parameters = layer.parameters as IHillshadeLayer;
+
+        this._Map.addLayer(
+          {
+            id: id,
+            type: 'hillshade',
+            layout: {
+              visibility: layer.visible ? 'visible' : 'none'
+            },
+            paint: {
+              'hillshade-shadow-color':
+                parameters?.shadowColor !== undefined
+                  ? parameters.shadowColor
+                  : '#473B24'
+            },
+            source: sourceId
+          },
+          beforeId
+        );
         break;
       }
     }
@@ -550,6 +565,17 @@ export class MainView extends React.Component<IProps, IStates> {
           layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
         );
         break;
+      }
+      case 'HillshadeLayer': {
+        const parameters = layer.parameters as IHillshadeLayer;
+
+        this._Map.setPaintProperty(
+          id,
+          'hillshade-shadow-color',
+          parameters?.shadowColor !== undefined
+            ? parameters.shadowColor
+            : '#473B24'
+        );
       }
     }
   }

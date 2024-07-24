@@ -23,7 +23,7 @@
   "definitions": {
     "layerType": {
       "type": "string",
-      "enum": ["RasterLayer", "VectorLayer"]
+      "enum": ["RasterLayer", "VectorLayer", "HillshadeLayer"]
     },
     "sourceType": {
       "type": "string",

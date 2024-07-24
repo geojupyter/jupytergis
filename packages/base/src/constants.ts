@@ -13,9 +13,11 @@ export namespace CommandIDs {
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
   export const newGeoJSONLayer = 'jupytergis:newGeoJSONLayer';
   export const newVectorTileLayer = 'jupytergis:newVectorTileLayer';
+  export const newHillshadeLayer = 'jupytergis:newHillshadeLayer';
 
   // Sources only commands
   export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
+  export const newRasterDemSource = 'jupytergis:newRasterDemSource';
   export const removeSource = 'jupytergis:removeSource';
   export const renameSource = 'jupytergis:renameSource';
 
@@ -31,7 +33,6 @@ export namespace CommandIDs {
   export const moveLayerToNewGroup = 'jupytergis:moveLayerToNewGroup';
 
   export const newTerrain = 'jupytergis:newTerrain';
-  export const newRasterDemSource = 'jupytergis:newRasterDemSource';
 }
 
 interface IRegisteredIcon {
@@ -50,7 +51,8 @@ const iconObject = {
   [CommandIDs.newGeoJSONLayer]: { icon: geoJSONIcon },
   [CommandIDs.newVectorTileLayer]: { iconClass: 'fa fa-vector-square' },
   [CommandIDs.newGeoJSONSource]: { icon: geoJSONIcon },
-  [CommandIDs.newVectorLayer]: { iconClass: 'fa fa-vector-square' }
+  [CommandIDs.newVectorLayer]: { iconClass: 'fa fa-vector-square' },
+  [CommandIDs.newHillshadeLayer]: { iconClass: 'fa fa-mound' }
 };
 
 /**

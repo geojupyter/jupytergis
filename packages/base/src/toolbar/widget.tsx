@@ -100,6 +100,15 @@ export class ToolbarWidget extends Toolbar {
         })
       );
 
+      this.addItem(
+        'New Hillshade layer',
+        new CommandToolbarButton({
+          id: CommandIDs.newHillshadeLayer,
+          label: '',
+          commands: options.commands
+        })
+      );
+
       // Add more commands here
 
       this.addItem('spacer', Toolbar.createSpacerItem());

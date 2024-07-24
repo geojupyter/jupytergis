@@ -173,6 +173,7 @@ div.field.field-array > label + span {
 .jp-SchemaForm .control-label,
 .jp-SchemaForm legend {
   position: inherit;
+  text-transform: capitalize;
 }
 
 div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {

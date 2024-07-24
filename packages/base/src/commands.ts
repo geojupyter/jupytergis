@@ -299,6 +299,17 @@ export function addCommands(
     ...icons.get(CommandIDs.newVectorLayer)
   });
 
+  commands.addCommand(CommandIDs.newHillshadeLayer, {
+    label: trans.__('New Hillshade layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createHillshadeLayer(tracker, formSchemaRegistry),
+    ...icons.get(CommandIDs.newHillshadeLayer)
+  });
+
   commands.addCommand(CommandIDs.newTerrain, {
     label: trans.__('New Terrain'),
     isEnabled: () => {
@@ -502,6 +513,33 @@ namespace Private {
         },
         sourceType: 'GeoJSONSource',
         layerType: 'VectorLayer',
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createHillshadeLayer(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create Hillshade Layer',
+        createLayer: true,
+        createSource: false,
+        layerData: {
+          name: 'Custom Hillshade Layer'
+        },
+        sourceType: 'RasterDemSource',
+        layerType: 'HillshadeLayer',
         formSchemaRegistry
       });
       await dialog.launch();

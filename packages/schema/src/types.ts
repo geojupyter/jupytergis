@@ -5,6 +5,7 @@ export * from './_interface/rastersource';
 export * from './_interface/vectortilesource';
 export * from './_interface/geojsonsource';
 export * from './_interface/rasterDemSource';
+export * from './_interface/hillshadeLayer';
 export * from './interfaces';
 export * from './model';
 export * from './doc';
