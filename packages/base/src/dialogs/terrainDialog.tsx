@@ -1,24 +1,22 @@
-import { IDict, IJupyterGISModel } from '@jupytergis/schema';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
-import { PromiseDelegate } from '@lumino/coreutils';
-import { Signal } from '@lumino/signaling';
 import React, { useState } from 'react';
 
 interface ITerrainDialogProps {
   context: DocumentRegistry.IContext<IJupyterGISModel>;
-
-  okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
   cancel: () => void;
 }
 const TerrainDialog = ({
   context,
-  okSignalPromise,
+
   cancel
 }: ITerrainDialogProps) => {
-  const dems = context.model.getSourcesByType('RasterDemSource');
+  const rasterDemSources = context.model.getSourcesByType('RasterDemSource');
 
-  const [selectedOption, setSelectedOption] = useState(Object.keys(dems)[0]);
+  const [selectedOption, setSelectedOption] = useState(
+    Object.keys(rasterDemSources)[0]
+  );
   const [numberInput, setNumberInput] = useState('1');
 
   // Handler for changing the selected option
@@ -32,8 +30,6 @@ const TerrainDialog = ({
   };
 
   const handleClick = () => {
-    console.log('dems', dems);
-    console.log('selectedOption', selectedOption);
     context.model.setTerrain({
       source: selectedOption,
       exaggeration: Number(numberInput)
@@ -41,17 +37,26 @@ const TerrainDialog = ({
   };
 
   return (
-    <div>
-      <label htmlFor="source">Source:</label>
-      <select id="source" value={selectedOption} onSelect={handleSelectChange}>
-        {Object.entries(dems).map(([key, value]) => (
+    <div className="jp-gis-terrain-main">
+      <label className="jp-gis-terrain-label" htmlFor="source">
+        Source:
+      </label>
+      <select
+        id="source"
+        className="jp-mod-styled"
+        value={selectedOption}
+        onSelect={handleSelectChange}
+      >
+        {Object.entries(rasterDemSources).map(([key, value]) => (
           <option key={key} value={key}>
             {value}
           </option>
         ))}
       </select>
 
-      <label htmlFor="exaggeration">Exaggeration:</label>
+      <label className="jp-gis-terrain-label" htmlFor="exaggeration">
+        Exaggeration:
+      </label>
       <input
         id="exaggeration"
         type="number"
@@ -59,7 +64,14 @@ const TerrainDialog = ({
         onChange={handleInputChange}
         placeholder="Enter a number"
       />
-      <button onClick={handleClick}>ok</button>
+      <div className="jp-Dialog-footer" style={{ paddingBottom: 0 }}>
+        <button
+          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          onClick={handleClick}
+        >
+          Ok
+        </button>
+      </div>
     </div>
   );
 };
@@ -75,40 +87,20 @@ export class TerrainDialogWidget extends Dialog<boolean> {
       this.resolve(0);
     };
 
-    const okSignalPromise = new PromiseDelegate<
-      Signal<Dialog<IDict>, number>
-    >();
-
     const body = (
-      <TerrainDialog
-        context={options.context}
-        okSignalPromise={okSignalPromise}
-        cancel={cancelCallback}
-      />
+      <TerrainDialog context={options.context} cancel={cancelCallback} />
     );
 
-    super({ body, buttons: [Dialog.cancelButton(), Dialog.okButton()] });
+    super({ title: 'Add New Terrain', body, buttons: [], hasClose: true });
 
     this.id = 'jupytergis::terrain';
-
-    this.okSignal = new Signal(this);
-    okSignalPromise.resolve(this.okSignal);
-
-    // Override default dialog style
-    // this.addClass('jGIS-layerbrowser-FormDialog');
   }
 
   resolve(index?: number): void {
     if (index === 0) {
       super.resolve(index);
     }
-
-    if (index === 1) {
-      this.okSignal.emit(1);
-    }
   }
-
-  private okSignal: Signal<Dialog<any>, number>;
 }
 
 export default TerrainDialog;

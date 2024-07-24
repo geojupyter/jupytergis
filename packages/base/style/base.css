@@ -6,6 +6,7 @@
 @import url('./dialog.css');
 @import url('./layerBrowser.css');
 @import url('./leftPanel.css');
+@import url('./terrainDialog.css');
 @import url('maplibre-gl/dist/maplibre-gl.css');
 
 .jGIS-Toolbar-GroupName {
