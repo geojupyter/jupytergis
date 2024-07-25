@@ -1,46 +1,17 @@
-import {
-  IJupyterLabPageFixture,
-  expect,
-  galata,
-  test
-} from '@jupyterlab/galata';
-import { Locator } from '@playwright/test';
+import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
-
-async function openLeftPanel(page: IJupyterLabPageFixture): Promise<Locator> {
-  const sidePanel = page.locator('#jupytergis\\:\\:leftControlPanel');
-  if (!(await sidePanel.isVisible())) {
-    const panelIcon = page.getByTitle('JupyterGIS Control Panel');
-    await panelIcon.first().click();
-    await page.waitForCondition(async () => await sidePanel.isVisible());
-  }
-  return sidePanel;
-}
-
-async function openLayerTree(page: IJupyterLabPageFixture): Promise<Locator> {
-  const sidePanel = await openLeftPanel(page);
-  const layerTree = sidePanel.locator('.jp-gis-layerPanel');
-  if (!(await layerTree.isVisible())) {
-    const layerTitle = sidePanel.getByTitle('Layer tree');
-    await layerTitle.click();
-    await page.waitForCondition(async () => await layerTree.isVisible());
-  }
-  return layerTree;
-}
 
 test.describe('context menu', () => {
   test.beforeAll(async ({ request }) => {
     const content = galata.newContentsHelper(request);
-    await content.deleteDirectory('/examples');
+    await content.deleteDirectory('/testDir');
     await content.uploadDirectory(
-      path.resolve(__dirname, '../../examples'),
-      '/examples'
+      path.resolve(__dirname, './gis-files'),
+      '/testDir'
     );
   });
-
   test.beforeEach(async ({ page }) => {
-    test.setTimeout(10000);
-    await page.filebrowser.open('examples/test.jGIS');
+    await page.filebrowser.open('testDir/test.jGIS');
   });
 
   test.afterEach(async ({ page }) => {
@@ -160,8 +131,7 @@ test.describe('context menu', () => {
       .getByText('level 1 group')
       .click({ button: 'right' });
 
-    await page.getByLabel('Layers', { exact: true }).click();
-
+    await page.getByLabel('Layers', { exact: true }).press('Escape');
     await page.getByText('level 1 group').press('F2');
     await page.getByRole('textbox').fill('test name');
     await page.getByRole('textbox').press('Enter');
@@ -175,7 +145,7 @@ test.describe('context menu', () => {
       .getByText('test name')
       .click({ button: 'right' });
 
-    await page.getByLabel('Layers', { exact: true }).click();
+    await page.getByLabel('Layers', { exact: true }).press('Escape');
     await page.getByText('test name').press('F2');
     await page.getByRole('textbox').fill('level 1 group');
     await page.getByRole('textbox').press('Enter');

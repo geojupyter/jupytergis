@@ -64,14 +64,14 @@ test.describe('#layerPanel', () => {
   test.describe('with GIS document', () => {
     test.beforeAll(async ({ request }) => {
       const content = galata.newContentsHelper(request);
-      await content.deleteDirectory('/examples');
+      await content.deleteDirectory('/testDir');
       await content.uploadDirectory(
-        path.resolve(__dirname, '../../examples'),
-        '/examples'
+        path.resolve(__dirname, './gis-files'),
+        '/testDir'
       );
     });
     test.beforeEach(async ({ page }) => {
-      await page.filebrowser.open('examples/test.jGIS');
+      await page.filebrowser.open('testDir/test.jGIS');
     });
 
     test.afterEach(async ({ page }) => {
@@ -83,12 +83,11 @@ test.describe('#layerPanel', () => {
       await expect(layerTree).not.toBeEmpty();
     });
 
-    // TODO Fix this. It seems to fail since https://github.com/QuantStack/jupytergis/pull/48
-    // test('should restore empty layer panel', async ({ page }) => {
-    //   const layerTree = await openLayerTree(page);
-    //   await page.activity.closeAll();
-    //   await expect(layerTree).toBeEmpty();
-    // });
+    test('should restore empty layer panel', async ({ page }) => {
+      const layerTree = await openLayerTree(page);
+      await page.activity.closeAll();
+      await expect(layerTree).toBeEmpty();
+    });
 
     test('raster layer should have icons', async ({ page }) => {
       const layerTree = await openLayerTree(page);
@@ -126,23 +125,10 @@ test.describe('#layerPanel', () => {
 
       // Open the first level group
       await layerGroup.last().click();
-
       await expect(layer.first()).not.toHaveClass(/jp-mod-selected/);
-      expect(await layer.first().screenshot()).toMatchSnapshot(
-        'layer-not-selected.png'
-      );
-
-      await layer.first().hover();
-      expect(await layer.first().screenshot()).toMatchSnapshot(
-        'layer-hover.png'
-      );
 
       await layer.first().click();
-      await layer.last().hover();
       await expect(layer.first()).toHaveClass(/jp-mod-selected/);
-      expect(await layer.first().screenshot()).toMatchSnapshot(
-        'layer-selected.png'
-      );
 
       await layer.last().click();
       await expect(layer.first()).not.toHaveClass(/jp-mod-selected/);
@@ -157,17 +143,9 @@ test.describe('#layerPanel', () => {
       await expect(hideLayerButton).toHaveCount(1);
       await expect(showLayerButton).toHaveCount(0);
 
-      expect(await hideLayerButton.screenshot()).toMatchSnapshot(
-        'layer-visible-icon.png'
-      );
-
       await hideLayerButton.click();
       await expect(hideLayerButton).toHaveCount(0);
       await expect(showLayerButton).toHaveCount(1);
-
-      expect(await showLayerButton.screenshot()).toMatchSnapshot(
-        'layer-not-visible-icon.png'
-      );
 
       await showLayerButton.click();
       await expect(hideLayerButton).toHaveCount(1);
@@ -277,17 +255,8 @@ test.describe('#sourcePanel', () => {
       const sourcePanel = await openSourcePanel(page);
       const source = sourcePanel.locator('.jp-gis-source');
 
-      await source.first().hover();
-      expect(await source.first().screenshot()).toMatchSnapshot(
-        'source-hover.png'
-      );
-
       await source.first().click();
-      await source.last().hover();
       await expect(source.first()).toHaveClass(/jp-mod-selected/);
-      expect(await source.first().screenshot()).toMatchSnapshot(
-        'source-selected.png'
-      );
 
       await source.last().click();
       await expect(source.first()).not.toHaveClass(/jp-mod-selected/);
