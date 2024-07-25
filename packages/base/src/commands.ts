@@ -151,13 +151,12 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.newRasterDemSource, {
-    label: trans.__('New Raster DEM Source'),
+    label: trans.__('Raster DEM'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    iconClass: 'fa fa-mountain',
     execute: Private.createRasterDemSource(tracker, formSchemaRegistry)
   });
 
@@ -300,14 +299,13 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.newHillshadeLayer, {
-    label: trans.__('New Hillshade layer'),
+    label: trans.__('Hillshade'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: Private.createHillshadeLayer(tracker, formSchemaRegistry),
-    ...icons.get(CommandIDs.newHillshadeLayer)
+    execute: Private.createHillshadeLayer(tracker, formSchemaRegistry)
   });
 
   commands.addCommand(CommandIDs.newTerrain, {
