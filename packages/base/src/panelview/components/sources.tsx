@@ -1,15 +1,11 @@
-import {
-  IJupyterGISClientState,
-  IJupyterGISModel,
-  ISelection,
-  SelectionType
-} from '@jupytergis/schema';
+import { IJupyterGISClientState, IJupyterGISModel } from '@jupytergis/schema';
 import { DOMUtils } from '@jupyterlab/apputils';
 import { LabIcon, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { MouseEvent, useEffect, useState } from 'react';
 import { icons } from '../../constants';
 import { IControlPanelModel } from '../../types';
+import { ILeftPanelClickHandlerParams, ILeftPanelOptions } from '../leftpanel';
 
 const SOURCES_PANEL_CLASS = 'jp-gis-sourcePanel';
 const SOURCE_CLASS = 'jp-gis-source';
@@ -20,31 +16,14 @@ const SOURCE_UNUSED = 'jp-gis-sourceUnused';
 const SOURCE_INFO = 'jp-gis-sourceInfo';
 
 /**
- * The namespace for the sources panel.
- */
-export namespace SourcesPanel {
-  /**
-   * Options of the sources panel widget.
-   */
-  export interface IOptions {
-    model: IControlPanelModel;
-  }
-
-  export interface IClickHandlerParams {
-    type: SelectionType;
-    item: string;
-    nodeId?: string;
-    event: MouseEvent;
-  }
-}
-
-/**
  * The sources panel widget.
  */
 export class SourcesPanel extends Panel {
-  constructor(options: SourcesPanel.IOptions) {
+  constructor(options: ILeftPanelOptions) {
     super();
     this._model = options.model;
+    this._onSelect = options.onSelect;
+
     this.id = 'jupytergis::sourcesPanel';
     this.addClass(SOURCES_PANEL_CLASS);
 
@@ -58,75 +37,12 @@ export class SourcesPanel extends Panel {
     );
   }
 
-  /**
-   * Function to call when a source is selected from a component of the panel.
-   *
-   * @param item - the selected source.
-   */
-  private _onSelect = ({
+  private _model: IControlPanelModel | undefined;
+  private _onSelect: ({
     type,
     item,
-    nodeId,
-    event
-  }: SourcesPanel.IClickHandlerParams) => {
-    if (!this._model) {
-      return;
-    }
-
-    const { jGISModel } = this._model;
-    const selectedValue = jGISModel?.localState?.selected?.value;
-
-    // Early return if no selection exists
-    if (!selectedValue) {
-      this.resetSelected(type, nodeId, item);
-      return;
-    }
-
-    // Don't want to reset selected if right clicking a selected item
-    if (!event.ctrlKey && event.button === 2 && item in selectedValue) {
-      return;
-    }
-
-    // Reset selection for normal left click
-    if (!event.ctrlKey) {
-      this.resetSelected(type, nodeId, item);
-      return;
-    }
-
-    if (nodeId) {
-      // Check if new selection is the same type as previous selections
-      const isSelectedSameType = Object.values(selectedValue).some(
-        selection => selection.type === type
-      );
-
-      if (!isSelectedSameType) {
-        // Selecting a new type, so reset selected
-        this.resetSelected(type, nodeId, item);
-        return;
-      }
-
-      // If types are the same add the selection
-      const updatedSelectedValue = {
-        ...selectedValue,
-        [item]: { type, selectedNodeId: nodeId }
-      };
-
-      jGISModel.syncSelected(updatedSelectedValue, this.id);
-    }
-  };
-
-  resetSelected(type: SelectionType, nodeId?: string, item?: string) {
-    const selection: { [key: string]: ISelection } = {};
-    if (item && nodeId) {
-      selection[item] = {
-        type,
-        selectedNodeId: nodeId
-      };
-    }
-    this._model?.jGISModel?.syncSelected(selection, this.id);
-  }
-
-  private _model: IControlPanelModel | undefined;
+    nodeId
+  }: ILeftPanelClickHandlerParams) => void;
 }
 
 /**
@@ -134,7 +50,7 @@ export class SourcesPanel extends Panel {
  */
 interface IBodyProps {
   model: IControlPanelModel;
-  onSelect: ({ type, item, nodeId }: SourcesPanel.IClickHandlerParams) => void;
+  onSelect: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
 }
 
 /**
@@ -156,7 +72,7 @@ function SourcesBodyComponent(props: IBodyProps): JSX.Element {
     item,
     nodeId,
     event
-  }: SourcesPanel.IClickHandlerParams) => {
+  }: ILeftPanelClickHandlerParams) => {
     props.onSelect({ type, item, nodeId, event });
   };
 
@@ -206,7 +122,7 @@ function SourcesBodyComponent(props: IBodyProps): JSX.Element {
 interface ISourceProps {
   gisModel: IJupyterGISModel | undefined;
   sourceId: string;
-  onClick: ({ type, item, nodeId }: SourcesPanel.IClickHandlerParams) => void;
+  onClick: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
 }
 
 function isSelected(sourceId: string, model: IJupyterGISModel | undefined) {

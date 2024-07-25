@@ -91,10 +91,22 @@ const plugin: JupyterFrontEndPlugin<void> = {
       command: CommandIDs.removeSource
     });
 
+    app.commands.addKeyBinding({
+      command: CommandIDs.removeSource,
+      keys: ['Delete'],
+      selector: '.jp-gis-source.jp-gis-sourceUnused .jp-gis-sourceText'
+    });
+
     app.contextMenu.addItem({
       selector: '.jp-gis-source',
       rank: 1,
       command: CommandIDs.renameSource
+    });
+
+    app.commands.addKeyBinding({
+      command: CommandIDs.renameSource,
+      keys: ['F2'],
+      selector: '.jp-gis-sourceTitle .jp-gis-sourceText'
     });
 
     // LAYERS and LAYER GROUPS context menu
@@ -122,12 +134,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       selector: '.jp-gis-layerTitle .jp-gis-layerText'
     });
 
-    app.commands.addKeyBinding({
-      command: CommandIDs.renameLayer,
-      keys: ['F2'],
-      selector: '.jp-gis-layerTitle'
-    });
-
     const moveLayerSubmenu = new Menu({ commands: app.commands });
     moveLayerSubmenu.title.label = translator
       .load('jupyterlab')
@@ -144,12 +150,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.contextMenu.opened.connect(() =>
       buildGroupsMenu(app.contextMenu, tracker)
     );
-
-    app.contextMenu.addItem({
-      type: 'separator',
-      selector: '.jp-gis-layerGroupHeader',
-      rank: 1
-    });
 
     app.contextMenu.addItem({
       command: CommandIDs.removeGroup,
