@@ -1,40 +1,57 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
-import React, { useState } from 'react';
+import { PromiseDelegate } from '@lumino/coreutils';
+import { Signal } from '@lumino/signaling';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 
 interface ITerrainDialogProps {
   context: DocumentRegistry.IContext<IJupyterGISModel>;
+  okSignalPromise: PromiseDelegate<Signal<TerrainDialogWidget, null>>;
   cancel: () => void;
 }
+
 const TerrainDialog = ({
   context,
-
+  okSignalPromise,
   cancel
 }: ITerrainDialogProps) => {
   const rasterDemSources = context.model.getSourcesByType('RasterDemSource');
 
-  const [selectedOption, setSelectedOption] = useState(
+  const [selectedSource, setSelectedSource] = useState(
     Object.keys(rasterDemSources)[0]
   );
-  const [numberInput, setNumberInput] = useState('1');
+  const [exaggerationInput, setExaggerationInput] = useState(1);
+
+  const selectedSourceRef = useRef(selectedSource);
+  const exaggerationInputRef = useRef(exaggerationInput);
+
+  useEffect(() => {
+    selectedSourceRef.current = selectedSource;
+    exaggerationInputRef.current = exaggerationInput;
+  }, [selectedSource, exaggerationInput]);
 
   // Handler for changing the selected option
-  const handleSelectChange = event => {
-    setSelectedOption(event.target.value);
+  const handleSourceChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedSource(event.target.value);
   };
 
   // Handler for changing the number input
-  const handleInputChange = event => {
-    setNumberInput(event.target.value);
+  const handleExaggerationChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setExaggerationInput(Number(event.target.value));
   };
 
-  const handleClick = () => {
+  const handleOk = () => {
     context.model.setTerrain({
-      source: selectedOption,
-      exaggeration: Number(numberInput)
+      source: selectedSourceRef.current,
+      exaggeration: exaggerationInputRef.current
     });
+    cancel();
   };
+
+  okSignalPromise.promise.then(okSignal => {
+    okSignal.connect(handleOk);
+  });
 
   return (
     <div className="jp-gis-terrain-main">
@@ -44,8 +61,9 @@ const TerrainDialog = ({
       <select
         id="source"
         className="jp-mod-styled"
-        value={selectedOption}
-        onSelect={handleSelectChange}
+        value={selectedSource}
+        onChange={handleSourceChange}
+        aria-label="Select source"
       >
         {Object.entries(rasterDemSources).map(([key, value]) => (
           <option key={key} value={key}>
@@ -59,19 +77,16 @@ const TerrainDialog = ({
       </label>
       <input
         id="exaggeration"
+        className="jp-mod-styled"
         type="number"
-        value={numberInput}
-        onChange={handleInputChange}
-        placeholder="Enter a number"
+        min={0}
+        max={1}
+        step={0.1}
+        value={exaggerationInput}
+        onChange={handleExaggerationChange}
+        placeholder="Enter an exaggeration value"
+        aria-label="Enter exaggeration value"
       />
-      <div className="jp-Dialog-footer" style={{ paddingBottom: 0 }}>
-        <button
-          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          onClick={handleClick}
-        >
-          Ok
-        </button>
-      </div>
     </div>
   );
 };
@@ -81,24 +96,40 @@ export interface ITerrainDialogOptions {
 }
 
 export class TerrainDialogWidget extends Dialog<boolean> {
+  private okSignal: Signal<TerrainDialogWidget, null>;
+
   constructor(options: ITerrainDialogOptions) {
-    let cancelCallback: (() => void) | undefined = undefined;
-    cancelCallback = () => {
+    const cancelCallback = () => {
       this.resolve(0);
     };
 
+    const okSignalPromise = new PromiseDelegate<
+      Signal<TerrainDialogWidget, null>
+    >();
+
     const body = (
-      <TerrainDialog context={options.context} cancel={cancelCallback} />
+      <TerrainDialog
+        context={options.context}
+        okSignalPromise={okSignalPromise}
+        cancel={cancelCallback}
+      />
     );
 
-    super({ title: 'Add New Terrain', body, buttons: [], hasClose: true });
+    super({ title: 'Add New Terrain', body });
 
     this.id = 'jupytergis::terrain';
+
+    this.okSignal = new Signal(this);
+    okSignalPromise.resolve(this.okSignal);
   }
 
   resolve(index?: number): void {
     if (index === 0) {
       super.resolve(index);
+    }
+
+    if (index === 1) {
+      this.okSignal.emit(null);
     }
   }
 }

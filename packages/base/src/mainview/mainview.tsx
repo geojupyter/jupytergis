@@ -200,7 +200,6 @@ export class MainView extends React.Component<IProps, IStates> {
           id
         ) as MapLibre.RasterDEMTileSource;
         if (!mapSource) {
-          console.log('adding dem');
           const parameters = source.parameters as IRasterDemSource;
           this._Map.addSource(id, {
             type: 'raster-dem',
@@ -454,7 +453,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
-  async addTerrain(sourceId: string, exaggeration: number) {
+  async setTerrain(sourceId: string, exaggeration: number) {
     // Add the source if necessary.
     const source = this._model.sharedModel.getSource(sourceId);
     if (!source) {
@@ -690,13 +689,7 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _onTerrainChange(sender: any, change: any) {
-    console.log('eeeeeeeeeee', change);
-    console.log('sender', sender);
-    console.log('terrain change signal');
-
-    console.log('pre terrain', this._Map.getTerrain());
-    this.addTerrain(change['terrain'].source, change['terrain'].exaggeration);
-    console.log('post terrain', this._Map.getTerrain());
+    this.setTerrain(change['terrain'].source, change['terrain'].exaggeration);
   }
 
   // @ts-ignore

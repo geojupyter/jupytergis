@@ -89,12 +89,10 @@ export class JupyterGISDoc
 
   // TODO: fix type
   get terrain(): any {
-    console.log('getting terrain');
     return this._terrain.toJSON();
   }
 
   set terrain({ source, exaggeration }: IJGISTerrain) {
-    console.log('popopopo', { source, exaggeration });
     this.transact(() => {
       this._terrain.set('terrain', { source, exaggeration });
     });
@@ -324,9 +322,6 @@ export class JupyterGISDoc
   }
 
   private _terrainObserver(event: Y.YMapEvent<IJGISTerrain>): void {
-    console.log('terrain observer');
-    console.log('event', event);
-    console.log('delta', event.changes.delta);
     this._terrainChanged.emit(this.terrain);
   }
 
