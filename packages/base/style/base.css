@@ -12,3 +12,28 @@
   font-size: var(--jp-ui-font-size0);
   padding-left: 3px;
 }
+
+/* Overwrite forms CSS */
+.jGIS-property-panel .array-item-list {
+  display: flex;
+}
+
+.jGIS-property-panel .jp-SchemaForm .array-item:not(:last-child) {
+  margin-right: var(--jp-ui-font-size1);
+  border-bottom: none;
+  margin-bottom: unset;
+  padding-bottom: unset;
+}
+
+.jGIS-property-panel .jp-SchemaForm .array-item {
+  flex-grow: 1;
+}
+
+.jGIS-property-panel .jp-SchemaForm .field-description {
+  display: none;
+}
+
+.jGIS-property-panel .jp-SchemaForm fieldset fieldset {
+  padding-left: unset;
+  border-left: none;
+}
