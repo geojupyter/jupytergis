@@ -180,6 +180,11 @@ const activate = (
       command: CommandIDs.newVectorLayer,
       category: 'JupyterGIS'
     });
+
+    palette.addItem({
+      command: CommandIDs.removeTerrain,
+      category: 'JupyterGIS'
+    });
   }
 };
 

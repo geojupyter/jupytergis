@@ -176,7 +176,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this.sharedModel.layerTree = jsonData.layerTree ?? [];
       this.sharedModel.terrain = jsonData.terrain ?? {
         source: '',
-        exaggeration: 1
+        exaggeration: 0
       };
       this.sharedModel.options = jsonData.options ?? {
         latitude: 0,

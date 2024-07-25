@@ -318,6 +318,22 @@ export function addCommands(
     iconClass: 'fa fa-mountain',
     execute: Private.createTerrainDialog(tracker)
   });
+
+  commands.addCommand(CommandIDs.removeTerrain, {
+    label: trans.__('Remove Terrain'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    iconClass: 'fa fa-mountain',
+    execute: () => {
+      tracker.currentWidget?.context.model.setTerrain({
+        source: '',
+        exaggeration: 0
+      });
+    }
+  });
 }
 
 namespace Private {

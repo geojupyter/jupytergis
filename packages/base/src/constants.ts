@@ -33,6 +33,7 @@ export namespace CommandIDs {
   export const moveLayerToNewGroup = 'jupytergis:moveLayerToNewGroup';
 
   export const newTerrain = 'jupytergis:newTerrain';
+  export const removeTerrain = 'jupytergis:removeTerrain';
 }
 
 interface IRegisteredIcon {

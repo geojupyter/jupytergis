@@ -87,14 +87,15 @@ export class JupyterGISDoc
     });
   }
 
-  // TODO: fix type
-  get terrain(): any {
-    return this._terrain.toJSON();
+  get terrain(): IJGISTerrain {
+    return JSONExt.deepCopy(this._terrain.toJSON()) as IJGISTerrain;
   }
 
-  set terrain({ source, exaggeration }: IJGISTerrain) {
+  set terrain(terrain: IJGISTerrain) {
     this.transact(() => {
-      this._terrain.set('terrain', { source, exaggeration });
+      for (const [key, value] of Object.entries(terrain)) {
+        this._terrain.set(key, value);
+      }
     });
   }
 

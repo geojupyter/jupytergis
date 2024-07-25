@@ -7,6 +7,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
+  IJGISTerrain,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
@@ -454,6 +455,16 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   async setTerrain(sourceId: string, exaggeration: number) {
+    if (this._terrainControl) {
+      this._Map.removeControl(this._terrainControl);
+    }
+
+    // Remove terrain
+    if (!sourceId) {
+      this._Map.setTerrain(null);
+      return;
+    }
+
     // Add the source if necessary.
     const source = this._model.sharedModel.getSource(sourceId);
     if (!source) {
@@ -462,10 +473,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
     if (!this._Map.getSource(sourceId)) {
       await this.addSource(sourceId, source);
-    }
-
-    if (this._terrainControl) {
-      this._Map.removeControl(this._terrainControl);
     }
 
     this._terrainControl = new MapLibre.TerrainControl({
@@ -688,8 +695,8 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
-  private _onTerrainChange(sender: any, change: any) {
-    this.setTerrain(change['terrain'].source, change['terrain'].exaggeration);
+  private _onTerrainChange(sender: any, change: IJGISTerrain) {
+    this.setTerrain(change.source, change.exaggeration);
   }
 
   // @ts-ignore
