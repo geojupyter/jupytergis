@@ -154,7 +154,7 @@
       "title": "IJGISOptions",
       "type": "object",
       "default": {},
-      "required": ["latitude", "longitude", "zoom"],
+      "required": ["latitude", "longitude", "zoom", "bearing", "pitch"],
       "additionalProperties": false,
       "properties": {
         "latitude": {
@@ -166,6 +166,14 @@
           "default": 0
         },
         "zoom": {
+          "type": "number",
+          "default": 0
+        },
+        "bearing": {
+          "type": "number",
+          "default": 0
+        },
+        "pitch": {
           "type": "number",
           "default": 0
         }

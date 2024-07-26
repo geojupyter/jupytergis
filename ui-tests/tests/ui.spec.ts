@@ -1,4 +1,4 @@
-import { expect, test, galata } from '@jupyterlab/galata';
+import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
 
 test.use({ autoGoto: false });
@@ -9,10 +9,10 @@ test.describe('UI Test', () => {
   test.describe('File operations', () => {
     test.beforeAll(async ({ request }) => {
       const content = galata.newContentsHelper(request);
-      await content.deleteDirectory('/examples');
+      await content.deleteDirectory('/testDir');
       await content.uploadDirectory(
-        path.resolve(__dirname, '../../examples'),
-        '/examples'
+        path.resolve(__dirname, './gis-files'),
+        '/testDir'
       );
     });
     let errors = 0;
@@ -34,7 +34,7 @@ test.describe('UI Test', () => {
         page
       }) => {
         await page.goto();
-        const fullPath = `examples/${file}`;
+        const fullPath = `testDir/${file}`;
         await page.notebook.openByPath(fullPath);
         await page.notebook.activate(fullPath);
         await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });

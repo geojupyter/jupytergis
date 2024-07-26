@@ -41,7 +41,9 @@ class GISDocument(CommWidget):
         path: Optional[str] = None,
         latitude: Optional[number] = None,
         longitude: Optional[number] = None,
-        zoom: Optional[number] = None
+        zoom: Optional[number] = None,
+        bearing: Optional[number] = None,
+        pitch: Optional[number] = None,
     ):
         comm_metadata = GISDocument._path_to_comm(path)
 
@@ -64,6 +66,10 @@ class GISDocument(CommWidget):
                 self._options['longitude'] = longitude
             if zoom is not None:
                 self._options['zoom'] = zoom
+            if bearing is not None:
+                self._options['bearing'] = bearing
+            if pitch is not None:
+                self._options['pitch'] = pitch
 
     @property
     def layers(self) -> Dict:

@@ -109,7 +109,7 @@ const activate = (
         format: 'text',
         size: undefined,
         content:
-          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0},\n\t"layerTree": []\n\t"terrain": {}\n}'
+          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0},\n\t"layerTree": []\n\t"terrain": {}\n}'
       });
 
       // Open the newly created file with the 'Editor'
@@ -168,6 +168,11 @@ const activate = (
 
     palette.addItem({
       command: CommandIDs.newVectorTileLayer,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
+      command: CommandIDs.newRasterLayer,
       category: 'JupyterGIS'
     });
 

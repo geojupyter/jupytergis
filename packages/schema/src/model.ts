@@ -181,7 +181,9 @@ export class JupyterGISModel implements IJupyterGISModel {
       this.sharedModel.options = jsonData.options ?? {
         latitude: 0,
         longitude: 0,
-        zoom: 0
+        zoom: 0,
+        bearing: 0,
+        pitch: 0
       };
     });
     this.dirty = true;
