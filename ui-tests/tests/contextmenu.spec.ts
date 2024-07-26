@@ -78,20 +78,26 @@ test.describe('context menu', () => {
   test('clicking remove layer should remove the layer from the tree', async ({
     page
   }) => {
-    const firstItem = page
-      .getByLabel('Layers', { exact: true })
-      .getByText('Open Topo Map');
-
+    // Create new layer first
+    await page.getByLabel('Layers', { exact: true }).click({
+      button: 'right'
+    });
+    await page.getByText('Add Layer').hover();
+    await page.getByText('Raster').click();
     await page
-      .getByLabel('Layers', { exact: true })
-      .getByText('Open Topo Map')
-      .click({ button: 'right' });
+      .getByLabel('source*')
+      .selectOption('699facc9-e7c4-4f38-acf1-1fd7f02d9f36');
+    await page.getByRole('dialog').getByRole('button', { name: 'Ok' }).click();
+
+    expect(page.getByText('Custom Raster Layer Layer')).toBeVisible();
+
+    await page.getByText('Custom Raster Layer Layer').click({
+      button: 'right'
+    });
 
     await page.getByRole('menu').getByText('Remove Layer').click();
-    await expect(firstItem).not.toBeVisible();
 
-    await page.getByRole('button', { name: 'Undo' }).click();
-    await expect(firstItem).toBeVisible();
+    expect(page.getByText('Custom Raster Layer Layer')).not.toBeVisible();
   });
 
   test('clicking remove group should remove the group from the tree', async ({
