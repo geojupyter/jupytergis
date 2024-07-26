@@ -1,9 +1,18 @@
 {
   "layerTree": [
     "a82ef521-e727-4209-a5a0-145d66f18a06",
-    "c4fe5c17-c637-4012-bc67-055982e8f61f"
+    "733327dc-c367-420c-9ee1-0510ee521457"
   ],
   "layers": {
+    "733327dc-c367-420c-9ee1-0510ee521457": {
+      "name": "Custom Hillshade Layer Layer",
+      "parameters": {
+        "shadowColor": "#473B24",
+        "source": "1f457f60-5d31-45f6-8066-4585aabd5629"
+      },
+      "type": "HillshadeLayer",
+      "visible": false
+    },
     "a82ef521-e727-4209-a5a0-145d66f18a06": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
@@ -11,23 +20,26 @@
       },
       "type": "RasterLayer",
       "visible": true
-    },
-    "c4fe5c17-c637-4012-bc67-055982e8f61f": {
-      "name": "Hillshade Layer Layer",
-      "parameters": {
-        "shadowColor": "#473B24",
-        "source": "cffe76e7-fa97-445a-98dc-a2861f5782ca"
-      },
-      "type": "HillshadeLayer",
-      "visible": true
     }
   },
   "options": {
-    "latitude": 47.53711455298446,
-    "longitude": 11.666887524637332,
-    "zoom": 10.265810972484879
+    "bearing": 0.0,
+    "latitude": 47.574246213179435,
+    "longitude": 11.723541623071242,
+    "pitch": 0.0,
+    "zoom": 9.941497348883567
   },
   "sources": {
+    "1f457f60-5d31-45f6-8066-4585aabd5629": {
+      "name": "Custom Raster DEM Source",
+      "parameters": {
+        "attribution": "w",
+        "tileSize": 256.0,
+        "url": "https://demotiles.maplibre.org/terrain-tiles/tiles.json",
+        "urlParameters": {}
+      },
+      "type": "RasterDemSource"
+    },
     "ceef4036-b757-44bf-8a21-42c6c99dab72": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
@@ -48,9 +60,5 @@
       },
       "type": "RasterDemSource"
     }
-  },
-  "terrain": {
-    "exaggeration": 0.5,
-    "source": "cffe76e7-fa97-445a-98dc-a2861f5782ca"
   }
 }
