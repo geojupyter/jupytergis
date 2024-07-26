@@ -127,10 +127,14 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         const center = this._Map.getCenter();
+        const bearing = this._Map.getBearing();
+        const pitch = this._Map.getPitch();
         this._model.setOptions({
           ...this._model.getOptions(),
           latitude: center.lat,
-          longitude: center.lng
+          longitude: center.lng,
+          bearing,
+          pitch
         });
       });
 
@@ -629,6 +633,8 @@ export class MainView extends React.Component<IProps, IStates> {
           lat: options.latitude
         }) || [0, 0]
     );
+    this._Map.setBearing(options.bearing || 0);
+    this._Map.setPitch(options.pitch || 0);
   }
 
   private _onViewChanged(
