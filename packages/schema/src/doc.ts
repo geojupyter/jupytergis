@@ -36,6 +36,7 @@ export class JupyterGISDoc
     this._terrain = this.ydoc.getMap<IJGISTerrain>('terrain');
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
+    this.undoManager.addToScope(this._layerTree);
 
     this._layers.observeDeep(this._layersObserver.bind(this));
     this._layerTree.observe(this._layerTreeObserver.bind(this));

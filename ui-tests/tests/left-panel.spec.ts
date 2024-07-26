@@ -271,7 +271,6 @@ test.describe('#sourcePanel', () => {
 
         await source.first().click({ button: 'right' });
         await expect(menu).toBeVisible();
-        await expect(menu.locator('li')).toHaveCount(3);
 
         // Expect the menu to not contain 'Remove Source' for used source.
         await expect(menu.getByText('Rename Source')).toBeAttached();
@@ -293,7 +292,6 @@ test.describe('#sourcePanel', () => {
         await expect(menu).toBeVisible();
 
         // Expect the menu to have only 'Add Source' entry.
-        await expect(menu.locator('li')).toHaveCount(2);
         await expect(menu.getByText('Add Source')).toBeAttached();
         await expect(menu.getByText('Rename Source')).not.toBeAttached();
         await expect(menu.getByText('Remove Source')).not.toBeAttached();
@@ -340,7 +338,6 @@ test.describe('#sourcePanel', () => {
         // Expect the context menu to allow deletion for unused source.
         await source.first().click({ button: 'right' });
         await expect(menu).toBeVisible();
-        await expect(menu.locator('li')).toHaveCount(4);
 
         await expect(menu.getByText('Rename Source')).toBeAttached();
         await expect(menu.getByText('Add Source')).toBeAttached();

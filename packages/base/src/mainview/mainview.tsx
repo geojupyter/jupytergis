@@ -457,6 +457,7 @@ export class MainView extends React.Component<IProps, IStates> {
   async setTerrain(sourceId: string, exaggeration: number) {
     if (this._terrainControl) {
       this._Map.removeControl(this._terrainControl);
+      this._terrainControl = null;
     }
 
     // Remove terrain
@@ -754,5 +755,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;
-  private _terrainControl: MapLibre.TerrainControl | undefined;
+  private _terrainControl: MapLibre.TerrainControl | null;
 }
