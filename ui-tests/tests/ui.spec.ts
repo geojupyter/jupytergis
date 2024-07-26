@@ -51,10 +51,11 @@ test.describe('UI Test', () => {
           .getByRole('tab', { name: 'JupyterGIS Control Panel' })
           .click();
         await page.waitForTimeout(1000);
-        const main = await page.locator('#jp-main-split-panel');
+        const main = await page.$('#jp-main-split-panel');
         expect(errors).toBe(0);
         if (main) {
-          expect(main).toHaveScreenshot(`Render-${file}.png`, {
+          expect(await main.screenshot()).toMatchSnapshot({
+            name: `Render-${file}.png`,
             maxDiffPixelRatio: 0.01
           });
         }

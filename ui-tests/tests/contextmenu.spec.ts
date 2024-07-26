@@ -83,7 +83,7 @@ test.describe('context menu', () => {
       button: 'right'
     });
     await page.getByText('Add Layer').hover();
-    await page.getByText('Raster').click();
+    await page.getByText('Raster', { exact: true }).click();
     await page
       .getByLabel('source*')
       .selectOption('699facc9-e7c4-4f38-acf1-1fd7f02d9f36');
