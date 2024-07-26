@@ -14,7 +14,7 @@ def install_dev():
     build_js = "jlpm build"
 
     python_package_prefix = "python"
-    python_packages = ["jupytergis_core", "jupytergis_lab"]
+    python_packages = ["jupytergis_core", "jupytergis_lab", "jupytergis_qgis"]
 
     execute(install_build_deps)
     execute(install_js_deps)
@@ -23,6 +23,9 @@ def install_dev():
         execute(f"pip uninstall {py_package} -y")
         execute("jlpm clean:all", cwd=root_path / "python" / py_package)
         execute(f"pip install -e {python_package_prefix}/{py_package}")
+
+        if py_package == "jupytergis_qgis":
+            execute("jupyter server extension enable jupytergis_qgis")
 
         execute(
             f"jupyter labextension develop {python_package_prefix}/{py_package} --overwrite"

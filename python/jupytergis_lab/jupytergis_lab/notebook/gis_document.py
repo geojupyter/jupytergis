@@ -63,15 +63,15 @@ class GISDocument(CommWidget):
 
         if path is None:
             if latitude is not None:
-                self._options['latitude'] = latitude
+                self._options["latitude"] = latitude
             if longitude is not None:
-                self._options['longitude'] = longitude
+                self._options["longitude"] = longitude
             if zoom is not None:
-                self._options['zoom'] = zoom
+                self._options["zoom"] = zoom
             if bearing is not None:
-                self._options['bearing'] = bearing
+                self._options["bearing"] = bearing
             if pitch is not None:
-                self._options['pitch'] = pitch
+                self._options["pitch"] = pitch
 
     @property
     def layers(self) -> Dict:
