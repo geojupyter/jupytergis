@@ -1,6 +1,7 @@
 {
   "layerTree": [
-    "a82ef521-e727-4209-a5a0-145d66f18a06"
+    "a82ef521-e727-4209-a5a0-145d66f18a06",
+    "c4fe5c17-c637-4012-bc67-055982e8f61f"
   ],
   "layers": {
     "a82ef521-e727-4209-a5a0-145d66f18a06": {
@@ -10,12 +11,21 @@
       },
       "type": "RasterLayer",
       "visible": true
+    },
+    "c4fe5c17-c637-4012-bc67-055982e8f61f": {
+      "name": "Hillshade Layer Layer",
+      "parameters": {
+        "shadowColor": "#473B24",
+        "source": "cffe76e7-fa97-445a-98dc-a2861f5782ca"
+      },
+      "type": "HillshadeLayer",
+      "visible": true
     }
   },
   "options": {
-    "latitude": 47.56633400505086,
-    "longitude": 11.726531982421875,
-    "zoom": 11.206877240190787
+    "latitude": 47.53711455298446,
+    "longitude": 11.666887524637332,
+    "zoom": 10.265810972484879
   },
   "sources": {
     "ceef4036-b757-44bf-8a21-42c6c99dab72": {
@@ -39,5 +49,8 @@
       "type": "RasterDemSource"
     }
   },
-  "terrain": {}
+  "terrain": {
+    "exaggeration": 0.5,
+    "source": "cffe76e7-fa97-445a-98dc-a2861f5782ca"
+  }
 }
