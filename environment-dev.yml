@@ -1,0 +1,6 @@
+name: jupytergis
+channels:
+  - conda-forge
+dependencies:
+  - pip
+  - qgis
