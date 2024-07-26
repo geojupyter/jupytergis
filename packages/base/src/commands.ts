@@ -102,6 +102,32 @@ export function addCommands(
     ...icons.get(CommandIDs.newVectorTileLayer)
   });
 
+  commands.addCommand(CommandIDs.newHillshadeLayer, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Hillshade')
+        : trans.__('Add new hillshade layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createHillshadeLayer(tracker, formSchemaRegistry)
+  });
+
+  commands.addCommand(CommandIDs.newRasterLayer, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Raster')
+        : trans.__('Add new raster layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createRasterLayer(tracker, formSchemaRegistry)
+  });
+
   /**
    * SOURCES only commands.
    */
@@ -298,16 +324,6 @@ export function addCommands(
     ...icons.get(CommandIDs.newVectorLayer)
   });
 
-  commands.addCommand(CommandIDs.newHillshadeLayer, {
-    label: trans.__('Hillshade'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createHillshadeLayer(tracker, formSchemaRegistry)
-  });
-
   commands.addCommand(CommandIDs.newTerrain, {
     label: trans.__('New Terrain'),
     isEnabled: () => {
@@ -434,6 +450,33 @@ namespace Private {
         },
         sourceType: 'VectorTileSource',
         layerType: 'VectorLayer',
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createRasterLayer(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async (args: any) => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create Raster Layer',
+        createLayer: true,
+        createSource: false,
+        layerData: {
+          name: 'Custom Raster Layer'
+        },
+        sourceType: 'RasterSource',
+        layerType: 'RasterLayer',
         formSchemaRegistry
       });
       await dialog.launch();

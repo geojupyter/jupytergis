@@ -172,6 +172,11 @@ const activate = (
     });
 
     palette.addItem({
+      command: CommandIDs.newRasterLayer,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
       command: CommandIDs.newGeoJSONSource,
       category: 'JupyterGIS'
     });

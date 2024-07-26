@@ -14,6 +14,7 @@ export namespace CommandIDs {
   export const newGeoJSONLayer = 'jupytergis:newGeoJSONLayer';
   export const newVectorTileLayer = 'jupytergis:newVectorTileLayer';
   export const newHillshadeLayer = 'jupytergis:newHillshadeLayer';
+  export const newRasterLayer = 'jupytergis:newRasterLayer';
 
   // Sources only commands
   export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
