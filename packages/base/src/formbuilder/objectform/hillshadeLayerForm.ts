@@ -11,7 +11,6 @@ export class HillshadeLayerPropertiesForm extends LayerPropertiesForm {
     uiSchema: IDict
   ) {
     super.processSchema(data, schema, uiSchema);
-    console.log('uiSchema', uiSchema);
     uiSchema['shadowColor'] = {
       'ui:widget': 'color'
     };
