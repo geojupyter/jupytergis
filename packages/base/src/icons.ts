@@ -11,6 +11,7 @@ import rasterSvgStr from '../style/icons/raster.svg';
 import visibilitySvgStr from '../style/icons/visibility.svg';
 import nonVisibilitySvgStr from '../style/icons/nonvisibility.svg';
 import geoJsonSvgStr from '../style/icons/geojson.svg';
+import moundSvgStr from '../style/icons/mound.svg';
 
 export const rasterIcon = new LabIcon({
   name: 'jupytergis::raster',
@@ -30,4 +31,9 @@ export const nonVisibilityIcon = new LabIcon({
 export const geoJSONIcon = new LabIcon({
   name: 'jupytergis::geoJSON',
   svgstr: geoJsonSvgStr
+});
+
+export const moundIcon = new LabIcon({
+  name: 'jupytergis::mound',
+  svgstr: moundSvgStr
 });

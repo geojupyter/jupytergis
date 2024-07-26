@@ -1,0 +1,14 @@
+.jp-gis-terrain-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.jp-gis-terrain-label {
+  margin: 0;
+  padding: 0;
+  font-weight: bold;
+  display: block;
+  position: relative;
+}

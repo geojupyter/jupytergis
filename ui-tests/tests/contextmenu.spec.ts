@@ -52,6 +52,29 @@ test.describe('context menu', () => {
     await expect(submenu).toBeVisible();
   });
 
+  test('move layer to new group', async ({ page }) => {
+    const layer = await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Open Topo Map');
+
+    layer.click({ button: 'right' });
+
+    await page.getByText('Move Layers to Group').hover();
+    await page.getByText('Move Layers to New Group').click();
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByRole('textbox')
+      .fill('new group');
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByRole('textbox')
+      .press('Enter');
+
+    await expect(page.getByText('new group')).toHaveCount(1);
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(layer).toBeVisible();
+  });
+
   test('clicking remove layer should remove the layer from the tree', async ({
     page
   }) => {
@@ -66,6 +89,9 @@ test.describe('context menu', () => {
 
     await page.getByRole('menu').getByText('Remove Layer').click();
     await expect(firstItem).not.toBeVisible();
+
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(firstItem).toBeVisible();
   });
 
   test('clicking remove group should remove the group from the tree', async ({
@@ -82,6 +108,9 @@ test.describe('context menu', () => {
 
     await page.getByRole('menu').getByText('Remove Group').click();
     await expect(firstItem).not.toBeVisible();
+
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(firstItem).toBeVisible();
   });
 
   test('pressing F2 should start rename for layer', async ({ page }) => {
@@ -170,25 +199,5 @@ test.describe('context menu', () => {
     const group = page.getByText('level 2 groupRegions FranceOpen Topo Map');
 
     await expect(group).toHaveCount(1);
-  });
-
-  test('move layer to new group', async ({ page }) => {
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByText('Open Topo Map')
-      .click({ button: 'right' });
-
-    await page.getByText('Move Layers to Group').hover();
-    await page.getByText('Move Layers to New Group').click();
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByRole('textbox')
-      .fill('new group');
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByRole('textbox')
-      .press('Enter');
-
-    await expect(page.getByText('new group')).toHaveCount(1);
   });
 });

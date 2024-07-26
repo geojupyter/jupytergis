@@ -7,12 +7,12 @@ import {
   SelectionType
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { showErrorMessage, WidgetTracker } from '@jupyterlab/apputils';
+import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
-
 import { CommandIDs, icons } from './constants';
-import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { CreationFormDialog } from './dialogs/formdialog';
+import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
+import { TerrainDialogWidget } from './dialogs/terrainDialog';
 import { JupyterGISWidget } from './widget';
 
 /**
@@ -149,6 +149,17 @@ export function addCommands(
       });
     }
   });
+
+  commands.addCommand(CommandIDs.newRasterDemSource, {
+    label: trans.__('Raster DEM'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createRasterDemSource(tracker, formSchemaRegistry)
+  });
+
   /**
    * LAYERS and LAYER GROUPS only commands.
    */
@@ -286,6 +297,43 @@ export function addCommands(
     execute: Private.createVectorLayer(tracker, formSchemaRegistry),
     ...icons.get(CommandIDs.newVectorLayer)
   });
+
+  commands.addCommand(CommandIDs.newHillshadeLayer, {
+    label: trans.__('Hillshade'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createHillshadeLayer(tracker, formSchemaRegistry)
+  });
+
+  commands.addCommand(CommandIDs.newTerrain, {
+    label: trans.__('New Terrain'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    iconClass: 'fa fa-mountain',
+    execute: Private.createTerrainDialog(tracker)
+  });
+
+  commands.addCommand(CommandIDs.removeTerrain, {
+    label: trans.__('Remove Terrain'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    iconClass: 'fa fa-mountain',
+    execute: () => {
+      tracker.currentWidget?.context.model.setTerrain({
+        source: '',
+        exaggeration: 0
+      });
+    }
+  });
 }
 
 namespace Private {
@@ -305,6 +353,23 @@ namespace Private {
         context: current.context,
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createTerrainDialog(
+    tracker: WidgetTracker<JupyterGISWidget>
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new TerrainDialogWidget({
+        context: current.context
       });
       await dialog.launch();
     };
@@ -406,6 +471,36 @@ namespace Private {
     };
   }
 
+  export function createRasterDemSource(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+      console.log('formSchemaRegistry', formSchemaRegistry);
+      console.log('current', current);
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create Raster DEM Source',
+        createLayer: false,
+        createSource: true,
+        sourceData: {
+          name: 'Custom Raster DEM Source',
+          url: 'https://demotiles.maplibre.org/terrain-tiles/tiles.json',
+          tileSize: 256
+        },
+        sourceType: 'RasterDemSource',
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
   /**
    * Command to create a Vector layer.
    *
@@ -432,6 +527,33 @@ namespace Private {
         },
         sourceType: 'GeoJSONSource',
         layerType: 'VectorLayer',
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createHillshadeLayer(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create Hillshade Layer',
+        createLayer: true,
+        createSource: false,
+        layerData: {
+          name: 'Custom Hillshade Layer'
+        },
+        sourceType: 'RasterDemSource',
+        layerType: 'HillshadeLayer',
         formSchemaRegistry
       });
       await dialog.launch();

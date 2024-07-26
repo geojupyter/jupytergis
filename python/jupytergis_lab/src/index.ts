@@ -76,13 +76,24 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.contextMenu.addItem({
       type: 'submenu',
       selector: '.jp-gis-sourcePanel',
-      rank: 2,
+      rank: 3,
       submenu: newSourceSubMenu
     });
 
     newSourceSubMenu.addItem({
       command: CommandIDs.newGeoJSONSource,
       args: { from: 'contextMenu' }
+    });
+
+    newSourceSubMenu.addItem({
+      command: CommandIDs.newRasterDemSource,
+      args: { from: 'contextMenu' }
+    });
+
+    app.contextMenu.addItem({
+      type: 'separator',
+      selector: '.jp-gis-sourcePanel',
+      rank: 2
     });
 
     app.contextMenu.addItem({
@@ -173,6 +184,28 @@ const plugin: JupyterFrontEndPlugin<void> = {
       command: CommandIDs.renameGroup,
       keys: ['F2'],
       selector: '.jp-gis-layerGroupHeader .jp-gis-layerText'
+    });
+
+    app.contextMenu.addItem({
+      type: 'separator',
+      selector: '.jp-gis-layerPanel',
+      rank: 2
+    });
+
+    const newLayerSubMenu = new Menu({ commands: app.commands });
+    newLayerSubMenu.title.label = translator.load('jupyterlab').__('Add Layer');
+    newLayerSubMenu.id = 'jp-gis-contextmenu-addLayer';
+
+    app.contextMenu.addItem({
+      type: 'submenu',
+      selector: '.jp-gis-layerPanel',
+      rank: 3,
+      submenu: newLayerSubMenu
+    });
+
+    newLayerSubMenu.addItem({
+      command: CommandIDs.newHillshadeLayer,
+      args: { from: 'contextMenu' }
     });
 
     if (mainMenu) {

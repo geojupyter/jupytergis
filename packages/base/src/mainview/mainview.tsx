@@ -1,14 +1,17 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
+  IHillshadeLayer,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
+  IJGISTerrain,
   IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
+  IRasterDemSource,
   IRasterSource,
   IVectorLayer,
   IVectorTileSource,
@@ -60,6 +63,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
+    this._model.terrainChanged.connect(this._onTerrainChange, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -190,6 +194,21 @@ export class MainView extends React.Component<IProps, IStates> {
             data: data
           });
         }
+        break;
+      }
+      case 'RasterDemSource': {
+        const mapSource = this._Map.getSource(
+          id
+        ) as MapLibre.RasterDEMTileSource;
+        if (!mapSource) {
+          const parameters = source.parameters as IRasterDemSource;
+          this._Map.addSource(id, {
+            type: 'raster-dem',
+            tileSize: parameters.tileSize,
+            url: parameters.url
+          });
+        }
+        break;
       }
     }
   }
@@ -223,9 +242,10 @@ export class MainView extends React.Component<IProps, IStates> {
   async updateSource(id: string, source: IJGISSource): Promise<void> {
     const mapSource = this._Map.getSource(id);
     if (!mapSource) {
-      console.log(`Source id ${id} does not exist`);
+      this.addSource(id, source);
       return;
     }
+
     switch (source.type) {
       case 'RasterSource': {
         (mapSource as MapLibre.RasterTileSource).setTiles([
@@ -244,6 +264,15 @@ export class MainView extends React.Component<IProps, IStates> {
           source.parameters?.data ||
           (await this._model.readGeoJSON(source.parameters?.path));
         (mapSource as MapLibre.GeoJSONSource).setData(data);
+        break;
+      }
+      case 'RasterDemSource': {
+        const parameters = source.parameters as IRasterDemSource;
+        (mapSource as MapLibre.RasterDEMTileSource).setTiles([parameters.url]);
+        break;
+      }
+      default: {
+        console.warn('Source type not found');
       }
     }
   }
@@ -339,6 +368,7 @@ export class MainView extends React.Component<IProps, IStates> {
     if (!source) {
       return;
     }
+
     if (!this._Map.getSource(sourceId)) {
       await this.addSource(sourceId, source);
     }
@@ -399,7 +429,59 @@ export class MainView extends React.Component<IProps, IStates> {
         );
         break;
       }
+      case 'HillshadeLayer': {
+        const parameters = layer.parameters as IHillshadeLayer;
+
+        this._Map.addLayer(
+          {
+            id: id,
+            type: 'hillshade',
+            layout: {
+              visibility: layer.visible ? 'visible' : 'none'
+            },
+            paint: {
+              'hillshade-shadow-color':
+                parameters?.shadowColor !== undefined
+                  ? parameters.shadowColor
+                  : '#473B24'
+            },
+            source: sourceId
+          },
+          beforeId
+        );
+        break;
+      }
     }
+  }
+
+  async setTerrain(sourceId: string, exaggeration: number) {
+    if (this._terrainControl) {
+      this._Map.removeControl(this._terrainControl);
+      this._terrainControl = null;
+    }
+
+    // Remove terrain
+    if (!sourceId) {
+      this._Map.setTerrain(null);
+      return;
+    }
+
+    // Add the source if necessary.
+    const source = this._model.sharedModel.getSource(sourceId);
+    if (!source) {
+      return;
+    }
+
+    if (!this._Map.getSource(sourceId)) {
+      await this.addSource(sourceId, source);
+    }
+
+    this._terrainControl = new MapLibre.TerrainControl({
+      source: sourceId,
+      exaggeration
+    });
+    this._Map.setTerrain({ source: sourceId, exaggeration });
+    this._Map.addControl(this._terrainControl);
   }
 
   /**
@@ -490,6 +572,17 @@ export class MainView extends React.Component<IProps, IStates> {
           layer.parameters?.opacity !== undefined ? layer.parameters.opacity : 1
         );
         break;
+      }
+      case 'HillshadeLayer': {
+        const parameters = layer.parameters as IHillshadeLayer;
+
+        this._Map.setPaintProperty(
+          id,
+          'hillshade-shadow-color',
+          parameters?.shadowColor !== undefined
+            ? parameters.shadowColor
+            : '#473B24'
+        );
       }
     }
   }
@@ -603,6 +696,10 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
+  private _onTerrainChange(sender: any, change: IJGISTerrain) {
+    this.setTerrain(change.source, change.exaggeration);
+  }
+
   // @ts-ignore
   private getSource<T>(id: string): T | undefined {
     const source = this._model.sharedModel.getSource(id);
@@ -658,4 +755,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;
+  private _terrainControl: MapLibre.TerrainControl | null;
 }

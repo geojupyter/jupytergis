@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "description": "RasterDemSource",
+  "title": "IRasterDemSource",
+  "required": ["url", "tileSize"],
+  "additionalProperties": false,
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "The url to the tile provider"
+    },
+    "tileSize": {
+      "type": "number",
+      "description": " The tile size"
+    },
+    "attribution": {
+      "type": "string",
+      "description": "The attribution for the raster-dem source"
+    },
+    "urlParameters": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  }
+}
