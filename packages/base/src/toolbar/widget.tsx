@@ -91,6 +91,15 @@ export class ToolbarWidget extends Toolbar {
         })
       );
 
+      this.addItem(
+        'newVideoSource',
+        new CommandToolbarButton({
+          id: CommandIDs.newVideoSource,
+          label: '',
+          commands: options.commands
+        })
+      );
+
       // Add more commands here
 
       this.addItem('spacer', Toolbar.createSpacerItem());

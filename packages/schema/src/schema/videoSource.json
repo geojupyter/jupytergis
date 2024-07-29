@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "description": "VideoSource",
+  "title": "IVideoSource",
+  "required": ["urls", "coordinates"],
+  "additionalProperties": false,
+  "properties": {
+    "urls": {
+      "type": "array",
+      "readOnly": true,
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "default": [],
+      "description": "URLs to video content in order of preferred format"
+    },
+    "coordinates": {
+      "type": "array",
+      "readOnly": true,
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "default": [],
+      "description": "Corners of video specified in longitude, latitude pairs"
+    }
+  }
+}

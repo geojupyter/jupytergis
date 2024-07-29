@@ -90,6 +90,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
       args: { from: 'contextMenu' }
     });
 
+    newSourceSubMenu.addItem({
+      command: CommandIDs.newVideoSource,
+      args: { from: 'contextMenu' }
+    });
+
     app.contextMenu.addItem({
       type: 'separator',
       selector: '.jp-gis-sourcePanel',

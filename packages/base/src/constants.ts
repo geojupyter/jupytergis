@@ -21,6 +21,7 @@ export namespace CommandIDs {
   export const newRasterDemSource = 'jupytergis:newRasterDemSource';
   export const removeSource = 'jupytergis:removeSource';
   export const renameSource = 'jupytergis:renameSource';
+  export const newVideoSource = 'jupytergis:videoSource';
 
   // Layers only commands
   export const newVectorLayer = 'jupytergis:newVectorLayer';
