@@ -9,10 +9,7 @@
       "type": "array",
       "readOnly": true,
       "items": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
+        "type": "string"
       },
       "default": [],
       "description": "URLs to video content in order of preferred format"
@@ -24,8 +21,12 @@
         "type": "array",
         "items": {
           "type": "number"
-        }
+        },
+        "minItems": 2,
+        "maxItems": 2
       },
+      "minItems": 4,
+      "maxItems": 4,
       "default": [],
       "description": "Corners of video specified in longitude, latitude pairs"
     }

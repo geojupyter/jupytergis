@@ -15,6 +15,7 @@ import {
   IRasterSource,
   IVectorLayer,
   IVectorTileSource,
+  IVideoSource,
   JupyterGISModel
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -217,7 +218,7 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'VideoSource': {
         const mapSource = this._Map.getSource(id) as MapLibre.VideoSource;
         if (!mapSource) {
-          const parameters = source.parameters;
+          const parameters = source.parameters as IVideoSource;
           this._Map.addSource(id, {
             type: 'video',
             urls: parameters?.urls,
