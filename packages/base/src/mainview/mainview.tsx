@@ -214,6 +214,18 @@ export class MainView extends React.Component<IProps, IStates> {
         }
         break;
       }
+      case 'VideoSource': {
+        const mapSource = this._Map.getSource(id) as MapLibre.VideoSource;
+        if (!mapSource) {
+          const parameters = source.parameters;
+          this._Map.addSource(id, {
+            type: 'video',
+            urls: parameters?.urls,
+            coordinates: parameters?.coordinates
+          });
+        }
+        break;
+      }
     }
   }
 
