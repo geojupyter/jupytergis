@@ -128,6 +128,19 @@ export function addCommands(
     execute: Private.createRasterLayer(tracker, formSchemaRegistry)
   });
 
+  commands.addCommand(CommandIDs.newVideoLayer, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Video')
+        : trans.__('Add new video layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createVideoLayer(tracker, formSchemaRegistry)
+  });
+
   /**
    * SOURCES only commands.
    */
@@ -564,8 +577,6 @@ namespace Private {
   ) {
     return async () => {
       const current = tracker.currentWidget;
-      console.log('formSchemaRegistry', formSchemaRegistry);
-      console.log('current', current);
 
       if (!current) {
         return;
@@ -649,6 +660,33 @@ namespace Private {
         },
         sourceType: 'RasterDemSource',
         layerType: 'HillshadeLayer',
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createVideoLayer(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create Video Layer',
+        createLayer: true,
+        createSource: false,
+        layerData: {
+          name: 'Custom Video Layer'
+        },
+        sourceType: 'VideoSource',
+        layerType: 'RasterLayer',
         formSchemaRegistry
       });
       await dialog.launch();

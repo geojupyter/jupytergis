@@ -218,6 +218,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
       args: { from: 'contextMenu' }
     });
 
+    newLayerSubMenu.addItem({
+      command: CommandIDs.newVideoLayer,
+      args: { from: 'contextMenu' }
+    });
+
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }

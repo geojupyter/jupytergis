@@ -25,6 +25,7 @@ export namespace CommandIDs {
 
   // Layers only commands
   export const newVectorLayer = 'jupytergis:newVectorLayer';
+  export const newVideoLayer = 'jupytergis:newVideoLayer';
 
   export const renameLayer = 'jupytergis:renameLayer';
   export const removeLayer = 'jupytergis:removeLayer';

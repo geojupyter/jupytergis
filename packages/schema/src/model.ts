@@ -248,13 +248,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const sources: { [key: string]: string } = {};
     for (const sourceId of Object.keys(this.getSources() || {})) {
       const source = this.getSource(sourceId);
-      console.log('source', source);
-      console.log('type', type);
       if (source?.type === type) {
-        sources[sourceId] = source.name;
-      }
-      if (type === 'RasterSource' && source?.type === 'VideoSource') {
-        console.log('check');
         sources[sourceId] = source.name;
       }
     }
