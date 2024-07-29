@@ -219,15 +219,26 @@ export class MainView extends React.Component<IProps, IStates> {
         const mapSource = this._Map.getSource(id) as MapLibre.VideoSource;
         if (!mapSource) {
           const parameters = source.parameters as IVideoSource;
-          this._Map.addSource(id, {
-            type: 'video',
-            urls: parameters?.urls,
-            coordinates: parameters?.coordinates
-          });
+          this._Map
+            .addSource(id, {
+              type: 'video',
+              urls: parameters?.urls,
+              coordinates: parameters?.coordinates
+            })
+            .on('click', () => this.toggleVideoPlaying(id));
+
+          this._videoPlaying = true;
         }
         break;
       }
     }
+  }
+
+  private toggleVideoPlaying(sourceId: any) {
+    const source = this._Map.getSource(sourceId) as MapLibre.VideoSource;
+
+    this._videoPlaying ? source?.pause() : source?.play();
+    this._videoPlaying = !this._videoPlaying;
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -775,4 +786,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _terrainControl: MapLibre.TerrainControl | null;
+  private _videoPlaying = false;
 }

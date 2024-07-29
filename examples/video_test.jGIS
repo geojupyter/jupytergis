@@ -23,11 +23,11 @@
     }
   },
   "options": {
-    "bearing": -0.03981495870868912,
-    "latitude": 37.562441409450926,
-    "longitude": -122.5138524281083,
-    "pitch": 0.5,
-    "zoom": 16.27812555438609
+    "bearing": -96.0,
+    "latitude": 37.562984,
+    "longitude": -122.514426,
+    "pitch": 0.0,
+    "zoom": 17.0
   },
   "sources": {
     "319c8756-ffee-45eb-8bbc-36a32526a9f6": {
