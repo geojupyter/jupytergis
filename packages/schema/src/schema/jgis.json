@@ -32,7 +32,8 @@
         "VectorTileSource",
         "GeoJSONSource",
         "RasterDemSource",
-        "VideoSource"
+        "VideoSource",
+        "ImageSource"
       ]
     },
     "jGISLayer": {

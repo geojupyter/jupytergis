@@ -1,6 +1,7 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
   IHillshadeLayer,
+  IImageSource,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -228,6 +229,18 @@ export class MainView extends React.Component<IProps, IStates> {
             .on('click', () => this.toggleVideoPlaying(id));
 
           this._videoPlaying = true;
+        }
+        break;
+      }
+      case 'ImageSource': {
+        const mapSource = this._Map.getSource(id) as MapLibre.ImageSource;
+        if (!mapSource) {
+          const parameters = source.parameters as IImageSource;
+          this._Map.addSource(id, {
+            type: 'image',
+            url: parameters?.url,
+            coordinates: parameters?.coordinates
+          });
         }
         break;
       }

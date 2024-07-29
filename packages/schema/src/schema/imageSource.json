@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "description": "ImageSource",
+  "title": "IImageSource",
+  "required": ["url", "coordinates"],
+  "additionalProperties": false,
+  "properties": {
+    "url": {
+      "type": "string",
+      "readOnly": true,
+      "description": "URL that points to an image"
+    },
+    "coordinates": {
+      "type": "array",
+      "readOnly": true,
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "minItems": 4,
+      "maxItems": 4,
+      "default": [],
+      "description": "Corners of image specified in longitude, latitude pairs"
+    }
+  }
+}

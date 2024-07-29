@@ -2,6 +2,7 @@ export * from './_interface/jgis';
 
 // Sources
 export * from './_interface/geojsonsource';
+export * from './_interface/imageSource';
 export * from './_interface/rasterDemSource';
 export * from './_interface/rastersource';
 export * from './_interface/vectortilesource';
