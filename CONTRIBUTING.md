@@ -2,7 +2,7 @@
 
 ### Development install
 
-Note: You will need NodeJS to build the extension package.
+**Note:** You will need [Node.js](https://nodejs.org/) and [Docker](https://www.docker.com/) to build the extension package.
 
 The `jlpm` command is JupyterLab's pinned version of
 [yarn](https://yarnpkg.com/) that is installed with JupyterLab. You may use
@@ -10,9 +10,13 @@ The `jlpm` command is JupyterLab's pinned version of
 
 ```bash
 # Clone the repo to your local environment
+git clone https://github.com/QuantStack/jupytergis.git
 # Change directory to the jupytergis directory
+cd jupytergis
+# Install JupyterLab for jlpm
+pip install jupyterlab
 # Install package in development mode
-pip install -e .
+python scripts/dev-install.py
 # Link your development version of the extension with JupyterLab
 jupyter labextension develop . --overwrite
 # Server extension must be manually installed in develop mode
