@@ -2,7 +2,7 @@
 
 ### Development install
 
-**Note:** You will need [Node.js](https://nodejs.org/) and [Docker](https://www.docker.com/) to build the extension package.
+**Note:** You will need [Node.js](https://nodejs.org/) to build the extension package.
 
 The `jlpm` command is JupyterLab's pinned version of
 [yarn](https://yarnpkg.com/) that is installed with JupyterLab. You may use
