@@ -312,6 +312,21 @@ export class MainView extends React.Component<IProps, IStates> {
         (mapSource as MapLibre.RasterDEMTileSource).setTiles([parameters.url]);
         break;
       }
+      case 'ImageSource': {
+        const parameters = source.parameters as IImageSource;
+        (mapSource as MapLibre.ImageSource).updateImage({
+          url: parameters.url,
+          coordinates: parameters.coordinates
+        });
+        break;
+      }
+      case 'VideoSource': {
+        const parameters = source.parameters as IVideoSource;
+        (mapSource as MapLibre.VideoSource).setCoordinates(
+          parameters.coordinates
+        );
+        break;
+      }
       default: {
         console.warn('Source type not found');
       }
@@ -325,6 +340,11 @@ export class MainView extends React.Component<IProps, IStates> {
    */
   removeSource(id: string): void {
     const mapSource = this._Map.getSource(id);
+    if (mapSource?.type === 'video') {
+      (mapSource as MapLibre.VideoSource).off('click', () =>
+        this.toggleVideoPlaying(id)
+      );
+    }
     if (mapSource) {
       this._Map.removeSource(id);
     }
@@ -728,7 +748,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     change.sourceChange?.forEach(change => {
-      if (!change.newValue) {
+      if (!change.newValue || Object.keys(change.newValue).length === 0) {
         this.removeSource(change.id);
       } else {
         const source = this._model.getSource(change.id);
