@@ -160,7 +160,7 @@ function SourceComponent(props: ISourceProps): JSX.Element {
    */
   useEffect(() => {
     const checkUsage = () => {
-      setUnused(!(gisModel?.getLayersBySource(sourceId).length) ?? true);
+      setUnused(!gisModel?.getLayersBySource(sourceId).length ?? true);
     };
 
     gisModel?.sharedLayersChanged.connect(checkUsage);
