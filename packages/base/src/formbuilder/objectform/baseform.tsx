@@ -134,6 +134,21 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
           },
           ...uiSchema[k]
         };
+
+        if (v['items']['type'] === 'array') {
+          uiSchema[k] = {
+            items: {
+              'ui:options': {
+                orderable: false,
+                removable: false,
+                addable: false
+              },
+              ...uiSchema[k]['items']
+            },
+
+            ...uiSchema[k]
+          };
+        }
       }
 
       if (v['type'] === 'object') {
