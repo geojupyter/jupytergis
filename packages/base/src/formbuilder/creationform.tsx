@@ -61,6 +61,11 @@ export interface ICreationFormProps {
 
   formSchemaRegistry: IJGISFormSchemaRegistry;
   context: DocumentRegistry.IContext<IJupyterGISModel>;
+
+  /**
+   * A signal emitting when the form changed.
+   */
+  formChangedSignal?: Signal<Dialog<any>, void>;
 }
 
 /**
@@ -192,6 +197,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               }}
               ok={this.props.ok}
               cancel={this.props.cancel}
+              formChangedSignal={this.props.formChangedSignal}
             />
           </div>
         )}
@@ -210,6 +216,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               }}
               ok={this.props.ok}
               cancel={this.props.cancel}
+              formChangedSignal={this.props.formChangedSignal}
             />
           </div>
         )}

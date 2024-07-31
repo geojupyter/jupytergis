@@ -7,7 +7,16 @@ import { Signal } from '@lumino/signaling';
 import { PromiseDelegate } from '@lumino/coreutils';
 
 export interface ICreationFormWrapperProps extends ICreationFormProps {
+  /**
+   * A promise resolving when the dialog is ready.
+   * Return a signal emitting when OK button is pressed.
+   */
   okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
+  /**
+   * A promise resolving when the dialog is ready.
+   * Return a signal emitting when the form changed.
+   */
+  formChangedSignalPromise?: PromiseDelegate<Signal<Dialog<any>, void>>;
 }
 
 export interface ICreationFormDialogOptions extends ICreationFormProps {
@@ -15,16 +24,19 @@ export interface ICreationFormDialogOptions extends ICreationFormProps {
 }
 
 export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
-  const [ok, setOk] = React.useState<Signal<Dialog<any>, number> | undefined>(
-    undefined
-  );
+  const [ready, setReady] = React.useState<boolean>(false);
 
-  props.okSignalPromise.promise.then(value => {
-    setOk(value);
+  const okSignal = React.useRef<Signal<Dialog<any>, number>>();
+  const formChangedSignal = React.useRef<Signal<Dialog<any>, void>>()
+
+  Promise.all([props.okSignalPromise.promise, props.formChangedSignalPromise?.promise]).then(([ok, formChanged]) => {
+    okSignal.current = ok;
+    formChangedSignal.current = formChanged;
+    setReady(true);
   });
 
   return (
-    ok && (
+    ready && (
       <CreationForm
         context={props.context}
         formSchemaRegistry={props.formSchemaRegistry}
@@ -34,8 +46,9 @@ export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
         sourceType={props.sourceType}
         sourceData={props.sourceData}
         layerData={props.layerData}
-        ok={ok}
+        ok={okSignal.current}
         cancel={props.cancel}
+        formChangedSignal={formChangedSignal.current}
       />
     )
   );
@@ -53,6 +66,9 @@ export class CreationFormDialog extends Dialog<IDict> {
     const okSignalPromise = new PromiseDelegate<
       Signal<Dialog<IDict>, number>
     >();
+    const formChangedSignalPromise = new PromiseDelegate<
+      Signal<Dialog<IDict>, void>
+    >();
 
     const body = (
       <div style={{ overflow: 'auto' }}>
@@ -67,6 +83,7 @@ export class CreationFormDialog extends Dialog<IDict> {
           layerData={options.layerData}
           okSignalPromise={okSignalPromise}
           cancel={cancelCallback}
+          formChangedSignalPromise={formChangedSignalPromise}
         />
       </div>
     );
@@ -77,13 +94,23 @@ export class CreationFormDialog extends Dialog<IDict> {
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     });
 
-    // Disable ok button by default. It will be enabled automatically once the form is valid.
-    this.node
-      .getElementsByClassName('jp-mod-accept')[0]
-      .setAttribute('disabled', '');
-
     this.okSignal = new Signal(this);
+    const formChangedSignal = new Signal<Dialog<any>, void>(this);
+
+    /**
+     * Disable the OK button if the form is invalid.
+     */
+    formChangedSignal.connect(() => {
+      const invalid = !!this.node.querySelector(':invalid');
+      if (invalid) {
+        this.node
+          .getElementsByClassName('jp-mod-accept')[0]
+          .setAttribute('disabled', '');
+      }
+    });
+
     okSignalPromise.resolve(this.okSignal);
+    formChangedSignalPromise.resolve(formChangedSignal);
 
     this.addClass('jGIS-layer-CreationFormDialog');
   }
