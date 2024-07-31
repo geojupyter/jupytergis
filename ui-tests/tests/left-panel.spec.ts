@@ -104,17 +104,18 @@ test.describe('#layerPanel', () => {
     test('should navigate in nested groups', async ({ page }) => {
       const layerTree = await openLayerTree(page);
       const layerEntries = layerTree.locator('.jp-gis-layerItem');
+      const layerGroups = layerTree.locator('.jp-gis-layerGroup');
 
       await expect(layerEntries).toHaveCount(2);
-      await expect(layerEntries.first()).toHaveClass(/jp-gis-layer/);
-      await expect(layerEntries.last()).toHaveClass(/jp-gis-layerGroup/);
+      await expect(layerEntries.first()).toHaveClass(/jp-gis-layerGroup/);
+      await expect(layerEntries.last()).toHaveClass(/jp-gis-layer/);
 
       // Open the first level group
-      await layerEntries.last().click();
+      await layerGroups.first().click();
       await expect(layerEntries).toHaveCount(4);
 
       // Open the second level group
-      await layerEntries.last().click();
+      await layerGroups.last().click();
       await expect(layerEntries).toHaveCount(5);
     });
 
@@ -171,7 +172,7 @@ test.describe('#layerPanel', () => {
       const hideLayerButton = layerTree.getByTitle('Hide layer');
 
       // Hide the last layer (top in z-index).
-      await hideLayerButton.last().click();
+      await hideLayerButton.first().click();
       // wait for a significant change in the screenshots (1%).
       await page.waitForCondition(async () => {
         try {
