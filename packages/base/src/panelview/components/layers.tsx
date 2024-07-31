@@ -119,7 +119,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
 
   return (
     <div id="jp-gis-layer-tree">
-      {layerTree.map(layer =>
+      {layerTree.reverse().map(layer =>
         typeof layer === 'string' ? (
           <LayerComponent
             gisModel={model}
@@ -210,7 +210,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
       </div>
       {open && (
         <div>
-          {layers.map(layer =>
+          {layers.reverse().map(layer =>
             typeof layer === 'string' ? (
               <LayerComponent
                 gisModel={gisModel}
