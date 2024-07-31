@@ -202,7 +202,7 @@ test.describe('context menu', () => {
     await page.getByText('level 1 group').click();
     await page.getByText('level 2 group').click();
 
-    const group = page.getByText('level 2 groupRegions FranceOpen Topo Map');
+    const group = page.getByText('level 2 groupOpen Topo MapRegions France');
 
     await expect(group).toHaveCount(1);
   });

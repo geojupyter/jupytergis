@@ -119,21 +119,23 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
 
   return (
     <div id="jp-gis-layer-tree">
-      {layerTree.map(layer =>
-        typeof layer === 'string' ? (
-          <LayerComponent
-            gisModel={model}
-            layerId={layer}
-            onClick={onItemClick}
-          />
-        ) : (
-          <LayerGroupComponent
-            gisModel={model}
-            group={layer}
-            onClick={onItemClick}
-          />
-        )
-      )}
+      {layerTree
+        .reverse()
+        .map(layer =>
+          typeof layer === 'string' ? (
+            <LayerComponent
+              gisModel={model}
+              layerId={layer}
+              onClick={onItemClick}
+            />
+          ) : (
+            <LayerGroupComponent
+              gisModel={model}
+              group={layer}
+              onClick={onItemClick}
+            />
+          )
+        )}
     </div>
   );
 }
@@ -210,21 +212,23 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
       </div>
       {open && (
         <div>
-          {layers.map(layer =>
-            typeof layer === 'string' ? (
-              <LayerComponent
-                gisModel={gisModel}
-                layerId={layer}
-                onClick={onClick}
-              />
-            ) : (
-              <LayerGroupComponent
-                gisModel={gisModel}
-                group={layer}
-                onClick={onClick}
-              />
-            )
-          )}
+          {layers
+            .reverse()
+            .map(layer =>
+              typeof layer === 'string' ? (
+                <LayerComponent
+                  gisModel={gisModel}
+                  layerId={layer}
+                  onClick={onClick}
+                />
+              ) : (
+                <LayerGroupComponent
+                  gisModel={gisModel}
+                  group={layer}
+                  onClick={onClick}
+                />
+              )
+            )}
         </div>
       )}
     </div>
