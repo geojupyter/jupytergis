@@ -14,9 +14,10 @@ export interface ICreationFormWrapperProps extends ICreationFormProps {
   okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
   /**
    * A promise resolving when the dialog is ready.
-   * Return a signal emitting when the form changed.
+   * Return a signal emitting when the form changed, with a boolean whether there are
+   * some extra errors or not.
    */
-  formChangedSignalPromise?: PromiseDelegate<Signal<Dialog<any>, void>>;
+  formChangedSignalPromise?: PromiseDelegate<Signal<Dialog<any>, boolean>>;
 }
 
 export interface ICreationFormDialogOptions extends ICreationFormProps {
@@ -27,9 +28,12 @@ export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
   const [ready, setReady] = React.useState<boolean>(false);
 
   const okSignal = React.useRef<Signal<Dialog<any>, number>>();
-  const formChangedSignal = React.useRef<Signal<Dialog<any>, void>>()
+  const formChangedSignal = React.useRef<Signal<Dialog<any>, boolean>>();
 
-  Promise.all([props.okSignalPromise.promise, props.formChangedSignalPromise?.promise]).then(([ok, formChanged]) => {
+  Promise.all([
+    props.okSignalPromise.promise,
+    props.formChangedSignalPromise?.promise
+  ]).then(([ok, formChanged]) => {
     okSignal.current = ok;
     formChangedSignal.current = formChanged;
     setReady(true);
@@ -67,7 +71,7 @@ export class CreationFormDialog extends Dialog<IDict> {
       Signal<Dialog<IDict>, number>
     >();
     const formChangedSignalPromise = new PromiseDelegate<
-      Signal<Dialog<IDict>, void>
+      Signal<Dialog<IDict>, boolean>
     >();
 
     const body = (
@@ -95,17 +99,21 @@ export class CreationFormDialog extends Dialog<IDict> {
     });
 
     this.okSignal = new Signal(this);
-    const formChangedSignal = new Signal<Dialog<any>, void>(this);
+    const formChangedSignal = new Signal<Dialog<any>, boolean>(this);
 
     /**
      * Disable the OK button if the form is invalid.
      */
-    formChangedSignal.connect(() => {
-      const invalid = !!this.node.querySelector(':invalid');
+    formChangedSignal.connect((_, extraErrors) => {
+      const invalid = extraErrors || !!this.node.querySelector(':invalid');
       if (invalid) {
         this.node
           .getElementsByClassName('jp-mod-accept')[0]
           .setAttribute('disabled', '');
+      } else {
+        this.node
+          .getElementsByClassName('jp-mod-accept')[0]
+          .removeAttribute('disabled');
       }
     });
 

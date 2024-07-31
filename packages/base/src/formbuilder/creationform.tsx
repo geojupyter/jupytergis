@@ -63,9 +63,10 @@ export interface ICreationFormProps {
   context: DocumentRegistry.IContext<IJupyterGISModel>;
 
   /**
-   * A signal emitting when the form changed.
+   * A signal emitting when the form changed, with a boolean whether there are some
+   * extra errors or not.
    */
-  formChangedSignal?: Signal<Dialog<any>, void>;
+  formChangedSignal?: Signal<Dialog<any>, boolean>;
 }
 
 /**
