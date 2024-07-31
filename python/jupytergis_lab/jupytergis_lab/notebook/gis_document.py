@@ -23,6 +23,8 @@ from .objects import (
     IVectorTileSource,
     IVectorLayer,
     IGeoJSONSource,
+    IImageSource,
+    IVideoSource
 )
 
 logger = logging.getLogger(__file__)
@@ -238,6 +240,84 @@ class GISDocument(CommWidget):
 
         self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
+    def add_image_layer(
+        self,
+        url: str,
+        coordinates: [],
+        name: str = "Image Layer",
+        opacity: float = 1,
+    ):
+        """
+        Add a Image Layer to the document.
+
+        :param name: The name that will be used for the object in the document.
+        :param url: The tiles url.
+        :param attribution: The attribution.
+        :param opacity: The opacity, between 0 and 1.
+        """
+
+        if url is None or coordinates is None:
+            raise ValueError("URL and Coordinates are required")
+
+        source = {
+            "type": SourceType.ImageSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "coordinates": coordinates
+            },
+        }
+
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.RasterLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {"source": source_id, "opacity": opacity},
+        }
+
+        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
+    def add_video_layer(
+        self,
+        urls: [],
+        name: str = "Image Layer",
+        coordinates: [] = [],
+        opacity: float = 1,
+    ):
+        """
+        Add a Video Layer to the document.
+
+        :param name: The name that will be used for the object in the document.
+        :param url: The tiles url.
+        :param attribution: The attribution.
+        :param opacity: The opacity, between 0 and 1.
+        """
+
+        if urls is None or coordinates is None:
+            raise ValueError("URLs and Coordinates are required")
+
+        source = {
+            "type": SourceType.VideoSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "urls": urls,
+                "coordinates": coordinates
+            },
+        }
+
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.RasterLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {"source": source_id, "opacity": opacity},
+        }
+
+        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
     def _add_source(self, new_object: "JGISObject"):
         _id = str(uuid4())
         obj_dict = json.loads(new_object.json())
@@ -304,6 +384,8 @@ class JGISSource(BaseModel):
         IRasterSource,
         IVectorTileSource,
         IGeoJSONSource,
+        IImageSource,
+        IVideoSource
     ]
     _parent = Optional[GISDocument]
 
@@ -380,3 +462,5 @@ OBJECT_FACTORY.register_factory(LayerType.VectorLayer, IVectorLayer)
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterSource, IRasterSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoJSONSource, IGeoJSONSource)
+OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)
+OBJECT_FACTORY.register_factory(SourceType.VideoSource, IVideoSource)
