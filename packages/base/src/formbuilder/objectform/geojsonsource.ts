@@ -1,9 +1,10 @@
+import { IDict } from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
+import { ISubmitEvent } from '@rjsf/core';
 import { Ajv, ValidateFunction } from 'ajv';
 import * as geojson from 'geojson-schema/GeoJSON.json';
 
 import { BaseForm, IBaseFormProps } from './baseform';
-import { IDict } from '@jupytergis/schema';
-import { showErrorMessage } from '@jupyterlab/apputils';
 
 /**
  * The form to modify a GeoJSON source.
@@ -13,6 +14,7 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
     super(props);
     const ajv = new Ajv();
     this._validate = ajv.compile(geojson);
+    this._validatePath(props.sourceData?.path ?? '');
   }
 
   protected processSchema(
@@ -42,17 +44,15 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
     this._validatePath(value);
   }
 
-  protected syncData(properties: IDict<any> | undefined) {
+  protected onFormSubmit(e: ISubmitEvent<any>) {
     if (this.state.extraErrors?.path?.__errors?.length >= 1) {
       showErrorMessage(
         'Invalid JSON file',
         this.state.extraErrors.path.__errors[0]
       );
-
       return;
     }
-
-    super.syncData(properties);
+    super.onFormSubmit(e);
   }
 
   /**
@@ -76,12 +76,20 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
           this._validate.errors?.reverse().forEach(error => {
             extraErrors.path.__errors.push(error.message);
           });
+        } else {
+          delete extraErrors.path;
         }
         this.setState({ extraErrors });
+        if (this.props.formChangedSignal) {
+          this.props.formChangedSignal.emit(!valid);
+        }
       })
       .catch(e => {
         extraErrors.path.__errors = [`Cannot read "${path}"`];
         this.setState({ extraErrors });
+        if (this.props.formChangedSignal) {
+          this.props.formChangedSignal.emit(true);
+        }
       });
   }
 

@@ -329,6 +329,7 @@ test.describe('#sourcePanel', () => {
         const dialog = page.locator('.jGIS-layer-CreationFormDialog');
         await expect(dialog).toBeVisible();
         await dialog.getByRole('textbox').last().fill('france_regions.json');
+        await dialog.getByRole('textbox').last().blur();
         await dialog.locator('button.jp-mod-accept').click();
 
         // Expect the new source to be added and unused.
