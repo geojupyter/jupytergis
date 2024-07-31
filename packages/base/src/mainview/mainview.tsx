@@ -1,6 +1,7 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
   IHillshadeLayer,
+  IImageSource,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -15,6 +16,7 @@ import {
   IRasterSource,
   IVectorLayer,
   IVectorTileSource,
+  IVideoSource,
   JupyterGISModel
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -214,7 +216,42 @@ export class MainView extends React.Component<IProps, IStates> {
         }
         break;
       }
+      case 'VideoSource': {
+        const mapSource = this._Map.getSource(id) as MapLibre.VideoSource;
+        if (!mapSource) {
+          const parameters = source.parameters as IVideoSource;
+          this._Map
+            .addSource(id, {
+              type: 'video',
+              urls: parameters?.urls,
+              coordinates: parameters?.coordinates
+            })
+            .on('click', () => this.toggleVideoPlaying(id));
+
+          this._videoPlaying = true;
+        }
+        break;
+      }
+      case 'ImageSource': {
+        const mapSource = this._Map.getSource(id) as MapLibre.ImageSource;
+        if (!mapSource) {
+          const parameters = source.parameters as IImageSource;
+          this._Map.addSource(id, {
+            type: 'image',
+            url: parameters?.url,
+            coordinates: parameters?.coordinates
+          });
+        }
+        break;
+      }
     }
+  }
+
+  private toggleVideoPlaying(sourceId: any) {
+    const source = this._Map.getSource(sourceId) as MapLibre.VideoSource;
+
+    this._videoPlaying ? source?.pause() : source?.play();
+    this._videoPlaying = !this._videoPlaying;
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -275,6 +312,21 @@ export class MainView extends React.Component<IProps, IStates> {
         (mapSource as MapLibre.RasterDEMTileSource).setTiles([parameters.url]);
         break;
       }
+      case 'ImageSource': {
+        const parameters = source.parameters as IImageSource;
+        (mapSource as MapLibre.ImageSource).updateImage({
+          url: parameters.url,
+          coordinates: parameters.coordinates
+        });
+        break;
+      }
+      case 'VideoSource': {
+        const parameters = source.parameters as IVideoSource;
+        (mapSource as MapLibre.VideoSource).setCoordinates(
+          parameters.coordinates
+        );
+        break;
+      }
       default: {
         console.warn('Source type not found');
       }
@@ -288,6 +340,11 @@ export class MainView extends React.Component<IProps, IStates> {
    */
   removeSource(id: string): void {
     const mapSource = this._Map.getSource(id);
+    if (mapSource?.type === 'video') {
+      (mapSource as MapLibre.VideoSource).off('click', () =>
+        this.toggleVideoPlaying(id)
+      );
+    }
     if (mapSource) {
       this._Map.removeSource(id);
     }
@@ -691,7 +748,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     change.sourceChange?.forEach(change => {
-      if (!change.newValue) {
+      if (!change.newValue || Object.keys(change.newValue).length === 0) {
         this.removeSource(change.id);
       } else {
         const source = this._model.getSource(change.id);
@@ -762,4 +819,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _terrainControl: MapLibre.TerrainControl | null;
+  private _videoPlaying = false;
 }

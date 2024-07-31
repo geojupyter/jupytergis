@@ -128,6 +128,32 @@ export function addCommands(
     execute: Private.createRasterLayer(tracker, formSchemaRegistry)
   });
 
+  commands.addCommand(CommandIDs.newVideoLayer, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Video')
+        : trans.__('Add new video layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createVideoLayer(tracker, formSchemaRegistry)
+  });
+
+  commands.addCommand(CommandIDs.newImageLayer, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Image')
+        : trans.__('Add new image layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createImageLayer(tracker, formSchemaRegistry)
+  });
+
   /**
    * SOURCES only commands.
    */
@@ -143,6 +169,34 @@ export function addCommands(
     },
     execute: Private.createGeoJSONSource(tracker, formSchemaRegistry),
     ...icons.get(CommandIDs.newGeoJSONSource)?.icon
+  });
+
+  commands.addCommand(CommandIDs.newVideoSource, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Video')
+        : trans.__('Add Video Source'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createVideoSource(tracker, formSchemaRegistry)
+    // ...icons.get(CommandIDs.newGeoJSONSource)?.icon
+  });
+
+  commands.addCommand(CommandIDs.newImageSource, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('image')
+        : trans.__('Add image Source'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createImageSource(tracker, formSchemaRegistry)
+    // ...icons.get(CommandIDs.newGeoJSONSource)?.icon
   });
 
   commands.addCommand(CommandIDs.removeSource, {
@@ -544,6 +598,75 @@ namespace Private {
     };
   }
 
+  export function createVideoSource(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create Video Source',
+        createLayer: false,
+        createSource: true,
+        sourceData: {
+          name: 'Custom Video Source',
+          urls: [
+            'https://static-assets.mapbox.com/mapbox-gl-js/drone.mp4',
+            'https://static-assets.mapbox.com/mapbox-gl-js/drone.webm'
+          ],
+          coordinates: [
+            [-122.51596391201019, 37.56238816766053],
+            [-122.51467645168304, 37.56410183312965],
+            [-122.51309394836426, 37.563391708549425],
+            [-122.51423120498657, 37.56161849366671]
+          ]
+        },
+        sourceType: 'VideoSource',
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createImageSource(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create image Source',
+        createLayer: false,
+        createSource: true,
+        sourceData: {
+          name: 'Custom image Source',
+          url: 'https://maplibre.org/maplibre-gl-js/docs/assets/radar.gif',
+          coordinates: [
+            [-80.425, 46.437],
+            [-71.516, 46.437],
+            [-71.516, 37.936],
+            [-80.425, 37.936]
+          ]
+        },
+        sourceType: 'ImageSource',
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
   /**
    * Command to create a Vector layer.
    *
@@ -597,6 +720,60 @@ namespace Private {
         },
         sourceType: 'RasterDemSource',
         layerType: 'HillshadeLayer',
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createVideoLayer(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create Video Layer',
+        createLayer: true,
+        createSource: false,
+        layerData: {
+          name: 'Custom Video Layer'
+        },
+        sourceType: 'VideoSource',
+        layerType: 'RasterLayer',
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createImageLayer(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new CreationFormDialog({
+        context: current.context,
+        title: 'Create Image Layer',
+        createLayer: true,
+        createSource: false,
+        layerData: {
+          name: 'Custom Image Layer'
+        },
+        sourceType: 'ImageSource',
+        layerType: 'RasterLayer',
         formSchemaRegistry
       });
       await dialog.launch();

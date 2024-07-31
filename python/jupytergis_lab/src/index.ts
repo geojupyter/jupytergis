@@ -90,6 +90,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
       args: { from: 'contextMenu' }
     });
 
+    newSourceSubMenu.addItem({
+      command: CommandIDs.newVideoSource,
+      args: { from: 'contextMenu' }
+    });
+
+    newSourceSubMenu.addItem({
+      command: CommandIDs.newImageSource,
+      args: { from: 'contextMenu' }
+    });
+
     app.contextMenu.addItem({
       type: 'separator',
       selector: '.jp-gis-sourcePanel',
@@ -210,6 +220,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     newLayerSubMenu.addItem({
       command: CommandIDs.newRasterLayer,
+      args: { from: 'contextMenu' }
+    });
+
+    newLayerSubMenu.addItem({
+      command: CommandIDs.newImageLayer,
+      args: { from: 'contextMenu' }
+    });
+
+    newLayerSubMenu.addItem({
+      command: CommandIDs.newVideoLayer,
       args: { from: 'contextMenu' }
     });
 

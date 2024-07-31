@@ -91,6 +91,51 @@ export class ToolbarWidget extends Toolbar {
         })
       );
 
+      this.addItem(
+        'newImageSource',
+        new CommandToolbarButton({
+          id: CommandIDs.newImageSource,
+          label: '',
+          commands: options.commands
+        })
+      );
+
+      this.addItem(
+        'newImageLayer',
+        new CommandToolbarButton({
+          id: CommandIDs.newImageLayer,
+          label: '',
+          commands: options.commands
+        })
+      );
+
+      this.addItem(
+        'newVideoSource',
+        new CommandToolbarButton({
+          id: CommandIDs.newVideoSource,
+          label: '',
+          commands: options.commands
+        })
+      );
+
+      this.addItem(
+        'newVideoLayer',
+        new CommandToolbarButton({
+          id: CommandIDs.newVideoLayer,
+          label: '',
+          commands: options.commands
+        })
+      );
+
+      this.addItem(
+        'newRasterLayer',
+        new CommandToolbarButton({
+          id: CommandIDs.newRasterLayer,
+          label: '',
+          commands: options.commands
+        })
+      );
+
       // Add more commands here
 
       this.addItem('spacer', Toolbar.createSpacerItem());
