@@ -251,8 +251,8 @@ class GISDocument(CommWidget):
         Add a Image Layer to the document.
 
         :param name: The name that will be used for the object in the document.
-        :param url: The tiles url.
-        :param attribution: The attribution.
+        :param url: The image url.
+        :param coordinates: Corners of image specified in longitude, latitude pairs.
         :param opacity: The opacity, between 0 and 1.
         """
 
@@ -290,8 +290,8 @@ class GISDocument(CommWidget):
         Add a Video Layer to the document.
 
         :param name: The name that will be used for the object in the document.
-        :param url: The tiles url.
-        :param attribution: The attribution.
+        :param urls: URLs to video content in order of preferred format.
+        :param coordinates: Corners of video specified in longitude, latitude pairs.
         :param opacity: The opacity, between 0 and 1.
         """
 
