@@ -60,6 +60,7 @@ test.describe('#geoJSONLayer', () => {
 
     const fileInput = dialog.getByLabel('path');
     await fileInput.fill('france_regions.json');
+    await fileInput.blur();
 
     const typeInput = dialog.getByLabel('type');
     typeInput.selectOption('line');
