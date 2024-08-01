@@ -202,40 +202,11 @@ const activate = (
 
     // Layer and group actions
     palette.addItem({
-      command: CommandIDs.renameLayer,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.removeLayer,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.renameGroup,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.removeGroup,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
       command: CommandIDs.moveLayerToNewGroup,
       category: 'JupyterGIS'
     });
 
     // Source actions
-    palette.addItem({
-      command: CommandIDs.renameSource,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.removeSource,
-      category: 'JupyterGIS'
-    });
 
     // Terrain
     palette.addItem({
