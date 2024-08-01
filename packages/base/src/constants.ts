@@ -59,9 +59,18 @@ interface IRegisteredIcon {
 
 const iconObject = {
   RasterSource: { icon: rasterIcon },
-  GeoJSONSource: { icon: geoJSONIcon },
+  RasterDemSource: { icon: moundIcon },
   VectorTileSource: { iconClass: 'fa fa-vector-square' },
+  GeoJSONSource: { icon: geoJSONIcon },
+  ImageSource: { iconClass: 'fa fa-image' },
+  VideoSource: { iconClass: 'fa fa-video' },
+
   RasterLayer: { icon: rasterIcon },
+  VectorLayer: { iconClass: 'fa fa-vector-square' },
+  HillshadeLayer: { icon: moundIcon },
+  ImageLayer: { iconClass: 'fa fa-image' },
+  VideoLayer: { iconClass: 'fa fa-video' },
+
   [CommandIDs.redo]: { icon: redoIcon },
   [CommandIDs.undo]: { icon: undoIcon },
   [CommandIDs.openLayerBrowser]: { iconClass: 'fa fa-book-open' },
