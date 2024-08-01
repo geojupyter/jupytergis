@@ -17,7 +17,7 @@ export interface ICreationFormWrapperProps extends ICreationFormProps {
    * Return a signal emitting when the form changed, with a boolean whether there are
    * some extra errors or not.
    */
-  formChangedSignalPromise?: PromiseDelegate<Signal<Dialog<any>, boolean>>;
+  formErrorSignalPromise?: PromiseDelegate<Signal<Dialog<any>, boolean>>;
 }
 
 export interface ICreationFormDialogOptions extends ICreationFormProps {
@@ -28,14 +28,14 @@ export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
   const [ready, setReady] = React.useState<boolean>(false);
 
   const okSignal = React.useRef<Signal<Dialog<any>, number>>();
-  const formChangedSignal = React.useRef<Signal<Dialog<any>, boolean>>();
+  const formErrorSignal = React.useRef<Signal<Dialog<any>, boolean>>();
 
   Promise.all([
     props.okSignalPromise.promise,
-    props.formChangedSignalPromise?.promise
+    props.formErrorSignalPromise?.promise
   ]).then(([ok, formChanged]) => {
     okSignal.current = ok;
-    formChangedSignal.current = formChanged;
+    formErrorSignal.current = formChanged;
     setReady(true);
   });
 
@@ -52,7 +52,7 @@ export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
         layerData={props.layerData}
         ok={okSignal.current}
         cancel={props.cancel}
-        formChangedSignal={formChangedSignal.current}
+        formErrorSignal={formErrorSignal.current}
       />
     )
   );
@@ -70,7 +70,7 @@ export class CreationFormDialog extends Dialog<IDict> {
     const okSignalPromise = new PromiseDelegate<
       Signal<Dialog<IDict>, number>
     >();
-    const formChangedSignalPromise = new PromiseDelegate<
+    const formErrorSignalPromise = new PromiseDelegate<
       Signal<Dialog<IDict>, boolean>
     >();
 
@@ -87,7 +87,7 @@ export class CreationFormDialog extends Dialog<IDict> {
           layerData={options.layerData}
           okSignalPromise={okSignalPromise}
           cancel={cancelCallback}
-          formChangedSignalPromise={formChangedSignalPromise}
+          formErrorSignalPromise={formErrorSignalPromise}
         />
       </div>
     );
@@ -99,12 +99,12 @@ export class CreationFormDialog extends Dialog<IDict> {
     });
 
     this.okSignal = new Signal(this);
-    const formChangedSignal = new Signal<Dialog<any>, boolean>(this);
+    const formErrorSignal = new Signal<Dialog<any>, boolean>(this);
 
     /**
      * Disable the OK button if the form is invalid.
      */
-    formChangedSignal.connect((_, extraErrors) => {
+    formErrorSignal.connect((_, extraErrors) => {
       const invalid = extraErrors || !!this.node.querySelector(':invalid');
       if (invalid) {
         this.node
@@ -118,7 +118,7 @@ export class CreationFormDialog extends Dialog<IDict> {
     });
 
     okSignalPromise.resolve(this.okSignal);
-    formChangedSignalPromise.resolve(formChangedSignal);
+    formErrorSignalPromise.resolve(formErrorSignal);
 
     this.addClass('jGIS-layer-CreationFormDialog');
   }

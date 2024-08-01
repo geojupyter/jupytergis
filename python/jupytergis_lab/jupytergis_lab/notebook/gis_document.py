@@ -13,7 +13,7 @@ from ypywidgets.comm import CommWidget
 
 from uuid import uuid4
 
-from .utils import normalize_path
+from .utils import normalize_path, get_source_layer_names
 
 from .objects import (
     LayerType,
@@ -139,9 +139,9 @@ class GISDocument(CommWidget):
         type: "circle" | "fill" | "line" = "line",
         color: str = "#FF0000",
         opacity: float = 1,
-        logical_op:str | None = None, 
-        feature:str | None = None, 
-        operator:str | None = None, 
+        logical_op:str | None = None,
+        feature:str | None = None,
+        operator:str | None = None,
         value:Union[str, number, float] | None = None
     ):
 
@@ -154,6 +154,12 @@ class GISDocument(CommWidget):
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
         """
+        source_layers = get_source_layer_names(url)
+        if source_layer is None and len(source_layers) == 1:
+            source_layer = source_layers[0]
+        if source_layer not in source_layers:
+            raise ValueError(f'source_layer should be one of {source_layers}')
+
         source = {
             "type": SourceType.VectorTileSource,
             "name": f"{name} Source",
@@ -170,7 +176,7 @@ class GISDocument(CommWidget):
         }
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
-        
+
         layer = {
             "type": LayerType.VectorLayer,
             "name": name,
@@ -190,12 +196,12 @@ class GISDocument(CommWidget):
                         "operator": operator,
                         "value": value
                     }
-                ], 
+                ],
                 "logicalOp": logical_op
                 }
         }
 
-        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))        
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_geojson_layer(
         self,
@@ -205,9 +211,9 @@ class GISDocument(CommWidget):
         type: "circle" | "fill" | "line" = "line",
         color: str = "#FF0000",
         opacity: float = 1,
-        logical_op:str | None = None, 
-        feature:str | None = None, 
-        operator:str | None = None, 
+        logical_op:str | None = None,
+        feature:str | None = None,
+        operator:str | None = None,
         value:Union[str, number, float] | None = None
     ):
         """
@@ -262,7 +268,7 @@ class GISDocument(CommWidget):
                         "operator": operator,
                         "value": value
                     }
-                ], 
+                ],
                 "logicalOp": logical_op
                 }
         }
@@ -353,7 +359,7 @@ class GISDocument(CommWidget):
 
         :param str layer_id: The ID of the layer to filter
         :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param str feature: The feature to be filtered on 
+        :param str feature: The feature to be filtered on
         :param str operator: The operator used to compare the feature and value
         :param Union[str, number, float] value: The value to be filtered on
         """
@@ -372,9 +378,9 @@ class GISDocument(CommWidget):
                         'operator': operator,
                         'value': value
                     }
-                ], 
+                ],
                 'logicalOp': logical_op}
-            
+
             self._layers[layer_id] = layer
             return
 
@@ -393,7 +399,7 @@ class GISDocument(CommWidget):
 
         :param str layer_id: The ID of the layer to filter
         :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param str feature: The feature to update the value for 
+        :param str feature: The feature to update the value for
         :param str operator: The operator used to compare the feature and value
         :param Union[str, number, float] value: The new value to be filtered on
         """
@@ -419,12 +425,12 @@ class GISDocument(CommWidget):
         layer['filters']['logicalOp'] = logical_op
 
         self._layers[layer_id] = layer
-       
+
     def clear_filters(self, layer_id: str):
         """
         Clear filters on a layer
 
-        :param str layer_id: The ID of the layer to clear filters from 
+        :param str layer_id: The ID of the layer to clear filters from
         """
         layer = self._layers.get(layer_id)
 
@@ -437,7 +443,6 @@ class GISDocument(CommWidget):
 
         layer['filters']['appliedFilters'] = []
         self._layers[layer_id] = layer
-
 
     def _add_source(self, new_object: "JGISObject"):
         _id = str(uuid4())

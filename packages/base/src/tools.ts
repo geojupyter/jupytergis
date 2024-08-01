@@ -1,3 +1,7 @@
+import Protobuf from 'pbf';
+
+import { VectorTile } from '@mapbox/vector-tile';
+
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import * as d3Color from 'd3-color';
@@ -8,8 +12,6 @@ import {
   IJGISOptions,
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
-import { VectorTile } from '@mapbox/vector-tile';
-import Protobuf from 'pbf';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
 
 export const debounce = (
@@ -233,7 +235,7 @@ export async function getLayerTileInfo(
   tileUrl: string,
   mapOptions: Pick<IJGISOptions, 'latitude' | 'longitude' | 'zoom'>,
   urlParameters?: IDict<string>
-) {
+): Promise<VectorTile> {
   // If it's tilejson, fetch the json to access the pbf url
   if (tileUrl.includes('.json')) {
     const response = await fetch(tileUrl);
@@ -272,4 +274,19 @@ export async function getLayerTileInfo(
   const tile = new VectorTile(new Protobuf(arrayBuffer));
 
   return tile;
+}
+
+export async function getSourceLayerNames(
+  tileUrl: string,
+  urlParameters?: IDict<string>
+) {
+  const tile = await getLayerTileInfo(
+    tileUrl,
+    { latitude: 0, longitude: 0, zoom: 0 },
+    urlParameters
+  );
+
+  const layerNames = Object.keys(tile.layers);
+
+  return layerNames;
 }
