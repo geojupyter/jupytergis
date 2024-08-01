@@ -15,6 +15,7 @@ import { Panel } from '@lumino/widgets';
 import React, {
   MouseEvent as ReactMouseEvent,
   useEffect,
+  useRef,
   useState
 } from 'react';
 import { icons } from '../../constants';
@@ -52,6 +53,8 @@ export class LayersPanel extends Panel {
         ></LayersBodyComponent>
       )
     );
+    this.node.ondragover = (e: DragEvent) => e.preventDefault();
+    this.node.ondrop = Private.onDrop;
   }
 
   private _model: IControlPanelModel | undefined;
@@ -194,11 +197,18 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
   };
 
   return (
-    <div className={`${LAYER_ITEM_CLASS} ${LAYER_GROUP_CLASS}`}>
+    <div
+      className={`${LAYER_ITEM_CLASS} ${LAYER_GROUP_CLASS}`}
+      draggable={true}
+    >
       <div
         onClick={() => setOpen(!open)}
         onContextMenu={handleRightClick}
         className={`${LAYER_GROUP_HEADER_CLASS} ${selected ? ' jp-mod-selected' : ''}`}
+        onDragStart={Private.onDragStart}
+        onDragOver={Private.onDragOver}
+        onDragEnd={Private.onDragEnd}
+        data-group-name={name}
       >
         <LabIcon.resolveReact
           icon={caretDownIcon}
@@ -309,6 +319,11 @@ function LayerComponent(props: ILayerProps): JSX.Element {
   return (
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
+      draggable={true}
+      onDragStart={Private.onDragStart}
+      onDragOver={Private.onDragOver}
+      onDragEnd={Private.onDragEnd}
+      data-layer-id={layerId}
     >
       <div
         className={LAYER_TITLE_CLASS}
@@ -338,4 +353,61 @@ function LayerComponent(props: ILayerProps): JSX.Element {
       </Button>
     </div>
   );
+}
+
+namespace Private {
+
+  const dragIndicator = document.createElement('div');
+  dragIndicator.id = 'jp-drag-indicator';
+
+  interface IDragInfo {
+    draggedItem: HTMLDivElement | null;
+    dragOverItem: HTMLDivElement | null;
+    dragOverPosition: 'above' | 'below' | null;
+  }
+
+  const dragInfo: IDragInfo = {
+    draggedItem: null,
+    dragOverItem: null,
+    dragOverPosition: null
+  }
+
+  export const onDrop = (e: DragEvent) => {
+    console.log('DragInfo', {...dragInfo});
+  }
+
+  export const onDragStart = (e: React.DragEvent) => {
+    dragInfo.draggedItem = e.target as HTMLDivElement;
+  }
+
+  export const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const {clientY} = e;
+    let target = (e.target as HTMLDivElement).closest(`.${LAYER_GROUP_HEADER_CLASS}, .${LAYER_ITEM_CLASS}`) as HTMLDivElement;
+    if (!target) {
+      return;
+    }
+    dragInfo.dragOverItem = target;
+    const boundingBox = target.getBoundingClientRect();
+    if (clientY - boundingBox.top < boundingBox.bottom - clientY) {
+      dragInfo.dragOverPosition = 'above';
+      if (target.classList.contains(LAYER_GROUP_HEADER_CLASS)) {
+        target = target.parentNode as HTMLDivElement;
+      }
+      target.insertAdjacentElement('beforebegin', dragIndicator);
+      dragIndicator.style.display = 'block';
+    } else {
+      dragInfo.dragOverPosition = 'below';
+      target.insertAdjacentElement('afterend', dragIndicator);
+      dragIndicator.style.display = 'block';
+    }
+  }
+
+  export const onDragEnd = () => {
+    dragIndicator.style.display = 'none';
+    dragInfo.draggedItem = null;
+    dragInfo.dragOverItem = null;
+    dragInfo.dragOverPosition = null;
+  }
 }
