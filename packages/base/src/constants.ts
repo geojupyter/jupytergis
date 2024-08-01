@@ -58,6 +58,10 @@ interface IRegisteredIcon {
 }
 
 const iconObject = {
+  RasterSource: { icon: rasterIcon },
+  GeoJSONSource: { icon: geoJSONIcon },
+  VectorTileSource: { iconClass: 'fa fa-vector-square' },
+  RasterLayer: { icon: rasterIcon },
   [CommandIDs.redo]: { icon: redoIcon },
   [CommandIDs.undo]: { icon: undoIcon },
   [CommandIDs.openLayerBrowser]: { iconClass: 'fa fa-book-open' },
