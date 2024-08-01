@@ -17,21 +17,23 @@ export namespace CommandIDs {
   export const newVectorTileEntry = 'jupytergis:newVectorTileEntry';
   export const newGeoJSONEntry = 'jupytergis:newGeoJSONEntry';
   export const newHillshadeEntry = 'jupytergis:newHillshadeEntry';
+  export const newImageEntry = 'jupytergis:newImageEntry';
+  export const newVideoEntry = 'jupytergis:newVideoEntry';
 
   // Sources only commands
   export const newRasterSource = 'jupytergis:newRasterSource';
   export const newRasterDemSource = 'jupytergis:newRasterDemSource';
   export const newVectorSource = 'jupytergis:newVectorSource';
   export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
-  export const newVideoSource = 'jupytergis:videoSource';
   export const newImageSource = 'jupytergis:imageSource';
+  export const newVideoSource = 'jupytergis:videoSource';
 
   // Layers only commands
   export const newRasterLayer = 'jupytergis:newRasterLayer';
   export const newVectorLayer = 'jupytergis:newVectorLayer';
   export const newHillshadeLayer = 'jupytergis:newHillshadeLayer';
-  export const newVideoLayer = 'jupytergis:newVideoLayer';
   export const newImageLayer = 'jupytergis:newImageLayer';
+  export const newVideoLayer = 'jupytergis:newVideoLayer';
 
   // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';
@@ -63,6 +65,8 @@ const iconObject = {
   [CommandIDs.newVectorTileEntry]: { iconClass: 'fa fa-vector-square' },
   [CommandIDs.newGeoJSONEntry]: { icon: geoJSONIcon },
   [CommandIDs.newHillshadeEntry]: { icon: moundIcon },
+  [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
+  [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
   [CommandIDs.newTerrain]: { iconClass: 'fa fa-mountain' }
 };
 

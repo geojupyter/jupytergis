@@ -2,7 +2,7 @@
   "type": "object",
   "description": "RasterDemSource",
   "title": "IRasterDemSource",
-  "required": ["url", "tileSize"],
+  "required": ["url"],
   "additionalProperties": false,
   "properties": {
     "url": {
@@ -11,7 +11,8 @@
     },
     "tileSize": {
       "type": "number",
-      "description": " The tile size"
+      "description": " The tile size",
+      "default": 512
     },
     "attribution": {
       "type": "string",

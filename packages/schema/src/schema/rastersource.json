@@ -9,14 +9,6 @@
       "type": "string",
       "description": "The url to the tile provider"
     },
-    "maxZoom": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 24,
-      "readOnly": true,
-      "description": "The maximum zoom level for the raster source",
-      "default": 24
-    },
     "minZoom": {
       "type": "number",
       "minimum": 0,
@@ -24,6 +16,14 @@
       "readOnly": true,
       "description": "The minimum zoom level for the raster source",
       "default": 0
+    },
+    "maxZoom": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "readOnly": true,
+      "description": "The maximum zoom level for the raster source",
+      "default": 24
     },
     "attribution": {
       "type": "string",

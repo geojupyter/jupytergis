@@ -9,17 +9,17 @@
       "type": "string",
       "description": "The url to the tile provider"
     },
-    "maxZoom": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 24,
-      "description": "The maximum zoom level for the vector source"
-    },
     "minZoom": {
       "type": "number",
       "minimum": 0,
       "maximum": 24,
       "description": "The minimum zoom level for the vector source"
+    },
+    "maxZoom": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "description": "The maximum zoom level for the vector source"
     },
     "attribution": {
       "type": "string",
