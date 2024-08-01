@@ -9,34 +9,43 @@ export namespace CommandIDs {
   export const redo = 'jupytergis:redo';
   export const undo = 'jupytergis:undo';
 
-  // Layers and sources commands
+  // Layers and sources creation commands
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
-  export const newGeoJSONLayer = 'jupytergis:newGeoJSONLayer';
-  export const newVectorTileLayer = 'jupytergis:newVectorTileLayer';
-  export const newHillshadeLayer = 'jupytergis:newHillshadeLayer';
-  export const newRasterLayer = 'jupytergis:newRasterLayer';
+
+  // Layer and source
+  export const newRasterEntry = 'jupytergis:newRasterEntry';
+  export const newVectorTileEntry = 'jupytergis:newVectorTileEntry';
+  export const newGeoJSONEntry = 'jupytergis:newGeoJSONEntry';
+  export const newHillshadeEntry = 'jupytergis:newHillshadeEntry';
 
   // Sources only commands
-  export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
+  export const newRasterSource = 'jupytergis:newRasterSource';
   export const newRasterDemSource = 'jupytergis:newRasterDemSource';
-  export const removeSource = 'jupytergis:removeSource';
-  export const renameSource = 'jupytergis:renameSource';
+  export const newVectorSource = 'jupytergis:newVectorSource';
+  export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
   export const newVideoSource = 'jupytergis:videoSource';
   export const newImageSource = 'jupytergis:imageSource';
 
   // Layers only commands
+  export const newRasterLayer = 'jupytergis:newRasterLayer';
   export const newVectorLayer = 'jupytergis:newVectorLayer';
+  export const newHillshadeLayer = 'jupytergis:newHillshadeLayer';
   export const newVideoLayer = 'jupytergis:newVideoLayer';
   export const newImageLayer = 'jupytergis:newImageLayer';
 
+  // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';
   export const removeLayer = 'jupytergis:removeLayer';
   export const renameGroup = 'jupytergis:renameGroup';
   export const removeGroup = 'jupytergis:removeGroup';
-
   export const moveLayersToGroup = 'jupytergis:moveLayersToGroup';
   export const moveLayerToNewGroup = 'jupytergis:moveLayerToNewGroup';
 
+  // Source actions
+  export const renameSource = 'jupytergis:renameSource';
+  export const removeSource = 'jupytergis:removeSource';
+
+  // Terrain stuff
   export const newTerrain = 'jupytergis:newTerrain';
   export const removeTerrain = 'jupytergis:removeTerrain';
 }
@@ -47,18 +56,14 @@ interface IRegisteredIcon {
 }
 
 const iconObject = {
-  RasterSource: { icon: rasterIcon },
-  GeoJSONSource: { icon: geoJSONIcon },
-  VectorTileSource: { iconClass: 'fa fa-vector-square' },
-  RasterLayer: { icon: rasterIcon },
   [CommandIDs.redo]: { icon: redoIcon },
   [CommandIDs.undo]: { icon: undoIcon },
   [CommandIDs.openLayerBrowser]: { iconClass: 'fa fa-book-open' },
-  [CommandIDs.newGeoJSONLayer]: { icon: geoJSONIcon },
-  [CommandIDs.newVectorTileLayer]: { iconClass: 'fa fa-vector-square' },
-  [CommandIDs.newGeoJSONSource]: { icon: geoJSONIcon },
-  [CommandIDs.newVectorLayer]: { iconClass: 'fa fa-vector-square' },
-  [CommandIDs.newHillshadeLayer]: { icon: moundIcon }
+  [CommandIDs.newRasterEntry]: { icon: rasterIcon },
+  [CommandIDs.newVectorTileEntry]: { iconClass: 'fa fa-vector-square' },
+  [CommandIDs.newGeoJSONEntry]: { icon: geoJSONIcon },
+  [CommandIDs.newHillshadeEntry]: { icon: moundIcon },
+  [CommandIDs.newTerrain]: { iconClass: 'fa fa-mountain' }
 };
 
 /**

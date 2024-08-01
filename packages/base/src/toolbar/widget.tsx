@@ -56,15 +56,6 @@ export class ToolbarWidget extends Toolbar {
       this.addItem('separator1', new Separator());
 
       this.addItem(
-        'newVectorTileLayer',
-        new CommandToolbarButton({
-          id: CommandIDs.newVectorTileLayer,
-          label: '',
-          commands: options.commands
-        })
-      );
-
-      this.addItem(
         'openLayerBrowser',
         new CommandToolbarButton({
           id: CommandIDs.openLayerBrowser,
@@ -74,18 +65,47 @@ export class ToolbarWidget extends Toolbar {
       );
 
       this.addItem(
-        'newGeoJSONLayer',
+        'newTerrain',
         new CommandToolbarButton({
-          id: CommandIDs.newGeoJSONLayer,
+          id: CommandIDs.newTerrain,
+          label: '',
+          commands: options.commands
+        })
+      );
+
+      this.addItem('separator2', new Separator());
+
+      this.addItem(
+        'newRasterEntry',
+        new CommandToolbarButton({
+          id: CommandIDs.newRasterEntry,
           label: '',
           commands: options.commands
         })
       );
 
       this.addItem(
-        'newTerrain',
+        'newVectorTileEntry',
         new CommandToolbarButton({
-          id: CommandIDs.newTerrain,
+          id: CommandIDs.newVectorTileEntry,
+          label: '',
+          commands: options.commands
+        })
+      );
+
+      this.addItem(
+        'newGeoJSONEntry',
+        new CommandToolbarButton({
+          id: CommandIDs.newGeoJSONEntry,
+          label: '',
+          commands: options.commands
+        })
+      );
+
+      this.addItem(
+        'newHillshadeEntry',
+        new CommandToolbarButton({
+          id: CommandIDs.newHillshadeEntry,
           label: '',
           commands: options.commands
         })

@@ -4,7 +4,9 @@ import {
   IJGISLayerGroup,
   IJGISLayerItem,
   IJupyterGISModel,
-  SelectionType
+  LayerType,
+  SelectionType,
+  SourceType
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
@@ -80,83 +82,162 @@ export function addCommands(
     ...icons.get(CommandIDs.openLayerBrowser)
   });
 
-  commands.addCommand(CommandIDs.newGeoJSONLayer, {
-    label: trans.__('New geoJSON layer'),
+  /**
+   * Source and layers
+   */
+  commands.addCommand(CommandIDs.newRasterEntry, {
+    label: trans.__('New Raster Layer'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: Private.createGeoJSONLayer(tracker, formSchemaRegistry),
-    ...icons.get(CommandIDs.newGeoJSONLayer)
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Raster Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { minZoom: 0, maxZoom: 0 },
+      layerData: { name: 'Custom Raster Layer' },
+      sourceType: 'RasterSource',
+      layerType: 'RasterLayer'
+    }),
+    ...icons.get(CommandIDs.newRasterEntry)
   });
 
-  commands.addCommand(CommandIDs.newVectorTileLayer, {
-    label: trans.__('New vector tile layer'),
+  commands.addCommand(CommandIDs.newVectorTileEntry, {
+    label: trans.__('New Vector Tile Layer'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: Private.createVectorTileLayer(tracker, formSchemaRegistry),
-    ...icons.get(CommandIDs.newVectorTileLayer)
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Vector Tile Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { minZoom: 0, maxZoom: 0 },
+      layerData: { name: 'Custom Vector Tile Layer' },
+      sourceType: 'VectorTileSource',
+      layerType: 'VectorLayer'
+    }),
+    ...icons.get(CommandIDs.newVectorTileEntry)
   });
 
-  commands.addCommand(CommandIDs.newHillshadeLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Hillshade')
-        : trans.__('Add new hillshade layer'),
+  commands.addCommand(CommandIDs.newGeoJSONEntry, {
+    label: trans.__('New GeoJSON layer'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: Private.createHillshadeLayer(tracker, formSchemaRegistry)
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoJSON Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { minZoom: 0, maxZoom: 0 },
+      layerData: { name: 'Custom GeoJSON Layer' },
+      sourceType: 'GeoJSONSource',
+      layerType: 'VectorLayer'
+    }),
+    ...icons.get(CommandIDs.newGeoJSONEntry)
   });
 
-  commands.addCommand(CommandIDs.newRasterLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Raster')
-        : trans.__('Add new raster layer'),
+  commands.addCommand(CommandIDs.newHillshadeEntry, {
+    label: trans.__('New Hillshade layer'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: Private.createRasterLayer(tracker, formSchemaRegistry)
-  });
-
-  commands.addCommand(CommandIDs.newVideoLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Video')
-        : trans.__('Add new video layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createVideoLayer(tracker, formSchemaRegistry)
-  });
-
-  commands.addCommand(CommandIDs.newImageLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Image')
-        : trans.__('Add new image layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createImageLayer(tracker, formSchemaRegistry)
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Hillshade Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { minZoom: 0, maxZoom: 0 },
+      layerData: { name: 'Custom Hillshade Layer' },
+      sourceType: 'RasterDemSource',
+      layerType: 'HillshadeLayer'
+    }),
+    ...icons.get(CommandIDs.newHillshadeEntry)
   });
 
   /**
    * SOURCES only commands.
    */
+  commands.addCommand(CommandIDs.newRasterSource, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Raster')
+        : trans.__('New Raster Source'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Raster Source',
+      createLayer: false,
+      createSource: true,
+      sourceData: { name: 'Custom Raster Source', minZoom: 0, maxZoom: 0 },
+      sourceType: 'RasterSource'
+    }),
+    ...icons.get(CommandIDs.newRasterSource)
+  });
+
+  commands.addCommand(CommandIDs.newRasterDemSource, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Raster DEM')
+        : trans.__('New Raster DEM Source'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Raster Dem Source',
+      createLayer: false,
+      createSource: true,
+      sourceData: { name: 'Custom Raster DEM Source' },
+      sourceType: 'RasterDemSource'
+    }),
+    ...icons.get(CommandIDs.newRasterDemSource)
+  });
+
+  commands.addCommand(CommandIDs.newVectorSource, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Vector')
+        : trans.__('New Vector Source'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Vector Source',
+      createLayer: false,
+      createSource: true,
+      sourceData: { name: 'Custom Vector Source' },
+      sourceType: 'VectorTileSource'
+    }),
+    ...icons.get(CommandIDs.newVectorSource)
+  });
+
   commands.addCommand(CommandIDs.newGeoJSONSource, {
     label: args =>
       args.from === 'contextMenu'
@@ -167,8 +248,16 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: Private.createGeoJSONSource(tracker, formSchemaRegistry),
-    ...icons.get(CommandIDs.newGeoJSONSource)?.icon
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoJson Source',
+      createLayer: false,
+      createSource: true,
+      sourceData: { name: 'Custom GeoJSON Source' },
+      sourceType: 'GeoJSONSource'
+    }),
+    ...icons.get(CommandIDs.newGeoJSONSource)
   });
 
   commands.addCommand(CommandIDs.newVideoSource, {
@@ -216,43 +305,59 @@ export function addCommands(
     }
   });
 
-  commands.addCommand(CommandIDs.renameSource, {
-    label: trans.__('Rename Source'),
-    execute: async () => {
-      const model = tracker.currentWidget?.context.model;
-      await Private.renameSelectedItem(model, 'source', (sourceId, newName) => {
-        const source = model?.getSource(sourceId);
-        if (source) {
-          source.name = newName;
-          model?.sharedModel.updateSource(sourceId, source);
-        }
-      });
-    }
-  });
-
-  commands.addCommand(CommandIDs.newRasterDemSource, {
-    label: trans.__('Raster DEM'),
+  commands.addCommand(CommandIDs.newVectorLayer, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Vector')
+        : trans.__('Add New Vector layer'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: Private.createRasterDemSource(tracker, formSchemaRegistry)
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Vector Layer',
+      createLayer: true,
+      createSource: false,
+      layerData: {
+        name: 'Custom Vector Layer'
+      },
+      sourceType: 'VectorTileSource',
+      layerType: 'VectorLayer'
+    }),
+    ...icons.get(CommandIDs.newVectorLayer)
+  });
+
+  commands.addCommand(CommandIDs.newHillshadeLayer, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Hillshade')
+        : trans.__('Add new hillshade layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Hillshade Layer',
+      createLayer: true,
+      createSource: false,
+      layerData: {
+        name: 'Custom Hillshade Layer'
+      },
+      sourceType: 'RasterDemSource',
+      layerType: 'HillshadeLayer'
+    }),
+    ...icons.get(CommandIDs.newHillshadeLayer)
   });
 
   /**
-   * LAYERS and LAYER GROUPS only commands.
+   * LAYERS and LAYER GROUP actions.
    */
-  commands.addCommand(CommandIDs.removeLayer, {
-    label: trans.__('Remove Layer'),
-    execute: () => {
-      const model = tracker.currentWidget?.context.model;
-      Private.removeSelectedItems(model, 'layer', selection => {
-        model?.sharedModel.removeLayer(selection);
-      });
-    }
-  });
-
   commands.addCommand(CommandIDs.renameLayer, {
     label: trans.__('Rename Layer'),
     execute: async () => {
@@ -267,12 +372,12 @@ export function addCommands(
     }
   });
 
-  commands.addCommand(CommandIDs.removeGroup, {
-    label: trans.__('Remove Group'),
-    execute: async () => {
+  commands.addCommand(CommandIDs.removeLayer, {
+    label: trans.__('Remove Layer'),
+    execute: () => {
       const model = tracker.currentWidget?.context.model;
-      Private.removeSelectedItems(model, 'group', selection => {
-        model?.removeLayerGroup(selection);
+      Private.removeSelectedItems(model, 'layer', selection => {
+        model?.sharedModel.removeLayer(selection);
       });
     }
   });
@@ -283,6 +388,16 @@ export function addCommands(
       const model = tracker.currentWidget?.context.model;
       await Private.renameSelectedItem(model, 'group', (groupName, newName) => {
         model?.renameLayerGroup(groupName, newName);
+      });
+    }
+  });
+
+  commands.addCommand(CommandIDs.removeGroup, {
+    label: trans.__('Remove Group'),
+    execute: async () => {
+      const model = tracker.currentWidget?.context.model;
+      Private.removeSelectedItems(model, 'group', selection => {
+        model?.removeLayerGroup(selection);
       });
     }
   });
@@ -367,17 +482,43 @@ export function addCommands(
     }
   });
 
-  commands.addCommand(CommandIDs.newVectorLayer, {
-    label: trans.__('New vector layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createVectorLayer(tracker, formSchemaRegistry),
-    ...icons.get(CommandIDs.newVectorLayer)
+  /**
+   * Source actions
+   */
+  commands.addCommand(CommandIDs.renameSource, {
+    label: trans.__('Rename Source'),
+    execute: async () => {
+      const model = tracker.currentWidget?.context.model;
+      await Private.renameSelectedItem(model, 'source', (sourceId, newName) => {
+        const source = model?.getSource(sourceId);
+        if (source) {
+          source.name = newName;
+          model?.sharedModel.updateSource(sourceId, source);
+        }
+      });
+    }
   });
 
+  commands.addCommand(CommandIDs.removeSource, {
+    label: trans.__('Remove Source'),
+    execute: () => {
+      const model = tracker.currentWidget?.context.model;
+      Private.removeSelectedItems(model, 'source', selection => {
+        if (!(model?.getLayersBySource(selection).length ?? true)) {
+          model?.sharedModel.removeSource(selection);
+        } else {
+          showErrorMessage(
+            'Remove source error',
+            'The source is used by a layer.'
+          );
+        }
+      });
+    }
+  });
+
+  /**
+   * Terrain commands
+   */
   commands.addCommand(CommandIDs.newTerrain, {
     label: trans.__('New Terrain'),
     isEnabled: () => {
@@ -385,8 +526,8 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    iconClass: 'fa fa-mountain',
-    execute: Private.createTerrainDialog(tracker)
+    execute: Private.createTerrainDialog(tracker),
+    ...icons.get(CommandIDs.newTerrain)
   });
 
   commands.addCommand(CommandIDs.removeTerrain, {
@@ -396,7 +537,6 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    iconClass: 'fa fa-mountain',
     execute: () => {
       tracker.currentWidget?.context.model.setTerrain({
         source: '',
@@ -445,107 +585,29 @@ namespace Private {
     };
   }
 
-  /**
-   * Command to create a GeoJSON source and vector layer.
-   */
-  export function createGeoJSONLayer(
-    tracker: WidgetTracker<JupyterGISWidget>,
-    formSchemaRegistry: IJGISFormSchemaRegistry
-  ) {
-    return async () => {
-      const current = tracker.currentWidget;
-
-      if (!current) {
-        return;
-      }
-
-      const dialog = new CreationFormDialog({
-        context: current.context,
-        title: 'Create GeoJSON Layer',
-        createLayer: true,
-        createSource: true,
-        sourceData: {
-          minZoom: 0,
-          maxZoom: 0
-        },
-        layerData: {
-          name: 'Custom GeoJSON Layer'
-        },
-        sourceType: 'GeoJSONSource',
-        layerType: 'VectorLayer',
-        formSchemaRegistry
-      });
-      await dialog.launch();
-    };
+  interface ICreateEntry {
+    tracker: WidgetTracker<JupyterGISWidget>;
+    formSchemaRegistry: IJGISFormSchemaRegistry;
+    title: string;
+    createLayer: boolean;
+    createSource: boolean;
+    sourceData?: any;
+    layerData?: any;
+    sourceType: SourceType;
+    layerType?: LayerType;
   }
 
-  export function createVectorTileLayer(
-    tracker: WidgetTracker<JupyterGISWidget>,
-    formSchemaRegistry: IJGISFormSchemaRegistry
-  ) {
-    return async (args: any) => {
-      const current = tracker.currentWidget;
-
-      if (!current) {
-        return;
-      }
-
-      const dialog = new CreationFormDialog({
-        context: current.context,
-        title: 'Create Vector Tile Layer',
-        createLayer: true,
-        createSource: true,
-        sourceData: {
-          minZoom: 0,
-          maxZoom: 0
-        },
-        layerData: {
-          name: 'Custom Vector Tile Layer'
-        },
-        sourceType: 'VectorTileSource',
-        layerType: 'VectorLayer',
-        formSchemaRegistry
-      });
-      await dialog.launch();
-    };
-  }
-
-  export function createRasterLayer(
-    tracker: WidgetTracker<JupyterGISWidget>,
-    formSchemaRegistry: IJGISFormSchemaRegistry
-  ) {
-    return async (args: any) => {
-      const current = tracker.currentWidget;
-
-      if (!current) {
-        return;
-      }
-
-      const dialog = new CreationFormDialog({
-        context: current.context,
-        title: 'Create Raster Layer',
-        createLayer: true,
-        createSource: false,
-        layerData: {
-          name: 'Custom Raster Layer'
-        },
-        sourceType: 'RasterSource',
-        layerType: 'RasterLayer',
-        formSchemaRegistry
-      });
-      await dialog.launch();
-    };
-  }
-
-  /**
-   * Command to create a GeoJSON source.
-   *
-   * This is currently not used.
-   */
-  export function createGeoJSONSource(
-    tracker: WidgetTracker<JupyterGISWidget>,
-    formSchemaRegistry: IJGISFormSchemaRegistry
-  ) {
+  export function createEntry({
+    tracker,
+    formSchemaRegistry,
+    title,
+    createLayer,
+    createSource,
+    sourceData,
+    layerData,
+    sourceType,
+    layerType
+  }: ICreateEntry) {
     return async () => {
       const current = tracker.currentWidget;
 
