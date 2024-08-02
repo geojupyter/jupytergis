@@ -22,6 +22,10 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
     schema: IDict,
     uiSchema: IDict
   ) {
+    if (data?.path !== '') {
+      this.removeFormEntry('data', data, schema, uiSchema);
+    }
+
     super.processSchema(data, schema, uiSchema);
     if (!schema.properties || !data) {
       return;
@@ -29,10 +33,6 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
 
     // This is not user-editable
     delete schema.properties.valid;
-
-    if (data.path !== '') {
-      this.removeFormEntry('data', data, schema, uiSchema);
-    }
   }
 
   protected onFormBlur(id: string, value: any) {
