@@ -171,11 +171,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   removeLayerGroup(groupName: string): void;
   renameLayerGroup(groupName: string, newName: string): void;
-  moveItemsToGroup(
-    items: string[],
-    groupName: string,
-    index?: number
-  ): void;
+  moveItemsToGroup(items: string[], groupName: string, index?: number): void;
   moveItemRelatedTo(item: string, relativeItem: string, after: boolean): void;
   addNewLayerGroup(
     selected: { [key: string]: ISelection },

@@ -63,7 +63,7 @@ export class LayersPanel extends Panel {
     this.node.appendChild(Private.dragIndicator);
     Private.dragInfo.dragOverElement = null;
     Private.dragInfo.dragOverPosition = null;
-  }
+  };
 
   private _onDrop = (e: DragEvent) => {
     Private.dragIndicator.style.display = 'none';
@@ -71,9 +71,10 @@ export class LayersPanel extends Panel {
     if (this._model === undefined) {
       return;
     }
-    const {jGISModel: model} = this._model;
+    const { jGISModel: model } = this._model;
 
-    const {draggedElement, dragOverElement, dragOverPosition} = Private.dragInfo;
+    const { draggedElement, dragOverElement, dragOverPosition } =
+      Private.dragInfo;
 
     if (dragOverElement === 'error') {
       return;
@@ -105,10 +106,14 @@ export class LayersPanel extends Panel {
       dragOverPosition === 'below'
     ) {
       model?.moveItemsToGroup([draggedId], dragOverId);
-      return
+      return;
     }
 
-    model?.moveItemRelatedTo(draggedId, dragOverId, dragOverPosition === 'above');
+    model?.moveItemRelatedTo(
+      draggedId,
+      dragOverId,
+      dragOverPosition === 'above'
+    );
   };
 
   private _model: IControlPanelModel | undefined;
@@ -411,7 +416,6 @@ function LayerComponent(props: ILayerProps): JSX.Element {
 }
 
 namespace Private {
-
   export const dragIndicator = document.createElement('div');
   dragIndicator.id = 'jp-drag-indicator';
 
@@ -425,16 +429,16 @@ namespace Private {
     draggedElement: null,
     dragOverElement: null,
     dragOverPosition: null
-  }
+  };
 
   export const onDragStart = (e: React.DragEvent) => {
     dragInfo.draggedElement = e.target as HTMLDivElement;
-  }
+  };
 
   export const onDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const {clientY} = e;
+    const { clientY } = e;
 
     let target = (e.target as HTMLElement).closest(
       `.${LAYER_GROUP_HEADER_CLASS}, .${LAYER_ITEM_CLASS}`
@@ -464,12 +468,12 @@ namespace Private {
       target.insertAdjacentElement('afterend', dragIndicator);
       dragIndicator.style.display = 'block';
     }
-  }
+  };
 
   export const onDragEnd = () => {
     dragIndicator.style.display = 'none';
     dragInfo.draggedElement = null;
     dragInfo.dragOverElement = null;
     dragInfo.dragOverPosition = null;
-  }
+  };
 }

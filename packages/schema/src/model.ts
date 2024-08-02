@@ -409,11 +409,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
-  moveItemsToGroup(
-    items: string[],
-    groupName: string,
-    index?: number
-  ) {
+  moveItemsToGroup(items: string[], groupName: string, index?: number) {
     const layerTree = this.getLayerTree();
     for (const item of items) {
       if (this.getLayer(item)) {
@@ -426,7 +422,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         if (treeInfo === undefined) {
           continue;
         }
-        const group = {...treeInfo.workingGroup};
+        const group = { ...treeInfo.workingGroup };
         this._removeLayerTreeGroup(layerTree, item);
         this._addLayerTreeItem(group, groupName, index);
       }
@@ -444,7 +440,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       if (treeInfo === undefined) {
         return;
       }
-      insertedItem = {...treeInfo.workingGroup};
+      insertedItem = { ...treeInfo.workingGroup };
       this._removeLayerTreeGroup(layerTree, item);
     }
     const indexesPath = Private.findItemPath(layerTree, relativeItem);
@@ -700,11 +696,7 @@ namespace Private {
         if (item.name === itemId) {
           return workingIndexes;
         }
-        const foundIndexes = findItemPath(
-          item.layers,
-          itemId,
-          workingIndexes
-        );
+        const foundIndexes = findItemPath(item.layers, itemId, workingIndexes);
         if (foundIndexes.length > workingIndexes.length) {
           return foundIndexes;
         }
