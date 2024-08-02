@@ -60,7 +60,10 @@ test.describe('context menu', () => {
     layer.click({ button: 'right' });
 
     await page.getByText('Move Layers to Group').hover();
-    await page.getByText('Move Layers to New Group').click();
+    await page
+      .locator('#jp-gis-contextmenu-movelayer')
+      .getByText('Move Layers to New Group')
+      .click();
     await page
       .getByLabel('Layers', { exact: true })
       .getByRole('textbox')
@@ -70,7 +73,7 @@ test.describe('context menu', () => {
       .getByRole('textbox')
       .press('Enter');
 
-    await expect(page.getByText('new group')).toHaveCount(1);
+    await expect(page.getByText('new group', { exact: true })).toHaveCount(1);
     await page.getByRole('button', { name: 'Undo' }).click();
     await expect(layer).toBeVisible();
   });
@@ -89,15 +92,15 @@ test.describe('context menu', () => {
       .selectOption('699facc9-e7c4-4f38-acf1-1fd7f02d9f36');
     await page.getByRole('dialog').getByRole('button', { name: 'Ok' }).click();
 
-    expect(page.getByText('Custom Raster Layer Layer')).toBeVisible();
+    expect(page.getByText('Custom Raster Layer')).toBeVisible();
 
-    await page.getByText('Custom Raster Layer Layer').click({
+    await page.getByText('Custom Raster Layer').click({
       button: 'right'
     });
 
     await page.getByRole('menu').getByText('Remove Layer').click();
 
-    expect(page.getByText('Custom Raster Layer Layer')).not.toBeVisible();
+    expect(page.getByText('Custom Raster Layer')).not.toBeVisible();
   });
 
   test('clicking remove group should remove the group from the tree', async ({

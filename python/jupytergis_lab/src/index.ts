@@ -81,6 +81,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     newSourceSubMenu.addItem({
+      command: CommandIDs.newRasterSource,
+      args: { from: 'contextMenu' }
+    });
+
+    newSourceSubMenu.addItem({
+      command: CommandIDs.newVectorSource,
+      args: { from: 'contextMenu' }
+    });
+
+    newSourceSubMenu.addItem({
       command: CommandIDs.newGeoJSONSource,
       args: { from: 'contextMenu' }
     });
@@ -214,12 +224,17 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     newLayerSubMenu.addItem({
-      command: CommandIDs.newHillshadeLayer,
+      command: CommandIDs.newRasterLayer,
       args: { from: 'contextMenu' }
     });
 
     newLayerSubMenu.addItem({
-      command: CommandIDs.newRasterLayer,
+      command: CommandIDs.newVectorLayer,
+      args: { from: 'contextMenu' }
+    });
+
+    newLayerSubMenu.addItem({
+      command: CommandIDs.newHillshadeLayer,
       args: { from: 'contextMenu' }
     });
 

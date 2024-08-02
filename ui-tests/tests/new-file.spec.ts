@@ -13,7 +13,7 @@ test.describe('#newFile', () => {
 
     const tab = page.getByLabel('notebook content');
     const sources = page.getByText('Sources', { exact: true });
-    const layers = page.getByText('Layers');
+    const layers = page.getByText('Layers', { exact: true });
     const map = page.getByLabel('Map');
 
     await expect(tab).toBeVisible();

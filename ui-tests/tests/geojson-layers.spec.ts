@@ -49,7 +49,7 @@ test.describe('#geoJSONLayer', () => {
   test('Add a GeoJSON layer', async ({ page, tmpPath }) => {
     const panel = await openGIS(page, tmpPath, FILENAME);
     const button = panel?.locator(
-      'jp-button[data-command="jupytergis:newGeoJSONLayer"]'
+      'jp-button[data-command="jupytergis:newGeoJSONEntry"]'
     );
     const main = panel?.locator('.jGIS-Mainview');
 

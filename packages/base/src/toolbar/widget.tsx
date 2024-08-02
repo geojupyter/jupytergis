@@ -56,27 +56,9 @@ export class ToolbarWidget extends Toolbar {
       this.addItem('separator1', new Separator());
 
       this.addItem(
-        'newVectorTileLayer',
-        new CommandToolbarButton({
-          id: CommandIDs.newVectorTileLayer,
-          label: '',
-          commands: options.commands
-        })
-      );
-
-      this.addItem(
         'openLayerBrowser',
         new CommandToolbarButton({
           id: CommandIDs.openLayerBrowser,
-          label: '',
-          commands: options.commands
-        })
-      );
-
-      this.addItem(
-        'newGeoJSONLayer',
-        new CommandToolbarButton({
-          id: CommandIDs.newGeoJSONLayer,
           label: '',
           commands: options.commands
         })
@@ -91,51 +73,61 @@ export class ToolbarWidget extends Toolbar {
         })
       );
 
+      this.addItem('separator2', new Separator());
+
       this.addItem(
-        'newImageSource',
+        'newRasterEntry',
         new CommandToolbarButton({
-          id: CommandIDs.newImageSource,
+          id: CommandIDs.newRasterEntry,
           label: '',
           commands: options.commands
         })
       );
 
       this.addItem(
-        'newImageLayer',
+        'newVectorTileEntry',
         new CommandToolbarButton({
-          id: CommandIDs.newImageLayer,
+          id: CommandIDs.newVectorTileEntry,
           label: '',
           commands: options.commands
         })
       );
 
       this.addItem(
-        'newVideoSource',
+        'newGeoJSONEntry',
         new CommandToolbarButton({
-          id: CommandIDs.newVideoSource,
+          id: CommandIDs.newGeoJSONEntry,
           label: '',
           commands: options.commands
         })
       );
 
       this.addItem(
-        'newVideoLayer',
+        'newHillshadeEntry',
         new CommandToolbarButton({
-          id: CommandIDs.newVideoLayer,
+          id: CommandIDs.newHillshadeEntry,
           label: '',
           commands: options.commands
         })
       );
 
       this.addItem(
-        'newRasterLayer',
+        'newImageEntry',
         new CommandToolbarButton({
-          id: CommandIDs.newRasterLayer,
+          id: CommandIDs.newImageEntry,
           label: '',
           commands: options.commands
         })
       );
 
+      this.addItem(
+        'newVideoEntry',
+        new CommandToolbarButton({
+          id: CommandIDs.newVideoEntry,
+          label: '',
+          commands: options.commands
+        })
+      );
       // Add more commands here
 
       this.addItem('spacer', Toolbar.createSpacerItem());

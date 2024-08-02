@@ -136,43 +136,46 @@ const activate = (
       args: { isPalette: true },
       category: PALETTE_CATEGORY
     });
-    palette.addItem({
-      command: CommandIDs.removeLayer,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.renameLayer,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.removeGroup,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.renameGroup,
-      category: 'JupyterGIS'
-    });
 
     palette.addItem({
       command: CommandIDs.openLayerBrowser,
       category: 'JupyterGIS'
     });
 
+    // Layers and Sources
     palette.addItem({
-      command: CommandIDs.newGeoJSONLayer,
+      command: CommandIDs.newRasterEntry,
       category: 'JupyterGIS'
     });
 
     palette.addItem({
-      command: CommandIDs.newVectorTileLayer,
+      command: CommandIDs.newVectorTileEntry,
       category: 'JupyterGIS'
     });
 
     palette.addItem({
-      command: CommandIDs.newRasterLayer,
+      command: CommandIDs.newGeoJSONEntry,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
+      command: CommandIDs.newHillshadeEntry,
+      category: 'JupyterGIS'
+    });
+
+    // Source only
+    palette.addItem({
+      command: CommandIDs.newRasterSource,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
+      command: CommandIDs.newRasterDemSource,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
+      command: CommandIDs.newVectorSource,
       category: 'JupyterGIS'
     });
 
@@ -181,8 +184,33 @@ const activate = (
       category: 'JupyterGIS'
     });
 
+    // Layers only
+    palette.addItem({
+      command: CommandIDs.newRasterLayer,
+      category: 'JupyterGIS'
+    });
+
     palette.addItem({
       command: CommandIDs.newVectorLayer,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
+      command: CommandIDs.newHillshadeLayer,
+      category: 'JupyterGIS'
+    });
+
+    // Layer and group actions
+    palette.addItem({
+      command: CommandIDs.moveLayerToNewGroup,
+      category: 'JupyterGIS'
+    });
+
+    // Source actions
+
+    // Terrain
+    palette.addItem({
+      command: CommandIDs.newTerrain,
       category: 'JupyterGIS'
     });
 

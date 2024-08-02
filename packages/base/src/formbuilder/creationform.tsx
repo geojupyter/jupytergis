@@ -12,11 +12,11 @@ import {
 
 import { deepCopy } from '../tools';
 
-import * as React from 'react';
-import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
-import { Signal } from '@lumino/signaling';
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
+import { Signal } from '@lumino/signaling';
+import * as React from 'react';
+import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 
 export interface ICreationFormProps {
   /**
@@ -168,14 +168,20 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
       }
 
       if (this.props.createLayer) {
+        let actualName = '';
+
         const { name, ...layerData } =
           (await layerCreationPromise?.promise) as IDict;
+
+        actualName =
+          name ||
+          ((await layerCreationPromise?.promise) as IDict).name + ' Layer';
 
         const layerModel: IJGISLayer = {
           type: this.props.layerType || 'RasterLayer',
           parameters: layerData,
           visible: true,
-          name: name + ' Layer'
+          name: actualName
         };
 
         this.jGISModel.addLayer(UUID.uuid4(), layerModel);

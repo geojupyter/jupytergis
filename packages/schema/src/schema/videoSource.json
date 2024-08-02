@@ -7,16 +7,15 @@
   "properties": {
     "urls": {
       "type": "array",
-      "readOnly": true,
       "items": {
         "type": "string"
       },
+      "minItems": 1,
       "default": [],
       "description": "URLs to video content in order of preferred format"
     },
     "coordinates": {
       "type": "array",
-      "readOnly": true,
       "items": {
         "type": "array",
         "items": {
