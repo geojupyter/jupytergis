@@ -165,39 +165,6 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
-  configureTileSource(
-    sourceSpec:
-      | MapLibre.RasterSourceSpecification
-      | MapLibre.RasterDEMSourceSpecification
-      | MapLibre.VectorSourceSpecification,
-    url: string
-  ) {
-    // Use Tiles attribute if url has replaceable params (for example {z}/{x}/{y}), otherwise use url attribute
-    const regexPatterns = [
-      /\{z\}/,
-      /\{x\}/,
-      /\{y\}/,
-      /\{ratio\}/,
-      /\{quadkey\}/,
-      /\{bbox-epsg-3857\}/
-    ];
-
-    let result = false;
-
-    for (const pattern of regexPatterns) {
-      if (pattern.test(url)) {
-        result = true;
-        break;
-      }
-    }
-
-    result
-      ? (sourceSpec = { tiles: [url], ...sourceSpec })
-      : (sourceSpec = { url, ...sourceSpec });
-
-    return sourceSpec;
-  }
-
   /**
    * Add a source in the map.
    *
@@ -350,15 +317,21 @@ export class MainView extends React.Component<IProps, IStates> {
 
     switch (source.type) {
       case 'RasterSource': {
-        (mapSource as MapLibre.RasterTileSource).setTiles([
-          this.computeSourceUrl(source)
-        ]);
+        const sourceCast = mapSource as MapLibre.RasterTileSource;
+        const url = this.computeSourceUrl(source);
+        this._handleSourceUpdate(sourceCast, url);
         break;
       }
       case 'VectorTileSource': {
-        (mapSource as MapLibre.VectorTileSource).setUrl(
-          this.computeSourceUrl(source)
-        );
+        const sourceCast = mapSource as MapLibre.VectorTileSource;
+        const url = this.computeSourceUrl(source);
+        this._handleSourceUpdate(sourceCast, url);
+        break;
+      }
+      case 'RasterDemSource': {
+        const sourceCast = mapSource as MapLibre.RasterDEMTileSource;
+        const url = this.computeSourceUrl(source);
+        this._handleSourceUpdate(sourceCast, url);
         break;
       }
       case 'GeoJSONSource': {
@@ -366,11 +339,6 @@ export class MainView extends React.Component<IProps, IStates> {
           source.parameters?.data ||
           (await this._model.readGeoJSON(source.parameters?.path));
         (mapSource as MapLibre.GeoJSONSource).setData(data);
-        break;
-      }
-      case 'RasterDemSource': {
-        const parameters = source.parameters as IRasterDemSource;
-        (mapSource as MapLibre.RasterDEMTileSource).setUrl(parameters.url);
         break;
       }
       case 'ImageSource': {
@@ -720,6 +688,81 @@ export class MainView extends React.Component<IProps, IStates> {
     if (mapLayer) {
       this._Map.removeLayer(id);
     }
+  }
+
+  /**
+   * Determines whether to use tiles or a URL for a given source based on the presence of replaceable parameters in the URL.
+   *
+   * This method checks if the provided URL contains patterns that indicate it can be broken down into tiles
+   * (e.g., {z}/{x}/{y}, {ratio}, etc.).
+   * If such patterns are found, it suggests that tiles should be used. Otherwise, the URL itself should be used.
+   *
+   * @param url - The URL to check for replaceable parameters.
+   * @returns True if the URL contains replaceable parameters indicating the use of tiles, false otherwise.
+   */
+  private _shouldUseTiles(url: string) {
+    const regexPatterns = [
+      /\{z\}/,
+      /\{x\}/,
+      /\{y\}/,
+      /\{ratio\}/,
+      /\{quadkey\}/,
+      /\{bbox-epsg-3857\}/
+    ];
+
+    let result = false;
+
+    for (const pattern of regexPatterns) {
+      if (pattern.test(url)) {
+        result = true;
+        break;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Updates the given source with either a new URL or tiles based on the result of `_shouldUseTiles`.
+   *
+   * @param source - The source to update.
+   * @param url - The URL to set for the source.
+   */
+  private _handleSourceUpdate(
+    source:
+      | MapLibre.RasterTileSource
+      | MapLibre.VectorTileSource
+      | MapLibre.RasterDEMTileSource,
+    url: string
+  ) {
+    const result = this._shouldUseTiles(url);
+
+    result ? source.setTiles([url]) : source.setUrl(url);
+  }
+
+  /**
+   * Configures a source specification, setting either the `tiles` or `url` property based on the provided URL.
+   *
+   * This method uses the `_shouldUseTiles` method to determine whether the source should be configured with tiles or a direct URL. It then modifies the `sourceSpec` object accordingly.
+   *
+   * @param sourceSpec - The source specification object to configure. This object is modified in place.
+   * @param url - The URL to check for replaceable parameters and use in configuring the source.
+   * @returns The modified source specification object.
+   */
+  private configureTileSource(
+    sourceSpec:
+      | MapLibre.RasterSourceSpecification
+      | MapLibre.RasterDEMSourceSpecification
+      | MapLibre.VectorSourceSpecification,
+    url: string
+  ) {
+    const result = this._shouldUseTiles(url);
+
+    result
+      ? (sourceSpec = { tiles: [url], ...sourceSpec })
+      : (sourceSpec = { url, ...sourceSpec });
+
+    return sourceSpec;
   }
 
   private _onClientSharedStateChanged = (
