@@ -1,8 +1,12 @@
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { getSourceLayerNames } from '../../tools';
 import { IControlPanelModel } from '../../types';
 import { RightPanelWidget } from '../rightpanel';
+// import { VectorTile } from '@mapbox/vector-tile';
+// import Protobuf from 'pbf';
 
 /**
  * The layers panel widget.
@@ -28,8 +32,17 @@ export class FilterPanel extends Panel {
 interface IFilterComponentProps {
   model: IControlPanelModel;
 }
-const FilterComponent = ({ model }: IFilterComponentProps) => {
-  const selectedLayer = model.jGISModel?.localState?.selected?.value;
+const FilterComponent = (props: IFilterComponentProps) => {
+  const [model, setModel] = useState<IJupyterGISModel | undefined>(
+    props.model.jGISModel
+  );
+
+  const [selectedLayer, setSelectedLayer] = useState('');
+
+  props.model?.documentChanged.connect((_, widget) => {
+    setModel(widget?.context.model);
+  });
+  // const selectedLayer = model.jGISModel?.localState?.selected?.value;
 
   const comparisonOperators = ['==', '!=', '>', '<'];
 
@@ -42,13 +55,27 @@ const FilterComponent = ({ model }: IFilterComponentProps) => {
   const selectedNumberRef = useRef(selectedNumber);
 
   useEffect(() => {
+    model?.clientStateChanged.connect(() => {
+      if (!model?.localState?.selected?.value) {
+        return;
+      }
+
+      // TODO: handle multi select better
+      const selectedLayer = Object.keys(model?.localState?.selected?.value)[0];
+      setSelectedLayer(selectedLayer);
+    });
+  }, [model]);
+
+  useEffect(() => {
     selectedFeatureRef.current = selectedFeature;
     selectedOperatorRef.current = selectedOperator;
     selectedNumberRef.current = selectedNumber;
   }, [selectedFeature, selectedOperator, selectedNumber]);
 
-  const handleAddFilter = () => {
-    console.log('selectedLayer', selectedLayer);
+  const handleAddFilter = async () => {
+    if (!selectedLayer) {
+      console.warn('Layer must be selected to apply filter');
+    }
     const filterContainer = document.getElementById('filter-container');
     const featureList = document.getElementById('feature-list');
 
@@ -57,11 +84,24 @@ const FilterComponent = ({ model }: IFilterComponentProps) => {
     }
 
     filterContainer.style.display = 'block';
-    // need to get the features.properties from a geojson or a source-layers from a vector here
-    // use that to populate the feature list
-    const pretendList = ['felt', 'mag', 'tsunami'];
 
-    pretendList.forEach(feature => {
+    const layer = model?.getLayer(selectedLayer);
+    const source = model?.getSource(layer?.parameters?.source);
+
+    let listOfFeatures: string[] = [];
+
+    if (source?.type === 'VectorTileSource') {
+      listOfFeatures = await getSourceLayerNames(source?.parameters?.url);
+      console.log('ln', listOfFeatures);
+    }
+
+    if (source?.type === 'GeoJSONSource') {
+      const data = await model?.readGeoJSON(source.parameters?.path);
+
+      listOfFeatures = Object.keys(data?.features[0].properties);
+    }
+
+    listOfFeatures.forEach(feature => {
       const optionEl = document.createElement('option');
       optionEl.value = feature;
       optionEl.text = feature;
@@ -77,27 +117,17 @@ const FilterComponent = ({ model }: IFilterComponentProps) => {
   };
 
   const handleNumChange = (event: ChangeEvent<HTMLInputElement>) => {
-    console.log('num change', event.target.value);
     setSelectedNumber(event.target.value);
   };
 
   document.getElementById('filter-container')?.addEventListener('change', e => {
-    console.log('e.target.id', e.target);
-    // want to send a emit a signal here that'll trigger a filter method in mainview
     const filter = {
       feature: selectedFeatureRef.current,
       operator: selectedOperatorRef.current,
       value: +selectedNumberRef.current
     };
 
-    console.log(
-      'wififi',
-      selectedFeatureRef.current,
-      selectedOperatorRef.current,
-      selectedNumberRef.current
-    );
-    console.log('filter', filter);
-    model.jGISModel?.setFilters(filter);
+    model?.setFilters(filter);
   });
 
   return (

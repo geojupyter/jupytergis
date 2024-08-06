@@ -214,13 +214,11 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'GeoJSONSource': {
-        console.log('adding ', id);
         const mapSource = this._Map.getSource(id) as MapLibre.GeoJSONSource;
         if (!mapSource) {
           const data =
             source.parameters?.data ||
             (await this._model.readGeoJSON(source.parameters?.path));
-          console.log('adding 2 ', id);
           this._Map.addSource(id, {
             type: 'geojson',
             data: data
