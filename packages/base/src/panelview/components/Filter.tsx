@@ -140,14 +140,30 @@ const FilterComponent = (props: IFilterComponentProps) => {
     model?.sharedModel.updateLayer(selectedLayer, layer);
   });
 
+  const displayFilters = () => {
+    const layer = model?.getLayer(selectedLayer);
+
+    return (
+      <ul style={{ listStyleType: 'none' }}>
+        {layer?.filters?.map(filter => (
+          <li>
+            {filter.feature} {filter.operator} {filter.value}
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', padding: 7 }}>
-      <div>
-        list of filters
-        <Button className="jp-mod-accept" onClick={handleAddFilter}>
-          Add Filter
-        </Button>
-      </div>
+      {selectedLayer && (
+        <div>
+          {displayFilters()}
+          <Button className="jp-mod-accept" onClick={handleAddFilter}>
+            Add Filter
+          </Button>
+        </div>
+      )}
 
       <div id="filter-container" style={{ display: 'none' }}>
         <select
