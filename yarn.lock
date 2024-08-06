@@ -922,6 +922,7 @@ __metadata:
     "@lumino/messaging": ^2.0.0
     "@lumino/signaling": ^2.0.0
     "@lumino/widgets": ^2.0.0
+    "@mapbox/vector-tile": ^2.0.3
     "@naisutech/react-tree": ^3.0.1
     "@rjsf/core": ^4.2.0
     "@types/d3-color": ^3.1.0
@@ -931,6 +932,7 @@ __metadata:
     d3-color: ^3.1.0
     geojson-schema: ^1.0.5
     maplibre-gl: ^4.4.1
+    pbf: ^4.0.1
     react: ^18.0.1
     rimraf: ^3.0.2
     styled-components: ^5.3.6
@@ -1018,6 +1020,7 @@ __metadata:
     "@types/webpack-env": ^1.18.5
     "@typescript-eslint/eslint-plugin": 5.55.0
     "@typescript-eslint/parser": 5.55.0
+    arcgis-pbf-parser: ^0.0.4
     copy-webpack-plugin: ^10.0.0
     eslint: ^8.36.0
     eslint-config-prettier: ^8.8.0
@@ -2434,6 +2437,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mapbox/point-geometry@npm:~1.1.0":
+  version: 1.1.0
+  resolution: "@mapbox/point-geometry@npm:1.1.0"
+  checksum: b69c136566b08921286b2b5abcf35a1a015ce106af02c6914a74acff57b381e2fe167ce11268d5c26739f044813ae43c0581d3dbd7eb9b68bc9d7147ad74d6f1
+  languageName: node
+  linkType: hard
+
 "@mapbox/tiny-sdf@npm:^2.0.6":
   version: 2.0.6
   resolution: "@mapbox/tiny-sdf@npm:2.0.6"
@@ -2454,6 +2464,17 @@ __metadata:
   dependencies:
     "@mapbox/point-geometry": ~0.1.0
   checksum: 7093d4fa7d0382a0eae9d79526c5ad57c32099300b013d3afb4ab7499ac2a096f6f0a487cc81151ef81e0432a4b157513666b1592a4a4c1497341cde835551aa
+  languageName: node
+  linkType: hard
+
+"@mapbox/vector-tile@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "@mapbox/vector-tile@npm:2.0.3"
+  dependencies:
+    "@mapbox/point-geometry": ~1.1.0
+    "@types/geojson": ^7946.0.14
+    pbf: ^4.0.1
+  checksum: 5da1a5b27385f42048fba6e30fa8fde3a2b82838432a63ca611dc91e7fad2de46d42d05e6cf300e6639d0ed1c990c2bcab2396114c21c46d1bb1b1fa0caa76a8
   languageName: node
   linkType: hard
 
@@ -4003,6 +4024,15 @@ __metadata:
   version: 2.0.0
   resolution: "aproba@npm:2.0.0"
   checksum: 5615cadcfb45289eea63f8afd064ab656006361020e1735112e346593856f87435e02d8dcc7ff0d11928bc7d425f27bc7c2a84f6c0b35ab0ff659c814c138a24
+  languageName: node
+  linkType: hard
+
+"arcgis-pbf-parser@npm:^0.0.4":
+  version: 0.0.4
+  resolution: "arcgis-pbf-parser@npm:0.0.4"
+  dependencies:
+    pbf: ^3.2.1
+  checksum: dd5d6a5bd10bf84949e5b23f6d41aba2d15e78d8a20537daca762eb69b4695510cff6a01cbe8fe7a47280c84a2653945c55ee262d5a602e0d2742ad6278bedde
   languageName: node
   linkType: hard
 
@@ -9639,6 +9669,17 @@ __metadata:
   bin:
     pbf: bin/pbf
   checksum: 8033f5e21fffdc485e85d50bbff07ab3313c6841c3630a4ba9bc9e82d2e9005ab92000a1a90cb911223caa44316293e367bab607dd8110d5c771e6c8aaad63e1
+  languageName: node
+  linkType: hard
+
+"pbf@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "pbf@npm:4.0.1"
+  dependencies:
+    resolve-protobuf-schema: ^2.1.0
+  bin:
+    pbf: bin/pbf
+  checksum: c8a553847b3932803f63f62adece39da7b938f29bab97eb7e62f37cde96207a9c962ba92e26af3a7cad28df53e5a0fbcbca9aab985c32eb0553cbee5d4becfef
   languageName: node
   linkType: hard
 

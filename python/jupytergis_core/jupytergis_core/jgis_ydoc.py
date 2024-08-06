@@ -14,7 +14,8 @@ class YJGIS(YBaseDoc):
         self._ydoc["options"] = self._yoptions = Map()
         self._ydoc["layerTree"] = self._ylayerTree = Array()
         self._ydoc["terrain"] = self._yterrain = Map()
-        self.ydoc["filters"] = self._yfilters = Map()
+        self.ydoc["filters"] = self._yfilters = Array()
+
     def version(self) -> str:
         return "0.1.0"
 
@@ -61,7 +62,7 @@ class YJGIS(YBaseDoc):
             self._yterrain.update(valueDict.get("terrain", {}))
 
             self._yfilters.clear()
-            self._yfilters.update(valueDict.get("filters", {}))
+            self._yfilters.extend(valueDict.get("filters", []))
 
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()
@@ -83,5 +84,5 @@ class YJGIS(YBaseDoc):
         self._subscriptions[self._yterrain] = self._yterrain.observe_deep(
             partial(callback, "terrain")
         )
-        self._subscriptions[self._yfilters] = self._yfilters.observe_deep(
+        self._subscriptions[self._yfilters] = self._yfilters.observe(
             partial(callback, "filters"))

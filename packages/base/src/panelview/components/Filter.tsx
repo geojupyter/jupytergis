@@ -121,13 +121,19 @@ const FilterComponent = (props: IFilterComponentProps) => {
   };
 
   document.getElementById('filter-container')?.addEventListener('change', e => {
+    //TODO: this is temp
+    const filters = model?.getFilters() ?? [];
+
     const filter = {
+      layerId: selectedLayer,
       feature: selectedFeatureRef.current,
       operator: selectedOperatorRef.current,
       value: +selectedNumberRef.current
     };
 
-    model?.setFilters(filter);
+    filters?.push(filter);
+
+    model?.setFilters(filters);
   });
 
   return (

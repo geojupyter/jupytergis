@@ -4,11 +4,12 @@ import { ISignal, Signal } from '@lumino/signaling';
 import * as Y from 'yjs';
 
 import {
+  IJGISFilterItem,
   IJGISFilters,
   IJGISLayer,
   IJGISLayerItem,
-  IJGISLayers,
   IJGISLayerTree,
+  IJGISLayers,
   IJGISOptions,
   IJGISSource,
   IJGISSources,
@@ -35,7 +36,7 @@ export class JupyterGISDoc
     this._layerTree = this.ydoc.getArray<IJGISLayerItem>('layerTree');
     this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
     this._terrain = this.ydoc.getMap<IJGISTerrain>('terrain');
-    this._filters = this.ydoc.getMap<IJGISFilters>('filters');
+    this._filters = this.ydoc.getArray<IJGISFilterItem>('filters');
 
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
@@ -105,14 +106,13 @@ export class JupyterGISDoc
   }
 
   get filters(): IJGISFilters {
-    return JSONExt.deepCopy(this._filters.toJSON()) as IJGISFilters;
+    return JSONExt.deepCopy(this._filters.toJSON());
   }
 
   set filters(filters: IJGISFilters) {
     this.transact(() => {
-      for (const [key, value] of Object.entries(filters)) {
-        this._filters.set(key, value);
-      }
+      this._filters.delete(0, this._filters.length);
+      this._filters.push(filters);
     });
   }
 
@@ -200,6 +200,12 @@ export class JupyterGISDoc
       if (item) {
         this._layerTree.insert(index, [item]);
       }
+    });
+  }
+
+  addFilterItem(item: IJGISFilterItem) {
+    this.transact(() => {
+      this._filters.insert(this._filters.length - 1, [item]);
     });
   }
 
@@ -351,7 +357,7 @@ export class JupyterGISDoc
     this._optionsChanged.emit(event.keys);
   };
 
-  private _filtersObserver = (event: Y.YMapEvent<IJGISFilters>): void => {
+  private _filtersObserver = (event: Y.YArrayEvent<IJGISFilterItem>): void => {
     this._filtersChanged.emit(this.filters);
   };
 
@@ -360,7 +366,7 @@ export class JupyterGISDoc
   private _sources: Y.Map<any>;
   private _options: Y.Map<any>;
   private _terrain: Y.Map<IJGISTerrain>;
-  private _filters: Y.Map<IJGISFilters>;
+  private _filters: Y.Array<IJGISFilterItem>;
 
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(

@@ -190,11 +190,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         bearing: 0,
         pitch: 0
       };
-      this.sharedModel.filters = jsonData.filters ?? {
-        operator: '==',
-        feature: '',
-        value: 0
-      };
+      this.sharedModel.filters = jsonData.filters ?? [];
     });
     this.dirty = true;
   }
@@ -360,6 +356,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   setFilters(filters: IJGISFilters) {
     this._sharedModel.filters = filters;
+  }
+
+  getFilters() {
+    return this._sharedModel.filters;
   }
 
   setOptions(value: IJGISOptions) {

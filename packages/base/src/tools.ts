@@ -7,6 +7,8 @@ import {
   IJGISLayerBrowserRegistry,
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
+import { VectorTile } from '@mapbox/vector-tile';
+import Protobuf from 'pbf';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
 
 export const debounce = (
@@ -212,3 +214,76 @@ export function createDefaultLayerRegistry(
     };
   }
 }
+
+export async function getSourceLayerNames(
+  tileUrl: string,
+  urlParameters?: IDict<string>
+) {
+  tileUrl = tileUrl.replace('{x}', '0').replace('{y}', '0').replace('{z}', '0');
+  if (urlParameters) {
+    for (const param of Object.keys(urlParameters)) {
+      tileUrl = tileUrl.replace(`{${param}}`, urlParameters[param]);
+    }
+  }
+
+  const response = await fetch(tileUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch tile: ${response.statusText}`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+
+  // arrayBuffer.
+  //
+  // const fc = arcgisPbfDecode(new Uint8Array(arrayBuffer));
+
+  // console.log('fc', fc);
+  // const pbf = new Protobuf(arrayBuffer).readFields(readData, {});
+
+  // console.log('pbf', pbf);
+
+  // pbf.readFields;
+
+  const tile = new VectorTile(new Protobuf(arrayBuffer));
+
+  // console.log('tile.layers', tile.layers);
+  // console.log('tile.biome', tile.layers.Biome);
+  // console.log('tile.biome feature', tile.layers.Biome.feature(1));
+  // console.log('tile.biome properties', tile.layers.Biome.feature(1).properties);
+
+  // // so for each layer i want to go through the features
+  // for (const layer in tile.layers) {
+  //   console.log(`Key: ${layer}, Value: ${tile.layers[layer]}`);
+
+  //   for (let i = 0; i < tile.layers[layer].length - 1; i++) {
+  //     console.log(`layer.feature(${i})`, tile.layers[layer].feature(i));
+  //   }
+  // }
+
+  const layerNames = Object.keys(tile.layers);
+
+  return layerNames;
+}
+
+// function readData(tag, data, pbf) {
+//   if (tag === 1) {
+//     console.log('pbf.readString()', pbf.readString());
+//     data.name = pbf.readString();
+//   } else if (tag === 2) {
+//     console.log('pbf.readVarint()', pbf.readVarint());
+//     data.version = pbf.readVarint();
+//   } else if (tag === 3) {
+//     data.layer = pbf.readMessage(readLayer, {});
+//   }
+// }
+// function readLayer(tag, layer, pbf) {
+//   // if (tag === 1) {
+//   //   layer.name = pbf.readString();
+//   // } else if (tag === 3) {
+//   //   layer.size = pbf.readVarint();
+//   // }
+
+//   console.log('tag', tag);
+//   console.log('layer', layer);
+//   console.log('pbf', pbf);
+// }

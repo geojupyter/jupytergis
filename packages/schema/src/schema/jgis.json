@@ -186,11 +186,22 @@
     },
     "jGISFilters": {
       "title": "IJGISFilters",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/definitions/jGISFilterItem"
+      }
+    },
+    "jGISFilterItem": {
+      "title": "IJGISFilterItem",
       "type": "object",
       "default": {},
-      "required": ["operator", "feature", "value"],
+      "required": ["layerId", "operator", "feature", "value"],
       "additionalProperties": false,
       "properties": {
+        "layerId": {
+          "type": "string"
+        },
         "operator": {
           "type": "string",
           "default": "=="

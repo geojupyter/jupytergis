@@ -173,6 +173,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   setTerrain(terrain: IJGISTerrain): void;
   setFilters(filters: IJGISFilters): void;
+  getFilters(): IJGISFilters;
 
   removeLayerGroup(groupName: string): void;
   renameLayerGroup(groupName: string, newName: string): void;
