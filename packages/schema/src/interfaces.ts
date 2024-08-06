@@ -16,6 +16,7 @@ import { ISignal, Signal } from '@lumino/signaling';
 import { GeoJSON } from './_interface/geojsonsource';
 import {
   IJGISContent,
+  IJGISFilters,
   IJGISLayer,
   IJGISLayerGroup,
   IJGISLayerItem,
@@ -74,6 +75,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   sources: IJGISSources;
   layerTree: IJGISLayerTree;
   terrain: IJGISTerrain;
+  filters: IJGISFilters;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
@@ -113,6 +115,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   terrainChanged: ISignal<IJupyterGISDoc, IJGISTerrain>;
+  filtersChanged: ISignal<IJupyterGISDoc, IJGISFilters>;
 }
 
 export interface IJupyterGISDocChange extends DocumentChange {
@@ -146,6 +149,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedLayerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   terrainChanged: ISignal<IJupyterGISDoc, IJGISTerrain>;
+  filtersChanged: ISignal<IJupyterGISDoc, IJGISFilters>;
 
   setDrive(value: ICollaborativeDrive, filePath: string): void;
   getContent(): IJGISContent;
@@ -168,6 +172,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   readGeoJSON(filepath: string): Promise<GeoJSON | undefined>;
 
   setTerrain(terrain: IJGISTerrain): void;
+  setFilters(filters: IJGISFilters): void;
 
   removeLayerGroup(groupName: string): void;
   renameLayerGroup(groupName: string, newName: string): void;

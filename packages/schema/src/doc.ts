@@ -4,6 +4,7 @@ import { ISignal, Signal } from '@lumino/signaling';
 import * as Y from 'yjs';
 
 import {
+  IJGISFilters,
   IJGISLayer,
   IJGISLayerItem,
   IJGISLayers,
@@ -34,6 +35,8 @@ export class JupyterGISDoc
     this._layerTree = this.ydoc.getArray<IJGISLayerItem>('layerTree');
     this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
     this._terrain = this.ydoc.getMap<IJGISTerrain>('terrain');
+    this._filters = this.ydoc.getMap<IJGISFilters>('filters');
+
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
     this.undoManager.addToScope(this._layerTree);
@@ -43,6 +46,7 @@ export class JupyterGISDoc
     this._sources.observeDeep(this._sourcesObserver.bind(this));
     this._terrain.observe(this._terrainObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
+    this._filters.observe(this._filtersObserver.bind(this));
   }
 
   dispose(): void {
@@ -100,6 +104,18 @@ export class JupyterGISDoc
     });
   }
 
+  get filters(): IJGISFilters {
+    return JSONExt.deepCopy(this._filters.toJSON()) as IJGISFilters;
+  }
+
+  set filters(filters: IJGISFilters) {
+    this.transact(() => {
+      for (const [key, value] of Object.entries(filters)) {
+        this._filters.set(key, value);
+      }
+    });
+  }
+
   getLayer(id: string): IJGISLayer | undefined {
     if (!this._layers.has(id)) {
       return undefined;
@@ -144,6 +160,10 @@ export class JupyterGISDoc
 
   get terrainChanged(): ISignal<IJupyterGISDoc, IJGISTerrain> {
     return this._terrainChanged;
+  }
+
+  get filtersChanged(): ISignal<IJupyterGISDoc, IJGISFilters> {
+    return this._filtersChanged;
   }
 
   layerExists(id: string): boolean {
@@ -331,11 +351,16 @@ export class JupyterGISDoc
     this._optionsChanged.emit(event.keys);
   };
 
+  private _filtersObserver = (event: Y.YMapEvent<IJGISFilters>): void => {
+    this._filtersChanged.emit(this.filters);
+  };
+
   private _layers: Y.Map<any>;
   private _layerTree: Y.Array<IJGISLayerItem>;
   private _sources: Y.Map<any>;
   private _options: Y.Map<any>;
   private _terrain: Y.Map<IJGISTerrain>;
+  private _filters: Y.Map<IJGISFilters>;
 
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
@@ -348,6 +373,6 @@ export class JupyterGISDoc
   private _sourcesChanged = new Signal<IJupyterGISDoc, IJGISSourceDocChange>(
     this
   );
-
   private _terrainChanged = new Signal<IJupyterGISDoc, IJGISTerrain>(this);
+  private _filtersChanged = new Signal<IJupyterGISDoc, IJGISFilters>(this);
 }

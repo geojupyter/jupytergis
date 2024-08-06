@@ -18,6 +18,9 @@
     },
     "options": {
       "$ref": "#/definitions/jGISOptions"
+    },
+    "filters": {
+      "$ref": "#/definitions/jGISFilters"
     }
   },
   "definitions": {
@@ -176,6 +179,27 @@
           "default": 0
         },
         "pitch": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "jGISFilters": {
+      "title": "IJGISFilters",
+      "type": "object",
+      "default": {},
+      "required": ["operator", "feature", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "operator": {
+          "type": "string",
+          "default": "=="
+        },
+        "feature": {
+          "type": "string",
+          "default": ""
+        },
+        "value": {
           "type": "number",
           "default": 0
         }

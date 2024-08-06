@@ -67,6 +67,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
     this._model.terrainChanged.connect(this._onTerrainChange, this);
+    this._model.filtersChanged.connect(this._onFiltersChange, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -213,11 +214,13 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'GeoJSONSource': {
+        console.log('adding ', id);
         const mapSource = this._Map.getSource(id) as MapLibre.GeoJSONSource;
         if (!mapSource) {
           const data =
             source.parameters?.data ||
             (await this._model.readGeoJSON(source.parameters?.path));
+          console.log('adding 2 ', id);
           this._Map.addSource(id, {
             type: 'geojson',
             data: data
@@ -867,6 +870,20 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _onTerrainChange(sender: any, change: IJGISTerrain) {
     this.setTerrain(change.source, change.exaggeration);
+  }
+
+  private async _onFiltersChange(sender: any, change: any) {
+    console.log('change', change);
+
+    if (!change.feature) {
+      console.log('bail');
+      return;
+    }
+
+    this._Map.setFilter('db57b9b7-6f8a-4e01-bb56-93dd9388dbed', [
+      'all',
+      [change.operator, change.feature, change.value]
+    ]);
   }
 
   // @ts-ignore
