@@ -9,7 +9,6 @@ import Ajv from 'ajv';
 import { GeoJSON } from './_interface/geojsonsource';
 import {
   IJGISContent,
-  IJGISFilters,
   IJGISLayer,
   IJGISLayerGroup,
   IJGISLayerItem,
@@ -143,10 +142,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.terrainChanged;
   }
 
-  get filtersChanged(): ISignal<IJupyterGISDoc, IJGISFilters> {
-    return this.sharedModel.filtersChanged;
-  }
-
   get disposed(): ISignal<JupyterGISModel, void> {
     return this._disposed;
   }
@@ -190,7 +185,6 @@ export class JupyterGISModel implements IJupyterGISModel {
         bearing: 0,
         pitch: 0
       };
-      this.sharedModel.filters = jsonData.filters ?? [];
     });
     this.dirty = true;
   }
@@ -217,8 +211,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       layers: this.sharedModel.layers,
       layerTree: this.sharedModel.layerTree,
       options: this.sharedModel.options,
-      terrain: this.sharedModel.terrain,
-      filters: this.sharedModel.filters
+      terrain: this.sharedModel.terrain
     };
   }
 
@@ -352,14 +345,6 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   setTerrain(terrain: IJGISTerrain) {
     this._sharedModel.terrain = terrain;
-  }
-
-  setFilters(filters: IJGISFilters) {
-    this._sharedModel.filters = filters;
-  }
-
-  getFilters() {
-    return this._sharedModel.filters;
   }
 
   setOptions(value: IJGISOptions) {

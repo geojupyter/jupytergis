@@ -121,19 +121,23 @@ const FilterComponent = (props: IFilterComponentProps) => {
   };
 
   document.getElementById('filter-container')?.addEventListener('change', e => {
-    //TODO: this is temp
-    const filters = model?.getFilters() ?? [];
+    const layer = model?.getLayer(selectedLayer);
+
+    if (!layer) {
+      return;
+    }
 
     const filter = {
-      layerId: selectedLayer,
       feature: selectedFeatureRef.current,
       operator: selectedOperatorRef.current,
       value: +selectedNumberRef.current
     };
 
-    filters?.push(filter);
+    // TODO: Only going to have one filter for now
+    layer.filters = [];
 
-    model?.setFilters(filters);
+    layer.filters = [...layer.filters, filter];
+    model?.sharedModel.updateLayer(selectedLayer, layer);
   });
 
   return (

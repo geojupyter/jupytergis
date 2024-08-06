@@ -18,9 +18,6 @@
     },
     "options": {
       "$ref": "#/definitions/jGISOptions"
-    },
-    "filters": {
-      "$ref": "#/definitions/jGISFilters"
     }
   },
   "definitions": {
@@ -57,6 +54,13 @@
         },
         "parameters": {
           "type": "object"
+        },
+        "filters": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/definitions/jGISFilterItem"
+          }
         }
       }
     },
@@ -184,14 +188,6 @@
         }
       }
     },
-    "jGISFilters": {
-      "title": "IJGISFilters",
-      "type": "array",
-      "default": [],
-      "items": {
-        "$ref": "#/definitions/jGISFilterItem"
-      }
-    },
     "jGISFilterItem": {
       "title": "IJGISFilterItem",
       "type": "object",
@@ -199,9 +195,6 @@
       "required": ["layerId", "operator", "feature", "value"],
       "additionalProperties": false,
       "properties": {
-        "layerId": {
-          "type": "string"
-        },
         "operator": {
           "type": "string",
           "default": "=="

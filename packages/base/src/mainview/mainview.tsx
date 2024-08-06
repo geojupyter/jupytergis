@@ -2,6 +2,7 @@ import { MapChange } from '@jupyter/ydoc';
 import {
   IHillshadeLayer,
   IImageSource,
+  IJGISFilterItem,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -67,7 +68,6 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
     this._model.terrainChanged.connect(this._onTerrainChange, this);
-    this._model.filtersChanged.connect(this._onFiltersChange, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -678,6 +678,10 @@ export class MainView extends React.Component<IProps, IStates> {
         );
       }
     }
+
+    if (layer.filters && layer.filters?.length !== 0) {
+      this.setFilters(id, layer.filters);
+    }
   }
 
   /**
@@ -870,18 +874,15 @@ export class MainView extends React.Component<IProps, IStates> {
     this.setTerrain(change.source, change.exaggeration);
   }
 
-  private async _onFiltersChange(sender: any, change: any) {
-    console.log('change', change);
-
-    if (!change.feature) {
-      console.log('bail');
-      return;
-    }
-
-    this._Map.setFilter('db57b9b7-6f8a-4e01-bb56-93dd9388dbed', [
+  private async setFilters(id: string, filters: IJGISFilterItem[]) {
+    const filterExpression = [
       'all',
-      [change.operator, change.feature, change.value]
-    ]);
+      ...filters.map(id => [id.operator, id.feature, id.value])
+    ] as MapLibre.FilterSpecification;
+
+    console.log('filterExpression', filterExpression);
+
+    this._Map.setFilter(id, filterExpression);
   }
 
   // @ts-ignore

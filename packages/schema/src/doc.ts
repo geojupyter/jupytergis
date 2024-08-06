@@ -5,7 +5,6 @@ import * as Y from 'yjs';
 
 import {
   IJGISFilterItem,
-  IJGISFilters,
   IJGISLayer,
   IJGISLayerItem,
   IJGISLayerTree,
@@ -47,7 +46,6 @@ export class JupyterGISDoc
     this._sources.observeDeep(this._sourcesObserver.bind(this));
     this._terrain.observe(this._terrainObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
-    this._filters.observe(this._filtersObserver.bind(this));
   }
 
   dispose(): void {
@@ -105,17 +103,6 @@ export class JupyterGISDoc
     });
   }
 
-  get filters(): IJGISFilters {
-    return JSONExt.deepCopy(this._filters.toJSON());
-  }
-
-  set filters(filters: IJGISFilters) {
-    this.transact(() => {
-      this._filters.delete(0, this._filters.length);
-      this._filters.push(filters);
-    });
-  }
-
   getLayer(id: string): IJGISLayer | undefined {
     if (!this._layers.has(id)) {
       return undefined;
@@ -160,10 +147,6 @@ export class JupyterGISDoc
 
   get terrainChanged(): ISignal<IJupyterGISDoc, IJGISTerrain> {
     return this._terrainChanged;
-  }
-
-  get filtersChanged(): ISignal<IJupyterGISDoc, IJGISFilters> {
-    return this._filtersChanged;
   }
 
   layerExists(id: string): boolean {
@@ -357,10 +340,6 @@ export class JupyterGISDoc
     this._optionsChanged.emit(event.keys);
   };
 
-  private _filtersObserver = (event: Y.YArrayEvent<IJGISFilterItem>): void => {
-    this._filtersChanged.emit(this.filters);
-  };
-
   private _layers: Y.Map<any>;
   private _layerTree: Y.Array<IJGISLayerItem>;
   private _sources: Y.Map<any>;
@@ -380,5 +359,4 @@ export class JupyterGISDoc
     this
   );
   private _terrainChanged = new Signal<IJupyterGISDoc, IJGISTerrain>(this);
-  private _filtersChanged = new Signal<IJupyterGISDoc, IJGISFilters>(this);
 }
