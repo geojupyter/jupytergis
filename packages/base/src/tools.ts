@@ -219,7 +219,11 @@ export async function getSourceLayerNames(
   tileUrl: string,
   urlParameters?: IDict<string>
 ) {
-  tileUrl = tileUrl.replace('{x}', '0').replace('{y}', '0').replace('{z}', '0');
+  tileUrl = tileUrl
+    .replace('{x}', '270')
+    .replace('{y}', '171')
+    .replace('{z}', '9');
+  console.log('tileUrl', tileUrl);
   if (urlParameters) {
     for (const param of Object.keys(urlParameters)) {
       tileUrl = tileUrl.replace(`{${param}}`, urlParameters[param]);
@@ -232,58 +236,26 @@ export async function getSourceLayerNames(
   }
 
   const arrayBuffer = await response.arrayBuffer();
-
-  // arrayBuffer.
-  //
-  // const fc = arcgisPbfDecode(new Uint8Array(arrayBuffer));
-
-  // console.log('fc', fc);
-  // const pbf = new Protobuf(arrayBuffer).readFields(readData, {});
-
-  // console.log('pbf', pbf);
-
-  // pbf.readFields;
-
   const tile = new VectorTile(new Protobuf(arrayBuffer));
 
-  // console.log('tile.layers', tile.layers);
-  // console.log('tile.biome', tile.layers.Biome);
-  // console.log('tile.biome feature', tile.layers.Biome.feature(1));
-  // console.log('tile.biome properties', tile.layers.Biome.feature(1).properties);
+  return tile;
 
-  // // so for each layer i want to go through the features
-  // for (const layer in tile.layers) {
-  //   console.log(`Key: ${layer}, Value: ${tile.layers[layer]}`);
+  const aggregatedProperties: Record<string, Set<unknown>> = {};
 
-  //   for (let i = 0; i < tile.layers[layer].length - 1; i++) {
-  //     console.log(`layer.feature(${i})`, tile.layers[layer].feature(i));
-  //   }
-  // }
+  for (const layerValue of Object.values(tile.layers)) {
+    for (let i = 0; i < layerValue.length; i++) {
+      const feature = layerValue.feature(i);
+      Object.entries(feature.properties).forEach(
+        ([propertyKey, propertyValue]) => {
+          if (!(propertyKey in aggregatedProperties)) {
+            aggregatedProperties[propertyKey] = new Set();
+          }
+          aggregatedProperties[propertyKey].add(propertyValue);
+        }
+      );
+    }
+  }
 
-  const layerNames = Object.keys(tile.layers);
-
-  return layerNames;
+  console.log('aggregatedProperties', aggregatedProperties);
+  return aggregatedProperties;
 }
-
-// function readData(tag, data, pbf) {
-//   if (tag === 1) {
-//     console.log('pbf.readString()', pbf.readString());
-//     data.name = pbf.readString();
-//   } else if (tag === 2) {
-//     console.log('pbf.readVarint()', pbf.readVarint());
-//     data.version = pbf.readVarint();
-//   } else if (tag === 3) {
-//     data.layer = pbf.readMessage(readLayer, {});
-//   }
-// }
-// function readLayer(tag, layer, pbf) {
-//   // if (tag === 1) {
-//   //   layer.name = pbf.readString();
-//   // } else if (tag === 3) {
-//   //   layer.size = pbf.readVarint();
-//   // }
-
-//   console.log('tag', tag);
-//   console.log('layer', layer);
-//   console.log('pbf', pbf);
-// }

@@ -1,7 +1,7 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
+import { GeoJSONFeature1, IJupyterGISModel } from '@jupytergis/schema';
 import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
-import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import { getSourceLayerNames } from '../../tools';
 import { IControlPanelModel } from '../../types';
 import { RightPanelWidget } from '../rightpanel';
@@ -33,26 +33,22 @@ interface IFilterComponentProps {
   model: IControlPanelModel;
 }
 const FilterComponent = (props: IFilterComponentProps) => {
+  const [selectedLayer, setSelectedLayer] = useState('');
+  const [selectedFeature, setSelectedFeature] = useState('');
+  const [selectedOperator, setSelectedOperator] = useState('');
+  const [selectedNumber, setSelectedNumber] = useState('');
   const [model, setModel] = useState<IJupyterGISModel | undefined>(
     props.model.jGISModel
   );
-
-  const [selectedLayer, setSelectedLayer] = useState('');
+  const [filterStuff, setFilterStuff] = useState<Record<string, Set<unknown>>>(
+    {}
+  );
 
   props.model?.documentChanged.connect((_, widget) => {
     setModel(widget?.context.model);
   });
-  // const selectedLayer = model.jGISModel?.localState?.selected?.value;
 
   const comparisonOperators = ['==', '!=', '>', '<'];
-
-  const [selectedFeature, setSelectedFeature] = useState('mag');
-  const [selectedOperator, setSelectedOperator] = useState('==');
-  const [selectedNumber, setSelectedNumber] = useState('1');
-
-  const selectedFeatureRef = useRef(selectedFeature);
-  const selectedOperatorRef = useRef(selectedOperator);
-  const selectedNumberRef = useRef(selectedNumber);
 
   useEffect(() => {
     model?.clientStateChanged.connect(() => {
@@ -67,60 +63,82 @@ const FilterComponent = (props: IFilterComponentProps) => {
   }, [model]);
 
   useEffect(() => {
-    selectedFeatureRef.current = selectedFeature;
-    selectedOperatorRef.current = selectedOperator;
-    selectedNumberRef.current = selectedNumber;
+    handleFilterChange();
   }, [selectedFeature, selectedOperator, selectedNumber]);
 
-  const handleAddFilter = async () => {
-    if (!selectedLayer) {
-      console.warn('Layer must be selected to apply filter');
-    }
-    const filterContainer = document.getElementById('filter-container');
-    const featureList = document.getElementById('feature-list');
+  useEffect(() => {
+    buildFilterObject();
+  }, [selectedLayer]);
 
-    if (!filterContainer || !featureList) {
+  useEffect(() => {
+    const valuesList = document.getElementById(
+      'values-list'
+    ) as HTMLSelectElement | null;
+
+    const values = filterStuff[selectedFeature];
+    if (!valuesList || !values) {
       return;
     }
 
-    filterContainer.style.display = 'block';
+    valuesList.options.length = 0;
+    for (const value of values) {
+      const option = document.createElement('option');
+      option.value = String(value);
+      option.text = String(value);
+      valuesList.appendChild(option);
+    }
+  }, [selectedFeature]);
 
+  const buildFilterObject = async () => {
     const layer = model?.getLayer(selectedLayer);
     const source = model?.getSource(layer?.parameters?.source);
 
-    let listOfFeatures: string[] = [];
-
-    if (source?.type === 'VectorTileSource') {
-      listOfFeatures = await getSourceLayerNames(source?.parameters?.url);
-      console.log('ln', listOfFeatures);
+    if (!source) {
+      return;
     }
 
-    if (source?.type === 'GeoJSONSource') {
-      const data = await model?.readGeoJSON(source.parameters?.path);
+    const aggregatedProperties: Record<string, Set<unknown>> = {};
 
-      listOfFeatures = Object.keys(data?.features[0].properties);
+    switch (source.type) {
+      case 'VectorTileSource': {
+        const tile = await getSourceLayerNames(source?.parameters?.url);
+        for (const layerValue of Object.values(tile.layers)) {
+          for (let i = 0; i < layerValue.length; i++) {
+            const feature = layerValue.feature(i);
+            Object.entries(feature.properties).forEach(
+              ([propertyKey, propertyValue]) => {
+                if (!(propertyKey in aggregatedProperties)) {
+                  aggregatedProperties[propertyKey] = new Set();
+                }
+                aggregatedProperties[propertyKey].add(propertyValue);
+              }
+            );
+          }
+        }
+        break;
+      }
+      case 'GeoJSONSource': {
+        const data = await model?.readGeoJSON(source.parameters?.path);
+        data?.features.forEach((feature: GeoJSONFeature1) => {
+          feature.properties &&
+            Object.entries(feature.properties).forEach(([pk, pv]) => {
+              if (!(pk in aggregatedProperties)) {
+                aggregatedProperties[pk] = new Set();
+              }
+              aggregatedProperties[pk].add(pv);
+            });
+        });
+        break;
+      }
+      default: {
+        break;
+      }
     }
 
-    listOfFeatures.forEach(feature => {
-      const optionEl = document.createElement('option');
-      optionEl.value = feature;
-      optionEl.text = feature;
-      featureList.appendChild(optionEl);
-    });
+    setFilterStuff(aggregatedProperties);
   };
 
-  const handleFeatureChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedFeature(event.target.value);
-  };
-  const handleOpChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedOperator(event.target.value);
-  };
-
-  const handleNumChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setSelectedNumber(event.target.value);
-  };
-
-  document.getElementById('filter-container')?.addEventListener('change', e => {
+  const handleFilterChange = () => {
     const layer = model?.getLayer(selectedLayer);
 
     if (!layer) {
@@ -128,9 +146,9 @@ const FilterComponent = (props: IFilterComponentProps) => {
     }
 
     const filter = {
-      feature: selectedFeatureRef.current,
-      operator: selectedOperatorRef.current,
-      value: +selectedNumberRef.current
+      feature: selectedFeature,
+      operator: selectedOperator,
+      value: +selectedNumber
     };
 
     // TODO: Only going to have one filter for now
@@ -138,7 +156,53 @@ const FilterComponent = (props: IFilterComponentProps) => {
 
     layer.filters = [...layer.filters, filter];
     model?.sharedModel.updateLayer(selectedLayer, layer);
-  });
+  };
+
+  const handleAddFilter = async () => {
+    // Display filter selector
+    if (!selectedLayer) {
+      console.warn('Layer must be selected to apply filter');
+    }
+    const filterContainer = document.getElementById('filter-container');
+    const featureList = document.getElementById('feature-list');
+    const valuesList = document.getElementById('values-list');
+
+    if (!filterContainer || !featureList || !valuesList) {
+      return;
+    }
+
+    filterContainer.style.display = 'block';
+
+    console.log('filterStuff', filterStuff);
+
+    for (const key in filterStuff) {
+      const option = document.createElement('option');
+      option.value = key;
+      option.text = key;
+      featureList.appendChild(option);
+    }
+
+    // TODO: This doesnt work right
+    const values = filterStuff[selectedFeature];
+    for (const value of values) {
+      const option = document.createElement('option');
+      option.value = String(value);
+      option.text = String(value);
+      valuesList.appendChild(option);
+    }
+  };
+
+  const handleFeatureChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedFeature(event.target.value);
+  };
+
+  const handleOpChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedOperator(event.target.value);
+  };
+
+  const handleNumChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedNumber(event.target.value);
+  };
 
   const displayFilters = () => {
     const layer = model?.getLayer(selectedLayer);
@@ -184,13 +248,18 @@ const FilterComponent = (props: IFilterComponentProps) => {
             </option>
           ))}
         </select>
-        <input
+        {/* <input
           type="number"
           min={1.0}
           max={10000}
           value={selectedNumber}
           onChange={handleNumChange}
-        />
+        /> */}
+        <select
+          id="values-list"
+          value={selectedNumber}
+          onChange={handleNumChange}
+        ></select>
       </div>
     </div>
   );

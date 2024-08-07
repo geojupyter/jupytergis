@@ -1,0 +1,64 @@
+{
+  "filters": [],
+  "layerTree": [
+    "7503cae6-dfe0-426a-a5f6-175f8a8c6dea",
+    "e20b999f-629c-498d-a36e-1220ad79ffe6"
+  ],
+  "layers": {
+    "7503cae6-dfe0-426a-a5f6-175f8a8c6dea": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "e5d6aad9-6671-4d64-968d-ea4b34bf1d43"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "e20b999f-629c-498d-a36e-1220ad79ffe6": {
+      "filters": [],
+      "name": "Custom Vector Tile Layer",
+      "parameters": {
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "source": "4d476340-c46d-4a64-95b2-a4da3e45cc70",
+        "sourceLayer": "contour",
+        "type": "line"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "options": {
+    "bearing": 0.0,
+    "latitude": 47.728008945720205,
+    "longitude": 6.429945574648173,
+    "pitch": 0.0,
+    "zoom": 9.905251935815837
+  },
+  "sources": {
+    "4d476340-c46d-4a64-95b2-a4da3e45cc70": {
+      "name": "Custom Vector Tile Layer Source",
+      "parameters": {
+        "maxZoom": 14.0,
+        "minZoom": 9.0,
+        "url": "https://api.maptiler.com/tiles/contours-v2/{z}/{x}/{y}.pbf?key=FqLvmhjIXoT1YaG7wQ9R"
+      },
+      "type": "VectorTileSource"
+    },
+    "e5d6aad9-6671-4d64-968d-ea4b34bf1d43": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  },
+  "terrain": {
+    "exaggeration": 0.0,
+    "source": ""
+  }
+}
