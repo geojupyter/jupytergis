@@ -6,9 +6,10 @@ import {
 import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { useEffect, useState } from 'react';
-import { getSourceLayerNames } from '../../tools';
-import { IControlPanelModel } from '../../types';
-import { RightPanelWidget } from '../rightpanel';
+import { getSourceLayerNames } from '../../../tools';
+import { IControlPanelModel } from '../../../types';
+import { RightPanelWidget } from '../../rightpanel';
+import FilterRow from './FilterRow';
 
 /**
  * The filters panel widget.
@@ -128,13 +129,16 @@ const FilterComponent = (props: IFilterComponentProps) => {
     const layer = model?.getLayer(selectedLayer);
 
     return (
-      <ul style={{ listStyleType: 'none' }}>
-        {layer?.filters?.map(filter => (
-          <li>
-            {filter.feature} {filter.operator} {filter.value}
-          </li>
-        ))}
-      </ul>
+      <div className="jp-gis-filter-">
+        <span className="jp-gis-text-label">Applied Filters</span>
+        <ul style={{ listStyleType: 'none' }}>
+          {layer?.filters?.map(filter => (
+            <li>
+              {filter.feature} {filter.operator} {filter.value}
+            </li>
+          ))}
+        </ul>
+      </div>
     );
   };
 
@@ -144,7 +148,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
     if (!filterContainer) {
       return;
     }
-    filterContainer.style.display = 'block';
+    filterContainer.style.display = 'flex';
 
     setFilterRows([
       ...filterRows,
@@ -176,125 +180,48 @@ const FilterComponent = (props: IFilterComponentProps) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', padding: 7 }}>
+    <div className="jp-gis-filter-main">
       {selectedLayer && (
         <>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {displayFilters()}
-            <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-              <Button
-                className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-                onClick={addFilterRow}
-              >
-                Add
-              </Button>
-              <Button
-                className="jp-Dialog-button jp-mod-reject jp-mod-styled"
-                onClick={clearFilters}
-              >
-                Clear
-              </Button>
-            </div>
-
-            <div id="filter-container" style={{ display: 'none' }}>
-              {filterRows.map((row, index) => (
-                <FilterRow
-                  key={index}
-                  index={index}
-                  features={featureStuff}
-                  rows={filterRows}
-                  setRows={setFilterRows}
-                />
-              ))}
-            </div>
+          {displayFilters()}
+          <div className="jp-gis-filter-button-container">
             <Button
               className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-              onClick={submitFilter}
+              onClick={addFilterRow}
             >
-              Submit
+              Add
+            </Button>
+            <Button
+              className="jp-Dialog-button jp-mod-reject jp-mod-styled"
+              onClick={clearFilters}
+            >
+              Clear
             </Button>
           </div>
+
+          <div
+            id="filter-container"
+            style={{ display: 'none' }}
+            className="jp-gis-filter-select-container"
+          >
+            {filterRows.map((row, index) => (
+              <FilterRow
+                key={index}
+                index={index}
+                features={featureStuff}
+                filterRows={filterRows}
+                setFilterRows={setFilterRows}
+              />
+            ))}
+          </div>
+          <Button
+            className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+            onClick={submitFilter}
+          >
+            Submit
+          </Button>
         </>
       )}
-    </div>
-  );
-};
-
-const FilterRow = ({
-  index,
-  features,
-  rows,
-  setRows
-}: {
-  index: number;
-  features: Record<string, Set<string>>;
-  rows: any;
-  setRows: any;
-}) => {
-  const operators = ['==', '!=', '>', '<'];
-
-  const [selectedFeature, setSelectedFeature] = useState(
-    Object.keys(features)[0]
-  );
-
-  useEffect(() => {
-    const valueSelect = document.getElementById(
-      `filter-value${index}`
-    ) as HTMLSelectElement;
-    if (!valueSelect) {
-      return;
-    }
-    const currentValue = valueSelect.options[valueSelect.selectedIndex].value;
-    handleValueChange({
-      target: { value: currentValue }
-    });
-  }, [selectedFeature]);
-
-  const handleKeyChange = event => {
-    const newFilters = [...rows];
-    newFilters[index].key = event.target.value;
-    setSelectedFeature(event.target.value);
-    setRows(newFilters);
-  };
-
-  const handleOperatorChange = event => {
-    const newFilters = [...rows];
-    newFilters[index].operator = event.target.value;
-    setRows(newFilters);
-  };
-
-  const handleValueChange = event => {
-    const newFilters = [...rows];
-    newFilters[index].value = event.target.value;
-    setRows(newFilters);
-  };
-
-  return (
-    <div>
-      <select onChange={handleKeyChange}>
-        {/* Populate options based on the keys of the filters object */}
-        {Object.keys(features).map((key, keyIndex) => (
-          <option key={keyIndex} value={key}>
-            {key}
-          </option>
-        ))}
-      </select>
-      <select onChange={handleOperatorChange}>
-        {operators.map((operator, operatorIndex) => (
-          <option key={operatorIndex} value={operator}>
-            {operator}
-          </option>
-        ))}
-      </select>
-      <select id={`filter-value${index}`} onChange={handleValueChange}>
-        {/* Populate options based on the values of the selected key */}
-        {features[selectedFeature] &&
-          [...features[selectedFeature]].map((value, valueIndex) => (
-            <option key={valueIndex} value={value}>
-              {value}
-            </option>
-          ))}
-      </select>
     </div>
   );
 };

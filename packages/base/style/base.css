@@ -7,6 +7,7 @@
 @import url('./layerBrowser.css');
 @import url('./leftPanel.css');
 @import url('./terrainDialog.css');
+@import url('./filterPanel.css');
 @import url('maplibre-gl/dist/maplibre-gl.css');
 
 .jGIS-Toolbar-GroupName {
@@ -42,4 +43,12 @@
 
 .jGIS-property-panel .jp-SchemaForm .array-item-list:has(.field-array) {
   flex-direction: column;
+}
+
+.jp-gis-text-label {
+  margin: 0;
+  padding: 0;
+  font-weight: bold;
+  display: block;
+  position: relative;
 }
