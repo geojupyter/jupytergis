@@ -220,7 +220,7 @@ test.describe('#layerPanel', () => {
       await page.mouse.down();
       await page.mouse.move(firstItemBox!.x + 10, firstItemBox!.y + 10);
       // We need to force hover
-      await layerItems.first().hover({ position: { x: 10, y: 10 }});
+      await layerItems.first().hover({ position: { x: 10, y: 10 } });
 
       await expect(dragIndicator).toBeVisible();
 
@@ -232,13 +232,17 @@ test.describe('#layerPanel', () => {
         firstItemBox!.y + firstItemBox!.height - 10
       );
       // We need to force hover
-      await layerItems.first().hover({ position: { x: 10, y: firstItemBox!.height - 10 }});
+      await layerItems
+        .first()
+        .hover({ position: { x: 10, y: firstItemBox!.height - 10 } });
 
       children = await layerPanel.evaluate(div => div.children);
       expect(children[1].id === dragIndicatorId);
     });
 
-    test('should move the top raster layer using drag and drop', async ({ page }) => {
+    test('should move the top raster layer using drag and drop', async ({
+      page
+    }) => {
       const layerTree = await openLayerTree(page);
       const layers = layerTree.locator('.jp-gis-layer');
       const layerGroup = layerTree.locator('.jp-gis-layerGroup');
