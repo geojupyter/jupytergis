@@ -5,6 +5,7 @@ import * as d3Color from 'd3-color';
 import {
   IDict,
   IJGISLayerBrowserRegistry,
+  IJGISOptions,
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
 import { VectorTile } from '@mapbox/vector-tile';
@@ -215,15 +216,48 @@ export function createDefaultLayerRegistry(
   }
 }
 
+// Get x/y tile values from lat and lng
+function getTileCoordinates(latDeg: number, lonDeg: number, zoom: number) {
+  const latRad = latDeg * (Math.PI / 180);
+  const n = 1 << zoom;
+  const xTile = Math.floor(((lonDeg + 180.0) / 360.0) * n);
+  const yTile = Math.floor(
+    ((1.0 - Math.asin(Math.tan(latRad)) / Math.PI) / 2.0) * n
+  );
+
+  return { xTile, yTile };
+}
+
 export async function getSourceLayerNames(
   tileUrl: string,
+  mapOptions: Pick<IJGISOptions, 'latitude' | 'longitude' | 'zoom'>,
   urlParameters?: IDict<string>
 ) {
+  // If it's tilejson, fetch the json to access the pbf url
+  if (tileUrl.includes('.json')) {
+    const response = await fetch(tileUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch json: ${response.statusText}`);
+    }
+
+    const json = await response.json();
+    tileUrl = json.tiles[0];
+  }
+
+  const { xTile, yTile } = getTileCoordinates(
+    mapOptions.latitude,
+    mapOptions.longitude,
+    mapOptions.zoom
+  );
+
+  // Replace url params with currently viewed tile
   tileUrl = tileUrl
-    .replace('{x}', '270')
-    .replace('{y}', '171')
-    .replace('{z}', '9');
+    .replace('{z}', String(Math.floor(mapOptions.zoom)))
+    .replace('{x}', String(xTile))
+    .replace('{y}', String(yTile));
+
   console.log('tileUrl', tileUrl);
+
   if (urlParameters) {
     for (const param of Object.keys(urlParameters)) {
       tileUrl = tileUrl.replace(`{${param}}`, urlParameters[param]);
@@ -240,22 +274,22 @@ export async function getSourceLayerNames(
 
   return tile;
 
-  const aggregatedProperties: Record<string, Set<unknown>> = {};
+  // const aggregatedProperties: Record<string, Set<unknown>> = {};
 
-  for (const layerValue of Object.values(tile.layers)) {
-    for (let i = 0; i < layerValue.length; i++) {
-      const feature = layerValue.feature(i);
-      Object.entries(feature.properties).forEach(
-        ([propertyKey, propertyValue]) => {
-          if (!(propertyKey in aggregatedProperties)) {
-            aggregatedProperties[propertyKey] = new Set();
-          }
-          aggregatedProperties[propertyKey].add(propertyValue);
-        }
-      );
-    }
-  }
+  // for (const layerValue of Object.values(tile.layers)) {
+  //   for (let i = 0; i < layerValue.length; i++) {
+  //     const feature = layerValue.feature(i);
+  //     Object.entries(feature.properties).forEach(
+  //       ([propertyKey, propertyValue]) => {
+  //         if (!(propertyKey in aggregatedProperties)) {
+  //           aggregatedProperties[propertyKey] = new Set();
+  //         }
+  //         aggregatedProperties[propertyKey].add(propertyValue);
+  //       }
+  //     );
+  //   }
+  // }
 
-  console.log('aggregatedProperties', aggregatedProperties);
-  return aggregatedProperties;
+  // console.log('aggregatedProperties', aggregatedProperties);
+  // return aggregatedProperties;
 }
