@@ -14,7 +14,13 @@
       "visible": true
     },
     "e20b999f-629c-498d-a36e-1220ad79ffe6": {
-      "filters": [],
+      "filters": [
+        {
+          "feature": "height",
+          "operator": ">",
+          "value": 500.0
+        }
+      ],
       "name": "Custom Vector Tile Layer",
       "parameters": {
         "color": "#FF0000",
@@ -29,10 +35,10 @@
   },
   "options": {
     "bearing": 0.0,
-    "latitude": 47.728008945720205,
-    "longitude": 6.429945574648173,
+    "latitude": 47.90180919631115,
+    "longitude": 6.91954079315326,
     "pitch": 0.0,
-    "zoom": 9.905251935815837
+    "zoom": 9.686474838590094
   },
   "sources": {
     "4d476340-c46d-4a64-95b2-a4da3e45cc70": {
@@ -40,7 +46,7 @@
       "parameters": {
         "maxZoom": 14.0,
         "minZoom": 9.0,
-        "url": "https://api.maptiler.com/tiles/contours-v2/{z}/{x}/{y}.pbf?key=FqLvmhjIXoT1YaG7wQ9R"
+        "url": "https://api.maptiler.com/tiles/contours-v2/tiles.json?key=FqLvmhjIXoT1YaG7wQ9R"
       },
       "type": "VectorTileSource"
     },

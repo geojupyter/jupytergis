@@ -108,18 +108,20 @@ export class MainView extends React.Component<IProps, IStates> {
     if (this.divRef.current) {
       this._Map = new MapLibre.Map({
         container: this.divRef.current
-      }).addControl(
-        new MapLibre.NavigationControl({
-          visualizePitch: true,
-          showZoom: true,
-          showCompass: true
-        })
-      ).addControl(
-        new MapLibre.ScaleControl({
-          maxWidth: 80,
-          unit: 'metric'
-        })
-      );
+      })
+        .addControl(
+          new MapLibre.NavigationControl({
+            visualizePitch: true,
+            showZoom: true,
+            showCompass: true
+          })
+        )
+        .addControl(
+          new MapLibre.ScaleControl({
+            maxWidth: 80,
+            unit: 'metric'
+          })
+        );
 
       this._Map.on('zoomend', () => {
         if (!this._initializedPosition) {
@@ -679,7 +681,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
     }
 
-    if (layer.filters && layer.filters?.length !== 0) {
+    if (layer.filters) {
       this.setFilters(id, layer.filters);
     }
   }
@@ -875,6 +877,11 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private async setFilters(id: string, filters: IJGISFilterItem[]) {
+    if (filters.length === 0) {
+      this._Map.setFilter(id, null);
+      return;
+    }
+
     const filterExpression = [
       'all',
       ...filters.map(id => [id.operator, id.feature, id.value])

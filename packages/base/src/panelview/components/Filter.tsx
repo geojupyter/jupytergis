@@ -1,15 +1,17 @@
-import { GeoJSONFeature1, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  GeoJSONFeature1,
+  IJGISFilterItem,
+  IJupyterGISModel
+} from '@jupytergis/schema';
 import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getSourceLayerNames } from '../../tools';
 import { IControlPanelModel } from '../../types';
 import { RightPanelWidget } from '../rightpanel';
-// import { VectorTile } from '@mapbox/vector-tile';
-// import Protobuf from 'pbf';
 
 /**
- * The layers panel widget.
+ * The filters panel widget.
  */
 export class FilterPanel extends Panel {
   constructor(options: RightPanelWidget.IOptions) {
@@ -32,23 +34,20 @@ export class FilterPanel extends Panel {
 interface IFilterComponentProps {
   model: IControlPanelModel;
 }
+
 const FilterComponent = (props: IFilterComponentProps) => {
   const [selectedLayer, setSelectedLayer] = useState('');
-  const [selectedFeature, setSelectedFeature] = useState('');
-  const [selectedOperator, setSelectedOperator] = useState('');
-  const [selectedNumber, setSelectedNumber] = useState('');
+  const [filterRows, setFilterRows] = useState<IJGISFilterItem[]>([]);
   const [model, setModel] = useState<IJupyterGISModel | undefined>(
     props.model.jGISModel
   );
-  const [filterStuff, setFilterStuff] = useState<Record<string, Set<unknown>>>(
+  const [featureStuff, setFeatureStuff] = useState<Record<string, Set<string>>>(
     {}
   );
 
   props.model?.documentChanged.connect((_, widget) => {
     setModel(widget?.context.model);
   });
-
-  const comparisonOperators = ['==', '!=', '>', '<'];
 
   useEffect(() => {
     model?.clientStateChanged.connect(() => {
@@ -63,57 +62,40 @@ const FilterComponent = (props: IFilterComponentProps) => {
   }, [model]);
 
   useEffect(() => {
-    handleFilterChange();
-  }, [selectedFeature, selectedOperator, selectedNumber]);
-
-  useEffect(() => {
     buildFilterObject();
   }, [selectedLayer]);
 
-  useEffect(() => {
-    const valuesList = document.getElementById(
-      'values-list'
-    ) as HTMLSelectElement | null;
-
-    const values = filterStuff[selectedFeature];
-    if (!valuesList || !values) {
-      return;
-    }
-
-    valuesList.options.length = 0;
-    for (const value of values) {
-      const option = document.createElement('option');
-      option.value = String(value);
-      option.text = String(value);
-      valuesList.appendChild(option);
-    }
-  }, [selectedFeature]);
-
   const buildFilterObject = async () => {
-    const layer = model?.getLayer(selectedLayer);
-    const source = model?.getSource(layer?.parameters?.source);
+    setFilterRows([]);
+    if (!model) {
+      return;
+    }
+    const layer = model.getLayer(selectedLayer);
+    const source = model.getSource(layer?.parameters?.source);
+    const { latitude, longitude, zoom } = model.getOptions();
 
-    if (!source) {
+    if (!source || !layer) {
       return;
     }
 
-    const aggregatedProperties: Record<string, Set<unknown>> = {};
+    const aggregatedProperties: Record<string, Set<string>> = {};
 
     switch (source.type) {
       case 'VectorTileSource': {
-        const tile = await getSourceLayerNames(source?.parameters?.url);
-        for (const layerValue of Object.values(tile.layers)) {
-          for (let i = 0; i < layerValue.length; i++) {
-            const feature = layerValue.feature(i);
-            Object.entries(feature.properties).forEach(
-              ([propertyKey, propertyValue]) => {
-                if (!(propertyKey in aggregatedProperties)) {
-                  aggregatedProperties[propertyKey] = new Set();
-                }
-                aggregatedProperties[propertyKey].add(propertyValue);
-              }
-            );
-          }
+        const tile = await getSourceLayerNames(source?.parameters?.url, {
+          latitude,
+          longitude,
+          zoom
+        });
+        const layerValue = tile.layers[layer.parameters?.sourceLayer];
+        for (let i = 0; i < layerValue.length; i++) {
+          const feature = layerValue.feature(i);
+          Object.entries(feature.properties).forEach(([key, value]) => {
+            if (!(key in aggregatedProperties)) {
+              aggregatedProperties[key] = new Set();
+            }
+            aggregatedProperties[key].add(String(value));
+          });
         }
         break;
       }
@@ -121,11 +103,11 @@ const FilterComponent = (props: IFilterComponentProps) => {
         const data = await model?.readGeoJSON(source.parameters?.path);
         data?.features.forEach((feature: GeoJSONFeature1) => {
           feature.properties &&
-            Object.entries(feature.properties).forEach(([pk, pv]) => {
-              if (!(pk in aggregatedProperties)) {
-                aggregatedProperties[pk] = new Set();
+            Object.entries(feature.properties).forEach(([key, value]) => {
+              if (!(key in aggregatedProperties)) {
+                aggregatedProperties[key] = new Set();
               }
-              aggregatedProperties[pk].add(pv);
+              aggregatedProperties[key].add(String(value));
             });
         });
         break;
@@ -135,74 +117,12 @@ const FilterComponent = (props: IFilterComponentProps) => {
       }
     }
 
-    setFilterStuff(aggregatedProperties);
+    setFeatureStuff(aggregatedProperties);
   };
 
-  const handleFilterChange = () => {
-    const layer = model?.getLayer(selectedLayer);
-
-    if (!layer) {
-      return;
-    }
-
-    const filter = {
-      feature: selectedFeature,
-      operator: selectedOperator,
-      value: +selectedNumber
-    };
-
-    // TODO: Only going to have one filter for now
-    layer.filters = [];
-
-    layer.filters = [...layer.filters, filter];
-    model?.sharedModel.updateLayer(selectedLayer, layer);
-  };
-
-  const handleAddFilter = async () => {
-    // Display filter selector
-    if (!selectedLayer) {
-      console.warn('Layer must be selected to apply filter');
-    }
-    const filterContainer = document.getElementById('filter-container');
-    const featureList = document.getElementById('feature-list');
-    const valuesList = document.getElementById('values-list');
-
-    if (!filterContainer || !featureList || !valuesList) {
-      return;
-    }
-
-    filterContainer.style.display = 'block';
-
-    console.log('filterStuff', filterStuff);
-
-    for (const key in filterStuff) {
-      const option = document.createElement('option');
-      option.value = key;
-      option.text = key;
-      featureList.appendChild(option);
-    }
-
-    // TODO: This doesnt work right
-    const values = filterStuff[selectedFeature];
-    for (const value of values) {
-      const option = document.createElement('option');
-      option.value = String(value);
-      option.text = String(value);
-      valuesList.appendChild(option);
-    }
-  };
-
-  const handleFeatureChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedFeature(event.target.value);
-  };
-
-  const handleOpChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedOperator(event.target.value);
-  };
-
-  const handleNumChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedNumber(event.target.value);
-  };
+  useEffect(() => {
+    console.log('rows', filterRows);
+  }, [filterRows]);
 
   const displayFilters = () => {
     const layer = model?.getLayer(selectedLayer);
@@ -218,49 +138,163 @@ const FilterComponent = (props: IFilterComponentProps) => {
     );
   };
 
+  const addFilterRow = () => {
+    const filterContainer = document.getElementById('filter-container');
+
+    if (!filterContainer) {
+      return;
+    }
+    filterContainer.style.display = 'block';
+
+    setFilterRows([
+      ...filterRows,
+      {
+        feature: Object.keys(featureStuff)[0],
+        operator: '==',
+        value: [...Object.values(featureStuff)[0]][0]
+      }
+    ]);
+  };
+
+  const clearFilters = () => {
+    setFilterRows([]);
+    const layer = model?.getLayer(selectedLayer);
+    if (!layer) {
+      return;
+    }
+    layer.filters = [];
+    model?.sharedModel.updateLayer(selectedLayer, layer);
+  };
+
+  const submitFilter = () => {
+    const layer = model?.getLayer(selectedLayer);
+    if (!layer) {
+      return;
+    }
+    layer.filters = filterRows;
+    model?.sharedModel.updateLayer(selectedLayer, layer);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', padding: 7 }}>
       {selectedLayer && (
-        <div>
-          {displayFilters()}
-          <Button className="jp-mod-accept" onClick={handleAddFilter}>
-            Add Filter
-          </Button>
-        </div>
-      )}
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {displayFilters()}
+            <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+              <Button
+                className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+                onClick={addFilterRow}
+              >
+                Add
+              </Button>
+              <Button
+                className="jp-Dialog-button jp-mod-reject jp-mod-styled"
+                onClick={clearFilters}
+              >
+                Clear
+              </Button>
+            </div>
 
-      <div id="filter-container" style={{ display: 'none' }}>
-        <select
-          id="feature-list"
-          value={selectedFeature}
-          onChange={handleFeatureChange}
-        ></select>
-        <select
-          id="filter-operators"
-          //   className="jp-mod-styled"
-          value={selectedOperator}
-          onChange={handleOpChange}
-          aria-label="Select source"
-        >
-          {comparisonOperators.map(op => (
-            <option key={op} value={op}>
-              {op}
+            <div id="filter-container" style={{ display: 'none' }}>
+              {filterRows.map((row, index) => (
+                <FilterRow
+                  key={index}
+                  index={index}
+                  features={featureStuff}
+                  rows={filterRows}
+                  setRows={setFilterRows}
+                />
+              ))}
+            </div>
+            <Button
+              className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+              onClick={submitFilter}
+            >
+              Submit
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const FilterRow = ({
+  index,
+  features,
+  rows,
+  setRows
+}: {
+  index: number;
+  features: Record<string, Set<string>>;
+  rows: any;
+  setRows: any;
+}) => {
+  const operators = ['==', '!=', '>', '<'];
+
+  const [selectedFeature, setSelectedFeature] = useState(
+    Object.keys(features)[0]
+  );
+
+  useEffect(() => {
+    const valueSelect = document.getElementById(
+      `filter-value${index}`
+    ) as HTMLSelectElement;
+    if (!valueSelect) {
+      return;
+    }
+    const currentValue = valueSelect.options[valueSelect.selectedIndex].value;
+    handleValueChange({
+      target: { value: currentValue }
+    });
+  }, [selectedFeature]);
+
+  const handleKeyChange = event => {
+    const newFilters = [...rows];
+    newFilters[index].key = event.target.value;
+    setSelectedFeature(event.target.value);
+    setRows(newFilters);
+  };
+
+  const handleOperatorChange = event => {
+    const newFilters = [...rows];
+    newFilters[index].operator = event.target.value;
+    setRows(newFilters);
+  };
+
+  const handleValueChange = event => {
+    const newFilters = [...rows];
+    newFilters[index].value = event.target.value;
+    setRows(newFilters);
+  };
+
+  return (
+    <div>
+      <select onChange={handleKeyChange}>
+        {/* Populate options based on the keys of the filters object */}
+        {Object.keys(features).map((key, keyIndex) => (
+          <option key={keyIndex} value={key}>
+            {key}
+          </option>
+        ))}
+      </select>
+      <select onChange={handleOperatorChange}>
+        {operators.map((operator, operatorIndex) => (
+          <option key={operatorIndex} value={operator}>
+            {operator}
+          </option>
+        ))}
+      </select>
+      <select id={`filter-value${index}`} onChange={handleValueChange}>
+        {/* Populate options based on the values of the selected key */}
+        {features[selectedFeature] &&
+          [...features[selectedFeature]].map((value, valueIndex) => (
+            <option key={valueIndex} value={value}>
+              {value}
             </option>
           ))}
-        </select>
-        {/* <input
-          type="number"
-          min={1.0}
-          max={10000}
-          value={selectedNumber}
-          onChange={handleNumChange}
-        /> */}
-        <select
-          id="values-list"
-          value={selectedNumber}
-          onChange={handleNumChange}
-        ></select>
-      </div>
+      </select>
     </div>
   );
 };
