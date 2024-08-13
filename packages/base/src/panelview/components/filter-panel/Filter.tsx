@@ -5,6 +5,7 @@ import {
 } from '@jupytergis/schema';
 import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
+import { cloneDeep } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { getSourceLayerNames } from '../../../tools';
 import { IControlPanelModel } from '../../../types';
@@ -57,8 +58,20 @@ const FilterComponent = (props: IFilterComponentProps) => {
       }
 
       // TODO: handle multi select better
-      const selectedLayer = Object.keys(model?.localState?.selected?.value)[0];
-      setSelectedLayer(selectedLayer);
+      const currentLayer = Object.keys(model?.localState?.selected?.value)[0];
+      setSelectedLayer(currentLayer);
+    });
+
+    model?.sharedOptionsChanged.connect((_, keys) => {
+      if (keys.has('zoom')) {
+        if (!model?.localState?.selected?.value) {
+          return;
+        }
+        const currentLayer = Object.keys(model?.localState?.selected?.value)[0];
+
+        // TODO: Probably want to debounce/throttle here
+        buildFilterObject(currentLayer);
+      }
     });
   }, [model]);
 
@@ -66,12 +79,12 @@ const FilterComponent = (props: IFilterComponentProps) => {
     buildFilterObject();
   }, [selectedLayer]);
 
-  const buildFilterObject = async () => {
+  const buildFilterObject = async (currentLayer?: string) => {
     setFilterRows([]);
     if (!model) {
       return;
     }
-    const layer = model.getLayer(selectedLayer);
+    const layer = model.getLayer(currentLayer ?? selectedLayer);
     const source = model.getSource(layer?.parameters?.source);
     const { latitude, longitude, zoom } = model.getOptions();
 
@@ -79,7 +92,10 @@ const FilterComponent = (props: IFilterComponentProps) => {
       return;
     }
 
-    const aggregatedProperties: Record<string, Set<string>> = {};
+    const aggregatedProperties: Record<string, Set<string>> = cloneDeep(
+      featureStuff
+    );
+    console.log('aggregatedProperties 1', aggregatedProperties);
 
     switch (source.type) {
       case 'VectorTileSource': {
@@ -117,6 +133,8 @@ const FilterComponent = (props: IFilterComponentProps) => {
         break;
       }
     }
+
+    console.log('aggregatedProperties 2', aggregatedProperties);
 
     setFeatureStuff(aggregatedProperties);
   };
