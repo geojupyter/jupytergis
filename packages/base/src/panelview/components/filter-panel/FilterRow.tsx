@@ -1,3 +1,5 @@
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
 
 const FilterRow = ({
@@ -50,6 +52,12 @@ const FilterRow = ({
     setFilterRows(newFilters);
   };
 
+  const handleDelete = () => {
+    const newFilters = [...filterRows];
+    newFilters.splice(index);
+    setFilterRows(newFilters);
+  };
+
   return (
     <div className="jp-gis-filter-row">
       <select
@@ -86,6 +94,9 @@ const FilterRow = ({
             </option>
           ))}
       </select>
+      <div className="jp-gis-filter-icon">
+        <FontAwesomeIcon icon={faTrash} onClick={handleDelete} />
+      </div>
     </div>
   );
 };

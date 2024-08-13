@@ -157,6 +157,10 @@ const FilterComponent = (props: IFilterComponentProps) => {
     featureStuffRef.current = featureStuff;
   }, [featureStuff]);
 
+  useEffect(() => {
+    console.log('filterRows', filterRows);
+  }, [filterRows]);
+
   const addFilterRow = () => {
     const filterContainer = document.getElementById('filter-container');
 
@@ -198,21 +202,6 @@ const FilterComponent = (props: IFilterComponentProps) => {
     <div className="jp-gis-filter-main">
       {selectedLayer && (
         <>
-          <div className="jp-gis-filter-button-container">
-            <Button
-              className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-              onClick={addFilterRow}
-            >
-              Add
-            </Button>
-            <Button
-              className="jp-Dialog-button jp-mod-reject jp-mod-styled"
-              onClick={clearFilters}
-            >
-              Clear
-            </Button>
-          </div>
-
           <div id="filter-container" className="jp-gis-filter-select-container">
             {filterRows.map((row, index) => (
               <FilterRow
@@ -224,12 +213,28 @@ const FilterComponent = (props: IFilterComponentProps) => {
               />
             ))}
           </div>
-          <Button
-            className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-            onClick={submitFilter}
-          >
-            Submit
-          </Button>
+          <div className="jp-gis-filter-button-container">
+            <div style={{ justifyContent: 'flex-start' }}>
+              <Button
+                className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+                onClick={addFilterRow}
+              >
+                Add
+              </Button>
+              <Button
+                className="jp-Dialog-button jp-mod-reject jp-mod-styled"
+                onClick={clearFilters}
+              >
+                Clear
+              </Button>
+            </div>
+            <Button
+              className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+              onClick={submitFilter}
+            >
+              Submit
+            </Button>
+          </div>
         </>
       )}
     </div>
