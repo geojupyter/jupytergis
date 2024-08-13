@@ -35,6 +35,8 @@
 
 .jp-gis-filter-row > select {
   text-transform: capitalize;
+  padding: 0;
+  text-align: center;
 }
 
 .jp-gis-filter-row > option {
@@ -42,10 +44,13 @@
   font-size: var(--jp-ui-font-size1);
 }
 
-.jp-gis-filter-icon {
-  display: flex;
-  align-items: center;
-  padding-left: 5px;
+.jp-gis-filter-row > button {
+  color: var(--jp-ui-font-color0);
+  background: none;
+}
+
+.jp-gis-filter-row > button:hover {
+  color: var(--jp-warn-color-hover);
 }
 
 .jp-gis-filter-icon:hover {

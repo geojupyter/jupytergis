@@ -1,5 +1,6 @@
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
 const FilterRow = ({
@@ -94,9 +95,9 @@ const FilterRow = ({
             </option>
           ))}
       </select>
-      <div className="jp-gis-filter-icon">
+      <Button className="jp-Button jp-gis-filter-icon">
         <FontAwesomeIcon icon={faTrash} onClick={handleDelete} />
-      </div>
+      </Button>
     </div>
   );
 };
