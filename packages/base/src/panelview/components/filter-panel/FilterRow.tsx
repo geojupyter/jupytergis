@@ -28,7 +28,7 @@ const FilterRow = ({
     if (!valueSelect) {
       return;
     }
-    const currentValue = valueSelect.options[valueSelect.selectedIndex].value;
+    const currentValue = valueSelect.options[valueSelect.selectedIndex]?.value;
     handleValueChange({
       target: { value: currentValue }
     });

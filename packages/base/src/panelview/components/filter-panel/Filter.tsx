@@ -78,10 +78,23 @@ const FilterComponent = (props: IFilterComponentProps) => {
 
   useEffect(() => {
     // Reset filter stuff for new layer
-    setFilterRows([]);
     setFeatureStuff({});
     buildFilterObject();
+
+    // Add existing filters to filterRows
+    const layer = model?.getLayer(selectedLayer);
+    if (layer?.filters) {
+      setFilterRows([...layer.filters]);
+    }
   }, [selectedLayer]);
+
+  useEffect(() => {
+    featureStuffRef.current = featureStuff;
+  }, [featureStuff]);
+
+  useEffect(() => {
+    console.log('filterRows', filterRows);
+  }, [filterRows]);
 
   const buildFilterObject = async (currentLayer?: string) => {
     // setFilterRows([]);
@@ -150,28 +163,11 @@ const FilterComponent = (props: IFilterComponentProps) => {
           String(featureStuff.value)
         );
       });
-
-      setFilterRows([...filterRows, ...layer.filters]);
     }
     setFeatureStuff(aggregatedProperties);
   };
 
-  useEffect(() => {
-    featureStuffRef.current = featureStuff;
-  }, [featureStuff]);
-
-  useEffect(() => {
-    console.log('filterRows', filterRows);
-  }, [filterRows]);
-
   const addFilterRow = () => {
-    const filterContainer = document.getElementById('filter-container');
-
-    if (!filterContainer) {
-      return;
-    }
-    filterContainer.style.display = 'flex';
-
     setFilterRows([
       ...filterRows,
       {
