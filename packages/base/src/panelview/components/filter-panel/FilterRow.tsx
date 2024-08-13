@@ -32,7 +32,7 @@ const FilterRow = ({
 
   const handleKeyChange = event => {
     const newFilters = [...filterRows];
-    newFilters[index].key = event.target.value;
+    newFilters[index].feature = event.target.value;
     setSelectedFeature(event.target.value);
     setFilterRows(newFilters);
   };
