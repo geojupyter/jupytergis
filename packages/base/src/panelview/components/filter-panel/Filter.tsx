@@ -77,6 +77,9 @@ const FilterComponent = (props: IFilterComponentProps) => {
   }, [model]);
 
   useEffect(() => {
+    // Reset filter stuff for new layer
+    setFilterRows([]);
+    setFeatureStuff({});
     buildFilterObject();
   }, [selectedLayer]);
 
