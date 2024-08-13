@@ -6,7 +6,7 @@ import {
 import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import { cloneDeep } from 'lodash';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getSourceLayerNames } from '../../../tools';
 import { IControlPanelModel } from '../../../types';
 import { RightPanelWidget } from '../../rightpanel';
@@ -38,6 +38,7 @@ interface IFilterComponentProps {
 }
 
 const FilterComponent = (props: IFilterComponentProps) => {
+  const featureStuffRef = useRef({});
   const [selectedLayer, setSelectedLayer] = useState('');
   const [filterRows, setFilterRows] = useState<IJGISFilterItem[]>([]);
   const [model, setModel] = useState<IJupyterGISModel | undefined>(
@@ -93,9 +94,10 @@ const FilterComponent = (props: IFilterComponentProps) => {
     }
 
     const aggregatedProperties: Record<string, Set<string>> = cloneDeep(
-      featureStuff
+      featureStuffRef.current
     );
-    console.log('aggregatedProperties 1', aggregatedProperties);
+
+    // console.log('aggregatedProperties 1', aggregatedProperties);
 
     switch (source.type) {
       case 'VectorTileSource': {
@@ -134,14 +136,14 @@ const FilterComponent = (props: IFilterComponentProps) => {
       }
     }
 
-    console.log('aggregatedProperties 2', aggregatedProperties);
+    // console.log('aggregatedProperties 2', aggregatedProperties);
 
     setFeatureStuff(aggregatedProperties);
   };
 
   useEffect(() => {
-    console.log('rows', filterRows);
-  }, [filterRows]);
+    featureStuffRef.current = featureStuff;
+  }, [featureStuff]);
 
   const displayFilters = () => {
     const layer = model?.getLayer(selectedLayer);
