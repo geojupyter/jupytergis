@@ -547,6 +547,10 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
     }
+
+    if (layer.filters) {
+      this.setFilters(id, layer.filters);
+    }
   }
 
   async setTerrain(sourceId: string, exaggeration: number) {
