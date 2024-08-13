@@ -66,9 +66,13 @@ const FilterRow = ({
         onChange={handleKeyChange}
       >
         {/* Populate options based on the keys of the filters object */}
-        {Object.keys(features).map((key, keyIndex) => (
-          <option key={keyIndex} value={key}>
-            {key}
+        {Object.keys(features).map((feature, featureIndex) => (
+          <option
+            key={featureIndex}
+            value={feature}
+            selected={feature === filterRows[index].feature}
+          >
+            {feature}
           </option>
         ))}
       </select>
@@ -77,7 +81,11 @@ const FilterRow = ({
         onChange={handleOperatorChange}
       >
         {operators.map((operator, operatorIndex) => (
-          <option key={operatorIndex} value={operator}>
+          <option
+            key={operatorIndex}
+            value={operator}
+            selected={operator === filterRows[index].operator}
+          >
             {operator}
           </option>
         ))}
@@ -90,7 +98,11 @@ const FilterRow = ({
         {/* Populate options based on the values of the selected key */}
         {features[selectedFeature] &&
           [...features[selectedFeature]].map((value, valueIndex) => (
-            <option key={valueIndex} value={value}>
+            <option
+              key={valueIndex}
+              value={value}
+              selected={value === filterRows[index].value}
+            >
               {value}
             </option>
           ))}
