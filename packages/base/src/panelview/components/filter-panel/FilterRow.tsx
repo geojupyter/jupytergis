@@ -17,6 +17,7 @@ const FilterRow = ({
     Object.keys(features)[0]
   );
 
+  // Update the value when a new feature is selected
   useEffect(() => {
     const valueSelect = document.getElementById(
       `filter-value${index}`

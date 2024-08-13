@@ -81,7 +81,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
   }, [selectedLayer]);
 
   const buildFilterObject = async (currentLayer?: string) => {
-    setFilterRows([]);
+    // setFilterRows([]);
     if (!model) {
       return;
     }
@@ -97,7 +97,9 @@ const FilterComponent = (props: IFilterComponentProps) => {
       featureStuffRef.current
     );
 
-    // console.log('aggregatedProperties 1', aggregatedProperties);
+    console.log('filterRows build', filterRows);
+
+    console.log('aggregatedProperties 1', aggregatedProperties);
 
     switch (source.type) {
       case 'VectorTileSource': {
@@ -138,12 +140,35 @@ const FilterComponent = (props: IFilterComponentProps) => {
 
     // console.log('aggregatedProperties 2', aggregatedProperties);
 
+    // So when we open a map, filter object is empty
+    // We want to populate it with the values from the
+    // selected layers filter
+    // And put them in our filter rows, so they appear there
+    if (layer.filters) {
+      layer.filters.map(filterItem => {
+        if (!(filterItem.feature in aggregatedProperties)) {
+          aggregatedProperties[filterItem.feature] = new Set();
+        }
+        aggregatedProperties[filterItem.feature].add(
+          String(featureStuff.value)
+        );
+      });
+
+      // TODO: this? or just leave it always displayed
+      // filterContainer.style.display = 'flex';
+
+      setFilterRows([...filterRows, ...layer.filters]);
+    }
     setFeatureStuff(aggregatedProperties);
   };
 
   useEffect(() => {
     featureStuffRef.current = featureStuff;
   }, [featureStuff]);
+
+  useEffect(() => {
+    console.log('filterRows effect', filterRows);
+  }, [filterRows]);
 
   const displayFilters = () => {
     const layer = model?.getLayer(selectedLayer);
@@ -221,7 +246,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
 
           <div
             id="filter-container"
-            style={{ display: 'none' }}
+            style={{ display: 'flex' }}
             className="jp-gis-filter-select-container"
           >
             {filterRows.map((row, index) => (
