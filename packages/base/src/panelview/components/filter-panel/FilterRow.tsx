@@ -14,7 +14,7 @@ const FilterRow = ({
   const operators = ['==', '!=', '>', '<'];
 
   const [selectedFeature, setSelectedFeature] = useState(
-    Object.keys(features)[0]
+    filterRows[index].feature || Object.keys(features)[0]
   );
 
   // Update the value when a new feature is selected

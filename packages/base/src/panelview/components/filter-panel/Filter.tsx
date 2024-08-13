@@ -97,10 +97,6 @@ const FilterComponent = (props: IFilterComponentProps) => {
       featureStuffRef.current
     );
 
-    console.log('filterRows build', filterRows);
-
-    console.log('aggregatedProperties 1', aggregatedProperties);
-
     switch (source.type) {
       case 'VectorTileSource': {
         const tile = await getSourceLayerNames(source?.parameters?.url, {
@@ -138,12 +134,10 @@ const FilterComponent = (props: IFilterComponentProps) => {
       }
     }
 
-    // console.log('aggregatedProperties 2', aggregatedProperties);
-
     // So when we open a map, filter object is empty
     // We want to populate it with the values from the
     // selected layers filter
-    // And put them in our filter rows, so they appear there
+    // And put them in our filter rows, so they appear in the panel
     if (layer.filters) {
       layer.filters.map(filterItem => {
         if (!(filterItem.feature in aggregatedProperties)) {
@@ -154,9 +148,6 @@ const FilterComponent = (props: IFilterComponentProps) => {
         );
       });
 
-      // TODO: this? or just leave it always displayed
-      // filterContainer.style.display = 'flex';
-
       setFilterRows([...filterRows, ...layer.filters]);
     }
     setFeatureStuff(aggregatedProperties);
@@ -165,27 +156,6 @@ const FilterComponent = (props: IFilterComponentProps) => {
   useEffect(() => {
     featureStuffRef.current = featureStuff;
   }, [featureStuff]);
-
-  useEffect(() => {
-    console.log('filterRows effect', filterRows);
-  }, [filterRows]);
-
-  const displayFilters = () => {
-    const layer = model?.getLayer(selectedLayer);
-
-    return (
-      <div className="jp-gis-filter-">
-        <span className="jp-gis-text-label">Applied Filters</span>
-        <ul style={{ listStyleType: 'none' }}>
-          {layer?.filters?.map(filter => (
-            <li>
-              {filter.feature} {filter.operator} {filter.value}
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
 
   const addFilterRow = () => {
     const filterContainer = document.getElementById('filter-container');
@@ -228,7 +198,6 @@ const FilterComponent = (props: IFilterComponentProps) => {
     <div className="jp-gis-filter-main">
       {selectedLayer && (
         <>
-          {displayFilters()}
           <div className="jp-gis-filter-button-container">
             <Button
               className="jp-Dialog-button jp-mod-accept jp-mod-styled"
@@ -244,11 +213,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
             </Button>
           </div>
 
-          <div
-            id="filter-container"
-            style={{ display: 'flex' }}
-            className="jp-gis-filter-select-container"
-          >
+          <div id="filter-container" className="jp-gis-filter-select-container">
             {filterRows.map((row, index) => (
               <FilterRow
                 key={index}
