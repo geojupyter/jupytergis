@@ -246,6 +246,29 @@ export function addCommands(
     ...icons.get(CommandIDs.newVideoEntry)
   });
 
+  commands.addCommand(CommandIDs.newShapefileSource, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Shapefile')
+        : trans.__('Add Shapefile Source'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Shapefile Source',
+      createLayer: false,
+      createSource: true,
+      sourceData: { name: 'Custom Shapefile Source' },
+      sourceType: 'ShapefileSource'
+    }),
+    // Include an icon if available
+    ...icons.get(CommandIDs.newShapefileSource)
+  });
+
   /**
    * SOURCES only commands.
    */
@@ -507,6 +530,28 @@ export function addCommands(
     ...icons.get(CommandIDs.newVideoLayer)
   });
 
+  commands.addCommand(CommandIDs.newShapefileLayer, {
+    label: trans.__('New Shapefile Layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Shapefile Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { name: 'Custom Shapefile Source' },
+      layerData: { name: 'Custom Shapefile Layer' },
+      sourceType: 'ShapefileSource',
+      layerType: 'VectorLayer'
+    }),
+    // Include an icon if available
+    ...icons.get(CommandIDs.newShapefileLayer)
+  });
+  
   /**
    * LAYERS and LAYER GROUP actions.
    */
