@@ -217,18 +217,19 @@ export function createDefaultLayerRegistry(
 }
 
 // Get x/y tile values from lat and lng
+// Based on https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Mathematics
 function getTileCoordinates(latDeg: number, lonDeg: number, zoom: number) {
   const latRad = latDeg * (Math.PI / 180);
   const n = 1 << zoom;
   const xTile = Math.floor(((lonDeg + 180.0) / 360.0) * n);
   const yTile = Math.floor(
-    ((1.0 - Math.asin(Math.tan(latRad)) / Math.PI) / 2.0) * n
+    (n * (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI)) / 2
   );
 
   return { xTile, yTile };
 }
 
-export async function getSourceLayerNames(
+export async function getLayerTileInfo(
   tileUrl: string,
   mapOptions: Pick<IJGISOptions, 'latitude' | 'longitude' | 'zoom'>,
   urlParameters?: IDict<string>
@@ -256,8 +257,6 @@ export async function getSourceLayerNames(
     .replace('{x}', String(xTile))
     .replace('{y}', String(yTile));
 
-  console.log('tileUrl', tileUrl);
-
   if (urlParameters) {
     for (const param of Object.keys(urlParameters)) {
       tileUrl = tileUrl.replace(`{${param}}`, urlParameters[param]);
@@ -266,30 +265,11 @@ export async function getSourceLayerNames(
 
   const response = await fetch(tileUrl);
   if (!response.ok) {
-    throw new Error(`Failed to fetch tile: ${response.statusText}`);
+    console.warn(`Failed to fetch tile: ${response.statusText}`);
   }
 
   const arrayBuffer = await response.arrayBuffer();
   const tile = new VectorTile(new Protobuf(arrayBuffer));
 
   return tile;
-
-  // const aggregatedProperties: Record<string, Set<unknown>> = {};
-
-  // for (const layerValue of Object.values(tile.layers)) {
-  //   for (let i = 0; i < layerValue.length; i++) {
-  //     const feature = layerValue.feature(i);
-  //     Object.entries(feature.properties).forEach(
-  //       ([propertyKey, propertyValue]) => {
-  //         if (!(propertyKey in aggregatedProperties)) {
-  //           aggregatedProperties[propertyKey] = new Set();
-  //         }
-  //         aggregatedProperties[propertyKey].add(propertyValue);
-  //       }
-  //     );
-  //   }
-  // }
-
-  // console.log('aggregatedProperties', aggregatedProperties);
-  // return aggregatedProperties;
 }

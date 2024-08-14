@@ -7,7 +7,7 @@ import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import { cloneDeep } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
-import { getSourceLayerNames } from '../../../tools';
+import { getLayerTileInfo } from '../../../tools';
 import { IControlPanelModel } from '../../../types';
 import { RightPanelWidget } from '../../rightpanel';
 import FilterRow from './FilterRow';
@@ -115,7 +115,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
 
     switch (source.type) {
       case 'VectorTileSource': {
-        const tile = await getSourceLayerNames(source?.parameters?.url, {
+        const tile = await getLayerTileInfo(source?.parameters?.url, {
           latitude,
           longitude,
           zoom
