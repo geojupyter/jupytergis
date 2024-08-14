@@ -1,0 +1,38 @@
+{
+    "type": "object",
+    "description": "ShapefileSource",
+    "title": "IShapefileSource",
+    "required": ["path"],
+    "additionalProperties": false,
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "The path to the shapefile (.shp, .zip, or folder URL)."
+      },
+      "attribution": {
+        "type": "string",
+        "readOnly": true,
+        "description": "The attribution for the shapefile source.",
+        "default": ""
+      },
+      "projection": {
+        "type": "string",
+        "description": "The projection information for the shapefile (optional).",
+        "default": "WGS84"
+      },
+      "encoding": {
+        "type": "string",
+        "description": "The encoding used for the shapefile's DBF (optional).",
+        "default": "UTF-8"
+      },
+      "additionalFiles": {
+        "type": "object",
+        "description": "Additional files associated with the shapefile (e.g., .dbf, .prj, .cpg).",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "default": {}
+      }
+    }
+  }
+  
