@@ -2,6 +2,7 @@ import { MapChange } from '@jupyter/ydoc';
 import {
   IHillshadeLayer,
   IImageSource,
+  IShapefileSource,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -30,6 +31,7 @@ import * as MapLibre from 'maplibre-gl';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
+import { shp } from 'shpjs';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -244,6 +246,24 @@ export class MainView extends React.Component<IProps, IStates> {
         }
         break;
       }
+      case 'ShapefileSource': {
+        const mapSource = this._Map.getSource(id) as MapLibre.GeoJSONSource;
+        if (!mapSource) {
+          const parameters = source.parameters as IShapefileSource;
+
+          const geojson = await this._loadShapefileAsGeoJSON(parameters.path);
+
+          const geojsonData = Array.isArray(geojson)
+            ? geojson[0]
+            : geojson;
+
+          this._Map.addSource(id, {
+            type: 'geojson',
+            data: geojsonData
+          });
+        }
+        break;
+      }
     }
   }
 
@@ -252,6 +272,16 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._videoPlaying ? source?.pause() : source?.play();
     this._videoPlaying = !this._videoPlaying;
+  }
+
+  private async _loadShapefileAsGeoJSON(path: string): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
+    try {
+      const geojson = await shp(path);
+      return geojson;
+    } catch (error) {
+      console.error('Error loading shapefile:', error);
+      throw error;
+    }
   }
 
   private computeSourceUrl(source: IJGISSource): string {
