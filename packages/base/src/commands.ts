@@ -265,7 +265,6 @@ export function addCommands(
       sourceData: { name: 'Custom Shapefile Source' },
       sourceType: 'ShapefileSource'
     }),
-    // Include an icon if available
     ...icons.get(CommandIDs.newShapefileSource)
   });
 
@@ -548,7 +547,6 @@ export function addCommands(
       sourceType: 'ShapefileSource',
       layerType: 'VectorLayer'
     }),
-    // Include an icon if available
     ...icons.get(CommandIDs.newShapefileLayer)
   });
   
