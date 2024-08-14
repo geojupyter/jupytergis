@@ -183,7 +183,8 @@ export class MainView extends React.Component<IProps, IStates> {
               type: 'raster',
               minzoom: parameters.minZoom,
               maxzoom: parameters.maxZoom,
-              attribution: parameters.attribution || ''
+              attribution: parameters.attribution || '',
+              tileSize: 256
             },
             this.computeSourceUrl(source)
           );
