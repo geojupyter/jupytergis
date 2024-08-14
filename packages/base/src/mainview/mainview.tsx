@@ -31,7 +31,7 @@ import * as MapLibre from 'maplibre-gl';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
-import { shp } from 'shpjs';
+import shp from 'shpjs';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -355,6 +355,13 @@ export class MainView extends React.Component<IProps, IStates> {
         (mapSource as MapLibre.VideoSource).setCoordinates(
           parameters.coordinates
         );
+        break;
+      }
+      case 'ShapefileSource': {
+        const parameters = source.parameters as IShapefileSource;
+        const geojson = await this._loadShapefileAsGeoJSON(parameters.path);
+        const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
+        (mapSource as MapLibre.GeoJSONSource).setData(geojsonData);
         break;
       }
       default: {
