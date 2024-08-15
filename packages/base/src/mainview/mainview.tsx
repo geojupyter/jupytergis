@@ -888,7 +888,14 @@ export class MainView extends React.Component<IProps, IStates> {
 
     const filterExpression = [
       'all',
-      ...filters.map(id => [id.operator, id.feature, id.value])
+      ...filters.map(filter => {
+        // Attempt to convert filter.value to a number if it looks like a number
+        const convertedValue = !isNaN(Number(filter.value))
+          ? Number(filter.value)
+          : filter.value;
+
+        return [filter.operator, filter.feature, convertedValue];
+      })
     ] as MapLibre.FilterSpecification;
 
     console.log('filterExpression', filterExpression);
