@@ -16,18 +16,34 @@ const FilterRow = ({
 }) => {
   const operators = ['==', '!=', '>', '<'];
 
+  const [sortedFeatures, setSortedFeatures] = useState({});
   const [selectedFeature, setSelectedFeature] = useState(
     filterRows[index].feature || Object.keys(features)[0]
   );
+
+  useEffect(() => {
+    const sortedKeys = Object.keys(features).sort();
+    const sortedResult = {};
+
+    for (const key of sortedKeys) {
+      // Convert each Set to a sorted array
+      const sortedArray = Array.from(features[key]).sort();
+      sortedResult[key] = sortedArray;
+    }
+
+    setSortedFeatures(sortedResult);
+  }, [features]);
 
   // Update the value when a new feature is selected
   useEffect(() => {
     const valueSelect = document.getElementById(
       `filter-value${index}`
     ) as HTMLSelectElement;
+
     if (!valueSelect) {
       return;
     }
+
     const currentValue = valueSelect.options[valueSelect.selectedIndex]?.value;
     currentValue &&
       handleValueChange({
@@ -67,7 +83,7 @@ const FilterRow = ({
         onChange={handleKeyChange}
       >
         {/* Populate options based on the keys of the filters object */}
-        {Object.keys(features).map((feature, featureIndex) => (
+        {Object.keys(sortedFeatures).map((feature, featureIndex) => (
           <option
             key={featureIndex}
             value={feature}
@@ -97,8 +113,8 @@ const FilterRow = ({
         onChange={handleValueChange}
       >
         {/* Populate options based on the values of the selected key */}
-        {features[selectedFeature] &&
-          [...features[selectedFeature]].map((value, valueIndex) => (
+        {sortedFeatures[selectedFeature] &&
+          [...sortedFeatures[selectedFeature]].map((value, valueIndex) => (
             <option
               key={valueIndex}
               value={value}
