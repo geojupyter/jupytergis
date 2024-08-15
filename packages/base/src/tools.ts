@@ -265,7 +265,7 @@ export async function getLayerTileInfo(
 
   const response = await fetch(tileUrl);
   if (!response.ok) {
-    console.warn(`Failed to fetch tile: ${response.statusText}`);
+    throw new Error(`Failed to fetch tile: ${response.statusText}`);
   }
 
   const arrayBuffer = await response.arrayBuffer();

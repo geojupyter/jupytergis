@@ -1,5 +1,6 @@
 import {
   GeoJSONFeature1,
+  IDict,
   IJGISFilterItem,
   IJupyterGISModel
 } from '@jupytergis/schema';
@@ -79,13 +80,15 @@ const FilterComponent = (props: IFilterComponentProps) => {
   useEffect(() => {
     // Reset filter stuff for new layer
     setFeatureStuff({});
-    buildFilterObject();
 
     // Add existing filters to filterRows
     const layer = model?.getLayer(selectedLayer);
-    if (layer?.filters) {
-      setFilterRows([...layer.filters]);
+    if (!layer || !layer.filters) {
+      return;
     }
+
+    setFilterRows([...layer.filters]);
+    buildFilterObject();
   }, [selectedLayer]);
 
   useEffect(() => {
@@ -97,7 +100,6 @@ const FilterComponent = (props: IFilterComponentProps) => {
   }, [filterRows]);
 
   const buildFilterObject = async (currentLayer?: string) => {
-    // setFilterRows([]);
     if (!model) {
       return;
     }
@@ -113,22 +115,33 @@ const FilterComponent = (props: IFilterComponentProps) => {
       featureStuffRef.current
     );
 
+    // When we open a map, the filter object is empty.
+    // We want to populate it with the values from the
+    // selected layers filter so they show up  on the panel
+    if (layer.filters) {
+      layer.filters.map(filterItem => {
+        if (!(filterItem.feature in aggregatedProperties)) {
+          aggregatedProperties[filterItem.feature] = new Set();
+        }
+        aggregatedProperties[filterItem.feature].add(String(filterItem.value));
+      });
+    }
+
     switch (source.type) {
       case 'VectorTileSource': {
-        const tile = await getLayerTileInfo(source?.parameters?.url, {
-          latitude,
-          longitude,
-          zoom
-        });
-        const layerValue = tile.layers[layer.parameters?.sourceLayer];
-        for (let i = 0; i < layerValue.length; i++) {
-          const feature = layerValue.feature(i);
-          Object.entries(feature.properties).forEach(([key, value]) => {
-            if (!(key in aggregatedProperties)) {
-              aggregatedProperties[key] = new Set();
-            }
-            aggregatedProperties[key].add(String(value));
+        try {
+          const tile = await getLayerTileInfo(source?.parameters?.url, {
+            latitude,
+            longitude,
+            zoom
           });
+          const layerValue = tile.layers[layer.parameters?.sourceLayer];
+          for (let i = 0; i < layerValue.length; i++) {
+            const feature = layerValue.feature(i);
+            addFeatureValue(feature.properties, aggregatedProperties);
+          }
+        } catch (error) {
+          console.warn(`Error fetching tile info: ${error}`);
         }
         break;
       }
@@ -136,12 +149,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
         const data = await model?.readGeoJSON(source.parameters?.path);
         data?.features.forEach((feature: GeoJSONFeature1) => {
           feature.properties &&
-            Object.entries(feature.properties).forEach(([key, value]) => {
-              if (!(key in aggregatedProperties)) {
-                aggregatedProperties[key] = new Set();
-              }
-              aggregatedProperties[key].add(String(value));
-            });
+            addFeatureValue(feature.properties, aggregatedProperties);
         });
         break;
       }
@@ -150,21 +158,19 @@ const FilterComponent = (props: IFilterComponentProps) => {
       }
     }
 
-    // So when we open a map, filter object is empty
-    // We want to populate it with the values from the
-    // selected layers filter
-    // And put them in our filter rows, so they appear in the panel
-    if (layer.filters) {
-      layer.filters.map(filterItem => {
-        if (!(filterItem.feature in aggregatedProperties)) {
-          aggregatedProperties[filterItem.feature] = new Set();
-        }
-        aggregatedProperties[filterItem.feature].add(
-          String(featureStuff.value)
-        );
-      });
-    }
     setFeatureStuff(aggregatedProperties);
+  };
+
+  const addFeatureValue = (
+    featureProperties: Record<string, unknown> | IDict,
+    aggregatedProperties: Record<string, Set<string>>
+  ) => {
+    Object.entries(featureProperties).forEach(([key, value]) => {
+      if (!(key in aggregatedProperties)) {
+        aggregatedProperties[key] = new Set();
+      }
+      aggregatedProperties[key].add(String(value));
+    });
   };
 
   const addFilterRow = () => {
