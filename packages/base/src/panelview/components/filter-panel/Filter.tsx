@@ -83,11 +83,11 @@ const FilterComponent = (props: IFilterComponentProps) => {
 
     // Add existing filters to filterRows
     const layer = model?.getLayer(selectedLayer);
-    if (!layer || !layer.filters) {
+    if (!layer) {
       return;
     }
 
-    setFilterRows([...layer.filters]);
+    setFilterRows(layer.filters ?? []);
     buildFilterObject();
   }, [selectedLayer]);
 
