@@ -7,12 +7,14 @@ const FilterRow = ({
   index,
   features,
   filterRows,
-  setFilterRows
+  setFilterRows,
+  deleteRow
 }: {
   index: number;
   features: Record<string, Set<string>>;
   filterRows: any;
   setFilterRows: any;
+  deleteRow: () => void;
 }) => {
   const operators = ['==', '!=', '>', '<'];
 
@@ -70,12 +72,6 @@ const FilterRow = ({
     setFilterRows(newFilters);
   };
 
-  const handleDelete = () => {
-    const newFilters = [...filterRows];
-    newFilters.splice(index);
-    setFilterRows(newFilters);
-  };
-
   return (
     <div className="jp-gis-filter-row">
       <select
@@ -125,7 +121,7 @@ const FilterRow = ({
           ))}
       </select>
       <Button className="jp-Button jp-gis-filter-icon">
-        <FontAwesomeIcon icon={faTrash} onClick={handleDelete} />
+        <FontAwesomeIcon icon={faTrash} onClick={deleteRow} />
       </Button>
     </div>
   );

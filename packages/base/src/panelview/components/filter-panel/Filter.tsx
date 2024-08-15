@@ -184,22 +184,29 @@ const FilterComponent = (props: IFilterComponentProps) => {
     ]);
   };
 
+  const deleteRow = index => {
+    const newFilters = [...filterRows];
+    newFilters.splice(index);
+
+    updateLayerFilters(newFilters);
+    setFilterRows(newFilters);
+  };
+
   const clearFilters = () => {
+    updateLayerFilters([]);
     setFilterRows([]);
-    const layer = model?.getLayer(selectedLayer);
-    if (!layer) {
-      return;
-    }
-    layer.filters = [];
-    model?.sharedModel.updateLayer(selectedLayer, layer);
   };
 
   const submitFilter = () => {
+    updateLayerFilters(filterRows);
+  };
+
+  const updateLayerFilters = (filters: IJGISFilterItem[]) => {
     const layer = model?.getLayer(selectedLayer);
     if (!layer) {
       return;
     }
-    layer.filters = filterRows;
+    layer.filters = filters;
     model?.sharedModel.updateLayer(selectedLayer, layer);
   };
 
@@ -215,6 +222,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
                 features={featureStuff}
                 filterRows={filterRows}
                 setFilterRows={setFilterRows}
+                deleteRow={() => deleteRow(index)}
               />
             ))}
           </div>
