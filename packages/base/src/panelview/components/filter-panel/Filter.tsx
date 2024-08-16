@@ -208,11 +208,11 @@ const FilterComponent = (props: IFilterComponentProps) => {
 
   const updateLayerFilters = (filters: IJGISFilterItem[]) => {
     const layer = model?.getLayer(selectedLayer);
-    if (!layer || !layer.filters) {
+    if (!layer) {
       return;
     }
-    layer.filters.logicalOp = logicalOp;
-    layer.filters.appliedFilters = filters;
+
+    layer.filters = { logicalOp, appliedFilters: filters };
     model?.sharedModel.updateLayer(selectedLayer, layer);
   };
 
@@ -225,10 +225,10 @@ const FilterComponent = (props: IFilterComponentProps) => {
               className="jp-mod-styled jp-SchemaForm"
               onChange={event => setLogicalOp(event?.target.value)}
             >
-              <option key="all" value="all" selected>
+              <option key="all" value="all" selected={logicalOp === 'all'}>
                 All
               </option>
-              <option key="any" value="any">
+              <option key="any" value="any" selected={logicalOp === 'any'}>
                 Any
               </option>
             </select>
