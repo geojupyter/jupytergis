@@ -7,13 +7,7 @@
   "layers": {
     "0336896f-f7ce-460f-8d11-07a589ff03d8": {
       "filters": {
-        "appliedFilters": [
-          {
-            "feature": "mag",
-            "operator": ">",
-            "value": "2.13"
-          }
-        ],
+        "appliedFilters": [],
         "logicalOp": "all"
       },
       "name": "Custom GeoJSON Layer",
