@@ -16,7 +16,7 @@ const FilterRow = ({
   setFilterRows: any;
   deleteRow: () => void;
 }) => {
-  const operators = ['==', '!=', '>', '<'];
+  const operators = ['==', '!=', '>', '<', '>=', '<='];
 
   const [sortedFeatures, setSortedFeatures] = useState({});
   const [selectedFeature, setSelectedFeature] = useState(

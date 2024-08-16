@@ -39,15 +39,15 @@ interface IFilterComponentProps {
 }
 
 const FilterComponent = (props: IFilterComponentProps) => {
-  const featureStuffRef = useRef({});
+  const featuresInLayerRef = useRef({});
   const [selectedLayer, setSelectedLayer] = useState('');
   const [filterRows, setFilterRows] = useState<IJGISFilterItem[]>([]);
   const [model, setModel] = useState<IJupyterGISModel | undefined>(
     props.model.jGISModel
   );
-  const [featureStuff, setFeatureStuff] = useState<Record<string, Set<string>>>(
-    {}
-  );
+  const [featuresInLayer, setFeaturesInLayer] = useState<
+    Record<string, Set<string>>
+  >({});
 
   props.model?.documentChanged.connect((_, widget) => {
     setModel(widget?.context.model);
@@ -79,21 +79,21 @@ const FilterComponent = (props: IFilterComponentProps) => {
 
   useEffect(() => {
     // Reset filter stuff for new layer
-    setFeatureStuff({});
+    setFeaturesInLayer({});
 
-    // Add existing filters to filterRows
     const layer = model?.getLayer(selectedLayer);
     if (!layer) {
       return;
     }
 
+    // Add existing filters to filterRows
     setFilterRows(layer.filters ?? []);
     buildFilterObject();
   }, [selectedLayer]);
 
   useEffect(() => {
-    featureStuffRef.current = featureStuff;
-  }, [featureStuff]);
+    featuresInLayerRef.current = featuresInLayer;
+  }, [featuresInLayer]);
 
   useEffect(() => {
     console.log('filterRows', filterRows);
@@ -112,7 +112,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
     }
 
     const aggregatedProperties: Record<string, Set<string>> = cloneDeep(
-      featureStuffRef.current
+      featuresInLayerRef.current
     );
 
     // When we open a map, the filter object is empty.
@@ -154,11 +154,12 @@ const FilterComponent = (props: IFilterComponentProps) => {
         break;
       }
       default: {
+        console.warn('Source type not supported');
         break;
       }
     }
 
-    setFeatureStuff(aggregatedProperties);
+    setFeaturesInLayer(aggregatedProperties);
   };
 
   const addFeatureValue = (
@@ -177,14 +178,14 @@ const FilterComponent = (props: IFilterComponentProps) => {
     setFilterRows([
       ...filterRows,
       {
-        feature: Object.keys(featureStuff)[0],
+        feature: Object.keys(featuresInLayer)[0],
         operator: '==',
-        value: [...Object.values(featureStuff)[0]][0]
+        value: [...Object.values(featuresInLayer)[0]][0]
       }
     ]);
   };
 
-  const deleteRow = index => {
+  const deleteRow = (index: number) => {
     const newFilters = [...filterRows];
     newFilters.splice(index);
 
@@ -219,7 +220,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
               <FilterRow
                 key={index}
                 index={index}
-                features={featureStuff}
+                features={featuresInLayer}
                 filterRows={filterRows}
                 setFilterRows={setFilterRows}
                 deleteRow={() => deleteRow(index)}
