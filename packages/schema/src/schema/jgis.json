@@ -56,11 +56,7 @@
           "type": "object"
         },
         "filters": {
-          "type": "array",
-          "default": [],
-          "items": {
-            "$ref": "#/definitions/jGISFilterItem"
-          }
+          "$ref": "#/definitions/jGISFilter"
         }
       }
     },
@@ -206,6 +202,25 @@
         "value": {
           "type": "string",
           "default": ""
+        }
+      }
+    },
+    "jGISFilter": {
+      "title": "IJGISFilter",
+      "type": "object",
+      "required": ["logicalOp", "appliedFilters"],
+      "additionalProperties": false,
+      "properties": {
+        "logicalOp": {
+          "type": "string",
+          "default": "all"
+        },
+        "appliedFilters": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/definitions/jGISFilterItem"
+          }
         }
       }
     }

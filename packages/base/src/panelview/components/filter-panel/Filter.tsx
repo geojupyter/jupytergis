@@ -40,6 +40,7 @@ interface IFilterComponentProps {
 
 const FilterComponent = (props: IFilterComponentProps) => {
   const featuresInLayerRef = useRef({});
+  const [logicalOp, setLogicalOp] = useState('all');
   const [selectedLayer, setSelectedLayer] = useState('');
   const [filterRows, setFilterRows] = useState<IJGISFilterItem[]>([]);
   const [model, setModel] = useState<IJupyterGISModel | undefined>(
@@ -87,7 +88,9 @@ const FilterComponent = (props: IFilterComponentProps) => {
     }
 
     // Add existing filters to filterRows
-    setFilterRows(layer.filters ?? []);
+    setFilterRows(layer.filters?.appliedFilters ?? []);
+    setLogicalOp(layer.filters?.logicalOp ?? 'all');
+
     buildFilterObject();
   }, [selectedLayer]);
 
@@ -119,7 +122,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
     // We want to populate it with the values from the
     // selected layers filter so they show up  on the panel
     if (layer.filters) {
-      layer.filters.map(filterItem => {
+      layer.filters.appliedFilters.map(filterItem => {
         if (!(filterItem.feature in aggregatedProperties)) {
           aggregatedProperties[filterItem.feature] = new Set();
         }
@@ -187,7 +190,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
 
   const deleteRow = (index: number) => {
     const newFilters = [...filterRows];
-    newFilters.splice(index);
+    newFilters.splice(index, 1);
 
     updateLayerFilters(newFilters);
     setFilterRows(newFilters);
@@ -199,15 +202,17 @@ const FilterComponent = (props: IFilterComponentProps) => {
   };
 
   const submitFilter = () => {
+    console.log('logicalOp', logicalOp);
     updateLayerFilters(filterRows);
   };
 
   const updateLayerFilters = (filters: IJGISFilterItem[]) => {
     const layer = model?.getLayer(selectedLayer);
-    if (!layer) {
+    if (!layer || !layer.filters) {
       return;
     }
-    layer.filters = filters;
+    layer.filters.logicalOp = logicalOp;
+    layer.filters.appliedFilters = filters;
     model?.sharedModel.updateLayer(selectedLayer, layer);
   };
 
@@ -216,6 +221,17 @@ const FilterComponent = (props: IFilterComponentProps) => {
       {selectedLayer && (
         <>
           <div id="filter-container" className="jp-gis-filter-select-container">
+            <select
+              className="jp-mod-styled jp-SchemaForm"
+              onChange={event => setLogicalOp(event?.target.value)}
+            >
+              <option key="all" value="all" selected>
+                All
+              </option>
+              <option key="any" value="any">
+                Any
+              </option>
+            </select>
             {filterRows.map((row, index) => (
               <FilterRow
                 key={index}

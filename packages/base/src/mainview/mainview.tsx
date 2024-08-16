@@ -2,7 +2,7 @@ import { MapChange } from '@jupyter/ydoc';
 import {
   IHillshadeLayer,
   IImageSource,
-  IJGISFilterItem,
+  IJGISFilter,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -880,15 +880,15 @@ export class MainView extends React.Component<IProps, IStates> {
     this.setTerrain(change.source, change.exaggeration);
   }
 
-  private async setFilters(id: string, filters: IJGISFilterItem[]) {
-    if (filters.length === 0) {
+  private async setFilters(id: string, filters: IJGISFilter) {
+    if (filters.appliedFilters.length === 0) {
       this._Map.setFilter(id, null);
       return;
     }
 
     const filterExpression = [
-      'all',
-      ...filters.map(filter => {
+      filters.logicalOp,
+      ...filters.appliedFilters.map(filter => {
         // Attempt to convert filter.value to a number if it looks like a number
         const convertedValue = !isNaN(Number(filter.value))
           ? Number(filter.value)
