@@ -39,7 +39,7 @@ const FilterRow = ({
   // Update the value when a new feature is selected
   useEffect(() => {
     const valueSelect = document.getElementById(
-      `filter-value${index}`
+      `jp-gis-value-select-${index}`
     ) as HTMLSelectElement;
 
     if (!valueSelect) {
@@ -75,6 +75,7 @@ const FilterRow = ({
   return (
     <div className="jp-gis-filter-row">
       <select
+        id={`jp-gis-feature-select-${index}`}
         className="jp-mod-styled jp-SchemaForm"
         onChange={handleKeyChange}
       >
@@ -90,6 +91,7 @@ const FilterRow = ({
         ))}
       </select>
       <select
+        id={`jp-gis-operator-select-${index}`}
         className="jp-mod-styled jp-SchemaForm"
         onChange={handleOperatorChange}
       >
@@ -104,8 +106,8 @@ const FilterRow = ({
         ))}
       </select>
       <select
+        id={`jp-gis-value-select-${index}`}
         className="jp-mod-styled jp-SchemaForm"
-        id={`filter-value${index}`}
         onChange={handleValueChange}
       >
         {/* Populate options based on the values of the selected key */}
@@ -120,7 +122,10 @@ const FilterRow = ({
             </option>
           ))}
       </select>
-      <Button className="jp-Button jp-gis-filter-icon">
+      <Button
+        id={`jp-gis-remove-filter-${index}`}
+        className="jp-Button jp-gis-filter-icon"
+      >
         <FontAwesomeIcon icon={faTrash} onClick={deleteRow} />
       </Button>
     </div>
