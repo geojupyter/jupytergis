@@ -23,6 +23,11 @@ const FilterRow = ({
     filterRows[index].feature || Object.keys(features)[0]
   );
 
+  // Ensure selected feature matches filter rows and proper values are displayed
+  useEffect(() => {
+    setSelectedFeature(filterRows[index].feature);
+  }, [filterRows]);
+
   useEffect(() => {
     const sortedKeys = Object.keys(features).sort();
     const sortedResult = {};
