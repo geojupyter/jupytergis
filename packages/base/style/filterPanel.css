@@ -20,6 +20,12 @@
   align-self: flex-end;
 }
 
+.jp-gis-logical-select {
+  width: fit-content !important;
+  padding: 0 8px !important;
+  text-align: center;
+}
+
 .jp-gis-filter-select-container {
   display: flex;
   flex-direction: column;

@@ -1,26 +1,35 @@
 {
   "filters": [],
   "layerTree": [
-    "e7981932-deb1-4dfa-903b-9ce5ad602b80",
-    "0f188a35-f6d5-4a0b-880c-06f5454f6e80"
+    "f907e26c-c4c8-4c2d-ad62-813f63ed9de9",
+    "0336896f-f7ce-460f-8d11-07a589ff03d8"
   ],
   "layers": {
-    "0f188a35-f6d5-4a0b-880c-06f5454f6e80": {
-      "filters": [],
+    "0336896f-f7ce-460f-8d11-07a589ff03d8": {
+      "filters": {
+        "appliedFilters": [
+          {
+            "feature": "mag",
+            "operator": ">",
+            "value": "2.13"
+          }
+        ],
+        "logicalOp": "all"
+      },
       "name": "Custom GeoJSON Layer",
       "parameters": {
         "color": "#865e3c",
         "opacity": 1.0,
-        "source": "e3e896c0-a8a7-491f-ab97-6d9cffa08c1a",
+        "source": "d07cc573-51fb-4ae8-965b-a0082ace7f2b",
         "type": "circle"
       },
       "type": "VectorLayer",
       "visible": true
     },
-    "e7981932-deb1-4dfa-903b-9ce5ad602b80": {
+    "f907e26c-c4c8-4c2d-ad62-813f63ed9de9": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
-        "source": "fa6c912d-b9ea-49e3-8659-d30e77c2143c"
+        "source": "5fe556bc-9938-4217-8de6-fe25aef088c2"
       },
       "type": "RasterLayer",
       "visible": true
@@ -28,20 +37,13 @@
   },
   "options": {
     "bearing": 0.0,
-    "latitude": 34.26764446380909,
-    "longitude": -117.6752272928693,
+    "latitude": 36.721052981505736,
+    "longitude": -117.65116711904051,
     "pitch": 0.0,
-    "zoom": 3.4228699049925186
+    "zoom": 3.9435402350822097
   },
   "sources": {
-    "e3e896c0-a8a7-491f-ab97-6d9cffa08c1a": {
-      "name": "Custom GeoJSON Layer Source",
-      "parameters": {
-        "path": "eq.json"
-      },
-      "type": "GeoJSONSource"
-    },
-    "fa6c912d-b9ea-49e3-8659-d30e77c2143c": {
+    "5fe556bc-9938-4217-8de6-fe25aef088c2": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
@@ -52,6 +54,13 @@
         "urlParameters": {}
       },
       "type": "RasterSource"
+    },
+    "d07cc573-51fb-4ae8-965b-a0082ace7f2b": {
+      "name": "Custom GeoJSON Layer Source",
+      "parameters": {
+        "path": "eq.json"
+      },
+      "type": "GeoJSONSource"
     }
   },
   "terrain": {

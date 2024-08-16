@@ -7,7 +7,7 @@ import {
 import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import { cloneDeep } from 'lodash';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { getLayerTileInfo } from '../../../tools';
 import { IControlPanelModel } from '../../../types';
 import { RightPanelWidget } from '../../rightpanel';
@@ -196,6 +196,11 @@ const FilterComponent = (props: IFilterComponentProps) => {
     setFilterRows(newFilters);
   };
 
+  const handleLogicalOpChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setLogicalOp(event.target.value);
+    updateLayerFilters(filterRows, event.target.value);
+  };
+
   const clearFilters = () => {
     updateLayerFilters([]);
     setFilterRows([]);
@@ -206,13 +211,13 @@ const FilterComponent = (props: IFilterComponentProps) => {
     updateLayerFilters(filterRows);
   };
 
-  const updateLayerFilters = (filters: IJGISFilterItem[]) => {
+  const updateLayerFilters = (filters: IJGISFilterItem[], op?: string) => {
     const layer = model?.getLayer(selectedLayer);
     if (!layer) {
       return;
     }
 
-    layer.filters = { logicalOp, appliedFilters: filters };
+    layer.filters = { logicalOp: op ?? logicalOp, appliedFilters: filters };
     model?.sharedModel.updateLayer(selectedLayer, layer);
   };
 
@@ -222,8 +227,8 @@ const FilterComponent = (props: IFilterComponentProps) => {
         <>
           <div id="filter-container" className="jp-gis-filter-select-container">
             <select
-              className="jp-mod-styled jp-SchemaForm"
-              onChange={event => setLogicalOp(event?.target.value)}
+              className="jp-mod-styled jp-SchemaForm jp-gis-logical-select"
+              onChange={handleLogicalOpChange}
             >
               <option key="all" value="all" selected={logicalOp === 'all'}>
                 All
