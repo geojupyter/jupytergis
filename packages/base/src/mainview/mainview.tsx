@@ -282,7 +282,7 @@ export class MainView extends React.Component<IProps, IStates> {
       console.error('Error loading shapefile:', error);
       throw error;
     }
-  }
+  }  
 
   private computeSourceUrl(source: IJGISSource): string {
     const parameters = source.parameters as IRasterSource;
