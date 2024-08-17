@@ -32,7 +32,6 @@ import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 import shp from 'shpjs';
-
 interface IProps {
   viewModel: MainViewModel;
 }
@@ -274,15 +273,21 @@ export class MainView extends React.Component<IProps, IStates> {
     this._videoPlaying = !this._videoPlaying;
   }
 
-  private async _loadShapefileAsGeoJSON(path: string): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
+  private async _loadShapefileAsGeoJSON(url: string): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
     try {
-      const geojson = await shp(path);
+      const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+      const targetUrl = url;
+
+      const response = await fetch(proxyUrl + targetUrl);
+      const arrayBuffer = await response.arrayBuffer();
+      const geojson = await shp(arrayBuffer);
+  
       return geojson;
     } catch (error) {
       console.error('Error loading shapefile:', error);
       throw error;
     }
-  }  
+  }
 
   private computeSourceUrl(source: IJGISSource): string {
     const parameters = source.parameters as IRasterSource;
