@@ -2,7 +2,8 @@ import {
   GeoJSONFeature1,
   IDict,
   IJGISFilterItem,
-  IJupyterGISModel
+  IJupyterGISModel,
+  IJupyterGISTracker
 } from '@jupytergis/schema';
 import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
@@ -20,42 +21,78 @@ export class FilterPanel extends Panel {
   constructor(options: RightPanelWidget.IOptions) {
     super();
     this._model = options.model;
+    this._tracker = options.tracker;
 
     this.id = 'jupytergis::layerTree';
     // this.addClass(LAYERS_PANEL_CLASS);
 
     this.addWidget(
       ReactWidget.create(
-        <FilterComponent model={this._model}></FilterComponent>
+        <FilterComponent
+          model={this._model}
+          tracker={this._tracker}
+        ></FilterComponent>
       )
     );
   }
 
   private _model: IControlPanelModel | undefined;
+  private _tracker: IJupyterGISTracker;
 }
 
 interface IFilterComponentProps {
   model: IControlPanelModel;
+  tracker: IJupyterGISTracker;
 }
 
 const FilterComponent = (props: IFilterComponentProps) => {
   const featuresInLayerRef = useRef({});
+  const [widgetId, setWidgetId] = useState('');
   const [logicalOp, setLogicalOp] = useState('all');
   const [selectedLayer, setSelectedLayer] = useState('');
   const [filterRows, setFilterRows] = useState<IJGISFilterItem[]>([]);
-  const [model, setModel] = useState<IJupyterGISModel | undefined>(
-    props.model.jGISModel
-  );
   const [featuresInLayer, setFeaturesInLayer] = useState<
     Record<string, Set<string | number>>
   >({});
+  const [model, setModel] = useState<IJupyterGISModel | undefined>(
+    props.model.jGISModel
+  );
 
   props.model?.documentChanged.connect((_, widget) => {
     setModel(widget?.context.model);
   });
 
+  // Reset state values when current widget changes
   useEffect(() => {
-    model?.clientStateChanged.connect(() => {
+    const handleCurrentChanged = () => {
+      if (props.tracker.currentWidget?.id === widgetId) {
+        return;
+      }
+
+      if (props.tracker.currentWidget) {
+        setWidgetId(props.tracker.currentWidget.id);
+      }
+      setFeaturesInLayer({});
+      setFilterRows([]);
+      setLogicalOp('all');
+      setSelectedLayer('');
+    };
+    props.tracker.currentChanged.connect(handleCurrentChanged);
+
+    return () => {
+      props.tracker.currentChanged.disconnect(handleCurrentChanged);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Keep layer selected when widget changes
+    if (model?.localState?.selected?.value) {
+      setSelectedLayer(Object.keys(model?.localState?.selected?.value)[0]);
+    }
+  }, [widgetId]);
+
+  useEffect(() => {
+    const handleClientStateChanged = () => {
       if (!model?.localState?.selected?.value) {
         return;
       }
@@ -63,10 +100,11 @@ const FilterComponent = (props: IFilterComponentProps) => {
       // TODO: handle multi select better
       const currentLayer = Object.keys(model?.localState?.selected?.value)[0];
       setSelectedLayer(currentLayer);
-    });
+    };
 
-    model?.sharedOptionsChanged.connect((_, keys) => {
-      if (keys.has('zoom')) {
+    const handleSharedOptionsChanged = (_, keys) => {
+      // model changes when current widget changes, don't want this to run in that case
+      if (props.tracker.currentWidget?.id === widgetId && keys.has('zoom')) {
         if (!model?.localState?.selected?.value) {
           return;
         }
@@ -75,7 +113,17 @@ const FilterComponent = (props: IFilterComponentProps) => {
         // TODO: Probably want to debounce/throttle here
         buildFilterObject(currentLayer);
       }
-    });
+    };
+
+    model?.clientStateChanged.connect(handleClientStateChanged);
+
+    // Want to rebuild filter object when zoom changes to get values for that zoom level
+    model?.sharedOptionsChanged.connect(handleSharedOptionsChanged);
+
+    return () => {
+      model?.clientStateChanged.disconnect(handleClientStateChanged);
+      model?.sharedOptionsChanged.disconnect(handleSharedOptionsChanged);
+    };
   }, [model]);
 
   useEffect(() => {
@@ -97,10 +145,6 @@ const FilterComponent = (props: IFilterComponentProps) => {
   useEffect(() => {
     featuresInLayerRef.current = featuresInLayer;
   }, [featuresInLayer]);
-
-  useEffect(() => {
-    console.log('filterRows', filterRows);
-  }, [filterRows]);
 
   const buildFilterObject = async (currentLayer?: string) => {
     if (!model) {
@@ -208,7 +252,6 @@ const FilterComponent = (props: IFilterComponentProps) => {
   };
 
   const submitFilter = () => {
-    console.log('logicalOp', logicalOp);
     updateLayerFilters(filterRows);
   };
 
