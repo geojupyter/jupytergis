@@ -52,7 +52,69 @@ export class LayersPanel extends Panel {
         ></LayersBodyComponent>
       )
     );
+    this.node.ondragover = this._onDragOver;
+    this.node.ondrop = this._onDrop;
   }
+
+  // This happens when dragging over empty space below the tree.
+  private _onDragOver = (e: DragEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    this.node.appendChild(Private.dragIndicator);
+    Private.dragInfo.dragOverElement = null;
+    Private.dragInfo.dragOverPosition = null;
+  };
+
+  private _onDrop = (e: DragEvent) => {
+    Private.dragIndicator.style.display = 'none';
+
+    if (this._model === undefined) {
+      return;
+    }
+    const { jGISModel: model } = this._model;
+
+    const { draggedElement, dragOverElement, dragOverPosition } =
+      Private.dragInfo;
+
+    if (dragOverElement === 'error') {
+      return;
+    }
+
+    if (!draggedElement) {
+      return;
+    }
+    const draggedId = draggedElement.dataset.id;
+    if (!draggedId) {
+      return;
+    }
+
+    // Element has been dropped in the empty zone below the tree.
+    if (dragOverElement === null) {
+      model?.moveItemsToGroup([draggedId], '', 0);
+      return;
+    }
+
+    const dragOverId = dragOverElement.dataset.id;
+    if (!dragOverId) {
+      return;
+    }
+
+    // Handle the special case where we want to drop the element on top of the first
+    // element of a group.
+    if (
+      dragOverElement.classList.contains(LAYER_GROUP_HEADER_CLASS) &&
+      dragOverPosition === 'below'
+    ) {
+      model?.moveItemsToGroup([draggedId], dragOverId);
+      return;
+    }
+
+    model?.moveItemRelatedTo(
+      draggedId,
+      dragOverId,
+      dragOverPosition === 'above'
+    );
+  };
 
   private _model: IControlPanelModel | undefined;
   private _onSelect: ({
@@ -194,11 +256,19 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
   };
 
   return (
-    <div className={`${LAYER_ITEM_CLASS} ${LAYER_GROUP_CLASS}`}>
+    <div
+      className={`${LAYER_ITEM_CLASS} ${LAYER_GROUP_CLASS}`}
+      draggable={true}
+      onDragStart={Private.onDragStart}
+      onDragEnd={Private.onDragEnd}
+      data-id={name}
+    >
       <div
         onClick={() => setOpen(!open)}
         onContextMenu={handleRightClick}
         className={`${LAYER_GROUP_HEADER_CLASS} ${selected ? ' jp-mod-selected' : ''}`}
+        onDragOver={Private.onDragOver}
+        data-id={name}
       >
         <LabIcon.resolveReact
           icon={caretDownIcon}
@@ -309,6 +379,11 @@ function LayerComponent(props: ILayerProps): JSX.Element {
   return (
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
+      draggable={true}
+      onDragStart={Private.onDragStart}
+      onDragOver={Private.onDragOver}
+      onDragEnd={Private.onDragEnd}
+      data-id={layerId}
     >
       <div
         className={LAYER_TITLE_CLASS}
@@ -338,4 +413,67 @@ function LayerComponent(props: ILayerProps): JSX.Element {
       </Button>
     </div>
   );
+}
+
+namespace Private {
+  export const dragIndicator = document.createElement('div');
+  dragIndicator.id = 'jp-drag-indicator';
+
+  interface IDragInfo {
+    draggedElement: HTMLDivElement | null;
+    dragOverElement: HTMLDivElement | null | 'error';
+    dragOverPosition: 'above' | 'below' | null;
+  }
+
+  export const dragInfo: IDragInfo = {
+    draggedElement: null,
+    dragOverElement: null,
+    dragOverPosition: null
+  };
+
+  export const onDragStart = (e: React.DragEvent) => {
+    dragInfo.draggedElement = e.target as HTMLDivElement;
+  };
+
+  export const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const { clientY } = e;
+
+    let target = (e.target as HTMLElement).closest(
+      `.${LAYER_GROUP_HEADER_CLASS}, .${LAYER_ITEM_CLASS}`
+    ) as HTMLDivElement;
+
+    if (!target) {
+      return;
+    }
+
+    // Do not allow move a group into itself.
+    if (dragInfo.draggedElement?.contains(target)) {
+      dragInfo.dragOverElement = 'error';
+      return;
+    }
+
+    dragInfo.dragOverElement = target;
+    const boundingBox = target.getBoundingClientRect();
+    if (clientY - boundingBox.top < boundingBox.bottom - clientY) {
+      dragInfo.dragOverPosition = 'above';
+      if (target.classList.contains(LAYER_GROUP_HEADER_CLASS)) {
+        target = target.parentNode as HTMLDivElement;
+      }
+      target.insertAdjacentElement('beforebegin', dragIndicator);
+      dragIndicator.style.display = 'block';
+    } else {
+      dragInfo.dragOverPosition = 'below';
+      target.insertAdjacentElement('afterend', dragIndicator);
+      dragIndicator.style.display = 'block';
+    }
+  };
+
+  export const onDragEnd = () => {
+    dragIndicator.style.display = 'none';
+    dragInfo.draggedElement = null;
+    dragInfo.dragOverElement = null;
+    dragInfo.dragOverPosition = null;
+  };
 }

@@ -567,7 +567,7 @@ export function addCommands(
         return;
       }
 
-      model.moveSelectedLayersToGroup(selectedLayers, groupName);
+      model.moveItemsToGroup(Object.keys(selectedLayers), groupName);
     }
   });
 
