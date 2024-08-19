@@ -200,8 +200,7 @@
           "default": ""
         },
         "value": {
-          "type": "string",
-          "default": ""
+          "type": ["string", "number"]
         }
       }
     },

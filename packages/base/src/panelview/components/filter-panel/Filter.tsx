@@ -47,7 +47,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
     props.model.jGISModel
   );
   const [featuresInLayer, setFeaturesInLayer] = useState<
-    Record<string, Set<string>>
+    Record<string, Set<string | number>>
   >({});
 
   props.model?.documentChanged.connect((_, widget) => {
@@ -114,9 +114,10 @@ const FilterComponent = (props: IFilterComponentProps) => {
       return;
     }
 
-    const aggregatedProperties: Record<string, Set<string>> = cloneDeep(
-      featuresInLayerRef.current
-    );
+    const aggregatedProperties: Record<
+      string,
+      Set<string | number>
+    > = cloneDeep(featuresInLayerRef.current);
 
     // When we open a map, the filter object is empty.
     // We want to populate it with the values from the
@@ -126,7 +127,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
         if (!(filterItem.feature in aggregatedProperties)) {
           aggregatedProperties[filterItem.feature] = new Set();
         }
-        aggregatedProperties[filterItem.feature].add(String(filterItem.value));
+        aggregatedProperties[filterItem.feature].add(filterItem.value);
       });
     }
 
@@ -166,14 +167,14 @@ const FilterComponent = (props: IFilterComponentProps) => {
   };
 
   const addFeatureValue = (
-    featureProperties: Record<string, unknown> | IDict,
-    aggregatedProperties: Record<string, Set<string>>
+    featureProperties: Record<string, string | number> | IDict,
+    aggregatedProperties: Record<string, Set<string | number>>
   ) => {
     Object.entries(featureProperties).forEach(([key, value]) => {
       if (!(key in aggregatedProperties)) {
         aggregatedProperties[key] = new Set();
       }
-      aggregatedProperties[key].add(String(value));
+      aggregatedProperties[key].add(value);
     });
   };
 

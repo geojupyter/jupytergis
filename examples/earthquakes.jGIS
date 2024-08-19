@@ -11,7 +11,7 @@
           {
             "feature": "mag",
             "operator": ">",
-            "value": "2.13"
+            "value": 1.95
           }
         ],
         "logicalOp": "all"
@@ -37,10 +37,10 @@
   },
   "options": {
     "bearing": 0.0,
-    "latitude": 36.721052981505736,
-    "longitude": -117.65116711904051,
+    "latitude": 39.19439624539356,
+    "longitude": -121.55020132126549,
     "pitch": 0.0,
-    "zoom": 3.9435402350822097
+    "zoom": 4.630124252560623
   },
   "sources": {
     "5fe556bc-9938-4217-8de6-fe25aef088c2": {
