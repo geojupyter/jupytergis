@@ -1,5 +1,5 @@
 {
-  "layerTree": [
+   "layerTree": [
     "a0044fd7-f167-445f-b3d1-620a8f94b498",
     {
       "layers": [
@@ -24,6 +24,16 @@
       "visible": true
     },
     "57ef55ef-facb-48a2-ae1d-c9c824be3e8a": {
+      "filters": {
+        "appliedFilters": [
+          {
+            "feature": "code",
+            "operator": "==",
+            "value": "11"
+          }
+        ],
+        "logicalOp": "all"
+      },
       "name": "Regions France",
       "parameters": {
         "color": "#e66100",
@@ -47,7 +57,7 @@
     "bearing": 0.0,
     "latitude": 45.3283890632207,
     "longitude": 2.0698449192905173,
-    "pitch": 0,
+    "pitch": 0.0,
     "zoom": 4.447501895979073
   },
   "sources": {
@@ -77,5 +87,6 @@
       },
       "type": "GeoJSONSource"
     }
-  }
+  },
+  "terrain": {}
 }

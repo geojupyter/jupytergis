@@ -109,7 +109,7 @@ const activate = (
         format: 'text',
         size: undefined,
         content:
-          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0},\n\t"layerTree": [],\n\t"terrain": {"source": "", "exaggeration": 0},\n\t"filters": []\n}'
+          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0},\n\t"layerTree": [],\n\t"terrain": {"source": "", "exaggeration": 0}\n}'
       });
 
       // Open the newly created file with the 'Editor'
