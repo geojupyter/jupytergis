@@ -11,7 +11,7 @@ const FilterRow = ({
   deleteRow
 }: {
   index: number;
-  features: Record<string, Set<string>>;
+  features: Record<string, Set<string | number>>;
   filterRows: any;
   setFilterRows: any;
   deleteRow: () => void;
@@ -73,7 +73,9 @@ const FilterRow = ({
 
   const handleValueChange = event => {
     const newFilters = [...filterRows];
-    newFilters[index].value = event.target.value;
+    const isNum = typeof sortedFeatures[selectedFeature][0] === 'number';
+
+    newFilters[index].value = isNum ? +event.target.value : event.target.value;
     setFilterRows(newFilters);
   };
 
