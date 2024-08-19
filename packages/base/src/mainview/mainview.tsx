@@ -112,6 +112,11 @@ export class MainView extends React.Component<IProps, IStates> {
           showZoom: true,
           showCompass: true
         })
+      ).addControl(
+        new MapLibre.ScaleControl({
+          maxWidth: 80,
+          unit: 'metric'
+        })
       );
 
       this._Map.on('zoomend', () => {
