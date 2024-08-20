@@ -50,6 +50,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
   const [widgetId, setWidgetId] = useState('');
   const [logicalOp, setLogicalOp] = useState('all');
   const [selectedLayer, setSelectedLayer] = useState('');
+  const [shouldDisplay, setShouldDisplay] = useState(false);
   const [filterRows, setFilterRows] = useState<IJGISFilterItem[]>([]);
   const [featuresInLayer, setFeaturesInLayer] = useState<
     Record<string, Set<string | number>>
@@ -118,6 +119,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
     model?.clientStateChanged.connect(handleClientStateChanged);
 
     // Want to rebuild filter object when zoom changes to get values for that zoom level
+    // This is because the filtering inputs may depend on the currently visible features
     model?.sharedOptionsChanged.connect(handleSharedOptionsChanged);
 
     return () => {
@@ -131,9 +133,13 @@ const FilterComponent = (props: IFilterComponentProps) => {
     setFeaturesInLayer({});
 
     const layer = model?.getLayer(selectedLayer);
-    if (!layer) {
+
+    if (!layer || layer.type !== 'VectorLayer') {
+      setShouldDisplay(false);
       return;
     }
+
+    setShouldDisplay(true);
 
     // Add existing filters to filterRows
     setFilterRows(layer.filters?.appliedFilters ?? []);
@@ -267,9 +273,9 @@ const FilterComponent = (props: IFilterComponentProps) => {
   };
 
   return (
-    <div className="jp-gis-filter-main">
-      {selectedLayer && (
-        <>
+    <>
+      {shouldDisplay && (
+        <div className="jp-gis-filter-main">
           <div id="filter-container" className="jp-gis-filter-select-container">
             <select
               className="jp-mod-styled jp-SchemaForm jp-gis-logical-select"
@@ -315,9 +321,9 @@ const FilterComponent = (props: IFilterComponentProps) => {
               Submit
             </Button>
           </div>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 };
 

@@ -193,6 +193,7 @@
       "properties": {
         "operator": {
           "type": "string",
+          "enum": ["==", "!=", ">", "<", ">=", "<="],
           "default": "=="
         },
         "feature": {

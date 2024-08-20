@@ -893,8 +893,6 @@ export class MainView extends React.Component<IProps, IStates> {
       })
     ] as MapLibre.FilterSpecification;
 
-    console.log('filterExpression', filterExpression);
-
     this._Map.setFilter(id, filterExpression);
   }
 
