@@ -29,6 +29,25 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
     }
   }
 
+  protected onFormBlur(id: string, value: any) {
+    super.onFormBlur(id, value);
+
+    // Is there a better way to spot the source text entry?
+    if (!id.endsWith('_source')) {
+      return;
+    }
+
+    const source = this.props.model.getSource(value);
+    if (!source || source.type !== 'VectorTileSource') {
+      return;
+    }
+
+    this.fetchSourceLayers(
+      this.currentFormData,
+      source.parameters as IVectorTileSource
+    );
+  }
+
   protected processSchema(
     data: IVectorLayer | undefined,
     schema: IDict,
