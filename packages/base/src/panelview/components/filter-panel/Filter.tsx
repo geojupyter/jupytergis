@@ -9,7 +9,7 @@ import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import { cloneDeep } from 'lodash';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
-import { getLayerTileInfo } from '../../../tools';
+import { debounce, getLayerTileInfo } from '../../../tools';
 import { IControlPanelModel } from '../../../types';
 import { RightPanelWidget } from '../../rightpanel';
 import FilterRow from './FilterRow';
@@ -111,7 +111,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
         const currentLayer = Object.keys(model?.localState?.selected?.value)[0];
 
         // TODO: Probably want to debounce/throttle here
-        buildFilterObject(currentLayer);
+        buildFilterDebounce(currentLayer);
       }
     };
 
@@ -209,6 +209,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
 
     setFeaturesInLayer(aggregatedProperties);
   };
+  const buildFilterDebounce = debounce(buildFilterObject, 500);
 
   const addFeatureValue = (
     featureProperties: Record<string, string | number> | IDict,
