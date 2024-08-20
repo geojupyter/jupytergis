@@ -27,6 +27,7 @@ import * as React from 'react';
 
 import * as MapLibre from 'maplibre-gl';
 
+import { Protocol } from 'pmtiles';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
@@ -145,6 +146,10 @@ export class MainView extends React.Component<IProps, IStates> {
         });
       });
 
+      // PM tile stuff
+      this._protocol = new Protocol();
+      MapLibre.addProtocol('pmtiles', this._protocol.tile);
+
       // Workaround for broken intialization of maplibre
       this._Map._lazyInitEmptyStyle();
 
@@ -170,27 +175,40 @@ export class MainView extends React.Component<IProps, IStates> {
     switch (source.type) {
       case 'RasterSource': {
         const mapSource = this._Map.getSource(id) as MapLibre.RasterTileSource;
+
         if (!mapSource) {
-          this._Map.addSource(id, {
-            type: 'raster',
-            attribution: source.parameters?.attribution || '',
-            tiles: [this.computeSourceUrl(source)],
-            tileSize: 256
-          });
+          const parameters = source.parameters as IRasterSource;
+          const sourceSpec = this.configureTileSource(
+            {
+              type: 'raster',
+              minzoom: parameters.minZoom,
+              maxzoom: parameters.maxZoom,
+              attribution: parameters.attribution || '',
+              tileSize: 256
+            },
+            this.computeSourceUrl(source)
+          );
+
+          this._Map.addSource(id, sourceSpec);
         }
         break;
       }
       case 'VectorTileSource': {
         const mapSource = this._Map.getSource(id) as MapLibre.VectorTileSource;
+
         if (!mapSource) {
           const parameters = source.parameters as IVectorTileSource;
-          this._Map.addSource(id, {
-            type: 'vector',
-            minzoom: parameters.minZoom,
-            maxzoom: parameters.maxZoom,
-            attribution: parameters.attribution || '',
-            tiles: [this.computeSourceUrl(source)]
-          });
+          const sourceSpec = this.configureTileSource(
+            {
+              type: 'vector',
+              minzoom: parameters.minZoom,
+              maxzoom: parameters.maxZoom,
+              attribution: parameters.attribution || ''
+            },
+            this.computeSourceUrl(source)
+          );
+
+          this._Map.addSource(id, sourceSpec);
         }
         break;
       }
@@ -211,13 +229,19 @@ export class MainView extends React.Component<IProps, IStates> {
         const mapSource = this._Map.getSource(
           id
         ) as MapLibre.RasterDEMTileSource;
+
         if (!mapSource) {
           const parameters = source.parameters as IRasterDemSource;
-          this._Map.addSource(id, {
-            type: 'raster-dem',
-            tileSize: parameters.tileSize,
-            url: parameters.url
-          });
+          const sourceSpec = this.configureTileSource(
+            {
+              type: 'raster-dem',
+              tileSize: parameters.tileSize,
+              encoding: parameters.encoding
+            },
+            this.computeSourceUrl(source)
+          );
+
+          this._Map.addSource(id, sourceSpec);
         }
         break;
       }
@@ -294,15 +318,21 @@ export class MainView extends React.Component<IProps, IStates> {
 
     switch (source.type) {
       case 'RasterSource': {
-        (mapSource as MapLibre.RasterTileSource).setTiles([
-          this.computeSourceUrl(source)
-        ]);
+        const sourceCast = mapSource as MapLibre.RasterTileSource;
+        const url = this.computeSourceUrl(source);
+        this._handleSourceUpdate(sourceCast, url);
         break;
       }
       case 'VectorTileSource': {
-        (mapSource as MapLibre.RasterTileSource).setTiles([
-          this.computeSourceUrl(source)
-        ]);
+        const sourceCast = mapSource as MapLibre.VectorTileSource;
+        const url = this.computeSourceUrl(source);
+        this._handleSourceUpdate(sourceCast, url);
+        break;
+      }
+      case 'RasterDemSource': {
+        const sourceCast = mapSource as MapLibre.RasterDEMTileSource;
+        const url = this.computeSourceUrl(source);
+        this._handleSourceUpdate(sourceCast, url);
         break;
       }
       case 'GeoJSONSource': {
@@ -310,11 +340,6 @@ export class MainView extends React.Component<IProps, IStates> {
           source.parameters?.data ||
           (await this._model.readGeoJSON(source.parameters?.path));
         (mapSource as MapLibre.GeoJSONSource).setData(data);
-        break;
-      }
-      case 'RasterDemSource': {
-        const parameters = source.parameters as IRasterDemSource;
-        (mapSource as MapLibre.RasterDEMTileSource).setTiles([parameters.url]);
         break;
       }
       case 'ImageSource': {
@@ -445,6 +470,7 @@ export class MainView extends React.Component<IProps, IStates> {
     if (index < currentLayerIds.length && index !== -1) {
       beforeId = currentLayerIds[index];
     }
+
     switch (layer.type) {
       case 'RasterLayer': {
         this._Map.addLayer(
@@ -665,6 +691,81 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
+  /**
+   * Determines whether to use tiles or a URL for a given source based on the presence of replaceable parameters in the URL.
+   *
+   * This method checks if the provided URL contains patterns that indicate it can be broken down into tiles
+   * (e.g., {z}/{x}/{y}, {ratio}, etc.).
+   * If such patterns are found, it suggests that tiles should be used. Otherwise, the URL itself should be used.
+   *
+   * @param url - The URL to check for replaceable parameters.
+   * @returns True if the URL contains replaceable parameters indicating the use of tiles, false otherwise.
+   */
+  private _shouldUseTiles(url: string) {
+    const regexPatterns = [
+      /\{z\}/,
+      /\{x\}/,
+      /\{y\}/,
+      /\{ratio\}/,
+      /\{quadkey\}/,
+      /\{bbox-epsg-3857\}/
+    ];
+
+    let result = false;
+
+    for (const pattern of regexPatterns) {
+      if (pattern.test(url)) {
+        result = true;
+        break;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Updates the given source with either a new URL or tiles based on the result of `_shouldUseTiles`.
+   *
+   * @param source - The source to update.
+   * @param url - The URL to set for the source.
+   */
+  private _handleSourceUpdate(
+    source:
+      | MapLibre.RasterTileSource
+      | MapLibre.VectorTileSource
+      | MapLibre.RasterDEMTileSource,
+    url: string
+  ) {
+    const result = this._shouldUseTiles(url);
+
+    result ? source.setTiles([url]) : source.setUrl(url);
+  }
+
+  /**
+   * Configures a source specification, setting either the `tiles` or `url` property based on the provided URL.
+   *
+   * This method uses the `_shouldUseTiles` method to determine whether the source should be configured with tiles or a direct URL. It then modifies the `sourceSpec` object accordingly.
+   *
+   * @param sourceSpec - The source specification object to configure. This object is modified in place.
+   * @param url - The URL to check for replaceable parameters and use in configuring the source.
+   * @returns The modified source specification object.
+   */
+  private configureTileSource(
+    sourceSpec:
+      | MapLibre.RasterSourceSpecification
+      | MapLibre.RasterDEMSourceSpecification
+      | MapLibre.VectorSourceSpecification,
+    url: string
+  ) {
+    const result = this._shouldUseTiles(url);
+
+    result
+      ? (sourceSpec = { tiles: [url], ...sourceSpec })
+      : (sourceSpec = { url, ...sourceSpec });
+
+    return sourceSpec;
+  }
+
   private _onClientSharedStateChanged = (
     sender: IJupyterGISModel,
     clients: Map<number, IJupyterGISClientState>
@@ -825,4 +926,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _ready = false;
   private _terrainControl: MapLibre.TerrainControl | null;
   private _videoPlaying = false;
+  private _protocol: Protocol;
 }

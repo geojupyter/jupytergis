@@ -18,6 +18,11 @@
       "type": "string",
       "description": "The attribution for the raster-dem source"
     },
+    "encoding": {
+      "type": "string",
+      "enum": ["terrarium", "mapbox"],
+      "default": "mapbox"
+    },
     "urlParameters": {
       "type": "object",
       "additionalProperties": {
