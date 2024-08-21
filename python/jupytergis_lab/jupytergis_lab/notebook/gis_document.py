@@ -319,6 +319,15 @@ class GISDocument(CommWidget):
         self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
+        """
+        Add a filter to a layer
+
+        :param str layer_id: The ID of the layer to filter
+        :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param str feature: The feature to be filtered on 
+        :param str operator: The operator used to compare the feature and value
+        :param Union[str, number, float] value: The value to be filtered on
+        """
         layer = self._layers.get(layer_id)
 
         # Check if the layer exists
@@ -349,6 +358,15 @@ class GISDocument(CommWidget):
 
         self._layers[layer_id] = layer
 
+        """
+        Update a filter applied to a layer
+
+        :param str layer_id: The ID of the layer to filter
+        :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param str feature: The feature to update the value for 
+        :param str operator: The operator used to compare the feature and value
+        :param Union[str, number, float] value: The new value to be filtered on
+        """
     def update_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
         layer = self._layers.get(layer_id)
 
@@ -368,13 +386,17 @@ class GISDocument(CommWidget):
         # Update the feature value
         feature['value'] = value
 
-        # Optionally, update the logical operation if needed
+        # update the logical operation
         layer['filters']['logicalOp'] = logical_op
 
-        # Update the layer in _layers
         self._layers[layer_id] = layer
        
-    def clear_filters(self, layer_id):
+    def clear_filters(self, layer_id: str):
+        """
+        Clear filters on a layer
+
+        :param str layer_id: The ID of the layer to clear filters from 
+        """
         layer = self._layers.get(layer_id)
 
         # Check if the layer exists
