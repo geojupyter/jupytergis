@@ -922,6 +922,7 @@ __metadata:
     "@lumino/messaging": ^2.0.0
     "@lumino/signaling": ^2.0.0
     "@lumino/widgets": ^2.0.0
+    "@mapbox/vector-tile": ^2.0.3
     "@naisutech/react-tree": ^3.0.1
     "@rjsf/core": ^4.2.0
     "@types/d3-color": ^3.1.0
@@ -931,6 +932,7 @@ __metadata:
     d3-color: ^3.1.0
     geojson-schema: ^1.0.5
     maplibre-gl: ^4.4.1
+    pbf: ^4.0.1
     react: ^18.0.1
     rimraf: ^3.0.2
     styled-components: ^5.3.6
@@ -1024,6 +1026,7 @@ __metadata:
     eslint-plugin-prettier: ^5.0.1
     lerna: ^7.0.0
     npm-run-all: ^4.1.5
+    pmtiles: ^3.0.7
     prettier: ^3.0.0
     rimraf: ^3.0.2
     typescript: ^5
@@ -2433,6 +2436,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mapbox/point-geometry@npm:~1.1.0":
+  version: 1.1.0
+  resolution: "@mapbox/point-geometry@npm:1.1.0"
+  checksum: b69c136566b08921286b2b5abcf35a1a015ce106af02c6914a74acff57b381e2fe167ce11268d5c26739f044813ae43c0581d3dbd7eb9b68bc9d7147ad74d6f1
+  languageName: node
+  linkType: hard
+
 "@mapbox/tiny-sdf@npm:^2.0.6":
   version: 2.0.6
   resolution: "@mapbox/tiny-sdf@npm:2.0.6"
@@ -2453,6 +2463,17 @@ __metadata:
   dependencies:
     "@mapbox/point-geometry": ~0.1.0
   checksum: 7093d4fa7d0382a0eae9d79526c5ad57c32099300b013d3afb4ab7499ac2a096f6f0a487cc81151ef81e0432a4b157513666b1592a4a4c1497341cde835551aa
+  languageName: node
+  linkType: hard
+
+"@mapbox/vector-tile@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "@mapbox/vector-tile@npm:2.0.3"
+  dependencies:
+    "@mapbox/point-geometry": ~1.1.0
+    "@types/geojson": ^7946.0.14
+    pbf: ^4.0.1
+  checksum: 5da1a5b27385f42048fba6e30fa8fde3a2b82838432a63ca611dc91e7fad2de46d42d05e6cf300e6639d0ed1c990c2bcab2396114c21c46d1bb1b1fa0caa76a8
   languageName: node
   linkType: hard
 
@@ -3201,6 +3222,15 @@ __metadata:
   version: 3.0.2
   resolution: "@types/junit-report-builder@npm:3.0.2"
   checksum: 7fead0b771f95cd8e607223ace2f43cc881b3e7944db405f903590b56379d14132032b7d89c9afa7dff266b95f516a476a39ad40f9200bfb61fc8ed7f6b1bff6
+  languageName: node
+  linkType: hard
+
+"@types/leaflet@npm:^1.9.8":
+  version: 1.9.12
+  resolution: "@types/leaflet@npm:1.9.12"
+  dependencies:
+    "@types/geojson": "*"
+  checksum: 45e69572048d6da96840505ab13e1e672f75d1e058c8dd87894e7d4be51c62b650303406e45c9df720722a111d348c27626ed22eb7ac0ac102249964e958a635
   languageName: node
   linkType: hard
 
@@ -6015,6 +6045,13 @@ __metadata:
   dependencies:
     reusify: ^1.0.4
   checksum: a8c5b26788d5a1763f88bae56a8ddeee579f935a831c5fe7a8268cea5b0a91fbfe705f612209e02d639b881d7b48e461a50da4a10cfaa40da5ca7cc9da098d88
+  languageName: node
+  linkType: hard
+
+"fflate@npm:^0.8.0":
+  version: 0.8.2
+  resolution: "fflate@npm:0.8.2"
+  checksum: 29470337b85d3831826758e78f370e15cda3169c5cd4477c9b5eea2402261a74b2975bae816afabe1c15d21d98591e0d30a574f7103aa117bff60756fa3035d4
   languageName: node
   linkType: hard
 
@@ -9625,6 +9662,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pbf@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "pbf@npm:4.0.1"
+  dependencies:
+    resolve-protobuf-schema: ^2.1.0
+  bin:
+    pbf: bin/pbf
+  checksum: c8a553847b3932803f63f62adece39da7b938f29bab97eb7e62f37cde96207a9c962ba92e26af3a7cad28df53e5a0fbcbca9aab985c32eb0553cbee5d4becfef
+  languageName: node
+  linkType: hard
+
 "picocolors@npm:^1.0.0, picocolors@npm:^1.0.1":
   version: 1.0.1
   resolution: "picocolors@npm:1.0.1"
@@ -9682,6 +9730,16 @@ __metadata:
   dependencies:
     find-up: ^4.0.0
   checksum: 9863e3f35132bf99ae1636d31ff1e1e3501251d480336edb1c211133c8d58906bed80f154a1d723652df1fda91e01c7442c2eeaf9dc83157c7ae89087e43c8d6
+  languageName: node
+  linkType: hard
+
+"pmtiles@npm:^3.0.7":
+  version: 3.0.7
+  resolution: "pmtiles@npm:3.0.7"
+  dependencies:
+    "@types/leaflet": ^1.9.8
+    fflate: ^0.8.0
+  checksum: 2fafd09cf14f138125ba84d8f5afa2666defde603414cc4bf642134a5187664fd3068ab6b5f780f6be8a4cc23f3c8094023e50d19fdef203dfdcdca7a56542c9
   languageName: node
   linkType: hard
 

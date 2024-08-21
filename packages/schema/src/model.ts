@@ -343,6 +343,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._addLayerTreeItem(id, groupName, position);
   }
 
+  removeLayer(layer_id: string) {
+    this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
+    this.sharedModel.removeLayer(layer_id);
+  }
+
   setTerrain(terrain: IJGISTerrain) {
     this._sharedModel.terrain = terrain;
   }

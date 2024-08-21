@@ -59,6 +59,7 @@ class YJGIS(YBaseDoc):
             self._yterrain.clear()
             self._yterrain.update(valueDict.get("terrain", {}))
 
+
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()
         self._subscriptions[self._ystate] = self._ystate.observe(

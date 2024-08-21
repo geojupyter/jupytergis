@@ -6,8 +6,8 @@ import * as Y from 'yjs';
 import {
   IJGISLayer,
   IJGISLayerItem,
-  IJGISLayers,
   IJGISLayerTree,
+  IJGISLayers,
   IJGISOptions,
   IJGISSource,
   IJGISSources,
@@ -34,6 +34,7 @@ export class JupyterGISDoc
     this._layerTree = this.ydoc.getArray<IJGISLayerItem>('layerTree');
     this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
     this._terrain = this.ydoc.getMap<IJGISTerrain>('terrain');
+
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
     this.undoManager.addToScope(this._layerTree);
@@ -348,6 +349,5 @@ export class JupyterGISDoc
   private _sourcesChanged = new Signal<IJupyterGISDoc, IJGISSourceDocChange>(
     this
   );
-
   private _terrainChanged = new Signal<IJupyterGISDoc, IJGISTerrain>(this);
 }

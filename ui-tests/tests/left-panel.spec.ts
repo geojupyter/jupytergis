@@ -71,7 +71,7 @@ test.describe('#layerPanel', () => {
       );
     });
     test.beforeEach(async ({ page }) => {
-      await page.filebrowser.open('testDir/test.jGIS');
+      await page.filebrowser.open('testDir/panel-test.jGIS');
     });
 
     test.afterEach(async ({ page }) => {
@@ -289,7 +289,7 @@ test.describe('#sourcePanel', () => {
       );
     });
     test.beforeEach(async ({ page }) => {
-      await page.filebrowser.open('examples/test.jGIS');
+      await page.filebrowser.open('testDir/panel-test.jGIS');
     });
 
     test.afterEach(async ({ page }) => {
