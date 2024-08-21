@@ -340,13 +340,38 @@ class GISDocument(CommWidget):
             self._layers[layer_id] = layer
             return
 
-        # Update applied filters
+        # Add new filter
         filters = layer['filters']
         filters['appliedFilters'].append({'feature': feature, 'operator': operator, 'value': value})
 
         # update the logical operation
         filters['logicalOp'] = logical_op
 
+        self._layers[layer_id] = layer
+
+    def update_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
+        layer = self._layers.get(layer_id)
+
+        # Check if the layer exists
+        if layer is None:
+            raise ValueError(f"No layer found with ID: {layer_id}")
+
+        if 'filters' not in layer:
+            raise ValueError(f"No filters applied to layer: {layer_id}")
+
+        # Find the feature within the layer
+        feature = next((f for f in layer['filters']['appliedFilters'] if f['feature'] == feature), None)
+        if feature is None:
+            raise ValueError(f"No feature found with ID: {feature} in layer: {layer_id}")
+            return
+
+        # Update the feature value
+        feature['value'] = value
+
+        # Optionally, update the logical operation if needed
+        layer['filters']['logicalOp'] = logical_op
+
+        # Update the layer in _layers
         self._layers[layer_id] = layer
        
     def clear_filters(self, layer_id):
