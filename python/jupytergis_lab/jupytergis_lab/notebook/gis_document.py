@@ -318,7 +318,7 @@ class GISDocument(CommWidget):
 
         self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
-    def add_filter(self, layer_id: str, logicalOp:str, feature:str, operator:str, value:str):
+    def add_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
         layer = self._layers.get(layer_id)
 
         # Check if the layer exists
@@ -335,10 +335,9 @@ class GISDocument(CommWidget):
                         'value': value
                     }
                 ], 
-                'logicalOp': logicalOp}
+                'logicalOp': logical_op}
             
             self._layers[layer_id] = layer
-            # self._layers.update(self.layers)
             return
 
         # Update applied filters
@@ -346,10 +345,26 @@ class GISDocument(CommWidget):
         filters['appliedFilters'].append({'feature': feature, 'operator': operator, 'value': value})
 
         # update the logical operation
-        filters['logicalOp'] = logicalOp
+        filters['logicalOp'] = logical_op
 
         self._layers[layer_id] = layer
        
+    def clear_filters(self, layer_id):
+        layer = self._layers.get(layer_id)
+
+        # Check if the layer exists
+        if layer is None:
+            raise ValueError(f"No layer found with ID: {layer_id}")
+
+        if 'filters' not in layer:
+            raise ValueError(f"No filters applied to layer: {layer_id}")
+
+        layer['filters']['appliedFilters'] = []
+        self._layers[layer_id] = layer
+
+
+        
+
         
 
     def _add_source(self, new_object: "JGISObject"):
