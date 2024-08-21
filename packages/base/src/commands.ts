@@ -572,7 +572,7 @@ export function addCommands(
     execute: () => {
       const model = tracker.currentWidget?.context.model;
       Private.removeSelectedItems(model, 'layer', selection => {
-        model?.sharedModel.removeLayer(selection);
+        model?.removeLayer(selection);
       });
     }
   });
@@ -610,7 +610,7 @@ export function addCommands(
         return;
       }
 
-      model.moveSelectedLayersToGroup(selectedLayers, groupName);
+      model.moveItemsToGroup(Object.keys(selectedLayers), groupName);
     }
   });
 

@@ -11,7 +11,7 @@ test.describe('context menu', () => {
     );
   });
   test.beforeEach(async ({ page }) => {
-    await page.filebrowser.open('testDir/test.jGIS');
+    await page.filebrowser.open('testDir/context-test.jGIS');
   });
 
   test.afterEach(async ({ page }) => {

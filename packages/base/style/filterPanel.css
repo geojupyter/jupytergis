@@ -1,0 +1,70 @@
+.jp-gis-filter-main {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 1rem;
+}
+
+.jp-gis-filter-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-gis-filter-button-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.jp-gis-filter-main > .jp-Dialog-button {
+  width: fit-content;
+  align-self: flex-end;
+}
+
+.jp-gis-logical-select {
+  width: fit-content !important;
+  padding: 0 8px !important;
+  text-align: center;
+}
+
+.jp-gis-filter-select-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.jp-gis-filter-row {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  gap: 0.25rem;
+}
+
+.jp-gis-filter-row > select {
+  text-transform: capitalize;
+  padding: 0;
+  text-align: center;
+}
+
+.jp-gis-filter-row > option {
+  text-transform: capitalize;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-gis-filter-row > button {
+  color: var(--jp-ui-font-color0);
+  background: none;
+}
+
+.jp-gis-filter-row > button:hover {
+  color: var(--jp-warn-color-hover);
+}
+
+.jp-gis-filter-icon:hover {
+  scale: 1.3;
+  cursor: pointer;
+}
+
+.jp-gis-filter-icon > svg {
+  height: 16px;
+  width: 16px;
+}

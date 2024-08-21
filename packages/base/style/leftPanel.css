@@ -125,3 +125,12 @@ li .lm-Menu-itemLabel {
   padding-left: 5px;
   color: var(--jp-ui-font-color2);
 }
+
+#jp-drag-indicator {
+  top: calc(-1 * var(--jp-border-width) + 1px);
+  left: calc(-1 * var(--jp-border-width));
+  content: '';
+  height: var(--jp-private-horizontal-tab-active-top-border);
+  width: calc(100% + 2 * var(--jp-border-width));
+  background: var(--jp-brand-color1);
+}

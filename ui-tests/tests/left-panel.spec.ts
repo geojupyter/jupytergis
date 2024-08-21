@@ -71,7 +71,7 @@ test.describe('#layerPanel', () => {
       );
     });
     test.beforeEach(async ({ page }) => {
-      await page.filebrowser.open('testDir/test.jGIS');
+      await page.filebrowser.open('testDir/panel-test.jGIS');
     });
 
     test.afterEach(async ({ page }) => {
@@ -196,6 +196,77 @@ test.describe('#layerPanel', () => {
       const showLayerButton = layerTree.getByTitle('Show layer');
       await showLayerButton.last().click();
     });
+
+    test('drag indicator should move', async ({ page }) => {
+      const dragIndicatorId = 'jp-drag-indicator';
+      const layerTree = await openLayerTree(page);
+      const layerPanel = layerTree.locator('#jp-gis-layer-tree');
+      const layers = layerTree.locator('.jp-gis-layer');
+      const layerItems = layerTree.locator('.jp-gis-layerItem');
+      const layerGroup = layerTree.locator('.jp-gis-layerGroup');
+      const dragIndicator = layerTree.locator(`#${dragIndicatorId}`);
+
+      // Open the first level group
+      await layerGroup.last().click();
+      await page.waitForCondition(async () => (await layerGroup.count()) === 2);
+      // Open the second level group
+      await layerGroup.last().click();
+      await page.waitForCondition(async () => (await layerItems.count()) === 5);
+
+      const topLayerBox = await layers.nth(1).boundingBox();
+      const firstItemBox = await layerItems.first().boundingBox();
+
+      await page.mouse.move(topLayerBox!.x + 10, topLayerBox!.y + 10);
+      await page.mouse.down();
+      await page.mouse.move(firstItemBox!.x + 10, firstItemBox!.y + 10);
+      // We need to force hover
+      await layerItems.first().hover({ position: { x: 10, y: 10 } });
+
+      await expect(dragIndicator).toBeVisible();
+
+      let children = await layerPanel.evaluate(div => div.children);
+      expect(children[0].id === dragIndicatorId);
+
+      await page.mouse.move(
+        firstItemBox!.x + 10,
+        firstItemBox!.y + firstItemBox!.height - 10
+      );
+      // We need to force hover
+      await layerItems
+        .first()
+        .hover({ position: { x: 10, y: firstItemBox!.height - 10 } });
+
+      children = await layerPanel.evaluate(div => div.children);
+      expect(children[1].id === dragIndicatorId);
+    });
+
+    test('should move the top raster layer using drag and drop', async ({
+      page
+    }) => {
+      const layerTree = await openLayerTree(page);
+      const layers = layerTree.locator('.jp-gis-layer');
+      const layerGroup = layerTree.locator('.jp-gis-layerGroup');
+      const main = page.locator('.jGIS-Mainview');
+
+      // Open the first level group
+      await layerGroup.last().click();
+      await page.waitForCondition(async () => (await layerGroup.count()) === 2);
+
+      const topLayerBox = await layers.first().boundingBox();
+      const lowLayerBox = await layers.last().boundingBox();
+      await page.mouse.move(topLayerBox!.x + 10, topLayerBox!.y + 10);
+      await page.mouse.down();
+      await page.mouse.move(
+        lowLayerBox!.x + 10,
+        lowLayerBox!.y + lowLayerBox!.height + 10
+      );
+      await page.mouse.up();
+
+      expect(await main.screenshot()).toMatchSnapshot({
+        name: 'top-layer-hidden.png',
+        maxDiffPixelRatio: 0.01
+      });
+    });
   });
 });
 
@@ -218,7 +289,7 @@ test.describe('#sourcePanel', () => {
       );
     });
     test.beforeEach(async ({ page }) => {
-      await page.filebrowser.open('examples/test.jGIS');
+      await page.filebrowser.open('testDir/panel-test.jGIS');
     });
 
     test.afterEach(async ({ page }) => {

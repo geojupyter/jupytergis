@@ -308,7 +308,7 @@ export class JupyterGISModel implements IJupyterGISModel {
    *   from root of layer tree.
    */
   addGroup(name: string, groupName?: string, position?: number): void {
-    const indexesPath = Private.findGroupPath(this.getLayerTree(), name);
+    const indexesPath = Private.findItemPath(this.getLayerTree(), name);
     if (indexesPath.length) {
       console.warn(`The group "${groupName}" already exist in the layer tree`);
       return;
@@ -341,6 +341,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     this._addLayerTreeItem(id, groupName, position);
+  }
+
+  removeLayer(layer_id: string) {
+    this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
+    this.sharedModel.removeLayer(layer_id);
   }
 
   setTerrain(terrain: IJGISTerrain) {
@@ -409,18 +414,56 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
-  moveSelectedLayersToGroup(
-    selected: { [key: string]: ISelection },
-    groupName: string
-  ) {
+  moveItemsToGroup(items: string[], groupName: string, index?: number) {
     const layerTree = this.getLayerTree();
-    for (const item in selected) {
-      this._removeLayerTreeLayer(layerTree, item);
+    for (const item of items) {
+      if (this.getLayer(item)) {
+        // the item is a layer, remove and add it at the correct position.
+        this._removeLayerTreeLayer(layerTree, item);
+        this._addLayerTreeItem(item, groupName, index);
+      } else {
+        // the item is a group, let's copy it before removing it.
+        const treeInfo = this._getLayerTreeInfo(item);
+        if (treeInfo === undefined) {
+          continue;
+        }
+        const group = { ...treeInfo.workingGroup };
+        this._removeLayerTreeGroup(layerTree, item);
+        this._addLayerTreeItem(group, groupName, index);
+      }
     }
+  }
 
-    for (const item in selected) {
-      this._addLayerTreeItem(item, groupName);
+  moveItemRelatedTo(item: string, relativeItem: string, after: boolean) {
+    const layerTree = this.getLayerTree();
+    let insertedItem: string | IJGISLayerGroup;
+    if (this.getLayer(item)) {
+      this._removeLayerTreeLayer(layerTree, item);
+      insertedItem = item;
+    } else {
+      const treeInfo = this._getLayerTreeInfo(item);
+      if (treeInfo === undefined) {
+        return;
+      }
+      insertedItem = { ...treeInfo.workingGroup };
+      this._removeLayerTreeGroup(layerTree, item);
     }
+    const indexesPath = Private.findItemPath(layerTree, relativeItem);
+    const insertedIndex = (indexesPath.pop() ?? 0) + (after ? 1 : 0);
+    let parentGroupName = '';
+    let workingGroupId = indexesPath.shift();
+    if (workingGroupId !== undefined) {
+      let workingGroup = layerTree[workingGroupId] as IJGISLayerGroup;
+      while (indexesPath.length) {
+        workingGroupId = indexesPath.shift();
+        if (workingGroupId === undefined) {
+          break;
+        }
+        workingGroup = workingGroup.layers[workingGroupId] as IJGISLayerGroup;
+      }
+      parentGroupName = workingGroup.name;
+    }
+    this._addLayerTreeItem(insertedItem, parentGroupName, insertedIndex);
   }
 
   addNewLayerGroup(
@@ -436,7 +479,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   private _removeLayerTreeLayer(
-    layerTree: IJGISLayerTree,
+    layerTree: IJGISLayerItem[],
     layerIdToRemove: string
   ) {
     // Iterate over each item in the layerTree
@@ -452,6 +495,29 @@ export class JupyterGISModel implements IJupyterGISModel {
       } else if (typeof currentItem !== 'string' && 'layers' in currentItem) {
         // If the current item is a group, recursively call the function on its layers
         this._removeLayerTreeLayer(currentItem.layers, layerIdToRemove);
+      }
+    }
+
+    this.sharedModel.layerTree = layerTree;
+  }
+
+  private _removeLayerTreeGroup(
+    layerTree: IJGISLayerItem[],
+    groupName: string
+  ) {
+    // Iterate over each item in the layerTree
+    for (let i = 0; i < layerTree.length; i++) {
+      const currentItem = layerTree[i];
+
+      // Check if the current item is a string and matches the target
+      if (typeof currentItem !== 'string' && currentItem.name === groupName) {
+        // Remove the item from the array
+        layerTree.splice(i, 1);
+        // Decrement i to ensure the next iteration processes the remaining items correctly
+        i--;
+      } else if (typeof currentItem !== 'string' && 'layers' in currentItem) {
+        // If the current item is a group, recursively call the function on its layers
+        this._removeLayerTreeGroup(currentItem.layers, groupName);
       }
     }
 
@@ -511,7 +577,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       }
     | undefined {
     const layerTree = this.getLayerTree();
-    const indexesPath = Private.findGroupPath(layerTree, groupName);
+    const indexesPath = Private.findItemPath(layerTree, groupName);
     if (!indexesPath.length) {
       console.warn(`The group "${groupName}" does not exist in the layer tree`);
       return;
@@ -609,32 +675,33 @@ namespace Private {
   }
 
   /**
-   * Recursive function through the layer tree to retrieve the indexes path to a group.
+   * Recursive function through the layer tree to retrieve the indexes path to a group
+   * or a layer.
    *
    * @param items - the items list being scanned.
-   * @param groupName - the target group name.
+   * @param itemId - the target group name or layer ID.
    * @param indexes - the current indexes path to the group
    */
-  export function findGroupPath(
+  export function findItemPath(
     items: IJGISLayerItem[],
-    groupName: string,
+    itemId: string,
     indexes: number[] = []
   ): number[] {
     for (let index = 0; index < items.length; index++) {
       const item = items[index];
       if (typeof item === 'string') {
-        continue;
+        if (item === itemId) {
+          const workingIndexes = [...indexes];
+          workingIndexes.push(index);
+          return workingIndexes;
+        }
       } else {
         const workingIndexes = [...indexes];
         workingIndexes.push(index);
-        if (item.name === groupName) {
+        if (item.name === itemId) {
           return workingIndexes;
         }
-        const foundIndexes = findGroupPath(
-          item.layers,
-          groupName,
-          workingIndexes
-        );
+        const foundIndexes = findItemPath(item.layers, itemId, workingIndexes);
         if (foundIndexes.length > workingIndexes.length) {
           return foundIndexes;
         }
