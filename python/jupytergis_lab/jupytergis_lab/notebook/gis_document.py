@@ -318,6 +318,13 @@ class GISDocument(CommWidget):
 
         self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
+    def add_filter(self, layer_id: str, filter_expr: Dict):
+        layer = self._layers.get(layer_id)
+        layer['filters'] = filter_expr
+        self._layers[layer_id] = layer
+        self._layers.update(self.layers)
+        
+
     def _add_source(self, new_object: "JGISObject"):
         _id = str(uuid4())
         obj_dict = json.loads(new_object.json())
