@@ -529,7 +529,7 @@ export function addCommands(
     execute: () => {
       const model = tracker.currentWidget?.context.model;
       Private.removeSelectedItems(model, 'layer', selection => {
-        model?.sharedModel.removeLayer(selection);
+        model?.removeLayer(selection);
       });
     }
   });
