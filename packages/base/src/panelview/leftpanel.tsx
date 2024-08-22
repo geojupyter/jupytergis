@@ -4,6 +4,7 @@ import {
   JupyterGISDoc,
   SelectionType
 } from '@jupytergis/schema';
+import { IStateDB } from '@jupyterlab/statedb';
 import { SidePanel } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { MouseEvent as ReactMouseEvent } from 'react';
@@ -20,6 +21,10 @@ export interface ILeftPanelOptions {
   onSelect: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
 }
 
+export interface ILayerPanelOptions extends ILeftPanelOptions {
+  state: IStateDB;
+}
+
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
   item: string;
@@ -32,6 +37,8 @@ export class LeftPanelWidget extends SidePanel {
     super();
     this.addClass('jGIS-sidepanel-widget');
     this._model = options.model;
+    this._state = options.state;
+
     const header = new ControlPanelHeader();
     this.header.addWidget(header);
 
@@ -45,6 +52,7 @@ export class LeftPanelWidget extends SidePanel {
 
     const layerTree = new LayersPanel({
       model: this._model,
+      state: this._state,
       onSelect: this._onSelect
     });
     layerTree.title.caption = 'Layer tree';
@@ -176,12 +184,14 @@ export class LeftPanelWidget extends SidePanel {
 
   private _lastSelectedNodeId: string;
   private _model: IControlPanelModel;
+  private _state: IStateDB;
 }
 
 export namespace LeftPanelWidget {
   export interface IOptions {
     model: IControlPanelModel;
     tracker: IJupyterGISTracker;
+    state: IStateDB;
   }
 
   export interface IProps {

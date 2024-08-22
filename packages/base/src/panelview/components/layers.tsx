@@ -5,6 +5,7 @@ import {
   IJupyterGISModel
 } from '@jupytergis/schema';
 import { DOMUtils } from '@jupyterlab/apputils';
+import { IStateDB } from '@jupyterlab/statedb';
 import {
   Button,
   LabIcon,
@@ -20,7 +21,7 @@ import React, {
 import { icons } from '../../constants';
 import { nonVisibilityIcon, visibilityIcon } from '../../icons';
 import { IControlPanelModel } from '../../types';
-import { ILeftPanelClickHandlerParams, ILeftPanelOptions } from '../leftpanel';
+import { ILayerPanelOptions, ILeftPanelClickHandlerParams } from '../leftpanel';
 
 const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
@@ -36,10 +37,11 @@ const LAYER_TEXT_CLASS = 'jp-gis-layerText';
  * The layers panel widget.
  */
 export class LayersPanel extends Panel {
-  constructor(options: ILeftPanelOptions) {
+  constructor(options: ILayerPanelOptions) {
     super();
     this._model = options.model;
     this._onSelect = options.onSelect;
+    this._state = options.state;
 
     this.id = 'jupytergis::layerTree';
     this.addClass(LAYERS_PANEL_CLASS);
@@ -49,6 +51,7 @@ export class LayersPanel extends Panel {
         <LayersBodyComponent
           model={this._model}
           onSelect={this._onSelect}
+          state={this._state}
         ></LayersBodyComponent>
       )
     );
@@ -117,6 +120,7 @@ export class LayersPanel extends Panel {
   };
 
   private _model: IControlPanelModel | undefined;
+  private _state: IStateDB;
   private _onSelect: ({
     type,
     item,
@@ -129,6 +133,7 @@ export class LayersPanel extends Panel {
  */
 interface IBodyProps {
   model: IControlPanelModel;
+  state: IStateDB;
   onSelect: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
 }
 
@@ -196,6 +201,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
               gisModel={model}
               group={layer}
               onClick={onItemClick}
+              state={props.state}
             />
           )
         )}
@@ -209,6 +215,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
 interface ILayerGroupProps {
   gisModel: IJupyterGISModel | undefined;
   group: IJGISLayerGroup | undefined;
+  state: IStateDB;
   onClick: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
 }
 
@@ -216,7 +223,7 @@ interface ILayerGroupProps {
  * The component to handle group of layers.
  */
 function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
-  const { group, gisModel, onClick } = props;
+  const { group, gisModel, onClick, state } = props;
 
   if (group === undefined) {
     return <></>;
@@ -233,6 +240,13 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
 
   useEffect(() => {
     setId(DOMUtils.createDomID());
+
+    const getExpandedState = async () => {
+      const groupState = await state.fetch(group.name);
+      setOpen(groupState ? groupState['expanded'] : false);
+    };
+
+    getExpandedState();
   }, []);
 
   /**
@@ -255,6 +269,11 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
     onClick({ type: 'group', item: name, nodeId: childId, event });
   };
 
+  const handleExpand = async () => {
+    state.save(group.name, { expanded: !open });
+    setOpen(!open);
+  };
+
   return (
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_GROUP_CLASS}`}
@@ -264,7 +283,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
       data-id={name}
     >
       <div
-        onClick={() => setOpen(!open)}
+        onClick={handleExpand}
         onContextMenu={handleRightClick}
         className={`${LAYER_GROUP_HEADER_CLASS} ${selected ? ' jp-mod-selected' : ''}`}
         onDragOver={Private.onDragOver}
@@ -298,6 +317,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
                   gisModel={gisModel}
                   group={layer}
                   onClick={onClick}
+                  state={props.state}
                 />
               )
             )}
