@@ -2,6 +2,7 @@ import { IDict, IVectorLayer, IVectorTileSource } from '@jupytergis/schema';
 
 import { ILayerProps, LayerPropertiesForm } from './layerform';
 import { getSourceLayerNames } from '../../tools';
+import { IChangeEvent } from '@rjsf/core';
 
 /**
  * The form to modify a vector layer.
@@ -29,15 +30,15 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
     }
   }
 
-  protected onFormBlur(id: string, value: any) {
-    super.onFormBlur(id, value);
+  protected onFormChange(e: IChangeEvent): void {
+    super.onFormChange(e);
 
-    // Is there a better way to spot the source text entry?
-    if (!id.endsWith('_source')) {
+    // We only force update if we just updated the source
+    if (this.currentSourceId === e.formData.source) {
       return;
     }
 
-    const source = this.props.model.getSource(value);
+    const source = this.props.model.getSource(e.formData.source);
     if (!source || source.type !== 'VectorTileSource') {
       return;
     }
@@ -79,10 +80,14 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
     sourceData?: IVectorTileSource
   ) {
     if (data && data.source) {
+      this.currentSourceId = data.source;
+
       if (!sourceData) {
         const currentSource = this.props.model.getSource(data.source);
 
         if (!currentSource || currentSource.type !== 'VectorTileSource') {
+          this.sourceLayers = [];
+          this.forceUpdate();
           return;
         }
 
@@ -102,6 +107,12 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
           console.error(e);
         }
       }
+    } else {
+      this.currentSourceId = '';
+      this.sourceLayers = [];
+      this.forceUpdate();
     }
   }
+
+  private currentSourceId: string;
 }
