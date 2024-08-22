@@ -34,6 +34,15 @@ export class ToolbarWidget extends Toolbar {
 
     if (options.commands) {
       this.addItem(
+        'zoomColor',
+        new CommandToolbarButton({
+          id: CommandIDs.zoomColor,
+          label: '',
+          commands: options.commands
+        })
+      );
+
+      this.addItem(
         'undo',
         new CommandToolbarButton({
           id: CommandIDs.undo,

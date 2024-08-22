@@ -8,6 +8,7 @@ export namespace CommandIDs {
   export const createNew = 'jupytergis:create-new-jGIS-file';
   export const redo = 'jupytergis:redo';
   export const undo = 'jupytergis:undo';
+  export const zoomColor = 'jupytergis:zoomColor';
 
   // Layers and sources creation commands
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
@@ -84,7 +85,8 @@ const iconObject = {
   [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
   [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
-  [CommandIDs.newTerrain]: { iconClass: 'fa fa-mountain' }
+  [CommandIDs.newTerrain]: { iconClass: 'fa fa-mountain' },
+  [CommandIDs.zoomColor]: { iconClass: 'fa fa-brush' }
 };
 
 /**

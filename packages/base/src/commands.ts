@@ -16,6 +16,7 @@ import { CommandIDs, icons } from './constants';
 import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { TerrainDialogWidget } from './dialogs/terrainDialog';
+import { ZoomColorWidget } from './dialogs/zoomColor';
 import { JupyterGISWidget } from './widget';
 
 interface ICreateEntry {
@@ -42,6 +43,18 @@ export function addCommands(
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
+
+  commands.addCommand(CommandIDs.zoomColor, {
+    label: trans.__('Zoom Color'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createZoomColorDialog(tracker),
+
+    ...icons.get(CommandIDs.zoomColor)
+  });
 
   commands.addCommand(CommandIDs.redo, {
     label: trans.__('Redo'),
@@ -774,6 +787,23 @@ namespace Private {
       }
 
       const dialog = new TerrainDialogWidget({
+        context: current.context
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createZoomColorDialog(
+    tracker: WidgetTracker<JupyterGISWidget>
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new ZoomColorWidget({
         context: current.context
       });
       await dialog.launch();
