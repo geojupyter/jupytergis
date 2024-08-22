@@ -1,8 +1,8 @@
 import { IDict, IVectorLayer, IVectorTileSource } from '@jupytergis/schema';
 
-import { ILayerProps, LayerPropertiesForm } from './layerform';
-import { getSourceLayerNames } from '../../tools';
 import { IChangeEvent } from '@rjsf/core';
+import { getSourceLayerNames } from '../../tools';
+import { ILayerProps, LayerPropertiesForm } from './layerform';
 
 /**
  * The form to modify a vector layer.
@@ -28,6 +28,28 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
         }
       });
     }
+    props.model.clientStateChanged.connect(() => {
+      console.log('client state change');
+      console.log(
+        'props.model.localState?.selected.value',
+        props.model.localState?.selected.value
+      );
+      if (!props.model.localState?.selected.value) {
+        return;
+      }
+      const l = this.props.model.getLayer(
+        Object.keys(props.model.localState.selected.value)[0]
+      );
+      const source = this.props.model.getSource(l?.parameters!.source);
+
+      if (!source || source.type !== 'VectorTileSource') {
+        return;
+      }
+
+      const sourceData = source.parameters as IVectorTileSource;
+
+      this.fetchSourceLayers(this.currentFormData, sourceData);
+    });
   }
 
   protected onFormChange(e: IChangeEvent): void {
@@ -94,19 +116,19 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
         sourceData = currentSource.parameters as IVectorTileSource;
       }
 
-      if (this.currentSourceUrl !== sourceData.url) {
-        this.currentSourceUrl = sourceData.url;
+      // if (this.currentSourceUrl !== sourceData.url) {
+      this.currentSourceUrl = sourceData.url;
 
-        try {
-          this.sourceLayers = await getSourceLayerNames(
-            sourceData.url,
-            sourceData.urlParameters
-          );
-          this.forceUpdate();
-        } catch (e) {
-          console.error(e);
-        }
+      try {
+        this.sourceLayers = await getSourceLayerNames(
+          sourceData.url,
+          sourceData.urlParameters
+        );
+        this.forceUpdate();
+      } catch (e) {
+        console.error(e);
       }
+      // }
     } else {
       this.currentSourceId = '';
       this.sourceLayers = [];
