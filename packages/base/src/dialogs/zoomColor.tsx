@@ -4,7 +4,7 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Button } from '@jupyterlab/ui-components';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import StopRow from './components/zoom-color/StopRow';
 
 interface IZoomColorProps {
@@ -20,12 +20,11 @@ export interface IStopRow {
 
 const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
   const functions = ['interpolate'];
+  const rowsRef = useRef<IStopRow[]>();
+  const selectedLayerRef = useRef<string>('');
   const [selectedFunction, setSelectedFunction] = useState('interpolate');
   const [selectedLayer, setSelectedLayer] = useState('');
-  const [stopRows, setStopRows] = useState<IStopRow[]>([
-    { zoom: 6, outputValue: 'rgba(178, 234, 167, 1)' },
-    { zoom: 10, outputValue: 'rgba(24, 55, 59, 1)' }
-  ]);
+  const [stopRows, setStopRows] = useState<IStopRow[]>([]);
 
   useEffect(() => {
     const handleClientStateChanged = () => {
@@ -47,24 +46,48 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     context.model.clientStateChanged.connect(handleClientStateChanged);
   }, []);
 
-  // Handler for changing the number input
-  //   const handleExaggerationChange = (event: ChangeEvent<HTMLInputElement>) => {
-  //     setExaggerationInput(Number(event.target.value));
-  //   };
+  useEffect(() => {
+    // This it to parse a color object on the layer
+    console.log('starting');
+    selectedLayerRef.current = selectedLayer;
 
-  //   const handleOk = () => {
-  //     context.model.setTerrain({
-  //       source: selectedSourceRef.current,
-  //       exaggeration: exaggerationInputRef.current
-  //     });
-  //     cancel();
-  //   };
+    const layer = context.model.getLayer(selectedLayer);
+    console.log('selectedLayer', selectedLayer);
+    if (!layer || !layer.parameters?.color) {
+      return;
+    }
 
-  //   okSignalPromise.promise.then(okSignal => {
-  //     okSignal.connect(handleOk);
-  //   });
+    const color = layer.parameters.color;
 
-  const handleSubmit = () => {
+    // If color is a string we don't need to parse
+    if (typeof color === 'string') {
+      return;
+    }
+    const pairedObjects: IStopRow[] = [];
+
+    // So if it's not a string then it's an array and we parse
+    // First element is function (ie interpolate)
+    // Second element is type of interpolation (ie linear)
+    // Third is zoom for now I think this'll change later
+    // Fourth and on is zoom:color pairs
+    for (let i = 3; i < color.length; i += 2) {
+      const obj: IStopRow = {
+        zoom: color[i],
+        outputValue: color[i + 1]
+      };
+      pairedObjects.push(obj);
+    }
+
+    setStopRows(pairedObjects);
+    console.log('pairedObjects', pairedObjects);
+  }, [selectedLayer]);
+
+  useEffect(() => {
+    console.log('stopRows', stopRows);
+    rowsRef.current = stopRows;
+  }, [stopRows]);
+
+  const handleOk = () => {
     const layer = context.model.getLayer(selectedLayer);
     console.log('selectedLayer', selectedLayer);
     if (!layer || !layer.parameters) {
@@ -77,7 +100,10 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
       ['zoom']
     ];
 
-    stopRows.map(stop => {
+    console.log('stopRows', stopRows);
+    console.log('rowsRef.current', rowsRef.current);
+
+    rowsRef.current?.map(stop => {
       colorExpr.push(stop.zoom);
       colorExpr.push(stop.outputValue);
     });
@@ -86,17 +112,25 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     console.log('safe');
 
     (layer.parameters as IVectorLayer).color = colorExpr;
-    context.model.sharedModel.updateLayer(
-      'af61fe08-4969-4546-a407-f7840c9c2f5f',
-      layer
-    );
+    context.model.sharedModel.updateLayer(selectedLayerRef.current, layer);
+    cancel();
   };
+
+  okSignalPromise.promise.then(okSignal => {
+    okSignal.connect(handleOk);
+  });
 
   return (
     <div className="jp-gis-color-container">
       <div className="funcion select">
         <label htmlFor="function-select">Function</label>
-        <select name="function-select" id="function-select">
+        <select
+          name="function-select"
+          id="function-select"
+          onChange={event => {
+            setSelectedFunction(event.target.value);
+          }}
+        >
           {functions.map((func, funcIndex) => (
             <option key={func} value={func}>
               {func}
@@ -115,6 +149,7 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
             index={index}
             zoom={stop.zoom}
             outputValue={stop.outputValue}
+            stopRows={stopRows}
             setStopRows={setStopRows}
           />
         ))}
@@ -123,7 +158,7 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
         <Button className="jp-Dialog-button jp-mod-accept jp-mod-styled">
           Add Stop
         </Button>
-        <Button onClick={handleSubmit}>Submit</Button>
+        {/* <Button onClick={handleSubmit}>Submit</Button> */}
       </div>
     </div>
   );

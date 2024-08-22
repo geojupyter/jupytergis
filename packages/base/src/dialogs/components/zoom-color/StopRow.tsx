@@ -1,18 +1,25 @@
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
-import React from 'react';
+import React, { useState } from 'react';
+import { IStopRow } from '../../zoomColor';
 
 const StopRow = ({
   index,
   zoom,
-  outputValue
+  outputValue,
+  stopRows,
+  setStopRows
 }: {
   index: number;
   zoom: number;
   outputValue: string;
+  stopRows: IStopRow[];
   setStopRows: any;
 }) => {
+  const [inputZoom, setInputZoom] = useState(10);
+  const [inputColor, setInputColor] = useState('');
+
   const rgbaStringToHex = rgbaStr => {
     // Remove the "rgba(" part and close parenthesis
     const rgbaParts = rgbaStr.replace('rgba(', '').replace(')', '');
@@ -34,17 +41,33 @@ const StopRow = ({
     return '#' + rHex + gHex + bHex;
   };
 
+  const handleZoomChange = event => {
+    const newRows = [...stopRows];
+    stopRows[index].zoom = event.target.value;
+    setStopRows(newRows);
+    setInputZoom(event.target.value);
+  };
+
+  const handleColorChange = event => {
+    const newRows = [...stopRows];
+    stopRows[index].outputValue = event.target.value;
+    setStopRows(newRows);
+    setInputColor(event.target.value);
+  };
+
   return (
     <div className="jp-gis-color-row">
       <input
         id={`jp-gis-color-zoom-${index}`}
         type="number"
         defaultValue={zoom}
+        onChange={handleZoomChange}
       />
       <input
         id={`jp-gis-color-color-${index}`}
-        value={rgbaStringToHex(outputValue)}
+        value={outputValue}
         type="color"
+        onChange={handleColorChange}
       />
       <Button
         id={`jp-gis-remove-color-${index}`}
