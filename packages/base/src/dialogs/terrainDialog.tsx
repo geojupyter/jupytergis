@@ -80,6 +80,7 @@ const TerrainDialog = ({
         className="jp-mod-styled"
         type="number"
         min={0}
+        step={0.1}
         value={exaggerationInput}
         onChange={handleExaggerationChange}
         placeholder="Enter an exaggeration value"
