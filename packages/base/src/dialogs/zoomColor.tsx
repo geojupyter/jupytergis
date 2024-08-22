@@ -20,6 +20,7 @@ export interface IStopRow {
 
 const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
   const functions = ['interpolate'];
+  const [selectedFunction, setSelectedFunction] = useState('interpolate');
   const [selectedLayer, setSelectedLayer] = useState('');
   const [stopRows, setStopRows] = useState<IStopRow[]>([
     { zoom: 6, outputValue: 'rgba(178, 234, 167, 1)' },
@@ -36,8 +37,12 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
       const currentLayer = Object.keys(
         context.model.localState?.selected?.value
       )[0];
+
       setSelectedLayer(currentLayer);
     };
+
+    // set the layer on initial render
+    handleClientStateChanged();
 
     context.model.clientStateChanged.connect(handleClientStateChanged);
   }, []);
@@ -60,15 +65,17 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
   //   });
 
   const handleSubmit = () => {
-    const layer = context.model.getLayer(
-      'af61fe08-4969-4546-a407-f7840c9c2f5f'
-    );
+    const layer = context.model.getLayer(selectedLayer);
     console.log('selectedLayer', selectedLayer);
     if (!layer || !layer.parameters) {
       return;
     }
 
-    const colorExpr: any[] = ['interpolate', ['linear'], ['zoom']];
+    const colorExpr: (string | number | string[])[] = [
+      selectedFunction,
+      ['linear'],
+      ['zoom']
+    ];
 
     stopRows.map(stop => {
       colorExpr.push(stop.zoom);
@@ -78,7 +85,6 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
 
     console.log('safe');
 
-    //@ts-expect-error wip
     (layer.parameters as IVectorLayer).color = colorExpr;
     context.model.sharedModel.updateLayer(
       'af61fe08-4969-4546-a407-f7840c9c2f5f',
@@ -100,7 +106,7 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
       </div>
       <div className="base">Placeholder</div>
       <div className="stop container">
-        <div className="labels">
+        <div className="labels" style={{ display: 'flex', gap: 6 }}>
           <span>Zoom</span>
           <span>Output Value</span>
         </div>

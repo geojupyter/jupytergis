@@ -20,7 +20,19 @@
       "description": "The source layer to use"
     },
     "color": {
-      "type": "string",
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "number" },
+              { "type": "array", "items": { "type": "string" } }
+            ]
+          }
+        }
+      ],
       "description": "The color of the the object",
       "default": "#FF0000"
     },
