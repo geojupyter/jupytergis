@@ -358,6 +358,7 @@ class GISDocument(CommWidget):
 
         self._layers[layer_id] = layer
 
+    def update_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
         """
         Update a filter applied to a layer
 
@@ -367,7 +368,6 @@ class GISDocument(CommWidget):
         :param str operator: The operator used to compare the feature and value
         :param Union[str, number, float] value: The new value to be filtered on
         """
-    def update_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
         layer = self._layers.get(layer_id)
 
         # Check if the layer exists
