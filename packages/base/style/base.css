@@ -8,6 +8,7 @@
 @import url('./leftPanel.css');
 @import url('./terrainDialog.css');
 @import url('./filterPanel.css');
+@import url('./zoomColor.css');
 @import url('maplibre-gl/dist/maplibre-gl.css');
 
 .jGIS-Toolbar-GroupName {

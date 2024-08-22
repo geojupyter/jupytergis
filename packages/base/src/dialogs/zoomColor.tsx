@@ -93,7 +93,7 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
   };
 
   return (
-    <div className="main-container">
+    <div className="jp-gis-color-container">
       <div className="funcion select">
         <label htmlFor="function-select">Function</label>
         <select name="function-select" id="function-select">
@@ -104,14 +104,15 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
           ))}
         </select>
       </div>
-      <div className="base">Placeholder</div>
+      {/* <div className="base">Placeholder</div> */}
       <div className="stop container">
         <div className="labels" style={{ display: 'flex', gap: 6 }}>
-          <span>Zoom</span>
+          <span style={{ flex: '0 0 18%' }}>Zoom</span>
           <span>Output Value</span>
         </div>
-        {stopRows.map(stop => (
+        {stopRows.map((stop, index) => (
           <StopRow
+            index={index}
             zoom={stop.zoom}
             outputValue={stop.outputValue}
             setStopRows={setStopRows}
@@ -119,7 +120,9 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
         ))}
       </div>
       <div className="bottom buttons">
-        <Button>Add stop</Button>
+        <Button className="jp-Dialog-button jp-mod-accept jp-mod-styled">
+          Add Stop
+        </Button>
         <Button onClick={handleSubmit}>Submit</Button>
       </div>
     </div>
