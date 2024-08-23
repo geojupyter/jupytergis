@@ -170,8 +170,7 @@ class GISDocument(CommWidget):
         }
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
-
-        print(logical_op, feature, operator, value)
+        
         layer = {
             "type": LayerType.VectorLayer,
             "name": name,
