@@ -20,15 +20,21 @@
       "description": "The source layer to use"
     },
     "color": {
+      "title": "Color Builder",
       "oneOf": [
-        { "type": "string" },
+        { "type": "string", "title": "Color Value" },
         {
           "type": "array",
+          "title": "Color Expression",
           "items": {
             "anyOf": [
-              { "type": "string" },
-              { "type": "number" },
-              { "type": "array", "items": { "type": "string" } }
+              { "type": "string", "title": "String" },
+              { "type": "number", "title": "Number" },
+              {
+                "type": "array",
+                "title": "Array",
+                "items": { "type": "string" }
+              }
             ]
           }
         }

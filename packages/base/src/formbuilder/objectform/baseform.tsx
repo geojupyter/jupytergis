@@ -1,14 +1,14 @@
 import { SchemaForm } from '@deathbeds/jupyterlab-rjsf';
 import { MessageLoop } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
-import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
+import { IChangeEvent, ISubmitEvent, WidgetProps } from '@rjsf/core';
 import * as React from 'react';
 
-import { IDict } from '../../types';
 import { IJupyterGISModel } from '@jupytergis/schema';
-import { deepCopy } from '../../tools';
-import { Signal } from '@lumino/signaling';
 import { Dialog } from '@jupyterlab/apputils';
+import { Signal } from '@lumino/signaling';
+import { deepCopy } from '../../tools';
+import { IDict } from '../../types';
 
 export interface IBaseFormStates {
   schema?: IDict;
@@ -241,6 +241,9 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       const schema = { ...this.state.schema, additionalProperties: true };
       const formData = this.currentFormData;
 
+      // const widgets = {
+      //   myCustomWidget: MyCustomWidget
+      // };
       const uiSchema = {
         additionalProperties: {
           'ui:label': false,
@@ -267,6 +270,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
           <button ref={submitRef} type="submit" style={{ display: 'none' }} />
         ),
         extraErrors: this.state.extraErrors
+        // widgets: widgets
       });
       return (
         <div
@@ -294,3 +298,15 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
 
   protected currentFormData: IDict<any> | undefined;
 }
+
+// const MyCustomWidget = (props: WidgetProps) => {
+//   return (
+//     <input
+//       type="text"
+//       className="custom"
+//       value="fucking doododoododoass"
+//       required={props.required}
+//       onChange={event => props.onChange(event.target.value)}
+//     />
+//   );
+// };
