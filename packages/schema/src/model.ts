@@ -169,7 +169,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     if (!valid) {
       let errorMsg = 'File format errors:\n';
       for (const error of validate.errors || []) {
-        errorMsg = `${errorMsg}- ${error.instancePath} ${error.message}\n`
+        errorMsg = `${errorMsg}- ${error.instancePath} ${error.message}\n`;
       }
       throw Error(errorMsg);
     }
