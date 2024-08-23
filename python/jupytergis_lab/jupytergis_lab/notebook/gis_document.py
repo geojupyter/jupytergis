@@ -126,7 +126,7 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
-        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_vectortile_layer(
         self,
@@ -180,7 +180,7 @@ class GISDocument(CommWidget):
             },
         }
 
-        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_geojson_layer(
         self,
@@ -238,7 +238,7 @@ class GISDocument(CommWidget):
             },
         }
 
-        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_image_layer(
         self,
@@ -277,7 +277,7 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
-        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_video_layer(
         self,
@@ -316,7 +316,7 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
-        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
         """
@@ -409,10 +409,6 @@ class GISDocument(CommWidget):
         layer['filters']['appliedFilters'] = []
         self._layers[layer_id] = layer
 
-
-        
-
-        
 
     def _add_source(self, new_object: "JGISObject"):
         _id = str(uuid4())
