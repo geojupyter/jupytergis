@@ -188,7 +188,7 @@
       "title": "IJGISFilterItem",
       "type": "object",
       "default": {},
-      "required": ["layerId", "operator", "feature", "value"],
+      "required": ["operator", "feature", "value"],
       "additionalProperties": false,
       "properties": {
         "operator": {

@@ -11,7 +11,7 @@
         "source": "1f457f60-5d31-45f6-8066-4585aabd5629"
       },
       "type": "HillshadeLayer",
-      "visible": false
+      "visible": true
     },
     "a82ef521-e727-4209-a5a0-145d66f18a06": {
       "name": "OpenStreetMap.Mapnik Layer",
@@ -24,10 +24,10 @@
   },
   "options": {
     "bearing": 0.0,
-    "latitude": 47.574246213179435,
-    "longitude": 11.723541623071242,
-    "pitch": 0.0,
-    "zoom": 9.941497348883567
+    "latitude": 47.27340570466396,
+    "longitude": 11.540279388427734,
+    "pitch": 59.00000000000003,
+    "zoom": 11.829283007646955
   },
   "sources": {
     "1f457f60-5d31-45f6-8066-4585aabd5629": {
@@ -60,5 +60,9 @@
       },
       "type": "RasterDemSource"
     }
+  },
+  "terrain": {
+    "exaggeration": 1.0,
+    "source": "1f457f60-5d31-45f6-8066-4585aabd5629"
   }
 }
