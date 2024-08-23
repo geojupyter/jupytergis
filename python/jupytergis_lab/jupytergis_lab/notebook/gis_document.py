@@ -139,7 +139,12 @@ class GISDocument(CommWidget):
         type: "circle" | "fill" | "line" = "line",
         color: str = "#FF0000",
         opacity: float = 1,
+        logical_op:str | None = None, 
+        feature:str | None = None, 
+        operator:str | None = None, 
+        value:Union[str, number, float] | None = None
     ):
+
         """
         Add a Vector Tile Layer to the document.
 
@@ -166,6 +171,7 @@ class GISDocument(CommWidget):
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
+        print(logical_op, feature, operator, value)
         layer = {
             "type": LayerType.VectorLayer,
             "name": name,
@@ -178,9 +184,19 @@ class GISDocument(CommWidget):
                 "color": color,
                 "opacity": opacity,
             },
+            "filters": {
+                "appliedFilters": [
+                    {
+                        "feature": feature,
+                        "operator": operator,
+                        "value": value
+                    }
+                ], 
+                "logicalOp": logical_op
+                }
         }
 
-        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))        
 
     def add_geojson_layer(
         self,
@@ -190,6 +206,10 @@ class GISDocument(CommWidget):
         type: "circle" | "fill" | "line" = "line",
         color: str = "#FF0000",
         opacity: float = 1,
+        logical_op:str | None = None, 
+        feature:str | None = None, 
+        operator:str | None = None, 
+        value:Union[str, number, float] | None = None
     ):
         """
         Add a GeoJSON Layer to the document.
@@ -236,6 +256,16 @@ class GISDocument(CommWidget):
                 "color": color,
                 "opacity": opacity,
             },
+             "filters": {
+                "appliedFilters": [
+                    {
+                        "feature": feature,
+                        "operator": operator,
+                        "value": value
+                    }
+                ], 
+                "logicalOp": logical_op
+                }
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
@@ -510,6 +540,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         object_type = data.get("type", None)
         name: str = data.get("name", None)
         visible: str = data.get("visible", True)
+        filters = data.get("filters", None)
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
             args = {}
@@ -523,6 +554,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
                 visible=visible,
                 type=object_type,
                 parameters=obj_params,
+                filters=filters
             )
 
         return None
