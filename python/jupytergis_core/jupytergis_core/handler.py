@@ -1,4 +1,3 @@
-import json
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 import tornado
@@ -8,6 +7,7 @@ class ProxyHandler(APIHandler):
     @tornado.web.authenticated
     def get(self):
         url = self.get_argument('url')
+        self.log.info(f"Proxy request received for: {url}")
         try:
             response = requests.get(url)
             response.raise_for_status()
@@ -29,6 +29,7 @@ def setup_handlers(web_app):
     base_url = web_app.settings["base_url"]
     proxy_route_pattern = url_path_join(base_url, "jupytergis_core", "proxy")
     
+    print(f"Setting up proxy handler at: {proxy_route_pattern}")
     handlers = [
         (proxy_route_pattern, ProxyHandler)
     ]
