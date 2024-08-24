@@ -307,10 +307,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private async _loadShapefileAsGeoJSON(url: string): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
     try {
-      const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-      const targetUrl = url;
-
-      const response = await fetch(proxyUrl + targetUrl);
+      const response = await fetch(`/jupytergis_core/proxy?url=${url}`);
       const arrayBuffer = await response.arrayBuffer();
       const geojson = await shp(arrayBuffer);
   
