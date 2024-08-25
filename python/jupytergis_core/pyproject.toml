@@ -43,6 +43,7 @@ exclude = [".github", "binder"]
 
 [tool.hatch.build.targets.wheel.shared-data]
 "jupytergis_core/labextension" = "share/jupyter/labextensions/@jupytergis/jupytergis-core"
+"jupyter-config/server-config" = "etc/jupyter/jupyter_server_config.d"
 
 [tool.hatch.build.hooks.version]
 path = "jupytergis_core/_version.py"
