@@ -7,7 +7,7 @@ class ProxyHandler(APIHandler):
     @tornado.web.authenticated
     def get(self):
         url = self.get_argument('url')
-        self.log.info(f"Proxy request received for: {url}")
+        print(f"Proxy request received for: {url}")
         try:
             response = requests.get(url)
             response.raise_for_status()

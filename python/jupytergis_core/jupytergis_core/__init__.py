@@ -24,4 +24,4 @@ def _load_jupyter_server_extension(server_app):
     """
     setup_handlers(server_app.web_app)
     name = "jupytergis_core"
-    server_app.log.info(f"Registered {name} server extension")
+    print(f"Registered {name} server extension")
