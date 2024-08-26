@@ -89,7 +89,7 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
     // Show a dropdown for available sourceLayers if available
     // And automatically select one
     if (this.sourceLayers.length !== 0) {
-      if (!data.sourceLayer) {
+      if (!data.sourceLayer || !this.sourceLayers.includes(data.sourceLayer)) {
         data.sourceLayer = this.sourceLayers[0];
       }
 
