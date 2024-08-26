@@ -126,7 +126,7 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
-        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_vectortile_layer(
         self,
@@ -139,7 +139,12 @@ class GISDocument(CommWidget):
         type: "circle" | "fill" | "line" = "line",
         color: str = "#FF0000",
         opacity: float = 1,
+        logical_op:str | None = None, 
+        feature:str | None = None, 
+        operator:str | None = None, 
+        value:Union[str, number, float] | None = None
     ):
+
         """
         Add a Vector Tile Layer to the document.
 
@@ -165,7 +170,7 @@ class GISDocument(CommWidget):
         }
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
-
+        
         layer = {
             "type": LayerType.VectorLayer,
             "name": name,
@@ -178,9 +183,19 @@ class GISDocument(CommWidget):
                 "color": color,
                 "opacity": opacity,
             },
+            "filters": {
+                "appliedFilters": [
+                    {
+                        "feature": feature,
+                        "operator": operator,
+                        "value": value
+                    }
+                ], 
+                "logicalOp": logical_op
+                }
         }
 
-        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))        
 
     def add_geojson_layer(
         self,
@@ -190,6 +205,10 @@ class GISDocument(CommWidget):
         type: "circle" | "fill" | "line" = "line",
         color: str = "#FF0000",
         opacity: float = 1,
+        logical_op:str | None = None, 
+        feature:str | None = None, 
+        operator:str | None = None, 
+        value:Union[str, number, float] | None = None
     ):
         """
         Add a GeoJSON Layer to the document.
@@ -236,9 +255,19 @@ class GISDocument(CommWidget):
                 "color": color,
                 "opacity": opacity,
             },
+             "filters": {
+                "appliedFilters": [
+                    {
+                        "feature": feature,
+                        "operator": operator,
+                        "value": value
+                    }
+                ], 
+                "logicalOp": logical_op
+                }
         }
 
-        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_image_layer(
         self,
@@ -277,7 +306,7 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
-        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_video_layer(
         self,
@@ -316,7 +345,99 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
-        self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
+    def add_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
+        """
+        Add a filter to a layer
+
+        :param str layer_id: The ID of the layer to filter
+        :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param str feature: The feature to be filtered on 
+        :param str operator: The operator used to compare the feature and value
+        :param Union[str, number, float] value: The value to be filtered on
+        """
+        layer = self._layers.get(layer_id)
+
+        # Check if the layer exists
+        if layer is None:
+            raise ValueError(f"No layer found with ID: {layer_id}")
+
+        # Initialize filters if it doesn't exist
+        if 'filters' not in layer:
+            layer['filters'] = {
+                'appliedFilters': [
+                    {
+                        'feature': feature,
+                        'operator': operator,
+                        'value': value
+                    }
+                ], 
+                'logicalOp': logical_op}
+            
+            self._layers[layer_id] = layer
+            return
+
+        # Add new filter
+        filters = layer['filters']
+        filters['appliedFilters'].append({'feature': feature, 'operator': operator, 'value': value})
+
+        # update the logical operation
+        filters['logicalOp'] = logical_op
+
+        self._layers[layer_id] = layer
+
+    def update_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
+        """
+        Update a filter applied to a layer
+
+        :param str layer_id: The ID of the layer to filter
+        :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param str feature: The feature to update the value for 
+        :param str operator: The operator used to compare the feature and value
+        :param Union[str, number, float] value: The new value to be filtered on
+        """
+        layer = self._layers.get(layer_id)
+
+        # Check if the layer exists
+        if layer is None:
+            raise ValueError(f"No layer found with ID: {layer_id}")
+
+        if 'filters' not in layer:
+            raise ValueError(f"No filters applied to layer: {layer_id}")
+
+        # Find the feature within the layer
+        feature = next((f for f in layer['filters']['appliedFilters'] if f['feature'] == feature), None)
+        if feature is None:
+            raise ValueError(f"No feature found with ID: {feature} in layer: {layer_id}")
+            return
+
+        # Update the feature value
+        feature['value'] = value
+
+        # update the logical operation
+        layer['filters']['logicalOp'] = logical_op
+
+        self._layers[layer_id] = layer
+       
+    def clear_filters(self, layer_id: str):
+        """
+        Clear filters on a layer
+
+        :param str layer_id: The ID of the layer to clear filters from 
+        """
+        layer = self._layers.get(layer_id)
+
+        # Check if the layer exists
+        if layer is None:
+            raise ValueError(f"No layer found with ID: {layer_id}")
+
+        if 'filters' not in layer:
+            raise ValueError(f"No filters applied to layer: {layer_id}")
+
+        layer['filters']['appliedFilters'] = []
+        self._layers[layer_id] = layer
+
 
     def _add_source(self, new_object: "JGISObject"):
         _id = str(uuid4())
@@ -418,6 +539,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         object_type = data.get("type", None)
         name: str = data.get("name", None)
         visible: str = data.get("visible", True)
+        filters = data.get("filters", None)
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
             args = {}
@@ -431,6 +553,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
                 visible=visible,
                 type=object_type,
                 parameters=obj_params,
+                filters=filters
             )
 
         return None
