@@ -29,11 +29,6 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
       });
     }
     props.model.clientStateChanged.connect(() => {
-      console.log('client state change');
-      console.log(
-        'props.model.localState?.selected.value',
-        props.model.localState?.selected.value
-      );
       if (!props.model.localState?.selected.value) {
         return;
       }
