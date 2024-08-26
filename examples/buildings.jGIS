@@ -28,7 +28,9 @@
   "options": {
     "latitude": 41.86704023051254,
     "longitude": -87.64128426232207,
-    "zoom": 8.089610803710057
+    "zoom": 8.089610803710057,
+    "bearing": 0.0,
+    "pitch": 0.0
   },
   "sources": {
     "7a7ee6fd-c1e2-4c5d-a4e2-a7974db138a4": {
