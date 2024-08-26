@@ -6,8 +6,8 @@ import { JSONValue } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import * as React from 'react';
 
-import { MainView } from './mainview';
 import { MainViewModel } from './mainview/mainviewmodel';
+import { OlMainView } from './mainview/mainViewOl';
 
 export class JupyterGISWidget
   extends DocumentWidget<JupyterGISPanel, IJupyterGISModel>
@@ -76,7 +76,7 @@ export class JupyterGISPanel extends ReactWidget {
   }
 
   render(): JSX.Element {
-    return <MainView viewModel={this._mainViewModel} />;
+    return <OlMainView viewModel={this._mainViewModel} />;
   }
 
   private _mainViewModel: MainViewModel;
