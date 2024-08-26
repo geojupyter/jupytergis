@@ -80,15 +80,15 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
           delete extraErrors.path;
         }
         this.setState({ extraErrors });
-        if (this.props.formChangedSignal) {
-          this.props.formChangedSignal.emit(!valid);
+        if (this.props.formErrorSignal) {
+          this.props.formErrorSignal.emit(!valid);
         }
       })
       .catch(e => {
         extraErrors.path.__errors = [`Cannot read "${path}"`];
         this.setState({ extraErrors });
-        if (this.props.formChangedSignal) {
-          this.props.formChangedSignal.emit(true);
+        if (this.props.formErrorSignal) {
+          this.props.formErrorSignal.emit(true);
         }
       });
   }

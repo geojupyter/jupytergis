@@ -58,10 +58,15 @@ export interface IBaseFormProps {
   cancel?: () => void;
 
   /**
-   * A signal emitting when the form changed, with a boolean whether there are some
+   * A signal emitting when the form changed
+   */
+  formChangedSignal?: Signal<any, IDict<any>>;
+
+  /**
+   * A signal emitting when the form has extra errors, with a boolean whether there are some
    * extra errors or not.
    */
-  formChangedSignal?: Signal<Dialog<any>, boolean>;
+  formErrorSignal?: Signal<Dialog<any>, boolean>;
 }
 
 // Reusing the datalayer/jupyter-react component:
@@ -209,10 +214,13 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   protected onFormChange(e: IChangeEvent) {
     this.currentFormData = e.formData;
 
-    // Emit the signal if defined.
     if (this.props.formChangedSignal) {
+      this.props.formChangedSignal.emit(this.currentFormData || {});
+    }
+
+    if (this.props.formErrorSignal) {
       const extraErrors = Object.keys(this.state.extraErrors).length > 0;
-      this.props.formChangedSignal.emit(extraErrors);
+      this.props.formErrorSignal.emit(extraErrors);
     }
   }
 

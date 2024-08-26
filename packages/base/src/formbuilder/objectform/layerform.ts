@@ -1,12 +1,28 @@
 import { IDict, SourceType } from '@jupytergis/schema';
 import { BaseForm, IBaseFormProps } from './baseform';
+import { Signal } from '@lumino/signaling';
 
 export interface ILayerProps extends IBaseFormProps {
+  /**
+   * The source type for the layer
+   */
   sourceType: SourceType;
+
+  /**
+   * The signal emitted when the attached source form has changed, if it exists
+   */
+  sourceFormChangedSignal?: Signal<any, IDict<any>>;
 }
 
 export class LayerPropertiesForm extends BaseForm {
   props: ILayerProps;
+  protected sourceFormChangedSignal: Signal<any, IDict<any>> | undefined;
+
+  constructor(props: ILayerProps) {
+    super(props);
+
+    this.sourceFormChangedSignal = props.sourceFormChangedSignal;
+  }
 
   protected processSchema(
     data: IDict<any> | undefined,

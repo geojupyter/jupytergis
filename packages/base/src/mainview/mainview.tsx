@@ -615,10 +615,14 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
 
-    // If the layer is vector and the type has changed, let create a new layer.
+    // If the layer is vector and the type or source-layer has changed, let's create a new layer.
     // MapLibre does not support changing the type on fly, it lead to errors with
     // the paint properties.
-    if (layer.parameters?.type && mapLayer.type !== layer.parameters?.type) {
+    if (
+      (layer.parameters?.type && mapLayer.type !== layer.parameters?.type) ||
+      (layer.parameters?.sourceLayer &&
+        mapLayer.sourceLayer !== layer.parameters?.sourceLayer)
+    ) {
       const index = this._Map.getStyle().layers.findIndex(lay => lay.id === id);
       this._Map.removeLayer(id);
       this.addLayer(id, layer, index);

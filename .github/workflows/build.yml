@@ -74,23 +74,50 @@ jobs:
             python/jupytergis_lab/dist/jupytergis*
           if-no-files-found: error
 
+  python_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-name: gis
+          create-args: >-
+            python=3.9
+            jupyterlab=4
+            yarn=3
+            qgis
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install
+        shell: bash -l {0}
+        run: python scripts/dev-install.py
+
+      - name: Install test packages
+        shell: bash -l {0}
+        run: pip install pytest pytest-qgis dirty-equals
+
+      - name: Run tests
+        shell: bash -l {0}
+        run: QT_QPA_PLATFORM=offscreen pytest --color=yes -v python/jupytergis_core/tests
+
+      - name: Run Python API tests
+        shell: bash -l {0}
+        run: QT_QPA_PLATFORM=offscreen pytest --color=yes -v python/jupytergis_lab/
+
   test_isolated:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-          architecture: 'x64'
-
       - uses: actions/download-artifact@v3
         with:
           name: extension-artifacts
 
       - name: Install and Test
-        # TODO Update JupyterLab version
+        shell: bash -l {0}
         run: |
           set -eux
           # Remove NodeJS, twice to take care of system and locally installed node versions.
@@ -98,7 +125,7 @@ jobs:
           sudo rm -rf $(which node)
 
           cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl .
-          python -m pip install "jupyterlab>=4.0.0" jupytergis*.whl
+          python -m pip install jupytergis*.whl
 
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
