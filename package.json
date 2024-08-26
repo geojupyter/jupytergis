@@ -2,10 +2,10 @@
   "name": "@jupytergis/jupytergis-root",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://github.com/QuantStack/jupytergis",
+  "homepage": "https://github.com/geojupyter/jupytergis",
   "repository": {
     "type": "git",
-    "url": "https://github.com/QuantStack/jupytergis.git"
+    "url": "https://github.com/geojupyter/jupytergis.git"
   },
   "license": "BSD-3-Clause",
   "description": "A JupyterLab extension for GIS.",
@@ -15,7 +15,7 @@
     "jupyterlab-extension"
   ],
   "bugs": {
-    "url": "https://github.com/QuantStack/jupytergis/issues"
+    "url": "https://github.com/geojupyter/jupytergis/issues"
   },
   "author": {
     "name": "Jupytergis contributors"
