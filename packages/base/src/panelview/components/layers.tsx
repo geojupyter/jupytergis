@@ -192,12 +192,14 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
         .map(layer =>
           typeof layer === 'string' ? (
             <LayerComponent
+              key={layer}
               gisModel={model}
               layerId={layer}
               onClick={onItemClick}
             />
           ) : (
             <LayerGroupComponent
+              key={layer.name}
               gisModel={model}
               group={layer}
               onClick={onItemClick}
@@ -308,12 +310,14 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
             .map(layer =>
               typeof layer === 'string' ? (
                 <LayerComponent
+                  key={layer}
                   gisModel={gisModel}
                   layerId={layer}
                   onClick={onClick}
                 />
               ) : (
                 <LayerGroupComponent
+                  key={layer.name}
                   gisModel={gisModel}
                   group={layer}
                   onClick={onClick}
