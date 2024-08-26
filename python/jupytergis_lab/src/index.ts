@@ -23,8 +23,8 @@ import {
 } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
-
 import { ContextMenu, Menu } from '@lumino/widgets';
 import { notebookRenderePlugin } from './notebookrenderer';
 
@@ -260,19 +260,22 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
   requires: [
     ILayoutRestorer,
     IJupyterGISDocTracker,
-    IJGISFormSchemaRegistryToken
+    IJGISFormSchemaRegistryToken,
+    IStateDB
   ],
   activate: (
     app: JupyterFrontEnd,
     restorer: ILayoutRestorer,
     tracker: IJupyterGISTracker,
-    formSchemaRegistry: IJGISFormSchemaRegistry
+    formSchemaRegistry: IJGISFormSchemaRegistry,
+    state: IStateDB
   ) => {
     const controlModel = new ControlPanelModel({ tracker });
 
     const leftControlPanel = new LeftPanelWidget({
       model: controlModel,
-      tracker
+      tracker,
+      state
     });
     leftControlPanel.id = 'jupytergis::leftControlPanel';
     leftControlPanel.title.caption = 'JupyterGIS Control Panel';
