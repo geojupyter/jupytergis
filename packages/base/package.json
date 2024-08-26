@@ -7,9 +7,9 @@
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/QuantStack/jupytergis",
+  "homepage": "https://github.com/geojupyter/jupytergis",
   "bugs": {
-    "url": "https://github.com/QuantStack/jupytergis/issues"
+    "url": "https://github.com/geojupyter/jupytergis/issues"
   },
   "license": "BSD-3-Clause",
   "author": {
@@ -24,7 +24,7 @@
   "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.com/QuantStack/jupytergis.git"
+    "url": "https://github.com/geojupyter/jupytergis.git"
   },
   "scripts": {
     "build": "jlpm run build:gallery && tsc -b",
