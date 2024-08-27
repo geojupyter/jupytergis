@@ -94,19 +94,42 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
       return;
     }
 
-    const colorExpr: (string | number | string[])[] = [
+    const colorExpr: any = [
       selectedFunction,
-      ['linear'],
-      ['zoom']
+      ['linear']
+      // ['zoom']
     ];
 
     console.log('stopRows', stopRows);
     console.log('rowsRef.current', rowsRef.current);
 
-    rowsRef.current?.map(stop => {
-      colorExpr.push(stop.zoom);
-      colorExpr.push(stop.outputValue);
-    });
+    // rowsRef.current?.map(stop => {
+    //   colorExpr.push(stop.zoom);
+    //   colorExpr.push(stop.outputValue);
+    // });
+
+    const nir = ['band', 2];
+
+    // near-infrared is the first band from above
+    const red = ['band', 1];
+
+    const difference = ['-', nir, red];
+    const sum = ['+', nir, red];
+
+    const ndvi = ['/', difference, sum];
+    colorExpr.push(ndvi);
+
+    colorExpr.push(-0.2); // ndvi values <= -0.2 will get the color below
+    colorExpr.push([191, 191, 191]);
+    colorExpr.push(0); // ndvi values between -0.2 and 0 will get an interpolated color between the one above and the one below
+    colorExpr.push([255, 255, 224]);
+    colorExpr.push(0.2);
+    colorExpr.push([145, 191, 82]);
+    colorExpr.push(0.4);
+    colorExpr.push([79, 138, 46]);
+    colorExpr.push(0.6);
+    colorExpr.push([15, 84, 10]);
+
     console.log('colorExpr', colorExpr);
 
     console.log('safe');

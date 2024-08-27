@@ -31,6 +31,7 @@ import VectorTileSource from 'ol/source/VectorTile';
 
 import { Fill, Stroke, Style } from 'ol/style';
 // import Stroke from 'ol/style/Stroke';
+import BaseLayer from 'ol/layer/Base';
 import { Protocol } from 'pmtiles';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
@@ -425,6 +426,8 @@ export class OlMainView extends React.Component<IProps, IStates> {
         // change map view to use projection and extent from source
         this._Map.setView(source.getView());
 
+        // OpenLayers doesn't have name/is field so add it
+        newLayer.set('id', id);
         this._Map.addLayer(newLayer);
 
         break;
@@ -448,9 +451,9 @@ export class OlMainView extends React.Component<IProps, IStates> {
               feature.getProperties()['layer'] === layerParameters.sourceLayer
             ) {
               return new Style({
-                fill: new Fill({ color: layerParameters.color ?? '#F092DD' }),
+                fill: new Fill({ color: '#F092DD' }),
                 stroke: new Stroke({
-                  color: layerParameters.color ?? '#392F5A',
+                  color: '#392F5A',
                   width: 2
                 })
               });
@@ -459,24 +462,8 @@ export class OlMainView extends React.Component<IProps, IStates> {
           }
         });
 
-        console.log('event');
-        newLayer.on('change', e => {
-          console.log('features1', newLayer.getFeatures(e.target.pixel));
-          //@ts-expect-error wip
-          console.log('features2', newLayer.getFeatures(e.pixel));
-        });
-        // this._Map.on('pointermove', this.info);
-        newLayer.on('postrender', e => {
-          const l = newLayer.getFeaturesInExtent([
-            -20037506.39, -20026376.4, 20026286.5, 20048966.4
-          ]);
-
-          console.log('lwdfwfwefe', l);
-        });
-
-        // newLayer.setStyle(style);
-        // parameters.sourceLayer &&
-        //   (layerSpecification['source-layer'] = parameters.sourceLayer);
+        // OpenLayers doesn't have name/is field so add it
+        newLayer.set('id', id);
 
         this._Map.addLayer(newLayer);
 
@@ -519,10 +506,21 @@ export class OlMainView extends React.Component<IProps, IStates> {
    */
   async updateLayer(
     id: string,
-    layer: IJGISLayer
-    // mapLayer: ReturnType<typeof this._Map.getLayer>
+    layer: IJGISLayer,
+    mapLayer: BaseLayer
   ): Promise<void> {
-    // TODO implement
+    console.log('in updater');
+    switch (layer.type) {
+      case 'WebGlLayer': {
+        console.log('update webgl');
+        const webGlLayer = mapLayer as WebGlTileLayer;
+        const jgisLayer = this._model.getLayer(id);
+        const color = jgisLayer?.parameters?.color;
+        console.log('color', color);
+        webGlLayer.setStyle({ color: color });
+        break;
+      }
+    }
   }
 
   /**
@@ -664,12 +662,18 @@ export class OlMainView extends React.Component<IProps, IStates> {
       if (!layer || Object.keys(layer).length === 0) {
         this.removeLayer(change.id);
       } else {
-        const mapLayer = null;
+        // OpenLayers doesn't have a way to get an individual layer
+        const mapLayer = this._Map
+          .getLayers()
+          .getArray()
+          .find(layer => layer.get('id') === change.id);
+        console.log('mapLayer', mapLayer);
         if (
           mapLayer &&
           JupyterGISModel.getOrderedLayerIds(this._model).includes(change.id)
         ) {
-          //   this.updateLayer(change.id, layer, mapLayer);
+          console.log('updating');
+          this.updateLayer(change.id, layer, mapLayer);
         } else {
           console.log('hitting');
           this.updateLayers(JupyterGISModel.getOrderedLayerIds(this._model));
