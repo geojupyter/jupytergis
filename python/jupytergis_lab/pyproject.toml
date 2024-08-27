@@ -29,6 +29,7 @@ dependencies = [
   "jupyter-ydoc>=2,<3",
   "jupyterlab>=4,<5",
   "jupyter-collaboration>=2,<3",
+  "jupyterlab_widgets>=3",
   "ypywidgets>=0.9.0,<0.10.0",
   "yjs-widgets>=0.3.4,<0.4",
   "comm>=0.1.2,<0.2.0",
