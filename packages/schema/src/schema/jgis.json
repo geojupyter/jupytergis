@@ -23,7 +23,7 @@
   "definitions": {
     "layerType": {
       "type": "string",
-      "enum": ["RasterLayer", "VectorLayer", "HillshadeLayer"]
+      "enum": ["RasterLayer", "VectorLayer", "HillshadeLayer", "WebGlLayer"]
     },
     "sourceType": {
       "type": "string",
@@ -34,7 +34,8 @@
         "RasterDemSource",
         "VideoSource",
         "ImageSource",
-        "ShapefileSource"
+        "ShapefileSource",
+        "GeoTiffSource"
       ]
     },
     "jGISLayer": {

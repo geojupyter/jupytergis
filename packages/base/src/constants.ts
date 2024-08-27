@@ -20,6 +20,7 @@ export namespace CommandIDs {
   export const newHillshadeEntry = 'jupytergis:newHillshadeEntry';
   export const newImageEntry = 'jupytergis:newImageEntry';
   export const newVideoEntry = 'jupytergis:newVideoEntry';
+  export const newGeoTiffEntry = 'jupytergis:newGeoTiffEntry';
 
   // Sources only commands
   export const newRasterSource = 'jupytergis:newRasterSource';
@@ -29,6 +30,7 @@ export namespace CommandIDs {
   export const newImageSource = 'jupytergis:imageSource';
   export const newVideoSource = 'jupytergis:videoSource';
   export const newShapefileSource = 'jupytergis:shapefileSource';
+  export const newGeoTiffSource = 'jupytergis:newGeoTiffSource';
 
   // Layers only commands
   export const newRasterLayer = 'jupytergis:newRasterLayer';
@@ -37,6 +39,7 @@ export namespace CommandIDs {
   export const newImageLayer = 'jupytergis:newImageLayer';
   export const newVideoLayer = 'jupytergis:newVideoLayer';
   export const newShapefileLayer = 'jupytergis:newShapefileLayer';
+  export const newWebGlTileLayer = 'jupytergis:newWebGlTileLayer';
 
   // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';
@@ -85,6 +88,7 @@ const iconObject = {
   [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
   [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
+  [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-certificate' },
   [CommandIDs.newTerrain]: { iconClass: 'fa fa-mountain' },
   [CommandIDs.zoomColor]: { iconClass: 'fa fa-brush' }
 };

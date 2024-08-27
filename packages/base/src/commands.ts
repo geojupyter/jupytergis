@@ -281,6 +281,29 @@ export function addCommands(
     ...icons.get(CommandIDs.newShapefileSource)
   });
 
+  commands.addCommand(CommandIDs.newGeoTiffEntry, {
+    label: trans.__('New GeoTiff layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoTiff Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: {
+        name: 'Custom GeoTiff Source'
+      },
+      layerData: { name: 'Custom GeoTiff Layer' },
+      sourceType: 'GeoTiffSource',
+      layerType: 'WebGlLayer'
+    }),
+    ...icons.get(CommandIDs.newGeoTiffEntry)
+  });
+
   /**
    * SOURCES only commands.
    */

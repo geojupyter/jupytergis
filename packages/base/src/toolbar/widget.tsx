@@ -146,6 +146,15 @@ export class ToolbarWidget extends Toolbar {
           commands: options.commands
         })
       );
+
+      this.addItem(
+        'newGeoTiffEntry',
+        new CommandToolbarButton({
+          id: CommandIDs.newGeoTiffEntry,
+          label: '',
+          commands: options.commands
+        })
+      );
       // Add more commands here
 
       this.addItem('spacer', Toolbar.createSpacerItem());

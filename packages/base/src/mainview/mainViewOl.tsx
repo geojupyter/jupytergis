@@ -8,6 +8,7 @@ import {
   IJGISSourceDocChange,
   IJupyterGISDoc,
   IJupyterGISModel,
+  IRasterLayer,
   IRasterSource,
   IVectorLayer,
   IVectorTileSource,
@@ -16,17 +17,18 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
-import * as React from 'react';
-
 import * as MapLibre from 'maplibre-gl';
-
 import { Map, View } from 'ol';
 import MVT from 'ol/format/MVT';
-import TileLayer from 'ol/layer/Tile';
+import * as React from 'react';
+// import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
+import WebGlTileLayer from 'ol/layer/WebGLTile';
 import { fromLonLat, toLonLat } from 'ol/proj';
-import { OSM } from 'ol/source';
+// import { OSM } from 'ol/source';
+import GeoTIFF from 'ol/source/GeoTIFF';
 import VectorTileSource from 'ol/source/VectorTile';
+
 import { Fill, Stroke, Style } from 'ol/style';
 // import Stroke from 'ol/style/Stroke';
 import { Protocol } from 'pmtiles';
@@ -106,31 +108,62 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
   async generateScene(): Promise<void> {
     console.log('generating');
+    // !! GeoTiff testing
+    // const proj = new Projection({
+    //   code: 'EPSG:32721',
+    //   units: 'm'
+    // });
+    // const sourceExtent = [300000, 6090260, 409760, 6200020];
+
+    // const source = new GeoTIFF({
+    //   sources: [
+    //     {
+    //       // near-infrared reflectance
+    //       url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B08.tif',
+    //       max: 5000
+    //     },
+    //     {
+    //       // red reflectance
+    //       url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B04.tif',
+    //       max: 5000
+    //     },
+    //     {
+    //       // green reflectance
+    //       url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B03.tif',
+    //       max: 5000
+    //     }
+    //   ]
+    // });
+
+    // console.log('source', source);
+    // const l1 = new TileLayer({
+    //   source: new OSM()
+    // });
+
+    // const layer = new WebGlTileLayer({
+    //   source: source
+    // });
+
+    // console.log('layer', layer);
+
     if (this.divRef.current) {
       this._Map = new Map({
         target: this.divRef.current,
-        layers: [
-          new TileLayer({
-            source: new OSM()
-          })
-        ],
+        layers: [],
         view: new View({
+          // projection: proj,
           center: fromLonLat([0, 0]),
+          // extent: sourceExtent,
           zoom: 2
         })
       });
 
-      const layer = new VectorTileLayer({
-        source: new VectorTileSource({
-          format: new MVT(),
-          url:
-            'https://ahocevar.com/geoserver/gwc/service/tms/1.0.0/' +
-            'ne:ne_10m_admin_0_countries@EPSG%3A900913@pbf/{z}/{x}/{-y}.pbf',
-          maxZoom: 14
-        })
-      });
-
-      this._Map.addLayer(layer);
+      // new View({
+      //   projection: proj,
+      //   center: getCenter(sourceExtent),
+      //   extent: sourceExtent,
+      //   zoom: 1
+      // })
 
       //   this._Map = new MapLibre.Map({
       //     container: this.divRef.current
@@ -364,6 +397,38 @@ export class OlMainView extends React.Component<IProps, IStates> {
     // }
 
     switch (layer.type) {
+      case 'WebGlLayer': {
+        console.log('adding web gl layer');
+        const layerParameters = layer.parameters as IRasterLayer;
+
+        // TODO: copy video source to get multipls urls from creation form
+        const source = new GeoTIFF({
+          sources: [
+            {
+              // red reflectance
+              url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B04.tif',
+              max: 10000
+            },
+            {
+              // near-infrared reflectance
+              url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B08.tif',
+              max: 10000
+            }
+          ]
+        });
+
+        const newLayer = new WebGlTileLayer({
+          opacity: layerParameters.opacity,
+          source: source
+        });
+
+        // change map view to use projection and extent from source
+        this._Map.setView(source.getView());
+
+        this._Map.addLayer(newLayer);
+
+        break;
+      }
       case 'VectorLayer': {
         const layerParameters = layer.parameters as IVectorLayer;
 
