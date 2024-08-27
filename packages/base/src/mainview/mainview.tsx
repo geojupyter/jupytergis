@@ -284,9 +284,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
           const geojson = await this._loadShapefileAsGeoJSON(parameters.path);
 
-          const geojsonData = Array.isArray(geojson)
-            ? geojson[0]
-            : geojson;
+          const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
 
           this._Map.addSource(id, {
             type: 'geojson',
@@ -305,12 +303,14 @@ export class MainView extends React.Component<IProps, IStates> {
     this._videoPlaying = !this._videoPlaying;
   }
 
-  private async _loadShapefileAsGeoJSON(url: string): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
+  private async _loadShapefileAsGeoJSON(
+    url: string
+  ): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
     try {
       const response = await fetch(`/jupytergis_core/proxy?url=${url}`);
       const arrayBuffer = await response.arrayBuffer();
       const geojson = await shp(arrayBuffer);
-  
+
       return geojson;
     } catch (error) {
       console.error('Error loading shapefile:', error);

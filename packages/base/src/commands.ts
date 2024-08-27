@@ -549,7 +549,7 @@ export function addCommands(
     }),
     ...icons.get(CommandIDs.newShapefileLayer)
   });
-  
+
   /**
    * LAYERS and LAYER GROUP actions.
    */
