@@ -95,8 +95,6 @@ class YQGISBase(YBaseDoc):
         # Lazy import because qgis may not be installed
         from .qgis_loader import import_project_from_qgis
 
-        print('[DEBUG] Load ', self._file_extension, source)
-
         with tempfile.NamedTemporaryFile(delete=False, suffix=self._file_extension) as tmp:
             file_content = base64.b64decode(source)
             tmp.write(file_content)
@@ -108,7 +106,6 @@ class YQGS(YQGISBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        print('[DEBUG] Create YDOC for QGS')
         self._file_extension = ".qgs"
 
 
@@ -116,5 +113,4 @@ class YQGZ(YQGISBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        print('[DEBUG] Create YDOC for QGZ')
         self._file_extension = ".qgz"
