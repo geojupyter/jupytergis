@@ -85,7 +85,6 @@ export class JupyterGISModelFactoryBase
 }
 
 export class QGZModelFactory extends JupyterGISModelFactoryBase {
-
   /**
    * The name of the model.
    *
