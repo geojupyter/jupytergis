@@ -101,6 +101,7 @@ jobs:
         run: pip install pytest dirty-equals
 
       - name: Run tests
+        shell: bash -l {0}
         run: pytest --color=yes -v python/jupytergis_qgis/jupytergis_qgis/tests
 
       - name: Run Python API tests
