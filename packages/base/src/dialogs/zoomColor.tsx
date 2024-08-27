@@ -15,7 +15,7 @@ interface IZoomColorProps {
 
 export interface IStopRow {
   zoom: number;
-  outputValue: string;
+  outputValue: any;
 }
 
 const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
@@ -68,7 +68,7 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     // So if it's not a string then it's an array and we parse
     // First element is function (ie interpolate)
     // Second element is type of interpolation (ie linear)
-    // Third is zoom for now I think this'll change later
+    // Third is ...something idk what, the NVDI for testing
     // Fourth and on is zoom:color pairs
     for (let i = 3; i < color.length; i += 2) {
       const obj: IStopRow = {
@@ -103,11 +103,6 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     console.log('stopRows', stopRows);
     console.log('rowsRef.current', rowsRef.current);
 
-    // rowsRef.current?.map(stop => {
-    //   colorExpr.push(stop.zoom);
-    //   colorExpr.push(stop.outputValue);
-    // });
-
     const nir = ['band', 2];
 
     // near-infrared is the first band from above
@@ -119,16 +114,21 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     const ndvi = ['/', difference, sum];
     colorExpr.push(ndvi);
 
-    colorExpr.push(-0.2); // ndvi values <= -0.2 will get the color below
-    colorExpr.push([191, 191, 191]);
-    colorExpr.push(0); // ndvi values between -0.2 and 0 will get an interpolated color between the one above and the one below
-    colorExpr.push([255, 255, 224]);
-    colorExpr.push(0.2);
-    colorExpr.push([145, 191, 82]);
-    colorExpr.push(0.4);
-    colorExpr.push([79, 138, 46]);
-    colorExpr.push(0.6);
-    colorExpr.push([15, 84, 10]);
+    rowsRef.current?.map(stop => {
+      colorExpr.push(stop.zoom);
+      colorExpr.push(stop.outputValue);
+    });
+
+    // colorExpr.push(-0.2); // ndvi values <= -0.2 will get the color below
+    // colorExpr.push([191, 191, 191]);
+    // colorExpr.push(0); // ndvi values between -0.2 and 0 will get an interpolated color between the one above and the one below
+    // colorExpr.push([255, 255, 224]);
+    // colorExpr.push(0.2);
+    // colorExpr.push([145, 191, 82]);
+    // colorExpr.push(0.4);
+    // colorExpr.push([79, 138, 46]);
+    // colorExpr.push(0.6);
+    // colorExpr.push([15, 84, 10]);
 
     console.log('colorExpr', colorExpr);
 
