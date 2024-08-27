@@ -2,19 +2,27 @@ from pathlib import Path
 
 from dirty_equals import IsPartialDict, IsStr
 
-from utils import import_project_from_qgis
+from ..qgis_loader import import_project_from_qgis
 
 
 FILES = Path(__file__).parent / "files"
 
 
-def test_qgis(qgis_app, qgis_new_project,):
-    jgis_layer_tree = import_project_from_qgis(FILES / "project0.qgs", qgis_app)
+def test_qgis_loader():
+    jgis = import_project_from_qgis(FILES / "project0.qgs")
     source_id0 = IsStr()
     source_id1 = IsStr()
     source_id2 = IsStr()
     source_id3 = IsStr()
-    assert jgis_layer_tree == IsPartialDict(
+    print(jgis)
+    assert jgis == IsPartialDict(
+        options={
+            "bearing": 0,
+            "pitch": 0,
+            "zoom": 1,
+            "latitude": 3.040513775370215,
+            "longitude": -1.4917652027026662,
+        },
         layers={
             "_02b1b4d5_316b_4f4d_9c38_16bf10a3bcb8": {
                 "name": "OpenStreetMap0",
@@ -59,13 +67,13 @@ def test_qgis(qgis_app, qgis_new_project,):
                 ],
                 "name": "group0",
             },
-        ]
+        ],
     )
-    assert jgis_layer_tree == IsPartialDict(
+    assert jgis == IsPartialDict(
         sources={
             source_id0.value: {
-                "name": "OpenStreetMap0",
-                "type": "RasterLayer",
+                "name": "OpenStreetMap0 Source",
+                "type": "RasterSource",
                 "parameters": {
                     "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                     "maxZoom": 19,
@@ -73,8 +81,8 @@ def test_qgis(qgis_app, qgis_new_project,):
                 },
             },
             source_id1.value: {
-                "name": "OpenStreetMap1",
-                "type": "RasterLayer",
+                "name": "OpenStreetMap1 Source",
+                "type": "RasterSource",
                 "parameters": {
                     "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                     "maxZoom": 19,
@@ -82,8 +90,8 @@ def test_qgis(qgis_app, qgis_new_project,):
                 },
             },
             source_id2.value: {
-                "name": "OpenStreetMap2",
-                "type": "RasterLayer",
+                "name": "OpenStreetMap2 Source",
+                "type": "RasterSource",
                 "parameters": {
                     "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                     "maxZoom": 19,
@@ -91,8 +99,8 @@ def test_qgis(qgis_app, qgis_new_project,):
                 },
             },
             source_id3.value: {
-                "name": "OpenStreetMap3",
-                "type": "RasterLayer",
+                "name": "OpenStreetMap3 Source",
+                "type": "RasterSource",
                 "parameters": {
                     "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                     "maxZoom": 19,

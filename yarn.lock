@@ -1011,6 +1011,38 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@jupytergis/jupytergis-qgis@workspace:python/jupytergis_qgis":
+  version: 0.0.0-use.local
+  resolution: "@jupytergis/jupytergis-qgis@workspace:python/jupytergis_qgis"
+  dependencies:
+    "@jupyter/docprovider": ^2.0.0
+    "@jupytergis/base": ^0.1.0
+    "@jupytergis/jupytergis-core": ^0.1.0
+    "@jupytergis/schema": ^0.1.0
+    "@jupyterlab/application": ^4.0.0
+    "@jupyterlab/apputils": ^4.0.0
+    "@jupyterlab/builder": ^4.0.0
+    "@jupyterlab/coreutils": ^6.0.0
+    "@jupyterlab/docregistry": ^4.0.0
+    "@jupyterlab/filebrowser": ^4.0.0
+    "@jupyterlab/launcher": ^4.0.0
+    "@jupyterlab/mainmenu": ^4.0.0
+    "@jupyterlab/services": ^7.0.0
+    "@jupyterlab/translation": ^4.0.0
+    "@jupyterlab/ui-components": ^4.0.0
+    "@lumino/messaging": ^2.0.0
+    "@lumino/widgets": ^2.0.0
+    css-loader: ^6.7.1
+    mkdirp: ^1.0.3
+    npm-run-all: ^4.1.5
+    react: ^18.0.1
+    rimraf: ^3.0.2
+    typescript: ^5
+    yjs: ^13.5.0
+    yjs-widgets: ^0.3.3
+  languageName: unknown
+  linkType: soft
+
 "@jupytergis/jupytergis-root@workspace:.":
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-root@workspace:."

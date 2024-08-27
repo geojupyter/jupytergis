@@ -72,6 +72,7 @@ jobs:
           path: |
             python/jupytergis_core/dist/jupytergis*
             python/jupytergis_lab/dist/jupytergis*
+            python/jupytergis_qgis/dist/jupytergis*
           if-no-files-found: error
 
   python_tests:
@@ -97,15 +98,15 @@ jobs:
 
       - name: Install test packages
         shell: bash -l {0}
-        run: pip install pytest pytest-qgis dirty-equals
+        run: pip install pytest dirty-equals
 
       - name: Run tests
         shell: bash -l {0}
-        run: QT_QPA_PLATFORM=offscreen pytest --color=yes -v python/jupytergis_core/tests
+        run: pytest --color=yes -v python/jupytergis_qgis/jupytergis_qgis/tests
 
       - name: Run Python API tests
         shell: bash -l {0}
-        run: QT_QPA_PLATFORM=offscreen pytest --color=yes -v python/jupytergis_lab/
+        run: pytest --color=yes -v python/jupytergis_lab/
 
   test_isolated:
     needs: build
@@ -124,7 +125,7 @@ jobs:
           sudo rm -rf $(which node)
           sudo rm -rf $(which node)
 
-          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl .
+          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
           python -m pip install jupytergis*.whl
 
           jupyter labextension list
@@ -153,6 +154,8 @@ jobs:
           create-args: >-
             python=3.9
             jupyterlab
+            ipywidgets
+            qgis
 
       - name: Download extension package
         uses: actions/download-artifact@v3
@@ -163,7 +166,7 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl .
+          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
           python -m pip install jupytergis*.whl
 
       - name: Install dependencies
@@ -261,7 +264,7 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl .
+          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
           python -m pip install jupytergis*.whl
 
       - name: Build the lite site

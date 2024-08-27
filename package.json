@@ -27,7 +27,8 @@
   "workspaces": [
     "packages/*",
     "python/jupytergis_core",
-    "python/jupytergis_lab"
+    "python/jupytergis_lab",
+    "python/jupytergis_qgis"
   ],
   "scripts": {
     "build": "lerna run build",

@@ -1,0 +1,93 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = [
+  "hatchling>=1.5.0",
+  "jupyterlab>=4.0.0,<5",
+  "hatch-nodejs-version>=0.3.2",
+]
+
+[project]
+classifiers = [
+  "Framework :: Jupyter",
+  "Framework :: Jupyter :: JupyterLab",
+  "Framework :: Jupyter :: JupyterLab :: 4",
+  "Framework :: Jupyter :: JupyterLab :: Extensions",
+  "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+  "jupyter_server>=2.0.1,<3",
+  "jupyter-ydoc>=2,<3",
+  "jupyter-collaboration>=2,<3",
+  "jupytergis_lab"
+]
+dynamic = ["version", "description", "authors", "urls", "keywords"]
+license = {file = "LICENSE"}
+name = "jupytergis_qgis"
+readme = "README.md"
+requires-python = ">=3.8"
+
+[tool.hatch.version]
+source = "nodejs"
+
+[tool.hatch.metadata.hooks.nodejs]
+fields = ["description", "authors", "urls"]
+
+[tool.hatch.build.targets.sdist]
+artifacts = ["jupytergis_qgis/labextension", "/jupytergis_qgis/notebook/objects/_schema/*.py"]
+exclude = [".github", "binder"]
+
+[tool.hatch.build.targets.wheel]
+artifacts = ["/jupytergis_qgis/notebook/objects/_schema/*.py"]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"install.json" = "share/jupyter/labextensions/@jupytergis/jupytergis-qgis/install.json"
+"jupytergis_qgis/labextension" = "share/jupyter/labextensions/@jupytergis/jupytergis-qgis"
+"jupyter-config/server-config" = "etc/jupyter/jupyter_server_config.d"
+
+[tool.hatch.build.hooks.version]
+path = "jupytergis_qgis/_version.py"
+
+[tool.hatch.build.hooks.jupyter-builder]
+build-function = "hatch_jupyter_builder.npm_builder"
+dependencies = ["hatch-jupyter-builder>=0.5"]
+ensured-targets = [
+  "jupytergis_qgis/labextension/static/style.js",
+  "jupytergis_qgis/labextension/package.json",
+]
+skip-if-exists = ["jupytergis_qgis/labextension/static/style.js"]
+
+[tool.hatch.build.hooks.jupyter-builder.build-kwargs]
+build_cmd = "build:prod"
+npm = ["jlpm"]
+
+[tool.hatch.build.hooks.jupyter-builder.editable-build-kwargs]
+build_cmd = "install:extension"
+build_dir = "jupytergis_qgis/labextension"
+npm = ["jlpm"]
+source_dir = "src"
+
+[tool.jupyter-releaser.options]
+version_cmd = "hatch version"
+
+[tool.jupyter-releaser.hooks]
+before-build-npm = [
+  "python -m pip install 'jupyterlab>=4.0.0,<5'",
+  "jlpm",
+  "jlpm build:prod",
+]
+before-build-python = ["jlpm clean:all"]
+
+[tool.check-wheel-contents]
+ignore = ["W002"]
+
+[project.entry-points.jupyter_ydoc]
+QGZ = "jupytergis_qgis.qgis_ydoc:YQGZ"
+QGS = "jupytergis_qgis.qgis_ydoc:YQGS"
