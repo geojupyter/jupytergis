@@ -180,24 +180,28 @@ for provider in thumbnails_providers_positions.keys():
     if 'url' in xyzprovider.keys():
         print(f"Process {provider}")
 
-        name = provider
-        url_template = xyzprovider["url"]
+        try:
+            name = provider
+            url_template = xyzprovider["url"]
 
-        if name in thumbnails_providers_positions[provider]['Special Rules'].keys():
-            position = thumbnails_providers_positions[provider]['Special Rules'][name]
-        else:
-            position = thumbnails_providers_positions[provider]['Default']
+            if name in thumbnails_providers_positions[provider]['Special Rules'].keys():
+                position = thumbnails_providers_positions[provider]['Special Rules'][name]
+            else:
+                position = thumbnails_providers_positions[provider]['Default']
 
-        tile_size = thumbnails_providers_positions[provider].get('TileSize', 256)
+            tile_size = thumbnails_providers_positions[provider].get('TileSize', 256)
 
-        file_path = download_thumbnail(url_template, name, position, tile_size)
-        raster_provider_gallery[name] = dict(
-            # jgisname=name,
-            thumbnailPath=file_path,
-            **xyzprovider
-        )
-        if "time" in raster_provider_gallery[name]:
-            raster_provider_gallery[name]["time"] = yesterday
+            file_path = download_thumbnail(url_template, name, position, tile_size)
+            raster_provider_gallery[name] = dict(
+                # jgisname=name,
+                thumbnailPath=file_path,
+                **xyzprovider
+            )
+            if "time" in raster_provider_gallery[name]:
+                raster_provider_gallery[name]["time"] = yesterday
+
+        except Exception as e:
+            print('Failed...', e)
 
         continue
 
