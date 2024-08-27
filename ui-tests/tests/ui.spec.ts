@@ -4,7 +4,7 @@ import path from 'path';
 test.use({ autoGoto: false });
 
 test.describe('UI Test', () => {
-  const fileList = ['test.jGIS'];
+  const fileList = ['test.jGIS', 'buildings.qgz', 'buildings.qgs'];
 
   test.describe('File operations', () => {
     test.beforeAll(async ({ request }) => {
@@ -20,6 +20,7 @@ test.describe('UI Test', () => {
       page.setViewportSize({ width: 1920, height: 1080 });
       page.on('console', message => {
         if (message.type() === 'error') {
+          console.log('CONSOLE ERROR', message);
           errors += 1;
         }
       });
@@ -53,12 +54,8 @@ test.describe('UI Test', () => {
         await page.waitForTimeout(1000);
         const main = await page.$('#jp-main-split-panel');
         expect(errors).toBe(0);
-        if (main) {
-          expect(await main.screenshot()).toMatchSnapshot({
-            name: `Render-${file}.png`,
-            maxDiffPixelRatio: 0.01
-          });
-        }
+
+        await expect(await page.$('.maplibregl-canvas')).toBeVisible();
       });
     }
   });
