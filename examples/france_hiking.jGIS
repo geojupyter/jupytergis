@@ -75,7 +75,9 @@
   "options": {
     "latitude": 46.623742146769416,
     "zoom": 4.947275971927249,
-    "longitude": 1.6082511087276998
+    "longitude": 1.6082511087276998,
+    "bearing": 0.0,
+    "pitch": 0.0
   },
   "layerTree": [
     "4a0703b3-ed56-4158-8a2e-e008c3d0fee2",

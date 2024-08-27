@@ -66,7 +66,7 @@ export interface ICreationFormProps {
    * A signal emitting when the form changed, with a boolean whether there are some
    * extra errors or not.
    */
-  formChangedSignal?: Signal<Dialog<any>, boolean>;
+  formErrorSignal?: Signal<Dialog<any>, boolean>;
 }
 
 /**
@@ -204,7 +204,8 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               }}
               ok={this.props.ok}
               cancel={this.props.cancel}
-              formChangedSignal={this.props.formChangedSignal}
+              formChangedSignal={this.sourceFormChangedSignal}
+              formErrorSignal={this.props.formErrorSignal}
             />
           </div>
         )}
@@ -223,7 +224,8 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               }}
               ok={this.props.ok}
               cancel={this.props.cancel}
-              formChangedSignal={this.props.formChangedSignal}
+              sourceFormChangedSignal={this.sourceFormChangedSignal}
+              formErrorSignal={this.props.formErrorSignal}
             />
           </div>
         )}
@@ -233,4 +235,6 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
 
   private jGISModel: IJupyterGISModel;
   private filePath: string;
+  private sourceFormChangedSignal: Signal<React.Component<any>, IDict<any>> =
+    new Signal(this);
 }

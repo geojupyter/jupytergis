@@ -10,7 +10,7 @@ The `jlpm` command is JupyterLab's pinned version of
 
 ```bash
 # Clone the repo to your local environment
-git clone https://github.com/QuantStack/jupytergis.git
+git clone https://github.com/geojupyter/jupytergis.git
 # Change directory to the jupytergis directory
 cd jupytergis
 # Install JupyterLab for jlpm

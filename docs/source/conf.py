@@ -3,7 +3,7 @@ import os
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
 html_theme = "pydata_sphinx_theme"
-html_theme_options = {"github_url": "https://github.com/QuantStack/jupytergis"}
+html_theme_options = {"github_url": "https://github.com/geojupyter/jupytergis"}
 
 extensions = [
     "sphinx.ext.autodoc",
