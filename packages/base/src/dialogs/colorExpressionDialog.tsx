@@ -5,7 +5,7 @@ import { Button } from '@jupyterlab/ui-components';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useRef, useState } from 'react';
-import StopRow from './components/zoom-color/StopRow';
+import StopRow from './components/color-expression/StopRow';
 
 interface IZoomColorProps {
   context: DocumentRegistry.IContext<IJupyterGISModel>;
@@ -14,8 +14,8 @@ interface IZoomColorProps {
 }
 
 export interface IStopRow {
-  zoom: number;
-  outputValue: any;
+  value: number;
+  color: any;
 }
 
 const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
@@ -69,11 +69,11 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     // First element is function (ie interpolate)
     // Second element is type of interpolation (ie linear)
     // Third is ...something idk what, the NVDI for testing
-    // Fourth and on is zoom:color pairs
+    // Fourth and on is value:color pairs
     for (let i = 3; i < color.length; i += 2) {
       const obj: IStopRow = {
-        zoom: color[i],
-        outputValue: color[i + 1]
+        value: color[i],
+        color: color[i + 1]
       };
       pairedObjects.push(obj);
     }
@@ -94,11 +94,7 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
       return;
     }
 
-    const colorExpr: any = [
-      selectedFunction,
-      ['linear']
-      // ['zoom']
-    ];
+    const colorExpr: any = [selectedFunction, ['linear']];
 
     console.log('stopRows', stopRows);
     console.log('rowsRef.current', rowsRef.current);
@@ -115,8 +111,8 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     colorExpr.push(ndvi);
 
     rowsRef.current?.map(stop => {
-      colorExpr.push(stop.zoom);
-      colorExpr.push(stop.outputValue);
+      colorExpr.push(stop.value);
+      colorExpr.push(stop.color);
     });
 
     // colorExpr.push(-0.2); // ndvi values <= -0.2 will get the color below
@@ -143,6 +139,16 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     okSignal.connect(handleOk);
   });
 
+  const addStopRow = () => {
+    setStopRows([
+      ...stopRows,
+      {
+        value: 0,
+        color: [0, 0, 0]
+      }
+    ]);
+  };
+
   return (
     <div className="jp-gis-color-container">
       <div className="funcion select">
@@ -164,14 +170,14 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
       {/* <div className="base">Placeholder</div> */}
       <div className="stop container">
         <div className="labels" style={{ display: 'flex', gap: 6 }}>
-          <span style={{ flex: '0 0 18%' }}>Zoom</span>
+          <span style={{ flex: '0 0 18%' }}>Value</span>
           <span>Output Value</span>
         </div>
         {stopRows.map((stop, index) => (
           <StopRow
             index={index}
-            zoom={stop.zoom}
-            outputValue={stop.outputValue}
+            value={stop.value}
+            outputValue={stop.color}
             stopRows={stopRows}
             setStopRows={setStopRows}
           />
@@ -211,7 +217,7 @@ export class ZoomColorWidget extends Dialog<boolean> {
       />
     );
 
-    super({ title: 'Zoom Color', body });
+    super({ title: 'Color Expression', body });
 
     this.id = 'jupytergis::zoomzoom';
 

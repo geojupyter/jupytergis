@@ -13,10 +13,10 @@ import { JupyterFrontEnd } from '@jupyterlab/application';
 import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandIDs, icons } from './constants';
+import { ZoomColorWidget } from './dialogs/colorExpressionDialog';
 import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { TerrainDialogWidget } from './dialogs/terrainDialog';
-import { ZoomColorWidget } from './dialogs/zoomColor';
 import { JupyterGISWidget } from './widget';
 
 interface ICreateEntry {
@@ -45,7 +45,7 @@ export function addCommands(
   const { commands } = app;
 
   commands.addCommand(CommandIDs.zoomColor, {
-    label: trans.__('Zoom Color'),
+    label: trans.__('Color Expression'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable

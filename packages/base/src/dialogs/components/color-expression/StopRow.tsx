@@ -2,17 +2,17 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useState } from 'react';
-import { IStopRow } from '../../zoomColor';
+import { IStopRow } from '../../colorExpressionDialog';
 
 const StopRow = ({
   index,
-  zoom,
+  value,
   outputValue,
   stopRows,
   setStopRows
 }: {
   index: number;
-  zoom: number;
+  value: number;
   outputValue: string;
   stopRows: IStopRow[];
   setStopRows: any;
@@ -66,16 +66,16 @@ const StopRow = ({
     return l;
   };
 
-  const handleZoomChange = event => {
+  const handleValueChange = event => {
     const newRows = [...stopRows];
-    stopRows[index].zoom = event.target.value;
+    stopRows[index].value = event.target.value;
     setStopRows(newRows);
     setInputZoom(event.target.value);
   };
 
   const handleColorChange = event => {
     const newRows = [...stopRows];
-    stopRows[index].outputValue = hexToRgb(event.target.value);
+    stopRows[index].color = hexToRgb(event.target.value);
     setStopRows(newRows);
     setInputColor(event.target.value);
   };
@@ -83,10 +83,10 @@ const StopRow = ({
   return (
     <div className="jp-gis-color-row">
       <input
-        id={`jp-gis-color-zoom-${index}`}
+        id={`jp-gis-color-value-${index}`}
         type="number"
-        defaultValue={zoom}
-        onChange={handleZoomChange}
+        defaultValue={value}
+        onChange={handleValueChange}
       />
       <input
         id={`jp-gis-color-color-${index}`}
