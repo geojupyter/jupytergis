@@ -95,7 +95,9 @@ class YQGISBase(YBaseDoc):
         # Lazy import because qgis may not be installed
         from .qgis_loader import import_project_from_qgis
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=self._file_extension) as tmp:
+        with tempfile.NamedTemporaryFile(
+            delete=False, suffix=self._file_extension
+        ) as tmp:
             file_content = base64.b64decode(source)
             tmp.write(file_content)
 

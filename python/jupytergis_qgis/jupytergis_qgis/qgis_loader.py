@@ -18,6 +18,8 @@ from qgis.core import (
     QgsReferencedRectangle,
 )
 
+from jupytergis_lab.notebook.utils import get_source_layer_names
+
 
 # Part of this code is copied from https://github.com/felt/qgis-plugin (GPL-2.0 license)
 class MapUtils:
@@ -103,7 +105,6 @@ def qgis_layer_to_jgis(
     }
     source_parameters = {}
 
-
     if isinstance(layer, QgsRasterLayer):
         layer_type = "RasterLayer"
         source_type = "RasterSource"
@@ -143,10 +144,14 @@ def qgis_layer_to_jgis(
             maxZoom=max_zoom,
             minZoom=min_zoom,
         )
+        # TODO Load source-layer properly, from qgis symbology?
+        try:
+            source_layer = get_source_layer_names(url)[0]
+            layer_parameters["sourceLayer"] = source_layer
+        except ValueError:
+            pass
         # TODO Load style properly
-        layer_parameters.update(
-            type='fill'
-        )
+        layer_parameters.update(type="fill")
 
     if layer_type is None:
         print(f"JUPYTERGIS - Enable to load layer type {type(layer)}")
