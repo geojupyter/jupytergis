@@ -184,7 +184,10 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
         ))}
       </div>
       <div className="bottom buttons">
-        <Button className="jp-Dialog-button jp-mod-accept jp-mod-styled">
+        <Button
+          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          onClick={addStopRow}
+        >
           Add Stop
         </Button>
         {/* <Button onClick={handleSubmit}>Submit</Button> */}

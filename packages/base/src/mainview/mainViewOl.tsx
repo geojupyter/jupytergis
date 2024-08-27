@@ -4,6 +4,7 @@ import {
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
+  IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
   IJupyterGISDoc,
@@ -25,6 +26,7 @@ import * as React from 'react';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import WebGlTileLayer from 'ol/layer/WebGLTile';
 import { fromLonLat, toLonLat } from 'ol/proj';
+import XYZ from 'ol/source/XYZ';
 // import { OSM } from 'ol/source';
 import GeoTIFF from 'ol/source/GeoTIFF';
 import VectorTileSource from 'ol/source/VectorTile';
@@ -32,6 +34,7 @@ import VectorTileSource from 'ol/source/VectorTile';
 import { Fill, Stroke, Style } from 'ol/style';
 // import Stroke from 'ol/style/Stroke';
 import BaseLayer from 'ol/layer/Base';
+import TileLayer from 'ol/layer/Tile';
 import { Protocol } from 'pmtiles';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
@@ -109,90 +112,16 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
   async generateScene(): Promise<void> {
     console.log('generating');
-    // !! GeoTiff testing
-    // const proj = new Projection({
-    //   code: 'EPSG:32721',
-    //   units: 'm'
-    // });
-    // const sourceExtent = [300000, 6090260, 409760, 6200020];
-
-    // const source = new GeoTIFF({
-    //   sources: [
-    //     {
-    //       // near-infrared reflectance
-    //       url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B08.tif',
-    //       max: 5000
-    //     },
-    //     {
-    //       // red reflectance
-    //       url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B04.tif',
-    //       max: 5000
-    //     },
-    //     {
-    //       // green reflectance
-    //       url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B03.tif',
-    //       max: 5000
-    //     }
-    //   ]
-    // });
-
-    // console.log('source', source);
-    // const l1 = new TileLayer({
-    //   source: new OSM()
-    // });
-
-    // const layer = new WebGlTileLayer({
-    //   source: source
-    // });
-
-    // console.log('layer', layer);
 
     if (this.divRef.current) {
       this._Map = new Map({
         target: this.divRef.current,
         layers: [],
         view: new View({
-          // projection: proj,
-          center: fromLonLat([0, 0]),
-          // extent: sourceExtent,
-          zoom: 2
+          center: [0, 0],
+          zoom: 1
         })
       });
-
-      // new View({
-      //   projection: proj,
-      //   center: getCenter(sourceExtent),
-      //   extent: sourceExtent,
-      //   zoom: 1
-      // })
-
-      //   this._Map = new MapLibre.Map({
-      //     container: this.divRef.current
-      //   })
-      //     .addControl(
-      //       new MapLibre.NavigationControl({
-      //         visualizePitch: true,
-      //         showZoom: true,
-      //         showCompass: true
-      //       })
-      //     )
-      //     .addControl(
-      //       new MapLibre.ScaleControl({
-      //         maxWidth: 80,
-      //         unit: 'metric'
-      //       })
-      //     );
-
-      //   this._Map.on('zoomend', () => {
-      //     if (!this._initializedPosition) {
-      //       return;
-      //     }
-
-      //     const zoom = this._Map.getView().getZoom();
-      //     if (zoom) {
-      //       this._model.setOptions({ ...this._model.getOptions(), zoom });
-      //     }
-      //   });
 
       this._Map.on('moveend', () => {
         if (!this._initializedPosition) {
@@ -212,7 +141,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
           latitude: latLng[1],
           longitude: latLng[0],
           bearing
-          //   pitch
         });
       });
 
@@ -220,21 +148,19 @@ export class OlMainView extends React.Component<IProps, IStates> {
       //   this._protocol = new Protocol();
       //   MapLibre.addProtocol('pmtiles', this._protocol.tile);
 
-      // Workaround for broken intialization of maplibre
-      //   this._Map._lazyInitEmptyStyle();
-
       if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
         await this._updateLayersImpl(
           JupyterGISModel.getOrderedLayerIds(this._model)
         );
         const options = this._model.getOptions();
-        // this.updateOptions(options);
+        this.updateOptions(options);
       }
 
       this.setState(old => ({ ...old, loading: false }));
     }
   }
 
+  // TODO: I don't think we need this for openlayers?
   /**
    * Add a source in the map.
    *
@@ -243,6 +169,9 @@ export class OlMainView extends React.Component<IProps, IStates> {
    */
   async addSource(id: string, source: IJGISSource): Promise<void> {
     switch (source.type) {
+      case 'RasterSource': {
+        break;
+      }
       case 'VectorTileSource': {
         // const mapSource = this._Map.getSource(id) as MapLibre.VectorTileSource;
         const parameters = source.parameters as IVectorTileSource;
@@ -318,46 +247,49 @@ export class OlMainView extends React.Component<IProps, IStates> {
   private async _updateLayersImpl(layerIds: string[]): Promise<void> {
     // TODO implement
 
-    // const previousLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
+    const previousLayerIds = this.getLayers();
+    console.log('previousLayerIds', previousLayerIds);
     // We use the reverse order of the list to add the layer from the top to the
     // bottom.
     // This is to ensure that the beforeId (layer on top of the one we add/move)
     // is already added/moved in the map.
     const reversedLayerIds = layerIds.slice().reverse();
+
     for (const layerId of reversedLayerIds) {
       const layer = this._model.sharedModel.getLayer(layerId);
+
       if (!layer) {
         console.log(`Layer id ${layerId} does not exist`);
         return;
       }
       // Get the expected index in the map.
-      //   const currentLayerIds = this._Map
-      //     .getStyle()
-      //     .layers.map(layer => layer.id);
-      //   let indexInMap = currentLayerIds.length;
-      //   const nextLayer = layerIds[layerIds.indexOf(layerId) + 1];
-      //   if (nextLayer !== undefined) {
-      //     indexInMap = currentLayerIds.indexOf(nextLayer);
-      //     if (indexInMap === -1) {
-      //       indexInMap = currentLayerIds.length;
-      //     }
-      //   }
-      // eslint-disable-next-line no-constant-condition
-      if (false) {
-        // this.moveLayer(layerId, indexInMap);
-      } else {
-        await this.addLayer(layerId, layer);
+      const currentLayerIds = [...previousLayerIds];
+      let indexInMap = currentLayerIds.length;
+      const nextLayer = layerIds[layerIds.indexOf(layerId) + 1];
+      if (nextLayer !== undefined) {
+        indexInMap = currentLayerIds.indexOf(nextLayer);
+        if (indexInMap === -1) {
+          indexInMap = currentLayerIds.length;
+        }
       }
+      // eslint-disable-next-line no-constant-condition
+      if (this.getLayer(layerId)) {
+        this.moveLayer(layerId, indexInMap);
+      } else {
+        await this.addLayer(layerId, layer, indexInMap);
+      }
+
       // Remove the element of the previous list as treated.
-      //   const index = previousLayerIds.indexOf(layerId);
-      //   if (index > -1) {
-      //     previousLayerIds.splice(index, 1);
-      //   }
-      // }
-      // // Remove the layers not used anymore.
-      // previousLayerIds.forEach(layerId => {
-      //   this._Map.removeLayer(layerId);
+      const index = previousLayerIds.indexOf(layerId);
+      if (index > -1) {
+        previousLayerIds.splice(index, 1);
+      }
     }
+    // Remove the layers not used anymore.
+    previousLayerIds.forEach(layerId => {
+      this._Map.removeLayer(layerId);
+    });
+
     this._ready = true;
   }
 
@@ -368,14 +300,13 @@ export class OlMainView extends React.Component<IProps, IStates> {
    * @param layer - the layer object.
    * @param index - expected index of the layer.
    */
-  async addLayer(id: string, layer: IJGISLayer, index?: number): Promise<void> {
+  async addLayer(id: string, layer: IJGISLayer, index: number): Promise<void> {
     console.log('addinglayer');
-    // if (this._Map.getLayers()) {
-    //   // Layer already exists
-    //   return;
-    // }
+    if (this.getLayer(id)) {
+      // Layer already exists
+      return;
+    }
 
-    // Add the source if necessary.
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getSource(sourceId);
     if (!source) {
@@ -383,21 +314,38 @@ export class OlMainView extends React.Component<IProps, IStates> {
     }
     const sourceParameters = source.parameters as IVectorTileSource;
 
-    // if (!this._Map.getSource(sourceId)) {
-    //   await this.addSource(sourceId, source);
-    // }
-
     // Get the beforeId value according to the expected index.
-    // const currentLayerIds = this._Map
-    //   .getLayers()
-    //   .forEach.map(layer => layer.id);
-    // // const currentLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
-    // let beforeId: string | undefined = undefined;
-    // if (index < currentLayerIds.length && index !== -1) {
-    //   beforeId = currentLayerIds[index];
-    // }
+    const currentLayerIds = this.getLayers();
+    // const currentLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
+    let beforeId: string | undefined = undefined;
+    if (index < currentLayerIds.length && index !== -1) {
+      beforeId = currentLayerIds[index];
+    }
 
     switch (layer.type) {
+      case 'RasterLayer': {
+        const layerParameters = layer.parameters as IRasterLayer;
+        const sourceParameters = source.parameters as IRasterSource;
+        const newSource = new XYZ({
+          attributions: sourceParameters.attribution,
+          minZoom: sourceParameters.minZoom,
+          maxZoom: sourceParameters.maxZoom,
+          tileSize: 256,
+          url: this.computeSourceUrl(source)
+        });
+
+        const newLayer = new TileLayer({
+          opacity: layerParameters.opacity,
+          source: newSource
+        });
+
+        // change map view to use projection and extent from source
+        this._Map.setView(newSource.getView());
+
+        // OpenLayers doesn't have name/is field so add it
+        this._Map.getLayers().insertAt(index, newLayer);
+        break;
+      }
       case 'WebGlLayer': {
         console.log('adding web gl layer');
         const layerParameters = layer.parameters as IRasterLayer;
@@ -427,8 +375,8 @@ export class OlMainView extends React.Component<IProps, IStates> {
         this._Map.setView(source.getView());
 
         // OpenLayers doesn't have name/is field so add it
-        newLayer.set('id', id);
-        this._Map.addLayer(newLayer);
+        this._Map.getLayers().insertAt(index, newLayer);
+        // this._Map.addLayer(newLayer);
 
         break;
       }
@@ -621,31 +569,48 @@ export class OlMainView extends React.Component<IProps, IStates> {
     if (!this._initializedPosition) {
       const options = this._model.getOptions();
 
-      //   this.updateOptions(options);
+      this.updateOptions(options);
 
       this._initializedPosition = true;
     }
   }
 
-  //   private updateOptions(options: IJGISOptions) {
-  //     // It is important to call setZoom first, otherwise maplibre does set the center properly
-  //     this._Map.setZoom(options.zoom || 0);
-  //     this._Map.setCenter(
-  //       (options.longitude &&
-  //         options.latitude && {
-  //           lng: options.longitude,
-  //           lat: options.latitude
-  //         }) || [0, 0]
-  //     );
-  //     this._Map.setBearing(options.bearing || 0);
-  //     this._Map.setPitch(options.pitch || 0);
-  //   }
+  private updateOptions(options: IJGISOptions) {
+    const centerCoord = fromLonLat(
+      [options.longitude, options.latitude],
+      this._Map.getView().getProjection()
+    );
+
+    console.log('centerCoord', centerCoord);
+    this._Map.getView().setZoom(options.zoom || 0);
+    this._Map.getView().setCenter(centerCoord || [0, 0]);
+
+    this._Map.getView().setRotation(options.bearing || 0);
+  }
 
   private _onViewChanged(
     sender: ObservableMap<JSONValue>,
     change: IObservableMap.IChangedArgs<JSONValue>
   ): void {
     // TODO SOMETHING
+  }
+
+  /**
+   * Convienence method to get a specific layer from OpenLayers Map
+   * @param id
+   */
+  private getLayer(id: string) {
+    return this._Map
+      .getLayers()
+      .getArray()
+      .find(layer => layer.get('id') === id);
+  }
+
+  private getLayers() {
+    return this._Map
+      .getLayers()
+      .getArray()
+      .map(layer => layer.get('id'));
   }
 
   private _onLayersChanged(
@@ -663,10 +628,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
         this.removeLayer(change.id);
       } else {
         // OpenLayers doesn't have a way to get an individual layer
-        const mapLayer = this._Map
-          .getLayers()
-          .getArray()
-          .find(layer => layer.get('id') === change.id);
+        const mapLayer = this.getLayer(change.id);
         console.log('mapLayer', mapLayer);
         if (
           mapLayer &&
