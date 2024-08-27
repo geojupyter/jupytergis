@@ -19,7 +19,7 @@ export class JupyterGISModelFactoryBase
    * @returns The name
    */
   get name(): string {
-    return 'jupytergis-qgismodel';
+    throw 'Not implemented';
   }
 
   /**
@@ -85,6 +85,16 @@ export class JupyterGISModelFactoryBase
 }
 
 export class QGZModelFactory extends JupyterGISModelFactoryBase {
+
+  /**
+   * The name of the model.
+   *
+   * @returns The name
+   */
+  get name(): string {
+    return 'jupytergis-qgzmodel';
+  }
+
   /**
    * The content type of the file.
    *
@@ -96,6 +106,15 @@ export class QGZModelFactory extends JupyterGISModelFactoryBase {
 }
 
 export class QGSModelFactory extends JupyterGISModelFactoryBase {
+  /**
+   * The name of the model.
+   *
+   * @returns The name
+   */
+  get name(): string {
+    return 'jupytergis-qgsmodel';
+  }
+
   /**
    * The content type of the file.
    *

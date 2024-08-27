@@ -23,7 +23,7 @@ class YQGISBase(YBaseDoc):
         self._ydoc["layerTree"] = self._ylayerTree = Array()
         self._ydoc["terrain"] = self._yterrain = Map()
         self._source = ""
-        self._file_ext = None
+        self._file_extension = None
 
     @property
     def layers(self) -> Map:
@@ -95,7 +95,9 @@ class YQGISBase(YBaseDoc):
         # Lazy import because qgis may not be installed
         from .qgis_loader import import_project_from_qgis
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=self._file_ext) as tmp:
+        print('[DEBUG] Load ', self._file_extension, source)
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=self._file_extension) as tmp:
             file_content = base64.b64decode(source)
             tmp.write(file_content)
 
@@ -106,11 +108,13 @@ class YQGS(YQGISBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._file_ext = ".qgs"
+        print('[DEBUG] Create YDOC for QGS')
+        self._file_extension = ".qgs"
 
 
 class YQGZ(YQGISBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._file_ext = ".qgz"
+        print('[DEBUG] Create YDOC for QGZ')
+        self._file_extension = ".qgz"

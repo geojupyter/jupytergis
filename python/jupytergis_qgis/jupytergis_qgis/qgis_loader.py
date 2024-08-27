@@ -230,6 +230,8 @@ def import_project_from_qgis(path: str | Path):
         QgsReferencedRectangle(current_map_extent, current_map_crs), QSize(1024, 800)
     )
 
+    print('[DEBUG] QGIS loader, loaded: ', path, jgis_layer_tree)
+
     return {
         "options": {
             "bearing": 0.0,

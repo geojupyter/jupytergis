@@ -19,10 +19,8 @@ import {
 
 import { JupyterGISWidgetFactory } from '@jupytergis/jupytergis-core';
 import { IJupyterGISDocTracker, IJupyterGISWidget } from '@jupytergis/schema';
-import { requestAPI } from '@jupytergis/base';
+import { JupyterGISWidget, requestAPI } from '@jupytergis/base';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
-
-const FACTORY = 'Jupytercad QGIS Factory';
 
 const activate = async (
   app: JupyterFrontEnd,
@@ -48,11 +46,21 @@ const activate = async (
     }
     return installed;
   };
-  const widgetFactory = new JupyterGISWidgetFactory({
-    name: FACTORY,
-    modelName: 'jupytergis-qgismodel',
-    fileTypes: ['QGS', 'QGZ'],
-    defaultFor: ['QGS', 'QGZ'],
+  const QGSWidgetFactory = new JupyterGISWidgetFactory({
+    name: 'JupyterGIS QGS Factory',
+    modelName: 'jupytergis-qgsmodel',
+    fileTypes: ['QGS'],
+    defaultFor: ['QGS'],
+    tracker,
+    commands: app.commands,
+    externalCommandRegistry,
+    backendCheck
+  });
+  const QGZWidgetFactory = new JupyterGISWidgetFactory({
+    name: 'JupyterGIS QGZ Factory',
+    modelName: 'jupytergis-qgzmodel',
+    fileTypes: ['QGZ'],
+    defaultFor: ['QGZ'],
     tracker,
     commands: app.commands,
     externalCommandRegistry,
@@ -60,7 +68,8 @@ const activate = async (
   });
 
   // Registering the widget factory
-  app.docRegistry.addWidgetFactory(widgetFactory);
+  app.docRegistry.addWidgetFactory(QGSWidgetFactory);
+  app.docRegistry.addWidgetFactory(QGZWidgetFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
   app.docRegistry.addModelFactory(new QGSModelFactory());
@@ -95,7 +104,7 @@ const activate = async (
     QGISSharedModelFactory
   );
 
-  widgetFactory.widgetCreated.connect((sender, widget) => {
+  const widgetCreatedCallback = (sender, widget: JupyterGISWidget) => {
     // Notify the instance tracker if restore data needs to update.
     widget.context.pathChanged.connect(() => {
       tracker.save(widget);
@@ -107,7 +116,11 @@ const activate = async (
     tracker.add(widget);
     app.shell.activateById('jupytergis::leftControlPanel');
     app.shell.activateById('jupytergis::rightControlPanel');
-  });
+  };
+
+  QGSWidgetFactory.widgetCreated.connect(widgetCreatedCallback);
+  QGZWidgetFactory.widgetCreated.connect(widgetCreatedCallback);
+
   console.log('jupytergis:qgisplugin is activated!');
 };
 
