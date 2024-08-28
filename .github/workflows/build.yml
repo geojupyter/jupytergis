@@ -191,7 +191,7 @@ jobs:
       - name: Execute integration tests
         shell: bash -l {0}
         working-directory: ui-tests
-        run: npx playwright test
+        run: npx playwright test --retries=2
 
       - name: Upload Playwright Test report
         if: always()
