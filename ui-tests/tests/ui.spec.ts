@@ -17,9 +17,18 @@ test.describe('UI Test', () => {
     });
     let errors = 0;
     test.beforeEach(async ({ page }) => {
+      const unrelatedErrors = [
+        // This error is related to plotly dependency, installed with qgis.
+        '@jupyter-widgets/base doesn\'t exist in shared scope default'
+      ];
       page.setViewportSize({ width: 1920, height: 1080 });
       page.on('console', message => {
         if (message.type() === 'error') {
+          for (let pattern of unrelatedErrors) {
+            if (message.text().includes(pattern)) {
+              return;
+            }
+          }
           console.log('CONSOLE ERROR', message);
           errors += 1;
         }
@@ -52,10 +61,9 @@ test.describe('UI Test', () => {
           .getByRole('tab', { name: 'JupyterGIS Control Panel' })
           .click();
         await page.waitForTimeout(1000);
-        const main = await page.$('#jp-main-split-panel');
         expect(errors).toBe(0);
 
-        await expect(await page.$('.maplibregl-canvas')).toBeVisible();
+        await expect(page.locator('.maplibregl-canvas')).toBeVisible();
       });
     }
   });
