@@ -154,7 +154,6 @@ test.describe('#layerPanel', () => {
     });
 
     test('should hide the top raster layer', async ({ page }) => {
-      const notHiddenScreenshot = 'top-layer-not-hidden.png';
       const layerTree = await openLayerTree(page);
       const layerGroup = layerTree.locator('.jp-gis-layerGroup');
       const main = page.locator('.jGIS-Mainview');
@@ -165,7 +164,7 @@ test.describe('#layerPanel', () => {
 
       // Wait for the map to be displayed.
       expect(await main.screenshot()).toMatchSnapshot({
-        name: notHiddenScreenshot,
+        name: 'top-layer-not-hidden.png',
         maxDiffPixelRatio: 0.01
       });
 
