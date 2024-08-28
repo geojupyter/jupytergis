@@ -173,23 +173,18 @@ test.describe('#layerPanel', () => {
 
       // Hide the last layer (top in z-index).
       await hideLayerButton.first().click();
-      // wait for a significant change in the screenshots (1%).
+
+      // wait for the map to be updated.
       await page.waitForCondition(async () => {
         try {
-          expect(await main.screenshot()).not.toMatchSnapshot({
-            name: notHiddenScreenshot,
-            maxDiffPixelRatio: 0.1
+          expect(await main.screenshot()).toMatchSnapshot({
+            name: 'top-layer-hidden.png',
+            maxDiffPixelRatio: 0.01
           });
           return true;
         } catch {
           return false;
         }
-      });
-
-      // Wait for the layer to be hidden.
-      expect(await main.screenshot()).toMatchSnapshot({
-        name: 'top-layer-hidden.png',
-        maxDiffPixelRatio: 0.01
       });
 
       // Restore the visibility of the layer.
@@ -262,9 +257,17 @@ test.describe('#layerPanel', () => {
       );
       await page.mouse.up();
 
-      expect(await main.screenshot()).toMatchSnapshot({
-        name: 'top-layer-hidden.png',
-        maxDiffPixelRatio: 0.01
+      // wait for the map to be updated.
+      await page.waitForCondition(async () => {
+        try {
+          expect(await main.screenshot()).toMatchSnapshot({
+            name: 'top-layer-hidden.png',
+            maxDiffPixelRatio: 0.01
+          });
+          return true;
+        } catch {
+          return false;
+        }
       });
     });
   });
