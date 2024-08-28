@@ -531,6 +531,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
         const layerParameters = layer.parameters as IHillshadeLayer;
 
         newLayer = new WebGlTileLayer({
+          opacity: 0.3,
           source: this._sources[layerParameters.source],
           style: {
             color: ['color', this.hillshadeMathStuff()]
@@ -552,8 +553,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
     // TODO: Does this work? Think I need to do z-index stuff
     this._Map.getLayers().insertAt(index, newLayer);
-    this._Map.render();
-    // this._Map.addLayer(newLayer);
+
     if (layer.filters) {
       this.setFilters(id, layer.filters);
     }
@@ -598,7 +598,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
     const slope = ['atan', ['sqrt', ['+', ['^', dzdx, 2], ['^', dzdy, 2]]]];
     const aspect = ['clamp', ['atan', ['-', 0, dzdx], dzdy], -Math.PI, Math.PI];
     const sunEl = ['*', Math.PI / 180, 45];
-    const sunAz = ['*', Math.PI / 180, 315];
+    const sunAz = ['*', Math.PI / 180, 46];
 
     const cosIncidence = [
       '+',
