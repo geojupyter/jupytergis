@@ -1,5 +1,6 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
+  IHillshadeLayer,
   IJGISFilter,
   IJGISLayer,
   IJGISLayerDocChange,
@@ -7,8 +8,10 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSourceDocChange,
+  IJupyterGISClientState,
   IJupyterGISDoc,
   IJupyterGISModel,
+  IRasterDemSource,
   IRasterLayer,
   IRasterSource,
   IVectorLayer,
@@ -19,7 +22,7 @@ import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
 import * as MapLibre from 'maplibre-gl';
-import { Map, View } from 'ol';
+import { Map as OlMap, View } from 'ol';
 import MVT from 'ol/format/MVT';
 import * as React from 'react';
 // import TileLayer from 'ol/layer/Tile';
@@ -31,10 +34,14 @@ import XYZ from 'ol/source/XYZ';
 import GeoTIFF from 'ol/source/GeoTIFF';
 import VectorTileSource from 'ol/source/VectorTile';
 
-import { Fill, Stroke, Style } from 'ol/style';
 // import Stroke from 'ol/style/Stroke';
+
 import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+
+import { Color } from 'ol/color';
+import { ImageTile } from 'ol/source';
 import { Protocol } from 'pmtiles';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
@@ -114,7 +121,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
     console.log('generating');
 
     if (this.divRef.current) {
-      this._Map = new Map({
+      this._Map = new OlMap({
         target: this.divRef.current,
         layers: [],
         view: new View({
@@ -312,7 +319,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
     if (!source) {
       return;
     }
-    const sourceParameters = source.parameters as IVectorTileSource;
 
     // Get the beforeId value according to the expected index.
     const currentLayerIds = this.getLayers();
@@ -322,11 +328,16 @@ export class OlMainView extends React.Component<IProps, IStates> {
       beforeId = currentLayerIds[index];
     }
 
+    let newLayer, newSource;
+
+    // TODO: OpenLayers provides a bunch of sources for specific tile
+    // providers, so maybe set up some way to use those
     switch (layer.type) {
       case 'RasterLayer': {
-        const layerParameters = layer.parameters as IRasterLayer;
         const sourceParameters = source.parameters as IRasterSource;
-        const newSource = new XYZ({
+        const layerParameters = layer.parameters as IRasterLayer;
+
+        newSource = new XYZ({
           attributions: sourceParameters.attribution,
           minZoom: sourceParameters.minZoom,
           maxZoom: sourceParameters.maxZoom,
@@ -334,16 +345,12 @@ export class OlMainView extends React.Component<IProps, IStates> {
           url: this.computeSourceUrl(source)
         });
 
-        const newLayer = new TileLayer({
+        newLayer = new TileLayer({
           opacity: layerParameters.opacity,
+          visible: layer.visible,
           source: newSource
         });
 
-        // change map view to use projection and extent from source
-        this._Map.setView(newSource.getView());
-
-        // OpenLayers doesn't have name/is field so add it
-        this._Map.getLayers().insertAt(index, newLayer);
         break;
       }
       case 'WebGlLayer': {
@@ -351,7 +358,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
         const layerParameters = layer.parameters as IRasterLayer;
 
         // TODO: copy video source to get multipls urls from creation form
-        const source = new GeoTIFF({
+        newSource = new GeoTIFF({
           sources: [
             {
               // red reflectance
@@ -366,25 +373,28 @@ export class OlMainView extends React.Component<IProps, IStates> {
           ]
         });
 
-        const newLayer = new WebGlTileLayer({
+        newLayer = new WebGlTileLayer({
           opacity: layerParameters.opacity,
-          source: source
+          source: newSource
         });
-
-        // change map view to use projection and extent from source
-        this._Map.setView(source.getView());
-
-        // OpenLayers doesn't have name/is field so add it
-        this._Map.getLayers().insertAt(index, newLayer);
-        // this._Map.addLayer(newLayer);
 
         break;
       }
       case 'VectorLayer': {
+        const sourceParameters = source.parameters as IVectorTileSource;
         const layerParameters = layer.parameters as IVectorLayer;
 
-        const newLayer = new VectorTileLayer({
+        const fill = new Fill({
+          color: (layerParameters.color as Color) || '#FF000000'
+        });
+        const stroke = new Stroke({
+          color: (layerParameters.color as Color) || '#FF000000',
+          width: 1.25
+        });
+        // TODO is MVT right here??
+        newLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
+          visible: layer.visible,
           source: new VectorTileSource({
             attributions: sourceParameters.attribution,
             minZoom: sourceParameters.minZoom,
@@ -392,44 +402,102 @@ export class OlMainView extends React.Component<IProps, IStates> {
             urls: [this.computeSourceUrl(source)],
             format: new MVT()
           }),
-          style: function (feature, resolution) {
-            // Filter and style only the desired feature(s)
-            console.log('feature in style', feature.getProperties());
-            if (
-              feature.getProperties()['layer'] === layerParameters.sourceLayer
-            ) {
-              return new Style({
-                fill: new Fill({ color: '#F092DD' }),
-                stroke: new Stroke({
-                  color: '#392F5A',
-                  width: 2
-                })
-              });
-            }
-            return undefined; // Don't render this feature
-          }
+          style: new Style({
+            image: new Circle({
+              fill: fill,
+              stroke: stroke,
+              radius: 5
+            }),
+            fill: fill,
+            stroke: stroke
+          })
         });
 
-        // OpenLayers doesn't have name/is field so add it
-        newLayer.set('id', id);
+        break;
+      }
+      case 'HillshadeLayer': {
+        const sourceParameters = source.parameters as IRasterDemSource;
+        const layerParameters = layer.parameters as IHillshadeLayer;
 
-        this._Map.addLayer(newLayer);
+        newSource = new ImageTile({
+          url: this.computeSourceUrl(source),
+          attributions: sourceParameters.attribution
+        });
+        newLayer = new WebGlTileLayer({
+          source: newSource,
+          style: {
+            color: ['color', this.hillshadeMathStuff()]
+          }
+        });
 
         break;
       }
     }
+
+    // OpenLayers doesn't have name/id field so add it
+    newLayer.set('id', id);
+
+    // change map view to use projection and extent from source
+    this._Map.setView(newSource.getView());
+
+    this._Map.getLayers().insertAt(index, newLayer);
 
     if (layer.filters) {
       this.setFilters(id, layer.filters);
     }
   }
 
-  info = event => {
-    const features = this._Map.getFeaturesAtPixel(event.pixel);
-    const properties = features[0].getProperties();
-    console.log('features', features);
-    console.log('properties', JSON.stringify(properties, null, 2));
+  /**
+   * Taken from https://openlayers.org/en/latest/examples/webgl-shaded-relief.html
+   * @returns
+   */
+  private hillshadeMathStuff = () => {
+    // The method used to extract elevations from the DEM.
+    // In this case the format used is Terrarium
+    // red * 256 + green + blue / 256 - 32768
+    //
+    // Other frequently used methods include the Mapbox format
+    // (red * 256 * 256 + green * 256 + blue) * 0.1 - 10000
+    //
+    function elevation(xOffset, yOffset) {
+      const red = ['band', 1, xOffset, yOffset];
+      const green = ['band', 2, xOffset, yOffset];
+      const blue = ['band', 3, xOffset, yOffset];
+
+      // band math operates on normalized values from 0-1
+      // so we scale by 255
+      return [
+        '+',
+        ['*', 255 * 256, red],
+        ['*', 255, green],
+        ['*', 255 / 256, blue],
+        -32768
+      ];
+    }
+    // Generates a shaded relief image given elevation data.  Uses a 3x3
+    // neighborhood for determining slope and aspect.
+    const dp = ['*', 2, ['resolution']];
+    const z0x = ['*', 2, elevation(-1, 0)];
+    const z1x = ['*', 2, elevation(1, 0)];
+    const dzdx = ['/', ['-', z1x, z0x], dp];
+    const z0y = ['*', 2, elevation(0, -1)];
+    const z1y = ['*', 2, elevation(0, 1)];
+    const dzdy = ['/', ['-', z1y, z0y], dp];
+    const slope = ['atan', ['sqrt', ['+', ['^', dzdx, 2], ['^', dzdy, 2]]]];
+    const aspect = ['clamp', ['atan', ['-', 0, dzdx], dzdy], -Math.PI, Math.PI];
+    const sunEl = ['*', Math.PI / 180, 45];
+    const sunAz = ['*', Math.PI / 180, 315];
+
+    const cosIncidence = [
+      '+',
+      ['*', ['sin', sunEl], ['cos', slope]],
+      ['*', ['cos', sunEl], ['sin', slope], ['cos', ['-', sunAz, aspect]]]
+    ];
+    const scaled = ['*', 255, cosIncidence];
+
+    return scaled;
   };
+
   /**
    * Move a layer in the stack.
    *
@@ -437,8 +505,9 @@ export class OlMainView extends React.Component<IProps, IStates> {
    * @param index - expected index of the layer.
    */
   moveLayer(id: string, index: number | undefined): void {
-    // Get the beforeId value according to the expected index.
-    // const currentLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
+    // TODO: OL uses z-index for ordering so come back to this
+    // // Get the beforeId value according to the expected index.
+    // const currentLayerIds = this.getLayers();
     // let beforeId: string | undefined = undefined;
     // if (!(index === undefined) && index < currentLayerIds.length) {
     //   beforeId = currentLayerIds[index];
@@ -458,17 +527,41 @@ export class OlMainView extends React.Component<IProps, IStates> {
     mapLayer: BaseLayer
   ): Promise<void> {
     console.log('in updater');
+    const sourceId = layer.parameters?.source;
+    const source = this._model.sharedModel.getSource(sourceId);
+    if (!source) {
+      return;
+    }
+
     switch (layer.type) {
+      case 'RasterLayer': {
+        mapLayer?.setOpacity(layer.parameters?.opacity || 1);
+        break;
+      }
+      case 'VectorLayer': {
+        mapLayer?.setOpacity(layer.parameters?.opacity || 1);
+
+        (mapLayer as VectorTileLayer).setStyle({
+          'fill-color': layer.parameters?.color,
+          'stroke-color': layer.parameters?.color,
+          'circle-fill-color': layer.parameters?.color,
+          'circle-stroke-color': layer.parameters?.color
+        });
+        break;
+      }
       case 'WebGlLayer': {
-        console.log('update webgl');
-        const webGlLayer = mapLayer as WebGlTileLayer;
-        const jgisLayer = this._model.getLayer(id);
-        const color = jgisLayer?.parameters?.color;
-        console.log('color', color);
-        webGlLayer.setStyle({ color: color });
+        (mapLayer as WebGlTileLayer).setStyle({
+          color: layer?.parameters?.color
+        });
+        break;
+      }
+      case 'HillshadeLayer': {
+        // TODO figure out color here
         break;
       }
     }
+
+    // TODO: filters
   }
 
   /**
@@ -477,7 +570,10 @@ export class OlMainView extends React.Component<IProps, IStates> {
    * @param id - the id of the layer.
    */
   removeLayer(id: string): void {
-    // TODO implement
+    const mapLayer = this.getLayer(id);
+    if (mapLayer) {
+      this._Map.removeLayer(mapLayer);
+    }
   }
 
   /**
@@ -555,12 +651,12 @@ export class OlMainView extends React.Component<IProps, IStates> {
     return sourceSpec;
   }
 
-  //   private _onClientSharedStateChanged = (
-  //     sender: IJupyterGISModel,
-  //     clients: Map<number, IJupyterGISClientState>
-  //   ): void => {
-  //     // TODO SOMETHING
-  //   };
+  private _onClientSharedStateChanged = (
+    sender: IJupyterGISModel,
+    clients: Map<number, IJupyterGISClientState>
+  ): void => {
+    // TODO SOMETHING
+  };
 
   private _onSharedOptionsChanged(
     sender?: IJupyterGISDoc,
@@ -597,7 +693,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
   /**
    * Convienence method to get a specific layer from OpenLayers Map
-   * @param id
+   * @param id Layer to retrieve
    */
   private getLayer(id: string) {
     return this._Map
@@ -606,6 +702,9 @@ export class OlMainView extends React.Component<IProps, IStates> {
       .find(layer => layer.get('id') === id);
   }
 
+  /**
+   * Convienence method to get a specific layer from OpenLayers Map
+   */
   private getLayers() {
     return this._Map
       .getLayers()
@@ -629,15 +728,12 @@ export class OlMainView extends React.Component<IProps, IStates> {
       } else {
         // OpenLayers doesn't have a way to get an individual layer
         const mapLayer = this.getLayer(change.id);
-        console.log('mapLayer', mapLayer);
         if (
           mapLayer &&
           JupyterGISModel.getOrderedLayerIds(this._model).includes(change.id)
         ) {
-          console.log('updating');
           this.updateLayer(change.id, layer, mapLayer);
         } else {
-          console.log('hitting');
           this.updateLayers(JupyterGISModel.getOrderedLayerIds(this._model));
         }
       }
@@ -690,7 +786,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
     // this._Map.setFilter(id, filterExpression);
   }
 
-  // @ts-ignore
   private getSource<T>(id: string): T | undefined {
     const source = this._model.sharedModel.getSource(id);
 
@@ -740,7 +835,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
   private _initializedPosition = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
 
-  private _Map: Map;
+  private _Map: OlMap;
   //   private _Map: MapLibre.Map;
 
   private _model: IJupyterGISModel;
