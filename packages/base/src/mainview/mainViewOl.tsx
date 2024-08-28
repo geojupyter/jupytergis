@@ -29,11 +29,10 @@ import * as React from 'react';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import WebGlTileLayer from 'ol/layer/WebGLTile';
 import { fromLonLat, toLonLat } from 'ol/proj';
-import XYZ from 'ol/source/XYZ';
 // import { OSM } from 'ol/source';
+import GeoJSON from 'ol/format/GeoJSON';
 import GeoTIFF from 'ol/source/GeoTIFF';
 import VectorTileSource from 'ol/source/VectorTile';
-
 // import Stroke from 'ol/style/Stroke';
 
 import BaseLayer from 'ol/layer/Base';
@@ -41,7 +40,7 @@ import TileLayer from 'ol/layer/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 
 import { Color } from 'ol/color';
-import { ImageTile } from 'ol/source';
+import { ImageTile, XYZ } from 'ol/source';
 import { Protocol } from 'pmtiles';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
@@ -88,6 +87,8 @@ export class OlMainView extends React.Component<IProps, IStates> {
       loading: true,
       firstLoad: true
     };
+
+    this._sources = [];
   }
 
   async componentDidMount(): Promise<void> {
@@ -175,18 +176,30 @@ export class OlMainView extends React.Component<IProps, IStates> {
    * @param source - the source object.
    */
   async addSource(id: string, source: IJGISSource): Promise<void> {
+    let newSource;
     switch (source.type) {
       case 'RasterSource': {
+        const sourceParameters = source.parameters as IRasterSource;
+        const url = this.computeSourceUrl(source);
+        console.log('url', url);
+        newSource = new XYZ({
+          attributions: sourceParameters.attribution,
+          minZoom: sourceParameters.minZoom,
+          maxZoom: sourceParameters.maxZoom,
+          tileSize: 256,
+          url: url
+        });
+
         break;
       }
       case 'VectorTileSource': {
         // const mapSource = this._Map.getSource(id) as MapLibre.VectorTileSource;
-        const parameters = source.parameters as IVectorTileSource;
+        const sourceParameters = source.parameters as IVectorTileSource;
 
-        const newSource = new VectorTileSource({
-          attributions: parameters.attribution,
-          minZoom: parameters.minZoom,
-          maxZoom: parameters.maxZoom,
+        newSource = new VectorTileSource({
+          attributions: sourceParameters.attribution,
+          minZoom: sourceParameters.minZoom,
+          maxZoom: sourceParameters.maxZoom,
           urls: [this.computeSourceUrl(source)],
           format: new MVT()
         });
@@ -196,7 +209,67 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
         break;
       }
+      case 'GeoJSONSource': {
+        const data =
+          source.parameters?.data ||
+          (await this._model.readGeoJSON(source.parameters?.path));
+
+        // const format = new GeoJSON({
+        //   featureProjection: this._Map.getView().getProjection()
+        // });
+        // format.readFeatures(data);
+
+        const format = new GeoJSON({
+          featureProjection: this._Map.getView().getProjection()
+        });
+        const tileLoadFunction = async (tile, url) => {
+          const data =
+            source.parameters?.data ||
+            (await this._model.readGeoJSON(source.parameters?.path));
+          tile.setFeatures(format.readFeatures(data));
+        };
+
+        newSource = new VectorTileSource({
+          tileLoadFunction: tileLoadFunction
+        });
+        break;
+      }
+      case 'RasterDemSource': {
+        const sourceParameters = source.parameters as IRasterDemSource;
+
+        newSource = new ImageTile({
+          url: this.computeSourceUrl(source),
+          attributions: sourceParameters.attribution
+        });
+        break;
+      }
+      case 'VideoSource': {
+        break;
+      }
+      case 'ImageSource': {
+        break;
+      }
+      case 'GeoTiffSource': {
+        newSource = new GeoTIFF({
+          sources: [
+            {
+              // red reflectance
+              url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B04.tif',
+              max: 10000
+            },
+            {
+              // near-infrared reflectance
+              url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B08.tif',
+              max: 10000
+            }
+          ]
+        });
+        break;
+      }
     }
+
+    newSource.set('id', id);
+    this._sources[id] = newSource;
   }
 
   private toggleVideoPlaying(sourceId: any) {
@@ -320,6 +393,11 @@ export class OlMainView extends React.Component<IProps, IStates> {
       return;
     }
 
+    if (!this._sources[sourceId]) {
+      console.log('adding source', sourceId);
+      await this.addSource(sourceId, source);
+    }
+
     // Get the beforeId value according to the expected index.
     const currentLayerIds = this.getLayers();
     // const currentLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
@@ -328,28 +406,20 @@ export class OlMainView extends React.Component<IProps, IStates> {
       beforeId = currentLayerIds[index];
     }
 
-    let newLayer, newSource;
+    let newLayer;
 
     // TODO: OpenLayers provides a bunch of sources for specific tile
     // providers, so maybe set up some way to use those
     switch (layer.type) {
       case 'RasterLayer': {
-        const sourceParameters = source.parameters as IRasterSource;
         const layerParameters = layer.parameters as IRasterLayer;
-
-        newSource = new XYZ({
-          attributions: sourceParameters.attribution,
-          minZoom: sourceParameters.minZoom,
-          maxZoom: sourceParameters.maxZoom,
-          tileSize: 256,
-          url: this.computeSourceUrl(source)
-        });
 
         newLayer = new TileLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
-          source: newSource
+          source: this._sources[layerParameters.source]
         });
+        console.log('newLayer', newLayer);
 
         break;
       }
@@ -358,30 +428,15 @@ export class OlMainView extends React.Component<IProps, IStates> {
         const layerParameters = layer.parameters as IRasterLayer;
 
         // TODO: copy video source to get multipls urls from creation form
-        newSource = new GeoTIFF({
-          sources: [
-            {
-              // red reflectance
-              url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B04.tif',
-              max: 10000
-            },
-            {
-              // near-infrared reflectance
-              url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B08.tif',
-              max: 10000
-            }
-          ]
-        });
 
         newLayer = new WebGlTileLayer({
           opacity: layerParameters.opacity,
-          source: newSource
+          source: this._sources[layerParameters.source]
         });
 
         break;
       }
       case 'VectorLayer': {
-        const sourceParameters = source.parameters as IVectorTileSource;
         const layerParameters = layer.parameters as IVectorLayer;
 
         const fill = new Fill({
@@ -395,13 +450,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
         newLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
-          source: new VectorTileSource({
-            attributions: sourceParameters.attribution,
-            minZoom: sourceParameters.minZoom,
-            maxZoom: sourceParameters.maxZoom,
-            urls: [this.computeSourceUrl(source)],
-            format: new MVT()
-          }),
+          source: this._sources[layerParameters.source],
           style: new Style({
             image: new Circle({
               fill: fill,
@@ -416,15 +465,10 @@ export class OlMainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'HillshadeLayer': {
-        const sourceParameters = source.parameters as IRasterDemSource;
         const layerParameters = layer.parameters as IHillshadeLayer;
 
-        newSource = new ImageTile({
-          url: this.computeSourceUrl(source),
-          attributions: sourceParameters.attribution
-        });
         newLayer = new WebGlTileLayer({
-          source: newSource,
+          source: this._sources[layerParameters.source],
           style: {
             color: ['color', this.hillshadeMathStuff()]
           }
@@ -438,10 +482,14 @@ export class OlMainView extends React.Component<IProps, IStates> {
     newLayer.set('id', id);
 
     // change map view to use projection and extent from source
-    this._Map.setView(newSource.getView());
+    if (layer.parameters) {
+      console.log('setting view');
+      // this._Map.setView(this._sources[layer.parameters.source].getView());
+    }
 
+    // TODO: Does this work? Think I need to do z-index stuff
     this._Map.getLayers().insertAt(index, newLayer);
-
+    // this._Map.addLayer(newLayer);
     if (layer.filters) {
       this.setFilters(id, layer.filters);
     }
@@ -532,6 +580,18 @@ export class OlMainView extends React.Component<IProps, IStates> {
     if (!source) {
       return;
     }
+
+    if (!this._sources[sourceId]) {
+      console.log('adding source', sourceId);
+      await this.addSource(sourceId, source);
+    }
+
+    console.log(
+      'set vis',
+      layer.parameters?.visible,
+      this.getLayer(id)?.get('id')
+    );
+    mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
       case 'RasterLayer': {
@@ -844,4 +904,5 @@ export class OlMainView extends React.Component<IProps, IStates> {
   private _terrainControl: MapLibre.TerrainControl | null;
   private _videoPlaying = false;
   private _protocol: Protocol;
+  private _sources: Record<string, any>;
 }
