@@ -33,7 +33,8 @@
         "GeoJSONSource",
         "RasterDemSource",
         "VideoSource",
-        "ImageSource"
+        "ImageSource",
+        "ShapefileSource"
       ]
     },
     "jGISLayer": {

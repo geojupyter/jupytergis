@@ -27,6 +27,7 @@ export namespace CommandIDs {
   export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
   export const newImageSource = 'jupytergis:imageSource';
   export const newVideoSource = 'jupytergis:videoSource';
+  export const newShapefileSource = 'jupytergis:shapefileSource';
 
   // Layers only commands
   export const newRasterLayer = 'jupytergis:newRasterLayer';
@@ -34,6 +35,7 @@ export namespace CommandIDs {
   export const newHillshadeLayer = 'jupytergis:newHillshadeLayer';
   export const newImageLayer = 'jupytergis:newImageLayer';
   export const newVideoLayer = 'jupytergis:newVideoLayer';
+  export const newShapefileLayer = 'jupytergis:newShapefileLayer';
 
   // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';
@@ -64,6 +66,7 @@ const iconObject = {
   GeoJSONSource: { icon: geoJSONIcon },
   ImageSource: { iconClass: 'fa fa-image' },
   VideoSource: { iconClass: 'fa fa-video' },
+  ShapefileSource: { iconClass: 'fa fa-file' },
 
   RasterLayer: { icon: rasterIcon },
   VectorLayer: { iconClass: 'fa fa-vector-square' },
@@ -80,6 +83,7 @@ const iconObject = {
   [CommandIDs.newHillshadeEntry]: { icon: moundIcon },
   [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
+  [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
   [CommandIDs.newTerrain]: { iconClass: 'fa fa-mountain' }
 };
 

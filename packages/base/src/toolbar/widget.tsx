@@ -128,6 +128,15 @@ export class ToolbarWidget extends Toolbar {
           commands: options.commands
         })
       );
+
+      this.addItem(
+        'newShapefileLayer',
+        new CommandToolbarButton({
+          id: CommandIDs.newShapefileLayer,
+          label: '',
+          commands: options.commands
+        })
+      );
       // Add more commands here
 
       this.addItem('spacer', Toolbar.createSpacerItem());

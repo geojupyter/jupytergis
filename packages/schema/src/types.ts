@@ -7,6 +7,7 @@ export * from './_interface/rasterDemSource';
 export * from './_interface/rastersource';
 export * from './_interface/vectortilesource';
 export * from './_interface/videoSource';
+export * from './_interface/shapefileSource';
 
 // Layers
 export * from './_interface/hillshadeLayer';
