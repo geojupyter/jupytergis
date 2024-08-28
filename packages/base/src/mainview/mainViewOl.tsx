@@ -28,7 +28,7 @@ import * as React from 'react';
 // import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import WebGlTileLayer from 'ol/layer/WebGLTile';
-import { fromLonLat, toLonLat } from 'ol/proj';
+import { Projection, fromLonLat, toLonLat } from 'ol/proj';
 // import { OSM } from 'ol/source';
 import GeoJSON from 'ol/format/GeoJSON';
 import GeoTIFF from 'ol/source/GeoTIFF';
@@ -39,6 +39,7 @@ import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 
+import geojsonvt from 'geojson-vt';
 import { Color } from 'ol/color';
 import { ImageTile, XYZ } from 'ol/source';
 import { Protocol } from 'pmtiles';
@@ -210,28 +211,90 @@ export class OlMainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'GeoJSONSource': {
+        // Converts geojson-vt data to GeoJSON
+        // taken from https://openlayers.org/en/latest/examples/geojson-vt.html
+        const replacer = function (key, value) {
+          if (!value || !value.geometry) {
+            return value;
+          }
+
+          let type;
+          const rawType = value.type;
+          let geometry = value.geometry;
+          if (rawType === 1) {
+            type = 'MultiPoint';
+            if (geometry.length === 1) {
+              type = 'Point';
+              geometry = geometry[0];
+            }
+          } else if (rawType === 2) {
+            type = 'MultiLineString';
+            if (geometry.length === 1) {
+              type = 'LineString';
+              geometry = geometry[0];
+            }
+          } else if (rawType === 3) {
+            type = 'Polygon';
+            if (geometry.length > 1) {
+              type = 'MultiPolygon';
+              geometry = [geometry];
+            }
+          }
+
+          return {
+            type: 'Feature',
+            geometry: {
+              type: type,
+              coordinates: geometry
+            },
+            properties: value.tags
+          };
+        };
+
         const data =
           source.parameters?.data ||
           (await this._model.readGeoJSON(source.parameters?.path));
 
-        // const format = new GeoJSON({
-        //   featureProjection: this._Map.getView().getProjection()
-        // });
-        // format.readFeatures(data);
-
+        const tileIndex = geojsonvt(data, {
+          extent: 4096,
+          debug: 1
+        });
         const format = new GeoJSON({
-          featureProjection: this._Map.getView().getProjection()
+          // Data returned from geojson-vt is in tile pixel units
+          dataProjection: new Projection({
+            code: 'TILE_PIXELS',
+            units: 'tile-pixels',
+            extent: [0, 0, 4096, 4096]
+          })
         });
-        const tileLoadFunction = async (tile, url) => {
-          const data =
-            source.parameters?.data ||
-            (await this._model.readGeoJSON(source.parameters?.path));
-          tile.setFeatures(format.readFeatures(data));
-        };
-
         newSource = new VectorTileSource({
-          tileLoadFunction: tileLoadFunction
+          tileUrlFunction: tileCoord => {
+            // Use the tile coordinate as a pseudo URL for caching purposes
+            return JSON.stringify(tileCoord);
+          },
+          tileLoadFunction: (tile: any, url) => {
+            const tileCoord = JSON.parse(url);
+            const data = tileIndex.getTile(
+              tileCoord[0],
+              tileCoord[1],
+              tileCoord[2]
+            );
+            const geojson = JSON.stringify(
+              {
+                type: 'FeatureCollection',
+                features: data ? data.features : []
+              },
+              replacer
+            );
+
+            const features = format.readFeatures(geojson, {
+              extent: newSource?.getTileGrid()?.getTileCoordExtent(tileCoord),
+              featureProjection: this._Map.getView().getProjection()
+            });
+            tile.setFeatures(features);
+          }
         });
+
         break;
       }
       case 'RasterDemSource': {
@@ -440,10 +503,10 @@ export class OlMainView extends React.Component<IProps, IStates> {
         const layerParameters = layer.parameters as IVectorLayer;
 
         const fill = new Fill({
-          color: (layerParameters.color as Color) || '#FF000000'
+          color: (layerParameters.color as Color) || '#FF0000'
         });
         const stroke = new Stroke({
-          color: (layerParameters.color as Color) || '#FF000000',
+          color: '#FFFFFF',
           width: 1.25
         });
         // TODO is MVT right here??
@@ -489,6 +552,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
     // TODO: Does this work? Think I need to do z-index stuff
     this._Map.getLayers().insertAt(index, newLayer);
+    this._Map.render();
     // this._Map.addLayer(newLayer);
     if (layer.filters) {
       this.setFilters(id, layer.filters);
