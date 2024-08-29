@@ -1,6 +1,8 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
   IHillshadeLayer,
+  IImageLayer,
+  IImageSource,
   IJGISFilter,
   IJGISLayer,
   IJGISLayerDocChange,
@@ -37,11 +39,12 @@ import VectorTileSource from 'ol/source/VectorTile';
 
 import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
-import { Circle, Fill, Stroke, Style } from 'ol/style';
 
 import geojsonvt from 'geojson-vt';
-import { Color } from 'ol/color';
+import { getCenter } from 'ol/extent';
+import ImageLayer from 'ol/layer/Image';
 import { ImageTile, XYZ } from 'ol/source';
+import ImageStatic from 'ol/source/ImageStatic';
 import { Protocol } from 'pmtiles';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
@@ -310,6 +313,53 @@ export class OlMainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'ImageSource': {
+        const sourceParameters = source.parameters as IImageSource;
+
+        // Convert lon/lat array to extent
+        const minX = Math.min(
+          ...sourceParameters.coordinates.map(corner => corner[0])
+        );
+        const minY = Math.min(
+          ...sourceParameters.coordinates.map(corner => corner[1])
+        );
+        const maxX = Math.max(
+          ...sourceParameters.coordinates.map(corner => corner[0])
+        );
+        const maxY = Math.max(
+          ...sourceParameters.coordinates.map(corner => corner[1])
+        );
+
+        const topLeft = fromLonLat([minX, maxY]);
+        const bottomRight = fromLonLat([maxX, minY]);
+        const mix = topLeft[0];
+        const may = topLeft[1];
+        const max = bottomRight[0];
+        const miy = bottomRight[1];
+
+        const e2 = [mix, miy, max, may];
+
+        console.log('e2', e2);
+
+        // Create and return the extent array
+        const extent1 = [minX, minY, maxX, maxY];
+        console.log('extent', extent1);
+        console.log(
+          'this._Map.getView().getProjection()',
+          this._Map.getView().getProjection()
+        );
+
+        console.log('id', id);
+        this._Map.getView().setCenter(getCenter([0, 0, 700000, 1300000]));
+        this._Map.getView().setZoom(4);
+        newSource = new ImageStatic({
+          imageExtent: [0, 0, 700000, 1300000],
+          projection: this._Map.getView().getProjection(),
+          url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/British_National_Grid.svg/2000px-British_National_Grid.svg.png',
+          interpolate: true,
+          imageLoadFunction: () => {
+            console.log('image loaded');
+          }
+        });
         break;
       }
       case 'GeoTiffSource': {
@@ -333,10 +383,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
     newSource.set('id', id);
     this._sources[id] = newSource;
-  }
-
-  private toggleVideoPlaying(sourceId: any) {
-    // TODO implement
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -482,7 +528,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
           visible: layer.visible,
           source: this._sources[layerParameters.source]
         });
-        console.log('newLayer', newLayer);
 
         break;
       }
@@ -502,28 +547,36 @@ export class OlMainView extends React.Component<IProps, IStates> {
       case 'VectorLayer': {
         const layerParameters = layer.parameters as IVectorLayer;
 
-        const fill = new Fill({
-          color: (layerParameters.color as Color) || '#FF0000'
-        });
-        const stroke = new Stroke({
-          color: '#FFFFFF',
-          width: 1.25
-        });
-        // TODO is MVT right here??
+        // const fill = new Fill({
+        //   color: (layerParameters.color as Color) || '#FF0000'
+        // });
+        // const stroke = new Stroke({
+        //   color: '#FFFFFF',
+        //   width: 1.25
+        // });
+
         newLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
-          source: this._sources[layerParameters.source],
-          style: new Style({
-            image: new Circle({
-              fill: fill,
-              stroke: stroke,
-              radius: 5
-            }),
-            fill: fill,
-            stroke: stroke
-          })
+          source: this._sources[layerParameters.source]
+          // style: new Style({
+          //   image: new Circle({
+          //     fill: fill,
+          //     stroke: stroke,
+          //     radius: 5
+          //   }),
+          //   fill: fill,
+          //   stroke: stroke
+          // })
         });
+
+        const paramColor =
+          layerParameters.type === 'line'
+            ? 'stroke-color'
+            : `${layerParameters.type}-color`;
+        const style = {};
+        style[paramColor] = layer.parameters?.color;
+        (newLayer as VectorTileLayer).setStyle(style);
 
         break;
       }
@@ -539,6 +592,17 @@ export class OlMainView extends React.Component<IProps, IStates> {
         });
 
         break;
+      }
+      case 'ImageLayer': {
+        const layerParameters = layer.parameters as IImageLayer;
+        console.log(
+          'this._sources[layerParameters.source]',
+          this._sources[layerParameters.source]
+        );
+        newLayer = new ImageLayer({
+          opacity: 1,
+          source: this._sources[layerParameters.source]
+        });
       }
     }
 

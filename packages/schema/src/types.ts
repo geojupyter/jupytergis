@@ -15,6 +15,7 @@ export * from './_interface/hillshadeLayer';
 export * from './_interface/rasterlayer';
 export * from './_interface/vectorlayer';
 export * from './_interface/webGlLayer';
+export * from './_interface/imageLayer';
 
 // Other
 export * from './doc';

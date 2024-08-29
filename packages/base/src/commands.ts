@@ -221,7 +221,7 @@ export function addCommands(
       },
       layerData: { name: 'Custom Image Layer' },
       sourceType: 'ImageSource',
-      layerType: 'RasterLayer'
+      layerType: 'ImageLayer'
     }),
     ...icons.get(CommandIDs.newImageEntry)
   });
