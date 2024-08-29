@@ -23,29 +23,24 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
-import * as MapLibre from 'maplibre-gl';
+
+import geojsonvt from 'geojson-vt';
 import { Map as OlMap, View } from 'ol';
+import { getCenter } from 'ol/extent';
+import GeoJSON from 'ol/format/GeoJSON';
 import MVT from 'ol/format/MVT';
-import * as React from 'react';
-// import TileLayer from 'ol/layer/Tile';
+import { Image as ImageLayer } from 'ol/layer';
+import BaseLayer from 'ol/layer/Base';
+import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import WebGlTileLayer from 'ol/layer/WebGLTile';
 import { Projection, fromLonLat, toLonLat } from 'ol/proj';
-// import { OSM } from 'ol/source';
-import GeoJSON from 'ol/format/GeoJSON';
-import GeoTIFF from 'ol/source/GeoTIFF';
-import VectorTileSource from 'ol/source/VectorTile';
-// import Stroke from 'ol/style/Stroke';
-
-import BaseLayer from 'ol/layer/Base';
-import TileLayer from 'ol/layer/Tile';
-
-import geojsonvt from 'geojson-vt';
-import { getCenter } from 'ol/extent';
-import ImageLayer from 'ol/layer/Image';
 import { ImageTile, XYZ } from 'ol/source';
-import ImageStatic from 'ol/source/ImageStatic';
+import GeoTIFF from 'ol/source/GeoTIFF';
+import Static from 'ol/source/ImageStatic';
+import VectorTileSource from 'ol/source/VectorTile';
 import { Protocol } from 'pmtiles';
+import * as React from 'react';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
@@ -349,16 +344,13 @@ export class OlMainView extends React.Component<IProps, IStates> {
         );
 
         console.log('id', id);
-        this._Map.getView().setCenter(getCenter([0, 0, 700000, 1300000]));
+        this._Map.getView().setCenter(getCenter(e2));
         this._Map.getView().setZoom(4);
-        newSource = new ImageStatic({
-          imageExtent: [0, 0, 700000, 1300000],
-          projection: this._Map.getView().getProjection(),
-          url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/British_National_Grid.svg/2000px-British_National_Grid.svg.png',
+        newSource = new Static({
+          imageExtent: e2,
+          url: sourceParameters.url,
           interpolate: true,
-          imageLoadFunction: () => {
-            console.log('image loaded');
-          }
+          crossOrigin: ''
         });
         break;
       }
@@ -802,13 +794,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
    * @param source - The source to update.
    * @param url - The URL to set for the source.
    */
-  private _handleSourceUpdate(
-    source:
-      | MapLibre.RasterTileSource
-      | MapLibre.VectorTileSource
-      | MapLibre.RasterDEMTileSource,
-    url: string
-  ) {
+  private _handleSourceUpdate(source: any, url: string) {
     const result = this._shouldUseTiles(url);
 
     result ? source.setTiles([url]) : source.setUrl(url);
@@ -823,13 +809,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
    * @param url - The URL to check for replaceable parameters and use in configuring the source.
    * @returns The modified source specification object.
    */
-  private configureTileSource(
-    sourceSpec:
-      | MapLibre.RasterSourceSpecification
-      | MapLibre.RasterDEMSourceSpecification
-      | MapLibre.VectorSourceSpecification,
-    url: string
-  ) {
+  private configureTileSource(sourceSpec: any, url: string) {
     const result = this._shouldUseTiles(url);
 
     result
@@ -969,7 +949,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
       ...filters.appliedFilters.map(filter => {
         return [filter.operator, filter.feature, filter.value];
       })
-    ] as MapLibre.FilterSpecification;
+    ]; // as MapLibre.FilterSpecification;
 
     // this._Map.setFilter(id, filterExpression);
   }
@@ -1029,7 +1009,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;
-  private _terrainControl: MapLibre.TerrainControl | null;
   private _videoPlaying = false;
   private _protocol: Protocol;
   private _sources: Record<string, any>;
