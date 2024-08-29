@@ -23,22 +23,25 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
-
 import geojsonvt from 'geojson-vt';
 import { Map as OlMap, View } from 'ol';
+import { Color } from 'ol/color';
 import { getCenter } from 'ol/extent';
 import GeoJSON from 'ol/format/GeoJSON';
 import MVT from 'ol/format/MVT';
 import { Image as ImageLayer } from 'ol/layer';
 import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
+import VectorLayer from 'ol/layer/Vector';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import WebGlTileLayer from 'ol/layer/WebGLTile';
 import { Projection, fromLonLat, toLonLat } from 'ol/proj';
 import { ImageTile, XYZ } from 'ol/source';
 import GeoTIFF from 'ol/source/GeoTIFF';
 import Static from 'ol/source/ImageStatic';
+import VectorSource from 'ol/source/Vector';
 import VectorTileSource from 'ol/source/VectorTile';
+import { Circle, Fill, Stroke, Style } from 'ol/style.js';
 import { Protocol } from 'pmtiles';
 import * as React from 'react';
 import { isLightTheme } from '../tools';
@@ -215,86 +218,93 @@ export class OlMainView extends React.Component<IProps, IStates> {
       case 'GeoJSONSource': {
         // Converts geojson-vt data to GeoJSON
         // taken from https://openlayers.org/en/latest/examples/geojson-vt.html
-        const replacer = function (key, value) {
-          if (!value || !value.geometry) {
-            return value;
-          }
+        // const replacer = function (key, value) {
+        //   if (!value || !value.geometry) {
+        //     return value;
+        //   }
 
-          let type;
-          const rawType = value.type;
-          let geometry = value.geometry;
-          if (rawType === 1) {
-            type = 'MultiPoint';
-            if (geometry.length === 1) {
-              type = 'Point';
-              geometry = geometry[0];
-            }
-          } else if (rawType === 2) {
-            type = 'MultiLineString';
-            if (geometry.length === 1) {
-              type = 'LineString';
-              geometry = geometry[0];
-            }
-          } else if (rawType === 3) {
-            type = 'Polygon';
-            if (geometry.length > 1) {
-              type = 'MultiPolygon';
-              geometry = [geometry];
-            }
-          }
+        //   let type;
+        //   const rawType = value.type;
+        //   let geometry = value.geometry;
+        //   if (rawType === 1) {
+        //     type = 'MultiPoint';
+        //     if (geometry.length === 1) {
+        //       type = 'Point';
+        //       geometry = geometry[0];
+        //     }
+        //   } else if (rawType === 2) {
+        //     type = 'MultiLineString';
+        //     if (geometry.length === 1) {
+        //       type = 'LineString';
+        //       geometry = geometry[0];
+        //     }
+        //   } else if (rawType === 3) {
+        //     type = 'Polygon';
+        //     if (geometry.length > 1) {
+        //       type = 'MultiPolygon';
+        //       geometry = [geometry];
+        //     }
+        //   }
 
-          return {
-            type: 'Feature',
-            geometry: {
-              type: type,
-              coordinates: geometry
-            },
-            properties: value.tags
-          };
-        };
+        //   return {
+        //     type: 'Feature',
+        //     geometry: {
+        //       type: type,
+        //       coordinates: geometry
+        //     },
+        //     properties: value.tags
+        //   };
+        // };
 
         const data =
           source.parameters?.data ||
           (await this._model.readGeoJSON(source.parameters?.path));
 
-        const tileIndex = geojsonvt(data, {
-          extent: 4096,
-          debug: 1
-        });
-        const format = new GeoJSON({
-          // Data returned from geojson-vt is in tile pixel units
-          dataProjection: new Projection({
-            code: 'TILE_PIXELS',
-            units: 'tile-pixels',
-            extent: [0, 0, 4096, 4096]
-          })
-        });
-        newSource = new VectorTileSource({
-          tileUrlFunction: tileCoord => {
-            // Use the tile coordinate as a pseudo URL for caching purposes
-            return JSON.stringify(tileCoord);
-          },
-          tileLoadFunction: (tile: any, url) => {
-            const tileCoord = JSON.parse(url);
-            const data = tileIndex.getTile(
-              tileCoord[0],
-              tileCoord[1],
-              tileCoord[2]
-            );
-            const geojson = JSON.stringify(
-              {
-                type: 'FeatureCollection',
-                features: data ? data.features : []
-              },
-              replacer
-            );
+        // const tileIndex = geojsonvt(data, {
+        //   extent: 4096,
+        //   debug: 1
+        // });
+        const format = new GeoJSON();
+        // const format1 = new GeoJSON({
+        //   // Data returned from geojson-vt is in tile pixel units
+        //   dataProjection: new Projection({
+        //     code: 'TILE_PIXELS',
+        //     units: 'tile-pixels',
+        //     extent: [0, 0, 4096, 4096]
+        //   })
+        // });
+        newSource = new VectorSource({
+          // tileUrlFunction: tileCoord => {
+          //   // Use the tile coordinate as a pseudo URL for caching purposes
+          //   return JSON.stringify(tileCoord);
+          // },
+          // tileLoadFunction: (tile: any, url) => {
+          //   const tileCoord = JSON.parse(url);
+          //   const data = tileIndex.getTile(
+          //     tileCoord[0],
+          //     tileCoord[1],
+          //     tileCoord[2]
+          //   );
+          //   const geojson = JSON.stringify(
+          //     {
+          //       type: 'FeatureCollection',
+          //       features: data ? data.features : []
+          //     },
+          //     replacer
+          //   );
 
-            const features = format.readFeatures(geojson, {
-              extent: newSource?.getTileGrid()?.getTileCoordExtent(tileCoord),
-              featureProjection: this._Map.getView().getProjection()
-            });
-            tile.setFeatures(features);
-          }
+          //   const features = format.readFeatures(geojson, {
+          //     extent: newSource?.getTileGrid()?.getTileCoordExtent(tileCoord),
+          //     featureProjection: this._Map.getView().getProjection()
+          //   });
+          //   tile.setFeatures(features);
+          // }
+          // url: data,
+          // format: new GeoJSON(),
+          features: format.readFeatures(data, {
+            dataProjection: 'EPSG:4326',
+            featureProjection: this._Map.getView().getProjection()
+          })
         });
 
         break;
@@ -543,36 +553,60 @@ export class OlMainView extends React.Component<IProps, IStates> {
       case 'VectorLayer': {
         const layerParameters = layer.parameters as IVectorLayer;
 
-        // const fill = new Fill({
-        //   color: (layerParameters.color as Color) || '#FF0000'
-        // });
-        // const stroke = new Stroke({
-        //   color: '#FFFFFF',
-        //   width: 1.25
-        // });
-
-        newLayer = new VectorTileLayer({
-          opacity: layerParameters.opacity,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source]
-          // style: new Style({
-          //   image: new Circle({
-          //     fill: fill,
-          //     stroke: stroke,
-          //     radius: 5
-          //   }),
-          //   fill: fill,
-          //   stroke: stroke
-          // })
+        const fill = new Fill({
+          color: (layerParameters.color as Color) || '#FF0000'
+        });
+        const stroke = new Stroke({
+          color: (layerParameters.color as Color) || '#FF0000',
+          width: 1.25
         });
 
-        const paramColor =
-          layerParameters.type === 'line'
-            ? 'stroke-color'
-            : `${layerParameters.type}-color`;
-        const style = {};
-        style[paramColor] = layer.parameters?.color;
-        (newLayer as VectorTileLayer).setStyle(style);
+        const style = new Style({
+          image: new Circle({
+            fill: fill,
+            stroke: stroke,
+            radius: 5
+          }),
+          fill: fill,
+          stroke: stroke
+        });
+
+        newLayer = new VectorLayer({
+          opacity: layerParameters.opacity,
+          visible: layer.visible,
+          source: this._sources[layerParameters.source],
+          style: style
+        });
+
+        // // Set the defaults
+        // const style1 = {
+        //   'fill-color': '#000000',
+        //   'stroke-color': '#000000',
+        //   'circle-fill-color': '#865e3c',
+        //   'circle-stroke-color': '#865e3c'
+        // };
+
+        // // Set based on params
+        // if (layerParameters.type === 'line') {
+        //   style1['stroke-color'] = layerParameters.color as string;
+        // }
+
+        // if (layerParameters.type === 'fill') {
+        //   style1['fill-color'] = layerParameters.color as string;
+        // }
+
+        // if (layerParameters.type === 'circle') {
+        //   style1['circle-fill-color'] = layerParameters.color as string;
+        //   style1['circle-stroke-color'] = layerParameters.color as string;
+        // }
+
+        // const paramColor =
+        //   layerParameters.type === 'line'
+        //     ? 'stroke-color'
+        //     : `${layerParameters.type}-color`;
+        // style[paramColor] = layer.parameters?.color;
+
+        // (newLayer as VectorLayer).setStyle(style1);
 
         break;
       }
@@ -715,6 +749,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
       layer.parameters?.visible,
       this.getLayer(id)?.get('id')
     );
+
     mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
@@ -745,7 +780,9 @@ export class OlMainView extends React.Component<IProps, IStates> {
       }
     }
 
-    // TODO: filters
+    if (layer.filters) {
+      this.setFilters(id, layer.filters);
+    }
   }
 
   /**
@@ -949,6 +986,9 @@ export class OlMainView extends React.Component<IProps, IStates> {
       //   this._Map.setFilter(id, null);
       return;
     }
+
+    const layer = this.getLayer(id) as VectorLayer;
+    console.log('layer.getStyle()', layer.getStyle());
 
     const filterExpression = [
       filters.logicalOp,
