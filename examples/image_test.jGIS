@@ -1,26 +1,16 @@
 {
   "layerTree": [
-    "acb76fb7-df6d-41da-8e08-0208a1c82136",
-    "6234f9f0-1274-445f-aa48-686a578e8cc8",
+    "acb76fb7-df6d-41da-8e08-0208a1c82136"
     "756cb737-f817-4ba6-b7c0-8da0b97b9778"
   ],
   "layers": {
-    "6234f9f0-1274-445f-aa48-686a578e8cc8": {
-      "name": "Custom video Layer Layer",
-      "parameters": {
-        "opacity": 1.0,
-        "source": "319c8756-ffee-45eb-8bbc-36a32526a9f6"
-      },
-      "type": "RasterLayer",
-      "visible": true
-    },
     "756cb737-f817-4ba6-b7c0-8da0b97b9778": {
       "name": "Custom Image Layer Layer",
       "parameters": {
         "opacity": 1.0,
         "source": "fb9729b8-82c6-48ac-a12b-6343c0e037ae"
       },
-      "type": "RasterLayer",
+      "type": "ImageLayer",
       "visible": true
     },
     "acb76fb7-df6d-41da-8e08-0208a1c82136": {
@@ -40,34 +30,6 @@
     "zoom": 17.0
   },
   "sources": {
-    "319c8756-ffee-45eb-8bbc-36a32526a9f6": {
-      "name": "Custom Video Source",
-      "parameters": {
-        "coordinates": [
-          [
-            -122.51596391201019,
-            37.56238816766053
-          ],
-          [
-            -122.51467645168304,
-            37.56410183312965
-          ],
-          [
-            -122.51309394836426,
-            37.563391708549425
-          ],
-          [
-            -122.51423120498657,
-            37.56161849366671
-          ]
-        ],
-        "urls": [
-          "https://static-assets.mapbox.com/mapbox-gl-js/drone.mp4",
-          "https://static-assets.mapbox.com/mapbox-gl-js/drone.webm"
-        ]
-      },
-      "type": "VideoSource"
-    },
     "5f7a1edf-1b76-4f82-893f-540d28998b1d": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
