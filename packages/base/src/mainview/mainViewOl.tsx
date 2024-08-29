@@ -23,7 +23,6 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
-import geojsonvt from 'geojson-vt';
 import { Map as OlMap, View } from 'ol';
 import { Color } from 'ol/color';
 import { getCenter } from 'ol/extent';
@@ -33,9 +32,8 @@ import { Image as ImageLayer } from 'ol/layer';
 import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
-import VectorTileLayer from 'ol/layer/VectorTile';
 import WebGlTileLayer from 'ol/layer/WebGLTile';
-import { Projection, fromLonLat, toLonLat } from 'ol/proj';
+import { fromLonLat, toLonLat } from 'ol/proj';
 import { ImageTile, XYZ } from 'ol/source';
 import GeoTIFF from 'ol/source/GeoTIFF';
 import Static from 'ol/source/ImageStatic';
@@ -571,12 +569,30 @@ export class OlMainView extends React.Component<IProps, IStates> {
           stroke: stroke
         });
 
+        // const c = {
+        //   'fill-color': 'rgba(255,255,255,0.4)',
+        //   'stroke-color': '#3399CC',
+        //   'stroke-width': 1.25,
+        //   'circle-radius': 5,
+        //   'circle-fill-color': 'rgba(255,255,255,0.4)',
+        //   'circle-stroke-width': 1.25,
+        //   'circle-stroke-color': '#3399CC'
+        // };
+
         newLayer = new VectorLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: style
-        });
+          style: {
+            'fill-color': 'rgba(255,255,255,0.4)',
+            'stroke-color': '#3399CC',
+            'stroke-width': 1.25,
+            'circle-radius': 5,
+            'circle-fill-color': 'rgba(255,255,255,0.4)',
+            'circle-stroke-width': 1.25,
+            'circle-stroke-color': '#3399CC'
+          }
+        }) as VectorLayer;
 
         // // Set the defaults
         // const style1 = {
@@ -585,20 +601,34 @@ export class OlMainView extends React.Component<IProps, IStates> {
         //   'circle-fill-color': '#865e3c',
         //   'circle-stroke-color': '#865e3c'
         // };
+        // newLayer = newLayer as VectorLayer;
 
-        // // Set based on params
+        // Set based on params
         // if (layerParameters.type === 'line') {
-        //   style1['stroke-color'] = layerParameters.color as string;
+        //   newLayer.setStyle({
+        //     ...newLayer.getStyle(),
+        //     'stroke-color': layerParameters.color
+        //   });
         // }
 
         // if (layerParameters.type === 'fill') {
-        //   style1['fill-color'] = layerParameters.color as string;
+        //   newLayer.setStyle({
+        //     ...newLayer.getStyle(),
+        //     'fill-color': layerParameters.color
+        //   });
         // }
 
         // if (layerParameters.type === 'circle') {
-        //   style1['circle-fill-color'] = layerParameters.color as string;
-        //   style1['circle-stroke-color'] = layerParameters.color as string;
+        //   // style1['circle-fill-color'] = layerParameters.color as string;
+        //   // style1['circle-stroke-color'] = layerParameters.color as string;
+        //   newLayer.setStyle({
+        //     ...newLayer.getStyle(),
+        //     'circle-fill-color': layerParameters.color,
+        //     'circle-stroke-color': layerParameters.color
+        //   });
+        //   // (newLayer as VectorLayer).setStyle(style1);
         // }
+        this.setVectorStyle(newLayer, layerParameters);
 
         // const paramColor =
         //   layerParameters.type === 'line'
@@ -652,6 +682,33 @@ export class OlMainView extends React.Component<IProps, IStates> {
       this.setFilters(id, layer.filters);
     }
   }
+
+  private setVectorStyle = (layer, layerParameters) => {
+    // Set based on params
+    if (layerParameters.type === 'line') {
+      layer.setStyle({
+        ...layer.getStyle(),
+        'stroke-color': layerParameters.color
+      });
+    }
+
+    if (layerParameters.type === 'fill') {
+      layer.setStyle({
+        ...layer.getStyle(),
+        'fill-color': layerParameters.color
+      });
+    }
+
+    if (layerParameters.type === 'circle') {
+      // style1['circle-fill-color'] = layerParameters.color as string;
+      // style1['circle-stroke-color'] = layerParameters.color as string;
+      layer.setStyle({
+        ...layer.getStyle(),
+        'circle-fill-color': layerParameters.color,
+        'circle-stroke-color': layerParameters.color
+      });
+    }
+  };
 
   /**
    * Taken from https://openlayers.org/en/latest/examples/webgl-shaded-relief.html
@@ -760,12 +817,15 @@ export class OlMainView extends React.Component<IProps, IStates> {
       case 'VectorLayer': {
         mapLayer?.setOpacity(layer.parameters?.opacity || 1);
 
-        (mapLayer as VectorTileLayer).setStyle({
-          'fill-color': layer.parameters?.color,
-          'stroke-color': layer.parameters?.color,
-          'circle-fill-color': layer.parameters?.color,
-          'circle-stroke-color': layer.parameters?.color
-        });
+        this.setVectorStyle(mapLayer, layer.parameters);
+
+        // // TODO: this aint it
+        // (mapLayer as VectorLayer).setStyle({
+        //   'fill-color': layer.parameters?.color,
+        //   'stroke-color': layer.parameters?.color,
+        //   'circle-fill-color': layer.parameters?.color,
+        //   'circle-stroke-color': layer.parameters?.color
+        // });
         break;
       }
       case 'WebGlLayer': {
