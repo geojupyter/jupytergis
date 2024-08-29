@@ -46,6 +46,7 @@ class GISDocument(CommWidget):
         zoom: Optional[number] = None,
         bearing: Optional[number] = None,
         pitch: Optional[number] = None,
+        projection: Optional[string] = None
     ):
         comm_metadata = GISDocument._path_to_comm(path)
 
@@ -72,6 +73,8 @@ class GISDocument(CommWidget):
                 self._options["bearing"] = bearing
             if pitch is not None:
                 self._options["pitch"] = pitch
+            if projection is not None:
+                self._options['projection'] = projection
 
     @property
     def layers(self) -> Dict:

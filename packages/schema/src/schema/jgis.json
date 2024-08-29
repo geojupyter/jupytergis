@@ -167,7 +167,14 @@
       "title": "IJGISOptions",
       "type": "object",
       "default": {},
-      "required": ["latitude", "longitude", "zoom", "bearing", "pitch"],
+      "required": [
+        "latitude",
+        "longitude",
+        "zoom",
+        "bearing",
+        "pitch",
+        "projection"
+      ],
       "additionalProperties": false,
       "properties": {
         "latitude": {
@@ -189,6 +196,10 @@
         "pitch": {
           "type": "number",
           "default": 0
+        },
+        "projection": {
+          "type": "string",
+          "default": "EPSG:3857"
         }
       }
     },
