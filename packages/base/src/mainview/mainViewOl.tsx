@@ -71,10 +71,10 @@ export class OlMainView extends React.Component<IProps, IStates> {
       this._onSharedOptionsChanged,
       this
     );
-    // this._model.clientStateChanged.connect(
-    //   this._onClientSharedStateChanged,
-    //   this
-    // );
+    this._model.clientStateChanged.connect(
+      this._onClientSharedStateChanged,
+      this
+    );
 
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
@@ -109,10 +109,10 @@ export class OlMainView extends React.Component<IProps, IStates> {
       this
     );
 
-    // this._model.clientStateChanged.disconnect(
-    //   this._onClientSharedStateChanged,
-    //   this
-    // );
+    this._model.clientStateChanged.disconnect(
+      this._onClientSharedStateChanged,
+      this
+    );
 
     this._mainViewModel.dispose();
   }
@@ -137,17 +137,21 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
         const view = this._Map.getView();
         const center = view.getCenter();
-        if (!center) {
+        const zoom = view.getZoom();
+        if (!center || !zoom) {
           return;
         }
-        const latLng = toLonLat(center, view.getProjection());
+        const projection = view.getProjection();
+        const latLng = toLonLat(center, projection);
         const bearing = view.getRotation();
         // const pitch = this._Map.getPitch();
         this._model.setOptions({
           ...this._model.getOptions(),
           latitude: latLng[1],
           longitude: latLng[0],
-          bearing
+          bearing,
+          projection: projection.getCode(),
+          zoom
         });
       });
 
@@ -831,7 +835,9 @@ export class OlMainView extends React.Component<IProps, IStates> {
     change?: MapChange
   ): void {
     if (!this._initializedPosition) {
+      console.log('on change options');
       const options = this._model.getOptions();
+      console.log('options', options);
 
       this.updateOptions(options);
 
@@ -842,7 +848,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
   private updateOptions(options: IJGISOptions) {
     const centerCoord = fromLonLat(
       [options.longitude, options.latitude],
-      this._Map.getView().getProjection()
+      options.projection
     );
 
     console.log('centerCoord', centerCoord);
