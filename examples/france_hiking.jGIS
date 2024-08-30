@@ -1,87 +1,89 @@
 {
-  "layers": {
-    "7db81237-a579-4daa-938f-5e61fdfb17e7": {
-      "name": "NASAGIBS.ModisTerraTrueColorCR Layer",
-      "visible": true,
-      "parameters": {
-        "source": "52252f5d-3cb7-45a8-a724-5793bf9950ec",
-        "opacity": 0.3
-      },
-      "type": "RasterLayer"
-    },
-    "0bfee293-9e2f-4434-8c5a-c90d19836bab": {
-      "name": "WaymarkedTrails.hiking Layer",
-      "type": "RasterLayer",
-      "parameters": {
-        "opacity": 0.6,
-        "source": "82691e55-f9e2-43be-8a07-3ae0409af7b4"
-      },
-      "visible": true
-    },
-    "4a0703b3-ed56-4158-8a2e-e008c3d0fee2": {
-      "name": "OpenStreetMap.Mapnik Layer",
-      "visible": true,
-      "type": "RasterLayer",
-      "parameters": {
-        "source": "60da082e-8b70-4fa2-b2f0-48524468fea0"
-      }
-    }
-  },
-  "sources": {
-    "60da082e-8b70-4fa2-b2f0-48524468fea0": {
-      "type": "RasterSource",
-      "parameters": {
-        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "minZoom": 0.0,
-        "maxZoom": 19.0,
-        "urlParameters": {},
-        "provider": "OpenStreetMap",
-        "attribution": "(C) OpenStreetMap contributors"
-      },
-      "name": "OpenStreetMap.Mapnik"
-    },
-    "52252f5d-3cb7-45a8-a724-5793bf9950ec": {
-      "parameters": {
-        "urlParameters": {
-          "time": "2024-07-07",
-          "tilematrixset": "GoogleMapsCompatible_Level",
-          "format": "jpg",
-          "variant": "MODIS_Terra_CorrectedReflectance_TrueColor"
-        },
-        "url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}",
-        "minZoom": 1.0,
-        "maxZoom": 9.0,
-        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
-        "provider": "NASAGIBS"
-      },
-      "name": "NASAGIBS.ModisTerraTrueColorCR",
-      "type": "RasterSource"
-    },
-    "82691e55-f9e2-43be-8a07-3ae0409af7b4": {
-      "name": "WaymarkedTrails.hiking",
-      "type": "RasterSource",
-      "parameters": {
-        "minZoom": 0.0,
-        "url": "https://tile.waymarkedtrails.org/{variant}/{z}/{x}/{y}.png",
-        "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)",
-        "maxZoom": 18.0,
-        "provider": "WaymarkedTrails",
-        "urlParameters": {
-          "variant": "hiking"
-        }
-      }
-    }
-  },
-  "options": {
-    "latitude": 46.623742146769416,
-    "zoom": 4.947275971927249,
-    "longitude": 1.6082511087276998,
-    "bearing": 0.0,
-    "pitch": 0.0
-  },
   "layerTree": [
     "4a0703b3-ed56-4158-8a2e-e008c3d0fee2",
     "7db81237-a579-4daa-938f-5e61fdfb17e7",
     "0bfee293-9e2f-4434-8c5a-c90d19836bab"
-  ]
+  ],
+  "layers": {
+    "0bfee293-9e2f-4434-8c5a-c90d19836bab": {
+      "name": "WaymarkedTrails.hiking Layer",
+      "parameters": {
+        "opacity": 0.6,
+        "source": "82691e55-f9e2-43be-8a07-3ae0409af7b4"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "4a0703b3-ed56-4158-8a2e-e008c3d0fee2": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "60da082e-8b70-4fa2-b2f0-48524468fea0"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "7db81237-a579-4daa-938f-5e61fdfb17e7": {
+      "name": "NASAGIBS.ModisTerraTrueColorCR Layer",
+      "parameters": {
+        "opacity": 0.3,
+        "source": "52252f5d-3cb7-45a8-a724-5793bf9950ec"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "options": {
+    "bearing": 0.0,
+    "latitude": 46.623742146769416,
+    "longitude": 1.6082511087276998,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 4.947275971927249
+  },
+  "sources": {
+    "52252f5d-3cb7-45a8-a724-5793bf9950ec": {
+      "name": "NASAGIBS.ModisTerraTrueColorCR",
+      "parameters": {
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 9.0,
+        "minZoom": 1.0,
+        "provider": "NASAGIBS",
+        "url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}",
+        "urlParameters": {
+          "format": "jpg",
+          "tilematrixset": "GoogleMapsCompatible_Level",
+          "time": "2024-07-07",
+          "variant": "MODIS_Terra_CorrectedReflectance_TrueColor"
+        }
+      },
+      "type": "RasterSource"
+    },
+    "60da082e-8b70-4fa2-b2f0-48524468fea0": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "82691e55-f9e2-43be-8a07-3ae0409af7b4": {
+      "name": "WaymarkedTrails.hiking",
+      "parameters": {
+        "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)",
+        "maxZoom": 18.0,
+        "minZoom": 0.0,
+        "provider": "WaymarkedTrails",
+        "url": "https://tile.waymarkedtrails.org/{variant}/{z}/{x}/{y}.png",
+        "urlParameters": {
+          "variant": "hiking"
+        }
+      },
+      "type": "RasterSource"
+    }
+  },
+  "terrain": {}
 }

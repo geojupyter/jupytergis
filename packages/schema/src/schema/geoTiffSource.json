@@ -2,13 +2,25 @@
   "type": "object",
   "description": "GeoTiffSource",
   "title": "IGeoTiffSource",
-  "required": ["url"],
+  "required": ["urls"],
   "additionalProperties": false,
   "properties": {
-    "url": {
-      "type": "string",
-      "readOnly": true,
-      "description": "URL that points to an geoTiff"
+    "urls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "max": {
+            "type": "number"
+          }
+        }
+      },
+      "minItems": 1,
+      "default": [],
+      "description": "URLs"
     }
   }
 }

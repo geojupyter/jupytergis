@@ -1,8 +1,17 @@
 {
   "layerTree": [
+    "d1ce62f9-8dd7-4bd9-82a7-8e5041f564c5",
     "d529c8ed-17a3-48a4-ac88-04a33569e002"
   ],
   "layers": {
+    "d1ce62f9-8dd7-4bd9-82a7-8e5041f564c5": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "969fd1f8-4aee-4ff7-9660-a790fb7bdc09"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
     "d529c8ed-17a3-48a4-ac88-04a33569e002": {
       "name": "Custom GeoTiff Layer",
       "parameters": {
@@ -62,39 +71,9 @@
           ],
           0.6,
           [
-            15.0,
-            84.0,
-            10.0
-          ],
-          -0.2,
-          [
-            191.0,
-            191.0,
-            191.0
-          ],
-          0.0,
-          [
             255.0,
-            255.0,
-            224.0
-          ],
-          0.2,
-          [
-            145.0,
-            191.0,
-            82.0
-          ],
-          0.4,
-          [
-            79.0,
-            138.0,
-            46.0
-          ],
-          0.6,
-          [
-            15.0,
-            84.0,
-            10.0
+            163.0,
+            72.0
           ]
         ],
         "opacity": 1.0,
@@ -106,13 +85,25 @@
   },
   "options": {
     "bearing": 0.0,
-    "latitude": 47.76182010200088,
-    "longitude": 3.3822004833813293,
+    "latitude": 6148000.469144024,
+    "longitude": -111.33503031090368,
     "pitch": 0.0,
-    "projection": "EPSG:3857",
-    "zoom": 8.593631717987849
+    "projection": "EPSG:32721",
+    "zoom": 0.36715258635946557
   },
   "sources": {
+    "969fd1f8-4aee-4ff7-9660-a790fb7bdc09": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
     "bae60810-5744-4497-bd91-8a0cbfc5e07c": {
       "name": "Custom GeoTiff Source",
       "parameters": {

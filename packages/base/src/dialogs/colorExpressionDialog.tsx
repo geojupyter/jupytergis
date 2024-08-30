@@ -89,15 +89,15 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
 
   const handleOk = () => {
     const layer = context.model.getLayer(selectedLayer);
-    console.log('selectedLayer', selectedLayer);
+    // console.log('selectedLayer', selectedLayer);
     if (!layer || !layer.parameters) {
       return;
     }
 
     const colorExpr: any = [selectedFunction, ['linear']];
 
-    console.log('stopRows', stopRows);
-    console.log('rowsRef.current', rowsRef.current);
+    // console.log('stopRows', stopRows);
+    // console.log('rowsRef.current', rowsRef.current);
 
     const nir = ['band', 2];
 
@@ -126,9 +126,9 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     // colorExpr.push(0.6);
     // colorExpr.push([15, 84, 10]);
 
-    console.log('colorExpr', colorExpr);
+    // console.log('colorExpr', colorExpr);
 
-    console.log('safe');
+    // console.log('safe');
 
     (layer.parameters as IVectorLayer).color = colorExpr;
     context.model.sharedModel.updateLayer(selectedLayerRef.current, layer);

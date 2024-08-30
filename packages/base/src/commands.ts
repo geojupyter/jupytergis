@@ -295,7 +295,17 @@ export function addCommands(
       createLayer: true,
       createSource: true,
       sourceData: {
-        name: 'Custom GeoTiff Source'
+        name: 'Custom GeoTiff Source',
+        urls: [
+          {
+            url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B04.tif',
+            max: 10000
+          },
+          {
+            url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B08.tif',
+            max: 10000
+          }
+        ]
       },
       layerData: { name: 'Custom GeoTiff Layer' },
       sourceType: 'GeoTiffSource',
