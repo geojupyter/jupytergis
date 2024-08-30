@@ -151,7 +151,7 @@ export function addCommands(
       sourceData: { minZoom: 0, maxZoom: 24 },
       layerData: { name: 'Custom Vector Tile Layer' },
       sourceType: 'VectorTileSource',
-      layerType: 'VectorLayer'
+      layerType: 'VectorTileLayer'
     }),
     ...icons.get(CommandIDs.newVectorTileEntry)
   });
@@ -485,7 +485,7 @@ export function addCommands(
         name: 'Custom Vector Layer'
       },
       sourceType: 'VectorTileSource',
-      layerType: 'VectorLayer'
+      layerType: 'VectorTileLayer'
     }),
     ...icons.get(CommandIDs.newVectorLayer)
   });

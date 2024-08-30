@@ -24,28 +24,29 @@ import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
 import { Map as OlMap, View } from 'ol';
-import { Color } from 'ol/color';
 import { getCenter } from 'ol/extent';
 import GeoJSON from 'ol/format/GeoJSON';
 import MVT from 'ol/format/MVT';
+import {} from 'ol/format/filter';
 import { Image as ImageLayer } from 'ol/layer';
 import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
+import VectorTileLayer from 'ol/layer/VectorTile.js';
 import WebGlTileLayer from 'ol/layer/WebGLTile';
 import { fromLonLat, toLonLat } from 'ol/proj';
+import Feature from 'ol/render/Feature';
 import { ImageTile, XYZ } from 'ol/source';
 import GeoTIFF from 'ol/source/GeoTIFF';
 import Static from 'ol/source/ImageStatic';
 import VectorSource from 'ol/source/Vector';
 import VectorTileSource from 'ol/source/VectorTile';
-import { Circle, Fill, Stroke, Style } from 'ol/style.js';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Protocol } from 'pmtiles';
 import * as React from 'react';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
-
 interface IProps {
   viewModel: MainViewModel;
 }
@@ -171,6 +172,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
       this.setState(old => ({ ...old, loading: false }));
     }
   }
+  featuresForZ = [];
 
   // TODO: I don't think we need this for openlayers?
   /**
@@ -205,11 +207,20 @@ export class OlMainView extends React.Component<IProps, IStates> {
           minZoom: sourceParameters.minZoom,
           maxZoom: sourceParameters.maxZoom,
           urls: [this.computeSourceUrl(source)],
-          format: new MVT()
+          format: new MVT({ featureClass: Feature })
         });
+        // .on('tileloadend', evt => {
+        //   const z = evt.tile.getTileCoord()[0];
+        //   const features = evt.tile.getFeatures();
+        //   if (!Array.isArray(this.featuresForZ[z])) {
+        //     this.featuresForZ[z] = [];
+        //   }
+        //   this.featuresForZ[z] = this.featuresForZ[z].concat(features);
+        // });
 
         // TODO do we need this? not there for map libre
         // this._model.sharedModel.addSource(UUID.uuid4(), newSource);
+        newSource = newSource as VectorTileSource;
 
         break;
       }
@@ -551,92 +562,69 @@ export class OlMainView extends React.Component<IProps, IStates> {
       case 'VectorLayer': {
         const layerParameters = layer.parameters as IVectorLayer;
 
-        const fill = new Fill({
-          color: (layerParameters.color as Color) || '#FF0000'
-        });
-        const stroke = new Stroke({
-          color: (layerParameters.color as Color) || '#FF0000',
-          width: 1.25
-        });
+        const flatStyle = {
+          'fill-color': 'rgba(255,255,255,0.4)',
+          'stroke-color': '#3399CC',
+          'stroke-width': 1.25,
+          'circle-radius': 5,
+          'circle-fill-color': 'rgba(255,255,255,0.4)',
+          'circle-stroke-width': 1.25,
+          'circle-stroke-color': '#3399CC'
+        };
 
-        const style = new Style({
-          image: new Circle({
-            fill: fill,
-            stroke: stroke,
-            radius: 5
-          }),
-          fill: fill,
-          stroke: stroke
-        });
-
-        // const c = {
-        //   'fill-color': 'rgba(255,255,255,0.4)',
-        //   'stroke-color': '#3399CC',
-        //   'stroke-width': 1.25,
-        //   'circle-radius': 5,
-        //   'circle-fill-color': 'rgba(255,255,255,0.4)',
-        //   'circle-stroke-width': 1.25,
-        //   'circle-stroke-color': '#3399CC'
-        // };
+        const operators = {
+          '>': (a, b) => a > b,
+          '<': (a, b) => a < b,
+          '>=': (a, b) => a >= b,
+          '<=': (a, b) => a <= b,
+          '==': (a, b) => a === b,
+          '!=': (a, b) => a !== b
+        };
 
         newLayer = new VectorLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: {
-            'fill-color': 'rgba(255,255,255,0.4)',
-            'stroke-color': '#3399CC',
-            'stroke-width': 1.25,
-            'circle-radius': 5,
-            'circle-fill-color': 'rgba(255,255,255,0.4)',
-            'circle-stroke-width': 1.25,
-            'circle-stroke-color': '#3399CC'
+          style: function (feature1, resolution) {
+            const { feature, operator, value } =
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              layer.filters!.appliedFilters[0];
+            // Filter and style only the desired feature(s)
+            // console.log('feature in style', feature1.getProperties());
+            const props = feature1.getProperties();
+
+            console.log('props[feature]', props[feature]);
+            console.log('map', operators[operator](props[feature], value));
+            if (operators[operator](props[feature], value)) {
+              return new Style({
+                fill: new Fill({ color: '#F092DD' }),
+                stroke: new Stroke({
+                  color: '#392F5A',
+                  width: 2
+                }),
+                image: new Circle({
+                  radius: 5,
+                  fill: new Fill({ color: '#F092DD' }),
+                  stroke: new Stroke({
+                    color: '#392F5A',
+                    width: 2
+                  })
+                })
+              });
+            }
           }
-        }) as VectorLayer;
+        });
 
-        // // Set the defaults
-        // const style1 = {
-        //   'fill-color': '#000000',
-        //   'stroke-color': '#000000',
-        //   'circle-fill-color': '#865e3c',
-        //   'circle-stroke-color': '#865e3c'
-        // };
-        // newLayer = newLayer as VectorLayer;
+        // this.setVectorStyle(newLayer, layerParameters);
+        break;
+      }
+      case 'VectorTileLayer': {
+        const layerParameters = layer.parameters as IVectorLayer;
 
-        // Set based on params
-        // if (layerParameters.type === 'line') {
-        //   newLayer.setStyle({
-        //     ...newLayer.getStyle(),
-        //     'stroke-color': layerParameters.color
-        //   });
-        // }
-
-        // if (layerParameters.type === 'fill') {
-        //   newLayer.setStyle({
-        //     ...newLayer.getStyle(),
-        //     'fill-color': layerParameters.color
-        //   });
-        // }
-
-        // if (layerParameters.type === 'circle') {
-        //   // style1['circle-fill-color'] = layerParameters.color as string;
-        //   // style1['circle-stroke-color'] = layerParameters.color as string;
-        //   newLayer.setStyle({
-        //     ...newLayer.getStyle(),
-        //     'circle-fill-color': layerParameters.color,
-        //     'circle-stroke-color': layerParameters.color
-        //   });
-        //   // (newLayer as VectorLayer).setStyle(style1);
-        // }
-        this.setVectorStyle(newLayer, layerParameters);
-
-        // const paramColor =
-        //   layerParameters.type === 'line'
-        //     ? 'stroke-color'
-        //     : `${layerParameters.type}-color`;
-        // style[paramColor] = layer.parameters?.color;
-
-        // (newLayer as VectorLayer).setStyle(style1);
+        newLayer = new VectorTileLayer({
+          opacity: layerParameters.opacity,
+          source: this._sources[layerParameters.source]
+        });
 
         break;
       }
@@ -683,7 +671,10 @@ export class OlMainView extends React.Component<IProps, IStates> {
     }
   }
 
-  private setVectorStyle = (layer, layerParameters) => {
+  private setVectorStyle = (
+    layer: VectorLayer,
+    layerParameters: IVectorLayer
+  ) => {
     // Set based on params
     if (layerParameters.type === 'line') {
       layer.setStyle({
@@ -801,31 +792,18 @@ export class OlMainView extends React.Component<IProps, IStates> {
       await this.addSource(sourceId, source);
     }
 
-    console.log(
-      'set vis',
-      layer.parameters?.visible,
-      this.getLayer(id)?.get('id')
-    );
-
     mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
       case 'RasterLayer': {
-        mapLayer?.setOpacity(layer.parameters?.opacity || 1);
+        mapLayer.setOpacity(layer.parameters?.opacity || 1);
         break;
       }
       case 'VectorLayer': {
-        mapLayer?.setOpacity(layer.parameters?.opacity || 1);
+        const layerParams = layer.parameters as IVectorLayer;
 
-        this.setVectorStyle(mapLayer, layer.parameters);
-
-        // // TODO: this aint it
-        // (mapLayer as VectorLayer).setStyle({
-        //   'fill-color': layer.parameters?.color,
-        //   'stroke-color': layer.parameters?.color,
-        //   'circle-fill-color': layer.parameters?.color,
-        //   'circle-stroke-color': layer.parameters?.color
-        // });
+        mapLayer.setOpacity(layerParams.opacity || 1);
+        this.setVectorStyle(mapLayer as VectorLayer, layerParams);
         break;
       }
       case 'WebGlLayer': {
@@ -1042,8 +1020,20 @@ export class OlMainView extends React.Component<IProps, IStates> {
   }
 
   private async setFilters(id: string, filters: IJGISFilter) {
+    const mapLayer = this.getLayer(id) as VectorLayer;
+
+    const f = mapLayer.getSource()?.getFeatures();
+
+    console.log('features', f);
+
+    if (!mapLayer) {
+      // Only Vectorlayers have filters I think
+      return;
+    }
+
     if (filters.appliedFilters.length === 0) {
-      //   this._Map.setFilter(id, null);
+      // const ass = { ...mapLayer.getStyle(), filter: [] };
+      // mapLayer.setStyle(func);
       return;
     }
 

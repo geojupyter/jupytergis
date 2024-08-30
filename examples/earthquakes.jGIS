@@ -9,15 +9,15 @@
         "appliedFilters": [
           {
             "feature": "mag",
-            "operator": ">",
-            "value": 2.47
+            "operator": "<",
+            "value": 2.1
           }
         ],
         "logicalOp": "all"
       },
       "name": "Custom GeoJSON Layer",
       "parameters": {
-        "color": "#865e3c",
+        "color": "#000000",
         "opacity": 1.0,
         "source": "d07cc573-51fb-4ae8-965b-a0082ace7f2b",
         "type": "circle"
@@ -36,10 +36,11 @@
   },
   "options": {
     "bearing": 0.0,
-    "latitude": 39.19439624539356,
-    "longitude": -121.55020132126549,
+    "latitude": 38.612326230162665,
+    "longitude": -119.77357975468912,
     "pitch": 0.0,
-    "zoom": 4.630124252560623
+    "projection": "EPSG:3857",
+    "zoom": 5.161762963106246
   },
   "sources": {
     "5fe556bc-9938-4217-8de6-fe25aef088c2": {

@@ -1,7 +1,7 @@
 {
   "type": "object",
-  "description": "VectorLayer",
-  "title": "IVectorLayer",
+  "description": "VectorTileLayer",
+  "title": "IVectorTileLayer",
   "required": ["source", "type"],
   "additionalProperties": false,
   "properties": {

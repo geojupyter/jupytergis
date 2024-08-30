@@ -14,6 +14,7 @@ export * from './_interface/videoSource';
 export * from './_interface/hillshadeLayer';
 export * from './_interface/rasterlayer';
 export * from './_interface/vectorlayer';
+export * from './_interface/vectorTileLayer';
 export * from './_interface/webGlLayer';
 export * from './_interface/imageLayer';
 
