@@ -62,9 +62,9 @@
           ],
           0.6,
           [
-            15.0,
-            84.0,
-            10.0
+            237.0,
+            51.0,
+            59.0
           ]
         ],
         "opacity": 1.0,
@@ -77,10 +77,10 @@
   "options": {
     "bearing": 0.0,
     "latitude": 0.0,
-    "longitude": 0.0,
+    "longitude": -26.246075613612998,
     "pitch": 0.0,
-    "projection": "EPSG:4326",
-    "zoom": 1.0
+    "projection": "EPSG:3857",
+    "zoom": 1.5294305541461508
   },
   "sources": {
     "8b1d4258-5d46-48da-b466-496d376b593d": {
