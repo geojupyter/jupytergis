@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 from uuid import uuid4
 
 from qgis.core import (
+    QgsDataSourceUri,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
+    QgsMapLayer,
     QgsRasterLayer,
     QgsVectorTileLayer,
     QgsProject,
@@ -56,6 +58,7 @@ def qgis_layer_to_jgis(
     if isinstance(layer, QgsVectorTileLayer):
         layer_type = "VectorTileLayer"
         source_type = "VectorTileSource"
+        print(f"SOURCE URL {layer.source()}")
         source_params = layer.source().split("&")
         url = ""
         max_zoom = 24
@@ -159,3 +162,111 @@ def import_project_from_qgis(path: str | Path):
         },
         **jgis_layer_tree,
     }
+
+
+def jgis_layer_to_qgis(
+    layer_id: str,
+    layer: dict[str, Any],
+    source: dict[str, Any],
+) -> QgsMapLayer | None:
+
+    def build_uri(parameters: dict[str, str], source_type: str) -> str | None :
+        layer_config = dict()
+        zmax = parameters.get("maxZoom", None)
+        zmin = parameters.get("minZoom", 0)
+
+        if source_type in ["RasterSource", "VectorTileSource"]:
+            url = parameters.get("url", None)
+            if url is None:
+                return
+            layer_config["url"] = url
+            layer_config["type"] = "xyz"
+
+        if source_type == "RasterSource":
+            layer_config["crs"] = "EPSG:3857"
+
+        layer_config["zmin"] = str(zmin)
+        if zmax:
+            layer_config["zmax"] = str(zmax)
+
+        uri = QgsDataSourceUri()
+        for key, val in layer_config.items():
+            uri.setParam(key, val)
+
+        return bytes(uri.encodedUri()).decode()
+
+    map_layer = None
+
+    layer_name = layer.get("name", "")
+    layer_type = layer.get("type", None)
+    source_type = source.get("type", None)
+    if any([v is None for v in [layer_name, layer_type, source_type]]):
+        return
+
+    if layer_type == "RasterLayer" and source_type == "RasterSource":
+        parameters = source.get("parameters", {})
+        uri = build_uri(parameters, "RasterSource")
+        map_layer = QgsRasterLayer(uri, layer_name, "wms")
+
+    if layer_type == "VectorLayer" and source_type == "VectorTileSource":
+        parameters = source.get("parameters", {})
+        uri = build_uri(parameters, "VectorTileSource")
+        map_layer = QgsVectorTileLayer(uri, layer_name)
+
+    if map_layer is None:
+        print(f"JUPYTERGIS - Enable to export layer type {layer_type}")
+        return
+
+    map_layer.setId(layer_id)
+    return map_layer
+
+
+def jgis_layer_group_to_qgis(
+    layer_tree: list,
+    layers: dict[str, dict[str, Any]],
+    sources: dict[str, dict[str, Any]],
+    tree: QgsLayerTreeGroup | None = None
+) -> QgsLayerTreeGroup:
+    # Initialize the root tree
+    if tree is None:
+        tree = QgsLayerTreeGroup()
+
+    for item in layer_tree:
+        if isinstance(item, str):
+            # Item is a layer
+            layer = layers.get(item, None)
+            if layer is None:
+                continue
+            source_id = layer.get("parameters", {}).get("source", "")
+            source = sources.get(source_id, None)
+            if source is None:
+                continue
+            qgis_layer = jgis_layer_to_qgis(item, layer, source)
+            if qgis_layer is not None:
+                tree.addLayer(qgis_layer)
+        else:
+            # item is a group
+            tree.addGroup(jgis_layer_group_to_qgis(item, layers, sources, tree))
+
+    return tree
+
+
+def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> str:
+    if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
+        return
+
+    tree = jgis_layer_group_to_qgis(
+        virtual_file["layerTree"],
+        virtual_file["layers"],
+        virtual_file["sources"],
+    )
+    if tree:
+        project = QgsProject.instance()
+        root = project.layerTreeRoot()
+        root.removeAllChildren()
+        for node in tree.children():
+            root.addChildNode(node)
+
+        return project.write(path)
+
+    return False
