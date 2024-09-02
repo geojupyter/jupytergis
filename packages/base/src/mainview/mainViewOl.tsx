@@ -1,5 +1,6 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
+  IGeoTiffSource,
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
@@ -24,10 +25,9 @@ import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
 import { Map as OlMap, View } from 'ol';
-import { getCenter } from 'ol/extent';
+import { Color } from 'ol/color';
 import GeoJSON from 'ol/format/GeoJSON';
 import MVT from 'ol/format/MVT';
-import {} from 'ol/format/filter';
 import { Image as ImageLayer } from 'ol/layer';
 import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
@@ -146,7 +146,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
         const projection = view.getProjection();
         const latLng = toLonLat(center, projection);
         const bearing = view.getRotation();
-        // const pitch = this._Map.getPitch();
+
         this._model.setOptions({
           ...this._model.getOptions(),
           latitude: latLng[1],
@@ -172,9 +172,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
       this.setState(old => ({ ...old, loading: false }));
     }
   }
-  featuresForZ = [];
 
-  // TODO: I don't think we need this for openlayers?
   /**
    * Add a source in the map.
    *
@@ -183,137 +181,17 @@ export class OlMainView extends React.Component<IProps, IStates> {
    */
   async addSource(id: string, source: IJGISSource): Promise<void> {
     let newSource;
+
     switch (source.type) {
       case 'RasterSource': {
         const sourceParameters = source.parameters as IRasterSource;
         const url = this.computeSourceUrl(source);
-        console.log('url', url);
         newSource = new XYZ({
           attributions: sourceParameters.attribution,
           minZoom: sourceParameters.minZoom,
           maxZoom: sourceParameters.maxZoom,
           tileSize: 256,
           url: url
-        });
-
-        break;
-      }
-      case 'VectorTileSource': {
-        // const mapSource = this._Map.getSource(id) as MapLibre.VectorTileSource;
-        const sourceParameters = source.parameters as IVectorTileSource;
-
-        newSource = new VectorTileSource({
-          attributions: sourceParameters.attribution,
-          minZoom: sourceParameters.minZoom,
-          maxZoom: sourceParameters.maxZoom,
-          urls: [this.computeSourceUrl(source)],
-          format: new MVT({ featureClass: Feature })
-        });
-        // .on('tileloadend', evt => {
-        //   const z = evt.tile.getTileCoord()[0];
-        //   const features = evt.tile.getFeatures();
-        //   if (!Array.isArray(this.featuresForZ[z])) {
-        //     this.featuresForZ[z] = [];
-        //   }
-        //   this.featuresForZ[z] = this.featuresForZ[z].concat(features);
-        // });
-
-        // TODO do we need this? not there for map libre
-        // this._model.sharedModel.addSource(UUID.uuid4(), newSource);
-        newSource = newSource as VectorTileSource;
-
-        break;
-      }
-      case 'GeoJSONSource': {
-        // Converts geojson-vt data to GeoJSON
-        // taken from https://openlayers.org/en/latest/examples/geojson-vt.html
-        // const replacer = function (key, value) {
-        //   if (!value || !value.geometry) {
-        //     return value;
-        //   }
-
-        //   let type;
-        //   const rawType = value.type;
-        //   let geometry = value.geometry;
-        //   if (rawType === 1) {
-        //     type = 'MultiPoint';
-        //     if (geometry.length === 1) {
-        //       type = 'Point';
-        //       geometry = geometry[0];
-        //     }
-        //   } else if (rawType === 2) {
-        //     type = 'MultiLineString';
-        //     if (geometry.length === 1) {
-        //       type = 'LineString';
-        //       geometry = geometry[0];
-        //     }
-        //   } else if (rawType === 3) {
-        //     type = 'Polygon';
-        //     if (geometry.length > 1) {
-        //       type = 'MultiPolygon';
-        //       geometry = [geometry];
-        //     }
-        //   }
-
-        //   return {
-        //     type: 'Feature',
-        //     geometry: {
-        //       type: type,
-        //       coordinates: geometry
-        //     },
-        //     properties: value.tags
-        //   };
-        // };
-
-        const data =
-          source.parameters?.data ||
-          (await this._model.readGeoJSON(source.parameters?.path));
-
-        // const tileIndex = geojsonvt(data, {
-        //   extent: 4096,
-        //   debug: 1
-        // });
-        const format = new GeoJSON();
-        // const format1 = new GeoJSON({
-        //   // Data returned from geojson-vt is in tile pixel units
-        //   dataProjection: new Projection({
-        //     code: 'TILE_PIXELS',
-        //     units: 'tile-pixels',
-        //     extent: [0, 0, 4096, 4096]
-        //   })
-        // });
-        newSource = new VectorSource({
-          // tileUrlFunction: tileCoord => {
-          //   // Use the tile coordinate as a pseudo URL for caching purposes
-          //   return JSON.stringify(tileCoord);
-          // },
-          // tileLoadFunction: (tile: any, url) => {
-          //   const tileCoord = JSON.parse(url);
-          //   const data = tileIndex.getTile(
-          //     tileCoord[0],
-          //     tileCoord[1],
-          //     tileCoord[2]
-          //   );
-          //   const geojson = JSON.stringify(
-          //     {
-          //       type: 'FeatureCollection',
-          //       features: data ? data.features : []
-          //     },
-          //     replacer
-          //   );
-
-          //   const features = format.readFeatures(geojson, {
-          //     extent: newSource?.getTileGrid()?.getTileCoordExtent(tileCoord),
-          //     featureProjection: this._Map.getView().getProjection()
-          //   });
-          //   tile.setFeatures(features);
-          // }
-          // url: data,
-          // format: new GeoJSON(),
-          features: format.readFeatures(data, {
-            dataProjection: 'EPSG:4326',
-            featureProjection: this._Map.getView().getProjection()
-          })
         });
 
         break;
@@ -325,73 +203,92 @@ export class OlMainView extends React.Component<IProps, IStates> {
           url: this.computeSourceUrl(source),
           attributions: sourceParameters.attribution
         });
+
         break;
       }
-      case 'VideoSource': {
+      case 'VectorTileSource': {
+        const sourceParameters = source.parameters as IVectorTileSource;
+
+        newSource = new VectorTileSource({
+          attributions: sourceParameters.attribution,
+          minZoom: sourceParameters.minZoom,
+          maxZoom: sourceParameters.maxZoom,
+          urls: [this.computeSourceUrl(source)],
+          format: new MVT({ featureClass: Feature })
+        });
+
+        break;
+      }
+      case 'GeoJSONSource': {
+        const data =
+          source.parameters?.data ||
+          (await this._model.readGeoJSON(source.parameters?.path));
+
+        const format = new GeoJSON();
+
+        // TODO: Don't hardcode projection
+        newSource = new VectorSource({
+          features: format.readFeatures(data, {
+            dataProjection: 'EPSG:4326',
+            featureProjection: this._Map.getView().getProjection()
+          })
+        });
+
         break;
       }
       case 'ImageSource': {
         const sourceParameters = source.parameters as IImageSource;
 
         // Convert lon/lat array to extent
-        const minX = Math.min(
+        // Get lon/lat from source coordinates
+        const leftSide = Math.min(
           ...sourceParameters.coordinates.map(corner => corner[0])
         );
-        const minY = Math.min(
+        const bottomSide = Math.min(
           ...sourceParameters.coordinates.map(corner => corner[1])
         );
-        const maxX = Math.max(
+        const rightSide = Math.max(
           ...sourceParameters.coordinates.map(corner => corner[0])
         );
-        const maxY = Math.max(
+        const topSide = Math.max(
           ...sourceParameters.coordinates.map(corner => corner[1])
         );
 
-        const topLeft = fromLonLat([minX, maxY]);
-        const bottomRight = fromLonLat([maxX, minY]);
-        const mix = topLeft[0];
-        const may = topLeft[1];
-        const max = bottomRight[0];
-        const miy = bottomRight[1];
+        // Convert lon/lat to OpenLayer coordinates
+        const topLeft = fromLonLat([leftSide, topSide]);
+        const bottomRight = fromLonLat([rightSide, bottomSide]);
 
-        const e2 = [mix, miy, max, may];
+        // Get extent from coordinates
+        const minX = topLeft[0];
+        const maxY = topLeft[1];
+        const maxX = bottomRight[0];
+        const minY = bottomRight[1];
 
-        console.log('e2', e2);
+        const extent = [minX, minY, maxX, maxY];
 
-        // Create and return the extent array
-        const extent1 = [minX, minY, maxX, maxY];
-        console.log('extent', extent1);
-        console.log(
-          'this._Map.getView().getProjection()',
-          this._Map.getView().getProjection()
-        );
-
-        console.log('id', id);
-        this._Map.getView().setCenter(getCenter(e2));
-        this._Map.getView().setZoom(4);
         newSource = new Static({
-          imageExtent: e2,
+          imageExtent: extent,
           url: sourceParameters.url,
           interpolate: true,
           crossOrigin: ''
         });
+
+        break;
+      }
+      case 'VideoSource': {
+        console.warn('Video Tiles not supported with Open Layers');
+
         break;
       }
       case 'GeoTiffSource': {
+        const sourceParameters = source.parameters as IGeoTiffSource;
+
         newSource = new GeoTIFF({
-          sources: [
-            {
-              // red reflectance
-              url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B04.tif',
-              max: 10000
-            },
-            {
-              // near-infrared reflectance
-              url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B08.tif',
-              max: 10000
-            }
-          ]
+          sources: sourceParameters.urls,
+          normalize: sourceParameters.normalize,
+          wrapX: sourceParameters.wrapX
         });
+
         break;
       }
     }
@@ -436,7 +333,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
    * @param id - the source id.
    */
   removeSource(id: string): void {
-    // TODO implement
+    delete this._sources[id];
   }
 
   /**
@@ -449,10 +346,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
   }
 
   private async _updateLayersImpl(layerIds: string[]): Promise<void> {
-    // TODO implement
-
     const previousLayerIds = this.getLayers();
-    console.log('previousLayerIds', previousLayerIds);
     // We use the reverse order of the list to add the layer from the top to the
     // bottom.
     // This is to ensure that the beforeId (layer on top of the one we add/move)
@@ -505,7 +399,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
    * @param index - expected index of the layer.
    */
   async addLayer(id: string, layer: IJGISLayer, index: number): Promise<void> {
-    console.log('addinglayer');
     if (this.getLayer(id)) {
       // Layer already exists
       return;
@@ -520,14 +413,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
     if (!this._sources[sourceId]) {
       console.log('adding source', sourceId);
       await this.addSource(sourceId, source);
-    }
-
-    // Get the beforeId value according to the expected index.
-    const currentLayerIds = this.getLayers();
-    // const currentLayerIds = this._Map.getStyle().layers.map(layer => layer.id);
-    let beforeId: string | undefined = undefined;
-    if (index < currentLayerIds.length && index !== -1) {
-      beforeId = currentLayerIds[index];
     }
 
     let newLayer;
@@ -546,31 +431,18 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
         break;
       }
-      case 'WebGlLayer': {
-        console.log('adding web gl layer');
-        const layerParameters = layer.parameters as IRasterLayer;
-
-        // TODO: copy video source to get multipls urls from creation form
-
-        newLayer = new WebGlTileLayer({
-          opacity: layerParameters.opacity,
-          source: this._sources[layerParameters.source]
-        });
-
-        break;
-      }
       case 'VectorLayer': {
         const layerParameters = layer.parameters as IVectorLayer;
 
-        const flatStyle = {
-          'fill-color': 'rgba(255,255,255,0.4)',
-          'stroke-color': '#3399CC',
-          'stroke-width': 1.25,
-          'circle-radius': 5,
-          'circle-fill-color': 'rgba(255,255,255,0.4)',
-          'circle-stroke-width': 1.25,
-          'circle-stroke-color': '#3399CC'
-        };
+        // const flatStyle = {
+        //   'fill-color': 'rgba(255,255,255,0.4)',
+        //   'stroke-color': '#3399CC',
+        //   'stroke-width': 1.25,
+        //   'circle-radius': 5,
+        //   'circle-fill-color': 'rgba(255,255,255,0.4)',
+        //   'circle-stroke-width': 1.25,
+        //   'circle-stroke-color': '#3399CC'
+        // };
 
         const operators = {
           '>': (a, b) => a > b,
@@ -581,49 +453,75 @@ export class OlMainView extends React.Component<IProps, IStates> {
           '!=': (a, b) => a !== b
         };
 
+        // TODO: I don't think this will work with fancy color expressions
+        const fill = new Fill({
+          color: (layerParameters.color as Color) ?? '#F092DD'
+        });
+
+        const stroke = new Stroke({
+          color: (layerParameters.color as Color) ?? '#392F5A',
+          width: 2
+        });
+
+        const style = new Style({
+          fill,
+          stroke,
+          image: new Circle({
+            radius: 5,
+            fill,
+            stroke
+          })
+        });
+
         newLayer = new VectorLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: function (feature1, resolution) {
-            const { feature, operator, value } =
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              layer.filters!.appliedFilters[0];
-            // Filter and style only the desired feature(s)
-            // console.log('feature in style', feature1.getProperties());
-            const props = feature1.getProperties();
+          style: (currentFeature, resolution) => {
+            if (layer.filters && layer.filters?.appliedFilters.length !== 0) {
+              const { feature, operator, value } =
+                layer.filters.appliedFilters[0];
 
-            console.log('props[feature]', props[feature]);
-            console.log('map', operators[operator](props[feature], value));
-            if (operators[operator](props[feature], value)) {
-              return new Style({
-                fill: new Fill({ color: '#F092DD' }),
-                stroke: new Stroke({
-                  color: '#392F5A',
-                  width: 2
-                }),
-                image: new Circle({
-                  radius: 5,
-                  fill: new Fill({ color: '#F092DD' }),
-                  stroke: new Stroke({
-                    color: '#392F5A',
-                    width: 2
-                  })
-                })
-              });
+              // Only returns style for features that are not filtered out
+              const props = currentFeature.getProperties();
+              if (operators[operator](props[feature], value)) {
+                return style;
+              }
+            } else {
+              return style;
             }
           }
         });
 
-        // this.setVectorStyle(newLayer, layerParameters);
         break;
       }
       case 'VectorTileLayer': {
         const layerParameters = layer.parameters as IVectorLayer;
 
+        // TODO: I don't think this will work with fancy color expressions
+        const fill = new Fill({
+          color: (layerParameters.color as Color) ?? '#F092DD'
+        });
+
+        const stroke = new Stroke({
+          color: (layerParameters.color as Color) ?? '#392F5A',
+          width: 2
+        });
+
+        const style = new Style({
+          fill,
+          stroke,
+          image: new Circle({
+            radius: 5,
+            fill,
+            stroke
+          })
+        });
+
         newLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
-          source: this._sources[layerParameters.source]
+          source: this._sources[layerParameters.source],
+          style
         });
 
         break;
@@ -635,7 +533,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
           opacity: 0.3,
           source: this._sources[layerParameters.source],
           style: {
-            color: ['color', this.hillshadeMathStuff()]
+            color: ['color', this.hillshadeMath()]
           }
         });
 
@@ -643,25 +541,31 @@ export class OlMainView extends React.Component<IProps, IStates> {
       }
       case 'ImageLayer': {
         const layerParameters = layer.parameters as IImageLayer;
-        console.log(
-          'this._sources[layerParameters.source]',
-          this._sources[layerParameters.source]
-        );
+
         newLayer = new ImageLayer({
-          opacity: 1,
+          opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source]
         });
+
+        break;
+      }
+      case 'WebGlLayer': {
+        const layerParameters = layer.parameters as IRasterLayer;
+
+        newLayer = new WebGlTileLayer({
+          opacity: layerParameters.opacity,
+          source: this._sources[layerParameters.source]
+        });
+
+        // TODO: Some tifs are messed up without this, but I think it's a projection thing
+        // this._Map.setView(this._sources[layerParameters.source].getView());
+
+        break;
       }
     }
 
     // OpenLayers doesn't have name/id field so add it
     newLayer.set('id', id);
-
-    // change map view to use projection and extent from source
-    if (layer.parameters) {
-      console.log('setting view');
-      // this._Map.setView(this._sources[layer.parameters.source].getView());
-    }
 
     // TODO: Does this work? Think I need to do z-index stuff
     this._Map.getLayers().insertAt(index, newLayer);
@@ -705,7 +609,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
    * Taken from https://openlayers.org/en/latest/examples/webgl-shaded-relief.html
    * @returns
    */
-  private hillshadeMathStuff = () => {
+  private hillshadeMath = () => {
     // The method used to extract elevations from the DEM.
     // In this case the format used is Terrarium
     // red * 256 + green + blue / 256 - 32768
@@ -780,7 +684,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
     layer: IJGISLayer,
     mapLayer: BaseLayer
   ): Promise<void> {
-    console.log('in updater');
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getSource(sourceId);
     if (!source) {
@@ -788,7 +691,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
     }
 
     if (!this._sources[sourceId]) {
-      console.log('adding source', sourceId);
       await this.addSource(sourceId, source);
     }
 
@@ -803,17 +705,23 @@ export class OlMainView extends React.Component<IProps, IStates> {
         const layerParams = layer.parameters as IVectorLayer;
 
         mapLayer.setOpacity(layerParams.opacity || 1);
-        this.setVectorStyle(mapLayer as VectorLayer, layerParams);
+        // this.setVectorStyle(mapLayer as VectorLayer, layerParams);
+        break;
+      }
+      case 'VectorTileLayer': {
+        break;
+      }
+      case 'HillshadeLayer': {
+        // TODO figure out color here
+        break;
+      }
+      case 'ImageLayer': {
         break;
       }
       case 'WebGlLayer': {
         (mapLayer as WebGlTileLayer).setStyle({
           color: layer?.parameters?.color
         });
-        break;
-      }
-      case 'HillshadeLayer': {
-        // TODO figure out color here
         break;
       }
     }
@@ -923,10 +831,9 @@ export class OlMainView extends React.Component<IProps, IStates> {
   private updateOptions(options: IJGISOptions) {
     const centerCoord = fromLonLat(
       [options.longitude, options.latitude],
-      options.projection
+      this._Map.getView().getProjection()
     );
 
-    console.log('centerCoord', centerCoord);
     this._Map.getView().setZoom(options.zoom || 0);
     this._Map.getView().setCenter(centerCoord || [0, 0]);
 
@@ -941,7 +848,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
   }
 
   /**
-   * Convienence method to get a specific layer from OpenLayers Map
+   * Convenience method to get a specific layer from OpenLayers Map
    * @param id Layer to retrieve
    */
   private getLayer(id: string) {
@@ -952,7 +859,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
   }
 
   /**
-   * Convienence method to get a specific layer from OpenLayers Map
+   * Convenience method to get list layer IDs from the OpenLayers Map
    */
   private getLayers() {
     return this._Map
@@ -975,7 +882,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
       if (!layer || Object.keys(layer).length === 0) {
         this.removeLayer(change.id);
       } else {
-        // OpenLayers doesn't have a way to get an individual layer
         const mapLayer = this.getLayer(change.id);
         if (
           mapLayer &&
