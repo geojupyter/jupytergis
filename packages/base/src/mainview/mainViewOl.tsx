@@ -19,6 +19,7 @@ import {
   IRasterSource,
   IVectorLayer,
   IVectorTileSource,
+  IWebGlLayer,
   JupyterGISModel
 } from '@jupytergis/schema';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -549,11 +550,14 @@ export class OlMainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'WebGlLayer': {
-        const layerParameters = layer.parameters as IRasterLayer;
+        const layerParameters = layer.parameters as IWebGlLayer;
 
         newLayer = new WebGlTileLayer({
           opacity: layerParameters.opacity,
-          source: this._sources[layerParameters.source]
+          source: this._sources[layerParameters.source],
+          style: {
+            color: layerParameters.color
+          }
         });
 
         // TODO: Some tifs are messed up without this, but I think it's a projection thing

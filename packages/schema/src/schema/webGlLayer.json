@@ -16,6 +16,26 @@
       "multipleOf": 0.1,
       "minimum": 0,
       "maximum": 1
+    },
+    "color": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "number" },
+              {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            ]
+          }
+        }
+      ],
+      "description": "The color of the the object",
+      "default": "#FF0000"
     }
   }
 }
