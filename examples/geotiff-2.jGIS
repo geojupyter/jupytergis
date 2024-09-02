@@ -1,0 +1,104 @@
+{
+  "layerTree": [
+    "f75fd646-bc7d-478b-b65b-de34155b8efa"
+  ],
+  "layers": {
+    "f75fd646-bc7d-478b-b65b-de34155b8efa": {
+      "name": "Custom GeoTiff Layer",
+      "parameters": {
+        "color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "/",
+            [
+              "-",
+              [
+                "band",
+                2.0
+              ],
+              [
+                "band",
+                1.0
+              ]
+            ],
+            [
+              "+",
+              [
+                "band",
+                2.0
+              ],
+              [
+                "band",
+                1.0
+              ]
+            ]
+          ],
+          -0.2,
+          [
+            191.0,
+            191.0,
+            191.0
+          ],
+          0.0,
+          [
+            255.0,
+            255.0,
+            224.0
+          ],
+          0.2,
+          [
+            145.0,
+            191.0,
+            82.0
+          ],
+          0.4,
+          [
+            79.0,
+            138.0,
+            46.0
+          ],
+          0.6,
+          [
+            15.0,
+            84.0,
+            10.0
+          ]
+        ],
+        "opacity": 1.0,
+        "source": "8b1d4258-5d46-48da-b466-496d376b593d"
+      },
+      "type": "WebGlLayer",
+      "visible": true
+    }
+  },
+  "options": {
+    "bearing": 0.0,
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "pitch": 0.0,
+    "projection": "EPSG:4326",
+    "zoom": 1.0
+  },
+  "sources": {
+    "8b1d4258-5d46-48da-b466-496d376b593d": {
+      "name": "Custom GeoTiff Source",
+      "parameters": {
+        "normalize": false,
+        "urls": [
+          {
+            "url": "https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif"
+          }
+        ],
+        "wrapX": true
+      },
+      "type": "GeoTiffSource"
+    }
+  },
+  "terrain": {
+    "exaggeration": 0.0,
+    "source": ""
+  }
+}

@@ -21,6 +21,14 @@
       "minItems": 1,
       "default": [],
       "description": "URLs"
+    },
+    "normalize": {
+      "type": "boolean",
+      "default": true
+    },
+    "wrapX": {
+      "type": "boolean",
+      "default": false
     }
   }
 }
