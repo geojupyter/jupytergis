@@ -370,7 +370,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
           indexInMap = currentLayerIds.length;
         }
       }
-      // eslint-disable-next-line no-constant-condition
       if (this.getLayer(layerId)) {
         this.moveLayer(layerId, indexInMap);
       } else {
@@ -663,14 +662,32 @@ export class OlMainView extends React.Component<IProps, IStates> {
    * @param index - expected index of the layer.
    */
   moveLayer(id: string, index: number | undefined): void {
-    // TODO: OL uses z-index for ordering so come back to this
-    // // Get the beforeId value according to the expected index.
-    // const currentLayerIds = this.getLayers();
-    // let beforeId: string | undefined = undefined;
-    // if (!(index === undefined) && index < currentLayerIds.length) {
-    //   beforeId = currentLayerIds[index];
-    // }
-    // this._Map.moveLayer(id, beforeId);
+    // Get the beforeId value according to the expected index.
+    const currentLayerIds = this.getLayers();
+    let beforeId: string | undefined = undefined;
+    if (!(index === undefined) && index < currentLayerIds.length) {
+      beforeId = currentLayerIds[index];
+    }
+
+    const layerArray = this._Map.getLayers().getArray();
+    const movingLayer = this.getLayer(id);
+
+    if (!movingLayer || !index || !beforeId) {
+      return;
+    }
+    const indexOfMovingLayer = layerArray.indexOf(movingLayer);
+
+    layerArray.splice(indexOfMovingLayer, 1);
+
+    const beforeLayer = this.getLayer(beforeId);
+
+    if (!beforeLayer) {
+      return;
+    }
+    const indexOfBeforeLayer = layerArray.indexOf(beforeLayer);
+
+    layerArray.splice(indexOfBeforeLayer, 0, movingLayer);
+    this._Map.setLayers(layerArray);
   }
 
   /**
