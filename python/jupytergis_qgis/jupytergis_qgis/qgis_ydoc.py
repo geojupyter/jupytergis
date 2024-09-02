@@ -58,7 +58,6 @@ class YQGISBase(YBaseDoc):
 
         if source is not None and source:
             self._source = source
-            return source
 
         return self._source
 
@@ -121,7 +120,7 @@ class YQGISBase(YBaseDoc):
             delete=False, suffix=self._file_extension
         ) as tmp:
             if export_project_to_qgis(tmp.name, virtual_file):
-                with open(tmp.name, 'rb') as fd:
+                with open(tmp.name, "rb") as fd:
                     source = base64.encodebytes(fd.read()).decode("ascii")
                 return source
 

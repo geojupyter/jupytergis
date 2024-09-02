@@ -166,8 +166,8 @@ def import_project_from_qgis(path: str | Path):
 
 def jgis_layer_to_qgis(
     layer_id: str,
-    layer: dict[str, Any],
-    source: dict[str, Any],
+    layers: dict[str, dict[str, Any]],
+    sources: dict[str, dict[str, Any]],
 ) -> QgsMapLayer | None:
 
     def build_uri(parameters: dict[str, str], source_type: str) -> str | None :
@@ -194,6 +194,14 @@ def jgis_layer_to_qgis(
             uri.setParam(key, val)
 
         return bytes(uri.encodedUri()).decode()
+
+    layer = layers.get(layer_id, None)
+    if layer is None:
+        return
+    source_id = layer.get("parameters", {}).get("source", "")
+    source = sources.get(source_id, None)
+    if source is None:
+        return
 
     map_layer = None
 
@@ -222,51 +230,39 @@ def jgis_layer_to_qgis(
 
 
 def jgis_layer_group_to_qgis(
-    layer_tree: list,
+    layer_group: list,
     layers: dict[str, dict[str, Any]],
     sources: dict[str, dict[str, Any]],
-    tree: QgsLayerTreeGroup | None = None
+    qgisGroup: QgsLayerTreeGroup,
 ) -> QgsLayerTreeGroup:
-    # Initialize the root tree
-    if tree is None:
-        tree = QgsLayerTreeGroup()
 
-    for item in layer_tree:
+    for item in layer_group:
         if isinstance(item, str):
-            # Item is a layer
-            layer = layers.get(item, None)
-            if layer is None:
-                continue
-            source_id = layer.get("parameters", {}).get("source", "")
-            source = sources.get(source_id, None)
-            if source is None:
-                continue
-            qgis_layer = jgis_layer_to_qgis(item, layer, source)
+            # Item is a layer id
+            qgis_layer = jgis_layer_to_qgis(item, layers, sources)
             if qgis_layer is not None:
-                tree.addLayer(qgis_layer)
+                qgisGroup.addLayer(qgis_layer)
         else:
-            # item is a group
-            tree.addGroup(jgis_layer_group_to_qgis(item, layers, sources, tree))
-
-    return tree
+            # Item is a group
+            name = item.get("name", str(uuid4()))
+            qgisGroup.addGroup(name)
+            newGroup = qgisGroup.findGroup(name)
+            jgis_layer_group_to_qgis(item, layers, sources, newGroup)
 
 
 def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> str:
     if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
         return
 
-    tree = jgis_layer_group_to_qgis(
+    project = QgsProject.instance()
+    root = project.layerTreeRoot()
+    root.clear()
+
+    jgis_layer_group_to_qgis(
         virtual_file["layerTree"],
         virtual_file["layers"],
         virtual_file["sources"],
+        root
     )
-    if tree:
-        project = QgsProject.instance()
-        root = project.layerTreeRoot()
-        root.removeAllChildren()
-        for node in tree.children():
-            root.addChildNode(node)
 
-        return project.write(path)
-
-    return False
+    return project.write(path)
