@@ -932,6 +932,7 @@ __metadata:
     d3-color: ^3.1.0
     geojson-schema: ^1.0.5
     maplibre-gl: ^4.4.1
+    ol-pmtiles: ^0.5.0
     pbf: ^4.0.1
     react: ^18.0.1
     rimraf: ^3.0.2
@@ -9424,6 +9425,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ol-pmtiles@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "ol-pmtiles@npm:0.5.0"
+  dependencies:
+    pmtiles: ^3.0.4
+  peerDependencies:
+    ol: ">=9.0.0"
+  checksum: 5ba9eaeaf4ebe463eb2b6b3caf9929e9be398a80bde409fe9efb01767e2008874b5605a997d2f3d6222e739d85efd5f6ca455447be5426159dcea74be9fea59e
+  languageName: node
+  linkType: hard
+
 "ol@npm:^10.1.0":
   version: 10.1.0
   resolution: "ol@npm:10.1.0"
@@ -9902,7 +9914,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pmtiles@npm:^3.0.7":
+"pmtiles@npm:^3.0.4, pmtiles@npm:^3.0.7":
   version: 3.0.7
   resolution: "pmtiles@npm:3.0.7"
   dependencies:

@@ -17,6 +17,7 @@ import {
   IRasterLayer,
   IRasterSource,
   IVectorLayer,
+  IVectorTileLayer,
   IVectorTileSource,
   IWebGlLayer,
   JupyterGISModel
@@ -29,7 +30,6 @@ import { Color } from 'ol/color';
 import { GeoJSON, MVT } from 'ol/format';
 import {
   Image as ImageLayer,
-  Tile as TileLayer,
   Vector as VectorLayer,
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer
@@ -50,10 +50,12 @@ import * as React from 'react';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
+//@ts-expect-error no types for ol-pmtiles
+import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
+import TileLayer from 'ol/layer/Tile';
 interface IProps {
   viewModel: MainViewModel;
 }
-
 interface IStates {
   id: string; // ID of the component, it is used to identify which component
   //is the source of awareness updates.
@@ -182,14 +184,25 @@ export class OlMainView extends React.Component<IProps, IStates> {
     switch (source.type) {
       case 'RasterSource': {
         const sourceParameters = source.parameters as IRasterSource;
+
+        const pmTiles = sourceParameters.url.endsWith('.pmtiles');
         const url = this.computeSourceUrl(source);
-        newSource = new XYZSource({
-          attributions: sourceParameters.attribution,
-          minZoom: sourceParameters.minZoom,
-          maxZoom: sourceParameters.maxZoom,
-          tileSize: 256,
-          url: url
-        });
+
+        if (!pmTiles) {
+          newSource = new XYZSource({
+            attributions: sourceParameters.attribution,
+            minZoom: sourceParameters.minZoom,
+            maxZoom: sourceParameters.maxZoom,
+            tileSize: 256,
+            url: url
+          });
+        } else {
+          newSource = new PMTilesRasterSource({
+            attributions: sourceParameters.attribution,
+            tileSize: 256,
+            url: url
+          });
+        }
 
         break;
       }
@@ -206,13 +219,23 @@ export class OlMainView extends React.Component<IProps, IStates> {
       case 'VectorTileSource': {
         const sourceParameters = source.parameters as IVectorTileSource;
 
-        newSource = new VectorTileSource({
-          attributions: sourceParameters.attribution,
-          minZoom: sourceParameters.minZoom,
-          maxZoom: sourceParameters.maxZoom,
-          urls: [this.computeSourceUrl(source)],
-          format: new MVT({ featureClass: Feature })
-        });
+        const pmTiles = sourceParameters.url.endsWith('.pmtiles');
+        const url = this.computeSourceUrl(source);
+
+        if (!pmTiles) {
+          newSource = new VectorTileSource({
+            attributions: sourceParameters.attribution,
+            minZoom: sourceParameters.minZoom,
+            maxZoom: sourceParameters.maxZoom,
+            url: url,
+            format: new MVT({ featureClass: Feature })
+          });
+        } else {
+          newSource = new PMTilesVectorSource({
+            attributions: sourceParameters.attribution,
+            url: url
+          });
+        }
 
         break;
       }
@@ -442,30 +465,11 @@ export class OlMainView extends React.Component<IProps, IStates> {
       case 'VectorTileLayer': {
         const layerParameters = layer.parameters as IVectorLayer;
 
-        // TODO: I don't think this will work with fancy color expressions
-        const fill = new Fill({
-          color: (layerParameters.color as Color) ?? '#F092DD'
-        });
-
-        const stroke = new Stroke({
-          color: (layerParameters.color as Color) ?? '#392F5A',
-          width: 2
-        });
-
-        const style = new Style({
-          fill,
-          stroke,
-          image: new Circle({
-            radius: 5,
-            fill,
-            stroke
-          })
-        });
-
         newLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source],
-          style
+          style: currentFeature =>
+            this.vectorLayerStyleFunc(currentFeature, layer)
         });
 
         break;
@@ -721,6 +725,14 @@ export class OlMainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'VectorTileLayer': {
+        const layerParams = layer.parameters as IVectorTileLayer;
+
+        mapLayer.setOpacity(layerParams.opacity || 1);
+
+        (mapLayer as VectorLayer).setStyle(currentFeature =>
+          this.vectorLayerStyleFunc(currentFeature, layer)
+        );
+
         break;
       }
       case 'HillshadeLayer': {
