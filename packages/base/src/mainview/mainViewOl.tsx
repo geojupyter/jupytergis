@@ -4,7 +4,6 @@ import {
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
-  IJGISFilter,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -27,8 +26,8 @@ import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
 import { Map as OlMap, View } from 'ol';
 import { Color } from 'ol/color';
-import GeoJSON from 'ol/format/GeoJSON';
-import MVT from 'ol/format/MVT';
+import { GeoJSON, MVT } from 'ol/format';
+// import MVT from 'ol/format/MVT';
 import { Image as ImageLayer } from 'ol/layer';
 import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
@@ -43,7 +42,6 @@ import Static from 'ol/source/ImageStatic';
 import VectorSource from 'ol/source/Vector';
 import VectorTileSource from 'ol/source/VectorTile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
-import { Protocol } from 'pmtiles';
 import * as React from 'react';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
@@ -431,120 +429,12 @@ export class OlMainView extends React.Component<IProps, IStates> {
       case 'VectorLayer': {
         const layerParameters = layer.parameters as IVectorLayer;
 
-        // const flatStyle = {
-        //   'fill-color': 'rgba(255,255,255,0.4)',
-        //   'stroke-color': '#3399CC',
-        //   'stroke-width': 1.25,
-        //   'circle-radius': 5,
-        //   'circle-fill-color': 'rgba(255,255,255,0.4)',
-        //   'circle-stroke-width': 1.25,
-        //   'circle-stroke-color': '#3399CC'
-        // };
-
-        const operators = {
-          '>': (a, b) => a > b,
-          '<': (a, b) => a < b,
-          '>=': (a, b) => a >= b,
-          '<=': (a, b) => a <= b,
-          '==': (a, b) => a === b,
-          '!=': (a, b) => a !== b
-        };
-
-        // TODO: I don't think this will work with fancy color expressions
-        const fill = new Fill({
-          color: (layerParameters.color as Color) ?? '#F092DD'
-        });
-
-        const stroke = new Stroke({
-          color: (layerParameters.color as Color) ?? '#392F5A',
-          width: 2
-        });
-
-        const style = new Style({
-          fill,
-          stroke,
-          image: new Circle({
-            radius: 5,
-            fill,
-            stroke
-          })
-        });
-
-        const styleFunc = currentFeature => {
-          if (layer.filters && layer.filters?.appliedFilters.length !== 0) {
-            const props = currentFeature.getProperties();
-            let shouldDisplayFeature = true;
-
-            switch (layer.filters.logicalOp) {
-              case 'any': {
-                // Display the feature if any filter conditions apply
-                shouldDisplayFeature = layer.filters.appliedFilters.some(
-                  ({ feature, operator, value }) =>
-                    operators[operator](props[feature], value)
-                );
-
-                break;
-              }
-              case 'all': {
-                // Display the feature only if all the filter conditions apply
-                shouldDisplayFeature = layer.filters.appliedFilters.every(
-                  ({ feature, operator, value }) =>
-                    operators[operator](props[feature], value)
-                );
-
-                break;
-              }
-            }
-
-            if (shouldDisplayFeature) {
-              return style;
-            } else {
-              return undefined;
-            }
-          } else {
-            return style;
-          }
-        };
-
         newLayer = new VectorLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: currentFeature => {
-            if (layer.filters && layer.filters?.appliedFilters.length !== 0) {
-              const props = currentFeature.getProperties();
-              let shouldDisplayFeature = true;
-
-              switch (layer.filters.logicalOp) {
-                case 'any': {
-                  // Display the feature if any filter conditions apply
-                  shouldDisplayFeature = layer.filters.appliedFilters.some(
-                    ({ feature, operator, value }) =>
-                      operators[operator](props[feature], value)
-                  );
-
-                  break;
-                }
-                case 'all': {
-                  // Display the feature only if all the filter conditions apply
-                  shouldDisplayFeature = layer.filters.appliedFilters.every(
-                    ({ feature, operator, value }) =>
-                      operators[operator](props[feature], value)
-                  );
-
-                  break;
-                }
-              }
-
-              if (shouldDisplayFeature) {
-                return style;
-              } else {
-                return undefined;
-              }
-            } else {
-              return style;
-            }
-          }
+          style: currentFeature =>
+            this.vectorLayerStyleFunc(currentFeature, layer)
         });
 
         break;
@@ -624,43 +514,86 @@ export class OlMainView extends React.Component<IProps, IStates> {
     // OpenLayers doesn't have name/id field so add it
     newLayer.set('id', id);
 
-    // TODO: Does this work? Think I need to do z-index stuff
     this._Map.getLayers().insertAt(index, newLayer);
-
-    if (layer.filters) {
-      this.setFilters(id, layer.filters);
-    }
   }
 
-  // private setVectorStyle = (
-  //   layer: VectorLayer,
-  //   layerParameters: IVectorLayer
-  // ) => {
-  //   // Set based on params
-  //   if (layerParameters.type === 'line') {
-  //     layer.setStyle({
-  //       ...layer.getStyle(),
-  //       'stroke-color': layerParameters.color
-  //     });
-  //   }
+  vectorLayerStyleFunc = (currentFeature, layer) => {
+    const layerParameters = layer.parameters as IVectorLayer;
 
-  //   if (layerParameters.type === 'fill') {
-  //     layer.setStyle({
-  //       ...layer.getStyle(),
-  //       'fill-color': layerParameters.color
-  //     });
-  //   }
+    // const flatStyle = {
+    //   'fill-color': 'rgba(255,255,255,0.4)',
+    //   'stroke-color': '#3399CC',
+    //   'stroke-width': 1.25,
+    //   'circle-radius': 5,
+    //   'circle-fill-color': 'rgba(255,255,255,0.4)',
+    //   'circle-stroke-width': 1.25,
+    //   'circle-stroke-color': '#3399CC'
+    // };
 
-  //   if (layerParameters.type === 'circle') {
-  //     // style1['circle-fill-color'] = layerParameters.color as string;
-  //     // style1['circle-stroke-color'] = layerParameters.color as string;
-  //     layer.setStyle({
-  //       ...layer.getStyle(),
-  //       'circle-fill-color': layerParameters.color,
-  //       'circle-stroke-color': layerParameters.color
-  //     });
-  //   }
-  // };
+    // TODO: Need to make a version that works with strings as well
+    const operators = {
+      '>': (a, b) => a > b,
+      '<': (a, b) => a < b,
+      '>=': (a, b) => a >= b,
+      '<=': (a, b) => a <= b,
+      '==': (a, b) => a === b,
+      '!=': (a, b) => a !== b
+    };
+
+    // TODO: I don't think this will work with fancy color expressions
+    const fill = new Fill({
+      color: (layerParameters.color as Color) ?? '#F092DD'
+    });
+
+    const stroke = new Stroke({
+      color: (layerParameters.color as Color) ?? '#392F5A',
+      width: 2
+    });
+
+    const style = new Style({
+      fill,
+      stroke,
+      image: new Circle({
+        radius: 5,
+        fill,
+        stroke
+      })
+    });
+
+    if (layer.filters && layer.filters?.appliedFilters.length !== 0) {
+      const props = currentFeature.getProperties();
+      let shouldDisplayFeature = true;
+
+      switch (layer.filters.logicalOp) {
+        case 'any': {
+          // Display the feature if any filter conditions apply
+          shouldDisplayFeature = layer.filters.appliedFilters.some(
+            ({ feature, operator, value }) =>
+              operators[operator](props[feature], value)
+          );
+
+          break;
+        }
+        case 'all': {
+          // Display the feature only if all the filter conditions apply
+          shouldDisplayFeature = layer.filters.appliedFilters.every(
+            ({ feature, operator, value }) =>
+              operators[operator](props[feature], value)
+          );
+
+          break;
+        }
+      }
+
+      if (shouldDisplayFeature) {
+        return style;
+      } else {
+        return undefined;
+      }
+    } else {
+      return style;
+    }
+  };
 
   /**
    * Taken from https://openlayers.org/en/latest/examples/webgl-shaded-relief.html
@@ -781,72 +714,9 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
         mapLayer.setOpacity(layerParams.opacity || 1);
 
-        const fill = new Fill({
-          color: (layerParams.color as Color) ?? '#F092DD'
-        });
-
-        const stroke = new Stroke({
-          color: (layerParams.color as Color) ?? '#392F5A',
-          width: 2
-        });
-
-        const style = new Style({
-          fill,
-          stroke,
-          image: new Circle({
-            radius: 5,
-            fill,
-            stroke
-          })
-        });
-
-        const operators = {
-          '>': (a, b) => a > b,
-          '<': (a, b) => a < b,
-          '>=': (a, b) => a >= b,
-          '<=': (a, b) => a <= b,
-          '==': (a, b) => a === b,
-          '!=': (a, b) => a !== b
-        };
-
-        const styleFunc = currentFeature => {
-          if (layer.filters && layer.filters?.appliedFilters.length !== 0) {
-            const props = currentFeature.getProperties();
-            let shouldDisplayFeature = true;
-
-            switch (layer.filters.logicalOp) {
-              case 'any': {
-                // Display the feature if any filter conditions apply
-                shouldDisplayFeature = layer.filters.appliedFilters.some(
-                  ({ feature, operator, value }) =>
-                    operators[operator](props[feature], value)
-                );
-
-                break;
-              }
-              case 'all': {
-                // Display the feature only if all the filter conditions apply
-                shouldDisplayFeature = layer.filters.appliedFilters.every(
-                  ({ feature, operator, value }) =>
-                    operators[operator](props[feature], value)
-                );
-
-                break;
-              }
-            }
-
-            if (shouldDisplayFeature) {
-              return style;
-            } else {
-              return undefined;
-            }
-          } else {
-            return style;
-          }
-        };
-
-        // const sf = this.buildStyleFunc(layer)
-        (mapLayer as VectorLayer).setStyle(styleFunc);
+        (mapLayer as VectorLayer).setStyle(currentFeature =>
+          this.vectorLayerStyleFunc(currentFeature, layer)
+        );
 
         break;
       }
@@ -867,61 +737,8 @@ export class OlMainView extends React.Component<IProps, IStates> {
         break;
       }
     }
-
-    if (layer.filters) {
-      this.setFilters(id, layer.filters);
-    }
   }
 
-  private buildStyleFunc = (layer, currentFeature, resolution) => {
-    console.log('buildfunc');
-    const layerParams = layer.parameters as IVectorLayer;
-
-    const fill = new Fill({
-      color: (layerParams.color as Color) ?? '#F092DD'
-    });
-
-    const stroke = new Stroke({
-      color: (layerParams.color as Color) ?? '#392F5A',
-      width: 2
-    });
-
-    const style = new Style({
-      fill,
-      stroke,
-      image: new Circle({
-        radius: 5,
-        fill,
-        stroke
-      })
-    });
-
-    const operators = {
-      '>': (a, b) => a > b,
-      '<': (a, b) => a < b,
-      '>=': (a, b) => a >= b,
-      '<=': (a, b) => a <= b,
-      '==': (a, b) => a === b,
-      '!=': (a, b) => a !== b
-    };
-
-    const styleFunc = (currentFeature, resolution) => {
-      if (layer.filters && layer.filters?.appliedFilters.length !== 0) {
-        const { feature, operator, value } = layer.filters.appliedFilters[0];
-
-        // Only returns style for features that are not filtered out
-        const props = currentFeature.getProperties();
-        if (operators[operator](props[feature], value)) {
-          return style;
-        }
-      } else {
-        return style;
-      }
-    };
-
-    return styleFunc;
-    // (mapLayer as VectorLayer).setStyle(styleFunc);
-  };
   /**
    * Remove a layer from the map.
    *
@@ -932,69 +749,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
     if (mapLayer) {
       this._Map.removeLayer(mapLayer);
     }
-  }
-
-  /**
-   * Determines whether to use tiles or a URL for a given source based on the presence of replaceable parameters in the URL.
-   *
-   * This method checks if the provided URL contains patterns that indicate it can be broken down into tiles
-   * (e.g., {z}/{x}/{y}, {ratio}, etc.).
-   * If such patterns are found, it suggests that tiles should be used. Otherwise, the URL itself should be used.
-   *
-   * @param url - The URL to check for replaceable parameters.
-   * @returns True if the URL contains replaceable parameters indicating the use of tiles, false otherwise.
-   */
-  private _shouldUseTiles(url: string) {
-    const regexPatterns = [
-      /\{z\}/,
-      /\{x\}/,
-      /\{y\}/,
-      /\{ratio\}/,
-      /\{quadkey\}/,
-      /\{bbox-epsg-3857\}/
-    ];
-
-    let result = false;
-
-    for (const pattern of regexPatterns) {
-      if (pattern.test(url)) {
-        result = true;
-        break;
-      }
-    }
-
-    return result;
-  }
-
-  /**
-   * Updates the given source with either a new URL or tiles based on the result of `_shouldUseTiles`.
-   *
-   * @param source - The source to update.
-   * @param url - The URL to set for the source.
-   */
-  private _handleSourceUpdate(source: any, url: string) {
-    const result = this._shouldUseTiles(url);
-
-    result ? source.setTiles([url]) : source.setUrl(url);
-  }
-
-  /**
-   * Configures a source specification, setting either the `tiles` or `url` property based on the provided URL.
-   *
-   * This method uses the `_shouldUseTiles` method to determine whether the source should be configured with tiles or a direct URL. It then modifies the `sourceSpec` object accordingly.
-   *
-   * @param sourceSpec - The source specification object to configure. This object is modified in place.
-   * @param url - The URL to check for replaceable parameters and use in configuring the source.
-   * @returns The modified source specification object.
-   */
-  private configureTileSource(sourceSpec: any, url: string) {
-    const result = this._shouldUseTiles(url);
-
-    result
-      ? (sourceSpec = { tiles: [url], ...sourceSpec })
-      : (sourceSpec = { url, ...sourceSpec });
-
-    return sourceSpec;
   }
 
   private _onClientSharedStateChanged = (
@@ -1114,37 +868,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
     });
   }
 
-  private async setFilters(id: string, filters: IJGISFilter) {
-    const mapLayer = this.getLayer(id) as VectorLayer;
-
-    const f = mapLayer.getSource()?.getFeatures();
-
-    // console.log('features', f);
-
-    if (!mapLayer) {
-      // Only Vectorlayers have filters I think
-      return;
-    }
-
-    if (filters.appliedFilters.length === 0) {
-      // const ass = { ...mapLayer.getStyle(), filter: [] };
-      // mapLayer.setStyle(func);
-      return;
-    }
-
-    const layer = this.getLayer(id) as VectorLayer;
-    // console.log('layer.getStyle()', layer.getStyle());
-
-    const filterExpression = [
-      filters.logicalOp,
-      ...filters.appliedFilters.map(filter => {
-        return [filter.operator, filter.feature, filter.value];
-      })
-    ]; // as MapLibre.FilterSpecification;
-
-    // this._Map.setFilter(id, filterExpression);
-  }
-
   private getSource<T>(id: string): T | undefined {
     const source = this._model.sharedModel.getSource(id);
 
@@ -1193,14 +916,9 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
   private _initializedPosition = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
-
   private _Map: OlMap;
-  //   private _Map: MapLibre.Map;
-
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;
-  private _videoPlaying = false;
-  private _protocol: Protocol;
   private _sources: Record<string, any>;
 }
