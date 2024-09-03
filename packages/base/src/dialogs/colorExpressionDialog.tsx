@@ -48,11 +48,9 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
 
   useEffect(() => {
     // This it to parse a color object on the layer
-    console.log('starting');
     selectedLayerRef.current = selectedLayer;
 
     const layer = context.model.getLayer(selectedLayer);
-    console.log('selectedLayer', selectedLayer);
     if (!layer || !layer.parameters?.color) {
       return;
     }
@@ -79,11 +77,9 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     }
 
     setStopRows(pairedObjects);
-    console.log('pairedObjects', pairedObjects);
   }, [selectedLayer]);
 
   useEffect(() => {
-    console.log('stopRows', stopRows);
     rowsRef.current = stopRows;
   }, [stopRows]);
 
@@ -95,9 +91,6 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     }
 
     const colorExpr: any = [selectedFunction, ['linear']];
-
-    // console.log('stopRows', stopRows);
-    // console.log('rowsRef.current', rowsRef.current);
 
     const nir = ['band', 2];
 
@@ -125,10 +118,6 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
     // colorExpr.push([79, 138, 46]);
     // colorExpr.push(0.6);
     // colorExpr.push([15, 84, 10]);
-
-    // console.log('colorExpr', colorExpr);
-
-    // console.log('safe');
 
     (layer.parameters as IWebGlLayer).color = colorExpr;
     context.model.sharedModel.updateLayer(selectedLayerRef.current, layer);

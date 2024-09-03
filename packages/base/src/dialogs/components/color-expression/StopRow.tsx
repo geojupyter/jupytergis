@@ -37,7 +37,6 @@ const StopRow = ({
     // Optionally handle alpha channel if needed
     // For simplicity, this example ignores the alpha channel
     // If you need to include alpha, you could append it after the RGB part, e.g., `return '#' + rHex + gHex + bHex + (a === 1 ? '' : a.toString(16));`
-    console.log('rHex + gHex + bHex', '#' + rHex + gHex + bHex);
     return '#' + rHex + gHex + bHex;
   };
 
@@ -49,7 +48,6 @@ const StopRow = ({
       })
       .join('');
 
-    console.log('hex', hex);
     return '#' + hex;
   };
 
@@ -62,7 +60,6 @@ const StopRow = ({
           parseInt(result[3], 16)
         ]
       : null;
-    console.log('result', l);
     return l;
   };
 
