@@ -63,7 +63,7 @@ test.describe('UI Test', () => {
         await page.waitForTimeout(1000);
         expect(errors).toBe(0);
 
-        await expect(page.locator('.maplibregl-canvas')).toBeVisible();
+        await expect(page.locator('.ol-unselectable').first()).toBeAttached();
       });
     }
   });
