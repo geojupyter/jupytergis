@@ -121,8 +121,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
   }
 
   async generateScene(): Promise<void> {
-    console.log('generating');
-
     if (this.divRef.current) {
       this._Map = new OlMap({
         target: this.divRef.current,
@@ -411,7 +409,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
     }
 
     if (!this._sources[sourceId]) {
-      console.log('adding source', sourceId);
       await this.addSource(sourceId, source);
     }
 
@@ -473,19 +470,76 @@ export class OlMainView extends React.Component<IProps, IStates> {
           })
         });
 
+        const styleFunc = currentFeature => {
+          if (layer.filters && layer.filters?.appliedFilters.length !== 0) {
+            const props = currentFeature.getProperties();
+            let shouldDisplayFeature = true;
+
+            switch (layer.filters.logicalOp) {
+              case 'any': {
+                // Display the feature if any filter conditions apply
+                shouldDisplayFeature = layer.filters.appliedFilters.some(
+                  ({ feature, operator, value }) =>
+                    operators[operator](props[feature], value)
+                );
+
+                break;
+              }
+              case 'all': {
+                // Display the feature only if all the filter conditions apply
+                shouldDisplayFeature = layer.filters.appliedFilters.every(
+                  ({ feature, operator, value }) =>
+                    operators[operator](props[feature], value)
+                );
+
+                break;
+              }
+            }
+
+            if (shouldDisplayFeature) {
+              return style;
+            } else {
+              return undefined;
+            }
+          } else {
+            return style;
+          }
+        };
+
         newLayer = new VectorLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: (currentFeature, resolution) => {
+          style: currentFeature => {
             if (layer.filters && layer.filters?.appliedFilters.length !== 0) {
-              const { feature, operator, value } =
-                layer.filters.appliedFilters[0];
-
-              // Only returns style for features that are not filtered out
               const props = currentFeature.getProperties();
-              if (operators[operator](props[feature], value)) {
+              let shouldDisplayFeature = true;
+
+              switch (layer.filters.logicalOp) {
+                case 'any': {
+                  // Display the feature if any filter conditions apply
+                  shouldDisplayFeature = layer.filters.appliedFilters.some(
+                    ({ feature, operator, value }) =>
+                      operators[operator](props[feature], value)
+                  );
+
+                  break;
+                }
+                case 'all': {
+                  // Display the feature only if all the filter conditions apply
+                  shouldDisplayFeature = layer.filters.appliedFilters.every(
+                    ({ feature, operator, value }) =>
+                      operators[operator](props[feature], value)
+                  );
+
+                  break;
+                }
+              }
+
+              if (shouldDisplayFeature) {
                 return style;
+              } else {
+                return undefined;
               }
             } else {
               return style;
@@ -578,35 +632,35 @@ export class OlMainView extends React.Component<IProps, IStates> {
     }
   }
 
-  private setVectorStyle = (
-    layer: VectorLayer,
-    layerParameters: IVectorLayer
-  ) => {
-    // Set based on params
-    if (layerParameters.type === 'line') {
-      layer.setStyle({
-        ...layer.getStyle(),
-        'stroke-color': layerParameters.color
-      });
-    }
+  // private setVectorStyle = (
+  //   layer: VectorLayer,
+  //   layerParameters: IVectorLayer
+  // ) => {
+  //   // Set based on params
+  //   if (layerParameters.type === 'line') {
+  //     layer.setStyle({
+  //       ...layer.getStyle(),
+  //       'stroke-color': layerParameters.color
+  //     });
+  //   }
 
-    if (layerParameters.type === 'fill') {
-      layer.setStyle({
-        ...layer.getStyle(),
-        'fill-color': layerParameters.color
-      });
-    }
+  //   if (layerParameters.type === 'fill') {
+  //     layer.setStyle({
+  //       ...layer.getStyle(),
+  //       'fill-color': layerParameters.color
+  //     });
+  //   }
 
-    if (layerParameters.type === 'circle') {
-      // style1['circle-fill-color'] = layerParameters.color as string;
-      // style1['circle-stroke-color'] = layerParameters.color as string;
-      layer.setStyle({
-        ...layer.getStyle(),
-        'circle-fill-color': layerParameters.color,
-        'circle-stroke-color': layerParameters.color
-      });
-    }
-  };
+  //   if (layerParameters.type === 'circle') {
+  //     // style1['circle-fill-color'] = layerParameters.color as string;
+  //     // style1['circle-stroke-color'] = layerParameters.color as string;
+  //     layer.setStyle({
+  //       ...layer.getStyle(),
+  //       'circle-fill-color': layerParameters.color,
+  //       'circle-stroke-color': layerParameters.color
+  //     });
+  //   }
+  // };
 
   /**
    * Taken from https://openlayers.org/en/latest/examples/webgl-shaded-relief.html
@@ -726,7 +780,74 @@ export class OlMainView extends React.Component<IProps, IStates> {
         const layerParams = layer.parameters as IVectorLayer;
 
         mapLayer.setOpacity(layerParams.opacity || 1);
-        // this.setVectorStyle(mapLayer as VectorLayer, layerParams);
+
+        const fill = new Fill({
+          color: (layerParams.color as Color) ?? '#F092DD'
+        });
+
+        const stroke = new Stroke({
+          color: (layerParams.color as Color) ?? '#392F5A',
+          width: 2
+        });
+
+        const style = new Style({
+          fill,
+          stroke,
+          image: new Circle({
+            radius: 5,
+            fill,
+            stroke
+          })
+        });
+
+        const operators = {
+          '>': (a, b) => a > b,
+          '<': (a, b) => a < b,
+          '>=': (a, b) => a >= b,
+          '<=': (a, b) => a <= b,
+          '==': (a, b) => a === b,
+          '!=': (a, b) => a !== b
+        };
+
+        const styleFunc = currentFeature => {
+          if (layer.filters && layer.filters?.appliedFilters.length !== 0) {
+            const props = currentFeature.getProperties();
+            let shouldDisplayFeature = true;
+
+            switch (layer.filters.logicalOp) {
+              case 'any': {
+                // Display the feature if any filter conditions apply
+                shouldDisplayFeature = layer.filters.appliedFilters.some(
+                  ({ feature, operator, value }) =>
+                    operators[operator](props[feature], value)
+                );
+
+                break;
+              }
+              case 'all': {
+                // Display the feature only if all the filter conditions apply
+                shouldDisplayFeature = layer.filters.appliedFilters.every(
+                  ({ feature, operator, value }) =>
+                    operators[operator](props[feature], value)
+                );
+
+                break;
+              }
+            }
+
+            if (shouldDisplayFeature) {
+              return style;
+            } else {
+              return undefined;
+            }
+          } else {
+            return style;
+          }
+        };
+
+        // const sf = this.buildStyleFunc(layer)
+        (mapLayer as VectorLayer).setStyle(styleFunc);
+
         break;
       }
       case 'VectorTileLayer': {
@@ -752,6 +873,55 @@ export class OlMainView extends React.Component<IProps, IStates> {
     }
   }
 
+  private buildStyleFunc = (layer, currentFeature, resolution) => {
+    console.log('buildfunc');
+    const layerParams = layer.parameters as IVectorLayer;
+
+    const fill = new Fill({
+      color: (layerParams.color as Color) ?? '#F092DD'
+    });
+
+    const stroke = new Stroke({
+      color: (layerParams.color as Color) ?? '#392F5A',
+      width: 2
+    });
+
+    const style = new Style({
+      fill,
+      stroke,
+      image: new Circle({
+        radius: 5,
+        fill,
+        stroke
+      })
+    });
+
+    const operators = {
+      '>': (a, b) => a > b,
+      '<': (a, b) => a < b,
+      '>=': (a, b) => a >= b,
+      '<=': (a, b) => a <= b,
+      '==': (a, b) => a === b,
+      '!=': (a, b) => a !== b
+    };
+
+    const styleFunc = (currentFeature, resolution) => {
+      if (layer.filters && layer.filters?.appliedFilters.length !== 0) {
+        const { feature, operator, value } = layer.filters.appliedFilters[0];
+
+        // Only returns style for features that are not filtered out
+        const props = currentFeature.getProperties();
+        if (operators[operator](props[feature], value)) {
+          return style;
+        }
+      } else {
+        return style;
+      }
+    };
+
+    return styleFunc;
+    // (mapLayer as VectorLayer).setStyle(styleFunc);
+  };
   /**
    * Remove a layer from the map.
    *
@@ -839,9 +1009,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
     change?: MapChange
   ): void {
     if (!this._initializedPosition) {
-      console.log('on change options');
       const options = this._model.getOptions();
-      console.log('options', options);
 
       this.updateOptions(options);
 
@@ -951,7 +1119,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
     const f = mapLayer.getSource()?.getFeatures();
 
-    console.log('features', f);
+    // console.log('features', f);
 
     if (!mapLayer) {
       // Only Vectorlayers have filters I think
@@ -965,7 +1133,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
     }
 
     const layer = this.getLayer(id) as VectorLayer;
-    console.log('layer.getStyle()', layer.getStyle());
+    // console.log('layer.getStyle()', layer.getStyle());
 
     const filterExpression = [
       filters.logicalOp,
