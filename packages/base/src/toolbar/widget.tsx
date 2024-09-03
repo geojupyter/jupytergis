@@ -34,15 +34,6 @@ export class ToolbarWidget extends Toolbar {
 
     if (options.commands) {
       this.addItem(
-        'zoomColor',
-        new CommandToolbarButton({
-          id: CommandIDs.zoomColor,
-          label: '',
-          commands: options.commands
-        })
-      );
-
-      this.addItem(
         'undo',
         new CommandToolbarButton({
           id: CommandIDs.undo,
@@ -128,15 +119,6 @@ export class ToolbarWidget extends Toolbar {
           commands: options.commands
         })
       );
-
-      // this.addItem(
-      //   'newVideoEntry',
-      //   new CommandToolbarButton({
-      //     id: CommandIDs.newVideoEntry,
-      //     label: '',
-      //     commands: options.commands
-      //   })
-      // );
 
       this.addItem(
         'newShapefileLayer',

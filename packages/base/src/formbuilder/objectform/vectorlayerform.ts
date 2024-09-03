@@ -76,38 +76,6 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
     uiSchema['color'] = {
       'ui:widget': 'color'
     };
-    // uiSchema['color'] = {
-    //   //'ui:widget': 'myCustomWidget',
-    //   'ui:options': {
-    //     orderable: false,
-    //     removable: false,
-    //     addable: false
-    //   },
-    //   items: {
-    //     'ui:options': {
-    //       orderable: false,
-    //       removable: false,
-    //       addable: false
-    //     }
-    //   }
-    // };
-
-    // uiSchema['color'] = {
-    //   oneOf: [
-    //     {
-    //       'ui:title': 'Custom String Title',
-    //       'ui:widget': 'color'
-    //     },
-    //     {
-    //       'ui:title': 'Custom Number Title',
-    //       'ui:options': {
-    //         orderable: false,
-    //         removable: false,
-    //         addable: false
-    //       }
-    //     }
-    //   ]
-    // };
 
     if (!data) {
       return;

@@ -241,9 +241,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       const schema = { ...this.state.schema, additionalProperties: true };
       const formData = this.currentFormData;
 
-      // const widgets = {
-      //   myCustomWidget: MyCustomWidget
-      // };
       const uiSchema = {
         additionalProperties: {
           'ui:label': false,
@@ -298,15 +295,3 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
 
   protected currentFormData: IDict<any> | undefined;
 }
-
-// const MyCustomWidget = (props: WidgetProps) => {
-//   return (
-//     <input
-//       type="text"
-//       className="custom"
-//       value="fucking doododoododoass"
-//       required={props.required}
-//       onChange={event => props.onChange(event.target.value)}
-//     />
-//   );
-// };
