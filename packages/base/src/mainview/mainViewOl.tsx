@@ -27,20 +27,24 @@ import { JSONValue } from '@lumino/coreutils';
 import { Map as OlMap, View } from 'ol';
 import { Color } from 'ol/color';
 import { GeoJSON, MVT } from 'ol/format';
-// import MVT from 'ol/format/MVT';
-import { Image as ImageLayer } from 'ol/layer';
+import {
+  Image as ImageLayer,
+  Tile as TileLayer,
+  Vector as VectorLayer,
+  VectorTile as VectorTileLayer,
+  WebGLTile as WebGlTileLayer
+} from 'ol/layer';
 import BaseLayer from 'ol/layer/Base';
-import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
-import VectorTileLayer from 'ol/layer/VectorTile.js';
-import WebGlTileLayer from 'ol/layer/WebGLTile';
 import { fromLonLat, toLonLat } from 'ol/proj';
 import Feature from 'ol/render/Feature';
-import { ImageTile, XYZ } from 'ol/source';
-import GeoTIFF from 'ol/source/GeoTIFF';
+import {
+  GeoTIFF as GeoTIFFSource,
+  ImageTile as ImageTileSource,
+  Vector as VectorSource,
+  VectorTile as VectorTileSource,
+  XYZ as XYZSource
+} from 'ol/source';
 import Static from 'ol/source/ImageStatic';
-import VectorSource from 'ol/source/Vector';
-import VectorTileSource from 'ol/source/VectorTile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import * as React from 'react';
 import { isLightTheme } from '../tools';
@@ -154,10 +158,6 @@ export class OlMainView extends React.Component<IProps, IStates> {
         });
       });
 
-      // PM tile stuff
-      //   this._protocol = new Protocol();
-      //   MapLibre.addProtocol('pmtiles', this._protocol.tile);
-
       if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
         await this._updateLayersImpl(
           JupyterGISModel.getOrderedLayerIds(this._model)
@@ -183,7 +183,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
       case 'RasterSource': {
         const sourceParameters = source.parameters as IRasterSource;
         const url = this.computeSourceUrl(source);
-        newSource = new XYZ({
+        newSource = new XYZSource({
           attributions: sourceParameters.attribution,
           minZoom: sourceParameters.minZoom,
           maxZoom: sourceParameters.maxZoom,
@@ -196,7 +196,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
       case 'RasterDemSource': {
         const sourceParameters = source.parameters as IRasterDemSource;
 
-        newSource = new ImageTile({
+        newSource = new ImageTileSource({
           url: this.computeSourceUrl(source),
           attributions: sourceParameters.attribution
         });
@@ -280,7 +280,7 @@ export class OlMainView extends React.Component<IProps, IStates> {
       case 'GeoTiffSource': {
         const sourceParameters = source.parameters as IGeoTiffSource;
 
-        newSource = new GeoTIFF({
+        newSource = new GeoTIFFSource({
           sources: sourceParameters.urls,
           normalize: sourceParameters.normalize,
           wrapX: sourceParameters.wrapX
