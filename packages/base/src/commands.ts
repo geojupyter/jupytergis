@@ -44,7 +44,7 @@ export function addCommands(
   const trans = translator.load('jupyterlab');
   const { commands } = app;
 
-  commands.addCommand(CommandIDs.zoomColor, {
+  commands.addCommand(CommandIDs.colorExpr, {
     label: trans.__('Color Expression'),
     isEnabled: () => {
       return tracker.currentWidget
@@ -53,7 +53,7 @@ export function addCommands(
     },
     execute: Private.createZoomColorDialog(tracker),
 
-    ...icons.get(CommandIDs.zoomColor)
+    ...icons.get(CommandIDs.colorExpr)
   });
 
   commands.addCommand(CommandIDs.redo, {

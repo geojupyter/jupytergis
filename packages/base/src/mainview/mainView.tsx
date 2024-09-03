@@ -552,9 +552,6 @@ export class MainView extends React.Component<IProps, IStates> {
           }
         });
 
-        // TODO: Some tifs are messed up without this, but I think it's a projection thing
-        // this._Map.setView(this._sources[layerParameters.source].getView());
-
         break;
       }
     }
