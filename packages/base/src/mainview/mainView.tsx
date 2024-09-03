@@ -24,9 +24,10 @@ import {
 } from '@jupytergis/schema';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
-import { JSONValue } from '@lumino/coreutils';
+import { JSONValue, UUID } from '@lumino/coreutils';
 import { Map as OlMap, View } from 'ol';
 import { GeoJSON, MVT } from 'ol/format';
+import DragAndDrop from 'ol/interaction/DragAndDrop';
 import {
   Image as ImageLayer,
   Vector as VectorLayer,
@@ -64,7 +65,7 @@ interface IStates {
   firstLoad: boolean;
 }
 
-export class OlMainView extends React.Component<IProps, IStates> {
+export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
 
@@ -133,6 +134,50 @@ export class OlMainView extends React.Component<IProps, IStates> {
           zoom: 1
         })
       });
+
+      const dragAndDropInteraction = new DragAndDrop({
+        formatConstructors: [GeoJSON]
+      });
+
+      dragAndDropInteraction.on('addfeatures', event => {
+        // const source = new VectorSource({
+        //   features: event.features
+        // });
+
+        const sourceId = UUID.uuid4();
+
+        const sourceModel: IJGISSource = {
+          type: 'GeoJSONSource',
+          name: 'Drag and Drop source',
+          parameters: { path: event.file.name }
+        };
+
+        this.addSource(sourceId, sourceModel);
+
+        this._model.sharedModel.addSource(sourceId, sourceModel);
+
+        const layerModel: IJGISLayer = {
+          type: 'VectorLayer',
+          visible: true,
+          name: 'Drag and Drop layer',
+          parameters: {
+            color: '#FF0000',
+            opacity: 1.0,
+            type: 'line',
+            source: sourceId
+          }
+        };
+
+        const layerId = UUID.uuid4();
+        this.addLayer(layerId, layerModel, this.getLayers().length);
+        this._model.addLayer(layerId, layerModel);
+
+        // this._Map
+        //   .getView()
+        //   .fit(this._sources[layerModel.parameters?.source].getExtent());
+      });
+
+      this._Map.addInteraction(dragAndDropInteraction);
 
       this._Map.on('moveend', () => {
         if (!this._initializedPosition) {
