@@ -129,14 +129,14 @@ export class ToolbarWidget extends Toolbar {
         })
       );
 
-      this.addItem(
-        'newVideoEntry',
-        new CommandToolbarButton({
-          id: CommandIDs.newVideoEntry,
-          label: '',
-          commands: options.commands
-        })
-      );
+      // this.addItem(
+      //   'newVideoEntry',
+      //   new CommandToolbarButton({
+      //     id: CommandIDs.newVideoEntry,
+      //     label: '',
+      //     commands: options.commands
+      //   })
+      // );
 
       this.addItem(
         'newShapefileLayer',

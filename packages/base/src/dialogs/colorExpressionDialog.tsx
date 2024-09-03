@@ -1,4 +1,4 @@
-import { IJupyterGISModel, IVectorLayer } from '@jupytergis/schema';
+import { IJupyterGISModel, IWebGlLayer } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Button } from '@jupyterlab/ui-components';
@@ -130,7 +130,7 @@ const ZoomColor = ({ context, okSignalPromise, cancel }: IZoomColorProps) => {
 
     // console.log('safe');
 
-    (layer.parameters as IVectorLayer).color = colorExpr;
+    (layer.parameters as IWebGlLayer).color = colorExpr;
     context.model.sharedModel.updateLayer(selectedLayerRef.current, layer);
     cancel();
   };

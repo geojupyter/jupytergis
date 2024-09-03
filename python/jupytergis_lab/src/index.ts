@@ -100,10 +100,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
       args: { from: 'contextMenu' }
     });
 
-    newSourceSubMenu.addItem({
-      command: CommandIDs.newVideoSource,
-      args: { from: 'contextMenu' }
-    });
+    // newSourceSubMenu.addItem({
+    //   command: CommandIDs.newVideoSource,
+    //   args: { from: 'contextMenu' }
+    // });
 
     newSourceSubMenu.addItem({
       command: CommandIDs.newImageSource,
@@ -243,10 +243,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
       args: { from: 'contextMenu' }
     });
 
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newVideoLayer,
-      args: { from: 'contextMenu' }
-    });
+    // newLayerSubMenu.addItem({
+    //   command: CommandIDs.newVideoLayer,
+    //   args: { from: 'contextMenu' }
+    // });
 
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
