@@ -21,73 +21,6 @@ from qgis.core import (
 from jupytergis_lab.notebook.utils import get_source_layer_names
 
 
-# Part of this code is copied from https://github.com/felt/qgis-plugin (GPL-2.0 license)
-class MapUtils:
-    ZOOM_LEVEL_SCALE_BREAKS = [
-        591657527.591555,
-        295828763.795777,
-        147914381.897889,
-        73957190.948944,
-        36978595.474472,
-        18489297.737236,
-        9244648.868618,
-        4622324.434309,
-        2311162.217155,
-        1155581.108577,
-        577790.554289,
-        288895.277144,
-        144447.638572,
-        72223.819286,
-        36111.909643,
-        18055.954822,
-        9027.977411,
-        4513.988705,
-        2256.994353,
-        1128.497176,
-        564.248588,
-        282.124294,
-        141.062147,
-        70.5310735,
-    ]
-
-    @staticmethod
-    def map_scale_to_tile_zoom(scale: float) -> int:
-        """
-        Returns the tile zoom level roughly
-        corresponding to a QGIS map scale
-        """
-        for level, min_scale in enumerate(MapUtils.ZOOM_LEVEL_SCALE_BREAKS):
-            if min_scale < scale:
-                # we play it safe and zoom out a step -- this is because
-                # we don't know the screen size or DPI on which the map
-                # will actually be viewed, so we err on the conservative side
-                return level - 1
-
-        return len(MapUtils.ZOOM_LEVEL_SCALE_BREAKS) - 1
-
-    @staticmethod
-    def calculate_tile_zoom_for_extent(
-        extent: QgsReferencedRectangle,
-        target_map_size: QSize,
-    ) -> int:
-        """
-        Calculates the required leaflet tile zoom level in order
-        to completely fit a specified extent.
-
-        :param extent: required minimum map extent
-        :param target_map_size: size of leaflet map, in pixels
-        """
-
-        map_settings = QgsMapSettings()
-        map_settings.setDestinationCrs(extent.crs())
-        map_settings.setExtent(extent)
-        map_settings.setOutputDpi(96)
-        map_settings.setOutputSize(target_map_size)
-
-        scale = map_settings.scale()
-        return MapUtils.map_scale_to_tile_zoom(scale)
-
-
 def qgis_layer_to_jgis(
     qgis_layer: QgsLayerTreeLayer,
     layers: dict[str, dict[str, Any]],
@@ -214,8 +147,7 @@ def import_project_from_qgis(path: str | Path):
 
     jgis_layer_tree = qgis_layer_tree_to_jgis(layer_tree_root)
 
-    # Infer zoom level and center
-    # TODO Extract projection type when we support multiple types
+    # extract the viewport in lat/long coordinates
     view_settings = project.viewSettings()
     current_map_extent = view_settings.defaultViewExtent()
     current_map_crs = view_settings.defaultViewExtent().crs()
@@ -229,19 +161,16 @@ def import_project_from_qgis(path: str | Path):
     except QgsCsException:
         map_extent_4326 = current_map_extent
 
-    map_center = map_extent_4326.center()
-
-    initial_zoom_level = MapUtils.calculate_tile_zoom_for_extent(
-        QgsReferencedRectangle(current_map_extent, current_map_crs), QSize(1024, 800)
-    )
-
     return {
         "options": {
             "bearing": 0.0,
             "pitch": 0,
-            "latitude": map_center[1],
-            "longitude": map_center[0],
-            "zoom": initial_zoom_level,
+            "extent": [
+                map_extent_4326.xMinimum(),
+                map_extent_4326.yMinimum(),
+                map_extent_4326.xMaximum(),
+                map_extent_4326.yMaximum()
+            ]
         },
         **jgis_layer_tree,
     }

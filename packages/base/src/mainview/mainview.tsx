@@ -130,7 +130,8 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         const zoom = this._Map.getZoom();
-        this._model.setOptions({ ...this._model.getOptions(), zoom });
+        const extent = this._getExtent();
+        this._model.setOptions({ ...this._model.getOptions(), extent, zoom });
       });
 
       this._Map.on('moveend', () => {
@@ -138,15 +139,14 @@ export class MainView extends React.Component<IProps, IStates> {
           return;
         }
 
-        const center = this._Map.getCenter();
         const bearing = this._Map.getBearing();
         const pitch = this._Map.getPitch();
+        const extent = this._getExtent();
         this._model.setOptions({
           ...this._model.getOptions(),
-          latitude: center.lat,
-          longitude: center.lng,
           bearing,
-          pitch
+          pitch,
+          extent
         });
       });
 
@@ -842,16 +842,32 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private updateOptions(options: IJGISOptions) {
     // It is important to call setZoom first, otherwise maplibre does set the center properly
-    this._Map.setZoom(options.zoom || 0);
-    this._Map.setCenter(
-      (options.longitude &&
-        options.latitude && {
-          lng: options.longitude,
-          lat: options.latitude
-        }) || [0, 0]
-    );
+    const extent = options.extent || [-10, 40, 16, 53];
+
+    // FIXME: this timeout is waiting for the map to be ready. It should be fixed.
+    window.setTimeout(() => {
+      this._Map.fitBounds([
+        [extent[0], extent[1]],
+        [extent[2], extent[3]]
+      ]);
+      const zoom = this._Map.getZoom();
+      this._model.setOptions({ ...this._model.getOptions(), zoom });
+    }, 500);
+
     this._Map.setBearing(options.bearing || 0);
     this._Map.setPitch(options.pitch || 0);
+  }
+
+  /**
+   * Get the extent (viewport in lat/long) of the map.
+   *
+   * @returns Array of 4 number : [minLng, minLat, maxLng, maxLat]
+   */
+  private _getExtent(): number[] {
+    const bound = this._Map.getBounds();
+    const southWest = bound.getSouthWest();
+    const northEast = bound.getNorthEast();
+    return [southWest.lng, southWest.lat, northEast.lng, northEast.lat];
   }
 
   private _onViewChanged(

@@ -160,17 +160,9 @@
       "title": "IJGISOptions",
       "type": "object",
       "default": {},
-      "required": ["latitude", "longitude", "zoom", "bearing", "pitch"],
+      "required": ["zoom", "bearing", "pitch", "extent"],
       "additionalProperties": false,
       "properties": {
-        "latitude": {
-          "type": "number",
-          "default": 0
-        },
-        "longitude": {
-          "type": "number",
-          "default": 0
-        },
         "zoom": {
           "type": "number",
           "default": 0
@@ -182,6 +174,13 @@
         "pitch": {
           "type": "number",
           "default": 0
+        },
+        "extent": {
+          "type": "array",
+          "default": [-10, 40, 16, 53],
+          "items": {
+            "type": "number"
+          }
         }
       }
     },
