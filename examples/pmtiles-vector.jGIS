@@ -1,57 +1,39 @@
 {
   "layerTree": [
-    "34e3dbaa-f1df-4add-af4b-8f8bec9bc0c8",
-    {
-      "layers": [
-        "3c9de1bc-8a95-4913-a3a7-c76ea54146e6",
-        "2171c5a1-b237-4413-a358-07ea8bcc67d3"
-      ],
-      "name": "Firenze"
-    }
+    "93077483-0e49-4135-aa1d-244e29e5cf97",
+    "95523f4c-27ef-42db-b755-a226ca017a94"
   ],
   "layers": {
-    "2171c5a1-b237-4413-a358-07ea8bcc67d3": {
-      "name": "Roads Layer",
-      "parameters": {
-        "color": "#241f31",
-        "opacity": 1.0,
-        "source": "c09567a9-2c88-4818-ad40-536e005e9496",
-        "sourceLayer": "roads",
-        "type": "line"
-      },
-      "type": "VectorLayer",
-      "visible": true
-    },
-    "34e3dbaa-f1df-4add-af4b-8f8bec9bc0c8": {
+    "93077483-0e49-4135-aa1d-244e29e5cf97": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
-        "source": "4cc5d853-cb4a-4d05-9560-0c5e7de54fb0"
+        "source": "c42d25fc-ca10-4447-ba00-ba22b0367739"
       },
       "type": "RasterLayer",
       "visible": true
     },
-    "3c9de1bc-8a95-4913-a3a7-c76ea54146e6": {
-      "name": "Land Use",
+    "95523f4c-27ef-42db-b755-a226ca017a94": {
+      "name": "Custom Vector Tile Layer",
       "parameters": {
-        "color": "#1a5fb4",
+        "color": "#FF0000",
         "opacity": 1.0,
-        "source": "c09567a9-2c88-4818-ad40-536e005e9496",
-        "sourceLayer": "landuse",
-        "type": "fill"
+        "source": "e52daf20-9b57-4a14-9521-70eabbe4cda2",
+        "type": "line"
       },
-      "type": "VectorLayer",
+      "type": "VectorTileLayer",
       "visible": true
     }
   },
   "options": {
     "bearing": 0.0,
-    "latitude": 43.769833024178524,
-    "longitude": 11.243657520618626,
-    "pitch": 9.886721549625761,
-    "zoom": 11.30647314935016
+    "latitude": -40.197854210907515,
+    "longitude": 173.4976730009204,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 5.898552104144127
   },
   "sources": {
-    "4cc5d853-cb4a-4d05-9560-0c5e7de54fb0": {
+    "c42d25fc-ca10-4447-ba00-ba22b0367739": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
@@ -63,19 +45,12 @@
       },
       "type": "RasterSource"
     },
-    "c09567a9-2c88-4818-ad40-536e005e9496": {
-      "name": "PMTiles",
+    "e52daf20-9b57-4a14-9521-70eabbe4cda2": {
+      "name": "Custom Vector Tile Layer Source",
       "parameters": {
-        "bounds": [
-          -180.0,
-          -85.051129,
-          180.0,
-          85.051129
-        ],
         "maxZoom": 24.0,
         "minZoom": 0.0,
-        "scheme": "xyz",
-        "url": "pmtiles://https://pmtiles.io/protomaps(vector)ODbL_firenze.pmtiles"
+        "url": "https://r2-public.protomaps.com/protomaps-sample-datasets/nz-buildings-v3.pmtiles"
       },
       "type": "VectorTileSource"
     }
