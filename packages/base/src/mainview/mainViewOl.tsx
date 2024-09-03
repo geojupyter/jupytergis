@@ -26,7 +26,6 @@ import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue } from '@lumino/coreutils';
 import { Map as OlMap, View } from 'ol';
-import { Color } from 'ol/color';
 import { GeoJSON, MVT } from 'ol/format';
 import {
   Image as ImageLayer,
@@ -546,11 +545,17 @@ export class OlMainView extends React.Component<IProps, IStates> {
 
     // TODO: I don't think this will work with fancy color expressions
     const fill = new Fill({
-      color: (layerParameters.color as Color) ?? '#F092DD'
+      color:
+        layerParameters.type === 'fill' || layerParameters.type === 'circle'
+          ? layerParameters.color
+          : '#F092DD'
     });
 
     const stroke = new Stroke({
-      color: (layerParameters.color as Color) ?? '#392F5A',
+      color:
+        layerParameters.type === 'line' || layerParameters.type === 'circle'
+          ? layerParameters.color
+          : '#392F5A',
       width: 2
     });
 
