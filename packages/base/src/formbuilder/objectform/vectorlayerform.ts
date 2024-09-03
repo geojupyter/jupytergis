@@ -74,20 +74,23 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
     super.processSchema(data, schema, uiSchema);
 
     uiSchema['color'] = {
-      //'ui:widget': 'myCustomWidget',
-      'ui:options': {
-        orderable: false,
-        removable: false,
-        addable: false
-      },
-      items: {
-        'ui:options': {
-          orderable: false,
-          removable: false,
-          addable: false
-        }
-      }
+      'ui:widget': 'color'
     };
+    // uiSchema['color'] = {
+    //   //'ui:widget': 'myCustomWidget',
+    //   'ui:options': {
+    //     orderable: false,
+    //     removable: false,
+    //     addable: false
+    //   },
+    //   items: {
+    //     'ui:options': {
+    //       orderable: false,
+    //       removable: false,
+    //       addable: false
+    //     }
+    //   }
+    // };
 
     // uiSchema['color'] = {
     //   oneOf: [
