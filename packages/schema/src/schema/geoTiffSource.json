@@ -1,0 +1,34 @@
+{
+  "type": "object",
+  "description": "GeoTiffSource",
+  "title": "IGeoTiffSource",
+  "required": ["urls"],
+  "additionalProperties": false,
+  "properties": {
+    "urls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "max": {
+            "type": "number"
+          }
+        }
+      },
+      "minItems": 1,
+      "default": [],
+      "description": "URLs"
+    },
+    "normalize": {
+      "type": "boolean",
+      "default": true
+    },
+    "wrapX": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

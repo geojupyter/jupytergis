@@ -13,7 +13,7 @@
         "sourceLayer": "bingmlbuildings",
         "type": "fill"
       },
-      "type": "VectorLayer",
+      "type": "VectorTileLayer",
       "visible": true
     },
     "f99eb7b0-5e38-4078-b310-36a0746472aa": {
@@ -26,11 +26,12 @@
     }
   },
   "options": {
-    "latitude": 41.86704023051254,
-    "longitude": -87.64128426232207,
-    "zoom": 8.089610803710057,
     "bearing": 0.0,
-    "pitch": 0.0
+    "latitude": 41.86704023051257,
+    "longitude": -87.64128426232207,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 8.089610803710057
   },
   "sources": {
     "7a7ee6fd-c1e2-4c5d-a4e2-a7974db138a4": {
@@ -55,5 +56,6 @@
       },
       "type": "RasterSource"
     }
-  }
+  },
+  "terrain": {}
 }

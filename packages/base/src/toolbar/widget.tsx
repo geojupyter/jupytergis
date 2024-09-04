@@ -121,18 +121,18 @@ export class ToolbarWidget extends Toolbar {
       );
 
       this.addItem(
-        'newVideoEntry',
+        'newShapefileLayer',
         new CommandToolbarButton({
-          id: CommandIDs.newVideoEntry,
+          id: CommandIDs.newShapefileLayer,
           label: '',
           commands: options.commands
         })
       );
 
       this.addItem(
-        'newShapefileLayer',
+        'newGeoTiffEntry',
         new CommandToolbarButton({
-          id: CommandIDs.newShapefileLayer,
+          id: CommandIDs.newGeoTiffEntry,
           label: '',
           commands: options.commands
         })

@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "description": "VectorTileLayer",
+  "title": "IVectorTileLayer",
+  "required": ["source", "type"],
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "The id of the source"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["circle", "fill", "line"],
+      "default": "line",
+      "description": "The type of vector layer"
+    },
+    "sourceLayer": {
+      "type": "string",
+      "description": "The source layer to use"
+    },
+    "color": {
+      "type": "string",
+      "description": "The color of the the object",
+      "default": "#FF0000"
+    },
+    "opacity": {
+      "type": "number",
+      "description": "The opacity of the the object",
+      "default": 1,
+      "multipleOf": 0.1,
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}

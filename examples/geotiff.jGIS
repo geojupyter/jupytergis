@@ -1,0 +1,160 @@
+{
+  "layerTree": [
+    "1b53b998-e6d5-461d-af06-427a0874421e",
+    "ed0e4142-38fb-4bae-ae3c-c674eccf4bf3"
+  ],
+  "layers": {
+    "1b53b998-e6d5-461d-af06-427a0874421e": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "06ed2dc2-7d40-4fe3-adc0-325708e65103"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "ed0e4142-38fb-4bae-ae3c-c674eccf4bf3": {
+      "name": "Custom GeoTiff Layer",
+      "parameters": {
+        "color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "/",
+            [
+              "-",
+              [
+                "band",
+                2.0
+              ],
+              [
+                "band",
+                1.0
+              ]
+            ],
+            [
+              "+",
+              [
+                "band",
+                2.0
+              ],
+              [
+                "band",
+                1.0
+              ]
+            ]
+          ],
+          -0.2,
+          [
+            191.0,
+            191.0,
+            191.0
+          ],
+          0.0,
+          [
+            255.0,
+            255.0,
+            224.0
+          ],
+          0.2,
+          [
+            145.0,
+            191.0,
+            82.0
+          ],
+          0.4,
+          [
+            79.0,
+            138.0,
+            46.0
+          ],
+          0.6,
+          [
+            15.0,
+            84.0,
+            10.0
+          ],
+          -0.2,
+          [
+            191.0,
+            191.0,
+            191.0
+          ],
+          0.0,
+          [
+            255.0,
+            255.0,
+            224.0
+          ],
+          0.2,
+          [
+            145.0,
+            191.0,
+            82.0
+          ],
+          0.4,
+          [
+            79.0,
+            138.0,
+            46.0
+          ],
+          0.6,
+          [
+            15.0,
+            84.0,
+            10.0
+          ]
+        ],
+        "opacity": 1.0,
+        "source": "a99a3094-ff80-49ca-8607-e2cf3c0c5bda"
+      },
+      "type": "WebGlLayer",
+      "visible": true
+    }
+  },
+  "options": {
+    "bearing": 0.0,
+    "latitude": 47.99438557977547,
+    "longitude": 3.32263195280587,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 8.09680819573482
+  },
+  "sources": {
+    "06ed2dc2-7d40-4fe3-adc0-325708e65103": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "a99a3094-ff80-49ca-8607-e2cf3c0c5bda": {
+      "name": "Custom GeoTiff Source",
+      "parameters": {
+        "normalize": true,
+        "urls": [
+          {
+            "max": 10000.0,
+            "url": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B04.tif"
+          },
+          {
+            "max": 10000.0,
+            "url": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B08.tif"
+          }
+        ],
+        "wrapX": false
+      },
+      "type": "GeoTiffSource"
+    }
+  },
+  "terrain": {
+    "exaggeration": 0.0,
+    "source": ""
+  }
+}

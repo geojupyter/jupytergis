@@ -13,6 +13,7 @@ import { JupyterFrontEnd } from '@jupyterlab/application';
 import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandIDs, icons } from './constants';
+import { ZoomColorWidget } from './dialogs/colorExpressionDialog';
 import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { TerrainDialogWidget } from './dialogs/terrainDialog';
@@ -42,6 +43,18 @@ export function addCommands(
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
+
+  commands.addCommand(CommandIDs.colorExpr, {
+    label: trans.__('Color Expression'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createZoomColorDialog(tracker),
+
+    ...icons.get(CommandIDs.colorExpr)
+  });
 
   commands.addCommand(CommandIDs.redo, {
     label: trans.__('Redo'),
@@ -138,7 +151,7 @@ export function addCommands(
       sourceData: { minZoom: 0, maxZoom: 24 },
       layerData: { name: 'Custom Vector Tile Layer' },
       sourceType: 'VectorTileSource',
-      layerType: 'VectorLayer'
+      layerType: 'VectorTileLayer'
     }),
     ...icons.get(CommandIDs.newVectorTileEntry)
   });
@@ -208,7 +221,7 @@ export function addCommands(
       },
       layerData: { name: 'Custom Image Layer' },
       sourceType: 'ImageSource',
-      layerType: 'RasterLayer'
+      layerType: 'ImageLayer'
     }),
     ...icons.get(CommandIDs.newImageEntry)
   });
@@ -266,6 +279,39 @@ export function addCommands(
       sourceType: 'ShapefileSource'
     }),
     ...icons.get(CommandIDs.newShapefileSource)
+  });
+
+  commands.addCommand(CommandIDs.newGeoTiffEntry, {
+    label: trans.__('New GeoTiff layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoTiff Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: {
+        name: 'Custom GeoTiff Source',
+        urls: [
+          {
+            url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B04.tif',
+            max: 10000
+          },
+          {
+            url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B08.tif',
+            max: 10000
+          }
+        ]
+      },
+      layerData: { name: 'Custom GeoTiff Layer' },
+      sourceType: 'GeoTiffSource',
+      layerType: 'WebGlLayer'
+    }),
+    ...icons.get(CommandIDs.newGeoTiffEntry)
   });
 
   /**
@@ -449,7 +495,7 @@ export function addCommands(
         name: 'Custom Vector Layer'
       },
       sourceType: 'VectorTileSource',
-      layerType: 'VectorLayer'
+      layerType: 'VectorTileLayer'
     }),
     ...icons.get(CommandIDs.newVectorLayer)
   });
@@ -774,6 +820,23 @@ namespace Private {
       }
 
       const dialog = new TerrainDialogWidget({
+        context: current.context
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createZoomColorDialog(
+    tracker: WidgetTracker<JupyterGISWidget>
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new ZoomColorWidget({
         context: current.context
       });
       await dialog.launch();
