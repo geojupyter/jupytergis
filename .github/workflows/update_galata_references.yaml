@@ -76,6 +76,7 @@ jobs:
           workflow: 'build.yml'
           workflow_conclusion: ''
           name: extension-artifacts
+          allow_forks: true
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v1
