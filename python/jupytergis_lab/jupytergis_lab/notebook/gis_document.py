@@ -496,6 +496,10 @@ class JGISLayer(BaseModel):
     parameters: Union[
         IRasterLayer,
         IVectorLayer,
+        IVectorTileLayer,
+        IHillshadeLayer,
+        IImageLayer,
+        IWebGlLayer
     ]
     _parent = Optional[GISDocument]
 
