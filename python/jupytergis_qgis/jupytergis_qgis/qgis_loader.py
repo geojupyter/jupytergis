@@ -126,7 +126,7 @@ def qgis_layer_to_jgis(
         )
 
     if isinstance(layer, QgsVectorTileLayer):
-        layer_type = "VectorLayer"
+        layer_type = "VectorTileLayer"
         source_type = "VectorTileSource"
         source_params = layer.source().split("&")
         url = ""
