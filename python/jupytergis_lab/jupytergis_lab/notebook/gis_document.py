@@ -1,9 +1,7 @@
 from __future__ import annotations
-from copy import deepcopy
 
 import json
 import logging
-import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -18,13 +16,17 @@ from .utils import normalize_path, get_source_layer_names
 from .objects import (
     LayerType,
     SourceType,
+    IHillshadeLayer,
+    IImageLayer,
     IRasterLayer,
     IRasterSource,
     IVectorTileSource,
     IVectorLayer,
+    IVectorTileLayer,
     IGeoJSONSource,
     IImageSource,
-    IVideoSource
+    IVideoSource,
+    IWebGlLayer
 )
 
 logger = logging.getLogger(__file__)
@@ -181,7 +183,7 @@ class GISDocument(CommWidget):
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
         layer = {
-            "type": LayerType.VectorLayer,
+            "type": LayerType.VectorTileLayer,
             "name": name,
             "visible": True,
             "parameters": {
@@ -589,6 +591,10 @@ OBJECT_FACTORY = ObjectFactoryManager()
 
 OBJECT_FACTORY.register_factory(LayerType.RasterLayer, IRasterLayer)
 OBJECT_FACTORY.register_factory(LayerType.VectorLayer, IVectorLayer)
+OBJECT_FACTORY.register_factory(LayerType.VectorTileLayer, IVectorTileLayer)
+OBJECT_FACTORY.register_factory(LayerType.HillshadeLayer, IHillshadeLayer)
+OBJECT_FACTORY.register_factory(LayerType.WebGlLayer, IWebGlLayer)
+OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterSource, IRasterSource)
