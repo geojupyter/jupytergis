@@ -2,9 +2,11 @@
   "layers": {},
   "sources": {},
   "options": {
-    "zoom": 4.249992958062014,
-    "longitude": 2.3688006145074496,
-    "latitude": 43.62761397878984
+   "bearing": 0.0,
+    "latitude": 44.75868528451835,
+    "longitude": 3.12113766286636,
+    "projection": "EPSG:3857",
+    "zoom": 4.920920690595499
   },
   "layerTree": []
 }

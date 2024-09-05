@@ -186,7 +186,8 @@ export class JupyterGISModel implements IJupyterGISModel {
         zoom: 0,
         bearing: 0,
         pitch: 0,
-        extent: [-10, 40, 16, 53]
+        extent: [-10, 40, 16, 53],
+        projection: 'EPSG:3857'
       };
     });
     this.dirty = true;

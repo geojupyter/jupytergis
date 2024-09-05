@@ -1,0 +1,64 @@
+{
+  "layerTree": [
+    "3d4563da-904d-4026-a06b-1e8cffbf536f",
+    "2815540d-70c6-4eed-ba86-51596adf6863"
+  ],
+  "layers": {
+    "2815540d-70c6-4eed-ba86-51596adf6863": {
+      "name": "Custom Raster Layer",
+      "parameters": {
+        "opacity": 0.5,
+        "source": "d3a5ad67-d6fe-4793-a6c5-dd773d76c745"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "3d4563da-904d-4026-a06b-1e8cffbf536f": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "d76035d6-9fb2-41db-ad32-ea4d34268dc9"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "options": {
+    "bearing": 0.0,
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 2.2118882945460037
+  },
+  "sources": {
+    "d3a5ad67-d6fe-4793-a6c5-dd773d76c745": {
+      "name": "Custom Raster Layer Source",
+      "parameters": {
+        "attribution": "",
+        "bounds": [],
+        "htmlAttribution": "",
+        "maxZoom": 24.0,
+        "minZoom": 0.0,
+        "provider": "",
+        "url": "https://r2-public.protomaps.com/protomaps-sample-datasets/terrarium_z9.pmtiles"
+      },
+      "type": "RasterSource"
+    },
+    "d76035d6-9fb2-41db-ad32-ea4d34268dc9": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  },
+  "terrain": {
+    "exaggeration": 0.0,
+    "source": ""
+  }
+}

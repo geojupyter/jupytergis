@@ -6,7 +6,7 @@ import { JSONValue } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import * as React from 'react';
 
-import { MainView } from './mainview';
+import { MainView } from './mainview/mainView';
 import { MainViewModel } from './mainview/mainviewmodel';
 
 export class JupyterGISWidget

@@ -101,11 +101,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     newSourceSubMenu.addItem({
-      command: CommandIDs.newVideoSource,
-      args: { from: 'contextMenu' }
-    });
-
-    newSourceSubMenu.addItem({
       command: CommandIDs.newImageSource,
       args: { from: 'contextMenu' }
     });
@@ -240,11 +235,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     newLayerSubMenu.addItem({
       command: CommandIDs.newImageLayer,
-      args: { from: 'contextMenu' }
-    });
-
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newVideoLayer,
       args: { from: 'contextMenu' }
     });
 

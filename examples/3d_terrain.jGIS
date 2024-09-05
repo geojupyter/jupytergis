@@ -1,18 +1,9 @@
 {
   "layerTree": [
     "a82ef521-e727-4209-a5a0-145d66f18a06",
-    "733327dc-c367-420c-9ee1-0510ee521457"
+    "f12a8dfe-4674-43e7-a649-cd49ee83eb34"
   ],
   "layers": {
-    "733327dc-c367-420c-9ee1-0510ee521457": {
-      "name": "Custom Hillshade Layer Layer",
-      "parameters": {
-        "shadowColor": "#473B24",
-        "source": "1f457f60-5d31-45f6-8066-4585aabd5629"
-      },
-      "type": "HillshadeLayer",
-      "visible": true
-    },
     "a82ef521-e727-4209-a5a0-145d66f18a06": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
@@ -20,26 +11,25 @@
       },
       "type": "RasterLayer",
       "visible": true
+    },
+    "f12a8dfe-4674-43e7-a649-cd49ee83eb34": {
+      "name": "Custom Hillshade Layer",
+      "parameters": {
+        "shadowColor": "#473B24",
+        "source": "e87bb91a-ff2a-485b-bf0e-14b3b848955a"
+      },
+      "type": "HillshadeLayer",
+      "visible": true
     }
   },
   "options": {
     "bearing": 0.0,
-    "latitude": 47.27340570466396,
-    "longitude": 11.540279388427734,
+    "latitude": 47.25967099028631,
+    "longitude": 11.418052209432549,
     "pitch": 59.00000000000003,
     "zoom": 11.829283007646955
   },
   "sources": {
-    "1f457f60-5d31-45f6-8066-4585aabd5629": {
-      "name": "Custom Raster DEM Source",
-      "parameters": {
-        "attribution": "w",
-        "tileSize": 256.0,
-        "url": "https://demotiles.maplibre.org/terrain-tiles/tiles.json",
-        "urlParameters": {}
-      },
-      "type": "RasterDemSource"
-    },
     "ceef4036-b757-44bf-8a21-42c6c99dab72": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
@@ -52,11 +42,13 @@
       },
       "type": "RasterSource"
     },
-    "cffe76e7-fa97-445a-98dc-a2861f5782ca": {
-      "name": "Terrain tile source",
+    "e87bb91a-ff2a-485b-bf0e-14b3b848955a": {
+      "name": "Custom Hillshade Layer Source",
       "parameters": {
-        "tileSize": 256.0,
-        "url": "https://demotiles.maplibre.org/terrain-tiles/tiles.json"
+        "encoding": "mapbox",
+        "tileSize": 512.0,
+        "url": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
+        "urlParameters": {}
       },
       "type": "RasterDemSource"
     }

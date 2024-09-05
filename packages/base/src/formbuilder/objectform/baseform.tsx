@@ -1,14 +1,14 @@
 import { SchemaForm } from '@deathbeds/jupyterlab-rjsf';
 import { MessageLoop } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
-import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
+import { IChangeEvent, ISubmitEvent, WidgetProps } from '@rjsf/core';
 import * as React from 'react';
 
-import { IDict } from '../../types';
 import { IJupyterGISModel } from '@jupytergis/schema';
-import { deepCopy } from '../../tools';
-import { Signal } from '@lumino/signaling';
 import { Dialog } from '@jupyterlab/apputils';
+import { Signal } from '@lumino/signaling';
+import { deepCopy } from '../../tools';
+import { IDict } from '../../types';
 
 export interface IBaseFormStates {
   schema?: IDict;
@@ -267,6 +267,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
           <button ref={submitRef} type="submit" style={{ display: 'none' }} />
         ),
         extraErrors: this.state.extraErrors
+        // widgets: widgets
       });
       return (
         <div
