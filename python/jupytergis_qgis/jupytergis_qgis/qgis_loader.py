@@ -218,7 +218,7 @@ def jgis_layer_to_qgis(
         uri = build_uri(parameters, "RasterSource")
         map_layer = QgsRasterLayer(uri, layer_name, "wms")
 
-    if layer_type == "VectorLayer" and source_type == "VectorTileSource":
+    if layer_type == "VectorTileLayer" and source_type == "VectorTileSource":
         parameters = source.get("parameters", {})
         uri = build_uri(parameters, "VectorTileSource")
         map_layer = QgsVectorTileLayer(uri, layer_name)
