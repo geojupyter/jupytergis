@@ -168,14 +168,7 @@
       "title": "IJGISOptions",
       "type": "object",
       "default": {},
-      "required": [
-        "latitude",
-        "longitude",
-        "zoom",
-        "bearing",
-        "pitch",
-        "projection"
-      ],
+      "required": [],
       "additionalProperties": false,
       "properties": {
         "latitude": {
@@ -197,6 +190,13 @@
         "pitch": {
           "type": "number",
           "default": 0
+        },
+        "extent": {
+          "type": "array",
+          "default": null,
+          "items": {
+            "type": "number"
+          }
         },
         "projection": {
           "type": "string",
