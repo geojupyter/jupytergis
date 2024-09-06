@@ -2,15 +2,18 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote, unquote
+from urllib.parse import unquote
 from uuid import uuid4
 
 from qgis.core import (
+    QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsMapLayer,
     QgsRasterLayer,
+    QgsRectangle,
+    QgsReferencedRectangle,
     QgsVectorTileLayer,
     QgsProject,
 )
@@ -58,7 +61,6 @@ def qgis_layer_to_jgis(
     if isinstance(layer, QgsVectorTileLayer):
         layer_type = "VectorTileLayer"
         source_type = "VectorTileSource"
-        print(f"SOURCE URL {layer.source()}")
         source_params = layer.source().split("&")
         url = ""
         max_zoom = 24
@@ -264,5 +266,22 @@ def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> st
         virtual_file["sources"],
         root
     )
+
+    view_settings = project.viewSettings()
+    src_csr_id = "EPSG:3857"
+    if "projection" in virtual_file["options"]:
+        src_csr_id = virtual_file["options"]["projection"]
+
+    if "options" in virtual_file:
+        if "extent" in virtual_file["options"]:
+            extent = virtual_file["options"]["extent"]
+            view_settings.setDefaultViewExtent(
+                QgsReferencedRectangle(
+                    QgsRectangle(*extent),
+                    QgsCoordinateReferenceSystem(src_csr_id)
+                )
+            )
+        else:
+            print("The 'extent' parameter is missing to save the viewport")
 
     return project.write(path)

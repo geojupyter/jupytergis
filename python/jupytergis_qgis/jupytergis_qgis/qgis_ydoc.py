@@ -1,10 +1,10 @@
 import base64
 import tempfile
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 from functools import partial
 
-from pycrdt import Array, Map, Text
+from pycrdt import Array, Map
 from jupyter_ydoc.ybasedoc import YBaseDoc
 
 
@@ -52,9 +52,10 @@ class YQGISBase(YBaseDoc):
         virtual_file = {
             "layers": self._ylayers.to_py(),
             "sources": self._ysources.to_py(),
-            "layerTree": reversed_tree(self._ylayerTree.to_py())
+            "layerTree": reversed_tree(self._ylayerTree.to_py()),
+            "options": self._yoptions.to_py()
         }
-        source = self._export(virtual_file)
+        source = self._save(virtual_file)
 
         if source is not None and source:
             self._source = source
@@ -112,7 +113,7 @@ class YQGISBase(YBaseDoc):
 
         return import_project_from_qgis(tmp.name)
 
-    def _export(self, virtual_file: dict[str, Any]):
+    def _save(self, virtual_file: dict[str, Any]):
         # Lazy export because qgis may not be installed
         from .qgis_loader import export_project_to_qgis
 
