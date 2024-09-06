@@ -1,0 +1,64 @@
+{
+  "layerTree": [
+    "811068bf-6b70-4bb0-9a1a-0ad6b707f139",
+    "c3cfc008-55fb-41c6-95e3-0d26d1056b57"
+  ],
+  "layers": {
+    "811068bf-6b70-4bb0-9a1a-0ad6b707f139": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "2b9c0787-5e59-4896-b8d1-5ad97d8452ac"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "c3cfc008-55fb-41c6-95e3-0d26d1056b57": {
+      "name": "Custom GeoTiff Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "7d4bffea-d88b-4cd0-a3c9-313c9f735597"
+      },
+      "type": "WebGlLayer",
+      "visible": true
+    }
+  },
+  "options": {
+    "bearing": 0.0,
+    "latitude": 36.28052686993934,
+    "longitude": -119.77758903768928,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 16.763469269655307
+  },
+  "sources": {
+    "2b9c0787-5e59-4896-b8d1-5ad97d8452ac": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "7d4bffea-d88b-4cd0-a3c9-313c9f735597": {
+      "name": "Custom GeoTiff Source",
+      "parameters": {
+        "normalize": true,
+        "urls": [
+          {
+            "url": "https://oin-hotosm.s3.amazonaws.com/5d7dad0becaf880008a9bc88/0/5d7dad0becaf880008a9bc89.tif"
+          }
+        ],
+        "wrapX": false
+      },
+      "type": "GeoTiffSource"
+    }
+  },
+  "terrain": {
+    "exaggeration": 0.0,
+    "source": ""
+  }
+}

@@ -1,8 +1,17 @@
 {
   "layerTree": [
+    "6dd80360-2675-40cf-aaee-c7101ef1779a",
     "f75fd646-bc7d-478b-b65b-de34155b8efa"
   ],
   "layers": {
+    "6dd80360-2675-40cf-aaee-c7101ef1779a": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "a6a98ac4-0d1c-4a3d-af71-88a91f28ccb9"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
     "f75fd646-bc7d-478b-b65b-de34155b8efa": {
       "name": "Custom GeoTiff Layer",
       "parameters": {
@@ -62,9 +71,9 @@
           ],
           0.6,
           [
-            237.0,
-            51.0,
-            59.0
+            165.0,
+            29.0,
+            45.0
           ]
         ],
         "opacity": 1.0,
@@ -77,10 +86,10 @@
   "options": {
     "bearing": 0.0,
     "latitude": 0.0,
-    "longitude": -26.246075613612998,
+    "longitude": -60.58304633965749,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 1.5294305541461508
+    "zoom": 2.2215871212648053
   },
   "sources": {
     "8b1d4258-5d46-48da-b466-496d376b593d": {
@@ -95,6 +104,18 @@
         "wrapX": true
       },
       "type": "GeoTiffSource"
+    },
+    "a6a98ac4-0d1c-4a3d-af71-88a91f28ccb9": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
     }
   },
   "terrain": {

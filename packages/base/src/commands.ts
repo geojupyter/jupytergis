@@ -11,11 +11,13 @@ import {
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
+import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandIDs, icons } from './constants';
 import { ZoomColorWidget } from './dialogs/colorExpressionDialog';
 import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
+import { SymbologyWidget } from './dialogs/symbologyDialog';
 import { TerrainDialogWidget } from './dialogs/terrainDialog';
 import { JupyterGISWidget } from './widget';
 
@@ -39,7 +41,8 @@ export function addCommands(
   tracker: WidgetTracker<JupyterGISWidget>,
   translator: ITranslator,
   formSchemaRegistry: IJGISFormSchemaRegistry,
-  layerBrowserRegistry: IJGISLayerBrowserRegistry
+  layerBrowserRegistry: IJGISLayerBrowserRegistry,
+  state: IStateDB
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
@@ -51,7 +54,7 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: Private.createZoomColorDialog(tracker),
+    execute: Private.createSymbologyDialog(tracker, state),
 
     ...icons.get(CommandIDs.colorExpr)
   });
@@ -826,8 +829,9 @@ namespace Private {
     };
   }
 
-  export function createZoomColorDialog(
-    tracker: WidgetTracker<JupyterGISWidget>
+  export function createSymbologyDialog(
+    tracker: WidgetTracker<JupyterGISWidget>,
+    state: IStateDB
   ) {
     return async () => {
       const current = tracker.currentWidget;
@@ -836,8 +840,9 @@ namespace Private {
         return;
       }
 
-      const dialog = new ZoomColorWidget({
-        context: current.context
+      const dialog = new SymbologyWidget({
+        context: current.context,
+        state
       });
       await dialog.launch();
     };

@@ -1,0 +1,75 @@
+.jp-gis-symbology-dialog .jp-Dialog-header {
+  font-weight: bold;
+}
+
+.jp-gis-symbology-dialog .jp-Dialog-content {
+  width: calc(80% - 4rem);
+  max-width: 80%;
+  height: fit-content;
+  max-height: 80%;
+}
+
+.jp-gis-symbology-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2rem;
+}
+
+.jp-gis-symbology-row > label {
+  font-size: var(--jp-ui-font-size2);
+  flex: 0 1 20%;
+}
+
+.jp-gis-symbology-row > .jp-select-wrapper {
+  flex: 1 0 50%;
+  max-width: 50%;
+}
+
+.jp-gis-band-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.jp-gis-layer-symbology-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-gis-stop-labels {
+  display: flex;
+  font-weight: bold;
+  font-size: var(--jp-ui-font-size1);
+  gap: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.jp-gis-stop-labels > span {
+  flex: 0 0 18%;
+}
+
+.jp-gis-color-row {
+  display: flex;
+  width: 100%;
+  gap: 0.25rem;
+}
+
+.jp-gis-color-row > input[type='number'] {
+  flex: 0 1 18%;
+  min-width: 0px;
+}
+
+.jp-gis-color-row > input[type='color'] {
+  flex-grow: 1;
+}
+
+.jp-gis-color-row > button {
+  color: var(--jp-ui-font-color0);
+  background: none;
+  padding-right: 0px;
+}
+
+.jp-gis-symbology-button-container {
+  padding-top: 0.5rem;
+}

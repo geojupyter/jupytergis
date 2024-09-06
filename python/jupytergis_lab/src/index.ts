@@ -36,7 +36,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
   requires: [
     IJupyterGISDocTracker,
     IJGISFormSchemaRegistryToken,
-    IJGISLayerBrowserRegistryToken
+    IJGISLayerBrowserRegistryToken,
+    IStateDB
   ],
   optional: [IMainMenu, ITranslator],
   activate: (
@@ -44,6 +45,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     tracker: WidgetTracker<JupyterGISWidget>,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
+    state: IStateDB,
     mainMenu?: IMainMenu,
     translator?: ITranslator
   ): void => {
@@ -63,7 +65,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
       tracker,
       translator,
       formSchemaRegistry,
-      layerBrowserRegistry
+      layerBrowserRegistry,
+      state
     );
 
     // SOURCES context menu
