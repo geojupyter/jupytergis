@@ -244,7 +244,8 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
   useEffect(() => {
     setId(DOMUtils.createDomID());
     const getExpandedState = async () => {
-      const groupState: ReadonlyPartialJSONValue | undefined = await state.fetch(group.name);
+      const groupState: ReadonlyPartialJSONValue | undefined =
+        await state.fetch(group.name);
       setOpen(groupState ? (groupState as any)['expanded'] ?? false : false);
     };
 

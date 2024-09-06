@@ -18,7 +18,9 @@ const FilterRow = ({
 }) => {
   const operators = ['==', '!=', '>', '<', '>=', '<='];
 
-  const [sortedFeatures, setSortedFeatures] = useState<{[key: string]: any}>({});
+  const [sortedFeatures, setSortedFeatures] = useState<{ [key: string]: any }>(
+    {}
+  );
   const [selectedFeature, setSelectedFeature] = useState(
     filterRows[index].feature || Object.keys(features)[0]
   );
@@ -30,7 +32,7 @@ const FilterRow = ({
 
   useEffect(() => {
     const sortedKeys = Object.keys(features).sort();
-    const sortedResult: {[key: string]: any} = {};
+    const sortedResult: { [key: string]: any } = {};
 
     for (const key of sortedKeys) {
       // Convert each Set to a sorted array
@@ -61,7 +63,7 @@ const FilterRow = ({
 
     newFilters[index].value = isNum ? +value : value;
     setFilterRows(newFilters);
-  }
+  };
 
   const handleKeyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newFilters = [...filterRows];
@@ -70,7 +72,9 @@ const FilterRow = ({
     setFilterRows(newFilters);
   };
 
-  const handleOperatorChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleOperatorChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const newFilters = [...filterRows];
     newFilters[index].operator = event.target.value;
     setFilterRows(newFilters);
