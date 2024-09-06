@@ -59,7 +59,7 @@ export const LayerBrowserComponent = ({
   /**
    * Track which layers are currently added to the map
    */
-  const handleLayerChange = (_, change: IJGISLayerDocChange) => {
+  const handleLayerChange = (_: any, change: IJGISLayerDocChange) => {
     // The split is to get rid of the 'Layer' part of the name to match the names in the gallery
     setActiveLayers(
       Object.values(context.model.sharedModel.layers).map(

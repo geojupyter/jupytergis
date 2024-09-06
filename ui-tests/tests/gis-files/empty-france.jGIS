@@ -1,12 +1,13 @@
 {
+  "layerTree": [],
   "layers": {},
-  "sources": {},
   "options": {
-   "bearing": 0.0,
+    "bearing": 0.0,
     "latitude": 44.75868528451835,
     "longitude": 3.12113766286636,
     "projection": "EPSG:3857",
     "zoom": 4.920920690595499
   },
-  "layerTree": []
+  "sources": {},
+  "terrain": {}
 }

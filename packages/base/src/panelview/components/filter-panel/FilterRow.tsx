@@ -18,7 +18,7 @@ const FilterRow = ({
 }) => {
   const operators = ['==', '!=', '>', '<', '>=', '<='];
 
-  const [sortedFeatures, setSortedFeatures] = useState({});
+  const [sortedFeatures, setSortedFeatures] = useState<{[key: string]: any}>({});
   const [selectedFeature, setSelectedFeature] = useState(
     filterRows[index].feature || Object.keys(features)[0]
   );
@@ -30,7 +30,7 @@ const FilterRow = ({
 
   useEffect(() => {
     const sortedKeys = Object.keys(features).sort();
-    const sortedResult = {};
+    const sortedResult: {[key: string]: any} = {};
 
     for (const key of sortedKeys) {
       // Convert each Set to a sorted array
@@ -52,31 +52,32 @@ const FilterRow = ({
     }
 
     const currentValue = valueSelect.options[valueSelect.selectedIndex]?.value;
-    currentValue &&
-      handleValueChange({
-        target: { value: currentValue }
-      });
+    currentValue && onValueChange(currentValue);
   }, [selectedFeature]);
 
-  const handleKeyChange = event => {
+  const onValueChange = (value: string | number) => {
+    const newFilters = [...filterRows];
+    const isNum = typeof sortedFeatures[selectedFeature][0] === 'number';
+
+    newFilters[index].value = isNum ? +value : value;
+    setFilterRows(newFilters);
+  }
+
+  const handleKeyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newFilters = [...filterRows];
     newFilters[index].feature = event.target.value;
     setSelectedFeature(event.target.value);
     setFilterRows(newFilters);
   };
 
-  const handleOperatorChange = event => {
+  const handleOperatorChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newFilters = [...filterRows];
     newFilters[index].operator = event.target.value;
     setFilterRows(newFilters);
   };
 
-  const handleValueChange = event => {
-    const newFilters = [...filterRows];
-    const isNum = typeof sortedFeatures[selectedFeature][0] === 'number';
-
-    newFilters[index].value = isNum ? +event.target.value : event.target.value;
-    setFilterRows(newFilters);
+  const handleValueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    onValueChange(event.target.value);
   };
 
   return (

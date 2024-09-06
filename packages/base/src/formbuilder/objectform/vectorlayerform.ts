@@ -8,9 +8,9 @@ import { ILayerProps, LayerPropertiesForm } from './layerform';
  * The form to modify a vector layer.
  */
 export class VectorLayerPropertiesForm extends LayerPropertiesForm {
-  private sourceLayers: string[] = [];
-  private currentSourceUrl = '';
   protected currentFormData: IVectorLayer;
+  private sourceLayers: string[] = [];
+  private currentSourceId: string;
 
   constructor(props: ILayerProps) {
     super(props);
@@ -111,9 +111,6 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
         sourceData = currentSource.parameters as IVectorTileSource;
       }
 
-      // if (this.currentSourceUrl !== sourceData.url) {
-      this.currentSourceUrl = sourceData.url;
-
       try {
         this.sourceLayers = await getSourceLayerNames(
           sourceData.url,
@@ -123,13 +120,10 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
       } catch (e) {
         console.error(e);
       }
-      // }
     } else {
       this.currentSourceId = '';
       this.sourceLayers = [];
       this.forceUpdate();
     }
   }
-
-  private currentSourceId: string;
 }

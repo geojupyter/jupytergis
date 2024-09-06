@@ -18,10 +18,10 @@ export const debounce = (
   func: CallableFunction,
   timeout = 100
 ): CallableFunction => {
-  let timeoutId;
-  return (...args) => {
+  let timeoutId: number;
+  return (...args: any[]) => {
     clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
+    timeoutId = window.setTimeout(() => {
       func(...args);
     }, timeout);
   };
@@ -157,7 +157,7 @@ export function createDefaultLayerRegistry(
   importAll(context);
 
   for (const entry of Object.keys(RASTER_LAYER_GALLERY)) {
-    const xyzprovider = RASTER_LAYER_GALLERY[entry];
+    const xyzprovider: any = (RASTER_LAYER_GALLERY as any)[entry];
 
     if ('url' in xyzprovider) {
       const tile = convertToRegistryEntry(entry, xyzprovider);

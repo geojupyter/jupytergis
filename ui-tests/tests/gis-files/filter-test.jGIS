@@ -1,5 +1,5 @@
 {
-    "layerTree": [
+  "layerTree": [
     "f907e26c-c4c8-4c2d-ad62-813f63ed9de9",
     "0336896f-f7ce-460f-8d11-07a589ff03d8"
   ],
@@ -31,8 +31,9 @@
   "options": {
     "bearing": 0.0,
     "latitude": 36.721052981505736,
-    "longitude": -117.65116711904051,
+    "longitude": -117.6511671190405,
     "pitch": 0.0,
+    "projection": "EPSG:3857",
     "zoom": 3.9435402350822097
   },
   "sources": {

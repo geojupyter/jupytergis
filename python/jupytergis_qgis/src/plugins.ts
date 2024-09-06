@@ -104,7 +104,7 @@ const activate = async (
     QGISSharedModelFactory
   );
 
-  const widgetCreatedCallback = (sender, widget: JupyterGISWidget) => {
+  const widgetCreatedCallback = (sender: any, widget: JupyterGISWidget) => {
     // Notify the instance tracker if restore data needs to update.
     widget.context.pathChanged.connect(() => {
       tracker.save(widget);
