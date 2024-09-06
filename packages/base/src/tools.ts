@@ -255,11 +255,7 @@ export async function getLayerTileInfo(
     : mapOptions.longitude || 0;
   const zoom = mapOptions.zoom || 0;
 
-  const { xTile, yTile } = getTileCoordinates(
-    latitude,
-    longitude,
-    zoom
-  );
+  const { xTile, yTile } = getTileCoordinates(latitude, longitude, zoom);
 
   // Replace url params with currently viewed tile
   tileUrl = tileUrl
