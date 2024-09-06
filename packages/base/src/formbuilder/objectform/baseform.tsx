@@ -1,7 +1,7 @@
 import { SchemaForm } from '@deathbeds/jupyterlab-rjsf';
 import { MessageLoop } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
-import { IChangeEvent, ISubmitEvent, WidgetProps } from '@rjsf/core';
+import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 import * as React from 'react';
 
 import { IJupyterGISModel } from '@jupytergis/schema';

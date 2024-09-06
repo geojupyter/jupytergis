@@ -103,7 +103,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
       setSelectedLayer(currentLayer);
     };
 
-    const handleSharedOptionsChanged = (_, keys) => {
+    const handleSharedOptionsChanged = (_: any, keys: any) => {
       // model changes when current widget changes, don't want this to run in that case
       if (props.tracker.currentWidget?.id === widgetId && keys.has('zoom')) {
         if (!model?.localState?.selected?.value) {

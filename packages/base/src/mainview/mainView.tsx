@@ -26,6 +26,7 @@ import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { Map as OlMap, View } from 'ol';
+import { FeatureLike } from 'ol/Feature';
 import { GeoJSON, MVT } from 'ol/format';
 import DragAndDrop from 'ol/interaction/DragAndDrop';
 import {
@@ -57,6 +58,7 @@ import { isLightTheme } from '../tools';
 interface IProps {
   viewModel: MainViewModel;
 }
+
 interface IStates {
   id: string; // ID of the component, it is used to identify which component
   //is the source of awareness updates.
@@ -141,10 +143,6 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       dragAndDropInteraction.on('addfeatures', event => {
-        // const source = new VectorSource({
-        //   features: event.features
-        // });
-
         const sourceId = UUID.uuid4();
 
         const sourceModel: IJGISSource = {
@@ -172,10 +170,6 @@ export class MainView extends React.Component<IProps, IStates> {
         const layerId = UUID.uuid4();
         this.addLayer(layerId, layerModel, this.getLayers().length);
         this._model.addLayer(layerId, layerModel);
-
-        // this._Map
-        //   .getView()
-        //   .fit(this._sources[layerModel.parameters?.source].getExtent());
       });
 
       this._Map.addInteraction(dragAndDropInteraction);
@@ -572,7 +566,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._Map.getLayers().insertAt(index, newLayer);
   }
 
-  vectorLayerStyleFunc = (currentFeature, layer) => {
+  vectorLayerStyleFunc = (currentFeature: FeatureLike, layer: IJGISLayer) => {
     const layerParameters = layer.parameters as IVectorLayer;
 
     // const flatStyle = {
@@ -587,12 +581,12 @@ export class MainView extends React.Component<IProps, IStates> {
 
     // TODO: Need to make a version that works with strings as well
     const operators = {
-      '>': (a, b) => a > b,
-      '<': (a, b) => a < b,
-      '>=': (a, b) => a >= b,
-      '<=': (a, b) => a <= b,
-      '==': (a, b) => a === b,
-      '!=': (a, b) => a !== b
+      '>': (a: number | string, b: number | string) => a > b,
+      '<': (a: number | string, b: number | string) => a < b,
+      '>=': (a: number | string, b: number | string) => a >= b,
+      '<=': (a: number | string, b: number | string) => a <= b,
+      '==': (a: number | string, b: number | string) => a === b,
+      '!=': (a: number | string, b: number | string) => a !== b
     };
 
     // TODO: I don't think this will work with fancy color expressions
@@ -668,7 +662,7 @@ export class MainView extends React.Component<IProps, IStates> {
     // Other frequently used methods include the Mapbox format
     // (red * 256 * 256 + green * 256 + blue) * 0.1 - 10000
     //
-    function elevation(xOffset, yOffset) {
+    function elevation(xOffset: number, yOffset: number) {
       const red = ['band', 1, xOffset, yOffset];
       const green = ['band', 2, xOffset, yOffset];
       const blue = ['band', 3, xOffset, yOffset];
@@ -940,17 +934,6 @@ export class MainView extends React.Component<IProps, IStates> {
         }
       }
     });
-  }
-
-  private getSource<T>(id: string): T | undefined {
-    const source = this._model.sharedModel.getSource(id);
-
-    if (!source || !source.parameters) {
-      console.log(`Source id ${id} does not exist`);
-      return;
-    }
-
-    return source.parameters as T;
   }
 
   private _handleThemeChange = (): void => {

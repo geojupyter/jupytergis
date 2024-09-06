@@ -609,7 +609,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
-  private _onClientStateChanged = changed => {
+  private _onClientStateChanged = (changed: any) => {
     const clients = this.sharedModel.awareness.getStates() as Map<
       number,
       IJupyterGISClientState
@@ -617,7 +617,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._clientStateChanged.emit(clients);
 
-    this._sharedModel.awareness.on('change', update => {
+    this._sharedModel.awareness.on('change', (update: any) => {
       if (update.added.length || update.removed.length) {
         this._userChanged.emit(this.users);
       }

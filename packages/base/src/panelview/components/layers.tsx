@@ -12,6 +12,7 @@ import {
   ReactWidget,
   caretDownIcon
 } from '@jupyterlab/ui-components';
+import { ReadonlyPartialJSONValue } from '@lumino/coreutils';
 import { Panel } from '@lumino/widgets';
 import React, {
   MouseEvent as ReactMouseEvent,
@@ -242,10 +243,10 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
 
   useEffect(() => {
     setId(DOMUtils.createDomID());
-
     const getExpandedState = async () => {
-      const groupState = await state.fetch(group.name);
-      setOpen(groupState ? groupState['expanded'] : false);
+      const groupState: ReadonlyPartialJSONValue | undefined =
+        await state.fetch(group.name);
+      setOpen(groupState ? (groupState as any)['expanded'] ?? false : false);
     };
 
     getExpandedState();

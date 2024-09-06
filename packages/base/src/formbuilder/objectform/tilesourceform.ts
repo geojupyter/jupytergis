@@ -35,7 +35,7 @@ export class TileSourcePropertiesForm extends BaseForm {
     }
 
     // Dynamically inject url parameters schema based of the url
-    const propertiesSchema = {};
+    const propertiesSchema: { [name: string]: any } = {};
     schema.properties.urlParameters = {
       type: 'object',
       required: this._urlParameters,

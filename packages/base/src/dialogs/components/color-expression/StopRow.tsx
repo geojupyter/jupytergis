@@ -17,32 +17,32 @@ const StopRow = ({
   stopRows: IStopRow[];
   setStopRows: any;
 }) => {
-  const [inputZoom, setInputZoom] = useState(10);
-  const [inputColor, setInputColor] = useState('');
+  const [, setInputZoom] = useState(10);
+  const [, setInputColor] = useState('');
 
-  const rgbaStringToHex = rgbaStr => {
-    // Remove the "rgba(" part and close parenthesis
-    const rgbaParts = rgbaStr.replace('rgba(', '').replace(')', '');
+  // const rgbaStringToHex = (rgbaStr: any) => {
+  //   // Remove the "rgba(" part and close parenthesis
+  //   const rgbaParts = rgbaStr.replace('rgba(', '').replace(')', '');
 
-    // Split the string into individual components
-    const [r, g, b, a] = rgbaParts
-      .split(',')
-      .map(part => parseInt(part.trim()));
+  //   // Split the string into individual components
+  //   const [r, g, b, a] = rgbaParts
+  //     .split(',')
+  //     .map((part: any) => parseInt(part.trim()));
 
-    // Convert R, G, B to hexadecimal and ensure they are two digits long
-    const rHex = r.toString(16).padStart(2, '0');
-    const gHex = g.toString(16).padStart(2, '0');
-    const bHex = b.toString(16).padStart(2, '0');
+  //   // Convert R, G, B to hexadecimal and ensure they are two digits long
+  //   const rHex = r.toString(16).padStart(2, '0');
+  //   const gHex = g.toString(16).padStart(2, '0');
+  //   const bHex = b.toString(16).padStart(2, '0');
 
-    // Optionally handle alpha channel if needed
-    // For simplicity, this example ignores the alpha channel
-    // If you need to include alpha, you could append it after the RGB part, e.g., `return '#' + rHex + gHex + bHex + (a === 1 ? '' : a.toString(16));`
-    return '#' + rHex + gHex + bHex;
-  };
+  //   // Optionally handle alpha channel if needed
+  //   // For simplicity, this example ignores the alpha channel
+  //   // If you need to include alpha, you could append it after the RGB part, e.g., `return '#' + rHex + gHex + bHex + (a === 1 ? '' : a.toString(16));`
+  //   return '#' + rHex + gHex + bHex;
+  // };
 
-  const rgbArrToHex = rgbArr => {
+  const rgbArrToHex = (rgbArr: any) => {
     const hex = rgbArr
-      .map(val => {
+      .map((val: any) => {
         return val.toString(16).padStart(2, '0');
         return hex.length === 1 ? '0' + hex : hex;
       })
@@ -51,7 +51,7 @@ const StopRow = ({
     return '#' + hex;
   };
 
-  const hexToRgb = hex => {
+  const hexToRgb = (hex: any) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     const l = result
       ? [
@@ -63,14 +63,15 @@ const StopRow = ({
     return l;
   };
 
-  const handleValueChange = event => {
+  const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newRows = [...stopRows];
-    stopRows[index].value = event.target.value;
+    const value = parseFloat(event.target.value);
+    stopRows[index].value = value;
     setStopRows(newRows);
-    setInputZoom(event.target.value);
+    setInputZoom(value);
   };
 
-  const handleColorChange = event => {
+  const handleColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newRows = [...stopRows];
     stopRows[index].color = hexToRgb(event.target.value);
     setStopRows(newRows);

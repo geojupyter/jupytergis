@@ -48,6 +48,7 @@
     "latitude": 45.83799886047626,
     "longitude": 1.195999428191726,
     "pitch": 0.0,
+    "projection": "EPSG:3857",
     "zoom": 4.075821017792898
   },
   "sources": {
@@ -77,5 +78,6 @@
       },
       "type": "GeoJSONSource"
     }
-  }
+  },
+  "terrain": {}
 }
