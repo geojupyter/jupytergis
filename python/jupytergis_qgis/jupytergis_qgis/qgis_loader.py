@@ -1,21 +1,16 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 from urllib.parse import unquote
 from uuid import uuid4
 
-from qgis.PyQt.QtCore import QSize
 from qgis.core import (
-    QgsApplication,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsRasterLayer,
     QgsVectorTileLayer,
     QgsProject,
-    QgsMapSettings,
-    QgsCoordinateReferenceSystem,
-    QgsCoordinateTransform,
-    QgsReferencedRectangle,
 )
 
 from jupytergis_lab.notebook.utils import get_source_layer_names
@@ -149,27 +144,17 @@ def import_project_from_qgis(path: str | Path):
 
     # extract the viewport in lat/long coordinates
     view_settings = project.viewSettings()
-    current_map_extent = view_settings.defaultViewExtent()
-    current_map_crs = view_settings.defaultViewExtent().crs()
-    transform_context = project.transformContext()
-
-    transform_4326 = QgsCoordinateTransform(
-        current_map_crs, QgsCoordinateReferenceSystem("EPSG:4326"), transform_context
-    )
-    try:
-        map_extent_4326 = transform_4326.transformBoundingBox(current_map_extent)
-    except QgsCsException:
-        map_extent_4326 = current_map_extent
+    map_extent = view_settings.defaultViewExtent()
 
     return {
         "options": {
             "bearing": 0.0,
             "pitch": 0,
             "extent": [
-                map_extent_4326.xMinimum(),
-                map_extent_4326.yMinimum(),
-                map_extent_4326.xMaximum(),
-                map_extent_4326.yMaximum()
+                map_extent.xMinimum(),
+                map_extent.yMinimum(),
+                map_extent.xMaximum(),
+                map_extent.yMaximum()
             ]
         },
         **jgis_layer_tree,

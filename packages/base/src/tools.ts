@@ -282,7 +282,7 @@ export async function getSourceLayerNames(
 ) {
   const tile = await getLayerTileInfo(
     tileUrl,
-    { extent: [-10, 40, 16, 53], zoom: 0 },
+    { extent: [-1635090, 4620312, 2075245, 7061357], zoom: 0 },
     urlParameters
   );
 

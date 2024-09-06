@@ -35,7 +35,7 @@ import {
   WebGLTile as WebGlTileLayer
 } from 'ol/layer';
 import BaseLayer from 'ol/layer/Base';
-import { fromLonLat, toLonLat } from 'ol/proj';
+import { fromLonLat } from 'ol/proj';
 import Feature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -185,20 +185,15 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         const view = this._Map.getView();
-        const center = view.getCenter();
-        const zoom = view.getZoom();
-        if (!center || !zoom) {
-          return;
-        }
+        const zoom = view.getZoom() || 0;
+        const extent = view.calculateExtent();
         const projection = view.getProjection();
-        const latLng = toLonLat(center, projection);
         const bearing = view.getRotation();
 
         this._model.setOptions({
           ...this._model.getOptions(),
-          latitude: latLng[1],
-          longitude: latLng[0],
           bearing,
+          extent,
           projection: projection.getCode(),
           zoom
         });
@@ -831,15 +826,9 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private updateOptions(options: IJGISOptions) {
-    const centerCoord = fromLonLat(
-      [options.longitude, options.latitude],
-      this._Map.getView().getProjection()
-    );
-
-    this._Map.getView().setZoom(options.zoom || 0);
-    this._Map.getView().setCenter(centerCoord || [0, 0]);
-
-    this._Map.getView().setRotation(options.bearing || 0);
+    const view = this._Map.getView();
+    view.fit(options.extent);
+    view.setRotation(options.bearing || 0);
   }
 
   private _onViewChanged(

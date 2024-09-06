@@ -185,10 +185,16 @@
         },
         "extent": {
           "type": "array",
-          "default": [-10, 40, 16, 53],
+          "default": [
+            -1635090,
+            4620312,
+            2075245,
+            7061357
+          ],
           "items": {
             "type": "number"
-          }
+          },
+          "description": "The extent property, default to France"
         },
         "projection": {
           "type": "string",

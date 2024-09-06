@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from pycrdt import Array, Doc, Map
 from pydantic import BaseModel
@@ -43,12 +43,11 @@ class GISDocument(CommWidget):
     def __init__(
         self,
         path: Optional[str] = None,
-        latitude: Optional[number] = None,
-        longitude: Optional[number] = None,
-        zoom: Optional[number] = None,
-        bearing: Optional[number] = None,
-        pitch: Optional[number] = None,
-        projection: Optional[string] = None
+        zoom: Optional[float] = None,
+        extent: Optional[List[float]] = None,
+        bearing: Optional[float] = None,
+        pitch: Optional[float] = None,
+        projection: Optional[str] = None
     ):
         comm_metadata = GISDocument._path_to_comm(path)
 
@@ -65,10 +64,8 @@ class GISDocument(CommWidget):
         self.ydoc["layerTree"] = self._layerTree = Array()
 
         if path is None:
-            if latitude is not None:
-                self._options["latitude"] = latitude
-            if longitude is not None:
-                self._options["longitude"] = longitude
+            if extent is not None:
+                self._options["extent"] = extent
             if zoom is not None:
                 self._options["zoom"] = zoom
             if bearing is not None:
@@ -139,15 +136,15 @@ class GISDocument(CommWidget):
         name: str = "Vector Tile Layer",
         source_layer: str | None = None,
         attribution: str = "",
-        min_zoom: number = 0,
-        max_zoom: number = 24,
-        type: "circle" | "fill" | "line" = "line",
+        min_zoom: int = 0,
+        max_zoom: int = 24,
+        type: Literal["circle", "fill", "line"] = "line",
         color: str = "#FF0000",
         opacity: float = 1,
         logical_op:str | None = None,
         feature:str | None = None,
         operator:str | None = None,
-        value:Union[str, number, float] | None = None
+        value:Union[str, float, float] | None = None
     ):
 
         """
