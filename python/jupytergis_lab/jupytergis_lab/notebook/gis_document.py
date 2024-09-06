@@ -43,6 +43,8 @@ class GISDocument(CommWidget):
     def __init__(
         self,
         path: Optional[str] = None,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
         zoom: Optional[float] = None,
         extent: Optional[List[float]] = None,
         bearing: Optional[float] = None,
@@ -64,6 +66,10 @@ class GISDocument(CommWidget):
         self.ydoc["layerTree"] = self._layerTree = Array()
 
         if path is None:
+            if latitude is not None:
+                self._options["latitude"] = latitude
+            if longitude is not None:
+                self._options["longitude"] = longitude
             if extent is not None:
                 self._options["extent"] = extent
             if zoom is not None:

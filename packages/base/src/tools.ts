@@ -233,7 +233,7 @@ function getTileCoordinates(latDeg: number, lonDeg: number, zoom: number) {
 
 export async function getLayerTileInfo(
   tileUrl: string,
-  mapOptions: Pick<IJGISOptions, 'extent' | 'zoom'>,
+  mapOptions: Pick<IJGISOptions, 'latitude' | 'longitude' | 'extent' | 'zoom'>,
   urlParameters?: IDict<string>
 ): Promise<VectorTile> {
   // If it's tilejson, fetch the json to access the pbf url
@@ -247,15 +247,23 @@ export async function getLayerTileInfo(
     tileUrl = json.tiles[0];
   }
 
+  const latitude = mapOptions.extent
+    ? (mapOptions.extent[1] + mapOptions.extent[3]) / 2
+    : mapOptions.latitude || 0;
+  const longitude = mapOptions.extent
+    ? (mapOptions.extent[0] + mapOptions.extent[2]) / 2
+    : mapOptions.longitude || 0;
+  const zoom = mapOptions.zoom || 0;
+
   const { xTile, yTile } = getTileCoordinates(
-    (mapOptions.extent[3] + mapOptions.extent[1]) / 2,
-    (mapOptions.extent[2] + mapOptions.extent[0]) / 2,
-    mapOptions.zoom
+    latitude,
+    longitude,
+    zoom
   );
 
   // Replace url params with currently viewed tile
   tileUrl = tileUrl
-    .replace('{z}', String(Math.floor(mapOptions.zoom)))
+    .replace('{z}', String(Math.floor(zoom)))
     .replace('{x}', String(xTile))
     .replace('{y}', String(yTile));
 
@@ -282,7 +290,7 @@ export async function getSourceLayerNames(
 ) {
   const tile = await getLayerTileInfo(
     tileUrl,
-    { extent: [-1635090, 4620312, 2075245, 7061357], zoom: 0 },
+    { latitude: 0, longitude: 0, zoom: 0, extent: [] },
     urlParameters
   );
 

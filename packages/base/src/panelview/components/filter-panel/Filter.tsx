@@ -158,7 +158,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
     }
     const layer = model.getLayer(currentLayer ?? selectedLayer);
     const source = model.getSource(layer?.parameters?.source);
-    const { extent, zoom } = model.getOptions();
+    const { latitude, longitude, extent, zoom } = model.getOptions();
 
     if (!source || !layer) {
       return;
@@ -185,6 +185,8 @@ const FilterComponent = (props: IFilterComponentProps) => {
       case 'VectorTileSource': {
         try {
           const tile = await getLayerTileInfo(source?.parameters?.url, {
+            latitude,
+            longitude,
             extent,
             zoom
           });

@@ -168,9 +168,17 @@
       "title": "IJGISOptions",
       "type": "object",
       "default": {},
-      "required": ["zoom", "bearing", "pitch", "extent", "projection"],
+      "required": [],
       "additionalProperties": false,
       "properties": {
+        "latitude": {
+          "type": "number",
+          "default": 0
+        },
+        "longitude": {
+          "type": "number",
+          "default": 0
+        },
         "zoom": {
           "type": "number",
           "default": 0
@@ -185,11 +193,10 @@
         },
         "extent": {
           "type": "array",
-          "default": [-1635090, 4620312, 2075245, 7061357],
+          "default": null,
           "items": {
             "type": "number"
-          },
-          "description": "The extent property, default to France"
+          }
         },
         "projection": {
           "type": "string",

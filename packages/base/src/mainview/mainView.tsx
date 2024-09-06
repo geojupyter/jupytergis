@@ -34,8 +34,9 @@ import {
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer
 } from 'ol/layer';
+import TileLayer from 'ol/layer/Tile';
 import BaseLayer from 'ol/layer/Base';
-import { fromLonLat } from 'ol/proj';
+import { fromLonLat, toLonLat } from 'ol/proj';
 import Feature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -46,13 +47,13 @@ import {
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
-import * as React from 'react';
-import { isLightTheme } from '../tools';
-import { MainViewModel } from './mainviewmodel';
-import { Spinner } from './spinner';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
-import TileLayer from 'ol/layer/Tile';
+import * as React from 'react';
+import { MainViewModel } from './mainviewmodel';
+import { Spinner } from './spinner';
+import { isLightTheme } from '../tools';
+
 interface IProps {
   viewModel: MainViewModel;
 }
@@ -184,18 +185,32 @@ export class MainView extends React.Component<IProps, IStates> {
           return;
         }
 
+        const currentOptions = this._model.getOptions();
+
         const view = this._Map.getView();
+        const center = view.getCenter() || [0, 0];
         const zoom = view.getZoom() || 0;
-        const extent = view.calculateExtent();
+
         const projection = view.getProjection();
+        const latLng = toLonLat(center, projection);
         const bearing = view.getRotation();
 
-        this._model.setOptions({
-          ...this._model.getOptions(),
+        const updatedOptions: Partial<IJGISOptions> = {
+          latitude: latLng[1],
+          longitude: latLng[0],
           bearing,
-          extent,
           projection: projection.getCode(),
           zoom
+        };
+
+        // Update the extent only if has been initially provided.
+        if (currentOptions.extent) {
+          updatedOptions.extent = view.calculateExtent();
+        }
+
+        this._model.setOptions({
+          ...currentOptions,
+          ...updatedOptions
         });
       });
 
@@ -827,7 +842,18 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private updateOptions(options: IJGISOptions) {
     const view = this._Map.getView();
-    view.fit(options.extent);
+
+    // use the extent if provided.
+    if (options.extent) {
+      view.fit(options.extent);
+    } else {
+      const centerCoord = fromLonLat(
+        [options.longitude || 0, options.latitude || 0],
+        this._Map.getView().getProjection()
+      );
+      this._Map.getView().setZoom(options.zoom || 0);
+      this._Map.getView().setCenter(centerCoord);
+    }
     view.setRotation(options.bearing || 0);
   }
 
