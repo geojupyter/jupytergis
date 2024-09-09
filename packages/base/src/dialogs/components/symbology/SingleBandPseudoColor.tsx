@@ -221,7 +221,7 @@ const SingleBandPseudoColor = ({
           </select>
         </div>
       </div>
-      <div className="stop container">
+      <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>Value</span>
           <span>Output Value</span>

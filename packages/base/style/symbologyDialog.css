@@ -37,6 +37,12 @@
   flex-direction: column;
 }
 
+.jp-gis-stop-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
 .jp-gis-stop-labels {
   display: flex;
   font-weight: bold;
@@ -53,6 +59,7 @@
   display: flex;
   width: 100%;
   gap: 0.25rem;
+  height: 32px;
 }
 
 .jp-gis-color-row > input[type='number'] {
