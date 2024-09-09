@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote
@@ -14,6 +15,7 @@ from qgis.core import (
     QgsRasterLayer,
     QgsRectangle,
     QgsReferencedRectangle,
+    QgsSettings,
     QgsVectorTileLayer,
     QgsProject,
 )
@@ -25,17 +27,19 @@ def qgis_layer_to_jgis(
     qgis_layer: QgsLayerTreeLayer,
     layers: dict[str, dict[str, Any]],
     sources: dict[str, dict[str, Any]],
+    settings: QgsSettings | None
 ) -> str:
     """Load a QGIS layer into the provided layers/sources dictionary in the JGIS format. Returns the layer id or None if enable to load the layer."""
     layer = qgis_layer.layer()
+    if layer is None:
+        return
+
     layer_name = layer.name()
     is_visible = qgis_layer.isVisible()
     layer_type = None
     source_type = None
-    source_id = str(uuid4())
-    layer_parameters = {
-        "source": source_id,
-    }
+
+    layer_parameters = {}
     source_parameters = {}
 
     if isinstance(layer, QgsRasterLayer):
@@ -92,6 +96,16 @@ def qgis_layer_to_jgis(
 
     layer_id = layer.id()
 
+    if settings:
+        layerSourceMap = settings.value("layerSourceMap", {})
+        source_id = layerSourceMap.get(layer_id, {}).get("source_id", str(uuid4()))
+        source_name = layerSourceMap.get(layer_id, {}).get("source_name", f"{layer_name} Source")
+    else:
+        source_id = str(uuid4())
+        source_name = f"{layer_name} Source"
+
+    layer_parameters["source"] = source_id
+
     layers[layer_id] = {
         "name": layer_name,
         "parameters": layer_parameters,
@@ -99,7 +113,7 @@ def qgis_layer_to_jgis(
         "visible": is_visible,
     }
     sources[source_id] = {
-        "name": f"{layer_name} Source",
+        "name": source_name,
         "type": source_type,
         "parameters": source_parameters,
     }
@@ -112,6 +126,7 @@ def qgis_layer_tree_to_jgis(
     layer_tree: list | None = None,
     layers: dict[str, dict[str, Any]] | None = None,
     sources: dict[str, dict[str, Any]] | None = None,
+    settings: QgsSettings | None = None
 ) -> list[dict[str, Any]] | None:
     if layer_tree is None:
         layer_tree = []
@@ -127,9 +142,9 @@ def qgis_layer_tree_to_jgis(
                 "name": child.name(),
             }
             layer_tree.append(group)
-            qgis_layer_tree_to_jgis(child, _layer_tree, layers, sources)
+            qgis_layer_tree_to_jgis(child, _layer_tree, layers, sources, settings)
         elif isinstance(child, QgsLayerTreeLayer):
-            layer_id = qgis_layer_to_jgis(child, layers, sources)
+            layer_id = qgis_layer_to_jgis(child, layers, sources, settings)
             if layer_id is not None:
                 layer_tree.append(layer_id)
 
@@ -144,8 +159,8 @@ def import_project_from_qgis(path: str | Path):
     project = QgsProject.instance()
     project.read(path)
     layer_tree_root = project.layerTreeRoot()
-
-    jgis_layer_tree = qgis_layer_tree_to_jgis(layer_tree_root)
+    qgis_settings = QgsSettings()
+    jgis_layer_tree = qgis_layer_tree_to_jgis(layer_tree_root, settings=qgis_settings)
 
     # extract the viewport in lat/long coordinates
     view_settings = project.viewSettings()
@@ -170,6 +185,7 @@ def jgis_layer_to_qgis(
     layer_id: str,
     layers: dict[str, dict[str, Any]],
     sources: dict[str, dict[str, Any]],
+    settings: QgsSettings
 ) -> QgsMapLayer | None:
 
     def build_uri(parameters: dict[str, str], source_type: str) -> str | None :
@@ -228,6 +244,15 @@ def jgis_layer_to_qgis(
         return
 
     map_layer.setId(layer_id)
+
+    # Map the source id/name to the layer
+    layerSourceMap = settings.value("layerSourceMap", {})
+    layerSourceMap[layer_id] = {
+        "source_id": source_id,
+        "source_name": source.get("name", f"{layer_name} Source")
+    }
+    settings.setValue("layerSourceMap", layerSourceMap)
+
     return map_layer
 
 
@@ -236,35 +261,55 @@ def jgis_layer_group_to_qgis(
     layers: dict[str, dict[str, Any]],
     sources: dict[str, dict[str, Any]],
     qgisGroup: QgsLayerTreeGroup,
-) -> QgsLayerTreeGroup:
+    project: QgsProject,
+    settings: QgsSettings
+) -> None:
 
     for item in layer_group:
         if isinstance(item, str):
             # Item is a layer id
-            qgis_layer = jgis_layer_to_qgis(item, layers, sources)
+            qgis_layer = jgis_layer_to_qgis(item, layers, sources, settings)
             if qgis_layer is not None:
+                project.addMapLayer(qgis_layer, False)
                 qgisGroup.addLayer(qgis_layer)
         else:
             # Item is a group
             name = item.get("name", str(uuid4()))
             qgisGroup.addGroup(name)
             newGroup = qgisGroup.findGroup(name)
-            jgis_layer_group_to_qgis(item, layers, sources, newGroup)
+            jgis_layer_group_to_qgis(item.get("layers", []), layers, sources, newGroup, project, settings)
 
 
-def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> str:
+def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> bool:
     if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
         return
 
+    if isinstance(path, Path):
+        path = str(path)
+
     project = QgsProject.instance()
-    root = project.layerTreeRoot()
-    root.clear()
+    if os.path.exists(path):
+        project.read(path)
+        root = project.layerTreeRoot()
+        root.clear()
+    else:
+        project.clear()
+        root = project.layerTreeRoot()
+
+    if not project.crs().isValid():
+        dst_crs_id = "EPSG:3857"
+        crs = QgsCoordinateReferenceSystem(dst_crs_id)
+        project.setCrs(crs)
+
+    qgis_settings = QgsSettings()
 
     jgis_layer_group_to_qgis(
         virtual_file["layerTree"],
         virtual_file["layers"],
         virtual_file["sources"],
-        root
+        root,
+        project,
+        qgis_settings
     )
 
     view_settings = project.viewSettings()
