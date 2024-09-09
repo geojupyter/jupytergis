@@ -150,12 +150,14 @@ def test_qgis_saver():
                 "visible": True,
             },
             layer_ids[2]: {
-                "name": "OpenStreetMap2",
+                "name": "Vector Tile Layer",
                 "parameters": {
                     "source": source_ids[2],
+                    "sourceLayer": "bingmlbuildings",
+                    "type": "fill"
                 },
-                "type": "RasterLayer",
-                "visible": True,
+                "type": "VectorTileLayer",
+                "visible": True
             },
             layer_ids[3]: {
                 "name": "OpenStreetMap3",
@@ -197,12 +199,12 @@ def test_qgis_saver():
                 },
             },
             source_ids[2]: {
-                "name": "OpenStreetMap2 Source",
-                "type": "RasterSource",
+                "name": "Vector Tile Source",
+                "type": "VectorTileSource",
                 "parameters": {
-                    "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                    "maxZoom": 19,
+                    "maxZoom": 13,
                     "minZoom": 0,
+                    "url": "https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/{z}/{x}/{y}",
                 },
             },
             source_ids[3]: {
