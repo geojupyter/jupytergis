@@ -1,8 +1,9 @@
+import os
 from pathlib import Path
-
+from uuid import uuid4
 from dirty_equals import IsPartialDict, IsStr
 
-from ..qgis_loader import import_project_from_qgis
+from ..qgis_loader import import_project_from_qgis, export_project_to_qgis
 
 
 FILES = Path(__file__).parent / "files"
@@ -14,7 +15,6 @@ def test_qgis_loader():
     source_id1 = IsStr()
     source_id2 = IsStr()
     source_id3 = IsStr()
-    print(jgis)
     assert jgis == IsPartialDict(
         options={
             "bearing": 0,
@@ -112,3 +112,115 @@ def test_qgis_loader():
             },
         },
     )
+
+
+def test_qgis_saver():
+    filename = FILES / "project1.qgz"
+    if os.path.exists(filename):
+        os.remove(filename)
+
+    layer_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
+    source_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
+    jgis = {
+        "options": {
+            "bearing": 0,
+            "pitch": 0,
+            'extent': [
+                -25164292.70393259,
+                -15184674.291019961,
+                26220958.18294687,
+                20663680.478501424
+            ]
+        },
+        "layers": {
+            layer_ids[0]: {
+                "name": "OpenStreetMap0",
+                "parameters": {
+                    "source": source_ids[0],
+                },
+                "type": "RasterLayer",
+                "visible": True,
+            },
+            layer_ids[1]: {
+                "name": "OpenStreetMap1",
+                "parameters": {
+                    "source": source_ids[1],
+                },
+                "type": "RasterLayer",
+                "visible": True,
+            },
+            layer_ids[2]: {
+                "name": "Vector Tile Layer",
+                "parameters": {
+                    "source": source_ids[2],
+                    "sourceLayer": "bingmlbuildings",
+                    "type": "fill"
+                },
+                "type": "VectorTileLayer",
+                "visible": True
+            },
+            layer_ids[3]: {
+                "name": "OpenStreetMap3",
+                "parameters": {
+                    "source": source_ids[3],
+                },
+                "type": "RasterLayer",
+                "visible": False,
+            },
+        },
+        "layerTree": [
+            layer_ids[0],
+            layer_ids[1],
+            {
+                "layers": [
+                    layer_ids[2],
+                    layer_ids[3],
+                ],
+                "name": "group0",
+            },
+        ],
+        "sources": {
+            source_ids[0]: {
+                "name": "OpenStreetMap0 Source",
+                "type": "RasterSource",
+                "parameters": {
+                    "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    "maxZoom": 19,
+                    "minZoom": 0,
+                },
+            },
+            source_ids[1]: {
+                "name": "OpenStreetMap1 Source",
+                "type": "RasterSource",
+                "parameters": {
+                    "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    "maxZoom": 19,
+                    "minZoom": 0,
+                },
+            },
+            source_ids[2]: {
+                "name": "Vector Tile Source",
+                "type": "VectorTileSource",
+                "parameters": {
+                    "maxZoom": 13,
+                    "minZoom": 0,
+                    "url": "https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/{z}/{x}/{y}",
+                },
+            },
+            source_ids[3]: {
+                "name": "OpenStreetMap3 Source",
+                "type": "RasterSource",
+                "parameters": {
+                    "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    "maxZoom": 19,
+                    "minZoom": 0,
+                },
+            },
+        }
+    }
+
+    assert export_project_to_qgis(filename, jgis)
+
+    imported_jgis = import_project_from_qgis(filename)
+
+    assert jgis == imported_jgis

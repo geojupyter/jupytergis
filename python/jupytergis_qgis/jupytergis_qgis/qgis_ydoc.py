@@ -4,7 +4,7 @@ import tempfile
 from typing import Any, Callable
 from functools import partial
 
-from pycrdt import Array, Map, Text
+from pycrdt import Array, Map
 from jupyter_ydoc.ybasedoc import YBaseDoc
 
 
@@ -49,7 +49,17 @@ class YQGISBase(YBaseDoc):
         return "0.1.0"
 
     def get(self):
-        # TODO JGIS TO QGIS CONVERSION
+        virtual_file = {
+            "layers": self._ylayers.to_py(),
+            "sources": self._ysources.to_py(),
+            "layerTree": reversed_tree(self._ylayerTree.to_py()),
+            "options": self._yoptions.to_py()
+        }
+        source = self._save(virtual_file)
+
+        if source is not None and source:
+            self._source = source
+
         return self._source
 
     def set(self, value):
@@ -102,6 +112,18 @@ class YQGISBase(YBaseDoc):
             tmp.write(file_content)
 
         return import_project_from_qgis(tmp.name)
+
+    def _save(self, virtual_file: dict[str, Any]):
+        # Lazy export because qgis may not be installed
+        from .qgis_loader import export_project_to_qgis
+
+        with tempfile.NamedTemporaryFile(
+            delete=False, suffix=self._file_extension
+        ) as tmp:
+            if export_project_to_qgis(tmp.name, virtual_file):
+                with open(tmp.name, "rb") as fd:
+                    source = base64.encodebytes(fd.read()).decode("ascii")
+                return source
 
 
 class YQGS(YQGISBase):
