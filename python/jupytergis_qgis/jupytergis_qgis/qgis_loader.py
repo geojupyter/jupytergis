@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import atexit
 import os
 import sys
 from pathlib import Path
@@ -29,6 +30,11 @@ QgsApplication.setPrefixPath(sys.prefix)
 
 qgs = QgsApplication([], False)
 qgs.initQgis()
+
+
+@atexit.register
+def closeQgis():
+    qgs.exitQgis()
 
 
 def qgis_layer_to_jgis(
