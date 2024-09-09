@@ -184,7 +184,7 @@ def qgis_layer_to_jgis(
         layer_parameters.update(type="fill")
 
     if layer_type is None:
-        print(f"JUPYTERGIS - Enable to load layer type {type(layer)}")
+        print(f"JUPYTERGIS - Enable to load layer type {colorRampType(layer)}")
         return
 
     layer_id = layer.id()
@@ -251,6 +251,7 @@ def import_project_from_qgis(path: str | Path):
         path = str(path)
 
     # TODO Silent stdout when creating the project?
+    qgs = QgsApplication([], False)
     project = QgsProject.instance()
     project.clear()
     project.read(path)
