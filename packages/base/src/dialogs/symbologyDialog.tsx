@@ -79,7 +79,7 @@ const SymbologyDialog = ({
         );
         break;
       default:
-        LayerSymbology = <div>Layer Not Supported</div>;
+        LayerSymbology = <div>Layer Type Not Supported</div>;
     }
     setComponentToRender(LayerSymbology);
   }, [selectedLayer]);

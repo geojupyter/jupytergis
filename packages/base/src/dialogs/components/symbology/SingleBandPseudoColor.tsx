@@ -10,7 +10,7 @@ import StopRow from './StopRow';
 
 export interface IStopRow {
   value: number;
-  color: any;
+  color: number[];
 }
 
 export interface IBandRow {
@@ -83,12 +83,14 @@ const SingleBandPseudoColor = ({
     if (tifDataState) {
       const tifData = JSON.parse(tifDataState);
 
-      tifData['bands'].forEach(bandData => {
-        bandsArr.push({
-          band: bandData.band,
-          colorInterpretation: bandData.colorInterpretation
-        });
-      });
+      tifData['bands'].forEach(
+        (bandData: { band: number; colorInterpretation: string }) => {
+          bandsArr.push({
+            band: bandData.band,
+            colorInterpretation: bandData.colorInterpretation
+          });
+        }
+      );
       setBandRows(bandsArr);
 
       return;
@@ -114,15 +116,16 @@ const SingleBandPseudoColor = ({
 
     const result = await Gdal.open(file);
     const tifDataset = result.datasets[0];
-    const tifDatasetInfo = await Gdal.gdalinfo(tifDataset);
+    const tifDatasetInfo: any = await Gdal.gdalinfo(tifDataset);
 
-    console.log('tifDatasetInfo', tifDatasetInfo);
-    tifDatasetInfo['bands'].forEach(bandData => {
-      bandsArr.push({
-        band: bandData.band,
-        colorInterpretation: bandData.colorInterpretation
-      });
-    });
+    tifDatasetInfo['bands'].forEach(
+      (bandData: { band: number; colorInterpretation: string }) => {
+        bandsArr.push({
+          band: bandData.band,
+          colorInterpretation: bandData.colorInterpretation
+        });
+      }
+    );
 
     state.save(layerId, JSON.stringify(tifDatasetInfo));
     setBandRows(bandsArr);
@@ -171,11 +174,11 @@ const SingleBandPseudoColor = ({
 
   const addStopRow = () => {
     setStopRows([
-      ...stopRows,
       {
         value: 0,
         color: [0, 0, 0]
-      }
+      },
+      ...stopRows
     ]);
   };
 

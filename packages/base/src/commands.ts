@@ -14,7 +14,6 @@ import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandIDs, icons } from './constants';
-import { ZoomColorWidget } from './dialogs/colorExpressionDialog';
 import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbologyDialog';

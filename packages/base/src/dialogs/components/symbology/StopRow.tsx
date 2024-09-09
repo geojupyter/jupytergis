@@ -13,42 +13,54 @@ const StopRow = ({
 }: {
   index: number;
   value: number;
-  outputValue: string;
+  outputValue: number[];
   stopRows: IStopRow[];
   setStopRows: any;
 }) => {
-  const rgbArrToHex = rgbArr => {
+  const rgbArrToHex = (rgbArr: number[]) => {
     const hex = rgbArr
-      .map(val => {
+      .map((val: { toString: (arg0: number) => string }) => {
         return val.toString(16).padStart(2, '0');
-        return hex.length === 1 ? '0' + hex : hex;
       })
       .join('');
 
     return '#' + hex;
   };
 
-  const hexToRgb = hex => {
+  const hexToRgb = (hex: string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    const l = result
-      ? [
-          parseInt(result[1], 16),
-          parseInt(result[2], 16),
-          parseInt(result[3], 16)
-        ]
-      : null;
+
+    if (!result) {
+      console.warn('Unable to parse hex value, defaulting to black');
+      return [parseInt('0', 16), parseInt('0', 16), parseInt('0', 16)];
+    }
+    const l = [
+      parseInt(result[1], 16),
+      parseInt(result[2], 16),
+      parseInt(result[3], 16)
+    ];
+
     return l;
   };
 
-  const handleValueChange = event => {
+  const handleValueChange = (event: { target: { value: string | number } }) => {
     const newRows = [...stopRows];
-    stopRows[index].value = +event.target.value;
+    newRows[index].value = +event.target.value;
+    newRows.sort((a, b) => {
+      if (a.value < b.value) {
+        return -1;
+      }
+      if (a.value > b.value) {
+        return 1;
+      }
+      return 0;
+    });
     setStopRows(newRows);
   };
 
-  const handleColorChange = event => {
+  const handleColorChange = (event: { target: { value: any } }) => {
     const newRows = [...stopRows];
-    stopRows[index].color = hexToRgb(event.target.value);
+    newRows[index].color = hexToRgb(event.target.value);
     setStopRows(newRows);
   };
 
