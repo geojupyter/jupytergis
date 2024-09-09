@@ -221,7 +221,7 @@ def test_qgis_saver():
 
     QgsApplication.setPrefixPath(sys.prefix)
 
-    qgs = QgsApplication([], False)
+    qgs = QgsApplication([], True)
     qgs.initQgis()
     assert export_project_to_qgis(filename, jgis)
     qgs.exitQgis()
