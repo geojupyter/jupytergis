@@ -69,7 +69,7 @@ const StopRow = ({
       <input
         id={`jp-gis-color-value-${index}`}
         type="number"
-        defaultValue={value}
+        value={value}
         onChange={handleValueChange}
         className="jp-mod-styled"
       />

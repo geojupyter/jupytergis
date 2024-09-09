@@ -228,6 +228,7 @@ const SingleBandPseudoColor = ({
         </div>
         {stopRows.map((stop, index) => (
           <StopRow
+            key={`${index}-${stop.color}`}
             index={index}
             value={stop.value}
             outputValue={stop.color}
