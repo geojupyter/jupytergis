@@ -157,6 +157,7 @@ def import_project_from_qgis(path: str | Path):
 
     # TODO Silent stdout when creating the project?
     project = QgsProject.instance()
+    project.clear()
     project.read(path)
     layer_tree_root = project.layerTreeRoot()
     qgis_settings = QgsSettings()

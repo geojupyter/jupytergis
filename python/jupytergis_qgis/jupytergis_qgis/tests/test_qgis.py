@@ -221,11 +221,12 @@ def test_qgis_saver():
 
     QgsApplication.setPrefixPath(sys.prefix)
 
-    qgs = QgsApplication([], True)
+    qgs = QgsApplication([], False)
     qgs.initQgis()
     assert export_project_to_qgis(filename, jgis)
-    qgs.exitQgis()
 
     imported_jgis = import_project_from_qgis(filename)
+
+    qgs.exitQgis()
 
     assert jgis == imported_jgis
