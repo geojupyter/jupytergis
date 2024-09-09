@@ -16,14 +16,13 @@ from qgis.core import (
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsMapLayer,
+    QgsProject,
     QgsRasterLayer,
     QgsRectangle,
     QgsReferencedRectangle,
     QgsSettings,
     QgsVectorTileLayer,
-    QgsProject,
 )
-
 
 QgsApplication.setPrefixPath(sys.prefix)
 
