@@ -163,7 +163,7 @@ def test_qgis_saver():
                     "source": source_ids[3],
                 },
                 "type": "RasterLayer",
-                "visible": True,
+                "visible": False,
             },
         },
         "layerTree": [

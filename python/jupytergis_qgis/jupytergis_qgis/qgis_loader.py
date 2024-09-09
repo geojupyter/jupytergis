@@ -286,7 +286,8 @@ def jgis_layer_group_to_qgis(
             qgis_layer = jgis_layer_to_qgis(item, layers, sources, settings)
             if qgis_layer is not None:
                 project.addMapLayer(qgis_layer, False)
-                qgisGroup.addLayer(qgis_layer)
+                layer = qgisGroup.addLayer(qgis_layer)
+                layer.setItemVisibilityChecked(layers[item].get("visible", True))
         else:
             # Item is a group
             name = item.get("name", str(uuid4()))
