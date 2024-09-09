@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote
 from uuid import uuid4
 
 from qgis.core import (
+    QgsApplication,
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
     QgsLayerTreeGroup,
@@ -21,6 +23,12 @@ from qgis.core import (
 )
 
 from jupytergis_lab.notebook.utils import get_source_layer_names
+
+
+QgsApplication.setPrefixPath(sys.prefix)
+
+qgs = QgsApplication([], False)
+qgs.initQgis()
 
 
 def qgis_layer_to_jgis(

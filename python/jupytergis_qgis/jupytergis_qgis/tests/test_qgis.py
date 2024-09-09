@@ -1,9 +1,7 @@
 import os
-import sys
 from pathlib import Path
 from uuid import uuid4
 from dirty_equals import IsPartialDict, IsStr
-from qgis.core import QgsApplication
 
 from ..qgis_loader import import_project_from_qgis, export_project_to_qgis
 
@@ -219,14 +217,8 @@ def test_qgis_saver():
         }
     }
 
-    QgsApplication.setPrefixPath(sys.prefix)
-
-    qgs = QgsApplication([], False)
-    qgs.initQgis()
     assert export_project_to_qgis(filename, jgis)
 
     imported_jgis = import_project_from_qgis(filename)
-
-    qgs.exitQgis()
 
     assert jgis == imported_jgis
