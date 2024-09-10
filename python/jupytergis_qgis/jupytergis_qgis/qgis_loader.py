@@ -139,7 +139,7 @@ def qgis_layer_to_jgis(
         layer_parameters.update(type="fill")
 
     if layer_type is None:
-        print(f"JUPYTERGIS - Enable to load layer type {colorRampType(layer)}")
+        print(f"JUPYTERGIS - Enable to load layer type {type(layer)}")
         return
 
     layer_id = layer.id()
@@ -206,7 +206,6 @@ def import_project_from_qgis(path: str | Path):
         path = str(path)
 
     # TODO Silent stdout when creating the project?
-    qgs = QgsApplication([], False)
     project = QgsProject.instance()
     project.clear()
     project.read(path)
@@ -289,6 +288,12 @@ def jgis_layer_to_qgis(
         parameters = source.get("parameters", {})
         uri = build_uri(parameters, "VectorTileSource")
         map_layer = QgsVectorTileLayer(uri, layer_name)
+
+    if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
+        parameters = source.get("parameters", {})
+        # TODO: Support sources with multiple URLs
+        url = "/vsicurl/" + parameters["urls"][0]["url"]
+        map_layer = QgsRasterLayer(url, layer_name, "gdal")
 
     if map_layer is None:
         print(f"JUPYTERGIS - Enable to export layer type {layer_type}")
