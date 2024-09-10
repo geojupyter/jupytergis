@@ -5,6 +5,7 @@ import { HillshadeLayerPropertiesForm } from './objectform/hillshadeLayerForm';
 import { LayerPropertiesForm } from './objectform/layerform';
 import { TileSourcePropertiesForm } from './objectform/tilesourceform';
 import { VectorLayerPropertiesForm } from './objectform/vectorlayerform';
+import { WebGlLayerPropertiesForm } from './objectform/webGlLayerForm';
 
 export function getLayerTypeForm(
   layerType: LayerType
@@ -18,6 +19,9 @@ export function getLayerTypeForm(
       break;
     case 'HillshadeLayer':
       LayerForm = HillshadeLayerPropertiesForm;
+      break;
+    case 'WebGlLayer':
+      LayerForm = WebGlLayerPropertiesForm;
       break;
     // ADD MORE FORM TYPES HERE
   }

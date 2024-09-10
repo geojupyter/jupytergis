@@ -35,8 +35,8 @@ import {
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer
 } from 'ol/layer';
-import TileLayer from 'ol/layer/Tile';
 import BaseLayer from 'ol/layer/Base';
+import TileLayer from 'ol/layer/Tile';
 import { fromLonLat, toLonLat } from 'ol/proj';
 import Feature from 'ol/render/Feature';
 import {
@@ -51,9 +51,9 @@ import { Circle, Fill, Stroke, Style } from 'ol/style';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import * as React from 'react';
+import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
-import { isLightTheme } from '../tools';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -794,6 +794,8 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'WebGlLayer': {
+        mapLayer.setOpacity(layer.parameters?.opacity);
+
         (mapLayer as WebGlTileLayer).setStyle({
           color: layer?.parameters?.color
         });
