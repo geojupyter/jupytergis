@@ -12,6 +12,7 @@ export function getLayerTypeForm(
   let LayerForm = LayerPropertiesForm;
 
   switch (layerType) {
+    case 'VectorTileLayer':
     case 'VectorLayer':
       LayerForm = VectorLayerPropertiesForm;
       break;
