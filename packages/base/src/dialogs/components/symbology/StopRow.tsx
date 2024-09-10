@@ -48,6 +48,11 @@ const StopRow = ({
   const handleValueChange = (event: { target: { value: string | number } }) => {
     const newRows = [...stopRows];
     newRows[index].value = +event.target.value;
+    setStopRows(newRows);
+  };
+
+  const handleBlur = () => {
+    const newRows = [...stopRows];
     newRows.sort((a, b) => {
       if (a.value < b.value) {
         return -1;
@@ -73,6 +78,7 @@ const StopRow = ({
         type="number"
         value={value}
         onChange={handleValueChange}
+        onBlur={handleBlur}
         className="jp-mod-styled"
       />
       <input
