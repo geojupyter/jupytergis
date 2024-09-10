@@ -1,5 +1,6 @@
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import initGdalJs from 'gdal3.js';
 import { ExpressionValue } from 'ol/expr/expression';
@@ -16,6 +17,11 @@ export interface IStopRow {
 export interface IBandRow {
   band: number;
   colorInterpretation: string;
+  minimum: number;
+  maximum: number;
+  mean: number;
+  stdDev: number;
+  metadata: IDict;
 }
 
 type interpolationType = 'discrete' | 'linear' | 'exact';
@@ -121,19 +127,27 @@ const SingleBandPseudoColor = ({
   const getBandInfo = async () => {
     const bandsArr: IBandRow[] = [];
 
+    state.remove(layerId);
+
     const tifDataState = (await state.fetch(layerId)) as string;
     if (tifDataState) {
       const tifData = JSON.parse(tifDataState);
 
-      tifData['bands'].forEach(
-        (bandData: { band: number; colorInterpretation: string }) => {
-          bandsArr.push({
-            band: bandData.band,
-            colorInterpretation: bandData.colorInterpretation
-          });
-        }
-      );
+      tifData['bands'].forEach((bandData: IBandRow) => {
+        bandsArr.push({
+          band: bandData.band,
+          colorInterpretation: bandData.colorInterpretation,
+          minimum: bandData.minimum,
+          maximum: bandData.maximum,
+          mean: bandData.mean,
+          stdDev: bandData.stdDev,
+          metadata: bandData.metadata['']
+        });
+      });
       setBandRows(bandsArr);
+
+      console.log('tifData', tifData);
+      console.log('bandsArr', bandsArr);
 
       return;
     }
@@ -157,17 +171,22 @@ const SingleBandPseudoColor = ({
 
     const result = await Gdal.open(file);
     const tifDataset = result.datasets[0];
-    const tifDatasetInfo: any = await Gdal.gdalinfo(tifDataset);
+    const tifDatasetInfo: any = await Gdal.gdalinfo(tifDataset, ['-stats']);
 
-    tifDatasetInfo['bands'].forEach(
-      (bandData: { band: number; colorInterpretation: string }) => {
-        bandsArr.push({
-          band: bandData.band,
-          colorInterpretation: bandData.colorInterpretation
-        });
-      }
-    );
+    tifDatasetInfo['bands'].forEach((bandData: IBandRow) => {
+      bandsArr.push({
+        band: bandData.band,
+        colorInterpretation: bandData.colorInterpretation,
+        minimum: bandData.minimum,
+        maximum: bandData.maximum,
+        mean: bandData.mean,
+        stdDev: bandData.stdDev,
+        metadata: bandData.metadata
+      });
+    });
 
+    console.log('bandsArr', bandsArr);
+    console.log('tifDatasetInfo', tifDatasetInfo);
     state.save(layerId, JSON.stringify(tifDatasetInfo));
     setBandRows(bandsArr);
 

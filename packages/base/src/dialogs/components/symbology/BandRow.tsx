@@ -13,8 +13,9 @@ const BandRow = ({
   setSelectedBand: any;
 }) => {
   return (
-    <div className="jp-gis-symbology-row">
-      <label htmlFor={`band-select-${index}`}>Band:</label>
+    <div className="jp-gis-band-row-container">
+      <div className="jp-gis-symbology-row">
+        <label htmlFor={`band-select-${index}`}>Band:</label>
 
       <div className="jp-select-wrapper">
         <select
