@@ -19,7 +19,6 @@ const BandRow = ({
       <div className="jp-select-wrapper">
         <select
           name={`band-select-${index}`}
-          // className="jp-mod-styled jp-SchemaForm"
           onChange={event => setSelectedBand(event.target.value)}
           className="jp-mod-styled"
         >

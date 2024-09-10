@@ -172,21 +172,6 @@ const SingleBandPseudoColor = ({
     setBandRows(bandsArr);
 
     Gdal.close(tifDataset);
-
-    // ! Keeping this here just in case
-    // // TODO: support multiple urls
-    // const tiff = await fromUrl(
-    //   'https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif'
-    // );
-    // const image = await tiff.getImage();
-
-    // const count = await tiff.getImageCount();
-    // // This returns the number of bands
-    // const sample = image.getSamplesPerPixel()
-
-    // console.log('sample', sample)
-    // console.log('count', count);
-    // console.log('image', image);
   };
 
   const handleOk = () => {
@@ -194,9 +179,9 @@ const SingleBandPseudoColor = ({
       return;
     }
 
+    // TODO: Different viewers will have different types
     let colorExpr: ExpressionValue[] = [];
 
-    // TODO: Different viewers will have different types
     switch (selectedFunctionRef.current) {
       case 'linear': {
         colorExpr = ['interpolate', ['linear']];

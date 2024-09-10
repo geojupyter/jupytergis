@@ -8,7 +8,7 @@ export namespace CommandIDs {
   export const createNew = 'jupytergis:create-new-jGIS-file';
   export const redo = 'jupytergis:redo';
   export const undo = 'jupytergis:undo';
-  export const colorExpr = 'jupytergis:colorExpr';
+  export const symbology = 'jupytergis:symbology';
 
   // Layers and sources creation commands
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
@@ -90,7 +90,7 @@ const iconObject = {
   [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
   [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-certificate' },
   [CommandIDs.newTerrain]: { iconClass: 'fa fa-mountain' },
-  [CommandIDs.colorExpr]: { iconClass: 'fa fa-brush' }
+  [CommandIDs.symbology]: { iconClass: 'fa fa-brush' }
 };
 
 /**

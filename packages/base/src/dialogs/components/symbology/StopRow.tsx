@@ -36,13 +36,13 @@ const StopRow = ({
       console.warn('Unable to parse hex value, defaulting to black');
       return [parseInt('0', 16), parseInt('0', 16), parseInt('0', 16)];
     }
-    const l = [
+    const rgbValues = [
       parseInt(result[1], 16),
       parseInt(result[2], 16),
       parseInt(result[3], 16)
     ];
 
-    return l;
+    return rgbValues;
   };
 
   const handleValueChange = (event: { target: { value: string | number } }) => {

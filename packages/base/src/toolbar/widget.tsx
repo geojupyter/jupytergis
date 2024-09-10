@@ -56,9 +56,9 @@ export class ToolbarWidget extends Toolbar {
       this.addItem('separator1', new Separator());
 
       this.addItem(
-        'colorExpr',
+        'symbology',
         new CommandToolbarButton({
-          id: CommandIDs.colorExpr,
+          id: CommandIDs.symbology,
           label: '',
           commands: options.commands
         })

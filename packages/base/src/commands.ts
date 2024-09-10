@@ -46,7 +46,7 @@ export function addCommands(
   const trans = translator.load('jupyterlab');
   const { commands } = app;
 
-  commands.addCommand(CommandIDs.colorExpr, {
+  commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Color Expression'),
     isEnabled: () => {
       return tracker.currentWidget
@@ -55,7 +55,7 @@ export function addCommands(
     },
     execute: Private.createSymbologyDialog(tracker, state),
 
-    ...icons.get(CommandIDs.colorExpr)
+    ...icons.get(CommandIDs.symbology)
   });
 
   commands.addCommand(CommandIDs.redo, {
