@@ -10,9 +10,7 @@ export class WebGlLayerPropertiesForm extends LayerPropertiesForm {
     schema: IDict,
     uiSchema: IDict
   ) {
+    this.removeFormEntry('color', data, schema, uiSchema);
     super.processSchema(data, schema, uiSchema);
-    uiSchema['color'] = {
-      classNames: 'jGIS-hidden-field'
-    };
   }
 }

@@ -266,9 +266,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
         children: (
           <button ref={submitRef} type="submit" style={{ display: 'none' }} />
         ),
-        extraErrors: this.state.extraErrors,
-        showErrorList: false,
-        noValidate: true
+        extraErrors: this.state.extraErrors
       });
       return (
         <div
