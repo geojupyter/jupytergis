@@ -8,6 +8,7 @@ from typing import Any
 from urllib.parse import unquote
 from uuid import uuid4
 
+from jupytergis_lab.notebook.utils import get_source_layer_names
 from qgis.core import (
     QgsApplication,
     QgsCoordinateReferenceSystem,
@@ -15,16 +16,13 @@ from qgis.core import (
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsMapLayer,
+    QgsProject,
     QgsRasterLayer,
     QgsRectangle,
     QgsReferencedRectangle,
     QgsSettings,
     QgsVectorTileLayer,
-    QgsProject,
 )
-
-from jupytergis_lab.notebook.utils import get_source_layer_names
-
 
 QgsApplication.setPrefixPath(sys.prefix)
 
@@ -41,7 +39,7 @@ def qgis_layer_to_jgis(
     qgis_layer: QgsLayerTreeLayer,
     layers: dict[str, dict[str, Any]],
     sources: dict[str, dict[str, Any]],
-    settings: QgsSettings | None
+    settings: QgsSettings | None,
 ) -> str:
     """Load a QGIS layer into the provided layers/sources dictionary in the JGIS format. Returns the layer id or None if enable to load the layer."""
     layer = qgis_layer.layer()
@@ -57,24 +55,101 @@ def qgis_layer_to_jgis(
     source_parameters = {}
 
     if isinstance(layer, QgsRasterLayer):
-        layer_type = "RasterLayer"
-        source_type = "RasterSource"
-        source_params = layer.source().split("&")
-        url = ""
-        max_zoom = 24
-        min_zoom = 0
-        for param in source_params:
-            if param.startswith("url="):
-                url = unquote(param[4:])
-            elif param.startswith("zmax="):
-                max_zoom = int(param[5:])
-            elif param.startswith("zmin="):
-                min_zoom = int(param[5:])
-        source_parameters.update(
-            url=url,
-            maxZoom=max_zoom,
-            minZoom=min_zoom,
-        )
+        # QGIS treats tif layers as raster layer
+        if layer.source().endswith(".tif"):
+            layer_type = "WebGlLayer"
+            source_type = "GeoTiffSource"
+
+            # Remove "/vsicurl/" from source
+            urls = [{"url": layer.source()[9:]}]
+
+            # Need to build layer color
+            renderer = layer.renderer()
+            shader = renderer.shader()
+            shaderFunc = shader.rasterShaderFunction()
+            colorList = shaderFunc.colorRampItemList()
+            band = renderer.band()
+
+            colorRampTypeMap = {0: "interpolate", 1: "discrete", 2: "exact"}
+            colorRampType = colorRampTypeMap[shaderFunc.colorRampType()]
+
+            # TODO: Only supports linear interpolation for now
+
+            if colorRampType == "interpolate":
+                color = [
+                    "interpolate",
+                    ["linear"],
+                    ["band", float(band)],
+                ]
+                for node in colorList:
+                    color.append(node.value)
+                    color.append(
+                        [node.color.red(), node.color.green(), node.color.blue()]
+                    )
+
+            if colorRampType == "discrete":
+                color = [
+                    "case",
+                ]
+                # Last entry is used for the fallback value in jgis
+                for node in colorList[:-1]:
+                    color.append(["<=", ["band", float(band)], node.value])
+                    color.append(
+                        [node.color.red(), node.color.green(), node.color.blue()]
+                    )
+                lastElement = colorList[-1]
+                color.append(
+                    [
+                        lastElement.color.red(),
+                        lastElement.color.green(),
+                        lastElement.color.blue(),
+                    ]
+                )
+
+            if colorRampType == "exact":
+                color = [
+                    "case",
+                ]
+                # Last entry is used for the fallback value in jgis
+                for node in colorList[:-1]:
+                    color.append(["==", ["band", float(band)], node.value])
+                    color.append(
+                        [node.color.red(), node.color.green(), node.color.blue()]
+                    )
+                lastElement = colorList[-1]
+                color.append(
+                    [
+                        lastElement.color.red(),
+                        lastElement.color.green(),
+                        lastElement.color.blue(),
+                    ]
+                )
+
+            # TODO: Could probably look at RGB values to see what normalize should be
+            source_parameters.update(urls=urls, normalize=False, wrapX=True)
+            layer_parameters.update(color=color)
+
+        else:
+            layer_type = "RasterLayer"
+            source_type = "RasterSource"
+
+            source_params = layer.source().split("&")
+            url = ""
+            max_zoom = 24
+            min_zoom = 0
+
+            for param in source_params:
+                if param.startswith("url="):
+                    url = unquote(param[4:])
+                elif param.startswith("zmax="):
+                    max_zoom = int(param[5:])
+                elif param.startswith("zmin="):
+                    min_zoom = int(param[5:])
+            source_parameters.update(
+                url=url,
+                maxZoom=max_zoom,
+                minZoom=min_zoom,
+            )
 
     if isinstance(layer, QgsVectorTileLayer):
         layer_type = "VectorTileLayer"
@@ -113,7 +188,9 @@ def qgis_layer_to_jgis(
     if settings:
         layerSourceMap = settings.value("layerSourceMap", {})
         source_id = layerSourceMap.get(layer_id, {}).get("source_id", str(uuid4()))
-        source_name = layerSourceMap.get(layer_id, {}).get("source_name", f"{layer_name} Source")
+        source_name = layerSourceMap.get(layer_id, {}).get(
+            "source_name", f"{layer_name} Source"
+        )
     else:
         source_id = str(uuid4())
         source_name = f"{layer_name} Source"
@@ -140,7 +217,7 @@ def qgis_layer_tree_to_jgis(
     layer_tree: list | None = None,
     layers: dict[str, dict[str, Any]] | None = None,
     sources: dict[str, dict[str, Any]] | None = None,
-    settings: QgsSettings | None = None
+    settings: QgsSettings | None = None,
 ) -> list[dict[str, Any]] | None:
     if layer_tree is None:
         layer_tree = []
@@ -189,8 +266,8 @@ def import_project_from_qgis(path: str | Path):
                 map_extent.xMinimum(),
                 map_extent.yMinimum(),
                 map_extent.xMaximum(),
-                map_extent.yMaximum()
-            ]
+                map_extent.yMaximum(),
+            ],
         },
         **jgis_layer_tree,
     }
@@ -200,10 +277,9 @@ def jgis_layer_to_qgis(
     layer_id: str,
     layers: dict[str, dict[str, Any]],
     sources: dict[str, dict[str, Any]],
-    settings: QgsSettings
+    settings: QgsSettings,
 ) -> QgsMapLayer | None:
-
-    def build_uri(parameters: dict[str, str], source_type: str) -> str | None :
+    def build_uri(parameters: dict[str, str], source_type: str) -> str | None:
         layer_config = dict()
         zmax = parameters.get("maxZoom", None)
         zmin = parameters.get("minZoom", 0)
@@ -254,6 +330,12 @@ def jgis_layer_to_qgis(
         uri = build_uri(parameters, "VectorTileSource")
         map_layer = QgsVectorTileLayer(uri, layer_name)
 
+    if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
+        parameters = source.get("parameters", {})
+        # TODO: Support sources with multiple URLs
+        url = "/vsicurl/" + parameters["urls"][0]["url"]
+        map_layer = QgsRasterLayer(url, layer_name, "gdal")
+
     if map_layer is None:
         print(f"JUPYTERGIS - Enable to export layer type {layer_type}")
         return
@@ -264,7 +346,7 @@ def jgis_layer_to_qgis(
     layerSourceMap = settings.value("layerSourceMap", {})
     layerSourceMap[layer_id] = {
         "source_id": source_id,
-        "source_name": source.get("name", f"{layer_name} Source")
+        "source_name": source.get("name", f"{layer_name} Source"),
     }
     settings.setValue("layerSourceMap", layerSourceMap)
 
@@ -277,9 +359,8 @@ def jgis_layer_group_to_qgis(
     sources: dict[str, dict[str, Any]],
     qgisGroup: QgsLayerTreeGroup,
     project: QgsProject,
-    settings: QgsSettings
+    settings: QgsSettings,
 ) -> None:
-
     for item in layer_group:
         if isinstance(item, str):
             # Item is a layer id
@@ -293,7 +374,9 @@ def jgis_layer_group_to_qgis(
             name = item.get("name", str(uuid4()))
             qgisGroup.addGroup(name)
             newGroup = qgisGroup.findGroup(name)
-            jgis_layer_group_to_qgis(item.get("layers", []), layers, sources, newGroup, project, settings)
+            jgis_layer_group_to_qgis(
+                item.get("layers", []), layers, sources, newGroup, project, settings
+            )
 
 
 def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> bool:
@@ -325,7 +408,7 @@ def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> bo
         virtual_file["sources"],
         root,
         project,
-        qgis_settings
+        qgis_settings,
     )
 
     view_settings = project.viewSettings()
@@ -338,8 +421,7 @@ def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> bo
             extent = virtual_file["options"]["extent"]
             view_settings.setDefaultViewExtent(
                 QgsReferencedRectangle(
-                    QgsRectangle(*extent),
-                    QgsCoordinateReferenceSystem(src_csr_id)
+                    QgsRectangle(*extent), QgsCoordinateReferenceSystem(src_csr_id)
                 )
             )
         else:

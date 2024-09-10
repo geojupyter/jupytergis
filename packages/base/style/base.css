@@ -8,7 +8,7 @@
 @import url('./leftPanel.css');
 @import url('./terrainDialog.css');
 @import url('./filterPanel.css');
-@import url('./colorExpression.css');
+@import url('./symbologyDialog.css');
 @import url('ol/ol.css');
 
 .jGIS-Toolbar-GroupName {

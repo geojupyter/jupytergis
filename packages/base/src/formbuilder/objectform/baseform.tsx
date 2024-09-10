@@ -267,7 +267,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
           <button ref={submitRef} type="submit" style={{ display: 'none' }} />
         ),
         extraErrors: this.state.extraErrors
-        // widgets: widgets
       });
       return (
         <div

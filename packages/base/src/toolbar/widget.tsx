@@ -56,18 +56,18 @@ export class ToolbarWidget extends Toolbar {
       this.addItem('separator1', new Separator());
 
       this.addItem(
-        'openLayerBrowser',
+        'symbology',
         new CommandToolbarButton({
-          id: CommandIDs.openLayerBrowser,
+          id: CommandIDs.symbology,
           label: '',
           commands: options.commands
         })
       );
 
       this.addItem(
-        'newTerrain',
+        'openLayerBrowser',
         new CommandToolbarButton({
-          id: CommandIDs.newTerrain,
+          id: CommandIDs.openLayerBrowser,
           label: '',
           commands: options.commands
         })

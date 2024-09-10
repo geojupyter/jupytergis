@@ -931,6 +931,7 @@ __metadata:
     "@types/uuid": ^10.0.0
     ajv: ^8.14.0
     d3-color: ^3.1.0
+    gdal3.js: ^2.8.1
     geojson-schema: ^1.0.5
     ol-pmtiles: ^0.5.0
     pbf: ^4.0.1
@@ -5184,6 +5185,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"detect-node@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "detect-node@npm:2.1.0"
+  checksum: 832184ec458353e41533ac9c622f16c19f7c02d8b10c303dfd3a756f56be93e903616c0bb2d4226183c9351c15fc0b3dba41a17a2308262afabcfa3776e6ae6e
+  languageName: node
+  linkType: hard
+
 "diff-sequences@npm:^29.6.3":
   version: 29.6.3
   resolution: "diff-sequences@npm:29.6.3"
@@ -6213,6 +6221,16 @@ __metadata:
     strip-ansi: ^6.0.1
     wide-align: ^1.1.5
   checksum: 788b6bfe52f1dd8e263cda800c26ac0ca2ff6de0b6eee2fe0d9e3abf15e149b651bd27bf5226be10e6e3edb5c4e5d5985a5a1a98137e7a892f75eff76467ad2d
+  languageName: node
+  linkType: hard
+
+"gdal3.js@npm:^2.8.1":
+  version: 2.8.1
+  resolution: "gdal3.js@npm:2.8.1"
+  dependencies:
+    detect-node: ^2.1.0
+    xml-js: ^1.6.11
+  checksum: 6d60535652d18689158baa400a5a0505acaa61d5ab4fee5313944bf0f507e29dcb2e42eb966e4b8dba073f8702e6c9e555603a755533f71406d1d236bd6ab976
   languageName: node
   linkType: hard
 
@@ -10414,6 +10432,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sax@npm:^1.2.4":
+  version: 1.4.1
+  resolution: "sax@npm:1.4.1"
+  checksum: 3ad64df16b743f0f2eb7c38ced9692a6d924f1cd07bbe45c39576c2cf50de8290d9d04e7b2228f924c7d05fecc4ec5cf651423278e0c7b63d260c387ef3af84a
+  languageName: node
+  linkType: hard
+
 "scheduler@npm:^0.20.2":
   version: 0.20.2
   resolution: "scheduler@npm:0.20.2"
@@ -12251,6 +12276,17 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 147ef9eab0251364e1d2c55338ad0efb15e6913923ccbfdf20f7a8a6cb8f88432bcd7f4d8f66977135bfad35575644f9983201c1a361019594a4e53977bf6d4e
+  languageName: node
+  linkType: hard
+
+"xml-js@npm:^1.6.11":
+  version: 1.6.11
+  resolution: "xml-js@npm:1.6.11"
+  dependencies:
+    sax: ^1.2.4
+  bin:
+    xml-js: ./bin/cli.js
+  checksum: 24a55479919413687105fc2d8ab05e613ebedb1c1bc12258a108e07cff5ef793779297db854800a4edf0281303ebd1f177bc4a588442f5344e62b3dddda26c2b
   languageName: node
   linkType: hard
 
