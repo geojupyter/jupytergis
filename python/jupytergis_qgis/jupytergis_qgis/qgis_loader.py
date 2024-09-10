@@ -74,18 +74,59 @@ def qgis_layer_to_jgis(
             colorRampType = colorRampTypeMap[shaderFunc.colorRampType()]
 
             # TODO: Only supports linear interpolation for now
-            color = [
-                colorRampType,
-                ["linear"],
-                ["band", float(band)],
-            ]
 
-            for node in colorList:
-                color.append(node.value)
-                color.append([node.color.red(), node.color.green(), node.color.blue()])
+            if colorRampType == "interpolate":
+                color = [
+                    "interpolate",
+                    ["linear"],
+                    ["band", float(band)],
+                ]
+                for node in colorList:
+                    color.append(node.value)
+                    color.append(
+                        [node.color.red(), node.color.green(), node.color.blue()]
+                    )
+
+            if colorRampType == "discrete":
+                color = [
+                    "case",
+                ]
+                # Last entry is used for the fallback value in jgis
+                for node in colorList[:-1]:
+                    color.append(["<=", ["band", float(band)], node.value])
+                    color.append(
+                        [node.color.red(), node.color.green(), node.color.blue()]
+                    )
+                lastElement = colorList[-1]
+                color.append(
+                    [
+                        lastElement.color.red(),
+                        lastElement.color.green(),
+                        lastElement.color.blue(),
+                    ]
+                )
+
+            if colorRampType == "exact":
+                color = [
+                    "case",
+                ]
+                # Last entry is used for the fallback value in jgis
+                for node in colorList[:-1]:
+                    color.append(["==", ["band", float(band)], node.value])
+                    color.append(
+                        [node.color.red(), node.color.green(), node.color.blue()]
+                    )
+                lastElement = colorList[-1]
+                color.append(
+                    [
+                        lastElement.color.red(),
+                        lastElement.color.green(),
+                        lastElement.color.blue(),
+                    ]
+                )
 
             # TODO: Could probably look at RGB values to see what normalize should be
-            source_parameters.update(urls=urls, normalize=False)
+            source_parameters.update(urls=urls, normalize=False, wrapX=True)
             layer_parameters.update(color=color)
 
         else:
