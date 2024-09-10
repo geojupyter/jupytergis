@@ -9,13 +9,15 @@ const StopRow = ({
   value,
   outputValue,
   stopRows,
-  setStopRows
+  setStopRows,
+  deleteRow
 }: {
   index: number;
   value: number;
   outputValue: number[];
   stopRows: IStopRow[];
   setStopRows: any;
+  deleteRow: () => void;
 }) => {
   const rgbArrToHex = (rgbArr: number[]) => {
     const hex = rgbArr
@@ -84,7 +86,7 @@ const StopRow = ({
         id={`jp-gis-remove-color-${index}`}
         className="jp-Button jp-gis-filter-icon"
       >
-        <FontAwesomeIcon icon={faTrash} />
+        <FontAwesomeIcon icon={faTrash} onClick={deleteRow} />
       </Button>
     </div>
   );

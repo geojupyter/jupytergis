@@ -182,6 +182,13 @@ const SingleBandPseudoColor = ({
     ]);
   };
 
+  const deleteStopRow = (index: number) => {
+    const newFilters = [...stopRows];
+    newFilters.splice(index, 1);
+
+    setStopRows(newFilters);
+  };
+
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
@@ -234,6 +241,7 @@ const SingleBandPseudoColor = ({
             outputValue={stop.color}
             stopRows={stopRows}
             setStopRows={setStopRows}
+            deleteRow={() => deleteStopRow(index)}
           />
         ))}
       </div>
