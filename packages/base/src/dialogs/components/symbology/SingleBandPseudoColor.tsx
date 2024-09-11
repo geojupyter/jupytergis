@@ -17,10 +17,12 @@ export interface IStopRow {
 export interface IBandRow {
   band: number;
   colorInterpretation: string;
-  minimum: number;
-  maximum: number;
-  mean: number;
-  stdDev: number;
+  stats: {
+    minimum: number;
+    maximum: number;
+    mean: number;
+    stdDev: number;
+  };
   metadata: IDict;
 }
 
@@ -127,23 +129,35 @@ const SingleBandPseudoColor = ({
   const getBandInfo = async () => {
     const bandsArr: IBandRow[] = [];
 
-    state.remove(layerId);
+    // state.remove(layerId);
 
     const tifDataState = (await state.fetch(layerId)) as string;
     if (tifDataState) {
       const tifData = JSON.parse(tifDataState);
 
-      tifData['bands'].forEach((bandData: IBandRow) => {
-        bandsArr.push({
-          band: bandData.band,
-          colorInterpretation: bandData.colorInterpretation,
-          minimum: bandData.minimum,
-          maximum: bandData.maximum,
-          mean: bandData.mean,
-          stdDev: bandData.stdDev,
-          metadata: bandData.metadata['']
-        });
-      });
+      tifData['bands'].forEach(
+        (bandData: {
+          band: any;
+          colorInterpretation: any;
+          minimum: any;
+          maximum: any;
+          mean: any;
+          stdDev: any;
+          metadata: any;
+        }) => {
+          bandsArr.push({
+            band: bandData.band,
+            colorInterpretation: bandData.colorInterpretation,
+            stats: {
+              minimum: bandData.minimum,
+              maximum: bandData.maximum,
+              mean: bandData.mean,
+              stdDev: bandData.stdDev
+            },
+            metadata: bandData.metadata
+          });
+        }
+      );
       setBandRows(bandsArr);
 
       console.log('tifData', tifData);
@@ -173,17 +187,29 @@ const SingleBandPseudoColor = ({
     const tifDataset = result.datasets[0];
     const tifDatasetInfo: any = await Gdal.gdalinfo(tifDataset, ['-stats']);
 
-    tifDatasetInfo['bands'].forEach((bandData: IBandRow) => {
-      bandsArr.push({
-        band: bandData.band,
-        colorInterpretation: bandData.colorInterpretation,
-        minimum: bandData.minimum,
-        maximum: bandData.maximum,
-        mean: bandData.mean,
-        stdDev: bandData.stdDev,
-        metadata: bandData.metadata
-      });
-    });
+    tifDatasetInfo['bands'].forEach(
+      (bandData: {
+        band: any;
+        colorInterpretation: any;
+        minimum: any;
+        maximum: any;
+        mean: any;
+        stdDev: any;
+        metadata: any;
+      }) => {
+        bandsArr.push({
+          band: bandData.band,
+          colorInterpretation: bandData.colorInterpretation,
+          stats: {
+            minimum: bandData.minimum,
+            maximum: bandData.maximum,
+            mean: bandData.mean,
+            stdDev: bandData.stdDev
+          },
+          metadata: bandData.metadata
+        });
+      }
+    );
 
     console.log('bandsArr', bandsArr);
     console.log('tifDatasetInfo', tifDatasetInfo);
@@ -274,7 +300,8 @@ const SingleBandPseudoColor = ({
         ) : (
           <BandRow
             index={0}
-            bandRow={bandRows[0]}
+            // Band numbers are 1 indexed
+            bandRow={bandRows[selectedBand - 1]}
             bandRows={bandRows}
             setSelectedBand={setSelectedBand}
           />
