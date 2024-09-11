@@ -166,6 +166,10 @@ jobs:
         with:
           name: extension-artifacts
 
+      - name: Set QT env var
+        shell: bash -l {0}
+        run: echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
+
       - name: Install the extension
         shell: bash -l {0}
         run: |
