@@ -1,17 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { IBandRow } from './SingleBandPseudoColor';
 
 const BandRow = ({
   index,
   bandRow,
   bandRows,
-  setSelectedBand
+  setSelectedBand,
+  setBandRows
+  // onChange
 }: {
   index: number;
   bandRow: IBandRow;
   bandRows: IBandRow[];
   setSelectedBand: any;
+  setBandRows: any;
+  // onChange: any;
 }) => {
+  const [minValue, setMinValue] = useState(bandRow.stats.minimum);
+  const [maxValue, setMaxValue] = useState(bandRow.stats.maximum);
+
+  const handleMinValueChange = (event: {
+    target: { value: string | number };
+  }) => {
+    setMinValue(+event.target.value);
+  };
+
+  const handleMaxValueChange = (event: {
+    target: { value: string | number };
+  }) => {
+    setMaxValue(+event.target.value);
+  };
+
+  const handleBlur = (event: { target: { value: string | number } }) => {
+    const newBandRows = [...bandRows];
+    newBandRows[index].stats.maximum = +event.target.value;
+    setBandRows(newBandRows);
+  };
+
   return (
     <>
       <div className="jp-gis-symbology-row">
@@ -48,9 +73,12 @@ const BandRow = ({
           </label>
           <input
             type="number"
-            defaultValue={bandRow.stats.minimum}
             className="jp-mod-styled"
             style={{ marginRight: 15 }}
+            // defaultValue={bandRow.stats.minimum}
+            value={minValue}
+            onChange={handleMinValueChange}
+            onBlur={handleBlur}
           />
         </div>
         <div
@@ -66,8 +94,11 @@ const BandRow = ({
           </label>
           <input
             type="number"
-            defaultValue={bandRow.stats.maximum}
             className="jp-mod-styled"
+            // defaultValue={bandRow.stats.maximum}
+            value={maxValue}
+            onChange={handleMaxValueChange}
+            onBlur={handleBlur}
           />
         </div>
       </div>

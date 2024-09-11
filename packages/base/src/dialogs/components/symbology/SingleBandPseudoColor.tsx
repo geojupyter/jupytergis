@@ -26,7 +26,17 @@ export interface IBandRow {
   metadata: IDict;
 }
 
-type interpolationType = 'discrete' | 'linear' | 'exact';
+type InterpolationType = 'discrete' | 'linear' | 'exact';
+
+type TifBandData = {
+  band: number;
+  colorInterpretation: string;
+  minimum: number;
+  maximum: number;
+  mean: number;
+  stdDev: number;
+  metadata: any;
+};
 
 const SingleBandPseudoColor = ({
   context,
@@ -37,8 +47,8 @@ const SingleBandPseudoColor = ({
 }: ISymbologyDialogProps) => {
   const functions = ['discrete', 'linear', 'exact'];
   const rowsRef = useRef<IStopRow[]>();
-  const selectedFunctionRef = useRef<interpolationType>();
-  const [selectedFunction, setSelectedFunction] = useState<interpolationType>();
+  const selectedFunctionRef = useRef<InterpolationType>();
+  const [selectedFunction, setSelectedFunction] = useState<InterpolationType>();
   const [selectedBand, setSelectedBand] = useState(1);
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
@@ -131,92 +141,52 @@ const SingleBandPseudoColor = ({
 
     // state.remove(layerId);
 
-    const tifDataState = (await state.fetch(layerId)) as string;
-    if (tifDataState) {
-      const tifData = JSON.parse(tifDataState);
-
-      tifData['bands'].forEach(
-        (bandData: {
-          band: any;
-          colorInterpretation: any;
-          minimum: any;
-          maximum: any;
-          mean: any;
-          stdDev: any;
-          metadata: any;
-        }) => {
-          bandsArr.push({
-            band: bandData.band,
-            colorInterpretation: bandData.colorInterpretation,
-            stats: {
-              minimum: bandData.minimum,
-              maximum: bandData.maximum,
-              mean: bandData.mean,
-              stdDev: bandData.stdDev
-            },
-            metadata: bandData.metadata
-          });
-        }
-      );
-      setBandRows(bandsArr);
-
-      console.log('tifData', tifData);
-      console.log('bandsArr', bandsArr);
-
-      return;
-    }
-
     const source = context.model.getSource(layer?.parameters?.source);
 
-    const sourceUrl = source?.parameters?.urls[0].url;
+    const sourceInfo = source?.parameters?.urls[0];
 
-    if (!sourceUrl) {
+    if (!sourceInfo.url) {
       return;
     }
 
-    //! This takes so long, maybe do when adding source instead
-    const Gdal = await initGdalJs({
-      path: 'lab/extensions/@jupytergis/jupytergis-core/static',
-      useWorker: false
+    let tifData: any;
+
+    const tifDataState = (await state.fetch(layerId)) as string;
+    if (tifDataState) {
+      tifData = JSON.parse(tifDataState);
+    } else {
+      //! This takes so long, maybe do when adding source instead
+      const Gdal = await initGdalJs({
+        path: 'lab/extensions/@jupytergis/jupytergis-core/static',
+        useWorker: false
+      });
+
+      const fileData = await fetch(sourceInfo.url);
+      const file = new File([await fileData.blob()], 'loaded.tif');
+
+      const result = await Gdal.open(file);
+      const tifDataset = result.datasets[0];
+      tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
+      Gdal.close(tifDataset);
+    }
+
+    tifData['bands'].forEach((bandData: TifBandData) => {
+      bandsArr.push({
+        band: bandData.band,
+        colorInterpretation: bandData.colorInterpretation,
+        stats: {
+          minimum: sourceInfo.min ?? bandData.minimum,
+          maximum: sourceInfo.max ?? bandData.maximum,
+          mean: bandData.mean,
+          stdDev: bandData.stdDev
+        },
+        metadata: bandData.metadata
+      });
     });
-
-    const fileData = await fetch(sourceUrl);
-    const file = new File([await fileData.blob()], 'loaded.tif');
-
-    const result = await Gdal.open(file);
-    const tifDataset = result.datasets[0];
-    const tifDatasetInfo: any = await Gdal.gdalinfo(tifDataset, ['-stats']);
-
-    tifDatasetInfo['bands'].forEach(
-      (bandData: {
-        band: any;
-        colorInterpretation: any;
-        minimum: any;
-        maximum: any;
-        mean: any;
-        stdDev: any;
-        metadata: any;
-      }) => {
-        bandsArr.push({
-          band: bandData.band,
-          colorInterpretation: bandData.colorInterpretation,
-          stats: {
-            minimum: bandData.minimum,
-            maximum: bandData.maximum,
-            mean: bandData.mean,
-            stdDev: bandData.stdDev
-          },
-          metadata: bandData.metadata
-        });
-      }
-    );
-
-    console.log('bandsArr', bandsArr);
-    console.log('tifDatasetInfo', tifDatasetInfo);
-    state.save(layerId, JSON.stringify(tifDatasetInfo));
     setBandRows(bandsArr);
 
-    Gdal.close(tifDataset);
+    console.log('tifData', tifData);
+    console.log('bandsArr', bandsArr);
   };
 
   const handleOk = () => {
@@ -292,6 +262,32 @@ const SingleBandPseudoColor = ({
     setStopRows(newFilters);
   };
 
+  useEffect(() => {
+    const bandRow = bandRows[selectedBand - 1];
+    if (!bandRow) {
+      return;
+    }
+    console.log('bandRow', bandRow);
+    const sourceId = layer.parameters?.source;
+    const source = context.model.getSource(sourceId);
+
+    if (!source || !source.parameters) {
+      return;
+    }
+
+    const sourceInfo = source.parameters.urls[0];
+    sourceInfo.min = bandRow.stats.minimum;
+    sourceInfo.max = bandRow.stats.maximum;
+
+    source.parameters.urls[0] = sourceInfo;
+
+    console.log('source', source);
+
+    context.model.sharedModel.updateSource(sourceId, source);
+  }, [bandRows]);
+  // const updateMinMaxValues = () => {
+  // };
+
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
@@ -299,11 +295,13 @@ const SingleBandPseudoColor = ({
           <FontAwesomeIcon icon={faSpinner} />
         ) : (
           <BandRow
-            index={0}
             // Band numbers are 1 indexed
+            index={selectedBand - 1}
             bandRow={bandRows[selectedBand - 1]}
             bandRows={bandRows}
             setSelectedBand={setSelectedBand}
+            setBandRows={setBandRows}
+            // onChange={updateMinMaxValues}
           />
         )}
       </div>
@@ -317,7 +315,7 @@ const SingleBandPseudoColor = ({
             value={selectedFunction}
             style={{ textTransform: 'capitalize' }}
             onChange={event => {
-              setSelectedFunction(event.target.value as interpolationType);
+              setSelectedFunction(event.target.value as InterpolationType);
             }}
           >
             {functions.map((func, funcIndex) => (
