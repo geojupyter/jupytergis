@@ -74,6 +74,11 @@
   margin-right: 4px;
 }
 
+.jp-gis-layer.jp-mod-selected button:hover .jp-icon-selectable,
+.jp-gis-source.jp-mod-selected button:hover .jp-icon-selectable {
+  fill: var(--jp-ui-font-color1);
+}
+
 .jp-gis-layerIcon,
 .jp-gis-sourceIcon {
   display: flex;
