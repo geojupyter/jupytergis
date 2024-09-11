@@ -24,6 +24,8 @@ from qgis.core import (
     QgsVectorTileLayer,
 )
 
+os.environ["QT_QPA_PLATFORM"] = "offscreen"
+
 QgsApplication.setPrefixPath(sys.prefix)
 
 qgs = QgsApplication([], False)
