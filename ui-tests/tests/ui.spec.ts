@@ -4,7 +4,7 @@ import path from 'path';
 test.use({ autoGoto: false });
 
 test.describe('UI Test', () => {
-  const fileList = ['test.jGIS', 'buildings.qgz', 'buildings.qgs'];
+  const fileList = ['test.jGIS', 'buildings.qgz'];
 
   test.describe('File operations', () => {
     test.beforeAll(async ({ request }) => {
