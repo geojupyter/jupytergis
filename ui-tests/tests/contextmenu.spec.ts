@@ -44,7 +44,8 @@ test.describe('context menu', () => {
     await page.getByRole('menu').hover();
 
     const submenu = page.locator('div').filter({
-      hasText: 'Move to Rootlevel 1 grouplevel 2 groupMove Selected Layers to New Group'
+      hasText:
+        'Move to Rootlevel 1 grouplevel 2 groupMove Selected Layers to New Group'
     });
 
     const firstItem = page.getByText('Move to Root');
