@@ -47,7 +47,7 @@ export function addCommands(
   const { commands } = app;
 
   commands.addCommand(CommandIDs.symbology, {
-    label: trans.__('Color Expression'),
+    label: trans.__('Edit Symbology'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
@@ -663,7 +663,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.moveLayerToNewGroup, {
-    label: trans.__('Move Layers to New Group'),
+    label: trans.__('Move Selected Layers to New Group'),
     execute: async () => {
       const model = tracker.currentWidget?.context.model;
       const selectedLayers = model?.localState?.selected?.value;

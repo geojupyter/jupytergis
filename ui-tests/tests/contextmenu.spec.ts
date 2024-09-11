@@ -44,7 +44,7 @@ test.describe('context menu', () => {
     await page.getByRole('menu').hover();
 
     const submenu = page.locator('div').filter({
-      hasText: 'Move to Rootlevel 1 grouplevel 2 groupMove Layers to New Group'
+      hasText: 'Move to Rootlevel 1 grouplevel 2 groupMove Selected Layers to New Group'
     });
 
     const firstItem = page.getByText('Move to Root');
@@ -59,10 +59,10 @@ test.describe('context menu', () => {
 
     layer.click({ button: 'right' });
 
-    await page.getByText('Move Layers to Group').hover();
+    await page.getByText('Move Selected Layers to Group').hover();
     await page
       .locator('#jp-gis-contextmenu-movelayer')
-      .getByText('Move Layers to New Group')
+      .getByText('Move Selected Layers to New Group')
       .click();
     await page
       .getByLabel('Layers', { exact: true })
@@ -199,7 +199,7 @@ test.describe('context menu', () => {
       .getByText('Open Topo Map')
       .click({ button: 'right' });
 
-    await page.getByText('Move Layers to Group').hover();
+    await page.getByText('Move Selected Layers to Group').hover();
 
     await page.getByText('level 2 group').click();
     await page.getByText('level 1 group').click();
