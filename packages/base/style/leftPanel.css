@@ -43,18 +43,26 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  color: var(--jp-ui-font-color1);
 }
 
 .jp-gis-layer.jp-mod-selected,
 .jp-gis-source.jp-mod-selected,
 .jp-gis-layerGroupHeader.jp-mod-selected {
-  background: var(--jp-editor-selected-background);
+  color: var(--jp-ui-inverse-font-color1);
+  background: var(--jp-brand-color1);
 }
 
-.jp-gis-layer:has(.jp-gis-layerTitle:hover),
-.jp-gis-source:has(.jp-gis-sourceTitle:hover) {
+.jp-gis-layer:hover:not(.jp-mod-selected),
+.jp-gis-source:hover:not(.jp-mod-selected) {
   cursor: pointer;
-  background: var(--jp-brand-color2);
+  background: var(--jp-layout-color2);
+}
+
+.jp-gis-layer.jp-mod-selected .jp-icon-selectable,
+.jp-gis-source.jp-mod-selected .jp-icon-selectable,
+.jp-gis-layerGroupHeader.jp-mod-selected .jp-icon-selectable {
+  fill: var(--jp-ui-inverse-font-color1);
 }
 
 .jp-gis-layer button,

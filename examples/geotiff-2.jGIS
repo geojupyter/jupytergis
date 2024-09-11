@@ -70,11 +70,11 @@
   },
   "options": {
     "bearing": 0.0,
-    "latitude": 0.0,
-    "longitude": -60.58304633965749,
+    "latitude": 1.4772178422003748,
+    "longitude": -74.82407427644603,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 2.3083390301394076
+    "zoom": 5.918863237274595
   },
   "sources": {
     "8b1d4258-5d46-48da-b466-496d376b593d": {
