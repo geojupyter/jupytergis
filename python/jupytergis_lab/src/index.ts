@@ -123,7 +123,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.commands.addKeyBinding({
       command: CommandIDs.removeSource,
       keys: ['Delete'],
-      selector: '.jp-gis-source.jp-gis-sourceUnused .jp-gis-sourceText'
+      selector: '.jp-gis-source.jp-gis-sourceUnused'
     });
 
     app.contextMenu.addItem({
@@ -135,43 +135,56 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.commands.addKeyBinding({
       command: CommandIDs.renameSource,
       keys: ['F2'],
-      selector: '.jp-gis-sourceTitle .jp-gis-sourceText'
+      selector: '.jp-gis-sourceItem'
     });
 
     // LAYERS and LAYER GROUPS context menu
     app.contextMenu.addItem({
-      command: CommandIDs.removeLayer,
-      selector: '.jp-gis-layerTitle',
+      command: CommandIDs.symbology,
+      selector: '.jp-gis-layerItem',
       rank: 1
+    });
+
+    // Separator
+    app.contextMenu.addItem({
+      type: 'separator',
+      selector: '.jp-gis-layerPanel',
+      rank: 1
+    });
+
+    app.contextMenu.addItem({
+      command: CommandIDs.removeLayer,
+      selector: '.jp-gis-layerItem',
+      rank: 2
     });
 
     app.commands.addKeyBinding({
       command: CommandIDs.removeLayer,
       keys: ['Delete'],
-      selector: '.jp-gis-layerTitle .jp-gis-layerText'
+      selector: '.jp-gis-layerItem'
     });
 
     app.contextMenu.addItem({
       command: CommandIDs.renameLayer,
-      selector: '.jp-gis-layerTitle',
-      rank: 1
+      selector: '.jp-gis-layerItem',
+      rank: 2
     });
 
     app.commands.addKeyBinding({
       command: CommandIDs.renameLayer,
       keys: ['F2'],
-      selector: '.jp-gis-layerTitle .jp-gis-layerText'
+      selector: '.jp-gis-layerItem'
     });
 
     const moveLayerSubmenu = new Menu({ commands: app.commands });
     moveLayerSubmenu.title.label = translator
       .load('jupyterlab')
-      .__('Move Layers to Group');
+      .__('Move Selected Layers to Group');
     moveLayerSubmenu.id = 'jp-gis-contextmenu-movelayer';
 
     app.contextMenu.addItem({
       type: 'submenu',
-      selector: '.jp-gis-layerTitle',
+      selector: '.jp-gis-layerItem',
       rank: 2,
       submenu: moveLayerSubmenu
     });
@@ -183,27 +196,28 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.contextMenu.addItem({
       command: CommandIDs.removeGroup,
       selector: '.jp-gis-layerGroupHeader',
-      rank: 1
+      rank: 2
     });
 
     app.commands.addKeyBinding({
       command: CommandIDs.removeGroup,
       keys: ['Delete'],
-      selector: '.jp-gis-layerGroupHeader .jp-gis-layerText'
+      selector: '.jp-gis-layerGroupHeader'
     });
 
     app.contextMenu.addItem({
       command: CommandIDs.renameGroup,
       selector: '.jp-gis-layerGroupHeader',
-      rank: 1
+      rank: 2
     });
 
     app.commands.addKeyBinding({
       command: CommandIDs.renameGroup,
       keys: ['F2'],
-      selector: '.jp-gis-layerGroupHeader .jp-gis-layerText'
+      selector: '.jp-gis-layerGroupHeader'
     });
 
+    // Separator
     app.contextMenu.addItem({
       type: 'separator',
       selector: '.jp-gis-layerPanel',
