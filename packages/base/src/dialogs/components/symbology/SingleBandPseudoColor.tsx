@@ -198,8 +198,6 @@ const SingleBandPseudoColor = ({
       return;
     }
 
-    let colorExpr: ExpressionValue[] = [];
-
     // TODO: Different viewers will have different types
     let colorExpr: ExpressionValue[] = [];
 

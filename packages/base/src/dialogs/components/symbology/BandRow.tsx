@@ -16,7 +16,7 @@ const BandRow = ({
     <div className="jp-gis-band-row-container">
       <div className="jp-gis-symbology-row">
         <label htmlFor={`band-select-${index}`}>Band:</label>
-
+      </div>
       <div className="jp-select-wrapper">
         <select
           name={`band-select-${index}`}
