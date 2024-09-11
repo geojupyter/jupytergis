@@ -179,7 +179,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const moveLayerSubmenu = new Menu({ commands: app.commands });
     moveLayerSubmenu.title.label = translator
       .load('jupyterlab')
-      .__('Move Layers to Group');
+      .__('Move Selected Layers to Group');
     moveLayerSubmenu.id = 'jp-gis-contextmenu-movelayer';
 
     app.contextMenu.addItem({
