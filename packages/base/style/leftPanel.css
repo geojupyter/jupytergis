@@ -126,6 +126,7 @@
 .jp-gis-layerText,
 .jp-gis-sourceText {
   padding: 3px 0;
+  cursor: pointer;
 }
 
 li .lm-Menu-itemLabel {
