@@ -89,10 +89,6 @@ jobs:
             yarn=3
             qgis
 
-      - name: Set QT env var
-        shell: bash -l {0}
-        run: echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
-
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -165,10 +161,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: extension-artifacts
-
-      - name: Set QT env var
-        shell: bash -l {0}
-        run: echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
 
       - name: Install the extension
         shell: bash -l {0}

@@ -24,6 +24,10 @@ from qgis.core import (
     QgsVectorTileLayer,
 )
 
+# Prevent any Qt application and event loop to spawn when
+# using the QGIS Python app
+os.environ["QT_QPA_PLATFORM"] = "offscreen"
+
 QgsApplication.setPrefixPath(sys.prefix)
 
 qgs = QgsApplication([], False)
