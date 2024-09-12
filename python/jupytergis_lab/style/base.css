@@ -367,3 +367,11 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 .jp-SchemaForm legend {
   width: 100%;
 }
+
+.jpgis-console {
+  border-top: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+}
+
+.jpgis-console .jp-CodeConsole-banner {
+  display: none;
+}
