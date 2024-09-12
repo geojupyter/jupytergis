@@ -16,6 +16,9 @@ import {
   showErrorMessage,
   WidgetTracker
 } from '@jupyterlab/apputils';
+import { IEditorServices } from '@jupyterlab/codeeditor';
+import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 
 import { JupyterGISWidgetFactory } from '@jupytergis/jupytergis-core';
 import { IJupyterGISDocTracker, IJupyterGISWidget } from '@jupytergis/schema';
@@ -27,7 +30,11 @@ const activate = async (
   tracker: WidgetTracker<IJupyterGISWidget>,
   themeManager: IThemeManager,
   drive: ICollaborativeDrive,
-  externalCommandRegistry: IJGISExternalCommandRegistry
+  externalCommandRegistry: IJGISExternalCommandRegistry,
+  contentFactory: ConsolePanel.IContentFactory,
+  editorServices: IEditorServices,
+  rendermime: IRenderMimeRegistry,
+  consoleTracker: IConsoleTracker,
 ): Promise<void> => {
   const fcCheck = await requestAPI<{ installed: boolean }>(
     'jupytergis_qgis/backend-check',
@@ -54,7 +61,12 @@ const activate = async (
     tracker,
     commands: app.commands,
     externalCommandRegistry,
-    backendCheck
+    backendCheck,
+    manager: app.serviceManager,
+    contentFactory,
+    rendermime,
+    mimeTypeService: editorServices.mimeTypeService,
+    consoleTracker
   });
   const QGZWidgetFactory = new JupyterGISWidgetFactory({
     name: 'JupyterGIS QGZ Factory',
@@ -64,7 +76,12 @@ const activate = async (
     tracker,
     commands: app.commands,
     externalCommandRegistry,
-    backendCheck
+    backendCheck,
+    manager: app.serviceManager,
+    contentFactory,
+    rendermime,
+    mimeTypeService: editorServices.mimeTypeService,
+    consoleTracker
   });
 
   // Registering the widget factory
@@ -130,7 +147,11 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
     IJupyterGISDocTracker,
     IThemeManager,
     ICollaborativeDrive,
-    IJGISExternalCommandRegistryToken
+    IJGISExternalCommandRegistryToken,
+    ConsolePanel.IContentFactory,
+    IEditorServices,
+    IRenderMimeRegistry,
+    IConsoleTracker
   ],
   autoStart: true,
   activate
