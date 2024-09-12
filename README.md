@@ -19,7 +19,7 @@ https://geojupyter.github.io/jupytergis/lab/index.html
 ### Prerequisites
 
 - JupyterLab (version 3.0 or higher)
-- QGIS installed on your system and its Python modules available in the PATH. e.g. `mamba install -c conda-forge qgis`
+- (OPTIONAL) QGIS installed on your system and its Python modules available in the PATH. e.g. `mamba install -c conda-forge qgis`
 
 ### Installing JupyterGIS
 
