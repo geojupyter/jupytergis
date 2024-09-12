@@ -31,9 +31,10 @@ const BandRow = ({
     setMaxValue(+event.target.value);
   };
 
-  const handleBlur = (event: { target: { value: string | number } }) => {
+  const handleBlur = () => {
     const newBandRows = [...bandRows];
-    newBandRows[index].stats.maximum = +event.target.value;
+    newBandRows[index].stats.minimum = minValue;
+    newBandRows[index].stats.maximum = maxValue;
     setBandRows(newBandRows);
   };
 
