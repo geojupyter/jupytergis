@@ -117,8 +117,8 @@ export class ToolbarWidget extends Toolbar {
           });
 
           NewSubMenu.addItem({
-              type: 'command',
-              command: CommandIDs.newShapefileLayer
+            type: 'command',
+            command: CommandIDs.newShapefileLayer
           });
 
           NewSubMenu.addItem({
@@ -127,18 +127,15 @@ export class ToolbarWidget extends Toolbar {
           });
 
           NewSubMenu.addItem({
-              type: 'command',
-              command: CommandIDs.newGeoJSONEntry
+            type: 'command',
+            command: CommandIDs.newGeoJSONEntry
           });
 
           NewSubMenu.open(bbox.x, bbox.bottom);
         }
       });
 
-      this.addItem(
-        'New',
-        NewButton
-      );
+      this.addItem('New', NewButton);
 
       this.addItem('spacer', Toolbar.createSpacerItem());
 
