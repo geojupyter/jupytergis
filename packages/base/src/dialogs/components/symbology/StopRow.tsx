@@ -16,7 +16,7 @@ const StopRow = ({
   value: number;
   outputValue: number[];
   stopRows: IStopRow[];
-  setStopRows: any;
+  setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
 }) => {
   const rgbArrToHex = (rgbArr: number[]) => {

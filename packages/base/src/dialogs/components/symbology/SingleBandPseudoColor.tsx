@@ -104,8 +104,6 @@ const SingleBandPseudoColor = ({
   const getBandInfo = async () => {
     const bandsArr: IBandRow[] = [];
 
-    // state.remove(layerId);
-
     const source = context.model.getSource(layer?.parameters?.source);
 
     const sourceInfo = source?.parameters?.urls[0];
@@ -114,7 +112,7 @@ const SingleBandPseudoColor = ({
       return;
     }
 
-    let tifData: any;
+    let tifData;
 
     const tifDataState = (await state.fetch(layerId)) as string;
     if (tifDataState) {
@@ -210,7 +208,7 @@ const SingleBandPseudoColor = ({
 
   const handleOk = () => {
     // Update source
-    const bandRow = bandRows[selectedBand - 1];
+    const bandRow = bandRowsRef.current[selectedBand - 1];
     if (!bandRow) {
       return;
     }
@@ -358,7 +356,6 @@ const SingleBandPseudoColor = ({
             bandRows={bandRows}
             setSelectedBand={setSelectedBand}
             setBandRows={setBandRows}
-            // onChange={updateMinMaxValues}
           />
         )}
       </div>

@@ -7,14 +7,12 @@ const BandRow = ({
   bandRows,
   setSelectedBand,
   setBandRows
-  // onChange
 }: {
   index: number;
   bandRow: IBandRow;
   bandRows: IBandRow[];
-  setSelectedBand: any;
-  setBandRows: any;
-  // onChange: any;
+  setSelectedBand: (band: number) => void;
+  setBandRows: (bandRows: IBandRow[]) => void;
 }) => {
   const [minValue, setMinValue] = useState(bandRow.stats.minimum);
   const [maxValue, setMaxValue] = useState(bandRow.stats.maximum);
@@ -23,15 +21,17 @@ const BandRow = ({
     target: { value: string | number };
   }) => {
     setMinValue(+event.target.value);
+    setNewBands();
   };
 
   const handleMaxValueChange = (event: {
     target: { value: string | number };
   }) => {
     setMaxValue(+event.target.value);
+    setNewBands();
   };
 
-  const handleBlur = () => {
+  const setNewBands = () => {
     const newBandRows = [...bandRows];
     newBandRows[index].stats.minimum = minValue;
     newBandRows[index].stats.maximum = maxValue;
@@ -45,7 +45,7 @@ const BandRow = ({
         <div className="jp-select-wrapper">
           <select
             name={`band-select-${index}`}
-            onChange={event => setSelectedBand(event.target.value)}
+            onChange={event => setSelectedBand(+event.target.value)}
             className="jp-mod-styled"
           >
             {bandRows.map((band, bandIndex) => (
@@ -76,10 +76,8 @@ const BandRow = ({
             type="number"
             className="jp-mod-styled"
             style={{ marginRight: 15 }}
-            // defaultValue={bandRow.stats.minimum}
             value={minValue}
             onChange={handleMinValueChange}
-            onBlur={handleBlur}
           />
         </div>
         <div
@@ -99,7 +97,7 @@ const BandRow = ({
             // defaultValue={bandRow.stats.maximum}
             value={maxValue}
             onChange={handleMaxValueChange}
-            onBlur={handleBlur}
+            onBlur={setNewBands}
           />
         </div>
       </div>
