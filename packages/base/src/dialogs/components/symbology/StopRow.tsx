@@ -16,11 +16,12 @@ const StopRow = ({
   value: number;
   outputValue: number[];
   stopRows: IStopRow[];
-  setStopRows: any;
+  setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
 }) => {
   const rgbArrToHex = (rgbArr: number[]) => {
     const hex = rgbArr
+      .slice(0, -1) // Color input doesn't support hex alpha values so cut that out
       .map((val: { toString: (arg0: number) => string }) => {
         return val.toString(16).padStart(2, '0');
       })
@@ -39,7 +40,8 @@ const StopRow = ({
     const rgbValues = [
       parseInt(result[1], 16),
       parseInt(result[2], 16),
-      parseInt(result[3], 16)
+      parseInt(result[3], 16),
+      1 // TODO: Make alpha customizable?
     ];
 
     return rgbValues;
@@ -81,6 +83,7 @@ const StopRow = ({
         onBlur={handleBlur}
         className="jp-mod-styled"
       />
+
       <input
         id={`jp-gis-color-color-${index}`}
         value={rgbArrToHex(outputValue)}
@@ -88,6 +91,7 @@ const StopRow = ({
         onChange={handleColorChange}
         className="jp-mod-styled"
       />
+
       <Button
         id={`jp-gis-remove-color-${index}`}
         className="jp-Button jp-gis-filter-icon"

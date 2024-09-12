@@ -16,7 +16,7 @@
   gap: 2rem;
 }
 
-.jp-gis-symbology-row > label {
+.jp-gis-symbology-row label {
   font-size: var(--jp-ui-font-size2);
   flex: 0 1 20%;
 }
@@ -35,6 +35,10 @@
 .jp-gis-layer-symbology-container {
   display: flex;
   flex-direction: column;
+}
+
+.jp-gis-band-container .jp-gis-symbology-row:last-child {
+  margin-bottom: 12px;
 }
 
 .jp-gis-stop-container {

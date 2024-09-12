@@ -1,5 +1,6 @@
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import initGdalJs from 'gdal3.js';
 import { ExpressionValue } from 'ol/expr/expression';
@@ -16,9 +17,26 @@ export interface IStopRow {
 export interface IBandRow {
   band: number;
   colorInterpretation: string;
+  stats: {
+    minimum: number;
+    maximum: number;
+    mean: number;
+    stdDev: number;
+  };
+  metadata: IDict;
 }
 
-type interpolationType = 'discrete' | 'linear' | 'exact';
+type InterpolationType = 'discrete' | 'linear' | 'exact';
+
+type TifBandData = {
+  band: number;
+  colorInterpretation: string;
+  minimum: number;
+  maximum: number;
+  mean: number;
+  stdDev: number;
+  metadata: any;
+};
 
 const SingleBandPseudoColor = ({
   context,
@@ -28,9 +46,10 @@ const SingleBandPseudoColor = ({
   layerId
 }: ISymbologyDialogProps) => {
   const functions = ['discrete', 'linear', 'exact'];
-  const rowsRef = useRef<IStopRow[]>();
-  const selectedFunctionRef = useRef<interpolationType>();
-  const [selectedFunction, setSelectedFunction] = useState<interpolationType>();
+  const stopRowsRef = useRef<IStopRow[]>();
+  const bandRowsRef = useRef<IBandRow[]>([]);
+  const selectedFunctionRef = useRef<InterpolationType>();
+  const [selectedFunction, setSelectedFunction] = useState<InterpolationType>();
   const [selectedBand, setSelectedBand] = useState(1);
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
@@ -45,7 +64,95 @@ const SingleBandPseudoColor = ({
 
   useEffect(() => {
     getBandInfo();
+    setInitialFunction();
+  }, []);
 
+  useEffect(() => {
+    bandRowsRef.current = bandRows;
+
+    buildColorInfo();
+  }, [bandRows]);
+
+  useEffect(() => {
+    stopRowsRef.current = stopRows;
+  }, [stopRows]);
+
+  useEffect(() => {
+    selectedFunctionRef.current = selectedFunction;
+  }, [selectedFunction]);
+
+  const setInitialFunction = () => {
+    if (!layer.parameters?.color) {
+      return;
+    }
+
+    const color = layer.parameters.color;
+
+    if (color[0] === 'interpolate') {
+      setSelectedFunction('linear');
+      return;
+    }
+
+    // If expression is using 'case' we look at the comparison operator to set selected function
+    // Looking at fourth element because second is for nodata
+    const operator = color[3][0];
+    operator === '<='
+      ? setSelectedFunction('discrete')
+      : setSelectedFunction('exact');
+  };
+
+  const getBandInfo = async () => {
+    const bandsArr: IBandRow[] = [];
+
+    const source = context.model.getSource(layer?.parameters?.source);
+
+    const sourceInfo = source?.parameters?.urls[0];
+
+    if (!sourceInfo.url) {
+      return;
+    }
+
+    let tifData;
+
+    const tifDataState = (await state.fetch(layerId)) as string;
+    if (tifDataState) {
+      tifData = JSON.parse(tifDataState);
+    } else {
+      //! This takes so long, maybe do when adding source instead
+      const Gdal = await initGdalJs({
+        path: 'lab/extensions/@jupytergis/jupytergis-core/static',
+        useWorker: false
+      });
+
+      const fileData = await fetch(sourceInfo.url);
+      const file = new File([await fileData.blob()], 'loaded.tif');
+
+      const result = await Gdal.open(file);
+      const tifDataset = result.datasets[0];
+      tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
+      Gdal.close(tifDataset);
+    }
+
+    tifData['bands'].forEach((bandData: TifBandData) => {
+      bandsArr.push({
+        band: bandData.band,
+        colorInterpretation: bandData.colorInterpretation,
+        stats: {
+          minimum: sourceInfo.min ?? bandData.minimum,
+          maximum: sourceInfo.max ?? bandData.maximum,
+          mean: bandData.mean,
+          stdDev: bandData.stdDev
+        },
+        metadata: bandData.metadata
+      });
+    });
+    setBandRows(bandsArr);
+
+    console.log('tifData', tifData);
+    console.log('bandsArr', bandsArr);
+  };
+
+  const buildColorInfo = () => {
     // This it to parse a color object on the layer
     if (!layer.parameters?.color) {
       return;
@@ -57,7 +164,7 @@ const SingleBandPseudoColor = ({
     if (typeof color === 'string') {
       return;
     }
-    const pairedObjects: IStopRow[] = [];
+    const valueColorPairs: IStopRow[] = [];
 
     // So if it's not a string then it's an array and we parse
     // Color[0] is the operator used for the color expression
@@ -66,115 +173,61 @@ const SingleBandPseudoColor = ({
         // First element is interpolate for linear selection
         // Second element is type of interpolation (ie linear)
         // Third is input value that stop values are compared with
-        // Fourth and on is value:color pairs
-        for (let i = 3; i < color.length; i += 2) {
+        // Fourth and Fifth are the transparent value for NoData values
+        // Sixth and on is value:color pairs
+        for (let i = 5; i < color.length; i += 2) {
           const obj: IStopRow = {
-            value: color[i],
+            value: scaleValue(color[i]),
             color: color[i + 1]
           };
-          pairedObjects.push(obj);
+          valueColorPairs.push(obj);
         }
         break;
       }
       case 'case': {
         // First element is case for discrete and exact selections
-        // Second element is the condition
+        // Second element is the condition for NoData values
+        // Third element is transparent
+        // Fourth is the condition for actual values
         // Within that, first is logical operator, second is band, third is value
-        // Third element is color
+        // Fifth is color
         // Last element is fallback value
-        for (let i = 1; i < color.length - 1; i += 2) {
+        for (let i = 3; i < color.length - 1; i += 2) {
           const obj: IStopRow = {
-            value: color[i][2],
+            value: scaleValue(color[i][2]),
             color: color[i + 1]
           };
-          pairedObjects.push(obj);
+          valueColorPairs.push(obj);
         }
         break;
       }
     }
 
-    setInitialFunction(color);
-    setStopRows(pairedObjects);
-  }, []);
-
-  useEffect(() => {
-    rowsRef.current = stopRows;
-  }, [stopRows]);
-
-  useEffect(() => {
-    selectedFunctionRef.current = selectedFunction;
-  }, [selectedFunction]);
-
-  const setInitialFunction = (colorParam: any[]) => {
-    if (colorParam[0] === 'interpolate') {
-      setSelectedFunction('linear');
-      return;
-    }
-
-    // If expression is using 'case' we look at the comparison operator to set selected function
-    const operator = colorParam[1][0];
-    operator === '<='
-      ? setSelectedFunction('discrete')
-      : setSelectedFunction('exact');
-  };
-
-  const getBandInfo = async () => {
-    const bandsArr: IBandRow[] = [];
-
-    const tifDataState = (await state.fetch(layerId)) as string;
-    if (tifDataState) {
-      const tifData = JSON.parse(tifDataState);
-
-      tifData['bands'].forEach(
-        (bandData: { band: number; colorInterpretation: string }) => {
-          bandsArr.push({
-            band: bandData.band,
-            colorInterpretation: bandData.colorInterpretation
-          });
-        }
-      );
-      setBandRows(bandsArr);
-
-      return;
-    }
-
-    const source = context.model.getSource(layer?.parameters?.source);
-
-    const sourceUrl = source?.parameters?.urls[0].url;
-
-    if (!sourceUrl) {
-      return;
-    }
-
-    //! This takes so long, maybe do when adding source instead
-    const Gdal = await initGdalJs({
-      path: 'lab/extensions/@jupytergis/jupytergis-core/static',
-      useWorker: false
-    });
-
-    const fileData = await fetch(sourceUrl);
-    const file = new File([await fileData.blob()], 'loaded.tif');
-
-    const result = await Gdal.open(file);
-    const tifDataset = result.datasets[0];
-    const tifDatasetInfo: any = await Gdal.gdalinfo(tifDataset);
-
-    tifDatasetInfo['bands'].forEach(
-      (bandData: { band: number; colorInterpretation: string }) => {
-        bandsArr.push({
-          band: bandData.band,
-          colorInterpretation: bandData.colorInterpretation
-        });
-      }
-    );
-
-    state.save(layerId, JSON.stringify(tifDatasetInfo));
-    setBandRows(bandsArr);
-
-    Gdal.close(tifDataset);
+    setStopRows(valueColorPairs);
   };
 
   const handleOk = () => {
+    // Update source
+    const bandRow = bandRowsRef.current[selectedBand - 1];
+    if (!bandRow) {
+      return;
+    }
+    const sourceId = layer.parameters?.source;
+    const source = context.model.getSource(sourceId);
+
+    if (!source || !source.parameters) {
+      return;
+    }
+
+    const sourceInfo = source.parameters.urls[0];
+    sourceInfo.min = bandRow.stats.minimum;
+    sourceInfo.max = bandRow.stats.maximum;
+
+    source.parameters.urls[0] = sourceInfo;
+
+    context.model.sharedModel.updateSource(sourceId, source);
+
+    // Update layer
     if (!layer.parameters) {
       return;
     }
@@ -188,18 +241,30 @@ const SingleBandPseudoColor = ({
 
         colorExpr.push(['band', selectedBand]);
 
-        rowsRef.current?.map(stop => {
-          colorExpr.push(stop.value);
+        // Set NoData values to transparent
+        colorExpr.push(0.0, [0.0, 0.0, 0.0, 0.0]);
+
+        stopRowsRef.current?.map(stop => {
+          colorExpr.push(unscaleValue(stop.value));
           colorExpr.push(stop.color);
         });
 
         break;
       }
+
       case 'discrete': {
         colorExpr = ['case'];
 
-        rowsRef.current?.map(stop => {
-          colorExpr.push(['<=', ['band', selectedBand], stop.value]);
+        // Set NoData values to transparent
+        colorExpr.push(['==', ['band', selectedBand], 0]);
+        colorExpr.push([0.0, 0.0, 0.0, 0.0]);
+
+        stopRowsRef.current?.map(stop => {
+          colorExpr.push([
+            '<=',
+            ['band', selectedBand],
+            unscaleValue(stop.value)
+          ]);
           colorExpr.push(stop.color);
         });
 
@@ -210,8 +275,16 @@ const SingleBandPseudoColor = ({
       case 'exact': {
         colorExpr = ['case'];
 
-        rowsRef.current?.map(stop => {
-          colorExpr.push(['==', ['band', selectedBand], stop.value]);
+        // Set NoData values to transparent
+        colorExpr.push(['==', ['band', selectedBand], 0]);
+        colorExpr.push([0.0, 0.0, 0.0, 0.0]);
+
+        stopRowsRef.current?.map(stop => {
+          colorExpr.push([
+            '==',
+            ['band', selectedBand],
+            unscaleValue(stop.value)
+          ]);
           colorExpr.push(stop.color);
         });
 
@@ -234,7 +307,7 @@ const SingleBandPseudoColor = ({
     setStopRows([
       {
         value: 0,
-        color: [0, 0, 0]
+        color: [0, 0, 0, 1]
       },
       ...stopRows
     ]);
@@ -247,6 +320,29 @@ const SingleBandPseudoColor = ({
     setStopRows(newFilters);
   };
 
+  const scaleValue = (bandValue: number) => {
+    const currentBand = bandRows[selectedBand - 1];
+
+    if (!currentBand) {
+      return bandValue;
+    }
+
+    return (
+      (bandValue * (currentBand.stats.maximum - currentBand.stats.minimum)) /
+        (1 - 0) +
+      currentBand.stats.minimum
+    );
+  };
+
+  const unscaleValue = (value: number) => {
+    const currentBand = bandRowsRef.current[selectedBand - 1];
+
+    return (
+      (value * (1 - 0) - currentBand.stats.minimum * (1 - 0)) /
+      (currentBand.stats.maximum - currentBand.stats.minimum)
+    );
+  };
+
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
@@ -254,10 +350,12 @@ const SingleBandPseudoColor = ({
           <FontAwesomeIcon icon={faSpinner} />
         ) : (
           <BandRow
-            index={0}
-            bandRow={bandRows[0]}
+            // Band numbers are 1 indexed
+            index={selectedBand - 1}
+            bandRow={bandRows[selectedBand - 1]}
             bandRows={bandRows}
             setSelectedBand={setSelectedBand}
+            setBandRows={setBandRows}
           />
         )}
       </div>
@@ -271,7 +369,7 @@ const SingleBandPseudoColor = ({
             value={selectedFunction}
             style={{ textTransform: 'capitalize' }}
             onChange={event => {
-              setSelectedFunction(event.target.value as interpolationType);
+              setSelectedFunction(event.target.value as InterpolationType);
             }}
           >
             {functions.map((func, funcIndex) => (

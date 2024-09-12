@@ -31,6 +31,7 @@ import { GeoJSON, MVT } from 'ol/format';
 import DragAndDrop from 'ol/interaction/DragAndDrop';
 import {
   Image as ImageLayer,
+  Layer,
   Vector as VectorLayer,
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer
@@ -362,6 +363,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     newSource.set('id', id);
+    // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
   }
 
@@ -392,7 +394,19 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param source - the source object.
    */
   async updateSource(id: string, source: IJGISSource): Promise<void> {
-    // TODO implement
+    // get the layer id associated with this source
+    const layerId = this._sourceToLayerMap.get(id);
+    // get the OL layer
+    const mapLayer = this.getLayer(layerId);
+    if (!mapLayer) {
+      return;
+    }
+    // remove source being updated
+    this.removeSource(id);
+    // create updated source
+    this.addSource(id, source);
+    // change source of target layer
+    (mapLayer as Layer).setSource(this._sources[id]);
   }
 
   /**
@@ -482,12 +496,13 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     let newLayer;
+    let layerParameters;
 
     // TODO: OpenLayers provides a bunch of sources for specific tile
     // providers, so maybe set up some way to use those
     switch (layer.type) {
       case 'RasterLayer': {
-        const layerParameters = layer.parameters as IRasterLayer;
+        layerParameters = layer.parameters as IRasterLayer;
 
         newLayer = new TileLayer({
           opacity: layerParameters.opacity,
@@ -498,7 +513,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'VectorLayer': {
-        const layerParameters = layer.parameters as IVectorLayer;
+        layerParameters = layer.parameters as IVectorLayer;
 
         newLayer = new VectorLayer({
           opacity: layerParameters.opacity,
@@ -511,7 +526,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'VectorTileLayer': {
-        const layerParameters = layer.parameters as IVectorLayer;
+        layerParameters = layer.parameters as IVectorLayer;
 
         newLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
@@ -523,7 +538,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'HillshadeLayer': {
-        const layerParameters = layer.parameters as IHillshadeLayer;
+        layerParameters = layer.parameters as IHillshadeLayer;
 
         newLayer = new WebGlTileLayer({
           opacity: 0.3,
@@ -536,7 +551,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'ImageLayer': {
-        const layerParameters = layer.parameters as IImageLayer;
+        layerParameters = layer.parameters as IImageLayer;
 
         newLayer = new ImageLayer({
           opacity: layerParameters.opacity,
@@ -546,7 +561,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'WebGlLayer': {
-        const layerParameters = layer.parameters as IWebGlLayer;
+        layerParameters = layer.parameters as IWebGlLayer;
 
         newLayer = new WebGlTileLayer({
           opacity: layerParameters.opacity,
@@ -562,6 +577,9 @@ export class MainView extends React.Component<IProps, IStates> {
 
     // OpenLayers doesn't have name/id field so add it
     newLayer.set('id', id);
+
+    // we need to keep track of which source has which layers
+    this._sourceToLayerMap.set(layerParameters.source, id);
 
     this._Map.getLayers().insertAt(index, newLayer);
   }
@@ -980,4 +998,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;
+  private _sourceToLayerMap = new Map();
 }
