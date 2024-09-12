@@ -69,7 +69,7 @@
     "@lumino/messaging": "^2.0.0",
     "@lumino/widgets": "^2.0.0",
     "react": "^18.0.1",
-    "yjs-widgets": "^0.3.3"
+    "yjs-widgets": "^0.3.5"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.0.0",
@@ -115,6 +115,10 @@
         "bundled": false
       },
       "@jupyter/docprovider": {
+        "singleton": true,
+        "bundled": false
+      },
+      "yjs-widgets": {
         "singleton": true,
         "bundled": false
       }

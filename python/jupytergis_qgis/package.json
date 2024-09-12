@@ -68,8 +68,7 @@
     "@jupyterlab/ui-components": "^4.0.0",
     "@lumino/messaging": "^2.0.0",
     "@lumino/widgets": "^2.0.0",
-    "react": "^18.0.1",
-    "yjs-widgets": "^0.3.3"
+    "react": "^18.0.1"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.0.0",
