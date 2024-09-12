@@ -1,40 +1,33 @@
 name: Check Release
 on:
   push:
-    branches: ['main']
+    branches:
+      - master
   pull_request:
-    branches: ['*']
+    branches:
+      - master
+
+permissions:
+  contents: write
 
 jobs:
   check_release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          environment-name: gis
-          create-args: >-
-            python=3.9
-            jupyterlab=4
-            yarn=3
-            pip
-            jupyter-releaser
-            pillow
-            mercantile
-            xyzservices
+      - name: Base Setup
+        uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
 
       - name: Check Release
         uses: jupyter-server/jupyter_releaser/.github/actions/check-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version_spec: next
-          shell: bash -l {0}
 
       - name: Upload Distributions
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: jupytergis-releaser-dist-${{ github.run_number }}
           path: .jupyter_releaser_checkout/dist
