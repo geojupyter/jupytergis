@@ -34,7 +34,7 @@ const activate = async (
   contentFactory: ConsolePanel.IContentFactory,
   editorServices: IEditorServices,
   rendermime: IRenderMimeRegistry,
-  consoleTracker: IConsoleTracker,
+  consoleTracker: IConsoleTracker
 ): Promise<void> => {
   const fcCheck = await requestAPI<{ installed: boolean }>(
     'jupytergis_qgis/backend-check',
