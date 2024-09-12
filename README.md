@@ -2,7 +2,7 @@
 
 ⚠️ This extension is work in progress. Features and APIs are subject to change quickly. ⚠️
 
-[jupytergis](./jupytergis.png)
+![jupytergis](./jupytergis.png)
 
 ## Features
 
