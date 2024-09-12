@@ -46,7 +46,8 @@ const SingleBandPseudoColor = ({
   layerId
 }: ISymbologyDialogProps) => {
   const functions = ['discrete', 'linear', 'exact'];
-  const rowsRef = useRef<IStopRow[]>();
+  const stopRowsRef = useRef<IStopRow[]>();
+  const bandRowsRef = useRef<IBandRow[]>([]);
   const selectedFunctionRef = useRef<InterpolationType>();
   const [selectedFunction, setSelectedFunction] = useState<InterpolationType>();
   const [selectedBand, setSelectedBand] = useState(1);
@@ -63,78 +64,38 @@ const SingleBandPseudoColor = ({
 
   useEffect(() => {
     getBandInfo();
-
-    // This it to parse a color object on the layer
-    if (!layer.parameters?.color) {
-      return;
-    }
-
-    const color = layer.parameters.color;
-
-    // If color is a string we don't need to parse
-    if (typeof color === 'string') {
-      return;
-    }
-    const pairedObjects: IStopRow[] = [];
-
-    // So if it's not a string then it's an array and we parse
-    // Color[0] is the operator used for the color expression
-    switch (color[0]) {
-      case 'interpolate': {
-        // First element is interpolate for linear selection
-        // Second element is type of interpolation (ie linear)
-        // Third is input value that stop values are compared with
-        // Fourth and Fifth are the transparent value for NoData values
-        // Sixth and on is value:color pairs
-        for (let i = 5; i < color.length; i += 2) {
-          const obj: IStopRow = {
-            value: color[i],
-            color: color[i + 1]
-          };
-          pairedObjects.push(obj);
-        }
-        break;
-      }
-      case 'case': {
-        // First element is case for discrete and exact selections
-        // Second element is the condition for NoData values
-        // Third element is transparent
-        // Fourth is the condition for actual values
-        // Within that, first is logical operator, second is band, third is value
-        // Fifth is color
-        // Last element is fallback value
-        for (let i = 3; i < color.length - 1; i += 2) {
-          const obj: IStopRow = {
-            value: color[i][2],
-            color: color[i + 1]
-          };
-          pairedObjects.push(obj);
-        }
-        break;
-      }
-    }
-
-    setInitialFunction(color);
-    setStopRows(pairedObjects);
+    setInitialFunction();
   }, []);
 
   useEffect(() => {
-    rowsRef.current = stopRows;
+    bandRowsRef.current = bandRows;
+
+    buildColorInfo();
+  }, [bandRows]);
+
+  useEffect(() => {
+    stopRowsRef.current = stopRows;
   }, [stopRows]);
 
   useEffect(() => {
     selectedFunctionRef.current = selectedFunction;
   }, [selectedFunction]);
 
-  const setInitialFunction = (colorParam: any[]) => {
-    if (colorParam[0] === 'interpolate') {
+  const setInitialFunction = () => {
+    if (!layer.parameters?.color) {
+      return;
+    }
+
+    const color = layer.parameters.color;
+
+    if (color[0] === 'interpolate') {
       setSelectedFunction('linear');
       return;
     }
 
     // If expression is using 'case' we look at the comparison operator to set selected function
     // Looking at fourth element because second is for nodata
-    const operator = colorParam[3][0];
+    const operator = color[3][0];
     operator === '<='
       ? setSelectedFunction('discrete')
       : setSelectedFunction('exact');
@@ -193,7 +154,82 @@ const SingleBandPseudoColor = ({
     console.log('bandsArr', bandsArr);
   };
 
+  const buildColorInfo = () => {
+    // This it to parse a color object on the layer
+    if (!layer.parameters?.color) {
+      return;
+    }
+
+    const color = layer.parameters.color;
+
+    // If color is a string we don't need to parse
+    if (typeof color === 'string') {
+      return;
+    }
+    const valueColorPairs: IStopRow[] = [];
+
+    // So if it's not a string then it's an array and we parse
+    // Color[0] is the operator used for the color expression
+    switch (color[0]) {
+      case 'interpolate': {
+        // First element is interpolate for linear selection
+        // Second element is type of interpolation (ie linear)
+        // Third is input value that stop values are compared with
+        // Fourth and Fifth are the transparent value for NoData values
+        // Sixth and on is value:color pairs
+        for (let i = 5; i < color.length; i += 2) {
+          const obj: IStopRow = {
+            value: scaleValue(color[i]),
+            color: color[i + 1]
+          };
+          valueColorPairs.push(obj);
+        }
+        break;
+      }
+      case 'case': {
+        // First element is case for discrete and exact selections
+        // Second element is the condition for NoData values
+        // Third element is transparent
+        // Fourth is the condition for actual values
+        // Within that, first is logical operator, second is band, third is value
+        // Fifth is color
+        // Last element is fallback value
+        for (let i = 3; i < color.length - 1; i += 2) {
+          const obj: IStopRow = {
+            value: scaleValue(color[i][2]),
+            color: color[i + 1]
+          };
+          valueColorPairs.push(obj);
+        }
+        break;
+      }
+    }
+
+    setStopRows(valueColorPairs);
+  };
+
   const handleOk = () => {
+    // Update source
+    const bandRow = bandRows[selectedBand - 1];
+    if (!bandRow) {
+      return;
+    }
+    const sourceId = layer.parameters?.source;
+    const source = context.model.getSource(sourceId);
+
+    if (!source || !source.parameters) {
+      return;
+    }
+
+    const sourceInfo = source.parameters.urls[0];
+    sourceInfo.min = bandRow.stats.minimum;
+    sourceInfo.max = bandRow.stats.maximum;
+
+    source.parameters.urls[0] = sourceInfo;
+
+    context.model.sharedModel.updateSource(sourceId, source);
+
+    // Update layer
     if (!layer.parameters) {
       return;
     }
@@ -210,8 +246,8 @@ const SingleBandPseudoColor = ({
         // Set NoData values to transparent
         colorExpr.push(0.0, [0.0, 0.0, 0.0, 0.0]);
 
-        rowsRef.current?.map(stop => {
-          colorExpr.push(stop.value);
+        stopRowsRef.current?.map(stop => {
+          colorExpr.push(unscaleValue(stop.value));
           colorExpr.push(stop.color);
         });
 
@@ -225,8 +261,12 @@ const SingleBandPseudoColor = ({
         colorExpr.push(['==', ['band', selectedBand], 0]);
         colorExpr.push([0.0, 0.0, 0.0, 0.0]);
 
-        rowsRef.current?.map(stop => {
-          colorExpr.push(['<=', ['band', selectedBand], stop.value]);
+        stopRowsRef.current?.map(stop => {
+          colorExpr.push([
+            '<=',
+            ['band', selectedBand],
+            unscaleValue(stop.value)
+          ]);
           colorExpr.push(stop.color);
         });
 
@@ -241,8 +281,12 @@ const SingleBandPseudoColor = ({
         colorExpr.push(['==', ['band', selectedBand], 0]);
         colorExpr.push([0.0, 0.0, 0.0, 0.0]);
 
-        rowsRef.current?.map(stop => {
-          colorExpr.push(['==', ['band', selectedBand], stop.value]);
+        stopRowsRef.current?.map(stop => {
+          colorExpr.push([
+            '==',
+            ['band', selectedBand],
+            unscaleValue(stop.value)
+          ]);
           colorExpr.push(stop.color);
         });
 
@@ -265,7 +309,7 @@ const SingleBandPseudoColor = ({
     setStopRows([
       {
         value: 0,
-        color: [0, 0, 0]
+        color: [0, 0, 0, 1]
       },
       ...stopRows
     ]);
@@ -278,31 +322,28 @@ const SingleBandPseudoColor = ({
     setStopRows(newFilters);
   };
 
-  useEffect(() => {
-    const bandRow = bandRows[selectedBand - 1];
-    if (!bandRow) {
-      return;
-    }
-    console.log('bandRow', bandRow);
-    const sourceId = layer.parameters?.source;
-    const source = context.model.getSource(sourceId);
+  const scaleValue = (bandValue: number) => {
+    const currentBand = bandRows[selectedBand - 1];
 
-    if (!source || !source.parameters) {
-      return;
+    if (!currentBand) {
+      return bandValue;
     }
 
-    const sourceInfo = source.parameters.urls[0];
-    sourceInfo.min = bandRow.stats.minimum;
-    sourceInfo.max = bandRow.stats.maximum;
+    return (
+      (bandValue * (currentBand.stats.maximum - currentBand.stats.minimum)) /
+        (1 - 0) +
+      currentBand.stats.minimum
+    );
+  };
 
-    source.parameters.urls[0] = sourceInfo;
+  const unscaleValue = (value: number) => {
+    const currentBand = bandRowsRef.current[selectedBand - 1];
 
-    console.log('source', source);
-
-    context.model.sharedModel.updateSource(sourceId, source);
-  }, [bandRows]);
-  // const updateMinMaxValues = () => {
-  // };
+    return (
+      (value * (1 - 0) - currentBand.stats.minimum * (1 - 0)) /
+      (currentBand.stats.maximum - currentBand.stats.minimum)
+    );
+  };
 
   return (
     <div className="jp-gis-layer-symbology-container">
@@ -366,7 +407,6 @@ const SingleBandPseudoColor = ({
             outputValue={stop.color}
             stopRows={stopRows}
             setStopRows={setStopRows}
-            bandRow={bandRows[selectedBand - 1]}
             deleteRow={() => deleteStopRow(index)}
           />
         ))}
