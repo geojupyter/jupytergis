@@ -41,9 +41,6 @@ export namespace CommandIDs {
   export const newShapefileLayer = 'jupytergis:newShapefileLayer';
   export const newWebGlTileLayer = 'jupytergis:newWebGlTileLayer';
 
-  // Meta command for loading any type of layer
-  export const loadFile = 'jupytergis:loadFile';
-
   // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';
   export const removeLayer = 'jupytergis:removeLayer';
@@ -91,8 +88,7 @@ const iconObject = {
   [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
   [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
-  [CommandIDs.loadFile]: { iconClass: 'fa fa-file' },
-  [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-certificate' },
+  [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newTerrain]: { iconClass: 'fa fa-mountain' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' }
 };
