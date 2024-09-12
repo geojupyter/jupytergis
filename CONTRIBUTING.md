@@ -17,12 +17,6 @@ cd jupytergis
 pip install jupyterlab
 # Install package in development mode
 python scripts/dev-install.py
-# Link your development version of the extension with JupyterLab
-jupyter labextension develop . --overwrite
-# Server extension must be manually installed in develop mode
-jupyter server extension enable jupytergis
-# Rebuild extension Typescript source after making changes
-jlpm run build
 ```
 
 You can watch the source directory and run JupyterLab at the same time in different terminals to watch for changes in the extension's source and automatically rebuild the extension.
@@ -30,6 +24,10 @@ You can watch the source directory and run JupyterLab at the same time in differ
 ```bash
 # Watch the source directory in one terminal, automatically rebuilding when needed
 jlpm run watch
+
+# Alternatively, you can run the following after each TypeScript code change
+jlpm run build:dev
+
 # Run JupyterLab in another terminal
 jupyter lab
 ```
