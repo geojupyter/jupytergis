@@ -394,25 +394,19 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param source - the source object.
    */
   async updateSource(id: string, source: IJGISSource): Promise<void> {
-    // TODO implement
-
-    switch (source.type) {
-      case 'GeoTiffSource': {
-        // get the layer id associated with this source
-        const layerId = this._sourceToLayerMap.get(id);
-        // get the OL layer
-        const mapLayer = this.getLayer(layerId);
-        if (!mapLayer) {
-          return;
-        }
-        // remove source being updated
-        this.removeSource(id);
-        // create updated source
-        this.addSource(id, source);
-        // change source of target layer
-        (mapLayer as Layer).setSource(this._sources[id]);
-      }
+    // get the layer id associated with this source
+    const layerId = this._sourceToLayerMap.get(id);
+    // get the OL layer
+    const mapLayer = this.getLayer(layerId);
+    if (!mapLayer) {
+      return;
     }
+    // remove source being updated
+    this.removeSource(id);
+    // create updated source
+    this.addSource(id, source);
+    // change source of target layer
+    (mapLayer as Layer).setSource(this._sources[id]);
   }
 
   /**
