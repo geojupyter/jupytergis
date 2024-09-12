@@ -88,7 +88,7 @@ const iconObject = {
   [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
   [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
-  [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-certificate' },
+  [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newTerrain]: { iconClass: 'fa fa-mountain' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' }
 };

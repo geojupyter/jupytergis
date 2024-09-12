@@ -3,11 +3,13 @@ import { CommandToolbarButton } from '@jupyterlab/apputils';
 import {
   ReactWidget,
   Toolbar,
+  ToolbarButton,
+  addIcon,
   redoIcon,
   undoIcon
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
-import { Widget } from '@lumino/widgets';
+import { Menu, Widget } from '@lumino/widgets';
 
 import * as React from 'react';
 import { CommandIDs } from '../constants';
@@ -56,15 +58,6 @@ export class ToolbarWidget extends Toolbar {
       this.addItem('separator1', new Separator());
 
       this.addItem(
-        'symbology',
-        new CommandToolbarButton({
-          id: CommandIDs.symbology,
-          label: '',
-          commands: options.commands
-        })
-      );
-
-      this.addItem(
         'openLayerBrowser',
         new CommandToolbarButton({
           id: CommandIDs.openLayerBrowser,
@@ -72,8 +65,6 @@ export class ToolbarWidget extends Toolbar {
           commands: options.commands
         })
       );
-
-      this.addItem('separator2', new Separator());
 
       this.addItem(
         'newRasterEntry',
@@ -93,51 +84,58 @@ export class ToolbarWidget extends Toolbar {
         })
       );
 
-      this.addItem(
-        'newGeoJSONEntry',
-        new CommandToolbarButton({
-          id: CommandIDs.newGeoJSONEntry,
-          label: '',
-          commands: options.commands
-        })
-      );
+      this.addItem('separator2', new Separator());
 
-      this.addItem(
-        'newHillshadeEntry',
-        new CommandToolbarButton({
-          id: CommandIDs.newHillshadeEntry,
-          label: '',
-          commands: options.commands
-        })
-      );
+      const NewButton = new ToolbarButton({
+        icon: addIcon,
+        actualOnClick: true,
+        onClick: () => {
+          if (!options.commands) {
+            return;
+          }
 
-      this.addItem(
-        'newImageEntry',
-        new CommandToolbarButton({
-          id: CommandIDs.newImageEntry,
-          label: '',
-          commands: options.commands
-        })
-      );
+          const bbox = NewButton.node.getBoundingClientRect();
+          const NewSubMenu = new Menu({ commands: options.commands });
+          NewSubMenu.title.label = 'New Layer';
 
-      this.addItem(
-        'newShapefileLayer',
-        new CommandToolbarButton({
-          id: CommandIDs.newShapefileLayer,
-          label: '',
-          commands: options.commands
-        })
-      );
+          NewSubMenu.addItem({
+            type: 'command',
+            command: CommandIDs.newHillshadeEntry
+          });
 
-      this.addItem(
-        'newGeoTiffEntry',
-        new CommandToolbarButton({
-          id: CommandIDs.newGeoTiffEntry,
-          label: '',
-          commands: options.commands
-        })
-      );
-      // Add more commands here
+          NewSubMenu.addItem({
+            type: 'separator'
+          });
+
+          NewSubMenu.addItem({
+            type: 'command',
+            command: CommandIDs.newImageEntry
+          });
+
+          NewSubMenu.addItem({
+            type: 'separator'
+          });
+
+          NewSubMenu.addItem({
+            type: 'command',
+            command: CommandIDs.newShapefileLayer
+          });
+
+          NewSubMenu.addItem({
+            type: 'command',
+            command: CommandIDs.newGeoTiffEntry
+          });
+
+          NewSubMenu.addItem({
+            type: 'command',
+            command: CommandIDs.newGeoJSONEntry
+          });
+
+          NewSubMenu.open(bbox.x, bbox.bottom);
+        }
+      });
+
+      this.addItem('New', NewButton);
 
       this.addItem('spacer', Toolbar.createSpacerItem());
 
