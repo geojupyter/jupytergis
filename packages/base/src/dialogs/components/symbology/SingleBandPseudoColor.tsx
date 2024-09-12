@@ -97,11 +97,13 @@ const SingleBandPseudoColor = ({
       }
       case 'case': {
         // First element is case for discrete and exact selections
-        // Second element is the condition
+        // Second element is the condition for NoData values
+        // Third element is transparent
+        // Fourth is the condition for actual values
         // Within that, first is logical operator, second is band, third is value
-        // Third element is color
+        // Fifth is color
         // Last element is fallback value
-        for (let i = 1; i < color.length - 1; i += 2) {
+        for (let i = 3; i < color.length - 1; i += 2) {
           const obj: IStopRow = {
             value: color[i][2],
             color: color[i + 1]
@@ -131,7 +133,8 @@ const SingleBandPseudoColor = ({
     }
 
     // If expression is using 'case' we look at the comparison operator to set selected function
-    const operator = colorParam[1][0];
+    // Looking at fourth element because second is for nodata
+    const operator = colorParam[3][0];
     operator === '<='
       ? setSelectedFunction('discrete')
       : setSelectedFunction('exact');
@@ -214,8 +217,13 @@ const SingleBandPseudoColor = ({
 
         break;
       }
+
       case 'discrete': {
         colorExpr = ['case'];
+
+        // Set NoData values to transparent
+        colorExpr.push(['==', ['band', selectedBand], 0]);
+        colorExpr.push([0.0, 0.0, 0.0, 0.0]);
 
         rowsRef.current?.map(stop => {
           colorExpr.push(['<=', ['band', selectedBand], stop.value]);
@@ -228,6 +236,10 @@ const SingleBandPseudoColor = ({
       }
       case 'exact': {
         colorExpr = ['case'];
+
+        // Set NoData values to transparent
+        colorExpr.push(['==', ['band', selectedBand], 0]);
+        colorExpr.push([0.0, 0.0, 0.0, 0.0]);
 
         rowsRef.current?.map(stop => {
           colorExpr.push(['==', ['band', selectedBand], stop.value]);
