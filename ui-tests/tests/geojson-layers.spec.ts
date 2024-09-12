@@ -52,7 +52,10 @@ test.describe('#geoJSONLayer', () => {
     const main = panel?.locator('.jGIS-Mainview');
 
     await button?.click();
-    await page.getByText('New GeoJSON layer').click();
+    await page
+      .locator('.lm-Menu-itemLabel')
+      .getByText('New GeoJSON layer')
+      .click();
 
     const dialog = page.locator('.jp-Dialog-content');
     await expect(dialog).toBeAttached();
