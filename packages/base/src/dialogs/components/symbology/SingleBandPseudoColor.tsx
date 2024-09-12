@@ -84,8 +84,9 @@ const SingleBandPseudoColor = ({
         // First element is interpolate for linear selection
         // Second element is type of interpolation (ie linear)
         // Third is input value that stop values are compared with
-        // Fourth and on is value:color pairs
-        for (let i = 3; i < color.length; i += 2) {
+        // Fourth and Fifth are the transparent value for NoData values
+        // Sixth and on is value:color pairs
+        for (let i = 5; i < color.length; i += 2) {
           const obj: IStopRow = {
             value: color[i],
             color: color[i + 1]
@@ -202,6 +203,9 @@ const SingleBandPseudoColor = ({
         colorExpr = ['interpolate', ['linear']];
 
         colorExpr.push(['band', selectedBand]);
+
+        // Set NoData values to transparent
+        colorExpr.push(0.0, [0.0, 0.0, 0.0, 0.0]);
 
         rowsRef.current?.map(stop => {
           colorExpr.push(stop.value);
@@ -350,6 +354,7 @@ const SingleBandPseudoColor = ({
             outputValue={stop.color}
             stopRows={stopRows}
             setStopRows={setStopRows}
+            bandRow={bandRows[selectedBand - 1]}
             deleteRow={() => deleteStopRow(index)}
           />
         ))}
