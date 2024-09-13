@@ -10,8 +10,8 @@ import { IWidgetTracker } from '@jupyterlab/apputils';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 import { User } from '@jupyterlab/services';
-import { ReactWidget } from '@jupyterlab/ui-components';
 import { ISignal, Signal } from '@lumino/signaling';
+import { SplitPanel } from '@lumino/widgets';
 
 import { GeoJSON } from './_interface/geojsonsource';
 import {
@@ -192,7 +192,7 @@ export interface IUserData {
   userData: User.IIdentity;
 }
 
-export type IJupyterGISWidget = IDocumentWidget<ReactWidget, IJupyterGISModel>;
+export type IJupyterGISWidget = IDocumentWidget<SplitPanel, IJupyterGISModel>;
 
 export type IJupyterGISTracker = IWidgetTracker<IJupyterGISWidget>;
 

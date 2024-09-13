@@ -481,6 +481,12 @@ class GISDocument(CommWidget):
             if ext == "jgis":
                 format = "text"
                 contentType = "jgis"
+            elif ext == "qgz":
+                format = "base64"
+                contentType = "QGZ"
+            elif ext == "qgs":
+                format = "base64"
+                contentType = "QGS"
             else:
                 raise ValueError("File extension is not supported!")
         return dict(

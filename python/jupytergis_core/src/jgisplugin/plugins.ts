@@ -18,8 +18,11 @@ import {
   IThemeManager,
   WidgetTracker
 } from '@jupyterlab/apputils';
+import { IEditorServices } from '@jupyterlab/codeeditor';
+import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { fileIcon } from '@jupyterlab/ui-components';
 
 import { CommandIDs } from '@jupytergis/base';
@@ -35,6 +38,10 @@ const activate = (
   themeManager: IThemeManager,
   browserFactory: IFileBrowserFactory,
   externalCommandRegistry: IJGISExternalCommandRegistry,
+  contentFactory: ConsolePanel.IContentFactory,
+  editorServices: IEditorServices,
+  rendermime: IRenderMimeRegistry,
+  consoleTracker: IConsoleTracker,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
   drive: ICollaborativeDrive | null
@@ -47,7 +54,12 @@ const activate = (
     tracker,
     commands: app.commands,
     externalCommandRegistry,
-    drive
+    drive,
+    manager: app.serviceManager,
+    contentFactory,
+    rendermime,
+    mimeTypeService: editorServices.mimeTypeService,
+    consoleTracker
   });
   // Registering the widget factory
   app.docRegistry.addWidgetFactory(widgetFactory);
@@ -227,7 +239,11 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IJupyterGISDocTracker,
     IThemeManager,
     IFileBrowserFactory,
-    IJGISExternalCommandRegistryToken
+    IJGISExternalCommandRegistryToken,
+    ConsolePanel.IContentFactory,
+    IEditorServices,
+    IRenderMimeRegistry,
+    IConsoleTracker
   ],
   optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
   autoStart: true,

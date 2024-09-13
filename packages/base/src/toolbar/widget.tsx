@@ -6,7 +6,8 @@ import {
   ToolbarButton,
   addIcon,
   redoIcon,
-  undoIcon
+  undoIcon,
+  terminalIcon
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { Menu, Widget } from '@lumino/widgets';
@@ -52,6 +53,18 @@ export class ToolbarWidget extends Toolbar {
           label: '',
           icon: redoIcon,
           commands: options.commands
+        })
+      );
+
+      this.addItem('separator0', new Separator());
+
+      this.addItem(
+        'Toggle console',
+        new CommandToolbarButton({
+          id: CommandIDs.toggleConsole,
+          commands: options.commands,
+          label: '',
+          icon: terminalIcon
         })
       );
 

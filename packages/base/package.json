@@ -43,6 +43,8 @@
     "@jupytergis/schema": "^0.1.0",
     "@jupyterlab/application": "^4.0.0",
     "@jupyterlab/apputils": "^4.0.0",
+    "@jupyterlab/completer": "^4.2.4",
+    "@jupyterlab/console": "^4.2.4",
     "@jupyterlab/coreutils": "^6.0.0",
     "@jupyterlab/docregistry": "^4.0.0",
     "@jupyterlab/filebrowser": "^4.0.0",
@@ -72,8 +74,7 @@
     "styled-components": "^5.3.6",
     "three": "^0.135.0",
     "three-mesh-bvh": "^0.5.17",
-    "uuid": "^8.3.2",
-    "yjs-widgets": "^0.3.3"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.9",

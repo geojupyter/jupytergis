@@ -71,10 +71,22 @@ export class UsersItem extends React.Component<IProps, IState> {
     return el;
   }
 
+  private filterDuplicated(usersList: IUserData[]): IUserData[] {
+    const newList: IUserData[] = [];
+    const selected = new Set<string>();
+    for (const element of usersList) {
+      if (!selected.has(element.userData.username)) {
+        selected.add(element.userData.username);
+        newList.push(element);
+      }
+    }
+    return newList;
+  }
+
   render(): React.ReactNode {
     return (
       <div className="jGIS-toolbar-usertoolbar">
-        {this.state.usersList.map(item => {
+        {this.filterDuplicated(this.state.usersList).map(item => {
           if (item.userId !== this._model.currentUserId) {
             return this.createUserIcon(item);
           }

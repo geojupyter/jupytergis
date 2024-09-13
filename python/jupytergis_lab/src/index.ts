@@ -21,6 +21,7 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -39,7 +40,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     IJGISLayerBrowserRegistryToken,
     IStateDB
   ],
-  optional: [IMainMenu, ITranslator],
+  optional: [IMainMenu, ITranslator, ICompletionProviderManager],
   activate: (
     app: JupyterFrontEnd,
     tracker: WidgetTracker<JupyterGISWidget>,
@@ -47,7 +48,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
     state: IStateDB,
     mainMenu?: IMainMenu,
-    translator?: ITranslator
+    translator?: ITranslator,
+    completionProviderManager?: ICompletionProviderManager
   ): void => {
     console.log('jupytergis:lab:main-menu is activated!');
     translator = translator ?? nullTranslator;
@@ -66,7 +68,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
       translator,
       formSchemaRegistry,
       layerBrowserRegistry,
-      state
+      state,
+      completionProviderManager
     );
 
     // SOURCES context menu
@@ -258,6 +261,27 @@ const plugin: JupyterFrontEndPlugin<void> = {
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }
+
+    // Keybindings for the console
+    app.commands.addKeyBinding({
+      command: CommandIDs.executeConsole,
+      keys: ['Shift Enter'],
+      selector:
+        ".jpgis-console .jp-CodeConsole[data-jp-interaction-mode='notebook'] .jp-CodeConsole-promptCell"
+    });
+
+    app.commands.addKeyBinding({
+      command: CommandIDs.invokeCompleter,
+      keys: ['Tab'],
+      selector:
+        '.jpgis-console .jp-CodeConsole-promptCell .jp-mod-completer-enabled'
+    });
+
+    app.commands.addKeyBinding({
+      command: CommandIDs.selectCompleter,
+      keys: ['Enter'],
+      selector: '.jpgis-console .jp-ConsolePanel .jp-mod-completer-active'
+    });
   }
 };
 

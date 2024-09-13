@@ -56,6 +56,13 @@ export namespace CommandIDs {
   // Terrain stuff
   export const newTerrain = 'jupytergis:newTerrain';
   export const removeTerrain = 'jupytergis:removeTerrain';
+
+  // Console commands
+  export const toggleConsole = 'jupytergis:toggleConsole';
+  export const invokeCompleter = 'jupytergis:invokeConsoleCompleter';
+  export const removeConsole = 'jupytergis:removeConsole';
+  export const executeConsole = 'jupytergis:executeConsole';
+  export const selectCompleter = 'jupytergis:selectConsoleCompleter';
 }
 
 interface IRegisteredIcon {

@@ -5,8 +5,6 @@ except ImportError:
     # in editable mode with pip. It is highly recommended to install
     # the package from a stable release or in editable mode: https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs
     import warnings
-
-    warnings.warn("Importing 'jupytergis_lab' outside a proper installation.")
     __version__ = "dev"
 
 from .notebook import GISDocument  # noqa

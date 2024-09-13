@@ -19,6 +19,7 @@ import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbologyDialog';
 import { TerrainDialogWidget } from './dialogs/terrainDialog';
 import { JupyterGISWidget } from './widget';
+import { ICompletionProviderManager } from '@jupyterlab/completer';
 
 interface ICreateEntry {
   tracker: WidgetTracker<JupyterGISWidget>;
@@ -41,7 +42,8 @@ export function addCommands(
   translator: ITranslator,
   formSchemaRegistry: IJGISFormSchemaRegistry,
   layerBrowserRegistry: IJGISLayerBrowserRegistry,
-  state: IStateDB
+  state: IStateDB,
+  completionProviderManager: ICompletionProviderManager | undefined
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
@@ -787,6 +789,63 @@ export function addCommands(
       });
     }
   });
+
+  // Console commands
+  commands.addCommand(CommandIDs.toggleConsole, {
+    label: trans.__('Toggle console'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => await Private.toggleConsole(tracker)
+  });
+  commands.addCommand(CommandIDs.executeConsole, {
+    label: trans.__('Execute console'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: () => Private.executeConsole(tracker)
+  });
+  commands.addCommand(CommandIDs.removeConsole, {
+    label: trans.__('Remove console'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: () => Private.removeConsole(tracker)
+  });
+
+  commands.addCommand(CommandIDs.invokeCompleter, {
+    label: trans.__('Display the completion helper.'),
+    execute: () => {
+      const currentWidget = tracker.currentWidget;
+      if (!currentWidget || !completionProviderManager) {
+        return;
+      }
+      const id = currentWidget.content.consolePanel?.id;
+      if (id) {
+        return completionProviderManager.invoke(id);
+      }
+    }
+  });
+
+  commands.addCommand(CommandIDs.selectCompleter, {
+    label: trans.__('Select the completion suggestion.'),
+    execute: () => {
+      const currentWidget = tracker.currentWidget;
+      if (!currentWidget || !completionProviderManager) {
+        return;
+      }
+      const id = currentWidget.content.consolePanel?.id;
+      if (id) {
+        return completionProviderManager.select(id);
+      }
+    }
+  });
 }
 
 namespace Private {
@@ -986,5 +1045,45 @@ namespace Private {
     if (newName !== originalName) {
       callback(itemId, newName);
     }
+  }
+
+  export function executeConsole(
+    tracker: WidgetTracker<JupyterGISWidget>
+  ): void {
+    const current = tracker.currentWidget;
+
+    if (!current) {
+      return;
+    }
+    current.content.executeConsole();
+  }
+
+  export function removeConsole(
+    tracker: WidgetTracker<JupyterGISWidget>
+  ): void {
+    const current = tracker.currentWidget;
+
+    if (!current) {
+      return;
+    }
+    current.content.removeConsole();
+  }
+
+  export async function toggleConsole(
+    tracker: WidgetTracker<JupyterGISWidget>
+  ): Promise<void> {
+    const current = tracker.currentWidget;
+
+    if (!current) {
+      return;
+    }
+    const currentPath = current.context.path.split(':');
+    let realPath = '';
+    if (currentPath.length > 1) {
+      realPath = currentPath[1];
+    } else {
+      realPath = currentPath[0];
+    }
+    await current.content.toggleConsole(realPath);
   }
 }

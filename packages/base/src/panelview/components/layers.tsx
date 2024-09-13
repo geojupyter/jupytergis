@@ -246,7 +246,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
     const getExpandedState = async () => {
       const groupState: ReadonlyPartialJSONValue | undefined =
         await state.fetch(group.name);
-      setOpen(groupState ? (groupState as any)['expanded'] ?? false : false);
+      setOpen(groupState ? ((groupState as any)['expanded'] ?? false) : false);
     };
 
     getExpandedState();
