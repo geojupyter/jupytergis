@@ -22,7 +22,7 @@
         }
       },
       "minItems": 1,
-      "default": [],
+      "maxItems": 1,
       "description": "URLs"
     },
     "normalize": {
