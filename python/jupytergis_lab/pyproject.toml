@@ -49,7 +49,7 @@ fields = ["description", "authors", "urls"]
 
 [tool.hatch.build.targets.sdist]
 artifacts = ["jupytergis_lab/labextension", "/jupytergis_lab/notebook/objects/_schema/*.py"]
-exclude = [".github", "binder"]
+exclude = [".github", "binder", "node_modules"]
 
 [tool.hatch.build.targets.wheel]
 artifacts = ["/jupytergis_lab/notebook/objects/_schema/*.py"]

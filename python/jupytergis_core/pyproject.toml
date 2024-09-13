@@ -39,7 +39,7 @@ fields = ["description", "authors", "urls"]
 
 [tool.hatch.build.targets.sdist]
 artifacts = ["jupytergis_core/labextension"]
-exclude = [".github", "binder"]
+exclude = [".github", "binder", "node_modules"]
 
 [tool.hatch.build.targets.wheel.shared-data]
 "jupytergis_core/labextension" = "share/jupyter/labextensions/@jupytergis/jupytergis-core"
