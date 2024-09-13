@@ -16,10 +16,10 @@ import {
   IRasterDemSource,
   IRasterLayer,
   IRasterSource,
+  IShapefileSource,
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
-  IShapefileSource,
   IWebGlLayer,
   JupyterGISModel
 } from '@jupytergis/schema';
@@ -28,6 +28,7 @@ import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { Map as OlMap, View } from 'ol';
 import { FeatureLike } from 'ol/Feature';
+import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
 import DragAndDrop from 'ol/interaction/DragAndDrop';
 import {
@@ -50,14 +51,13 @@ import {
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
-import { ScaleLine } from 'ol/control';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import * as React from 'react';
+import shp from 'shpjs';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
-import shp from 'shpjs';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -598,13 +598,17 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'WebGlLayer': {
         layerParameters = layer.parameters as IWebGlLayer;
 
-        newLayer = new WebGlTileLayer({
+        // This is to handle python sending a None for the color
+        const layerOptions: any = {
           opacity: layerParameters.opacity,
-          source: this._sources[layerParameters.source],
-          style: {
-            color: layerParameters.color
-          }
-        });
+          source: this._sources[layerParameters.source]
+        };
+
+        if (layerParameters.color) {
+          layerOptions['style'] = { color: layerParameters.color };
+        }
+
+        newLayer = new WebGlTileLayer(layerOptions);
 
         break;
       }
@@ -849,9 +853,11 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'WebGlLayer': {
         mapLayer.setOpacity(layer.parameters?.opacity);
 
-        (mapLayer as WebGlTileLayer).setStyle({
-          color: layer?.parameters?.color
-        });
+        if (layer?.parameters?.color) {
+          (mapLayer as WebGlTileLayer).setStyle({
+            color: layer.parameters.color
+          });
+        }
         break;
       }
     }
