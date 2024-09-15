@@ -898,6 +898,7 @@ __metadata:
     "@rjsf/core": ^4.2.0
     "@types/d3-color": ^3.1.0
     "@types/node": ^18.15.11
+    "@types/shpjs": ^3.4.7
     "@types/three": ^0.135.0
     "@types/uuid": ^10.0.0
     ajv: ^8.14.0
@@ -3252,6 +3253,16 @@ __metadata:
   version: 7.5.8
   resolution: "@types/semver@npm:7.5.8"
   checksum: ea6f5276f5b84c55921785a3a27a3cd37afee0111dfe2bcb3e03c31819c197c782598f17f0b150a69d453c9584cd14c4c4d7b9a55d2c5e6cacd4d66fdb3b3663
+  languageName: node
+  linkType: hard
+
+"@types/shpjs@npm:^3.4.7":
+  version: 3.4.7
+  resolution: "@types/shpjs@npm:3.4.7"
+  dependencies:
+    "@types/geojson": "*"
+    "@types/node": "*"
+  checksum: da6883f802e50bddfc00ae6446bee3947e76d56b01b8e633fd4be565b4021365dca35a3f8949f64f7e1e86c076a3afaeae75ee8e0563115425b56dd8137c0f40
   languageName: node
   linkType: hard
 

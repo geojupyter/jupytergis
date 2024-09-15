@@ -19,6 +19,7 @@ import {
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
+  IShapefileSource,
   IWebGlLayer,
   JupyterGISModel
 } from '@jupytergis/schema';
@@ -55,6 +56,7 @@ import * as React from 'react';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
+import shp from 'shpjs';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -221,6 +223,21 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
+  private async _loadShapefileAsGeoJSON(
+    url: string
+  ): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
+    try {
+      const response = await fetch(`/jupytergis_core/proxy?url=${url}`);
+      const arrayBuffer = await response.arrayBuffer();
+      const geojson = await shp(arrayBuffer);
+  
+      return geojson;
+    } catch (error) {
+      console.error('Error loading shapefile:', error);
+      throw error;
+    }
+  }
+
   /**
    * Add a source in the map.
    *
@@ -303,6 +320,22 @@ export class MainView extends React.Component<IProps, IStates> {
           })
         });
 
+        break;
+      }
+      case 'ShapefileSource': {
+          const parameters = source.parameters as IShapefileSource;
+
+          const geojson = await this._loadShapefileAsGeoJSON(parameters.path);
+          const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
+
+          const format = new GeoJSON();
+
+          newSource = new VectorSource({
+            features: format.readFeatures(geojsonData, {
+              dataProjection: 'EPSG:4326',
+              featureProjection: this._Map.getView().getProjection()
+            })
+          });
         break;
       }
       case 'ImageSource': {
