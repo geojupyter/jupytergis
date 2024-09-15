@@ -49,6 +49,7 @@ import {
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
+import { ScaleLine } from 'ol/control';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import * as React from 'react';
@@ -136,7 +137,8 @@ export class MainView extends React.Component<IProps, IStates> {
         view: new View({
           center: [0, 0],
           zoom: 1
-        })
+        }),
+        controls: [new ScaleLine()]
       });
 
       const dragAndDropInteraction = new DragAndDrop({
