@@ -555,8 +555,7 @@ export class MainView extends React.Component<IProps, IStates> {
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: currentFeature =>
-            this.vectorLayerStyleFunc(currentFeature, layer)
+          style: this.vectorLayerStyleBuilder(layerParameters)
         });
 
         break;
@@ -568,7 +567,7 @@ export class MainView extends React.Component<IProps, IStates> {
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source],
           style: currentFeature =>
-            this.vectorLayerStyleFunc(currentFeature, layer)
+            this.vectorLayerFilterStyleFunc(currentFeature, layer)
         });
 
         break;
@@ -624,7 +623,42 @@ export class MainView extends React.Component<IProps, IStates> {
     this._Map.getLayers().insertAt(index, newLayer);
   }
 
-  vectorLayerStyleFunc = (currentFeature: FeatureLike, layer: IJGISLayer) => {
+  vectorLayerStyleBuilder = (layerParams: IVectorTileLayer) => {
+    const defaultStyle = {
+      'fill-color': 'rgba(255,255,255,0.4)',
+      'stroke-color': '#3399CC',
+      'stroke-width': 1.25,
+      'circle-radius': 5,
+      'circle-fill-color': 'rgba(255,255,255,0.4)',
+      'circle-stroke-width': 1.25,
+      'circle-stroke-color': '#3399CC'
+    };
+
+    if (!layerParams.color) {
+      return defaultStyle;
+    }
+
+    const layerStyle = { ...defaultStyle };
+
+    if (layerParams.type === 'fill') {
+      layerStyle['fill-color'] = layerParams.color;
+    }
+
+    if (layerParams.type === 'line') {
+      layerStyle['stroke-color'] = layerParams.color;
+    }
+
+    if (layerParams.type === 'circle') {
+      layerStyle['circle-fill-color'] = layerParams.color;
+    }
+
+    return layerStyle;
+  };
+
+  vectorLayerFilterStyleFunc = (
+    currentFeature: FeatureLike,
+    layer: IJGISLayer
+  ) => {
     const layerParameters = layer.parameters as IVectorLayer;
 
     // const flatStyle = {
@@ -827,9 +861,23 @@ export class MainView extends React.Component<IProps, IStates> {
 
         mapLayer.setOpacity(layerParams.opacity || 1);
 
-        (mapLayer as VectorLayer).setStyle(currentFeature =>
-          this.vectorLayerStyleFunc(currentFeature, layer)
-        );
+        const ml = mapLayer as VectorLayer;
+        const s = ml.getStyle();
+
+        const flatStyle = {
+          'fill-color': 'rgba(255,255,255,0.4)',
+          'stroke-color': '#3399CC',
+          'stroke-width': 1.25,
+          'circle-radius': 5,
+          'circle-fill-color': layerParams.color,
+          'circle-stroke-width': 1.25,
+          'circle-stroke-color': '#3399CC'
+        };
+
+        ml.setStyle(this.vectorLayerStyleBuilder(layerParams));
+        // (mapLayer as VectorLayer).setStyle(currentFeature =>
+        //   this.vectorLayerFilterStyleFunc(currentFeature, layer)
+        // );
 
         break;
       }
@@ -839,7 +887,7 @@ export class MainView extends React.Component<IProps, IStates> {
         mapLayer.setOpacity(layerParams.opacity || 1);
 
         (mapLayer as VectorLayer).setStyle(currentFeature =>
-          this.vectorLayerStyleFunc(currentFeature, layer)
+          this.vectorLayerFilterStyleFunc(currentFeature, layer)
         );
 
         break;
