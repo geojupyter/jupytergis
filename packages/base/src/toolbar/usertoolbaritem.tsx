@@ -75,7 +75,10 @@ export class UsersItem extends React.Component<IProps, IState> {
     const newList: IUserData[] = [];
     const selected = new Set<string>();
     for (const element of usersList) {
-      if (!selected.has(element.userData.username)) {
+      if (
+        element?.userData?.username &&
+        !selected.has(element.userData.username)
+      ) {
         selected.add(element.userData.username);
         newList.push(element);
       }

@@ -276,9 +276,10 @@ jobs:
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./lite/dist
+          retention-days: 30
 
   deploy:
     needs: build-lite
@@ -295,4 +296,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
