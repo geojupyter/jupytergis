@@ -79,6 +79,7 @@
   "devDependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.9",
     "@types/node": "^18.15.11",
+    "@types/shpjs": "^3.4.7",
     "@types/three": "^0.135.0",
     "@types/uuid": "^10.0.0",
     "rimraf": "^3.0.2",
