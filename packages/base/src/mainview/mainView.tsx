@@ -555,7 +555,7 @@ export class MainView extends React.Component<IProps, IStates> {
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: this.vectorLayerStyleBuilder(layerParameters)
+          style: this.vectorLayerStyleBuilder(layer)
         });
 
         break;
@@ -567,7 +567,7 @@ export class MainView extends React.Component<IProps, IStates> {
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source],
           style: currentFeature =>
-            this.vectorLayerFilterStyleFunc(currentFeature, layer)
+            this.vectorLayerFilterStyleFunc(currentFeature, id, layer)
         });
 
         break;
@@ -623,40 +623,67 @@ export class MainView extends React.Component<IProps, IStates> {
     this._Map.getLayers().insertAt(index, newLayer);
   }
 
-  vectorLayerStyleBuilder = (layerParams: IVectorTileLayer) => {
-    const defaultStyle = {
-      'fill-color': 'rgba(255,255,255,0.4)',
-      'stroke-color': '#3399CC',
-      'stroke-width': 1.25,
-      'circle-radius': 5,
-      'circle-fill-color': 'rgba(255,255,255,0.4)',
-      'circle-stroke-width': 1.25,
-      'circle-stroke-color': '#3399CC'
-    };
-
-    if (!layerParams.color) {
-      return defaultStyle;
+  vectorLayerStyleBuilder = (layer: IJGISLayer) => {
+    const layerParams = layer.parameters;
+    if (!layerParams) {
+      return;
     }
 
+    const defaultStyle = {
+      // This is not hacky, this is peak programming right here
+      filter: ['==', 1, 1],
+      style: {
+        'fill-color': 'rgba(255,255,255,0.4)',
+        'stroke-color': '#3399CC',
+        'stroke-width': 1.25,
+        'circle-radius': 5,
+        'circle-fill-color': 'rgba(255,255,255,0.4)',
+        'circle-stroke-width': 1.25,
+        'circle-stroke-color': '#3399CC'
+      }
+    };
     const layerStyle = { ...defaultStyle };
 
+    // I think i want to loop over the filters and build one object per filter
+    if (layer.filters) {
+      // need to build fancy filter expr from all ours
+      const filterExpr: any[] = [layer.filters.logicalOp];
+
+      layer.filters.appliedFilters.forEach(filter => {
+        filterExpr.push([
+          filter.operator,
+          ['get', filter.feature],
+          filter.value
+        ]);
+      });
+
+      layerStyle.filter = filterExpr;
+    }
+
+    if (!layerParams.color) {
+      return [defaultStyle];
+    }
+
     if (layerParams.type === 'fill') {
-      layerStyle['fill-color'] = layerParams.color;
+      layerStyle.style['fill-color'] = layerParams.color;
     }
 
     if (layerParams.type === 'line') {
-      layerStyle['stroke-color'] = layerParams.color;
+      layerStyle.style['stroke-color'] = layerParams.color;
     }
 
     if (layerParams.type === 'circle') {
-      layerStyle['circle-fill-color'] = layerParams.color;
+      layerStyle.style['circle-fill-color'] = layerParams.color;
     }
 
-    return layerStyle;
+    console.log('layerStyle', layerStyle);
+
+    return [layerStyle];
   };
 
   vectorLayerFilterStyleFunc = (
     currentFeature: FeatureLike,
+    id: string,
     layer: IJGISLayer
   ) => {
     const layerParameters = layer.parameters as IVectorLayer;
@@ -670,6 +697,43 @@ export class MainView extends React.Component<IProps, IStates> {
     //   'circle-stroke-width': 1.25,
     //   'circle-stroke-color': '#3399CC'
     // };
+
+    // const defaultStyle = {
+    //   // This is not hacky, this is peak programming right here
+    //   filter: ['==', 1, 1],
+    //   style: {
+    //     'fill-color': 'rgba(255,255,255,0.4)',
+    //     'stroke-color': '#3399CC',
+    //     'stroke-width': 1.25,
+    //     'circle-radius': 5,
+    //     'circle-fill-color': 'rgba(255,255,255,0.4)',
+    //     'circle-stroke-width': 1.25,
+    //     'circle-stroke-color': '#3399CC'
+    //   }
+    // };
+    // const layerStyle = { ...defaultStyle };
+
+    // if (!layerParameters.color) {
+    //   return [defaultStyle];
+    // }
+
+    // if (layerParameters.type === 'fill') {
+    //   layerStyle.style['fill-color'] = layerParameters.color;
+    // }
+
+    // if (layerParameters.type === 'line') {
+    //   layerStyle.style['stroke-color'] = layerParameters.color;
+    // }
+
+    // if (layerParameters.type === 'circle') {
+    //   layerStyle.style['circle-fill-color'] = layerParameters.color;
+    // }
+
+    // const ml = this.getLayer(id);
+    // const resolution = this._Map.getView().getResolution();
+    // if (!ml || !resolution) {
+    //   return;
+    // }
 
     // TODO: Need to make a version that works with strings as well
     const operators = {
@@ -731,6 +795,9 @@ export class MainView extends React.Component<IProps, IStates> {
           break;
         }
       }
+
+      // const s = flatStylesToStyleFunction([flatStyle]);
+      // const ss = s(currentFeature, resolution);
 
       if (shouldDisplayFeature) {
         return style;
@@ -862,19 +929,8 @@ export class MainView extends React.Component<IProps, IStates> {
         mapLayer.setOpacity(layerParams.opacity || 1);
 
         const ml = mapLayer as VectorLayer;
-        const s = ml.getStyle();
 
-        const flatStyle = {
-          'fill-color': 'rgba(255,255,255,0.4)',
-          'stroke-color': '#3399CC',
-          'stroke-width': 1.25,
-          'circle-radius': 5,
-          'circle-fill-color': layerParams.color,
-          'circle-stroke-width': 1.25,
-          'circle-stroke-color': '#3399CC'
-        };
-
-        ml.setStyle(this.vectorLayerStyleBuilder(layerParams));
+        ml.setStyle(this.vectorLayerStyleBuilder(layer));
         // (mapLayer as VectorLayer).setStyle(currentFeature =>
         //   this.vectorLayerFilterStyleFunc(currentFeature, layer)
         // );
@@ -887,7 +943,7 @@ export class MainView extends React.Component<IProps, IStates> {
         mapLayer.setOpacity(layerParams.opacity || 1);
 
         (mapLayer as VectorLayer).setStyle(currentFeature =>
-          this.vectorLayerFilterStyleFunc(currentFeature, layer)
+          this.vectorLayerFilterStyleFunc(currentFeature, id, layer)
         );
 
         break;
