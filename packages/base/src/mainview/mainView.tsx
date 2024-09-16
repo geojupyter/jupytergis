@@ -648,8 +648,8 @@ export class MainView extends React.Component<IProps, IStates> {
         layerParameters.type === 'fill' || layerParameters.type === 'circle'
           ? layerParameters.color
           : layerParameters.type === 'line'
-          ? 'rgba(0, 0, 0, 0)'
-          : '#F092DD'
+            ? 'rgba(0, 0, 0, 0)'
+            : '#F092DD'
     });
 
     const stroke = new Stroke({
