@@ -647,15 +647,30 @@ export class MainView extends React.Component<IProps, IStates> {
     // I think i want to loop over the filters and build one object per filter
     if (layer.filters) {
       // need to build fancy filter expr from all ours
-      const filterExpr: any[] = [layer.filters.logicalOp];
+      const filterExpr: any[] = [];
 
-      layer.filters.appliedFilters.forEach(filter => {
-        filterExpr.push([
-          filter.operator,
-          ['get', filter.feature],
-          filter.value
-        ]);
-      });
+      // 'Any' and 'All' operators require more than one argument
+      // So if there's only one filter, skip this part to avoid error
+      if (layer.filters.appliedFilters.length > 1) {
+        filterExpr.push(layer.filters.logicalOp);
+
+        // Arguments for "Any" and 'All' need to be wrapped in brackets
+        layer.filters.appliedFilters.forEach(filter => {
+          filterExpr.push([
+            filter.operator,
+            ['get', filter.feature],
+            filter.value
+          ]);
+        });
+      } else {
+        layer.filters.appliedFilters.forEach(filter => {
+          filterExpr.push(
+            filter.operator,
+            ['get', filter.feature],
+            filter.value
+          );
+        });
+      }
 
       layerStyle.filter = filterExpr;
     }
