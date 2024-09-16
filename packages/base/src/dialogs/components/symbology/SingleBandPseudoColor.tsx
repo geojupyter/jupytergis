@@ -6,14 +6,9 @@ import { Button } from '@jupyterlab/ui-components';
 import initGdalJs from 'gdal3.js';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { ISymbologyDialogProps } from '../../symbologyDialog';
+import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from './BandRow';
 import StopRow from './StopRow';
-
-export interface IStopRow {
-  value: number;
-  color: number[];
-}
 
 export interface IBandRow {
   band: number;
@@ -418,7 +413,6 @@ const SingleBandPseudoColor = ({
         >
           Add Stop
         </Button>
-        {/* <Button onClick={handleSubmit}>Submit</Button> */}
       </div>
     </div>
   );

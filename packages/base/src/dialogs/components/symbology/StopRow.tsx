@@ -2,7 +2,7 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
 import React from 'react';
-import { IStopRow } from './SingleBandPseudoColor';
+import { IStopRow } from '../../symbologyDialog';
 
 const StopRow = ({
   index,

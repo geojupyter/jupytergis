@@ -4,10 +4,10 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
-
 import React, { useEffect, useState } from 'react';
 import BandRendering from './components/symbology/BandRendering';
 import VectorRendering from './components/symbology/VectorRendering';
+
 export interface ISymbologyDialogProps {
   context: DocumentRegistry.IContext<IJupyterGISModel>;
   state: IStateDB;
@@ -19,6 +19,11 @@ export interface ISymbologyDialogProps {
 export interface ISymbologyWidgetOptions {
   context: DocumentRegistry.IContext<IJupyterGISModel>;
   state: IStateDB;
+}
+
+export interface IStopRow {
+  value: number;
+  color: number[];
 }
 
 const SymbologyDialog = ({
