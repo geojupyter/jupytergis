@@ -5,7 +5,8 @@ import {
   LeftPanelWidget,
   RightPanelWidget,
   addCommands,
-  createDefaultLayerRegistry
+  createDefaultLayerRegistry,
+  logoMiniIcon
 } from '@jupytergis/base';
 import {
   IJGISFormSchemaRegistry,
@@ -310,8 +311,7 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     });
     leftControlPanel.id = 'jupytergis::leftControlPanel';
     leftControlPanel.title.caption = 'JupyterGIS Control Panel';
-    // TODO Need an icon
-    // leftControlPanel.title.icon = jcLightIcon;
+    leftControlPanel.title.icon = logoMiniIcon;
 
     const rightControlPanel = new RightPanelWidget({
       model: controlModel,
@@ -320,8 +320,7 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     });
     rightControlPanel.id = 'jupytergis::rightControlPanel';
     rightControlPanel.title.caption = 'JupyterGIS Control Panel';
-    // TODO Need an icon
-    // rightControlPanel.title.icon = jcLightIcon;
+    rightControlPanel.title.icon = logoMiniIcon;
 
     if (restorer) {
       restorer.add(leftControlPanel, NAME_SPACE);
