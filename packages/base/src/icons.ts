@@ -9,6 +9,7 @@ import { LabIcon } from '@jupyterlab/ui-components';
 
 import logoSvgStr from '../style/icons/logo.svg';
 import logoMiniSvgStr from '../style/icons/logo_mini.svg';
+import logoMiniAlternativeSvgStr from '../style/icons/logo_mini_alternative.svg';
 import rasterSvgStr from '../style/icons/raster.svg';
 import visibilitySvgStr from '../style/icons/visibility.svg';
 import nonVisibilitySvgStr from '../style/icons/nonvisibility.svg';
@@ -23,6 +24,11 @@ export const logoIcon = new LabIcon({
 export const logoMiniIcon = new LabIcon({
   name: 'jupytergis::logoMini',
   svgstr: logoMiniSvgStr
+});
+
+export const logoMiniAlternativeIcon = new LabIcon({
+  name: 'jupytergis::logoMiniAlternative',
+  svgstr: logoMiniAlternativeSvgStr
 });
 
 export const rasterIcon = new LabIcon({
