@@ -19,12 +19,12 @@ def test_qgis_loader():
         options={
             "bearing": 0,
             "pitch": 0,
-            'extent': [
+            "extent": [
                 -25164292.70393259,
                 -15184674.291019961,
                 26220958.18294687,
-                20663680.478501424
-            ]
+                20663680.478501424,
+            ],
         },
         layers={
             "_02b1b4d5_316b_4f4d_9c38_16bf10a3bcb8": {
@@ -125,12 +125,12 @@ def test_qgis_saver():
         "options": {
             "bearing": 0,
             "pitch": 0,
-            'extent': [
+            "extent": [
                 -25164292.70393259,
                 -15184674.291019961,
                 26220958.18294687,
-                20663680.478501424
-            ]
+                20663680.478501424,
+            ],
         },
         "layers": {
             layer_ids[0]: {
@@ -154,10 +154,10 @@ def test_qgis_saver():
                 "parameters": {
                     "source": source_ids[2],
                     "sourceLayer": "bingmlbuildings",
-                    "type": "fill"
+                    "type": "fill",
                 },
                 "type": "VectorTileLayer",
-                "visible": True
+                "visible": True,
             },
             layer_ids[3]: {
                 "name": "OpenStreetMap3",
@@ -216,7 +216,7 @@ def test_qgis_saver():
                     "minZoom": 0,
                 },
             },
-        }
+        },
     }
 
     assert export_project_to_qgis(filename, jgis)

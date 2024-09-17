@@ -48,7 +48,7 @@ class GISDocument(CommWidget):
         extent: Optional[List[float]] = None,
         bearing: Optional[float] = None,
         pitch: Optional[float] = None,
-        projection: Optional[str] = None
+        projection: Optional[str] = None,
     ):
         comm_metadata = GISDocument._path_to_comm(path)
 
@@ -78,7 +78,7 @@ class GISDocument(CommWidget):
             if pitch is not None:
                 self._options["pitch"] = pitch
             if projection is not None:
-                self._options['projection'] = projection
+                self._options["projection"] = projection
 
     @property
     def layers(self) -> Dict:
@@ -146,12 +146,11 @@ class GISDocument(CommWidget):
         type: Literal["circle", "fill", "line"] = "line",
         color: str = "#FF0000",
         opacity: float = 1,
-        logical_op:str | None = None,
-        feature:str | None = None,
-        operator:str | None = None,
-        value:Union[str, float, float] | None = None
+        logical_op: str | None = None,
+        feature: str | None = None,
+        operator: str | None = None,
+        value: Union[str, float, float] | None = None,
     ):
-
         """
         Add a Vector Tile Layer to the document.
 
@@ -165,7 +164,7 @@ class GISDocument(CommWidget):
         if source_layer is None and len(source_layers) == 1:
             source_layer = source_layers[0]
         if source_layer not in source_layers:
-            raise ValueError(f'source_layer should be one of {source_layers}')
+            raise ValueError(f"source_layer should be one of {source_layers}")
 
         source = {
             "type": SourceType.VectorTileSource,
@@ -198,14 +197,10 @@ class GISDocument(CommWidget):
             },
             "filters": {
                 "appliedFilters": [
-                    {
-                        "feature": feature,
-                        "operator": operator,
-                        "value": value
-                    }
+                    {"feature": feature, "operator": operator, "value": value}
                 ],
-                "logicalOp": logical_op
-                }
+                "logicalOp": logical_op,
+            },
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
@@ -218,10 +213,10 @@ class GISDocument(CommWidget):
         type: "circle" | "fill" | "line" = "line",
         color: str = "#FF0000",
         opacity: float = 1,
-        logical_op:str | None = None,
-        feature:str | None = None,
-        operator:str | None = None,
-        value:Union[str, number, float] | None = None
+        logical_op: str | None = None,
+        feature: str | None = None,
+        operator: str | None = None,
+        value: Union[str, number, float] | None = None,
     ):
         """
         Add a GeoJSON Layer to the document.
@@ -268,16 +263,12 @@ class GISDocument(CommWidget):
                 "color": color,
                 "opacity": opacity,
             },
-             "filters": {
+            "filters": {
                 "appliedFilters": [
-                    {
-                        "feature": feature,
-                        "operator": operator,
-                        "value": value
-                    }
+                    {"feature": feature, "operator": operator, "value": value}
                 ],
-                "logicalOp": logical_op
-                }
+                "logicalOp": logical_op,
+            },
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
@@ -304,10 +295,7 @@ class GISDocument(CommWidget):
         source = {
             "type": SourceType.ImageSource,
             "name": f"{name} Source",
-            "parameters": {
-                "url": url,
-                "coordinates": coordinates
-            },
+            "parameters": {"url": url, "coordinates": coordinates},
         }
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
@@ -343,10 +331,7 @@ class GISDocument(CommWidget):
         source = {
             "type": SourceType.VideoSource,
             "name": f"{name} Source",
-            "parameters": {
-                "urls": urls,
-                "coordinates": coordinates
-            },
+            "parameters": {"urls": urls, "coordinates": coordinates},
         }
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
@@ -359,7 +344,7 @@ class GISDocument(CommWidget):
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
-    
+
     def add_tiff_layer(
         self,
         url: str,
@@ -370,7 +355,7 @@ class GISDocument(CommWidget):
         wrapX: bool = False,
         attribution: str = "",
         opacity: float = 1.0,
-        color_expr = None
+        color_expr=None,
     ):
         """
         Add a tiff layer
@@ -383,79 +368,93 @@ class GISDocument(CommWidget):
         :param bool wrapX: Render tiles beyond the tile grid extent, defaults to False
         :param float opacity: The opacity, between 0 and 1, defaults to 1.0
         :param _type_ color_expr: The style expression used to style the layer, defaults to None
-        """     
-        
+        """
+
         source = {
             "type": SourceType.GeoTiffSource,
             "name": f"{name} Source",
             "parameters": {
-                "urls": [{
-                    "url": url,
-                    "min": min,
-                    "max": max
-                    }],
+                "urls": [{"url": url, "min": min, "max": max}],
                 "normalize": normalize,
                 "wrapX": wrapX,
             },
         }
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
-            
+
         layer = {
             "type": LayerType.WebGlLayer,
             "name": name,
             "visible": True,
-            "parameters": {"source": source_id, "opacity": opacity, "color": color_expr},
+            "parameters": {
+                "source": source_id,
+                "opacity": opacity,
+                "color": color_expr,
+            },
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
-    
-    def create_color_expr(self, color_stops: Dict, band: float = 1.0, interpolation_type: str = 'linear', ):
+
+    def create_color_expr(
+        self,
+        color_stops: Dict,
+        band: float = 1.0,
+        interpolation_type: str = "linear",
+    ):
         """
         Create a color expression used to style the layer
 
         :param Dict color_stops: Dictionary of stop values to [r, g, b, a] colors
         :param float band: The band to be colored, defaults to 1.0
         :param str interpolation_type: The interpolation function. Can be linear, discrete, or exact, defaults to 'linear'
-        """        
-        
+        """
+
         if interpolation_type not in ["linear", "discrete", "exact"]:
-            raise ValueError("Interpolation type must be one of linear, discrete, or exact")
-        
+            raise ValueError(
+                "Interpolation type must be one of linear, discrete, or exact"
+            )
+
         color = []
-        if interpolation_type == 'linear':
-            color = ['interpolate',['linear']]
-            color.append(['band', band])
+        if interpolation_type == "linear":
+            color = ["interpolate", ["linear"]]
+            color.append(["band", band])
             # Transparency for nodata
             color.append(0.0)
             color.append([0.0, 0.0, 0.0, 0.0])
-            
+
             for value, colorVal in color_stops.items():
                 color.append(value)
                 color.append(colorVal)
-                
+
             return color
-        
-        if interpolation_type == 'discrete':
-            operator = '<='
-            
-        if interpolation_type == 'exact':
-            operator = '=='
-            
-        color = ['case']
+
+        if interpolation_type == "discrete":
+            operator = "<="
+
+        if interpolation_type == "exact":
+            operator = "=="
+
+        color = ["case"]
         # Transparency for nodata
         color.append(["==", ["band", band], 0.0])
         color.append([0.0, 0.0, 0.0, 0.0])
-        
+
         for value, colorVal in color_stops.items():
             color.append([operator, ["band", band], value])
             color.append(colorVal)
-            
+
         # Fallback color
         color.append([0.0, 0.0, 0.0, 1.0])
-        
-        return color        
-        
-    def add_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
+
+        return color
+
+    def add_filter(
+        self,
+        layer_id: str,
+        logical_op: str,
+        feature: str,
+        operator: str,
+        value: Union[str, number, float],
+    ):
         """
         Add a filter to a layer
 
@@ -472,30 +471,36 @@ class GISDocument(CommWidget):
             raise ValueError(f"No layer found with ID: {layer_id}")
 
         # Initialize filters if it doesn't exist
-        if 'filters' not in layer:
-            layer['filters'] = {
-                'appliedFilters': [
-                    {
-                        'feature': feature,
-                        'operator': operator,
-                        'value': value
-                    }
+        if "filters" not in layer:
+            layer["filters"] = {
+                "appliedFilters": [
+                    {"feature": feature, "operator": operator, "value": value}
                 ],
-                'logicalOp': logical_op}
+                "logicalOp": logical_op,
+            }
 
             self._layers[layer_id] = layer
             return
 
         # Add new filter
-        filters = layer['filters']
-        filters['appliedFilters'].append({'feature': feature, 'operator': operator, 'value': value})
+        filters = layer["filters"]
+        filters["appliedFilters"].append(
+            {"feature": feature, "operator": operator, "value": value}
+        )
 
         # update the logical operation
-        filters['logicalOp'] = logical_op
+        filters["logicalOp"] = logical_op
 
         self._layers[layer_id] = layer
 
-    def update_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
+    def update_filter(
+        self,
+        layer_id: str,
+        logical_op: str,
+        feature: str,
+        operator: str,
+        value: Union[str, number, float],
+    ):
         """
         Update a filter applied to a layer
 
@@ -511,20 +516,25 @@ class GISDocument(CommWidget):
         if layer is None:
             raise ValueError(f"No layer found with ID: {layer_id}")
 
-        if 'filters' not in layer:
+        if "filters" not in layer:
             raise ValueError(f"No filters applied to layer: {layer_id}")
 
         # Find the feature within the layer
-        feature = next((f for f in layer['filters']['appliedFilters'] if f['feature'] == feature), None)
+        feature = next(
+            (f for f in layer["filters"]["appliedFilters"] if f["feature"] == feature),
+            None,
+        )
         if feature is None:
-            raise ValueError(f"No feature found with ID: {feature} in layer: {layer_id}")
+            raise ValueError(
+                f"No feature found with ID: {feature} in layer: {layer_id}"
+            )
             return
 
         # Update the feature value
-        feature['value'] = value
+        feature["value"] = value
 
         # update the logical operation
-        layer['filters']['logicalOp'] = logical_op
+        layer["filters"]["logicalOp"] = logical_op
 
         self._layers[layer_id] = layer
 
@@ -540,10 +550,10 @@ class GISDocument(CommWidget):
         if layer is None:
             raise ValueError(f"No layer found with ID: {layer_id}")
 
-        if 'filters' not in layer:
+        if "filters" not in layer:
             raise ValueError(f"No filters applied to layer: {layer_id}")
 
-        layer['filters']['appliedFilters'] = []
+        layer["filters"]["appliedFilters"] = []
         self._layers[layer_id] = layer
 
     def _add_source(self, new_object: "JGISObject"):
@@ -602,7 +612,7 @@ class JGISLayer(BaseModel):
         IVectorTileLayer,
         IHillshadeLayer,
         IImageLayer,
-        IWebGlLayer
+        IWebGlLayer,
     ]
     _parent = Optional[GISDocument]
 
@@ -624,7 +634,7 @@ class JGISSource(BaseModel):
         IGeoJSONSource,
         IImageSource,
         IVideoSource,
-        IGeoTiffSource
+        IGeoTiffSource,
     ]
     _parent = Optional[GISDocument]
 
@@ -671,7 +681,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
                 visible=visible,
                 type=object_type,
                 parameters=obj_params,
-                filters=filters
+                filters=filters,
             )
 
         return None

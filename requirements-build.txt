@@ -6,3 +6,4 @@ pydantic==2.4.2
 pillow>=10
 mercantile>=1.2
 xyzservices>=2024.6.0
+ruff>=0.6
