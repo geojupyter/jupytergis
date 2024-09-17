@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 import Graduated from './Graduated';
+import SingleSymbol from './SingleSymbol';
 
 const VectorRendering = ({
   context,
@@ -21,6 +22,17 @@ const VectorRendering = ({
     }
 
     switch (selectedRenderType) {
+      case 'Single Symbol':
+        RenderComponent = (
+          <SingleSymbol
+            context={context}
+            state={state}
+            okSignalPromise={okSignalPromise}
+            cancel={cancel}
+            layerId={layerId}
+          />
+        );
+        break;
       case 'Graduated':
         RenderComponent = (
           <Graduated

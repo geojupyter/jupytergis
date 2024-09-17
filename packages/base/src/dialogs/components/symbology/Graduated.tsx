@@ -60,12 +60,21 @@ const Graduated = ({
 
         setFeatureProperties(featureProps);
         setSelectedValue(Object.keys(featureProps)[0]);
-        //   addFeatureValue(feature.properties, aggregatedProperties);
       });
     };
 
     getProperties();
     buildColorInfo();
+
+    okSignalPromise.promise.then(okSignal => {
+      okSignal.connect(handleOk, this);
+    });
+
+    return () => {
+      okSignalPromise.promise.then(okSignal => {
+        okSignal.disconnect(handleOk, this);
+      });
+    };
   }, []);
 
   useEffect(() => {
@@ -91,18 +100,32 @@ const Graduated = ({
     }
     const valueColorPairs: IStopRow[] = [];
 
+    let key;
+
+    if (layer.parameters.type === 'fill') {
+      key = 'fill-color';
+    }
+
+    if (layer.parameters.type === 'line') {
+      key = 'stroke-color';
+    }
+
+    if (layer.parameters.type === 'circle') {
+      key = 'circle-fill-color';
+    }
+
     // So if it's not a string then it's an array and we parse
     // Color[0] is the operator used for the color expression
-    switch (color[0]) {
+    switch (color[key][0]) {
       case 'interpolate': {
         // First element is interpolate for linear selection
         // Second element is type of interpolation (ie linear)
         // Third is input value that stop values are compared with
         // Fourth and on is value:color pairs
-        for (let i = 3; i < color.length; i += 2) {
+        for (let i = 3; i < color[key].length; i += 2) {
           const obj: IStopRow = {
-            value: color[i],
-            color: color[i + 1]
+            value: color[key][i],
+            color: color[key][i + 1]
           };
           valueColorPairs.push(obj);
         }
@@ -114,16 +137,6 @@ const Graduated = ({
   };
 
   const handleOk = () => {
-    // 'circle-fill-color': [
-    //   'interpolate',
-    //   ['linear'],
-    //   ['get', 'pop_max'],
-    //   1_000_000,
-    //   'hsl(210 100% 40% / 0.9)',
-    //   10_000_000,
-    //   'hsl(0 80% 60% / 0.9)',
-    // ],
-
     if (!layer.parameters) {
       return;
     }
@@ -139,15 +152,26 @@ const Graduated = ({
       colorExpr.push(stop.color);
     });
 
-    layer.parameters.color = colorExpr;
+    //TODO: handle all three types?
+    const newStyle = {};
+
+    if (layer.parameters.type === 'fill') {
+      newStyle['fill-color'] = colorExpr;
+    }
+
+    if (layer.parameters.type === 'line') {
+      newStyle['stroke-color'] = colorExpr;
+    }
+
+    if (layer.parameters.type === 'circle') {
+      newStyle['circle-fill-color'] = colorExpr;
+    }
+
+    layer.parameters.color = newStyle;
 
     context.model.sharedModel.updateLayer(layerId, layer);
     cancel();
   };
-
-  okSignalPromise.promise.then(okSignal => {
-    okSignal.connect(handleOk);
-  });
 
   const addStopRow = () => {
     setStopRows([

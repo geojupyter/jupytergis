@@ -642,16 +642,32 @@ export class MainView extends React.Component<IProps, IStates> {
         'circle-stroke-color': '#3399CC'
       }
     };
+
+    const df = {
+      'fill-color': 'rgba(255,255,255,0.4)',
+      'stroke-color': '#3399CC',
+      'stroke-width': 1.25,
+      'circle-radius': 5,
+      'circle-fill-color': 'rgba(255,255,255,0.4)',
+      'circle-stroke-width': 1.25,
+      'circle-stroke-color': '#3399CC'
+    };
     const layerStyle = { ...defaultStyle };
 
-    // I think i want to loop over the filters and build one object per filter
-    if (layer.filters) {
-      // need to build fancy filter expr from all ours
+    if (layer.filters && layer.filters.appliedFilters.length !== 0) {
       const filterExpr: any[] = [];
 
       // 'Any' and 'All' operators require more than one argument
-      // So if there's only one filter, skip this part to avoid error
-      if (layer.filters.appliedFilters.length > 1) {
+      // So if there's only one filter, skip that part to avoid error
+      if (layer.filters.appliedFilters.length === 1) {
+        layer.filters.appliedFilters.forEach(filter => {
+          filterExpr.push(
+            filter.operator,
+            ['get', filter.feature],
+            filter.value
+          );
+        });
+      } else {
         filterExpr.push(layer.filters.logicalOp);
 
         // Arguments for "Any" and 'All' need to be wrapped in brackets
@@ -662,36 +678,30 @@ export class MainView extends React.Component<IProps, IStates> {
             filter.value
           ]);
         });
-      } else {
-        layer.filters.appliedFilters.forEach(filter => {
-          filterExpr.push(
-            filter.operator,
-            ['get', filter.feature],
-            filter.value
-          );
-        });
       }
 
       layerStyle.filter = filterExpr;
     }
 
     if (!layerParams.color) {
-      return [defaultStyle];
+      return [layerStyle];
     }
 
-    if (layerParams.type === 'fill') {
-      layerStyle.style['fill-color'] = layerParams.color;
-    }
+    const ns = { ...df, ...layerParams.color };
 
-    if (layerParams.type === 'line') {
-      layerStyle.style['stroke-color'] = layerParams.color;
-    }
+    layerStyle.style = ns;
 
-    if (layerParams.type === 'circle') {
-      layerStyle.style['circle-fill-color'] = layerParams.color;
-    }
+    // if (layerParams.type === 'fill') {
+    //   layerStyle.style['fill-color'] = layerParams.color;
+    // }
 
-    console.log('layerStyle', layerStyle);
+    // if (layerParams.type === 'line') {
+    //   layerStyle.style['stroke-color'] = layerParams.color;
+    // }
+
+    // if (layerParams.type === 'circle') {
+    //   layerStyle.style['circle-fill-color'] = layerParams.color;
+    // }
 
     return [layerStyle];
   };
