@@ -404,8 +404,7 @@ class GISDocument(CommWidget):
             "type": LayerType.WebGlLayer,
             "name": name,
             "visible": True,
-            "parameters": {"source": source_id, "opacity": opacity, "color": color_expr}
-        ,
+            "parameters": {"source": source_id, "opacity": opacity, "color": color_expr},
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
@@ -421,7 +420,6 @@ class GISDocument(CommWidget):
         
         if interpolation_type not in ["linear", "discrete", "exact"]:
             raise ValueError("Interpolation type must be one of linear, discrete, or exact")
-            return
         
         color = []
         if interpolation_type == 'linear':
@@ -429,7 +427,7 @@ class GISDocument(CommWidget):
             color.append(['band', band])
             # Transparency for nodata
             color.append(0.0)
-            color.append([0.0,0.0,0.0,0.0])
+            color.append([0.0, 0.0, 0.0, 0.0])
             
             for value, colorVal in color_stops.items():
                 color.append(value)
