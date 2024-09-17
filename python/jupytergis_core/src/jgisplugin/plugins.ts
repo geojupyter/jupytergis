@@ -23,9 +23,8 @@ import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { fileIcon } from '@jupyterlab/ui-components';
 
-import { CommandIDs } from '@jupytergis/base';
+import { CommandIDs, logoIcon } from '@jupytergis/base';
 import { JupyterGISWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
 
@@ -102,7 +101,7 @@ const activate = (
   app.commands.addCommand(CommandIDs.createNew, {
     label: args => 'New JGIS File',
     caption: 'Create a new JGIS Editor',
-    icon: args => (args['isPalette'] ? undefined : fileIcon),
+    icon: args => logoIcon,
     execute: async args => {
       // Get the directory in which the JGIS file must be created;
       // otherwise take the current filebrowser directory

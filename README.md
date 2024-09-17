@@ -1,4 +1,6 @@
-# JupyterGIS - A JupyterLab extension for collaborative GIS.
+<p align="center"><img width="300" src="https://raw.githubusercontent.com/geojupyter/jupytergis/main/packages/base/style/icons/logo.svg"></p>
+<h1 align="center">JupyterGIS</h1>
+<h2 align="center">A JupyterLab extension for collaborative GIS</h1>
 
 ⚠️ This extension is work in progress. Features and APIs are subject to change quickly. ⚠️
 
