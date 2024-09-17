@@ -1,14 +1,12 @@
-import { WebSocketProvider } from '@jupyter/docprovider';
+import { ICollaborativeDrive } from '@jupyter/docprovider';
 import { JupyterGISPanel } from '@jupytergis/base';
-import { JupyterGISModel } from '@jupytergis/schema';
+import { JupyterGISModel, IJupyterGISDoc } from '@jupytergis/schema';
 
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { URLExt } from '@jupyterlab/coreutils';
-import { ServerConnection, User } from '@jupyterlab/services';
-import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+import { Contents } from '@jupyterlab/services';
 import { MessageLoop } from '@lumino/messaging';
 import { Panel, Widget } from '@lumino/widgets';
 import * as Y from 'yjs';
@@ -26,7 +24,6 @@ export interface ICommMetadata {
   ymodel_name: string;
 }
 
-const Y_DOCUMENT_PROVIDER_URL = 'api/collaboration/room';
 export const CLASS_NAME = 'jupytergis-notebook-widget';
 
 export class YJupyterGISModel extends JupyterYModel {
@@ -57,50 +54,35 @@ export class YJupyterGISLuminoWidget extends Panel {
 export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
-  optional: [IJupyterYWidgetManager, ITranslator],
+  optional: [IJupyterYWidgetManager, ICollaborativeDrive],
   activate: (
     app: JupyterFrontEnd,
     yWidgetManager?: IJupyterYWidgetManager,
-    translator?: ITranslator
+    drive?: ICollaborativeDrive
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
       return;
     }
-    const labTranslator = translator ?? nullTranslator;
+    if (!drive) {
+      console.error('Cannot setup JupyterGIS Python API without a collaborative drive');
+      return;
+    }
     class YJupyterGISModelFactory extends YJupyterGISModel {
       ydocFactory(commMetadata: ICommMetadata): Y.Doc {
         const { path, format, contentType } = commMetadata;
 
-        this.jupyterGISModel = new JupyterGISModel({});
-        const user = app.serviceManager.user;
-        if (path && format && contentType) {
-          const server = ServerConnection.makeSettings();
-          const serverUrl = URLExt.join(server.wsUrl, Y_DOCUMENT_PROVIDER_URL);
-          const ywsProvider = new WebSocketProvider({
-            url: serverUrl,
-            path,
-            format,
-            contentType,
-            model: this.jupyterGISModel.sharedModel,
-            user,
-            translator: labTranslator.load('jupyterlab')
-          });
-          this.jupyterGISModel.disposed.connect(() => {
-            ywsProvider.dispose();
-          });
-        } else {
-          const awareness = this.jupyterGISModel.sharedModel.awareness;
-          const _onUserChanged = (user: User.IManager) => {
-            awareness.setLocalStateField('user', user.identity);
-          };
-          user.ready
-            .then(() => {
-              _onUserChanged(user);
-            })
-            .catch(e => console.error(e));
-          user.userChanged.connect(_onUserChanged, this);
-        }
+        const fileFormat = format as Contents.FileFormat;
+
+        const sharedModel = drive!.sharedModelFactory.createNew({
+          path,
+          format: fileFormat,
+          contentType,
+          collaborative: true
+        })!;
+        this.jupyterGISModel = new JupyterGISModel({
+          sharedModel: sharedModel as IJupyterGISDoc
+        });
 
         return this.jupyterGISModel.sharedModel.ydoc;
       }
