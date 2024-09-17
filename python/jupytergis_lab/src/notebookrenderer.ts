@@ -65,7 +65,9 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
       return;
     }
     if (!drive) {
-      console.error('Cannot setup JupyterGIS Python API without a collaborative drive');
+      console.error(
+        'Cannot setup JupyterGIS Python API without a collaborative drive'
+      );
       return;
     }
     class YJupyterGISModelFactory extends YJupyterGISModel {
