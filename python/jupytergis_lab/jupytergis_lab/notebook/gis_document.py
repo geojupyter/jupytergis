@@ -4,30 +4,29 @@ import json
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
+from uuid import uuid4
 
 from pycrdt import Array, Doc, Map
 from pydantic import BaseModel
 from ypywidgets.comm import CommWidget
 
-from uuid import uuid4
-
-from .utils import normalize_path, get_source_layer_names
-
 from .objects import (
-    LayerType,
-    SourceType,
+    IGeoJSONSource,
     IHillshadeLayer,
     IImageLayer,
+    IImageSource,
     IRasterLayer,
     IRasterSource,
-    IVectorTileSource,
     IVectorLayer,
     IVectorTileLayer,
-    IGeoJSONSource,
-    IImageSource,
+    IVectorTileSource,
     IVideoSource,
-    IWebGlLayer
+    IGeoTiffSource,
+    IWebGlLayer,
+    LayerType,
+    SourceType,
 )
+from .utils import get_source_layer_names, normalize_path
 
 logger = logging.getLogger(__file__)
 
@@ -360,7 +359,102 @@ class GISDocument(CommWidget):
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+    
+    def add_tiff_layer(
+        self,
+        url: str,
+        min: int = None,
+        max: int = None,
+        name: str = "Tiff Layer",
+        normalize: bool = True,
+        wrapX: bool = False,
+        attribution: str = "",
+        opacity: float = 1.0,
+        color_expr = None
+    ):
+        """
+        Add a tiff layer
 
+        :param str url: URL of the tif
+        :param int min: Minimum pixel value to be displayed, defaults to letting the map display set the value
+        :param int max: Maximum pixel value to be displayed, defaults to letting the map display set the value
+        :param str name: The name that will be used for the object in the document, defaults to "Tiff Layer"
+        :param bool normalize: Select whether to normalize values between 0..1, if false than min/max have no effect, defaults to True
+        :param bool wrapX: Render tiles beyond the tile grid extent, defaults to False
+        :param float opacity: The opacity, between 0 and 1, defaults to 1.0
+        :param _type_ color_expr: The style expression used to style the layer, defaults to None
+        """     
+        
+        source = {
+            "type": SourceType.GeoTiffSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "urls": [{
+                    "url": url,
+                    "min": min,
+                    "max": max
+                    }],
+                "normalize": normalize,
+                "wrapX": wrapX,
+            },
+        }
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+            
+        layer = {
+            "type": LayerType.WebGlLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {"source": source_id, "opacity": opacity, "color": color_expr},
+        }
+
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+    
+    def create_color_expr(self, color_stops: Dict, band: float = 1.0, interpolation_type: str = 'linear', ):
+        """
+        Create a color expression used to style the layer
+
+        :param Dict color_stops: Dictionary of stop values to [r, g, b, a] colors
+        :param float band: The band to be colored, defaults to 1.0
+        :param str interpolation_type: The interpolation function. Can be linear, discrete, or exact, defaults to 'linear'
+        """        
+        
+        if interpolation_type not in ["linear", "discrete", "exact"]:
+            raise ValueError("Interpolation type must be one of linear, discrete, or exact")
+        
+        color = []
+        if interpolation_type == 'linear':
+            color = ['interpolate',['linear']]
+            color.append(['band', band])
+            # Transparency for nodata
+            color.append(0.0)
+            color.append([0.0, 0.0, 0.0, 0.0])
+            
+            for value, colorVal in color_stops.items():
+                color.append(value)
+                color.append(colorVal)
+                
+            return color
+        
+        if interpolation_type == 'discrete':
+            operator = '<='
+            
+        if interpolation_type == 'exact':
+            operator = '=='
+            
+        color = ['case']
+        # Transparency for nodata
+        color.append(["==", ["band", band], 0.0])
+        color.append([0.0, 0.0, 0.0, 0.0])
+        
+        for value, colorVal in color_stops.items():
+            color.append([operator, ["band", band], value])
+            color.append(colorVal)
+            
+        # Fallback color
+        color.append([0.0, 0.0, 0.0, 1.0])
+        
+        return color        
+        
     def add_filter(self, layer_id: str, logical_op:str, feature:str, operator:str, value:Union[str, number, float]):
         """
         Add a filter to a layer
@@ -529,7 +623,8 @@ class JGISSource(BaseModel):
         IVectorTileSource,
         IGeoJSONSource,
         IImageSource,
-        IVideoSource
+        IVideoSource,
+        IGeoTiffSource
     ]
     _parent = Optional[GISDocument]
 
@@ -614,3 +709,4 @@ OBJECT_FACTORY.register_factory(SourceType.RasterSource, IRasterSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoJSONSource, IGeoJSONSource)
 OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)
 OBJECT_FACTORY.register_factory(SourceType.VideoSource, IVideoSource)
+OBJECT_FACTORY.register_factory(SourceType.GeoTiffSource, IGeoTiffSource)

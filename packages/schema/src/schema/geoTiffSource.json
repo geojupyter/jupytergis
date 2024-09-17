@@ -22,7 +22,6 @@
         }
       },
       "minItems": 1,
-      "default": [],
       "description": "URLs"
     },
     "normalize": {

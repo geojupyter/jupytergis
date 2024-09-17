@@ -83,6 +83,7 @@ const SingleBandPseudoColor = ({
 
   const setInitialFunction = () => {
     if (!layer.parameters?.color) {
+      setSelectedFunction('linear');
       return;
     }
 
@@ -131,6 +132,8 @@ const SingleBandPseudoColor = ({
       const tifDataset = result.datasets[0];
       tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
       Gdal.close(tifDataset);
+
+      state.save(layerId, JSON.stringify(tifData));
     }
 
     tifData['bands'].forEach((bandData: TifBandData) => {
@@ -147,9 +150,6 @@ const SingleBandPseudoColor = ({
       });
     });
     setBandRows(bandsArr);
-
-    console.log('tifData', tifData);
-    console.log('bandsArr', bandsArr);
   };
 
   const buildColorInfo = () => {
@@ -269,7 +269,7 @@ const SingleBandPseudoColor = ({
         });
 
         // fallback value
-        colorExpr.push([0, 0, 0]);
+        colorExpr.push([0, 0, 0, 1.0]);
         break;
       }
       case 'exact': {
@@ -289,7 +289,7 @@ const SingleBandPseudoColor = ({
         });
 
         // fallback value
-        colorExpr.push([0, 0, 0]);
+        colorExpr.push([0, 0, 0, 1.0]);
         break;
       }
     }

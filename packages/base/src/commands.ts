@@ -11,6 +11,7 @@ import {
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
+import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandIDs, icons } from './constants';
@@ -19,7 +20,6 @@ import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbologyDialog';
 import { TerrainDialogWidget } from './dialogs/terrainDialog';
 import { JupyterGISWidget } from './widget';
-import { ICompletionProviderManager } from '@jupyterlab/completer';
 
 interface ICreateEntry {
   tracker: WidgetTracker<JupyterGISWidget>;
@@ -300,16 +300,7 @@ export function addCommands(
       createSource: true,
       sourceData: {
         name: 'Custom GeoTiff Source',
-        urls: [
-          {
-            url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B04.tif',
-            max: 10000
-          },
-          {
-            url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/21/H/UB/2021/9/S2B_21HUB_20210915_0_L2A/B08.tif',
-            max: 10000
-          }
-        ]
+        urls: ['']
       },
       layerData: { name: 'Custom GeoTiff Layer' },
       sourceType: 'GeoTiffSource',
