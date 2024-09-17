@@ -22,8 +22,8 @@ export interface ISymbologyWidgetOptions {
 }
 
 export interface IStopRow {
-  value: number;
-  color: number[];
+  stop: number;
+  output: number | number[];
 }
 
 const SymbologyDialog = ({

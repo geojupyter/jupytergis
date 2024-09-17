@@ -184,30 +184,30 @@ const SingleSymbol = ({
             ))}
           </select>
         </div>
-        {useCircleStuff ? (
-          <div className="jp-gis-symbology-row">
-            <label htmlFor={'vector-cap-select'}>Cap Style:</label>
-            <div className="jp-select-wrapper">
-              <select
-                name={'vector-cap-select'}
-                onChange={event => setCapStyle(event.target.value)}
-                className="jp-mod-styled"
-              >
-                {capStyleOptions.map((cap, index) => (
-                  <option
-                    key={index}
-                    value={cap}
-                    selected={cap === capStyle}
-                    className="jp-mod-styled"
-                  >
-                    {cap}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        ) : null}
       </div>
+      {useCircleStuff ? (
+        <div className="jp-gis-symbology-row">
+          <label htmlFor={'vector-cap-select'}>Cap Style:</label>
+          <div className="jp-select-wrapper">
+            <select
+              name={'vector-cap-select'}
+              onChange={event => setCapStyle(event.target.value)}
+              className="jp-mod-styled"
+            >
+              {capStyleOptions.map((cap, index) => (
+                <option
+                  key={index}
+                  value={cap}
+                  selected={cap === capStyle}
+                  className="jp-mod-styled"
+                >
+                  {cap}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

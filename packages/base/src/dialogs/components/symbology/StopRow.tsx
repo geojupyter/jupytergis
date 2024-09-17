@@ -10,16 +10,22 @@ const StopRow = ({
   outputValue,
   stopRows,
   setStopRows,
-  deleteRow
+  deleteRow,
+  isSize
 }: {
   index: number;
   value: number;
-  outputValue: number[];
+  outputValue: number | number[];
   stopRows: IStopRow[];
   setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
+  isSize?: boolean;
 }) => {
-  const rgbArrToHex = (rgbArr: number[]) => {
+  const rgbArrToHex = (rgbArr: number | number[]) => {
+    if (!Array.isArray(rgbArr)) {
+      return;
+    }
+
     const hex = rgbArr
       .slice(0, -1) // Color input doesn't support hex alpha values so cut that out
       .map((val: { toString: (arg0: number) => string }) => {
@@ -47,19 +53,19 @@ const StopRow = ({
     return rgbValues;
   };
 
-  const handleValueChange = (event: { target: { value: string | number } }) => {
+  const handleStopChange = (event: { target: { value: string | number } }) => {
     const newRows = [...stopRows];
-    newRows[index].value = +event.target.value;
+    newRows[index].stop = +event.target.value;
     setStopRows(newRows);
   };
 
   const handleBlur = () => {
     const newRows = [...stopRows];
     newRows.sort((a, b) => {
-      if (a.value < b.value) {
+      if (a.stop < b.stop) {
         return -1;
       }
-      if (a.value > b.value) {
+      if (a.stop > b.stop) {
         return 1;
       }
       return 0;
@@ -67,9 +73,11 @@ const StopRow = ({
     setStopRows(newRows);
   };
 
-  const handleColorChange = (event: { target: { value: any } }) => {
+  const handleOutputChange = (event: { target: { value: any } }) => {
     const newRows = [...stopRows];
-    newRows[index].color = hexToRgb(event.target.value);
+    isSize
+      ? (newRows[index].output = +event.target.value)
+      : (newRows[index].output = hexToRgb(event.target.value));
     setStopRows(newRows);
   };
 
@@ -79,18 +87,27 @@ const StopRow = ({
         id={`jp-gis-color-value-${index}`}
         type="number"
         value={value}
-        onChange={handleValueChange}
+        onChange={handleStopChange}
         onBlur={handleBlur}
         className="jp-mod-styled"
       />
 
-      <input
-        id={`jp-gis-color-color-${index}`}
-        value={rgbArrToHex(outputValue)}
-        type="color"
-        onChange={handleColorChange}
-        className="jp-mod-styled"
-      />
+      {isSize ? (
+        <input
+          type="number"
+          value={outputValue as number}
+          onChange={handleOutputChange}
+          className="jp-mod-styled"
+        />
+      ) : (
+        <input
+          id={`jp-gis-color-color-${index}`}
+          value={rgbArrToHex(outputValue)}
+          type="color"
+          onChange={handleOutputChange}
+          className="jp-mod-styled"
+        />
+      )}
 
       <Button
         id={`jp-gis-remove-color-${index}`}

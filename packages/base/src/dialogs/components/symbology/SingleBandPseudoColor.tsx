@@ -175,8 +175,8 @@ const SingleBandPseudoColor = ({
         // Sixth and on is value:color pairs
         for (let i = 5; i < color.length; i += 2) {
           const obj: IStopRow = {
-            value: scaleValue(color[i]),
-            color: color[i + 1]
+            stop: scaleValue(color[i]),
+            output: color[i + 1]
           };
           valueColorPairs.push(obj);
         }
@@ -192,8 +192,8 @@ const SingleBandPseudoColor = ({
         // Last element is fallback value
         for (let i = 3; i < color.length - 1; i += 2) {
           const obj: IStopRow = {
-            value: scaleValue(color[i][2]),
-            color: color[i + 1]
+            stop: scaleValue(color[i][2]),
+            output: color[i + 1]
           };
           valueColorPairs.push(obj);
         }
@@ -243,8 +243,8 @@ const SingleBandPseudoColor = ({
         colorExpr.push(0.0, [0.0, 0.0, 0.0, 0.0]);
 
         stopRowsRef.current?.map(stop => {
-          colorExpr.push(unscaleValue(stop.value));
-          colorExpr.push(stop.color);
+          colorExpr.push(unscaleValue(stop.stop));
+          colorExpr.push(stop.output);
         });
 
         break;
@@ -261,9 +261,9 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '<=',
             ['band', selectedBand],
-            unscaleValue(stop.value)
+            unscaleValue(stop.stop)
           ]);
-          colorExpr.push(stop.color);
+          colorExpr.push(stop.output);
         });
 
         // fallback value
@@ -281,9 +281,9 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '==',
             ['band', selectedBand],
-            unscaleValue(stop.value)
+            unscaleValue(stop.stop)
           ]);
-          colorExpr.push(stop.color);
+          colorExpr.push(stop.output);
         });
 
         // fallback value
@@ -304,8 +304,8 @@ const SingleBandPseudoColor = ({
   const addStopRow = () => {
     setStopRows([
       {
-        value: 0,
-        color: [0, 0, 0, 1]
+        stop: 0,
+        output: [0, 0, 0, 1]
       },
       ...stopRows
     ]);
@@ -396,10 +396,10 @@ const SingleBandPseudoColor = ({
         </div>
         {stopRows.map((stop, index) => (
           <StopRow
-            key={`${index}-${stop.color}`}
+            key={`${index}-${stop.output}`}
             index={index}
-            value={stop.value}
-            outputValue={stop.color}
+            value={stop.stop}
+            outputValue={stop.output}
             stopRows={stopRows}
             setStopRows={setStopRows}
             deleteRow={() => deleteStopRow(index)}

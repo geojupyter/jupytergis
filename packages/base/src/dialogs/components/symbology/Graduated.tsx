@@ -13,6 +13,7 @@ const Graduated = ({
   layerId
 }: ISymbologyDialogProps) => {
   const selectedValueRef = useRef<string>();
+  const selectedMethodRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
 
   const [selectedValue, setSelectedValue] = useState('');
@@ -80,11 +81,12 @@ const Graduated = ({
   useEffect(() => {
     console.log('selectedValue', selectedValue);
     selectedValueRef.current = selectedValue;
-  }, [selectedValue]);
-
-  useEffect(() => {
+    selectedMethodRef.current = selectedMethod;
     stopRowsRef.current = stopRows;
-  }, [stopRows]);
+  }, [selectedValue, selectedMethod, stopRows]);
+
+  // useEffect(() => {
+  // }, [stopRows]);
 
   const buildColorInfo = () => {
     // This it to parse a color object on the layer
@@ -98,34 +100,25 @@ const Graduated = ({
     if (typeof color === 'string') {
       return;
     }
+
+    if (!color['circle-fill-color']) {
+      return;
+    }
+
     const valueColorPairs: IStopRow[] = [];
-
-    let key;
-
-    if (layer.parameters.type === 'fill') {
-      key = 'fill-color';
-    }
-
-    if (layer.parameters.type === 'line') {
-      key = 'stroke-color';
-    }
-
-    if (layer.parameters.type === 'circle') {
-      key = 'circle-fill-color';
-    }
 
     // So if it's not a string then it's an array and we parse
     // Color[0] is the operator used for the color expression
-    switch (color[key][0]) {
+    switch (color['circle-fill-color'][0]) {
       case 'interpolate': {
         // First element is interpolate for linear selection
         // Second element is type of interpolation (ie linear)
         // Third is input value that stop values are compared with
         // Fourth and on is value:color pairs
-        for (let i = 3; i < color[key].length; i += 2) {
+        for (let i = 3; i < color['circle-fill-color'].length; i += 2) {
           const obj: IStopRow = {
-            value: color[key][i],
-            color: color[key][i + 1]
+            stop: color['circle-fill-color'][i],
+            output: color['circle-fill-color'][i + 1]
           };
           valueColorPairs.push(obj);
         }
@@ -148,23 +141,32 @@ const Graduated = ({
     colorExpr.push(['get', selectedValueRef.current]);
 
     stopRowsRef.current?.map(stop => {
-      colorExpr.push(stop.value);
-      colorExpr.push(stop.color);
+      colorExpr.push(stop.stop);
+      colorExpr.push(stop.output);
     });
 
-    //TODO: handle all three types?
-    const newStyle = {};
+    const newStyle = { ...layer.parameters.color };
 
-    if (layer.parameters.type === 'fill') {
-      newStyle['fill-color'] = colorExpr;
+    if (selectedMethodRef.current === 'color') {
+      if (layer.parameters.type === 'fill') {
+        newStyle['fill-color'] = colorExpr;
+      }
+
+      if (layer.parameters.type === 'line') {
+        newStyle['stroke-color'] = colorExpr;
+      }
+
+      if (layer.parameters.type === 'circle') {
+        // delete newStyle['circle-radius'];
+        newStyle['circle-fill-color'] = colorExpr;
+      }
     }
 
-    if (layer.parameters.type === 'line') {
-      newStyle['stroke-color'] = colorExpr;
-    }
-
-    if (layer.parameters.type === 'circle') {
-      newStyle['circle-fill-color'] = colorExpr;
+    if (selectedMethodRef.current === 'size') {
+      if (layer.parameters.type === 'circle') {
+        // delete newStyle['circle-fill-color'];
+        newStyle['circle-radius'] = colorExpr;
+      }
     }
 
     layer.parameters.color = newStyle;
@@ -176,8 +178,8 @@ const Graduated = ({
   const addStopRow = () => {
     setStopRows([
       {
-        value: 0,
-        color: [0, 0, 0, 1]
+        stop: 0,
+        output: [0, 0, 0, 1]
       },
       ...stopRows
     ]);
@@ -242,13 +244,14 @@ const Graduated = ({
         </div>
         {stopRows.map((stop, index) => (
           <StopRow
-            key={`${index}-${stop.color}`}
+            key={`${index}-${stop.output}`}
             index={index}
-            value={stop.value}
-            outputValue={stop.color}
+            value={stop.stop}
+            outputValue={stop.output}
             stopRows={stopRows}
             setStopRows={setStopRows}
             deleteRow={() => deleteStopRow(index)}
+            isSize={selectedMethod === 'size' ? true : false}
           />
         ))}
       </div>
