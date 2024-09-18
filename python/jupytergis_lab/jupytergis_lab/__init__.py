@@ -7,8 +7,12 @@ except ImportError:
     import warnings
     __version__ = "dev"
 
-from .notebook import GISDocument  # noqa
+import sys
 
+if sys.platform == "emscripten":
+    raise ImportError("Cannot use the JupyterGIS Python API in a JupyterLite kernel yet")
+
+from .notebook import GISDocument  # noqa
 
 def _jupyter_labextension_paths():
     return [{"src": "labextension", "dest": "@jupytergis/jupytergis-lab"}]
