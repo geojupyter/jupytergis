@@ -2,6 +2,34 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.1.2
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.1.1...2d2366ef0d447e418d6181ac24186a79a6ceeef2))
+
+### Enhancements made
+
+- Add icons [#144](https://github.com/geojupyter/jupytergis/pull/144) ([@martinRenou](https://github.com/martinRenou))
+- Add handling for line type in vector layer [#143](https://github.com/geojupyter/jupytergis/pull/143) ([@arjxn-py](https://github.com/arjxn-py))
+- Tif layer notebook API [#139](https://github.com/geojupyter/jupytergis/pull/139) ([@gjmooney](https://github.com/gjmooney))
+
+### Bugs fixed
+
+- Add the scale back [#142](https://github.com/geojupyter/jupytergis/pull/142) ([@arjxn-py](https://github.com/arjxn-py))
+- Add back ShapeFile Support [#141](https://github.com/geojupyter/jupytergis/pull/141) ([@arjxn-py](https://github.com/arjxn-py))
+- Fix jupyterlite issue [#138](https://github.com/geojupyter/jupytergis/pull/138) ([@trungleduc](https://github.com/trungleduc))
+
+### Maintenance and upkeep improvements
+
+- Notebook renderer: Use SharedModelFactory to create shared model [#145](https://github.com/geojupyter/jupytergis/pull/145) ([@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-09-13&to=2024-09-18&type=c))
+
+[@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2024-09-13..2024-09-18&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-09-13..2024-09-18&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2024-09-13..2024-09-18&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-09-13..2024-09-18&type=Issues) | [@trungleduc](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Atrungleduc+updated%3A2024-09-13..2024-09-18&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.1.1
 
 **Although the version number can be misleading, this is the very first of many JupyterGIS releases 📡 🌍**
@@ -121,5 +149,3 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-06-11&to=2024-09-13&type=c))
 
 [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2024-06-11..2024-09-13&type=Issues) | [@brichet](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2024-06-11..2024-09-13&type=Issues) | [@davidbrochart](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adavidbrochart+updated%3A2024-06-11..2024-09-13&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-06-11..2024-09-13&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2024-06-11..2024-09-13&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-06-11..2024-09-13&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
