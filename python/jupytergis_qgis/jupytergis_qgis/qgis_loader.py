@@ -284,7 +284,7 @@ def jgis_layer_to_qgis(
     settings: QgsSettings,
 ) -> QgsMapLayer | None:
     def build_uri(parameters: dict[str, str], source_type: str) -> str | None:
-        layer_config = dict()
+        layer_config = {}
         zmax = parameters.get("maxZoom", None)
         zmin = parameters.get("minZoom", 0)
 

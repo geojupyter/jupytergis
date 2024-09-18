@@ -218,7 +218,6 @@ jobs:
             python=3.9
             jupyterlab=4
             yarn=3
-            ruff
 
       - name: Lint
         shell: bash -l {0}
@@ -226,7 +225,6 @@ jobs:
           jlpm install
           jlpm run eslint:check
           jlpm run prettier:check
-          ruff check --output-format=github .
 
   check_links:
     name: Check Links
