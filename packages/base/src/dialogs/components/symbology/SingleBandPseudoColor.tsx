@@ -1,6 +1,7 @@
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict } from '@jupytergis/schema';
+import { PageConfig } from '@jupyterlab/coreutils';
 import { Button } from '@jupyterlab/ui-components';
 import initGdalJs from 'gdal3.js';
 import { ExpressionValue } from 'ol/expr/expression';
@@ -115,13 +116,15 @@ const SingleBandPseudoColor = ({
 
     let tifData;
 
+    const baseUrl = PageConfig.getBaseUrl();
+
     const tifDataState = (await state.fetch(layerId)) as string;
     if (tifDataState) {
       tifData = JSON.parse(tifDataState);
     } else {
       //! This takes so long, maybe do when adding source instead
       const Gdal = await initGdalJs({
-        path: 'lab/extensions/@jupytergis/jupytergis-core/static',
+        path: baseUrl + '/extensions/@jupytergis/jupytergis-core/static',
         useWorker: false
       });
 
