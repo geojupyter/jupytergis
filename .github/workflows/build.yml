@@ -237,7 +237,7 @@ jobs:
 
   build-lite:
     name: Build JupyterLite
-    needs: integration-tests
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
