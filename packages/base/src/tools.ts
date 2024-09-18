@@ -294,3 +294,46 @@ export async function getSourceLayerNames(
 
   return layerNames;
 }
+
+export interface IParsedStyle {
+  fillColor: string;
+  strokeColor: string;
+  strokeWidth: number;
+  joinStyle: string;
+  capStyle?: string;
+  radius?: number;
+}
+
+export function parseColor(type: string, style: any) {
+  const type2 = type === 'circle' ? 'circle' : 'default';
+
+  const shapeStyles: any = {
+    circle: {
+      radius: style['circle-radius'] ?? 5,
+      fillColor: style['circle-fill-color'] ?? '#3399CC',
+      strokeColor: style['circle-stroke-color'] ?? '#3399CC',
+      strokeWidth: style['circle-stroke-width'] ?? 1.25,
+      joinStyle: style['circle-stroke-line-join'] ?? 'round',
+      capStyle: style['circle-stroke-line-cap'] ?? 'round'
+    },
+    default: {
+      fillColor: style['fill-color'] ?? '[255, 255, 255, 0.4]',
+      strokeColor: style['stroke-color'] ?? '#3399CC',
+      strokeWidth: style['stroke-width'] ?? 1.25,
+      joinStyle: style['stroke-line-join'] ?? 'round'
+    }
+  };
+
+  const parsedStyle: IParsedStyle = shapeStyles[type2];
+
+  Object.assign(parsedStyle, {
+    radius: parsedStyle.radius,
+    fillColor: parsedStyle.fillColor,
+    strokeColor: parsedStyle.strokeColor,
+    strokeWidth: parsedStyle.strokeWidth,
+    joinStyle: parsedStyle.joinStyle,
+    capStyle: parsedStyle.capStyle
+  });
+
+  return parsedStyle;
+}
