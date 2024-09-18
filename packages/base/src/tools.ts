@@ -300,11 +300,15 @@ export interface IParsedStyle {
   strokeColor: string;
   strokeWidth: number;
   joinStyle: string;
-  capStyle?: string;
+  capStyle: string;
   radius?: number;
 }
 
 export function parseColor(type: string, style: any) {
+  if (!type || !style) {
+    return;
+  }
+
   const type2 = type === 'circle' ? 'circle' : 'default';
 
   const shapeStyles: any = {
@@ -320,6 +324,7 @@ export function parseColor(type: string, style: any) {
       fillColor: style['fill-color'] ?? '[255, 255, 255, 0.4]',
       strokeColor: style['stroke-color'] ?? '#3399CC',
       strokeWidth: style['stroke-width'] ?? 1.25,
+      capStyle: style['stroke-line-cap'] ?? 'round',
       joinStyle: style['stroke-line-join'] ?? 'round'
     }
   };

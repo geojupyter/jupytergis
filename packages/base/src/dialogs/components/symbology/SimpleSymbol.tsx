@@ -1,47 +1,26 @@
+import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useRef, useState } from 'react';
 import { IParsedStyle, parseColor } from '../../../tools';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 
-// interface IParsedStyle {
-//   fillColor: string;
-//   stokeColor: string;
-//   strokeWidth: number;
-//   joinStyle: string;
-//   capStyle?: string;
-//   radius?: number;
-// }
-
-// type IParsedStyle = ReturnType<typeof parseColor>;
-const SingleSymbol = ({
+const SimpleSymbol = ({
   context,
   state,
   okSignalPromise,
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
-  // const radiusRef = useRef<number>();
-  // const fillColorRef = useRef<string>();
-  // const strokeColorRef = useRef<string>();
-  // const strokeWidthRef = useRef<number>();
-  // const joinStyleRef = useRef<string>();
-  // const capStyleRef = useRef<string>();
   const parsedStyleRef = useRef<IParsedStyle>();
 
-  // const [radius, setRadius] = useState<number>();
-  // const [fillColor, setFillColor] = useState<string>();
-  // const [strokeColor, setStrokeColor] = useState<string>();
-  // const [strokeWidth, setStrokeWidth] = useState<number>();
-  // const [joinStyle, setJoinStyle] = useState<string>();
-  // const [capStyle, setCapStyle] = useState<string>();
   const [useCircleStuff, setUseCircleStuff] = useState(false);
 
   const [parsedStyle, setParsedStyle] = useState<IParsedStyle>({
-    fillColor: '',
-    joinStyle: '',
-    strokeColor: '',
-    capStyle: '',
-    strokeWidth: 0,
-    radius: 0
+    fillColor: '#3399CC',
+    joinStyle: 'round',
+    strokeColor: '#3399CC',
+    capStyle: 'round',
+    strokeWidth: 1.25,
+    radius: 5
   });
 
   const joinStyleOptions = ['bevel', 'round', 'miter'];
@@ -56,52 +35,18 @@ const SingleSymbol = ({
   }
 
   useEffect(() => {
-    if (!layer.parameters?.color) {
+    if (!layer.parameters) {
       return;
     }
 
     setUseCircleStuff(layer.parameters.type === 'circle');
 
-    // const color = layer.parameters.color;
-
     // Read from current color or use defaults
     const style = parseColor(layer.parameters.type, layer.parameters.color);
 
-    console.log('style', style);
-    setParsedStyle(style);
-    // if (layer.parameters.type === 'circle') {
-    //   setRadius(color['circle-radius'] ? color['circle-radius'] : 5);
-    //   setFillColor(
-    //     color['circle-fill-color']
-    //       ? color['circle-fill-color']
-    //       : '[255, 255, 255, 0.4]'
-    //   );
-    //   setStrokeColor(
-    //     color['circle-stroke-color'] ? color['circle-stroke-color'] : '#3399CC'
-    //   );
-    //   setStrokeWidth(
-    //     color['circle-stroke-width'] ? color['circle-stroke-width'] : 1.25
-    //   );
-    //   setJoinStyle(
-    //     color['circle-stroke-line-join']
-    //       ? color['circle-stroke-line-join']
-    //       : 'round'
-    //   );
-    //   setCapStyle(
-    //     color['circle-stroke-line-cap']
-    //       ? color['circle-stroke-line-cap']
-    //       : 'round'
-    //   );
-    // } else {
-    //   setFillColor(
-    //     color['fill-color'] ? color['fill-color'] : '[255, 255, 255, 0.4]'
-    //   );
-    //   setStrokeColor(color['stroke-color'] ? color['stroke-color'] : '#3399CC');
-    //   setStrokeWidth(color['stroke-width'] ? color['stroke-width'] : 1.25);
-    //   setJoinStyle(
-    //     color['stroke-line-join'] ? color['stroke-line-join'] : 'round'
-    //   );
-    // }
+    if (style) {
+      setParsedStyle(style);
+    }
 
     okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk, this);
@@ -115,55 +60,27 @@ const SingleSymbol = ({
   }, []);
 
   useEffect(() => {
-    // radiusRef.current = radius;
-    // fillColorRef.current = fillColor;
-    // strokeColorRef.current = strokeColor;
-    // strokeWidthRef.current = strokeWidth;
-    // joinStyleRef.current = joinStyle;
-    // capStyleRef.current = capStyle;
     parsedStyleRef.current = parsedStyle;
-  }, [
-    // radius,
-    // fillColor,
-    // strokeColor,
-    // strokeWidth,
-    // joinStyle,
-    // capStyle,
-    parsedStyle
-  ]);
+  }, [parsedStyle]);
 
   const handleOk = () => {
     if (!layer.parameters) {
       return;
     }
 
-    const styleExpr: any = {};
+    const styleExpr: FlatStyle = {};
 
-    // if (layer.parameters.type === 'circle') {
-    //   styleExpr['circle-radius'] = radiusRef.current;
-    //   styleExpr['circle-fill-color'] = fillColorRef.current;
-    //   styleExpr['circle-stroke-color'] = strokeColorRef.current;
-    //   styleExpr['circle-stroke-width'] = strokeWidthRef.current;
-    //   styleExpr['circle-stroke-line-join'] = joinStyleRef.current;
-    // } else {
-    //   styleExpr['fill-color'] = fillColorRef.current;
-    //   styleExpr['stroke-color'] = strokeColorRef.current;
-    //   styleExpr['stroke-width'] = strokeWidthRef.current;
-    //   styleExpr['stroke-line-join'] = joinStyleRef.current;
-    // }
+    const prefix = layer.parameters.type === 'circle' ? 'circle-' : '';
 
-    let prefix = '';
     if (layer.parameters.type === 'circle') {
-      prefix = 'circle-';
+      styleExpr['circle-radius'] = parsedStyleRef.current?.radius;
     }
 
-    const c = 'circle-stroke-color';
-
-    styleExpr['circle-radius'] = parsedStyleRef.current?.radius;
     styleExpr[`${prefix}fill-color`] = parsedStyleRef.current?.fillColor;
-    styleExpr[c] = parsedStyleRef.current?.strokeColor;
-    styleExpr['circle-stroke-width'] = parsedStyleRef.current?.strokeWidth;
-    styleExpr['circle-stroke-line-join'] = parsedStyleRef.current?.joinStyle;
+    styleExpr[`${prefix}stroke-color`] = parsedStyleRef.current?.strokeColor;
+    styleExpr[`${prefix}stroke-width`] = parsedStyleRef.current?.strokeWidth;
+    styleExpr[`${prefix}stroke-line-join`] = parsedStyleRef.current?.joinStyle;
+    styleExpr[`${prefix}stroke-line-cap`] = parsedStyleRef.current?.capStyle;
 
     layer.parameters.color = styleExpr;
 
@@ -212,7 +129,7 @@ const SingleSymbol = ({
           onChange={event =>
             setParsedStyle(prevState => ({
               ...prevState,
-              stokeColor: event.target.value
+              strokeColor: event.target.value
             }))
           }
         />
@@ -289,4 +206,4 @@ const SingleSymbol = ({
   );
 };
 
-export default SingleSymbol;
+export default SimpleSymbol;

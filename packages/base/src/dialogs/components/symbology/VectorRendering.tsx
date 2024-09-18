@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 import Graduated from './Graduated';
-import SingleSymbol from './SingleSymbol';
+import SimpleSymbol from './SimpleSymbol';
 
 const VectorRendering = ({
   context,
@@ -17,14 +17,10 @@ const VectorRendering = ({
   let RenderComponent;
 
   useEffect(() => {
-    if (!selectedRenderType) {
-      return;
-    }
-
     switch (selectedRenderType) {
       case 'Single Symbol':
         RenderComponent = (
-          <SingleSymbol
+          <SimpleSymbol
             context={context}
             state={state}
             okSignalPromise={okSignalPromise}
