@@ -1,3 +1,4 @@
+import { ReadonlyJSONObject } from '@lumino/coreutils';
 import React, { useEffect, useState } from 'react';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 import Graduated from './Graduated';
@@ -15,6 +16,22 @@ const VectorRendering = ({
   const [componentToRender, setComponentToRender] = useState<any>(null);
 
   let RenderComponent;
+
+  if (!layerId) {
+    return;
+  }
+
+  useEffect(() => {
+    const getSelectedRenderType = async () => {
+      const layerState = await state.fetch(layerId);
+
+      setSelectedRenderType(
+        (layerState as ReadonlyJSONObject).renderType as string
+      );
+    };
+
+    getSelectedRenderType();
+  }, []);
 
   useEffect(() => {
     switch (selectedRenderType) {

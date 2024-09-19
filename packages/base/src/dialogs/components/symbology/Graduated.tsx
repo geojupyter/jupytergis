@@ -134,6 +134,8 @@ const Graduated = ({
       return;
     }
 
+    state.save(layerId, { renderType: 'Graduated' });
+
     const colorExpr: ExpressionValue[] = [];
     // TODO: type of color should be based on something
     colorExpr.push('interpolate');

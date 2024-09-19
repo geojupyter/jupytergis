@@ -1,3 +1,4 @@
+import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useRef, useState } from 'react';
 import { IParsedStyle, parseColor } from '../../../tools';
@@ -10,11 +11,11 @@ const SimpleSymbol = ({
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
-  const parsedStyleRef = useRef<IParsedStyle>();
+  const styleRef = useRef<IParsedStyle>();
 
   const [useCircleStuff, setUseCircleStuff] = useState(false);
 
-  const [parsedStyle, setParsedStyle] = useState<IParsedStyle>({
+  const [style, setStyle] = useState<IParsedStyle>({
     fillColor: '#3399CC',
     joinStyle: 'round',
     strokeColor: '#3399CC',
@@ -41,12 +42,30 @@ const SimpleSymbol = ({
 
     setUseCircleStuff(layer.parameters.type === 'circle');
 
-    // Read from current color or use defaults
-    const style = parseColor(layer.parameters.type, layer.parameters.color);
+    // Mimicking QGIS here,
+    // Read values from file if we chose them using the single symbol thing
+    // but if we're switching to simple symbol, use defaults
+    const initStyle = async () => {
+      if (!layer.parameters) {
+        return;
+      }
+      const layerState = await state.fetch(layerId);
+      const renderType = (layerState as ReadonlyJSONObject)
+        .renderType as string;
 
-    if (style) {
-      setParsedStyle(style);
-    }
+      if (renderType === 'Single Symbol') {
+        // Read from current color or use defaults
+        const parsedStyle = parseColor(
+          layer.parameters.type,
+          layer.parameters.color
+        );
+
+        if (parsedStyle) {
+          setStyle(parsedStyle);
+        }
+      }
+    };
+    initStyle();
 
     okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk, this);
@@ -60,27 +79,29 @@ const SimpleSymbol = ({
   }, []);
 
   useEffect(() => {
-    parsedStyleRef.current = parsedStyle;
-  }, [parsedStyle]);
+    styleRef.current = style;
+  }, [style]);
 
   const handleOk = () => {
     if (!layer.parameters) {
       return;
     }
 
+    state.save(layerId, { renderType: 'Single Symbol' });
+
     const styleExpr: FlatStyle = {};
 
     const prefix = layer.parameters.type === 'circle' ? 'circle-' : '';
 
     if (layer.parameters.type === 'circle') {
-      styleExpr['circle-radius'] = parsedStyleRef.current?.radius;
+      styleExpr['circle-radius'] = styleRef.current?.radius;
     }
 
-    styleExpr[`${prefix}fill-color`] = parsedStyleRef.current?.fillColor;
-    styleExpr[`${prefix}stroke-color`] = parsedStyleRef.current?.strokeColor;
-    styleExpr[`${prefix}stroke-width`] = parsedStyleRef.current?.strokeWidth;
-    styleExpr[`${prefix}stroke-line-join`] = parsedStyleRef.current?.joinStyle;
-    styleExpr[`${prefix}stroke-line-cap`] = parsedStyleRef.current?.capStyle;
+    styleExpr[`${prefix}fill-color`] = styleRef.current?.fillColor;
+    styleExpr[`${prefix}stroke-color`] = styleRef.current?.strokeColor;
+    styleExpr[`${prefix}stroke-width`] = styleRef.current?.strokeWidth;
+    styleExpr[`${prefix}stroke-line-join`] = styleRef.current?.joinStyle;
+    styleExpr[`${prefix}stroke-line-cap`] = styleRef.current?.capStyle;
 
     layer.parameters.color = styleExpr;
 
@@ -95,10 +116,10 @@ const SimpleSymbol = ({
           <label htmlFor={'vector-value-select'}>Radius:</label>
           <input
             type="number"
-            value={parsedStyle.radius}
+            value={style.radius}
             className="jp-mod-styled"
             onChange={event =>
-              setParsedStyle(prevState => ({
+              setStyle(prevState => ({
                 ...prevState,
                 radius: +event.target.value
               }))
@@ -110,10 +131,10 @@ const SimpleSymbol = ({
         <label htmlFor={'vector-value-select'}>Fill Color:</label>
         <input
           type="color"
-          value={parsedStyle.fillColor}
+          value={style.fillColor}
           className="jp-mod-styled"
           onChange={event =>
-            setParsedStyle(prevState => ({
+            setStyle(prevState => ({
               ...prevState,
               fillColor: event.target.value
             }))
@@ -124,10 +145,10 @@ const SimpleSymbol = ({
         <label htmlFor={'vector-value-select'}>Stroke Color:</label>
         <input
           type="color"
-          value={parsedStyle.strokeColor}
+          value={style.strokeColor}
           className="jp-mod-styled"
           onChange={event =>
-            setParsedStyle(prevState => ({
+            setStyle(prevState => ({
               ...prevState,
               strokeColor: event.target.value
             }))
@@ -138,10 +159,10 @@ const SimpleSymbol = ({
         <label htmlFor={'vector-value-select'}>Stroke Width:</label>
         <input
           type="number"
-          value={parsedStyle.strokeWidth}
+          value={style.strokeWidth}
           className="jp-mod-styled"
           onChange={event =>
-            setParsedStyle(prevState => ({
+            setStyle(prevState => ({
               ...prevState,
               strokeWidth: +event.target.value
             }))
@@ -154,7 +175,7 @@ const SimpleSymbol = ({
           <select
             name={'vector-join-select'}
             onChange={event =>
-              setParsedStyle(prevState => ({
+              setStyle(prevState => ({
                 ...prevState,
                 joinStyle: event.target.value
               }))
@@ -165,7 +186,7 @@ const SimpleSymbol = ({
               <option
                 key={index}
                 value={method}
-                selected={method === parsedStyle.joinStyle}
+                selected={method === style.joinStyle}
                 className="jp-mod-styled"
               >
                 {method}
@@ -181,7 +202,7 @@ const SimpleSymbol = ({
             <select
               name={'vector-cap-select'}
               onChange={event =>
-                setParsedStyle(prevState => ({
+                setStyle(prevState => ({
                   ...prevState,
                   capStyle: event.target.value
                 }))
@@ -192,7 +213,7 @@ const SimpleSymbol = ({
                 <option
                   key={index}
                   value={cap}
-                  selected={cap === parsedStyle.capStyle}
+                  selected={cap === style.capStyle}
                   className="jp-mod-styled"
                 >
                   {cap}
