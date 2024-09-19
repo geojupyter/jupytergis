@@ -40,4 +40,4 @@ def get_source_layer_names(tile_url):
     if len(layer_names) != 0:
         return layer_names
     else:
-        raise ValueError('No layer found in the tile')
+        raise ValueError("No layer found in the tile")

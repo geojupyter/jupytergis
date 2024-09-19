@@ -53,7 +53,7 @@ class YQGISBase(YBaseDoc):
             "layers": self._ylayers.to_py(),
             "sources": self._ysources.to_py(),
             "layerTree": reversed_tree(self._ylayerTree.to_py()),
-            "options": self._yoptions.to_py()
+            "options": self._yoptions.to_py(),
         }
         source = self._save(virtual_file)
 
@@ -127,14 +127,12 @@ class YQGISBase(YBaseDoc):
 
 
 class YQGS(YQGISBase):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._file_extension = ".qgs"
 
 
 class YQGZ(YQGISBase):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._file_extension = ".qgz"

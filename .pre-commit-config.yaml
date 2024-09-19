@@ -1,0 +1,34 @@
+ci:
+  # pre-commit.ci will open PRs updating our hooks once a month
+  autoupdate_schedule: quarterly
+  # skip any check that needs internet access
+  autofix_prs: true
+
+exclude: '.*\.jgis$'
+repos:
+  # Autoformat and linting, misc. details
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: forbid-new-submodules
+      - id: end-of-file-fixer
+        exclude: galata/.*-snapshots
+      - id: check-case-conflict
+      - id: requirements-txt-fixer
+      - id: check-added-large-files
+        args: ['--maxkb=5000']
+      - id: check-case-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+      - id: check-builtin-literals
+      - id: trailing-whitespace
+        exclude: .bumpversion.cfg
+
+  # Autoformat: Python code
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.5
+    hooks:
+      - id: ruff
+        args: ['--fix']
+      - id: ruff-format
