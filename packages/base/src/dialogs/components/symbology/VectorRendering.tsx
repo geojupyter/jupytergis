@@ -12,7 +12,7 @@ const VectorRendering = ({
   layerId
 }: ISymbologyDialogProps) => {
   const renderTypes = ['Single Symbol', 'Graduated'];
-  const [selectedRenderType, setSelectedRenderType] = useState('Graduated');
+  const [selectedRenderType, setSelectedRenderType] = useState('Single Symbol');
   const [componentToRender, setComponentToRender] = useState<any>(null);
 
   let RenderComponent;

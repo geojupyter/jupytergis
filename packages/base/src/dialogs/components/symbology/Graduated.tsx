@@ -21,7 +21,7 @@ const Graduated = ({
   const [selectedMethod, setSelectedMethod] = useState('color');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
 
-  const methodOptions = ['color', 'size'];
+  const methodOptions = ['color', 'radius'];
 
   if (!layerId) {
     return;
@@ -37,9 +37,7 @@ const Graduated = ({
         return;
       }
       const model = context.model;
-
       const layer = model.getLayer(layerId);
-
       const source = model.getSource(layer?.parameters?.source);
 
       if (!source) {
@@ -79,14 +77,10 @@ const Graduated = ({
   }, []);
 
   useEffect(() => {
-    console.log('selectedValue', selectedValue);
     selectedValueRef.current = selectedValue;
     selectedMethodRef.current = selectedMethod;
     stopRowsRef.current = stopRows;
   }, [selectedValue, selectedMethod, stopRows]);
-
-  // useEffect(() => {
-  // }, [stopRows]);
 
   const buildColorInfo = () => {
     // This it to parse a color object on the layer
@@ -101,7 +95,8 @@ const Graduated = ({
       return;
     }
 
-    if (!color['circle-fill-color']) {
+    const prefix = layer.parameters.type === 'circle' ? 'circle-' : '';
+    if (!color[`${prefix}fill-color`]) {
       return;
     }
 
@@ -109,16 +104,16 @@ const Graduated = ({
 
     // So if it's not a string then it's an array and we parse
     // Color[0] is the operator used for the color expression
-    switch (color['circle-fill-color'][0]) {
+    switch (color[`${prefix}fill-color`][0]) {
       case 'interpolate': {
         // First element is interpolate for linear selection
         // Second element is type of interpolation (ie linear)
         // Third is input value that stop values are compared with
         // Fourth and on is value:color pairs
-        for (let i = 3; i < color['circle-fill-color'].length; i += 2) {
+        for (let i = 3; i < color[`${prefix}fill-color`].length; i += 2) {
           const obj: IStopRow = {
-            stop: color['circle-fill-color'][i],
-            output: color['circle-fill-color'][i + 1]
+            stop: color[`${prefix}fill-color`][i],
+            output: color[`${prefix}fill-color`][i + 1]
           };
           valueColorPairs.push(obj);
         }
@@ -159,14 +154,12 @@ const Graduated = ({
       }
 
       if (layer.parameters.type === 'circle') {
-        // delete newStyle['circle-radius'];
         newStyle['circle-fill-color'] = colorExpr;
       }
     }
 
-    if (selectedMethodRef.current === 'size') {
+    if (selectedMethodRef.current === 'radius') {
       if (layer.parameters.type === 'circle') {
-        // delete newStyle['circle-fill-color'];
         newStyle['circle-radius'] = colorExpr;
       }
     }
@@ -253,7 +246,7 @@ const Graduated = ({
             stopRows={stopRows}
             setStopRows={setStopRows}
             deleteRow={() => deleteStopRow(index)}
-            isSize={selectedMethod === 'size' ? true : false}
+            isSize={selectedMethod === 'radius' ? true : false}
           />
         ))}
       </div>
