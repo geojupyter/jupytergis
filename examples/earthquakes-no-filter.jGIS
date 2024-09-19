@@ -11,7 +11,6 @@
       },
       "name": "Custom GeoJSON Layer",
       "parameters": {
-        "color": "#FF0000",
         "opacity": 1.0,
         "source": "d07cc573-51fb-4ae8-965b-a0082ace7f2b",
         "type": "circle"
@@ -30,8 +29,8 @@
   },
   "options": {
     "bearing": 0.0,
-    "latitude": 38.612326230162665,
-    "longitude": -119.77357975468912,
+    "latitude": 38.520178924638174,
+    "longitude": -118.83076082246897,
     "pitch": 0.0,
     "projection": "EPSG:3857",
     "zoom": 5.161762963106246

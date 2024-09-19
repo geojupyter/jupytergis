@@ -10,14 +10,21 @@
           {
             "feature": "mag",
             "operator": ">",
-            "value": 6.5
+            "value": 3.8
           }
         ],
         "logicalOp": "all"
       },
       "name": "Custom GeoJSON Layer",
       "parameters": {
-        "color": "#000000",
+        "color": {
+          "circle-fill-color": "#dc8add",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#c061cb",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "d07cc573-51fb-4ae8-965b-a0082ace7f2b",
         "type": "circle"
@@ -36,8 +43,8 @@
   },
   "options": {
     "bearing": 0.0,
-    "latitude": 25.012589761592906,
-    "longitude": -109.44110652310296,
+    "latitude": 17.840347836502787,
+    "longitude": -106.07425142915692,
     "pitch": 0.0,
     "projection": "EPSG:3857",
     "zoom": 3.843213728870569

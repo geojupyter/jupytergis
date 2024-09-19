@@ -53,6 +53,7 @@ import Static from 'ol/source/ImageStatic';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
+import { Rule } from 'ol/style/flat';
 import * as React from 'react';
 import shp from 'shpjs';
 import { isLightTheme } from '../tools';
@@ -555,7 +556,7 @@ export class MainView extends React.Component<IProps, IStates> {
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: this.vectorLayerStyleBuilder(layer)
+          style: this.vectorLayerStyleRuleBuilder(layer)
         });
 
         break;
@@ -623,27 +624,13 @@ export class MainView extends React.Component<IProps, IStates> {
     this._Map.getLayers().insertAt(index, newLayer);
   }
 
-  vectorLayerStyleBuilder = (layer: IJGISLayer) => {
+  vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
     const layerParams = layer.parameters;
     if (!layerParams) {
       return;
     }
 
     const defaultStyle = {
-      // This is not hacky, this is peak programming right here
-      filter: ['==', 1, 1],
-      style: {
-        'fill-color': 'rgba(255,255,255,0.4)',
-        'stroke-color': '#3399CC',
-        'stroke-width': 1.25,
-        'circle-radius': 5,
-        'circle-fill-color': 'rgba(255,255,255,0.4)',
-        'circle-stroke-width': 1.25,
-        'circle-stroke-color': '#3399CC'
-      }
-    };
-
-    const df = {
       'fill-color': 'rgba(255,255,255,0.4)',
       'stroke-color': '#3399CC',
       'stroke-width': 1.25,
@@ -652,7 +639,12 @@ export class MainView extends React.Component<IProps, IStates> {
       'circle-stroke-width': 1.25,
       'circle-stroke-color': '#3399CC'
     };
-    const layerStyle = { ...defaultStyle };
+
+    const defaultRules: Rule = {
+      style: defaultStyle
+    };
+
+    const layerStyle = { ...defaultRules };
 
     if (layer.filters && layer.filters.appliedFilters.length !== 0) {
       const filterExpr: any[] = [];
@@ -687,21 +679,9 @@ export class MainView extends React.Component<IProps, IStates> {
       return [layerStyle];
     }
 
-    const ns = { ...df, ...layerParams.color };
+    const newStyle = { ...defaultStyle, ...layerParams.color };
 
-    layerStyle.style = ns;
-
-    // if (layerParams.type === 'fill') {
-    //   layerStyle.style['fill-color'] = layerParams.color;
-    // }
-
-    // if (layerParams.type === 'line') {
-    //   layerStyle.style['stroke-color'] = layerParams.color;
-    // }
-
-    // if (layerParams.type === 'circle') {
-    //   layerStyle.style['circle-fill-color'] = layerParams.color;
-    // }
+    layerStyle.style = newStyle;
 
     return [layerStyle];
   };
@@ -712,53 +692,6 @@ export class MainView extends React.Component<IProps, IStates> {
     layer: IJGISLayer
   ) => {
     const layerParameters = layer.parameters as IVectorLayer;
-
-    // const flatStyle = {
-    //   'fill-color': 'rgba(255,255,255,0.4)',
-    //   'stroke-color': '#3399CC',
-    //   'stroke-width': 1.25,
-    //   'circle-radius': 5,
-    //   'circle-fill-color': 'rgba(255,255,255,0.4)',
-    //   'circle-stroke-width': 1.25,
-    //   'circle-stroke-color': '#3399CC'
-    // };
-
-    // const defaultStyle = {
-    //   // This is not hacky, this is peak programming right here
-    //   filter: ['==', 1, 1],
-    //   style: {
-    //     'fill-color': 'rgba(255,255,255,0.4)',
-    //     'stroke-color': '#3399CC',
-    //     'stroke-width': 1.25,
-    //     'circle-radius': 5,
-    //     'circle-fill-color': 'rgba(255,255,255,0.4)',
-    //     'circle-stroke-width': 1.25,
-    //     'circle-stroke-color': '#3399CC'
-    //   }
-    // };
-    // const layerStyle = { ...defaultStyle };
-
-    // if (!layerParameters.color) {
-    //   return [defaultStyle];
-    // }
-
-    // if (layerParameters.type === 'fill') {
-    //   layerStyle.style['fill-color'] = layerParameters.color;
-    // }
-
-    // if (layerParameters.type === 'line') {
-    //   layerStyle.style['stroke-color'] = layerParameters.color;
-    // }
-
-    // if (layerParameters.type === 'circle') {
-    //   layerStyle.style['circle-fill-color'] = layerParameters.color;
-    // }
-
-    // const ml = this.getLayer(id);
-    // const resolution = this._Map.getView().getResolution();
-    // if (!ml || !resolution) {
-    //   return;
-    // }
 
     // TODO: Need to make a version that works with strings as well
     const operators = {
@@ -820,9 +753,6 @@ export class MainView extends React.Component<IProps, IStates> {
           break;
         }
       }
-
-      // const s = flatStylesToStyleFunction([flatStyle]);
-      // const ss = s(currentFeature, resolution);
 
       if (shouldDisplayFeature) {
         return style;
@@ -953,12 +883,9 @@ export class MainView extends React.Component<IProps, IStates> {
 
         mapLayer.setOpacity(layerParams.opacity || 1);
 
-        const ml = mapLayer as VectorLayer;
-
-        ml.setStyle(this.vectorLayerStyleBuilder(layer));
-        // (mapLayer as VectorLayer).setStyle(currentFeature =>
-        //   this.vectorLayerFilterStyleFunc(currentFeature, layer)
-        // );
+        (mapLayer as VectorLayer).setStyle(
+          this.vectorLayerStyleRuleBuilder(layer)
+        );
 
         break;
       }
