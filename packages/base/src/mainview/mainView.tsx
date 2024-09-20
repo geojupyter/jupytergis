@@ -219,6 +219,7 @@ export class MainView extends React.Component<IProps, IStates> {
         );
         const options = this._model.getOptions();
         this.updateOptions(options);
+        this._initializedPosition = true;
       }
 
       this.setState(old => ({ ...old, loading: false }));
