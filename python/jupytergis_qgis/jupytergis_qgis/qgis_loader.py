@@ -293,20 +293,22 @@ def jgis_layer_to_qgis(
             url = parameters.get("url", None)
             if url is None:
                 return
+            urlParameters = parameters.get("urlParameters", None)
+            if urlParameters:
+                for k, v in urlParameters.items():
+                    url = url.replace(f"{{{k}}}", v)
             layer_config["url"] = url
             layer_config["type"] = "xyz"
 
         if source_type == "RasterSource":
             layer_config["crs"] = "EPSG:3857"
 
-        layer_config["zmin"] = str(zmin)
+        layer_config["zmin"] = str(round(zmin))
         if zmax:
-            layer_config["zmax"] = str(zmax)
-
+            layer_config["zmax"] = str(round(zmax))
         uri = QgsDataSourceUri()
         for key, val in layer_config.items():
             uri.setParam(key, val)
-
         return bytes(uri.encodedUri()).decode()
 
     layer = layers.get(layer_id, None)
