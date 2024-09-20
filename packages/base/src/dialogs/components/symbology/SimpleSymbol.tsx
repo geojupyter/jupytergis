@@ -123,7 +123,7 @@ const SimpleSymbol = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className="jp-gis-layer-symbology-container">
       {useCircleStuff ? (
         <div className="jp-gis-symbology-row">
           <label htmlFor={'vector-value-select'}>Radius:</label>

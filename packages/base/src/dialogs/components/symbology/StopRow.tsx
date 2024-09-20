@@ -11,7 +11,7 @@ const StopRow = ({
   stopRows,
   setStopRows,
   deleteRow,
-  hasRadius
+  useNumber
 }: {
   index: number;
   value: number;
@@ -19,7 +19,7 @@ const StopRow = ({
   stopRows: IStopRow[];
   setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
-  hasRadius?: boolean;
+  useNumber?: boolean;
 }) => {
   const rgbArrToHex = (rgbArr: number | number[]) => {
     if (!Array.isArray(rgbArr)) {
@@ -75,7 +75,7 @@ const StopRow = ({
 
   const handleOutputChange = (event: { target: { value: any } }) => {
     const newRows = [...stopRows];
-    hasRadius
+    useNumber
       ? (newRows[index].output = +event.target.value)
       : (newRows[index].output = hexToRgb(event.target.value));
     setStopRows(newRows);
@@ -89,15 +89,15 @@ const StopRow = ({
         value={value}
         onChange={handleStopChange}
         onBlur={handleBlur}
-        className="jp-mod-styled"
+        className="jp-mod-styled jp-gis-color-row-value-input"
       />
 
-      {hasRadius ? (
+      {useNumber ? (
         <input
           type="number"
           value={outputValue as number}
           onChange={handleOutputChange}
-          className="jp-mod-styled"
+          className="jp-mod-styled jp-gis-color-row-output-input"
         />
       ) : (
         <input
@@ -105,7 +105,7 @@ const StopRow = ({
           value={rgbArrToHex(outputValue)}
           type="color"
           onChange={handleOutputChange}
-          className="jp-mod-styled"
+          className="jp-mod-styled jp-gis-color-row-output-input"
         />
       )}
 

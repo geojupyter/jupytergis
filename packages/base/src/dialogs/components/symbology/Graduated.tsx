@@ -135,7 +135,7 @@ const Graduated = ({
   const populateOptions = async () => {
     // Set up method options
     if (layer?.parameters?.type === 'circle') {
-      const options = [...methodOptions, 'radius'];
+      const options = ['color', 'radius'];
       setMethodOptions(options);
     }
 
@@ -223,7 +223,7 @@ const Graduated = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Value:</label>
         <div className="jp-select-wrapper">
@@ -280,7 +280,7 @@ const Graduated = ({
             stopRows={stopRows}
             setStopRows={setStopRows}
             deleteRow={() => deleteStopRow(index)}
-            hasRadius={selectedMethod === 'radius' ? true : false}
+            useNumber={selectedMethod === 'radius' ? true : false}
           />
         ))}
       </div>
