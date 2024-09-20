@@ -31,6 +31,12 @@ from .utils import get_source_layer_names, normalize_path
 logger = logging.getLogger(__file__)
 
 
+def reversed_tree(root):
+    if isinstance(root, list):
+        return reversed([reversed_tree(el) for el in root])
+    return root
+
+
 class GISDocument(CommWidget):
     """
     Create a new GISDocument object.
@@ -93,6 +99,18 @@ class GISDocument(CommWidget):
         Get the layer tree
         """
         return self._layerTree.to_py()
+
+    def export_to_qgis(self, path: str) -> bool:
+        # Lazy import, jupytergis_qgis of qgis may not be installed
+        from jupytergis_qgis.qgis_loader import export_project_to_qgis
+
+        virtual_file = {
+            "layers": self._layers.to_py(),
+            "sources": self._sources.to_py(),
+            "layerTree": reversed_tree(self._layerTree.to_py()),
+            "options": self._options.to_py(),
+        }
+        return export_project_to_qgis(path, virtual_file)
 
     def add_raster_layer(
         self,
