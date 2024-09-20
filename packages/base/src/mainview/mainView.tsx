@@ -53,7 +53,8 @@ import Static from 'ol/source/ImageStatic';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
-import { Rule } from 'ol/style/flat';
+import { flatStylesToStyleFunction } from 'ol/render/canvas/style';
+import { FlatStyle, Rule } from 'ol/style/flat';
 import * as React from 'react';
 import shp from 'shpjs';
 import { isLightTheme } from '../tools';
@@ -563,12 +564,19 @@ export class MainView extends React.Component<IProps, IStates> {
       }
       case 'VectorTileLayer': {
         layerParameters = layer.parameters as IVectorLayer;
+        if (!layerParameters.color) {
+          return;
+        }
+
+        const colorExpr: FlatStyle = layerParameters.color as FlatStyle;
+        console.log('colorExpr', colorExpr);
+
+        const sf = flatStylesToStyleFunction([colorExpr]);
 
         newLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source],
-          style: currentFeature =>
-            this.vectorLayerFilterStyleFunc(currentFeature, id, layer)
+          style: sf
         });
 
         break;
@@ -693,6 +701,10 @@ export class MainView extends React.Component<IProps, IStates> {
   ) => {
     const layerParameters = layer.parameters as IVectorLayer;
 
+    if (!layerParameters.color) {
+      return;
+    }
+
     // TODO: Need to make a version that works with strings as well
     const operators = {
       '>': (a: number | string, b: number | string) => a > b,
@@ -707,14 +719,16 @@ export class MainView extends React.Component<IProps, IStates> {
     const fill = new Fill({
       color:
         layerParameters.type === 'fill' || layerParameters.type === 'circle'
-          ? layerParameters.color
+          ? //@ts-expect-error wip
+            layerParameters.color['fill-color']
           : 'rgba(0, 0, 0, 0)'
     });
 
     const stroke = new Stroke({
       color:
         layerParameters.type === 'line' || layerParameters.type === 'circle'
-          ? layerParameters.color
+          ? //@ts-expect-error wip
+            layerParameters.color['stroke-color']
           : '#392F5A',
       width: 2
     });
@@ -894,8 +908,8 @@ export class MainView extends React.Component<IProps, IStates> {
 
         mapLayer.setOpacity(layerParams.opacity || 1);
 
-        (mapLayer as VectorLayer).setStyle(currentFeature =>
-          this.vectorLayerFilterStyleFunc(currentFeature, id, layer)
+        (mapLayer as VectorLayer).setStyle(
+          this.vectorLayerStyleRuleBuilder(layer)
         );
 
         break;

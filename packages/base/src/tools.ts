@@ -228,6 +228,11 @@ function getTileCoordinates(latDeg: number, lonDeg: number, zoom: number) {
     (n * (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI)) / 2
   );
 
+  // Check if either xTile or yTile is NaN
+  if (isNaN(xTile) || isNaN(yTile)) {
+    return { xTile: 0, yTile: 0 };
+  }
+
   return { xTile, yTile };
 }
 

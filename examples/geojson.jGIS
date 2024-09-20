@@ -1,0 +1,134 @@
+{
+  "layerTree": [
+    "0959c04f-a841-4fa2-8b44-d262e89e4c9a",
+    "6dc9af9d-206d-42b5-9889-09758e9934b9",
+    "c844b62f-8175-43aa-952d-305f170778be"
+  ],
+  "layers": {
+    "0959c04f-a841-4fa2-8b44-d262e89e4c9a": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "a7ed9785-8797-4d6d-a6a9-062ce78ba7ba"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "6dc9af9d-206d-42b5-9889-09758e9934b9": {
+      "filters": {
+        "appliedFilters": [],
+        "logicalOp": "any"
+      },
+      "name": "earthquakes",
+      "parameters": {
+        "color": {
+          "circle-fill-color": [
+            "interpolate",
+            [
+              "linear"
+            ],
+            [
+              "get",
+              "mag"
+            ],
+            2.0,
+            [
+              143.0,
+              240.0,
+              164.0,
+              1.0
+            ],
+            4.0,
+            [
+              255.0,
+              190.0,
+              111.0,
+              1.0
+            ],
+            6.0,
+            [
+              246.0,
+              97.0,
+              81.0,
+              1.0
+            ]
+          ],
+          "circle-radius": [
+            "interpolate",
+            [
+              "linear"
+            ],
+            [
+              "get",
+              "mag"
+            ],
+            2.0,
+            5.0,
+            4.0,
+            10.0,
+            6.0,
+            15.0
+          ],
+          "circle-stroke-color": "#986a44",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25
+        },
+        "opacity": 1.0,
+        "source": "4a74edbc-1939-40e3-a0ac-28b2e1d87846",
+        "type": "circle"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "c844b62f-8175-43aa-952d-305f170778be": {
+      "name": "france regions",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "4aab05ec-5a57-454b-9ba5-31bcf272feda",
+        "type": "fill"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "options": {
+    "bearing": 0.0,
+    "latitude": 26.349956480215155,
+    "longitude": -98.39490230130018,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 3.702740502822486
+  },
+  "sources": {
+    "4a74edbc-1939-40e3-a0ac-28b2e1d87846": {
+      "name": "Custom GeoJSON Layer Source",
+      "parameters": {
+        "path": "eq.json"
+      },
+      "type": "GeoJSONSource"
+    },
+    "4aab05ec-5a57-454b-9ba5-31bcf272feda": {
+      "name": "Custom GeoJSON Layer Source",
+      "parameters": {
+        "path": "france_regions.json"
+      },
+      "type": "GeoJSONSource"
+    },
+    "a7ed9785-8797-4d6d-a6a9-062ce78ba7ba": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  },
+  "terrain": {
+    "exaggeration": 0.0,
+    "source": ""
+  }
+}

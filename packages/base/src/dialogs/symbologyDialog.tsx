@@ -74,6 +74,7 @@ const SymbologyDialog = ({
     // TODO WebGlLayers can also be used for other layers, need a better way to determine source + layer combo
     switch (layer.type) {
       case 'VectorLayer':
+      case 'VectorTileLayer':
         LayerSymbology = (
           <VectorRendering
             context={context}
