@@ -1,5 +1,6 @@
 import { GeoJSONFeature1 } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
@@ -15,19 +16,22 @@ const Graduated = ({
   const selectedValueRef = useRef<string>();
   const selectedMethodRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
+  const layerStateRef = useRef<ReadonlyPartialJSONObject | undefined>();
 
   const [selectedValue, setSelectedValue] = useState('');
   const [featureProperties, setFeatureProperties] = useState<any>({});
   const [selectedMethod, setSelectedMethod] = useState('color');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
-
-  const methodOptions = ['color', 'radius'];
+  const [methodOptions, setMethodOptions] = useState<string[]>(['color']);
+  const [layerState, setLayerState] = useState<
+    ReadonlyPartialJSONObject | undefined
+  >();
 
   if (!layerId) {
     return;
   }
   const layer = context.model.getLayer(layerId);
-  if (!layer) {
+  if (!layer?.parameters) {
     return;
   }
 
@@ -58,7 +62,6 @@ const Graduated = ({
           });
 
         setFeatureProperties(featureProps);
-        setSelectedValue(Object.keys(featureProps)[0]);
       });
     };
 
@@ -80,7 +83,12 @@ const Graduated = ({
     selectedValueRef.current = selectedValue;
     selectedMethodRef.current = selectedMethod;
     stopRowsRef.current = stopRows;
-  }, [selectedValue, selectedMethod, stopRows]);
+    layerStateRef.current = layerState;
+  }, [selectedValue, selectedMethod, stopRows, layerState]);
+
+  useEffect(() => {
+    populateOptions();
+  }, [featureProperties]);
 
   const buildColorInfo = () => {
     // This it to parse a color object on the layer
@@ -124,15 +132,42 @@ const Graduated = ({
     setStopRows(valueColorPairs);
   };
 
+  const populateOptions = async () => {
+    // Set up method options
+    if (layer?.parameters?.type === 'circle') {
+      const options = [...methodOptions, 'radius'];
+      setMethodOptions(options);
+    }
+
+    const layerState = await state.fetch(`jupytergis:${layerId}`);
+
+    let value, method;
+
+    if (layerState) {
+      value = (layerState as ReadonlyPartialJSONObject)
+        .graduatedValue as string;
+      method = (layerState as ReadonlyPartialJSONObject)
+        .graduatedMethod as string;
+    }
+
+    setLayerState(layerState as ReadonlyPartialJSONObject);
+    setSelectedValue(value ? value : Object.keys(featureProperties)[0]);
+    setSelectedMethod(method ? method : 'color');
+  };
+
   const handleOk = () => {
     if (!layer.parameters) {
       return;
     }
 
-    state.save(layerId, { renderType: 'Graduated' });
+    state.save(`jupytergis:${layerId}`, {
+      ...layerStateRef.current,
+      renderType: 'Graduated',
+      graduatedValue: selectedValueRef.current,
+      graduatedMethod: selectedMethodRef.current
+    });
 
     const colorExpr: ExpressionValue[] = [];
-    // TODO: type of color should be based on something
     colorExpr.push('interpolate');
     colorExpr.push(['linear']);
     colorExpr.push(['get', selectedValueRef.current]);
@@ -210,7 +245,6 @@ const Graduated = ({
           </select>
         </div>
       </div>
-      <span>symbol</span>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-method-select'}>Method:</label>
         <div className="jp-select-wrapper">
@@ -246,7 +280,7 @@ const Graduated = ({
             stopRows={stopRows}
             setStopRows={setStopRows}
             deleteRow={() => deleteStopRow(index)}
-            isSize={selectedMethod === 'radius' ? true : false}
+            hasRadius={selectedMethod === 'radius' ? true : false}
           />
         ))}
       </div>
