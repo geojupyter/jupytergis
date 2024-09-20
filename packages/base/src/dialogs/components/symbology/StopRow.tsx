@@ -11,7 +11,7 @@ const StopRow = ({
   stopRows,
   setStopRows,
   deleteRow,
-  isSize
+  hasRadius
 }: {
   index: number;
   value: number;
@@ -19,7 +19,7 @@ const StopRow = ({
   stopRows: IStopRow[];
   setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
-  isSize?: boolean;
+  hasRadius?: boolean;
 }) => {
   const rgbArrToHex = (rgbArr: number | number[]) => {
     if (!Array.isArray(rgbArr)) {
@@ -75,7 +75,7 @@ const StopRow = ({
 
   const handleOutputChange = (event: { target: { value: any } }) => {
     const newRows = [...stopRows];
-    isSize
+    hasRadius
       ? (newRows[index].output = +event.target.value)
       : (newRows[index].output = hexToRgb(event.target.value));
     setStopRows(newRows);
@@ -92,7 +92,7 @@ const StopRow = ({
         className="jp-mod-styled"
       />
 
-      {isSize ? (
+      {hasRadius ? (
         <input
           type="number"
           value={outputValue as number}
