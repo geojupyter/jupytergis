@@ -11,13 +11,19 @@ const VectorRendering = ({
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
-  const renderTypes = ['Single Symbol', 'Graduated'];
   const [selectedRenderType, setSelectedRenderType] = useState('Single Symbol');
   const [componentToRender, setComponentToRender] = useState<any>(null);
+  const [renderTypeOptions, setRenderTypeOptions] = useState<string[]>([
+    'Single Symbol'
+  ]);
 
   let RenderComponent;
 
   if (!layerId) {
+    return;
+  }
+  const layer = context.model.getLayer(layerId);
+  if (!layer?.parameters) {
     return;
   }
 
@@ -34,6 +40,11 @@ const VectorRendering = ({
 
       setSelectedRenderType(renderType ?? 'Single Symbol');
     };
+
+    if (layer.type === 'VectorLayer') {
+      const options = ['Single Symbol', 'Graduated'];
+      setRenderTypeOptions(options);
+    }
 
     getSelectedRenderType();
   }, []);
@@ -80,7 +91,7 @@ const VectorRendering = ({
             setSelectedRenderType(event.target.value);
           }}
         >
-          {renderTypes.map((func, funcIndex) => (
+          {renderTypeOptions.map((func, funcIndex) => (
             <option key={func} value={func}>
               {func}
             </option>
