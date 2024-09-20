@@ -245,7 +245,6 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
     setId(DOMUtils.createDomID());
     const getExpandedState = async () => {
       const groupState = await state.fetch(`jupytergis:${group.name}`);
-      // setOpen(groupState ? ((groupState as any)['expanded'] ?? false) : false);
 
       setOpen(
         ((groupState as ReadonlyPartialJSONObject).expanded as boolean) ?? false
