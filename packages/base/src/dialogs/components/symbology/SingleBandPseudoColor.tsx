@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict } from '@jupytergis/schema';
 import { PageConfig } from '@jupyterlab/coreutils';
 import { Button } from '@jupyterlab/ui-components';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import initGdalJs from 'gdal3.js';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
@@ -113,9 +114,11 @@ const SingleBandPseudoColor = ({
 
     const baseUrl = PageConfig.getBaseUrl();
 
-    const tifDataState = (await state.fetch(layerId)) as string;
-    if (tifDataState) {
-      tifData = JSON.parse(tifDataState);
+    const layerState = await state.fetch(`jupytergis:${layerId}`);
+    if (layerState) {
+      tifData = JSON.parse(
+        (layerState as ReadonlyPartialJSONObject).tifData as string
+      );
     } else {
       //! This takes so long, maybe do when adding source instead
       const Gdal = await initGdalJs({
@@ -131,7 +134,7 @@ const SingleBandPseudoColor = ({
       tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
       Gdal.close(tifDataset);
 
-      state.save(layerId, JSON.stringify(tifData));
+      state.save(`jupytergis:${layerId}`, { tifData: JSON.stringify(tifData) });
     }
 
     tifData['bands'].forEach((bandData: TifBandData) => {

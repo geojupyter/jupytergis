@@ -12,7 +12,7 @@ import {
   ReactWidget,
   caretDownIcon
 } from '@jupyterlab/ui-components';
-import { ReadonlyPartialJSONValue } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { Panel } from '@lumino/widgets';
 import React, {
   MouseEvent as ReactMouseEvent,
@@ -244,9 +244,12 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
   useEffect(() => {
     setId(DOMUtils.createDomID());
     const getExpandedState = async () => {
-      const groupState: ReadonlyPartialJSONValue | undefined =
-        await state.fetch(group.name);
-      setOpen(groupState ? ((groupState as any)['expanded'] ?? false) : false);
+      const groupState = await state.fetch(`jupytergis:${group.name}`);
+      // setOpen(groupState ? ((groupState as any)['expanded'] ?? false) : false);
+
+      setOpen(
+        ((groupState as ReadonlyPartialJSONObject).expanded as boolean) ?? false
+      );
     };
 
     getExpandedState();
@@ -273,7 +276,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
   };
 
   const handleExpand = async () => {
-    state.save(group.name, { expanded: !open });
+    state.save(`jupytergis:${group.name}`, { expanded: !open });
     setOpen(!open);
   };
 
