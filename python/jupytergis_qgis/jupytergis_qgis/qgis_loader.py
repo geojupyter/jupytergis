@@ -272,6 +272,7 @@ def import_project_from_qgis(path: str | Path):
                 map_extent.xMaximum(),
                 map_extent.yMaximum(),
             ],
+            "useExtent": True,
         },
         **jgis_layer_tree,
     }

@@ -201,10 +201,7 @@ export class MainView extends React.Component<IProps, IStates> {
           zoom
         };
 
-        // Update the extent only if has been initially provided.
-        if (currentOptions.extent) {
-          updatedOptions.extent = view.calculateExtent();
-        }
+        updatedOptions.extent = view.calculateExtent();
 
         this._model.setOptions({
           ...currentOptions,
@@ -878,8 +875,8 @@ export class MainView extends React.Component<IProps, IStates> {
   private updateOptions(options: IJGISOptions) {
     const view = this._Map.getView();
 
-    // use the extent if provided.
-    if (options.extent) {
+    // Use the extent only if explicitly requested (QGIS files).
+    if (options.extent && options.useExtent) {
       view.fit(options.extent);
     } else {
       const centerCoord = fromLonLat(
@@ -888,6 +885,12 @@ export class MainView extends React.Component<IProps, IStates> {
       );
       this._Map.getView().setZoom(options.zoom || 0);
       this._Map.getView().setCenter(centerCoord);
+
+      // Save the extent if it does not exists, to allow proper export to qgis.
+      if (options.extent === undefined) {
+        options.extent = view.calculateExtent();
+        this._model.setOptions(options);
+      }
     }
     view.setRotation(options.bearing || 0);
   }
