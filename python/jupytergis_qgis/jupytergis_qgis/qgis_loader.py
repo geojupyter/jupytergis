@@ -200,6 +200,7 @@ def qgis_layer_to_jgis(
         source_name = f"{layer_name} Source"
 
     layer_parameters["source"] = source_id
+    layer_parameters["opacity"] = layer.opacity()
 
     layers[layer_id] = {
         "name": layer_name,
@@ -348,6 +349,7 @@ def jgis_layer_to_qgis(
         return
 
     map_layer.setId(layer_id)
+    map_layer.setOpacity(layer.get("parameters", {}).get("opacity", 1.0))
 
     # Map the source id/name to the layer
     layerSourceMap = settings.value("layerSourceMap", {})
