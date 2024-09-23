@@ -38,8 +38,12 @@ class ExportToQgisHandler(APIHandler):
         elif not virtual_file:
             raise HTTPError(400, "The file content is missing")
 
-        status = export_project_to_qgis(path, virtual_file)
-        self.finish(json.dumps({"exported": status, "path": path}))
+        logs = export_project_to_qgis(path, virtual_file)
+        self.finish(json.dumps({
+            "exported": len(logs["errors"]) == 0,
+            "path": path,
+            "logs": logs
+        }))
 
 
 def setup_handlers(web_app):

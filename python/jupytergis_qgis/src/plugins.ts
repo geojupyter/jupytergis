@@ -12,6 +12,7 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import {
+  Dialog,
   ICommandPalette,
   InputDialog,
   IThemeManager,
@@ -20,20 +21,42 @@ import {
   WidgetTracker
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
+import { PathExt } from '@jupyterlab/coreutils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { Widget } from '@lumino/widgets';
 
 import { JupyterGISWidgetFactory } from '@jupytergis/jupytergis-core';
 import { IJupyterGISDocTracker, IJupyterGISWidget } from '@jupytergis/schema';
 import { JupyterGISWidget, requestAPI } from '@jupytergis/base';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
-import { PathExt } from '@jupyterlab/coreutils';
 
 /**
  * The command IDs used by the qgis plugin.
  */
 namespace CommandIDs {
   export const exportQgis = 'jupytergis:export';
+}
+
+/**
+ * The response from server when exporting a project to QGIS.
+ */
+interface IExportResponse {
+  /**
+   * Whether the project has been exported or not.
+   */
+  exported: boolean;
+  /**
+   * The path of the exported project.
+   */
+  path: string;
+  /**
+   * The logs during export.
+   */
+  logs: {
+    warnings: string[],
+    errors: string[]
+  }
 }
 
 const activate = async (
@@ -221,7 +244,7 @@ const activate = async (
           return;
         }
       }
-      const response = await requestAPI<{ exported: boolean; path: string }>(
+      const response = await requestAPI<IExportResponse>(
         'jupytergis_qgis/export',
         {
           method: 'POST',
@@ -231,7 +254,21 @@ const activate = async (
           })
         }
       );
-      console.log('EXPORTING', response);
+      if (!response.exported) {
+        showErrorMessage(
+          'Export the project to QGZ file',
+          response.logs.errors.length ? response.logs.errors.join('\n'): 'Unknown error'
+        );
+      } else if (response.logs.warnings.length) {
+        const bodyElement = document.createElement('pre');
+        bodyElement.textContent = `${filepath} has been exported with warnings\n  - ${response.logs.warnings.join('\n  - ')}`;
+        const body = new Widget({ node: bodyElement });
+        await showDialog<HTMLPreElement>({
+          title: 'Export the project to QGZ file',
+          body,
+          buttons: [Dialog.okButton()]
+        });
+      }
     }
   });
 
