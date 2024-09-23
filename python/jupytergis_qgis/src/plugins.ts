@@ -54,9 +54,9 @@ interface IExportResponse {
    * The logs during export.
    */
   logs: {
-    warnings: string[],
-    errors: string[]
-  }
+    warnings: string[];
+    errors: string[];
+  };
 }
 
 const activate = async (
@@ -257,7 +257,9 @@ const activate = async (
       if (!response.exported) {
         showErrorMessage(
           'Export the project to QGZ file',
-          response.logs.errors.length ? response.logs.errors.join('\n'): 'Unknown error'
+          response.logs.errors.length
+            ? response.logs.errors.join('\n')
+            : 'Unknown error'
         );
       } else if (response.logs.warnings.length) {
         const bodyElement = document.createElement('pre');
