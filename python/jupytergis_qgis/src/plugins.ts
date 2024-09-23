@@ -163,7 +163,7 @@ const activate = async (
       installed && tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false,
-    execute: async (args) => {
+    execute: async args => {
       const sourceExtension = '.jGIS';
       const extension = '.qgz';
       const model = tracker.currentWidget?.context.model.sharedModel;
@@ -201,10 +201,10 @@ const activate = async (
       const absolutePath = PathExt.join(dir, filepath);
 
       const virtualFile = {
-        'layers': model.layers,
-        'sources': model.sources,
-        'layerTree': model.layerTree.slice().reverse(),
-        'options': model.options
+        layers: model.layers,
+        sources: model.sources,
+        layerTree: model.layerTree.slice().reverse(),
+        options: model.options
       };
 
       // Check if the file exists
@@ -221,11 +221,14 @@ const activate = async (
           return;
         }
       }
-      const response = await requestAPI<{exported: boolean, path: string}>(
+      const response = await requestAPI<{ exported: boolean; path: string }>(
         'jupytergis_qgis/export',
         {
           method: 'POST',
-          body: JSON.stringify({path: absolutePath, virtual_file: virtualFile})
+          body: JSON.stringify({
+            path: absolutePath,
+            virtual_file: virtualFile
+          })
         }
       );
       console.log('EXPORTING', response);
