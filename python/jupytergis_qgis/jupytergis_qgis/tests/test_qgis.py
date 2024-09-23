@@ -17,7 +17,7 @@ def test_qgis_loader():
     source_id3 = IsStr()
     assert jgis == IsPartialDict(
         options={
-            "bearing": 0,
+            "bearing": 0.0,
             "pitch": 0,
             "extent": [
                 -25164292.70393259,
@@ -25,11 +25,13 @@ def test_qgis_loader():
                 26220958.18294687,
                 20663680.478501424,
             ],
+            "useExtent": True
         },
         layers={
             "_02b1b4d5_316b_4f4d_9c38_16bf10a3bcb8": {
                 "name": "OpenStreetMap0",
                 "parameters": {
+                    'opacity': 1.0,
                     "source": source_id0,
                 },
                 "type": "RasterLayer",
@@ -38,6 +40,7 @@ def test_qgis_loader():
             "_097deeeb_6564_48d1_a3be_1caa4d93382f": {
                 "name": "OpenStreetMap1",
                 "parameters": {
+                    'opacity': 1.0,
                     "source": source_id1,
                 },
                 "type": "RasterLayer",
@@ -46,6 +49,7 @@ def test_qgis_loader():
             "_bccce044_998d_45f9_bf6b_fe1472681cc3": {
                 "name": "OpenStreetMap2",
                 "parameters": {
+                    'opacity': 1.0,
                     "source": source_id2,
                 },
                 "type": "RasterLayer",
@@ -54,6 +58,7 @@ def test_qgis_loader():
             "_32a77a2c_1756_4876_9f99_e3c7b702f86a": {
                 "name": "OpenStreetMap3",
                 "parameters": {
+                    'opacity': 1.0,
                     "source": source_id3,
                 },
                 "type": "RasterLayer",
@@ -123,7 +128,7 @@ def test_qgis_saver():
     source_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
     jgis = {
         "options": {
-            "bearing": 0,
+            "bearing": 0.0,
             "pitch": 0,
             "extent": [
                 -25164292.70393259,
@@ -131,11 +136,13 @@ def test_qgis_saver():
                 26220958.18294687,
                 20663680.478501424,
             ],
+            "useExtent": True,
         },
         "layers": {
             layer_ids[0]: {
                 "name": "OpenStreetMap0",
                 "parameters": {
+                    "opacity": 1.0,
                     "source": source_ids[0],
                 },
                 "type": "RasterLayer",
@@ -144,6 +151,7 @@ def test_qgis_saver():
             layer_ids[1]: {
                 "name": "OpenStreetMap1",
                 "parameters": {
+                    "opacity": 1.0,
                     "source": source_ids[1],
                 },
                 "type": "RasterLayer",
@@ -152,6 +160,7 @@ def test_qgis_saver():
             layer_ids[2]: {
                 "name": "Vector Tile Layer",
                 "parameters": {
+                    "opacity": 1.0,
                     "source": source_ids[2],
                     "sourceLayer": "bingmlbuildings",
                     "type": "fill",
@@ -162,6 +171,7 @@ def test_qgis_saver():
             layer_ids[3]: {
                 "name": "OpenStreetMap3",
                 "parameters": {
+                    "opacity": 1.0,
                     "source": source_ids[3],
                 },
                 "type": "RasterLayer",
