@@ -12,7 +12,10 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import {
+  ICommandPalette,
+  InputDialog,
   IThemeManager,
+  showDialog,
   showErrorMessage,
   WidgetTracker
 } from '@jupyterlab/apputils';
@@ -24,6 +27,14 @@ import { JupyterGISWidgetFactory } from '@jupytergis/jupytergis-core';
 import { IJupyterGISDocTracker, IJupyterGISWidget } from '@jupytergis/schema';
 import { JupyterGISWidget, requestAPI } from '@jupytergis/base';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
+import { PathExt } from '@jupyterlab/coreutils';
+
+/**
+ * The command IDs used by the qgis plugin.
+ */
+namespace CommandIDs {
+  export const exportQgis = 'jupytergis:export';
+}
 
 const activate = async (
   app: JupyterFrontEnd,
@@ -34,7 +45,8 @@ const activate = async (
   contentFactory: ConsolePanel.IContentFactory,
   editorServices: IEditorServices,
   rendermime: IRenderMimeRegistry,
-  consoleTracker: IConsoleTracker
+  consoleTracker: IConsoleTracker,
+  commandPalette: ICommandPalette | null
 ): Promise<void> => {
   const fcCheck = await requestAPI<{ installed: boolean }>(
     'jupytergis_qgis/backend-check',
@@ -138,11 +150,100 @@ const activate = async (
   QGSWidgetFactory.widgetCreated.connect(widgetCreatedCallback);
   QGZWidgetFactory.widgetCreated.connect(widgetCreatedCallback);
 
-  console.log('jupytergis:qgisplugin is activated!');
+  /**
+   * The command to export the current main area jGIS project to QGIS file ('.qgz').
+   *
+   * A popup opens to choose a filepath (local from the current jGIS file) if the
+   * filepath is not provided in args.
+   */
+  app.commands.addCommand(CommandIDs.exportQgis, {
+    label: `Export to qgis${installed ? '' : ' (QGIS is required)'}`,
+    caption: `Export to qgis${installed ? '' : ' (QGIS is required)'}`,
+    isEnabled: () =>
+      installed && tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false,
+    execute: async (args) => {
+      const sourceExtension = '.jGIS';
+      const extension = '.qgz';
+      const model = tracker.currentWidget?.context.model.sharedModel;
+      if (!model) {
+        return;
+      }
+      const sourcePath = tracker.currentWidget.context.localPath;
+
+      let filepath: string | null = (args.filepath as string) ?? null;
+      if (!filepath) {
+        filepath = (
+          await InputDialog.getText({
+            label: 'File name',
+            placeholder: PathExt.basename(sourcePath, sourceExtension),
+            title: 'Export the project to QGZ file'
+          })
+        ).value;
+      }
+
+      if (filepath === null) {
+        // no-op if the dialog has been cancelled.
+        return;
+      } else if (!filepath) {
+        // create the filepath if the dialog has been validated empty.
+        filepath = `${PathExt.basename(sourcePath, sourceExtension)}${extension}`;
+      } else if (!filepath.endsWith(extension)) {
+        // add the extension to the path if it does not exist.
+        filepath = `${filepath}${extension}`;
+      }
+
+      let dir = PathExt.dirname(sourcePath);
+      if (dir.includes(':')) {
+        dir = dir.split(':')[1];
+      }
+      const absolutePath = PathExt.join(dir, filepath);
+
+      const virtualFile = {
+        'layers': model.layers,
+        'sources': model.sources,
+        'layerTree': model.layerTree.slice().reverse(),
+        'options': model.options
+      };
+
+      // Check if the file exists
+      let fileExist = true;
+      await drive.get(absolutePath, { content: false }).catch(() => {
+        fileExist = false;
+      });
+      if (fileExist) {
+        const overwrite = await showDialog({
+          title: 'Export the project to QGZ file',
+          body: `The file ${filepath} already exists.\nDo you want to overwrite it ?`
+        });
+        if (!overwrite.button.accept) {
+          return;
+        }
+      }
+      const response = await requestAPI<{exported: boolean, path: string}>(
+        'jupytergis_qgis/export',
+        {
+          method: 'POST',
+          body: JSON.stringify({path: absolutePath, virtual_file: virtualFile})
+        }
+      );
+      console.log('EXPORTING', response);
+    }
+  });
+
+  if (commandPalette) {
+    commandPalette.addItem({
+      command: CommandIDs.exportQgis,
+      category: 'JupyterGIS'
+    });
+  }
+
+  console.log('@jupytergis/jupytergis-qgis:qgisplugin is activated!');
 };
 
 export const qgisplugin: JupyterFrontEndPlugin<void> = {
-  id: 'jupytergis:qgisplugin',
+  id: '@jupytergis/jupytergis-qgis:qgisplugin',
   requires: [
     IJupyterGISDocTracker,
     IThemeManager,
@@ -153,6 +254,7 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
     IRenderMimeRegistry,
     IConsoleTracker
   ],
+  optional: [ICommandPalette],
   autoStart: true,
   activate
 };
