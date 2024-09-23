@@ -180,8 +180,7 @@ const activate = async (
    * filepath is not provided in args.
    */
   app.commands.addCommand(CommandIDs.exportQgis, {
-    label: `Export to qgis${installed ? '' : ' (QGIS is required)'}`,
-    caption: `Export to qgis${installed ? '' : ' (QGIS is required)'}`,
+    label: `Export To Qgis${installed ? '' : ' (QGIS is required)'}`,
     isEnabled: () =>
       installed && tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable

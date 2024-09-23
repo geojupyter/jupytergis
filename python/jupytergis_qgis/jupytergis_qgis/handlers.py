@@ -1,4 +1,5 @@
 import json
+import os
 from urllib.error import HTTPError
 
 from jupyter_server.base.handlers import APIHandler
@@ -38,7 +39,8 @@ class ExportToQgisHandler(APIHandler):
         elif not virtual_file:
             raise HTTPError(400, "The file content is missing")
 
-        logs = export_project_to_qgis(path, virtual_file)
+        absolute_path = os.path.join(self.settings["server_root_dir"], path)
+        logs = export_project_to_qgis(absolute_path, virtual_file)
         self.finish(json.dumps({
             "exported": len(logs["errors"]) == 0,
             "path": path,
