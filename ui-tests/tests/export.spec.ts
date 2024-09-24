@@ -14,7 +14,7 @@ test.describe('#export', () => {
   test('should have the menu item', async ({ page }) => {
     // Should have a disabled menu item without GIS project opened.
     await page.menu.open('File');
-    let menuItem = await page.menu.getMenuItem('File>Export To Qgis');
+    let menuItem = await page.menu.getMenuItem('File>Export To QGZ');
     expect(menuItem).not.toBeNull();
     expect(await menuItem?.getAttribute('aria-disabled')).toBeTruthy();
     await page.menu.closeAll();
@@ -22,13 +22,13 @@ test.describe('#export', () => {
     // Should enable the menu item.
     await page.filebrowser.open('testDir/france-hiking.jGIS');
     await page.menu.open('File');
-    menuItem = await page.menu.getMenuItem('File>Export To Qgis');
+    menuItem = await page.menu.getMenuItem('File>Export To QGZ');
     expect(await menuItem?.getAttribute('aria-disabled')).toBeFalsy();
   });
 
   test('should not export to qgis on cancel', async ({ page }) => {
     await page.filebrowser.open('testDir/france-hiking.jGIS');
-    await page.menu.clickMenuItem('File>Export To Qgis');
+    await page.menu.clickMenuItem('File>Export To QGZ');
 
     const dialog = page.locator('.jp-Dialog');
     await expect(dialog).toBeAttached();
@@ -41,7 +41,7 @@ test.describe('#export', () => {
 
   test('should export to qgis with default name', async ({ page }) => {
     await page.filebrowser.open('testDir/france-hiking.jGIS');
-    await page.menu.clickMenuItem('File>Export To Qgis');
+    await page.menu.clickMenuItem('File>Export To QGZ');
 
     const dialog = page.locator('.jp-Dialog');
     await expect(dialog).toBeAttached();
@@ -55,7 +55,7 @@ test.describe('#export', () => {
   test('should export to qgis with custom name', async ({ page }) => {
     const filename = 'custom-name';
     await page.filebrowser.open('testDir/france-hiking.jGIS');
-    await page.menu.clickMenuItem('File>Export To Qgis');
+    await page.menu.clickMenuItem('File>Export To QGZ');
 
     const dialog = page.locator('.jp-Dialog');
     await expect(dialog).toBeAttached();
@@ -69,7 +69,7 @@ test.describe('#export', () => {
 
   test('should display warnings', async ({ page }) => {
     await page.filebrowser.open('testDir/test.jGIS');
-    await page.menu.clickMenuItem('File>Export To Qgis');
+    await page.menu.clickMenuItem('File>Export To QGZ');
 
     const dialog = page.locator('.jp-Dialog');
     await expect(dialog).toBeAttached();

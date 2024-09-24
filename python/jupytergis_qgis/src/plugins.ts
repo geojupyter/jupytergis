@@ -181,7 +181,7 @@ const activate = async (
    */
   if (installed) {
     app.commands.addCommand(CommandIDs.exportQgis, {
-      label: 'Export To .qgz',
+      label: 'Export To QGZ',
       isEnabled: () =>
         tracker.currentWidget
           ? tracker.currentWidget.context.model.sharedModel.editable
