@@ -867,7 +867,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupytergis/base@^0.1.3, @jupytergis/base@workspace:packages/base":
+"@jupytergis/base@^0.1.4, @jupytergis/base@workspace:packages/base":
   version: 0.0.0-use.local
   resolution: "@jupytergis/base@workspace:packages/base"
   dependencies:
@@ -875,7 +875,7 @@ __metadata:
     "@deathbeds/jupyterlab-rjsf": ^1.1.0
     "@jupyter/docprovider": ^2.0.0
     "@jupyter/ydoc": ^1.0.0
-    "@jupytergis/schema": ^0.1.3
+    "@jupytergis/schema": ^0.1.4
     "@jupyterlab/application": ^4.0.0
     "@jupyterlab/apputils": ^4.0.0
     "@jupyterlab/completer": ^4.2.4
@@ -918,13 +918,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupytergis/jupytergis-core@^0.1.3, @jupytergis/jupytergis-core@workspace:python/jupytergis_core":
+"@jupytergis/jupytergis-core@^0.1.4, @jupytergis/jupytergis-core@workspace:python/jupytergis_core":
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-core@workspace:python/jupytergis_core"
   dependencies:
     "@jupyter/docprovider": ^2.0.0
-    "@jupytergis/base": ^0.1.3
-    "@jupytergis/schema": ^0.1.3
+    "@jupytergis/base": ^0.1.4
+    "@jupytergis/schema": ^0.1.4
     "@jupyterlab/application": ^4.0.0
     "@jupyterlab/apputils": ^4.0.0
     "@jupyterlab/builder": ^4.0.0
@@ -957,9 +957,9 @@ __metadata:
   resolution: "@jupytergis/jupytergis-lab@workspace:python/jupytergis_lab"
   dependencies:
     "@jupyter/docprovider": ^2.0.0
-    "@jupytergis/base": ^0.1.3
-    "@jupytergis/jupytergis-core": ^0.1.3
-    "@jupytergis/schema": ^0.1.3
+    "@jupytergis/base": ^0.1.4
+    "@jupytergis/jupytergis-core": ^0.1.4
+    "@jupytergis/schema": ^0.1.4
     "@jupyterlab/application": ^4.0.0
     "@jupyterlab/apputils": ^4.0.0
     "@jupyterlab/builder": ^4.0.0
@@ -989,9 +989,9 @@ __metadata:
   resolution: "@jupytergis/jupytergis-qgis@workspace:python/jupytergis_qgis"
   dependencies:
     "@jupyter/docprovider": ^2.0.0
-    "@jupytergis/base": ^0.1.3
-    "@jupytergis/jupytergis-core": ^0.1.3
-    "@jupytergis/schema": ^0.1.3
+    "@jupytergis/base": ^0.1.4
+    "@jupytergis/jupytergis-core": ^0.1.4
+    "@jupytergis/schema": ^0.1.4
     "@jupyterlab/application": ^4.0.0
     "@jupyterlab/apputils": ^4.0.0
     "@jupyterlab/builder": ^4.0.0
@@ -1041,7 +1041,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupytergis/schema@^0.1.3, @jupytergis/schema@workspace:packages/schema":
+"@jupytergis/schema@^0.1.4, @jupytergis/schema@workspace:packages/schema":
   version: 0.0.0-use.local
   resolution: "@jupytergis/schema@workspace:packages/schema"
   dependencies:
@@ -3239,12 +3239,12 @@ __metadata:
   linkType: hard
 
 "@types/react@npm:*, @types/react@npm:^18.0.26":
-  version: 18.3.8
-  resolution: "@types/react@npm:18.3.8"
+  version: 18.3.9
+  resolution: "@types/react@npm:18.3.9"
   dependencies:
     "@types/prop-types": "*"
     csstype: ^3.0.2
-  checksum: a2cc2034746cde564a49a9d7f1ae57214bc83adb0daafd4724dc400569adc54c5a489c0e7d8656752b8748908a364d6811e4d7a2adc7f18a7f7179728d20147a
+  checksum: ac8c7cf6f9c5c2ecef790f3db6f98c672fdec0884f4e4730777fd18823207231cdd1d2e4673f473ef17a096c73c87bff309e83b026fb2602ba068371f0dc54fe
   languageName: node
   linkType: hard
 

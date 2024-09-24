@@ -2,6 +2,32 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.1.4
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.1.3...27f26c221f3c85bdaa7954f57303ee3a0fd5a1e3))
+
+### Enhancements made
+
+- Export to qgis [#154](https://github.com/geojupyter/jupytergis/pull/154) ([@brichet](https://github.com/brichet))
+
+### Bugs fixed
+
+- Hotfix qgis loader for vector tile layer [#160](https://github.com/geojupyter/jupytergis/pull/160) ([@martinRenou](https://github.com/martinRenou))
+- Fix the update layers [#159](https://github.com/geojupyter/jupytergis/pull/159) ([@brichet](https://github.com/brichet))
+
+### Maintenance and upkeep improvements
+
+- Cleanup examples [#162](https://github.com/geojupyter/jupytergis/pull/162) ([@martinRenou](https://github.com/martinRenou))
+- Update snapshots [#161](https://github.com/geojupyter/jupytergis/pull/161) ([@brichet](https://github.com/brichet))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-09-24&to=2024-09-24&type=c))
+
+[@brichet](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2024-09-24..2024-09-24&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-09-24..2024-09-24&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-09-24..2024-09-24&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.1.3
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.1.2...80c859e448632ddf3de6098611f4ac2ac5df99bc))
@@ -29,8 +55,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-09-18&to=2024-09-24&type=c))
 
 [@brichet](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2024-09-18..2024-09-24&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-09-18..2024-09-24&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2024-09-18..2024-09-24&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-09-18..2024-09-24&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.1.2
 
