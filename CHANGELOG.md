@@ -2,6 +2,36 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.1.3
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.1.2...80c859e448632ddf3de6098611f4ac2ac5df99bc))
+
+### Enhancements made
+
+- Improve gdal initialization [#156](https://github.com/geojupyter/jupytergis/pull/156) ([@martinRenou](https://github.com/martinRenou))
+- Vector symbology [#152](https://github.com/geojupyter/jupytergis/pull/152) ([@gjmooney](https://github.com/gjmooney))
+- Build the lite deployment even if integration tests don't pass [#148](https://github.com/geojupyter/jupytergis/pull/148) ([@martinRenou](https://github.com/martinRenou))
+- Raise an ImportError for the Python API in JupyterLite for now [#147](https://github.com/geojupyter/jupytergis/pull/147) ([@martinRenou](https://github.com/martinRenou))
+
+### Bugs fixed
+
+- Fix update option in main view [#153](https://github.com/geojupyter/jupytergis/pull/153) ([@brichet](https://github.com/brichet))
+- Use base URL for accessing gdal assets [#150](https://github.com/geojupyter/jupytergis/pull/150) ([@gjmooney](https://github.com/gjmooney))
+- Update geotiff example [#146](https://github.com/geojupyter/jupytergis/pull/146) ([@gjmooney](https://github.com/gjmooney))
+
+### Maintenance and upkeep improvements
+
+- Add ruff for linting and formatting [#151](https://github.com/geojupyter/jupytergis/pull/151) ([@gjmooney](https://github.com/gjmooney))
+- Trigger snapshots update [#149](https://github.com/geojupyter/jupytergis/pull/149) ([@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-09-18&to=2024-09-24&type=c))
+
+[@brichet](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2024-09-18..2024-09-24&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-09-18..2024-09-24&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2024-09-18..2024-09-24&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-09-18..2024-09-24&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.1.2
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.1.1...2d2366ef0d447e418d6181ac24186a79a6ceeef2))
@@ -27,8 +57,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-09-13&to=2024-09-18&type=c))
 
 [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2024-09-13..2024-09-18&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-09-13..2024-09-18&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2024-09-13..2024-09-18&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-09-13..2024-09-18&type=Issues) | [@trungleduc](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Atrungleduc+updated%3A2024-09-13..2024-09-18&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.1.1
 

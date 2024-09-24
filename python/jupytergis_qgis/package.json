@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/jupytergis-qgis",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "JupyterGIS QGIS extension.",
   "keywords": [
     "jupyter",
@@ -53,9 +53,9 @@
   },
   "dependencies": {
     "@jupyter/docprovider": "^2.0.0",
-    "@jupytergis/base": "^0.1.2",
-    "@jupytergis/jupytergis-core": "^0.1.2",
-    "@jupytergis/schema": "^0.1.2",
+    "@jupytergis/base": "^0.1.3",
+    "@jupytergis/jupytergis-core": "^0.1.3",
+    "@jupytergis/schema": "^0.1.3",
     "@jupyterlab/application": "^4.0.0",
     "@jupyterlab/apputils": "^4.0.0",
     "@jupyterlab/coreutils": "^6.0.0",
