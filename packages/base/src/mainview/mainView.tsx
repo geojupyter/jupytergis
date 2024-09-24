@@ -26,7 +26,7 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { Map as OlMap, View } from 'ol';
+import { Collection, Map as OlMap, View } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
 import DragAndDrop from 'ol/interaction/DragAndDrop';
@@ -309,14 +309,20 @@ export class MainView extends React.Component<IProps, IStates> {
           source.parameters?.data ||
           (await this._model.readGeoJSON(source.parameters?.path));
 
-        const format = new GeoJSON();
+        const format = new GeoJSON({
+          featureProjection: this._Map.getView().getProjection()
+        });
 
         // TODO: Don't hardcode projection
+        const featureArray = format.readFeatures(data, {
+          dataProjection: 'EPSG:4326',
+          featureProjection: this._Map.getView().getProjection()
+        });
+
+        const featureCollection = new Collection(featureArray);
+
         newSource = new VectorSource({
-          features: format.readFeatures(data, {
-            dataProjection: 'EPSG:4326',
-            featureProjection: this._Map.getView().getProjection()
-          })
+          features: featureCollection
         });
 
         break;
