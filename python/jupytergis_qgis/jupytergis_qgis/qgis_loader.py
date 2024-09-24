@@ -182,6 +182,7 @@ def qgis_layer_to_jgis(
             pass
         # TODO Load style properly
         layer_parameters.update(type="fill")
+        layer_parameters.update(color=[])
 
     if layer_type is None:
         print(f"JUPYTERGIS - Enable to load layer type {type(layer)}")
