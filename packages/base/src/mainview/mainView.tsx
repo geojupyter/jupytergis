@@ -463,63 +463,34 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private async _updateLayersImpl(layerIds: string[]): Promise<void> {
-    const previousLayerIds = this.getLayers();
-    // We use the reverse order of the list to add the layer from the top to the
-    // bottom.
-    // This is to ensure that the beforeId (layer on top of the one we add/move)
-    // is already added/moved in the map.
-    const reversedLayerIds = layerIds.slice().reverse();
-
-    for (const layerId of reversedLayerIds) {
+    const mapLayers: BaseLayer[] = [];
+    for (const layerId of layerIds) {
       const layer = this._model.sharedModel.getLayer(layerId);
 
       if (!layer) {
         console.log(`Layer id ${layerId} does not exist`);
-        return;
+        continue;
       }
-      // Get the expected index in the map.
-      const currentLayerIds = [...previousLayerIds];
-      let indexInMap = currentLayerIds.length;
-      const nextLayer = layerIds[layerIds.indexOf(layerId) + 1];
-      if (nextLayer !== undefined) {
-        indexInMap = currentLayerIds.indexOf(nextLayer);
-        if (indexInMap === -1) {
-          indexInMap = currentLayerIds.length;
-        }
-      }
-      if (this.getLayer(layerId)) {
-        this.moveLayer(layerId, indexInMap);
-      } else {
-        await this.addLayer(layerId, layer, indexInMap);
-      }
-
-      // Remove the element of the previous list as treated.
-      const index = previousLayerIds.indexOf(layerId);
-      if (index > -1) {
-        previousLayerIds.splice(index, 1);
+      const newMapLayer = await this._buildMapLayer(layerId, layer);
+      if (newMapLayer !== undefined) {
+        mapLayers.push(newMapLayer);
       }
     }
-    // Remove the layers not used anymore.
-    previousLayerIds.forEach(layerId => {
-      this._Map.removeLayer(layerId);
-    });
-
+    this._Map.setLayers(mapLayers);
     this._ready = true;
   }
 
   /**
-   * Add a layer to the map.
+   * Build the map layer.
    *
    * @param id - id of the layer.
    * @param layer - the layer object.
-   * @param index - expected index of the layer.
+   * @returns - the map layer.
    */
-  async addLayer(id: string, layer: IJGISLayer, index: number): Promise<void> {
-    if (this.getLayer(id)) {
-      // Layer already exists
-      return;
-    }
-
+  private async _buildMapLayer(
+    id: string,
+    layer: IJGISLayer
+  ): Promise<BaseLayer | undefined> {
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getSource(sourceId);
     if (!source) {
@@ -530,7 +501,7 @@ export class MainView extends React.Component<IProps, IStates> {
       await this.addSource(sourceId, source);
     }
 
-    let newLayer;
+    let newMapLayer;
     let layerParameters;
 
     // TODO: OpenLayers provides a bunch of sources for specific tile
@@ -539,7 +510,7 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'RasterLayer': {
         layerParameters = layer.parameters as IRasterLayer;
 
-        newLayer = new TileLayer({
+        newMapLayer = new TileLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source]
@@ -550,7 +521,7 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'VectorLayer': {
         layerParameters = layer.parameters as IVectorLayer;
 
-        newLayer = new VectorLayer({
+        newMapLayer = new VectorLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
@@ -565,19 +536,19 @@ export class MainView extends React.Component<IProps, IStates> {
           return;
         }
 
-        newLayer = new VectorTileLayer({
+        newMapLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source]
         });
 
-        this.updateLayer(id, layer, newLayer);
+        this.updateLayer(id, layer, newMapLayer);
 
         break;
       }
       case 'HillshadeLayer': {
         layerParameters = layer.parameters as IHillshadeLayer;
 
-        newLayer = new WebGlTileLayer({
+        newMapLayer = new WebGlTileLayer({
           opacity: 0.3,
           source: this._sources[layerParameters.source],
           style: {
@@ -590,7 +561,7 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'ImageLayer': {
         layerParameters = layer.parameters as IImageLayer;
 
-        newLayer = new ImageLayer({
+        newMapLayer = new ImageLayer({
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source]
         });
@@ -610,19 +581,38 @@ export class MainView extends React.Component<IProps, IStates> {
           layerOptions['style'] = { color: layerParameters.color };
         }
 
-        newLayer = new WebGlTileLayer(layerOptions);
+        newMapLayer = new WebGlTileLayer(layerOptions);
 
         break;
       }
     }
 
     // OpenLayers doesn't have name/id field so add it
-    newLayer.set('id', id);
+    newMapLayer.set('id', id);
 
     // we need to keep track of which source has which layers
     this._sourceToLayerMap.set(layerParameters.source, id);
 
-    this._Map.getLayers().insertAt(index, newLayer);
+    return newMapLayer;
+  }
+
+  /**
+   * Add a layer to the map.
+   *
+   * @param id - id of the layer.
+   * @param layer - the layer object.
+   * @param index - expected index of the layer.
+   */
+  async addLayer(id: string, layer: IJGISLayer, index: number): Promise<void> {
+    if (this.getLayer(id)) {
+      // Layer already exists
+      return;
+    }
+
+    const newMapLayer = await this._buildMapLayer(id, layer);
+    if (newMapLayer !== undefined) {
+      this._Map.getLayers().insertAt(index, newMapLayer);
+    }
   }
 
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
@@ -737,41 +727,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
     return scaled;
   };
-
-  /**
-   * Move a layer in the stack.
-   *
-   * @param id - id of the layer.
-   * @param index - expected index of the layer.
-   */
-  moveLayer(id: string, index: number | undefined): void {
-    // Get the beforeId value according to the expected index.
-    const currentLayerIds = this.getLayers();
-    let beforeId: string | undefined = undefined;
-    if (!(index === undefined) && index < currentLayerIds.length) {
-      beforeId = currentLayerIds[index];
-    }
-
-    const layerArray = this._Map.getLayers().getArray();
-    const movingLayer = this.getLayer(id);
-
-    if (!movingLayer || !index || !beforeId) {
-      return;
-    }
-    const indexOfMovingLayer = layerArray.indexOf(movingLayer);
-
-    layerArray.splice(indexOfMovingLayer, 1);
-
-    const beforeLayer = this.getLayer(beforeId);
-
-    if (!beforeLayer) {
-      return;
-    }
-    const indexOfBeforeLayer = layerArray.indexOf(beforeLayer);
-
-    layerArray.splice(indexOfBeforeLayer, 0, movingLayer);
-    this._Map.setLayers(layerArray);
-  }
 
   /**
    * Update a layer of the map.
@@ -935,13 +890,13 @@ export class MainView extends React.Component<IProps, IStates> {
         this.removeLayer(change.id);
       } else {
         const mapLayer = this.getLayer(change.id);
-        if (
-          mapLayer &&
-          JupyterGISModel.getOrderedLayerIds(this._model).includes(change.id)
-        ) {
-          this.updateLayer(change.id, layer, mapLayer);
-        } else {
-          this.updateLayers(JupyterGISModel.getOrderedLayerIds(this._model));
+        const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
+        if (mapLayer) {
+          if (layerTree.includes(change.id)) {
+            this.updateLayer(change.id, layer, mapLayer);
+          } else {
+            this.updateLayers(layerTree);
+          }
         }
       }
     });
