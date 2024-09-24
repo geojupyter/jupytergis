@@ -201,6 +201,10 @@
         "projection": {
           "type": "string",
           "default": "EPSG:3857"
+        },
+        "useExtent": {
+          "type": "boolean",
+          "default": false
         }
       }
     },

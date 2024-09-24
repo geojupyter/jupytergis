@@ -200,6 +200,7 @@ def qgis_layer_to_jgis(
         source_name = f"{layer_name} Source"
 
     layer_parameters["source"] = source_id
+    layer_parameters["opacity"] = layer.opacity()
 
     layers[layer_id] = {
         "name": layer_name,
@@ -272,6 +273,7 @@ def import_project_from_qgis(path: str | Path):
                 map_extent.xMaximum(),
                 map_extent.yMaximum(),
             ],
+            "useExtent": True,
         },
         **jgis_layer_tree,
     }
@@ -282,7 +284,9 @@ def jgis_layer_to_qgis(
     layers: dict[str, dict[str, Any]],
     sources: dict[str, dict[str, Any]],
     settings: QgsSettings,
+    logs: dict[str, list[str]],
 ) -> QgsMapLayer | None:
+    # The function that build the URI from the source parameters.
     def build_uri(parameters: dict[str, str], source_type: str) -> str | None:
         layer_config = {}
         zmax = parameters.get("maxZoom", None)
@@ -292,28 +296,32 @@ def jgis_layer_to_qgis(
             url = parameters.get("url", None)
             if url is None:
                 return
+            urlParameters = parameters.get("urlParameters", None)
+            if urlParameters:
+                for k, v in urlParameters.items():
+                    url = url.replace(f"{{{k}}}", v)
             layer_config["url"] = url
             layer_config["type"] = "xyz"
 
         if source_type == "RasterSource":
             layer_config["crs"] = "EPSG:3857"
 
-        layer_config["zmin"] = str(zmin)
+        layer_config["zmin"] = str(round(zmin))
         if zmax:
-            layer_config["zmax"] = str(zmax)
-
+            layer_config["zmax"] = str(round(zmax))
         uri = QgsDataSourceUri()
         for key, val in layer_config.items():
             uri.setParam(key, val)
-
         return bytes(uri.encodedUri()).decode()
 
     layer = layers.get(layer_id, None)
     if layer is None:
+        logs["warnings"].append(f"Layer {layer_id} not exported: the layer {layer_id} is not in layer list")
         return
     source_id = layer.get("parameters", {}).get("source", "")
     source = sources.get(source_id, None)
     if source is None:
+        logs["warnings"].append(f"Layer {layer_id} not exported: the source {source_id} is not in source list")
         return
 
     map_layer = None
@@ -322,6 +330,7 @@ def jgis_layer_to_qgis(
     layer_type = layer.get("type", None)
     source_type = source.get("type", None)
     if any([v is None for v in [layer_name, layer_type, source_type]]):
+        logs["warnings"].append(f"Layer {layer_id} not exported: at least one of layer name, layer type or source type is missing.")
         return
 
     if layer_type == "RasterLayer" and source_type == "RasterSource":
@@ -341,10 +350,12 @@ def jgis_layer_to_qgis(
         map_layer = QgsRasterLayer(url, layer_name, "gdal")
 
     if map_layer is None:
+        logs["warnings"].append(f"Layer {layer_id} not exported: enable to export layer type {layer_type}")
         print(f"JUPYTERGIS - Enable to export layer type {layer_type}")
         return
 
     map_layer.setId(layer_id)
+    map_layer.setOpacity(layer.get("parameters", {}).get("opacity", 1.0))
 
     # Map the source id/name to the layer
     layerSourceMap = settings.value("layerSourceMap", {})
@@ -364,11 +375,12 @@ def jgis_layer_group_to_qgis(
     qgisGroup: QgsLayerTreeGroup,
     project: QgsProject,
     settings: QgsSettings,
+    logs: dict[str, list[str]],
 ) -> None:
     for item in layer_group:
         if isinstance(item, str):
             # Item is a layer id
-            qgis_layer = jgis_layer_to_qgis(item, layers, sources, settings)
+            qgis_layer = jgis_layer_to_qgis(item, layers, sources, settings, logs)
             if qgis_layer is not None:
                 project.addMapLayer(qgis_layer, False)
                 layer = qgisGroup.addLayer(qgis_layer)
@@ -379,11 +391,20 @@ def jgis_layer_group_to_qgis(
             qgisGroup.addGroup(name)
             newGroup = qgisGroup.findGroup(name)
             jgis_layer_group_to_qgis(
-                item.get("layers", []), layers, sources, newGroup, project, settings
+                item.get("layers", []),
+                layers,
+                sources,
+                newGroup,
+                project,
+                settings,
+                logs
             )
 
 
-def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> bool:
+def export_project_to_qgis(
+    path: str | Path,
+    virtual_file: dict[str, Any]
+) -> dict[str, list[str]]:
     if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
         return
 
@@ -406,6 +427,8 @@ def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> bo
 
     qgis_settings = QgsSettings()
 
+    logs = {"warnings": [], "errors": []}
+
     jgis_layer_group_to_qgis(
         virtual_file["layerTree"],
         virtual_file["layers"],
@@ -413,6 +436,7 @@ def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> bo
         root,
         project,
         qgis_settings,
+        logs
     )
 
     view_settings = project.viewSettings()
@@ -429,6 +453,9 @@ def export_project_to_qgis(path: str | Path, virtual_file: dict[str, Any]) -> bo
                 )
             )
         else:
+            logs["warning"].append("The 'extent' parameter is missing to save the viewport")
             print("The 'extent' parameter is missing to save the viewport")
 
-    return project.write(path)
+    if (not project.write(path)):
+        logs["errors"].append(f"Error when saving the file {path}")
+    return logs

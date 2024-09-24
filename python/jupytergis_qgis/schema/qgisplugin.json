@@ -1,0 +1,27 @@
+{
+  "title": "Qgis plugin",
+  "description": "Schema for the qgis plugin",
+  "jupyter.lab.menus": {
+    "main": [
+      {
+        "id": "jp-mainmenu-file",
+        "items": [
+          {
+            "type": "separator",
+            "rank": 10
+          },
+          {
+            "command": "jupytergis:export",
+            "rank": 10
+          },
+          {
+            "type": "separator",
+            "rank": 10
+          }
+        ]
+      }
+    ]
+  },
+  "additionalProperties": false,
+  "type": "object"
+}
