@@ -179,105 +179,107 @@ const activate = async (
    * A popup opens to choose a filepath (local from the current jGIS file) if the
    * filepath is not provided in args.
    */
-  app.commands.addCommand(CommandIDs.exportQgis, {
-    label: `Export To Qgis${installed ? '' : ' (QGIS is required)'}`,
-    isEnabled: () =>
-      installed && tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false,
-    execute: async args => {
-      const sourceExtension = '.jGIS';
-      const extension = '.qgz';
-      const model = tracker.currentWidget?.context.model.sharedModel;
-      if (!model) {
-        return;
-      }
-      const sourcePath = tracker.currentWidget.context.localPath;
-
-      let filepath: string | null = (args.filepath as string) ?? null;
-      if (!filepath) {
-        filepath = (
-          await InputDialog.getText({
-            label: 'File name',
-            placeholder: PathExt.basename(sourcePath, sourceExtension),
-            title: 'Export the project to QGZ file'
-          })
-        ).value;
-      }
-
-      if (filepath === null) {
-        // no-op if the dialog has been cancelled.
-        return;
-      } else if (!filepath) {
-        // create the filepath if the dialog has been validated empty.
-        filepath = `${PathExt.basename(sourcePath, sourceExtension)}${extension}`;
-      } else if (!filepath.endsWith(extension)) {
-        // add the extension to the path if it does not exist.
-        filepath = `${filepath}${extension}`;
-      }
-
-      let dir = PathExt.dirname(sourcePath);
-      if (dir.includes(':')) {
-        dir = dir.split(':')[1];
-      }
-      const absolutePath = PathExt.join(dir, filepath);
-
-      const virtualFile = {
-        layers: model.layers,
-        sources: model.sources,
-        layerTree: model.layerTree.slice().reverse(),
-        options: model.options
-      };
-
-      // Check if the file exists
-      let fileExist = true;
-      await drive.get(absolutePath, { content: false }).catch(() => {
-        fileExist = false;
-      });
-      if (fileExist) {
-        const overwrite = await showDialog({
-          title: 'Export the project to QGZ file',
-          body: `The file ${filepath} already exists.\nDo you want to overwrite it ?`
-        });
-        if (!overwrite.button.accept) {
+  if (installed) {
+    app.commands.addCommand(CommandIDs.exportQgis, {
+      label: 'Export To .qgz',
+      isEnabled: () =>
+        tracker.currentWidget
+          ? tracker.currentWidget.context.model.sharedModel.editable
+          : false,
+      execute: async args => {
+        const sourceExtension = '.jGIS';
+        const extension = '.qgz';
+        const model = tracker.currentWidget?.context.model.sharedModel;
+        if (!model) {
           return;
         }
-      }
-      const response = await requestAPI<IExportResponse>(
-        'jupytergis_qgis/export',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            path: absolutePath,
-            virtual_file: virtualFile
-          })
-        }
-      );
-      if (!response.exported) {
-        showErrorMessage(
-          'Export the project to QGZ file',
-          response.logs.errors.length
-            ? response.logs.errors.join('\n')
-            : 'Unknown error'
-        );
-      } else if (response.logs.warnings.length) {
-        const bodyElement = document.createElement('pre');
-        bodyElement.textContent = `${filepath} has been exported with warnings\n  - ${response.logs.warnings.join('\n  - ')}`;
-        const body = new Widget({ node: bodyElement });
-        await showDialog<HTMLPreElement>({
-          title: 'Export the project to QGZ file',
-          body,
-          buttons: [Dialog.okButton()]
-        });
-      }
-    }
-  });
+        const sourcePath = tracker.currentWidget.context.localPath;
 
-  if (commandPalette) {
-    commandPalette.addItem({
-      command: CommandIDs.exportQgis,
-      category: 'JupyterGIS'
+        let filepath: string | null = (args.filepath as string) ?? null;
+        if (!filepath) {
+          filepath = (
+            await InputDialog.getText({
+              label: 'File name',
+              placeholder: PathExt.basename(sourcePath, sourceExtension),
+              title: 'Export the project to QGZ file'
+            })
+          ).value;
+        }
+
+        if (filepath === null) {
+          // no-op if the dialog has been cancelled.
+          return;
+        } else if (!filepath) {
+          // create the filepath if the dialog has been validated empty.
+          filepath = `${PathExt.basename(sourcePath, sourceExtension)}${extension}`;
+        } else if (!filepath.endsWith(extension)) {
+          // add the extension to the path if it does not exist.
+          filepath = `${filepath}${extension}`;
+        }
+
+        let dir = PathExt.dirname(sourcePath);
+        if (dir.includes(':')) {
+          dir = dir.split(':')[1];
+        }
+        const absolutePath = PathExt.join(dir, filepath);
+
+        const virtualFile = {
+          layers: model.layers,
+          sources: model.sources,
+          layerTree: model.layerTree.slice().reverse(),
+          options: model.options
+        };
+
+        // Check if the file exists
+        let fileExist = true;
+        await drive.get(absolutePath, { content: false }).catch(() => {
+          fileExist = false;
+        });
+        if (fileExist) {
+          const overwrite = await showDialog({
+            title: 'Export the project to QGZ file',
+            body: `The file ${filepath} already exists.\nDo you want to overwrite it ?`
+          });
+          if (!overwrite.button.accept) {
+            return;
+          }
+        }
+        const response = await requestAPI<IExportResponse>(
+          'jupytergis_qgis/export',
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              path: absolutePath,
+              virtual_file: virtualFile
+            })
+          }
+        );
+        if (!response.exported) {
+          showErrorMessage(
+            'Export the project to QGZ file',
+            response.logs.errors.length
+              ? response.logs.errors.join('\n')
+              : 'Unknown error'
+          );
+        } else if (response.logs.warnings.length) {
+          const bodyElement = document.createElement('pre');
+          bodyElement.textContent = `${filepath} has been exported with warnings\n  - ${response.logs.warnings.join('\n  - ')}`;
+          const body = new Widget({ node: bodyElement });
+          await showDialog<HTMLPreElement>({
+            title: 'Export the project to QGZ file',
+            body,
+            buttons: [Dialog.okButton()]
+          });
+        }
+      }
     });
+
+    if (commandPalette) {
+      commandPalette.addItem({
+        command: CommandIDs.exportQgis,
+        category: 'JupyterGIS'
+      });
+    }
   }
 
   console.log('@jupytergis/jupytergis-qgis:qgisplugin is activated!');
