@@ -520,23 +520,31 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new VectorLayer({
           opacity: layerParameters.opacity,
-          visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: this.vectorLayerStyleRuleBuilder(layer)
-        });
+          visible: layer.visible
+        };
+
+        if (layerParameters.color) {
+          layerOptions['style'] = this.vectorLayerStyleRuleBuilder(layer);
+        }
+
+        newLayer = new VectorLayer(layerOptions);
 
         break;
       }
       case 'VectorTileLayer': {
         layerParameters = layer.parameters as IVectorLayer;
-        if (!layerParameters.color) {
-          return;
-        }
 
         newMapLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source]
-        });
+        };
+
+        if (layerParameters.color) {
+          layerOptions['style'] = { color: layerParameters.color };
+        }
+
+        newLayer = new VectorTileLayer(layerOptions);
 
         this.updateLayer(id, layer, newMapLayer);
 
@@ -634,7 +642,11 @@ export class MainView extends React.Component<IProps, IStates> {
 
     const layerStyle = { ...defaultRules };
 
-    if (layer.filters && layer.filters.appliedFilters.length !== 0) {
+    if (
+      layer.filters &&
+      layer.filters.logicalOp &&
+      layer.filters.appliedFilters.length !== 0
+    ) {
       const filterExpr: any[] = [];
 
       // 'Any' and 'All' operators require more than one argument

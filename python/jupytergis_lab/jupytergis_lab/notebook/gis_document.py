@@ -229,12 +229,12 @@ class GISDocument(CommWidget):
         data: Dict | None = None,
         name: str = "GeoJSON Layer",
         type: "circle" | "fill" | "line" = "line",
-        color: str = "#FF0000",
         opacity: float = 1,
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
         value: Union[str, number, float] | None = None,
+        color_expr=None,
     ):
         """
         Add a GeoJSON Layer to the document.
@@ -245,6 +245,7 @@ class GISDocument(CommWidget):
         :param type: The type of the vector layer to create.
         :param color: The color to apply to features.
         :param opacity: The opacity, between 0 and 1.
+        :param color_expr: The style expression used to style the layer, defaults to None
         """
         if path is None and data is None:
             raise ValueError("Cannot create a GeoJSON layer without data")
@@ -278,7 +279,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "type": type,
-                "color": color,
+                "color": color_expr,
                 "opacity": opacity,
             },
             "filters": {
