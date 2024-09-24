@@ -161,6 +161,7 @@ def test_qgis_saver():
                 "name": "Vector Tile Layer",
                 "parameters": {
                     "opacity": 1.0,
+                    'color': [],
                     "source": source_ids[2],
                     "sourceLayer": "bingmlbuildings",
                     "type": "fill",
