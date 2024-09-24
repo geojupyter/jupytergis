@@ -21,7 +21,8 @@
   flex: 0 1 20%;
 }
 
-.jp-gis-symbology-row > .jp-select-wrapper {
+.jp-gis-symbology-row > .jp-select-wrapper,
+.jp-gis-symbology-row > .jp-mod-styled {
   flex: 1 0 50%;
   max-width: 50%;
 }
@@ -35,6 +36,13 @@
 .jp-gis-layer-symbology-container {
   display: flex;
   flex-direction: column;
+  gap: 13px;
+  border-top: 1px solid var(--jp-border-color2);
+  padding-top: 8px;
+}
+
+.jp-gis-layer-symbology-container .jp-select-wrapper {
+  margin-bottom: unset;
 }
 
 .jp-gis-band-container .jp-gis-symbology-row:last-child {
@@ -66,12 +74,12 @@
   height: 32px;
 }
 
-.jp-gis-color-row > input[type='number'] {
+.jp-gis-color-row-value-input {
   flex: 0 1 18%;
   min-width: 0px;
 }
 
-.jp-gis-color-row > input[type='color'] {
+.jp-gis-color-row-output-input {
   flex-grow: 1;
 }
 

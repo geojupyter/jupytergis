@@ -27,7 +27,6 @@ import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { Map as OlMap, View } from 'ol';
-import { FeatureLike } from 'ol/Feature';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
 import DragAndDrop from 'ol/interaction/DragAndDrop';
@@ -50,9 +49,9 @@ import {
   XYZ as XYZSource
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
-import { Circle, Fill, Stroke, Style } from 'ol/style';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
+import { Rule } from 'ol/style/flat';
 import * as React from 'react';
 import shp from 'shpjs';
 import { isLightTheme } from '../tools';
@@ -555,21 +554,23 @@ export class MainView extends React.Component<IProps, IStates> {
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: currentFeature =>
-            this.vectorLayerStyleFunc(currentFeature, layer)
+          style: this.vectorLayerStyleRuleBuilder(layer)
         });
 
         break;
       }
       case 'VectorTileLayer': {
         layerParameters = layer.parameters as IVectorLayer;
+        if (!layerParameters.color) {
+          return;
+        }
 
         newLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
-          source: this._sources[layerParameters.source],
-          style: currentFeature =>
-            this.vectorLayerStyleFunc(currentFeature, layer)
+          source: this._sources[layerParameters.source]
         });
+
+        this.updateLayer(id, layer, newLayer);
 
         break;
       }
@@ -624,88 +625,66 @@ export class MainView extends React.Component<IProps, IStates> {
     this._Map.getLayers().insertAt(index, newLayer);
   }
 
-  vectorLayerStyleFunc = (currentFeature: FeatureLike, layer: IJGISLayer) => {
-    const layerParameters = layer.parameters as IVectorLayer;
+  vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
+    const layerParams = layer.parameters;
+    if (!layerParams) {
+      return;
+    }
 
-    // const flatStyle = {
-    //   'fill-color': 'rgba(255,255,255,0.4)',
-    //   'stroke-color': '#3399CC',
-    //   'stroke-width': 1.25,
-    //   'circle-radius': 5,
-    //   'circle-fill-color': 'rgba(255,255,255,0.4)',
-    //   'circle-stroke-width': 1.25,
-    //   'circle-stroke-color': '#3399CC'
-    // };
-
-    // TODO: Need to make a version that works with strings as well
-    const operators = {
-      '>': (a: number | string, b: number | string) => a > b,
-      '<': (a: number | string, b: number | string) => a < b,
-      '>=': (a: number | string, b: number | string) => a >= b,
-      '<=': (a: number | string, b: number | string) => a <= b,
-      '==': (a: number | string, b: number | string) => a === b,
-      '!=': (a: number | string, b: number | string) => a !== b
+    const defaultStyle = {
+      'fill-color': 'rgba(255,255,255,0.4)',
+      'stroke-color': '#3399CC',
+      'stroke-width': 1.25,
+      'circle-radius': 5,
+      'circle-fill-color': 'rgba(255,255,255,0.4)',
+      'circle-stroke-width': 1.25,
+      'circle-stroke-color': '#3399CC'
     };
 
-    // TODO: I don't think this will work with fancy color expressions
-    const fill = new Fill({
-      color:
-        layerParameters.type === 'fill' || layerParameters.type === 'circle'
-          ? layerParameters.color
-          : 'rgba(0, 0, 0, 0)'
-    });
+    const defaultRules: Rule = {
+      style: defaultStyle
+    };
 
-    const stroke = new Stroke({
-      color:
-        layerParameters.type === 'line' || layerParameters.type === 'circle'
-          ? layerParameters.color
-          : '#392F5A',
-      width: 2
-    });
+    const layerStyle = { ...defaultRules };
 
-    const style = new Style({
-      fill,
-      stroke,
-      image: new Circle({
-        radius: 5,
-        fill,
-        stroke
-      })
-    });
+    if (layer.filters && layer.filters.appliedFilters.length !== 0) {
+      const filterExpr: any[] = [];
 
-    if (layer.filters && layer.filters?.appliedFilters.length !== 0) {
-      const props = currentFeature.getProperties();
-      let shouldDisplayFeature = true;
-
-      switch (layer.filters.logicalOp) {
-        case 'any': {
-          // Display the feature if any filter conditions apply
-          shouldDisplayFeature = layer.filters.appliedFilters.some(
-            ({ feature, operator, value }) =>
-              operators[operator](props[feature], value)
+      // 'Any' and 'All' operators require more than one argument
+      // So if there's only one filter, skip that part to avoid error
+      if (layer.filters.appliedFilters.length === 1) {
+        layer.filters.appliedFilters.forEach(filter => {
+          filterExpr.push(
+            filter.operator,
+            ['get', filter.feature],
+            filter.value
           );
-
-          break;
-        }
-        case 'all': {
-          // Display the feature only if all the filter conditions apply
-          shouldDisplayFeature = layer.filters.appliedFilters.every(
-            ({ feature, operator, value }) =>
-              operators[operator](props[feature], value)
-          );
-
-          break;
-        }
-      }
-
-      if (shouldDisplayFeature) {
-        return style;
+        });
       } else {
-        return undefined;
+        filterExpr.push(layer.filters.logicalOp);
+
+        // Arguments for "Any" and 'All' need to be wrapped in brackets
+        layer.filters.appliedFilters.forEach(filter => {
+          filterExpr.push([
+            filter.operator,
+            ['get', filter.feature],
+            filter.value
+          ]);
+        });
       }
-    } else {
-      return style;
+
+      layerStyle.filter = filterExpr;
     }
+
+    if (!layerParams.color) {
+      return [layerStyle];
+    }
+
+    const newStyle = { ...defaultStyle, ...layerParams.color };
+
+    layerStyle.style = newStyle;
+
+    return [layerStyle];
   };
 
   /**
@@ -827,8 +806,8 @@ export class MainView extends React.Component<IProps, IStates> {
 
         mapLayer.setOpacity(layerParams.opacity || 1);
 
-        (mapLayer as VectorLayer).setStyle(currentFeature =>
-          this.vectorLayerStyleFunc(currentFeature, layer)
+        (mapLayer as VectorLayer).setStyle(
+          this.vectorLayerStyleRuleBuilder(layer)
         );
 
         break;
@@ -838,8 +817,8 @@ export class MainView extends React.Component<IProps, IStates> {
 
         mapLayer.setOpacity(layerParams.opacity || 1);
 
-        (mapLayer as VectorLayer).setStyle(currentFeature =>
-          this.vectorLayerStyleFunc(currentFeature, layer)
+        (mapLayer as VectorTileLayer).setStyle(
+          this.vectorLayerStyleRuleBuilder(layer)
         );
 
         break;

@@ -4,9 +4,10 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
-
 import React, { useEffect, useState } from 'react';
 import BandRendering from './components/symbology/BandRendering';
+import VectorRendering from './components/symbology/VectorRendering';
+
 export interface ISymbologyDialogProps {
   context: DocumentRegistry.IContext<IJupyterGISModel>;
   state: IStateDB;
@@ -18,6 +19,11 @@ export interface ISymbologyDialogProps {
 export interface ISymbologyWidgetOptions {
   context: DocumentRegistry.IContext<IJupyterGISModel>;
   state: IStateDB;
+}
+
+export interface IStopRow {
+  stop: number;
+  output: number | number[];
 }
 
 const SymbologyDialog = ({
@@ -67,6 +73,18 @@ const SymbologyDialog = ({
 
     // TODO WebGlLayers can also be used for other layers, need a better way to determine source + layer combo
     switch (layer.type) {
+      case 'VectorLayer':
+      case 'VectorTileLayer':
+        LayerSymbology = (
+          <VectorRendering
+            context={context}
+            state={state}
+            okSignalPromise={okSignalPromise}
+            cancel={cancel}
+            layerId={selectedLayer}
+          />
+        );
+        break;
       case 'WebGlLayer':
         LayerSymbology = (
           <BandRendering
