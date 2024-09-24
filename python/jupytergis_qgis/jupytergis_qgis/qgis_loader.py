@@ -174,8 +174,37 @@ def qgis_layer_to_jgis(
             maxZoom=max_zoom,
             minZoom=min_zoom,
         )
+
+        renderer = layer.renderer()
+        styles = renderer.styles()
+
+        print("renderer", renderer)
+        print("style", styles)
+        for style in styles:
+            print("filter", style.filterExpression())
+            # 0 = points, 1 = lines, 2 = polygons
+            print("geom", style.geometryType())
+            # this is source layer in our schema
+            print("layer name", style.layerName())
+            sym = style.symbol()
+            print("sym", style.symbol())
+            lay = sym.layer()
+            print("lay", lay)
+            symlays = sym.symbolLayers()
+
+            for symm in symlays:
+                print("color", symm.color().red())
+                print("strokeColor", symm.strokeColor().red())
+                print("fillColor", symm.fillColor())
+
+            print("symlays", symlays)
+            clone = sym.cloneLayers()
+            print("clone", clone)
+
         # TODO Load source-layer properly, from qgis symbology?
         try:
+            # layer_names = get_source_layer_names(url)
+            # print("layer names", layer_names)
             source_layer = get_source_layer_names(url)[0]
             layer_parameters["sourceLayer"] = source_layer
         except ValueError:
