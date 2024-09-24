@@ -16,7 +16,7 @@
     "name": "JupyterGIS contributors"
   },
   "files": [
-    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,data,wasm}",
     "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "main": "lib/index.js",
@@ -27,10 +27,11 @@
     "url": "https://github.com/geojupyter/jupytergis.git"
   },
   "scripts": {
-    "build": "jlpm run build:gallery && tsc -b",
+    "build": "jlpm run build:gallery && tsc -b && jlpm run cp:gdal",
     "build:gallery": "python rasterlayer_gallery_generator.py",
+    "cp:gdal": "cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.data lib && cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.wasm lib",
     "build:prod": "jlpm run clean && jlpm run build",
-    "build:dev": "tsc -b",
+    "build:dev": "tsc -b && jlpm run cp:gdal",
     "clean": "rimraf tsconfig.tsbuildinfo",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
     "clean:all": "jlpm run clean:lib",
