@@ -526,8 +526,8 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new VectorLayer({
           opacity: layerParameters.opacity,
-          source: this._sources[layerParameters.source],
           visible: layer.visible,
+          source: this._sources[layerParameters.source],
           style: this.vectorLayerStyleRuleBuilder(layer)
         });
 

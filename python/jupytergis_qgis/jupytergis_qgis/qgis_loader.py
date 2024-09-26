@@ -188,16 +188,13 @@ def qgis_layer_to_jgis(
                 # 0 = points, 1 = lines, 2 = polygons
                 if geometry_type == 2:
                     color["fill-color"] = symbol.color().name()
-                    paramType = "fill"
 
                 if geometry_type == 1:
                     color["stroke-color"] = symbol.color().name()
-                    paramType = "line"
 
                 if geometry_type == 0:
-                    color["circle-ill-color"] = symbol.color().name()
+                    color["circle-fill-color"] = symbol.color().name()
                     color["circle-stroke-color"] = symbol.color().name()
-                    paramType = "circle"
 
         # TODO Load source-layer properly, from qgis symbology?
         try:
@@ -206,7 +203,7 @@ def qgis_layer_to_jgis(
         except ValueError:
             pass
 
-        layer_parameters.update(type=paramType)
+        layer_parameters.update(type="fill")
         layer_parameters.update(color=color)
 
     if layer_type is None:
