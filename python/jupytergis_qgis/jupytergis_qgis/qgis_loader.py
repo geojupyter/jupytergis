@@ -177,41 +177,37 @@ def qgis_layer_to_jgis(
 
         renderer = layer.renderer()
         styles = renderer.styles()
+        color = {}
 
-        print("renderer", renderer)
-        print("style", styles)
         for style in styles:
-            print("filter", style.filterExpression())
-            # 0 = points, 1 = lines, 2 = polygons
-            print("geom", style.geometryType())
-            # this is source layer in our schema
-            print("layer name", style.layerName())
-            sym = style.symbol()
-            print("sym", style.symbol())
-            lay = sym.layer()
-            print("lay", lay)
-            symlays = sym.symbolLayers()
+            symbol = style.symbol()
+            symbol_layers = symbol.symbolLayers()
 
-            for symm in symlays:
-                print("color", symm.color().red())
-                print("strokeColor", symm.strokeColor().red())
-                print("fillColor", symm.fillColor())
+            geometry_type = style.geometryType()
+            for symbol in symbol_layers:
+                # 0 = points, 1 = lines, 2 = polygons
+                if geometry_type == 2:
+                    color["fill-color"] = symbol.color().name()
+                    paramType = "fill"
 
-            print("symlays", symlays)
-            clone = sym.cloneLayers()
-            print("clone", clone)
+                if geometry_type == 1:
+                    color["stroke-color"] = symbol.color().name()
+                    paramType = "line"
+
+                if geometry_type == 0:
+                    color["circle-ill-color"] = symbol.color().name()
+                    color["circle-stroke-color"] = symbol.color().name()
+                    paramType = "circle"
 
         # TODO Load source-layer properly, from qgis symbology?
         try:
-            # layer_names = get_source_layer_names(url)
-            # print("layer names", layer_names)
             source_layer = get_source_layer_names(url)[0]
             layer_parameters["sourceLayer"] = source_layer
         except ValueError:
             pass
-        # TODO Load style properly
-        layer_parameters.update(type="fill")
-        layer_parameters.update(color=[])
+
+        layer_parameters.update(type=paramType)
+        layer_parameters.update(color=color)
 
     if layer_type is None:
         print(f"JUPYTERGIS - Enable to load layer type {type(layer)}")
@@ -346,12 +342,16 @@ def jgis_layer_to_qgis(
 
     layer = layers.get(layer_id, None)
     if layer is None:
-        logs["warnings"].append(f"Layer {layer_id} not exported: the layer {layer_id} is not in layer list")
+        logs["warnings"].append(
+            f"Layer {layer_id} not exported: the layer {layer_id} is not in layer list"
+        )
         return
     source_id = layer.get("parameters", {}).get("source", "")
     source = sources.get(source_id, None)
     if source is None:
-        logs["warnings"].append(f"Layer {layer_id} not exported: the source {source_id} is not in source list")
+        logs["warnings"].append(
+            f"Layer {layer_id} not exported: the source {source_id} is not in source list"
+        )
         return
 
     map_layer = None
@@ -360,7 +360,9 @@ def jgis_layer_to_qgis(
     layer_type = layer.get("type", None)
     source_type = source.get("type", None)
     if any([v is None for v in [layer_name, layer_type, source_type]]):
-        logs["warnings"].append(f"Layer {layer_id} not exported: at least one of layer name, layer type or source type is missing.")
+        logs["warnings"].append(
+            f"Layer {layer_id} not exported: at least one of layer name, layer type or source type is missing."
+        )
         return
 
     if layer_type == "RasterLayer" and source_type == "RasterSource":
@@ -380,7 +382,9 @@ def jgis_layer_to_qgis(
         map_layer = QgsRasterLayer(url, layer_name, "gdal")
 
     if map_layer is None:
-        logs["warnings"].append(f"Layer {layer_id} not exported: enable to export layer type {layer_type}")
+        logs["warnings"].append(
+            f"Layer {layer_id} not exported: enable to export layer type {layer_type}"
+        )
         print(f"JUPYTERGIS - Enable to export layer type {layer_type}")
         return
 
@@ -427,13 +431,12 @@ def jgis_layer_group_to_qgis(
                 newGroup,
                 project,
                 settings,
-                logs
+                logs,
             )
 
 
 def export_project_to_qgis(
-    path: str | Path,
-    virtual_file: dict[str, Any]
+    path: str | Path, virtual_file: dict[str, Any]
 ) -> dict[str, list[str]]:
     if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
         return
@@ -466,7 +469,7 @@ def export_project_to_qgis(
         root,
         project,
         qgis_settings,
-        logs
+        logs,
     )
 
     view_settings = project.viewSettings()
@@ -483,9 +486,11 @@ def export_project_to_qgis(
                 )
             )
         else:
-            logs["warning"].append("The 'extent' parameter is missing to save the viewport")
+            logs["warning"].append(
+                "The 'extent' parameter is missing to save the viewport"
+            )
             print("The 'extent' parameter is missing to save the viewport")
 
-    if (not project.write(path)):
+    if not project.write(path):
         logs["errors"].append(f"Error when saving the file {path}")
     return logs

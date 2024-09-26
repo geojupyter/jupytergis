@@ -527,14 +527,9 @@ export class MainView extends React.Component<IProps, IStates> {
         newMapLayer = new VectorLayer({
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source],
-          visible: layer.visible
-        };
-
-        if (layerParameters.color) {
-          layerOptions['style'] = this.vectorLayerStyleRuleBuilder(layer);
-        }
-
-        newLayer = new VectorLayer(layerOptions);
+          visible: layer.visible,
+          style: this.vectorLayerStyleRuleBuilder(layer)
+        });
 
         break;
       }
@@ -544,13 +539,7 @@ export class MainView extends React.Component<IProps, IStates> {
         newMapLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source]
-        };
-
-        if (layerParameters.color) {
-          layerOptions['style'] = { color: layerParameters.color };
-        }
-
-        newLayer = new VectorTileLayer(layerOptions);
+        });
 
         this.updateLayer(id, layer, newMapLayer);
 
