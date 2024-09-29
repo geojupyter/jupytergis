@@ -20,6 +20,13 @@
       },
       "name": "Custom Shapefile Layer",
       "parameters": {
+        "color": {
+          "fill-color": "#ff0000",
+          "stroke-color": "#ff0000",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "df86531e-086d-48fa-bfec-98477ec554a4",
         "type": "line"
@@ -41,16 +48,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -9999255.896951001,
-      3675836.689228255,
-      -7012315.526044298,
-      6666919.834574496
+      -8262247.857073612,
+      4961071.288111334,
+      -8221407.547578438,
+      5002025.042910661
     ],
-    "latitude": 42.069382387280626,
-    "longitude": -76.40877308083776,
+    "latitude": 40.79089967838061,
+    "longitude": -74.03759794079146,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 5.2398182281592565
+    "zoom": 11.430346702791901
   },
   "sources": {
     "284311a5-01a0-4333-a120-19c23a37e064": {
