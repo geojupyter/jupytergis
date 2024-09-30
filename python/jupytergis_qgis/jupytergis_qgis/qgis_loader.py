@@ -9,6 +9,7 @@ from urllib.parse import unquote
 from uuid import uuid4
 
 from jupytergis_lab.notebook.utils import get_source_layer_names
+from PyQt5.QtGui import QColor
 from qgis.core import (
     QgsApplication,
     QgsCoordinateReferenceSystem,
@@ -219,17 +220,16 @@ def qgis_layer_to_jgis(
             symbol_layers = symbol.symbolLayers()
 
             geometry_type = style.geometryType()
-            for symbol in symbol_layers:
-                # 0 = points, 1 = lines, 2 = polygons
-                if geometry_type == 0:
-                    color["circle-fill-color"] = symbol.color().name()
-                    color["circle-stroke-color"] = symbol.color().name()
+            # 0 = points, 1 = lines, 2 = polygons
+            if geometry_type == 0:
+                color["circle-fill-color"] = symbol.color().name()
+                color["circle-stroke-color"] = symbol.color().name()
 
-                if geometry_type == 1:
-                    color["stroke-color"] = symbol.color().name()
+            if geometry_type == 1:
+                color["stroke-color"] = symbol.color().name()
 
-                if geometry_type == 2:
-                    color["fill-color"] = symbol.color().name()
+            if geometry_type == 2:
+                color["fill-color"] = symbol.color().name()
 
         # TODO Load source-layer properly, from qgis symbology?
         try:
@@ -404,8 +404,30 @@ def jgis_layer_to_qgis(
 
     if layer_type == "VectorTileLayer" and source_type == "VectorTileSource":
         parameters = source.get("parameters", {})
+        color_params = layer["parameters"]["color"]
         uri = build_uri(parameters, "VectorTileSource")
+
         map_layer = QgsVectorTileLayer(uri, layer_name)
+        map_layer.loadDefaultStyle()
+        renderer = map_layer.renderer()
+
+        styles = renderer.styles()
+        for style in styles:
+            symbol = style.symbol()
+            symbol_layers = symbol.symbolLayers()
+
+            geometry_type = style.geometryType()
+            # 0 = points, 1 = lines, 2 = polygons
+            if geometry_type == 0:
+                symbol.setColor(QColor(color_params["circle-fill-color"]))
+
+            if geometry_type == 1:
+                symbol.setColor(QColor(color_params["stroke-color"]))
+
+            if geometry_type == 2:
+                symbol.setColor(QColor(color_params["fill-color"]))
+
+        map_layer.triggerRepaint()
 
     if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
         parameters = source.get("parameters", {})
