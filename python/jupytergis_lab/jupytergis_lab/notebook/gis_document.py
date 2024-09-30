@@ -12,6 +12,7 @@ from ypywidgets.comm import CommWidget
 
 from .objects import (
     IGeoJSONSource,
+    IGeoTiffSource,
     IHillshadeLayer,
     IImageLayer,
     IImageSource,
@@ -21,7 +22,6 @@ from .objects import (
     IVectorTileLayer,
     IVectorTileSource,
     IVideoSource,
-    IGeoTiffSource,
     IWebGlLayer,
     LayerType,
     SourceType,
@@ -162,7 +162,7 @@ class GISDocument(CommWidget):
         min_zoom: int = 0,
         max_zoom: int = 24,
         type: Literal["circle", "fill", "line"] = "line",
-        color: str = "#FF0000",
+        color_expr=None,
         opacity: float = 1,
         logical_op: str | None = None,
         feature: str | None = None,
@@ -210,7 +210,7 @@ class GISDocument(CommWidget):
                 "type": type,
                 "opacity": opacity,
                 "sourceLayer": source_layer,
-                "color": color,
+                "color": color_expr,
                 "opacity": opacity,
             },
             "filters": {
