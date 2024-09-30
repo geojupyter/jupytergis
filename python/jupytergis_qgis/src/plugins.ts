@@ -3,9 +3,9 @@ import {
   SharedDocumentFactory
 } from '@jupyter/docprovider';
 import {
-  JupyterGISDoc,
   IJGISExternalCommandRegistry,
-  IJGISExternalCommandRegistryToken
+  IJGISExternalCommandRegistryToken,
+  JupyterGISDoc
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -14,21 +14,21 @@ import {
 import {
   Dialog,
   ICommandPalette,
-  InputDialog,
   IThemeManager,
+  InputDialog,
+  WidgetTracker,
   showDialog,
-  showErrorMessage,
-  WidgetTracker
+  showErrorMessage
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { PathExt } from '@jupyterlab/coreutils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
+import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Widget } from '@lumino/widgets';
 
+import { JupyterGISWidget, requestAPI } from '@jupytergis/base';
 import { JupyterGISWidgetFactory } from '@jupytergis/jupytergis-core';
 import { IJupyterGISDocTracker, IJupyterGISWidget } from '@jupytergis/schema';
-import { JupyterGISWidget, requestAPI } from '@jupytergis/base';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
 
 /**
@@ -101,7 +101,8 @@ const activate = async (
     contentFactory,
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
-    consoleTracker
+    consoleTracker,
+    drive
   });
   const QGZWidgetFactory = new JupyterGISWidgetFactory({
     name: 'JupyterGIS QGZ Factory',
@@ -116,7 +117,8 @@ const activate = async (
     contentFactory,
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
-    consoleTracker
+    consoleTracker,
+    drive
   });
 
   // Registering the widget factory

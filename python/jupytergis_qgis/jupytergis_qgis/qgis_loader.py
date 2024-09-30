@@ -13,14 +13,18 @@ from qgis.core import (
     QgsApplication,
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
+    QgsFillSymbol,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
+    QgsLineSymbol,
     QgsMapLayer,
+    QgsMarkerSymbol,
     QgsProject,
     QgsRasterLayer,
     QgsRectangle,
     QgsReferencedRectangle,
     QgsSettings,
+    QgsVectorLayer,
     QgsVectorTileLayer,
 )
 
@@ -154,6 +158,37 @@ def qgis_layer_to_jgis(
                 maxZoom=max_zoom,
                 minZoom=min_zoom,
             )
+    if isinstance(layer, QgsVectorLayer):
+        layer_type = "VectorLayer"
+        source_type = "GeoJSONSource"
+        source = layer.source()
+
+        components = source.split("/")
+
+        # Get the last component, which should be the file name
+        file_name = components[-1]
+
+        # Remove any query parameters
+        file_name = file_name.split("|")[0]
+
+        source_parameters.update(path=file_name)
+
+        renderer = layer.renderer()
+        symbol = renderer.symbol()
+
+        color = {}
+        if isinstance(symbol, QgsMarkerSymbol):
+            color["circle-fill-color"] = symbol.color().name()
+            color["circle-stroke-color"] = symbol.color().name()
+
+        if isinstance(symbol, QgsLineSymbol):
+            color["stroke-color"] = symbol.color().name()
+
+        if isinstance(symbol, QgsFillSymbol):
+            color["fill-color"] = symbol.color().name()
+
+        layer_parameters.update(type="fill")
+        layer_parameters.update(color=color)
 
     if isinstance(layer, QgsVectorTileLayer):
         layer_type = "VectorTileLayer"
@@ -186,15 +221,15 @@ def qgis_layer_to_jgis(
             geometry_type = style.geometryType()
             for symbol in symbol_layers:
                 # 0 = points, 1 = lines, 2 = polygons
-                if geometry_type == 2:
-                    color["fill-color"] = symbol.color().name()
+                if geometry_type == 0:
+                    color["circle-fill-color"] = symbol.color().name()
+                    color["circle-stroke-color"] = symbol.color().name()
 
                 if geometry_type == 1:
                     color["stroke-color"] = symbol.color().name()
 
-                if geometry_type == 0:
-                    color["circle-fill-color"] = symbol.color().name()
-                    color["circle-stroke-color"] = symbol.color().name()
+                if geometry_type == 2:
+                    color["fill-color"] = symbol.color().name()
 
         # TODO Load source-layer properly, from qgis symbology?
         try:
@@ -483,7 +518,7 @@ def export_project_to_qgis(
                 )
             )
         else:
-            logs["warning"].append(
+            logs["warnings"].append(
                 "The 'extent' parameter is missing to save the viewport"
             )
             print("The 'extent' parameter is missing to save the viewport")
