@@ -412,22 +412,24 @@ def jgis_layer_to_qgis(
         renderer = map_layer.renderer()
 
         styles = renderer.styles()
-        for style in styles:
-            symbol = style.symbol()
-            symbol_layers = symbol.symbolLayers()
 
-            geometry_type = style.geometryType()
-            # 0 = points, 1 = lines, 2 = polygons
-            if geometry_type == 0:
-                symbol.setColor(QColor(color_params["circle-fill-color"]))
+        if color_params:
+            for style in styles:
+                symbol = style.symbol()
+                symbol_layers = symbol.symbolLayers()
 
-            if geometry_type == 1:
-                symbol.setColor(QColor(color_params["stroke-color"]))
+                geometry_type = style.geometryType()
+                # 0 = points, 1 = lines, 2 = polygons
+                if geometry_type == 0:
+                    symbol.setColor(QColor(color_params["circle-fill-color"]))
 
-            if geometry_type == 2:
-                symbol.setColor(QColor(color_params["fill-color"]))
+                if geometry_type == 1:
+                    symbol.setColor(QColor(color_params["stroke-color"]))
 
-        map_layer.triggerRepaint()
+                if geometry_type == 2:
+                    symbol.setColor(QColor(color_params["fill-color"]))
+
+            map_layer.triggerRepaint()
 
     if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
         parameters = source.get("parameters", {})
