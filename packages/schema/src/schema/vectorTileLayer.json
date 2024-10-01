@@ -20,9 +20,8 @@
       "description": "The source layer to use"
     },
     "color": {
-      "type": "string",
-      "description": "The color of the the object",
-      "default": "#FF0000"
+      "type": "object",
+      "description": "The color of the the object"
     },
     "opacity": {
       "type": "number",

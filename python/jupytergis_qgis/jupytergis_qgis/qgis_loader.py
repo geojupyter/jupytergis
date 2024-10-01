@@ -9,18 +9,23 @@ from urllib.parse import unquote
 from uuid import uuid4
 
 from jupytergis_lab.notebook.utils import get_source_layer_names
+from PyQt5.QtGui import QColor
 from qgis.core import (
     QgsApplication,
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
+    QgsFillSymbol,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
+    QgsLineSymbol,
     QgsMapLayer,
+    QgsMarkerSymbol,
     QgsProject,
     QgsRasterLayer,
     QgsRectangle,
     QgsReferencedRectangle,
     QgsSettings,
+    QgsVectorLayer,
     QgsVectorTileLayer,
 )
 
@@ -154,6 +159,41 @@ def qgis_layer_to_jgis(
                 maxZoom=max_zoom,
                 minZoom=min_zoom,
             )
+    if isinstance(layer, QgsVectorLayer):
+        layer_type = "VectorLayer"
+        source_type = "GeoJSONSource"
+        source = layer.source()
+
+        components = source.split("/")
+
+        # Get the last component, which should be the file name
+        file_name = components[-1]
+
+        # Remove any query parameters
+        file_name = file_name.split("|")[0]
+
+        source_parameters.update(path=file_name)
+
+        renderer = layer.renderer()
+        symbol = renderer.symbol()
+
+        # Opacity stuff
+        opacity = symbol.opacity()
+        alpha = hex(int(opacity * 255))[2:].zfill(2)
+
+        color = {}
+        if isinstance(symbol, QgsMarkerSymbol):
+            color["circle-fill-color"] = symbol.color().name() + alpha
+            color["circle-stroke-color"] = symbol.color().name() + alpha
+
+        if isinstance(symbol, QgsLineSymbol):
+            color["stroke-color"] = symbol.color().name() + alpha
+
+        if isinstance(symbol, QgsFillSymbol):
+            color["fill-color"] = symbol.color().name() + alpha
+
+        layer_parameters.update(type="fill")
+        layer_parameters.update(color=color)
 
     if isinstance(layer, QgsVectorTileLayer):
         layer_type = "VectorTileLayer"
@@ -174,15 +214,38 @@ def qgis_layer_to_jgis(
             maxZoom=max_zoom,
             minZoom=min_zoom,
         )
+
+        renderer = layer.renderer()
+        styles = renderer.styles()
+        color = {}
+
+        for style in styles:
+            symbol = style.symbol()
+            geometry_type = style.geometryType()
+
+            opacity = symbol.opacity()
+            alpha = hex(int(opacity * 255))[2:].zfill(2)
+
+            # 0 = points, 1 = lines, 2 = polygons
+            if geometry_type == 0:
+                color["circle-fill-color"] = symbol.color().name() + alpha
+                color["circle-stroke-color"] = symbol.color().name() + alpha
+
+            if geometry_type == 1:
+                color["stroke-color"] = symbol.color().name() + alpha
+
+            if geometry_type == 2:
+                color["fill-color"] = symbol.color().name() + alpha
+
         # TODO Load source-layer properly, from qgis symbology?
         try:
             source_layer = get_source_layer_names(url)[0]
             layer_parameters["sourceLayer"] = source_layer
         except ValueError:
             pass
-        # TODO Load style properly
+
         layer_parameters.update(type="fill")
-        layer_parameters.update(color=[])
+        layer_parameters.update(color=color)
 
     if layer_type is None:
         print(f"JUPYTERGIS - Enable to load layer type {type(layer)}")
@@ -317,12 +380,16 @@ def jgis_layer_to_qgis(
 
     layer = layers.get(layer_id, None)
     if layer is None:
-        logs["warnings"].append(f"Layer {layer_id} not exported: the layer {layer_id} is not in layer list")
+        logs["warnings"].append(
+            f"Layer {layer_id} not exported: the layer {layer_id} is not in layer list"
+        )
         return
     source_id = layer.get("parameters", {}).get("source", "")
     source = sources.get(source_id, None)
     if source is None:
-        logs["warnings"].append(f"Layer {layer_id} not exported: the source {source_id} is not in source list")
+        logs["warnings"].append(
+            f"Layer {layer_id} not exported: the source {source_id} is not in source list"
+        )
         return
 
     map_layer = None
@@ -331,7 +398,9 @@ def jgis_layer_to_qgis(
     layer_type = layer.get("type", None)
     source_type = source.get("type", None)
     if any([v is None for v in [layer_name, layer_type, source_type]]):
-        logs["warnings"].append(f"Layer {layer_id} not exported: at least one of layer name, layer type or source type is missing.")
+        logs["warnings"].append(
+            f"Layer {layer_id} not exported: at least one of layer name, layer type or source type is missing."
+        )
         return
 
     if layer_type == "RasterLayer" and source_type == "RasterSource":
@@ -341,8 +410,39 @@ def jgis_layer_to_qgis(
 
     if layer_type == "VectorTileLayer" and source_type == "VectorTileSource":
         parameters = source.get("parameters", {})
+        color_params = layer["parameters"]["color"]
         uri = build_uri(parameters, "VectorTileSource")
+
         map_layer = QgsVectorTileLayer(uri, layer_name)
+        renderer = map_layer.renderer()
+        styles = renderer.styles()
+        parsed_styles = []
+
+        if color_params:
+            for style in styles:
+                symbol = style.symbol()
+
+                geometry_type = style.geometryType()
+                # 0 = points, 1 = lines, 2 = polygons
+                # Slice color_params to get rid of the opacity value from the hex string
+                if geometry_type == 0:
+                    symbol.setColor(QColor(color_params["circle-fill-color"][:7]))
+                    opacity = int(color_params["circle-fill-color"][-2:], 16) / 255
+                    symbol.setOpacity(opacity)
+
+                if geometry_type == 1:
+                    symbol.setColor(QColor(color_params["stroke-color"][:7]))
+                    opacity = int(color_params["stroke-color"][-2:], 16) / 255
+                    symbol.setOpacity(opacity)
+
+                if geometry_type == 2:
+                    symbol.setColor(QColor(color_params["fill-color"][:7]))
+                    opacity = int(color_params["fill-color"][-2:], 16) / 255
+                    symbol.setOpacity(opacity)
+
+                parsed_styles.append(style)
+
+            renderer.setStyles(parsed_styles)
 
     if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
         parameters = source.get("parameters", {})
@@ -351,7 +451,9 @@ def jgis_layer_to_qgis(
         map_layer = QgsRasterLayer(url, layer_name, "gdal")
 
     if map_layer is None:
-        logs["warnings"].append(f"Layer {layer_id} not exported: enable to export layer type {layer_type}")
+        logs["warnings"].append(
+            f"Layer {layer_id} not exported: enable to export layer type {layer_type}"
+        )
         print(f"JUPYTERGIS - Enable to export layer type {layer_type}")
         return
 
@@ -398,13 +500,12 @@ def jgis_layer_group_to_qgis(
                 newGroup,
                 project,
                 settings,
-                logs
+                logs,
             )
 
 
 def export_project_to_qgis(
-    path: str | Path,
-    virtual_file: dict[str, Any]
+    path: str | Path, virtual_file: dict[str, Any]
 ) -> dict[str, list[str]]:
     if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
         return
@@ -437,7 +538,7 @@ def export_project_to_qgis(
         root,
         project,
         qgis_settings,
-        logs
+        logs,
     )
 
     view_settings = project.viewSettings()
@@ -454,9 +555,11 @@ def export_project_to_qgis(
                 )
             )
         else:
-            logs["warning"].append("The 'extent' parameter is missing to save the viewport")
+            logs["warnings"].append(
+                "The 'extent' parameter is missing to save the viewport"
+            )
             print("The 'extent' parameter is missing to save the viewport")
 
-    if (not project.write(path)):
+    if not project.write(path):
         logs["errors"].append(f"Error when saving the file {path}")
     return logs
