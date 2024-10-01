@@ -1,0 +1,102 @@
+{
+  "layerTree": [
+    "54e0ea1f-32fd-4ff2-90fb-ad449a38f902",
+    "9ccab8f8-a170-4977-92b1-ab5f42175c48",
+    "61ef4256-0d6b-4810-93a7-cf29b9e3ae00"
+  ],
+  "layers": {
+    "54e0ea1f-32fd-4ff2-90fb-ad449a38f902": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "780c4234-ba6d-4da2-9731-739f6c4d8033"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "61ef4256-0d6b-4810-93a7-cf29b9e3ae00": {
+      "filters": {
+        "appliedFilters": [],
+        "logicalOp": "all"
+      },
+      "name": "Custom Shapefile Layer",
+      "parameters": {
+        "color": {
+          "fill-color": "#ff0000",
+          "stroke-color": "#ff0000",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
+        "opacity": 1.0,
+        "source": "df86531e-086d-48fa-bfec-98477ec554a4",
+        "type": "line"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "9ccab8f8-a170-4977-92b1-ab5f42175c48": {
+      "name": "Custom Shapefile Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "284311a5-01a0-4333-a120-19c23a37e064",
+        "type": "line"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -8262247.857073612,
+      4961071.288111334,
+      -8221407.547578438,
+      5002025.042910661
+    ],
+    "latitude": 40.79089967838061,
+    "longitude": -74.03759794079146,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 11.430346702791901
+  },
+  "sources": {
+    "284311a5-01a0-4333-a120-19c23a37e064": {
+      "name": "Custom Shapefile Source",
+      "parameters": {
+        "additionalFiles": {},
+        "attribution": "",
+        "encoding": "UTF-8",
+        "path": "https://www2.census.gov/geo/tiger/GENZ2015/shp/cb_2015_us_county_500k.zip",
+        "projection": "WGS84"
+      },
+      "type": "ShapefileSource"
+    },
+    "780c4234-ba6d-4da2-9731-739f6c4d8033": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "df86531e-086d-48fa-bfec-98477ec554a4": {
+      "name": "Custom Shapefile Source",
+      "parameters": {
+        "additionalFiles": {},
+        "attribution": "",
+        "encoding": "UTF-8",
+        "path": "https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip",
+        "projection": "WGS84"
+      },
+      "type": "ShapefileSource"
+    }
+  },
+  "terrain": {
+    "exaggeration": 0.0,
+    "source": ""
+  }
+}

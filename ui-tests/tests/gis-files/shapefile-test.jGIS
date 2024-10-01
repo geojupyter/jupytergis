@@ -1,0 +1,98 @@
+{
+  "sources": {
+    "773e2245-d11b-42d5-a4ac-2f50293d11c7": {
+      "type": "RasterSource",
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "minZoom": 0,
+        "maxZoom": 19,
+        "attribution": "(C) OpenStreetMap contributors",
+        "provider": "OpenStreetMap",
+        "urlParameters": {}
+      }
+    },
+    "1c374c77-ab13-4583-a225-8a2f1d8d55b8": {
+      "type": "ShapefileSource",
+      "name": "Custom Shapefile Source",
+      "parameters": {
+        "attribution": "",
+        "projection": "WGS84",
+        "encoding": "UTF-8",
+        "additionalFiles": {},
+        "path": "https://www2.census.gov/geo/tiger/GENZ2015/shp/cb_2015_us_county_500k.zip"
+      }
+    },
+    "52aebf1f-713f-413c-a77e-b1cc096ddb86": {
+      "type": "ShapefileSource",
+      "name": "Custom Shapefile Source",
+      "parameters": {
+        "attribution": "",
+        "projection": "WGS84",
+        "encoding": "UTF-8",
+        "additionalFiles": {},
+        "path": "https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip"
+      }
+    }
+  },
+  "layers": {
+    "56629dbf-c321-4953-9c54-cc9321af53ba": {
+      "type": "RasterLayer",
+      "parameters": {
+        "source": "773e2245-d11b-42d5-a4ac-2f50293d11c7"
+      },
+      "visible": true,
+      "name": "OpenStreetMap.Mapnik Layer"
+    },
+    "19c17b24-704f-4557-bc8e-4c98df293a7a": {
+      "type": "VectorLayer",
+      "parameters": {
+        "type": "line",
+        "opacity": 1,
+        "source": "1c374c77-ab13-4583-a225-8a2f1d8d55b8"
+      },
+      "visible": true,
+      "name": "Custom Shapefile Layer"
+    },
+    "f9dad6ae-eca9-4667-8538-d628c91cfdd3": {
+      "type": "VectorLayer",
+      "parameters": {
+        "type": "line",
+        "opacity": 1,
+        "source": "52aebf1f-713f-413c-a77e-b1cc096ddb86",
+        "color": {
+          "fill-color": "#ff0000",
+          "stroke-color": "#ff0000",
+          "stroke-width": 1.25,
+          "stroke-line-join": "round",
+          "stroke-line-cap": "round"
+        }
+      },
+      "visible": true,
+      "name": "Custom Shapefile Layer"
+    }
+  },
+  "layerTree": [
+    "56629dbf-c321-4953-9c54-cc9321af53ba",
+    "19c17b24-704f-4557-bc8e-4c98df293a7a",
+    "f9dad6ae-eca9-4667-8538-d628c91cfdd3"
+  ],
+  "options": {
+    "latitude": 45.89950745475744,
+    "longitude": -81.95989943738823,
+    "zoom": 2.527260252685426,
+    "bearing": 0,
+    "pitch": 0,
+    "projection": "EPSG:3857",
+    "extent": [
+      -18872442.044319667,
+      -4038758.305284189,
+      624973.5026437324,
+      15567277.941105189
+    ]
+  },
+  "terrain": {
+    "source": "",
+    "exaggeration": 0
+  }
+}
