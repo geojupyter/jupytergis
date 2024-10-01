@@ -12,6 +12,7 @@ from jupytergis_lab.notebook.utils import get_source_layer_names
 from PyQt5.QtGui import QColor
 from qgis.core import (
     QgsApplication,
+    QgsColorRampShader,
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
     QgsFillSymbol,
@@ -22,9 +23,11 @@ from qgis.core import (
     QgsMarkerSymbol,
     QgsProject,
     QgsRasterLayer,
+    QgsRasterShader,
     QgsRectangle,
     QgsReferencedRectangle,
     QgsSettings,
+    QgsSingleBandPseudoColorRenderer,
     QgsVectorLayer,
     QgsVectorTileLayer,
 )
@@ -449,6 +452,37 @@ def jgis_layer_to_qgis(
         # TODO: Support sources with multiple URLs
         url = "/vsicurl/" + parameters["urls"][0]["url"]
         map_layer = QgsRasterLayer(url, layer_name, "gdal")
+
+        # Create a color ramp shader
+        color_ramp_shader = QgsColorRampShader()
+        color_ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
+
+        # Define color stops
+        color_stops = [
+            QgsColorRampShader.ColorRampItem(0, QColor(255, 0, 0)),  # Red
+            QgsColorRampShader.ColorRampItem(0.5, QColor(255, 255, 0)),  # Yellow
+            QgsColorRampShader.ColorRampItem(1, QColor(0, 0, 255)),  # Blue
+        ]
+
+        color_ramp_shader.setColorRampItemList(color_stops)
+
+        # Create a raster shader
+        raster_shader = QgsRasterShader()
+        raster_shader.setRasterShaderFunction(color_ramp_shader)
+
+        # Create the renderer
+        renderer = QgsSingleBandPseudoColorRenderer(
+            map_layer.dataProvider(),
+            map_layer.bandCount() - 1,  # Use the last band
+            raster_shader,
+        )
+
+        # Set minimum and maximum values
+        renderer.setClassificationMax(3000)
+        renderer.setClassificationMin(1000)
+
+        # Apply the renderer to the layer
+        map_layer.setRenderer(renderer)
 
     if map_layer is None:
         logs["warnings"].append(
