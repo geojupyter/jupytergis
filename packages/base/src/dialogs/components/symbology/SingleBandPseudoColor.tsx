@@ -5,10 +5,10 @@ import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
+import { getGdal } from '../../../gdal';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from './BandRow';
 import StopRow from './StopRow';
-import { getGdal } from '../../../gdal';
 
 export interface IBandRow {
   band: number;
@@ -341,7 +341,13 @@ const SingleBandPseudoColor = ({
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
         {bandRows.length === 0 ? (
-          <FontAwesomeIcon icon={faSpinner} />
+          <div className="jp-gis-band-info-loading-container">
+            <span>Fetching band info...</span>
+            <FontAwesomeIcon
+              icon={faSpinner}
+              className="jp-gis-loading-spinner"
+            />
+          </div>
         ) : (
           <BandRow
             // Band numbers are 1 indexed
