@@ -92,3 +92,31 @@
 .jp-gis-symbology-button-container {
   padding-top: 0.5rem;
 }
+
+.jp-gis-band-info-loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  margin: auto;
+}
+
+.jp-gis-loading-spinner {
+  animation: spin 4s linear infinite;
+  font-size: 1.5rem;
+  padding: 1rem 0;
+  margin: auto;
+}
+
+.jp-gis-band-info-loading-container > span {
+  font-size: 1rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
