@@ -162,10 +162,10 @@ def test_qgis_saver():
                 "parameters": {
                     "opacity": 1.0,
                     "color": {
-                        "circle-fill-color": "#e15989",
-                        "circle-stroke-color": "#e15989",
-                        "fill-color": "#c43c39",
-                        "stroke-color": "#e5b636",
+                        "circle-fill-color": "#e1598987",
+                        "circle-stroke-color": "#e1598987",
+                        "fill-color": "#c43c39ff",
+                        "stroke-color": "#e5b636ff",
                     },
                     "source": source_ids[2],
                     "sourceLayer": "bingmlbuildings",

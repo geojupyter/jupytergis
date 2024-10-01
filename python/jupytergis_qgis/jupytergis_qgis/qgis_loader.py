@@ -177,16 +177,20 @@ def qgis_layer_to_jgis(
         renderer = layer.renderer()
         symbol = renderer.symbol()
 
+        # Opacity stuff
+        opacity = symbol.opacity()
+        alpha = hex(int(opacity * 255))[2:].zfill(2)
+
         color = {}
         if isinstance(symbol, QgsMarkerSymbol):
-            color["circle-fill-color"] = symbol.color().name()
-            color["circle-stroke-color"] = symbol.color().name()
+            color["circle-fill-color"] = symbol.color().name() + alpha
+            color["circle-stroke-color"] = symbol.color().name() + alpha
 
         if isinstance(symbol, QgsLineSymbol):
-            color["stroke-color"] = symbol.color().name()
+            color["stroke-color"] = symbol.color().name() + alpha
 
         if isinstance(symbol, QgsFillSymbol):
-            color["fill-color"] = symbol.color().name()
+            color["fill-color"] = symbol.color().name() + alpha
 
         layer_parameters.update(type="fill")
         layer_parameters.update(color=color)
@@ -219,16 +223,19 @@ def qgis_layer_to_jgis(
             symbol = style.symbol()
             geometry_type = style.geometryType()
 
+            opacity = symbol.opacity()
+            alpha = hex(int(opacity * 255))[2:].zfill(2)
+
             # 0 = points, 1 = lines, 2 = polygons
             if geometry_type == 0:
-                color["circle-fill-color"] = symbol.color().name()
-                color["circle-stroke-color"] = symbol.color().name()
+                color["circle-fill-color"] = symbol.color().name() + alpha
+                color["circle-stroke-color"] = symbol.color().name() + alpha
 
             if geometry_type == 1:
-                color["stroke-color"] = symbol.color().name()
+                color["stroke-color"] = symbol.color().name() + alpha
 
             if geometry_type == 2:
-                color["fill-color"] = symbol.color().name()
+                color["fill-color"] = symbol.color().name() + alpha
 
         # TODO Load source-layer properly, from qgis symbology?
         try:
@@ -417,14 +424,21 @@ def jgis_layer_to_qgis(
 
                 geometry_type = style.geometryType()
                 # 0 = points, 1 = lines, 2 = polygons
+                # Slice color_params to get rid of the opacity value from the hex string
                 if geometry_type == 0:
-                    symbol.setColor(QColor(color_params["circle-fill-color"]))
+                    symbol.setColor(QColor(color_params["circle-fill-color"][:7]))
+                    opacity = int(color_params["circle-fill-color"][-2:], 16) / 255
+                    symbol.setOpacity(opacity)
 
                 if geometry_type == 1:
-                    symbol.setColor(QColor(color_params["stroke-color"]))
+                    symbol.setColor(QColor(color_params["stroke-color"][:7]))
+                    opacity = int(color_params["stroke-color"][-2:], 16) / 255
+                    symbol.setOpacity(opacity)
 
                 if geometry_type == 2:
-                    symbol.setColor(QColor(color_params["fill-color"]))
+                    symbol.setColor(QColor(color_params["fill-color"][:7]))
+                    opacity = int(color_params["fill-color"][-2:], 16) / 255
+                    symbol.setOpacity(opacity)
 
                 parsed_styles.append(style)
 
