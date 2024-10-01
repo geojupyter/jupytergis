@@ -173,7 +173,7 @@ export class MainView extends React.Component<IProps, IStates> {
           }
         };
 
-        this.addLayer(layerId, layerModel, this.getLayers().length);
+        this.addLayer(layerId, layerModel, this.getLayerIDs().length);
         this._model.addLayer(layerId, layerModel);
       });
 
@@ -471,20 +471,40 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private async _updateLayersImpl(layerIds: string[]): Promise<void> {
-    const mapLayers: BaseLayer[] = [];
-    for (const layerId of layerIds) {
-      const layer = this._model.sharedModel.getLayer(layerId);
+    // const mapLayers: BaseLayer[] = [];
+    const previousLayerIds = this.getLayerIDs();
 
+    for (let index = 0; index < layerIds.length; index++) {
+      const layerId = layerIds[index];
+      const layer = this._model.sharedModel.getLayer(layerId);
       if (!layer) {
         console.log(`Layer id ${layerId} does not exist`);
         continue;
       }
-      const newMapLayer = await this._buildMapLayer(layerId, layer);
-      if (newMapLayer !== undefined) {
-        mapLayers.push(newMapLayer);
+
+      const mapLayer = this.getLayer(layerId);
+
+      if (mapLayer !== undefined) {
+        this.moveLayer(layerId, index);
+      } else {
+        await this.addLayer(layerId, layer, index);
+      }
+
+      // Remove the element of the previous list as treated.
+      const previousIndex = previousLayerIds.indexOf(layerId);
+      if (previousIndex > -1) {
+        previousLayerIds.splice(previousIndex, 1);
       }
     }
-    this._Map.setLayers(mapLayers);
+
+    // Remove the layers not used anymore.
+    previousLayerIds.forEach(layerId => {
+      const layer = this.getLayer(layerId);
+      if (layer !== undefined) {
+        this._Map.removeLayer(layer);
+      }
+    });
+
     this._ready = true;
   }
 
@@ -495,7 +515,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param layer - the layer object.
    * @returns - the map layer.
    */
-  private async _buildMapLayer(
+  private async _createMapLayer(
     id: string,
     layer: IJGISLayer
   ): Promise<BaseLayer | undefined> {
@@ -614,7 +634,7 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
 
-    const newMapLayer = await this._buildMapLayer(id, layer);
+    const newMapLayer = await this._createMapLayer(id, layer);
     if (newMapLayer !== undefined) {
       this._Map.getLayers().insertAt(index, newMapLayer);
     }
@@ -736,6 +756,29 @@ export class MainView extends React.Component<IProps, IStates> {
 
     return scaled;
   };
+
+  /**
+   * Move a layer in the stack.
+   *
+   * @param id - id of the layer.
+   * @param index - expected index of the layer.
+   */
+    moveLayer(id: string, index: number): void {
+      const currentIndex = this.getLayerIndex(id);
+      if (currentIndex === index || currentIndex === -1) {
+        return;
+      }
+      const layer = this.getLayer(id);
+      let nextIndex = index;
+      // should not be undefined since the id exists above
+      if (layer !== undefined) {
+        this._Map.getLayers().removeAt(currentIndex);
+        if (currentIndex < index) {
+          nextIndex -= 1;
+        }
+        this._Map.getLayers().insertAt(nextIndex, layer);
+      }
+    }
 
   /**
    * Update a layer of the map.
@@ -881,9 +924,20 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   /**
+   * Convenience method to get a specific layer index from OpenLayers Map
+   * @param id Layer to retrieve
+   */
+  private getLayerIndex(id: string) {
+    return this._Map
+      .getLayers()
+      .getArray()
+      .findIndex(layer => layer.get('id') === id);
+  }
+
+  /**
    * Convenience method to get list layer IDs from the OpenLayers Map
    */
-  private getLayers() {
+  private getLayerIDs(): string[] {
     return this._Map
       .getLayers()
       .getArray()
