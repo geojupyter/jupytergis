@@ -217,9 +217,8 @@ def qgis_layer_to_jgis(
 
         for style in styles:
             symbol = style.symbol()
-            symbol_layers = symbol.symbolLayers()
-
             geometry_type = style.geometryType()
+
             # 0 = points, 1 = lines, 2 = polygons
             if geometry_type == 0:
                 color["circle-fill-color"] = symbol.color().name()
@@ -408,15 +407,13 @@ def jgis_layer_to_qgis(
         uri = build_uri(parameters, "VectorTileSource")
 
         map_layer = QgsVectorTileLayer(uri, layer_name)
-        map_layer.loadDefaultStyle()
         renderer = map_layer.renderer()
-
         styles = renderer.styles()
+        parsed_styles = []
 
         if color_params:
             for style in styles:
                 symbol = style.symbol()
-                symbol_layers = symbol.symbolLayers()
 
                 geometry_type = style.geometryType()
                 # 0 = points, 1 = lines, 2 = polygons
@@ -429,7 +426,9 @@ def jgis_layer_to_qgis(
                 if geometry_type == 2:
                     symbol.setColor(QColor(color_params["fill-color"]))
 
-            map_layer.triggerRepaint()
+                parsed_styles.append(style)
+
+            renderer.setStyles(parsed_styles)
 
     if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
         parameters = source.get("parameters", {})
