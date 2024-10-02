@@ -117,12 +117,21 @@ def qgis_layer_to_jgis(
                     )
 
             if colorRampType == "discrete":
+                last_value = (source_max * (1 - 0) - source_min * (1 - 0)) / (
+                    source_max - source_min
+                )
                 color = [
                     "case",
+                    ["==", ["band", 1.0], 0.0],
+                    [0.0, 0.0, 0.0, 0.0],
                 ]
+
                 # Last entry is used for the fallback value in jgis
                 for node in colorList[:-1]:
-                    color.append(["<=", ["band", float(band)], node.value])
+                    unscaled_val = (node.value * (1 - 0) - source_min * (1 - 0)) / (
+                        source_max - source_min
+                    )
+                    color.append(["<=", ["band", float(band)], unscaled_val])
                     color.append(
                         [
                             node.color.red(),
@@ -131,12 +140,14 @@ def qgis_layer_to_jgis(
                             float(node.color.alpha()) / 255,
                         ]
                     )
+
                 lastElement = colorList[-1]
                 color.append(
                     [
                         lastElement.color.red(),
                         lastElement.color.green(),
                         lastElement.color.blue(),
+                        float(node.color.alpha()) / 255,
                     ]
                 )
 
@@ -146,7 +157,11 @@ def qgis_layer_to_jgis(
                 ]
                 # Last entry is used for the fallback value in jgis
                 for node in colorList[:-1]:
-                    color.append(["==", ["band", float(band)], node.value])
+                    unscaled_val = (node.value * (1 - 0) - source_min * (1 - 0)) / (
+                        source_max - source_min
+                    )
+
+                    color.append(["==", ["band", float(band)], unscaled_val])
                     color.append(
                         [
                             node.color.red(),
@@ -481,32 +496,70 @@ def jgis_layer_to_qgis(
         map_layer = QgsRasterLayer(url, layer_name, "gdal")
 
         layer_colors = layer["parameters"]["color"]
-        selected_band = layer_colors[2][1]
         source_min = source_parameters["urls"][0]["min"]
         source_max = source_parameters["urls"][0]["max"]
 
         # Create a color ramp shader
         color_ramp_shader = QgsColorRampShader()
+        color_stops = []
 
         if layer_colors[0] == "interpolate":
+            selected_band = layer_colors[2][1]
             color_ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
 
-        # Define color stops
-        color_stops = []
-        for index in range(5, len(layer_colors), 2):
-            scaled_value = (layer_colors[index] * (source_max - source_min)) / (
-                1 - 0
-            ) + source_min
+            # Define color stops
+            for index in range(5, len(layer_colors), 2):
+                scaled_value = (layer_colors[index] * (source_max - source_min)) / (
+                    1 - 0
+                ) + source_min
 
-            colors = layer_colors[index + 1]
+                colors = layer_colors[index + 1]
+                color_stops.append(
+                    QgsColorRampShader.ColorRampItem(
+                        scaled_value,
+                        QColor(
+                            int(colors[0]),
+                            int(colors[1]),
+                            int(colors[2]),
+                            int(colors[3] * 255),
+                        ),
+                    ),
+                )
+
+        if layer_colors[0] == "case":
+            selected_band = layer_colors[1][1][1]
+            # check logical operator to choose discrete or exact
+            op = layer_colors[3][0]
+            if op == "<=":
+                color_ramp_shader.setColorRampType(QgsColorRampShader.Discrete)
+            if op == "==":
+                color_ramp_shader.setColorRampType(QgsColorRampShader.Exact)
+
+            # skip the last value, thats the fallback and not used by qgis
+            # skip the second to last because thats handles special
+            for index in range(3, len(layer_colors) - 1, 2):
+                val = layer_colors[index][2]
+                scaled_value = (val * (source_max - source_min)) / (1 - 0) + source_min
+                colors = layer_colors[index + 1]
+                color_stops.append(
+                    QgsColorRampShader.ColorRampItem(
+                        scaled_value,
+                        QColor(
+                            int(colors[0]),
+                            int(colors[1]),
+                            int(colors[2]),
+                            int(colors[3] * 255),
+                        ),
+                    ),
+                )
             color_stops.append(
                 QgsColorRampShader.ColorRampItem(
-                    scaled_value,
+                    float("inf"),
                     QColor(
-                        int(colors[0]),
-                        int(colors[1]),
-                        int(colors[2]),
-                        int(colors[3] * 255),
+                        int(layer_colors[-2][0]),
+                        int(layer_colors[-2][1]),
+                        int(layer_colors[-2][2]),
+                        int(layer_colors[-2][3] * 255),
                     ),
                 ),
             )
