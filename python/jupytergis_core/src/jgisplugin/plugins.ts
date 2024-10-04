@@ -216,7 +216,6 @@ const activate = (
       command: CommandIDs.moveLayerToNewGroup,
       category: 'JupyterGIS'
     });
-
   }
 };
 

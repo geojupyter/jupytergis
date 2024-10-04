@@ -206,7 +206,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       sources: this.sharedModel.sources,
       layers: this.sharedModel.layers,
       layerTree: this.sharedModel.layerTree,
-      options: this.sharedModel.options,
+      options: this.sharedModel.options
     };
   }
 
