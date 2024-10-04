@@ -21,6 +21,7 @@ classifiers = [
 dependencies = [
   "jupytergis_core>=0.1.0,<1",
   "jupytergis_lab>=0.1.0,<1",
+  "jupytergis_qgis>=0.1.0,<1",
 ]
 dynamic = ["version"]
 license = {file = "LICENSE"}
