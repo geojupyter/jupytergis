@@ -13,7 +13,6 @@ class YJGIS(YBaseDoc):
         self._ydoc["sources"] = self._ysources = Map()
         self._ydoc["options"] = self._yoptions = Map()
         self._ydoc["layerTree"] = self._ylayerTree = Array()
-        self._ydoc["terrain"] = self._yterrain = Map()
 
     def version(self) -> str:
         return "0.1.0"
@@ -28,14 +27,12 @@ class YJGIS(YBaseDoc):
         sources = self._ysources.to_py()
         options = self._yoptions.to_py()
         layers_tree = self._ylayerTree.to_py()
-        terrain = self._yterrain.to_py()
         return json.dumps(
             dict(
                 layers=layers,
                 sources=sources,
                 options=options,
-                layerTree=layers_tree,
-                terrain=terrain,
+                layerTree=layers_tree
             ),
             sort_keys=True,
             indent=2,
@@ -62,9 +59,6 @@ class YJGIS(YBaseDoc):
             self._ylayerTree.clear()
             self._ylayerTree.extend(valueDict.get("layerTree", []))
 
-            self._yterrain.clear()
-            self._yterrain.update(valueDict.get("terrain", {}))
-
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()
         self._subscriptions[self._ystate] = self._ystate.observe(
@@ -81,7 +75,4 @@ class YJGIS(YBaseDoc):
         )
         self._subscriptions[self._ylayerTree] = self._ylayerTree.observe(
             partial(callback, "layerTree")
-        )
-        self._subscriptions[self._yterrain] = self._yterrain.observe_deep(
-            partial(callback, "terrain")
         )

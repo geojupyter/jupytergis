@@ -8,6 +8,5 @@
     "projection": "EPSG:3857",
     "zoom": 4.920920690595499
   },
-  "sources": {},
-  "terrain": {}
+  "sources": {}
 }

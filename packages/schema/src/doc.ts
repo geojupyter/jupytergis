@@ -10,8 +10,7 @@ import {
   IJGISLayers,
   IJGISOptions,
   IJGISSource,
-  IJGISSources,
-  IJGISTerrain
+  IJGISSources
 } from './_interface/jgis';
 import {
   IDict,
@@ -33,7 +32,6 @@ export class JupyterGISDoc
     this._layers = this.ydoc.getMap<Y.Map<any>>('layers');
     this._layerTree = this.ydoc.getArray<IJGISLayerItem>('layerTree');
     this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
-    this._terrain = this.ydoc.getMap<IJGISTerrain>('terrain');
 
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
@@ -42,7 +40,6 @@ export class JupyterGISDoc
     this._layers.observeDeep(this._layersObserver.bind(this));
     this._layerTree.observe(this._layerTreeObserver.bind(this));
     this._sources.observeDeep(this._sourcesObserver.bind(this));
-    this._terrain.observe(this._terrainObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
   }
 
@@ -89,18 +86,6 @@ export class JupyterGISDoc
     });
   }
 
-  get terrain(): IJGISTerrain {
-    return JSONExt.deepCopy(this._terrain.toJSON()) as IJGISTerrain;
-  }
-
-  set terrain(terrain: IJGISTerrain) {
-    this.transact(() => {
-      for (const [key, value] of Object.entries(terrain)) {
-        this._terrain.set(key, value);
-      }
-    });
-  }
-
   getLayer(id: string): IJGISLayer | undefined {
     if (!this._layers.has(id)) {
       return undefined;
@@ -141,10 +126,6 @@ export class JupyterGISDoc
 
   get optionsChanged(): ISignal<IJupyterGISDoc, MapChange> {
     return this._optionsChanged;
-  }
-
-  get terrainChanged(): ISignal<IJupyterGISDoc, IJGISTerrain> {
-    return this._terrainChanged;
   }
 
   layerExists(id: string): boolean {
@@ -324,10 +305,6 @@ export class JupyterGISDoc
     }
   }
 
-  private _terrainObserver(event: Y.YMapEvent<IJGISTerrain>): void {
-    this._terrainChanged.emit(this.terrain);
-  }
-
   private _optionsObserver = (event: Y.YMapEvent<Y.Map<string>>): void => {
     this._optionsChanged.emit(event.keys);
   };
@@ -336,7 +313,6 @@ export class JupyterGISDoc
   private _layerTree: Y.Array<IJGISLayerItem>;
   private _sources: Y.Map<any>;
   private _options: Y.Map<any>;
-  private _terrain: Y.Map<IJGISTerrain>;
 
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
@@ -349,5 +325,4 @@ export class JupyterGISDoc
   private _sourcesChanged = new Signal<IJupyterGISDoc, IJGISSourceDocChange>(
     this
   );
-  private _terrainChanged = new Signal<IJupyterGISDoc, IJGISTerrain>(this);
 }

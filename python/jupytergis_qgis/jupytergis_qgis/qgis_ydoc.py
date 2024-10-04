@@ -21,7 +21,6 @@ class YQGISBase(YBaseDoc):
         self._ydoc["sources"] = self._ysources = Map()
         self._ydoc["options"] = self._yoptions = Map()
         self._ydoc["layerTree"] = self._ylayerTree = Array()
-        self._ydoc["terrain"] = self._yterrain = Map()
         self._source = ""
         self._file_extension = None
 
@@ -40,10 +39,6 @@ class YQGISBase(YBaseDoc):
     @property
     def layerTree(self) -> Array:
         return self._ylayerTree
-
-    @property
-    def terrain(self) -> Map:
-        return self._yterrain
 
     def version(self) -> str:
         return "0.1.0"
@@ -96,9 +91,6 @@ class YQGISBase(YBaseDoc):
         )
         self._subscriptions[self._ylayerTree] = self._ylayerTree.observe(
             partial(callback, "layerTree")
-        )
-        self._subscriptions[self._yterrain] = self._yterrain.observe_deep(
-            partial(callback, "terrain")
         )
 
     def _load(self, source: str):
