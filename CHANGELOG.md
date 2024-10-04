@@ -2,6 +2,35 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.1.5
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.1.4...743bc18afaccf544be4508cf8fbb0669f85dd59d))
+
+### Enhancements made
+
+- Add jupytergis_qgis to metapackage [#171](https://github.com/geojupyter/jupytergis/pull/171) ([@martinRenou](https://github.com/martinRenou))
+- Animate spinner when fetching band information [#167](https://github.com/geojupyter/jupytergis/pull/167) ([@gjmooney](https://github.com/gjmooney))
+- Vector symbology api [#163](https://github.com/geojupyter/jupytergis/pull/163) ([@gjmooney](https://github.com/gjmooney))
+
+### Bugs fixed
+
+- Fix the export path [#168](https://github.com/geojupyter/jupytergis/pull/168) ([@brichet](https://github.com/brichet))
+
+### Maintenance and upkeep improvements
+
+- Exclude notebooks and qgz files from the lite deployment [#172](https://github.com/geojupyter/jupytergis/pull/172) ([@martinRenou](https://github.com/martinRenou))
+- Remove terrain logic [#170](https://github.com/geojupyter/jupytergis/pull/170) ([@martinRenou](https://github.com/martinRenou))
+- Use file from test directory only in UI tests [#169](https://github.com/geojupyter/jupytergis/pull/169) ([@brichet](https://github.com/brichet))
+- Add test for ShapeFiles [#164](https://github.com/geojupyter/jupytergis/pull/164) ([@arjxn-py](https://github.com/arjxn-py))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-09-24&to=2024-10-04&type=c))
+
+[@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2024-09-24..2024-10-04&type=Issues) | [@brichet](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2024-09-24..2024-10-04&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-09-24..2024-10-04&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2024-09-24..2024-10-04&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-09-24..2024-10-04&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.1.4
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.1.3...27f26c221f3c85bdaa7954f57303ee3a0fd5a1e3))
@@ -25,8 +54,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-09-24&to=2024-09-24&type=c))
 
 [@brichet](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2024-09-24..2024-09-24&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-09-24..2024-09-24&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-09-24..2024-09-24&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.1.3
 
