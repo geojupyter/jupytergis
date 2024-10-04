@@ -272,7 +272,7 @@ jobs:
         working-directory: lite
         run: |
           set -eux
-          mkdir -p content && cp ../examples/* ./content
+          mkdir -p content && cp ../examples/*.jGIS ../examples/*.json ./content
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload artifact
