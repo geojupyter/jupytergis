@@ -53,10 +53,6 @@ export namespace CommandIDs {
   export const renameSource = 'jupytergis:renameSource';
   export const removeSource = 'jupytergis:removeSource';
 
-  // Terrain stuff
-  export const newTerrain = 'jupytergis:newTerrain';
-  export const removeTerrain = 'jupytergis:removeTerrain';
-
   // Console commands
   export const toggleConsole = 'jupytergis:toggleConsole';
   export const invokeCompleter = 'jupytergis:invokeConsoleCompleter';
@@ -96,7 +92,6 @@ const iconObject = {
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
   [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
   [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
-  [CommandIDs.newTerrain]: { iconClass: 'fa fa-mountain' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' }
 };
 

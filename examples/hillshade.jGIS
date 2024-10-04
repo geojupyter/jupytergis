@@ -59,9 +59,5 @@
       },
       "type": "RasterDemSource"
     }
-  },
-  "terrain": {
-    "exaggeration": 1.0,
-    "source": "1f457f60-5d31-45f6-8066-4585aabd5629"
   }
 }

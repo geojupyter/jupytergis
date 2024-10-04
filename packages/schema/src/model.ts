@@ -16,8 +16,7 @@ import {
   IJGISLayers,
   IJGISOptions,
   IJGISSource,
-  IJGISSources,
-  IJGISTerrain
+  IJGISSources
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
@@ -138,10 +137,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.sourcesChanged;
   }
 
-  get terrainChanged(): ISignal<IJupyterGISDoc, IJGISTerrain> {
-    return this.sharedModel.terrainChanged;
-  }
-
   get disposed(): ISignal<JupyterGISModel, void> {
     return this._disposed;
   }
@@ -178,10 +173,6 @@ export class JupyterGISModel implements IJupyterGISModel {
       this.sharedModel.sources = jsonData.sources ?? {};
       this.sharedModel.layers = jsonData.layers ?? {};
       this.sharedModel.layerTree = jsonData.layerTree ?? [];
-      this.sharedModel.terrain = jsonData.terrain ?? {
-        source: '',
-        exaggeration: 0
-      };
       this.sharedModel.options = jsonData.options ?? {
         latitude: 0,
         longitude: 0,
@@ -215,8 +206,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       sources: this.sharedModel.sources,
       layers: this.sharedModel.layers,
       layerTree: this.sharedModel.layerTree,
-      options: this.sharedModel.options,
-      terrain: this.sharedModel.terrain
+      options: this.sharedModel.options
     };
   }
 
@@ -351,10 +341,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   removeLayer(layer_id: string) {
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
-  }
-
-  setTerrain(terrain: IJGISTerrain) {
-    this._sharedModel.terrain = terrain;
   }
 
   setOptions(value: IJGISOptions) {

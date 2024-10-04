@@ -74,9 +74,5 @@
       },
       "type": "ImageSource"
     }
-  },
-  "terrain": {
-    "exaggeration": 0.0,
-    "source": ""
   }
 }
