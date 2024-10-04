@@ -99,10 +99,10 @@ test.describe('#layerBrowser', () => {
   test.beforeAll(async ({ request }) => {
     const content = galata.newContentsHelper(request);
     await content.deleteDirectory('/testDir');
-      await content.uploadDirectory(
-        path.resolve(__dirname, './gis-files'),
-        '/testDir'
-      );
+    await content.uploadDirectory(
+      path.resolve(__dirname, './gis-files'),
+      '/testDir'
+    );
   });
 
   test.beforeEach(async ({ page }) => {
