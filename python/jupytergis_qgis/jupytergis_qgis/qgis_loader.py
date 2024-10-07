@@ -117,71 +117,10 @@ def qgis_layer_to_jgis(
                     )
 
             if colorRampType == "discrete":
-                color = [
-                    "case",
-                    ["==", ["band", 1.0], 0.0],
-                    [0.0, 0.0, 0.0, 0.0],
-                ]
-
-                # Last entry is inf so handle differently
-                for node in colorList[:-1]:
-                    unscaled_val = (node.value * (1 - 0) - source_min * (1 - 0)) / (
-                        source_max - source_min
-                    )
-                    color.append(["<=", ["band", float(band)], unscaled_val])
-                    color.append(
-                        [
-                            node.color.red(),
-                            node.color.green(),
-                            node.color.blue(),
-                            float(node.color.alpha()) / 255,
-                        ]
-                    )
-
-                lastElement = colorList[-1]
-                last_value = (source_max * (1 - 0) - source_min * (1 - 0)) / (
-                    source_max - source_min
-                )
-                color.append(["<=", ["band", float(band)], last_value])
-                color.append(
-                    [
-                        lastElement.color.red(),
-                        lastElement.color.green(),
-                        lastElement.color.blue(),
-                        float(node.color.alpha()) / 255,
-                    ]
-                )
-
-                # Fallback value for openlayers
-                color.append([0, 0, 0, 1])
+                color = build_color_ramp("<=", colorList, band, source_min, source_max)
 
             if colorRampType == "exact":
-                color = [
-                    "case",
-                ]
-                # Last entry is used for the fallback value in jgis
-                for node in colorList[:-1]:
-                    unscaled_val = (node.value * (1 - 0) - source_min * (1 - 0)) / (
-                        source_max - source_min
-                    )
-
-                    color.append(["==", ["band", float(band)], unscaled_val])
-                    color.append(
-                        [
-                            node.color.red(),
-                            node.color.green(),
-                            node.color.blue(),
-                            float(node.color.alpha()) / 255,
-                        ]
-                    )
-                lastElement = colorList[-1]
-                color.append(
-                    [
-                        lastElement.color.red(),
-                        lastElement.color.green(),
-                        lastElement.color.blue(),
-                    ]
-                )
+                color = build_color_ramp("==", colorList, band, source_min, source_max)
 
             # TODO: Could probably look at RGB values to see what normalize should be
             source_parameters.update(urls=urls, normalize=True, wrapX=True)
@@ -328,6 +267,48 @@ def qgis_layer_to_jgis(
     }
 
     return layer_id
+
+
+def build_color_ramp(operator, colorList, band, source_min, source_max):
+    color = [
+        "case",
+        ["==", ["band", 1.0], 0.0],
+        [0.0, 0.0, 0.0, 0.0],
+    ]
+
+    # Last entry is inf so handle differently
+    for node in colorList[:-1]:
+        unscaled_val = (node.value * (1 - 0) - source_min * (1 - 0)) / (
+            source_max - source_min
+        )
+        color.append([operator, ["band", float(band)], unscaled_val])
+        color.append(
+            [
+                node.color.red(),
+                node.color.green(),
+                node.color.blue(),
+                float(node.color.alpha()) / 255,
+            ]
+        )
+
+    lastElement = colorList[-1]
+    last_value = (source_max * (1 - 0) - source_min * (1 - 0)) / (
+        source_max - source_min
+    )
+    color.append([operator, ["band", float(band)], last_value])
+    color.append(
+        [
+            lastElement.color.red(),
+            lastElement.color.green(),
+            lastElement.color.blue(),
+            float(node.color.alpha()) / 255,
+        ]
+    )
+
+    # Fallback value for openlayers
+    color.append([0, 0, 0, 1])
+
+    return color
 
 
 def qgis_layer_tree_to_jgis(
