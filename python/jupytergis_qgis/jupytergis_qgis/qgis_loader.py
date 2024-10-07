@@ -90,6 +90,8 @@ def qgis_layer_to_jgis(
                 }
             ]
 
+            print("urls", urls)
+
             colorRampTypeMap = {0: "interpolate", 1: "discrete", 2: "exact"}
             colorRampType = colorRampTypeMap[shaderFunc.colorRampType()]
 
@@ -117,16 +119,13 @@ def qgis_layer_to_jgis(
                     )
 
             if colorRampType == "discrete":
-                last_value = (source_max * (1 - 0) - source_min * (1 - 0)) / (
-                    source_max - source_min
-                )
                 color = [
                     "case",
                     ["==", ["band", 1.0], 0.0],
                     [0.0, 0.0, 0.0, 0.0],
                 ]
 
-                # Last entry is used for the fallback value in jgis
+                # Last entry is inf so handle differently
                 for node in colorList[:-1]:
                     unscaled_val = (node.value * (1 - 0) - source_min * (1 - 0)) / (
                         source_max - source_min
@@ -142,6 +141,10 @@ def qgis_layer_to_jgis(
                     )
 
                 lastElement = colorList[-1]
+                last_value = (source_max * (1 - 0) - source_min * (1 - 0)) / (
+                    source_max - source_min
+                )
+                color.append(["<=", ["band", float(band)], last_value])
                 color.append(
                     [
                         lastElement.color.red(),
@@ -150,6 +153,9 @@ def qgis_layer_to_jgis(
                         float(node.color.alpha()) / 255,
                     ]
                 )
+
+                # Fallback value for openlayers
+                color.append([0, 0, 0, 1])
 
             if colorRampType == "exact":
                 color = [
@@ -357,6 +363,7 @@ def qgis_layer_tree_to_jgis(
 
 
 def import_project_from_qgis(path: str | Path):
+    print("SANITY")
     if isinstance(path, Path):
         path = str(path)
 
@@ -496,6 +503,7 @@ def jgis_layer_to_qgis(
         map_layer = QgsRasterLayer(url, layer_name, "gdal")
 
         layer_colors = layer["parameters"]["color"]
+        print("source_parameters", source_parameters)
         source_min = source_parameters["urls"][0]["min"]
         source_max = source_parameters["urls"][0]["max"]
 
@@ -642,6 +650,7 @@ def jgis_layer_group_to_qgis(
 def export_project_to_qgis(
     path: str | Path, virtual_file: dict[str, Any]
 ) -> dict[str, list[str]]:
+    print("SHOULD NOT HAPPEN")
     if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
         return
 
