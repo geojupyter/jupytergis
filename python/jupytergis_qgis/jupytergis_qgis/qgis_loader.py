@@ -122,7 +122,6 @@ def qgis_layer_to_jgis(
             if colorRampType == "exact":
                 color = _build_color_ramp("==", colorList, band, source_min, source_max)
 
-            # TODO: Could probably look at RGB values to see what normalize should be
             source_parameters.update(urls=urls, normalize=True, wrapX=True)
             layer_parameters.update(color=color)
 
@@ -276,7 +275,7 @@ def _build_color_ramp(operator, colorList, band, source_min, source_max):
         [0.0, 0.0, 0.0, 0.0],
     ]
 
-    # Last entry is inf so handle differently
+    # Last entry is inf for discrete, so handle differently
     for node in colorList[:-1]:
         unscaled_val = (node.value * (1 - 0) - source_min * (1 - 0)) / (
             source_max - source_min
@@ -292,9 +291,11 @@ def _build_color_ramp(operator, colorList, band, source_min, source_max):
         )
 
     lastElement = colorList[-1]
-    last_value = (source_max * (1 - 0) - source_min * (1 - 0)) / (
-        source_max - source_min
-    )
+    last_value = (
+        source_max
+        if operator == "<="
+        else lastElement.value * (1 - 0) - source_min * (1 - 0)
+    ) / (source_max - source_min)
     color.append([operator, ["band", float(band)], last_value])
     color.append(
         [
@@ -306,7 +307,7 @@ def _build_color_ramp(operator, colorList, band, source_min, source_max):
     )
 
     # Fallback value for openlayers
-    color.append([0, 0, 0, 1])
+    color.append([0.0, 0.0, 0.0, 0.0])
 
     return color
 
