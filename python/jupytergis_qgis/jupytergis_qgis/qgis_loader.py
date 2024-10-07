@@ -90,8 +90,6 @@ def qgis_layer_to_jgis(
                 }
             ]
 
-            print("urls", urls)
-
             colorRampTypeMap = {0: "interpolate", 1: "discrete", 2: "exact"}
             colorRampType = colorRampTypeMap[shaderFunc.colorRampType()]
 
@@ -363,7 +361,6 @@ def qgis_layer_tree_to_jgis(
 
 
 def import_project_from_qgis(path: str | Path):
-    print("SANITY")
     if isinstance(path, Path):
         path = str(path)
 
@@ -503,7 +500,7 @@ def jgis_layer_to_qgis(
         map_layer = QgsRasterLayer(url, layer_name, "gdal")
 
         layer_colors = layer["parameters"]["color"]
-        print("source_parameters", source_parameters)
+
         source_min = source_parameters["urls"][0]["min"]
         source_max = source_parameters["urls"][0]["max"]
 
@@ -544,8 +541,8 @@ def jgis_layer_to_qgis(
                 color_ramp_shader.setColorRampType(QgsColorRampShader.Exact)
 
             # skip the last value, thats the fallback and not used by qgis
-            # skip the second to last because thats handles special
-            for index in range(3, len(layer_colors) - 1, 2):
+            # skip the second to last pair because that needs special handling
+            for index in range(3, len(layer_colors) - 3, 2):
                 val = layer_colors[index][2]
                 scaled_value = (val * (source_max - source_min)) / (1 - 0) + source_min
                 colors = layer_colors[index + 1]
@@ -560,6 +557,8 @@ def jgis_layer_to_qgis(
                         ),
                     ),
                 )
+
+            # Final stop in qgis has inf value
             color_stops.append(
                 QgsColorRampShader.ColorRampItem(
                     float("inf"),
@@ -650,7 +649,6 @@ def jgis_layer_group_to_qgis(
 def export_project_to_qgis(
     path: str | Path, virtual_file: dict[str, Any]
 ) -> dict[str, list[str]]:
-    print("SHOULD NOT HAPPEN")
     if not all(k in virtual_file for k in ["layers", "sources", "layerTree"]):
         return
 
