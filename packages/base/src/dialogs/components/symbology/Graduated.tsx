@@ -1,8 +1,10 @@
 import { GeoJSONFeature1 } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import colormap from 'colormap';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
+import { calculateQuantileBreaks } from '../../../classificationModes';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import StopRow from './StopRow';
 
@@ -88,6 +90,9 @@ const Graduated = ({
 
   useEffect(() => {
     populateOptions();
+    // if (featureProperties[selectedValue]) {
+    //   calculateQuantileBreaks([...featureProperties[selectedValue]], 9);
+    // }
   }, [featureProperties]);
 
   const buildColorInfo = () => {
@@ -127,6 +132,27 @@ const Graduated = ({
         }
         break;
       }
+    }
+
+    setStopRows(valueColorPairs);
+  };
+
+  const buildColorInfoFromClassification = () => {
+    const stops = calculateQuantileBreaks(
+      [...featureProperties[selectedValue]],
+      9
+    );
+    const colors = colormap({
+      colormap: 'cool',
+      nshades: 9,
+      format: 'rgba'
+    });
+
+    const valueColorPairs: IStopRow[] = [];
+
+    // assume stops and colors are same length
+    for (let i = 0; i < 9; i++) {
+      valueColorPairs.push({ stop: stops[i], output: colors[i] });
     }
 
     setStopRows(valueColorPairs);
@@ -290,6 +316,12 @@ const Graduated = ({
           onClick={addStopRow}
         >
           Add Stop
+        </Button>
+        <Button
+          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          onClick={buildColorInfoFromClassification}
+        >
+          Classify
         </Button>
       </div>
     </div>

@@ -76,6 +76,8 @@
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "latest",
+    "@types/colormap": "^2.3.4",
+    "colormap": "^2.3.2",
     "geojson-vt": "^4.0.2",
     "ol": "^10.1.0",
     "pmtiles": "^3.0.7"
