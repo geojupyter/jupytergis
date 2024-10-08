@@ -3,7 +3,7 @@ import colormap from 'colormap';
 import React, { useState } from 'react';
 import { calculateQuantileBreaks } from '../../../classificationModes';
 import { IStopRow } from '../../symbologyDialog';
-
+import CanvasSelectComponent from './CanvasSelectComponent';
 interface IColorRampProps {
   featureProperties: any;
   selectedValue: string;
@@ -15,53 +15,6 @@ const ColorRamp = ({
   selectedValue,
   setStopRows
 }: IColorRampProps) => {
-  const colorRampList = [
-    'jet',
-    // 'hsv', 11 steps min
-    'hot',
-    'cool',
-    'spring',
-    'summer',
-    'autumn',
-    'winter',
-    'bone',
-    'copper',
-    'greys',
-    'YiGnBu',
-    'greens',
-    'YiOrRd',
-    'bluered',
-    'RdBu',
-    // 'picnic', 11 steps min
-    'rainbow',
-    'portland',
-    'blackbody',
-    'earth',
-    'electric',
-    'viridis',
-    'inferno',
-    'magma',
-    'plasma',
-    'warm',
-    'cool',
-    // 'rainbow-soft', 11 steps min
-    'bathymetry',
-    'cdom',
-    'chlorophyll',
-    'density',
-    'freesurface-blue',
-    'freesurface-red',
-    'oxygen',
-    'par',
-    'phase',
-    'salinity',
-    'temperature',
-    'turbidity',
-    'velocity-blue',
-    'velocity-green'
-    // 'cubehelix' 16 steps min
-  ];
-
   const [selectedRamp, setSelectedRamp] = useState('cool');
   const [numberOfShades, setNumberOfShades] = useState('9');
 
@@ -70,7 +23,7 @@ const ColorRamp = ({
       [...featureProperties[selectedValue]],
       +numberOfShades
     );
-    const colors = colormap({
+    const colorMap = colormap({
       colormap: selectedRamp,
       nshades: +numberOfShades,
       format: 'rgba'
@@ -80,7 +33,7 @@ const ColorRamp = ({
 
     // assume stops and colors are same length
     for (let i = 0; i < +numberOfShades; i++) {
-      valueColorPairs.push({ stop: stops[i], output: colors[i] });
+      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
     }
 
     setStopRows(valueColorPairs);
@@ -90,17 +43,7 @@ const ColorRamp = ({
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
         <label htmlFor="color-ramp-select">Color Ramp:</label>
-        <select
-          name="color-ramp-select"
-          value={selectedRamp}
-          onChange={event => setSelectedRamp(event.target.value)}
-        >
-          {colorRampList.map(color => (
-            <option className="jp-mod-styled" value={color}>
-              {color}
-            </option>
-          ))}
-        </select>
+        <CanvasSelectComponent setSelected={setSelectedRamp} />
       </div>
       <div className="jp-gis-symbology-row">
         <div className="jp-gis-color-ramp-div">
@@ -128,6 +71,7 @@ const ColorRamp = ({
       >
         Classify
       </Button>
+      <canvas width="512" height="50" id="cv"></canvas>
     </div>
   );
 };
