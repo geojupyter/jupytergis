@@ -27,6 +27,26 @@
   max-width: 50%;
 }
 
+.jp-gis-color-ramp-div {
+  display: flex;
+  flex: 1 1 50%;
+  max-width: 50%;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.jp-gis-color-ramp-div > .jp-select-wrapper {
+  flex: 1 0 40%;
+}
+
+.jp-gis-color-ramp-div:last-child {
+  flex-shrink: 0;
+}
+
+.jp-gis-color-ramp-div > input {
+  max-width: 25%;
+}
+
 .jp-gis-band-container {
   display: flex;
   flex-direction: column;
@@ -43,6 +63,12 @@
 
 .jp-gis-layer-symbology-container .jp-select-wrapper {
   margin-bottom: unset;
+}
+
+.jp-gis-color-ramp-container {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
 }
 
 .jp-gis-band-container .jp-gis-symbology-row:last-child {

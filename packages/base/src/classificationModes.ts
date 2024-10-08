@@ -1,6 +1,6 @@
 // Adapted from https://github.com/qgis/QGIS/blob/master/src/core/classification/qgsclassificationquantile.cpp#L48
 export const calculateQuantileBreaks = (
-  values: any[],
+  values: number[],
   numOfClasses: number
 ) => {
   // q-th quantile of a data set:
@@ -22,7 +22,7 @@ export const calculateQuantileBreaks = (
 
   const n = sortedValues.length;
 
-  let xq = n > 0 ? sortedValues[0] : 0;
+  let xq: number = n > 0 ? sortedValues[0] : 0;
 
   for (let i = 0; i < numOfClasses; i++) {
     if (n > 1) {
