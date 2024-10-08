@@ -6,6 +6,7 @@ import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 import { calculateQuantileBreaks } from '../../../classificationModes';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
+import ColorRamp from './ColorRamp';
 import StopRow from './StopRow';
 
 const Graduated = ({
@@ -252,46 +253,43 @@ const Graduated = ({
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Value:</label>
-        <div className="jp-select-wrapper">
-          <select
-            name={'vector-value-select'}
-            onChange={event => setSelectedValue(event.target.value)}
-            className="jp-mod-styled"
-          >
-            {Object.keys(featureProperties).map((feature, index) => (
-              <option
-                key={index}
-                value={feature}
-                selected={feature === selectedValue}
-                className="jp-mod-styled"
-              >
-                {feature}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          name={'vector-value-select'}
+          onChange={event => setSelectedValue(event.target.value)}
+          className="jp-mod-styled"
+        >
+          {Object.keys(featureProperties).map((feature, index) => (
+            <option
+              key={index}
+              value={feature}
+              selected={feature === selectedValue}
+              className="jp-mod-styled"
+            >
+              {feature}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-method-select'}>Method:</label>
-        <div className="jp-select-wrapper">
-          <select
-            name={'vector-method-select'}
-            onChange={event => setSelectedMethod(event.target.value)}
-            className="jp-mod-styled"
-          >
-            {methodOptions.map((method, index) => (
-              <option
-                key={index}
-                value={method}
-                selected={method === selectedMethod}
-                className="jp-mod-styled"
-              >
-                {method}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          name={'vector-method-select'}
+          onChange={event => setSelectedMethod(event.target.value)}
+          className="jp-mod-styled"
+        >
+          {methodOptions.map((method, index) => (
+            <option
+              key={index}
+              value={method}
+              selected={method === selectedMethod}
+              className="jp-mod-styled"
+            >
+              {method}
+            </option>
+          ))}
+        </select>
       </div>
+      <ColorRamp />
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>Value</span>
@@ -317,12 +315,12 @@ const Graduated = ({
         >
           Add Stop
         </Button>
-        <Button
+        {/* <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
           onClick={buildColorInfoFromClassification}
         >
           Classify
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
