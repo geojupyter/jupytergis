@@ -1,10 +1,8 @@
 import { GeoJSONFeature1 } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
-import colormap from 'colormap';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { calculateQuantileBreaks } from '../../../classificationModes';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import ColorRamp from './ColorRamp';
 import StopRow from './StopRow';
@@ -133,27 +131,6 @@ const Graduated = ({
         }
         break;
       }
-    }
-
-    setStopRows(valueColorPairs);
-  };
-
-  const buildColorInfoFromClassification = () => {
-    const stops = calculateQuantileBreaks(
-      [...featureProperties[selectedValue]],
-      9
-    );
-    const colors = colormap({
-      colormap: 'cool',
-      nshades: 9,
-      format: 'rgba'
-    });
-
-    const valueColorPairs: IStopRow[] = [];
-
-    // assume stops and colors are same length
-    for (let i = 0; i < 9; i++) {
-      valueColorPairs.push({ stop: stops[i], output: colors[i] });
     }
 
     setStopRows(valueColorPairs);
@@ -289,7 +266,11 @@ const Graduated = ({
           ))}
         </select>
       </div>
-      <ColorRamp />
+      <ColorRamp
+        featureProperties={featureProperties}
+        selectedValue={selectedValue}
+        setStopRows={setStopRows}
+      />
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>Value</span>
