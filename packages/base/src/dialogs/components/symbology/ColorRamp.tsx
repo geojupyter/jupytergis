@@ -3,6 +3,7 @@ import colormap from 'colormap';
 import React, { useState } from 'react';
 import {
   calculateEqualIntervalBreaks,
+  calculateJenksBreaks,
   calculateQuantileBreaks
 } from '../../../classificationModes';
 import { IStopRow } from '../../symbologyDialog';
@@ -18,7 +19,8 @@ const ColorRamp = ({
   selectedValue,
   setStopRows
 }: IColorRampProps) => {
-  const modeOptions = ['quantile', 'equal interval'];
+  const modeOptions = ['quantile', 'equal interval', 'jenks'];
+
   const [selectedRamp, setSelectedRamp] = useState('cool');
   const [selectedMode, setSelectedMode] = useState('quantile');
   const [numberOfShades, setNumberOfShades] = useState('9');
@@ -26,7 +28,6 @@ const ColorRamp = ({
   const buildColorInfoFromClassification = () => {
     let stops;
 
-    console.log('selectedMode build', selectedMode);
     switch (selectedMode) {
       case 'quantile':
         stops = calculateQuantileBreaks(
@@ -36,6 +37,12 @@ const ColorRamp = ({
         break;
       case 'equal interval':
         stops = calculateEqualIntervalBreaks(
+          [...featureProperties[selectedValue]],
+          +numberOfShades
+        );
+        break;
+      case 'jenks':
+        stops = calculateJenksBreaks(
           [...featureProperties[selectedValue]],
           +numberOfShades
         );

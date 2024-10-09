@@ -67,7 +67,6 @@ export const calculateJenksBreaks = (
   values: number[],
   numOfClasses: number
 ) => {
-  // const minimum = Math.min(...values);
   const maximum = Math.max(...values);
 
   if (values.length === 0) {
@@ -82,14 +81,8 @@ export const calculateJenksBreaks = (
     return values;
   }
 
-  // skipping the lots of values part
-  // const sample = values;
-  // let sorted = [];
-
   const sample = [...values].sort((a, b) => a - b);
   const n = sample.length;
-
-  //let matrix = Array.from({ length: rows }, () => new Array(cols).fill(0));
 
   const matrixOne = Array.from({ length: n + 1 }, () =>
     Array(numOfClasses + 1).fill(0)
@@ -144,9 +137,8 @@ export const calculateJenksBreaks = (
   for (let j = numOfClasses, k = n; j >= 2; j--) {
     const id = matrixOne[k][j] - 1;
     breaks[j - 2] = sample[id];
-    k = matrixOne[k][j] = 1;
+    k = matrixOne[k][j] - 1;
   }
 
-  console.log('breaks', breaks);
   return breaks;
 };
