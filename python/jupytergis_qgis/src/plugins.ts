@@ -26,7 +26,7 @@ import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Widget } from '@lumino/widgets';
 
-import { JupyterGISWidget, requestAPI } from '@jupytergis/base';
+import { JupyterGISWidget, logoMiniIcon, requestAPI } from '@jupytergis/base';
 import { JupyterGISWidgetFactory } from '@jupytergis/jupytergis-core';
 import { IJupyterGISDocTracker, IJupyterGISWidget } from '@jupytergis/schema';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
@@ -135,7 +135,8 @@ const activate = async (
     mimeTypes: ['application/octet-stream'],
     extensions: ['.qgs', '.QGS'],
     fileFormat: 'base64',
-    contentType: 'QGS'
+    contentType: 'QGS',
+    icon: logoMiniIcon
   });
   app.docRegistry.addFileType({
     name: 'QGZ',
@@ -143,7 +144,8 @@ const activate = async (
     mimeTypes: ['application/octet-stream'],
     extensions: ['.qgz', '.QGZ'],
     fileFormat: 'base64',
-    contentType: 'QGZ'
+    contentType: 'QGZ',
+    icon: logoMiniIcon
   });
 
   const QGISSharedModelFactory: SharedDocumentFactory = () => {
