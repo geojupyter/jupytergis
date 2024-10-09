@@ -1,8 +1,10 @@
 import { GeoJSONFeature1 } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import colormap from 'colormap';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
+import { VectorClassifications } from '../../../classificationModes';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import ColorRamp from './ColorRamp';
 import StopRow from './StopRow';
@@ -223,6 +225,67 @@ const Graduated = ({
     setStopRows(newFilters);
   };
 
+  const buildColorInfoFromClassification = (
+    selectedMode: string,
+    numberOfShades: string,
+    selectedRamp: string
+  ) => {
+    let stops;
+
+    const values = featureProperties[selectedValue];
+
+    switch (selectedMode) {
+      case 'quantile':
+        stops = VectorClassifications.calculateQuantileBreaks(
+          values,
+          +numberOfShades
+        );
+        break;
+      case 'equal interval':
+        stops = VectorClassifications.calculateEqualIntervalBreaks(
+          values,
+          +numberOfShades
+        );
+        break;
+      case 'jenks':
+        stops = VectorClassifications.calculateJenksBreaks(
+          values,
+          +numberOfShades
+        );
+        break;
+      case 'pretty':
+        stops = VectorClassifications.calculatePrettyBreaks(
+          values,
+          +numberOfShades
+        );
+        break;
+      case 'logarithmic':
+        stops = VectorClassifications.calculateLogarithmicBreaks(
+          values,
+          +numberOfShades
+        );
+        break;
+      default:
+        console.warn('No mode selected');
+        return;
+    }
+
+    const colorMap = colormap({
+      colormap: selectedRamp,
+      nshades: +numberOfShades,
+      format: 'rgba'
+    });
+
+    const valueColorPairs: IStopRow[] = [];
+
+    // assume stops and colors are same length
+    for (let i = 0; i < +numberOfShades; i++) {
+      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
+    }
+
+    setStopRows(valueColorPairs);
+  };
+
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-symbology-row">
@@ -263,10 +326,7 @@ const Graduated = ({
           ))}
         </select>
       </div>
-      <ColorRamp
-        values={featureProperties[selectedValue]}
-        setStopRows={setStopRows}
-      />
+      <ColorRamp classifyFunc={buildColorInfoFromClassification} />
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>Value</span>
