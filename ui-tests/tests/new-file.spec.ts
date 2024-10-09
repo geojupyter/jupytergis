@@ -8,7 +8,7 @@ test.describe('#newFile', () => {
   test('New file should open with no errors', async ({ page }) => {
     await page
       .getByLabel('notebook content')
-      .getByText('New JGIS File')
+      .getByText('GIS File')
       .click();
 
     const tab = page.getByLabel('notebook content');
