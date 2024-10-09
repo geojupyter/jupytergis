@@ -1,4 +1,5 @@
-// Adapted from https://github.com/qgis/QGIS/blob/master/src/core/classification/qgsclassificationquantile.cpp#L48
+// Adapted from https://github.com/qgis/QGIS/blob/master/src/core/classification/
+
 export const calculateQuantileBreaks = (
   values: number[],
   numOfClasses: number
@@ -11,7 +12,6 @@ export const calculateQuantileBreaks = (
   //   r = q * (n+1) - (int) (q * (n+1))
   // (indices of X: 1...n)
 
-  console.log('values', values);
   const sortedValues = [...values].sort((a, b) => a - b);
 
   const breaks = [];
@@ -37,6 +37,28 @@ export const calculateQuantileBreaks = (
   }
 
   breaks.push(sortedValues[n - 1]);
+
+  return breaks;
+};
+
+export const calculateEqualIntervalBreaks = (
+  values: number[],
+  numOfClasses: number
+) => {
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+
+  const breaks: number[] = [];
+  const step = (maximum - minimum) / numOfClasses;
+
+  let value = minimum;
+
+  for (let i = 0; i < numOfClasses; i++) {
+    value += step;
+    breaks.push(value);
+  }
+
+  breaks[numOfClasses - 1] = maximum;
 
   return breaks;
 };

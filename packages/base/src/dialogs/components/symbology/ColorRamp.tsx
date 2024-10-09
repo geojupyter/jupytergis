@@ -1,7 +1,10 @@
 import { Button } from '@jupyterlab/ui-components';
 import colormap from 'colormap';
 import React, { useState } from 'react';
-import { calculateQuantileBreaks } from '../../../classificationModes';
+import {
+  calculateEqualIntervalBreaks,
+  calculateQuantileBreaks
+} from '../../../classificationModes';
 import { IStopRow } from '../../symbologyDialog';
 import CanvasSelectComponent from './CanvasSelectComponent';
 interface IColorRampProps {
@@ -15,14 +18,33 @@ const ColorRamp = ({
   selectedValue,
   setStopRows
 }: IColorRampProps) => {
+  const modeOptions = ['quantile', 'equal interval'];
   const [selectedRamp, setSelectedRamp] = useState('cool');
+  const [selectedMode, setSelectedMode] = useState('quantile');
   const [numberOfShades, setNumberOfShades] = useState('9');
 
   const buildColorInfoFromClassification = () => {
-    const stops = calculateQuantileBreaks(
-      [...featureProperties[selectedValue]],
-      +numberOfShades
-    );
+    let stops;
+
+    console.log('selectedMode build', selectedMode);
+    switch (selectedMode) {
+      case 'quantile':
+        stops = calculateQuantileBreaks(
+          [...featureProperties[selectedValue]],
+          +numberOfShades
+        );
+        break;
+      case 'equal interval':
+        stops = calculateEqualIntervalBreaks(
+          [...featureProperties[selectedValue]],
+          +numberOfShades
+        );
+        break;
+      default:
+        console.warn('No mode selected');
+        return;
+    }
+
     const colorMap = colormap({
       colormap: selectedRamp,
       nshades: +numberOfShades,
@@ -58,10 +80,15 @@ const ColorRamp = ({
         </div>
         <div className="jp-gis-color-ramp-div">
           <label htmlFor="mode-select">Mode:</label>
-          <select name="mode-select">
-            <option className="jp-mod-styled" value="quantile">
-              Quantile
-            </option>
+          <select
+            name="mode-select"
+            onChange={event => setSelectedMode(event.target.value)}
+          >
+            {modeOptions.map(mode => (
+              <option className="jp-mod-styled" value={mode}>
+                {mode}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -71,7 +98,6 @@ const ColorRamp = ({
       >
         Classify
       </Button>
-      <canvas width="512" height="50" id="cv"></canvas>
     </div>
   );
 };
