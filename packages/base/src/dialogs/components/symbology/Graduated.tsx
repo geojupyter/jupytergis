@@ -264,8 +264,7 @@ const Graduated = ({
         </select>
       </div>
       <ColorRamp
-        featureProperties={featureProperties}
-        selectedValue={selectedValue}
+        values={featureProperties[selectedValue]}
         setStopRows={setStopRows}
       />
       <div className="jp-gis-stop-container">

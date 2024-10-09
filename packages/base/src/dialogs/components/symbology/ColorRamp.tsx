@@ -11,16 +11,11 @@ import {
 import { IStopRow } from '../../symbologyDialog';
 import CanvasSelectComponent from './CanvasSelectComponent';
 interface IColorRampProps {
-  featureProperties: any;
-  selectedValue: string;
+  values: any;
   setStopRows: (stopRows: IStopRow[]) => void;
 }
 
-const ColorRamp = ({
-  featureProperties,
-  selectedValue,
-  setStopRows
-}: IColorRampProps) => {
+const ColorRamp = ({ values, setStopRows }: IColorRampProps) => {
   const modeOptions = [
     'quantile',
     'equal interval',
@@ -33,39 +28,25 @@ const ColorRamp = ({
   const [selectedMode, setSelectedMode] = useState('quantile');
   const [numberOfShades, setNumberOfShades] = useState('9');
 
+  console.log('values', values);
   const buildColorInfoFromClassification = () => {
     let stops;
 
     switch (selectedMode) {
       case 'quantile':
-        stops = calculateQuantileBreaks(
-          [...featureProperties[selectedValue]],
-          +numberOfShades
-        );
+        stops = calculateQuantileBreaks(values, +numberOfShades);
         break;
       case 'equal interval':
-        stops = calculateEqualIntervalBreaks(
-          [...featureProperties[selectedValue]],
-          +numberOfShades
-        );
+        stops = calculateEqualIntervalBreaks(values, +numberOfShades);
         break;
       case 'jenks':
-        stops = calculateJenksBreaks(
-          [...featureProperties[selectedValue]],
-          +numberOfShades
-        );
+        stops = calculateJenksBreaks(values, +numberOfShades);
         break;
       case 'pretty':
-        stops = calculatePrettyBreaks(
-          [...featureProperties[selectedValue]],
-          +numberOfShades
-        );
+        stops = calculatePrettyBreaks(values, +numberOfShades);
         break;
       case 'logarithmic':
-        stops = calculateLogarithmicBreaks(
-          [...featureProperties[selectedValue]],
-          +numberOfShades
-        );
+        stops = calculateLogarithmicBreaks(values, +numberOfShades);
         break;
       default:
         console.warn('No mode selected');
