@@ -8,6 +8,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { getGdal } from '../../../gdal';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from './BandRow';
+import ColorRamp from './ColorRamp';
 import StopRow from './StopRow';
 
 export interface IBandRow {
@@ -123,11 +124,17 @@ const SingleBandPseudoColor = ({
       const file = new File([await fileData.blob()], 'loaded.tif');
 
       const result = await Gdal.open(file);
+      console.log('result', result);
       const tifDataset = result.datasets[0];
+      const otherData = await Gdal.getInfo(tifDataset);
+      console.log('otherData', otherData);
       tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
       Gdal.close(tifDataset);
 
-      state.save(`jupytergis:${layerId}`, { tifData: JSON.stringify(tifData) });
+      state.save(`jupytergis:${layerId}`, {
+        tifData: JSON.stringify(tifData),
+        otherData: JSON.stringify(otherData)
+      });
     }
 
     tifData['bands'].forEach((bandData: TifBandData) => {
@@ -384,6 +391,16 @@ const SingleBandPseudoColor = ({
           </select>
         </div>
       </div>
+      {bandRows.length > 0 && (
+        <ColorRamp
+          // values={[
+          //   bandRows[selectedBand - 1].stats.minimum,
+          //   bandRows[selectedBand - 1].stats.maximum
+          // ]}
+          values={[1, 65535]}
+          setStopRows={setStopRows}
+        />
+      )}
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>

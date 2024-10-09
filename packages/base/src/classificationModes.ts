@@ -24,7 +24,7 @@ export const calculateQuantileBreaks = (
 
   let xq: number = n > 0 ? sortedValues[0] : 0;
 
-  for (let i = 0; i < numOfClasses; i++) {
+  for (let i = 1; i < numOfClasses; i++) {
     if (n > 1) {
       const q = i / numOfClasses;
       const a = q * (n - 1);
