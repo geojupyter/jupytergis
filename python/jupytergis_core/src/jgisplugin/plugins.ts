@@ -24,7 +24,7 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 
-import { CommandIDs, logoIcon } from '@jupytergis/base';
+import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import { JupyterGISWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
 
@@ -73,7 +73,8 @@ const activate = (
     mimeTypes: ['text/json'],
     extensions: ['.jgis', '.JGIS'],
     fileFormat: 'text',
-    contentType: 'jgis'
+    contentType: 'jgis',
+    icon: logoMiniIcon
   });
 
   const jGISSharedModelFactory: SharedDocumentFactory = () => {
