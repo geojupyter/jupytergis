@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import {
   calculateEqualIntervalBreaks,
   calculateJenksBreaks,
+  calculatePrettyBreaks,
   calculateQuantileBreaks
 } from '../../../classificationModes';
 import { IStopRow } from '../../symbologyDialog';
@@ -19,7 +20,7 @@ const ColorRamp = ({
   selectedValue,
   setStopRows
 }: IColorRampProps) => {
-  const modeOptions = ['quantile', 'equal interval', 'jenks'];
+  const modeOptions = ['quantile', 'equal interval', 'jenks', 'pretty'];
 
   const [selectedRamp, setSelectedRamp] = useState('cool');
   const [selectedMode, setSelectedMode] = useState('quantile');
@@ -43,6 +44,12 @@ const ColorRamp = ({
         break;
       case 'jenks':
         stops = calculateJenksBreaks(
+          [...featureProperties[selectedValue]],
+          +numberOfShades
+        );
+        break;
+      case 'pretty':
+        stops = calculatePrettyBreaks(
           [...featureProperties[selectedValue]],
           +numberOfShades
         );
