@@ -100,7 +100,7 @@ const activate = (
   });
 
   app.commands.addCommand(CommandIDs.createNew, {
-    label: args => 'New JGIS File',
+    label: args => 'GIS File',
     caption: 'Create a new JGIS Editor',
     icon: args => logoIcon,
     execute: async args => {
