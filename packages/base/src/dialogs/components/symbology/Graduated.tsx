@@ -89,9 +89,6 @@ const Graduated = ({
 
   useEffect(() => {
     populateOptions();
-    // if (featureProperties[selectedValue]) {
-    //   calculateQuantileBreaks([...featureProperties[selectedValue]], 9);
-    // }
   }, [featureProperties]);
 
   const buildColorInfo = () => {
