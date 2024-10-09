@@ -142,3 +142,119 @@ export const calculateJenksBreaks = (
 
   return breaks;
 };
+
+export const calculatePrettyBreaks = (values: number[], classes: number) => {
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+
+  const breaks = [];
+
+  if (classes < 1) {
+    breaks.push(maximum);
+    return breaks;
+  }
+
+  const minimumCount = Math.floor(classes / 3);
+  const shrink = 0.75;
+  const highBias = 1.5;
+  const adjustBias = 0.5 + 1.5 * highBias;
+  const divisions = classes;
+  const h = highBias;
+  let cell;
+  let small = false;
+  const dx = maximum - minimum;
+
+  let U;
+  cell = Math.max(Math.abs(minimum), Math.abs(maximum));
+  if (adjustBias >= 1.5 * h + 0.5) {
+    U = 1 + 1.0 / (1 + h);
+  } else {
+    U = 1 + 1.5 / (1 + adjustBias);
+  }
+  small = dx < cell * U * Math.max(1, divisions) * 1e-7 * 3.0;
+
+  if (small) {
+    if (cell > 10) {
+      cell = 9 + cell / 10;
+      cell = cell * shrink;
+    }
+    if (minimumCount > 1) {
+      cell = cell / minimumCount;
+    }
+  } else {
+    cell = dx;
+    if (divisions > 1) {
+      cell = cell / divisions;
+    }
+  }
+  if (cell < 20 * 1e-7) {
+    cell = 20 * 1e-7;
+  }
+
+  const base = Math.pow(10.0, Math.floor(Math.log10(cell)));
+  let unit = base;
+  if (2 * base - cell < h * (cell - unit)) {
+    unit = 2.0 * base;
+    if (5 * base - cell < adjustBias * (cell - unit)) {
+      unit = 5.0 * base;
+      if (10.0 * base - cell < h * (cell - unit)) {
+        unit = 10.0 * base;
+      }
+    }
+  }
+
+  let start = Math.floor(minimum / unit + 1e-7);
+  let end = Math.ceil(maximum / unit - 1e-7);
+
+  while (start * unit > minimum + 1e-7 * unit) {
+    start = start - 1;
+  }
+  while (end * unit < maximum - 1e-7 * unit) {
+    end = end + 1;
+  }
+
+  let k = Math.floor(0.5 + end - start);
+  if (k < minimumCount) {
+    k = minimumCount - k;
+    if (start >= 0) {
+      end = end + k / 2;
+      start = start - k / 2 + (k % 2);
+    } else {
+      start = start - k / 2;
+      end = end + k / 2 + (k % 2);
+    }
+  }
+
+  const minimumBreak = start * unit;
+  const count = end - start;
+
+  for (let i = 1; i < count + 1; i++) {
+    breaks.push(minimumBreak + i * unit);
+  }
+
+  if (breaks.length === 0) {
+    return breaks;
+  }
+
+  if (breaks[0] < minimum) {
+    breaks[0] = minimum;
+  }
+  if (breaks[breaks.length - 1] > maximum) {
+    breaks[breaks.length - 1] = maximum;
+  }
+
+  if (minimum < 0.0 && maximum > 0.0) {
+    const breaksMinusZero = breaks.map(b => b - 0.0);
+
+    let posOfMin = 0;
+    for (let i = 1; i < breaks.length; i++) {
+      if (Math.abs(breaksMinusZero[i]) < Math.abs(breaksMinusZero[posOfMin])) {
+        posOfMin = i;
+      }
+    }
+
+    breaks[posOfMin] = 0.0; // Set the closest break to zero
+  }
+
+  return breaks;
+};
