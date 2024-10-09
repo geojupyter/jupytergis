@@ -8,7 +8,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { getGdal } from '../../../gdal';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from './BandRow';
-import ColorRamp from './ColorRamp';
 import StopRow from './StopRow';
 
 export interface IBandRow {
@@ -391,7 +390,7 @@ const SingleBandPseudoColor = ({
           </select>
         </div>
       </div>
-      {bandRows.length > 0 && (
+      {/* {bandRows.length > 0 && (
         <ColorRamp
           // values={[
           //   bandRows[selectedBand - 1].stats.minimum,
@@ -400,7 +399,7 @@ const SingleBandPseudoColor = ({
           values={[1, 65535]}
           setStopRows={setStopRows}
         />
-      )}
+      )} */}
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>

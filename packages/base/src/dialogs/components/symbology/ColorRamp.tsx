@@ -1,21 +1,16 @@
 import { Button } from '@jupyterlab/ui-components';
-import colormap from 'colormap';
 import React, { useState } from 'react';
-import {
-  calculateEqualIntervalBreaks,
-  calculateJenksBreaks,
-  calculateLogarithmicBreaks,
-  calculatePrettyBreaks,
-  calculateQuantileBreaks
-} from '../../../classificationModes';
-import { IStopRow } from '../../symbologyDialog';
 import CanvasSelectComponent from './CanvasSelectComponent';
+
 interface IColorRampProps {
-  values: any;
-  setStopRows: (stopRows: IStopRow[]) => void;
+  classifyFunc: (
+    selectedMode: string,
+    numberOfShades: string,
+    selectedRamp: string
+  ) => void;
 }
 
-const ColorRamp = ({ values, setStopRows }: IColorRampProps) => {
+const ColorRamp = ({ classifyFunc }: IColorRampProps) => {
   const modeOptions = [
     'quantile',
     'equal interval',
@@ -27,47 +22,6 @@ const ColorRamp = ({ values, setStopRows }: IColorRampProps) => {
   const [selectedRamp, setSelectedRamp] = useState('cool');
   const [selectedMode, setSelectedMode] = useState('quantile');
   const [numberOfShades, setNumberOfShades] = useState('9');
-
-  console.log('values', values);
-  const buildColorInfoFromClassification = () => {
-    let stops;
-
-    switch (selectedMode) {
-      case 'quantile':
-        stops = calculateQuantileBreaks(values, +numberOfShades);
-        break;
-      case 'equal interval':
-        stops = calculateEqualIntervalBreaks(values, +numberOfShades);
-        break;
-      case 'jenks':
-        stops = calculateJenksBreaks(values, +numberOfShades);
-        break;
-      case 'pretty':
-        stops = calculatePrettyBreaks(values, +numberOfShades);
-        break;
-      case 'logarithmic':
-        stops = calculateLogarithmicBreaks(values, +numberOfShades);
-        break;
-      default:
-        console.warn('No mode selected');
-        return;
-    }
-
-    const colorMap = colormap({
-      colormap: selectedRamp,
-      nshades: +numberOfShades,
-      format: 'rgba'
-    });
-
-    const valueColorPairs: IStopRow[] = [];
-
-    // assume stops and colors are same length
-    for (let i = 0; i < +numberOfShades; i++) {
-      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
-    }
-
-    setStopRows(valueColorPairs);
-  };
 
   return (
     <div className="jp-gis-color-ramp-container">
@@ -102,7 +56,7 @@ const ColorRamp = ({ values, setStopRows }: IColorRampProps) => {
       </div>
       <Button
         className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-        onClick={buildColorInfoFromClassification}
+        onClick={() => classifyFunc(selectedMode, numberOfShades, selectedRamp)}
       >
         Classify
       </Button>
