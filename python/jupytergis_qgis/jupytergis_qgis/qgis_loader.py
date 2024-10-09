@@ -12,6 +12,7 @@ from jupytergis_lab.notebook.utils import get_source_layer_names
 from PyQt5.QtGui import QColor
 from qgis.core import (
     QgsApplication,
+    QgsColorRampShader,
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
     QgsFillSymbol,
@@ -22,9 +23,11 @@ from qgis.core import (
     QgsMarkerSymbol,
     QgsProject,
     QgsRasterLayer,
+    QgsRasterShader,
     QgsRectangle,
     QgsReferencedRectangle,
     QgsSettings,
+    QgsSingleBandPseudoColorRenderer,
     QgsVectorLayer,
     QgsVectorTileLayer,
 )
@@ -69,73 +72,57 @@ def qgis_layer_to_jgis(
             layer_type = "WebGlLayer"
             source_type = "GeoTiffSource"
 
-            # Remove "/vsicurl/" from source
-            urls = [{"url": layer.source()[9:]}]
-
             # Need to build layer color
             renderer = layer.renderer()
             shader = renderer.shader()
             shaderFunc = shader.rasterShaderFunction()
             colorList = shaderFunc.colorRampItemList()
             band = renderer.band()
+            source_min = renderer.classificationMin()
+            source_max = renderer.classificationMax()
+
+            # Remove "/vsicurl/" from source
+            urls = [
+                {
+                    "url": layer.source()[9:],
+                    "min": source_min,
+                    "max": source_max,
+                }
+            ]
 
             colorRampTypeMap = {0: "interpolate", 1: "discrete", 2: "exact"}
             colorRampType = colorRampTypeMap[shaderFunc.colorRampType()]
-
-            # TODO: Only supports linear interpolation for now
 
             if colorRampType == "interpolate":
                 color = [
                     "interpolate",
                     ["linear"],
                     ["band", float(band)],
+                    0.0,
+                    [0.0, 0.0, 0.0, 0.0],
                 ]
+
                 for node in colorList:
-                    color.append(node.value)
+                    unscaled_val = (node.value * (1 - 0) - source_min * (1 - 0)) / (
+                        source_max - source_min
+                    )
+                    color.append(unscaled_val)
                     color.append(
-                        [node.color.red(), node.color.green(), node.color.blue()]
+                        [
+                            node.color.red(),
+                            node.color.green(),
+                            node.color.blue(),
+                            float(node.color.alpha()) / 255,
+                        ]
                     )
 
             if colorRampType == "discrete":
-                color = [
-                    "case",
-                ]
-                # Last entry is used for the fallback value in jgis
-                for node in colorList[:-1]:
-                    color.append(["<=", ["band", float(band)], node.value])
-                    color.append(
-                        [node.color.red(), node.color.green(), node.color.blue()]
-                    )
-                lastElement = colorList[-1]
-                color.append(
-                    [
-                        lastElement.color.red(),
-                        lastElement.color.green(),
-                        lastElement.color.blue(),
-                    ]
-                )
+                color = _build_color_ramp("<=", colorList, band, source_min, source_max)
 
             if colorRampType == "exact":
-                color = [
-                    "case",
-                ]
-                # Last entry is used for the fallback value in jgis
-                for node in colorList[:-1]:
-                    color.append(["==", ["band", float(band)], node.value])
-                    color.append(
-                        [node.color.red(), node.color.green(), node.color.blue()]
-                    )
-                lastElement = colorList[-1]
-                color.append(
-                    [
-                        lastElement.color.red(),
-                        lastElement.color.green(),
-                        lastElement.color.blue(),
-                    ]
-                )
+                color = _build_color_ramp("==", colorList, band, source_min, source_max)
 
-            # TODO: Could probably look at RGB values to see what normalize should be
-            source_parameters.update(urls=urls, normalize=False, wrapX=True)
+            source_parameters.update(urls=urls, normalize=True, wrapX=True)
             layer_parameters.update(color=color)
 
         else:
@@ -281,6 +268,50 @@ def qgis_layer_to_jgis(
     return layer_id
 
 
+def _build_color_ramp(operator, colorList, band, source_min, source_max):
+    color = [
+        "case",
+        ["==", ["band", 1.0], 0.0],
+        [0.0, 0.0, 0.0, 0.0],
+    ]
+
+    # Last entry is inf for discrete, so handle differently
+    for node in colorList[:-1]:
+        unscaled_val = (node.value * (1 - 0) - source_min * (1 - 0)) / (
+            source_max - source_min
+        )
+        color.append([operator, ["band", float(band)], unscaled_val])
+        color.append(
+            [
+                node.color.red(),
+                node.color.green(),
+                node.color.blue(),
+                float(node.color.alpha()) / 255,
+            ]
+        )
+
+    lastElement = colorList[-1]
+    last_value = (
+        source_max
+        if operator == "<="
+        else lastElement.value * (1 - 0) - source_min * (1 - 0)
+    ) / (source_max - source_min)
+    color.append([operator, ["band", float(band)], last_value])
+    color.append(
+        [
+            lastElement.color.red(),
+            lastElement.color.green(),
+            lastElement.color.blue(),
+            float(node.color.alpha()) / 255,
+        ]
+    )
+
+    # Fallback value for openlayers
+    color.append([0.0, 0.0, 0.0, 0.0])
+
+    return color
+
+
 def qgis_layer_tree_to_jgis(
     node: QgsLayerTreeGroup,
     layer_tree: list | None = None,
@@ -404,14 +435,14 @@ def jgis_layer_to_qgis(
         return
 
     if layer_type == "RasterLayer" and source_type == "RasterSource":
-        parameters = source.get("parameters", {})
-        uri = build_uri(parameters, "RasterSource")
+        source_parameters = source.get("parameters", {})
+        uri = build_uri(source_parameters, "RasterSource")
         map_layer = QgsRasterLayer(uri, layer_name, "wms")
 
     if layer_type == "VectorTileLayer" and source_type == "VectorTileSource":
-        parameters = source.get("parameters", {})
+        source_parameters = source.get("parameters", {})
         color_params = layer["parameters"]["color"]
-        uri = build_uri(parameters, "VectorTileSource")
+        uri = build_uri(source_parameters, "VectorTileSource")
 
         map_layer = QgsVectorTileLayer(uri, layer_name)
         renderer = map_layer.renderer()
@@ -445,10 +476,108 @@ def jgis_layer_to_qgis(
             renderer.setStyles(parsed_styles)
 
     if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
-        parameters = source.get("parameters", {})
+        source_parameters = source.get("parameters", {})
         # TODO: Support sources with multiple URLs
-        url = "/vsicurl/" + parameters["urls"][0]["url"]
+        url = "/vsicurl/" + source_parameters["urls"][0]["url"]
         map_layer = QgsRasterLayer(url, layer_name, "gdal")
+
+        layer_colors = layer["parameters"]["color"]
+
+        source_min = source_parameters["urls"][0]["min"]
+        source_max = source_parameters["urls"][0]["max"]
+
+        # Create a color ramp shader
+        color_ramp_shader = QgsColorRampShader()
+        color_stops = []
+
+        if layer_colors[0] == "interpolate":
+            selected_band = layer_colors[2][1]
+            color_ramp_shader.setColorRampType(QgsColorRampShader.Interpolated)
+
+            # Define color stops
+            for index in range(5, len(layer_colors), 2):
+                scaled_value = (layer_colors[index] * (source_max - source_min)) / (
+                    1 - 0
+                ) + source_min
+
+                colors = layer_colors[index + 1]
+                color_stops.append(
+                    QgsColorRampShader.ColorRampItem(
+                        scaled_value,
+                        QColor(
+                            int(colors[0]),
+                            int(colors[1]),
+                            int(colors[2]),
+                            int(colors[3] * 255),
+                        ),
+                    ),
+                )
+
+        if layer_colors[0] == "case":
+            selected_band = layer_colors[1][1][1]
+            # check logical operator to choose discrete or exact
+            op = layer_colors[3][0]
+
+            # skip the last value in both cases, thats the fallback and not used by qgis
+            if op == "<=":
+                # skip the second to last pair because that needs special handling
+                color_ramp_shader.setColorRampType(QgsColorRampShader.Discrete)
+                endIndex = len(layer_colors) - 3
+            if op == "==":
+                color_ramp_shader.setColorRampType(QgsColorRampShader.Exact)
+                endIndex = len(layer_colors) - 1
+
+            # skip the first pair, that's for open layers to handle NoData values
+            for index in range(3, endIndex, 2):
+                val = layer_colors[index][2]
+                scaled_value = (val * (source_max - source_min)) / (1 - 0) + source_min
+                colors = layer_colors[index + 1]
+                color_stops.append(
+                    QgsColorRampShader.ColorRampItem(
+                        scaled_value,
+                        QColor(
+                            int(colors[0]),
+                            int(colors[1]),
+                            int(colors[2]),
+                            int(colors[3] * 255),
+                        ),
+                    ),
+                )
+
+            # Final stop in qgis for discrete has inf value
+            if op == "<=":
+                color_stops.append(
+                    QgsColorRampShader.ColorRampItem(
+                        float("inf"),
+                        QColor(
+                            int(layer_colors[-2][0]),
+                            int(layer_colors[-2][1]),
+                            int(layer_colors[-2][2]),
+                            int(layer_colors[-2][3] * 255),
+                        ),
+                    ),
+                )
+
+        color_ramp_shader.setColorRampItemList(color_stops)
+        color_ramp_shader.setClip(True)
+
+        # Create a raster shader
+        raster_shader = QgsRasterShader()
+        raster_shader.setRasterShaderFunction(color_ramp_shader)
+
+        # Create the renderer
+        renderer = QgsSingleBandPseudoColorRenderer(
+            map_layer.dataProvider(),
+            int(selected_band),
+            raster_shader,
+        )
+
+        # Set minimum and maximum values
+        renderer.setClassificationMin(source_min)
+        renderer.setClassificationMax(source_max)
+
+        # Apply the renderer to the layer
+        map_layer.setRenderer(renderer)
 
     if map_layer is None:
         logs["warnings"].append(

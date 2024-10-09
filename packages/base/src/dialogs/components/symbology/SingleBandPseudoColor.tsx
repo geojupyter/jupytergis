@@ -263,7 +263,7 @@ const SingleBandPseudoColor = ({
         });
 
         // fallback value
-        colorExpr.push([0, 0, 0, 1.0]);
+        colorExpr.push([0, 0, 0, 0.0]);
         break;
       }
       case 'exact': {
@@ -283,7 +283,7 @@ const SingleBandPseudoColor = ({
         });
 
         // fallback value
-        colorExpr.push([0, 0, 0, 1.0]);
+        colorExpr.push([0, 0, 0, 0.0]);
         break;
       }
     }
