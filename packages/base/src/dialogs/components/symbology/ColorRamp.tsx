@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import {
   calculateEqualIntervalBreaks,
   calculateJenksBreaks,
+  calculateLogarithmicBreaks,
   calculatePrettyBreaks,
   calculateQuantileBreaks
 } from '../../../classificationModes';
@@ -20,7 +21,13 @@ const ColorRamp = ({
   selectedValue,
   setStopRows
 }: IColorRampProps) => {
-  const modeOptions = ['quantile', 'equal interval', 'jenks', 'pretty'];
+  const modeOptions = [
+    'quantile',
+    'equal interval',
+    'jenks',
+    'pretty',
+    'logarithmic'
+  ];
 
   const [selectedRamp, setSelectedRamp] = useState('cool');
   const [selectedMode, setSelectedMode] = useState('quantile');
@@ -50,6 +57,12 @@ const ColorRamp = ({
         break;
       case 'pretty':
         stops = calculatePrettyBreaks(
+          [...featureProperties[selectedValue]],
+          +numberOfShades
+        );
+        break;
+      case 'logarithmic':
+        stops = calculateLogarithmicBreaks(
           [...featureProperties[selectedValue]],
           +numberOfShades
         );

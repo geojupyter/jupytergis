@@ -258,3 +258,36 @@ export const calculatePrettyBreaks = (values: number[], classes: number) => {
 
   return breaks;
 };
+
+export const calculateLogarithmicBreaks = (
+  values: number[],
+  nclasses: number
+) => {
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+
+  let positiveMinimum = Number.MAX_VALUE;
+
+  let breaks = [];
+
+  positiveMinimum = minimum;
+
+  const actualLogMin = Math.log10(positiveMinimum);
+  let logMin = Math.floor(actualLogMin);
+  const logMax = Math.ceil(Math.log10(maximum));
+
+  let prettyBreaks = calculatePrettyBreaks([logMin, logMax], nclasses);
+
+  while (prettyBreaks.length > 0 && prettyBreaks[0] < actualLogMin) {
+    logMin += 1.0;
+    prettyBreaks = calculatePrettyBreaks([logMin, logMax], nclasses);
+  }
+
+  breaks = prettyBreaks;
+
+  for (let i = 0; i < breaks.length; i++) {
+    breaks[i] = Math.pow(10, breaks[i]);
+  }
+
+  return breaks;
+};
