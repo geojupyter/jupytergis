@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import CanvasSelectComponent from './CanvasSelectComponent';
 
 interface IColorRampProps {
+  modeOptions: string[];
   classifyFunc: (
     selectedMode: string,
     numberOfShades: string,
@@ -10,15 +11,7 @@ interface IColorRampProps {
   ) => void;
 }
 
-const ColorRamp = ({ classifyFunc }: IColorRampProps) => {
-  const modeOptions = [
-    'quantile',
-    'equal interval',
-    'jenks',
-    'pretty',
-    'logarithmic'
-  ];
-
+const ColorRamp = ({ modeOptions, classifyFunc }: IColorRampProps) => {
   const [selectedRamp, setSelectedRamp] = useState('cool');
   const [selectedMode, setSelectedMode] = useState('quantile');
   const [numberOfShades, setNumberOfShades] = useState('9');

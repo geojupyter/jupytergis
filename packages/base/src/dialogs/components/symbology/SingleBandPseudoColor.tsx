@@ -3,11 +3,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import colormap from 'colormap';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
+import { GeoTiffClassifications } from '../../../classificationModes';
 import { getGdal } from '../../../gdal';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from './BandRow';
+import ColorRamp from './ColorRamp';
 import StopRow from './StopRow';
 
 export interface IBandRow {
@@ -42,10 +45,13 @@ const SingleBandPseudoColor = ({
   layerId
 }: ISymbologyDialogProps) => {
   const functions = ['discrete', 'linear', 'exact'];
+  const modeOptions = ['continuous', 'equal interval', 'quantile'];
   const stopRowsRef = useRef<IStopRow[]>();
   const bandRowsRef = useRef<IBandRow[]>([]);
   const selectedFunctionRef = useRef<InterpolationType>();
-  const [selectedFunction, setSelectedFunction] = useState<InterpolationType>();
+
+  const [selectedFunction, setSelectedFunction] =
+    useState<InterpolationType>('linear');
   const [selectedBand, setSelectedBand] = useState(1);
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
@@ -343,6 +349,71 @@ const SingleBandPseudoColor = ({
     );
   };
 
+  const buildColorInfoFromClassification = (
+    selectedMode: string,
+    numberOfShades: string,
+    selectedRamp: string
+  ) => {
+    let stops: number[] = [];
+
+    // TODO: base values on type in band
+    // const values = [0, 655535];
+
+    // switch (selectedMode) {
+    //   case 'quantile':
+    //     // stops = VectorClassifications.calculateQuantileBreaks(
+    //     //   values,
+    //     //   +numberOfShades
+    //     // );
+    //     break;
+    //   case 'equal interval':
+    //     stops = GeoTiffClassifications.classifyColorRamp(
+    //       +numberOfShades,
+    //       selectedBand
+    //     );
+    //     break;
+    //   case 'continuous':
+    //     // stops = VectorClassifications.calculateJenksBreaks(
+    //     //   values,
+    //     //   +numberOfShades
+    //     // );
+    //     break;
+
+    //   default:
+    //     console.warn('No mode selected');
+    //     return;
+    // }
+    const currentBand = bandRows[selectedBand - 1];
+
+    const colorMap = colormap({
+      colormap: selectedRamp,
+      nshades: +numberOfShades,
+      format: 'rgba'
+    });
+
+    const valueColorPairs: IStopRow[] = [];
+    stops = GeoTiffClassifications.classifyColorRamp(
+      +numberOfShades,
+      selectedBand,
+      currentBand.stats.minimum,
+      currentBand.stats.maximum,
+      selectedFunction,
+      colorMap,
+      selectedMode
+    );
+
+    // assume stops and colors are same length
+    if (stops.length !== +numberOfShades) {
+      return;
+    }
+
+    for (let i = 0; i < +numberOfShades; i++) {
+      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
+    }
+
+    setStopRows(valueColorPairs);
+  };
+
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
@@ -390,16 +461,12 @@ const SingleBandPseudoColor = ({
           </select>
         </div>
       </div>
-      {/* {bandRows.length > 0 && (
+      {bandRows.length > 0 && (
         <ColorRamp
-          // values={[
-          //   bandRows[selectedBand - 1].stats.minimum,
-          //   bandRows[selectedBand - 1].stats.maximum
-          // ]}
-          values={[1, 65535]}
-          setStopRows={setStopRows}
+          modeOptions={modeOptions}
+          classifyFunc={buildColorInfoFromClassification}
         />
-      )} */}
+      )}
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>
