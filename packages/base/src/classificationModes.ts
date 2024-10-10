@@ -295,3 +295,180 @@ export namespace VectorClassifications {
     return breaks;
   };
 }
+
+export namespace GeoTiffClassifications {
+  export const classifyColorRamp = (
+    nclasses: number,
+    band: number,
+    minimumValue: number,
+    maximumValue: number,
+    colorRampType: string,
+    sourceColorRamp: number[][],
+    classificationMode: string,
+    setColorRampItemList: (item: any) => void
+    // extent: number[]
+  ) => {
+    const min = minimumValue;
+    const max = maximumValue;
+
+    if (min > max) {
+      return;
+    }
+
+    const discrete = colorRampType === 'Discrete';
+    const entryValues = [];
+    const entryColors: number[] = [];
+
+    if (min === max) {
+      if (sourceColorRamp && sourceColorRamp.length > 1) {
+        entryValues.push(min);
+        if (discrete) {
+          entryValues.push(Infinity);
+        }
+        for (let i = 0; i < entryValues.length; i++) {
+          // entryColors.push(sourceColorRamp().color(sourceColorRamp().value(i)));
+        }
+      }
+    } else {
+      // Using switch statement for classificationMode
+      switch (classificationMode) {
+        case 'Continuous':
+          handleContinuousMode();
+          break;
+
+        case 'Quantile':
+          if (nclasses < 2) {
+            return; // Prevent crash if classes < 2
+          }
+          handleQuantileMode();
+          break;
+
+        case 'EqualInterval':
+          if (nclasses < 2) {
+            return; // Prevent crash if classes < 2
+          }
+          handleEqualIntervalMode();
+          break;
+
+        default:
+          // Handle any unexpected classification modes if necessary
+          console.warn('Unsupported classification mode');
+          return;
+      }
+
+      // Handle sourceColorRamp cases (color mapping)
+      if (!sourceColorRamp || sourceColorRamp.length === 1) {
+        createDefaultColorRamp();
+      } else {
+        for (let i = 0; i < nclasses; i++) {
+          // entryColors.push(sourceColorRamp[i]);
+        }
+      }
+    }
+
+    // Calculate number of decimals
+    const maxabs = Math.log10(Math.max(Math.abs(max), Math.abs(min)));
+    const nDecimals = Math.round(
+      Math.max(
+        3.0 + maxabs - Math.log10(max - min),
+        maxabs <= 15.0 ? maxabs + 0.49 : 0
+      )
+    );
+
+    // Create ColorRampItems
+    const colorRampItems = entryValues.map((value, index) => ({
+      value: value,
+      color: entryColors[index],
+      label: value.toFixed(nDecimals)
+    }));
+
+    // Sort colorRampItems and set the list
+    colorRampItems.sort((a, b) => a.value - b.value);
+    setColorRampItemList(colorRampItems);
+
+    // Helper Functions
+
+    function handleContinuousMode(discrete: boolean) {
+      let numberOfEntries = sourceColorRamp.length;
+      if (discrete) {
+        let intervalDiff = max - min;
+        if (discrete) {
+          numberOfEntries--;
+        } else {
+          intervalDiff *= (numberOfEntries - 1) / numberOfEntries;
+        }
+
+        for (let i = 1; i < numberOfEntries; i++) {
+          const value = sourceColorRamp().value(i);
+          entryValues.push(min + value * intervalDiff);
+        }
+        entryValues.push(Infinity);
+      } else {
+        for (let i = 0; i < numberOfEntries; i++) {
+          const value = sourceColorRamp().value(i);
+          entryValues.push(min + value * (max - min));
+        }
+      }
+
+      for (let i = 0; i < numberOfEntries; i++) {
+        entryColors.push(sourceColorRamp().color(sourceColorRamp().value(i)));
+      }
+    }
+
+    function handleQuantileMode() {
+      let cut1 = NaN,
+        cut2 = NaN;
+      const sampleSize = 250000 * 10;
+
+      input.cumulativeCut(band, 0.0, 1.0, min, max, extent, sampleSize);
+
+      if (discrete) {
+        const intervalDiff = 1.0 / classes;
+        for (let i = 1; i < classes; i++) {
+          input.cumulativeCut(
+            band,
+            0.0,
+            i * intervalDiff,
+            cut1,
+            cut2,
+            extent,
+            sampleSize
+          );
+          entryValues.push(cut2);
+        }
+        entryValues.push(Infinity);
+      } else {
+        const intervalDiff = 1.0 / (classes - 1);
+        for (let i = 0; i < classes; i++) {
+          input.cumulativeCut(
+            band,
+            0.0,
+            i * intervalDiff,
+            cut1,
+            cut2,
+            extent,
+            sampleSize
+          );
+          entryValues.push(cut2);
+        }
+      }
+    }
+
+    function handleEqualIntervalMode() {
+      const intervalDiff = (max - min) / (discrete ? classes : classes - 1);
+      for (let i = discrete ? 1 : 0; i < classes; i++) {
+        entryValues.push(min + i * intervalDiff);
+      }
+      if (discrete) entryValues.push(Infinity);
+    }
+
+    function createDefaultColorRamp() {
+      const colorDiff = classes !== 0 ? Math.floor(255 / classes) : 0;
+      for (let i = 0; i < classes; i++) {
+        const r = colorDiff * i;
+        const b = 255 - colorDiff * i;
+        entryColors.push(`rgb(${r}, 0, ${b})`);
+      }
+    }
+  };
+}
