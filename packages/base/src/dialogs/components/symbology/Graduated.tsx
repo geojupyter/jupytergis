@@ -16,6 +16,14 @@ const Graduated = ({
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
+  const modeOptions = [
+    'quantile',
+    'equal interval',
+    'jenks',
+    'pretty',
+    'logarithmic'
+  ];
+
   const selectedValueRef = useRef<string>();
   const selectedMethodRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
@@ -326,7 +334,10 @@ const Graduated = ({
           ))}
         </select>
       </div>
-      <ColorRamp classifyFunc={buildColorInfoFromClassification} />
+      <ColorRamp
+        modeOptions={modeOptions}
+        classifyFunc={buildColorInfoFromClassification}
+      />
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>Value</span>
