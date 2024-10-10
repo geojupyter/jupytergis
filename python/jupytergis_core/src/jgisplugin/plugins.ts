@@ -88,6 +88,7 @@ const activate = (
   }
 
   widgetFactory.widgetCreated.connect((sender, widget) => {
+    widget.title.icon = logoIcon;
     widget.context.pathChanged.connect(() => {
       tracker.save(widget);
     });
