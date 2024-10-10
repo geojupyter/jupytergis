@@ -1,5 +1,7 @@
 // Adapted from https://github.com/qgis/QGIS/blob/master/src/core/classification/
 
+import { InterpolationType } from './dialogs/components/symbology/SingleBandPseudoColor';
+
 export namespace VectorClassifications {
   export const calculateQuantileBreaks = (
     values: number[],
@@ -302,18 +304,22 @@ export namespace GeoTiffClassifications {
     band: number,
     minimumValue: number,
     maximumValue: number,
-    colorRampType: string,
+    colorRampType: InterpolationType,
     sourceColorRamp: [number, number, number, number][],
     classificationMode: string
+
     // setColorRampItemList: (item: any) => void
     // extent: number[]
   ) => {
     const min = minimumValue;
     const max = maximumValue;
 
+    console.log('nclasses', nclasses);
     if (min > max) {
       return [];
     }
+
+    const discrete = colorRampType === 'discrete';
 
     // skip discrete check
     const stopValues: number[] = [];
@@ -324,26 +330,96 @@ export namespace GeoTiffClassifications {
       return [];
     }
 
-    // if (classificationMode === 'quantile') {
-    //   if (band < 0) {
-    //     return;
-    //   }
+    function* rangeGenerator(start: number, end: number) {
+      for (let i = start; i <= end; i++) {
+        yield i;
+      }
+    }
 
-    //   const cut1 = Number.NaN;
-    //   const cut2 = Number.NaN;
-    //   const sampleSize = 25000 * 10;
+    function range(start: number, end: number) {
+      return Array.from(rangeGenerator(start, end));
+    }
 
-    //   // skip cumulative cut
-    //   // skip discrete
+    if (classificationMode === 'continuous') {
+      const numberOfEntries = sourceColorRamp.length;
+      if (discrete) {
+        const intervalDiff =
+          ((max - min) * (numberOfEntries - 1)) / numberOfEntries;
 
-    //   const intervalDiff = 1 / (nclasses - 1);
-    // }
+        for (let i = 1; i < numberOfEntries; i++) {
+          const val = i / numberOfEntries;
+          stopValues.push(min + val * intervalDiff);
+        }
+        stopValues.push(max);
+      } else {
+        for (let i = 0; i <= numberOfEntries; i++) {
+          if (i === 26) {
+            continue;
+          }
+          const val = i / numberOfEntries;
+          stopValues.push(min + val * (max - min));
+        }
+      }
+    }
+
+    if (classificationMode === 'quantile') {
+      // if (band < 0) {
+      //   return;
+      // }
+
+      // const cut1 = Number.NaN;
+      // const cut2 = Number.NaN;
+      // const sampleSize = 25000 * 10;
+
+      // // skip cumulative cut
+      // // skip discrete
+
+      // const intervalDiff = 1 / (nclasses - 1);
+
+      // const sortedValues = [...values].sort((a, b) => a - b);
+      const sortedValues = range(1, 65535);
+
+      const breaks = [];
+
+      if (!sortedValues) {
+        return [];
+      }
+
+      const n = sortedValues.length;
+
+      let xq: number = n > 0 ? sortedValues[0] : 0;
+
+      for (let i = 1; i < nclasses; i++) {
+        if (n > 1) {
+          const q = i / nclasses;
+          const a = q * (n - 1);
+          const aa = Math.floor(a);
+
+          const r = a - aa;
+          xq = (1 - r) * sortedValues[aa] + r * sortedValues[aa + 1];
+        }
+        breaks.push(xq);
+      }
+
+      breaks.push(sortedValues[n - 1]);
+
+      return breaks;
+    }
 
     if (classificationMode === 'equal interval') {
-      const intervalDiff = (max - min) / (nclasses - 1);
+      if (discrete) {
+        const intervalDiff = (max - min) / nclasses;
 
-      for (let i = 0; i < nclasses; i++) {
-        stopValues.push(min + i * intervalDiff);
+        for (let i = 1; i < nclasses; i++) {
+          stopValues.push(min + i * intervalDiff);
+        }
+        stopValues.push(max);
+      } else {
+        const intervalDiff = (max - min) / (nclasses - 1);
+
+        for (let i = 0; i < nclasses; i++) {
+          stopValues.push(min + i * intervalDiff);
+        }
       }
     }
 

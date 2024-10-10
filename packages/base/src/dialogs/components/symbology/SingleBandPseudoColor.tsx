@@ -25,7 +25,7 @@ export interface IBandRow {
   metadata: IDict;
 }
 
-type InterpolationType = 'discrete' | 'linear' | 'exact';
+export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
 type TifBandData = {
   band: number;
@@ -385,15 +385,17 @@ const SingleBandPseudoColor = ({
     // }
     const currentBand = bandRows[selectedBand - 1];
 
+    const nclasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
+
     const colorMap = colormap({
       colormap: selectedRamp,
-      nshades: +numberOfShades,
+      nshades: nclasses,
       format: 'rgba'
     });
 
     const valueColorPairs: IStopRow[] = [];
     stops = GeoTiffClassifications.classifyColorRamp(
-      +numberOfShades,
+      nclasses,
       selectedBand,
       currentBand.stats.minimum,
       currentBand.stats.maximum,
@@ -403,11 +405,11 @@ const SingleBandPseudoColor = ({
     );
 
     // assume stops and colors are same length
-    if (stops.length !== +numberOfShades) {
-      return;
-    }
+    // if (stops.length !== +numberOfShades) {
+    //   return;
+    // }
 
-    for (let i = 0; i < +numberOfShades; i++) {
+    for (let i = 0; i < nclasses; i++) {
       valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
     }
 
