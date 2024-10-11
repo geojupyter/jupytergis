@@ -79,6 +79,7 @@
     "@types/colormap": "^2.3.4",
     "colormap": "^2.3.2",
     "geojson-vt": "^4.0.2",
+    "geotiff": "^2.1.3",
     "ol": "^10.1.0",
     "pmtiles": "^3.0.7"
   }
