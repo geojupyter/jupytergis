@@ -330,16 +330,6 @@ export namespace GeoTiffClassifications {
       return [];
     }
 
-    function* rangeGenerator(start: number, end: number) {
-      for (let i = start; i <= end; i++) {
-        yield i;
-      }
-    }
-
-    function range(start: number, end: number) {
-      return Array.from(rangeGenerator(start, end));
-    }
-
     if (classificationMode === 'continuous') {
       const numberOfEntries = sourceColorRamp.length;
       if (discrete) {
@@ -363,47 +353,7 @@ export namespace GeoTiffClassifications {
     }
 
     if (classificationMode === 'quantile') {
-      // if (band < 0) {
-      //   return;
-      // }
-
-      // const cut1 = Number.NaN;
-      // const cut2 = Number.NaN;
-      // const sampleSize = 25000 * 10;
-
-      // // skip cumulative cut
-      // // skip discrete
-
-      // const intervalDiff = 1 / (nclasses - 1);
-
-      // const sortedValues = [...values].sort((a, b) => a - b);
-      const sortedValues = range(1, 65535);
-
-      const breaks = [];
-
-      if (!sortedValues) {
-        return [];
-      }
-
-      const n = sortedValues.length;
-
-      let xq: number = n > 0 ? sortedValues[0] : 0;
-
-      for (let i = 1; i < nclasses; i++) {
-        if (n > 1) {
-          const q = i / nclasses;
-          const a = q * (n - 1);
-          const aa = Math.floor(a);
-
-          const r = a - aa;
-          xq = (1 - r) * sortedValues[aa] + r * sortedValues[aa + 1];
-        }
-        breaks.push(xq);
-      }
-
-      breaks.push(sortedValues[n - 1]);
-
-      return breaks;
+      console.log('coming soon');
     }
 
     if (classificationMode === 'equal interval') {

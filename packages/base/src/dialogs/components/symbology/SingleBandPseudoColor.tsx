@@ -4,14 +4,16 @@ import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import colormap from 'colormap';
+import { Pool, fromUrl, TypedArray } from 'geotiff';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 import { GeoTiffClassifications } from '../../../classificationModes';
-import { getGdal } from '../../../gdal';
+import { GlobalStateDbManager } from '../../../store';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from './BandRow';
 import ColorRamp from './ColorRamp';
 import StopRow from './StopRow';
+import _ from 'lodash';
 
 export interface IBandRow {
   band: number;
@@ -116,31 +118,71 @@ const SingleBandPseudoColor = ({
     }
 
     let tifData;
+    // let rasterData;
 
-    const layerState = await state.fetch(`jupytergis:${layerId}`);
-    if (layerState) {
-      tifData = JSON.parse(
-        (layerState as ReadonlyPartialJSONObject).tifData as string
-      );
-    } else {
-      const Gdal = await getGdal();
+    // const url = sourceInfo.url;
+    // const georasterzzzzzz = await geoblaze.parse(url);
 
-      const fileData = await fetch(sourceInfo.url);
-      const file = new File([await fileData.blob()], 'loaded.tif');
+    // console.log('georasterzzzzzz', georasterzzzzzz);
+    // const georaster = await geoblaze.histogram(
+    //   georasterzzzzzz,
+    //   [-90, -180, 90, 180],
+    //   {
+    //     scaleType: 'ratio',
+    //     numClasses: 9,
+    //     classType: 'quantile'
+    //   }
+    // );
 
-      const result = await Gdal.open(file);
-      console.log('result', result);
-      const tifDataset = result.datasets[0];
-      const otherData = await Gdal.getInfo(tifDataset);
-      console.log('otherData', otherData);
-      tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
-      Gdal.close(tifDataset);
+    // console.log('georaster', georaster);
 
-      state.save(`jupytergis:${layerId}`, {
-        tifData: JSON.stringify(tifData),
-        otherData: JSON.stringify(otherData)
-      });
+    const stateDb = GlobalStateDbManager.getInstance().getStateDb();
+
+    if (stateDb) {
+      const layerState = (await stateDb.fetch(
+        `jupytergis:${layerId}`
+      )) as ReadonlyPartialJSONObject;
+
+      if (layerState && layerState.tifData) {
+        tifData = JSON.parse(layerState.tifData as string);
+        console.log('tifData', tifData);
+      }
+
+      const results = await test(sourceInfo.url);
+
+      // if (layerState && layerState.rasterData) {
+      //   rasterData = JSON.parse(layerState.rasterData as string);
+      //   console.log('rasterData', rasterData);
+      // } else {
+
+      if (stateDb) {
+        stateDb.save(`jupytergis:${layerId}`, {
+          rasterData: JSON.stringify(results)
+        });
+      }
+
+      console.log('fin');
+      // }
     }
+    // else {
+    //   const Gdal = await getGdal();
+
+    //   const fileData = await fetch(sourceInfo.url);
+    //   const file = new File([await fileData.blob()], 'loaded.tif');
+
+    //   const result = await Gdal.open(file);
+    //   console.log('result', result);
+    //   const tifDataset = result.datasets[0];
+    //   const otherData = await Gdal.getInfo(tifDataset);
+    //   console.log('otherData', otherData);
+    //   tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
+    //   Gdal.close(tifDataset);
+
+    //   state.save(`jupytergis:${layerId}`, {
+    //     tifData: JSON.stringify(tifData),
+    //     otherData: JSON.stringify(otherData)
+    //   });
+    // }
 
     tifData['bands'].forEach((bandData: TifBandData) => {
       bandsArr.push({
@@ -156,6 +198,66 @@ const SingleBandPseudoColor = ({
       });
     });
     setBandRows(bandsArr);
+  };
+
+  const test = async (url: string) => {
+    console.log('starting');
+    const pool = new Pool();
+
+    const tiff = await fromUrl(url);
+    const image = await tiff.getImage();
+    const values = await image.readRasters({ pool });
+
+    const l = values[0] as TypedArray;
+
+    const band = l.filter(value => value !== 0);
+    const band0 = band.sort((a, b) => a - b);
+    console.log('band0', band0);
+    // const fuck = [...band0];
+
+    // get the number of values in each bin/
+    const valuesPerBin = band0.length / 9;
+
+    // iterate through values and use a counter to
+    // decide when to set up the next bin. Bins are
+    // represented as a list of [min, max] values
+    const results: any = {};
+    let binMin = 1;
+    let numValuesInCurrentBin = 1;
+    let stringKey = '1';
+    for (let i = 1; i < band0.length; i++) {
+      if (numValuesInCurrentBin + 1 < valuesPerBin) {
+        numValuesInCurrentBin += 1;
+      } else {
+        // if it is the last value, add it to the bin and start setting up for the next one
+        const value = band0[i];
+        const binMax = value;
+        numValuesInCurrentBin += 1;
+        if (_.keys(results).length > 0) {
+          stringKey = `>${binMin}`;
+        }
+        stringKey = stringKey.concat(`- ${binMax}`);
+
+        results[stringKey] = numValuesInCurrentBin;
+        console.log(
+          'binMin, numValuesInCurrentBin',
+          binMin,
+          numValuesInCurrentBin
+        );
+        numValuesInCurrentBin = 0;
+        binMin = value;
+      }
+    }
+
+    // add the last bin
+    const binMax = 65535;
+    numValuesInCurrentBin += 1;
+    // binMin = `>${binMin}`;
+    results[binMax] = numValuesInCurrentBin;
+
+    console.log('results', results);
+
+    return results;
   };
 
   const buildColorInfo = () => {
