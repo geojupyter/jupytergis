@@ -25,7 +25,7 @@ import {
 } from '@jupytergis/schema';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
-import { JSONValue, UUID } from '@lumino/coreutils';
+import { JSONValue, ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Collection, Map as OlMap, View } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
@@ -54,6 +54,8 @@ import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import { Rule } from 'ol/style/flat';
 import * as React from 'react';
 import shp from 'shpjs';
+import { getGdal } from '../gdal';
+import { GlobalStateDbManager } from '../store';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
@@ -389,6 +391,55 @@ export class MainView extends React.Component<IProps, IStates> {
       }
       case 'GeoTiffSource': {
         const sourceParameters = source.parameters as IGeoTiffSource;
+
+        const stateDb = GlobalStateDbManager.getInstance().getStateDb();
+
+        // const url = sourceInfo.url;
+        // const georasterzzzzzz = await geoblaze.parse(url);
+
+        // console.log('georasterzzzzzz', georasterzzzzzz);
+
+        // console.log('georaster', georaster);
+
+        if (stateDb) {
+          const layerState = (await stateDb.fetch(
+            `jupytergis:${id}`
+          )) as ReadonlyPartialJSONObject;
+
+          console.log('layerState', layerState);
+
+          if (
+            sourceParameters.urls[0].url &&
+            (!layerState || !layerState.tifData)
+          ) {
+            // get GDAL info
+            const Gdal = await getGdal();
+
+            const fileData = await fetch(sourceParameters.urls[0].url);
+            const file = new File([await fileData.blob()], 'loaded.tif');
+
+            const result = await Gdal.open(file);
+            const tifDataset = result.datasets[0];
+
+            const tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
+            Gdal.close(tifDataset);
+
+            // // Get histogram of data
+            // const histogram = await geoblaze.histogram(
+            //   sourceParameters.urls[0].url,
+            //   undefined,
+            //   {
+            //     scaleType: 'ratio',
+            //     numClasses: 9,
+            //     classType: 'quantile'
+            //   }
+            // );
+
+            stateDb.save(`jupytergis:${id}`, {
+              tifData: JSON.stringify(tifData)
+            });
+          }
+        }
 
         newSource = new GeoTIFFSource({
           sources: sourceParameters.urls,
