@@ -6,6 +6,7 @@ export * from './formbuilder/objectform/baseform';
 export * from './icons';
 export * from './mainview';
 export * from './panelview';
+export * from './store';
 export * from './toolbar';
 export * from './tools';
 export * from './types';
