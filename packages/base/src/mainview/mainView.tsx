@@ -420,6 +420,7 @@ export class MainView extends React.Component<IProps, IStates> {
             Gdal.close(tifDataset);
 
             stateDb.save(`jupytergis:${id}`, {
+              ...layerState,
               tifData: JSON.stringify(tifData)
             });
           }

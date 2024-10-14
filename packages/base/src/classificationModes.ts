@@ -3,18 +3,14 @@
 // import { layer } from '@fortawesome/fontawesome-svg-core';
 import { Pool, fromUrl, TypedArray } from 'geotiff';
 // import { url } from 'inspector';
-import _, { max, min } from 'lodash';
-import {
-  IBandHistogram,
-  InterpolationType
-} from './dialogs/components/symbology/SingleBandPseudoColor';
+import { InterpolationType } from './dialogs/components/symbology/SingleBandPseudoColor';
 import { GlobalStateDbManager } from './store';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyJSONArray, ReadonlyJSONObject } from '@lumino/coreutils';
 
 export namespace VectorClassifications {
   export const calculateQuantileBreaks = (
     values: number[],
-    numOfClasses: number
+    nClasses: number
   ) => {
     // q-th quantile of a data set:
     // value where q fraction of data is below and (1-q) fraction is above this value
@@ -36,9 +32,9 @@ export namespace VectorClassifications {
 
     let xq: number = n > 0 ? sortedValues[0] : 0;
 
-    for (let i = 1; i < numOfClasses; i++) {
+    for (let i = 1; i < nClasses; i++) {
       if (n > 1) {
-        const q = i / numOfClasses;
+        const q = i / nClasses;
         const a = q * (n - 1);
         const aa = Math.floor(a);
 
@@ -55,41 +51,38 @@ export namespace VectorClassifications {
 
   export const calculateEqualIntervalBreaks = (
     values: number[],
-    numOfClasses: number
+    nClasses: number
   ) => {
     const minimum = Math.min(...values);
     const maximum = Math.max(...values);
 
     const breaks: number[] = [];
-    const step = (maximum - minimum) / numOfClasses;
+    const step = (maximum - minimum) / nClasses;
 
     let value = minimum;
 
-    for (let i = 0; i < numOfClasses; i++) {
+    for (let i = 0; i < nClasses; i++) {
       value += step;
       breaks.push(value);
     }
 
-    breaks[numOfClasses - 1] = maximum;
+    breaks[nClasses - 1] = maximum;
 
     return breaks;
   };
 
-  export const calculateJenksBreaks = (
-    values: number[],
-    numOfClasses: number
-  ) => {
+  export const calculateJenksBreaks = (values: number[], nClasses: number) => {
     const maximum = Math.max(...values);
 
     if (values.length === 0) {
       return [];
     }
 
-    if (numOfClasses <= 1) {
+    if (nClasses <= 1) {
       return [maximum];
     }
 
-    if (numOfClasses >= values.length) {
+    if (nClasses >= values.length) {
       return values;
     }
 
@@ -97,13 +90,13 @@ export namespace VectorClassifications {
     const n = sample.length;
 
     const matrixOne = Array.from({ length: n + 1 }, () =>
-      Array(numOfClasses + 1).fill(0)
+      Array(nClasses + 1).fill(0)
     );
     const matrixTwo = Array.from({ length: n + 1 }, () =>
-      Array(numOfClasses + 1).fill(Number.MAX_VALUE)
+      Array(nClasses + 1).fill(Number.MAX_VALUE)
     );
 
-    for (let i = 1; i <= numOfClasses; i++) {
+    for (let i = 1; i <= nClasses; i++) {
       matrixOne[0][i] = 1;
       matrixOne[1][i] = 1;
       matrixTwo[0][i] = 0.0;
@@ -131,7 +124,7 @@ export namespace VectorClassifications {
         v = s2 - (s1 * s1) / w;
         const i4 = i3 - 1;
         if (i4 !== 0) {
-          for (let j = 2; j <= numOfClasses; j++) {
+          for (let j = 2; j <= nClasses; j++) {
             if (matrixTwo[l][j] >= v + matrixTwo[i4][j - 1]) {
               matrixOne[l][j] = i4;
               matrixTwo[l][j] = v + matrixTwo[i4][j - 1];
@@ -143,10 +136,10 @@ export namespace VectorClassifications {
       matrixTwo[l][1] = v;
     }
 
-    const breaks = Array(numOfClasses);
-    breaks[numOfClasses - 1] = sample[n - 1];
+    const breaks = Array(nClasses);
+    breaks[nClasses - 1] = sample[n - 1];
 
-    for (let j = numOfClasses, k = n; j >= 2; j--) {
+    for (let j = nClasses, k = n; j >= 2; j--) {
       const id = matrixOne[k][j] - 1;
       breaks[j - 2] = sample[id];
       k = matrixOne[k][j] - 1;
@@ -155,22 +148,22 @@ export namespace VectorClassifications {
     return breaks;
   };
 
-  export const calculatePrettyBreaks = (values: number[], classes: number) => {
+  export const calculatePrettyBreaks = (values: number[], nClasses: number) => {
     const minimum = Math.min(...values);
     const maximum = Math.max(...values);
 
     const breaks = [];
 
-    if (classes < 1) {
+    if (nClasses < 1) {
       breaks.push(maximum);
       return breaks;
     }
 
-    const minimumCount = Math.floor(classes / 3);
+    const minimumCount = Math.floor(nClasses / 3);
     const shrink = 0.75;
     const highBias = 1.5;
     const adjustBias = 0.5 + 1.5 * highBias;
-    const divisions = classes;
+    const divisions = nClasses;
     const h = highBias;
     let cell;
     let small = false;
@@ -275,7 +268,7 @@ export namespace VectorClassifications {
 
   export const calculateLogarithmicBreaks = (
     values: number[],
-    nclasses: number
+    nClasses: number
   ) => {
     const minimum = Math.min(...values);
     const maximum = Math.max(...values);
@@ -290,11 +283,11 @@ export namespace VectorClassifications {
     let logMin = Math.floor(actualLogMin);
     const logMax = Math.ceil(Math.log10(maximum));
 
-    let prettyBreaks = calculatePrettyBreaks([logMin, logMax], nclasses);
+    let prettyBreaks = calculatePrettyBreaks([logMin, logMax], nClasses);
 
     while (prettyBreaks.length > 0 && prettyBreaks[0] < actualLogMin) {
       logMin += 1.0;
-      prettyBreaks = calculatePrettyBreaks([logMin, logMax], nclasses);
+      prettyBreaks = calculatePrettyBreaks([logMin, logMax], nClasses);
     }
 
     breaks = prettyBreaks;
@@ -308,160 +301,164 @@ export namespace VectorClassifications {
 }
 
 export namespace GeoTiffClassifications {
-  export const classifyColorRamp = async (
-    nclasses: number,
-    band: number,
+  export const classifyQuantileBreaks = async (
+    nClasses: number,
+    bandNumber: number,
+    url: string,
+    sourceId: string
+  ) => {
+    const stateDb = GlobalStateDbManager.getInstance().getStateDb();
+    const breaks: number[] = [];
+    let bandSortedValues;
+
+    if (stateDb) {
+      const layerState = (await stateDb.fetch(
+        `jupytergis:${sourceId}`
+      )) as ReadonlyJSONObject;
+
+      console.log('layerState', layerState);
+
+      // if (layerState.rasterData) {
+      //   bandSortedValues = layerState.rasterData as ReadonlyJSONArray;
+      //   console.log('layerState.rasterData', layerState.rasterData);
+      // } else {
+      const pool = new Pool();
+      const tiff = await fromUrl(url);
+      const image = await tiff.getImage();
+      const values = await image.readRasters({ pool });
+
+      // Band numbers are 1 indexed
+      const bandValues = values[bandNumber - 1] as TypedArray;
+
+      bandSortedValues = bandValues
+        .filter(value => value !== 0)
+        .sort((a, b) => a - b);
+
+      const sortedArray = Array.from(bandSortedValues) as ReadonlyJSONArray;
+
+      console.log('sortedArray', sortedArray);
+
+      console.log('bandSortedValues111', bandSortedValues);
+
+      stateDb.save(`jupytergis:${sourceId}`, {
+        ...layerState,
+        rasterData: Array.from(bandSortedValues) as ReadonlyJSONArray
+      });
+
+      pool.destroy();
+      // }
+    }
+
+    console.log('bandSortedValues2222', bandSortedValues);
+    if (!bandSortedValues) {
+      return [];
+    }
+
+    // get the number of values in each bin/
+    const valuesPerBin = bandSortedValues.length / (nClasses - 1);
+
+    console.log('valuesPerBin', valuesPerBin);
+    // Adapted from https://github.com/GeoTIFF/geoblaze/blob/master/src/histogram/histogram.core.js#L64
+    // iterate through values and use a counter to
+    // decide when to set up the next bin.
+    let numValuesInCurrentBin = 1;
+
+    // Add the first stop
+    breaks.push(1);
+
+    for (let i = 1; i < bandSortedValues.length; i++) {
+      if (numValuesInCurrentBin + 1 < valuesPerBin) {
+        numValuesInCurrentBin += 1;
+      } else {
+        // if it is the last value, add it to the bin and start setting up for the next one
+        const binMax = bandSortedValues[i] as number;
+        console.log('binMax', binMax);
+        numValuesInCurrentBin = 0;
+        breaks.push(binMax);
+      }
+    }
+
+    // add the last stop
+    const binMax = 65535;
+    breaks.push(binMax);
+
+    console.log('breaks', breaks);
+
+    return breaks;
+  };
+
+  export const classifyContinuousBreaks = (
+    nClasses: number,
     minimumValue: number,
     maximumValue: number,
-    colorRampType: InterpolationType,
-    sourceColorRamp: [number, number, number, number][],
-    classificationMode: string,
-    histogram: IBandHistogram,
-    url?: string,
-    sourceId?: string
-
-    // setColorRampItemList: (item: any) => void
-    // extent: number[]
+    colorRampType: InterpolationType
   ) => {
     const min = minimumValue;
     const max = maximumValue;
 
-    console.log('nclasses', nclasses);
     if (min > max) {
       return [];
     }
 
-    const discrete = colorRampType === 'discrete';
+    const isDiscrete = colorRampType === 'discrete';
 
-    // skip discrete check
-    const stopValues: number[] = [];
-    // const outputValues: [number, number, number, number][] = [];
+    const breaks: number[] = [];
 
-    // interpolate colors linearly
-    if (nclasses < 2) {
+    const numberOfEntries = nClasses;
+    if (isDiscrete) {
+      const intervalDiff =
+        ((max - min) * (numberOfEntries - 1)) / numberOfEntries;
+
+      for (let i = 1; i < numberOfEntries; i++) {
+        const val = i / numberOfEntries;
+        breaks.push(min + val * intervalDiff);
+      }
+      breaks.push(max);
+    } else {
+      for (let i = 0; i <= numberOfEntries; i++) {
+        if (i === 26) {
+          continue;
+        }
+        const val = i / numberOfEntries;
+        breaks.push(min + val * (max - min));
+      }
+    }
+
+    return breaks;
+  };
+
+  export const classifyEqualIntervalBreaks = (
+    nClasses: number,
+    minimumValue: number,
+    maximumValue: number,
+    colorRampType: InterpolationType
+  ) => {
+    const min = minimumValue;
+    const max = maximumValue;
+
+    if (min > max) {
       return [];
     }
 
-    if (classificationMode === 'continuous') {
-      const numberOfEntries = sourceColorRamp.length;
-      if (discrete) {
-        const intervalDiff =
-          ((max - min) * (numberOfEntries - 1)) / numberOfEntries;
+    const isDiscrete = colorRampType === 'discrete';
 
-        for (let i = 1; i < numberOfEntries; i++) {
-          const val = i / numberOfEntries;
-          stopValues.push(min + val * intervalDiff);
-        }
-        stopValues.push(max);
-      } else {
-        for (let i = 0; i <= numberOfEntries; i++) {
-          if (i === 26) {
-            continue;
-          }
-          const val = i / numberOfEntries;
-          stopValues.push(min + val * (max - min));
-        }
+    const breaks: number[] = [];
+
+    if (isDiscrete) {
+      const intervalDiff = (max - min) / nClasses;
+
+      for (let i = 1; i < nClasses; i++) {
+        breaks.push(min + i * intervalDiff);
+      }
+      breaks.push(max);
+    } else {
+      const intervalDiff = (max - min) / (nClasses - 1);
+
+      for (let i = 0; i < nClasses; i++) {
+        breaks.push(min + i * intervalDiff);
       }
     }
 
-    if (classificationMode === 'quantile') {
-      if (!url || !sourceId) {
-        return [];
-      }
-
-      const stateDb = GlobalStateDbManager.getInstance().getStateDb();
-
-      let band0: any = [];
-
-      if (stateDb) {
-        const layerState = (await stateDb.fetch(
-          `jupytergis:${sourceId}`
-        )) as ReadonlyPartialJSONObject;
-
-        if (layerState.rasterData) {
-          band0 = layerState.rasterData;
-        } else {
-          const pool = new Pool();
-
-          const tiff = await fromUrl(url);
-          const image = await tiff.getImage();
-          const values = await image.readRasters({ pool });
-
-          const l = values[0] as TypedArray;
-
-          const band = l.filter(value => value !== 0);
-          band0 = band.sort((a, b) => a - b);
-          // const sourceId = layer.parameters?.source;
-          stateDb.save(`jupytergis:${sourceId}`, {
-            rasterData: JSON.stringify(band0)
-          });
-
-          pool.destroy();
-        }
-      }
-
-      // get the number of values in each bin/
-      const valuesPerBin = band0.length / (nclasses - 1);
-
-      // iterate through values and use a counter to
-      // decide when to set up the next bin. Bins are
-      // represented as a list of [min, max] values
-      const results: any = {};
-      let binMin = 1;
-      let numValuesInCurrentBin = 1;
-      let stringKey = '1';
-      stopValues.push(1);
-      for (let i = 1; i < band0.length; i++) {
-        if (numValuesInCurrentBin + 1 < valuesPerBin) {
-          numValuesInCurrentBin += 1;
-        } else {
-          // if it is the last value, add it to the bin and start setting up for the next one
-          const value = band0[i];
-          const binMax = value;
-          numValuesInCurrentBin += 1;
-          if (_.keys(results).length > 0) {
-            stringKey = `>${binMin}`;
-          }
-          stringKey = stringKey.concat(`- ${binMax}`);
-
-          results[stringKey] = numValuesInCurrentBin;
-
-          numValuesInCurrentBin = 0;
-          binMin = value;
-          stopValues.push(binMax);
-        }
-      }
-
-      // add the last bin
-      const binMax = 65535;
-      numValuesInCurrentBin += 1;
-      // binMin = `>${binMin}`;
-      results[binMax] = numValuesInCurrentBin;
-      stopValues.push(binMax);
-
-      console.log('results', results);
-      return stopValues;
-    }
-
-    if (classificationMode === 'equal interval') {
-      if (discrete) {
-        const intervalDiff = (max - min) / nclasses;
-
-        for (let i = 1; i < nclasses; i++) {
-          stopValues.push(min + i * intervalDiff);
-        }
-        stopValues.push(max);
-      } else {
-        const intervalDiff = (max - min) / (nclasses - 1);
-
-        for (let i = 0; i < nclasses; i++) {
-          stopValues.push(min + i * intervalDiff);
-        }
-      }
-    }
-
-    console.log('stopValues', stopValues);
-
-    return stopValues;
+    return breaks;
   };
 }
