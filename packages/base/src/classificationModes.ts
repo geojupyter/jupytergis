@@ -1,11 +1,7 @@
 // Adapted from https://github.com/qgis/QGIS/blob/master/src/core/classification/
 
-// import { layer } from '@fortawesome/fontawesome-svg-core';
 import { Pool, fromUrl, TypedArray } from 'geotiff';
-// import { url } from 'inspector';
 import { InterpolationType } from './dialogs/components/symbology/SingleBandPseudoColor';
-import { GlobalStateDbManager } from './store';
-import { ReadonlyJSONArray, ReadonlyJSONObject } from '@lumino/coreutils';
 
 export namespace VectorClassifications {
   export const calculateQuantileBreaks = (
@@ -307,49 +303,22 @@ export namespace GeoTiffClassifications {
     url: string,
     sourceId: string
   ) => {
-    const stateDb = GlobalStateDbManager.getInstance().getStateDb();
     const breaks: number[] = [];
-    let bandSortedValues;
 
-    if (stateDb) {
-      const layerState = (await stateDb.fetch(
-        `jupytergis:${sourceId}`
-      )) as ReadonlyJSONObject;
+    const pool = new Pool();
+    const tiff = await fromUrl(url);
+    const image = await tiff.getImage();
+    const values = await image.readRasters({ pool });
 
-      console.log('layerState', layerState);
+    // Band numbers are 1 indexed
+    const bandValues = values[bandNumber - 1] as TypedArray;
 
-      // if (layerState.rasterData) {
-      //   bandSortedValues = layerState.rasterData as ReadonlyJSONArray;
-      //   console.log('layerState.rasterData', layerState.rasterData);
-      // } else {
-      const pool = new Pool();
-      const tiff = await fromUrl(url);
-      const image = await tiff.getImage();
-      const values = await image.readRasters({ pool });
+    const bandSortedValues = bandValues
+      .filter(value => value !== 0)
+      .sort((a, b) => a - b);
 
-      // Band numbers are 1 indexed
-      const bandValues = values[bandNumber - 1] as TypedArray;
+    pool.destroy();
 
-      bandSortedValues = bandValues
-        .filter(value => value !== 0)
-        .sort((a, b) => a - b);
-
-      const sortedArray = Array.from(bandSortedValues) as ReadonlyJSONArray;
-
-      console.log('sortedArray', sortedArray);
-
-      console.log('bandSortedValues111', bandSortedValues);
-
-      stateDb.save(`jupytergis:${sourceId}`, {
-        ...layerState,
-        rasterData: Array.from(bandSortedValues) as ReadonlyJSONArray
-      });
-
-      pool.destroy();
-      // }
-    }
-
-    console.log('bandSortedValues2222', bandSortedValues);
     if (!bandSortedValues) {
       return [];
     }
@@ -357,7 +326,6 @@ export namespace GeoTiffClassifications {
     // get the number of values in each bin/
     const valuesPerBin = bandSortedValues.length / (nClasses - 1);
 
-    console.log('valuesPerBin', valuesPerBin);
     // Adapted from https://github.com/GeoTIFF/geoblaze/blob/master/src/histogram/histogram.core.js#L64
     // iterate through values and use a counter to
     // decide when to set up the next bin.
@@ -372,7 +340,6 @@ export namespace GeoTiffClassifications {
       } else {
         // if it is the last value, add it to the bin and start setting up for the next one
         const binMax = bandSortedValues[i] as number;
-        console.log('binMax', binMax);
         numValuesInCurrentBin = 0;
         breaks.push(binMax);
       }
@@ -381,8 +348,6 @@ export namespace GeoTiffClassifications {
     // add the last stop
     const binMax = 65535;
     breaks.push(binMax);
-
-    console.log('breaks', breaks);
 
     return breaks;
   };
