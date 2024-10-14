@@ -2,6 +2,30 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.1.6
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.1.5...84200c15ed4537cf469482035c2d4eca9ffbfb42))
+
+### Enhancements made
+
+- Add `logoicon` as tab icon [#183](https://github.com/geojupyter/jupytergis/pull/183) ([@arjxn-py](https://github.com/arjxn-py))
+- Reactive toolbar w.r.t width [#181](https://github.com/geojupyter/jupytergis/pull/181) ([@arjxn-py](https://github.com/arjxn-py))
+- Rename launcher item [#180](https://github.com/geojupyter/jupytergis/pull/180) ([@martinRenou](https://github.com/martinRenou))
+- Add JupyterGIS icons in the filebrowser [#179](https://github.com/geojupyter/jupytergis/pull/179) ([@martinRenou](https://github.com/martinRenou))
+- Read/write color information for QGIS files [#175](https://github.com/geojupyter/jupytergis/pull/175) ([@gjmooney](https://github.com/gjmooney))
+
+### Bugs fixed
+
+- Remove extra comma from JSON repr, fixing creation of new files [#184](https://github.com/geojupyter/jupytergis/pull/184) ([@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-10-04&to=2024-10-14&type=c))
+
+[@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2024-10-04..2024-10-14&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-10-04..2024-10-14&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2024-10-04..2024-10-14&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-10-04..2024-10-14&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.1.5
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.1.4...743bc18afaccf544be4508cf8fbb0669f85dd59d))
@@ -28,8 +52,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-09-24&to=2024-10-04&type=c))
 
 [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2024-09-24..2024-10-04&type=Issues) | [@brichet](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2024-09-24..2024-10-04&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-09-24..2024-10-04&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2024-09-24..2024-10-04&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-09-24..2024-10-04&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.1.4
 

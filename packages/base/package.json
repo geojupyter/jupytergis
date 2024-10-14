@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/base",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A JupyterLab extension for 3D modelling.",
   "keywords": [
     "jupyter",
@@ -41,7 +41,7 @@
     "@deathbeds/jupyterlab-rjsf": "^1.1.0",
     "@jupyter/docprovider": "^2.0.0",
     "@jupyter/ydoc": "^1.0.0",
-    "@jupytergis/schema": "^0.1.5",
+    "@jupytergis/schema": "^0.1.6",
     "@jupyterlab/application": "^4.0.0",
     "@jupyterlab/apputils": "^4.0.0",
     "@jupyterlab/completer": "^4.2.4",
