@@ -394,19 +394,10 @@ export class MainView extends React.Component<IProps, IStates> {
 
         const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-        // const url = sourceInfo.url;
-        // const georasterzzzzzz = await geoblaze.parse(url);
-
-        // console.log('georasterzzzzzz', georasterzzzzzz);
-
-        // console.log('georaster', georaster);
-
         if (stateDb) {
           const layerState = (await stateDb.fetch(
             `jupytergis:${id}`
           )) as ReadonlyPartialJSONObject;
-
-          console.log('layerState', layerState);
 
           if (
             sourceParameters.urls[0].url &&
@@ -421,19 +412,12 @@ export class MainView extends React.Component<IProps, IStates> {
             const result = await Gdal.open(file);
             const tifDataset = result.datasets[0];
 
-            const tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
-            Gdal.close(tifDataset);
+            const tifData = await Gdal.gdalinfo(tifDataset, [
+              '-stats',
+              '-hist'
+            ]);
 
-            // // Get histogram of data
-            // const histogram = await geoblaze.histogram(
-            //   sourceParameters.urls[0].url,
-            //   undefined,
-            //   {
-            //     scaleType: 'ratio',
-            //     numClasses: 9,
-            //     classType: 'quantile'
-            //   }
-            // );
+            Gdal.close(tifDataset);
 
             stateDb.save(`jupytergis:${id}`, {
               tifData: JSON.stringify(tifData)
