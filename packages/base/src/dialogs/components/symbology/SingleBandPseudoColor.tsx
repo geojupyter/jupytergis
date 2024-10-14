@@ -130,6 +130,7 @@ const SingleBandPseudoColor = ({
         `jupytergis:${sourceId}`
       )) as ReadonlyPartialJSONObject;
 
+      console.log('layerState', layerState);
       if (layerState && layerState.tifData) {
         tifData = JSON.parse(layerState.tifData as string);
       }
