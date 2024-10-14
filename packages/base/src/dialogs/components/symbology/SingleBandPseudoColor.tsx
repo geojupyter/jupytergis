@@ -4,7 +4,6 @@ import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import colormap from 'colormap';
-import { Pool, fromUrl, TypedArray } from 'geotiff';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 import { GeoTiffClassifications } from '../../../classificationModes';
@@ -13,7 +12,6 @@ import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from './BandRow';
 import ColorRamp from './ColorRamp';
 import StopRow from './StopRow';
-import _ from 'lodash';
 
 export interface IBandRow {
   band: number;
@@ -60,12 +58,11 @@ const SingleBandPseudoColor = ({
   const stopRowsRef = useRef<IStopRow[]>();
   const bandRowsRef = useRef<IBandRow[]>([]);
   const selectedFunctionRef = useRef<InterpolationType>();
-
-  const [selectedFunction, setSelectedFunction] =
-    useState<InterpolationType>('linear');
   const [selectedBand, setSelectedBand] = useState(1);
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
+  const [selectedFunction, setSelectedFunction] =
+    useState<InterpolationType>('linear');
 
   if (!layerId) {
     return;
@@ -82,7 +79,6 @@ const SingleBandPseudoColor = ({
 
   useEffect(() => {
     bandRowsRef.current = bandRows;
-
     buildColorInfo();
   }, [bandRows]);
 
@@ -117,7 +113,6 @@ const SingleBandPseudoColor = ({
 
   const getBandInfo = async () => {
     const bandsArr: IBandRow[] = [];
-
     const source = context.model.getSource(layer?.parameters?.source);
     const sourceId = layer.parameters?.source;
     const sourceInfo = source?.parameters?.urls[0];
@@ -140,118 +135,23 @@ const SingleBandPseudoColor = ({
       }
       console.log('tifData', tifData);
 
-      // await test(sourceInfo.url);
-
-      // if (layerState && layerState.rasterData) {
-      //   rasterData = JSON.parse(layerState.rasterData as string);
-      //   console.log('rasterData', rasterData);
-      // } else {
-
-      // if (stateDb) {
-      //   stateDb.save(`jupytergis:${sourceId}`, {
-      //     rasterData: JSON.stringify(results)
-      //   });
-      // }
-
-      // }
-    }
-    // else {
-    //   const Gdal = await getGdal();
-
-    //   const fileData = await fetch(sourceInfo.url);
-    //   const file = new File([await fileData.blob()], 'loaded.tif');
-
-    //   const result = await Gdal.open(file);
-    //   console.log('result', result);
-    //   const tifDataset = result.datasets[0];
-    //   const otherData = await Gdal.getInfo(tifDataset);
-    //   console.log('otherData', otherData);
-    //   tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
-    //   Gdal.close(tifDataset);
-
-    //   state.save(`jupytergis:${layerId}`, {
-    //     tifData: JSON.stringify(tifData),
-    //     otherData: JSON.stringify(otherData)
-    //   });
-    // }
-
-    tifData['bands'].forEach((bandData: TifBandData) => {
-      bandsArr.push({
-        band: bandData.band,
-        colorInterpretation: bandData.colorInterpretation,
-        stats: {
-          minimum: sourceInfo.min ?? bandData.minimum,
-          maximum: sourceInfo.max ?? bandData.maximum,
-          mean: bandData.mean,
-          stdDev: bandData.stdDev
-        },
-        metadata: bandData.metadata,
-        histogram: bandData.histogram
+      tifData['bands'].forEach((bandData: TifBandData) => {
+        bandsArr.push({
+          band: bandData.band,
+          colorInterpretation: bandData.colorInterpretation,
+          stats: {
+            minimum: sourceInfo.min ?? bandData.minimum,
+            maximum: sourceInfo.max ?? bandData.maximum,
+            mean: bandData.mean,
+            stdDev: bandData.stdDev
+          },
+          metadata: bandData.metadata,
+          histogram: bandData.histogram
+        });
       });
-    });
-    setBandRows(bandsArr);
+      setBandRows(bandsArr);
+    }
   };
-
-  // const test = async (url: string) => {
-  //   const pool = new Pool();
-
-  //   const tiff = await fromUrl(url);
-  //   const image = await tiff.getImage();
-  //   const values = await image.readRasters({ pool });
-
-  //   const l = values[0] as TypedArray;
-
-  //   const band = l.filter(value => value !== 0);
-  //   const band0 = band.sort((a, b) => a - b);
-  //   const sourceId = layer.parameters?.source;
-
-  //   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
-
-  //   if (stateDb) {
-  //     stateDb.save(`jupytergis:${sourceId}`, {
-  //       rasterData: JSON.stringify(band0)
-  //     });
-  //   }
-
-  //   // get the number of values in each bin/
-  //   const valuesPerBin = band0.length / 9;
-
-  //   // iterate through values and use a counter to
-  //   // decide when to set up the next bin. Bins are
-  //   // represented as a list of [min, max] values
-  //   const results: any = {};
-  //   let binMin = 1;
-  //   let numValuesInCurrentBin = 1;
-  //   let stringKey = '1';
-  //   for (let i = 1; i < band0.length; i++) {
-  //     if (numValuesInCurrentBin + 1 < valuesPerBin) {
-  //       numValuesInCurrentBin += 1;
-  //     } else {
-  //       // if it is the last value, add it to the bin and start setting up for the next one
-  //       const value = band0[i];
-  //       const binMax = value;
-  //       numValuesInCurrentBin += 1;
-  //       if (_.keys(results).length > 0) {
-  //         stringKey = `>${binMin}`;
-  //       }
-  //       stringKey = stringKey.concat(`- ${binMax}`);
-
-  //       results[stringKey] = numValuesInCurrentBin;
-
-  //       numValuesInCurrentBin = 0;
-  //       binMin = value;
-  //     }
-  //   }
-
-  //   // add the last bin
-  //   const binMax = 65535;
-  //   numValuesInCurrentBin += 1;
-  //   // binMin = `>${binMin}`;
-  //   results[binMax] = numValuesInCurrentBin;
-
-  //   console.log('results', results);
-  //   return results;
-  // };
 
   const buildColorInfo = () => {
     // This it to parse a color object on the layer
@@ -451,73 +351,54 @@ const SingleBandPseudoColor = ({
   ) => {
     let stops: number[] = [];
 
-    // TODO: base values on type in band
-    // const values = [0, 655535];
-
-    // switch (selectedMode) {
-    //   case 'quantile':
-    //     // stops = VectorClassifications.calculateQuantileBreaks(
-    //     //   values,
-    //     //   +numberOfShades
-    //     // );
-    //     break;
-    //   case 'equal interval':
-    //     stops = GeoTiffClassifications.classifyColorRamp(
-    //       +numberOfShades,
-    //       selectedBand
-    //     );
-    //     break;
-    //   case 'continuous':
-    //     // stops = VectorClassifications.calculateJenksBreaks(
-    //     //   values,
-    //     //   +numberOfShades
-    //     // );
-    //     break;
-
-    //   default:
-    //     console.warn('No mode selected');
-    //     return;
-    // }
     const currentBand = bandRows[selectedBand - 1];
-
-    const nclasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
-
-    const colorMap = colormap({
-      colormap: selectedRamp,
-      nshades: selectedMode === 'quantile' ? nclasses + 1 : nclasses,
-      format: 'rgba'
-    });
-
     const source = context.model.getSource(layer?.parameters?.source);
     const sourceId = layer.parameters?.source;
     const sourceInfo = source?.parameters?.urls[0];
+    const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
+    const colorMap = colormap({
+      colormap: selectedRamp,
+      nshades: nClasses,
+      format: 'rgba'
+    });
 
     if (!sourceInfo.url) {
       return;
     }
 
     const valueColorPairs: IStopRow[] = [];
-    stops = await GeoTiffClassifications.classifyColorRamp(
-      nclasses,
-      selectedBand,
-      currentBand.stats.minimum,
-      currentBand.stats.maximum,
-      selectedFunction,
-      colorMap,
-      selectedMode,
-      currentBand.histogram,
-      sourceInfo.url,
-      sourceId
-    );
 
-    // assume stops and colors are same length
-    // if (stops.length !== +numberOfShades) {
-    //   return;
-    // }
+    switch (selectedMode) {
+      case 'quantile':
+        stops = await GeoTiffClassifications.classifyQuantileBreaks(
+          nClasses,
+          selectedBand,
+          sourceInfo.url,
+          sourceId
+        );
+        break;
+      case 'continuous':
+        stops = GeoTiffClassifications.classifyContinuousBreaks(
+          nClasses,
+          currentBand.stats.minimum,
+          currentBand.stats.maximum,
+          selectedFunction
+        );
+        break;
+      case 'equal interval':
+        stops = GeoTiffClassifications.classifyEqualIntervalBreaks(
+          nClasses,
+          currentBand.stats.minimum,
+          currentBand.stats.maximum,
+          selectedFunction
+        );
+        break;
+      default:
+        console.warn('No mode selected');
+        return;
+    }
 
-    console.log('stops', stops);
-
-    for (let i = 0; i < nclasses; i++) {
+    for (let i = 0; i < stops.length; i++) {
       valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
     }
 
