@@ -317,7 +317,8 @@ const SingleBandPseudoColor = ({
   const buildColorInfoFromClassification = async (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string
+    selectedRamp: string,
+    setIsLoading: (isLoading: boolean) => void
   ) => {
     let stops: number[] = [];
 
@@ -338,6 +339,7 @@ const SingleBandPseudoColor = ({
 
     const valueColorPairs: IStopRow[] = [];
 
+    setIsLoading(true);
     switch (selectedMode) {
       case 'quantile':
         stops = await GeoTiffClassifications.classifyQuantileBreaks(
@@ -367,6 +369,7 @@ const SingleBandPseudoColor = ({
         console.warn('No mode selected');
         return;
     }
+    setIsLoading(false);
 
     for (let i = 0; i < stops.length; i++) {
       valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
