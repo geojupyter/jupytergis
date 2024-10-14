@@ -1,6 +1,14 @@
 // Adapted from https://github.com/qgis/QGIS/blob/master/src/core/classification/
 
-import { InterpolationType } from './dialogs/components/symbology/SingleBandPseudoColor';
+// import { layer } from '@fortawesome/fontawesome-svg-core';
+import { Pool, fromUrl, TypedArray } from 'geotiff';
+// import { url } from 'inspector';
+import _, { max, min } from 'lodash';
+import {
+  IBandHistogram,
+  InterpolationType
+} from './dialogs/components/symbology/SingleBandPseudoColor';
+import { GlobalStateDbManager } from './store';
 
 export namespace VectorClassifications {
   export const calculateQuantileBreaks = (
@@ -299,14 +307,17 @@ export namespace VectorClassifications {
 }
 
 export namespace GeoTiffClassifications {
-  export const classifyColorRamp = (
+  export const classifyColorRamp = async (
     nclasses: number,
     band: number,
     minimumValue: number,
     maximumValue: number,
     colorRampType: InterpolationType,
     sourceColorRamp: [number, number, number, number][],
-    classificationMode: string
+    classificationMode: string,
+    histogram: IBandHistogram,
+    url?: string,
+    sourceId?: string
 
     // setColorRampItemList: (item: any) => void
     // extent: number[]
@@ -353,7 +364,71 @@ export namespace GeoTiffClassifications {
     }
 
     if (classificationMode === 'quantile') {
-      console.log('coming soon');
+      if (!url || !sourceId) {
+        return [];
+      }
+      const pool = new Pool();
+
+      const tiff = await fromUrl(url);
+      const image = await tiff.getImage();
+      const values = await image.readRasters({ pool });
+
+      const l = values[0] as TypedArray;
+
+      const band = l.filter(value => value !== 0);
+      const band0 = band.sort((a, b) => a - b);
+      // const sourceId = layer.parameters?.source;
+
+      const stateDb = GlobalStateDbManager.getInstance().getStateDb();
+
+      if (stateDb) {
+        stateDb.save(`jupytergis:${sourceId}`, {
+          rasterData: JSON.stringify(band0)
+        });
+      }
+
+      // get the number of values in each bin/
+      const valuesPerBin = band0.length / 9;
+
+      // iterate through values and use a counter to
+      // decide when to set up the next bin. Bins are
+      // represented as a list of [min, max] values
+      const results: any = {};
+      let binMin = 1;
+      let numValuesInCurrentBin = 1;
+      let stringKey = '1';
+      stopValues.push(1);
+      for (let i = 1; i < band0.length; i++) {
+        if (numValuesInCurrentBin + 1 < valuesPerBin) {
+          numValuesInCurrentBin += 1;
+        } else {
+          // if it is the last value, add it to the bin and start setting up for the next one
+          const value = band0[i];
+          const binMax = value;
+          numValuesInCurrentBin += 1;
+          if (_.keys(results).length > 0) {
+            stringKey = `>${binMin}`;
+          }
+          stringKey = stringKey.concat(`- ${binMax}`);
+
+          results[stringKey] = numValuesInCurrentBin;
+
+          numValuesInCurrentBin = 0;
+          binMin = value;
+          stopValues.push(binMax);
+        }
+      }
+
+      // add the last bin
+      const binMax = 65535;
+      numValuesInCurrentBin += 1;
+      // binMin = `>${binMin}`;
+      results[binMax] = numValuesInCurrentBin;
+      stopValues.push(binMax);
+
+      console.log('results', results);
+      pool.destroy();
+      return stopValues;
     }
 
     if (classificationMode === 'equal interval') {

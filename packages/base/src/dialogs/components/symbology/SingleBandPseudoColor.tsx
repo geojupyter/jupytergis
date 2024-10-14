@@ -25,6 +25,14 @@ export interface IBandRow {
     stdDev: number;
   };
   metadata: IDict;
+  histogram: IBandHistogram;
+}
+
+export interface IBandHistogram {
+  buckets: number[];
+  count: number;
+  max: number;
+  min: number;
 }
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
@@ -37,6 +45,7 @@ type TifBandData = {
   mean: number;
   stdDev: number;
   metadata: any;
+  histogram: IBandHistogram;
 };
 
 const SingleBandPseudoColor = ({
@@ -110,7 +119,7 @@ const SingleBandPseudoColor = ({
     const bandsArr: IBandRow[] = [];
 
     const source = context.model.getSource(layer?.parameters?.source);
-
+    const sourceId = layer.parameters?.source;
     const sourceInfo = source?.parameters?.urls[0];
 
     if (!sourceInfo.url) {
@@ -118,50 +127,32 @@ const SingleBandPseudoColor = ({
     }
 
     let tifData;
-    // let rasterData;
-
-    // const url = sourceInfo.url;
-    // const georasterzzzzzz = await geoblaze.parse(url);
-
-    // console.log('georasterzzzzzz', georasterzzzzzz);
-    // const georaster = await geoblaze.histogram(
-    //   georasterzzzzzz,
-    //   [-90, -180, 90, 180],
-    //   {
-    //     scaleType: 'ratio',
-    //     numClasses: 9,
-    //     classType: 'quantile'
-    //   }
-    // );
-
-    // console.log('georaster', georaster);
 
     const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
     if (stateDb) {
       const layerState = (await stateDb.fetch(
-        `jupytergis:${layerId}`
+        `jupytergis:${sourceId}`
       )) as ReadonlyPartialJSONObject;
 
       if (layerState && layerState.tifData) {
         tifData = JSON.parse(layerState.tifData as string);
-        console.log('tifData', tifData);
       }
+      console.log('tifData', tifData);
 
-      const results = await test(sourceInfo.url);
+      // await test(sourceInfo.url);
 
       // if (layerState && layerState.rasterData) {
       //   rasterData = JSON.parse(layerState.rasterData as string);
       //   console.log('rasterData', rasterData);
       // } else {
 
-      if (stateDb) {
-        stateDb.save(`jupytergis:${layerId}`, {
-          rasterData: JSON.stringify(results)
-        });
-      }
+      // if (stateDb) {
+      //   stateDb.save(`jupytergis:${sourceId}`, {
+      //     rasterData: JSON.stringify(results)
+      //   });
+      // }
 
-      console.log('fin');
       // }
     }
     // else {
@@ -194,71 +185,73 @@ const SingleBandPseudoColor = ({
           mean: bandData.mean,
           stdDev: bandData.stdDev
         },
-        metadata: bandData.metadata
+        metadata: bandData.metadata,
+        histogram: bandData.histogram
       });
     });
     setBandRows(bandsArr);
   };
 
-  const test = async (url: string) => {
-    console.log('starting');
-    const pool = new Pool();
+  // const test = async (url: string) => {
+  //   const pool = new Pool();
 
-    const tiff = await fromUrl(url);
-    const image = await tiff.getImage();
-    const values = await image.readRasters({ pool });
+  //   const tiff = await fromUrl(url);
+  //   const image = await tiff.getImage();
+  //   const values = await image.readRasters({ pool });
 
-    const l = values[0] as TypedArray;
+  //   const l = values[0] as TypedArray;
 
-    const band = l.filter(value => value !== 0);
-    const band0 = band.sort((a, b) => a - b);
-    console.log('band0', band0);
-    // const fuck = [...band0];
+  //   const band = l.filter(value => value !== 0);
+  //   const band0 = band.sort((a, b) => a - b);
+  //   const sourceId = layer.parameters?.source;
 
-    // get the number of values in each bin/
-    const valuesPerBin = band0.length / 9;
+  //   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-    // iterate through values and use a counter to
-    // decide when to set up the next bin. Bins are
-    // represented as a list of [min, max] values
-    const results: any = {};
-    let binMin = 1;
-    let numValuesInCurrentBin = 1;
-    let stringKey = '1';
-    for (let i = 1; i < band0.length; i++) {
-      if (numValuesInCurrentBin + 1 < valuesPerBin) {
-        numValuesInCurrentBin += 1;
-      } else {
-        // if it is the last value, add it to the bin and start setting up for the next one
-        const value = band0[i];
-        const binMax = value;
-        numValuesInCurrentBin += 1;
-        if (_.keys(results).length > 0) {
-          stringKey = `>${binMin}`;
-        }
-        stringKey = stringKey.concat(`- ${binMax}`);
+  //   if (stateDb) {
+  //     stateDb.save(`jupytergis:${sourceId}`, {
+  //       rasterData: JSON.stringify(band0)
+  //     });
+  //   }
 
-        results[stringKey] = numValuesInCurrentBin;
-        console.log(
-          'binMin, numValuesInCurrentBin',
-          binMin,
-          numValuesInCurrentBin
-        );
-        numValuesInCurrentBin = 0;
-        binMin = value;
-      }
-    }
+  //   // get the number of values in each bin/
+  //   const valuesPerBin = band0.length / 9;
 
-    // add the last bin
-    const binMax = 65535;
-    numValuesInCurrentBin += 1;
-    // binMin = `>${binMin}`;
-    results[binMax] = numValuesInCurrentBin;
+  //   // iterate through values and use a counter to
+  //   // decide when to set up the next bin. Bins are
+  //   // represented as a list of [min, max] values
+  //   const results: any = {};
+  //   let binMin = 1;
+  //   let numValuesInCurrentBin = 1;
+  //   let stringKey = '1';
+  //   for (let i = 1; i < band0.length; i++) {
+  //     if (numValuesInCurrentBin + 1 < valuesPerBin) {
+  //       numValuesInCurrentBin += 1;
+  //     } else {
+  //       // if it is the last value, add it to the bin and start setting up for the next one
+  //       const value = band0[i];
+  //       const binMax = value;
+  //       numValuesInCurrentBin += 1;
+  //       if (_.keys(results).length > 0) {
+  //         stringKey = `>${binMin}`;
+  //       }
+  //       stringKey = stringKey.concat(`- ${binMax}`);
 
-    console.log('results', results);
+  //       results[stringKey] = numValuesInCurrentBin;
 
-    return results;
-  };
+  //       numValuesInCurrentBin = 0;
+  //       binMin = value;
+  //     }
+  //   }
+
+  //   // add the last bin
+  //   const binMax = 65535;
+  //   numValuesInCurrentBin += 1;
+  //   // binMin = `>${binMin}`;
+  //   results[binMax] = numValuesInCurrentBin;
+
+  //   console.log('results', results);
+  //   return results;
+  // };
 
   const buildColorInfo = () => {
     // This it to parse a color object on the layer
@@ -451,7 +444,7 @@ const SingleBandPseudoColor = ({
     );
   };
 
-  const buildColorInfoFromClassification = (
+  const buildColorInfoFromClassification = async (
     selectedMode: string,
     numberOfShades: string,
     selectedRamp: string
@@ -491,25 +484,38 @@ const SingleBandPseudoColor = ({
 
     const colorMap = colormap({
       colormap: selectedRamp,
-      nshades: nclasses,
+      nshades: selectedMode === 'quantile' ? nclasses + 1 : nclasses,
       format: 'rgba'
     });
 
+    const source = context.model.getSource(layer?.parameters?.source);
+    const sourceId = layer.parameters?.source;
+    const sourceInfo = source?.parameters?.urls[0];
+
+    if (!sourceInfo.url) {
+      return;
+    }
+
     const valueColorPairs: IStopRow[] = [];
-    stops = GeoTiffClassifications.classifyColorRamp(
+    stops = await GeoTiffClassifications.classifyColorRamp(
       nclasses,
       selectedBand,
       currentBand.stats.minimum,
       currentBand.stats.maximum,
       selectedFunction,
       colorMap,
-      selectedMode
+      selectedMode,
+      currentBand.histogram,
+      sourceInfo.url,
+      sourceId
     );
 
     // assume stops and colors are same length
     // if (stops.length !== +numberOfShades) {
     //   return;
     // }
+
+    console.log('stops', stops);
 
     for (let i = 0; i < nclasses; i++) {
       valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
