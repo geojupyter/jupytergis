@@ -9,6 +9,7 @@ import {
   InterpolationType
 } from './dialogs/components/symbology/SingleBandPseudoColor';
 import { GlobalStateDbManager } from './store';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 
 export namespace VectorClassifications {
   export const calculateQuantileBreaks = (
@@ -367,28 +368,40 @@ export namespace GeoTiffClassifications {
       if (!url || !sourceId) {
         return [];
       }
-      const pool = new Pool();
-
-      const tiff = await fromUrl(url);
-      const image = await tiff.getImage();
-      const values = await image.readRasters({ pool });
-
-      const l = values[0] as TypedArray;
-
-      const band = l.filter(value => value !== 0);
-      const band0 = band.sort((a, b) => a - b);
-      // const sourceId = layer.parameters?.source;
 
       const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
+      let band0: any = [];
+
       if (stateDb) {
-        stateDb.save(`jupytergis:${sourceId}`, {
-          rasterData: JSON.stringify(band0)
-        });
+        const layerState = (await stateDb.fetch(
+          `jupytergis:${sourceId}`
+        )) as ReadonlyPartialJSONObject;
+
+        if (layerState.rasterData) {
+          band0 = layerState.rasterData;
+        } else {
+          const pool = new Pool();
+
+          const tiff = await fromUrl(url);
+          const image = await tiff.getImage();
+          const values = await image.readRasters({ pool });
+
+          const l = values[0] as TypedArray;
+
+          const band = l.filter(value => value !== 0);
+          band0 = band.sort((a, b) => a - b);
+          // const sourceId = layer.parameters?.source;
+          stateDb.save(`jupytergis:${sourceId}`, {
+            rasterData: JSON.stringify(band0)
+          });
+
+          pool.destroy();
+        }
       }
 
       // get the number of values in each bin/
-      const valuesPerBin = band0.length / 9;
+      const valuesPerBin = band0.length / (nclasses - 1);
 
       // iterate through values and use a counter to
       // decide when to set up the next bin. Bins are
@@ -427,7 +440,6 @@ export namespace GeoTiffClassifications {
       stopValues.push(binMax);
 
       console.log('results', results);
-      pool.destroy();
       return stopValues;
     }
 
