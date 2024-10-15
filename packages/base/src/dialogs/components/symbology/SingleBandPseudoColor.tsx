@@ -191,7 +191,7 @@ const SingleBandPseudoColor = ({
         // Sixth and on is value:color pairs
         for (let i = 5; i < color.length; i += 2) {
           const obj: IStopRow = {
-            stop: color[i],
+            stop: scaleValue(color[i]),
             output: color[i + 1]
           };
           valueColorPairs.push(obj);
@@ -208,7 +208,7 @@ const SingleBandPseudoColor = ({
         // Last element is fallback value
         for (let i = 3; i < color.length - 1; i += 2) {
           const obj: IStopRow = {
-            stop: color[i][2],
+            stop: scaleValue(color[i][2]),
             output: color[i + 1]
           };
           valueColorPairs.push(obj);
@@ -269,7 +269,7 @@ const SingleBandPseudoColor = ({
         colorExpr.push(0.0, [0.0, 0.0, 0.0, 0.0]);
 
         stopRowsRef.current?.map(stop => {
-          colorExpr.push(stop.stop);
+          colorExpr.push(unscaleValue(stop.stop));
           colorExpr.push(stop.output);
         });
 
@@ -284,7 +284,11 @@ const SingleBandPseudoColor = ({
         colorExpr.push([0.0, 0.0, 0.0, 0.0]);
 
         stopRowsRef.current?.map(stop => {
-          colorExpr.push(['<=', ['band', selectedBand], stop.stop]);
+          colorExpr.push([
+            '<=',
+            ['band', selectedBand],
+            unscaleValue(stop.stop)
+          ]);
           colorExpr.push(stop.output);
         });
 
@@ -300,7 +304,11 @@ const SingleBandPseudoColor = ({
         colorExpr.push([0.0, 0.0, 0.0, 0.0]);
 
         stopRowsRef.current?.map(stop => {
-          colorExpr.push(['==', ['band', selectedBand], stop.stop]);
+          colorExpr.push([
+            '==',
+            ['band', selectedBand],
+            unscaleValue(stop.stop)
+          ]);
           colorExpr.push(stop.output);
         });
 
@@ -402,6 +410,29 @@ const SingleBandPseudoColor = ({
     }
 
     setStopRows(valueColorPairs);
+  };
+
+  const scaleValue = (bandValue: number) => {
+    const currentBand = bandRows[selectedBand - 1];
+
+    if (!currentBand) {
+      return bandValue;
+    }
+
+    return (
+      (bandValue * (currentBand.stats.maximum - currentBand.stats.minimum)) /
+        (1 - 0) +
+      currentBand.stats.minimum
+    );
+  };
+
+  const unscaleValue = (value: number) => {
+    const currentBand = bandRowsRef.current[selectedBand - 1];
+
+    return (
+      (value * (1 - 0) - currentBand.stats.minimum * (1 - 0)) /
+      (currentBand.stats.maximum - currentBand.stats.minimum)
+    );
   };
 
   return (
