@@ -48,7 +48,6 @@ type TifBandData = {
 
 const SingleBandPseudoColor = ({
   context,
-  state,
   okSignalPromise,
   cancel,
   layerId
@@ -80,6 +79,16 @@ const SingleBandPseudoColor = ({
   useEffect(() => {
     getBandInfo();
     setInitialFunction();
+
+    okSignalPromise.promise.then(okSignal => {
+      okSignal.connect(handleOk);
+    });
+
+    return () => {
+      okSignalPromise.promise.then(okSignal => {
+        okSignal.disconnect(handleOk, this);
+      });
+    };
   }, []);
 
   useEffect(() => {
@@ -305,10 +314,6 @@ const SingleBandPseudoColor = ({
     context.model.sharedModel.updateLayer(layerId, layer);
     cancel();
   };
-
-  okSignalPromise.promise.then(okSignal => {
-    okSignal.connect(handleOk);
-  });
 
   const addStopRow = () => {
     setStopRows([
