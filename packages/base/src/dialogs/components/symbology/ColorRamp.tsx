@@ -50,7 +50,10 @@ const ColorRamp = ({ layerId, modeOptions, classifyFunc }: IColorRampProps) => {
     <div className="jp-gis-color-ramp-container">
       <div className="jp-gis-symbology-row">
         <label htmlFor="color-ramp-select">Color Ramp:</label>
-        <CanvasSelectComponent setSelected={setSelectedRamp} />
+        <CanvasSelectComponent
+          selectedRamp={selectedRamp}
+          setSelected={setSelectedRamp}
+        />
       </div>
       <div className="jp-gis-symbology-row">
         <div className="jp-gis-color-ramp-div">
