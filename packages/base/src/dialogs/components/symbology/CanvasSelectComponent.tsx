@@ -9,16 +9,15 @@ export interface IColorMap {
 }
 
 interface ICanvasSelectComponentProps {
+  selectedRamp: string;
   setSelected: (item: any) => void;
 }
 
 const CanvasSelectComponent = ({
+  selectedRamp,
   setSelected
 }: ICanvasSelectComponentProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const colorRampList = [
+  const colorRampNames = [
     'jet',
     // 'hsv', 11 steps min
     'hot',
@@ -46,7 +45,6 @@ const CanvasSelectComponent = ({
     'magma',
     'plasma',
     'warm',
-    'cool',
     // 'rainbow-soft', 11 steps min
     'bathymetry',
     'cdom',
@@ -65,7 +63,31 @@ const CanvasSelectComponent = ({
     // 'cubehelix' 16 steps min
   ];
 
-  const [colorMap, setColorMap] = useState<IColorMap[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
+
+  useEffect(() => {
+    const colorMapList: IColorMap[] = [];
+
+    colorRampNames.forEach(name => {
+      const colorRamp = colormap({
+        colormap: name,
+        nshades: 255,
+        format: 'rgbaString'
+      });
+      const ting = { name: name, colors: colorRamp };
+      colorMapList.push(ting);
+
+      setColorMaps(colorMapList);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (colorMaps.length > 0) {
+      updateCanvas(selectedRamp);
+    }
+  }, [selectedRamp]);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -74,6 +96,7 @@ const CanvasSelectComponent = ({
   const selectItem = (item: any) => {
     setSelected(item);
     setIsOpen(false);
+    updateCanvas(item);
   };
 
   const handleOutsideClick = (event: any) => {
@@ -85,40 +108,31 @@ const CanvasSelectComponent = ({
     }
   };
 
-  useEffect(() => {
-    const colorMapT: IColorMap[] = [];
+  const updateCanvas = (rampName: string) => {
+    // update canvas for displayed color ramp
+    const cv = document.getElementById('cv') as HTMLCanvasElement;
+    if (!cv) {
+      return;
+    }
+    cv.style.visibility = 'hidden';
+    const ctx = cv.getContext('2d');
 
-    colorRampList.forEach(name => {
-      const t = colormap({
-        colormap: name,
-        nshades: 255,
-        format: 'rgbaString'
-      });
-      const ting = { name: name, colors: t };
-      colorMapT.push(ting);
+    if (!ctx) {
+      return;
+    }
 
-      setColorMap(colorMapT);
-    });
+    const ramp = colorMaps.filter(c => c.name === rampName);
 
-    // const cv = document.getElementById('cv') as HTMLCanvasElement;
-    // if (!cv) {
-    //   return;
-    // }
-    // const ctx = cv.getContext('2d');
+    for (let i = 0; i <= 255; i++) {
+      ctx.beginPath();
 
-    // if (!ctx) {
-    //   return;
-    // }
+      const color = ramp[0].colors[i];
+      ctx.fillStyle = color;
 
-    // for (let i = 0; i <= 255; i++) {
-    //   ctx.beginPath();
-
-    //   const color = colorMapT[0].colors[i];
-    //   ctx.fillStyle = color;
-
-    //   ctx.fillRect(i * 2, 0, 2, 50);
-    // }
-  }, []);
+      ctx.fillRect(i * 2, 0, 2, 50);
+    }
+    cv.style.visibility = '';
+  };
 
   useEffect(() => {
     document.addEventListener('mousedown', handleOutsideClick);
@@ -133,11 +147,10 @@ const CanvasSelectComponent = ({
         onClick={toggleDropdown}
         className="jp-Dialog-button jp-mod-accept jp-mod-styled"
       >
-        {/* <canvas width="512" height="50" id="cv"></canvas> */}
-        Select Colormap
+        <canvas width="354" height="30" id="cv"></canvas>
       </Button>
       <div className={`dropdown ${isOpen ? 'open' : ''}`}>
-        {colorMap.map((item, index) => (
+        {colorMaps.map((item, index) => (
           <ColorRampEntry index={index} colorMap={item} onClick={selectItem} />
         ))}
       </div>
