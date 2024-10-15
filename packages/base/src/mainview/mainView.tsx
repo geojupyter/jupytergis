@@ -25,7 +25,7 @@ import {
 } from '@jupytergis/schema';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
-import { JSONValue, ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
+import { JSONValue, ReadonlyJSONObject, UUID } from '@lumino/coreutils';
 import { Collection, Map as OlMap, View } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
@@ -402,7 +402,7 @@ export class MainView extends React.Component<IProps, IStates> {
         if (stateDb) {
           const layerState = (await stateDb.fetch(
             `jupytergis:${layerId}`
-          )) as ReadonlyPartialJSONObject;
+          )) as ReadonlyJSONObject;
 
           if (
             sourceParameters.urls[0].url &&
@@ -483,7 +483,7 @@ export class MainView extends React.Component<IProps, IStates> {
     // remove source being updated
     this.removeSource(id);
     // create updated source
-    this.addSource(id, source, layerId);
+    await this.addSource(id, source, layerId);
     // change source of target layer
     (mapLayer as Layer).setSource(this._sources[id]);
   }
