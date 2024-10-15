@@ -157,7 +157,9 @@ export class MainView extends React.Component<IProps, IStates> {
           parameters: { path: event.file.name }
         };
 
-        this.addSource(sourceId, sourceModel);
+        const layerId = UUID.uuid4();
+
+        this.addSource(sourceId, sourceModel, layerId);
 
         this._model.sharedModel.addSource(sourceId, sourceModel);
 
@@ -173,7 +175,6 @@ export class MainView extends React.Component<IProps, IStates> {
           }
         };
 
-        const layerId = UUID.uuid4();
         this.addLayer(layerId, layerModel, this.getLayers().length);
         this._model.addLayer(layerId, layerModel);
       });
@@ -245,7 +246,11 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - the source id.
    * @param source - the source object.
    */
-  async addSource(id: string, source: IJGISSource): Promise<void> {
+  async addSource(
+    id: string,
+    source: IJGISSource,
+    layerId?: string
+  ): Promise<void> {
     let newSource;
 
     switch (source.type) {
@@ -396,7 +401,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         if (stateDb) {
           const layerState = (await stateDb.fetch(
-            `jupytergis:${id}`
+            `jupytergis:${layerId}`
           )) as ReadonlyPartialJSONObject;
 
           if (
@@ -419,7 +424,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
             Gdal.close(tifDataset);
 
-            stateDb.save(`jupytergis:${id}`, {
+            stateDb.save(`jupytergis:${layerId}`, {
               ...layerState,
               tifData: JSON.stringify(tifData)
             });
@@ -478,7 +483,7 @@ export class MainView extends React.Component<IProps, IStates> {
     // remove source being updated
     this.removeSource(id);
     // create updated source
-    this.addSource(id, source);
+    this.addSource(id, source, layerId);
     // change source of target layer
     (mapLayer as Layer).setSource(this._sources[id]);
   }
@@ -537,7 +542,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source);
+      await this.addSource(sourceId, source, id);
     }
 
     let newMapLayer;
@@ -786,7 +791,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source);
+      await this.addSource(sourceId, source, id);
     }
 
     mapLayer.setVisible(layer.visible);

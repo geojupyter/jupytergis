@@ -2,7 +2,7 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyJSONObject } from '@lumino/coreutils';
 import colormap from 'colormap';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
@@ -58,11 +58,16 @@ const SingleBandPseudoColor = ({
   const stopRowsRef = useRef<IStopRow[]>();
   const bandRowsRef = useRef<IBandRow[]>([]);
   const selectedFunctionRef = useRef<InterpolationType>();
+  const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
+
   const [selectedBand, setSelectedBand] = useState(1);
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
   const [selectedFunction, setSelectedFunction] =
     useState<InterpolationType>('linear');
+  const [colorRampOptions, setColorRampOptions] = useState<
+    ReadonlyJSONObject | undefined
+  >();
 
   if (!layerId) {
     return;
@@ -84,11 +89,9 @@ const SingleBandPseudoColor = ({
 
   useEffect(() => {
     stopRowsRef.current = stopRows;
-  }, [stopRows]);
-
-  useEffect(() => {
     selectedFunctionRef.current = selectedFunction;
-  }, [selectedFunction]);
+    colorRampOptionsRef.current = colorRampOptions;
+  }, [stopRows, selectedFunction, colorRampOptions]);
 
   const setInitialFunction = () => {
     if (!layer.parameters?.color) {
@@ -128,7 +131,7 @@ const SingleBandPseudoColor = ({
     if (stateDb) {
       const layerState = (await stateDb.fetch(
         `jupytergis:${sourceId}`
-      )) as ReadonlyPartialJSONObject;
+      )) as ReadonlyJSONObject;
 
       console.log('layerState', layerState);
       if (layerState && layerState.tifData) {
@@ -208,7 +211,7 @@ const SingleBandPseudoColor = ({
     setStopRows(valueColorPairs);
   };
 
-  const handleOk = () => {
+  const handleOk = async () => {
     // Update source
     const bandRow = bandRowsRef.current[selectedBand - 1];
     if (!bandRow) {
@@ -220,6 +223,16 @@ const SingleBandPseudoColor = ({
     if (!source || !source.parameters) {
       return;
     }
+
+    const stateDb = GlobalStateDbManager.getInstance().getStateDb();
+    const layerState = (await stateDb?.fetch(
+      `jupytergis:${layerId}`
+    )) as ReadonlyJSONObject;
+
+    stateDb?.save(`jupytergis:${layerId}`, {
+      ...layerState,
+      ...colorRampOptionsRef.current
+    });
 
     const sourceInfo = source.parameters.urls[0];
     sourceInfo.min = bandRow.stats.minimum;
@@ -320,6 +333,14 @@ const SingleBandPseudoColor = ({
     selectedRamp: string,
     setIsLoading: (isLoading: boolean) => void
   ) => {
+    // Update layer state with selected options
+    setColorRampOptions({
+      selectedFunction,
+      selectedRamp,
+      numberOfShades,
+      selectedMode
+    });
+
     let stops: number[] = [];
 
     const currentBand = bandRows[selectedBand - 1];
@@ -427,6 +448,7 @@ const SingleBandPseudoColor = ({
       </div>
       {bandRows.length > 0 && (
         <ColorRamp
+          layerId={layerId}
           modeOptions={modeOptions}
           classifyFunc={buildColorInfoFromClassification}
         />
