@@ -301,9 +301,10 @@ export namespace GeoTiffClassifications {
     nClasses: number,
     bandNumber: number,
     url: string,
-    sourceId: string
+    colorRampType: string
   ) => {
     const breaks: number[] = [];
+    const isDiscrete = colorRampType === 'discrete';
 
     const pool = new Pool();
     const tiff = await fromUrl(url);
@@ -323,31 +324,34 @@ export namespace GeoTiffClassifications {
       return [];
     }
 
-    // get the number of values in each bin/
-    const valuesPerBin = bandSortedValues.length / (nClasses - 1);
-
     // Adapted from https://github.com/GeoTIFF/geoblaze/blob/master/src/histogram/histogram.core.js#L64
     // iterate through values and use a counter to
     // decide when to set up the next bin.
-    let numValuesInCurrentBin = 1;
+    let numValuesInCurrentBin;
+    let valuesPerBin;
+    let startIndex;
 
-    // Add the first stop
-    breaks.push(1);
+    if (isDiscrete) {
+      valuesPerBin = bandSortedValues.length / nClasses;
+      numValuesInCurrentBin = 0;
+      startIndex = 0;
+    } else {
+      valuesPerBin = bandSortedValues.length / (nClasses - 1);
+      breaks.push(1);
+      numValuesInCurrentBin = 1;
+      startIndex = 1;
+    }
 
-    for (let i = 1; i < bandSortedValues.length; i++) {
+    for (let i = startIndex; i < bandSortedValues.length; i++) {
       if (numValuesInCurrentBin + 1 < valuesPerBin) {
-        numValuesInCurrentBin += 1;
+        numValuesInCurrentBin++;
       } else {
-        // if it is the last value, add it to the bin and start setting up for the next one
-        const binMax = bandSortedValues[i] as number;
+        breaks.push(bandSortedValues[i] as number);
         numValuesInCurrentBin = 0;
-        breaks.push(binMax);
       }
     }
 
-    // add the last stop
-    const binMax = 65535;
-    breaks.push(binMax);
+    breaks.push(65535);
 
     return breaks;
   };
