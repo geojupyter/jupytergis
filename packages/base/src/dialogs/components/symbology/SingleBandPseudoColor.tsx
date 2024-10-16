@@ -80,7 +80,7 @@ const SingleBandPseudoColor = ({
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
   useEffect(() => {
-    setInitialFunction();
+    populateOptions();
 
     okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk);
@@ -94,14 +94,14 @@ const SingleBandPseudoColor = ({
   }, []);
 
   useEffect(() => {
-    bandRowsRef.current = bandRows;
-    buildColorInfo();
-  }, [bandRows]);
-
-  useEffect(() => {
     layerStateRef.current = layerState;
     getBandInfo();
   }, [layerState]);
+
+  useEffect(() => {
+    bandRowsRef.current = bandRows;
+    buildColorInfo();
+  }, [bandRows]);
 
   useEffect(() => {
     stopRowsRef.current = stopRows;
@@ -109,7 +109,7 @@ const SingleBandPseudoColor = ({
     colorRampOptionsRef.current = colorRampOptions;
   }, [stopRows, selectedFunction, colorRampOptions]);
 
-  const setInitialFunction = async () => {
+  const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
       `jupytergis:${layerId}`
     )) as ReadonlyJSONObject;
@@ -137,7 +137,7 @@ const SingleBandPseudoColor = ({
       : setSelectedFunction('exact');
   };
 
-  const getBandInfo = async () => {
+  const getBandInfo = () => {
     const bandsArr: IBandRow[] = [];
     const source = context.model.getSource(layer?.parameters?.source);
     const sourceInfo = source?.parameters?.urls[0];
@@ -167,7 +167,7 @@ const SingleBandPseudoColor = ({
     }
   };
 
-  const buildColorInfo = async () => {
+  const buildColorInfo = () => {
     // This it to parse a color object on the layer
     if (!layer.parameters?.color || !layerState) {
       return;
@@ -180,9 +180,7 @@ const SingleBandPseudoColor = ({
       return;
     }
 
-    const isQuantile =
-      ((layerState as ReadonlyJSONObject).selectedMode as string) ===
-      'quantile';
+    const isQuantile = (layerState.selectedMode as string) === 'quantile';
 
     const valueColorPairs: IStopRow[] = [];
 
@@ -226,7 +224,7 @@ const SingleBandPseudoColor = ({
     setStopRows(valueColorPairs);
   };
 
-  const handleOk = async () => {
+  const handleOk = () => {
     // Update source
     const bandRow = bandRowsRef.current[selectedBand - 1];
     if (!bandRow) {
@@ -239,9 +237,7 @@ const SingleBandPseudoColor = ({
       return;
     }
 
-    const isQuantile = layerStateRef.current
-      ? (layerStateRef.current.selectedMode as string) === 'quantile'
-      : false;
+    const isQuantile = colorRampOptionsRef.current?.selectedMode === 'quantile';
 
     stateDb?.save(`jupytergis:${layerId}`, {
       ...layerStateRef.current,
