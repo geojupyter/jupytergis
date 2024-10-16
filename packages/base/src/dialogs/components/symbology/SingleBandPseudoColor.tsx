@@ -358,7 +358,6 @@ const SingleBandPseudoColor = ({
 
     const currentBand = bandRows[selectedBand - 1];
     const source = context.model.getSource(layer?.parameters?.source);
-    const sourceId = layer.parameters?.source;
     const sourceInfo = source?.parameters?.urls[0];
     const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
     const colorMap = colormap({
@@ -380,7 +379,7 @@ const SingleBandPseudoColor = ({
           nClasses,
           selectedBand,
           sourceInfo.url,
-          sourceId
+          selectedFunction
         );
         break;
       case 'continuous':
