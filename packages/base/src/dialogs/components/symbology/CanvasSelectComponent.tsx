@@ -131,7 +131,7 @@ const CanvasSelectComponent = ({
 
       ctx.fillRect(i * 2, 0, 2, 50);
     }
-    cv.style.visibility = '';
+    cv.style.visibility = 'initial';
   };
 
   useEffect(() => {
@@ -142,14 +142,22 @@ const CanvasSelectComponent = ({
   }, []);
 
   return (
-    <div ref={containerRef} className="jp-select-wrapper">
+    <div ref={containerRef} className="jp-gis-canvas-button-wrapper">
       <Button
+        id="jp-gis-canvas-button"
         onClick={toggleDropdown}
-        className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+        className="jp-Dialog-button jp-gis-canvas-button"
+        // style={{ visibility: 'hidden' }}
       >
-        <canvas width="354" height="30" id="cv"></canvas>
+        <canvas
+          id="cv"
+          className="jp-gis-color-canvas-display"
+          height="30"
+        ></canvas>
       </Button>
-      <div className={`dropdown ${isOpen ? 'open' : ''}`}>
+      <div
+        className={`jp-gis-color-ramp-dropdown ${isOpen ? 'jp-gis-open' : ''}`}
+      >
         {colorMaps.map((item, index) => (
           <ColorRampEntry index={index} colorMap={item} onClick={selectItem} />
         ))}

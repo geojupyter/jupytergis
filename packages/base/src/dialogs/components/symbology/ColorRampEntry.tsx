@@ -8,8 +8,8 @@ interface IColorRampEntryProps {
 }
 
 const ColorRampEntry = ({ index, colorMap, onClick }: IColorRampEntryProps) => {
-  const canvasWidth = 345;
-  const canvasHeight = 38;
+  // const canvasWidth = 345;
+  const canvasHeight = 30;
 
   useEffect(() => {
     const cv = document.getElementById(`cv-${index}`) as HTMLCanvasElement;
@@ -36,12 +36,12 @@ const ColorRampEntry = ({ index, colorMap, onClick }: IColorRampEntryProps) => {
     <div
       key={colorMap.name}
       onClick={() => onClick(colorMap.name)}
-      className="jp-gis-color-ramp-entry jp-mod-styled"
+      className="jp-gis-color-ramp-entry"
     >
       <span className="jp-gis-color-label">{colorMap.name}</span>
       <canvas
         id={`cv-${index}`}
-        width={canvasWidth}
+        // width={canvasWidth}
         height={canvasHeight}
         className="jp-gis-color-canvas"
       ></canvas>
