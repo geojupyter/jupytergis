@@ -351,7 +351,10 @@ export namespace GeoTiffClassifications {
       }
     }
 
-    breaks.push(65535);
+    if (breaks.length !== nClasses) {
+      //TODO: This should be set based on the type of bandSortedValues I think
+      breaks.push(65535);
+    }
 
     return breaks;
   };

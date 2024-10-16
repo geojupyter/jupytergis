@@ -58,7 +58,9 @@ const SingleBandPseudoColor = ({
   const bandRowsRef = useRef<IBandRow[]>([]);
   const selectedFunctionRef = useRef<InterpolationType>();
   const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
+  const layerStateRef = useRef<ReadonlyJSONObject | undefined>();
 
+  const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
@@ -75,9 +77,9 @@ const SingleBandPseudoColor = ({
   if (!layer) {
     return;
   }
+  const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
   useEffect(() => {
-    getBandInfo();
     setInitialFunction();
 
     okSignalPromise.promise.then(okSignal => {
@@ -97,12 +99,24 @@ const SingleBandPseudoColor = ({
   }, [bandRows]);
 
   useEffect(() => {
+    layerStateRef.current = layerState;
+    getBandInfo();
+  }, [layerState]);
+
+  useEffect(() => {
     stopRowsRef.current = stopRows;
     selectedFunctionRef.current = selectedFunction;
     colorRampOptionsRef.current = colorRampOptions;
   }, [stopRows, selectedFunction, colorRampOptions]);
 
-  const setInitialFunction = () => {
+  const setInitialFunction = async () => {
+    const layerState = (await stateDb?.fetch(
+      `jupytergis:${layerId}`
+    )) as ReadonlyJSONObject;
+
+    setLayerState(layerState);
+
+    // Set initial function
     if (!layer.parameters?.color) {
       setSelectedFunction('linear');
       return;
@@ -126,27 +140,14 @@ const SingleBandPseudoColor = ({
   const getBandInfo = async () => {
     const bandsArr: IBandRow[] = [];
     const source = context.model.getSource(layer?.parameters?.source);
-    const sourceId = layer.parameters?.source;
     const sourceInfo = source?.parameters?.urls[0];
 
     if (!sourceInfo.url) {
       return;
     }
 
-    let tifData;
-
-    const stateDb = GlobalStateDbManager.getInstance().getStateDb();
-
-    if (stateDb) {
-      const layerState = (await stateDb.fetch(
-        `jupytergis:${sourceId}`
-      )) as ReadonlyJSONObject;
-
-      console.log('layerState', layerState);
-      if (layerState && layerState.tifData) {
-        tifData = JSON.parse(layerState.tifData as string);
-      }
-      console.log('tifData', tifData);
+    if (stateDb && layerState && layerState.tifData) {
+      const tifData = JSON.parse(layerState.tifData as string);
 
       tifData['bands'].forEach((bandData: TifBandData) => {
         bandsArr.push({
@@ -166,9 +167,9 @@ const SingleBandPseudoColor = ({
     }
   };
 
-  const buildColorInfo = () => {
+  const buildColorInfo = async () => {
     // This it to parse a color object on the layer
-    if (!layer.parameters?.color) {
+    if (!layer.parameters?.color || !layerState) {
       return;
     }
 
@@ -178,6 +179,11 @@ const SingleBandPseudoColor = ({
     if (typeof color === 'string') {
       return;
     }
+
+    const isQuantile =
+      ((layerState as ReadonlyJSONObject).selectedMode as string) ===
+      'quantile';
+
     const valueColorPairs: IStopRow[] = [];
 
     // So if it's not a string then it's an array and we parse
@@ -191,7 +197,7 @@ const SingleBandPseudoColor = ({
         // Sixth and on is value:color pairs
         for (let i = 5; i < color.length; i += 2) {
           const obj: IStopRow = {
-            stop: scaleValue(color[i]),
+            stop: scaleValue(color[i], isQuantile),
             output: color[i + 1]
           };
           valueColorPairs.push(obj);
@@ -208,7 +214,7 @@ const SingleBandPseudoColor = ({
         // Last element is fallback value
         for (let i = 3; i < color.length - 1; i += 2) {
           const obj: IStopRow = {
-            stop: scaleValue(color[i][2]),
+            stop: scaleValue(color[i][2], isQuantile),
             output: color[i + 1]
           };
           valueColorPairs.push(obj);
@@ -233,13 +239,12 @@ const SingleBandPseudoColor = ({
       return;
     }
 
-    const stateDb = GlobalStateDbManager.getInstance().getStateDb();
-    const layerState = (await stateDb?.fetch(
-      `jupytergis:${layerId}`
-    )) as ReadonlyJSONObject;
+    const isQuantile = layerStateRef.current
+      ? (layerStateRef.current.selectedMode as string) === 'quantile'
+      : false;
 
     stateDb?.save(`jupytergis:${layerId}`, {
-      ...layerState,
+      ...layerStateRef.current,
       ...colorRampOptionsRef.current
     });
 
@@ -269,7 +274,7 @@ const SingleBandPseudoColor = ({
         colorExpr.push(0.0, [0.0, 0.0, 0.0, 0.0]);
 
         stopRowsRef.current?.map(stop => {
-          colorExpr.push(unscaleValue(stop.stop));
+          colorExpr.push(unscaleValue(stop.stop, isQuantile));
           colorExpr.push(stop.output);
         });
 
@@ -287,7 +292,7 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '<=',
             ['band', selectedBand],
-            unscaleValue(stop.stop)
+            unscaleValue(stop.stop, isQuantile)
           ]);
           colorExpr.push(stop.output);
         });
@@ -307,7 +312,7 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '==',
             ['band', selectedBand],
-            unscaleValue(stop.stop)
+            unscaleValue(stop.stop, isQuantile)
           ]);
           colorExpr.push(stop.output);
         });
@@ -411,27 +416,26 @@ const SingleBandPseudoColor = ({
     setStopRows(valueColorPairs);
   };
 
-  const scaleValue = (bandValue: number) => {
+  const scaleValue = (bandValue: number, isQuantile: boolean) => {
     const currentBand = bandRows[selectedBand - 1];
 
     if (!currentBand) {
       return bandValue;
     }
 
-    return (
-      (bandValue * (currentBand.stats.maximum - currentBand.stats.minimum)) /
-        (1 - 0) +
-      currentBand.stats.minimum
-    );
+    const min = isQuantile ? 1 : currentBand.stats.minimum;
+    const max = isQuantile ? 65535 : currentBand.stats.maximum;
+
+    return (bandValue * (max - min)) / (1 - 0) + min;
   };
 
-  const unscaleValue = (value: number) => {
+  const unscaleValue = (value: number, isQuantile: boolean) => {
     const currentBand = bandRowsRef.current[selectedBand - 1];
 
-    return (
-      (value * (1 - 0) - currentBand.stats.minimum * (1 - 0)) /
-      (currentBand.stats.maximum - currentBand.stats.minimum)
-    );
+    const min = isQuantile ? 1 : currentBand.stats.minimum;
+    const max = isQuantile ? 65535 : currentBand.stats.maximum;
+
+    return (value * (1 - 0) - min * (1 - 0)) / (max - min);
   };
 
   return (
