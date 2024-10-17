@@ -286,7 +286,6 @@ const Graduated = ({
 
     const valueColorPairs: IStopRow[] = [];
 
-    // assume stops and colors are same length
     for (let i = 0; i < +numberOfShades; i++) {
       valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
     }
@@ -364,12 +363,6 @@ const Graduated = ({
         >
           Add Stop
         </Button>
-        {/* <Button
-          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          onClick={buildColorInfoFromClassification}
-        >
-          Classify
-        </Button> */}
       </div>
     </div>
   );

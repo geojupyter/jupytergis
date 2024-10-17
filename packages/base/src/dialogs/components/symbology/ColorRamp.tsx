@@ -30,15 +30,16 @@ const ColorRamp = ({ layerId, modeOptions, classifyFunc }: IColorRampProps) => {
   const populateOptions = async () => {
     const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-    const layerState = await stateDb?.fetch(`jupytergis:${layerId}`);
+    const layerState = (await stateDb?.fetch(
+      `jupytergis:${layerId}`
+    )) as ReadonlyJSONObject;
 
     let nClasses, singleBandMode, colorRamp;
 
     if (layerState) {
-      nClasses = (layerState as ReadonlyJSONObject).numberOfShades as string;
-      singleBandMode = (layerState as ReadonlyJSONObject)
-        .selectedMode as string;
-      colorRamp = (layerState as ReadonlyJSONObject).selectedRamp as string;
+      nClasses = layerState.numberOfShades as string;
+      singleBandMode = layerState.selectedMode as string;
+      colorRamp = layerState.selectedRamp as string;
     }
 
     setNumberOfShades(nClasses ? nClasses : '9');
