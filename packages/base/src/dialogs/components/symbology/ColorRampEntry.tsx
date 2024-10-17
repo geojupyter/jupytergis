@@ -8,15 +8,14 @@ interface IColorRampEntryProps {
 }
 
 const ColorRampEntry = ({ index, colorMap, onClick }: IColorRampEntryProps) => {
-  // const canvasWidth = 345;
   const canvasHeight = 30;
 
   useEffect(() => {
-    const cv = document.getElementById(`cv-${index}`) as HTMLCanvasElement;
-    if (!cv) {
+    const canvas = document.getElementById(`cv-${index}`) as HTMLCanvasElement;
+    if (!canvas) {
       return;
     }
-    const ctx = cv.getContext('2d');
+    const ctx = canvas.getContext('2d');
 
     if (!ctx) {
       return;
@@ -41,7 +40,6 @@ const ColorRampEntry = ({ index, colorMap, onClick }: IColorRampEntryProps) => {
       <span className="jp-gis-color-label">{colorMap.name}</span>
       <canvas
         id={`cv-${index}`}
-        // width={canvasWidth}
         height={canvasHeight}
         className="jp-gis-color-canvas"
       ></canvas>

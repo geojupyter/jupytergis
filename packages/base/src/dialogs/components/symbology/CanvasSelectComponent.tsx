@@ -76,8 +76,8 @@ const CanvasSelectComponent = ({
         nshades: 255,
         format: 'rgbaString'
       });
-      const ting = { name: name, colors: colorRamp };
-      colorMapList.push(ting);
+      const colorMap = { name: name, colors: colorRamp };
+      colorMapList.push(colorMap);
 
       setColorMaps(colorMapList);
     });
@@ -110,12 +110,12 @@ const CanvasSelectComponent = ({
 
   const updateCanvas = (rampName: string) => {
     // update canvas for displayed color ramp
-    const cv = document.getElementById('cv') as HTMLCanvasElement;
-    if (!cv) {
+    const canvas = document.getElementById('cv') as HTMLCanvasElement;
+    if (!canvas) {
       return;
     }
-    cv.style.visibility = 'hidden';
-    const ctx = cv.getContext('2d');
+    canvas.style.visibility = 'hidden';
+    const ctx = canvas.getContext('2d');
 
     if (!ctx) {
       return;
@@ -131,7 +131,7 @@ const CanvasSelectComponent = ({
 
       ctx.fillRect(i * 2, 0, 2, 50);
     }
-    cv.style.visibility = 'initial';
+    canvas.style.visibility = 'initial';
   };
 
   useEffect(() => {
@@ -147,7 +147,6 @@ const CanvasSelectComponent = ({
         id="jp-gis-canvas-button"
         onClick={toggleDropdown}
         className="jp-Dialog-button jp-gis-canvas-button"
-        // style={{ visibility: 'hidden' }}
       >
         <canvas
           id="cv"
