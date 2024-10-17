@@ -2,12 +2,15 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyJSONObject } from '@lumino/coreutils';
+import colormap from 'colormap';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { getGdal } from '../../../gdal';
+import { GeoTiffClassifications } from '../../../classificationModes';
+import { GlobalStateDbManager } from '../../../store';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from './BandRow';
+import ColorRamp from './ColorRamp';
 import StopRow from './StopRow';
 
 export interface IBandRow {
@@ -20,9 +23,17 @@ export interface IBandRow {
     stdDev: number;
   };
   metadata: IDict;
+  histogram: IBandHistogram;
 }
 
-type InterpolationType = 'discrete' | 'linear' | 'exact';
+export interface IBandHistogram {
+  buckets: number[];
+  count: number;
+  max: number;
+  min: number;
+}
+
+export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
 type TifBandData = {
   band: number;
@@ -32,23 +43,32 @@ type TifBandData = {
   mean: number;
   stdDev: number;
   metadata: any;
+  histogram: IBandHistogram;
 };
 
 const SingleBandPseudoColor = ({
   context,
-  state,
   okSignalPromise,
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
   const functions = ['discrete', 'linear', 'exact'];
+  const modeOptions = ['continuous', 'equal interval', 'quantile'];
   const stopRowsRef = useRef<IStopRow[]>();
   const bandRowsRef = useRef<IBandRow[]>([]);
   const selectedFunctionRef = useRef<InterpolationType>();
-  const [selectedFunction, setSelectedFunction] = useState<InterpolationType>();
+  const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
+  const layerStateRef = useRef<ReadonlyJSONObject | undefined>();
+
+  const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
+  const [selectedFunction, setSelectedFunction] =
+    useState<InterpolationType>('linear');
+  const [colorRampOptions, setColorRampOptions] = useState<
+    ReadonlyJSONObject | undefined
+  >();
 
   if (!layerId) {
     return;
@@ -57,27 +77,46 @@ const SingleBandPseudoColor = ({
   if (!layer) {
     return;
   }
+  const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
   useEffect(() => {
-    getBandInfo();
-    setInitialFunction();
+    populateOptions();
+
+    okSignalPromise.promise.then(okSignal => {
+      okSignal.connect(handleOk);
+    });
+
+    return () => {
+      okSignalPromise.promise.then(okSignal => {
+        okSignal.disconnect(handleOk, this);
+      });
+    };
   }, []);
 
   useEffect(() => {
-    bandRowsRef.current = bandRows;
+    layerStateRef.current = layerState;
+    getBandInfo();
+  }, [layerState]);
 
+  useEffect(() => {
+    bandRowsRef.current = bandRows;
     buildColorInfo();
   }, [bandRows]);
 
   useEffect(() => {
     stopRowsRef.current = stopRows;
-  }, [stopRows]);
-
-  useEffect(() => {
     selectedFunctionRef.current = selectedFunction;
-  }, [selectedFunction]);
+    colorRampOptionsRef.current = colorRampOptions;
+  }, [stopRows, selectedFunction, colorRampOptions]);
 
-  const setInitialFunction = () => {
+  const populateOptions = async () => {
+    const layerState = (await stateDb?.fetch(
+      `jupytergis:${layerId}`
+    )) as ReadonlyJSONObject;
+
+    setLayerState(layerState);
+
+    // Set initial function
     if (!layer.parameters?.color) {
       setSelectedFunction('linear');
       return;
@@ -98,57 +137,39 @@ const SingleBandPseudoColor = ({
       : setSelectedFunction('exact');
   };
 
-  const getBandInfo = async () => {
+  const getBandInfo = () => {
     const bandsArr: IBandRow[] = [];
-
     const source = context.model.getSource(layer?.parameters?.source);
-
     const sourceInfo = source?.parameters?.urls[0];
 
     if (!sourceInfo.url) {
       return;
     }
 
-    let tifData;
+    if (stateDb && layerState && layerState.tifData) {
+      const tifData = JSON.parse(layerState.tifData as string);
 
-    const layerState = await state.fetch(`jupytergis:${layerId}`);
-    if (layerState) {
-      tifData = JSON.parse(
-        (layerState as ReadonlyPartialJSONObject).tifData as string
-      );
-    } else {
-      const Gdal = await getGdal();
-
-      const fileData = await fetch(sourceInfo.url);
-      const file = new File([await fileData.blob()], 'loaded.tif');
-
-      const result = await Gdal.open(file);
-      const tifDataset = result.datasets[0];
-      tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
-      Gdal.close(tifDataset);
-
-      state.save(`jupytergis:${layerId}`, { tifData: JSON.stringify(tifData) });
-    }
-
-    tifData['bands'].forEach((bandData: TifBandData) => {
-      bandsArr.push({
-        band: bandData.band,
-        colorInterpretation: bandData.colorInterpretation,
-        stats: {
-          minimum: sourceInfo.min ?? bandData.minimum,
-          maximum: sourceInfo.max ?? bandData.maximum,
-          mean: bandData.mean,
-          stdDev: bandData.stdDev
-        },
-        metadata: bandData.metadata
+      tifData['bands'].forEach((bandData: TifBandData) => {
+        bandsArr.push({
+          band: bandData.band,
+          colorInterpretation: bandData.colorInterpretation,
+          stats: {
+            minimum: sourceInfo.min ?? bandData.minimum,
+            maximum: sourceInfo.max ?? bandData.maximum,
+            mean: bandData.mean,
+            stdDev: bandData.stdDev
+          },
+          metadata: bandData.metadata,
+          histogram: bandData.histogram
+        });
       });
-    });
-    setBandRows(bandsArr);
+      setBandRows(bandsArr);
+    }
   };
 
   const buildColorInfo = () => {
     // This it to parse a color object on the layer
-    if (!layer.parameters?.color) {
+    if (!layer.parameters?.color || !layerState) {
       return;
     }
 
@@ -158,6 +179,9 @@ const SingleBandPseudoColor = ({
     if (typeof color === 'string') {
       return;
     }
+
+    const isQuantile = (layerState.selectedMode as string) === 'quantile';
+
     const valueColorPairs: IStopRow[] = [];
 
     // So if it's not a string then it's an array and we parse
@@ -171,7 +195,7 @@ const SingleBandPseudoColor = ({
         // Sixth and on is value:color pairs
         for (let i = 5; i < color.length; i += 2) {
           const obj: IStopRow = {
-            stop: scaleValue(color[i]),
+            stop: scaleValue(color[i], isQuantile),
             output: color[i + 1]
           };
           valueColorPairs.push(obj);
@@ -188,7 +212,7 @@ const SingleBandPseudoColor = ({
         // Last element is fallback value
         for (let i = 3; i < color.length - 1; i += 2) {
           const obj: IStopRow = {
-            stop: scaleValue(color[i][2]),
+            stop: scaleValue(color[i][2], isQuantile),
             output: color[i + 1]
           };
           valueColorPairs.push(obj);
@@ -212,6 +236,13 @@ const SingleBandPseudoColor = ({
     if (!source || !source.parameters) {
       return;
     }
+
+    const isQuantile = colorRampOptionsRef.current?.selectedMode === 'quantile';
+
+    stateDb?.save(`jupytergis:${layerId}`, {
+      ...layerStateRef.current,
+      ...colorRampOptionsRef.current
+    });
 
     const sourceInfo = source.parameters.urls[0];
     sourceInfo.min = bandRow.stats.minimum;
@@ -239,7 +270,7 @@ const SingleBandPseudoColor = ({
         colorExpr.push(0.0, [0.0, 0.0, 0.0, 0.0]);
 
         stopRowsRef.current?.map(stop => {
-          colorExpr.push(unscaleValue(stop.stop));
+          colorExpr.push(unscaleValue(stop.stop, isQuantile));
           colorExpr.push(stop.output);
         });
 
@@ -257,7 +288,7 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '<=',
             ['band', selectedBand],
-            unscaleValue(stop.stop)
+            unscaleValue(stop.stop, isQuantile)
           ]);
           colorExpr.push(stop.output);
         });
@@ -277,7 +308,7 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '==',
             ['band', selectedBand],
-            unscaleValue(stop.stop)
+            unscaleValue(stop.stop, isQuantile)
           ]);
           colorExpr.push(stop.output);
         });
@@ -292,10 +323,6 @@ const SingleBandPseudoColor = ({
     context.model.sharedModel.updateLayer(layerId, layer);
     cancel();
   };
-
-  okSignalPromise.promise.then(okSignal => {
-    okSignal.connect(handleOk);
-  });
 
   const addStopRow = () => {
     setStopRows([
@@ -314,27 +341,97 @@ const SingleBandPseudoColor = ({
     setStopRows(newFilters);
   };
 
-  const scaleValue = (bandValue: number) => {
+  const buildColorInfoFromClassification = async (
+    selectedMode: string,
+    numberOfShades: string,
+    selectedRamp: string,
+    setIsLoading: (isLoading: boolean) => void
+  ) => {
+    // Update layer state with selected options
+    setColorRampOptions({
+      selectedFunction,
+      selectedRamp,
+      numberOfShades,
+      selectedMode
+    });
+
+    let stops: number[] = [];
+
+    const currentBand = bandRows[selectedBand - 1];
+    const source = context.model.getSource(layer?.parameters?.source);
+    const sourceInfo = source?.parameters?.urls[0];
+    const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
+    const colorMap = colormap({
+      colormap: selectedRamp,
+      nshades: nClasses,
+      format: 'rgba'
+    });
+
+    if (!sourceInfo.url) {
+      return;
+    }
+
+    const valueColorPairs: IStopRow[] = [];
+
+    setIsLoading(true);
+    switch (selectedMode) {
+      case 'quantile':
+        stops = await GeoTiffClassifications.classifyQuantileBreaks(
+          nClasses,
+          selectedBand,
+          sourceInfo.url,
+          selectedFunction
+        );
+        break;
+      case 'continuous':
+        stops = GeoTiffClassifications.classifyContinuousBreaks(
+          nClasses,
+          currentBand.stats.minimum,
+          currentBand.stats.maximum,
+          selectedFunction
+        );
+        break;
+      case 'equal interval':
+        stops = GeoTiffClassifications.classifyEqualIntervalBreaks(
+          nClasses,
+          currentBand.stats.minimum,
+          currentBand.stats.maximum,
+          selectedFunction
+        );
+        break;
+      default:
+        console.warn('No mode selected');
+        return;
+    }
+    setIsLoading(false);
+
+    for (let i = 0; i < stops.length; i++) {
+      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
+    }
+
+    setStopRows(valueColorPairs);
+  };
+
+  const scaleValue = (bandValue: number, isQuantile: boolean) => {
     const currentBand = bandRows[selectedBand - 1];
 
     if (!currentBand) {
       return bandValue;
     }
 
-    return (
-      (bandValue * (currentBand.stats.maximum - currentBand.stats.minimum)) /
-        (1 - 0) +
-      currentBand.stats.minimum
-    );
+    const min = isQuantile ? 1 : currentBand.stats.minimum;
+    const max = isQuantile ? 65535 : currentBand.stats.maximum;
+
+    return (bandValue * (max - min)) / (1 - 0) + min;
   };
 
-  const unscaleValue = (value: number) => {
+  const unscaleValue = (value: number, isQuantile: boolean) => {
     const currentBand = bandRowsRef.current[selectedBand - 1];
 
-    return (
-      (value * (1 - 0) - currentBand.stats.minimum * (1 - 0)) /
-      (currentBand.stats.maximum - currentBand.stats.minimum)
-    );
+    const min = isQuantile ? 1 : currentBand.stats.minimum;
+    const max = isQuantile ? 65535 : currentBand.stats.maximum;
+
+    return (value * (1 - 0) - min * (1 - 0)) / (max - min);
   };
 
   return (
@@ -384,6 +481,13 @@ const SingleBandPseudoColor = ({
           </select>
         </div>
       </div>
+      {bandRows.length > 0 && (
+        <ColorRamp
+          layerId={layerId}
+          modeOptions={modeOptions}
+          classifyFunc={buildColorInfoFromClassification}
+        />
+      )}
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>

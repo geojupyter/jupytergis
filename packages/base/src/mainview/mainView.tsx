@@ -25,7 +25,7 @@ import {
 } from '@jupytergis/schema';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
-import { JSONValue, UUID } from '@lumino/coreutils';
+import { JSONValue, ReadonlyJSONObject, UUID } from '@lumino/coreutils';
 import { Collection, Map as OlMap, View } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
@@ -54,6 +54,8 @@ import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import { Rule } from 'ol/style/flat';
 import * as React from 'react';
 import shp from 'shpjs';
+import { getGdal } from '../gdal';
+import { GlobalStateDbManager } from '../store';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
@@ -155,7 +157,9 @@ export class MainView extends React.Component<IProps, IStates> {
           parameters: { path: event.file.name }
         };
 
-        this.addSource(sourceId, sourceModel);
+        const layerId = UUID.uuid4();
+
+        this.addSource(sourceId, sourceModel, layerId);
 
         this._model.sharedModel.addSource(sourceId, sourceModel);
 
@@ -171,7 +175,6 @@ export class MainView extends React.Component<IProps, IStates> {
           }
         };
 
-        const layerId = UUID.uuid4();
         this.addLayer(layerId, layerModel, this.getLayers().length);
         this._model.addLayer(layerId, layerModel);
       });
@@ -243,7 +246,11 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - the source id.
    * @param source - the source object.
    */
-  async addSource(id: string, source: IJGISSource): Promise<void> {
+  async addSource(
+    id: string,
+    source: IJGISSource,
+    layerId?: string
+  ): Promise<void> {
     let newSource;
 
     switch (source.type) {
@@ -390,6 +397,40 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'GeoTiffSource': {
         const sourceParameters = source.parameters as IGeoTiffSource;
 
+        const stateDb = GlobalStateDbManager.getInstance().getStateDb();
+
+        if (stateDb) {
+          const layerState = (await stateDb.fetch(
+            `jupytergis:${layerId}`
+          )) as ReadonlyJSONObject;
+
+          if (
+            sourceParameters.urls[0].url &&
+            (!layerState || !layerState.tifData)
+          ) {
+            // get GDAL info
+            const Gdal = await getGdal();
+
+            const fileData = await fetch(sourceParameters.urls[0].url);
+            const file = new File([await fileData.blob()], 'loaded.tif');
+
+            const result = await Gdal.open(file);
+            const tifDataset = result.datasets[0];
+
+            const tifData = await Gdal.gdalinfo(tifDataset, [
+              '-stats',
+              '-hist'
+            ]);
+
+            Gdal.close(tifDataset);
+
+            stateDb.save(`jupytergis:${layerId}`, {
+              ...layerState,
+              tifData: JSON.stringify(tifData)
+            });
+          }
+        }
+
         newSource = new GeoTIFFSource({
           sources: sourceParameters.urls,
           normalize: sourceParameters.normalize,
@@ -442,7 +483,7 @@ export class MainView extends React.Component<IProps, IStates> {
     // remove source being updated
     this.removeSource(id);
     // create updated source
-    this.addSource(id, source);
+    await this.addSource(id, source, layerId);
     // change source of target layer
     (mapLayer as Layer).setSource(this._sources[id]);
   }
@@ -501,7 +542,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source);
+      await this.addSource(sourceId, source, id);
     }
 
     let newMapLayer;
@@ -750,7 +791,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source);
+      await this.addSource(sourceId, source, id);
     }
 
     mapLayer.setVisible(layer.visible);
