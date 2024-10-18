@@ -1,6 +1,7 @@
 import {
   CommandIDs,
   ControlPanelModel,
+  GlobalStateDbManager,
   JupyterGISWidget,
   LeftPanelWidget,
   RightPanelWidget,
@@ -22,8 +23,8 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { WidgetTracker } from '@jupyterlab/apputils';
+import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
@@ -62,6 +63,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
     };
 
     createDefaultLayerRegistry(layerBrowserRegistry);
+    const stateDbManager = GlobalStateDbManager.getInstance();
+    stateDbManager.initialize(state);
 
     addCommands(
       app,
