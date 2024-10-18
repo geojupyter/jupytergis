@@ -1,5 +1,3 @@
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
@@ -12,6 +10,8 @@ import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from './BandRow';
 import ColorRamp from './ColorRamp';
 import StopRow from './StopRow';
+import { getGdal } from '../../../gdal';
+import { Spinner } from '../../../mainview/spinner';
 
 export interface IBandRow {
   band: number;
@@ -137,7 +137,7 @@ const SingleBandPseudoColor = ({
       : setSelectedFunction('exact');
   };
 
-  const getBandInfo = () => {
+  const getBandInfo = async () => {
     const bandsArr: IBandRow[] = [];
     const source = context.model.getSource(layer?.parameters?.source);
     const sourceInfo = source?.parameters?.urls[0];
@@ -146,25 +146,41 @@ const SingleBandPseudoColor = ({
       return;
     }
 
-    if (stateDb && layerState && layerState.tifData) {
-      const tifData = JSON.parse(layerState.tifData as string);
+    let tifData;
 
-      tifData['bands'].forEach((bandData: TifBandData) => {
-        bandsArr.push({
-          band: bandData.band,
-          colorInterpretation: bandData.colorInterpretation,
-          stats: {
-            minimum: sourceInfo.min ?? bandData.minimum,
-            maximum: sourceInfo.max ?? bandData.maximum,
-            mean: bandData.mean,
-            stdDev: bandData.stdDev
-          },
-          metadata: bandData.metadata,
-          histogram: bandData.histogram
-        });
+    if (layerState && layerState.tifData) {
+      tifData = JSON.parse(layerState.tifData as string);
+    } else {
+      const Gdal = await getGdal();
+
+      const fileData = await fetch(sourceInfo.url);
+      const file = new File([await fileData.blob()], 'loaded.tif');
+
+      const result = await Gdal.open(file);
+      const tifDataset = result.datasets[0];
+      tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
+      Gdal.close(tifDataset);
+
+      stateDb?.save(`jupytergis:${layerId}`, {
+        tifData: JSON.stringify(tifData)
       });
-      setBandRows(bandsArr);
     }
+
+    tifData['bands'].forEach((bandData: TifBandData) => {
+      bandsArr.push({
+        band: bandData.band,
+        colorInterpretation: bandData.colorInterpretation,
+        stats: {
+          minimum: sourceInfo.min ?? bandData.minimum,
+          maximum: sourceInfo.max ?? bandData.maximum,
+          mean: bandData.mean,
+          stdDev: bandData.stdDev
+        },
+        metadata: bandData.metadata,
+        histogram: bandData.histogram
+      });
+    });
+    setBandRows(bandsArr);
   };
 
   const buildColorInfo = () => {
@@ -438,13 +454,7 @@ const SingleBandPseudoColor = ({
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
         {bandRows.length === 0 ? (
-          <div className="jp-gis-band-info-loading-container">
-            <span>Fetching band info...</span>
-            <FontAwesomeIcon
-              icon={faSpinner}
-              className="jp-gis-loading-spinner"
-            />
-          </div>
+          <Spinner loading={bandRows.length === 0} />
         ) : (
           <BandRow
             // Band numbers are 1 indexed
