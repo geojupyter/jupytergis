@@ -334,7 +334,7 @@ const Graduated = ({
         </select>
       </div>
       <ColorRamp
-        layerId={layerId}
+        layerParams={layer.parameters}
         modeOptions={modeOptions}
         classifyFunc={buildColorInfoFromClassification}
       />

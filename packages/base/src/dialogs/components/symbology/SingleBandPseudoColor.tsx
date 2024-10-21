@@ -1,4 +1,4 @@
-import { IDict } from '@jupytergis/schema';
+import { IDict, IWebGlLayer } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import colormap from 'colormap';
@@ -46,6 +46,12 @@ type TifBandData = {
   histogram: IBandHistogram;
 };
 
+type ColorRampOptions = {
+  selectedRamp: string;
+  numberOfShades: string;
+  selectedMode: string;
+};
+
 const SingleBandPseudoColor = ({
   context,
   okSignalPromise,
@@ -57,8 +63,9 @@ const SingleBandPseudoColor = ({
   const stopRowsRef = useRef<IStopRow[]>();
   const bandRowsRef = useRef<IBandRow[]>([]);
   const selectedFunctionRef = useRef<InterpolationType>();
-  const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
+  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
   const layerStateRef = useRef<ReadonlyJSONObject | undefined>();
+  const selectedBandRef = useRef<number>();
 
   const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
@@ -67,14 +74,14 @@ const SingleBandPseudoColor = ({
   const [selectedFunction, setSelectedFunction] =
     useState<InterpolationType>('linear');
   const [colorRampOptions, setColorRampOptions] = useState<
-    ReadonlyJSONObject | undefined
+    ColorRampOptions | undefined
   >();
 
   if (!layerId) {
     return;
   }
   const layer = context.model.getLayer(layerId);
-  if (!layer) {
+  if (!layer?.parameters) {
     return;
   }
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
@@ -107,7 +114,8 @@ const SingleBandPseudoColor = ({
     stopRowsRef.current = stopRows;
     selectedFunctionRef.current = selectedFunction;
     colorRampOptionsRef.current = colorRampOptions;
-  }, [stopRows, selectedFunction, colorRampOptions]);
+    selectedBandRef.current = selectedBand;
+  }, [stopRows, selectedFunction, colorRampOptions, selectedBand]);
 
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
@@ -116,25 +124,17 @@ const SingleBandPseudoColor = ({
 
     setLayerState(layerState);
 
-    // Set initial function
-    if (!layer.parameters?.color) {
-      setSelectedFunction('linear');
-      return;
-    }
+    const layerParams = layer.parameters as IWebGlLayer;
+    const band = layerParams.symbologyState?.band
+      ? layerParams.symbologyState.band
+      : 1;
 
-    const color = layer.parameters.color;
+    const interpolation = layerParams.symbologyState?.interpolation
+      ? layerParams.symbologyState.interpolation
+      : 'linear';
 
-    if (color[0] === 'interpolate') {
-      setSelectedFunction('linear');
-      return;
-    }
-
-    // If expression is using 'case' we look at the comparison operator to set selected function
-    // Looking at fourth element because second is for nodata
-    const operator = color[3][0];
-    operator === '<='
-      ? setSelectedFunction('discrete')
-      : setSelectedFunction('exact');
+    setSelectedBand(band);
+    setSelectedFunction(interpolation);
   };
 
   const getBandInfo = async () => {
@@ -334,6 +334,17 @@ const SingleBandPseudoColor = ({
         break;
       }
     }
+
+    const symbologyState = {
+      renderType: 'Singleband Pseudocolor',
+      band: selectedBandRef.current,
+      interpolation: selectedFunctionRef.current,
+      colorRamp: colorRampOptionsRef.current?.selectedRamp,
+      nClasses: colorRampOptionsRef.current?.numberOfShades,
+      mode: colorRampOptionsRef.current?.selectedMode
+    };
+
+    layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = colorExpr;
 
     context.model.sharedModel.updateLayer(layerId, layer);
@@ -365,7 +376,6 @@ const SingleBandPseudoColor = ({
   ) => {
     // Update layer state with selected options
     setColorRampOptions({
-      selectedFunction,
       selectedRamp,
       numberOfShades,
       selectedMode
@@ -493,7 +503,7 @@ const SingleBandPseudoColor = ({
       </div>
       {bandRows.length > 0 && (
         <ColorRamp
-          layerId={layerId}
+          layerParams={layer.parameters}
           modeOptions={modeOptions}
           classifyFunc={buildColorInfoFromClassification}
         />

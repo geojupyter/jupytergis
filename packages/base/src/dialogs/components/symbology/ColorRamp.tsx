@@ -3,12 +3,11 @@ import React, { useEffect, useState } from 'react';
 import CanvasSelectComponent from './CanvasSelectComponent';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ReadonlyJSONObject } from '@lumino/coreutils';
-import { GlobalStateDbManager } from '../../../store';
+import { IDict } from '@jupytergis/schema';
 
 interface IColorRampProps {
   modeOptions: string[];
-  layerId: string;
+  layerParams: IDict;
   classifyFunc: (
     selectedMode: string,
     numberOfShades: string,
@@ -17,7 +16,11 @@ interface IColorRampProps {
   ) => void;
 }
 
-const ColorRamp = ({ layerId, modeOptions, classifyFunc }: IColorRampProps) => {
+const ColorRamp = ({
+  layerParams,
+  modeOptions,
+  classifyFunc
+}: IColorRampProps) => {
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
@@ -28,18 +31,12 @@ const ColorRamp = ({ layerId, modeOptions, classifyFunc }: IColorRampProps) => {
   }, []);
 
   const populateOptions = async () => {
-    const stateDb = GlobalStateDbManager.getInstance().getStateDb();
-
-    const layerState = (await stateDb?.fetch(
-      `jupytergis:${layerId}`
-    )) as ReadonlyJSONObject;
-
     let nClasses, singleBandMode, colorRamp;
 
-    if (layerState) {
-      nClasses = layerState.numberOfShades as string;
-      singleBandMode = layerState.selectedMode as string;
-      colorRamp = layerState.selectedRamp as string;
+    if (layerParams.symbologyState) {
+      nClasses = layerParams.symbologyState.nClasses;
+      singleBandMode = layerParams.symbologyState.mode;
+      colorRamp = layerParams.symbologyState.colorRamp;
     }
 
     setNumberOfShades(nClasses ? nClasses : '9');
