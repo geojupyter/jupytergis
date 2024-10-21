@@ -34,14 +34,7 @@
     "symbologyState": {
       "type": "object",
       "description": "The state of the symbology panel options",
-      "required": [
-        "renderType",
-        "value",
-        "method",
-        "colorRamp",
-        "nClasses",
-        "mode"
-      ],
+      "required": ["renderType"],
       "properties": {
         "renderType": {
           "type": "string",

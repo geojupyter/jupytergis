@@ -1,4 +1,3 @@
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useRef, useState } from 'react';
 import { IParsedStyle, parseColor } from '../../../tools';
@@ -12,11 +11,7 @@ const SimpleSymbol = ({
   layerId
 }: ISymbologyDialogProps) => {
   const styleRef = useRef<IParsedStyle>();
-  const layerStateRef = useRef<ReadonlyPartialJSONObject | undefined>();
 
-  const [layerState, setLayerState] = useState<
-    ReadonlyPartialJSONObject | undefined
-  >();
   const [useCircleStuff, setUseCircleStuff] = useState(false);
   const [style, setStyle] = useState<IParsedStyle>({
     fillColor: '#3399CC',
@@ -52,15 +47,7 @@ const SimpleSymbol = ({
       if (!layer.parameters) {
         return;
       }
-      const layerState = await state.fetch(`jupytergis:${layerId}`);
-      if (!layerState) {
-        return;
-      }
-
-      setLayerState(layerState as ReadonlyPartialJSONObject);
-
-      const renderType = (layerState as ReadonlyPartialJSONObject)
-        .renderType as string;
+      const renderType = layer.parameters?.symbologyState.renderType;
 
       if (renderType === 'Single Symbol') {
         // Read from current color or use defaults
@@ -89,18 +76,12 @@ const SimpleSymbol = ({
 
   useEffect(() => {
     styleRef.current = style;
-    layerStateRef.current = layerState;
-  }, [style, layerState]);
+  }, [style]);
 
   const handleOk = () => {
     if (!layer.parameters) {
       return;
     }
-
-    state.save(`jupytergis:${layerId}`, {
-      ...layerStateRef.current,
-      renderType: 'Single Symbol'
-    });
 
     const styleExpr: FlatStyle = {};
 
@@ -116,6 +97,11 @@ const SimpleSymbol = ({
     styleExpr[`${prefix}stroke-line-join`] = styleRef.current?.joinStyle;
     styleExpr[`${prefix}stroke-line-cap`] = styleRef.current?.capStyle;
 
+    const symbologyState = {
+      renderType: 'Single Symbol'
+    };
+
+    layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = styleExpr;
 
     context.model.sharedModel.updateLayer(layerId, layer);
