@@ -18,9 +18,9 @@ interface IColorRampProps {
 }
 
 const ColorRamp = ({ layerId, modeOptions, classifyFunc }: IColorRampProps) => {
-  const [selectedRamp, setSelectedRamp] = useState('cool');
-  const [selectedMode, setSelectedMode] = useState('quantile');
-  const [numberOfShades, setNumberOfShades] = useState('9');
+  const [selectedRamp, setSelectedRamp] = useState('');
+  const [selectedMode, setSelectedMode] = useState('');
+  const [numberOfShades, setNumberOfShades] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {

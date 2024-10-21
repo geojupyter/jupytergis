@@ -187,6 +187,7 @@ select option {
 }
 
 .jp-gis-color-label {
+  color: white;
   position: absolute;
   transition: transform 0.3s ease;
 }

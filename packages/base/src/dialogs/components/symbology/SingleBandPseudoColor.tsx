@@ -161,7 +161,7 @@ const SingleBandPseudoColor = ({
       tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
       Gdal.close(tifDataset);
 
-      stateDb?.save(`jupytergis:${layerId}`, {
+      await stateDb?.save(`jupytergis:${layerId}`, {
         tifData: JSON.stringify(tifData)
       });
     }
@@ -240,7 +240,7 @@ const SingleBandPseudoColor = ({
     setStopRows(valueColorPairs);
   };
 
-  const handleOk = () => {
+  const handleOk = async () => {
     // Update source
     const bandRow = bandRowsRef.current[selectedBand - 1];
     if (!bandRow) {
@@ -255,7 +255,7 @@ const SingleBandPseudoColor = ({
 
     const isQuantile = colorRampOptionsRef.current?.selectedMode === 'quantile';
 
-    stateDb?.save(`jupytergis:${layerId}`, {
+    await stateDb?.save(`jupytergis:${layerId}`, {
       ...layerStateRef.current,
       ...colorRampOptionsRef.current
     });
