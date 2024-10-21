@@ -8,7 +8,7 @@ import { GeoTiffClassifications } from '../../../classificationModes';
 import { GlobalStateDbManager } from '../../../store';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from './BandRow';
-import ColorRamp from './ColorRamp';
+import ColorRamp, { ColorRampOptions } from './ColorRamp';
 import StopRow from './StopRow';
 import { getGdal } from '../../../gdal';
 import { Spinner } from '../../../mainview/spinner';
@@ -44,12 +44,6 @@ type TifBandData = {
   stdDev: number;
   metadata: any;
   histogram: IBandHistogram;
-};
-
-type ColorRampOptions = {
-  selectedRamp: string;
-  numberOfShades: string;
-  selectedMode: string;
 };
 
 const SingleBandPseudoColor = ({
@@ -115,7 +109,8 @@ const SingleBandPseudoColor = ({
     selectedFunctionRef.current = selectedFunction;
     colorRampOptionsRef.current = colorRampOptions;
     selectedBandRef.current = selectedBand;
-  }, [stopRows, selectedFunction, colorRampOptions, selectedBand]);
+    layerStateRef.current = layerState;
+  }, [stopRows, selectedFunction, colorRampOptions, selectedBand, layerState]);
 
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
@@ -254,11 +249,6 @@ const SingleBandPseudoColor = ({
     }
 
     const isQuantile = colorRampOptionsRef.current?.selectedMode === 'quantile';
-
-    await stateDb?.save(`jupytergis:${layerId}`, {
-      ...layerStateRef.current,
-      ...colorRampOptionsRef.current
-    });
 
     const sourceInfo = source.parameters.urls[0];
     sourceInfo.min = bandRow.stats.minimum;

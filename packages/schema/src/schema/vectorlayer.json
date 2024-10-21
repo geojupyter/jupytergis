@@ -30,6 +30,51 @@
       "multipleOf": 0.1,
       "minimum": 0,
       "maximum": 1
+    },
+    "symbologyState": {
+      "type": "object",
+      "description": "The state of the symbology panel options",
+      "required": [
+        "renderType",
+        "value",
+        "method",
+        "colorRamp",
+        "nClasses",
+        "mode"
+      ],
+      "properties": {
+        "renderType": {
+          "type": "string",
+          "enum": ["Single Symbol", "Graduated", "Categorized"]
+        },
+        "value": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string",
+          "enum": ["color", "radius"]
+        },
+        "colorRamp": {
+          "type": "string",
+          "default": "cool"
+        },
+        "nClasses": {
+          "type": "string",
+          "default": "9"
+        },
+        "mode": {
+          "type": "string",
+          "default": "equal interval",
+          "enum": [
+            "quantile",
+            "equal interval",
+            "jenks",
+            "pretty",
+            "logarithmic"
+          ]
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

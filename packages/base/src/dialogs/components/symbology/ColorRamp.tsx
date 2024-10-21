@@ -16,6 +16,12 @@ interface IColorRampProps {
   ) => void;
 }
 
+export type ColorRampOptions = {
+  selectedRamp: string;
+  numberOfShades: string;
+  selectedMode: string;
+};
+
 const ColorRamp = ({
   layerParams,
   modeOptions,
