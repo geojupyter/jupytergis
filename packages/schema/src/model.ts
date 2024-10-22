@@ -51,7 +51,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   };
 
-  readonly collaborative = true;
+  readonly collaborative =
+    document.querySelectorAll('[data-jupyter-lite-root]')[0] === undefined;
 
   get sharedModel(): IJupyterGISDoc {
     return this._sharedModel;
