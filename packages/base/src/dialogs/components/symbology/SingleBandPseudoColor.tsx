@@ -1,14 +1,17 @@
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { IDict } from '@jupytergis/schema';
+import { IDict, IWebGlLayer } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyJSONObject } from '@lumino/coreutils';
+import colormap from 'colormap';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { getGdal } from '../../../gdal';
+import { GeoTiffClassifications } from '../../../classificationModes';
+import { GlobalStateDbManager } from '../../../store';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from './BandRow';
+import ColorRamp, { ColorRampOptions } from './ColorRamp';
 import StopRow from './StopRow';
+import { getGdal } from '../../../gdal';
+import { Spinner } from '../../../mainview/spinner';
 
 export interface IBandRow {
   band: number;
@@ -20,9 +23,17 @@ export interface IBandRow {
     stdDev: number;
   };
   metadata: IDict;
+  histogram: IBandHistogram;
 }
 
-type InterpolationType = 'discrete' | 'linear' | 'exact';
+export interface IBandHistogram {
+  buckets: number[];
+  count: number;
+  max: number;
+  min: number;
+}
+
+export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
 type TifBandData = {
   band: number;
@@ -32,77 +43,98 @@ type TifBandData = {
   mean: number;
   stdDev: number;
   metadata: any;
+  histogram: IBandHistogram;
 };
 
 const SingleBandPseudoColor = ({
   context,
-  state,
   okSignalPromise,
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
   const functions = ['discrete', 'linear', 'exact'];
+  const modeOptions = ['continuous', 'equal interval', 'quantile'];
   const stopRowsRef = useRef<IStopRow[]>();
   const bandRowsRef = useRef<IBandRow[]>([]);
   const selectedFunctionRef = useRef<InterpolationType>();
-  const [selectedFunction, setSelectedFunction] = useState<InterpolationType>();
+  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
+  const layerStateRef = useRef<ReadonlyJSONObject | undefined>();
+  const selectedBandRef = useRef<number>();
+
+  const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
+  const [selectedFunction, setSelectedFunction] =
+    useState<InterpolationType>('linear');
+  const [colorRampOptions, setColorRampOptions] = useState<
+    ColorRampOptions | undefined
+  >();
 
   if (!layerId) {
     return;
   }
   const layer = context.model.getLayer(layerId);
-  if (!layer) {
+  if (!layer?.parameters) {
     return;
   }
+  const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
   useEffect(() => {
-    getBandInfo();
-    setInitialFunction();
+    populateOptions();
+
+    okSignalPromise.promise.then(okSignal => {
+      okSignal.connect(handleOk);
+    });
+
+    return () => {
+      okSignalPromise.promise.then(okSignal => {
+        okSignal.disconnect(handleOk, this);
+      });
+    };
   }, []);
 
   useEffect(() => {
-    bandRowsRef.current = bandRows;
+    layerStateRef.current = layerState;
+    getBandInfo();
+  }, [layerState]);
 
+  useEffect(() => {
+    bandRowsRef.current = bandRows;
     buildColorInfo();
   }, [bandRows]);
 
   useEffect(() => {
     stopRowsRef.current = stopRows;
-  }, [stopRows]);
-
-  useEffect(() => {
     selectedFunctionRef.current = selectedFunction;
-  }, [selectedFunction]);
+    colorRampOptionsRef.current = colorRampOptions;
+    selectedBandRef.current = selectedBand;
+    layerStateRef.current = layerState;
+  }, [stopRows, selectedFunction, colorRampOptions, selectedBand, layerState]);
 
-  const setInitialFunction = () => {
-    if (!layer.parameters?.color) {
-      setSelectedFunction('linear');
-      return;
-    }
+  const populateOptions = async () => {
+    const layerState = (await stateDb?.fetch(
+      `jupytergis:${layerId}`
+    )) as ReadonlyJSONObject;
 
-    const color = layer.parameters.color;
+    setLayerState(layerState);
 
-    if (color[0] === 'interpolate') {
-      setSelectedFunction('linear');
-      return;
-    }
+    const layerParams = layer.parameters as IWebGlLayer;
+    const band = layerParams.symbologyState?.band
+      ? layerParams.symbologyState.band
+      : 1;
 
-    // If expression is using 'case' we look at the comparison operator to set selected function
-    // Looking at fourth element because second is for nodata
-    const operator = color[3][0];
-    operator === '<='
-      ? setSelectedFunction('discrete')
-      : setSelectedFunction('exact');
+    const interpolation = layerParams.symbologyState?.interpolation
+      ? layerParams.symbologyState.interpolation
+      : 'linear';
+
+    setSelectedBand(band);
+    setSelectedFunction(interpolation);
   };
 
   const getBandInfo = async () => {
     const bandsArr: IBandRow[] = [];
-
     const source = context.model.getSource(layer?.parameters?.source);
-
     const sourceInfo = source?.parameters?.urls[0];
 
     if (!sourceInfo.url) {
@@ -111,11 +143,8 @@ const SingleBandPseudoColor = ({
 
     let tifData;
 
-    const layerState = await state.fetch(`jupytergis:${layerId}`);
-    if (layerState) {
-      tifData = JSON.parse(
-        (layerState as ReadonlyPartialJSONObject).tifData as string
-      );
+    if (layerState && layerState.tifData) {
+      tifData = JSON.parse(layerState.tifData as string);
     } else {
       const Gdal = await getGdal();
 
@@ -127,7 +156,9 @@ const SingleBandPseudoColor = ({
       tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
       Gdal.close(tifDataset);
 
-      state.save(`jupytergis:${layerId}`, { tifData: JSON.stringify(tifData) });
+      await stateDb?.save(`jupytergis:${layerId}`, {
+        tifData: JSON.stringify(tifData)
+      });
     }
 
     tifData['bands'].forEach((bandData: TifBandData) => {
@@ -140,7 +171,8 @@ const SingleBandPseudoColor = ({
           mean: bandData.mean,
           stdDev: bandData.stdDev
         },
-        metadata: bandData.metadata
+        metadata: bandData.metadata,
+        histogram: bandData.histogram
       });
     });
     setBandRows(bandsArr);
@@ -148,7 +180,7 @@ const SingleBandPseudoColor = ({
 
   const buildColorInfo = () => {
     // This it to parse a color object on the layer
-    if (!layer.parameters?.color) {
+    if (!layer.parameters?.color || !layerState) {
       return;
     }
 
@@ -158,6 +190,9 @@ const SingleBandPseudoColor = ({
     if (typeof color === 'string') {
       return;
     }
+
+    const isQuantile = (layerState.selectedMode as string) === 'quantile';
+
     const valueColorPairs: IStopRow[] = [];
 
     // So if it's not a string then it's an array and we parse
@@ -171,7 +206,7 @@ const SingleBandPseudoColor = ({
         // Sixth and on is value:color pairs
         for (let i = 5; i < color.length; i += 2) {
           const obj: IStopRow = {
-            stop: scaleValue(color[i]),
+            stop: scaleValue(color[i], isQuantile),
             output: color[i + 1]
           };
           valueColorPairs.push(obj);
@@ -188,7 +223,7 @@ const SingleBandPseudoColor = ({
         // Last element is fallback value
         for (let i = 3; i < color.length - 1; i += 2) {
           const obj: IStopRow = {
-            stop: scaleValue(color[i][2]),
+            stop: scaleValue(color[i][2], isQuantile),
             output: color[i + 1]
           };
           valueColorPairs.push(obj);
@@ -200,7 +235,7 @@ const SingleBandPseudoColor = ({
     setStopRows(valueColorPairs);
   };
 
-  const handleOk = () => {
+  const handleOk = async () => {
     // Update source
     const bandRow = bandRowsRef.current[selectedBand - 1];
     if (!bandRow) {
@@ -212,6 +247,8 @@ const SingleBandPseudoColor = ({
     if (!source || !source.parameters) {
       return;
     }
+
+    const isQuantile = colorRampOptionsRef.current?.selectedMode === 'quantile';
 
     const sourceInfo = source.parameters.urls[0];
     sourceInfo.min = bandRow.stats.minimum;
@@ -239,7 +276,7 @@ const SingleBandPseudoColor = ({
         colorExpr.push(0.0, [0.0, 0.0, 0.0, 0.0]);
 
         stopRowsRef.current?.map(stop => {
-          colorExpr.push(unscaleValue(stop.stop));
+          colorExpr.push(unscaleValue(stop.stop, isQuantile));
           colorExpr.push(stop.output);
         });
 
@@ -257,7 +294,7 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '<=',
             ['band', selectedBand],
-            unscaleValue(stop.stop)
+            unscaleValue(stop.stop, isQuantile)
           ]);
           colorExpr.push(stop.output);
         });
@@ -277,7 +314,7 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '==',
             ['band', selectedBand],
-            unscaleValue(stop.stop)
+            unscaleValue(stop.stop, isQuantile)
           ]);
           colorExpr.push(stop.output);
         });
@@ -287,15 +324,22 @@ const SingleBandPseudoColor = ({
         break;
       }
     }
+
+    const symbologyState = {
+      renderType: 'Singleband Pseudocolor',
+      band: selectedBandRef.current,
+      interpolation: selectedFunctionRef.current,
+      colorRamp: colorRampOptionsRef.current?.selectedRamp,
+      nClasses: colorRampOptionsRef.current?.numberOfShades,
+      mode: colorRampOptionsRef.current?.selectedMode
+    };
+
+    layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = colorExpr;
 
     context.model.sharedModel.updateLayer(layerId, layer);
     cancel();
   };
-
-  okSignalPromise.promise.then(okSignal => {
-    okSignal.connect(handleOk);
-  });
 
   const addStopRow = () => {
     setStopRows([
@@ -314,40 +358,103 @@ const SingleBandPseudoColor = ({
     setStopRows(newFilters);
   };
 
-  const scaleValue = (bandValue: number) => {
+  const buildColorInfoFromClassification = async (
+    selectedMode: string,
+    numberOfShades: string,
+    selectedRamp: string,
+    setIsLoading: (isLoading: boolean) => void
+  ) => {
+    // Update layer state with selected options
+    setColorRampOptions({
+      selectedRamp,
+      numberOfShades,
+      selectedMode
+    });
+
+    let stops: number[] = [];
+
+    const currentBand = bandRows[selectedBand - 1];
+    const source = context.model.getSource(layer?.parameters?.source);
+    const sourceInfo = source?.parameters?.urls[0];
+    const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
+    const colorMap = colormap({
+      colormap: selectedRamp,
+      nshades: nClasses,
+      format: 'rgba'
+    });
+
+    if (!sourceInfo.url) {
+      return;
+    }
+
+    const valueColorPairs: IStopRow[] = [];
+
+    setIsLoading(true);
+    switch (selectedMode) {
+      case 'quantile':
+        stops = await GeoTiffClassifications.classifyQuantileBreaks(
+          nClasses,
+          selectedBand,
+          sourceInfo.url,
+          selectedFunction
+        );
+        break;
+      case 'continuous':
+        stops = GeoTiffClassifications.classifyContinuousBreaks(
+          nClasses,
+          currentBand.stats.minimum,
+          currentBand.stats.maximum,
+          selectedFunction
+        );
+        break;
+      case 'equal interval':
+        stops = GeoTiffClassifications.classifyEqualIntervalBreaks(
+          nClasses,
+          currentBand.stats.minimum,
+          currentBand.stats.maximum,
+          selectedFunction
+        );
+        break;
+      default:
+        console.warn('No mode selected');
+        return;
+    }
+    setIsLoading(false);
+
+    for (let i = 0; i < stops.length; i++) {
+      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
+    }
+
+    setStopRows(valueColorPairs);
+  };
+
+  const scaleValue = (bandValue: number, isQuantile: boolean) => {
     const currentBand = bandRows[selectedBand - 1];
 
     if (!currentBand) {
       return bandValue;
     }
 
-    return (
-      (bandValue * (currentBand.stats.maximum - currentBand.stats.minimum)) /
-        (1 - 0) +
-      currentBand.stats.minimum
-    );
+    const min = isQuantile ? 1 : currentBand.stats.minimum;
+    const max = isQuantile ? 65535 : currentBand.stats.maximum;
+
+    return (bandValue * (max - min)) / (1 - 0) + min;
   };
 
-  const unscaleValue = (value: number) => {
+  const unscaleValue = (value: number, isQuantile: boolean) => {
     const currentBand = bandRowsRef.current[selectedBand - 1];
 
-    return (
-      (value * (1 - 0) - currentBand.stats.minimum * (1 - 0)) /
-      (currentBand.stats.maximum - currentBand.stats.minimum)
-    );
+    const min = isQuantile ? 1 : currentBand.stats.minimum;
+    const max = isQuantile ? 65535 : currentBand.stats.maximum;
+
+    return (value * (1 - 0) - min * (1 - 0)) / (max - min);
   };
 
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
         {bandRows.length === 0 ? (
-          <div className="jp-gis-band-info-loading-container">
-            <span>Fetching band info...</span>
-            <FontAwesomeIcon
-              icon={faSpinner}
-              className="jp-gis-loading-spinner"
-            />
-          </div>
+          <Spinner loading={bandRows.length === 0} />
         ) : (
           <BandRow
             // Band numbers are 1 indexed
@@ -384,6 +491,13 @@ const SingleBandPseudoColor = ({
           </select>
         </div>
       </div>
+      {bandRows.length > 0 && (
+        <ColorRamp
+          layerParams={layer.parameters}
+          modeOptions={modeOptions}
+          classifyFunc={buildColorInfoFromClassification}
+        />
+      )}
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>

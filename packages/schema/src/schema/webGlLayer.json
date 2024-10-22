@@ -47,6 +47,44 @@
         }
       ],
       "description": "The color of the the object"
+    },
+    "symbologyState": {
+      "type": "object",
+      "description": "The state of the symbology panel options",
+      "required": [
+        "renderType",
+        "band",
+        "interpolation",
+        "colorRamp",
+        "nClasses",
+        "mode"
+      ],
+      "properties": {
+        "renderType": {
+          "type": "string"
+        },
+        "band": {
+          "type": "number"
+        },
+        "interpolation": {
+          "type": "string",
+          "enum": ["discrete", "linear", "exact"]
+        },
+        "colorRamp": {
+          "type": "string",
+          "default": "cool"
+        },
+        "nClasses": {
+          "type": "string",
+          "default": "9"
+        },
+        "mode": {
+          "type": "string",
+          "default": "equal interval",
+          "enum": ["continuous", "equal interval", "quantile"]
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

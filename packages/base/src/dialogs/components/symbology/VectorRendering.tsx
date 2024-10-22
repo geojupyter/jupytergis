@@ -1,4 +1,3 @@
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import React, { useEffect, useState } from 'react';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 import Graduated from './Graduated';
@@ -28,25 +27,13 @@ const VectorRendering = ({
   }
 
   useEffect(() => {
-    const getSelectedRenderType = async () => {
-      const layerState = await state.fetch(`jupytergis:${layerId}`);
-
-      if (!layerState) {
-        return;
-      }
-
-      const renderType = (layerState as ReadonlyPartialJSONObject)
-        .renderType as string;
-
-      setSelectedRenderType(renderType ?? 'Single Symbol');
-    };
+    const renderType = layer.parameters?.symbologyState.renderType;
+    setSelectedRenderType(renderType ?? 'Single Symbol');
 
     if (layer.type === 'VectorLayer') {
       const options = ['Single Symbol', 'Graduated'];
       setRenderTypeOptions(options);
     }
-
-    getSelectedRenderType();
   }, []);
 
   useEffect(() => {

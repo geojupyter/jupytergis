@@ -1,9 +1,11 @@
-import { GeoJSONFeature1 } from '@jupytergis/schema';
+import { GeoJSONFeature1, IVectorLayer } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import colormap from 'colormap';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
+import { VectorClassifications } from '../../../classificationModes';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
+import ColorRamp, { ColorRampOptions } from './ColorRamp';
 import StopRow from './StopRow';
 
 const Graduated = ({
@@ -13,18 +15,26 @@ const Graduated = ({
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
+  const modeOptions = [
+    'quantile',
+    'equal interval',
+    'jenks',
+    'pretty',
+    'logarithmic'
+  ];
+
   const selectedValueRef = useRef<string>();
   const selectedMethodRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
-  const layerStateRef = useRef<ReadonlyPartialJSONObject | undefined>();
+  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
   const [selectedValue, setSelectedValue] = useState('');
   const [featureProperties, setFeatureProperties] = useState<any>({});
   const [selectedMethod, setSelectedMethod] = useState('color');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [methodOptions, setMethodOptions] = useState<string[]>(['color']);
-  const [layerState, setLayerState] = useState<
-    ReadonlyPartialJSONObject | undefined
+  const [colorRampOptions, setColorRampOptions] = useState<
+    ColorRampOptions | undefined
   >();
 
   if (!layerId) {
@@ -83,8 +93,8 @@ const Graduated = ({
     selectedValueRef.current = selectedValue;
     selectedMethodRef.current = selectedMethod;
     stopRowsRef.current = stopRows;
-    layerStateRef.current = layerState;
-  }, [selectedValue, selectedMethod, stopRows, layerState]);
+    colorRampOptionsRef.current = colorRampOptions;
+  }, [selectedValue, selectedMethod, stopRows, colorRampOptions]);
 
   useEffect(() => {
     populateOptions();
@@ -139,33 +149,23 @@ const Graduated = ({
       setMethodOptions(options);
     }
 
-    const layerState = await state.fetch(`jupytergis:${layerId}`);
+    const layerParams = layer.parameters as IVectorLayer;
+    const value = layerParams.symbologyState?.value
+      ? layerParams.symbologyState.value
+      : Object.keys(featureProperties)[0];
 
-    let value, method;
+    const method = layerParams.symbologyState?.method
+      ? layerParams.symbologyState.method
+      : 'color';
 
-    if (layerState) {
-      value = (layerState as ReadonlyPartialJSONObject)
-        .graduatedValue as string;
-      method = (layerState as ReadonlyPartialJSONObject)
-        .graduatedMethod as string;
-    }
-
-    setLayerState(layerState as ReadonlyPartialJSONObject);
-    setSelectedValue(value ? value : Object.keys(featureProperties)[0]);
-    setSelectedMethod(method ? method : 'color');
+    setSelectedValue(value);
+    setSelectedMethod(method);
   };
 
   const handleOk = () => {
     if (!layer.parameters) {
       return;
     }
-
-    state.save(`jupytergis:${layerId}`, {
-      ...layerStateRef.current,
-      renderType: 'Graduated',
-      graduatedValue: selectedValueRef.current,
-      graduatedMethod: selectedMethodRef.current
-    });
 
     const colorExpr: ExpressionValue[] = [];
     colorExpr.push('interpolate');
@@ -199,6 +199,16 @@ const Graduated = ({
       }
     }
 
+    const symbologyState = {
+      renderType: 'Graduated',
+      value: selectedValueRef.current,
+      method: selectedMethodRef.current,
+      colorRamp: colorRampOptionsRef.current?.selectedRamp,
+      nClasses: colorRampOptionsRef.current?.numberOfShades,
+      mode: colorRampOptionsRef.current?.selectedMode
+    };
+
+    layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = newStyle;
 
     context.model.sharedModel.updateLayer(layerId, layer);
@@ -222,50 +232,117 @@ const Graduated = ({
     setStopRows(newFilters);
   };
 
+  const buildColorInfoFromClassification = (
+    selectedMode: string,
+    numberOfShades: string,
+    selectedRamp: string
+  ) => {
+    setColorRampOptions({
+      selectedRamp,
+      numberOfShades,
+      selectedMode
+    });
+
+    let stops;
+
+    const values = featureProperties[selectedValue];
+
+    switch (selectedMode) {
+      case 'quantile':
+        stops = VectorClassifications.calculateQuantileBreaks(
+          values,
+          +numberOfShades
+        );
+        break;
+      case 'equal interval':
+        stops = VectorClassifications.calculateEqualIntervalBreaks(
+          values,
+          +numberOfShades
+        );
+        break;
+      case 'jenks':
+        stops = VectorClassifications.calculateJenksBreaks(
+          values,
+          +numberOfShades
+        );
+        break;
+      case 'pretty':
+        stops = VectorClassifications.calculatePrettyBreaks(
+          values,
+          +numberOfShades
+        );
+        break;
+      case 'logarithmic':
+        stops = VectorClassifications.calculateLogarithmicBreaks(
+          values,
+          +numberOfShades
+        );
+        break;
+      default:
+        console.warn('No mode selected');
+        return;
+    }
+
+    const colorMap = colormap({
+      colormap: selectedRamp,
+      nshades: +numberOfShades,
+      format: 'rgba'
+    });
+
+    const valueColorPairs: IStopRow[] = [];
+
+    for (let i = 0; i < +numberOfShades; i++) {
+      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
+    }
+
+    setStopRows(valueColorPairs);
+  };
+
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Value:</label>
-        <div className="jp-select-wrapper">
-          <select
-            name={'vector-value-select'}
-            onChange={event => setSelectedValue(event.target.value)}
-            className="jp-mod-styled"
-          >
-            {Object.keys(featureProperties).map((feature, index) => (
-              <option
-                key={index}
-                value={feature}
-                selected={feature === selectedValue}
-                className="jp-mod-styled"
-              >
-                {feature}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          name={'vector-value-select'}
+          onChange={event => setSelectedValue(event.target.value)}
+          className="jp-mod-styled"
+        >
+          {Object.keys(featureProperties).map((feature, index) => (
+            <option
+              key={index}
+              value={feature}
+              selected={feature === selectedValue}
+              className="jp-mod-styled"
+            >
+              {feature}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-method-select'}>Method:</label>
-        <div className="jp-select-wrapper">
-          <select
-            name={'vector-method-select'}
-            onChange={event => setSelectedMethod(event.target.value)}
-            className="jp-mod-styled"
-          >
-            {methodOptions.map((method, index) => (
-              <option
-                key={index}
-                value={method}
-                selected={method === selectedMethod}
-                className="jp-mod-styled"
-              >
-                {method}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          name={'vector-method-select'}
+          onChange={event => setSelectedMethod(event.target.value)}
+          className="jp-mod-styled"
+        >
+          {methodOptions.map((method, index) => (
+            <option
+              key={index}
+              value={method}
+              selected={method === selectedMethod}
+              className="jp-mod-styled"
+            >
+              {method}
+            </option>
+          ))}
+        </select>
       </div>
+      <ColorRamp
+        layerParams={layer.parameters}
+        modeOptions={modeOptions}
+        classifyFunc={buildColorInfoFromClassification}
+      />
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>Value</span>
