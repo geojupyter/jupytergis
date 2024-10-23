@@ -1,7 +1,7 @@
 // Adapted from https://github.com/qgis/QGIS/blob/master/src/core/classification/
 
 import { Pool, fromUrl, TypedArray } from 'geotiff';
-import { InterpolationType } from './dialogs/components/symbology/SingleBandPseudoColor';
+import { InterpolationType } from './dialogs/symbology/tiff_layer/types/SingleBandPseudoColor';
 
 export namespace VectorClassifications {
   export const calculateQuantileBreaks = (

@@ -28,7 +28,7 @@ const VectorRendering = ({
   }
 
   useEffect(() => {
-    const renderType = layer.parameters?.symbologyState.renderType;
+    const renderType = layer.parameters?.symbologyState?.renderType;
     setSelectedRenderType(renderType ?? 'Single Symbol');
 
     if (layer.type === 'VectorLayer') {

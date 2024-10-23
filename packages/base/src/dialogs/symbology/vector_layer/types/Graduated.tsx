@@ -210,20 +210,20 @@ const Graduated = ({
         return;
     }
 
-    let valueColorPairs = [];
+    let stopOutputPairs = [];
     if (selectedMethod === 'radius') {
       for (let i = 0; i < +numberOfShades; i++) {
-        valueColorPairs.push({ stop: stops[i], output: stops[i] });
+        stopOutputPairs.push({ stop: stops[i], output: stops[i] });
       }
     } else {
-      valueColorPairs = Utils.getValueColorPairs(
+      stopOutputPairs = Utils.getValueColorPairs(
         stops,
         selectedRamp,
         +numberOfShades
       );
     }
 
-    setStopRows(valueColorPairs);
+    setStopRows(stopOutputPairs);
   };
 
   return (
