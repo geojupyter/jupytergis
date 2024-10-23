@@ -21,8 +21,9 @@ const ModeSelectRow = ({
           className="jp-mod-styled"
           name="class-number-input"
           type="number"
-          value={numberOfShades}
+          value={selectedMode === 'continuous' ? 52 : numberOfShades}
           onChange={event => setNumberOfShades(event.target.value)}
+          disabled={selectedMode === 'continuous'}
         />
       </div>
       <div className="jp-gis-color-ramp-div">
