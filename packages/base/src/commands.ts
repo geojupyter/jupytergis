@@ -17,7 +17,7 @@ import { ITranslator } from '@jupyterlab/translation';
 import { CommandIDs, icons } from './constants';
 import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
-import { SymbologyWidget } from './dialogs/symbologyDialog';
+import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import { JupyterGISWidget } from './widget';
 
 interface ICreateEntry {

@@ -1,57 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { ISymbologyDialogProps } from '../../symbologyDialog';
-import Graduated from './Graduated';
-import SimpleSymbol from './SimpleSymbol';
+import { ISymbologyDialogProps } from '../symbologyDialog';
+import SingleBandPseudoColor from './types/SingleBandPseudoColor';
 
-const VectorRendering = ({
+const TiffRendering = ({
   context,
   state,
   okSignalPromise,
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
-  const [selectedRenderType, setSelectedRenderType] = useState('Single Symbol');
+  const renderTypes = ['Singleband Pseudocolor', 'Multiband Color'];
+  const [selectedRenderType, setSelectedRenderType] = useState(
+    'Singleband Pseudocolor'
+  );
   const [componentToRender, setComponentToRender] = useState<any>(null);
-  const [renderTypeOptions, setRenderTypeOptions] = useState<string[]>([
-    'Single Symbol'
-  ]);
 
   let RenderComponent;
 
-  if (!layerId) {
-    return;
-  }
-  const layer = context.model.getLayer(layerId);
-  if (!layer?.parameters) {
-    return;
-  }
-
   useEffect(() => {
-    const renderType = layer.parameters?.symbologyState.renderType;
-    setSelectedRenderType(renderType ?? 'Single Symbol');
-
-    if (layer.type === 'VectorLayer') {
-      const options = ['Single Symbol', 'Graduated'];
-      setRenderTypeOptions(options);
+    if (!selectedRenderType) {
+      return;
     }
-  }, []);
 
-  useEffect(() => {
     switch (selectedRenderType) {
-      case 'Single Symbol':
+      case 'Singleband Pseudocolor':
         RenderComponent = (
-          <SimpleSymbol
-            context={context}
-            state={state}
-            okSignalPromise={okSignalPromise}
-            cancel={cancel}
-            layerId={layerId}
-          />
-        );
-        break;
-      case 'Graduated':
-        RenderComponent = (
-          <Graduated
+          <SingleBandPseudoColor
             context={context}
             state={state}
             okSignalPromise={okSignalPromise}
@@ -78,7 +52,7 @@ const VectorRendering = ({
             setSelectedRenderType(event.target.value);
           }}
         >
-          {renderTypeOptions.map((func, funcIndex) => (
+          {renderTypes.map((func, funcIndex) => (
             <option key={func} value={func}>
               {func}
             </option>
@@ -90,4 +64,4 @@ const VectorRendering = ({
   );
 };
 
-export default VectorRendering;
+export default TiffRendering;
