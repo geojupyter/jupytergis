@@ -54,9 +54,19 @@ const Graduated = ({
   });
 
   useEffect(() => {
-    const valueColorPairs = VectorUtils.buildColorInfo(layer);
+    let stopOutputPairs: IStopRow[] = [];
+    const layerParams = layer.parameters as IVectorLayer;
+    const method = layerParams.symbologyState?.method ?? 'color';
 
-    setStopRows(valueColorPairs);
+    if (method === 'color') {
+      stopOutputPairs = VectorUtils.buildColorInfo(layer);
+    }
+
+    if (method === 'radius') {
+      stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
+    }
+
+    setStopRows(stopOutputPairs);
 
     okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk, this);
@@ -200,11 +210,18 @@ const Graduated = ({
         return;
     }
 
-    const valueColorPairs = Utils.getValueColorPairs(
-      stops,
-      selectedRamp,
-      +numberOfShades
-    );
+    let valueColorPairs = [];
+    if (selectedMethod === 'radius') {
+      for (let i = 0; i < +numberOfShades; i++) {
+        valueColorPairs.push({ stop: stops[i], output: stops[i] });
+      }
+    } else {
+      valueColorPairs = Utils.getValueColorPairs(
+        stops,
+        selectedRamp,
+        +numberOfShades
+      );
+    }
 
     setStopRows(valueColorPairs);
   };

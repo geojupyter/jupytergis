@@ -53,6 +53,31 @@ export namespace VectorUtils {
 
     return valueColorPairs;
   };
+
+  export const buildRadiusInfo = (layer: IJGISLayer) => {
+    if (!layer.parameters?.color) {
+      return [];
+    }
+
+    const color = layer.parameters.color;
+
+    // If color is a string we don't need to parse
+    if (typeof color === 'string') {
+      return [];
+    }
+
+    const stopOutputPairs: IStopRow[] = [];
+
+    for (let i = 3; i < color['circle-radius'].length; i += 2) {
+      const obj: IStopRow = {
+        stop: color['circle-radius'][i],
+        output: color['circle-radius'][i + 1]
+      };
+      stopOutputPairs.push(obj);
+    }
+
+    return stopOutputPairs;
+  };
 }
 
 export namespace Utils {
