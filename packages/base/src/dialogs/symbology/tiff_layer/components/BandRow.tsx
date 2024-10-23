@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { IBandRow } from './SingleBandPseudoColor';
+import { IBandRow } from '../types/SingleBandPseudoColor';
 
 const BandRow = ({
   index,

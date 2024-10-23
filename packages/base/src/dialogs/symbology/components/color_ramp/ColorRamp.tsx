@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import CanvasSelectComponent from './CanvasSelectComponent';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import ModeSelectRow from './ModeSelectRow';
 import { IDict } from '@jupytergis/schema';
 
 interface IColorRampProps {
@@ -14,6 +15,7 @@ interface IColorRampProps {
     selectedRamp: string,
     setIsLoading: (isLoading: boolean) => void
   ) => void;
+  showModeRow: boolean;
 }
 
 export type ColorRampOptions = {
@@ -25,7 +27,8 @@ export type ColorRampOptions = {
 const ColorRamp = ({
   layerParams,
   modeOptions,
-  classifyFunc
+  classifyFunc,
+  showModeRow
 }: IColorRampProps) => {
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
@@ -44,7 +47,6 @@ const ColorRamp = ({
       singleBandMode = layerParams.symbologyState.mode;
       colorRamp = layerParams.symbologyState.colorRamp;
     }
-
     setNumberOfShades(nClasses ? nClasses : '9');
     setSelectedMode(singleBandMode ? singleBandMode : 'equal interval');
     setSelectedRamp(colorRamp ? colorRamp : 'cool');
@@ -59,36 +61,15 @@ const ColorRamp = ({
           setSelected={setSelectedRamp}
         />
       </div>
-      <div className="jp-gis-symbology-row">
-        <div className="jp-gis-color-ramp-div">
-          <label htmlFor="class-number-input">Classes:</label>
-          <input
-            className="jp-mod-styled"
-            name="class-number-input"
-            type="number"
-            value={numberOfShades}
-            min={9}
-            onChange={event => setNumberOfShades(event.target.value)}
-          />
-        </div>
-        <div className="jp-gis-color-ramp-div">
-          <label htmlFor="mode-select">Mode:</label>
-          <select
-            name="mode-select"
-            onChange={event => setSelectedMode(event.target.value)}
-          >
-            {modeOptions.map(mode => (
-              <option
-                className="jp-mod-styled"
-                value={mode}
-                selected={selectedMode === mode}
-              >
-                {mode}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      {showModeRow && (
+        <ModeSelectRow
+          modeOptions={modeOptions}
+          numberOfShades={numberOfShades}
+          setNumberOfShades={setNumberOfShades}
+          selectedMode={selectedMode}
+          setSelectedMode={setSelectedMode}
+        />
+      )}
       {isLoading ? (
         <FontAwesomeIcon icon={faSpinner} className="jp-gis-loading-spinner" />
       ) : (

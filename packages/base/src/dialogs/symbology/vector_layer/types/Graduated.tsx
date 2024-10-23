@@ -1,12 +1,15 @@
-import { GeoJSONFeature1, IVectorLayer } from '@jupytergis/schema';
-import { Button } from '@jupyterlab/ui-components';
-import colormap from 'colormap';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { VectorClassifications } from '../../../classificationModes';
+import { VectorClassifications } from '../../classificationModes';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
-import ColorRamp, { ColorRampOptions } from './ColorRamp';
-import StopRow from './StopRow';
+import ColorRamp, {
+  ColorRampOptions
+} from '../../components/color_ramp/ColorRamp';
+import ValueSelect from '../components/ValueSelect';
+import StopContainer from '../../components/color_stops/StopContainer';
+import { useGetProperties } from '../../hooks/useGetProperties';
+import { Utils, VectorUtils } from '../../symbologyUtils';
+import { IVectorLayer } from '@jupytergis/schema';
 
 const Graduated = ({
   context,
@@ -29,10 +32,10 @@ const Graduated = ({
   const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
   const [selectedValue, setSelectedValue] = useState('');
-  const [featureProperties, setFeatureProperties] = useState<any>({});
   const [selectedMethod, setSelectedMethod] = useState('color');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [methodOptions, setMethodOptions] = useState<string[]>(['color']);
+
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampOptions | undefined
   >();
@@ -45,38 +48,25 @@ const Graduated = ({
     return;
   }
 
+  const { featureProps } = useGetProperties({
+    layerId,
+    model: context.model
+  });
+
   useEffect(() => {
-    const getProperties = async () => {
-      if (!layerId) {
-        return;
-      }
-      const model = context.model;
-      const layer = model.getLayer(layerId);
-      const source = model.getSource(layer?.parameters?.source);
+    let stopOutputPairs: IStopRow[] = [];
+    const layerParams = layer.parameters as IVectorLayer;
+    const method = layerParams.symbologyState?.method ?? 'color';
 
-      if (!source) {
-        return;
-      }
+    if (method === 'color') {
+      stopOutputPairs = VectorUtils.buildColorInfo(layer);
+    }
 
-      const data = await model.readGeoJSON(source.parameters?.path);
-      const featureProps: any = {};
+    if (method === 'radius') {
+      stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
+    }
 
-      data?.features.forEach((feature: GeoJSONFeature1) => {
-        feature.properties &&
-          Object.entries(feature.properties).forEach(([key, value]) => {
-            if (!(key in featureProps)) {
-              featureProps[key] = new Set();
-            }
-
-            featureProps[key].add(value);
-          });
-
-        setFeatureProperties(featureProps);
-      });
-    };
-
-    getProperties();
-    buildColorInfo();
+    setStopRows(stopOutputPairs);
 
     okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk, this);
@@ -98,49 +88,7 @@ const Graduated = ({
 
   useEffect(() => {
     populateOptions();
-  }, [featureProperties]);
-
-  const buildColorInfo = () => {
-    // This it to parse a color object on the layer
-    if (!layer.parameters?.color) {
-      return;
-    }
-
-    const color = layer.parameters.color;
-
-    // If color is a string we don't need to parse
-    if (typeof color === 'string') {
-      return;
-    }
-
-    const prefix = layer.parameters.type === 'circle' ? 'circle-' : '';
-    if (!color[`${prefix}fill-color`]) {
-      return;
-    }
-
-    const valueColorPairs: IStopRow[] = [];
-
-    // So if it's not a string then it's an array and we parse
-    // Color[0] is the operator used for the color expression
-    switch (color[`${prefix}fill-color`][0]) {
-      case 'interpolate': {
-        // First element is interpolate for linear selection
-        // Second element is type of interpolation (ie linear)
-        // Third is input value that stop values are compared with
-        // Fourth and on is value:color pairs
-        for (let i = 3; i < color[`${prefix}fill-color`].length; i += 2) {
-          const obj: IStopRow = {
-            stop: color[`${prefix}fill-color`][i],
-            output: color[`${prefix}fill-color`][i + 1]
-          };
-          valueColorPairs.push(obj);
-        }
-        break;
-      }
-    }
-
-    setStopRows(valueColorPairs);
-  };
+  }, [featureProps]);
 
   const populateOptions = async () => {
     // Set up method options
@@ -150,13 +98,9 @@ const Graduated = ({
     }
 
     const layerParams = layer.parameters as IVectorLayer;
-    const value = layerParams.symbologyState?.value
-      ? layerParams.symbologyState.value
-      : Object.keys(featureProperties)[0];
-
-    const method = layerParams.symbologyState?.method
-      ? layerParams.symbologyState.method
-      : 'color';
+    const value =
+      layerParams.symbologyState?.value ?? Object.keys(featureProps)[0];
+    const method = layerParams.symbologyState?.method ?? 'color';
 
     setSelectedValue(value);
     setSelectedMethod(method);
@@ -215,23 +159,6 @@ const Graduated = ({
     cancel();
   };
 
-  const addStopRow = () => {
-    setStopRows([
-      {
-        stop: 0,
-        output: [0, 0, 0, 1]
-      },
-      ...stopRows
-    ]);
-  };
-
-  const deleteStopRow = (index: number) => {
-    const newFilters = [...stopRows];
-    newFilters.splice(index, 1);
-
-    setStopRows(newFilters);
-  };
-
   const buildColorInfoFromClassification = (
     selectedMode: string,
     numberOfShades: string,
@@ -245,7 +172,7 @@ const Graduated = ({
 
     let stops;
 
-    const values = featureProperties[selectedValue];
+    const values = Array.from(featureProps[selectedValue]);
 
     switch (selectedMode) {
       case 'quantile':
@@ -283,42 +210,29 @@ const Graduated = ({
         return;
     }
 
-    const colorMap = colormap({
-      colormap: selectedRamp,
-      nshades: +numberOfShades,
-      format: 'rgba'
-    });
-
-    const valueColorPairs: IStopRow[] = [];
-
-    for (let i = 0; i < +numberOfShades; i++) {
-      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
+    let stopOutputPairs = [];
+    if (selectedMethod === 'radius') {
+      for (let i = 0; i < +numberOfShades; i++) {
+        stopOutputPairs.push({ stop: stops[i], output: stops[i] });
+      }
+    } else {
+      stopOutputPairs = Utils.getValueColorPairs(
+        stops,
+        selectedRamp,
+        +numberOfShades
+      );
     }
 
-    setStopRows(valueColorPairs);
+    setStopRows(stopOutputPairs);
   };
 
   return (
     <div className="jp-gis-layer-symbology-container">
-      <div className="jp-gis-symbology-row">
-        <label htmlFor={'vector-value-select'}>Value:</label>
-        <select
-          name={'vector-value-select'}
-          onChange={event => setSelectedValue(event.target.value)}
-          className="jp-mod-styled"
-        >
-          {Object.keys(featureProperties).map((feature, index) => (
-            <option
-              key={index}
-              value={feature}
-              selected={feature === selectedValue}
-              className="jp-mod-styled"
-            >
-              {feature}
-            </option>
-          ))}
-        </select>
-      </div>
+      <ValueSelect
+        featureProperties={featureProps}
+        selectedValue={selectedValue}
+        setSelectedValue={setSelectedValue}
+      />
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-method-select'}>Method:</label>
         <select
@@ -342,33 +256,13 @@ const Graduated = ({
         layerParams={layer.parameters}
         modeOptions={modeOptions}
         classifyFunc={buildColorInfoFromClassification}
+        showModeRow={true}
       />
-      <div className="jp-gis-stop-container">
-        <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
-          <span style={{ flex: '0 0 18%' }}>Value</span>
-          <span>Output Value</span>
-        </div>
-        {stopRows.map((stop, index) => (
-          <StopRow
-            key={`${index}-${stop.output}`}
-            index={index}
-            value={stop.stop}
-            outputValue={stop.output}
-            stopRows={stopRows}
-            setStopRows={setStopRows}
-            deleteRow={() => deleteStopRow(index)}
-            useNumber={selectedMethod === 'radius' ? true : false}
-          />
-        ))}
-      </div>
-      <div className="jp-gis-symbology-button-container">
-        <Button
-          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          onClick={addStopRow}
-        >
-          Add Stop
-        </Button>
-      </div>
+      <StopContainer
+        selectedMethod={selectedMethod}
+        stopRows={stopRows}
+        setStopRows={setStopRows}
+      />
     </div>
   );
 };

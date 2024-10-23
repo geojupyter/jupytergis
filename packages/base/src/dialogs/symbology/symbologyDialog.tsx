@@ -5,8 +5,8 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
-import BandRendering from './components/symbology/BandRendering';
-import VectorRendering from './components/symbology/VectorRendering';
+import TiffRendering from './tiff_layer/TiffRendering';
+import VectorRendering from './vector_layer/VectorRendering';
 
 export interface ISymbologyDialogProps {
   context: DocumentRegistry.IContext<IJupyterGISModel>;
@@ -87,7 +87,7 @@ const SymbologyDialog = ({
         break;
       case 'WebGlLayer':
         LayerSymbology = (
-          <BandRendering
+          <TiffRendering
             context={context}
             state={state}
             okSignalPromise={okSignalPromise}

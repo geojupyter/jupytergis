@@ -1,17 +1,19 @@
 import { IDict, IWebGlLayer } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
-import colormap from 'colormap';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { GeoTiffClassifications } from '../../../classificationModes';
-import { GlobalStateDbManager } from '../../../store';
+import { GeoTiffClassifications } from '../../classificationModes';
+import { GlobalStateDbManager } from '../../../../store';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
-import BandRow from './BandRow';
-import ColorRamp, { ColorRampOptions } from './ColorRamp';
-import StopRow from './StopRow';
-import { getGdal } from '../../../gdal';
-import { Spinner } from '../../../mainview/spinner';
+import BandRow from '../components/BandRow';
+import ColorRamp, {
+  ColorRampOptions
+} from '../../components/color_ramp/ColorRamp';
+import StopRow from '../../components/color_stops/StopRow';
+import { Utils } from '../../symbologyUtils';
+import { getGdal } from '../../../../gdal';
+import { Spinner } from '../../../../mainview/spinner';
 
 export interface IBandRow {
   band: number;
@@ -120,13 +122,8 @@ const SingleBandPseudoColor = ({
     setLayerState(layerState);
 
     const layerParams = layer.parameters as IWebGlLayer;
-    const band = layerParams.symbologyState?.band
-      ? layerParams.symbologyState.band
-      : 1;
-
-    const interpolation = layerParams.symbologyState?.interpolation
-      ? layerParams.symbologyState.interpolation
-      : 'linear';
+    const band = layerParams.symbologyState?.band ?? 1;
+    const interpolation = layerParams.symbologyState?.interpolation ?? 'linear';
 
     setSelectedBand(band);
     setSelectedFunction(interpolation);
@@ -235,7 +232,7 @@ const SingleBandPseudoColor = ({
     setStopRows(valueColorPairs);
   };
 
-  const handleOk = async () => {
+  const handleOk = () => {
     // Update source
     const bandRow = bandRowsRef.current[selectedBand - 1];
     if (!bandRow) {
@@ -377,17 +374,6 @@ const SingleBandPseudoColor = ({
     const source = context.model.getSource(layer?.parameters?.source);
     const sourceInfo = source?.parameters?.urls[0];
     const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
-    const colorMap = colormap({
-      colormap: selectedRamp,
-      nshades: nClasses,
-      format: 'rgba'
-    });
-
-    if (!sourceInfo.url) {
-      return;
-    }
-
-    const valueColorPairs: IStopRow[] = [];
 
     setIsLoading(true);
     switch (selectedMode) {
@@ -421,9 +407,11 @@ const SingleBandPseudoColor = ({
     }
     setIsLoading(false);
 
-    for (let i = 0; i < stops.length; i++) {
-      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
-    }
+    const valueColorPairs = Utils.getValueColorPairs(
+      stops,
+      selectedRamp,
+      nClasses
+    );
 
     setStopRows(valueColorPairs);
   };
@@ -496,6 +484,7 @@ const SingleBandPseudoColor = ({
           layerParams={layer.parameters}
           modeOptions={modeOptions}
           classifyFunc={buildColorInfoFromClassification}
+          showModeRow={true}
         />
       )}
       <div className="jp-gis-stop-container">
