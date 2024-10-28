@@ -763,22 +763,22 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - id of the layer.
    * @param index - expected index of the layer.
    */
-    moveLayer(id: string, index: number): void {
-      const currentIndex = this.getLayerIndex(id);
-      if (currentIndex === index || currentIndex === -1) {
-        return;
-      }
-      const layer = this.getLayer(id);
-      let nextIndex = index;
-      // should not be undefined since the id exists above
-      if (layer !== undefined) {
-        this._Map.getLayers().removeAt(currentIndex);
-        if (currentIndex < index) {
-          nextIndex -= 1;
-        }
-        this._Map.getLayers().insertAt(nextIndex, layer);
-      }
+  moveLayer(id: string, index: number): void {
+    const currentIndex = this.getLayerIndex(id);
+    if (currentIndex === index || currentIndex === -1) {
+      return;
     }
+    const layer = this.getLayer(id);
+    let nextIndex = index;
+    // should not be undefined since the id exists above
+    if (layer !== undefined) {
+      this._Map.getLayers().removeAt(currentIndex);
+      if (currentIndex < index) {
+        nextIndex -= 1;
+      }
+      this._Map.getLayers().insertAt(nextIndex, layer);
+    }
+  }
 
   /**
    * Update a layer of the map.
