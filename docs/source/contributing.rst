@@ -7,7 +7,7 @@ Contributing
 Development install
 -------------------
 
-**Note:** You will need :ref:`Node.js <https://nodejs.org/>` and :ref:`Docker <https://www.docker.com/>` to build the extension package.
+**Note:** You will need :ref:`Node.js <https://nodejs.org/>` to build the extension package.
 
 The ``jlpm`` command is JupyterLab's pinned version of
 :ref:`yarn <https://yarnpkg.com/>` that is installed with JupyterLab. You may use
