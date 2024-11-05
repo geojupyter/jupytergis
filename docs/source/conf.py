@@ -15,7 +15,7 @@ extensions = [
 source_suffix = ".rst"
 master_doc = "index"
 project = "JupyterGIS"
-copyright = "2023, The JupyterGIS Development Team"
+copyright = "2024, The JupyterGIS Development Team"
 author = "The JupyterGIS Development Team"
 language = "en"
 
@@ -25,4 +25,4 @@ pygments_style = "sphinx"
 todo_include_todos = False
 htmlhelp_basename = "jupytergisdoc"
 
-intersphinx_mapping = {"https://docs.python.org": None}
+intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
