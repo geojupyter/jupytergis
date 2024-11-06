@@ -395,8 +395,12 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'GeoTiffSource': {
         const sourceParameters = source.parameters as IGeoTiffSource;
 
+        const addNoData = (url: (typeof sourceParameters.urls)[0]) => {
+          return { ...url, nodata: 0 };
+        };
+
         newSource = new GeoTIFFSource({
-          sources: sourceParameters.urls,
+          sources: sourceParameters.urls.map(addNoData),
           normalize: sourceParameters.normalize,
           wrapX: sourceParameters.wrapX
         });
