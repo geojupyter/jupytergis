@@ -51,12 +51,16 @@ import {
 import Static from 'ol/source/ImageStatic';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
+import { register } from 'ol/proj/proj4.js';
 import { Rule } from 'ol/style/flat';
+import proj4 from 'proj4';
 import * as React from 'react';
 import shp from 'shpjs';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
+//@ts-expect-error no types for proj4-list
+import proj4list from 'proj4-list';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -70,6 +74,9 @@ interface IStates {
   remoteUser?: User.IIdentity | null;
   firstLoad: boolean;
 }
+
+proj4.defs(Array.from(proj4list));
+register(proj4);
 
 export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
@@ -591,7 +598,6 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         newMapLayer = new WebGlTileLayer(layerOptions);
-
         break;
       }
     }
