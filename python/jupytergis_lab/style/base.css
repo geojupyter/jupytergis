@@ -193,6 +193,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 }
 
 .jGIS-Toolbar-Separator {
+  min-height: 25px;
   width: var(--jp-border-width);
   background-color: var(--jp-border-color1);
   padding-left: 0px !important;
