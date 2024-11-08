@@ -51,7 +51,7 @@ import {
 import Static from 'ol/source/ImageStatic';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
-import { register } from 'ol/proj/proj4.js';
+import { fromEPSGCode, register } from 'ol/proj/proj4.js';
 import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
@@ -75,12 +75,12 @@ interface IStates {
   firstLoad: boolean;
 }
 
-proj4.defs(Array.from(proj4list));
-register(proj4);
-
 export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
+
+    proj4.defs(Array.from(proj4list));
+    register(proj4);
 
     this._mainViewModel = this.props.viewModel;
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
