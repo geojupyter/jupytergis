@@ -51,7 +51,9 @@ import {
 import Static from 'ol/source/ImageStatic';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
-import { fromEPSGCode, register } from 'ol/proj/proj4.js';
+import { register } from 'ol/proj/proj4.js';
+import { get as getProjection } from 'ol/proj.js';
+
 import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
@@ -849,27 +851,52 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
-  private updateOptions(options: IJGISOptions) {
-    const view = this._Map.getView();
+  private async updateOptions(options: IJGISOptions): Promise<void> {
+    const {
+      projection,
+      extent,
+      useExtent,
+      latitude,
+      longitude,
+      zoom,
+      bearing
+    } = options;
+
+    let view = this._Map.getView();
+    const currentProjection = view.getProjection().getCode();
+
+    // Need to recreate view if the projection changes
+    if (currentProjection !== projection) {
+      const newProjection = getProjection(projection);
+      if (newProjection) {
+        view = new View({ projection: newProjection });
+      } else {
+        console.warn(`Invalid projection: ${projection}`);
+        return;
+      }
+    }
 
     // Use the extent only if explicitly requested (QGIS files).
-    if (options.extent && options.useExtent) {
-      view.fit(options.extent);
+    if (useExtent && extent) {
+      view.fit(extent);
     } else {
       const centerCoord = fromLonLat(
-        [options.longitude || 0, options.latitude || 0],
-        this._Map.getView().getProjection()
+        [longitude || 0, latitude || 0],
+        view.getProjection()
       );
-      this._Map.getView().setZoom(options.zoom || 0);
-      this._Map.getView().setCenter(centerCoord);
+      view.setCenter(centerCoord);
+      view.setZoom(zoom || 0);
 
       // Save the extent if it does not exists, to allow proper export to qgis.
-      if (options.extent === undefined) {
+      if (!options.extent) {
         options.extent = view.calculateExtent();
         this._model.setOptions(options);
       }
     }
-    view.setRotation(options.bearing || 0);
+
+    view.setRotation(bearing || 0);
+
+    this._Map.setView(view);
   }
 
   private _onViewChanged(
