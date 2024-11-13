@@ -1,7 +1,7 @@
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { IStopRow } from '../../symbologyDialog';
 
 const StopRow = ({
@@ -21,6 +21,14 @@ const StopRow = ({
   deleteRow: () => void;
   useNumber?: boolean;
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current === document.activeElement) {
+      inputRef.current?.focus();
+    }
+  }, [stopRows]);
+
   const rgbArrToHex = (rgbArr: number | number[]) => {
     if (!Array.isArray(rgbArr)) {
       return;
@@ -95,6 +103,7 @@ const StopRow = ({
       {useNumber ? (
         <input
           type="number"
+          ref={inputRef}
           value={outputValue as number}
           onChange={handleOutputChange}
           className="jp-mod-styled jp-gis-color-row-output-input"
@@ -102,6 +111,7 @@ const StopRow = ({
       ) : (
         <input
           id={`jp-gis-color-color-${index}`}
+          ref={inputRef}
           value={rgbArrToHex(outputValue)}
           type="color"
           onChange={handleOutputChange}
