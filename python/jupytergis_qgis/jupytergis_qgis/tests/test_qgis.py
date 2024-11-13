@@ -19,6 +19,7 @@ def test_qgis_loader():
         options={
             "bearing": 0.0,
             "pitch": 0,
+            "projection": "EPSG:3857",
             "extent": [
                 -25164292.70393259,
                 -15184674.291019961,
@@ -130,6 +131,7 @@ def test_qgis_saver():
         "options": {
             "bearing": 0.0,
             "pitch": 0,
+            "projection": "EPSG:3857",
             "extent": [
                 -25164292.70393259,
                 -15184674.291019961,
