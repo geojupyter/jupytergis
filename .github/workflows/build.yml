@@ -21,7 +21,7 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.9
-            jupyterlab=4
+            jupyterlab=4.2
             yarn=3
             pillow
             mercantile
@@ -85,7 +85,7 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.9
-            jupyterlab=4
+            jupyterlab=4.2
             yarn=3
             qgis
 
@@ -153,7 +153,7 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.9
-            jupyterlab
+            jupyterlab=4.2
             ipywidgets
             qgis
 
@@ -224,7 +224,7 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.9
-            jupyterlab=4
+            jupyterlab=4.2
             yarn=3
 
       - name: Lint
