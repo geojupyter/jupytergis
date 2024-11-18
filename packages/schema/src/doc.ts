@@ -49,7 +49,7 @@ export class JupyterGISDoc
     const options = this._options.toJSON();
     const sources = this._sources.toJSON();
 
-    return {layers, layerTree, sources, options}
+    return { layers, layerTree, sources, options };
   }
 
   setSource(value: JSONObject): void {
@@ -62,7 +62,8 @@ export class JupyterGISDoc
         this._layers.set(key, val as string)
       );
 
-      const layerTree = value['layerTree'] as unknown as Array<IJGISLayerItem> ?? [];
+      const layerTree =
+        (value['layerTree'] as unknown as Array<IJGISLayerItem>) ?? [];
       layerTree.forEach(layer => {
         this._layerTree.push([layer]);
       });
