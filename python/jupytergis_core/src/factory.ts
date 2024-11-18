@@ -1,5 +1,5 @@
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
-import { ICollaborativeDrive } from '@jupyter/docprovider';
+import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
 import {
   JupyterGISModel,
   IJupyterGISTracker,

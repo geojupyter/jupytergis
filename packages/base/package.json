@@ -39,8 +39,7 @@
   },
   "dependencies": {
     "@deathbeds/jupyterlab-rjsf": "^1.1.0",
-    "@jupyter/docprovider": "^2.0.0",
-    "@jupyter/ydoc": "^1.0.0",
+    "@jupyter/ydoc": "^2.0.0 || ^3.0.0",
     "@jupytergis/schema": "^0.1.6",
     "@jupyterlab/application": "^4.0.0",
     "@jupyterlab/apputils": "^4.0.0",

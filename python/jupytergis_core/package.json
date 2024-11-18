@@ -52,7 +52,7 @@
     "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
-    "@jupyter/docprovider": "^2.0.0",
+    "@jupyter/collaborative-drive": "^3.0.0",
     "@jupytergis/base": "^0.1.6",
     "@jupytergis/schema": "^0.1.6",
     "@jupyterlab/application": "^4.0.0",

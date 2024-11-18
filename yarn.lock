@@ -470,14 +470,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/state@npm:^6.0.0, @codemirror/state@npm:^6.2.0, @codemirror/state@npm:^6.4.0, @codemirror/state@npm:^6.4.1":
+"@codemirror/state@npm:^6.0.0, @codemirror/state@npm:^6.4.0, @codemirror/state@npm:^6.4.1":
   version: 6.4.1
   resolution: "@codemirror/state@npm:6.4.1"
   checksum: b81b55574091349eed4d32fc0eadb0c9688f1f7c98b681318f59138ee0f527cb4c4a97831b70547c0640f02f3127647838ae6730782de4a3dd2cc58836125d01
   languageName: node
   linkType: hard
 
-"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.26.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.7.0":
+"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.26.0, @codemirror/view@npm:^6.27.0":
   version: 6.34.1
   resolution: "@codemirror/view@npm:6.34.1"
   dependencies:
@@ -764,41 +764,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyter/collaboration@npm:^2.0.0":
-  version: 2.1.3
-  resolution: "@jupyter/collaboration@npm:2.1.3"
+"@jupyter/collaborative-drive@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@jupyter/collaborative-drive@npm:3.0.0"
   dependencies:
-    "@codemirror/state": ^6.2.0
-    "@codemirror/view": ^6.7.0
-    "@jupyter/docprovider": ^2.1.3
-    "@jupyterlab/apputils": ^4.0.5
-    "@jupyterlab/coreutils": ^6.0.5
-    "@jupyterlab/services": ^7.0.5
-    "@jupyterlab/ui-components": ^4.0.5
-    "@lumino/coreutils": ^2.1.0
-    "@lumino/virtualdom": ^2.0.0
-    "@lumino/widgets": ^2.1.0
-    react: ^18.2.0
-    y-protocols: ^1.0.5
-    yjs: ^13.5.40
-  checksum: 7239bb4e0b3e30c32a07aecc073882a56392c6a848c086630db392a4876d8bcb2fc658ef444892b73f58e1126a899fa704e41ddea649b4665c422412024ec76a
-  languageName: node
-  linkType: hard
-
-"@jupyter/docprovider@npm:^2.0.0, @jupyter/docprovider@npm:^2.1.3":
-  version: 2.1.3
-  resolution: "@jupyter/docprovider@npm:2.1.3"
-  dependencies:
-    "@jupyter/ydoc": ^1.1.0-a0
-    "@jupyterlab/coreutils": ^6.0.5
-    "@jupyterlab/services": ^7.0.5
+    "@jupyter/ydoc": ^2.0.0 || ^3.0.0
+    "@jupyterlab/services": ^7.2.0
     "@lumino/coreutils": ^2.1.0
     "@lumino/disposable": ^2.1.0
-    "@lumino/signaling": ^2.1.0
-    y-protocols: ^1.0.5
-    y-websocket: ^1.3.15
-    yjs: ^13.5.40
-  checksum: e263f463eb4363b773d53ec47c50786143328321ab20c0c92f01f8a89349c8eec799063dbefb9b707c22d76c27e38e5f52f916881bb63c58ccc24d797a4e3f30
+  checksum: f0ecbe4c323ece6550f1836ef749fe3f5ff3d65ca92dd97729501a782e83bf8394f9a88998a1bbb9a2c1520c17da57bc75e30b54773fcfe62077af85b74b3cca
   languageName: node
   linkType: hard
 
@@ -825,7 +799,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyter/ydoc@npm:^1.0.0, @jupyter/ydoc@npm:^1.1.0-a0, @jupyter/ydoc@npm:^1.1.1":
+"@jupyter/ydoc@npm:^1.1.1":
   version: 1.1.1
   resolution: "@jupyter/ydoc@npm:1.1.1"
   dependencies:
@@ -839,7 +813,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyter/ydoc@npm:^2.0.0, @jupyter/ydoc@npm:^2.0.1":
+"@jupyter/ydoc@npm:^2.0.0 || ^3.0.0, @jupyter/ydoc@npm:^2.0.0 || ^3.0.0-a3":
+  version: 3.0.0
+  resolution: "@jupyter/ydoc@npm:3.0.0"
+  dependencies:
+    "@jupyterlab/nbformat": ^3.0.0 || ^4.0.0-alpha.21 || ^4.0.0
+    "@lumino/coreutils": ^1.11.0 || ^2.0.0
+    "@lumino/disposable": ^1.10.0 || ^2.0.0
+    "@lumino/signaling": ^1.10.0 || ^2.0.0
+    y-protocols: ^1.0.5
+    yjs: ^13.5.40
+  checksum: e9419a461f33d2685db346b19806865fe37f61b2ca33eb39c4ea905d765794a928442adf1bbffda67b665bdeba3be9a082189a57eaab5367aeaf6b57caeda822
+  languageName: node
+  linkType: hard
+
+"@jupyter/ydoc@npm:^2.0.1":
   version: 2.1.2
   resolution: "@jupyter/ydoc@npm:2.1.2"
   dependencies:
@@ -873,8 +861,7 @@ __metadata:
   dependencies:
     "@apidevtools/json-schema-ref-parser": ^9.0.9
     "@deathbeds/jupyterlab-rjsf": ^1.1.0
-    "@jupyter/docprovider": ^2.0.0
-    "@jupyter/ydoc": ^1.0.0
+    "@jupyter/ydoc": ^2.0.0 || ^3.0.0
     "@jupytergis/schema": ^0.1.6
     "@jupyterlab/application": ^4.0.0
     "@jupyterlab/apputils": ^4.0.0
@@ -922,7 +909,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-core@workspace:python/jupytergis_core"
   dependencies:
-    "@jupyter/docprovider": ^2.0.0
+    "@jupyter/collaborative-drive": ^3.0.0
     "@jupytergis/base": ^0.1.6
     "@jupytergis/schema": ^0.1.6
     "@jupyterlab/application": ^4.0.0
@@ -956,7 +943,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-lab@workspace:python/jupytergis_lab"
   dependencies:
-    "@jupyter/docprovider": ^2.0.0
+    "@jupyter/collaborative-drive": ^3.0.0
     "@jupytergis/base": ^0.1.6
     "@jupytergis/jupytergis-core": ^0.1.6
     "@jupytergis/schema": ^0.1.6
@@ -988,7 +975,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-qgis@workspace:python/jupytergis_qgis"
   dependencies:
-    "@jupyter/docprovider": ^2.0.0
+    "@jupyter/collaborative-drive": ^3.0.0
     "@jupytergis/base": ^0.1.6
     "@jupytergis/jupytergis-core": ^0.1.6
     "@jupytergis/schema": ^0.1.6
@@ -1049,8 +1036,8 @@ __metadata:
   resolution: "@jupytergis/schema@workspace:packages/schema"
   dependencies:
     "@apidevtools/json-schema-ref-parser": ^9.0.9
-    "@jupyter/docprovider": ^2.0.0
-    "@jupyter/ydoc": ^1.0.0
+    "@jupyter/collaborative-drive": ^3.0.0
+    "@jupyter/ydoc": ^2.0.0 || ^3.0.0
     "@jupyterlab/apputils": ^4.0.0
     "@jupyterlab/coreutils": ^6.0.0
     "@jupyterlab/docregistry": ^4.0.0
@@ -1397,7 +1384,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/coreutils@npm:^6.0.0, @jupyterlab/coreutils@npm:^6.0.13, @jupyterlab/coreutils@npm:^6.0.5, @jupyterlab/coreutils@npm:^6.2.5":
+"@jupyterlab/coreutils@npm:^6.0.0, @jupyterlab/coreutils@npm:^6.0.13, @jupyterlab/coreutils@npm:^6.2.5":
   version: 6.2.5
   resolution: "@jupyterlab/coreutils@npm:6.2.5"
   dependencies:
@@ -1904,7 +1891,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/ui-components@npm:^4.0.0, @jupyterlab/ui-components@npm:^4.0.13, @jupyterlab/ui-components@npm:^4.0.5, @jupyterlab/ui-components@npm:^4.2.5":
+"@jupyterlab/ui-components@npm:^4.0.0, @jupyterlab/ui-components@npm:^4.0.13, @jupyterlab/ui-components@npm:^4.2.5":
   version: 4.2.5
   resolution: "@jupyterlab/ui-components@npm:4.2.5"
   dependencies:
@@ -2381,7 +2368,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lumino/signaling@npm:^1.10.0 || ^2.0.0, @lumino/signaling@npm:^1.10.0 || ^2.0.0-alpha.6, @lumino/signaling@npm:^2.0.0, @lumino/signaling@npm:^2.1.0, @lumino/signaling@npm:^2.1.1, @lumino/signaling@npm:^2.1.2, @lumino/signaling@npm:^2.1.3":
+"@lumino/signaling@npm:^1.10.0 || ^2.0.0, @lumino/signaling@npm:^1.10.0 || ^2.0.0-alpha.6, @lumino/signaling@npm:^2.0.0, @lumino/signaling@npm:^2.1.1, @lumino/signaling@npm:^2.1.2, @lumino/signaling@npm:^2.1.3":
   version: 2.1.3
   resolution: "@lumino/signaling@npm:2.1.3"
   dependencies:
@@ -2438,7 +2425,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lumino/widgets@npm:^1.37.2 || ^2.3.2, @lumino/widgets@npm:^2.0.0, @lumino/widgets@npm:^2.1.0, @lumino/widgets@npm:^2.1.1, @lumino/widgets@npm:^2.3.0, @lumino/widgets@npm:^2.3.2, @lumino/widgets@npm:^2.5.0":
+"@lumino/widgets@npm:^1.37.2 || ^2.3.2, @lumino/widgets@npm:^2.0.0, @lumino/widgets@npm:^2.1.1, @lumino/widgets@npm:^2.3.0, @lumino/widgets@npm:^2.3.2, @lumino/widgets@npm:^2.5.0":
   version: 2.5.0
   resolution: "@lumino/widgets@npm:2.5.0"
   dependencies:
@@ -3701,32 +3688,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"abstract-leveldown@npm:^6.2.1":
-  version: 6.3.0
-  resolution: "abstract-leveldown@npm:6.3.0"
-  dependencies:
-    buffer: ^5.5.0
-    immediate: ^3.2.3
-    level-concat-iterator: ~2.0.0
-    level-supports: ~1.0.0
-    xtend: ~4.0.0
-  checksum: 121a8509d8c6a540e656c2a69e5b8d853d4df71072011afefc868b98076991bb00120550e90643de9dc18889c675f62413409eeb4c8c204663124c7d215e4ec3
-  languageName: node
-  linkType: hard
-
-"abstract-leveldown@npm:~6.2.1, abstract-leveldown@npm:~6.2.3":
-  version: 6.2.3
-  resolution: "abstract-leveldown@npm:6.2.3"
-  dependencies:
-    buffer: ^5.5.0
-    immediate: ^3.2.3
-    level-concat-iterator: ~2.0.0
-    level-supports: ~1.0.0
-    xtend: ~4.0.0
-  checksum: 00202b2eb7955dd7bc04f3e44d225e60160cedb8f96fe6ae0e6dca9c356d57071f001ece8ae1d53f48095c4c036d92b3440f2bc7666730610ddea030f9fbde4a
-  languageName: node
-  linkType: hard
-
 "acorn-import-attributes@npm:^1.9.5":
   version: 1.9.5
   resolution: "acorn-import-attributes@npm:1.9.5"
@@ -4038,13 +3999,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"async-limiter@npm:~1.0.0":
-  version: 1.0.1
-  resolution: "async-limiter@npm:1.0.1"
-  checksum: 2b849695b465d93ad44c116220dee29a5aeb63adac16c1088983c339b0de57d76e82533e8e364a93a9f997f28bbfc6a92948cefc120652bd07f3b59f8d75cf2b
-  languageName: node
-  linkType: hard
-
 "async@npm:^3.2.3":
   version: 3.2.6
   resolution: "async@npm:3.2.6"
@@ -4182,7 +4136,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"buffer@npm:^5.5.0, buffer@npm:^5.6.0":
+"buffer@npm:^5.5.0":
   version: 5.7.1
   resolution: "buffer@npm:5.7.1"
   dependencies:
@@ -5104,16 +5058,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"deferred-leveldown@npm:~5.3.0":
-  version: 5.3.0
-  resolution: "deferred-leveldown@npm:5.3.0"
-  dependencies:
-    abstract-leveldown: ~6.2.1
-    inherits: ^2.0.3
-  checksum: 5631e153528bb9de1aa60d59a5065d1a519374c5e4c1d486f2190dba4008dcf5c2ee8dd7f2f81396fc4d5a6bb6e7d0055e3dfe68afe00da02adaa3bf329addf7
-  languageName: node
-  linkType: hard
-
 "define-data-property@npm:^1.0.1, define-data-property@npm:^1.1.4":
   version: 1.1.4
   resolution: "define-data-property@npm:1.1.4"
@@ -5352,18 +5296,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"encoding-down@npm:^6.3.0":
-  version: 6.3.0
-  resolution: "encoding-down@npm:6.3.0"
-  dependencies:
-    abstract-leveldown: ^6.2.1
-    inherits: ^2.0.3
-    level-codec: ^9.0.0
-    level-errors: ^2.0.0
-  checksum: 74043e6d9061a470614ff61d708c849259ab32932a428fd5ddfb0878719804f56a52f59b31cccd95fddc2e636c0fd22dc3e02481fb98d5bf1bdbbbc44ca09bdc
-  languageName: node
-  linkType: hard
-
 "encoding@npm:^0.1.13":
   version: 0.1.13
   resolution: "encoding@npm:0.1.13"
@@ -5437,17 +5369,6 @@ __metadata:
   version: 2.0.3
   resolution: "err-code@npm:2.0.3"
   checksum: 8b7b1be20d2de12d2255c0bc2ca638b7af5171142693299416e6a9339bd7d88fc8d7707d913d78e0993176005405a236b066b45666b27b797252c771156ace54
-  languageName: node
-  linkType: hard
-
-"errno@npm:~0.1.1":
-  version: 0.1.8
-  resolution: "errno@npm:0.1.8"
-  dependencies:
-    prr: ~1.0.1
-  bin:
-    errno: cli.js
-  checksum: 1271f7b9fbb3bcbec76ffde932485d1e3561856d21d847ec613a9722ee924cdd4e523a62dc71a44174d91e898fe21fdc8d5b50823f4b5e0ce8c35c8271e6ef4a
   languageName: node
   linkType: hard
 
@@ -6875,13 +6796,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immediate@npm:^3.2.3":
-  version: 3.3.0
-  resolution: "immediate@npm:3.3.0"
-  checksum: 634b4305101e2452eba6c07d485bf3e415995e533c94b9c3ffbc37026fa1be34def6e4f2276b0dc2162a3f91628564a4bfb26280278b89d3ee54624e854d2f5f
-  languageName: node
-  linkType: hard
-
 "import-fresh@npm:^3.2.1, import-fresh@npm:^3.3.0":
   version: 3.3.0
   resolution: "import-fresh@npm:3.3.0"
@@ -7767,109 +7681,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"level-codec@npm:^9.0.0":
-  version: 9.0.2
-  resolution: "level-codec@npm:9.0.2"
-  dependencies:
-    buffer: ^5.6.0
-  checksum: 289003d51b8afcdd24c4d318606abf2bae81975e4b527d7349abfdbacc8fef26711f2f24e2d20da0e1dce0bb216a856c9433ccb9ca25fa78a96aed9f51e506ed
-  languageName: node
-  linkType: hard
-
-"level-concat-iterator@npm:~2.0.0":
-  version: 2.0.1
-  resolution: "level-concat-iterator@npm:2.0.1"
-  checksum: 562583ef1292215f8e749c402510cb61c4d6fccf4541082b3d21dfa5ecde9fcccfe52bdcb5cfff9d2384e7ce5891f44df9439a6ddb39b0ffe31015600b4a828a
-  languageName: node
-  linkType: hard
-
-"level-errors@npm:^2.0.0, level-errors@npm:~2.0.0":
-  version: 2.0.1
-  resolution: "level-errors@npm:2.0.1"
-  dependencies:
-    errno: ~0.1.1
-  checksum: aca5d7670e2a40609db8d7743fce289bb5202c0bc13e4a78f81f36a6642e9abc0110f48087d3d3c2c04f023d70d4ee6f2db0e20c63d29b3fda323a67bfff6526
-  languageName: node
-  linkType: hard
-
-"level-iterator-stream@npm:~4.0.0":
-  version: 4.0.2
-  resolution: "level-iterator-stream@npm:4.0.2"
-  dependencies:
-    inherits: ^2.0.4
-    readable-stream: ^3.4.0
-    xtend: ^4.0.2
-  checksum: 239e2c7e62bffb485ed696bcd3b98de7a2bc455d13be4fce175ae3544fe9cda81c2ed93d3e88b61380ae6d28cce02511862d77b86fb2ba5b5cf00471f3c1eccc
-  languageName: node
-  linkType: hard
-
-"level-js@npm:^5.0.0":
-  version: 5.0.2
-  resolution: "level-js@npm:5.0.2"
-  dependencies:
-    abstract-leveldown: ~6.2.3
-    buffer: ^5.5.0
-    inherits: ^2.0.3
-    ltgt: ^2.1.2
-  checksum: 3c7f75979bb8c042e95a58245b8fe1230bb0f56a11ee418e08156e3eadda371efae6eb7b9bf10bf1e08e0b1b2a25d80c026858ca99ffd49109d6541e3d9d3b37
-  languageName: node
-  linkType: hard
-
-"level-packager@npm:^5.1.0":
-  version: 5.1.1
-  resolution: "level-packager@npm:5.1.1"
-  dependencies:
-    encoding-down: ^6.3.0
-    levelup: ^4.3.2
-  checksum: befe2aa54f2010a6ecf7ddce392c8dee225e1839205080a2704d75e560e28b01191b345494696196777b70d376e3eaae4c9e7c330cc70d3000839f5b18dd78f2
-  languageName: node
-  linkType: hard
-
-"level-supports@npm:~1.0.0":
-  version: 1.0.1
-  resolution: "level-supports@npm:1.0.1"
-  dependencies:
-    xtend: ^4.0.2
-  checksum: 5d6bdb88cf00c3d9adcde970db06a548c72c5a94bf42c72f998b58341a105bfe2ea30d313ce1e84396b98cc9ddbc0a9bd94574955a86e929f73c986e10fc0df0
-  languageName: node
-  linkType: hard
-
-"level@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "level@npm:6.0.1"
-  dependencies:
-    level-js: ^5.0.0
-    level-packager: ^5.1.0
-    leveldown: ^5.4.0
-  checksum: bd4981f94162469a82a6c98d267d814d9d4a7beed4fc3d18fbe3b156f71cf4c6d35b424d14c46d401dbf0cd91425e842950a7cd17ddf7bf57acdab5af4c278da
-  languageName: node
-  linkType: hard
-
-"leveldown@npm:^5.4.0":
-  version: 5.6.0
-  resolution: "leveldown@npm:5.6.0"
-  dependencies:
-    abstract-leveldown: ~6.2.1
-    napi-macros: ~2.0.0
-    node-gyp: latest
-    node-gyp-build: ~4.1.0
-  checksum: 06d4683170d7fc661acd65457e531b42ad66480e9339d3154ba6d0de38ff0503d7d017c1c6eba12732b5488ecd2915c70c8dc3a7d67f4a836f3de34b8a993949
-  languageName: node
-  linkType: hard
-
-"levelup@npm:^4.3.2":
-  version: 4.4.0
-  resolution: "levelup@npm:4.4.0"
-  dependencies:
-    deferred-leveldown: ~5.3.0
-    level-errors: ~2.0.0
-    level-iterator-stream: ~4.0.0
-    level-supports: ~1.0.0
-    xtend: ~4.0.0
-  checksum: 5a09e34c78cd7c23f9f6cb73563f1ebe8121ffc5f9f5f232242529d4fbdd40e8d1ffb337d2defa0b842334e0dbd4028fbfe7a072eebfe2c4d07174f0aa4aabca
-  languageName: node
-  linkType: hard
-
 "levn@npm:^0.4.1":
   version: 0.4.1
   resolution: "levn@npm:0.4.1"
@@ -7880,7 +7691,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lib0@npm:^0.2.31, lib0@npm:^0.2.42, lib0@npm:^0.2.52, lib0@npm:^0.2.76, lib0@npm:^0.2.85, lib0@npm:^0.2.98":
+"lib0@npm:^0.2.42, lib0@npm:^0.2.76, lib0@npm:^0.2.85, lib0@npm:^0.2.98":
   version: 0.2.98
   resolution: "lib0@npm:0.2.98"
   dependencies:
@@ -8023,13 +7834,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash.debounce@npm:^4.0.8":
-  version: 4.0.8
-  resolution: "lodash.debounce@npm:4.0.8"
-  checksum: a3f527d22c548f43ae31c861ada88b2637eb48ac6aa3eb56e82d44917971b8aa96fbb37aa60efea674dc4ee8c42074f90f7b1f772e9db375435f6c83a19b3bc6
-  languageName: node
-  linkType: hard
-
 "lodash.escape@npm:^4.0.1":
   version: 4.0.1
   resolution: "lodash.escape@npm:4.0.1"
@@ -8115,13 +7919,6 @@ __metadata:
   dependencies:
     es5-ext: ~0.10.2
   checksum: 7f2c53c5e7f2de20efb6ebb3086b7aea88d6cf9ae91ac5618ece974122960c4e8ed04988e81d92c3e63d60b12c556b14d56ef7a9c5a4627b23859b813e39b1a2
-  languageName: node
-  linkType: hard
-
-"ltgt@npm:^2.1.2":
-  version: 2.2.1
-  resolution: "ltgt@npm:2.2.1"
-  checksum: 7e3874296f7538bc8087b428ac4208008d7b76916354b34a08818ca7c83958c1df10ec427eeeaad895f6b81e41e24745b18d30f89abcc21d228b94f6961d50a2
   languageName: node
   linkType: hard
 
@@ -8641,13 +8438,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"napi-macros@npm:~2.0.0":
-  version: 2.0.0
-  resolution: "napi-macros@npm:2.0.0"
-  checksum: 30384819386977c1f82034757014163fa60ab3c5a538094f778d38788bebb52534966279956f796a92ea771c7f8ae072b975df65de910d051ffbdc927f62320c
-  languageName: node
-  linkType: hard
-
 "natural-compare-lite@npm:^1.4.0":
   version: 1.4.0
   resolution: "natural-compare-lite@npm:1.4.0"
@@ -8735,17 +8525,6 @@ __metadata:
     node-gyp-build-optional: optional.js
     node-gyp-build-test: build-test.js
   checksum: 1a57bba8c4c193f808bd8ad1484d4ebdd8106dd9f04a3e82554dc716e3a2d87d7e369e9503c145e0e6a7e2c663fec0d8aaf52bd8156342ec7fc388195f37824e
-  languageName: node
-  linkType: hard
-
-"node-gyp-build@npm:~4.1.0":
-  version: 4.1.1
-  resolution: "node-gyp-build@npm:4.1.1"
-  bin:
-    node-gyp-build: ./bin.js
-    node-gyp-build-optional: ./optional.js
-    node-gyp-build-test: ./build-test.js
-  checksum: 959d42221cc44b92700003efae741652bc4e379e4cf375830ddde03ba43c89f99694bf0883078ed0d4e03ffe2f85decab0572e04068d3900b8538d165dbc17df
   languageName: node
   linkType: hard
 
@@ -9878,13 +9657,6 @@ __metadata:
   version: 1.1.0
   resolution: "proxy-from-env@npm:1.1.0"
   checksum: ed7fcc2ba0a33404958e34d95d18638249a68c430e30fcb6c478497d72739ba64ce9810a24f53a7d921d0c065e5b78e3822759800698167256b04659366ca4d4
-  languageName: node
-  linkType: hard
-
-"prr@npm:~1.0.1":
-  version: 1.0.1
-  resolution: "prr@npm:1.0.1"
-  checksum: 3bca2db0479fd38f8c4c9439139b0c42dcaadcc2fbb7bb8e0e6afaa1383457f1d19aea9e5f961d5b080f1cfc05bfa1fe9e45c97a1d3fd6d421950a73d3108381
   languageName: node
   linkType: hard
 
@@ -12260,15 +12032,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^6.2.1":
-  version: 6.2.3
-  resolution: "ws@npm:6.2.3"
-  dependencies:
-    async-limiter: ~1.0.0
-  checksum: bbc96ff5628832d80669a88fd117487bf070492dfaa50df77fa442a2b119792e772f4365521e0a8e025c0d51173c54fa91adab165c11b8e0674685fdd36844a5
-  languageName: node
-  linkType: hard
-
 "ws@npm:^8.11.0":
   version: 8.18.0
   resolution: "ws@npm:8.18.0"
@@ -12302,7 +12065,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"xtend@npm:^4.0.2, xtend@npm:~4.0.0, xtend@npm:~4.0.1":
+"xtend@npm:~4.0.1":
   version: 4.0.2
   resolution: "xtend@npm:4.0.2"
   checksum: ac5dfa738b21f6e7f0dd6e65e1b3155036d68104e67e5d5d1bde74892e327d7e5636a076f625599dc394330a731861e87343ff184b0047fef1360a7ec0a5a36a
@@ -12321,18 +12084,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"y-leveldb@npm:^0.1.0":
-  version: 0.1.2
-  resolution: "y-leveldb@npm:0.1.2"
-  dependencies:
-    level: ^6.0.1
-    lib0: ^0.2.31
-  peerDependencies:
-    yjs: ^13.0.0
-  checksum: 38e3293cfc5e754ba50af4c6bd03a96efde34c92809baf504b38cb4f45959187f896fe6971fa6a91823763e178807aaa14e190d1f7bea1b3a1e9b7265bb88b6d
-  languageName: node
-  linkType: hard
-
 "y-protocols@npm:^1.0.5":
   version: 1.0.6
   resolution: "y-protocols@npm:1.0.6"
@@ -12341,29 +12092,6 @@ __metadata:
   peerDependencies:
     yjs: ^13.0.0
   checksum: 4b57c8811befcf2e45c3d47830005f8a33e626c734f78a42fe8a4fa3caad2233ba85a7c8bceefbd52ffc40130d3f3faee664fd0d1c324ff1fa8817a056ccdc1c
-  languageName: node
-  linkType: hard
-
-"y-websocket@npm:^1.3.15":
-  version: 1.5.4
-  resolution: "y-websocket@npm:1.5.4"
-  dependencies:
-    lib0: ^0.2.52
-    lodash.debounce: ^4.0.8
-    ws: ^6.2.1
-    y-leveldb: ^0.1.0
-    y-protocols: ^1.0.5
-  peerDependencies:
-    yjs: ^13.5.6
-  dependenciesMeta:
-    ws:
-      optional: true
-    y-leveldb:
-      optional: true
-  bin:
-    y-websocket: bin/server.js
-    y-websocket-server: bin/server.js
-  checksum: 4ab3f99cf5f3b2bb3dd12603bc85e7fc338c64636b0d2b654af16662b5600bdfa6fcaaeb4258e02b9a0dc7d90441728dc07874cf5f7eeeb837c27df53e72670f
   languageName: node
   linkType: hard
 
@@ -12433,11 +12161,10 @@ __metadata:
   linkType: hard
 
 "yjs-widgets@npm:^0.3.5":
-  version: 0.3.6
-  resolution: "yjs-widgets@npm:0.3.6"
+  version: 0.3.8
+  resolution: "yjs-widgets@npm:0.3.8"
   dependencies:
-    "@jupyter/collaboration": ^2.0.0
-    "@jupyter/ydoc": ^2.0.0
+    "@jupyter/ydoc": ^2.0.0 || ^3.0.0-a3
     "@jupyterlab/application": ^4.0.0
     "@jupyterlab/apputils": ^4.0.0
     "@jupyterlab/console": ^4.2.4
@@ -12451,7 +12178,7 @@ __metadata:
     uuid: ^9.0.0
     webpack: ^5.77.0
     webpack-cli: ^5.0.1
-  checksum: 25d058d4c6a88ffd5f84027d972d79058bdf2043e008020034bacc77f30ad584cf5b763eaed2f8be6a052f37d4d444d4818a9b21f742640f565ed0461af5ad80
+  checksum: 1bd4d2f69a826fd8bf8b58c656afe7c7f246e070dab8676e12804afcf8e0c337ae8f569b4764e22a696db9ab10f3c65cc7778b653bcc98e767d1e9e5e0d0a865
   languageName: node
   linkType: hard
 

@@ -1,5 +1,5 @@
 import { Delta, MapChange, YDocument } from '@jupyter/ydoc';
-import { JSONExt } from '@lumino/coreutils';
+import { JSONExt, JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import * as Y from 'yjs';
 
@@ -41,6 +41,42 @@ export class JupyterGISDoc
     this._layerTree.observe(this._layerTreeObserver.bind(this));
     this._sources.observeDeep(this._sourcesObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
+  }
+
+  getSource(): JSONObject {
+    const layers = this._layers.toJSON();
+    const layerTree = this._layerTree.toJSON();
+    const options = this._options.toJSON();
+    const sources = this._sources.toJSON();
+
+    return {layers, layerTree, sources, options}
+  }
+
+  setSource(value: JSONObject): void {
+    if (!value) {
+      return;
+    }
+    this.transact(() => {
+      const layers = value['layers'] ?? {};
+      Object.entries(layers).forEach(([key, val]) =>
+        this._layers.set(key, val as string)
+      );
+
+      const layerTree = value['layerTree'] as unknown as Array<IJGISLayerItem> ?? [];
+      layerTree.forEach(layer => {
+        this._layerTree.push([layer]);
+      });
+
+      const options = value['options'] ?? {};
+      Object.entries(options).forEach(([key, val]) =>
+        this._options.set(key, val)
+      );
+
+      const sources = value['sources'] ?? {};
+      Object.entries(sources).forEach(([key, val]) =>
+        this._sources.set(key, val)
+      );
+    });
   }
 
   dispose(): void {
@@ -93,7 +129,7 @@ export class JupyterGISDoc
     return JSONExt.deepCopy(this._layers.get(id));
   }
 
-  getSource(id: string): IJGISSource | undefined {
+  getLayerSource(id: string): IJGISSource | undefined {
     if (!this._sources.has(id)) {
       return undefined;
     }
@@ -171,7 +207,7 @@ export class JupyterGISDoc
       return layer;
     }
 
-    const source = this.getSource(id);
+    const source = this.getLayerSource(id);
     if (source) {
       return source;
     }
@@ -191,7 +227,7 @@ export class JupyterGISDoc
       this.updateLayer(id, layer);
     }
 
-    const source = this.getSource(id);
+    const source = this.getLayerSource(id);
     if (source) {
       source.parameters = {
         ...source.parameters,

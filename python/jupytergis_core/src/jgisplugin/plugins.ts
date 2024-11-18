@@ -1,7 +1,7 @@
 import {
   ICollaborativeDrive,
   SharedDocumentFactory
-} from '@jupyter/docprovider';
+} from '@jupyter/collaborative-drive';
 import {
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
