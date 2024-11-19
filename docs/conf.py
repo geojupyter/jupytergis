@@ -19,6 +19,9 @@ copyright = "2024, The JupyterGIS Development Team"
 author = "The JupyterGIS Development Team"
 language = "en"
 
+jupyterlite_contents = ["../examples/*.jGIS", "../examples/*.json"]
+jupyterlite_dir = "."
+
 exclude_patterns = []
 highlight_language = "python"
 pygments_style = "sphinx"

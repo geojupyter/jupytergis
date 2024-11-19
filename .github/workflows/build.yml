@@ -243,8 +243,8 @@ jobs:
       - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
       - uses: jupyterlab/maintainer-tools/.github/actions/check-links@v1
 
-  build-lite:
-    name: Build JupyterLite
+  build-docs-and-lite:
+    name: Build docs with JupyterLite deployment
     needs: build
     runs-on: ubuntu-latest
 
@@ -262,6 +262,10 @@ jobs:
             pip
             jupyterlite-core>=0.2.0,<0.3.0
             jupyterlite-xeus>=0.1.2,<0.2
+            jupyterlite-sphinx
+            sphinx
+            sphinxpydata-sphinx-theme
+            sphinx-autodoc-typehints
 
       - name: Download extension package
         uses: actions/download-artifact@v3
@@ -275,12 +279,11 @@ jobs:
           cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
           python -m pip install jupytergis*.whl
 
-      - name: Build the lite site
+      - name: Build the docs site
         shell: bash -l {0}
-        working-directory: lite
+        working-directory: docs
         run: |
           set -eux
-          mkdir -p content && cp ../examples/*.jGIS ../examples/*.json ./content
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload artifact
@@ -296,7 +299,7 @@ jobs:
           artifact_link: 'https://github.com/${{ github.repository }}/actions/runs/${{github.run_id}}/artifacts/${{ steps.upload-jupyterlite-artifact.outputs.artifact_id }}'
 
   deploy:
-    needs: build-lite
+    needs: build-docs-and-lite
     if: github.ref == 'refs/heads/main'
     permissions:
       pages: write
