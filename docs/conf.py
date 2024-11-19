@@ -6,6 +6,7 @@ html_theme = "pydata_sphinx_theme"
 html_theme_options = {"github_url": "https://github.com/geojupyter/jupytergis"}
 
 extensions = [
+    "jupyterlite_sphinx",
     "sphinx.ext.autodoc",
     "sphinx_autodoc_typehints",
     "sphinx.ext.intersphinx",
