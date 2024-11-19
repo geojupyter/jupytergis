@@ -264,7 +264,7 @@ jobs:
             jupyterlite-xeus>=0.1.2,<0.2
             jupyterlite-sphinx
             sphinx
-            sphinxpydata-sphinx-theme
+            pydata-sphinx-theme
             sphinx-autodoc-typehints
 
       - name: Download extension package
