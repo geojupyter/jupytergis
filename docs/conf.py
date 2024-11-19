@@ -21,6 +21,8 @@ language = "en"
 
 jupyterlite_contents = ["../examples/*.jGIS", "../examples/*.json"]
 jupyterlite_dir = "."
+jupyterlite_config = "jupyter_lite_config.json"
+jupyterlite_silence = False
 
 exclude_patterns = []
 highlight_language = "python"
