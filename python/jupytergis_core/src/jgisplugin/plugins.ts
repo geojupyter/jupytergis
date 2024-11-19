@@ -97,7 +97,8 @@ const activate = (
     );
     app.shell.activateById('jupytergis::leftControlPanel');
     app.shell.activateById('jupytergis::rightControlPanel');
-    tracker.add(widget)
+    tracker
+      .add(widget)
       .then(() => {
         Object.values(CommandIDs).forEach(id => {
           if (app.commands.hasCommand(id)) {
@@ -107,8 +108,7 @@ const activate = (
       })
       .catch(e => {
         console.error('Cannot update JupyterGIS commands', e);
-      })
-
+      });
   });
 
   app.commands.addCommand(CommandIDs.createNew, {
