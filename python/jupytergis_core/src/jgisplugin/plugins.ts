@@ -98,6 +98,11 @@ const activate = (
     tracker.add(widget);
     app.shell.activateById('jupytergis::leftControlPanel');
     app.shell.activateById('jupytergis::rightControlPanel');
+    Object.values(CommandIDs).forEach(id => {
+      if (app.commands.hasCommand(id)) {
+        app.commands.notifyCommandChanged(id);
+      }
+    });
   });
 
   app.commands.addCommand(CommandIDs.createNew, {
