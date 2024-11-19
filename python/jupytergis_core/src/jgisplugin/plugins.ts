@@ -95,14 +95,20 @@ const activate = (
     themeManager.themeChanged.connect((_, changes) =>
       widget.context.model.themeChanged.emit(changes)
     );
-    tracker.add(widget);
     app.shell.activateById('jupytergis::leftControlPanel');
     app.shell.activateById('jupytergis::rightControlPanel');
-    Object.values(CommandIDs).forEach(id => {
-      if (app.commands.hasCommand(id)) {
-        app.commands.notifyCommandChanged(id);
-      }
-    });
+    tracker.add(widget)
+      .then(() => {
+        Object.values(CommandIDs).forEach(id => {
+          if (app.commands.hasCommand(id)) {
+            app.commands.notifyCommandChanged(id);
+          }
+        });
+      })
+      .catch(e => {
+        console.error('Cannot update JupyterGIS commands', e);
+      })
+
   });
 
   app.commands.addCommand(CommandIDs.createNew, {
