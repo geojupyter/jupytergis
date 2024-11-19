@@ -1,11 +1,6 @@
-name: jupytergis
+name: xeus-python-kernel
 channels:
+  - https://repo.mamba.pm/emscripten-forge
   - conda-forge
 dependencies:
-  - python=3.12
-  - pip
-  - sphinx
-  - pydata-sphinx-theme
-  - sphinx-autodoc-typehints
-  - pip:
-      - jupytergis
+  - xeus-python

@@ -21,7 +21,7 @@ You can open an existing QGIS project and **display it in your Jupyter Notebook*
     doc
 
 **Opening an existing file connects you to the file’s collaborative session**,
-meaning that anyone working on the same QGIS project file, whether through the 
+meaning that anyone working on the same QGIS project file, whether through the
 JupyterLab extension or the Python API, will see the edits you make.
 
 Creating a ``GISDocument`` object without providing a path to an existing file would create a
@@ -40,5 +40,5 @@ Once the document is opened/created, you can start creating GIS layers.
 ``GISDocument`` API Reference
 =============================
 
-.. autoclass:: jupytergis.GISDocument
+.. autoclass:: jupytergis_lab.GISDocument
     :members:

@@ -6,6 +6,7 @@ html_theme = "pydata_sphinx_theme"
 html_theme_options = {"github_url": "https://github.com/geojupyter/jupytergis"}
 
 extensions = [
+    "jupyterlite_sphinx",
     "sphinx.ext.autodoc",
     "sphinx_autodoc_typehints",
     "sphinx.ext.intersphinx",
@@ -18,6 +19,11 @@ project = "JupyterGIS"
 copyright = "2024, The JupyterGIS Development Team"
 author = "The JupyterGIS Development Team"
 language = "en"
+
+jupyterlite_contents = ["../examples/*.jGIS", "../examples/*.json"]
+jupyterlite_dir = "."
+jupyterlite_config = "jupyter_lite_config.json"
+jupyterlite_silence = False
 
 exclude_patterns = []
 highlight_language = "python"

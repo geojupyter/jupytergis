@@ -20,7 +20,7 @@ jobs:
         uses: trungleduc/appsharingspace-pr-comment/.github/actions/pr-comment@v2
         with:
           github_token: ${{ secrets.github_token }}
-          index_path: lab/index.html
+          index_path: index.html
   comment-galata:
     runs-on: ubuntu-latest
     if: >
