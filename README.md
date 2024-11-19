@@ -14,7 +14,7 @@
 
 ## Try it directly in your browser with [JupyterLite](https://jupyterlite.readthedocs.io/en/stable/?badge=latest)!
 
-https://geojupyter.github.io/jupytergis/lab/index.html
+https://geojupyter.github.io/jupytergis/lite/lab/index.html
 
 ## Installation
 
@@ -31,7 +31,7 @@ pip install jupytergis
 
 ## Documentation
 
-Under construction
+https://geojupyter.github.io/jupytergis
 
 ## Contributing
 
