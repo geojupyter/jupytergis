@@ -1,7 +1,7 @@
 import {
   ICollaborativeDrive,
   SharedDocumentFactory
-} from '@jupyter/docprovider';
+} from '@jupyter/collaborative-drive';
 import {
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
@@ -95,9 +95,20 @@ const activate = (
     themeManager.themeChanged.connect((_, changes) =>
       widget.context.model.themeChanged.emit(changes)
     );
-    tracker.add(widget);
     app.shell.activateById('jupytergis::leftControlPanel');
     app.shell.activateById('jupytergis::rightControlPanel');
+    tracker
+      .add(widget)
+      .then(() => {
+        Object.values(CommandIDs).forEach(id => {
+          if (app.commands.hasCommand(id)) {
+            app.commands.notifyCommandChanged(id);
+          }
+        });
+      })
+      .catch(e => {
+        console.error('Cannot update JupyterGIS commands', e);
+      });
   });
 
   app.commands.addCommand(CommandIDs.createNew, {

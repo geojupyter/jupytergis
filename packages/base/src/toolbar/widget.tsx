@@ -102,7 +102,7 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       const NewButton = new ToolbarButton({
         icon: addIcon,
-        actualOnClick: true,
+        noFocusOnClick: false,
         onClick: () => {
           if (!options.commands) {
             return;

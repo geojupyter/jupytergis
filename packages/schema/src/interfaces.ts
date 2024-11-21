@@ -1,4 +1,4 @@
-import { ICollaborativeDrive } from '@jupyter/docprovider';
+import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
 import {
   Delta,
   DocumentChange,
@@ -89,7 +89,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   updateLayer(id: string, value: IJGISLayer): void;
 
   sourceExists(id: string): boolean;
-  getSource(id: string): IJGISSource | undefined;
+  getLayerSource(id: string): IJGISSource | undefined;
   removeSource(id: string): void;
   addSource(id: string, value: IJGISSource): void;
   updateSource(id: string, value: IJGISSource): void;

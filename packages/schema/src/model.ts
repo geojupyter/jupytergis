@@ -1,4 +1,4 @@
-import { ICollaborativeDrive } from '@jupyter/docprovider';
+import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
 import { MapChange } from '@jupyter/ydoc';
 import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -233,7 +233,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   getSource(id: string): IJGISSource | undefined {
-    return this.sharedModel.getSource(id);
+    return this.sharedModel.getLayerSource(id);
   }
 
   /**

@@ -504,7 +504,7 @@ export class MainView extends React.Component<IProps, IStates> {
     layer: IJGISLayer
   ): Promise<BaseLayer | undefined> {
     const sourceId = layer.parameters?.source;
-    const source = this._model.sharedModel.getSource(sourceId);
+    const source = this._model.sharedModel.getLayerSource(sourceId);
     if (!source) {
       return;
     }
@@ -753,7 +753,7 @@ export class MainView extends React.Component<IProps, IStates> {
     mapLayer: BaseLayer
   ): Promise<void> {
     const sourceId = layer.parameters?.source;
-    const source = this._model.sharedModel.getSource(sourceId);
+    const source = this._model.sharedModel.getLayerSource(sourceId);
     if (!source) {
       return;
     }
