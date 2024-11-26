@@ -27,9 +27,12 @@ import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import { JupyterGISWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
+import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 
 const FACTORY = 'JupyterGIS .jgis Viewer';
+const CONTENT_TYPE = 'jgis';
 const PALETTE_CATEGORY = 'JupyterGIS';
+const MODEL_NAME = 'jupytergis-jgismodel';
 
 const activate = (
   app: JupyterFrontEnd,
@@ -47,9 +50,9 @@ const activate = (
 ): void => {
   const widgetFactory = new JupyterGISWidgetFactory({
     name: FACTORY,
-    modelName: 'jupytergis-jgismodel',
-    fileTypes: ['jgis'],
-    defaultFor: ['jgis'],
+    modelName: MODEL_NAME,
+    fileTypes: [CONTENT_TYPE],
+    defaultFor: [CONTENT_TYPE],
     tracker,
     commands: app.commands,
     externalCommandRegistry,
@@ -60,20 +63,32 @@ const activate = (
     mimeTypeService: editorServices.mimeTypeService,
     consoleTracker
   });
+
   // Registering the widget factory
   app.docRegistry.addWidgetFactory(widgetFactory);
+
+  const mimeDocumentFactory = new MimeDocumentFactory({
+    dataType: 'json',
+    rendermime,
+    modelName: MODEL_NAME,
+    name: 'JSON Editor',
+    primaryFileType: app.docRegistry.getFileType('json'),
+    fileTypes: [CONTENT_TYPE]
+  });
+  app.docRegistry.addWidgetFactory(mimeDocumentFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
   const modelFactory = new JupyterGISModelFactory();
   app.docRegistry.addModelFactory(modelFactory);
+
   // register the filetype
   app.docRegistry.addFileType({
-    name: 'jgis',
+    name: CONTENT_TYPE,
     displayName: 'JGIS',
     mimeTypes: ['text/json'],
     extensions: ['.jgis', '.JGIS'],
     fileFormat: 'text',
-    contentType: 'jgis',
+    contentType: CONTENT_TYPE,
     icon: logoMiniIcon
   });
 
@@ -82,7 +97,7 @@ const activate = (
   };
   if (drive) {
     drive.sharedModelFactory.registerDocumentFactory(
-      'jgis',
+      CONTENT_TYPE,
       jGISSharedModelFactory
     );
   }
