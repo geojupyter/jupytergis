@@ -1,0 +1,19 @@
+{
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*"]
+  },
+  "targetDefaults": {
+    "build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["default", "^default"],
+      "outputs": ["{projectRoot}/lib"]
+    },
+    "build:dev": {
+      "cache": true,
+      "dependsOn": ["^build:dev"],
+      "inputs": ["default", "^default"],
+      "outputs": ["{projectRoot}/lib"]
+    }
+  }
+}

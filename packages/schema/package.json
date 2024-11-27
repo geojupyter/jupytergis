@@ -25,12 +25,12 @@
     "url": "https://github.com/geojupyter/jupytergis.git"
   },
   "scripts": {
-    "build": "jlpm build:schema && jlpm run build:lib",
+    "build": "jlpm build:schema && jlpm build:lib",
     "build:schema": "jlpm build:schema:js && jlpm build:schema:py",
     "build:schema:js": "json2ts -i src/schema -o src/_interface --no-unknownAny --unreachableDefinitions --cwd ./src/schema && cd src/schema && node ../../schema.js",
     "build:schema:py": "datamodel-codegen --input ./src/schema --output ../../python/jupytergis_lab/jupytergis_lab/notebook/objects/_schema --output-model-type pydantic_v2.BaseModel --input-file-type jsonschema",
     "build:prod": "jlpm run clean && jlpm build:schema && jlpm run build:lib",
-    "build:lib": "tsc",
+    "build:lib": "tsc -b",
     "build:dev": "jlpm run build",
     "clean": "rimraf tsconfig.tsbuildinfo",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
