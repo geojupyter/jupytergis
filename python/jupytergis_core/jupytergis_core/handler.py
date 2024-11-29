@@ -1,3 +1,5 @@
+from os import environ
+
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 import tornado
@@ -38,4 +40,6 @@ def setup_handlers(web_app):
 
     print(f"Setting up proxy handler at: {proxy_route_pattern}")
     handlers = [(proxy_route_pattern, ProxyHandler)]
+    if environ.get("JGIS_EXPOSE_MAPS", False):
+        web_app.settings["page_config_data"]["jgis_expose_maps"] = True
     web_app.add_handlers(host_pattern, handlers)
