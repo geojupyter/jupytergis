@@ -875,7 +875,7 @@ export class MainView extends React.Component<IProps, IStates> {
     const currentProjection = view.getProjection().getCode();
 
     // Need to recreate view if the projection changes
-    if (currentProjection !== projection) {
+    if (projection !== undefined && currentProjection !== projection) {
       const newProjection = getProjection(projection);
       if (newProjection) {
         view = new View({ projection: newProjection });
