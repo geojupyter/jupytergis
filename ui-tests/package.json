@@ -4,7 +4,7 @@
   "description": "JupyterGIS Integration Tests",
   "private": true,
   "scripts": {
-    "start": "jupyter lab --config jupyter_server_test_config.py",
+    "start": "JGIS_EXPOSE_MAPS=1 jupyter lab --config jupyter_server_test_config.py",
     "test": "npx playwright test --workers 1",
     "test:update": "npx playwright test --update-snapshots",
     "test:debug": "PWDEBUG=1 npx playwright test --workers 1"

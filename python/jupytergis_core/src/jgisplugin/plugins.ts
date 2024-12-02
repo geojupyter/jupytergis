@@ -20,6 +20,7 @@ import {
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
+import { PageConfig } from '@jupyterlab/coreutils';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
@@ -48,6 +49,10 @@ const activate = (
   palette: ICommandPalette | null,
   drive: ICollaborativeDrive | null
 ): void => {
+  if (PageConfig.getOption('jgis_expose_maps')) {
+    window.jupytergisMaps = {};
+  }
+
   const widgetFactory = new JupyterGISWidgetFactory({
     name: FACTORY,
     modelName: MODEL_NAME,

@@ -12,6 +12,7 @@ import {
   IJGISSourceDocChange,
   IJupyterGISClientState,
   IJupyterGISDoc,
+  IJupyterGISDocChange,
   IJupyterGISModel,
   IRasterDemSource,
   IRasterLayer,
@@ -110,15 +111,23 @@ export class MainView extends React.Component<IProps, IStates> {
     };
 
     this._sources = [];
+
+    this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
   }
 
   async componentDidMount(): Promise<void> {
     window.addEventListener('resize', this._handleWindowResize);
     await this.generateScene();
     this._mainViewModel.initSignal();
+    if (window.jupytergisMaps !== undefined && this._documentPath) {
+      window.jupytergisMaps[this._documentPath] = this._Map;
+    }
   }
 
   componentWillUnmount(): void {
+    if (window.jupytergisMaps !== undefined && this._documentPath) {
+      delete window.jupytergisMaps[this._documentPath];
+    }
     window.removeEventListener('resize', this._handleWindowResize);
     this._mainViewModel.viewSettingChanged.disconnect(
       this._onViewChanged,
@@ -866,7 +875,7 @@ export class MainView extends React.Component<IProps, IStates> {
     const currentProjection = view.getProjection().getCode();
 
     // Need to recreate view if the projection changes
-    if (currentProjection !== projection) {
+    if (projection !== undefined && currentProjection !== projection) {
       const newProjection = getProjection(projection);
       if (newProjection) {
         view = new View({ projection: newProjection });
@@ -984,6 +993,26 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
+  private _onSharedModelStateChange = (
+    _: any,
+    change: IJupyterGISDocChange
+  ) => {
+    const changedState = change.stateChange?.map(value => value.name);
+    if (!changedState?.includes('path')) {
+      return;
+    }
+    const path = this._model.sharedModel.getState('path');
+    if (path !== this._documentPath && typeof path === 'string') {
+      if (window.jupytergisMaps !== undefined && this._documentPath) {
+        delete window.jupytergisMaps[this._documentPath];
+      }
+      this._documentPath = path;
+      if (window.jupytergisMaps !== undefined) {
+        window.jupytergisMaps[this._documentPath] = this._Map;
+      }
+    }
+  };
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -1027,4 +1056,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _ready = false;
   private _sources: Record<string, any>;
   private _sourceToLayerMap = new Map();
+  private _documentPath?: string;
 }
