@@ -134,3 +134,6 @@ packages/base/rasterlayer_gallery/*
 !packages/base/rasterlayer_gallery/custom_raster.png
 
 untitled*
+
+# nx cache stuff
+.nx
