@@ -163,11 +163,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     const valid = validate(jsonData);
 
     if (!valid) {
-      let errorMsg = 'File format errors:\n';
+      let errorMsg = 'JupyterGIS format errors:\n';
       for (const error of validate.errors || []) {
         errorMsg = `${errorMsg}- ${error.instancePath} ${error.message}\n`;
       }
-      throw Error(errorMsg);
+      console.warn(errorMsg);
     }
 
     this.sharedModel.transact(() => {
