@@ -14,6 +14,11 @@
       "dependsOn": ["^build:dev"],
       "inputs": ["default", "^default"],
       "outputs": ["{projectRoot}/lib"]
+    },
+    "build:prod": {
+      "dependsOn": ["^build:prod"],
+      "inputs": ["default", "^default"],
+      "outputs": ["{projectRoot}/lib"]
     }
   }
 }
