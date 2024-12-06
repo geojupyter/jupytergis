@@ -6,3 +6,4 @@ node_modules
 yarn.lock
 *.jGIS
 playwright.config.js
+packages/base/rasterlayer_gallery
