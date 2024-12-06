@@ -1,5 +1,7 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
+  IAnnotation,
+  IDict,
   IGeoTiffSource,
   IHillshadeLayer,
   IImageLayer,
@@ -64,6 +66,12 @@ import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 //@ts-expect-error no types for proj4-list
 import proj4list from 'proj4-list';
+// import { CommandRegistry } from '@lumino/commands';
+// import { ContextMenu } from '@lumino/widgets';
+import { FloatingAnnotation } from '../annotations';
+import { ContextMenu } from '@lumino/widgets';
+import { CommandRegistry } from '@lumino/commands';
+import { Coordinate } from 'ol/coordinate';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -76,6 +84,7 @@ interface IStates {
   lightTheme: boolean;
   remoteUser?: User.IIdentity | null;
   firstLoad: boolean;
+  annotations: IDict<IAnnotation>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -102,22 +111,63 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
+    // this._mainViewModel.jGISModel.sharedMetadataChanged.connect(
+    //   this._onSharedMetadataChanged,
+    //   this
+    // );
 
     this.state = {
       id: this._mainViewModel.id,
       lightTheme: isLightTheme(),
       loading: true,
-      firstLoad: true
+      firstLoad: true,
+      annotations: {}
     };
 
     this._sources = [];
+    this._commands = new CommandRegistry();
+    // this._contextMenu = new ContextMenu({ commands: this._commands });
 
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
   }
 
+  addContextMenu = (): void => {
+    this._commands.addCommand('add-annotation', {
+      execute: (args?: any) => {
+        if (!this._Map) {
+          return;
+        }
+        console.log('context cliky', this._clickCoords);
+
+        // const position = new THREE.Vector3().copy(
+        //   this._pointer3D.mesh.position
+        // );
+
+        // this._mainViewModel.addAnnotation({
+        //   position: [position.x, position.y, position.z],
+        //   label: 'New annotation',
+        //   contents: [],
+        //   parent: this._pointer3D.parent.name
+        // });
+      },
+      label: 'Add annotation',
+      isEnabled: () => {
+        return !!this._Map;
+      }
+    });
+    console.log('not returning');
+    this._contextMenu = new ContextMenu({ commands: this._commands });
+    this._contextMenu.addItem({
+      command: 'add-annotation',
+      selector: '.ol-viewport',
+      rank: 1
+    });
+  };
+
   async componentDidMount(): Promise<void> {
     window.addEventListener('resize', this._handleWindowResize);
     await this.generateScene();
+    this.addContextMenu();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
@@ -238,8 +288,98 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       this.setState(old => ({ ...old, loading: false }));
+
+      this._Map.getViewport().addEventListener('contextmenu', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const coordinate = this._Map.getEventCoordinate(event);
+        this._clickCoords = coordinate;
+        console.log('Right-clicked at:', this._clickCoords);
+        this._contextMenu.open(event);
+
+        // this.fancyOpen(event);
+      });
     }
   }
+
+  fancyOpen(event: MouseEvent) {
+    this._contextMenu.menu.clearItems();
+    const coordinate = this._Map.getEventCoordinate(event);
+
+    const args = { coordinate };
+
+    this._contextMenu.addItem({
+      command: 'add-annotation',
+      selector: '.ol-viewport',
+      rank: 1,
+      args
+    });
+
+    this._contextMenu.open(event);
+  }
+
+  // private _updateAnnotation() {
+  //   Object.keys(this.state.annotations).forEach(key => {
+  //     const el = document.getElementById(key);
+  //     if (el) {
+  //       const annotation = this._model.annotationModel?.getAnnotation(key);
+  //       let screenPosition = new THREE.Vector2();
+  //       if (annotation) {
+  //         screenPosition = this._computeAnnotationPosition(annotation);
+  //       }
+  //       el.style.left = `${Math.round(screenPosition.x)}px`;
+  //       el.style.top = `${Math.round(screenPosition.y)}px`;
+  //     }
+  //   });
+  // }
+
+  // private _onSharedMetadataChanged = (
+  //   _: IJupyterGISModel,
+  //   changes: MapChange
+  // ) => {
+  //   const newState = { ...this.state.annotations };
+  //   changes.forEach((val, key) => {
+  //     if (!key.startsWith('annotation')) {
+  //       return;
+  //     }
+  //     const data = this._model.sharedModel.getMetadata(key);
+  //     let open = true;
+  //     if (this.state.firstLoad) {
+  //       open = false;
+  //     }
+
+  //     if (data && (val.action === 'add' || val.action === 'update')) {
+  //       const jsonData = JSON.parse(data);
+  //       jsonData['open'] = open;
+  //       newState[key] = jsonData;
+  //     } else if (val.action === 'delete') {
+  //       delete newState[key];
+  //     }
+  //   });
+
+  //   this.setState(old => ({ ...old, annotations: newState, firstLoad: false }));
+  // };
+
+  // private _computeAnnotationPosition(annotation: IAnnotation): THREE.Vector2 {
+  //   const parent = this._meshGroup?.getObjectByName(
+  //     annotation.parent
+  //   ) as BasicMesh;
+  //   const position = new THREE.Vector3(
+  //     annotation.position[0],
+  //     annotation.position[1],
+  //     annotation.position[2]
+  //   );
+
+  //   // If in exploded view, we explode the annotation position as well
+  //   const canvas = this._renderer.domElement;
+  //   const screenPosition = projectVector({
+  //     vector: position,
+  //     camera: this._camera,
+  //     width: canvas.width,
+  //     height: canvas.height
+  //   });
+  //   return screenPosition;
+  // }
 
   private async _loadShapefileAsGeoJSON(
     url: string
@@ -1027,27 +1167,55 @@ export class MainView extends React.Component<IProps, IStates> {
 
   render(): JSX.Element {
     return (
-      <div
-        className="jGIS-Mainview"
-        style={{
-          border: this.state.remoteUser
-            ? `solid 3px ${this.state.remoteUser.color}`
-            : 'unset'
-        }}
-      >
-        <Spinner loading={this.state.loading} />
-
+      <>
+        {/* {Object.entries(this.state.annotations).map(([key, annotation]) => {
+          if (!this._model.annotationModel) {
+            return null;
+          }
+          const screenPosition = this._computeAnnotationPosition(annotation);
+          return (
+            <div
+              key={key}
+              id={key}
+              style={{
+                left: screenPosition.x,
+                top: screenPosition.y
+              }}
+              className={'jcad-Annotation-Wrapper'}
+            >
+              <FloatingAnnotation
+                itemId={key}
+                model={this._model.annotationModel}
+                open={false}
+                // open={annotation.open} // TODO: "open" missing from the IAnnotation interface?
+              />
+            </div>
+          );
+        })} */}
         <div
-          ref={this.divRef}
+          className="jGIS-Mainview"
           style={{
-            width: '100%',
-            height: 'calc(100%)'
+            border: this.state.remoteUser
+              ? `solid 3px ${this.state.remoteUser.color}`
+              : 'unset'
           }}
-        />
-      </div>
+        >
+          <Spinner loading={this.state.loading} />
+
+          <div
+            ref={this.divRef}
+            style={{
+              width: '100%',
+              height: 'calc(100%)'
+            }}
+          />
+        </div>
+      </>
     );
   }
 
+  private _clickCoords: Coordinate;
+  private _commands: CommandRegistry;
   private _initializedPosition = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
   private _Map: OlMap;
@@ -1057,4 +1225,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _sources: Record<string, any>;
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
+  private _contextMenu: ContextMenu;
 }

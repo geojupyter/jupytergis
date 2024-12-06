@@ -1,5 +1,7 @@
-import { JupyterGISWidget } from '@jupytergis/base';
+import { AnnotationModel, JupyterGISWidget } from '@jupytergis/base';
 import {
+  IAnnotationModel,
+  IAnnotationToken,
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
   IJGISFormSchemaRegistry,
@@ -79,3 +81,20 @@ export const layerBrowserRegistryPlugin: JupyterFrontEndPlugin<IJGISLayerBrowser
       return registry;
     }
   };
+
+export const annotationPlugin: JupyterFrontEndPlugin<IAnnotationModel> = {
+  id: 'jupytergis:core:annotation',
+  autoStart: true,
+  requires: [IJupyterGISDocTracker],
+  provides: IAnnotationToken,
+  activate: (app: JupyterFrontEnd, tracker: IJupyterGISTracker) => {
+    const annotationModel = new AnnotationModel({
+      context: tracker.currentWidget?.context
+    });
+
+    tracker.currentChanged.connect((_, changed) => {
+      annotationModel.context = changed?.context || undefined;
+    });
+    return annotationModel;
+  }
+};

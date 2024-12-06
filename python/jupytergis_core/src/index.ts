@@ -3,7 +3,8 @@ import {
   externalCommandRegistryPlugin,
   formSchemaRegistryPlugin,
   layerBrowserRegistryPlugin,
-  trackerPlugin
+  trackerPlugin,
+  annotationPlugin
 } from './plugin';
 
 export * from './factory';
@@ -12,5 +13,6 @@ export default [
   jgisPlugin,
   formSchemaRegistryPlugin,
   externalCommandRegistryPlugin,
-  layerBrowserRegistryPlugin
+  layerBrowserRegistryPlugin,
+  annotationPlugin
 ];

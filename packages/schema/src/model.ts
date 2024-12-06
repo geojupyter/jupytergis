@@ -20,6 +20,7 @@ import {
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
+  IAnnotationModel,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -32,8 +33,8 @@ import {
 import jgisSchema from './schema/jgis.json';
 
 export class JupyterGISModel implements IJupyterGISModel {
-  constructor(options: DocumentRegistry.IModelOptions<IJupyterGISDoc>) {
-    const { sharedModel } = options;
+  constructor(options: JupyterGISModel.IOptions) {
+    const { annotationModel, sharedModel } = options;
 
     if (sharedModel) {
       this._sharedModel = sharedModel;
@@ -42,6 +43,11 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._sharedModel.changed.connect(this._onSharedModelChanged);
     }
     this.sharedModel.awareness.on('change', this._onClientStateChanged);
+    this._sharedModel.metadataChanged.connect(
+      this._metadataChangedHandler,
+      this
+    );
+    this.annotationModel = annotationModel;
   }
 
   private _onSharedModelChanged = (sender: any, changes: any): void => {
@@ -140,6 +146,22 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get disposed(): ISignal<JupyterGISModel, void> {
     return this._disposed;
+  }
+
+  get sharedMetadataChanged(): ISignal<this, MapChange> {
+    return this._sharedMetadataChanged;
+  }
+
+  private _metadataChangedHandler(_: IJupyterGISDoc, args: MapChange) {
+    this._sharedMetadataChanged.emit(args);
+  }
+
+  addMetadata(key: string, value: string): void {
+    this.sharedModel.setMetadata(key, value);
+  }
+
+  removeMetadata(key: string): void {
+    this.sharedModel.removeMetadata(key);
   }
 
   dispose(): void {
@@ -613,6 +635,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
+  readonly annotationModel?: IAnnotationModel;
 
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
@@ -632,6 +655,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     this,
     Map<number, IJupyterGISClientState>
   >(this);
+  private _sharedMetadataChanged = new Signal<this, MapChange>(this);
 
   static worker: Worker;
 }
@@ -642,6 +666,11 @@ export namespace JupyterGISModel {
    */
   export function getOrderedLayerIds(model: IJupyterGISModel): string[] {
     return Private.layerTreeRecursion(model.sharedModel.layerTree);
+  }
+
+  export interface IOptions
+    extends DocumentRegistry.IModelOptions<IJupyterGISDoc> {
+    annotationModel?: IAnnotationModel;
   }
 }
 
