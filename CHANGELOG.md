@@ -2,6 +2,51 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.1.7
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.1.6...52c36a5d1a548724efc055de81f463a34ba1d1fb))
+
+### Enhancements made
+
+- JupyterLite: do not fail on file validation issues [#219](https://github.com/geojupyter/jupytergis/pull/219) ([@martinRenou](https://github.com/martinRenou))
+- Open jgis files with json viewer [#210](https://github.com/geojupyter/jupytergis/pull/210) ([@gjmooney](https://github.com/gjmooney))
+- Add support for other projections [#199](https://github.com/geojupyter/jupytergis/pull/199) ([@gjmooney](https://github.com/gjmooney))
+- Symbology refactor [#193](https://github.com/geojupyter/jupytergis/pull/193) ([@gjmooney](https://github.com/gjmooney))
+- Color ramps and classification [#177](https://github.com/geojupyter/jupytergis/pull/177) ([@gjmooney](https://github.com/gjmooney))
+
+### Bugs fixed
+
+- Skip cache when building prod [#222](https://github.com/geojupyter/jupytergis/pull/222) ([@gjmooney](https://github.com/gjmooney))
+- CI: Set up caching [#211](https://github.com/geojupyter/jupytergis/pull/211) ([@gjmooney](https://github.com/gjmooney))
+- UI-tests fix: Pin Jupyter Lab 4.2 [#203](https://github.com/geojupyter/jupytergis/pull/203) ([@gjmooney](https://github.com/gjmooney))
+- Fix focus bug [#202](https://github.com/geojupyter/jupytergis/pull/202) ([@gjmooney](https://github.com/gjmooney))
+- Add a min-height to the toolbar separator [#200](https://github.com/geojupyter/jupytergis/pull/200) ([@brichet](https://github.com/brichet))
+- Add nodata to geotiff source [#198](https://github.com/geojupyter/jupytergis/pull/198) ([@gjmooney](https://github.com/gjmooney))
+- Set collaborative attribute to False in Jupyterlite [#192](https://github.com/geojupyter/jupytergis/pull/192) ([@martinRenou](https://github.com/martinRenou))
+
+### Maintenance and upkeep improvements
+
+- Skip cache when building prod [#222](https://github.com/geojupyter/jupytergis/pull/222) ([@gjmooney](https://github.com/gjmooney))
+- Commit gallery in the repo [#221](https://github.com/geojupyter/jupytergis/pull/221) ([@martinRenou](https://github.com/martinRenou))
+- Fix update projection and allow exposing maps to ui-tests [#214](https://github.com/geojupyter/jupytergis/pull/214) ([@brichet](https://github.com/brichet))
+- Disable docprovider-extension in lite deployment [#213](https://github.com/geojupyter/jupytergis/pull/213) ([@brichet](https://github.com/brichet))
+- Update to jupyter-collaboration>=3 [#204](https://github.com/geojupyter/jupytergis/pull/204) ([@brichet](https://github.com/brichet))
+- Use appsharing for testing jupyterlite from PRs and galata reports [#188](https://github.com/geojupyter/jupytergis/pull/188) ([@martinRenou](https://github.com/martinRenou))
+
+### Documentation improvements
+
+- Fix links to docs and lite deployment [#206](https://github.com/geojupyter/jupytergis/pull/206) ([@martinRenou](https://github.com/martinRenou))
+- Build and publish docs to github pages [#205](https://github.com/geojupyter/jupytergis/pull/205) ([@martinRenou](https://github.com/martinRenou))
+- first draft of documentation for JupyterGIS [#195](https://github.com/geojupyter/jupytergis/pull/195) ([@annefou](https://github.com/annefou))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-10-14&to=2024-12-06&type=c))
+
+[@annefou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aannefou+updated%3A2024-10-14..2024-12-06&type=Issues) | [@brichet](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2024-10-14..2024-12-06&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-10-14..2024-12-06&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2024-10-14..2024-12-06&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-10-14..2024-12-06&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.1.6
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.1.5...84200c15ed4537cf469482035c2d4eca9ffbfb42))
@@ -23,8 +68,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2024-10-04&to=2024-10-14&type=c))
 
 [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2024-10-04..2024-10-14&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2024-10-04..2024-10-14&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2024-10-04..2024-10-14&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2024-10-04..2024-10-14&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.1.5
 
