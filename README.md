@@ -21,12 +21,30 @@ https://geojupyter.github.io/jupytergis/lite/lab/index.html
 ### Prerequisites
 
 - JupyterLab (version 3.0 or higher)
-- (OPTIONAL) QGIS installed on your system and its Python modules available in the PATH. e.g. `mamba install -c conda-forge qgis`
+- (OPTIONAL) QGIS installed on your system and its Python modules available in the PATH. e.g. `mamba install --channel conda-forge qgis`
 
 ### Installing JupyterGIS
 
+#### From PyPI
+
 ```bash
-pip install jupytergis
+python -m pip install jupytergis
+```
+
+#### From conda-forge
+
+JupyterGIS is also packaged and distributed on [conda-forge](https://github.com/conda-forge/jupytergis-packages-feedstock).
+
+To install and add JupyterGIS to a project with [`pixi`](https://pixi.sh/), from the project directory run
+
+```
+pixi add jupytergis
+```
+
+and to install into a particular conda environment with [`mamba`](https://mamba.readthedocs.io/), in the activated environment run
+
+```
+mamba install --channel conda-forge jupytergis
 ```
 
 ## Documentation
