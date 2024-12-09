@@ -5,6 +5,7 @@ import * as React from 'react';
 
 // import { minimizeIcon } from '../tools';
 import { Message } from './message';
+import { minimizeIcon } from '../icons';
 
 interface IAnnotationProps {
   itemId: string;
@@ -133,8 +134,7 @@ export const FloatingAnnotation = (
                 setOpenOrDelete(false);
               }}
             >
-              {/* <minimizeIcon.react className="jcad-Annotation-TopBarIcon" /> */}
-              min
+              <minimizeIcon.react className="jcad-Annotation-TopBarIcon" />
             </div>
           </div>
         </Annotation>

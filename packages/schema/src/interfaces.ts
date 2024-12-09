@@ -73,7 +73,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layers: IJGISLayers;
   sources: IJGISSources;
   layerTree: IJGISLayerTree;
-  metadata: JSONObject;
+  metadata: any;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
@@ -150,6 +150,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sharedLayerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
+  sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
 
   setDrive(value: ICollaborativeDrive, filePath: string): void;
   getContent(): IJGISContent;
@@ -287,7 +288,7 @@ export interface IAnnotationContent {
 
 export interface IAnnotation {
   label: string;
-  position: [number, number, number];
+  position: [number, number];
   contents: IAnnotationContent[];
   parent: string;
 }

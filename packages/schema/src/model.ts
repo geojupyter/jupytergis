@@ -204,6 +204,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         pitch: 0,
         projection: 'EPSG:3857'
       };
+      this.sharedModel.metadata = jsonData.metadata ?? {};
     });
     this.dirty = true;
   }
@@ -229,7 +230,8 @@ export class JupyterGISModel implements IJupyterGISModel {
       sources: this.sharedModel.sources,
       layers: this.sharedModel.layers,
       layerTree: this.sharedModel.layerTree,
-      options: this.sharedModel.options
+      options: this.sharedModel.options,
+      metadata: this.sharedModel.metadata
     };
   }
 

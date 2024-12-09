@@ -21,6 +21,7 @@ class YQGISBase(YBaseDoc):
         self._ydoc["sources"] = self._ysources = Map()
         self._ydoc["options"] = self._yoptions = Map()
         self._ydoc["layerTree"] = self._ylayerTree = Array()
+        self._ydoc["metadata"] = self._ymetadata = Map()
         self._source = ""
         self._file_extension = None
 
@@ -40,6 +41,10 @@ class YQGISBase(YBaseDoc):
     def layerTree(self) -> Array:
         return self._ylayerTree
 
+    @property
+    def metadata(self) -> Map:
+        return self._ymetadata
+
     def version(self) -> str:
         return "0.1.0"
 
@@ -49,6 +54,7 @@ class YQGISBase(YBaseDoc):
             "sources": self._ysources.to_py(),
             "layerTree": reversed_tree(self._ylayerTree.to_py()),
             "options": self._yoptions.to_py(),
+            "metadata": self._ymetadata.to_py(),
         }
         source = self._save(virtual_file)
 
@@ -75,6 +81,9 @@ class YQGISBase(YBaseDoc):
         self._yoptions.clear()
         self._yoptions.update(virtual_file["options"])
 
+        self._ymetadata.clear()
+        self._ymetadata.update(valueDict.get("metadata", {}))
+
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()
         self._subscriptions[self._ystate] = self._ystate.observe(
@@ -91,6 +100,9 @@ class YQGISBase(YBaseDoc):
         )
         self._subscriptions[self._ylayerTree] = self._ylayerTree.observe(
             partial(callback, "layerTree")
+        )
+        self._subscriptions[self._ymetadata] = self._ymetadata.observe_deep(
+            partial(callback, "meta")
         )
 
     def _load(self, source: str):

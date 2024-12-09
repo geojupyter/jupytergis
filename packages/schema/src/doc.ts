@@ -42,7 +42,7 @@ export class JupyterGISDoc
     this._layerTree.observe(this._layerTreeObserver.bind(this));
     this._sources.observeDeep(this._sourcesObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
-    this._metadata.observe(this._metaObserver);
+    this._metadata.observe(this._metaObserver.bind(this));
   }
 
   getSource(): JSONObject {
@@ -295,6 +295,15 @@ export class JupyterGISDoc
 
   get metadata(): JSONObject {
     return JSONExt.deepCopy(this._metadata.toJSON());
+  }
+
+  set metadata(metadata: { [k: string]: string }) {
+    console.log('metadata', metadata);
+    this.transact(() => {
+      for (const [key, value] of Object.entries(metadata)) {
+        this._metadata.set(key, value);
+      }
+    });
   }
 
   get metadataChanged(): ISignal<IJupyterGISDoc, MapChange> {

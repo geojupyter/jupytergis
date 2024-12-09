@@ -15,6 +15,15 @@
     },
     "options": {
       "$ref": "#/definitions/jGISOptions"
+    },
+    "metadata": {
+      "type": "object",
+      "patternProperties": {
+        "^.*$": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "definitions": {
