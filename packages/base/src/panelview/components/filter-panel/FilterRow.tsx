@@ -88,7 +88,7 @@ const FilterRow = ({
     <div className="jp-gis-filter-row">
       <select
         id={`jp-gis-feature-select-${index}`}
-        className="jp-mod-styled jp-SchemaForm"
+        className="jp-mod-styled rjsf"
         onChange={handleKeyChange}
       >
         {/* Populate options based on the keys of the filters object */}
@@ -104,7 +104,7 @@ const FilterRow = ({
       </select>
       <select
         id={`jp-gis-operator-select-${index}`}
-        className="jp-mod-styled jp-SchemaForm"
+        className="jp-mod-styled rjsf"
         onChange={handleOperatorChange}
       >
         {operators.map((operator, operatorIndex) => (
@@ -119,7 +119,7 @@ const FilterRow = ({
       </select>
       <select
         id={`jp-gis-value-select-${index}`}
-        className="jp-mod-styled jp-SchemaForm"
+        className="jp-mod-styled rjsf"
         onChange={handleValueChange}
       >
         {/* Populate options based on the values of the selected key */}

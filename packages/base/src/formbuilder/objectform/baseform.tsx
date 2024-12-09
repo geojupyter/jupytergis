@@ -1,9 +1,7 @@
-import { SchemaForm } from '@deathbeds/jupyterlab-rjsf';
-import { MessageLoop } from '@lumino/messaging';
-import { Widget } from '@lumino/widgets';
+import { FormComponent } from '@jupyterlab/ui-components';
+import validatorAjv8 from '@rjsf/validator-ajv8';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 import * as React from 'react';
-
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { Signal } from '@lumino/signaling';
@@ -69,33 +67,17 @@ export interface IBaseFormProps {
   formErrorSignal?: Signal<Dialog<any>, boolean>;
 }
 
-// Reusing the datalayer/jupyter-react component:
-// https://github.com/datalayer/jupyter-react/blob/main/packages/react/src/jupyter/lumino/Lumino.tsx
-export const LuminoSchemaForm = (
-  props: React.PropsWithChildren<any>
-): JSX.Element => {
-  const ref = React.useRef<HTMLDivElement>(null);
-  const { children } = props;
-  React.useEffect(() => {
-    const widget = children as SchemaForm;
-    try {
-      MessageLoop.sendMessage(widget, Widget.Msg.BeforeAttach);
-      ref.current!.insertBefore(widget.node, null);
-      MessageLoop.sendMessage(widget, Widget.Msg.AfterAttach);
-    } catch (e) {
-      console.warn('Exception while attaching Lumino widget.', e);
-    }
-    return () => {
-      try {
-        if (widget.isAttached || widget.node.isConnected) {
-          Widget.detach(widget);
-        }
-      } catch (e) {
-        console.warn('Exception while detaching Lumino widget.', e);
-      }
-    };
-  }, [children]);
-  return <div ref={ref} />;
+const WrappedFormComponent = (props: any): JSX.Element => {
+  const { fields, ...rest } = props;
+  return (
+    <FormComponent
+      {...rest}
+      validator={validatorAjv8}
+      fields={{
+        ...fields
+      }}
+    />
+  );
 };
 
 /**
@@ -121,6 +103,14 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       this.currentFormData = deepCopy(this.props.sourceData);
       const schema = deepCopy(this.props.schema);
       this.setState(old => ({ ...old, schema }));
+    }
+  }
+
+  componentDidMount() {
+    if (this.props.formErrorSignal) {
+      const extraErrors = Object.keys({ ...this.state.extraErrors }).length > 0;
+      this.setState(old => ({ ...old, ...this.state.extraErrors }));
+      this.props.formErrorSignal.emit(extraErrors);
     }
   }
 
@@ -240,7 +230,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
     if (this.props.schema) {
       const schema = { ...this.state.schema, additionalProperties: true };
       const formData = this.currentFormData;
-
+      
       const uiSchema = {
         additionalProperties: {
           'ui:label': false,
@@ -255,26 +245,37 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       this.props.ok?.connect(() => {
         submitRef.current?.click();
       });
-
-      const formSchema = new SchemaForm(schema, {
-        liveValidate: true,
-        formData,
-        onChange: this.onFormChange.bind(this),
-        onSubmit: this.onFormSubmit.bind(this),
-        onBlur: this.onFormBlur.bind(this),
-        uiSchema,
-        children: (
-          <button ref={submitRef} type="submit" style={{ display: 'none' }} />
-        ),
-        extraErrors: this.state.extraErrors
-      });
       return (
         <div
           className="jGIS-property-panel"
           data-path={this.props.filePath ?? ''}
         >
-          <div className="jGIS-property-outer">
-            <LuminoSchemaForm>{formSchema}</LuminoSchemaForm>
+          <div
+            className="jGIS-property-outer"
+            onKeyUp={(e: React.KeyboardEvent) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                submitRef.current?.click();
+              }
+            }}
+          >
+            <WrappedFormComponent
+              schema={schema}
+              uiSchema={uiSchema}
+              formData={formData}
+              onSubmit={this.onFormSubmit.bind(this)}
+              onChange={this.onFormChange.bind(this)}
+              onBlur={this.onFormBlur.bind(this)}
+              liveValidate
+              children={
+                <button
+                  ref={submitRef}
+                  type="submit"
+                  style={{ display: 'none' }}
+                />
+              }
+              extraErrors={this.state.extraErrors}
+            />
           </div>
 
           {!this.props.ok && (

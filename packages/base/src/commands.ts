@@ -299,7 +299,7 @@ export function addCommands(
       createSource: true,
       sourceData: {
         name: 'Custom GeoTiff Source',
-        urls: ['']
+        urls: [{}]
       },
       layerData: { name: 'Custom GeoTiff Layer' },
       sourceType: 'GeoTiffSource',

@@ -6,6 +6,7 @@ import { LayerPropertiesForm } from './objectform/layerform';
 import { TileSourcePropertiesForm } from './objectform/tilesourceform';
 import { VectorLayerPropertiesForm } from './objectform/vectorlayerform';
 import { WebGlLayerPropertiesForm } from './objectform/webGlLayerForm';
+import { GeoTiffSourcePropertiesForm } from './objectform/geotiffsource';
 
 export function getLayerTypeForm(
   layerType: LayerType
@@ -31,10 +32,12 @@ export function getLayerTypeForm(
 
 export function getSourceTypeForm(sourceType: SourceType): typeof BaseForm {
   let SourceForm = BaseForm;
-
   switch (sourceType) {
     case 'GeoJSONSource':
       SourceForm = GeoJSONSourcePropertiesForm;
+      break;
+    case 'GeoTiffSource':
+      SourceForm = GeoTiffSourcePropertiesForm;
       break;
     case 'RasterSource':
     case 'VectorTileSource':
