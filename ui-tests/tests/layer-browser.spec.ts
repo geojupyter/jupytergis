@@ -98,15 +98,15 @@ async function getGridTiles(page: IJupyterLabPageFixture): Promise<Locator> {
 test.describe('#layerBrowser', () => {
   test.beforeAll(async ({ request }) => {
     const content = galata.newContentsHelper(request);
-    await content.deleteDirectory('/examples');
+    await content.deleteDirectory('/testDir');
     await content.uploadDirectory(
-      path.resolve(__dirname, '../../examples'),
-      '/examples'
+      path.resolve(__dirname, './gis-files'),
+      '/testDir'
     );
   });
 
   test.beforeEach(async ({ page }) => {
-    await page.filebrowser.open('examples/test.jGIS');
+    await page.filebrowser.open('testDir/test.jGIS');
   });
 
   test.afterEach(async ({ page }) => {

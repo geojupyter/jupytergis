@@ -60,9 +60,5 @@
       },
       "type": "VectorTileSource"
     }
-  },
-  "terrain": {
-    "exaggeration": 0.0,
-    "source": ""
   }
 }

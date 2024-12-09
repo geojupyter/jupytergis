@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
 from uuid import uuid4
+
 from dirty_equals import IsPartialDict, IsStr
 
-from ..qgis_loader import import_project_from_qgis, export_project_to_qgis
-
+from ..qgis_loader import export_project_to_qgis, import_project_from_qgis
 
 FILES = Path(__file__).parent / "files"
 
@@ -19,19 +19,20 @@ def test_qgis_loader():
         options={
             "bearing": 0.0,
             "pitch": 0,
+            "projection": "EPSG:3857",
             "extent": [
                 -25164292.70393259,
                 -15184674.291019961,
                 26220958.18294687,
                 20663680.478501424,
             ],
-            "useExtent": True
+            "useExtent": True,
         },
         layers={
             "_02b1b4d5_316b_4f4d_9c38_16bf10a3bcb8": {
                 "name": "OpenStreetMap0",
                 "parameters": {
-                    'opacity': 1.0,
+                    "opacity": 1.0,
                     "source": source_id0,
                 },
                 "type": "RasterLayer",
@@ -40,7 +41,7 @@ def test_qgis_loader():
             "_097deeeb_6564_48d1_a3be_1caa4d93382f": {
                 "name": "OpenStreetMap1",
                 "parameters": {
-                    'opacity': 1.0,
+                    "opacity": 1.0,
                     "source": source_id1,
                 },
                 "type": "RasterLayer",
@@ -49,7 +50,7 @@ def test_qgis_loader():
             "_bccce044_998d_45f9_bf6b_fe1472681cc3": {
                 "name": "OpenStreetMap2",
                 "parameters": {
-                    'opacity': 1.0,
+                    "opacity": 1.0,
                     "source": source_id2,
                 },
                 "type": "RasterLayer",
@@ -58,7 +59,7 @@ def test_qgis_loader():
             "_32a77a2c_1756_4876_9f99_e3c7b702f86a": {
                 "name": "OpenStreetMap3",
                 "parameters": {
-                    'opacity': 1.0,
+                    "opacity": 1.0,
                     "source": source_id3,
                 },
                 "type": "RasterLayer",
@@ -130,6 +131,7 @@ def test_qgis_saver():
         "options": {
             "bearing": 0.0,
             "pitch": 0,
+            "projection": "EPSG:3857",
             "extent": [
                 -25164292.70393259,
                 -15184674.291019961,
@@ -161,7 +163,12 @@ def test_qgis_saver():
                 "name": "Vector Tile Layer",
                 "parameters": {
                     "opacity": 1.0,
-                    'color': [],
+                    "color": {
+                        "circle-fill-color": "#e1598987",
+                        "circle-stroke-color": "#e1598987",
+                        "fill-color": "#c43c39ff",
+                        "stroke-color": "#e5b636ff",
+                    },
                     "source": source_ids[2],
                     "sourceLayer": "bingmlbuildings",
                     "type": "fill",

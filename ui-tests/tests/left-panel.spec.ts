@@ -39,6 +39,30 @@ async function openSourcePanel(page: IJupyterLabPageFixture): Promise<Locator> {
   return sourcePanel;
 }
 
+async function getOpenLayerIds(
+  page: IJupyterLabPageFixture
+): Promise<string[]> {
+  return await page.evaluate(() => {
+    const olMap = Object.values(window.jupytergisMaps)[0];
+    return olMap
+      .getLayers()
+      .getArray()
+      .map(layer => layer.getProperties()['id']) as string[];
+  });
+}
+
+async function getOpenLayerVisibility(
+  page: IJupyterLabPageFixture
+): Promise<boolean[]> {
+  return await page.evaluate(() => {
+    const olMap = Object.values(window.jupytergisMaps)[0];
+    return olMap
+      .getLayers()
+      .getArray()
+      .map(layer => layer.getVisible()) as boolean[];
+  });
+}
+
 test.describe('#overview', () => {
   test('should have a left panel', async ({ page }) => {
     const panelIcon = page.getByTitle('JupyterGIS Control Panel');
@@ -153,38 +177,26 @@ test.describe('#layerPanel', () => {
       await expect(showLayerButton).toHaveCount(0);
     });
 
-    test('should hide the top raster layer', async ({ page }) => {
+    test('should hide the last layer', async ({ page }) => {
       const layerTree = await openLayerTree(page);
-      const layerGroup = layerTree.locator('.jp-gis-layerGroup');
-      const main = page.locator('.jGIS-Mainview');
 
-      // Open the first level group
-      await layerGroup.last().click();
-      await page.waitForCondition(async () => (await layerGroup.count()) === 2);
+      // Wait for the map to be loaded;
+      await page.waitForCondition(
+        async () => (await getOpenLayerIds(page)).length === 3
+      );
 
       // Wait for the map to be displayed.
-      expect(await main.screenshot()).toMatchSnapshot({
-        name: 'top-layer-not-hidden.png',
-        maxDiffPixelRatio: 0.01
-      });
+      let layerVisibility = await getOpenLayerVisibility(page);
+      layerVisibility.forEach(visible => expect(visible).toBeTruthy());
 
       const hideLayerButton = layerTree.getByTitle('Hide layer');
 
-      // Hide the last layer (top in z-index).
-      await hideLayerButton.first().click();
+      // Hide the last layer
+      await hideLayerButton.last().click();
 
-      // wait for the map to be updated.
-      await page.waitForCondition(async () => {
-        try {
-          expect(await main.screenshot()).toMatchSnapshot({
-            name: 'top-layer-hidden.png',
-            maxDiffPixelRatio: 0.01
-          });
-          return true;
-        } catch {
-          return false;
-        }
-      });
+      layerVisibility = await getOpenLayerVisibility(page);
+
+      expect(layerVisibility[0]).toBeFalsy();
 
       // Restore the visibility of the layer.
       const showLayerButton = layerTree.getByTitle('Show layer');
@@ -240,7 +252,13 @@ test.describe('#layerPanel', () => {
       const layerTree = await openLayerTree(page);
       const layers = layerTree.locator('.jp-gis-layer');
       const layerGroup = layerTree.locator('.jp-gis-layerGroup');
-      const main = page.locator('.jGIS-Mainview');
+
+      // Wait for the map to be loaded;
+      await page.waitForCondition(
+        async () => (await getOpenLayerIds(page)).length === 3
+      );
+
+      const layerIds = await getOpenLayerIds(page);
 
       // Open the first level group
       await layerGroup.last().click();
@@ -256,18 +274,11 @@ test.describe('#layerPanel', () => {
       );
       await page.mouse.up();
 
-      // wait for the map to be updated.
-      await page.waitForCondition(async () => {
-        try {
-          expect(await main.screenshot()).toMatchSnapshot({
-            name: 'top-layer-hidden.png',
-            maxDiffPixelRatio: 0.01
-          });
-          return true;
-        } catch {
-          return false;
-        }
-      });
+      const newLayerIds = await getOpenLayerIds(page);
+
+      // expect 2 layers to be inverted
+      expect(newLayerIds[0]).toBe(layerIds[1]);
+      expect(newLayerIds[1]).toBe(layerIds[0]);
     });
   });
 });

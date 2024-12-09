@@ -72,6 +72,7 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
     uiSchema: IDict
   ) {
     this.removeFormEntry('color', data, schema, uiSchema);
+    this.removeFormEntry('symbologyState', data, schema, uiSchema);
     super.processSchema(data, schema, uiSchema);
 
     if (!data) {

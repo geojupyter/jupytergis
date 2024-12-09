@@ -13,9 +13,6 @@
     "layerTree": {
       "$ref": "#/definitions/jGISLayerTree"
     },
-    "terrain": {
-      "$ref": "#/definitions/jGISTerrain"
-    },
     "options": {
       "$ref": "#/definitions/jGISOptions"
     }
@@ -144,24 +141,6 @@
       "default": [],
       "items": {
         "$ref": "#/definitions/jGISLayerItem"
-      }
-    },
-    "jGISTerrain": {
-      "title": "IJGISTerrain",
-      "type": "object",
-      "default": {},
-      "required": ["source", "exaggeration"],
-      "additionalProperties": false,
-      "properties": {
-        "source": {
-          "type": "string",
-          "description": "The id of the DEM source",
-          "default": ""
-        },
-        "exaggeration": {
-          "type": "number",
-          "default": 1
-        }
       }
     },
     "jGISOptions": {

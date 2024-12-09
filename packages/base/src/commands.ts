@@ -17,8 +17,7 @@ import { ITranslator } from '@jupyterlab/translation';
 import { CommandIDs, icons } from './constants';
 import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
-import { SymbologyWidget } from './dialogs/symbologyDialog';
-import { TerrainDialogWidget } from './dialogs/terrainDialog';
+import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import { JupyterGISWidget } from './widget';
 
 interface ICreateEntry {
@@ -752,35 +751,6 @@ export function addCommands(
     }
   });
 
-  /**
-   * Terrain commands
-   */
-  commands.addCommand(CommandIDs.newTerrain, {
-    label: trans.__('New Terrain'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createTerrainDialog(tracker),
-    ...icons.get(CommandIDs.newTerrain)
-  });
-
-  commands.addCommand(CommandIDs.removeTerrain, {
-    label: trans.__('Remove Terrain'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: () => {
-      tracker.currentWidget?.context.model.setTerrain({
-        source: '',
-        exaggeration: 0
-      });
-    }
-  });
-
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
@@ -856,23 +826,6 @@ namespace Private {
         context: current.context,
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry
-      });
-      await dialog.launch();
-    };
-  }
-
-  export function createTerrainDialog(
-    tracker: WidgetTracker<JupyterGISWidget>
-  ) {
-    return async () => {
-      const current = tracker.currentWidget;
-
-      if (!current) {
-        return;
-      }
-
-      const dialog = new TerrainDialogWidget({
-        context: current.context
       });
       await dialog.launch();
     };

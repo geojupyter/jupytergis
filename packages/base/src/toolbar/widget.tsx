@@ -3,6 +3,7 @@ import { CommandToolbarButton } from '@jupyterlab/apputils';
 import {
   ReactWidget,
   Toolbar,
+  ReactiveToolbar,
   ToolbarButton,
   addIcon,
   redoIcon,
@@ -29,9 +30,9 @@ export class Separator extends Widget {
   }
 }
 
-export class ToolbarWidget extends Toolbar {
+export class ToolbarWidget extends ReactiveToolbar {
   constructor(options: ToolbarWidget.IOptions) {
-    super(options);
+    super();
 
     this.addClass('jGIS-toolbar-widget');
 
@@ -101,7 +102,7 @@ export class ToolbarWidget extends Toolbar {
 
       const NewButton = new ToolbarButton({
         icon: addIcon,
-        actualOnClick: true,
+        noFocusOnClick: false,
         onClick: () => {
           if (!options.commands) {
             return;
@@ -150,7 +151,7 @@ export class ToolbarWidget extends Toolbar {
 
       this.addItem('New', NewButton);
 
-      this.addItem('spacer', Toolbar.createSpacerItem());
+      this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
       // Users
       this.addItem(

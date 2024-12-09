@@ -1,4 +1,4 @@
-import { ICollaborativeDrive } from '@jupyter/docprovider';
+import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
 import {
   Delta,
   DocumentChange,
@@ -24,7 +24,6 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources,
-  IJGISTerrain,
   SourceType
 } from './_interface/jgis';
 import { IRasterSource } from './_interface/rastersource';
@@ -73,7 +72,6 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layers: IJGISLayers;
   sources: IJGISSources;
   layerTree: IJGISLayerTree;
-  terrain: IJGISTerrain;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
@@ -91,7 +89,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   updateLayer(id: string, value: IJGISLayer): void;
 
   sourceExists(id: string): boolean;
-  getSource(id: string): IJGISSource | undefined;
+  getLayerSource(id: string): IJGISSource | undefined;
   removeSource(id: string): void;
   addSource(id: string, value: IJGISSource): void;
   updateSource(id: string, value: IJGISSource): void;
@@ -112,7 +110,6 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
-  terrainChanged: ISignal<IJupyterGISDoc, IJGISTerrain>;
 }
 
 export interface IJupyterGISDocChange extends DocumentChange {
@@ -145,7 +142,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sharedLayerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
-  terrainChanged: ISignal<IJupyterGISDoc, IJGISTerrain>;
 
   setDrive(value: ICollaborativeDrive, filePath: string): void;
   getContent(): IJGISContent;
@@ -167,8 +163,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setOptions(value: IJGISOptions): void;
 
   readGeoJSON(filepath: string): Promise<GeoJSON | undefined>;
-
-  setTerrain(terrain: IJGISTerrain): void;
 
   removeLayerGroup(groupName: string): void;
   renameLayerGroup(groupName: string, newName: string): void;

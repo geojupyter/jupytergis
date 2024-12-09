@@ -1,11 +1,11 @@
 import {
   ICollaborativeDrive,
   SharedDocumentFactory
-} from '@jupyter/docprovider';
+} from '@jupyter/collaborative-drive';
 import {
-  JupyterGISDoc,
   IJGISExternalCommandRegistry,
-  IJGISExternalCommandRegistryToken
+  IJGISExternalCommandRegistryToken,
+  JupyterGISDoc
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -14,21 +14,21 @@ import {
 import {
   Dialog,
   ICommandPalette,
-  InputDialog,
   IThemeManager,
+  InputDialog,
+  WidgetTracker,
   showDialog,
-  showErrorMessage,
-  WidgetTracker
+  showErrorMessage
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { PathExt } from '@jupyterlab/coreutils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
+import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Widget } from '@lumino/widgets';
 
+import { JupyterGISWidget, logoMiniIcon, requestAPI } from '@jupytergis/base';
 import { JupyterGISWidgetFactory } from '@jupytergis/jupytergis-core';
 import { IJupyterGISDocTracker, IJupyterGISWidget } from '@jupytergis/schema';
-import { JupyterGISWidget, requestAPI } from '@jupytergis/base';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
 
 /**
@@ -101,7 +101,8 @@ const activate = async (
     contentFactory,
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
-    consoleTracker
+    consoleTracker,
+    drive
   });
   const QGZWidgetFactory = new JupyterGISWidgetFactory({
     name: 'JupyterGIS QGZ Factory',
@@ -116,7 +117,8 @@ const activate = async (
     contentFactory,
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
-    consoleTracker
+    consoleTracker,
+    drive
   });
 
   // Registering the widget factory
@@ -133,7 +135,8 @@ const activate = async (
     mimeTypes: ['application/octet-stream'],
     extensions: ['.qgs', '.QGS'],
     fileFormat: 'base64',
-    contentType: 'QGS'
+    contentType: 'QGS',
+    icon: logoMiniIcon
   });
   app.docRegistry.addFileType({
     name: 'QGZ',
@@ -141,7 +144,8 @@ const activate = async (
     mimeTypes: ['application/octet-stream'],
     extensions: ['.qgz', '.QGZ'],
     fileFormat: 'base64',
-    contentType: 'QGZ'
+    contentType: 'QGZ',
+    icon: logoMiniIcon
   });
 
   const QGISSharedModelFactory: SharedDocumentFactory = () => {

@@ -20,9 +20,8 @@
       "description": "The source layer to use"
     },
     "color": {
-      "type": "string",
-      "description": "The color of the the object",
-      "default": "#FF0000"
+      "type": "object",
+      "description": "The color of the the object"
     },
     "opacity": {
       "type": "number",
@@ -31,6 +30,44 @@
       "multipleOf": 0.1,
       "minimum": 0,
       "maximum": 1
+    },
+    "symbologyState": {
+      "type": "object",
+      "description": "The state of the symbology panel options",
+      "required": ["renderType"],
+      "properties": {
+        "renderType": {
+          "type": "string",
+          "enum": ["Single Symbol", "Graduated", "Categorized"]
+        },
+        "value": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string",
+          "enum": ["color", "radius"]
+        },
+        "colorRamp": {
+          "type": "string",
+          "default": "cool"
+        },
+        "nClasses": {
+          "type": "string",
+          "default": "9"
+        },
+        "mode": {
+          "type": "string",
+          "default": "equal interval",
+          "enum": [
+            "quantile",
+            "equal interval",
+            "jenks",
+            "pretty",
+            "logarithmic"
+          ]
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

@@ -153,7 +153,7 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.9
-            jupyterlab
+            jupyterlab=4
             ipywidgets
             qgis
 
@@ -194,6 +194,7 @@ jobs:
         run: npx playwright test --retries=2
 
       - name: Upload Playwright Test report
+        id: upload-galata-artifact
         if: always()
         uses: actions/upload-artifact@v3
         with:
@@ -201,6 +202,13 @@ jobs:
           path: |
             ui-tests/test-results
             ui-tests/playwright-report
+
+      - name: Save artifact data
+        if: always()
+        uses: trungleduc/appsharingspace-pr-comment/.github/actions/save-artifact-link@v2
+        with:
+          output_name: galata-apss
+          artifact_link: 'https://github.com/${{ github.repository }}/actions/runs/${{github.run_id}}/artifacts/${{ steps.upload-galata-artifact.outputs.artifact-id }}'
 
   check_linting:
     name: Lint check
@@ -235,8 +243,8 @@ jobs:
       - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
       - uses: jupyterlab/maintainer-tools/.github/actions/check-links@v1
 
-  build-lite:
-    name: Build JupyterLite
+  build-docs-and-lite:
+    name: Build docs with JupyterLite deployment
     needs: build
     runs-on: ubuntu-latest
 
@@ -254,6 +262,10 @@ jobs:
             pip
             jupyterlite-core>=0.2.0,<0.3.0
             jupyterlite-xeus>=0.1.2,<0.2
+            jupyterlite-sphinx
+            sphinx
+            pydata-sphinx-theme
+            sphinx-autodoc-typehints
 
       - name: Download extension package
         uses: actions/download-artifact@v3
@@ -267,22 +279,27 @@ jobs:
           cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
           python -m pip install jupytergis*.whl
 
-      - name: Build the lite site
+      - name: Build the docs site
         shell: bash -l {0}
-        working-directory: lite
+        working-directory: docs
         run: |
           set -eux
-          mkdir -p content && cp ../examples/* ./content
-          jupyter lite build --contents content --output-dir dist
+          sphinx-build . dist
 
       - name: Upload artifact
+        id: upload-docs-artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./lite/dist
+          path: ./docs/dist
           retention-days: 30
 
+      - name: Save artifact data
+        uses: trungleduc/appsharingspace-pr-comment/.github/actions/save-artifact-link@v2
+        with:
+          artifact_link: 'https://github.com/${{ github.repository }}/actions/runs/${{github.run_id}}/artifacts/${{ steps.upload-docs-artifact.outputs.artifact_id }}'
+
   deploy:
-    needs: build-lite
+    needs: build-docs-and-lite
     if: github.ref == 'refs/heads/main'
     permissions:
       pages: write

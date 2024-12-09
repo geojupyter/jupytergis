@@ -1,4 +1,4 @@
-import { ICollaborativeDrive } from '@jupyter/docprovider';
+import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
 import { JupyterGISPanel } from '@jupytergis/base';
 import { JupyterGISModel, IJupyterGISDoc } from '@jupytergis/schema';
 
