@@ -1,11 +1,9 @@
 import { IAnnotationModel } from '@jupytergis/schema';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { caretRightIcon, closeIcon } from '@jupyterlab/ui-components';
-import * as React from 'react';
-
-// import { minimizeIcon } from '../tools';
 import { Message } from './message';
 import { minimizeIcon } from '../icons';
+import React, { useMemo, useState } from 'react';
 
 interface IAnnotationProps {
   itemId: string;
@@ -20,12 +18,9 @@ interface IFloatingAnnotationProps extends IAnnotationProps {
 export const Annotation = (props: IAnnotationProps): JSX.Element => {
   const { itemId, model } = props;
   const annotation = model.getAnnotation(itemId);
-  const contents = React.useMemo(
-    () => annotation?.contents ?? [],
-    [annotation]
-  );
+  const contents = useMemo(() => annotation?.contents ?? [], [annotation]);
 
-  const [messageContent, setMessageContent] = React.useState<string>('');
+  const [messageContent, setMessageContent] = useState<string>('');
 
   if (!annotation) {
     return <div></div>;
@@ -37,7 +32,7 @@ export const Annotation = (props: IAnnotationProps): JSX.Element => {
   };
 
   return (
-    <div className="jcad-Annotation">
+    <div className="jgis-Annotation">
       {props.children}
       <div style={{ paddingBottom: 10, maxHeight: 400, overflow: 'auto' }}>
         {contents.map(content => {
@@ -50,7 +45,7 @@ export const Annotation = (props: IAnnotationProps): JSX.Element => {
           );
         })}
       </div>
-      <div className="jcad-Annotation-Message">
+      <div className="jgis-Annotation-Message">
         <textarea
           rows={3}
           placeholder={'Ctrl+Enter to submit'}
@@ -63,7 +58,7 @@ export const Annotation = (props: IAnnotationProps): JSX.Element => {
           }}
         />
         <div onClick={submitMessage}>
-          <caretRightIcon.react className="jcad-Annotation-Submit" />
+          <caretRightIcon.react className="jgis-Annotation-Submit" />
         </div>
       </div>
     </div>
@@ -75,7 +70,7 @@ export const FloatingAnnotation = (
 ): JSX.Element => {
   const { itemId, model } = props;
 
-  const [open, setOpen] = React.useState(props.open);
+  const [open, setOpen] = useState(props.open);
 
   // Function that either
   // - opens the annotation if `open`
@@ -96,15 +91,15 @@ export const FloatingAnnotation = (
   return (
     <div>
       <div
-        className="jcad-Annotation-Handler"
+        className="jgis-Annotation-Handler"
         onClick={() => setOpenOrDelete(!open)}
       ></div>
       <div
-        className="jcad-FloatingAnnotation"
+        className="jgis-FloatingAnnotation"
         style={{ visibility: open ? 'visible' : 'hidden' }}
       >
         <Annotation model={model} itemId={itemId}>
-          <div className="jcad-Annotation-Topbar">
+          <div className="jgis-Annotation-Topbar">
             <div
               onClick={async () => {
                 // If the annotation has no content
@@ -127,14 +122,14 @@ export const FloatingAnnotation = (
                 }
               }}
             >
-              <closeIcon.react className="jcad-Annotation-TopBarIcon" />
+              <closeIcon.react className="jgis-Annotation-TopBarIcon" />
             </div>
             <div
               onClick={() => {
                 setOpenOrDelete(false);
               }}
             >
-              <minimizeIcon.react className="jcad-Annotation-TopBarIcon" />
+              <minimizeIcon.react className="jgis-Annotation-TopBarIcon" />
             </div>
           </div>
         </Annotation>

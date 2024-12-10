@@ -27,7 +27,6 @@ import {
   SourceType
 } from './_interface/jgis';
 import { IRasterSource } from './_interface/rastersource';
-import { JSONObject } from '@lumino/coreutils';
 
 export { IGeoJSONSource } from './_interface/geojsonsource';
 

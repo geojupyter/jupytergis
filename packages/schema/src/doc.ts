@@ -298,7 +298,6 @@ export class JupyterGISDoc
   }
 
   set metadata(metadata: { [k: string]: string }) {
-    console.log('metadata', metadata);
     this.transact(() => {
       for (const [key, value] of Object.entries(metadata)) {
         this._metadata.set(key, value);

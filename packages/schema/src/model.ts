@@ -628,11 +628,9 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._clientStateChanged.emit(clients);
 
-    this._sharedModel.awareness.on('change', (update: any) => {
-      if (update.added.length || update.removed.length) {
-        this._userChanged.emit(this.users);
-      }
-    });
+    if (changed.added.length || changed.removed.length) {
+      this._userChanged.emit(this.users);
+    }
   };
 
   readonly defaultKernelName: string = '';

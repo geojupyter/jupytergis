@@ -56,7 +56,6 @@ import Static from 'ol/source/ImageStatic';
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import { register } from 'ol/proj/proj4.js';
 import { get as getProjection } from 'ol/proj.js';
-
 import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
@@ -66,12 +65,10 @@ import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 //@ts-expect-error no types for proj4-list
 import proj4list from 'proj4-list';
-// import { CommandRegistry } from '@lumino/commands';
-// import { ContextMenu } from '@lumino/widgets';
 import { FloatingAnnotation } from '../annotations';
 import { ContextMenu } from '@lumino/widgets';
 import { CommandRegistry } from '@lumino/commands';
-import { Coordinate, createStringXY } from 'ol/coordinate';
+import { Coordinate } from 'ol/coordinate';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -111,6 +108,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
+    this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
     this._mainViewModel.jGISModel.sharedMetadataChanged.connect(
       this._onSharedMetadataChanged,
       this
@@ -126,40 +124,8 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._sources = [];
     this._commands = new CommandRegistry();
-    // this._contextMenu = new ContextMenu({ commands: this._commands });
-
-    this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
-  }
-
-  addContextMenu = (): void => {
-    this._commands.addCommand('add-annotation', {
-      execute: (args?: any) => {
-        if (!this._Map) {
-          return;
-        }
-        console.log('context cliky', this._clickCoords);
-
-        // TODO: Coord objects can by `xy`, `xyz`, or `xyzm`,
-        this._mainViewModel.addAnnotation({
-          position: [this._clickCoords[0], this._clickCoords[1]],
-          label: 'New annotation',
-          contents: [],
-          parent: this._Map.getViewport().id
-        });
-      },
-      label: 'Add annotation',
-      isEnabled: () => {
-        return !!this._Map;
-      }
-    });
-    console.log('not returning');
     this._contextMenu = new ContextMenu({ commands: this._commands });
-    this._contextMenu.addItem({
-      command: 'add-annotation',
-      selector: '.ol-viewport',
-      rank: 1
-    });
-  };
+  }
 
   async componentDidMount(): Promise<void> {
     window.addEventListener('resize', this._handleWindowResize);
@@ -244,15 +210,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       this._Map.addInteraction(dragAndDropInteraction);
 
-      // this._Map.on('pointerdrag', event => {
-      //   console.log('drag', event);
-      //   if (this.state.annotations) {
-      //     this._updateAnnotation();
-      //   }
-      // });
-
-      this._Map.on('postrender', event => {
-        console.log('start', event);
+      this._Map.on('postrender', () => {
         if (this.state.annotations) {
           this._updateAnnotation();
         }
@@ -287,10 +245,6 @@ export class MainView extends React.Component<IProps, IStates> {
           ...currentOptions,
           ...updatedOptions
         });
-
-        // if (this.state.annotations) {
-        //   this._updateAnnotation();
-        // }
       });
 
       if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
@@ -309,70 +263,35 @@ export class MainView extends React.Component<IProps, IStates> {
         event.stopPropagation();
         const coordinate = this._Map.getEventCoordinate(event);
         this._clickCoords = coordinate;
-        console.log('Right-clicked at:', this._clickCoords);
         this._contextMenu.open(event);
-
-        // this.fancyOpen(event);
       });
     }
   }
 
-  fancyOpen(event: MouseEvent) {
-    this._contextMenu.menu.clearItems();
-    const coordinate = this._Map.getEventCoordinate(event);
+  addContextMenu = (): void => {
+    this._commands.addCommand('add-annotation', {
+      execute: (args?: any) => {
+        if (!this._Map) {
+          return;
+        }
 
-    const args = { coordinate };
-
+        this._mainViewModel.addAnnotation({
+          position: [this._clickCoords[0], this._clickCoords[1]],
+          label: 'New annotation',
+          contents: [],
+          parent: this._Map.getViewport().id
+        });
+      },
+      label: 'Add annotation',
+      isEnabled: () => {
+        return !!this._Map;
+      }
+    });
     this._contextMenu.addItem({
       command: 'add-annotation',
       selector: '.ol-viewport',
-      rank: 1,
-      args
+      rank: 1
     });
-
-    this._contextMenu.open(event);
-  }
-
-  private _updateAnnotation() {
-    Object.keys(this.state.annotations).forEach(key => {
-      const el = document.getElementById(key);
-      if (el) {
-        const annotation = this._model.annotationModel?.getAnnotation(key);
-        let screenPosition;
-        if (annotation) {
-          screenPosition = this._computeAnnotationPosition(annotation);
-          el.style.left = `${Math.round(screenPosition.x)}px`;
-          el.style.top = `${Math.round(screenPosition.y)}px`;
-        }
-      }
-    });
-  }
-
-  private _onSharedMetadataChanged = (
-    _: IJupyterGISModel,
-    changes: MapChange
-  ) => {
-    const newState = { ...this.state.annotations };
-    changes.forEach((val, key) => {
-      if (!key.startsWith('annotation')) {
-        return;
-      }
-      const data = this._model.sharedModel.getMetadata(key);
-      let open = true;
-      if (this.state.firstLoad) {
-        open = false;
-      }
-
-      if (data && (val.action === 'add' || val.action === 'update')) {
-        const jsonData = JSON.parse(data);
-        jsonData['open'] = open;
-        newState[key] = jsonData;
-      } else if (val.action === 'delete') {
-        delete newState[key];
-      }
-    });
-
-    this.setState(old => ({ ...old, annotations: newState, firstLoad: false }));
   };
 
   private async _loadShapefileAsGeoJSON(
@@ -1147,6 +1066,56 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   };
 
+  private _onSharedMetadataChanged = (
+    _: IJupyterGISModel,
+    changes: MapChange
+  ) => {
+    const newState = { ...this.state.annotations };
+    changes.forEach((val, key) => {
+      if (!key.startsWith('annotation')) {
+        return;
+      }
+      const data = this._model.sharedModel.getMetadata(key);
+      let open = true;
+      if (this.state.firstLoad) {
+        open = false;
+      }
+
+      if (data && (val.action === 'add' || val.action === 'update')) {
+        const jsonData = JSON.parse(data);
+        jsonData['open'] = open;
+        newState[key] = jsonData;
+      } else if (val.action === 'delete') {
+        delete newState[key];
+      }
+    });
+
+    this.setState(old => ({ ...old, annotations: newState, firstLoad: false }));
+  };
+
+  private _computeAnnotationPosition(annotation: IAnnotation) {
+    const pixels = this._Map.getPixelFromCoordinate(annotation.position);
+    if (pixels) {
+      return { x: pixels[0], y: pixels[1] };
+    }
+  }
+
+  private _updateAnnotation() {
+    Object.keys(this.state.annotations).forEach(key => {
+      const el = document.getElementById(key);
+      if (el) {
+        const annotation = this._model.annotationModel?.getAnnotation(key);
+        if (annotation) {
+          const screenPosition = this._computeAnnotationPosition(annotation);
+          if (screenPosition) {
+            el.style.left = `${Math.round(screenPosition.x)}px`;
+            el.style.top = `${Math.round(screenPosition.y)}px`;
+          }
+        }
+      }
+    });
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -1159,14 +1128,6 @@ export class MainView extends React.Component<IProps, IStates> {
     // TODO SOMETHING
   };
 
-  _computeAnnotationPosition(annotation: IAnnotation) {
-    const pixels = this._Map.getPixelFromCoordinate(annotation.position);
-    return {
-      x: pixels[0],
-      y: pixels[1]
-    };
-  }
-
   render(): JSX.Element {
     return (
       <>
@@ -1176,22 +1137,23 @@ export class MainView extends React.Component<IProps, IStates> {
           }
           const screenPosition = this._computeAnnotationPosition(annotation);
           return (
-            <div
-              key={key}
-              id={key}
-              style={{
-                left: screenPosition.x,
-                top: screenPosition.y
-              }}
-              className={'jcad-Annotation-Wrapper'}
-            >
-              <FloatingAnnotation
-                itemId={key}
-                model={this._model.annotationModel}
-                open={false}
-                // open={annotation.open} // TODO: "open" missing from the IAnnotation interface?
-              />
-            </div>
+            screenPosition && (
+              <div
+                key={key}
+                id={key}
+                style={{
+                  left: screenPosition.x,
+                  top: screenPosition.y
+                }}
+                className={'jgis-Annotation-Wrapper'}
+              >
+                <FloatingAnnotation
+                  itemId={key}
+                  model={this._model.annotationModel}
+                  open={false}
+                />
+              </div>
+            )
           );
         })}
         <div

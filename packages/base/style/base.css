@@ -53,13 +53,13 @@
   position: relative;
 }
 
-.jcad-Annotation-Wrapper {
+.jgis-Annotation-Wrapper {
   position: absolute;
   opacity: 1;
   transition: opacity 0.1s linear 0.15s;
 }
 
-.jcad-Annotation {
+.jgis-Annotation {
   z-index: 1;
   margin-left: 1px;
   margin-top: 1px;
@@ -72,24 +72,14 @@
   transition: opacity 0.5s;
 }
 
-.jcad-FloatingAnnotation {
+.jgis-FloatingAnnotation {
   position: absolute;
   width: 250px;
   box-shadow: var(--jp-elevation-z6);
   z-index: 40;
 }
 
-.jpcad-Annotations {
-  overflow: auto;
-}
-
-.jpcad-Annotations-Separator {
-  border-color: var(--jp-layout-color4);
-  border-style: solid;
-  border-width: 1px;
-}
-
-.jcad-Annotation-Handler {
+.jgis-Annotation-Handler {
   position: absolute;
   top: -5px;
   left: -5px;
@@ -104,14 +94,14 @@
   z-index: 1000;
 }
 
-.jcad-Annotation-Handler:hover {
+.jgis-Annotation-Handler:hover {
   top: -9px;
   left: -9px;
   width: 16px;
   height: 16px;
 }
 
-.jcad-Annotation-Message {
+.jgis-Annotation-Message {
   display: flex;
   margin-top: 10px;
   gap: 5px;
@@ -119,7 +109,7 @@
   justify-content: center;
 }
 
-.jcad-Annotation-Message .jcad-Annotation-User-Icon {
+.jgis-Annotation-Message .jgis-Annotation-User-Icon {
   border-radius: 100%;
   width: 24px;
   height: 24px;
@@ -129,7 +119,7 @@
   color: var(--jp-ui-font-color1);
 }
 
-.jcad-Annotation-Message textarea {
+.jgis-Annotation-Message textarea {
   border-radius: var(--jp-border-radius);
   background: var(--jp-layout-color2);
   color: var(--jp-ui-font-color2);
@@ -137,45 +127,45 @@
   resize: none;
 }
 
-.jcad-Annotation-Message-Content {
+.jgis-Annotation-Message-Content {
   background: var(--jp-layout-color2);
   color: var(--jp-ui-font-color2);
   border-radius: var(--jp-border-radius);
   flex-grow: 1;
 }
 
-.jcad-Annotation-Topbar {
+.jgis-Annotation-Topbar {
   display: flex;
   flex-direction: row-reverse;
 }
 
-.jcad-Annotation-TopBarIcon {
+.jgis-Annotation-TopBarIcon {
   margin: 3px;
   width: 20px;
   height: 20px;
   cursor: pointer;
 }
 
-.jcad-Annotation-TopBarIcon > svg {
+.jgis-Annotation-TopBarIcon > svg {
   width: 20px;
   height: 20px;
 }
 
-.jcad-Annotation-Submit > svg {
+.jgis-Annotation-Submit > svg {
   width: 30px;
   height: 30px;
 }
 
-.jcad-Annotation-Submit g {
+.jgis-Annotation-Submit g {
   fill: #f6f7f8 !important;
 }
 
-.jcad-Annotation-Submit:hover {
+.jgis-Annotation-Submit:hover {
   opacity: 70%;
   cursor: pointer;
 }
 
-.jcad-Annotation-Submit {
+.jgis-Annotation-Submit {
   background-color: var(--jp-brand-color1);
   border-radius: 100%;
   width: 30px;
