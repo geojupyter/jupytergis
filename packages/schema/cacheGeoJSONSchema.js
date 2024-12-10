@@ -11,7 +11,7 @@ if (!fs.existsSync(cacheDir)) {
 }
 
 if (fs.existsSync(schemaFile)) {
-    console.log('GeoJSON schema already cached. Skipping download.');
+    console.log(`GeoJSON schema already cached at ${schemaFile}. Skipping download; delete file to force.`);
 } else {
     console.log('Downloading GeoJSON schema...');
     const file = fs.createWriteStream(schemaFile);
