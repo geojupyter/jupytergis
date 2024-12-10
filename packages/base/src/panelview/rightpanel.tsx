@@ -12,6 +12,7 @@ import { FilterPanel } from './components/filter-panel/Filter';
 import { ControlPanelHeader } from './header';
 import { ObjectProperties } from './objectproperties';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { Annotations } from './annotations';
 
 export class RightPanelWidget extends SidePanel {
   constructor(options: RightPanelWidget.IOptions) {
@@ -29,6 +30,9 @@ export class RightPanelWidget extends SidePanel {
     });
 
     this.addWidget(properties);
+
+    const annotations = new Annotations({ model: this._annotationModel });
+    this.addWidget(annotations);
 
     const filterPanel = new FilterPanel({
       model: this._model,

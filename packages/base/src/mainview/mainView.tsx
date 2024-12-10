@@ -1145,7 +1145,7 @@ export class MainView extends React.Component<IProps, IStates> {
                   left: screenPosition.x,
                   top: screenPosition.y
                 }}
-                className={'jgis-Annotation-Wrapper'}
+                className={'jGIS-Annotation-Wrapper'}
               >
                 <FloatingAnnotation
                   itemId={key}

@@ -1,9 +1,11 @@
 import { IAnnotationModel } from '@jupytergis/schema';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
-import { caretRightIcon, closeIcon } from '@jupyterlab/ui-components';
+import { caretRightIcon, deleteIcon } from '@jupyterlab/ui-components';
 import { Message } from './message';
 import { minimizeIcon } from '../icons';
 import React, { useMemo, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
 interface IAnnotationProps {
   itemId: string;
@@ -32,7 +34,7 @@ export const Annotation = (props: IAnnotationProps): JSX.Element => {
   };
 
   return (
-    <div className="jgis-Annotation">
+    <div className="jGIS-Annotation">
       {props.children}
       <div style={{ paddingBottom: 10, maxHeight: 400, overflow: 'auto' }}>
         {contents.map(content => {
@@ -45,7 +47,7 @@ export const Annotation = (props: IAnnotationProps): JSX.Element => {
           );
         })}
       </div>
-      <div className="jgis-Annotation-Message">
+      <div className="jGIS-Annotation-Message">
         <textarea
           rows={3}
           placeholder={'Ctrl+Enter to submit'}
@@ -58,7 +60,8 @@ export const Annotation = (props: IAnnotationProps): JSX.Element => {
           }}
         />
         <div onClick={submitMessage}>
-          <caretRightIcon.react className="jgis-Annotation-Submit" />
+          <caretRightIcon.react className="jGIS-Annotation-Submit" />
+          <FontAwesomeIcon icon={faPaperPlane} />
         </div>
       </div>
     </div>
@@ -70,7 +73,7 @@ export const FloatingAnnotation = (
 ): JSX.Element => {
   const { itemId, model } = props;
 
-  const [open, setOpen] = useState(props.open);
+  const [isOpen, setIsOpen] = useState(props.open);
 
   // Function that either
   // - opens the annotation if `open`
@@ -78,58 +81,55 @@ export const FloatingAnnotation = (
   // - closes the annotation if `!open` and the annotation is not empty
   const setOpenOrDelete = (open: boolean) => {
     if (open) {
-      return setOpen(true);
+      return setIsOpen(true);
     }
 
     if (!model.getAnnotation(itemId)?.contents.length) {
       return model.removeAnnotation(itemId);
     }
 
-    setOpen(false);
+    setIsOpen(false);
+  };
+
+  const handleDelete = async () => {
+    // If the annotation has no content
+    // we remove it right away without prompting
+    if (!model.getAnnotation(itemId)?.contents.length) {
+      return model.removeAnnotation(itemId);
+    }
+
+    const result = await showDialog({
+      title: 'Delete Annotation',
+      body: 'Are you sure you want to delete this annotation?',
+      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Delete' })]
+    });
+
+    if (result.button.accept) {
+      model.removeAnnotation(itemId);
+    }
   };
 
   return (
     <div>
       <div
-        className="jgis-Annotation-Handler"
-        onClick={() => setOpenOrDelete(!open)}
+        className="jGIS-Annotation-Handler"
+        onClick={() => setOpenOrDelete(!isOpen)}
       ></div>
       <div
-        className="jgis-FloatingAnnotation"
-        style={{ visibility: open ? 'visible' : 'hidden' }}
+        className="jGIS-FloatingAnnotation"
+        style={{ visibility: isOpen ? 'visible' : 'hidden' }}
       >
         <Annotation model={model} itemId={itemId}>
-          <div className="jgis-Annotation-Topbar">
-            <div
-              onClick={async () => {
-                // If the annotation has no content
-                // we remove it right away without prompting
-                if (!model.getAnnotation(itemId)?.contents.length) {
-                  return model.removeAnnotation(itemId);
-                }
-
-                const result = await showDialog({
-                  title: 'Delete Annotation',
-                  body: 'Are you sure you want to delete this annotation?',
-                  buttons: [
-                    Dialog.cancelButton(),
-                    Dialog.okButton({ label: 'Delete' })
-                  ]
-                });
-
-                if (result.button.accept) {
-                  model.removeAnnotation(itemId);
-                }
-              }}
-            >
-              <closeIcon.react className="jgis-Annotation-TopBarIcon" />
+          <div className="jGIS-Annotation-Topbar">
+            <div onClick={handleDelete}>
+              <deleteIcon.react className="jGIS-Annotation-TopBarIcon" />
             </div>
             <div
               onClick={() => {
                 setOpenOrDelete(false);
               }}
             >
-              <minimizeIcon.react className="jgis-Annotation-TopBarIcon" />
+              <minimizeIcon.react className="jGIS-Annotation-TopBarIcon" />
             </div>
           </div>
         </Annotation>

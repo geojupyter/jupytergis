@@ -25,13 +25,13 @@ export const Message = (props: IProps): JSX.Element => {
   const initials = user?.initials ?? '';
   return (
     <div
-      className="jgis-Annotation-Message"
+      className="jGIS-Annotation-Message"
       style={{
         flexFlow: self ? 'row' : 'row-reverse'
       }}
     >
       <div
-        className="jgis-Annotation-User-Icon"
+        className="jGIS-Annotation-User-Icon"
         style={{
           backgroundColor: color
         }}
@@ -39,7 +39,7 @@ export const Message = (props: IProps): JSX.Element => {
       >
         <span style={{ width: 24, textAlign: 'center' }}>{initials}</span>
       </div>
-      <div className="jgis-Annotation-Message-Content">
+      <div className="jGIS-Annotation-Message-Content">
         <p style={{ padding: 7, margin: 0 }}>{message}</p>
       </div>
     </div>

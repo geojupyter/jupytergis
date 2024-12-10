@@ -242,6 +242,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   position: absolute;
   width: 250px;
   box-shadow: var(--jp-elevation-z6);
+  z-index: 40;
 }
 
 .jGIS-Annotations {
@@ -266,7 +267,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   cursor: pointer;
   transition-property: width, height, left, top;
   transition-duration: 0.2s;
-  z-index: 1000;
+  z-index: 20;
 }
 
 .jGIS-Annotation-Handler:hover {
