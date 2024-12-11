@@ -108,6 +108,12 @@
   padding-right: 4px;
 }
 
+.jp-gis-layerIcon.jp-mod-hidden,
+.jp-gis-sourceIcon.jp-mod-hidden {
+  font-weight: bold;
+  color: red;
+}
+
 .jp-gis-left-panel-input {
   background-color: transparent;
   border: 1px solid var(--jp-border-color1);
