@@ -211,7 +211,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
-  setContentsManager(value: Contents.IManager | undefined, filePath: string): void {
+  setContentsManager(
+    value: Contents.IManager | undefined,
+    filePath: string
+  ): void {
     this._contentsManager = value;
     this._filePath = filePath;
   }
