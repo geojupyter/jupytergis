@@ -9,7 +9,7 @@ interface IAnnotationFloaterProps extends IAnnotationProps {
 
 const AnnotationFloater = ({
   itemId,
-  model,
+  annotationModel: model,
   open
 }: IAnnotationFloaterProps) => {
   const [isOpen, setIsOpen] = useState(open);
@@ -40,7 +40,7 @@ const AnnotationFloater = ({
         className="jGIS-FloatingAnnotation"
         style={{ visibility: isOpen ? 'visible' : 'hidden' }}
       >
-        <Annotation itemId={itemId} model={model}>
+        <Annotation itemId={itemId} annotationModel={model}>
           <div
             className="jGIS-Annotation-Topbar"
             onClick={() => {

@@ -12,7 +12,7 @@ import { FilterPanel } from './components/filter-panel/Filter';
 import { ControlPanelHeader } from './header';
 import { ObjectProperties } from './objectproperties';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
-import { Annotations } from './annotations';
+import { Annotations } from './annotationPanel';
 
 export class RightPanelWidget extends SidePanel {
   constructor(options: RightPanelWidget.IOptions) {
@@ -31,7 +31,10 @@ export class RightPanelWidget extends SidePanel {
 
     this.addWidget(properties);
 
-    const annotations = new Annotations({ model: this._annotationModel });
+    const annotations = new Annotations({
+      jgisModel: this._model.jGISModel,
+      annotationModel: this._annotationModel
+    });
     this.addWidget(annotations);
 
     const filterPanel = new FilterPanel({

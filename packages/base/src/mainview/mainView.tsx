@@ -113,6 +113,9 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onSharedMetadataChanged,
       this
     );
+    this._model.zoomTo.connect(() => {
+      console.log('fuckijg fst me');
+    }, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -1150,7 +1153,7 @@ export class MainView extends React.Component<IProps, IStates> {
               >
                 <AnnotationFloater
                   itemId={key}
-                  model={this._model.annotationModel}
+                  annotationModel={this._model.annotationModel}
                   open={false}
                 />
               </div>

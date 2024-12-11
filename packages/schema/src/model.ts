@@ -152,6 +152,15 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedMetadataChanged;
   }
 
+  get zoomTo(): ISignal<this, string> {
+    return this._zoomToAnnotation;
+  }
+
+  zoomToAnnotation(id: string) {
+    console.log('zta');
+    this._zoomToAnnotation.emit(id);
+  }
+
   private _metadataChangedHandler(_: IJupyterGISDoc, args: MapChange) {
     this._sharedMetadataChanged.emit(args);
   }
@@ -656,6 +665,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     Map<number, IJupyterGISClientState>
   >(this);
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
+  private _zoomToAnnotation = new Signal<this, string>(this);
 
   static worker: Worker;
 }
