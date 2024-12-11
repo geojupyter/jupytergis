@@ -288,6 +288,7 @@ export interface IAnnotationContent {
 export interface IAnnotation {
   label: string;
   position: [number, number];
+  zoom: number;
   contents: IAnnotationContent[];
   parent: string;
 }

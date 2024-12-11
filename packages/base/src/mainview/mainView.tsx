@@ -277,6 +277,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         this._mainViewModel.addAnnotation({
           position: [this._clickCoords[0], this._clickCoords[1]],
+          zoom: this._Map.getView().getZoom() ?? 0,
           label: 'New annotation',
           contents: [],
           parent: this._Map.getViewport().id
