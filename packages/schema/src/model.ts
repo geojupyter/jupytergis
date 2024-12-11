@@ -281,14 +281,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       return;
     }
 
-    return this._contentsManager
-      .get(this._filePath, { content: true })
-      .then(contentModel => {
-        return JSON.parse(contentModel.content);
-      })
-      .catch(e => {
-        throw e;
-      });
+    const file = await this._contentsManager.get(this._filePath, {
+      content: true
+    });
+    return file.content;
   }
 
   /**
