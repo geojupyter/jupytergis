@@ -82,7 +82,7 @@ class YQGISBase(YBaseDoc):
         self._yoptions.update(virtual_file["options"])
 
         self._ymetadata.clear()
-        self._ymetadata.update(valueDict.get("metadata", {}))
+        self._ymetadata.update(virtual_file["metadata"])
 
     def observe(self, callback: Callable[[str, Any], None]):
         self.unobserve()
