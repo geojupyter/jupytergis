@@ -288,7 +288,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const absolutePath = PathExt.join(dir, filepath);
 
     return this._contentsManager
-      .get(absolutePath)
+      .get(absolutePath, {content: true})
       .then(contentModel => {
         return JSON.parse(contentModel.content);
       })
