@@ -235,6 +235,7 @@ def test_qgis_saver():
                 },
             },
         },
+        "metadata": {},
     }
 
     assert export_project_to_qgis(filename, jgis)

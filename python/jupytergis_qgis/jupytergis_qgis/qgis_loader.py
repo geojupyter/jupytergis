@@ -371,6 +371,7 @@ def import_project_from_qgis(path: str | Path):
             "useExtent": True,
             "projection": project.crs().authid(),
         },
+        "metadata": {},
         **jgis_layer_tree,
     }
 

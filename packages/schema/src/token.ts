@@ -1,6 +1,7 @@
 import { Token } from '@lumino/coreutils';
 
 import {
+  IAnnotationModel,
   IJGISExternalCommandRegistry,
   IJGISFormSchemaRegistry,
   IJGISLayerBrowserRegistry,
@@ -20,3 +21,7 @@ export const IJGISExternalCommandRegistryToken =
 
 export const IJGISLayerBrowserRegistryToken =
   new Token<IJGISLayerBrowserRegistry>('jupytergisExternalCommandRegistry');
+
+export const IAnnotationToken = new Token<IAnnotationModel>(
+  'jupytergisAnnotationModel'
+);

@@ -242,9 +242,17 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   position: absolute;
   width: 250px;
   box-shadow: var(--jp-elevation-z6);
+  z-index: 40;
+  max-height: 400px;
+  overflow: auto;
 }
 
 .jGIS-Annotations {
+  overflow: auto;
+}
+
+.jGIS-Annotation-Card {
+  max-height: 400px;
   overflow: auto;
 }
 
@@ -266,7 +274,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   cursor: pointer;
   transition-property: width, height, left, top;
   transition-duration: 0.2s;
-  z-index: 1000;
+  z-index: 20;
 }
 
 .jGIS-Annotation-Handler:hover {
@@ -300,6 +308,9 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   color: var(--jp-ui-font-color2);
   flex-grow: 1;
   resize: none;
+  border: none;
+  padding: 0.5em;
+  outline: thin solid var(--jp-border-color0);
 }
 
 .jGIS-Annotation-Message-Content {
@@ -315,15 +326,8 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 }
 
 .jGIS-Annotation-TopBarIcon {
-  margin: 3px;
-  width: 20px;
-  height: 20px;
   cursor: pointer;
-}
-
-.jGIS-Annotation-TopBarIcon > svg {
-  width: 20px;
-  height: 20px;
+  transform: rotate(180deg);
 }
 
 .jGIS-Annotation-Submit > svg {
@@ -345,6 +349,18 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   border-radius: 100%;
   width: 30px;
   height: 30px;
+}
+
+.jGIS-Annotation-Buttons {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 1em;
+}
+
+.jGIS-Annotation-Buttons > button {
+  border-radius: var(--jp-border-radius);
+  flex-grow: 1;
+  max-width: 68px;
 }
 
 /* Hack to remove the malformed form button */

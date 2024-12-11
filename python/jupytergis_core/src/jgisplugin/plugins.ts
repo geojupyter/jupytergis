@@ -3,6 +3,8 @@ import {
   SharedDocumentFactory
 } from '@jupyter/collaborative-drive';
 import {
+  IAnnotationModel,
+  IAnnotationToken,
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
   IJupyterGISDocTracker,
@@ -45,6 +47,7 @@ const activate = (
   editorServices: IEditorServices,
   rendermime: IRenderMimeRegistry,
   consoleTracker: IConsoleTracker,
+  annotationModel: IAnnotationModel,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
   drive: ICollaborativeDrive | null
@@ -83,7 +86,7 @@ const activate = (
   app.docRegistry.addWidgetFactory(mimeDocumentFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
-  const modelFactory = new JupyterGISModelFactory();
+  const modelFactory = new JupyterGISModelFactory({ annotationModel });
   app.docRegistry.addModelFactory(modelFactory);
 
   // register the filetype
@@ -153,7 +156,7 @@ const activate = (
         format: 'text',
         size: undefined,
         content:
-          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": []\n}'
+          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": [],\n\t"metadata": {}\n}'
       });
 
       // Open the newly created file with the 'Editor'
@@ -262,7 +265,8 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     ConsolePanel.IContentFactory,
     IEditorServices,
     IRenderMimeRegistry,
-    IConsoleTracker
+    IConsoleTracker,
+    IAnnotationToken
   ],
   optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
   autoStart: true,

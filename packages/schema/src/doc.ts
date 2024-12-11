@@ -32,6 +32,7 @@ export class JupyterGISDoc
     this._layers = this.ydoc.getMap<Y.Map<any>>('layers');
     this._layerTree = this.ydoc.getArray<IJGISLayerItem>('layerTree');
     this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
+    this._metadata = this.ydoc.getMap<string>('metadata');
 
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
@@ -41,6 +42,7 @@ export class JupyterGISDoc
     this._layerTree.observe(this._layerTreeObserver.bind(this));
     this._sources.observeDeep(this._sourcesObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
+    this._metadata.observe(this._metaObserver.bind(this));
   }
 
   getSource(): JSONObject {
@@ -48,8 +50,9 @@ export class JupyterGISDoc
     const layerTree = this._layerTree.toJSON();
     const options = this._options.toJSON();
     const sources = this._sources.toJSON();
+    const metadata = this._metadata.toJSON();
 
-    return { layers, layerTree, sources, options };
+    return { layers, layerTree, sources, options, metadata };
   }
 
   setSource(value: JSONObject): void {
@@ -76,6 +79,11 @@ export class JupyterGISDoc
       const sources = value['sources'] ?? {};
       Object.entries(sources).forEach(([key, val]) =>
         this._sources.set(key, val)
+      );
+
+      const metadata = value['metadata'] ?? {};
+      Object.entries(metadata).forEach(([key, val]) =>
+        this._metadata.set(key, val as string)
       );
     });
   }
@@ -271,6 +279,36 @@ export class JupyterGISDoc
     this.transact(() => void this._options.set(key, value));
   }
 
+  getMetadata(key: string): string | undefined {
+    return this._metadata.get(key);
+  }
+
+  setMetadata(key: string, value: string): void {
+    this.transact(() => void this._metadata.set(key, value));
+  }
+
+  removeMetadata(key: string): void {
+    if (this._metadata.has(key)) {
+      this._metadata.delete(key);
+    }
+  }
+
+  get metadata(): JSONObject {
+    return JSONExt.deepCopy(this._metadata.toJSON());
+  }
+
+  set metadata(metadata: { [k: string]: string }) {
+    this.transact(() => {
+      for (const [key, value] of Object.entries(metadata)) {
+        this._metadata.set(key, value);
+      }
+    });
+  }
+
+  get metadataChanged(): ISignal<IJupyterGISDoc, MapChange> {
+    return this._metadataChanged;
+  }
+
   static create(): IJupyterGISDoc {
     return new JupyterGISDoc();
   }
@@ -346,10 +384,15 @@ export class JupyterGISDoc
     this._optionsChanged.emit(event.keys);
   };
 
+  private _metaObserver = (event: Y.YMapEvent<string>): void => {
+    this._metadataChanged.emit(event.keys);
+  };
+
   private _layers: Y.Map<any>;
   private _layerTree: Y.Array<IJGISLayerItem>;
   private _sources: Y.Map<any>;
   private _options: Y.Map<any>;
+  private _metadata: Y.Map<string>;
 
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
@@ -362,4 +405,5 @@ export class JupyterGISDoc
   private _sourcesChanged = new Signal<IJupyterGISDoc, IJGISSourceDocChange>(
     this
   );
+  private _metadataChanged = new Signal<IJupyterGISDoc, MapChange>(this);
 }
