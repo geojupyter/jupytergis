@@ -12,7 +12,7 @@
     "data": {
       "type": "object",
       "description": "The GeoJSON data",
-      "$ref": "GeoJSON.json"
+      "$ref": "./geojson.json"
     },
     "valid": {
       "type": "boolean",

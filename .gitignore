@@ -138,4 +138,4 @@ untitled*
 .nx
 
 # GeoJSON schema
-packages/schema/src/schema/GeoJSON.json
+packages/schema/src/schema/geojson.json
