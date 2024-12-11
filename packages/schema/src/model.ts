@@ -281,7 +281,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       return;
     }
 
-    const file = await this._contentsManager.get(this._filePath, {
+    const file = await this._contentsManager.get(filepath, {
       content: true
     });
     return file.content;
