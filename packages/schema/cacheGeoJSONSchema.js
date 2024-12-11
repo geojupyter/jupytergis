@@ -4,7 +4,7 @@ const path = require('path');
 
 const schemaUrl = 'https://geojson.org/schema/GeoJSON.json';
 const cacheDir = path.resolve(__dirname, './src/schema');
-const schemaFile = path.join(cacheDir, 'GeoJSON.json');
+const schemaFile = path.join(cacheDir, 'geojson.json');
 
 if (!fs.existsSync(cacheDir)) {
     fs.mkdirSync(cacheDir, { recursive: true });
