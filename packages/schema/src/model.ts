@@ -1,5 +1,5 @@
 import { MapChange } from '@jupyter/ydoc';
-import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
+import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
