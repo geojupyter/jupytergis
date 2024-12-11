@@ -23,6 +23,7 @@ export const Message = (props: IProps): JSX.Element => {
   const color = user?.color ?? 'black';
   const author = user?.display_name ?? '';
   const initials = user?.initials ?? '';
+
   return (
     <div
       className="jGIS-Annotation-Message"

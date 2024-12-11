@@ -65,10 +65,10 @@ import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 //@ts-expect-error no types for proj4-list
 import proj4list from 'proj4-list';
-import { FloatingAnnotation } from '../annotations';
 import { ContextMenu } from '@lumino/widgets';
 import { CommandRegistry } from '@lumino/commands';
 import { Coordinate } from 'ol/coordinate';
+import AnnotationFloater from '../annotations/components/AnnotationFloater';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -1147,7 +1147,7 @@ export class MainView extends React.Component<IProps, IStates> {
                 }}
                 className={'jGIS-Annotation-Wrapper'}
               >
-                <FloatingAnnotation
+                <AnnotationFloater
                   itemId={key}
                   model={this._model.annotationModel}
                   open={false}

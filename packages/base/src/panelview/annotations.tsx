@@ -1,7 +1,7 @@
 import { PanelWithToolbar, ReactWidget } from '@jupyterlab/ui-components';
 import React, { Component } from 'react';
-import { Annotation } from '../annotations';
 import { IAnnotationModel } from '@jupytergis/schema';
+import Annotation from '../annotations/components/Annotation';
 
 interface IProps {
   model: IAnnotationModel;

@@ -1,3 +1,3 @@
 export * from './model';
-export * from './view';
-export * from './message';
+export * from './components/Annotation';
+export * from './components/AnnotationFloater';
