@@ -135,3 +135,6 @@ untitled*
 
 # nx cache stuff
 .nx
+
+# GeoJSON schema
+packages/schema/src/schema/GeoJSON.json
