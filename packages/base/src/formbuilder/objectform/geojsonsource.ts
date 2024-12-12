@@ -74,12 +74,13 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
       this._validate.errors?.reverse().forEach(error => {
         extraErrors.path.__errors.push(error.message);
       });
+
+      this.setState({ extraErrors });
+      if (this.props.formErrorSignal) {
+        this.props.formErrorSignal.emit(!valid);
+      }
     } else {
       delete extraErrors.path;
-    }
-    this.setState({ extraErrors });
-    if (this.props.formErrorSignal) {
-      this.props.formErrorSignal.emit(!valid);
     }
   }
 
