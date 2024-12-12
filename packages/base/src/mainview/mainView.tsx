@@ -264,7 +264,10 @@ export class MainView extends React.Component<IProps, IStates> {
 
       return geojson;
     } catch (error) {
-      console.warn('Cannot communicate with the JupyterGIS proxy server', error);
+      console.warn(
+        'Cannot communicate with the JupyterGIS proxy server',
+        error
+      );
     }
 
     // Trying through an external proxy server
@@ -275,7 +278,10 @@ export class MainView extends React.Component<IProps, IStates> {
 
       return geojson;
     } catch (error) {
-      console.warn('Cannot communicate with the JupyterGIS proxy server', error);
+      console.warn(
+        'Cannot communicate with the JupyterGIS proxy server',
+        error
+      );
     }
 
     showErrorMessage('Network error', `Failed to fetch ${url}`);
