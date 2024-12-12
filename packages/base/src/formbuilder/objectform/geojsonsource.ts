@@ -2,7 +2,7 @@ import { IDict } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { ISubmitEvent } from '@rjsf/core';
 import { Ajv, ValidateFunction } from 'ajv';
-import * as geojson from 'geojson-schema/GeoJSON.json';
+import * as geojson from '@jupytergis/schema/src/schema/geojson.json';
 
 import { BaseForm, IBaseFormProps } from './baseform';
 
