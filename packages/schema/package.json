@@ -39,7 +39,6 @@
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.9",
-    "@jupyter/collaborative-drive": "^3.0.0",
     "@jupyter/ydoc": "^2.0.0 || ^3.0.0",
     "@jupyterlab/apputils": "^4.3.0",
     "@jupyterlab/coreutils": "^6.3.0",
