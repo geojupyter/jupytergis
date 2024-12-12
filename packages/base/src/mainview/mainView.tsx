@@ -69,6 +69,7 @@ import { ContextMenu } from '@lumino/widgets';
 import { CommandRegistry } from '@lumino/commands';
 import { Coordinate } from 'ol/coordinate';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
+import { CommandIDs } from '../constants';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -270,8 +271,8 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   addContextMenu = (): void => {
-    this._commands.addCommand('add-annotation', {
-      execute: (args?: any) => {
+    this._commands.addCommand(CommandIDs.addAnnotation, {
+      execute: () => {
         if (!this._Map) {
           return;
         }
@@ -289,8 +290,9 @@ export class MainView extends React.Component<IProps, IStates> {
         return !!this._Map;
       }
     });
+
     this._contextMenu.addItem({
-      command: 'add-annotation',
+      command: CommandIDs.addAnnotation,
       selector: '.ol-viewport',
       rank: 1
     });
