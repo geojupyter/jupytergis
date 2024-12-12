@@ -59,6 +59,9 @@ export namespace CommandIDs {
   export const removeConsole = 'jupytergis:removeConsole';
   export const executeConsole = 'jupytergis:executeConsole';
   export const selectCompleter = 'jupytergis:selectConsoleCompleter';
+
+  // Map Commands
+  export const addAnnotation = 'jupytergis:addAnnotation';
 }
 
 interface IRegisteredIcon {

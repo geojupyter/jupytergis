@@ -72,6 +72,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   layers: IJGISLayers;
   sources: IJGISSources;
   layerTree: IJGISLayerTree;
+  metadata: any;
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
@@ -106,10 +107,15 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getOption(key: keyof IJGISOptions): IDict | undefined;
   setOption(key: keyof IJGISOptions, value: IDict): void;
 
+  getMetadata(key: string): string | undefined;
+  setMetadata(key: string, value: string): void;
+  removeMetadata(key: string): void;
+
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
+  metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
 }
 
 export interface IJupyterGISDocChange extends DocumentChange {
@@ -129,6 +135,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isDisposed: boolean;
   sharedModel: IJupyterGISDoc;
   localState: IJupyterGISClientState | null;
+  annotationModel?: IAnnotationModel;
 
   themeChanged: Signal<
     IJupyterGISModel,
@@ -142,6 +149,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedLayersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sharedLayerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
+  sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
+  zoomToAnnotationSignal: ISignal<IJupyterGISModel, string>;
 
   setDrive(value: ICollaborativeDrive, filePath: string): void;
   getContent(): IJGISContent;
@@ -177,6 +186,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;
+
+  addMetadata(key: string, value: string): void;
+  removeMetadata(key: string): void;
+  centerOnAnnotation(id: string): void;
 
   disposed: ISignal<any, void>;
 }
@@ -247,4 +260,37 @@ export interface IJGISLayerBrowserRegistry {
   addRegistryLayer(data: IRasterLayerGalleryEntry): void;
   removeRegistryLayer(name: string): void;
   clearRegistry(): void;
+}
+
+export interface IAnnotationModel {
+  updateSignal: ISignal<this, null>;
+  user: User.IIdentity | undefined;
+
+  context: DocumentRegistry.IContext<IJupyterGISModel> | undefined;
+  contextChanged: ISignal<this, void>;
+
+  update(): void;
+
+  getAnnotation(id: string): IAnnotation | undefined;
+
+  getAnnotationIds(): string[];
+
+  addAnnotation(key: string, value: IAnnotation): void;
+
+  removeAnnotation(key: string): void;
+
+  addContent(id: string, value: string): void;
+}
+
+export interface IAnnotationContent {
+  user?: User.IIdentity;
+  value: string;
+}
+
+export interface IAnnotation {
+  label: string;
+  position: [number, number];
+  zoom: number;
+  contents: IAnnotationContent[];
+  parent: string;
 }

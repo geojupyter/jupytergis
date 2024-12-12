@@ -1,4 +1,8 @@
-import { IJupyterGISDoc, JupyterGISModel } from '@jupytergis/schema';
+import {
+  IAnnotationModel,
+  IJupyterGISDoc,
+  JupyterGISModel
+} from '@jupytergis/schema';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 
@@ -8,6 +12,9 @@ import { Contents } from '@jupyterlab/services';
 export class JupyterGISModelFactory
   implements DocumentRegistry.IModelFactory<JupyterGISModel>
 {
+  constructor(options: JupyterGISModelFactory.IOptions) {
+    this._annotationModel = options.annotationModel;
+  }
   /**
    * Whether the model is collaborative or not.
    */
@@ -77,10 +84,18 @@ export class JupyterGISModelFactory
   ): JupyterGISModel {
     const model = new JupyterGISModel({
       sharedModel: options.sharedModel,
-      languagePreference: options.languagePreference
+      languagePreference: options.languagePreference,
+      annotationModel: this._annotationModel
     });
     return model;
   }
 
+  private _annotationModel: IAnnotationModel;
   private _disposed = false;
+}
+
+export namespace JupyterGISModelFactory {
+  export interface IOptions {
+    annotationModel: IAnnotationModel;
+  }
 }

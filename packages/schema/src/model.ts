@@ -20,6 +20,7 @@ import {
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
+  IAnnotationModel,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -32,8 +33,8 @@ import {
 import jgisSchema from './schema/jgis.json';
 
 export class JupyterGISModel implements IJupyterGISModel {
-  constructor(options: DocumentRegistry.IModelOptions<IJupyterGISDoc>) {
-    const { sharedModel } = options;
+  constructor(options: JupyterGISModel.IOptions) {
+    const { annotationModel, sharedModel } = options;
 
     if (sharedModel) {
       this._sharedModel = sharedModel;
@@ -42,6 +43,11 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._sharedModel.changed.connect(this._onSharedModelChanged);
     }
     this.sharedModel.awareness.on('change', this._onClientStateChanged);
+    this._sharedModel.metadataChanged.connect(
+      this._metadataChangedHandler,
+      this
+    );
+    this.annotationModel = annotationModel;
   }
 
   private _onSharedModelChanged = (sender: any, changes: any): void => {
@@ -142,6 +148,30 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._disposed;
   }
 
+  get sharedMetadataChanged(): ISignal<this, MapChange> {
+    return this._sharedMetadataChanged;
+  }
+
+  get zoomToAnnotationSignal(): ISignal<this, string> {
+    return this._zoomToAnnotationSignal;
+  }
+
+  centerOnAnnotation(id: string) {
+    this._zoomToAnnotationSignal.emit(id);
+  }
+
+  private _metadataChangedHandler(_: IJupyterGISDoc, args: MapChange) {
+    this._sharedMetadataChanged.emit(args);
+  }
+
+  addMetadata(key: string, value: string): void {
+    this.sharedModel.setMetadata(key, value);
+  }
+
+  removeMetadata(key: string): void {
+    this.sharedModel.removeMetadata(key);
+  }
+
   dispose(): void {
     if (this._isDisposed) {
       return;
@@ -182,6 +212,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         pitch: 0,
         projection: 'EPSG:3857'
       };
+      this.sharedModel.metadata = jsonData.metadata ?? {};
     });
     this.dirty = true;
   }
@@ -207,7 +238,8 @@ export class JupyterGISModel implements IJupyterGISModel {
       sources: this.sharedModel.sources,
       layers: this.sharedModel.layers,
       layerTree: this.sharedModel.layerTree,
-      options: this.sharedModel.options
+      options: this.sharedModel.options,
+      metadata: this.sharedModel.metadata
     };
   }
 
@@ -604,15 +636,14 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._clientStateChanged.emit(clients);
 
-    this._sharedModel.awareness.on('change', (update: any) => {
-      if (update.added.length || update.removed.length) {
-        this._userChanged.emit(this.users);
-      }
-    });
+    if (changed.added.length || changed.removed.length) {
+      this._userChanged.emit(this.users);
+    }
   };
 
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
+  readonly annotationModel?: IAnnotationModel;
 
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
@@ -632,6 +663,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     this,
     Map<number, IJupyterGISClientState>
   >(this);
+  private _sharedMetadataChanged = new Signal<this, MapChange>(this);
+  private _zoomToAnnotationSignal = new Signal<this, string>(this);
 
   static worker: Worker;
 }
@@ -642,6 +675,11 @@ export namespace JupyterGISModel {
    */
   export function getOrderedLayerIds(model: IJupyterGISModel): string[] {
     return Private.layerTreeRecursion(model.sharedModel.layerTree);
+  }
+
+  export interface IOptions
+    extends DocumentRegistry.IModelOptions<IJupyterGISDoc> {
+    annotationModel?: IAnnotationModel;
   }
 }
 

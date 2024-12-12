@@ -6,7 +6,6 @@
 // This file is based on iconimports.ts in @jupyterlab/ui-components, but is manually generated.
 
 import { LabIcon } from '@jupyterlab/ui-components';
-
 import logoSvgStr from '../style/icons/logo.svg';
 import logoMiniSvgStr from '../style/icons/logo_mini.svg';
 import logoMiniAlternativeSvgStr from '../style/icons/logo_mini_alternative.svg';

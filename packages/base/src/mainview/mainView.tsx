@@ -1,5 +1,7 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
+  IAnnotation,
+  IDict,
   IGeoTiffSource,
   IHillshadeLayer,
   IImageLayer,
@@ -54,7 +56,6 @@ import Static from 'ol/source/ImageStatic';
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import { register } from 'ol/proj/proj4.js';
 import { get as getProjection } from 'ol/proj.js';
-
 import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
@@ -64,6 +65,11 @@ import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 //@ts-expect-error no types for proj4-list
 import proj4list from 'proj4-list';
+import { ContextMenu } from '@lumino/widgets';
+import { CommandRegistry } from '@lumino/commands';
+import { Coordinate } from 'ol/coordinate';
+import AnnotationFloater from '../annotations/components/AnnotationFloater';
+import { CommandIDs } from '../constants';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -76,6 +82,7 @@ interface IStates {
   lightTheme: boolean;
   remoteUser?: User.IIdentity | null;
   firstLoad: boolean;
+  annotations: IDict<IAnnotation>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -102,22 +109,30 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
+    this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
+    this._mainViewModel.jGISModel.sharedMetadataChanged.connect(
+      this._onSharedMetadataChanged,
+      this
+    );
+    this._model.zoomToAnnotationSignal.connect(this._onZoomToAnnotation, this);
 
     this.state = {
       id: this._mainViewModel.id,
       lightTheme: isLightTheme(),
       loading: true,
-      firstLoad: true
+      firstLoad: true,
+      annotations: {}
     };
 
     this._sources = [];
-
-    this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
+    this._commands = new CommandRegistry();
+    this._contextMenu = new ContextMenu({ commands: this._commands });
   }
 
   async componentDidMount(): Promise<void> {
     window.addEventListener('resize', this._handleWindowResize);
     await this.generateScene();
+    this.addContextMenu();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
@@ -197,6 +212,12 @@ export class MainView extends React.Component<IProps, IStates> {
 
       this._Map.addInteraction(dragAndDropInteraction);
 
+      this._Map.on('postrender', () => {
+        if (this.state.annotations) {
+          this._updateAnnotation();
+        }
+      });
+
       this._Map.on('moveend', () => {
         if (!this._initializedPosition) {
           return;
@@ -238,8 +259,44 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       this.setState(old => ({ ...old, loading: false }));
+
+      this._Map.getViewport().addEventListener('contextmenu', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const coordinate = this._Map.getEventCoordinate(event);
+        this._clickCoords = coordinate;
+        this._contextMenu.open(event);
+      });
     }
   }
+
+  addContextMenu = (): void => {
+    this._commands.addCommand(CommandIDs.addAnnotation, {
+      execute: () => {
+        if (!this._Map) {
+          return;
+        }
+
+        this._mainViewModel.addAnnotation({
+          position: [this._clickCoords[0], this._clickCoords[1]],
+          zoom: this._Map.getView().getZoom() ?? 0,
+          label: 'New annotation',
+          contents: [],
+          parent: this._Map.getViewport().id
+        });
+      },
+      label: 'Add annotation',
+      isEnabled: () => {
+        return !!this._Map;
+      }
+    });
+
+    this._contextMenu.addItem({
+      command: CommandIDs.addAnnotation,
+      selector: '.ol-viewport',
+      rank: 1
+    });
+  };
 
   private async _loadShapefileAsGeoJSON(
     url: string
@@ -1013,6 +1070,65 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   };
 
+  private _onSharedMetadataChanged = (
+    _: IJupyterGISModel,
+    changes: MapChange
+  ) => {
+    const newState = { ...this.state.annotations };
+    changes.forEach((val, key) => {
+      if (!key.startsWith('annotation')) {
+        return;
+      }
+      const data = this._model.sharedModel.getMetadata(key);
+      let open = true;
+      if (this.state.firstLoad) {
+        open = false;
+      }
+
+      if (data && (val.action === 'add' || val.action === 'update')) {
+        const jsonData = JSON.parse(data);
+        jsonData['open'] = open;
+        newState[key] = jsonData;
+      } else if (val.action === 'delete') {
+        delete newState[key];
+      }
+    });
+
+    this.setState(old => ({ ...old, annotations: newState, firstLoad: false }));
+  };
+
+  private _computeAnnotationPosition(annotation: IAnnotation) {
+    const pixels = this._Map.getPixelFromCoordinate(annotation.position);
+    if (pixels) {
+      return { x: pixels[0], y: pixels[1] };
+    }
+  }
+
+  private _updateAnnotation() {
+    Object.keys(this.state.annotations).forEach(key => {
+      const el = document.getElementById(key);
+      if (el) {
+        const annotation = this._model.annotationModel?.getAnnotation(key);
+        if (annotation) {
+          const screenPosition = this._computeAnnotationPosition(annotation);
+          if (screenPosition) {
+            el.style.left = `${Math.round(screenPosition.x)}px`;
+            el.style.top = `${Math.round(screenPosition.y)}px`;
+          }
+        }
+      }
+    });
+  }
+
+  private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
+    const annotation = this._model.annotationModel?.getAnnotation(id);
+    if (annotation) {
+      const view = this._Map.getView();
+      view.animate({ center: annotation.position });
+      view.animate({ zoom: annotation.zoom });
+    }
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -1027,27 +1143,56 @@ export class MainView extends React.Component<IProps, IStates> {
 
   render(): JSX.Element {
     return (
-      <div
-        className="jGIS-Mainview"
-        style={{
-          border: this.state.remoteUser
-            ? `solid 3px ${this.state.remoteUser.color}`
-            : 'unset'
-        }}
-      >
-        <Spinner loading={this.state.loading} />
-
+      <>
+        {Object.entries(this.state.annotations).map(([key, annotation]) => {
+          if (!this._model.annotationModel) {
+            return null;
+          }
+          const screenPosition = this._computeAnnotationPosition(annotation);
+          return (
+            screenPosition && (
+              <div
+                key={key}
+                id={key}
+                style={{
+                  left: screenPosition.x,
+                  top: screenPosition.y
+                }}
+                className={'jGIS-Annotation-Wrapper'}
+              >
+                <AnnotationFloater
+                  itemId={key}
+                  annotationModel={this._model.annotationModel}
+                  open={false}
+                />
+              </div>
+            )
+          );
+        })}
         <div
-          ref={this.divRef}
+          className="jGIS-Mainview"
           style={{
-            width: '100%',
-            height: 'calc(100%)'
+            border: this.state.remoteUser
+              ? `solid 3px ${this.state.remoteUser.color}`
+              : 'unset'
           }}
-        />
-      </div>
+        >
+          <Spinner loading={this.state.loading} />
+
+          <div
+            ref={this.divRef}
+            style={{
+              width: '100%',
+              height: 'calc(100%)'
+            }}
+          />
+        </div>
+      </>
     );
   }
 
+  private _clickCoords: Coordinate;
+  private _commands: CommandRegistry;
   private _initializedPosition = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
   private _Map: OlMap;
@@ -1057,4 +1202,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _sources: Record<string, any>;
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
+  private _contextMenu: ContextMenu;
 }

@@ -2,6 +2,7 @@ import {
   GeoJSONFeature1,
   IDict,
   IJGISFilterItem,
+  IJGISFormSchemaRegistry,
   IJupyterGISModel,
   IJupyterGISTracker
 } from '@jupytergis/schema';
@@ -11,14 +12,13 @@ import { cloneDeep } from 'lodash';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { debounce, getLayerTileInfo } from '../../../tools';
 import { IControlPanelModel } from '../../../types';
-import { RightPanelWidget } from '../../rightpanel';
 import FilterRow from './FilterRow';
 
 /**
  * The filters panel widget.
  */
 export class FilterPanel extends Panel {
-  constructor(options: RightPanelWidget.IOptions) {
+  constructor(options: FilterPanel.IOptions) {
     super();
     this._model = options.model;
     this._tracker = options.tracker;
@@ -38,6 +38,14 @@ export class FilterPanel extends Panel {
 
   private _model: IControlPanelModel | undefined;
   private _tracker: IJupyterGISTracker;
+}
+
+export namespace FilterPanel {
+  export interface IOptions {
+    model: IControlPanelModel;
+    tracker: IJupyterGISTracker;
+    formSchemaRegistry: IJGISFormSchemaRegistry;
+  }
 }
 
 interface IFilterComponentProps {

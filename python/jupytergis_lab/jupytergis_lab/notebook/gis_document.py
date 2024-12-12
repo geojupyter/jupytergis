@@ -69,6 +69,7 @@ class GISDocument(CommWidget):
         self.ydoc["sources"] = self._sources = Map()
         self.ydoc["options"] = self._options = Map()
         self.ydoc["layerTree"] = self._layerTree = Array()
+        self.ydoc["metadata"] = self._metadata = Map()
 
         if path is None:
             if latitude is not None:

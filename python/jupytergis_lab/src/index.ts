@@ -10,6 +10,8 @@ import {
   logoMiniIcon
 } from '@jupytergis/base';
 import {
+  IAnnotationModel,
+  IAnnotationToken,
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
   IJGISLayerBrowserRegistry,
@@ -296,14 +298,16 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     ILayoutRestorer,
     IJupyterGISDocTracker,
     IJGISFormSchemaRegistryToken,
-    IStateDB
+    IStateDB,
+    IAnnotationToken
   ],
   activate: (
     app: JupyterFrontEnd,
     restorer: ILayoutRestorer,
     tracker: IJupyterGISTracker,
     formSchemaRegistry: IJGISFormSchemaRegistry,
-    state: IStateDB
+    state: IStateDB,
+    annotationModel: IAnnotationModel
   ) => {
     const controlModel = new ControlPanelModel({ tracker });
 
@@ -319,7 +323,8 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     const rightControlPanel = new RightPanelWidget({
       model: controlModel,
       tracker,
-      formSchemaRegistry
+      formSchemaRegistry,
+      annotationModel
     });
     rightControlPanel.id = 'jupytergis::rightControlPanel';
     rightControlPanel.title.caption = 'JupyterGIS Control Panel';

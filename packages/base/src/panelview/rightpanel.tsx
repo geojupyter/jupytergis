@@ -1,5 +1,7 @@
 import {
+  IAnnotationModel,
   IJGISFormSchemaRegistry,
+  IJupyterGISModel,
   IJupyterGISTracker,
   JupyterGISDoc
 } from '@jupytergis/schema';
@@ -9,12 +11,16 @@ import { IControlPanelModel } from '../types';
 import { FilterPanel } from './components/filter-panel/Filter';
 import { ControlPanelHeader } from './header';
 import { ObjectProperties } from './objectproperties';
+import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { Annotations } from './annotationPanel';
 
 export class RightPanelWidget extends SidePanel {
   constructor(options: RightPanelWidget.IOptions) {
     super();
     this.addClass('jGIS-sidepanel-widget');
     this._model = options.model;
+    this._annotationModel = options.annotationModel;
+
     const header = new ControlPanelHeader();
     this.header.addWidget(header);
     const properties = new ObjectProperties({
@@ -24,6 +30,12 @@ export class RightPanelWidget extends SidePanel {
     });
 
     this.addWidget(properties);
+
+    const annotations = new Annotations({
+      rightPanelModel: this._model,
+      annotationModel: this._annotationModel
+    });
+    this.addWidget(annotations);
 
     const filterPanel = new FilterPanel({
       model: this._model,
@@ -48,13 +60,29 @@ export class RightPanelWidget extends SidePanel {
         header.title.label = '-';
       }
     });
+
+    options.tracker.currentChanged.connect(async (_, changed) => {
+      if (changed) {
+        this._currentContext = changed.context;
+        header.title.label = this._currentContext.localPath;
+        this._annotationModel.context =
+          options.tracker.currentWidget?.context || undefined;
+        await changed.context.ready;
+      } else {
+        header.title.label = '-';
+        this._currentContext = null;
+        this._annotationModel.context = undefined;
+      }
+    });
   }
 
   dispose(): void {
     super.dispose();
   }
 
+  private _currentContext: DocumentRegistry.IContext<IJupyterGISModel> | null;
   private _model: IControlPanelModel;
+  private _annotationModel: IAnnotationModel;
 }
 
 export namespace RightPanelWidget {
@@ -62,6 +90,7 @@ export namespace RightPanelWidget {
     model: IControlPanelModel;
     tracker: IJupyterGISTracker;
     formSchemaRegistry: IJGISFormSchemaRegistry;
+    annotationModel: IAnnotationModel;
   }
   export interface IProps {
     filePath?: string;
