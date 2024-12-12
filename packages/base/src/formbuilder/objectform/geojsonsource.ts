@@ -61,26 +61,42 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
    * @param path - the path to validate.
    */
   private async _validatePath(path: string) {
-    const extraErrors: IDict = {
-      path: {
-        __errors: []
-      }
-    };
+    const extraErrors: IDict = this.state.extraErrors;
 
-    const geoJSONData = this.props.model.readGeoJSON(path);
-    const valid = this._validate(geoJSONData);
+    let error = '';
+    let valid = false;
+    if (path) {
+      try {
+        const geoJSONData = await this.props.model.readGeoJSON(path);
+        valid = this._validate(geoJSONData);
+        if (!valid) {
+          error = `"${path}" is not a valid GeoJSON file`;
+        }
+      } catch (e) {
+        error = `"${path}" is not a valid GeoJSON file: ${e}`;
+      }
+    } else {
+      error = 'Path is required';
+    }
+
     if (!valid) {
-      extraErrors.path.__errors = [`"${path}" is not a valid GeoJSON file`];
+      extraErrors.path = {
+        __errors: [error]
+      };
       this._validate.errors?.reverse().forEach(error => {
         extraErrors.path.__errors.push(error.message);
       });
 
-      this.setState({ extraErrors });
-      if (this.props.formErrorSignal) {
-        this.props.formErrorSignal.emit(!valid);
-      }
+      this.setState(old => ({ ...old, extraErrors }));
     } else {
-      delete extraErrors.path;
+      this.setState(old => ({
+        ...old,
+        extraErrors: { ...extraErrors, path: { __errors: [] } }
+      }));
+    }
+
+    if (this.props.formErrorSignal) {
+      this.props.formErrorSignal.emit(!valid);
     }
   }
 
