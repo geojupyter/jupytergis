@@ -1,5 +1,5 @@
 import { MapChange } from '@jupyter/ydoc';
-import { IChangedArgs } from '@jupyterlab/coreutils';
+import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
@@ -281,9 +281,17 @@ export class JupyterGISModel implements IJupyterGISModel {
       return;
     }
 
-    const file = await this._contentsManager.get(filepath, {
+    const absolutePath = PathExt.resolve(
+      PathExt.dirname(this._filePath),
+      filepath
+    );
+    const file = await this._contentsManager.get(absolutePath, {
       content: true
     });
+
+    if (typeof file.content === 'string') {
+      return JSON.parse(file.content);
+    }
     return file.content;
   }
 

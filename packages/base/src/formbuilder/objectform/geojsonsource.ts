@@ -67,30 +67,20 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
       }
     };
 
-    this.props.model
-      .readGeoJSON(path)
-      .then(async geoJSONData => {
-        const valid = this._validate(geoJSONData);
-        if (!valid) {
-          extraErrors.path.__errors = [`"${path}" is not a valid GeoJSON file`];
-          this._validate.errors?.reverse().forEach(error => {
-            extraErrors.path.__errors.push(error.message);
-          });
-        } else {
-          delete extraErrors.path;
-        }
-        this.setState({ extraErrors });
-        if (this.props.formErrorSignal) {
-          this.props.formErrorSignal.emit(!valid);
-        }
-      })
-      .catch(e => {
-        extraErrors.path.__errors = [`Cannot read "${path}"`];
-        this.setState({ extraErrors });
-        if (this.props.formErrorSignal) {
-          this.props.formErrorSignal.emit(true);
-        }
+    const geoJSONData = this.props.model.readGeoJSON(path);
+    const valid = this._validate(geoJSONData);
+    if (!valid) {
+      extraErrors.path.__errors = [`"${path}" is not a valid GeoJSON file`];
+      this._validate.errors?.reverse().forEach(error => {
+        extraErrors.path.__errors.push(error.message);
       });
+    } else {
+      delete extraErrors.path;
+    }
+    this.setState({ extraErrors });
+    if (this.props.formErrorSignal) {
+      this.props.formErrorSignal.emit(!valid);
+    }
   }
 
   private _validate: ValidateFunction;
