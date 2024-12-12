@@ -64,6 +64,7 @@ import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 //@ts-expect-error no types for proj4-list
 import proj4list from 'proj4-list';
+import { showErrorMessage } from '@jupyterlab/apputils';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -244,6 +245,18 @@ export class MainView extends React.Component<IProps, IStates> {
   private async _loadShapefileAsGeoJSON(
     url: string
   ): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
+    // First trying a direct fecth
+    try {
+      const response = await fetch(url);
+      const arrayBuffer = await response.arrayBuffer();
+      const geojson = await shp(arrayBuffer);
+
+      return geojson;
+    } catch (error) {
+      console.warn(`Cannot download file from ${url}: ${error}`);
+    }
+
+    // Trying through our proxy server
     try {
       const response = await fetch(`/jupytergis_core/proxy?url=${url}`);
       const arrayBuffer = await response.arrayBuffer();
@@ -251,9 +264,22 @@ export class MainView extends React.Component<IProps, IStates> {
 
       return geojson;
     } catch (error) {
-      console.error('Error loading shapefile:', error);
-      throw error;
+      console.warn('Cannot communicate with the JupyterGIS proxy server', error);
     }
+
+    // Trying through an external proxy server
+    try {
+      const response = await fetch(`https://corsproxy.io/?url=${url}`);
+      const arrayBuffer = await response.arrayBuffer();
+      const geojson = await shp(arrayBuffer);
+
+      return geojson;
+    } catch (error) {
+      console.warn('Cannot communicate with the JupyterGIS proxy server', error);
+    }
+
+    showErrorMessage('Network error', `Failed to fetch ${url}`);
+    throw new Error(`Failed to fetch ${url}`);
   }
 
   /**
