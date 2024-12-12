@@ -1,11 +1,12 @@
 import { PanelWithToolbar, ReactWidget } from '@jupyterlab/ui-components';
 import React, { Component } from 'react';
-import { IAnnotationModel, IJupyterGISModel } from '@jupytergis/schema';
+import { IAnnotationModel } from '@jupytergis/schema';
 import Annotation from '../annotations/components/Annotation';
+import { IControlPanelModel } from '../types';
 
 interface IAnnotationPanelProps {
   annotationModel: IAnnotationModel;
-  jgisModel?: IJupyterGISModel;
+  rightPanelModel: IControlPanelModel;
 }
 
 export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
@@ -17,7 +18,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
     };
 
     this._annotationModel = props.annotationModel;
-    this._jgisModel = props.jgisModel;
+    this._rightPanelModel = props.rightPanelModel;
 
     this._annotationModel.contextChanged.connect(async () => {
       await this._annotationModel?.context?.ready;
@@ -44,7 +45,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
       return (
         <div>
           <Annotation
-            jgisModel={this._jgisModel}
+            rightPanelModel={this._rightPanelModel}
             annotationModel={this._annotationModel}
             itemId={id}
           />
@@ -57,7 +58,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
   }
 
   private _annotationModel: IAnnotationModel;
-  private _jgisModel: IJupyterGISModel | undefined;
+  private _rightPanelModel: IControlPanelModel;
 }
 
 export class Annotations extends PanelWithToolbar {
@@ -68,10 +69,11 @@ export class Annotations extends PanelWithToolbar {
     this.addClass('jGIS-Annotations');
 
     this._annotationModel = options.annotationModel;
-    this._jgisModel = options.jgisModel;
+    this._rightPanelModel = options.rightPanelModel;
+
     this._widget = ReactWidget.create(
       <AnnotationsPanel
-        jgisModel={this._jgisModel}
+        rightPanelModel={this._rightPanelModel}
         annotationModel={this._annotationModel}
       />
     );
@@ -81,12 +83,12 @@ export class Annotations extends PanelWithToolbar {
 
   private _widget: ReactWidget;
   private _annotationModel: IAnnotationModel;
-  private _jgisModel: IJupyterGISModel | undefined;
+  private _rightPanelModel: IControlPanelModel;
 }
 
 export namespace Annotations {
   export interface IOptions {
     annotationModel: IAnnotationModel;
-    jgisModel?: IJupyterGISModel | undefined;
+    rightPanelModel: IControlPanelModel;
   }
 }

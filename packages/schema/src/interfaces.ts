@@ -150,8 +150,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedLayerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
-  zoomTo: ISignal<IJupyterGISModel, string>;
-  zoomToAnnotation(id: string): void;
+  zoomToAnnotationSignal: ISignal<IJupyterGISModel, string>;
 
   setDrive(value: ICollaborativeDrive, filePath: string): void;
   getContent(): IJGISContent;
@@ -190,6 +189,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   addMetadata(key: string, value: string): void;
   removeMetadata(key: string): void;
+  centerOnAnnotation(id: string): void;
 
   disposed: ISignal<any, void>;
 }

@@ -113,9 +113,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onSharedMetadataChanged,
       this
     );
-    this._model.zoomTo.connect(() => {
-      console.log('fuckijg fst me');
-    }, this);
+    this._model.zoomToAnnotationSignal.connect(this._onZoomToAnnotation, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -1118,6 +1116,15 @@ export class MainView extends React.Component<IProps, IStates> {
         }
       }
     });
+  }
+
+  private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
+    const annotation = this._model.annotationModel?.getAnnotation(id);
+    if (annotation) {
+      const view = this._Map.getView();
+      view.animate({ center: annotation.position });
+      view.animate({ zoom: annotation.zoom });
+    }
   }
 
   private _handleThemeChange = (): void => {

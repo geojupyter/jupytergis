@@ -7,24 +7,27 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IAnnotationModel, IJupyterGISModel } from '@jupytergis/schema';
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { Button } from '@jupyterlab/ui-components';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Message } from './Message';
+import { IControlPanelModel } from '../../types';
 
 export interface IAnnotationProps {
   itemId: string;
   annotationModel: IAnnotationModel;
-  jgisModel?: IJupyterGISModel;
+  rightPanelModel?: IControlPanelModel;
   children?: JSX.Element[] | JSX.Element;
 }
 
 const Annotation = ({
   itemId,
   annotationModel,
-  jgisModel,
+  rightPanelModel,
   children
 }: IAnnotationProps) => {
   const [messageContent, setMessageContent] = useState('');
-  const [jModel, setJModel] = useState<IJupyterGISModel | undefined>(jgisModel);
+  const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
+    rightPanelModel?.jGISModel
+  );
 
   const annotation = annotationModel.getAnnotation(itemId);
   const contents = useMemo(() => annotation?.contents ?? [], [annotation]);
@@ -32,14 +35,9 @@ const Annotation = ({
   /**
    * Update the model when it changes.
    */
-  props.model?.documentChanged.connect((_, widget) => {
-    setModel(widget?.context.model);
-    setLayerTree(widget?.context.model?.getLayerTree() || []);
+  rightPanelModel?.documentChanged.connect((_, widget) => {
+    setJgisModel(widget?.context.model);
   });
-
-  useEffect(() => {
-    setJModel(jgisModel);
-  }, [jgisModel]);
 
   const handleSubmit = () => {
     annotationModel.addContent(itemId, messageContent);
@@ -64,9 +62,8 @@ const Annotation = ({
     }
   };
 
-  const zom = () => {
-    console.log('test');
-    jModel?.zoomToAnnotation(itemId);
+  const centerOnAnnotation = () => {
+    jgisModel?.centerOnAnnotation(itemId);
   };
 
   return (
@@ -100,9 +97,14 @@ const Annotation = ({
         <Button className="jp-mod-styled jp-mod-warn" onClick={handleDelete}>
           <FontAwesomeIcon icon={faTrash} />
         </Button>
-        <Button className="jp-mod-styled jp-mod-accept" onClick={zom}>
-          <FontAwesomeIcon icon={faArrowsToDot} />
-        </Button>
+        {rightPanelModel && (
+          <Button
+            className="jp-mod-styled jp-mod-accept"
+            onClick={centerOnAnnotation}
+          >
+            <FontAwesomeIcon icon={faArrowsToDot} />
+          </Button>
+        )}
         <Button className="jp-mod-styled jp-mod-accept" onClick={handleSubmit}>
           <FontAwesomeIcon icon={faPaperPlane} />
         </Button>

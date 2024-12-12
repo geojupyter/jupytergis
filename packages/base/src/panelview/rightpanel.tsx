@@ -32,7 +32,7 @@ export class RightPanelWidget extends SidePanel {
     this.addWidget(properties);
 
     const annotations = new Annotations({
-      jgisModel: this._model.jGISModel,
+      rightPanelModel: this._model,
       annotationModel: this._annotationModel
     });
     this.addWidget(annotations);
