@@ -15,7 +15,7 @@ import {
   JupyterGISWidget,
   ToolbarWidget
 } from '@jupytergis/base';
-import { ServiceManager } from '@jupyterlab/services';
+import { Contents, ServiceManager } from '@jupyterlab/services';
 
 interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   tracker: IJupyterGISTracker;
@@ -40,7 +40,7 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
     this._backendCheck = backendCheck;
     this._commands = options.commands;
     this._externalCommandRegistry = externalCommandRegistry;
-    this._drive = options.drive;
+    this._contentsManager = options.manager?.contents;
   }
 
   /**
@@ -59,8 +59,8 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
       }
     }
     const { model } = context;
-    if (this._drive) {
-      model.setDrive(this._drive, context.path);
+    if (this._contentsManager) {
+      model.setContentsManager(this._contentsManager, context.path);
     }
 
     const content = new JupyterGISPanel({
@@ -83,5 +83,5 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
   private _commands: CommandRegistry;
   private _externalCommandRegistry: IJGISExternalCommandRegistry;
   private _backendCheck?: () => boolean;
-  private _drive?: ICollaborativeDrive | null;
+  private _contentsManager?: Contents.IManager | null;
 }

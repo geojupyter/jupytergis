@@ -64,7 +64,6 @@ const activate = (
     tracker,
     commands: app.commands,
     externalCommandRegistry,
-    drive,
     manager: app.serviceManager,
     contentFactory,
     rendermime,

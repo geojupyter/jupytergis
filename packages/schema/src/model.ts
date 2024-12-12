@@ -1,4 +1,3 @@
-import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
 import { MapChange } from '@jupyter/ydoc';
 import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -31,6 +30,7 @@ import {
   IUserData
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
+import { Contents } from '@jupyterlab/services';
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: JupyterGISModel.IOptions) {
@@ -243,8 +243,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
-  setDrive(value: ICollaborativeDrive, filePath: string): void {
-    this._drive = value;
+  setContentsManager(
+    value: Contents.IManager | undefined,
+    filePath: string
+  ): void {
+    this._contentsManager = value;
     this._filePath = filePath;
   }
 
@@ -306,24 +309,22 @@ export class JupyterGISModel implements IJupyterGISModel {
    * @returns a promise to the GeoJSON data.
    */
   async readGeoJSON(filepath: string): Promise<GeoJSON | undefined> {
-    if (!this._drive) {
+    if (!this._contentsManager) {
       return;
     }
 
-    let dir = PathExt.dirname(this._filePath);
-    if (dir.includes(':')) {
-      dir = dir.split(':')[1];
-    }
-    const absolutePath = PathExt.join(dir, filepath);
+    const absolutePath = PathExt.resolve(
+      PathExt.dirname(this._filePath),
+      filepath
+    );
+    const file = await this._contentsManager.get(absolutePath, {
+      content: true
+    });
 
-    return this._drive
-      .get(absolutePath)
-      .then(contentModel => {
-        return JSON.parse(contentModel.content);
-      })
-      .catch(e => {
-        throw e;
-      });
+    if (typeof file.content === 'string') {
+      return JSON.parse(file.content);
+    }
+    return file.content;
   }
 
   /**
@@ -647,7 +648,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
-  private _drive?: ICollaborativeDrive;
+  private _contentsManager?: Contents.IManager;
   private _dirty = false;
   private _readOnly = false;
   private _isDisposed = false;

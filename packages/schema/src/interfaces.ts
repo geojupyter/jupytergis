@@ -1,4 +1,3 @@
-import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
 import {
   Delta,
   DocumentChange,
@@ -9,7 +8,7 @@ import {
 import { IWidgetTracker } from '@jupyterlab/apputils';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
-import { User } from '@jupyterlab/services';
+import { Contents, User } from '@jupyterlab/services';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel } from '@lumino/widgets';
 
@@ -152,7 +151,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToAnnotationSignal: ISignal<IJupyterGISModel, string>;
 
-  setDrive(value: ICollaborativeDrive, filePath: string): void;
+  setContentsManager(
+    value: Contents.IManager | undefined,
+    filePath: string
+  ): void;
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;

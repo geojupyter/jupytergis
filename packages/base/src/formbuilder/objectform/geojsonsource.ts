@@ -61,36 +61,43 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
    * @param path - the path to validate.
    */
   private async _validatePath(path: string) {
-    const extraErrors: IDict = {
-      path: {
-        __errors: []
-      }
-    };
+    const extraErrors: IDict = this.state.extraErrors;
 
-    this.props.model
-      .readGeoJSON(path)
-      .then(async geoJSONData => {
-        const valid = this._validate(geoJSONData);
+    let error = '';
+    let valid = false;
+    if (path) {
+      try {
+        const geoJSONData = await this.props.model.readGeoJSON(path);
+        valid = this._validate(geoJSONData);
         if (!valid) {
-          extraErrors.path.__errors = [`"${path}" is not a valid GeoJSON file`];
-          this._validate.errors?.reverse().forEach(error => {
-            extraErrors.path.__errors.push(error.message);
-          });
-        } else {
-          delete extraErrors.path;
+          error = `"${path}" is not a valid GeoJSON file`;
         }
-        this.setState({ extraErrors });
-        if (this.props.formErrorSignal) {
-          this.props.formErrorSignal.emit(!valid);
-        }
-      })
-      .catch(e => {
-        extraErrors.path.__errors = [`Cannot read "${path}"`];
-        this.setState({ extraErrors });
-        if (this.props.formErrorSignal) {
-          this.props.formErrorSignal.emit(true);
-        }
+      } catch (e) {
+        error = `"${path}" is not a valid GeoJSON file: ${e}`;
+      }
+    } else {
+      error = 'Path is required';
+    }
+
+    if (!valid) {
+      extraErrors.path = {
+        __errors: [error]
+      };
+      this._validate.errors?.reverse().forEach(error => {
+        extraErrors.path.__errors.push(error.message);
       });
+
+      this.setState(old => ({ ...old, extraErrors }));
+    } else {
+      this.setState(old => ({
+        ...old,
+        extraErrors: { ...extraErrors, path: { __errors: [] } }
+      }));
+    }
+
+    if (this.props.formErrorSignal) {
+      this.props.formErrorSignal.emit(!valid);
+    }
   }
 
   private _validate: ValidateFunction;

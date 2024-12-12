@@ -101,8 +101,7 @@ const activate = async (
     contentFactory,
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
-    consoleTracker,
-    drive
+    consoleTracker
   });
   const QGZWidgetFactory = new JupyterGISWidgetFactory({
     name: 'JupyterGIS QGZ Factory',
@@ -117,8 +116,7 @@ const activate = async (
     contentFactory,
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
-    consoleTracker,
-    drive
+    consoleTracker
   });
 
   // Registering the widget factory
