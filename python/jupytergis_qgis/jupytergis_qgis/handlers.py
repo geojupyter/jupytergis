@@ -40,15 +40,14 @@ class ExportToQgisHandler(APIHandler):
             raise HTTPError(400, "The file content is missing")
 
         absolute_path = os.path.join(
-            os.path.expanduser(self.settings["server_root_dir"]),
-            path
+            os.path.expanduser(self.settings["server_root_dir"]), path
         )
         logs = export_project_to_qgis(absolute_path, virtual_file)
-        self.finish(json.dumps({
-            "exported": len(logs["errors"]) == 0,
-            "path": path,
-            "logs": logs
-        }))
+        self.finish(
+            json.dumps(
+                {"exported": len(logs["errors"]) == 0, "path": path, "logs": logs}
+            )
+        )
 
 
 def setup_handlers(web_app):
