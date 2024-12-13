@@ -17,12 +17,20 @@ The ``jlpm`` command is JupyterLab's pinned version of
 
     # Clone the repo to your local environment
     git clone https://github.com/geojupyter/jupytergis.git
+
     # Change directory to the jupytergis directory
     cd jupytergis
+
+    # Create a virtual environment and activate it
+    python -m venv .venv
+    source .venv/bin/activate
+
     # Install JupyterLab for jlpm
-    pip install jupyterlab
-    # Install package in development mode
+    python -m pip install jupyterlab
+
+    # Install packages in development mode. This may take several minutes!
     python scripts/dev-install.py
+
     # Rebuild extension Typescript source after making changes
     jlpm run build
 
@@ -32,6 +40,7 @@ You can watch the source directory and run JupyterLab at the same time in differ
 
     # Watch the source directory in one terminal, automatically rebuilding when needed
     jlpm run watch
+
     # Run JupyterLab in another terminal
     jupyter lab
 
