@@ -434,7 +434,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
       >
         <LabIcon.resolveReact
           icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
-          className={LAYER_ICON_CLASS + (layer.visible ? '' : 'jp-mod-hidden')}
+          className={LAYER_ICON_CLASS + (layer.visible ? '' : ' jp-mod-hidden')}
           tag="span"
         />
       </Button>
