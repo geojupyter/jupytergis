@@ -290,14 +290,14 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
       <div
         onClick={handleExpand}
         onContextMenu={handleRightClick}
-        className={`${LAYER_GROUP_HEADER_CLASS} ${selected ? ' jp-mod-selected' : ''}`}
+        className={`${LAYER_GROUP_HEADER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
         onDragOver={Private.onDragOver}
         data-id={name}
       >
         <LabIcon.resolveReact
           icon={caretDownIcon}
           className={
-            LAYER_GROUP_COLLAPSER_CLASS + (open ? ' jp-mod-expanded' : '')
+            `${LAYER_GROUP_COLLAPSER_CLASS}${open ? ' jp-mod-expanded' : ''}`
           }
           tag={'span'}
         />
@@ -434,7 +434,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
       >
         <LabIcon.resolveReact
           icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
-          className={LAYER_ICON_CLASS + (layer.visible ? '' : ' jp-mod-hidden')}
+          className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-mod-hidden'}`}
           tag="span"
         />
       </Button>
