@@ -28,7 +28,9 @@ The ``jlpm`` command is JupyterLab's pinned version of
     # Install JupyterLab for jlpm
     python -m pip install jupyterlab
 
-    # Install packages in development mode. This may take several minutes!
+    # Install packages in development mode.
+    # WARNING: This step may hang indefinitely due to a bug in Nx. See
+    #          troubleshooting below.
     python scripts/dev-install.py
 
     # Rebuild extension Typescript source after making changes
@@ -61,3 +63,13 @@ Development uninstall
     pip uninstall jupytergis
 
 In development mode, you will also need to remove the symlink created by ``jupyter labextension develop`` command. To find its location, you can run ``jupyter labextension list`` to figure out where the ``labextensions`` folder is located. Then you can remove the symlink named ``jupytergis`` within that folder.
+
+
+Troubleshooting
+---------------
+
+* Setup of development environment hangs indefinitely when running the
+  ``dev-install.py`` step, specifically on the Yarn linking step. 
+  * This may be caused by having a ``.gitignore`` file in your home directory.
+    This is a :ref:`known issue with Nx <https://github.com/nrwl/nx/issues/27494>`.
+    The :ref:`only known workaround <https://github.com/nrwl/nx/issues/27494#issuecomment-2481207598>` is to remove the ``.gitignore`` file from your home directory or to work in a location outside of the home directory tree.
