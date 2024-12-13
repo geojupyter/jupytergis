@@ -7,11 +7,17 @@ Contributing
 Development install
 -------------------
 
-**Note:** You will need `Node.js <https://nodejs.org/>`_ to build the extension package.
+.. note::
 
-The ``jlpm`` command is JupyterLab's pinned version of
-`yarn <https://yarnpkg.com/>`_ that is installed with JupyterLab. You may use
-`yarn <https://yarnpkg.com/>`_ or `npm <https://www.npmjs.com/>`_ in lieu of ``jlpm`` below.
+    You will need `Node.js <https://nodejs.org/>`_ to build the extension package.
+
+    The ``jlpm`` command is JupyterLab's pinned version of
+    `yarn <https://yarnpkg.com/>`_ that is installed with JupyterLab. You may use
+    `yarn <https://yarnpkg.com/>`_ or `npm <https://www.npmjs.com/>`_ in lieu of ``jlpm`` below.
+
+
+Clone the source
+^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -21,10 +27,44 @@ The ``jlpm`` command is JupyterLab's pinned version of
     # Change directory to the jupytergis directory
     cd jupytergis
 
-    # Create a virtual environment and activate it
-    python -m venv .venv
-    source .venv/bin/activate
 
+Create a virtual environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. tabs::
+
+    .. tab:: Micromamba (recommended)
+
+        .. code-block:: bash
+
+            # Create a virtual environment
+            micromamba create --name jupytergis_dev -c conda-forge pip yarn=3 "nodejs<22" qgis
+
+            # Activate it
+            micromamba activate jupytergis_dev
+
+
+    .. tab:: Plain python
+
+        .. note::
+
+            You may need to install some non-Python dependencies (e.g. QGIS,
+            yarn) separately when using this method.
+
+
+        .. code-block:: bash
+
+            # Create a virtual environment
+            python -m venv .venv
+
+            # Activate it
+            source .venv/bin/activate
+
+
+Install dependencies and build
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
     # Install JupyterLab for jlpm
     python -m pip install jupyterlab
 
