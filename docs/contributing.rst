@@ -7,11 +7,11 @@ Contributing
 Development install
 -------------------
 
-**Note:** You will need :ref:`Node.js <https://nodejs.org/>` to build the extension package.
+**Note:** You will need `Node.js <https://nodejs.org/>`_ to build the extension package.
 
 The ``jlpm`` command is JupyterLab's pinned version of
-:ref:`yarn <https://yarnpkg.com/>` that is installed with JupyterLab. You may use
-:ref:`yarn <https://yarnpkg.com/>` or :ref:`npm <https://www.npmjs.com/>` in lieu of ``jlpm`` below.
+`yarn <https://yarnpkg.com/>`_ that is installed with JupyterLab. You may use
+`yarn <https://yarnpkg.com/>`_ or `npm <https://www.npmjs.com/>`_ in lieu of ``jlpm`` below.
 
 .. code-block:: bash
 
@@ -72,5 +72,5 @@ Troubleshooting
   ``dev-install.py`` step, specifically on the Yarn linking step.
 
   * This may be caused by having a ``.gitignore`` file in your home directory.
-    This is a :ref:`known issue with Nx <https://github.com/nrwl/nx/issues/27494>`.
-    The :ref:`only known workaround <https://github.com/nrwl/nx/issues/27494#issuecomment-2481207598>` is to remove the ``.gitignore`` file from your home directory or to work in a location outside of the home directory tree.
+    This is a `known issue with Nx <https://github.com/nrwl/nx/issues/27494>`_.
+    The `only known workaround <https://github.com/nrwl/nx/issues/27494#issuecomment-2481207598>`_ is to remove the ``.gitignore`` file from your home directory or to work in a location outside of the home directory tree.
