@@ -110,7 +110,7 @@
 
 .jp-gis-layerIcon.jp-mod-hidden,
 .jp-gis-sourceIcon.jp-mod-hidden {
-  stroke: red;
+  stroke: var(--jp-warn-color0);
   stroke-width: 1px;
 }
 
