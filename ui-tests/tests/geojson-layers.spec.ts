@@ -60,11 +60,11 @@ test.describe('#geoJSONLayer', () => {
     const dialog = page.locator('.jp-Dialog-content');
     await expect(dialog).toBeAttached();
 
-    const fileInput = dialog.getByLabel('path');
+    const fileInput = dialog.locator('input#root_path');
     await fileInput.fill('france_regions.json');
     await fileInput.blur();
 
-    const typeInput = dialog.getByLabel('type');
+    const typeInput = dialog.locator('select#root_type');
     typeInput.selectOption('line');
 
     await dialog.getByText('Ok', { exact: true }).first().click();

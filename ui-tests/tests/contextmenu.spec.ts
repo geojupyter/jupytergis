@@ -88,9 +88,7 @@ test.describe('context menu', () => {
     });
     await page.getByText('Add Layer').hover();
     await page.getByText('Raster', { exact: true }).click();
-    await page
-      .getByLabel('source*')
-      .selectOption('699facc9-e7c4-4f38-acf1-1fd7f02d9f36');
+    await page.locator('select#root_source').selectOption('1');
     await page.getByRole('dialog').getByRole('button', { name: 'Ok' }).click();
 
     expect(page.getByText('Custom Raster Layer')).toBeVisible();
