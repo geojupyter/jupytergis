@@ -587,7 +587,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   .form-group
   .field-array-of-number
   > div:nth-child(2) {
-  order: 1; 
+  order: 1;
 }
 
 .jGIS-property-panel .required {

@@ -230,7 +230,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
     if (this.props.schema) {
       const schema = { ...this.state.schema, additionalProperties: true };
       const formData = this.currentFormData;
-      
+
       const uiSchema = {
         additionalProperties: {
           'ui:label': false,
