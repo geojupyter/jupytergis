@@ -1,4 +1,3 @@
-@import url('~@deathbeds/jupyterlab-rjsf/style/index.css');
 @import url('~@jupytergis/base/style/index.css');
 
 .jGIS-Spinner {
@@ -170,8 +169,8 @@ div.field.field-array > label + span {
 }
 
 /* TODO Upstream this to jupyterlab jrfs */
-.jp-SchemaForm .control-label,
-.jp-SchemaForm legend {
+.jGIS-property-panel .rjsf .control-label,
+.jGIS-property-panel .rjsf legend {
   position: inherit;
   text-transform: capitalize;
 }
@@ -380,8 +379,8 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   width: 100%;
 }
 
-.jp-SchemaForm .control-label,
-.jp-SchemaForm legend {
+.jGIS-property-panel .rjsf .control-label,
+.jGIS-property-panel .rjsf legend {
   width: 100%;
 }
 
@@ -391,4 +390,235 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 
 .jpgis-console .jp-CodeConsole-banner {
   display: none;
+}
+
+/* FormComponent CSS */
+.jGIS-property-panel .rjsf {
+  color: var(--jp-ui-font-color1);
+}
+
+.jGIS-property-panel .rjsf > form {
+  padding: var(--jp-ui-font-size1);
+}
+
+.jGIS-property-panel .rjsf fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.jGIS-property-panel .rjsf button[type='submit'] {
+  display: none;
+}
+
+.jGIS-property-panel .rjsf .control-label,
+.jGIS-property-panel .rjsf legend {
+  margin: 0;
+  padding: 0;
+  font-weight: bold;
+  position: relative;
+  width: 100%;
+}
+
+.jGIS-property-panel .rjsf legend > :first-child,
+.jGIS-property-panel .rjsf .control-label > :first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.jGIS-property-panel .rjsf .form-group .form-group {
+  margin-bottom: var(--jp-ui-font-size1);
+}
+
+.jGIS-property-panel .rjsf .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.jGIS-property-panel .rjsf .jp-FormGroup-description,
+.jGIS-property-panel .rjsf .field-description,
+.jGIS-property-panel .rjsf .help-block {
+  color: var(--jp-ui-font-color2);
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.jGIS-property-panel
+  .jp-FormGroup-content
+  fieldset
+  .jp-inputFieldWrapper
+  > input {
+  box-sizing: border-box;
+  border: var(--jp-border-width) solid var(--jp-border-color1);
+  background-color: var(--jp-layout-color0);
+  color: var(--jp-ui-font-color0);
+  font-size: var(--jp-ui-font-size2);
+  min-width: 0;
+  outline: none !important;
+  padding: 2px 7px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.jGIS-property-panel
+  .jp-FormGroup-content
+  fieldset
+  .jp-inputFieldWrapper
+  > input#root_Color,
+.jGIS-property-panel
+  .jp-FormGroup-content
+  fieldset
+  .jp-inputFieldWrapper
+  > input#root_shadowColor {
+  height: revert;
+}
+
+.jGIS-property-panel .jp-FormGroup-contentNormal {
+  display: flex;
+  flex-direction: column;
+  align-items: inherit;
+}
+
+.jGIS-property-panel .jp-FormGroup-contentNormal .jp-FormGroup-fieldLabel {
+  font-weight: bold;
+  order: 1;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.jGIS-property-panel
+  .jp-FormGroup-content
+  .jp-FormGroup-contentNormal
+  .jp-FormGroup-description,
+.jGIS-property-panel .field-description {
+  order: 2;
+  color: var(--jp-ui-font-color2);
+}
+
+.jGIS-property-panel .jp-FormGroup-content .jp-inputFieldWrapper {
+  order: 3;
+}
+
+.jGIS-property-panel .jp-FormGroup-contentNormal .validationErrors,
+.jGIS-property-panel .jp-FormGroup-contentNormal .validationErrors ul {
+  order: 4;
+  list-style: none;
+  color: var(--jp-warn-color0);
+  margin: 0;
+  padding: 0;
+}
+
+.jGIS-property-panel .jp-objectFieldWrapper,
+.jGIS-property-panel .jp-arrayFieldWrapper {
+  padding-left: var(--jp-notebook-padding);
+  border-left: solid 4px var(--jp-border-color3);
+}
+
+.jGIS-property-panel .array-item {
+  border: none;
+}
+
+.jGIS-property-panel
+  .jp-FormGroup-content
+  .jp-FormGroup-contentNormal
+  .jp-arrayFieldWrapper
+  + .jp-FormGroup-description {
+  display: none;
+}
+
+.jGIS-property-panel .rjsf .errors {
+  color: var(--jp-warn-color0);
+}
+
+.jGIS-property-panel .rjsf .errors ul,
+.jGIS-property-panel .rjsf .validationErrors ul,
+.jGIS-property-panel .rjsf .validationErrors li,
+.jGIS-property-panel .rjsf .errors li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.jGIS-property-panel .rjsf .jp-ArrayOperationsButton {
+  display: none;
+}
+
+/* Hide additional property fields with remove buttons that should not be displayed in the form */
+.jGIS-property-panel
+  .form-group:has(.jp-FormGroup-removeButton):not(:has(.jp-root)) {
+  display: none;
+}
+
+.jGIS-property-panel .jp-arrayFieldWrapper .array-item legend,
+.jGIS-property-panel
+  .jp-arrayFieldWrapper
+  .field-array-of-array
+  .field-array-of-number
+  legend,
+.jGIS-property-panel
+  .jp-arrayFieldWrapper
+  .field-array-of-array
+  .field-array-of-number
+  .jp-FormGroup-fieldLabel {
+  display: none;
+}
+.jGIS-property-panel
+  .jp-arrayFieldWrapper
+  .field-array-of-array
+  .array-item
+  .form-group
+  .field-array-of-number {
+  display: flex;
+}
+
+.jGIS-property-panel
+  .jp-arrayFieldWrapper
+  .field-array-of-array
+  .array-item
+  .form-group
+  .field-array-of-number
+  > div:nth-child(1) {
+  order: 2;
+}
+
+.jGIS-property-panel
+  .jp-arrayFieldWrapper
+  .field-array-of-array
+  .array-item
+  .form-group
+  .field-array-of-number
+  > div:nth-child(2) {
+  order: 1;
+}
+
+.jGIS-property-panel .required {
+  font-size: var(--jp-ui-font-size3);
+  color: var(--jp-warn-color1);
+  font-weight: 800;
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: block;
+}
+.jGIS-property-panel
+  .jp-FormGroup-content
+  fieldset
+  .jp-inputFieldWrapper
+  select {
+  width: 100%;
+  font-size: var(--jp-ui-font-size1);
+  background: var(--jp-input-background);
+  color: var(--jp-ui-font-color0);
+  padding: calc(var(--jp-ui-font-size1) / 2);
+  padding-right: var(--jp-ui-font-size3);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' viewBox='0 0 20 20'%3e %3cg class='jp-icon3' fill='%23616161' shape-rendering='geometricPrecision'%3e %3cpolygon class='st1' points='9.9%2c13.6 3.6%2c7.4 4.4%2c6.6 9.9%2c12.2 15.4%2c6.7 16.1%2c7.4 '/%3e %3c/g%3e %3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: 99% center;
+  background-size: 18px;
+  border: var(--jp-border-width) solid var(--jp-input-border-color);
+  border-radius: 0;
+  outline: none;
+  appearance: none;
+}
+.jGIS-property-panel .jp-select-wrapper select {
+  background-image: unset !important;
 }

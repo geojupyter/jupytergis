@@ -3,6 +3,6 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
-.jp-SchemaForm .jp-select-wrapper select {
+.jGIS-property-panel .rjsf .jp-select-wrapper select {
   background-image: unset;
 }

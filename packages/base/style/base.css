@@ -21,27 +21,23 @@
   gap: 1rem;
 }
 
-.jGIS-property-panel .jp-SchemaForm .array-item:not(:last-child) {
+.jGIS-property-panel .rjsf .array-item:not(:last-child) {
   border-bottom: none;
   margin-bottom: unset;
   padding-bottom: unset;
 }
 
-.jGIS-property-panel .jp-SchemaForm .array-item {
+.jGIS-property-panel .rjsf .array-item {
   flex: 1 0 0%;
   align-items: center;
 }
 
-.jGIS-property-panel .jp-SchemaForm .field-description {
-  display: none;
-}
-
-.jGIS-property-panel .jp-SchemaForm fieldset fieldset {
+.jGIS-property-panel .rjsf fieldset fieldset {
   padding-left: unset;
   border-left: none;
 }
 
-.jGIS-property-panel .jp-SchemaForm .array-item-list:has(.field-array) {
+.jGIS-property-panel .rjsf .array-item-list:has(.field-array) {
   flex-direction: column;
 }
 
