@@ -5,7 +5,8 @@ import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 
-import { GeoJSON } from './_interface/geojsonsource';
+import shp from 'shpjs';
+// import GeoTIFF from 'geotiff';
 import {
   IJGISContent,
   IJGISLayer,
@@ -303,28 +304,78 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
-   * Read a GeoJSON file.
+   * Generalized file reader for different source types.
    *
-   * @param filepath - the path of the GeoJSON file.
-   * @returns a promise to the GeoJSON data.
+   * @param filepath - Path to the file.
+   * @param type - Type of the source file (e.g., "GeoJSONSource", "ShapefileSource").
+   * @returns A promise that resolves to the file content.
    */
-  async readGeoJSON(filepath: string): Promise<GeoJSON | undefined> {
+  async readFile(
+    filepath: string,
+    type: IJGISSource['type']
+  ): Promise<any | undefined> {
     if (!this._contentsManager) {
-      return;
+      throw new Error('ContentsManager is not initialized.');
     }
 
-    const absolutePath = PathExt.resolve(
-      PathExt.dirname(this._filePath),
-      filepath
-    );
-    const file = await this._contentsManager.get(absolutePath, {
-      content: true
-    });
+    const absolutePath = PathExt.resolve(PathExt.dirname(this._filePath), filepath);
 
-    if (typeof file.content === 'string') {
-      return JSON.parse(file.content);
+    try {
+      const file = await this._contentsManager.get(absolutePath, {
+        content: true
+      });
+
+      if (!file.content) {
+        throw new Error(`File at ${absolutePath} is empty or inaccessible.`);
+      }
+
+      switch (type) {
+        case 'GeoJSONSource': {
+          if (typeof file.content === 'string') {
+            return JSON.parse(file.content);
+          }
+          return file.content;
+        }
+
+        case 'ShapefileSource': {
+          const arrayBuffer = await this._stringToArrayBuffer(file.content as string);
+          const geojson = await shp(arrayBuffer);
+          return geojson;
+        }
+
+        // case 'GeoTiffSource': {
+        //   const arrayBuffer = await this._stringToArrayBuffer(file.content as string);
+        //   const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+        //   const image = await tiff.getImage();
+        //   const rasterData = await image.readRasters();
+        //   return rasterData;
+        // }
+
+        case 'ImageSource': {
+          if (typeof file.content === 'string') {
+            return `data:image/png;base64,${file.content}`;
+          }
+          return file.content;
+        }
+
+        default: {
+          throw new Error(`Unsupported source type: ${type}`);
+        }
+      }
+    } catch (error) {
+      console.error(`Error reading file '${filepath}':`, error);
+      throw error;
     }
-    return file.content;
+  }
+
+  /**
+   * Helper to convert a string (base64) to ArrayBuffer.
+   * @param content - File content as a base64 string.
+   * @returns An ArrayBuffer.
+   */
+  private async _stringToArrayBuffer(content: string): Promise<ArrayBuffer> {
+    const base64Response = await fetch(`data:application/octet-stream;base64,${content}`);
+    return await base64Response.arrayBuffer();
   }
 
   /**
@@ -366,6 +417,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     position?: number
   ): void {
     if (!this.getLayer(id)) {
+      console.log(this.sharedModel);
+      console.log(id, layer);
+      
+      
       this.sharedModel.addLayer(id, layer);
     }
 

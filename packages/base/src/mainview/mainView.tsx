@@ -19,7 +19,7 @@ import {
   IRasterDemSource,
   IRasterLayer,
   IRasterSource,
-  IShapefileSource,
+  // IShapefileSource,
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
@@ -59,7 +59,7 @@ import { get as getProjection } from 'ol/proj.js';
 import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
-import shp from 'shpjs';
+// import shp from 'shpjs';
 import { isLightTheme } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
@@ -298,20 +298,20 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   };
 
-  private async _loadShapefileAsGeoJSON(
-    url: string
-  ): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
-    try {
-      const response = await fetch(`/jupytergis_core/proxy?url=${url}`);
-      const arrayBuffer = await response.arrayBuffer();
-      const geojson = await shp(arrayBuffer);
+  // private async _loadShapefileAsGeoJSON(
+  //   url: string
+  // ): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
+  //   try {
+  //     const response = await fetch(`/jupytergis_core/proxy?url=${url}`);
+  //     const arrayBuffer = await response.arrayBuffer();
+  //     const geojson = await shp(arrayBuffer);
 
-      return geojson;
-    } catch (error) {
-      console.error('Error loading shapefile:', error);
-      throw error;
-    }
-  }
+  //     return geojson;
+  //   } catch (error) {
+  //     console.error('Error loading shapefile:', error);
+  //     throw error;
+  //   }
+  // }
 
   /**
    * Add a source in the map.
@@ -387,7 +387,7 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'GeoJSONSource': {
         const data =
           source.parameters?.data ||
-          (await this._model.readGeoJSON(source.parameters?.path));
+          (await this._model.readFile(source.parameters?.path, 'GeoJSONSource'));
 
         const format = new GeoJSON({
           featureProjection: this._Map.getView().getProjection()
@@ -408,9 +408,9 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'ShapefileSource': {
-        const parameters = source.parameters as IShapefileSource;
+        // const parameters = source.parameters as IShapefileSource;
 
-        const geojson = await this._loadShapefileAsGeoJSON(parameters.path);
+        const geojson = await this._model.readFile(source.parameters?.path, 'ShapefileSource');
         const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
 
         const format = new GeoJSON();
@@ -485,6 +485,9 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     newSource.set('id', id);
+    console.log('Adding source', id, newSource);
+    
+    
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
   }
