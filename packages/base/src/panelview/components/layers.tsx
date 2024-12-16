@@ -296,9 +296,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
       >
         <LabIcon.resolveReact
           icon={caretDownIcon}
-          className={
-            `${LAYER_GROUP_COLLAPSER_CLASS}${open ? ' jp-mod-expanded' : ''}`
-          }
+          className={`${LAYER_GROUP_COLLAPSER_CLASS}${open ? ' jp-mod-expanded' : ''}`}
           tag={'span'}
         />
         <span id={id} className={LAYER_TEXT_CLASS}>
