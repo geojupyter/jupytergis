@@ -50,9 +50,34 @@ export function addCommands(
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
     isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
+      const model = tracker.currentWidget?.context.model;
+      const localState = model?.sharedModel.awareness.getLocalState();
+
+      if (!model || !localState || !localState['selected']?.value) {
+        return false;
+      }
+
+      const selectedLayers = localState['selected'].value;
+
+      // Can't open more than one symbology dialog at once
+      if (Object.keys(selectedLayers).length > 1) {
+        return false;
+      }
+
+      const layerId = Object.keys(selectedLayers)[0];
+      const layer = model.getLayer(layerId);
+
+      if (!layer) {
+        return false;
+      }
+
+      const isValidLayer = [
+        'VectorLayer',
+        'VectorTileLayer',
+        'WebGlLayer'
+      ].includes(layer.type);
+
+      return isValidLayer;
     },
     execute: Private.createSymbologyDialog(tracker, state),
 
