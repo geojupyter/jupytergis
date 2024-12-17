@@ -31,7 +31,7 @@ export { IGeoJSONSource } from './_interface/geojsonsource';
 
 export type CenterPosition = {
   coordinates: { x: number; y: number };
-  // zoom: number;
+  zoom: number;
 };
 export interface IDict<T = any> {
   [key: string]: T;

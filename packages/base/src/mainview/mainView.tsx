@@ -231,12 +231,14 @@ export class MainView extends React.Component<IProps, IStates> {
         }, 100);
 
         // TODO: This doesn't work with throttle?
-        const center = this._Map.getView().getCenter();
-        if (!center) {
+        const view = this._Map.getView();
+        const center = view.getCenter();
+        const zoom = view.getZoom();
+        if (!center || !zoom) {
           return;
         }
         this._model.syncCenter(
-          { coordinates: { x: center[0], y: center[1] } },
+          { coordinates: { x: center[0], y: center[1] }, zoom },
           this._mainViewModel.id
         );
       });
@@ -944,12 +946,11 @@ export class MainView extends React.Component<IProps, IStates> {
     clients: Map<number, IJupyterGISClientState>
   ): void => {
     const remoteUser = this._model.localState?.remoteUser;
-    console.log('shared state change');
+    const view = this._Map.getView();
 
     // If we are in following mode, we update our position and selection
     if (remoteUser) {
       const remoteState = clients.get(remoteUser);
-      console.log('remoteState', remoteState);
       if (!remoteState) {
         return;
       }
@@ -958,42 +959,28 @@ export class MainView extends React.Component<IProps, IStates> {
         this.setState(old => ({ ...old, remoteUser: remoteState.user }));
       }
 
-      // Sync selected
-      if (remoteState.selected?.value) {
-        // this._updateSelected(remoteState.selected.value);
-      }
-
       const remoteCenter = remoteState.centerPosition;
-      console.log('remoteCenter', remoteCenter);
+
       if (remoteCenter.value) {
         const { x, y } = remoteCenter.value.coordinates;
-        this._Map.getView().setCenter([x, y]);
-      } else {
-        console.log('no work');
+        const zoom = remoteCenter.value.zoom;
+
+        view.setCenter([x, y]);
+        view.setZoom(zoom);
       }
     } else {
-      // If we are unfollowing a remote user, we reset our camera to its old position
+      // If we are unfollowing a remote user, we reset our center to its old position
       if (this.state.remoteUser !== null) {
         this.setState(old => ({ ...old, remoteUser: null }));
-        console.log('unfollow');
-        // const camera = this._model.localState?.camera?.value;
+        const centerPosition = this._model.localState?.centerPosition?.value;
 
-        // if (camera) {
-        //   const position = camera.position;
-        //   const rotation = camera.rotation;
-        //   const up = camera.up;
+        if (centerPosition) {
+          const { x, y } = centerPosition.coordinates;
+          const zoom = centerPosition.zoom;
 
-        //   this._camera.position.set(position[0], position[1], position[2]);
-        //   this._camera.rotation.set(rotation[0], rotation[1], rotation[2]);
-        //   this._camera.up.set(up[0], up[1], up[2]);
-        // }
-      }
-
-      // Sync local selection if needed
-      const localState = this._model.localState;
-
-      if (localState?.selected?.value) {
-        // this._updateSelected(localState.selected.value);
+          view.animate({ center: [x, y] });
+          view.animate({ zoom });
+        }
       }
     }
   };
