@@ -351,11 +351,14 @@ export class JupyterGISModel implements IJupyterGISModel {
         //   return rasterData;
         // }
 
-        case 'ImageSource': {
+        case'ImageSource': {
           if (typeof file.content === 'string') {
-            return `data:image/png;base64,${file.content}`;
+            // Convert base64 to a data URL
+            const mimeType = this._getMimeType(filepath);
+            return `data:${mimeType};base64,${file.content}`;
+          } else {
+            throw new Error('Invalid file format for image content');
           }
-          return file.content;
         }
 
         default: {
@@ -367,6 +370,33 @@ export class JupyterGISModel implements IJupyterGISModel {
       throw error;
     }
   }
+
+  /**
+ * Determine the MIME type based on the file extension.
+ *
+ * @param filename - The name of the file.
+ * @returns A string representing the MIME type.
+ */
+private _getMimeType(filename: string): string {
+  const extension = filename.split('.').pop()?.toLowerCase();
+
+  switch (extension) {
+    case 'png':
+      return 'image/png';
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'gif':
+      return 'image/gif';
+    case 'webp':
+      return 'image/webp';
+    case 'svg':
+      return 'image/svg+xml';
+    default:
+      console.warn(`Unknown file extension: ${extension}, defaulting to 'application/octet-stream'`);
+      return 'application/octet-stream';
+  }
+}
 
   /**
    * Helper to convert a string (base64) to ArrayBuffer.

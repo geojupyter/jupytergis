@@ -460,9 +460,17 @@ export class MainView extends React.Component<IProps, IStates> {
 
         const extent = [minX, minY, maxX, maxY];
 
+        let imageUrl: string;
+
+        if (sourceParameters.url.startsWith('http://') || sourceParameters.url.startsWith('https://')) {
+          imageUrl = sourceParameters.url;
+        } else {
+          imageUrl = await this._model.readFile(sourceParameters.url, 'ImageSource');
+        }
+
         newSource = new Static({
           imageExtent: extent,
-          url: sourceParameters.url,
+          url: imageUrl,
           interpolate: true,
           crossOrigin: ''
         });
