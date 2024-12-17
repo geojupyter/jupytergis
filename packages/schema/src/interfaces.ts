@@ -297,15 +297,8 @@ export interface IAnnotationContent {
 
 export interface IAnnotation {
   label: string;
-  position: [number, number];
+  position: { x: number; y: number };
   zoom: number;
   contents: IAnnotationContent[];
   parent: string;
 }
-
-// export type CenterCoords = {
-//   x: number;
-//   y: number;
-//   // z?: number;
-//   // m?: number;
-// };
