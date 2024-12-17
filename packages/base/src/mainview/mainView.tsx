@@ -60,7 +60,7 @@ import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
 import shp from 'shpjs';
-import { isLightTheme, loadGeoTIFFWithCache } from '../tools';
+import { isLightTheme, loadGeoTIFFWithCache, throttle } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 //@ts-expect-error no types for proj4-list
@@ -70,6 +70,7 @@ import { CommandRegistry } from '@lumino/commands';
 import { Coordinate } from 'ol/coordinate';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
+import { FollowIndicator } from './FollowIndicator';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -211,6 +212,30 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.addInteraction(dragAndDropInteraction);
+
+      const view = this._Map.getView();
+      // TODO: Note for the future, will need to update listeners if view changes
+      this._Map.on('change:view', () => {
+        console.log('view change');
+      });
+
+      view.on('change:center', () => {
+        // Possibly do this on a pointerdrag event
+        // Not syncing camera state if following someone else
+        if (this._model.localState?.remoteUser) {
+          return;
+        }
+
+        throttle(() => {
+          console.log('throttle');
+        }, 100);
+
+        // TODO: This doesn't work with throttle?
+        this._model.syncMapCenter(
+          this._Map.getView().getCenter(),
+          this._mainViewModel.id
+        );
+      });
 
       this._Map.on('postrender', () => {
         if (this.state.annotations) {
@@ -914,7 +939,59 @@ export class MainView extends React.Component<IProps, IStates> {
     sender: IJupyterGISModel,
     clients: Map<number, IJupyterGISClientState>
   ): void => {
-    // TODO SOMETHING
+    const remoteUser = this._model.localState?.remoteUser;
+    console.log('shared state change');
+
+    // If we are in following mode, we update our position and selection
+    if (remoteUser) {
+      const remoteState = clients.get(remoteUser);
+      console.log('remoteState', remoteState);
+      if (!remoteState) {
+        return;
+      }
+
+      if (remoteState.user?.username !== this.state.remoteUser?.username) {
+        this.setState(old => ({ ...old, remoteUser: remoteState.user }));
+      }
+
+      // Sync selected
+      if (remoteState.selected?.value) {
+        // this._updateSelected(remoteState.selected.value);
+      }
+
+      //@ts-expect-error wip
+      const remoteCenter = remoteState.mapCenter;
+      console.log('remoteCenter', remoteCenter);
+      if (remoteCenter.value) {
+        this._Map.getView().setCenter(remoteCenter);
+      } else {
+        console.log('no work');
+      }
+    } else {
+      // If we are unfollowing a remote user, we reset our camera to its old position
+      if (this.state.remoteUser !== null) {
+        this.setState(old => ({ ...old, remoteUser: null }));
+        console.log('unfollow');
+        // const camera = this._model.localState?.camera?.value;
+
+        // if (camera) {
+        //   const position = camera.position;
+        //   const rotation = camera.rotation;
+        //   const up = camera.up;
+
+        //   this._camera.position.set(position[0], position[1], position[2]);
+        //   this._camera.rotation.set(rotation[0], rotation[1], rotation[2]);
+        //   this._camera.up.set(up[0], up[1], up[2]);
+        // }
+      }
+
+      // Sync local selection if needed
+      const localState = this._model.localState;
+
+      if (localState?.selected?.value) {
+        // this._updateSelected(localState.selected.value);
+      }
+    }
   };
 
   private _onSharedOptionsChanged(
@@ -1191,6 +1268,7 @@ export class MainView extends React.Component<IProps, IStates> {
           }}
         >
           <Spinner loading={this.state.loading} />
+          <FollowIndicator remoteUser={this.state.remoteUser} />
 
           <div
             ref={this.divRef}

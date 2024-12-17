@@ -31,6 +31,7 @@ import {
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
 import { Contents } from '@jupyterlab/services';
+import { Coordinate } from 'ol/coordinate';
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: JupyterGISModel.IOptions) {
@@ -385,6 +386,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedModel.options;
   }
 
+  syncMapCenter(center?: Coordinate, emitter?: string): void {
+    console.log('sync center');
+    this.sharedModel.awareness.setLocalStateField('mapCenter', {
+      value: center,
+      emitter: emitter
+    });
+  }
+
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('selected', {
       value,
@@ -630,6 +639,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   private _onClientStateChanged = (changed: any) => {
+    console.log('client state change');
     const clients = this.sharedModel.awareness.getStates() as Map<
       number,
       IJupyterGISClientState
