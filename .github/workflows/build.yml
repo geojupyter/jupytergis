@@ -264,6 +264,7 @@ jobs:
             jupyterlite-xeus>=0.1.2,<0.2
             jupyterlite-sphinx
             sphinx
+            sphinx-tabs
             pydata-sphinx-theme
             sphinx-autodoc-typehints
 

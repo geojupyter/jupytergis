@@ -287,7 +287,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
         <div className="jp-gis-filter-main">
           <div id="filter-container" className="jp-gis-filter-select-container">
             <select
-              className="jp-mod-styled jp-SchemaForm jp-gis-logical-select"
+              className="jp-mod-styled rjsf jp-gis-logical-select"
               onChange={handleLogicalOpChange}
             >
               <option key="all" value="all" selected={logicalOp === 'all'}>

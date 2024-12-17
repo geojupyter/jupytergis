@@ -11,6 +11,7 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
+    "sphinx_tabs.tabs",
 ]
 
 source_suffix = ".rst"

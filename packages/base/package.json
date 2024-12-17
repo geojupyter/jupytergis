@@ -38,7 +38,6 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@deathbeds/jupyterlab-rjsf": "^1.1.0",
     "@jupyter/ydoc": "^2.0.0 || ^3.0.0",
     "@jupytergis/schema": "^0.1.7",
     "@jupyterlab/application": "^4.3.0",
@@ -52,7 +51,7 @@
     "@jupyterlab/observables": "^5.3.0",
     "@jupyterlab/services": "^7.3.0",
     "@jupyterlab/translation": "^4.3.0",
-    "@jupyterlab/ui-components": "^4.3.0",
+    "@jupyterlab/ui-components": "^4.3.1",
     "@lumino/commands": "^2.0.0",
     "@lumino/coreutils": "^2.0.0",
     "@lumino/messaging": "^2.0.0",
@@ -61,6 +60,7 @@
     "@mapbox/vector-tile": "^2.0.3",
     "@naisutech/react-tree": "^3.0.1",
     "@rjsf/core": "^4.2.0",
+    "@rjsf/validator-ajv8": "^5.23.1",
     "@types/d3-color": "^3.1.0",
     "@types/three": "^0.134.0",
     "ajv": "^8.14.0",
