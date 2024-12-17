@@ -26,6 +26,7 @@ import {
   SourceType
 } from './_interface/jgis';
 import { IRasterSource } from './_interface/rastersource';
+import { Coordinate } from 'ol/coordinate';
 
 export { IGeoJSONSource } from './_interface/geojsonsource';
 
@@ -61,6 +62,7 @@ export interface ISelection {
 
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
+  centerCoords: Coordinate;
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
@@ -184,6 +186,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     group: IJGISLayerGroup
   ): void;
 
+  syncMapCenter(center?: Coordinate, emitter?: string): void;
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   setUserToFollow(userId?: number): void;
 
@@ -296,3 +299,10 @@ export interface IAnnotation {
   contents: IAnnotationContent[];
   parent: string;
 }
+
+// export type CenterCoords = {
+//   x: number;
+//   y: number;
+//   // z?: number;
+//   // m?: number;
+// };
