@@ -955,7 +955,9 @@ export class MainView extends React.Component<IProps, IStates> {
       if (remoteCenter.value) {
         const { x, y } = remoteCenter.value.coordinates;
         const zoom = remoteCenter.value.zoom;
-        this._centerOnPosition({ x, y }, zoom);
+
+        this._Map.getView().setCenter([x, y]);
+        this._Map.getView().setZoom(zoom);
       }
     } else {
       // If we are unfollowing a remote user, we reset our center to its old position
