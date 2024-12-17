@@ -214,34 +214,28 @@ export class MainView extends React.Component<IProps, IStates> {
       this._Map.addInteraction(dragAndDropInteraction);
 
       const view = this._Map.getView();
+
       // TODO: Note for the future, will need to update listeners if view changes
-      this._Map.on('change:view', () => {
-        console.log('view change');
-      });
-
-      view.on('change:center', () => {
-        // Possibly do this on a pointerdrag event
-        // Not syncing camera state if following someone else
-        if (this._model.localState?.remoteUser) {
-          return;
-        }
-
+      view.on(
+        'change:center',
         throttle(() => {
+          // Not syncing center if following someone else
+          if (this._model.localState?.remoteUser) {
+            return;
+          }
           console.log('throttle');
-        }, 100);
-
-        // TODO: This doesn't work with throttle?
-        const view = this._Map.getView();
-        const center = view.getCenter();
-        const zoom = view.getZoom();
-        if (!center || !zoom) {
-          return;
-        }
-        this._model.syncCenter(
-          { coordinates: { x: center[0], y: center[1] }, zoom },
-          this._mainViewModel.id
-        );
-      });
+          const view = this._Map.getView();
+          const center = view.getCenter();
+          const zoom = view.getZoom();
+          if (!center || !zoom) {
+            return;
+          }
+          this._model.syncCenter(
+            { coordinates: { x: center[0], y: center[1] }, zoom },
+            this._mainViewModel.id
+          );
+        })
+      );
 
       this._Map.on('postrender', () => {
         if (this.state.annotations) {
@@ -946,8 +940,6 @@ export class MainView extends React.Component<IProps, IStates> {
     clients: Map<number, IJupyterGISClientState>
   ): void => {
     const remoteUser = this._model.localState?.remoteUser;
-    const view = this._Map.getView();
-
     // If we are in following mode, we update our position and selection
     if (remoteUser) {
       const remoteState = clients.get(remoteUser);
@@ -964,9 +956,7 @@ export class MainView extends React.Component<IProps, IStates> {
       if (remoteCenter.value) {
         const { x, y } = remoteCenter.value.coordinates;
         const zoom = remoteCenter.value.zoom;
-
-        view.setCenter([x, y]);
-        view.setZoom(zoom);
+        this._centerOnPosition({ x, y }, zoom);
       }
     } else {
       // If we are unfollowing a remote user, we reset our center to its old position
@@ -977,9 +967,7 @@ export class MainView extends React.Component<IProps, IStates> {
         if (centerPosition) {
           const { x, y } = centerPosition.coordinates;
           const zoom = centerPosition.zoom;
-
-          view.animate({ center: [x, y] });
-          view.animate({ zoom });
+          this._centerOnPosition({ x, y }, zoom);
         }
       }
     }
@@ -1204,10 +1192,18 @@ export class MainView extends React.Component<IProps, IStates> {
   private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
-      const view = this._Map.getView();
-      view.animate({ center: annotation.position });
-      view.animate({ zoom: annotation.zoom });
+      this._centerOnPosition(
+        { x: annotation.position[0], y: annotation.position[1] },
+        annotation.zoom
+      );
     }
+  }
+
+  private _centerOnPosition(center: { x: number; y: number }, zoom: number) {
+    const view = this._Map.getView();
+
+    view.animate({ center: [center.x, center.y] });
+    view.animate({ zoom });
   }
 
   private _handleThemeChange = (): void => {
