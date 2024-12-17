@@ -19,6 +19,7 @@ import {
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
+  CenterPosition,
   IAnnotationModel,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -31,7 +32,6 @@ import {
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
 import { Contents } from '@jupyterlab/services';
-import { Coordinate } from 'ol/coordinate';
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: JupyterGISModel.IOptions) {
@@ -386,9 +386,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedModel.options;
   }
 
-  syncMapCenter(center?: Coordinate, emitter?: string): void {
+  syncCenter(center?: CenterPosition, emitter?: string): void {
     console.log('sync center');
-    this.sharedModel.awareness.setLocalStateField('mapCenter', {
+    this.sharedModel.awareness.setLocalStateField('centerPosition', {
       value: center,
       emitter: emitter
     });

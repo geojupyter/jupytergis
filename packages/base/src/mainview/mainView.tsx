@@ -231,8 +231,12 @@ export class MainView extends React.Component<IProps, IStates> {
         }, 100);
 
         // TODO: This doesn't work with throttle?
-        this._model.syncMapCenter(
-          this._Map.getView().getCenter(),
+        const center = this._Map.getView().getCenter();
+        if (!center) {
+          return;
+        }
+        this._model.syncCenter(
+          { coordinates: { x: center[0], y: center[1] } },
           this._mainViewModel.id
         );
       });
@@ -959,11 +963,11 @@ export class MainView extends React.Component<IProps, IStates> {
         // this._updateSelected(remoteState.selected.value);
       }
 
-      //@ts-expect-error wip
-      const remoteCenter = remoteState.mapCenter;
+      const remoteCenter = remoteState.centerPosition;
       console.log('remoteCenter', remoteCenter);
       if (remoteCenter.value) {
-        this._Map.getView().setCenter(remoteCenter);
+        const { x, y } = remoteCenter.value.coordinates;
+        this._Map.getView().setCenter([x, y]);
       } else {
         console.log('no work');
       }
