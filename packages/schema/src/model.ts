@@ -419,8 +419,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     if (!this.getLayer(id)) {
       console.log(this.sharedModel);
       console.log(id, layer);
-      
-      
+
+
       this.sharedModel.addLayer(id, layer);
     }
 
