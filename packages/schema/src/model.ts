@@ -387,7 +387,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   syncCenter(center?: CenterPosition, emitter?: string): void {
-    console.log('sync center');
     this.sharedModel.awareness.setLocalStateField('centerPosition', {
       value: center,
       emitter: emitter
@@ -639,7 +638,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   private _onClientStateChanged = (changed: any) => {
-    console.log('client state change');
     const clients = this.sharedModel.awareness.getStates() as Map<
       number,
       IJupyterGISClientState

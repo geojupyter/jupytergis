@@ -223,7 +223,6 @@ export class MainView extends React.Component<IProps, IStates> {
           if (this._model.localState?.remoteUser) {
             return;
           }
-          console.log('throttle');
           const view = this._Map.getView();
           const center = view.getCenter();
           const zoom = view.getZoom();
@@ -303,7 +302,7 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         this._mainViewModel.addAnnotation({
-          position: [this._clickCoords[0], this._clickCoords[1]],
+          position: { x: this._clickCoords[0], y: this._clickCoords[1] },
           zoom: this._Map.getView().getZoom() ?? 0,
           label: 'New annotation',
           contents: [],
@@ -1167,7 +1166,9 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _computeAnnotationPosition(annotation: IAnnotation) {
-    const pixels = this._Map.getPixelFromCoordinate(annotation.position);
+    const { x, y } = annotation.position;
+    const pixels = this._Map.getPixelFromCoordinate([x, y]);
+
     if (pixels) {
       return { x: pixels[0], y: pixels[1] };
     }
@@ -1192,10 +1193,8 @@ export class MainView extends React.Component<IProps, IStates> {
   private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
-      this._centerOnPosition(
-        { x: annotation.position[0], y: annotation.position[1] },
-        annotation.zoom
-      );
+      const { x, y } = annotation.position;
+      this._centerOnPosition({ x, y }, annotation.zoom);
     }
   }
 
