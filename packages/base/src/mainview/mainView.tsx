@@ -956,8 +956,8 @@ export class MainView extends React.Component<IProps, IStates> {
         const { x, y } = remoteCenter.value.coordinates;
         const zoom = remoteCenter.value.zoom;
 
-        this._Map.getView().setCenter([x, y]);
         this._Map.getView().setZoom(zoom);
+        this._Map.getView().setCenter([x, y]);
       }
     } else {
       // If we are unfollowing a remote user, we reset our center to its old position
@@ -1020,8 +1020,8 @@ export class MainView extends React.Component<IProps, IStates> {
         [longitude || 0, latitude || 0],
         view.getProjection()
       );
-      view.setCenter(centerCoord);
       view.setZoom(zoom || 0);
+      view.setCenter(centerCoord);
 
       // Save the extent if it does not exists, to allow proper export to qgis.
       if (!options.extent) {
