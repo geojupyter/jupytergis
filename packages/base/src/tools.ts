@@ -347,3 +347,66 @@ export function parseColor(type: string, style: any) {
 
   return parsedStyle;
 }
+
+/**
+ * Open or create an IndexedDB database for caching GeoTIFF files.
+ *
+ * @returns A promise that resolves to the opened IndexedDB database instance.
+ */
+export const openDatabase = () => {
+  return new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open('GeoTIFFCache', 1);
+
+    request.onupgradeneeded = event => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains('files')) {
+        db.createObjectStore('files', { keyPath: 'url' });
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
+
+/**
+ * Save a file and its metadata to the IndexedDB database.
+ *
+ * @param key file ID (sourceUrl).
+ * @param file Blob object representing the file content.
+ * @param metadata metadata of file.
+ * @returns A promise that resolves once the data is successfully saved.
+ */
+export const saveToIndexedDB = async (
+  key: string,
+  file: Blob,
+  metadata: any
+) => {
+  const db = await openDatabase();
+  return new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction('files', 'readwrite');
+    const store = transaction.objectStore('files');
+    store.put({ url: key, file, metadata });
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+};
+
+/**
+ * Retrieve a file and its metadata from the IndexedDB database.
+ *
+ * @param key fileID (sourceUrl).
+ * @returns A promise that resolves to the stored data object or undefined.
+ */
+export const getFromIndexedDB = async (key: string) => {
+  const db = await openDatabase();
+  return new Promise<any>((resolve, reject) => {
+    const transaction = db.transaction('files', 'readonly');
+    const store = transaction.objectStore('files');
+    const request = store.get(key);
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};

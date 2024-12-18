@@ -14,7 +14,7 @@ import StopRow from '../../components/color_stops/StopRow';
 import { Utils } from '../../symbologyUtils';
 import { getGdal } from '../../../../gdal';
 import { Spinner } from '../../../../mainview/spinner';
-import { saveToIndexedDB, getFromIndexedDB } from '../../utils/indexedDBUtil';
+import { saveToIndexedDB, getFromIndexedDB } from '../../../../tools';
 
 export interface IBandRow {
   band: number;
