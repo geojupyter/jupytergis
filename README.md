@@ -17,6 +17,7 @@
 This demo runs a JupyterLab instance entirely in your browser with WebAssembly! 🤯
 
 Powered by [JupyterLite](https://jupyterlite.readthedocs.io/en/stable/?badge=latest).
+Please note that [JupyterGIS' real-time collaboration features are not yet supported in JupyterLite](https://jupyterlite.readthedocs.io/en/latest/howto/configure/rtc.html).
 
 ## Installation
 
