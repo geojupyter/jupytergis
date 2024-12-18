@@ -13,6 +13,7 @@ import {
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
+import { getGdal } from './gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -409,4 +410,45 @@ export const getFromIndexedDB = async (key: string) => {
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
+};
+
+/**
+ * Load a GeoTIFF file from IndexedDB database cache or fetch it .
+ *
+ * @param sourceInfo object containing the URL of the GeoTIFF file.
+ * @returns A promise that resolves to the file as a Blob, or undefined .
+ */
+export const loadGeoTIFFWithCache = async (sourceInfo: {
+  url?: string | undefined;
+}) => {
+  if (!sourceInfo?.url) {
+    return null;
+  }
+
+  const cachedData = await getFromIndexedDB(sourceInfo.url);
+  if (cachedData) {
+    return {
+      file: new Blob([cachedData.file]),
+      metadata: cachedData.metadata,
+      sourceUrl: sourceInfo.url
+    };
+  }
+
+  const response = await fetch(sourceInfo.url);
+  const fileBlob = await response.blob();
+  const file = new File([fileBlob], 'loaded.tif');
+
+  const Gdal = await getGdal();
+  const result = await Gdal.open(file);
+  const tifDataset = result.datasets[0];
+  const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
+  Gdal.close(tifDataset);
+
+  await saveToIndexedDB(sourceInfo.url, fileBlob, metadata);
+
+  return {
+    file: fileBlob,
+    metadata,
+    sourceUrl: sourceInfo.url
+  };
 };

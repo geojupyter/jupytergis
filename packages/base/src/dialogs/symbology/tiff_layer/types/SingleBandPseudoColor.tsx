@@ -12,9 +12,8 @@ import ColorRamp, {
 } from '../../components/color_ramp/ColorRamp';
 import StopRow from '../../components/color_stops/StopRow';
 import { Utils } from '../../symbologyUtils';
-import { getGdal } from '../../../../gdal';
 import { Spinner } from '../../../../mainview/spinner';
-import { saveToIndexedDB, getFromIndexedDB } from '../../../../tools';
+import { loadGeoTIFFWithCache } from '../../../../tools';
 
 export interface IBandRow {
   band: number;
@@ -130,33 +129,10 @@ const SingleBandPseudoColor = ({
     setSelectedFunction(interpolation);
   };
 
-  const preloadGeoTiffFile = async (sourceInfo: { url: string | null }) => {
-    if (!sourceInfo?.url) {
-      return;
-    }
-
-    const cachedData = await getFromIndexedDB(sourceInfo.url);
-    if (cachedData) {
-      const file = cachedData.file;
-      const metadata = cachedData.metadata;
-      const sourceUrl = sourceInfo.url;
-      return { file, metadata, sourceUrl };
-    }
-
-    // Download the file and save it to indexedDB
-    const fileData = await fetch(sourceInfo.url);
-    const fileBlob = await fileData.blob();
-    const file = new File([fileBlob], 'loaded.tif');
-
-    const Gdal = await getGdal();
-    const result = await Gdal.open(file);
-    const tifDataset = result.datasets[0];
-    const tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
-    Gdal.close(tifDataset);
-
-    await saveToIndexedDB(sourceInfo.url, fileBlob, tifData);
-
-    return { file, metadata: tifData, sourceUrl: sourceInfo.url };
+  const preloadGeoTiffFile = async (sourceInfo: {
+    url?: string | undefined;
+  }) => {
+    return await loadGeoTIFFWithCache(sourceInfo);
   };
 
   const getBandInfo = async () => {
