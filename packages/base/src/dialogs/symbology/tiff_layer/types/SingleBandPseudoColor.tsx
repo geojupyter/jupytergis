@@ -131,7 +131,9 @@ const SingleBandPseudoColor = ({
   };
 
   const preloadGeoTiffFile = async (sourceInfo: { url: string | null }) => {
-    if (!sourceInfo?.url) return;
+    if (!sourceInfo?.url) {
+      return;
+    }
 
     const cachedData = await getFromIndexedDB(sourceInfo.url);
     if (cachedData) {
