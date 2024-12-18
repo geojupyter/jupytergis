@@ -1203,8 +1203,8 @@ export class MainView extends React.Component<IProps, IStates> {
   private _centerOnPosition(center: { x: number; y: number }, zoom: number) {
     const view = this._Map.getView();
 
-    view.animate({ center: [center.x, center.y] });
     view.animate({ zoom });
+    view.animate({ center: [center.x, center.y] });
   }
 
   private _handleThemeChange = (): void => {
