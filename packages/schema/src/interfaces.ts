@@ -33,6 +33,10 @@ export type CenterPosition = {
   coordinates: { x: number; y: number };
   zoom: number;
 };
+
+export type Cursor = {
+  coordinates: { x: number; y: number };
+};
 export interface IDict<T = any> {
   [key: string]: T;
 }
@@ -65,6 +69,7 @@ export interface ISelection {
 
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
+  pointer: { value?: Cursor; emitter?: string | null };
   centerPosition: { value?: CenterPosition; emitter?: string | null };
   user: User.IIdentity;
   remoteUser?: number;
@@ -191,6 +196,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   syncCenter(center?: CenterPosition, emitter?: string): void;
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
+  syncCursor(pointer?: Cursor, emitter?: string): void;
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;

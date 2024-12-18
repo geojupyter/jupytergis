@@ -1,5 +1,6 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
+  Cursor,
   IAnnotation,
   IDict,
   IGeoTiffSource,
@@ -71,6 +72,7 @@ import { Coordinate } from 'ol/coordinate';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
+import CollaboratorCursor, { TransformedClient } from './CollaboratorCursor';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -273,6 +275,10 @@ export class MainView extends React.Component<IProps, IStates> {
         });
       });
 
+      this._Map
+        .getViewport()
+        .addEventListener('pointermove', this._onCursorMove.bind(this));
+
       if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
         await this._updateLayersImpl(
           JupyterGISModel.getOrderedLayerIds(this._model)
@@ -282,8 +288,6 @@ export class MainView extends React.Component<IProps, IStates> {
         this._initializedPosition = true;
       }
 
-      this.setState(old => ({ ...old, loading: false }));
-
       this._Map.getViewport().addEventListener('contextmenu', event => {
         event.preventDefault();
         event.stopPropagation();
@@ -291,6 +295,8 @@ export class MainView extends React.Component<IProps, IStates> {
         this._clickCoords = coordinate;
         this._contextMenu.open(event);
       });
+
+      this.setState(old => ({ ...old, loading: false }));
     }
   }
 
@@ -972,6 +978,73 @@ export class MainView extends React.Component<IProps, IStates> {
         }
       }
     }
+
+    // cursors
+    const ret: TransformedClient[] = [];
+    clients.forEach((client, clientId) => {
+      if (!client?.user) {
+        return;
+      }
+
+      // We already display our own cursor on mouse move
+      if (this._model.getClientId() === clientId) {
+        return;
+      }
+
+      const username = client.user.username;
+      const displayName = client.user.display_name;
+      const color = client.user.color;
+      const coordinates = client.centerPosition?.value?.coordinates;
+
+      if (!coordinates) {
+        return;
+      }
+
+      const pixelCoords = this._Map.getPixelFromCoordinate([
+        coordinates.x,
+        coordinates.y
+      ]);
+
+      console.log('coordinates', coordinates);
+      console.log('pixelCoords', pixelCoords);
+      ret.push({
+        username,
+        displayName,
+        color,
+        x: pixelCoords[0],
+        y: pixelCoords[1]
+      });
+    });
+    // console.log('ret', ret);
+    this._transClients = ret;
+    // this._transClients = [...clients.values()]
+    //   .map(client => {
+    //     if (!client?.user) {
+    //       return null;
+    //     }
+    //     const username = client.user.username;
+    //     const displayName = client.user.display_name;
+    //     const color = client.user.color;
+    //     const coordinates = client.centerPosition?.value?.coordinates;
+
+    //     if (!coordinates) {
+    //       return null;
+    //     }
+
+    //     const pixelCoords = this._Map.getPixelFromCoordinate([
+    //       coordinates.x,
+    //       coordinates.y
+    //     ]);
+
+    //     return {
+    //       username,
+    //       displayName,
+    //       color,
+    //       x: pixelCoords[0],
+    //       y: pixelCoords[1]
+    //     };
+    //   })
+    //   .filter((client): client is TransformedClient => client !== null);
   };
 
   private _onSharedOptionsChanged(
@@ -1200,12 +1273,28 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
+  private _onCursorMove(e: MouseEvent) {
+    console.log('cursormove');
+
+    const cursor = {
+      coordinates: { x: e.clientX, y: e.clientY }
+    };
+
+    this._syncCursor(cursor);
+  }
+
   private _centerOnPosition(center: { x: number; y: number }, zoom: number) {
     const view = this._Map.getView();
 
     view.animate({ zoom });
     view.animate({ center: [center.x, center.y] });
   }
+
+  private _syncCursor = throttle((cursor: Cursor) => {
+    console.log('syncing curosr');
+    console.log('cursor', cursor);
+    this._model.syncCursor(cursor);
+  });
 
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
@@ -1247,6 +1336,7 @@ export class MainView extends React.Component<IProps, IStates> {
             )
           );
         })}
+
         <div
           className="jGIS-Mainview"
           style={{
@@ -1257,6 +1347,8 @@ export class MainView extends React.Component<IProps, IStates> {
         >
           <Spinner loading={this.state.loading} />
           <FollowIndicator remoteUser={this.state.remoteUser} />
+
+          <CollaboratorCursor clients={this._transClients} />
 
           <div
             ref={this.divRef}
@@ -1282,4 +1374,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
+  private _transClients: TransformedClient[];
 }
