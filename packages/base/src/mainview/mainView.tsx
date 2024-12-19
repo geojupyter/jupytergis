@@ -60,7 +60,7 @@ import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
 import shp from 'shpjs';
-import { isLightTheme, loadGeoTIFFWithCache } from '../tools';
+import { isLightTheme, loadGeoTIFFWithCache, throttle } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 //@ts-expect-error no types for proj4-list
@@ -70,6 +70,10 @@ import { CommandRegistry } from '@lumino/commands';
 import { Coordinate } from 'ol/coordinate';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
+import { FollowIndicator } from './FollowIndicator';
+import CollaboratorPointer, {
+  TransformedClientPointer
+} from './CollaboratorPointer';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -83,6 +87,7 @@ interface IStates {
   remoteUser?: User.IIdentity | null;
   firstLoad: boolean;
   annotations: IDict<IAnnotation>;
+  clientPointers: IDict<TransformedClientPointer>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -94,6 +99,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._mainViewModel = this.props.viewModel;
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
+
     this._model = this._mainViewModel.jGISModel;
     this._model.themeChanged.connect(this._handleThemeChange, this);
 
@@ -105,7 +111,6 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onClientSharedStateChanged,
       this
     );
-
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
@@ -121,7 +126,8 @@ export class MainView extends React.Component<IProps, IStates> {
       lightTheme: isLightTheme(),
       loading: true,
       firstLoad: true,
-      annotations: {}
+      annotations: {},
+      clientPointers: {}
     };
 
     this._sources = [];
@@ -212,6 +218,29 @@ export class MainView extends React.Component<IProps, IStates> {
 
       this._Map.addInteraction(dragAndDropInteraction);
 
+      const view = this._Map.getView();
+
+      // TODO: Note for the future, will need to update listeners if view changes
+      view.on(
+        'change:center',
+        throttle(() => {
+          // Not syncing center if following someone else
+          if (this._model.localState?.remoteUser) {
+            return;
+          }
+          const view = this._Map.getView();
+          const center = view.getCenter();
+          const zoom = view.getZoom();
+          if (!center || !zoom) {
+            return;
+          }
+          this._model.syncCenter(
+            { coordinates: { x: center[0], y: center[1] }, zoom },
+            this._mainViewModel.id
+          );
+        })
+      );
+
       this._Map.on('postrender', () => {
         if (this.state.annotations) {
           this._updateAnnotation();
@@ -249,6 +278,10 @@ export class MainView extends React.Component<IProps, IStates> {
         });
       });
 
+      this._Map
+        .getViewport()
+        .addEventListener('pointermove', this._onPointerMove.bind(this));
+
       if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
         await this._updateLayersImpl(
           JupyterGISModel.getOrderedLayerIds(this._model)
@@ -258,8 +291,6 @@ export class MainView extends React.Component<IProps, IStates> {
         this._initializedPosition = true;
       }
 
-      this.setState(old => ({ ...old, loading: false }));
-
       this._Map.getViewport().addEventListener('contextmenu', event => {
         event.preventDefault();
         event.stopPropagation();
@@ -267,6 +298,8 @@ export class MainView extends React.Component<IProps, IStates> {
         this._clickCoords = coordinate;
         this._contextMenu.open(event);
       });
+
+      this.setState(old => ({ ...old, loading: false }));
     }
   }
 
@@ -278,7 +311,7 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         this._mainViewModel.addAnnotation({
-          position: [this._clickCoords[0], this._clickCoords[1]],
+          position: { x: this._clickCoords[0], y: this._clickCoords[1] },
           zoom: this._Map.getView().getZoom() ?? 0,
           label: 'New annotation',
           contents: [],
@@ -914,7 +947,82 @@ export class MainView extends React.Component<IProps, IStates> {
     sender: IJupyterGISModel,
     clients: Map<number, IJupyterGISClientState>
   ): void => {
-    // TODO SOMETHING
+    const remoteUser = this._model.localState?.remoteUser;
+    // If we are in following mode, we update our position and selection
+    if (remoteUser) {
+      const remoteState = clients.get(remoteUser);
+      if (!remoteState) {
+        return;
+      }
+
+      if (remoteState.user?.username !== this.state.remoteUser?.username) {
+        this.setState(old => ({ ...old, remoteUser: remoteState.user }));
+      }
+
+      const remoteCenter = remoteState.centerPosition;
+
+      if (remoteCenter.value) {
+        const { x, y } = remoteCenter.value.coordinates;
+        const zoom = remoteCenter.value.zoom;
+
+        this._Map.getView().setCenter([x, y]);
+        this._Map.getView().setZoom(zoom);
+      }
+    } else {
+      // If we are unfollowing a remote user, we reset our center to its old position
+      if (this.state.remoteUser !== null) {
+        this.setState(old => ({ ...old, remoteUser: null }));
+        const centerPosition = this._model.localState?.centerPosition?.value;
+
+        if (centerPosition) {
+          const { x, y } = centerPosition.coordinates;
+          const zoom = centerPosition.zoom;
+          this._centerOnPosition({ x, y }, zoom);
+        }
+      }
+    }
+
+    // cursors
+    clients.forEach((client, clientId) => {
+      if (!client?.user) {
+        return;
+      }
+
+      const pointer = client.pointer?.value;
+
+      // We already display our own cursor on mouse move
+      if (this._model.getClientId() === clientId) {
+        return;
+      }
+
+      const clientPointers = this.state.clientPointers;
+      let currentClientPointer = clientPointers[clientId];
+
+      if (pointer) {
+        const pixel = this._Map.getPixelFromCoordinate([
+          pointer.coordinates.x,
+          pointer.coordinates.y
+        ]);
+
+        if (!currentClientPointer) {
+          currentClientPointer = clientPointers[clientId] = {
+            username: client.user.username,
+            displayName: client.user.display_name,
+            color: client.user.color,
+            x: pixel[0],
+            y: pixel[1]
+          };
+        }
+
+        currentClientPointer.x = pixel[0];
+        currentClientPointer.y = pixel[1];
+        clientPointers[clientId] = currentClientPointer;
+      } else {
+        delete clientPointers[clientId];
+      }
+
+      this.setState(old => ({ ...old, clientPointers: clientPointers }));
+    });
   };
 
   private _onSharedOptionsChanged(
@@ -1111,7 +1219,9 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _computeAnnotationPosition(annotation: IAnnotation) {
-    const pixels = this._Map.getPixelFromCoordinate(annotation.position);
+    const { x, y } = annotation.position;
+    const pixels = this._Map.getPixelFromCoordinate([x, y]);
+
     if (pixels) {
       return { x: pixels[0], y: pixels[1] };
     }
@@ -1136,11 +1246,31 @@ export class MainView extends React.Component<IProps, IStates> {
   private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
-      const view = this._Map.getView();
-      view.animate({ center: annotation.position });
-      view.animate({ zoom: annotation.zoom });
+      const { x, y } = annotation.position;
+      this._centerOnPosition({ x, y }, annotation.zoom);
     }
   }
+
+  private _onPointerMove(e: MouseEvent) {
+    const pixel = this._Map.getEventPixel(e);
+    const coordinates = this._Map.getCoordinateFromPixel(pixel);
+
+    this._syncPointer(coordinates);
+  }
+
+  private _centerOnPosition(center: { x: number; y: number }, zoom: number) {
+    const view = this._Map.getView();
+
+    view.animate({ zoom });
+    view.animate({ center: [center.x, center.y] });
+  }
+
+  private _syncPointer = throttle((coordinates: Coordinate) => {
+    const pointer = {
+      coordinates: { x: coordinates[0], y: coordinates[1] }
+    };
+    this._model.syncPointer(pointer);
+  });
 
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
@@ -1182,6 +1312,7 @@ export class MainView extends React.Component<IProps, IStates> {
             )
           );
         })}
+
         <div
           className="jGIS-Mainview"
           style={{
@@ -1191,6 +1322,8 @@ export class MainView extends React.Component<IProps, IStates> {
           }}
         >
           <Spinner loading={this.state.loading} />
+          <FollowIndicator remoteUser={this.state.remoteUser} />
+          <CollaboratorPointer clients={this.state.clientPointers} />
 
           <div
             ref={this.divRef}
@@ -1216,4 +1349,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
+  // private _transClients: IDict<TransformedClient>;
 }

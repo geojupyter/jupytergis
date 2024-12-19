@@ -19,6 +19,8 @@ import {
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
+  CenterPosition,
+  Pointer,
   IAnnotationModel,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -383,6 +385,21 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getOptions(): IJGISOptions {
     return this._sharedModel.options;
+  }
+
+  syncCenter(center?: CenterPosition, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField('centerPosition', {
+      value: center,
+      emitter: emitter
+    });
+  }
+
+  syncPointer(pointer?: Pointer, emitter?: string): void {
+    console.log('model sy');
+    this.sharedModel.awareness.setLocalStateField('pointer', {
+      value: pointer,
+      emitter: emitter
+    });
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
