@@ -19,6 +19,7 @@ import {
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
+  IViewPortState,
   IAnnotationModel,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -383,6 +384,13 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getOptions(): IJGISOptions {
     return this._sharedModel.options;
+  }
+
+  syncViewport(viewport?: IViewPortState, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField('viewportState', {
+      value: viewport,
+      emitter: emitter
+    });
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
