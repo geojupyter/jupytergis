@@ -71,7 +71,9 @@ import { Coordinate } from 'ol/coordinate';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
-import CollaboratorCursor, { TransformedClient } from './CollaboratorCursor';
+import CollaboratorPointer, {
+  TransformedClientPointer
+} from './CollaboratorPointer';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -85,7 +87,7 @@ interface IStates {
   remoteUser?: User.IIdentity | null;
   firstLoad: boolean;
   annotations: IDict<IAnnotation>;
-  transClients: IDict<TransformedClient>;
+  clientPointers: IDict<TransformedClientPointer>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -100,8 +102,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._model = this._mainViewModel.jGISModel;
     this._model.themeChanged.connect(this._handleThemeChange, this);
-
-    // this._transClients = {};
 
     this._model.sharedOptionsChanged.connect(
       this._onSharedOptionsChanged,
@@ -127,7 +127,7 @@ export class MainView extends React.Component<IProps, IStates> {
       loading: true,
       firstLoad: true,
       annotations: {},
-      transClients: {}
+      clientPointers: {}
     };
 
     this._sources = [];
@@ -280,7 +280,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       this._Map
         .getViewport()
-        .addEventListener('pointermove', this._onCursorMove.bind(this));
+        .addEventListener('pointermove', this._onPointerMove.bind(this));
 
       if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
         await this._updateLayersImpl(
@@ -983,7 +983,6 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     // cursors
-    // const ret: TransformedClient[] = [];
     clients.forEach((client, clientId) => {
       if (!client?.user) {
         return;
@@ -996,8 +995,8 @@ export class MainView extends React.Component<IProps, IStates> {
         return;
       }
 
-      const _transClients = this.state.transClients;
-      let collabCursor = _transClients[clientId];
+      const clientPointers = this.state.clientPointers;
+      let currentClientPointer = clientPointers[clientId];
 
       if (pointer) {
         const pixel = this._Map.getPixelFromCoordinate([
@@ -1005,8 +1004,8 @@ export class MainView extends React.Component<IProps, IStates> {
           pointer.coordinates.y
         ]);
 
-        if (!collabCursor) {
-          collabCursor = _transClients[clientId] = {
+        if (!currentClientPointer) {
+          currentClientPointer = clientPointers[clientId] = {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
@@ -1015,14 +1014,14 @@ export class MainView extends React.Component<IProps, IStates> {
           };
         }
 
-        collabCursor.x = pixel[0];
-        collabCursor.y = pixel[1];
-        _transClients[clientId] = collabCursor;
+        currentClientPointer.x = pixel[0];
+        currentClientPointer.y = pixel[1];
+        clientPointers[clientId] = currentClientPointer;
       } else {
-        delete _transClients[clientId];
+        delete clientPointers[clientId];
       }
 
-      this.setState(old => ({ ...old, transClients: _transClients }));
+      this.setState(old => ({ ...old, clientPointers: clientPointers }));
     });
   };
 
@@ -1252,11 +1251,11 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
-  private _onCursorMove(e: MouseEvent) {
+  private _onPointerMove(e: MouseEvent) {
     const pixel = this._Map.getEventPixel(e);
     const coordinates = this._Map.getCoordinateFromPixel(pixel);
 
-    this._syncCursor(coordinates);
+    this._syncPointer(coordinates);
   }
 
   private _centerOnPosition(center: { x: number; y: number }, zoom: number) {
@@ -1266,11 +1265,11 @@ export class MainView extends React.Component<IProps, IStates> {
     view.animate({ center: [center.x, center.y] });
   }
 
-  private _syncCursor = throttle((coordinates: Coordinate) => {
-    const cursor = {
+  private _syncPointer = throttle((coordinates: Coordinate) => {
+    const pointer = {
       coordinates: { x: coordinates[0], y: coordinates[1] }
     };
-    this._model.syncCursor(cursor);
+    this._model.syncPointer(pointer);
   });
 
   private _handleThemeChange = (): void => {
@@ -1324,8 +1323,7 @@ export class MainView extends React.Component<IProps, IStates> {
         >
           <Spinner loading={this.state.loading} />
           <FollowIndicator remoteUser={this.state.remoteUser} />
-
-          <CollaboratorCursor clients={this.state.transClients} />
+          <CollaboratorPointer clients={this.state.clientPointers} />
 
           <div
             ref={this.divRef}

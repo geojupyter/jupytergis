@@ -362,7 +362,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   max-width: 68px;
 }
 
-.jGIS-Remote-Cursor {
+.jGIS-Remote-Pointer {
   position: absolute;
   transition-property: left, top, width, height;
   transition-duration: 150ms;
@@ -370,11 +370,11 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   z-index: 20;
 }
 
-.jGIS-Remote-Cursor-Icon:hover {
+.jGIS-Remote-Pointer-Icon:hover {
   scale: 1.3;
 }
 
-.jGIS-Remote-Cursor-Popup {
+.jGIS-Remote-Pointer-Popup {
   margin-left: 1px;
   margin-top: 1px;
   color: #fff;

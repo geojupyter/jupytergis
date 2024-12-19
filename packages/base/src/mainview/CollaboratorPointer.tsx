@@ -3,11 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict } from '@jupytergis/schema';
 import React, { useState } from 'react';
 
-interface ICollaboratorCursorProps {
-  clients: IDict<TransformedClient>;
+interface ICollaboratorPointerProps {
+  clients: IDict<TransformedClientPointer>;
 }
 
-export type TransformedClient = {
+export type TransformedClientPointer = {
   username: string;
   displayName: string;
   color: string;
@@ -15,7 +15,7 @@ export type TransformedClient = {
   y: number;
 };
 
-const CollaboratorCursor = ({ clients }: ICollaboratorCursorProps) => {
+const CollaboratorPointer = ({ clients }: ICollaboratorPointerProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -24,7 +24,7 @@ const CollaboratorCursor = ({ clients }: ICollaboratorCursorProps) => {
         Object.values(clients).map(client => (
           <div
             key={client.username}
-            className="jGIS-Remote-Cursor"
+            className="jGIS-Remote-Pointer"
             style={{
               left: `${client.x}px`,
               top: `${client.y}px`,
@@ -37,18 +37,18 @@ const CollaboratorCursor = ({ clients }: ICollaboratorCursorProps) => {
           >
             <FontAwesomeIcon
               icon={faArrowPointer}
-              className="jGIS-Remote-Cursor-Icon"
+              className="jGIS-Remote-Pointer-Icon"
             />
             <div
               style={{
                 visibility: isOpen ? 'visible' : 'hidden',
                 background: client.color
               }}
-              className="jGIS-Remote-Cursor-Popup"
+              className="jGIS-Remote-Pointer-Popup"
             >
               {client.displayName}
               <br />
-              Cursor at:
+              Pointer at:
               <br />
               x: {client.x},
               <br />
@@ -60,4 +60,4 @@ const CollaboratorCursor = ({ clients }: ICollaboratorCursorProps) => {
   );
 };
 
-export default CollaboratorCursor;
+export default CollaboratorPointer;
