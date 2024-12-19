@@ -13,6 +13,7 @@ import {
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
+import { getGdal } from './gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -347,3 +348,107 @@ export function parseColor(type: string, style: any) {
 
   return parsedStyle;
 }
+
+/**
+ * Open or create an IndexedDB database for caching GeoTIFF files.
+ *
+ * @returns A promise that resolves to the opened IndexedDB database instance.
+ */
+export const openDatabase = () => {
+  return new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open('GeoTIFFCache', 1);
+
+    request.onupgradeneeded = event => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains('files')) {
+        db.createObjectStore('files', { keyPath: 'url' });
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
+
+/**
+ * Save a file and its metadata to the IndexedDB database.
+ *
+ * @param key file ID (sourceUrl).
+ * @param file Blob object representing the file content.
+ * @param metadata metadata of file.
+ * @returns A promise that resolves once the data is successfully saved.
+ */
+export const saveToIndexedDB = async (
+  key: string,
+  file: Blob,
+  metadata: any
+) => {
+  const db = await openDatabase();
+  return new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction('files', 'readwrite');
+    const store = transaction.objectStore('files');
+    store.put({ url: key, file, metadata });
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+};
+
+/**
+ * Retrieve a file and its metadata from the IndexedDB database.
+ *
+ * @param key fileID (sourceUrl).
+ * @returns A promise that resolves to the stored data object or undefined.
+ */
+export const getFromIndexedDB = async (key: string) => {
+  const db = await openDatabase();
+  return new Promise<any>((resolve, reject) => {
+    const transaction = db.transaction('files', 'readonly');
+    const store = transaction.objectStore('files');
+    const request = store.get(key);
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
+
+/**
+ * Load a GeoTIFF file from IndexedDB database cache or fetch it .
+ *
+ * @param sourceInfo object containing the URL of the GeoTIFF file.
+ * @returns A promise that resolves to the file as a Blob, or undefined .
+ */
+export const loadGeoTIFFWithCache = async (sourceInfo: {
+  url?: string | undefined;
+}) => {
+  if (!sourceInfo?.url) {
+    return null;
+  }
+
+  const cachedData = await getFromIndexedDB(sourceInfo.url);
+  if (cachedData) {
+    return {
+      file: new Blob([cachedData.file]),
+      metadata: cachedData.metadata,
+      sourceUrl: sourceInfo.url
+    };
+  }
+
+  const response = await fetch(sourceInfo.url);
+  const fileBlob = await response.blob();
+  const file = new File([fileBlob], 'loaded.tif');
+
+  const Gdal = await getGdal();
+  const result = await Gdal.open(file);
+  const tifDataset = result.datasets[0];
+  const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
+  Gdal.close(tifDataset);
+
+  await saveToIndexedDB(sourceInfo.url, fileBlob, metadata);
+
+  return {
+    file: fileBlob,
+    metadata,
+    sourceUrl: sourceInfo.url
+  };
+};

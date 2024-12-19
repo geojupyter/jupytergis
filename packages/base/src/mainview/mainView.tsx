@@ -60,7 +60,7 @@ import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
 import shp from 'shpjs';
-import { isLightTheme } from '../tools';
+import { isLightTheme, loadGeoTIFFWithCache } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 //@ts-expect-error no types for proj4-list
@@ -313,6 +313,13 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
+  private async _loadGeoTIFFWithCache(sourceInfo: {
+    url?: string | undefined;
+  }) {
+    const result = await loadGeoTIFFWithCache(sourceInfo);
+    return result?.file;
+  }
+
   /**
    * Add a source in the map.
    *
@@ -488,9 +495,15 @@ export class MainView extends React.Component<IProps, IStates> {
         const addNoData = (url: (typeof sourceParameters.urls)[0]) => {
           return { ...url, nodata: 0 };
         };
+        const sourcesWithBlobs = await Promise.all(
+          sourceParameters.urls.map(async sourceInfo => {
+            const blob = await this._loadGeoTIFFWithCache(sourceInfo);
+            return { ...addNoData(sourceInfo), blob };
+          })
+        );
 
         newSource = new GeoTIFFSource({
-          sources: sourceParameters.urls.map(addNoData),
+          sources: sourcesWithBlobs,
           normalize: sourceParameters.normalize,
           wrapX: sourceParameters.wrapX
         });
