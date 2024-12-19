@@ -362,6 +362,14 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   max-width: 68px;
 }
 
+.jGIS-Remote-Cursor {
+  position: absolute;
+  transition-property: left, top;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+  z-index: 20;
+}
+
 /* Hack to remove the malformed form button */
 .object-property-expand {
   display: none;

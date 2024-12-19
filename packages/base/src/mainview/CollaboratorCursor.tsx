@@ -1,3 +1,5 @@
+import { faArrowPointer } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict } from '@jupytergis/schema';
 import React from 'react';
 
@@ -20,15 +22,14 @@ const CollaboratorCursor = ({ clients }: ICollaboratorCursorProps) => {
         Object.values(clients).map(client => (
           <div
             key={client.username}
-            className="jGIS-Annotation-Handler"
+            className="jGIS-Remote-Cursor"
             style={{
               left: `${client.x}px`,
               top: `${client.y}px`,
-              background: client.color,
-              zIndex: 1000
+              color: client.color
             }}
           >
-            {client.displayName}
+            <FontAwesomeIcon icon={faArrowPointer} />
           </div>
         ))}
     </>
