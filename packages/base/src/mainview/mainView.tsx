@@ -950,15 +950,13 @@ export class MainView extends React.Component<IProps, IStates> {
         this.setState(old => ({ ...old, remoteUser: remoteState.user }));
       }
 
-      console.log('remoteState', remoteState);
       const remoteViewport = remoteState.viewportState;
 
       if (remoteViewport.value) {
         const { x, y } = remoteViewport.value.coordinates;
         const zoom = remoteViewport.value.zoom;
 
-        this._Map.getView().setZoom(zoom);
-        this._Map.getView().setCenter([x, y]);
+        this._moveToPosition({ x, y }, zoom, 0);
       }
     } else {
       // If we are unfollowing a remote user, we reset our center to its old position
@@ -969,7 +967,7 @@ export class MainView extends React.Component<IProps, IStates> {
         if (viewportState) {
           const { x, y } = viewportState.coordinates;
           const zoom = viewportState.zoom;
-          this._centerOnPosition({ x, y }, zoom);
+          this._moveToPosition({ x, y }, zoom);
         }
       }
     }
@@ -1021,8 +1019,8 @@ export class MainView extends React.Component<IProps, IStates> {
         [longitude || 0, latitude || 0],
         view.getProjection()
       );
-      view.setZoom(zoom || 0);
-      view.setCenter(centerCoord);
+
+      this._moveToPosition({ x: centerCoord[0], y: centerCoord[1] }, zoom || 0);
 
       // Save the extent if it does not exists, to allow proper export to qgis.
       if (!options.extent) {
@@ -1197,15 +1195,20 @@ export class MainView extends React.Component<IProps, IStates> {
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
       const { x, y } = annotation.position;
-      this._centerOnPosition({ x, y }, annotation.zoom);
+      this._moveToPosition({ x, y }, annotation.zoom);
     }
   }
 
-  private _centerOnPosition(center: { x: number; y: number }, zoom: number) {
+  private _moveToPosition(
+    center: { x: number; y: number },
+    zoom: number,
+    duration = 1000
+  ) {
     const view = this._Map.getView();
 
-    view.animate({ zoom });
-    view.animate({ center: [center.x, center.y] });
+    // Zoom needs to be set before changing center
+    view.animate({ zoom, duration });
+    view.animate({ center: [center.x, center.y], duration });
   }
 
   private _handleThemeChange = (): void => {
