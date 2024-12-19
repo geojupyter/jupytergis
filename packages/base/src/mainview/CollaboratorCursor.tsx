@@ -63,7 +63,7 @@ const CollaboratorCursor = ({ clients }: ICollaboratorCursorProps) => {
   //     };
   //   }, []);
 
-  console.log('clients in comp', clients);
+  // console.log('clients in comp', clients);
 
   const [coords, setCoords] = useState<{ x: number; y: number }>({
     x: 0,
@@ -71,12 +71,16 @@ const CollaboratorCursor = ({ clients }: ICollaboratorCursorProps) => {
   });
   useEffect(() => {
     Object.values(clients).forEach(client => {
-      console.log('client', client.x, client.y);
+      // console.log('client', client.x, client.y);
       setCoords({ x: client.x, y: client.y });
     });
 
     // console.log('clients in comp effect', clients);
   }, [JSON.stringify(clients)]);
+
+  useEffect(() => {
+    console.log('coords', coords);
+  }, [coords]);
 
   return (
     <>
@@ -86,8 +90,8 @@ const CollaboratorCursor = ({ clients }: ICollaboratorCursorProps) => {
             key={client.username}
             className="jGIS-Annotation-Handler"
             style={{
-              left: coords.x,
-              top: coords.y,
+              left: `${coords.x}px`,
+              top: `${coords.y}px`,
               zIndex: 1000
             }}
           >

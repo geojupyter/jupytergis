@@ -1016,17 +1016,17 @@ export class MainView extends React.Component<IProps, IStates> {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
-            x: pixelCoordinates[0],
-            y: pixelCoordinates[1]
+            x: pointer.coordinates.x,
+            y: pointer.coordinates.y
           };
         }
 
-        collabCursor.x = pixelCoordinates[0];
-        collabCursor.y = pixelCoordinates[1];
+        collabCursor.x = pointer.coordinates.x;
+        collabCursor.y = pointer.coordinates.y;
         _transClients[clientId] = collabCursor;
 
-        // console.log('pixelCoordinates', pixelCoordinates);
-        // console.log('pointer.coordinates', pointer.coordinates);
+        console.log('pixelCoordinates', pixelCoordinates);
+        console.log('pointer.coordinates', pointer.coordinates);
         // console.log('collabCursor', collabCursor);
       } else {
         delete _transClients[clientId];
