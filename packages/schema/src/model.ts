@@ -19,7 +19,7 @@ import {
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
-  CenterPosition,
+  IViewPortState,
   IAnnotationModel,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -386,9 +386,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedModel.options;
   }
 
-  syncCenter(center?: CenterPosition, emitter?: string): void {
-    this.sharedModel.awareness.setLocalStateField('centerPosition', {
-      value: center,
+  syncViewport(viewport?: IViewPortState, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField('viewportState', {
+      value: viewport,
       emitter: emitter
     });
   }
