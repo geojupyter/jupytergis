@@ -12,8 +12,8 @@ import ColorRamp, {
 } from '../../components/color_ramp/ColorRamp';
 import StopRow from '../../components/color_stops/StopRow';
 import { Utils } from '../../symbologyUtils';
-import { getGdal } from '../../../../gdal';
 import { Spinner } from '../../../../mainview/spinner';
+import { loadGeoTIFFWithCache } from '../../../../tools';
 
 export interface IBandRow {
   band: number;
@@ -129,50 +129,42 @@ const SingleBandPseudoColor = ({
     setSelectedFunction(interpolation);
   };
 
+  const preloadGeoTiffFile = async (sourceInfo: {
+    url?: string | undefined;
+  }) => {
+    return await loadGeoTIFFWithCache(sourceInfo);
+  };
+
   const getBandInfo = async () => {
     const bandsArr: IBandRow[] = [];
     const source = context.model.getSource(layer?.parameters?.source);
     const sourceInfo = source?.parameters?.urls[0];
 
-    if (!sourceInfo.url) {
+    if (!sourceInfo?.url) {
       return;
     }
 
-    let tifData;
+    // Preload the file only once
+    const preloadedFile = await preloadGeoTiffFile(sourceInfo);
+    const { file, metadata, sourceUrl } = { ...preloadedFile };
 
-    if (layerState && layerState.tifData) {
-      tifData = JSON.parse(layerState.tifData as string);
-    } else {
-      const Gdal = await getGdal();
-
-      const fileData = await fetch(sourceInfo.url);
-      const file = new File([await fileData.blob()], 'loaded.tif');
-
-      const result = await Gdal.open(file);
-      const tifDataset = result.datasets[0];
-      tifData = await Gdal.gdalinfo(tifDataset, ['-stats']);
-      Gdal.close(tifDataset);
-
-      await stateDb?.save(`jupytergis:${layerId}`, {
-        tifData: JSON.stringify(tifData)
+    if (file && metadata && sourceUrl === sourceInfo.url) {
+      metadata['bands'].forEach((bandData: TifBandData) => {
+        bandsArr.push({
+          band: bandData.band,
+          colorInterpretation: bandData.colorInterpretation,
+          stats: {
+            minimum: sourceInfo.min ?? bandData.minimum,
+            maximum: sourceInfo.max ?? bandData.maximum,
+            mean: bandData.mean,
+            stdDev: bandData.stdDev
+          },
+          metadata: bandData.metadata,
+          histogram: bandData.histogram
+        });
       });
+      setBandRows(bandsArr);
     }
-
-    tifData['bands'].forEach((bandData: TifBandData) => {
-      bandsArr.push({
-        band: bandData.band,
-        colorInterpretation: bandData.colorInterpretation,
-        stats: {
-          minimum: sourceInfo.min ?? bandData.minimum,
-          maximum: sourceInfo.max ?? bandData.maximum,
-          mean: bandData.mean,
-          stdDev: bandData.stdDev
-        },
-        metadata: bandData.metadata,
-        histogram: bandData.histogram
-      });
-    });
-    setBandRows(bandsArr);
   };
 
   const buildColorInfo = () => {
