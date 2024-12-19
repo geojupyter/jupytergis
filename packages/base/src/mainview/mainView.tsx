@@ -97,8 +97,11 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._mainViewModel = this.props.viewModel;
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
+
     this._model = this._mainViewModel.jGISModel;
     this._model.themeChanged.connect(this._handleThemeChange, this);
+
+    this._transClients = {};
 
     this._model.sharedOptionsChanged.connect(
       this._onSharedOptionsChanged,
@@ -108,7 +111,6 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onClientSharedStateChanged,
       this
     );
-
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
@@ -980,11 +982,13 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     // cursors
-    const ret: TransformedClient[] = [];
+    // const ret: TransformedClient[] = [];
     clients.forEach((client, clientId) => {
       if (!client?.user) {
         return;
       }
+
+      const pointer = client.pointer?.value;
 
       // We already display our own cursor on mouse move
       if (this._model.getClientId() === clientId) {
@@ -994,29 +998,75 @@ export class MainView extends React.Component<IProps, IStates> {
       const username = client.user.username;
       const displayName = client.user.display_name;
       const color = client.user.color;
-      const coordinates = client.centerPosition?.value?.coordinates;
+      const coordinates = client.pointer?.value?.coordinates;
 
-      if (!coordinates) {
-        return;
+      let collabCursor = this._transClients[clientId];
+
+      if (pointer) {
+        console.log('pointer.coordinates', pointer.coordinates);
+
+        if (!collabCursor) {
+          collabCursor = this._transClients[clientId] = {
+            username: client.user.username,
+            displayName: client.user.display_name,
+            color: client.user.color,
+            x: this._Map.getPixelFromCoordinate([
+              pointer.coordinates.x,
+              pointer.coordinates.y
+            ])[0],
+            y: this._Map.getPixelFromCoordinate([
+              pointer.coordinates.x,
+              pointer.coordinates.y
+            ])[1]
+          };
+        }
+
+        collabCursor.x = this._Map.getPixelFromCoordinate([
+          pointer.coordinates.x,
+          pointer.coordinates.y
+        ])[0];
+        collabCursor.y = this._Map.getPixelFromCoordinate([
+          pointer.coordinates.x,
+          pointer.coordinates.y
+        ])[1];
+
+        console.log('collabCursor', collabCursor);
+      } else {
+        delete this._transClients[clientId];
       }
 
-      const pixelCoords = this._Map.getPixelFromCoordinate([
-        coordinates.x,
-        coordinates.y
-      ]);
+      // console.log(
+      //   'client.pointer?.value?.coordinates',
+      //   client.pointer?.value?.coordinates
+      // );
 
-      console.log('coordinates', coordinates);
-      console.log('pixelCoords', pixelCoords);
-      ret.push({
-        username,
-        displayName,
-        color,
-        x: pixelCoords[0],
-        y: pixelCoords[1]
-      });
+      // // const pixelCoords = this._Map.getPixelFromCoordinate([
+      // //   client.pointer.value.coordinates.x,
+      // //   client.pointer.value.coordinates.y
+      // // ]);
+
+      // const pixelCoords = this._pixelMagic(client.pointer.value);
+
+      // // console.log('client', client);
+
+      // // console.log('coordinates', coordinates);
+      // console.log('pixelCoords', pixelCoords);
+      // ret.push({
+      //   username: client.user.username,
+      //   displayName: client.user.display_name,
+      //   color: client.user.color,
+      //   x: this._Map.getPixelFromCoordinate([
+      //     client.pointer.value.coordinates.x,
+      //     client.pointer.value.coordinates.y
+      //   ])[0],
+      //   y: this._Map.getPixelFromCoordinate([
+      //     client.pointer.value.coordinates.x,
+      //     client.pointer.value.coordinates.y
+      //   ])[1]
+      // });
     });
     // console.log('ret', ret);
-    this._transClients = ret;
+    // this._transClients = ret;
     // this._transClients = [...clients.values()]
     //   .map(client => {
     //     if (!client?.user) {
@@ -1045,6 +1095,13 @@ export class MainView extends React.Component<IProps, IStates> {
     //     };
     //   })
     //   .filter((client): client is TransformedClient => client !== null);
+  };
+
+  private _pixelMagic = (whatever: Cursor) => {
+    return this._Map.getPixelFromCoordinate([
+      whatever.coordinates.x,
+      whatever.coordinates.y
+    ]);
   };
 
   private _onSharedOptionsChanged(
@@ -1274,7 +1331,7 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _onCursorMove(e: MouseEvent) {
-    console.log('cursormove');
+    // console.log('cursormove');
 
     const cursor = {
       coordinates: { x: e.clientX, y: e.clientY }
@@ -1291,7 +1348,7 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _syncCursor = throttle((cursor: Cursor) => {
-    console.log('syncing curosr');
+    // console.log('syncing curosr');
     console.log('cursor', cursor);
     this._model.syncCursor(cursor);
   });
@@ -1374,5 +1431,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
-  private _transClients: TransformedClient[];
+  private _transClients: IDict<TransformedClient>;
 }

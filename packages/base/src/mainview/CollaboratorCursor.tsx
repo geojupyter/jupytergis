@@ -1,10 +1,14 @@
-import { IJupyterGISClientState, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IDict,
+  IJupyterGISClientState,
+  IJupyterGISModel
+} from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
 interface ICollaboratorCursorProps {
   //   model: IJupyterGISModel;
   //   getPixelFromCoordinate: (coordinate: number[]) => number[];
-  clients: TransformedClient[];
+  clients: IDict<TransformedClient>;
 }
 
 export type TransformedClient = {
@@ -62,7 +66,7 @@ const CollaboratorCursor = ({ clients }: ICollaboratorCursorProps) => {
   return (
     <>
       {clients &&
-        clients.map(client => (
+        Object.values(clients).map(client => (
           <div key={client.username} className="jGIS-Annotation-Handler">
             {client.displayName}
           </div>
