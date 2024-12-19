@@ -63,11 +63,34 @@ const CollaboratorCursor = ({ clients }: ICollaboratorCursorProps) => {
   //     };
   //   }, []);
 
+  console.log('clients in comp', clients);
+
+  const [coords, setCoords] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0
+  });
+  useEffect(() => {
+    Object.values(clients).forEach(client => {
+      console.log('client', client.x, client.y);
+      setCoords({ x: client.x, y: client.y });
+    });
+
+    // console.log('clients in comp effect', clients);
+  }, [JSON.stringify(clients)]);
+
   return (
     <>
       {clients &&
         Object.values(clients).map(client => (
-          <div key={client.username} className="jGIS-Annotation-Handler">
+          <div
+            key={client.username}
+            className="jGIS-Annotation-Handler"
+            style={{
+              left: coords.x,
+              top: coords.y,
+              zIndex: 1000
+            }}
+          >
             {client.displayName}
           </div>
         ))}

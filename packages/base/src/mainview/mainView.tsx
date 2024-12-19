@@ -86,6 +86,7 @@ interface IStates {
   remoteUser?: User.IIdentity | null;
   firstLoad: boolean;
   annotations: IDict<IAnnotation>;
+  transClients: IDict<TransformedClient>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -101,7 +102,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model = this._mainViewModel.jGISModel;
     this._model.themeChanged.connect(this._handleThemeChange, this);
 
-    this._transClients = {};
+    // this._transClients = {};
 
     this._model.sharedOptionsChanged.connect(
       this._onSharedOptionsChanged,
@@ -126,7 +127,8 @@ export class MainView extends React.Component<IProps, IStates> {
       lightTheme: isLightTheme(),
       loading: true,
       firstLoad: true,
-      annotations: {}
+      annotations: {},
+      transClients: {}
     };
 
     this._sources = [];
@@ -1000,40 +1002,39 @@ export class MainView extends React.Component<IProps, IStates> {
       const color = client.user.color;
       const coordinates = client.pointer?.value?.coordinates;
 
-      let collabCursor = this._transClients[clientId];
+      const _transClients = this.state.transClients;
+      let collabCursor = _transClients[clientId];
 
       if (pointer) {
-        console.log('pointer.coordinates', pointer.coordinates);
+        const pixelCoordinates = this._Map.getPixelFromCoordinate([
+          pointer.coordinates.x,
+          pointer.coordinates.y
+        ]);
 
         if (!collabCursor) {
-          collabCursor = this._transClients[clientId] = {
+          collabCursor = _transClients[clientId] = {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
-            x: this._Map.getPixelFromCoordinate([
-              pointer.coordinates.x,
-              pointer.coordinates.y
-            ])[0],
-            y: this._Map.getPixelFromCoordinate([
-              pointer.coordinates.x,
-              pointer.coordinates.y
-            ])[1]
+            x: pixelCoordinates[0],
+            y: pixelCoordinates[1]
           };
         }
 
-        collabCursor.x = this._Map.getPixelFromCoordinate([
-          pointer.coordinates.x,
-          pointer.coordinates.y
-        ])[0];
-        collabCursor.y = this._Map.getPixelFromCoordinate([
-          pointer.coordinates.x,
-          pointer.coordinates.y
-        ])[1];
+        collabCursor.x = pixelCoordinates[0];
+        collabCursor.y = pixelCoordinates[1];
+        _transClients[clientId] = collabCursor;
 
-        console.log('collabCursor', collabCursor);
+        // console.log('pixelCoordinates', pixelCoordinates);
+        // console.log('pointer.coordinates', pointer.coordinates);
+        // console.log('collabCursor', collabCursor);
       } else {
-        delete this._transClients[clientId];
+        delete _transClients[clientId];
       }
+
+      // console.log('_transClients', _transClients);
+
+      this.setState(old => ({ ...old, transClients: _transClients }));
 
       // console.log(
       //   'client.pointer?.value?.coordinates',
@@ -1405,7 +1406,7 @@ export class MainView extends React.Component<IProps, IStates> {
           <Spinner loading={this.state.loading} />
           <FollowIndicator remoteUser={this.state.remoteUser} />
 
-          <CollaboratorCursor clients={this._transClients} />
+          <CollaboratorCursor clients={this.state.transClients} />
 
           <div
             ref={this.divRef}
@@ -1431,5 +1432,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
-  private _transClients: IDict<TransformedClient>;
+  // private _transClients: IDict<TransformedClient>;
 }
