@@ -1005,8 +1005,6 @@ export class MainView extends React.Component<IProps, IStates> {
           pointer.coordinates.y
         ]);
 
-        console.log('pixel', pixel);
-
         if (!collabCursor) {
           collabCursor = _transClients[clientId] = {
             username: client.user.username,
@@ -1269,8 +1267,6 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _syncCursor = throttle((coordinates: Coordinate) => {
-    // console.log('syncing curosr');
-    console.log('cursor', coordinates);
     const cursor = {
       coordinates: { x: coordinates[0], y: coordinates[1] }
     };
