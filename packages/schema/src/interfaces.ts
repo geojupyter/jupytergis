@@ -12,7 +12,7 @@ import { Contents, User } from '@jupyterlab/services';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel } from '@lumino/widgets';
 
-import { GeoJSON } from './_interface/geojsonsource';
+// import { GeoJSON } from './_interface/geojsonsource';
 import {
   IJGISContent,
   IJGISLayer,
@@ -173,7 +173,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getOptions(): IJGISOptions;
   setOptions(value: IJGISOptions): void;
 
-  readGeoJSON(filepath: string): Promise<GeoJSON | undefined>;
+  readFile(filepath: string, type: SourceType): Promise<any | undefined>;
 
   removeLayerGroup(groupName: string): void;
   renameLayerGroup(groupName: string, newName: string): void;
