@@ -1,6 +1,5 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
-  Cursor,
   IAnnotation,
   IDict,
   IGeoTiffSource,
@@ -1001,18 +1000,25 @@ export class MainView extends React.Component<IProps, IStates> {
       let collabCursor = _transClients[clientId];
 
       if (pointer) {
+        const pixel = this._Map.getPixelFromCoordinate([
+          pointer.coordinates.x,
+          pointer.coordinates.y
+        ]);
+
+        console.log('pixel', pixel);
+
         if (!collabCursor) {
           collabCursor = _transClients[clientId] = {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
-            x: pointer.coordinates.x,
-            y: pointer.coordinates.y
+            x: pixel[0],
+            y: pixel[1]
           };
         }
 
-        collabCursor.x = pointer.coordinates.x;
-        collabCursor.y = pointer.coordinates.y;
+        collabCursor.x = pixel[0];
+        collabCursor.y = pixel[1];
         _transClients[clientId] = collabCursor;
       } else {
         delete _transClients[clientId];
@@ -1250,11 +1256,9 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _onCursorMove(e: MouseEvent) {
     const pixel = this._Map.getEventPixel(e);
-    const cursor = {
-      coordinates: { x: pixel[0], y: pixel[1] }
-    };
+    const coordinates = this._Map.getCoordinateFromPixel(pixel);
 
-    this._syncCursor(cursor);
+    this._syncCursor(coordinates);
   }
 
   private _centerOnPosition(center: { x: number; y: number }, zoom: number) {
@@ -1264,9 +1268,12 @@ export class MainView extends React.Component<IProps, IStates> {
     view.animate({ center: [center.x, center.y] });
   }
 
-  private _syncCursor = throttle((cursor: Cursor) => {
+  private _syncCursor = throttle((coordinates: Coordinate) => {
     // console.log('syncing curosr');
-    console.log('cursor', cursor);
+    console.log('cursor', coordinates);
+    const cursor = {
+      coordinates: { x: coordinates[0], y: coordinates[1] }
+    };
     this._model.syncCursor(cursor);
   });
 
