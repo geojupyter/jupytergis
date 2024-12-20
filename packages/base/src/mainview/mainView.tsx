@@ -60,7 +60,7 @@ import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
 import shp from 'shpjs';
-import { isLightTheme, loadGeoTIFFWithCache } from '../tools';
+import { isLightTheme, loadGeoTIFFWithCache, throttle } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 //@ts-expect-error no types for proj4-list
@@ -70,6 +70,7 @@ import { CommandRegistry } from '@lumino/commands';
 import { Coordinate } from 'ol/coordinate';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
+import { FollowIndicator } from './FollowIndicator';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -212,6 +213,29 @@ export class MainView extends React.Component<IProps, IStates> {
 
       this._Map.addInteraction(dragAndDropInteraction);
 
+      const view = this._Map.getView();
+
+      // TODO: Note for the future, will need to update listeners if view changes
+      view.on(
+        'change:center',
+        throttle(() => {
+          // Not syncing center if following someone else
+          if (this._model.localState?.remoteUser) {
+            return;
+          }
+          const view = this._Map.getView();
+          const center = view.getCenter();
+          const zoom = view.getZoom();
+          if (!center || !zoom) {
+            return;
+          }
+          this._model.syncViewport(
+            { coordinates: { x: center[0], y: center[1] }, zoom },
+            this._mainViewModel.id
+          );
+        })
+      );
+
       this._Map.on('postrender', () => {
         if (this.state.annotations) {
           this._updateAnnotation();
@@ -278,7 +302,7 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         this._mainViewModel.addAnnotation({
-          position: [this._clickCoords[0], this._clickCoords[1]],
+          position: { x: this._clickCoords[0], y: this._clickCoords[1] },
           zoom: this._Map.getView().getZoom() ?? 0,
           label: 'New annotation',
           contents: [],
@@ -914,7 +938,37 @@ export class MainView extends React.Component<IProps, IStates> {
     sender: IJupyterGISModel,
     clients: Map<number, IJupyterGISClientState>
   ): void => {
-    // TODO SOMETHING
+    const remoteUser = this._model.localState?.remoteUser;
+    // If we are in following mode, we update our position and selection
+    if (remoteUser) {
+      const remoteState = clients.get(remoteUser);
+      if (!remoteState) {
+        return;
+      }
+
+      if (remoteState.user?.username !== this.state.remoteUser?.username) {
+        this.setState(old => ({ ...old, remoteUser: remoteState.user }));
+      }
+
+      const remoteViewport = remoteState.viewportState;
+
+      if (remoteViewport.value) {
+        const { x, y } = remoteViewport.value.coordinates;
+        const zoom = remoteViewport.value.zoom;
+
+        this._moveToPosition({ x, y }, zoom, 0);
+      }
+    } else {
+      // If we are unfollowing a remote user, we reset our center and zoom to their previous values
+      if (this.state.remoteUser !== null) {
+        this.setState(old => ({ ...old, remoteUser: null }));
+        const viewportState = this._model.localState?.viewportState?.value;
+
+        if (viewportState) {
+          this._moveToPosition(viewportState.coordinates, viewportState.zoom);
+        }
+      }
+    }
   };
 
   private _onSharedOptionsChanged(
@@ -963,8 +1017,8 @@ export class MainView extends React.Component<IProps, IStates> {
         [longitude || 0, latitude || 0],
         view.getProjection()
       );
-      view.setCenter(centerCoord);
-      view.setZoom(zoom || 0);
+
+      this._moveToPosition({ x: centerCoord[0], y: centerCoord[1] }, zoom || 0);
 
       // Save the extent if it does not exists, to allow proper export to qgis.
       if (!options.extent) {
@@ -1111,7 +1165,9 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _computeAnnotationPosition(annotation: IAnnotation) {
-    const pixels = this._Map.getPixelFromCoordinate(annotation.position);
+    const { x, y } = annotation.position;
+    const pixels = this._Map.getPixelFromCoordinate([x, y]);
+
     if (pixels) {
       return { x: pixels[0], y: pixels[1] };
     }
@@ -1136,9 +1192,24 @@ export class MainView extends React.Component<IProps, IStates> {
   private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
-      const view = this._Map.getView();
-      view.animate({ center: annotation.position });
-      view.animate({ zoom: annotation.zoom });
+      this._moveToPosition(annotation.position, annotation.zoom);
+    }
+  }
+
+  private _moveToPosition(
+    center: { x: number; y: number },
+    zoom: number,
+    duration = 1000
+  ) {
+    const view = this._Map.getView();
+
+    // Zoom needs to be set before changing center
+    if (!view.animate === undefined) {
+      view.animate({ zoom, duration });
+      view.animate({ center: [center.x, center.y], duration });
+    } else {
+      view.setZoom(zoom);
+      view.setCenter([center.x, center.y]);
     }
   }
 
@@ -1191,6 +1262,7 @@ export class MainView extends React.Component<IProps, IStates> {
           }}
         >
           <Spinner loading={this.state.loading} />
+          <FollowIndicator remoteUser={this.state.remoteUser} />
 
           <div
             ref={this.divRef}
