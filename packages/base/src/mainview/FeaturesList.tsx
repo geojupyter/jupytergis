@@ -8,48 +8,63 @@ interface IFeatureListsProps {
 }
 
 const FeatureLists = ({ features }: IFeatureListsProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [expandedKeys, setExpandedKeys] = useState<Record<string, boolean>>({});
 
-  const formatValue = (value: any) =>
-    typeof value === 'object' && value !== null
-      ? JSON.stringify(value, null, 2)
-      : String(value);
+  const toggleExpand = (key: string) => {
+    setExpandedKeys(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const renderFeature = (
+    feature: Record<string, any>,
+    parentKey = ''
+  ): JSX.Element[] => {
+    return Object.entries(feature).map(([key, value]) => {
+      const uniqueKey = `${parentKey}-${key}`;
+      const isObject = typeof value === 'object' && value !== null;
+
+      return (
+        <div key={uniqueKey} style={{ marginLeft: parentKey ? '10px' : '0' }}>
+          <strong
+            style={{ cursor: isObject ? 'pointer' : 'default' }}
+            onClick={() => isObject && toggleExpand(uniqueKey)}
+          >
+            {key}
+          </strong>
+          :{' '}
+          {isObject ? (
+            expandedKeys[uniqueKey] ? (
+              <div style={{ marginLeft: '10px' }}>
+                {renderFeature(value, uniqueKey)}
+              </div>
+            ) : (
+              <span style={{ color: 'blue', cursor: 'pointer' }}>
+                Click to expand
+              </span>
+            )
+          ) : (
+            String(value)
+          )}
+        </div>
+      );
+    });
+  };
 
   return (
-    <div
-      style={{ top: 0, right: 0, height: '100%', background: '#0f0f0f' }}
-      className="jGIS-Remote-Pointer-Popup jGIS-Floating-Pointer-Popup"
-    >
-      <div
-        className="jGIS-Popup-Topbar"
-        onClick={() => {
-          setIsOpen(false);
-        }}
-      >
-        <FontAwesomeIcon
-          icon={faWindowMinimize}
-          className="jGIS-Popup-TopBarIcon"
-        />
-      </div>
-      {features &&
-        Object.values(features).map((feature, featureIndex) => (
-          <div
-            key={featureIndex}
-            className="jGIS-Remote-Pointer-Popup-Coordinates"
-          >
-            <div className="jGIS-Remote-Pointer-Popup-Name">Feature:</div>
-            {Object.entries(feature)
-              .filter(
-                ([key, value]) => typeof value !== 'object' || value === null
-              )
-              .map(([key, value]) => (
-                <div key={key}>
-                  <strong>{key}</strong>: {String(value)}
-                </div>
-              ))}
-          </div>
-        ))}
-    </div>
+    <>
+      {Object.values(features).map((feature, index) => (
+        <div
+          key={index}
+          className="jGIS-Remote-Pointer-Popup-Coordinates"
+          style={{ top: 0, right: 0, height: '100%', background: '#0f0f0f' }}
+        >
+          <div className="jGIS-Remote-Pointer-Popup-Name">Feature:</div>
+          {renderFeature(feature, `feature${index}`)}
+        </div>
+      ))}
+    </>
   );
 };
 
