@@ -395,7 +395,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   syncPointer(pointer?: Pointer, emitter?: string): void {
-    console.log('model sy');
     this.sharedModel.awareness.setLocalStateField('pointer', {
       value: pointer,
       emitter: emitter
