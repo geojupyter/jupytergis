@@ -29,7 +29,7 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { Collection, Map as OlMap, View } from 'ol';
+import { Collection, MapEvent, Map as OlMap, View } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
 import DragAndDrop from 'ol/interaction/DragAndDrop';
@@ -72,6 +72,7 @@ import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
+import FeatureLists from './FeaturesList';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -86,6 +87,7 @@ interface IStates {
   firstLoad: boolean;
   annotations: IDict<IAnnotation>;
   clientPointers: IDict<ClientPointer>;
+  selectedFeatures: IDict<any>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -125,7 +127,8 @@ export class MainView extends React.Component<IProps, IStates> {
       loading: true,
       firstLoad: true,
       annotations: {},
-      clientPointers: {}
+      clientPointers: {},
+      selectedFeatures: {}
     };
 
     this._sources = [];
@@ -274,6 +277,21 @@ export class MainView extends React.Component<IProps, IStates> {
           ...currentOptions,
           ...updatedOptions
         });
+      });
+
+      this._Map.on('click', e => {
+        // const pixel = this._Map.getEventPixel(e.pixel);
+        const features = this._Map.getFeaturesAtPixel(e.pixel, {
+          hitTolerance: 15
+        });
+
+        const featureValues: IDict<any> = [];
+        features.forEach(feature => {
+          featureValues.push(feature.getProperties());
+        });
+
+        console.log('feature', featureValues);
+        this.setState(old => ({ ...old, selectedFeatures: featureValues }));
       });
 
       this._Map
@@ -1349,6 +1367,13 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.syncPointer(pointer);
   });
 
+  private _identifyFeature(e: MouseEvent) {
+    const pixel = this._Map.getEventPixel(e);
+    const feature = this._Map.getFeaturesAtPixel(pixel, { hitTolerance: 15 });
+
+    console.log('feature', feature);
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -1401,6 +1426,7 @@ export class MainView extends React.Component<IProps, IStates> {
           <Spinner loading={this.state.loading} />
           <FollowIndicator remoteUser={this.state.remoteUser} />
           <CollaboratorPointers clients={this.state.clientPointers} />
+          <FeatureLists features={this.state.selectedFeatures} />
 
           <div
             ref={this.divRef}
