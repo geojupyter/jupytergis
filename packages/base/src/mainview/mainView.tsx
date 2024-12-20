@@ -959,15 +959,13 @@ export class MainView extends React.Component<IProps, IStates> {
         this._moveToPosition({ x, y }, zoom, 0);
       }
     } else {
-      // If we are unfollowing a remote user, we reset our center to its old position
+      // If we are unfollowing a remote user, we reset our center and zoom to their previous values
       if (this.state.remoteUser !== null) {
         this.setState(old => ({ ...old, remoteUser: null }));
         const viewportState = this._model.localState?.viewportState?.value;
 
         if (viewportState) {
-          const { x, y } = viewportState.coordinates;
-          const zoom = viewportState.zoom;
-          this._moveToPosition({ x, y }, zoom);
+          this._moveToPosition(viewportState.coordinates, viewportState.zoom);
         }
       }
     }
@@ -1194,8 +1192,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
-      const { x, y } = annotation.position;
-      this._moveToPosition({ x, y }, annotation.zoom);
+      this._moveToPosition(annotation.position, annotation.zoom);
     }
   }
 
