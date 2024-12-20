@@ -999,18 +999,20 @@ export class MainView extends React.Component<IProps, IStates> {
           pointer.coordinates.y
         ]);
 
+        const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
+
         if (!currentClientPointer) {
           currentClientPointer = clientPointers[clientId] = {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
-            x: pixel[0],
-            y: pixel[1]
+            coordinates: { x: pixel[0], y: pixel[1] },
+            lonLat: { longitude: lonLat[0], latitude: lonLat[1] }
           };
         }
 
-        currentClientPointer.x = pixel[0];
-        currentClientPointer.y = pixel[1];
+        currentClientPointer.coordinates.x = pixel[0];
+        currentClientPointer.coordinates.y = pixel[1];
         clientPointers[clientId] = currentClientPointer;
       } else {
         delete clientPointers[clientId];

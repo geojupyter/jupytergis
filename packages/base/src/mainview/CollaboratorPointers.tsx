@@ -3,7 +3,7 @@ import {
   faWindowMinimize
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { IDict } from '@jupytergis/schema';
+import { IDict, JgisCoordinates } from '@jupytergis/schema';
 import React, { useState } from 'react';
 
 interface ICollaboratorPointersProps {
@@ -14,8 +14,8 @@ export type ClientPointer = {
   username: string;
   displayName: string;
   color: string;
-  x: number;
-  y: number;
+  coordinates: JgisCoordinates;
+  lonLat: { latitude: number; longitude: number };
 };
 
 const CollaboratorPointers = ({ clients }: ICollaboratorPointersProps) => {
@@ -28,8 +28,8 @@ const CollaboratorPointers = ({ clients }: ICollaboratorPointersProps) => {
           <div
             className="jGIS-Popup-Wrapper"
             style={{
-              left: `${client.x}px`,
-              top: `${client.y}px`
+              left: `${client.coordinates.x}px`,
+              top: `${client.coordinates.y}px`
             }}
           >
             <div
@@ -73,9 +73,9 @@ const CollaboratorPointers = ({ clients }: ICollaboratorPointersProps) => {
                 <br />
                 Pointer Location:
                 <br />
-                x: {client.x.toFixed(2)}
+                Longitude: {client.lonLat.longitude.toFixed(2)}
                 <br />
-                y: {client.y.toFixed(2)}
+                Latitude: {client.lonLat.latitude.toFixed(2)}
               </div>
             </div>
           </div>
