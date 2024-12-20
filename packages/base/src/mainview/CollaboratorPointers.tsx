@@ -6,11 +6,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict } from '@jupytergis/schema';
 import React, { useState } from 'react';
 
-interface ICollaboratorPointerProps {
-  clients: IDict<TransformedClientPointer>;
+interface ICollaboratorPointersProps {
+  clients: IDict<ClientPointer>;
 }
 
-export type TransformedClientPointer = {
+export type ClientPointer = {
   username: string;
   displayName: string;
   color: string;
@@ -18,7 +18,7 @@ export type TransformedClientPointer = {
   y: number;
 };
 
-const CollaboratorPointer = ({ clients }: ICollaboratorPointerProps) => {
+const CollaboratorPointers = ({ clients }: ICollaboratorPointersProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -84,4 +84,4 @@ const CollaboratorPointer = ({ clients }: ICollaboratorPointerProps) => {
   );
 };
 
-export default CollaboratorPointer;
+export default CollaboratorPointers;

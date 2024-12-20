@@ -71,9 +71,7 @@ import { Coordinate } from 'ol/coordinate';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
-import CollaboratorPointer, {
-  TransformedClientPointer
-} from './CollaboratorPointer';
+import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -87,7 +85,7 @@ interface IStates {
   remoteUser?: User.IIdentity | null;
   firstLoad: boolean;
   annotations: IDict<IAnnotation>;
-  clientPointers: IDict<TransformedClientPointer>;
+  clientPointers: IDict<ClientPointer>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -968,15 +966,13 @@ export class MainView extends React.Component<IProps, IStates> {
         this._moveToPosition({ x, y }, zoom, 0);
       }
     } else {
-      // If we are unfollowing a remote user, we reset our center to its old position
+      // If we are unfollowing a remote user, we reset our center and zoom to their previous values
       if (this.state.remoteUser !== null) {
         this.setState(old => ({ ...old, remoteUser: null }));
         const viewportState = this._model.localState?.viewportState?.value;
 
         if (viewportState) {
-          const { x, y } = viewportState.coordinates;
-          const zoom = viewportState.zoom;
-          this._centerOnPosition({ x, y }, zoom);
+          this._moveToPosition(viewportState.coordinates, viewportState.zoom);
         }
       }
     }
@@ -1273,13 +1269,6 @@ export class MainView extends React.Component<IProps, IStates> {
     this._syncPointer(coordinates);
   }
 
-  private _centerOnPosition(center: { x: number; y: number }, zoom: number) {
-    const view = this._Map.getView();
-
-    view.animate({ zoom });
-    view.animate({ center: [center.x, center.y] });
-  }
-
   private _syncPointer = throttle((coordinates: Coordinate) => {
     const pointer = {
       coordinates: { x: coordinates[0], y: coordinates[1] }
@@ -1338,7 +1327,7 @@ export class MainView extends React.Component<IProps, IStates> {
         >
           <Spinner loading={this.state.loading} />
           <FollowIndicator remoteUser={this.state.remoteUser} />
-          <CollaboratorPointer clients={this.state.clientPointers} />
+          <CollaboratorPointers clients={this.state.clientPointers} />
 
           <div
             ref={this.divRef}
@@ -1364,5 +1353,4 @@ export class MainView extends React.Component<IProps, IStates> {
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
-  // private _transClients: IDict<TransformedClient>;
 }
