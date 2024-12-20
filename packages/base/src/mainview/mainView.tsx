@@ -71,6 +71,7 @@ import { Coordinate } from 'ol/coordinate';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
+import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -84,6 +85,7 @@ interface IStates {
   remoteUser?: User.IIdentity | null;
   firstLoad: boolean;
   annotations: IDict<IAnnotation>;
+  clientPointers: IDict<ClientPointer>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -95,6 +97,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._mainViewModel = this.props.viewModel;
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
+
     this._model = this._mainViewModel.jGISModel;
     this._model.themeChanged.connect(this._handleThemeChange, this);
 
@@ -106,7 +109,6 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onClientSharedStateChanged,
       this
     );
-
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
@@ -122,7 +124,8 @@ export class MainView extends React.Component<IProps, IStates> {
       lightTheme: isLightTheme(),
       loading: true,
       firstLoad: true,
-      annotations: {}
+      annotations: {},
+      clientPointers: {}
     };
 
     this._sources = [];
@@ -273,6 +276,10 @@ export class MainView extends React.Component<IProps, IStates> {
         });
       });
 
+      this._Map
+        .getViewport()
+        .addEventListener('pointermove', this._onPointerMove.bind(this));
+
       if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
         await this._updateLayersImpl(
           JupyterGISModel.getOrderedLayerIds(this._model)
@@ -282,8 +289,6 @@ export class MainView extends React.Component<IProps, IStates> {
         this._initializedPosition = true;
       }
 
-      this.setState(old => ({ ...old, loading: false }));
-
       this._Map.getViewport().addEventListener('contextmenu', event => {
         event.preventDefault();
         event.stopPropagation();
@@ -291,6 +296,8 @@ export class MainView extends React.Component<IProps, IStates> {
         this._clickCoords = coordinate;
         this._contextMenu.open(event);
       });
+
+      this.setState(old => ({ ...old, loading: false }));
     }
   }
 
@@ -969,6 +976,50 @@ export class MainView extends React.Component<IProps, IStates> {
         }
       }
     }
+
+    // cursors
+    clients.forEach((client, clientId) => {
+      if (!client?.user) {
+        return;
+      }
+
+      const pointer = client.pointer?.value;
+
+      // We already display our own cursor on mouse move
+      if (this._model.getClientId() === clientId) {
+        return;
+      }
+
+      const clientPointers = this.state.clientPointers;
+      let currentClientPointer = clientPointers[clientId];
+
+      if (pointer) {
+        const pixel = this._Map.getPixelFromCoordinate([
+          pointer.coordinates.x,
+          pointer.coordinates.y
+        ]);
+
+        const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
+
+        if (!currentClientPointer) {
+          currentClientPointer = clientPointers[clientId] = {
+            username: client.user.username,
+            displayName: client.user.display_name,
+            color: client.user.color,
+            coordinates: { x: pixel[0], y: pixel[1] },
+            lonLat: { longitude: lonLat[0], latitude: lonLat[1] }
+          };
+        }
+
+        currentClientPointer.coordinates.x = pixel[0];
+        currentClientPointer.coordinates.y = pixel[1];
+        clientPointers[clientId] = currentClientPointer;
+      } else {
+        delete clientPointers[clientId];
+      }
+
+      this.setState(old => ({ ...old, clientPointers: clientPointers }));
+    });
   };
 
   private _onSharedOptionsChanged(
@@ -1213,6 +1264,20 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
+  private _onPointerMove(e: MouseEvent) {
+    const pixel = this._Map.getEventPixel(e);
+    const coordinates = this._Map.getCoordinateFromPixel(pixel);
+
+    this._syncPointer(coordinates);
+  }
+
+  private _syncPointer = throttle((coordinates: Coordinate) => {
+    const pointer = {
+      coordinates: { x: coordinates[0], y: coordinates[1] }
+    };
+    this._model.syncPointer(pointer);
+  });
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -1242,7 +1307,7 @@ export class MainView extends React.Component<IProps, IStates> {
                   left: screenPosition.x,
                   top: screenPosition.y
                 }}
-                className={'jGIS-Annotation-Wrapper'}
+                className={'jGIS-Popup-Wrapper'}
               >
                 <AnnotationFloater
                   itemId={key}
@@ -1253,6 +1318,7 @@ export class MainView extends React.Component<IProps, IStates> {
             )
           );
         })}
+
         <div
           className="jGIS-Mainview"
           style={{
@@ -1263,6 +1329,7 @@ export class MainView extends React.Component<IProps, IStates> {
         >
           <Spinner loading={this.state.loading} />
           <FollowIndicator remoteUser={this.state.remoteUser} />
+          <CollaboratorPointers clients={this.state.clientPointers} />
 
           <div
             ref={this.divRef}
