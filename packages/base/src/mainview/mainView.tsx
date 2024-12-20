@@ -234,7 +234,7 @@ export class MainView extends React.Component<IProps, IStates> {
           if (!center || !zoom) {
             return;
           }
-          this._model.syncCenter(
+          this._model.syncViewport(
             { coordinates: { x: center[0], y: center[1] }, zoom },
             this._mainViewModel.id
           );
@@ -959,24 +959,23 @@ export class MainView extends React.Component<IProps, IStates> {
         this.setState(old => ({ ...old, remoteUser: remoteState.user }));
       }
 
-      const remoteCenter = remoteState.centerPosition;
+      const remoteViewport = remoteState.viewportState;
 
-      if (remoteCenter.value) {
-        const { x, y } = remoteCenter.value.coordinates;
-        const zoom = remoteCenter.value.zoom;
+      if (remoteViewport.value) {
+        const { x, y } = remoteViewport.value.coordinates;
+        const zoom = remoteViewport.value.zoom;
 
-        this._Map.getView().setCenter([x, y]);
-        this._Map.getView().setZoom(zoom);
+        this._moveToPosition({ x, y }, zoom, 0);
       }
     } else {
       // If we are unfollowing a remote user, we reset our center to its old position
       if (this.state.remoteUser !== null) {
         this.setState(old => ({ ...old, remoteUser: null }));
-        const centerPosition = this._model.localState?.centerPosition?.value;
+        const viewportState = this._model.localState?.viewportState?.value;
 
-        if (centerPosition) {
-          const { x, y } = centerPosition.coordinates;
-          const zoom = centerPosition.zoom;
+        if (viewportState) {
+          const { x, y } = viewportState.coordinates;
+          const zoom = viewportState.zoom;
           this._centerOnPosition({ x, y }, zoom);
         }
       }
