@@ -42,14 +42,14 @@ const AnnotationFloater = ({
       >
         <Annotation itemId={itemId} annotationModel={model}>
           <div
-            className="jGIS-Annotation-Topbar"
+            className="jGIS-Popup-Topbar"
             onClick={() => {
               setOpenOrDelete(false);
             }}
           >
             <FontAwesomeIcon
               icon={faWindowMinimize}
-              className="jGIS-Annotation-TopBarIcon"
+              className="jGIS-Popup-TopBarIcon"
             />
           </div>
         </Annotation>

@@ -20,6 +20,7 @@ import {
 import { JupyterGISDoc } from './doc';
 import {
   IViewPortState,
+  Pointer,
   IAnnotationModel,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -389,6 +390,14 @@ export class JupyterGISModel implements IJupyterGISModel {
   syncViewport(viewport?: IViewPortState, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('viewportState', {
       value: viewport,
+      emitter: emitter
+    });
+  }
+
+  syncPointer(pointer?: Pointer, emitter?: string): void {
+    console.log('model sy');
+    this.sharedModel.awareness.setLocalStateField('pointer', {
+      value: pointer,
       emitter: emitter
     });
   }
