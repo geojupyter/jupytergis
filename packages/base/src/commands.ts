@@ -126,9 +126,15 @@ export function addCommands(
         : false;
     },
     execute: args => {
-      console.log('identify');
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
       const viewport = document.getElementsByClassName('ol-viewport')[0];
       viewport?.classList.toggle('jGIS-identity-tool');
+      current.context.model.toggleIdentify();
     },
     ...icons.get(CommandIDs.identify)
   });

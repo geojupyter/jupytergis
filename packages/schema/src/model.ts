@@ -605,6 +605,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
+  get isIdentifying(): boolean {
+    return this._isIdentifying;
+  }
+
+  toggleIdentify() {
+    this._isIdentifying = !this._isIdentifying;
+  }
+
   private _getLayerTreeInfo(groupName: string):
     | {
         mainGroup: IJGISLayerGroup;
@@ -677,6 +685,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   >(this);
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
   private _zoomToAnnotationSignal = new Signal<this, string>(this);
+
+  private _isIdentifying = false;
 
   static worker: Worker;
 }
