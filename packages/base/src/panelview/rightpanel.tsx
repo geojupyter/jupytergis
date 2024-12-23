@@ -12,6 +12,7 @@ import { ControlPanelHeader } from './header';
 import { ObjectProperties } from './objectproperties';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Annotations } from './annotationPanel';
+import IdentifyPanel from './components/identify-panel/IdentifyPanel';
 
 export class RightPanelWidget extends SidePanel {
   constructor(options: RightPanelWidget.IOptions) {
@@ -35,6 +36,14 @@ export class RightPanelWidget extends SidePanel {
       annotationModel: this._annotationModel
     });
     this.addWidget(annotations);
+
+    const identifyPanel = new IdentifyPanel({
+      model: this._model,
+      tracker: options.tracker
+    });
+    identifyPanel.title.caption = 'Identify';
+    identifyPanel.title.label = 'Identify';
+    this.addWidget(identifyPanel);
 
     this._model.documentChanged.connect((_, changed) => {
       if (changed) {
