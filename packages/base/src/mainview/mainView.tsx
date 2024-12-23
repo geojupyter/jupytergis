@@ -29,7 +29,7 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { Collection, MapEvent, Map as OlMap, View } from 'ol';
+import { Collection, Map as OlMap, View } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
 import DragAndDrop from 'ol/interaction/DragAndDrop';
@@ -281,17 +281,22 @@ export class MainView extends React.Component<IProps, IStates> {
 
       this._Map.on('click', e => {
         // const pixel = this._Map.getEventPixel(e.pixel);
-        const features = this._Map.getFeaturesAtPixel(e.pixel, {
-          hitTolerance: 15
-        });
+        if (this._model.isIdentifying) {
+          console.log('is ident');
+          const features = this._Map.getFeaturesAtPixel(e.pixel, {
+            hitTolerance: 15
+          });
 
-        const featureValues: IDict<any> = [];
-        features.forEach(feature => {
-          featureValues.push(feature.getProperties());
-        });
+          const featureValues: IDict<any> = [];
+          features.forEach(feature => {
+            featureValues.push(feature.getProperties());
+          });
 
-        console.log('feature', featureValues);
-        this.setState(old => ({ ...old, selectedFeatures: featureValues }));
+          // console.log('feature', featureValues);
+          this.setState(old => ({ ...old, selectedFeatures: featureValues }));
+        } else {
+          console.log('not ident');
+        }
       });
 
       this._Map
