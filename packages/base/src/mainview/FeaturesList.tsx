@@ -10,11 +10,6 @@ interface IFeatureListsProps {
 const FeatureLists = ({ features }: IFeatureListsProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const formatValue = (value: any) =>
-    typeof value === 'object' && value !== null
-      ? JSON.stringify(value, null, 2)
-      : String(value);
-
   return (
     <div
       style={{
@@ -44,15 +39,19 @@ const FeatureLists = ({ features }: IFeatureListsProps) => {
             className="jGIS-Remote-Pointer-Popup-Coordinates"
           >
             <div className="jGIS-Remote-Pointer-Popup-Name">Feature:</div>
-            {Object.entries(feature)
-              .filter(
-                ([key, value]) => typeof value !== 'object' || value === null
-              )
-              .map(([key, value]) => (
-                <div key={key}>
-                  <strong>{key}</strong>: {String(value)}
-                </div>
-              ))}
+            {Object.entries(feature).map(([key, value]) => (
+              <div key={key}>
+                <strong>{key}</strong>:{' '}
+                {typeof value === 'string' &&
+                /<\/?[a-z][\s\S]*>/i.test(value) ? (
+                  // Render HTML if the value contains HTML tags
+                  <span dangerouslySetInnerHTML={{ __html: value }} />
+                ) : (
+                  // Render other types as plain text
+                  String(value)
+                )}
+              </div>
+            ))}
           </div>
         ))}
     </div>
