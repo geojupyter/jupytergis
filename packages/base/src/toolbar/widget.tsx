@@ -98,8 +98,6 @@ export class ToolbarWidget extends ReactiveToolbar {
         })
       );
 
-      this.addItem('separator2', new Separator());
-
       const NewButton = new ToolbarButton({
         icon: addIcon,
         noFocusOnClick: false,
@@ -150,6 +148,17 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
 
       this.addItem('New', NewButton);
+
+      this.addItem('separator2', new Separator());
+
+      this.addItem(
+        'identify',
+        new CommandToolbarButton({
+          id: CommandIDs.identify,
+          label: '',
+          commands: options.commands
+        })
+      );
 
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
