@@ -390,21 +390,28 @@ export class JupyterGISModel implements IJupyterGISModel {
   syncViewport(viewport?: IViewPortState, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('viewportState', {
       value: viewport,
-      emitter: emitter
+      emitter
     });
   }
 
   syncPointer(pointer?: Pointer, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('pointer', {
       value: pointer,
-      emitter: emitter
+      emitter
     });
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('selected', {
       value,
-      emitter: emitter
+      emitter
+    });
+  }
+
+  syncIdentifiedFeatures(features: any, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
+      value: features,
+      emitter
     });
   }
 

@@ -87,7 +87,7 @@ interface IStates {
   firstLoad: boolean;
   annotations: IDict<IAnnotation>;
   clientPointers: IDict<ClientPointer>;
-  selectedFeatures: IDict<any>;
+  // selectedFeatures: IDict<any>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -127,8 +127,8 @@ export class MainView extends React.Component<IProps, IStates> {
       loading: true,
       firstLoad: true,
       annotations: {},
-      clientPointers: {},
-      selectedFeatures: {}
+      clientPointers: {}
+      // selectedFeatures: {}
     };
 
     this._sources = [];
@@ -293,7 +293,11 @@ export class MainView extends React.Component<IProps, IStates> {
           });
 
           // console.log('feature', featureValues);
-          this.setState(old => ({ ...old, selectedFeatures: featureValues }));
+          // this.setState(old => ({ ...old, selectedFeatures: featureValues }));
+          this._model.syncIdentifiedFeatures(
+            featureValues,
+            this._mainViewModel.id
+          );
         } else {
           console.log('not ident');
         }
@@ -1431,7 +1435,7 @@ export class MainView extends React.Component<IProps, IStates> {
           <Spinner loading={this.state.loading} />
           <FollowIndicator remoteUser={this.state.remoteUser} />
           <CollaboratorPointers clients={this.state.clientPointers} />
-          <FeatureLists features={this.state.selectedFeatures} />
+          {/* <FeatureLists features={this.state.selectedFeatures} /> */}
 
           <div
             ref={this.divRef}
