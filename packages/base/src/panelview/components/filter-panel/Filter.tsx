@@ -2,7 +2,6 @@ import {
   GeoJSONFeature1,
   IDict,
   IJGISFilterItem,
-  IJGISFormSchemaRegistry,
   IJupyterGISModel,
   IJupyterGISTracker
 } from '@jupytergis/schema';
@@ -44,7 +43,6 @@ export namespace FilterPanel {
   export interface IOptions {
     model: IControlPanelModel;
     tracker: IJupyterGISTracker;
-    formSchemaRegistry: IJGISFormSchemaRegistry;
   }
 }
 

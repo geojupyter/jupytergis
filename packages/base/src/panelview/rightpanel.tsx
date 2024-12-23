@@ -8,7 +8,6 @@ import {
 import { SidePanel } from '@jupyterlab/ui-components';
 
 import { IControlPanelModel } from '../types';
-import { FilterPanel } from './components/filter-panel/Filter';
 import { ControlPanelHeader } from './header';
 import { ObjectProperties } from './objectproperties';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -36,16 +35,6 @@ export class RightPanelWidget extends SidePanel {
       annotationModel: this._annotationModel
     });
     this.addWidget(annotations);
-
-    const filterPanel = new FilterPanel({
-      model: this._model,
-      tracker: options.tracker,
-      formSchemaRegistry: options.formSchemaRegistry
-    });
-
-    filterPanel.title.caption = 'Filters';
-    filterPanel.title.label = 'Filters';
-    this.addWidget(filterPanel);
 
     this._model.documentChanged.connect((_, changed) => {
       if (changed) {
