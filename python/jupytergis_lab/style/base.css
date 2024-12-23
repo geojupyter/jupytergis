@@ -667,6 +667,74 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   fill: var(--jp-inverse-layout-color3);
 }
 
-.jGIS-identity-tool {
+.jGIS-identify-tool {
   cursor: crosshair;
+}
+
+.jgis-identify-header {
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+/* .jgis-identify-body {
+  margin-left: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.jgis-identify-body-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.jgis-identify-body-body {
+  margin-left: 32px;
+} */
+
+.jgis-identify-body div span a:link {
+  color: var(--jp-content-link-color);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.jgis-identify-body div span a:visited {
+  color: (--jp-content-link-visited-color);
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two equal columns */
+  gap: 16px; /* Spacing between rows and columns */
+}
+
+.grid-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two equal columns */
+  grid-template-rows: auto auto; /* Header and body */
+}
+
+.grid-item-header {
+  grid-column: span 2; /* Span both columns */
+  font-weight: bold;
+  font-size: 1.2em;
+  border-bottom: 1px solid #ccc; /* Optional: Separate header from body */
+}
+
+.jgis-identify-body {
+  display: contents; /* Ensure children respect the parent's grid layout */
+}
+
+.jgis-identify-body-content {
+  display: contents; /* Match parent's layout */
+}
+
+.jgis-identify-body-content strong {
+  grid-column: 1; /* Key in the first column */
+  text-align: right; /* Optional: Align keys to the right */
+}
+
+.jgis-identify-body-body {
+  grid-column: 2; /* Value in the second column */
 }

@@ -3,7 +3,7 @@ import {
   IJupyterGISModel,
   IJupyterGISTracker
 } from '@jupytergis/schema';
-import { ReactWidget } from '@jupyterlab/ui-components';
+import { LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { useEffect, useState } from 'react';
 import { IControlPanelModel } from '../../../types';
@@ -50,6 +50,7 @@ const IdentifyPanelComponent = ({
   tracker
 }: IIdentifyComponentProps) => {
   const [features, setFeatures] = useState<IDict<any>>();
+  const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({});
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
     controlPanelModel?.jGISModel
   );
@@ -68,8 +69,10 @@ const IdentifyPanelComponent = ({
         return;
       }
 
-      console.log('sanity');
-      setFeatures(jgisModel.localState.identifiedFeatures.value);
+      if (features !== jgisModel.localState.identifiedFeatures.value) {
+        console.log('sanity');
+        setFeatures(jgisModel.localState.identifiedFeatures.value);
+      }
     };
 
     // Initial state
@@ -82,35 +85,59 @@ const IdentifyPanelComponent = ({
     };
   }, [jgisModel]);
 
+  const toggleFeatureVisibility = (index: number) => {
+    console.log('visibleFeatures', visibleFeatures);
+    setVisibleFeatures(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
   return (
-    <div>
-      {features &&
-        Object.values(features).map((feature, featureIndex) => (
-          <div
-            key={featureIndex}
-            className="jGIS-Remote-Pointer-Popup-Coordinates"
-          >
-            <div className="jGIS-Remote-Pointer-Popup-Name">Feature:</div>
-            {Object.entries(feature)
-              .filter(
-                ([key, value]) => typeof value !== 'object' || value === null
-              )
-              .map(([key, value]) => (
-                <div key={key}>
-                  <strong>{key}</strong>:{' '}
-                  {typeof value === 'string' &&
-                  /<\/?[a-z][\s\S]*>/i.test(value) ? (
-                    // Render HTML if the value contains HTML tags
-                    <span dangerouslySetInnerHTML={{ __html: value }} />
-                  ) : (
-                    // Render other types as plain text
-                    String(value)
-                  )}
+    <>
+      {features && (
+        <div className="grid-container">
+          {Object.values(features).map((feature, featureIndex) => (
+            <div key={featureIndex} className="grid-item">
+              <div
+                className="grid-item-header"
+                onClick={() => toggleFeatureVisibility(featureIndex)}
+              >
+                <LabIcon.resolveReact
+                  icon={caretDownIcon}
+                  className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
+                  tag={'span'}
+                />
+                Feature {featureIndex + 1}:
+              </div>
+              {visibleFeatures[featureIndex] && (
+                <div className="jgis-identify-body">
+                  {Object.entries(feature)
+                    .filter(
+                      ([key, value]) =>
+                        typeof value !== 'object' || value === null
+                    )
+                    .map(([key, value]) => (
+                      <div key={key} className="jgis-identify-body-content">
+                        <strong>{key}:</strong>
+                        {typeof value === 'string' &&
+                        /<\/?[a-z][\s\S]*>/i.test(value) ? (
+                          <span
+                            className="jgis-identify-body-body"
+                            dangerouslySetInnerHTML={{ __html: `${value}` }}
+                          />
+                        ) : (
+                          String(value)
+                        )}
+                      </div>
+                    ))}
                 </div>
-              ))}
-          </div>
-        ))}
-    </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </>
   );
 };
 
