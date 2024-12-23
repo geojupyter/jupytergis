@@ -666,3 +666,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 .lm-TabBar-tabIcon .jgis-main-logo[fill] {
   fill: var(--jp-inverse-layout-color3);
 }
+
+.jGIS-identity-tool {
+  cursor: crosshair;
+}
