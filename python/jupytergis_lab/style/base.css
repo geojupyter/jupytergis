@@ -693,16 +693,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   margin-left: 32px;
 } */
 
-.jgis-identify-body div span a:link {
-  color: var(--jp-content-link-color);
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.jgis-identify-body div span a:visited {
-  color: (--jp-content-link-visited-color);
-}
-
 .grid-container {
   display: grid;
   grid-template-columns: 1fr 1fr; /* Two equal columns */
@@ -713,28 +703,71 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   display: grid;
   grid-template-columns: 1fr 1fr; /* Two equal columns */
   grid-template-rows: auto auto; /* Header and body */
+  position: relative;
+  /* border-top: 1px solid var(--jp-border-color0);  */
+  /* border-bottom: 1px solid var(--jp-border-color0);  */
+  gap: 1px;
+  /* padding-bottom: 8px; */
 }
 
+/* .grid-item::after:first-child {
+  border-top: none;
+}*/
+
+/* .grid-item > .grid-item-header:nth-last-of-type(1) {
+  border-bottom: none;
+} */
+
 .grid-item-header {
+  display: flex;
   grid-column: span 2; /* Span both columns */
   font-weight: bold;
-  font-size: 1.2em;
-  border-bottom: 1px solid #ccc; /* Optional: Separate header from body */
+  font-size: var(--jp-ui-font-size1);
+  padding: 2px 0;
+  cursor: pointer;
+  margin: 0 5px;
+  line-height: 25px;
+}
+
+.grid-item-header::after {
+  content: ''; /* Required for pseudo-elements */
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  /* display: block; */
+  width: 90%; /* Adjust this to make the border narrower */
+  /* border-top: 1px solid var(--jp-border-color0); */
+  border-bottom: 1px solid var(--jp-border-color0);
+}
+
+.wrapper .grid-item .grid-item-header:last-of-type::after {
+  border-bottom: none;
 }
 
 .jgis-identify-body {
   display: contents; /* Ensure children respect the parent's grid layout */
 }
-
-.jgis-identify-body-content {
-  display: contents; /* Match parent's layout */
+.jgis-identify-body span a:link {
+  color: var(--jp-content-link-color);
+  cursor: pointer;
+  text-decoration: underline;
 }
 
-.jgis-identify-body-content strong {
+.jgis-identify-body span a:visited {
+  color: (--jp-content-link-visited-color);
+}
+
+.jgis-identify-body strong {
   grid-column: 1; /* Key in the first column */
-  text-align: right; /* Optional: Align keys to the right */
+  text-transform: capitalize;
+  margin-left: 21px;
 }
 
-.jgis-identify-body-body {
+.jgis-identify-body span {
   grid-column: 2; /* Value in the second column */
+}
+
+.wrapper .grid-item .jgis-identify-body:last-of-type strong:last-of-type {
+  padding-bottom: 8px;
 }
