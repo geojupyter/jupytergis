@@ -594,17 +594,25 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   /**
-   * Updates the layers in the OL map based on the layer IDs.
+   * Updates the position and existence of layers in the OL map based on the layer IDs.
    *
    * @param layerIds - An array of layer IDs that should be present on the map.
+   * @returns {} Nothing is returned.
    */
   private async _updateLayersImpl(layerIds: string[]): Promise<void> {
     // get layers that are currently on the OL map
     const previousLayerIds = this.getLayerIDs();
 
-    // Iterate over the new layer IDs
-    for (let i = 0; i < layerIds.length; i++) {
-      const layerId = layerIds[i];
+    // Iterate over the new layer IDs:
+    //   * Add layers to the map that are present in the list but not the map.
+    //   * Remove layers from the map that are present in the map but not the list.
+    //   * Update layer positions to match the list.
+    for (
+      let targetLayerPosition = 0;
+      targetLayerPosition < layerIds.length;
+      targetLayerPosition++
+    ) {
+      const layerId = layerIds[targetLayerPosition];
       const layer = this._model.sharedModel.getLayer(layerId);
 
       if (!layer) {
@@ -617,9 +625,9 @@ export class MainView extends React.Component<IProps, IStates> {
       const mapLayer = this.getLayer(layerId);
 
       if (mapLayer !== undefined) {
-        this.moveLayer(layerId, i);
+        this.moveLayer(layerId, targetLayerPosition);
       } else {
-        await this.addLayer(layerId, layer, i);
+        await this.addLayer(layerId, layer, targetLayerPosition);
       }
 
       const previousIndex = previousLayerIds.indexOf(layerId);
@@ -1174,7 +1182,7 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   /**
-   * Move a layer in the stack.
+   * Move layer `id` in the stack to `index`.
    *
    * @param id - id of the layer.
    * @param index - expected index of the layer.
@@ -1187,13 +1195,14 @@ export class MainView extends React.Component<IProps, IStates> {
     const layer = this.getLayer(id);
     let nextIndex = index;
     // should not be undefined since the id exists above
-    if (layer !== undefined) {
-      this._Map.getLayers().removeAt(currentIndex);
-      if (currentIndex < index) {
-        nextIndex -= 1;
-      }
-      this._Map.getLayers().insertAt(nextIndex, layer);
+    if (layer === undefined) {
+      return;
     }
+    this._Map.getLayers().removeAt(currentIndex);
+    if (currentIndex < index) {
+      nextIndex -= 1;
+    }
+    this._Map.getLayers().insertAt(nextIndex, layer);
   }
 
   private _onLayersChanged(
