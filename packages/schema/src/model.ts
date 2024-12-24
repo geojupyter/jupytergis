@@ -29,7 +29,8 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   ISelection,
-  IUserData
+  IUserData,
+  IDict
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
 import { Contents } from '@jupyterlab/services';
@@ -408,7 +409,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     });
   }
 
-  syncIdentifiedFeatures(features: any, emitter?: string): void {
+  syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
       value: features,
       emitter

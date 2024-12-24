@@ -200,7 +200,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   syncViewport(viewport?: IViewPortState, emitter?: string): void;
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   syncPointer(pointer?: Pointer, emitter?: string): void;
-  syncIdentifiedFeatures(features: any, emitter?: string): void;
+  syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void;
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;

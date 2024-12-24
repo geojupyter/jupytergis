@@ -17,14 +17,13 @@ export class IdentifyPanel extends Panel {
     this.id = 'jupytergis::identifyPanel';
     this.title.caption = 'Identify';
     this.title.label = 'Identify';
-    // this.addClass(LAYERS_PANEL_CLASS);
 
     this.addWidget(
       ReactWidget.create(
         <IdentifyPanelComponent
           controlPanelModel={this._model}
           tracker={this._tracker}
-        ></IdentifyPanelComponent>
+        />
       )
     );
   }
