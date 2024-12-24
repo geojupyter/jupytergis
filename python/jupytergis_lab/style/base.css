@@ -728,9 +728,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   grid-column: 2;
 }
 
-.jgis-identify-wrapper
-  .jgis-identify-grid-item
-  .jgis-identify-grid-body:last-of-type
-  strong:last-of-type {
+.jgis-identify-grid-body:last-of-type strong:last-of-type {
   padding-bottom: 8px;
 }

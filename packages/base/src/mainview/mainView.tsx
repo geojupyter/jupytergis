@@ -29,7 +29,7 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { Collection, Map as OlMap, View } from 'ol';
+import { Collection, MapBrowserEvent, Map as OlMap, View } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
 import DragAndDrop from 'ol/interaction/DragAndDrop';
@@ -72,7 +72,6 @@ import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
-import FeatureLists from './FeaturesList';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -87,7 +86,6 @@ interface IStates {
   firstLoad: boolean;
   annotations: IDict<IAnnotation>;
   clientPointers: IDict<ClientPointer>;
-  // selectedFeatures: IDict<any>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -128,7 +126,6 @@ export class MainView extends React.Component<IProps, IStates> {
       firstLoad: true,
       annotations: {},
       clientPointers: {}
-      // selectedFeatures: {}
     };
 
     this._sources = [];
@@ -279,29 +276,7 @@ export class MainView extends React.Component<IProps, IStates> {
         });
       });
 
-      this._Map.on('click', e => {
-        // const pixel = this._Map.getEventPixel(e.pixel);
-        if (this._model.isIdentifying) {
-          console.log('is ident');
-          const features = this._Map.getFeaturesAtPixel(e.pixel, {
-            hitTolerance: 15
-          });
-
-          const featureValues: IDict<any> = [];
-          features.forEach(feature => {
-            featureValues.push(feature.getProperties());
-          });
-
-          // console.log('feature', featureValues);
-          // this.setState(old => ({ ...old, selectedFeatures: featureValues }));
-          this._model.syncIdentifiedFeatures(
-            featureValues,
-            this._mainViewModel.id
-          );
-        } else {
-          console.log('not ident');
-        }
-      });
+      this._Map.on('click', this._identifyFeature.bind(this));
 
       this._Map
         .getViewport()
@@ -1376,11 +1351,19 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.syncPointer(pointer);
   });
 
-  private _identifyFeature(e: MouseEvent) {
-    const pixel = this._Map.getEventPixel(e);
-    const feature = this._Map.getFeaturesAtPixel(pixel, { hitTolerance: 15 });
+  private _identifyFeature(e: MapBrowserEvent<any>) {
+    if (this._model.isIdentifying) {
+      const features = this._Map.getFeaturesAtPixel(e.pixel, {
+        hitTolerance: 5
+      });
 
-    console.log('feature', feature);
+      const featureValues: IDict<any> = [];
+      features.forEach(feature => {
+        featureValues.push(feature.getProperties());
+      });
+
+      this._model.syncIdentifiedFeatures(featureValues, this._mainViewModel.id);
+    }
   }
 
   private _handleThemeChange = (): void => {
@@ -1435,7 +1418,6 @@ export class MainView extends React.Component<IProps, IStates> {
           <Spinner loading={this.state.loading} />
           <FollowIndicator remoteUser={this.state.remoteUser} />
           <CollaboratorPointers clients={this.state.clientPointers} />
-          {/* <FeatureLists features={this.state.selectedFeatures} /> */}
 
           <div
             ref={this.divRef}
