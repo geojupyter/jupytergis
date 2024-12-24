@@ -49,6 +49,7 @@ const IdentifyPanelComponent = ({
   controlPanelModel,
   tracker
 }: IIdentifyComponentProps) => {
+  const [widgetId, setWidgetId] = useState('');
   const [features, setFeatures] = useState<IDict<any>>();
   const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({});
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
@@ -62,15 +63,32 @@ const IdentifyPanelComponent = ({
     setJgisModel(widget?.context.model);
   });
 
+  // Reset state values when current widget changes
   useEffect(() => {
-    console.log('jgisModel', jgisModel);
+    const handleCurrentChanged = () => {
+      if (tracker.currentWidget?.id === widgetId) {
+        return;
+      }
+
+      if (tracker.currentWidget) {
+        setWidgetId(tracker.currentWidget.id);
+      }
+      setFeatures({});
+    };
+    tracker.currentChanged.connect(handleCurrentChanged);
+
+    return () => {
+      tracker.currentChanged.disconnect(handleCurrentChanged);
+    };
+  }, []);
+
+  useEffect(() => {
     const handleClientStateChanged = () => {
       if (!jgisModel?.localState?.identifiedFeatures?.value) {
         return;
       }
 
       if (features !== jgisModel.localState.identifiedFeatures.value) {
-        console.log('sanity');
         setFeatures(jgisModel.localState.identifiedFeatures.value);
       }
     };
