@@ -74,6 +74,7 @@ const IdentifyPanelComponent = ({
         setWidgetId(tracker.currentWidget.id);
       }
       setFeatures({});
+      setVisibleFeatures({});
     };
     tracker.currentChanged.connect(handleCurrentChanged);
 

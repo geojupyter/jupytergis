@@ -132,8 +132,7 @@ export function addCommands(
         return;
       }
 
-      const viewport = document.getElementsByClassName('ol-viewport')[0];
-      viewport?.classList.toggle('jGIS-identify-tool');
+      current.node.classList.toggle('jGIS-identify-tool');
       current.context.model.toggleIdentify();
     },
     ...icons.get(CommandIDs.identify)
