@@ -639,6 +639,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   right: 0;
   display: block;
 }
+
 .jGIS-property-panel
   .jp-FormGroup-content
   fieldset
@@ -659,6 +660,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   outline: none;
   appearance: none;
 }
+
 .jGIS-property-panel .jp-select-wrapper select {
   background-image: unset !important;
 }
@@ -671,56 +673,17 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   cursor: crosshair;
 }
 
-.jgis-identify-header {
-  cursor: pointer;
-  font-weight: bold;
-  text-decoration: underline;
-}
-
-/* .jgis-identify-body {
-  margin-left: 16px;
-  display: flex;
-  flex-direction: column;
-}
-
-.jgis-identify-body-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.jgis-identify-body-body {
-  margin-left: 32px;
-} */
-
-.grid-container {
+.jgis-identify-grid-item {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Two equal columns */
-  gap: 16px; /* Spacing between rows and columns */
-}
-
-.grid-item {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Two equal columns */
-  grid-template-rows: auto auto; /* Header and body */
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
   position: relative;
-  /* border-top: 1px solid var(--jp-border-color0);  */
-  /* border-bottom: 1px solid var(--jp-border-color0);  */
   gap: 1px;
-  /* padding-bottom: 8px; */
 }
 
-/* .grid-item::after:first-child {
-  border-top: none;
-}*/
-
-/* .grid-item > .grid-item-header:nth-last-of-type(1) {
-  border-bottom: none;
-} */
-
-.grid-item-header {
+.jgis-identify-grid-item-header {
   display: flex;
-  grid-column: span 2; /* Span both columns */
+  grid-column: span 2;
   font-weight: bold;
   font-size: var(--jp-ui-font-size1);
   padding: 2px 0;
@@ -729,45 +692,45 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   line-height: 25px;
 }
 
-.grid-item-header::after {
-  content: ''; /* Required for pseudo-elements */
+.jgis-identify-grid-item:not(:last-of-type)::after {
+  content: '';
   position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  /* display: block; */
-  width: 90%; /* Adjust this to make the border narrower */
-  /* border-top: 1px solid var(--jp-border-color0); */
+  width: 90%;
   border-bottom: 1px solid var(--jp-border-color0);
 }
 
-.wrapper .grid-item .grid-item-header:last-of-type::after {
-  border-bottom: none;
+.jgis-identify-grid-body {
+  display: contents;
 }
 
-.jgis-identify-body {
-  display: contents; /* Ensure children respect the parent's grid layout */
-}
-.jgis-identify-body span a:link {
+.jgis-identify-grid-body span a:link {
   color: var(--jp-content-link-color);
   cursor: pointer;
   text-decoration: underline;
 }
 
-.jgis-identify-body span a:visited {
-  color: (--jp-content-link-visited-color);
+.jgis-identify-grid-body span a:visited {
+  color: var(--jp-content-link-visited-color);
+  cursor: pointer;
+  text-decoration: underline;
 }
 
-.jgis-identify-body strong {
-  grid-column: 1; /* Key in the first column */
+.jgis-identify-grid-body strong {
+  grid-column: 1;
   text-transform: capitalize;
   margin-left: 21px;
 }
 
-.jgis-identify-body span {
-  grid-column: 2; /* Value in the second column */
+.jgis-identify-grid-body span {
+  grid-column: 2;
 }
 
-.wrapper .grid-item .jgis-identify-body:last-of-type strong:last-of-type {
+.jgis-identify-wrapper
+  .jgis-identify-grid-item
+  .jgis-identify-grid-body:last-of-type
+  strong:last-of-type {
   padding-bottom: 8px;
 }
