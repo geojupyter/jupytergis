@@ -94,12 +94,12 @@ const IdentifyPanelComponent = ({
   };
 
   return (
-    <div className="wrapper">
+    <div className="jgis-identify-wrapper">
       {features &&
         Object.values(features).map((feature, featureIndex) => (
-          <div key={featureIndex} className="grid-item">
+          <div key={featureIndex} className="jgis-identify-grid-item">
             <div
-              className="grid-item-header"
+              className="jgis-identify-grid-item-header"
               onClick={() => toggleFeatureVisibility(featureIndex)}
             >
               <LabIcon.resolveReact
@@ -117,7 +117,7 @@ const IdentifyPanelComponent = ({
                       typeof value !== 'object' || value === null
                   )
                   .map(([key, value]) => (
-                    <div key={key} className="jgis-identify-body">
+                    <div key={key} className="jgis-identify-grid-body">
                       <strong>{key}:</strong>
                       {typeof value === 'string' &&
                       /<\/?[a-z][\s\S]*>/i.test(value) ? (
