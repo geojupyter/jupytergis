@@ -94,50 +94,46 @@ const IdentifyPanelComponent = ({
   };
 
   return (
-    <>
-      {features && (
-        <div className="grid-container">
-          {Object.values(features).map((feature, featureIndex) => (
-            <div key={featureIndex} className="grid-item">
-              <div
-                className="grid-item-header"
-                onClick={() => toggleFeatureVisibility(featureIndex)}
-              >
-                <LabIcon.resolveReact
-                  icon={caretDownIcon}
-                  className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
-                  tag={'span'}
-                />
-                Feature {featureIndex + 1}:
-              </div>
-              {visibleFeatures[featureIndex] && (
-                <div className="jgis-identify-body">
-                  {Object.entries(feature)
-                    .filter(
-                      ([key, value]) =>
-                        typeof value !== 'object' || value === null
-                    )
-                    .map(([key, value]) => (
-                      <div key={key} className="jgis-identify-body-content">
-                        <strong>{key}:</strong>
-                        {typeof value === 'string' &&
-                        /<\/?[a-z][\s\S]*>/i.test(value) ? (
-                          <span
-                            className="jgis-identify-body-body"
-                            dangerouslySetInnerHTML={{ __html: `${value}` }}
-                          />
-                        ) : (
-                          String(value)
-                        )}
-                      </div>
-                    ))}
-                </div>
-              )}
+    <div className="wrapper">
+      {features &&
+        Object.values(features).map((feature, featureIndex) => (
+          <div key={featureIndex} className="grid-item">
+            <div
+              className="grid-item-header"
+              onClick={() => toggleFeatureVisibility(featureIndex)}
+            >
+              <LabIcon.resolveReact
+                icon={caretDownIcon}
+                className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
+                tag={'span'}
+              />
+              <span>Feature {featureIndex + 1}:</span>
             </div>
-          ))}
-        </div>
-      )}
-    </>
+            {visibleFeatures[featureIndex] && (
+              <>
+                {Object.entries(feature)
+                  .filter(
+                    ([key, value]) =>
+                      typeof value !== 'object' || value === null
+                  )
+                  .map(([key, value]) => (
+                    <div key={key} className="jgis-identify-body">
+                      <strong>{key}:</strong>
+                      {typeof value === 'string' &&
+                      /<\/?[a-z][\s\S]*>/i.test(value) ? (
+                        <span
+                          dangerouslySetInnerHTML={{ __html: `${value}` }}
+                        />
+                      ) : (
+                        <span>{String(value)}</span>
+                      )}
+                    </div>
+                  ))}
+              </>
+            )}
+          </div>
+        ))}
+    </div>
   );
 };
 
