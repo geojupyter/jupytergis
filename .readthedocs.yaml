@@ -1,0 +1,34 @@
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html
+version: 2
+
+build:
+  os: "ubuntu-24.04"
+  tools:
+    # https://docs.readthedocs.io/en/stable/config-file/v2.html#build-tools-python
+    python: "mambaforge-latest"
+    nodejs: "20"
+  jobs:
+    # Before building the docs, build JupyterGIS.
+    pre_build:
+      - yarn install
+      - yarn dev
+      - jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
+      - jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
+
+      - yarn build:packages
+
+      - >-
+        python -m pip install
+        $(ls ./python/jupytergis_core/dist/jupytergis*.whl)
+        $(ls ./python/jupytergis_lab/dist/jupytergis*.whl)
+        $(ls ./python/jupytergis_qgis/dist/jupytergis*.whl)
+
+
+sphinx:
+  configuration: "docs/conf.py"
+  # There doesn't seem to be a way to turn on nitpicky mode.
+  # This is equivalent to `-W --keep-going`.
+  fail_on_warning: True
+
+conda:
+  environment: "docs/environment.yml"

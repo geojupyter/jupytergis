@@ -1,6 +1,29 @@
-name: xeus-python-kernel
+name: jupytergis-docs
 channels:
   - https://repo.mamba.pm/emscripten-forge
   - conda-forge
 dependencies:
-  - xeus-python
+  - python=3.10
+  - pip
+
+  # Build JupyterGIS
+  - hatch
+  - yarn=3
+  - jupyterlab=4
+  - pillow
+  - mercantile
+  - xyzservices
+
+  # Build docs & JupyterLite
+  - jupyterlite-core>=0.2.0,<0.3.0
+  - jupyterlite-xeus>=0.1.2,<0.2
+  - jupyterlite-sphinx
+  - sphinx
+  - sphinx-tabs
+  - pydata-sphinx-theme
+  - sphinx-autodoc-typehints
+
+  # TODO: Remove
+  - tree
+
+  # - xeus-python  # TODO: Do we need this?

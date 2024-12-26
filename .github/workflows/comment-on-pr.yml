@@ -10,30 +10,6 @@ permissions:
   pull-requests: write
 
 jobs:
-  comment-preview:
-    runs-on: ubuntu-latest
-    if: >
-      ${{ github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success' }}
-    steps:
-      - name: 'Comment APSS link on workflow'
-        uses: trungleduc/appsharingspace-pr-comment/.github/actions/pr-comment@v2
-        with:
-          comment_prefix: '**Preview using JupyterLite:**'
-          github_token: ${{ secrets.github_token }}
-          index_path: lite/lab/index.html
-  comment-docs-preview:
-    runs-on: ubuntu-latest
-    if: >
-      ${{ github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success' }}
-    steps:
-      - name: 'Comment APSS link on workflow'
-        uses: trungleduc/appsharingspace-pr-comment/.github/actions/pr-comment@v2
-        with:
-          comment_prefix: '**Docs preview:**'
-          github_token: ${{ secrets.github_token }}
-          index_path: index.html
   comment-galata:
     runs-on: ubuntu-latest
     if: >

@@ -294,11 +294,6 @@ jobs:
           path: ./docs/dist
           retention-days: 30
 
-      - name: Save artifact data
-        uses: trungleduc/appsharingspace-pr-comment/.github/actions/save-artifact-link@v2
-        with:
-          artifact_link: 'https://github.com/${{ github.repository }}/actions/runs/${{github.run_id}}/artifacts/${{ steps.upload-docs-artifact.outputs.artifact_id }}'
-
   deploy:
     needs: build-docs-and-lite
     if: github.ref == 'refs/heads/main'
