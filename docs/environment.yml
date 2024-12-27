@@ -1,18 +1,6 @@
-name: jupytergis-docs
+name: xeus-python-kernel
 channels:
   - https://repo.mamba.pm/emscripten-forge
   - conda-forge
 dependencies:
-  - python=3.10
-  - pip  # Needed to install jupytergis wheels in RTD build
-
-  # Build docs & JupyterLite
-  - jupyterlite-core>=0.2.0,<0.3.0
-  - jupyterlite-xeus>=0.1.2,<0.2
-  - jupyterlite-sphinx
-  - sphinx
-  - sphinx-tabs
-  - pydata-sphinx-theme
-  - sphinx-autodoc-typehints
-
-  - xeus-python  # TODO: Do we need this?
+  - xeus-python
