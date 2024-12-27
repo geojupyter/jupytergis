@@ -4,15 +4,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.10
-  - pip
-
-  # Build JupyterGIS
-  - hatch
-  - yarn=3
-  - jupyterlab=4
-  - pillow
-  - mercantile
-  - xyzservices
+  - pip  # Needed to install jupytergis wheels in RTD build
 
   # Build docs & JupyterLite
   - jupyterlite-core>=0.2.0,<0.3.0
@@ -23,7 +15,4 @@ dependencies:
   - pydata-sphinx-theme
   - sphinx-autodoc-typehints
 
-  # TODO: Remove
-  - tree
-
-  # - xeus-python  # TODO: Do we need this?
+  - xeus-python  # TODO: Do we need this?

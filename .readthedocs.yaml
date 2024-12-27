@@ -8,15 +8,20 @@ build:
     python: "mambaforge-latest"
     nodejs: "20"
   jobs:
-    # Before building the docs, build JupyterGIS.
+    # Before building the docs, build JupyterGIS in an isolated environment,
+    # then install the wheels into the docs environment.
     pre_build:
-      - yarn install
-      - yarn dev
-      - jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
-      - jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
+      - mamba create -n jupytergis-build yarn=3 hatch pip python=3.10
+      - mamba run -n jupytergis-build pip install -r requirements-build.txt
+      - mamba run -n jupytergis-build yarn install
+      - mamba run -n jupytergis-build yarn dev
+      - mamba run -n jupytergis-build jupyter labextension list 2>&1 | grep -ie "jupytergis-core.*OK"
+      - mamba run -n jupytergis-build jupyter labextension list 2>&1 | grep -ie "jupytergis-lab.*OK"
 
-      - yarn build:packages
+      - mamba run -n jupytergis-build yarn build:packages
 
+      # Install the wheels into the main docs environment, which is activated
+      # automatically:
       - >-
         python -m pip install
         $(ls ./python/jupytergis_core/dist/jupytergis*.whl)
@@ -28,7 +33,8 @@ sphinx:
   configuration: "docs/conf.py"
   # There doesn't seem to be a way to turn on nitpicky mode.
   # This is equivalent to `-W --keep-going`.
-  fail_on_warning: True
+  # TODO: Enable after merging https://github.com/geojupyter/jupytergis/pull/273/
+  # fail_on_warning: True
 
 conda:
   environment: "docs/environment.yml"
