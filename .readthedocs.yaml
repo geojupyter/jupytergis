@@ -8,10 +8,13 @@ build:
     python: "mambaforge-latest"
     nodejs: "20"
   jobs:
+    # We need new versions to support the 'emscripten' platform
+    pre_create_environment:
+      - conda install -n base -c conda-forge "conda>=24.11.2"
     # Before building the docs, build JupyterGIS in an isolated environment,
     # then install the wheels into the docs environment.
     pre_build:
-      - mamba create -n jupytergis-build yarn=3 hatch pip python=3.10
+      - mamba create -n jupytergis-build -c conda-forge yarn=3 hatch pip python=3.10
       - mamba run -n jupytergis-build pip install -r requirements-build.txt
       - mamba run -n jupytergis-build yarn install
       - mamba run -n jupytergis-build yarn dev
