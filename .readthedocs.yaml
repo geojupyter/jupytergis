@@ -38,16 +38,16 @@ build:
       - /bin/bash --login -c "micromamba run -n jupytergis-build jupyter labextension list 2>&1 | grep -ie 'jupytergis-lab.*OK'"
       - /bin/bash --login -c "micromamba run -n jupytergis-build yarn build:packages"
 
-      - >-
-        /bin/bash --login -c "micromamba run -n jupytergis-docs
-        python -m pip install
-        $(ls ./python/jupytergis_core/dist/jupytergis*.whl)
-        $(ls ./python/jupytergis_lab/dist/jupytergis*.whl)
-        $(ls ./python/jupytergis_qgis/dist/jupytergis*.whl)"
+      - |-
+        /bin/bash --login -c "micromamba run -n jupytergis-docs \
+          python -m pip install \
+          $(ls ./python/jupytergis_core/dist/jupytergis*.whl) \
+          $(ls ./python/jupytergis_lab/dist/jupytergis*.whl) \
+          $(ls ./python/jupytergis_qgis/dist/jupytergis*.whl)"
 
     build:
       html:
-        - >-
-          /bin/bash --login -c "cd docs && micromamba run -n jupytergis-docs
-          python -m sphinx -T -b html -d _build/doctrees -D language=en .
+        - |-
+          /bin/bash --login -c "cd docs && micromamba run -n jupytergis-docs \
+          python -m sphinx -T -b html -d _build/doctrees -D language=en . \
           $READTHEDOCS_OUTPUT/html"
