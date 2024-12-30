@@ -66,7 +66,7 @@ jobs:
           yarn build:packages
 
       - name: Upload extension packages
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: extension-artifacts
           path: |
@@ -196,7 +196,7 @@ jobs:
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jupytergis-playwright-tests
           path: |
