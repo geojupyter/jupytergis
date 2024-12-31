@@ -20,6 +20,8 @@ import {
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
+  IViewPortState,
+  Pointer,
   IAnnotationModel,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -468,6 +470,20 @@ private _getMimeType(filename: string): string {
 
   getOptions(): IJGISOptions {
     return this._sharedModel.options;
+  }
+
+  syncViewport(viewport?: IViewPortState, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField('viewportState', {
+      value: viewport,
+      emitter: emitter
+    });
+  }
+
+  syncPointer(pointer?: Pointer, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField('pointer', {
+      value: pointer,
+      emitter: emitter
+    });
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {

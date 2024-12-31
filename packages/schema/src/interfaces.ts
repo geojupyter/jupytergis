@@ -29,6 +29,16 @@ import { IRasterSource } from './_interface/rastersource';
 
 export { IGeoJSONSource } from './_interface/geojsonsource';
 
+export type JgisCoordinates = { x: number; y: number };
+
+export interface IViewPortState {
+  coordinates: JgisCoordinates;
+  zoom: number;
+}
+
+export type Pointer = {
+  coordinates: { x: number; y: number };
+};
 export interface IDict<T = any> {
   [key: string]: T;
 }
@@ -61,6 +71,8 @@ export interface ISelection {
 
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
+  viewportState: { value?: IViewPortState; emitter?: string | null };
+  pointer: { value?: Pointer; emitter?: string | null };
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
@@ -184,7 +196,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     group: IJGISLayerGroup
   ): void;
 
+  syncViewport(viewport?: IViewPortState, emitter?: string): void;
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
+  syncPointer(pointer?: Pointer, emitter?: string): void;
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;
@@ -291,7 +305,7 @@ export interface IAnnotationContent {
 
 export interface IAnnotation {
   label: string;
-  position: [number, number];
+  position: { x: number; y: number };
   zoom: number;
   contents: IAnnotationContent[];
   parent: string;
