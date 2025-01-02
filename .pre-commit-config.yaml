@@ -37,4 +37,4 @@ repos:
     rev: v6.2.4
     hooks:
       - id: rstcheck
-        args: ['--config', '.rstcheck.cfg']
+        args: ['--ignore-directives=tabs,toctree,autoclass', '--report-level=warning']
