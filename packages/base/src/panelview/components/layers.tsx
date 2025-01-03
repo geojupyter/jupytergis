@@ -247,7 +247,8 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
       const groupState = await state.fetch(`jupytergis:${group.name}`);
 
       setOpen(
-        ((groupState as ReadonlyPartialJSONObject).expanded as boolean) ?? false
+        ((groupState as ReadonlyPartialJSONObject)?.expanded as boolean) ??
+          false
       );
     };
 
