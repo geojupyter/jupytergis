@@ -41,7 +41,7 @@
     "eslint": "eslint . --ext .ts,.tsx --cache --fix",
     "eslint:check": "eslint . --ext .ts,.tsx",
     "prettier": "prettier --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
-    "prettier:check": "prettier --list-different \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
+    "prettier:check": "prettier --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
     "lint:check": "jlpm run prettier:check && jlpm run eslint:check",
     "lint": "jlpm run prettier && jlpm run eslint",
     "test": "lerna run test",
