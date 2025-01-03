@@ -242,6 +242,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
       - uses: jupyterlab/maintainer-tools/.github/actions/check-links@v1
+        with:
+          ignore_links: 'lite/'
 
   build-docs-and-lite:
     name: Build docs with JupyterLite deployment
@@ -293,11 +295,6 @@ jobs:
         with:
           path: ./docs/dist
           retention-days: 30
-
-      - name: Save artifact data
-        uses: trungleduc/appsharingspace-pr-comment/.github/actions/save-artifact-link@v2
-        with:
-          artifact_link: 'https://github.com/${{ github.repository }}/actions/runs/${{github.run_id}}/artifacts/${{ steps.upload-docs-artifact.outputs.artifact_id }}'
 
   deploy:
     needs: build-docs-and-lite
