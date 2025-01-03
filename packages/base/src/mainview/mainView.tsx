@@ -425,7 +425,7 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'GeoJSONSource': {
         const data =
           source.parameters?.data ||
-          (await this._model.readGeoJSON(source.parameters?.path));
+          (await this._model.readFile(source.parameters?.path, 'GeoJSONSource'));
 
         const format = new GeoJSON({
           featureProjection: this._Map.getView().getProjection()
@@ -448,7 +448,14 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'ShapefileSource': {
         const parameters = source.parameters as IShapefileSource;
 
-        const geojson = await this._loadShapefileAsGeoJSON(parameters.path);
+        let geojson: any;
+        if (parameters?.path?.startsWith('http://') || parameters?.path?.startsWith('https://')) {
+          geojson = await this._loadShapefileAsGeoJSON(parameters.path);
+        } else {
+          // Handle local files using the model's readFile method
+          geojson = await this._model.readFile(parameters.path, 'ShapefileSource');
+        }
+
         const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
 
         const format = new GeoJSON();
@@ -491,9 +498,17 @@ export class MainView extends React.Component<IProps, IStates> {
 
         const extent = [minX, minY, maxX, maxY];
 
+        let imageUrl: string;
+
+        if (sourceParameters.url.startsWith('http://') || sourceParameters.url.startsWith('https://')) {
+          imageUrl = sourceParameters.url;
+        } else {
+          imageUrl = await this._model.readFile(sourceParameters.url, 'ImageSource');
+        }
+
         newSource = new Static({
           imageExtent: extent,
-          url: sourceParameters.url,
+          url: imageUrl,
           interpolate: true,
           crossOrigin: ''
         });
@@ -529,6 +544,9 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     newSource.set('id', id);
+    console.log('Adding source', id, newSource);
+
+
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
   }
