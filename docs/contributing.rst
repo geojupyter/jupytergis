@@ -1,5 +1,3 @@
-.. _contributing:
-
 ============
 Contributing
 ============
@@ -12,8 +10,8 @@ Development install
     You will need `Node.js <https://nodejs.org/>`_ to build the extension package.
 
     The ``jlpm`` command is JupyterLab's pinned version of
-    `yarn <https://yarnpkg.com/>`_ that is installed with JupyterLab. You may use
-    `yarn <https://yarnpkg.com/>`_ or `npm <https://www.npmjs.com/>`_ in lieu of ``jlpm`` below.
+    `yarn <https://yarnpkg.com/>`__ that is installed with JupyterLab. You may use
+    `yarn <https://yarnpkg.com/>`__ or `npm <https://www.npmjs.com/>`_ in lieu of ``jlpm`` below.
 
 
 Clone the source
@@ -65,6 +63,7 @@ Install dependencies and build
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
+
     # Install JupyterLab for jlpm
     python -m pip install jupyterlab
 
