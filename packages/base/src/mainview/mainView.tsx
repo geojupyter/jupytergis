@@ -1352,17 +1352,66 @@ export class MainView extends React.Component<IProps, IStates> {
   });
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
-    if (this._model.isIdentifying) {
-      const features = this._Map.getFeaturesAtPixel(e.pixel, {
-        hitTolerance: 5
-      });
+    const localState = this._model?.sharedModel.awareness.getLocalState();
 
-      const featureValues: IDict<any> = [];
-      features.forEach(feature => {
-        featureValues.push(feature.getProperties());
-      });
+    if (!this._model.isIdentifying) {
+      return;
+    }
 
-      this._model.syncIdentifiedFeatures(featureValues, this._mainViewModel.id);
+    const selectedLayer = localState?.selected?.value;
+    if (!selectedLayer) {
+      console.warn('Must select a layer');
+      return;
+    }
+
+    // TODO: Handle multiple selected layers better
+    const layerId = Object.keys(selectedLayer)[0];
+    const jgisLayer = this._model.getLayer(layerId);
+
+    switch (jgisLayer?.type) {
+      case 'WebGlLayer': {
+        const layer = this.getLayer(layerId) as WebGlTileLayer;
+        const data = layer.getData(e.pixel);
+        if (!data || data instanceof DataView) {
+          return;
+        }
+
+        const pixelValues: IDict<number> = {};
+
+        // Data is an array of band values
+        for (let i = 0; i < data.length - 1; i++) {
+          pixelValues[`Band ${i + 1}`] = data[i];
+        }
+
+        // last element is alpha
+        pixelValues['Alpha'] = data[data.length - 1];
+
+        this._model.syncIdentifiedFeatures(
+          [pixelValues],
+          this._mainViewModel.id
+        );
+
+        break;
+      }
+      case 'VectorLayer': {
+        const features = this._Map.getFeaturesAtPixel(e.pixel, {
+          hitTolerance: 5
+        });
+
+        const featureValues: IDict<any> = [];
+        features.forEach(feature => {
+          featureValues.push(feature.getProperties());
+        });
+
+        this._model.syncIdentifiedFeatures(
+          featureValues,
+          this._mainViewModel.id
+        );
+        break;
+      }
+      default: {
+        console.warn('Layer not implemented');
+      }
     }
   }
 

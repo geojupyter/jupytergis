@@ -104,7 +104,6 @@ const IdentifyPanelComponent = ({
   }, [jgisModel]);
 
   const toggleFeatureVisibility = (index: number) => {
-    console.log('visibleFeatures', visibleFeatures);
     setVisibleFeatures(prev => ({
       ...prev,
       [index]: !prev[index]
