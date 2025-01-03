@@ -38,7 +38,7 @@ Create a virtual environment
         .. code-block:: bash
 
             # Create a virtual environment
-            micromamba create --name jupytergis_dev -c conda-forge pip yarn=3 "nodejs<22" qgis
+            micromamba create --name jupytergis_dev -c conda-forge pip "nodejs<22" qgis
 
             # Activate it
             micromamba activate jupytergis_dev
@@ -49,7 +49,7 @@ Create a virtual environment
         .. note::
 
             You may need to install some non-Python dependencies (e.g. QGIS,
-            yarn) separately when using this method.
+            Node.js) separately when using this method.
 
 
         .. code-block:: bash
@@ -101,6 +101,11 @@ You can watch the source directory and run JupyterLab at the same time in differ
     jupyter lab
 
 With the watch command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
+
+.. note::
+
+   ``jlpm run watch`` will sit and wait for a change once started. Edit a file
+   to trigger a build.
 
 
 Development uninstall
