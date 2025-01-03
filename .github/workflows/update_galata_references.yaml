@@ -70,7 +70,7 @@ jobs:
           fi
 
       - name: Download extension package
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v7
         with:
           pr: ${{github.event.issue.number}}
           workflow: 'build.yml'
@@ -79,7 +79,7 @@ jobs:
           allow_forks: true
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           environment-name: gis
           create-args: >-

@@ -2,6 +2,10 @@
 JupyterGIS
 ==========
 
+.. image:: https://jupyterlite.rtfd.io/en/latest/_static/badge.svg
+   :alt: Try JupyterGIS now in JupyterLite!
+   :target: lite/
+
 JupyterGIS is a JupyterLab extension for collaborative GIS (Geographical Information System). It is designed to
 allow multiple people to work on the same geospatial project simultaneously, facilitating discussion and collaboration
 around map layers, spatial analyses, and other GIS data being developed.
