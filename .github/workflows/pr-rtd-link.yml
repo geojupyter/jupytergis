@@ -20,5 +20,6 @@ jobs:
         with:
           project-slug: 'jupytergis'
           message-template: |
+            ---
             📚 Documentation preview: {docs-pr-index-url}
-            💡 JupyterLite preview: {docs-pre-index-url}/lite
+            💡 JupyterLite preview: {docs-pr-index-url}/lite
