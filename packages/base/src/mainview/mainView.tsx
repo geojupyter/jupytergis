@@ -1352,42 +1352,46 @@ export class MainView extends React.Component<IProps, IStates> {
   });
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
-    const localState = this._model?.sharedModel.awareness.getLocalState();
-
     if (!this._model.isIdentifying) {
       return;
     }
 
+    const localState = this._model?.sharedModel.awareness.getLocalState();
     const selectedLayer = localState?.selected?.value;
-    if (!selectedLayer) {
-      console.warn('Must select a layer');
-      return;
+    let layerId;
+
+    // Use top layer if no layer selected
+    if (selectedLayer) {
+      // TODO: Handle multiple selected layers better
+      layerId = Object.keys(selectedLayer)[0];
+    } else {
+      layerId = JupyterGISModel.getOrderedLayerIds(this._model).reverse()[0];
     }
 
-    // TODO: Handle multiple selected layers better
-    const layerId = Object.keys(selectedLayer)[0];
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
       case 'WebGlLayer': {
         const layer = this.getLayer(layerId) as WebGlTileLayer;
         const data = layer.getData(e.pixel);
+
+        // TODO: Handle dataviews?
         if (!data || data instanceof DataView) {
           return;
         }
 
-        const pixelValues: IDict<number> = {};
+        const bandValues: IDict<number> = {};
 
         // Data is an array of band values
         for (let i = 0; i < data.length - 1; i++) {
-          pixelValues[`Band ${i + 1}`] = data[i];
+          bandValues[`Band ${i + 1}`] = data[i];
         }
 
         // last element is alpha
-        pixelValues['Alpha'] = data[data.length - 1];
+        bandValues['Alpha'] = data[data.length - 1];
 
         this._model.syncIdentifiedFeatures(
-          [pixelValues],
+          [bandValues],
           this._mainViewModel.id
         );
 
