@@ -118,6 +118,26 @@ export function addCommands(
     ...icons.get(CommandIDs.undo)
   });
 
+  commands.addCommand(CommandIDs.identify, {
+    label: trans.__('Identify'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: args => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      current.node.classList.toggle('jGIS-identify-tool');
+      current.context.model.toggleIdentify();
+    },
+    ...icons.get(CommandIDs.identify)
+  });
+
   /**
    * SOURCES and LAYERS creation commands.
    */

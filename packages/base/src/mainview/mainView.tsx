@@ -29,7 +29,7 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { Collection, Map as OlMap, View } from 'ol';
+import { Collection, MapBrowserEvent, Map as OlMap, View } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
 import DragAndDrop from 'ol/interaction/DragAndDrop';
@@ -275,6 +275,8 @@ export class MainView extends React.Component<IProps, IStates> {
           ...updatedOptions
         });
       });
+
+      this._Map.on('click', this._identifyFeature.bind(this));
 
       this._Map
         .getViewport()
@@ -1277,6 +1279,74 @@ export class MainView extends React.Component<IProps, IStates> {
     };
     this._model.syncPointer(pointer);
   });
+
+  private _identifyFeature(e: MapBrowserEvent<any>) {
+    if (!this._model.isIdentifying) {
+      return;
+    }
+
+    const localState = this._model?.sharedModel.awareness.getLocalState();
+    const selectedLayer = localState?.selected?.value;
+    let layerId;
+
+    // Use top layer if no layer selected
+    if (selectedLayer) {
+      // TODO: Handle multiple selected layers better
+      layerId = Object.keys(selectedLayer)[0];
+    } else {
+      layerId = JupyterGISModel.getOrderedLayerIds(this._model).reverse()[0];
+    }
+
+    const jgisLayer = this._model.getLayer(layerId);
+
+    switch (jgisLayer?.type) {
+      case 'WebGlLayer': {
+        const layer = this.getLayer(layerId) as WebGlTileLayer;
+        const data = layer.getData(e.pixel);
+
+        // TODO: Handle dataviews?
+        if (!data || data instanceof DataView) {
+          return;
+        }
+
+        const bandValues: IDict<number> = {};
+
+        // Data is an array of band values
+        for (let i = 0; i < data.length - 1; i++) {
+          bandValues[`Band ${i + 1}`] = data[i];
+        }
+
+        // last element is alpha
+        bandValues['Alpha'] = data[data.length - 1];
+
+        this._model.syncIdentifiedFeatures(
+          [bandValues],
+          this._mainViewModel.id
+        );
+
+        break;
+      }
+      case 'VectorLayer': {
+        const features = this._Map.getFeaturesAtPixel(e.pixel, {
+          hitTolerance: 5
+        });
+
+        const featureValues: IDict<any> = [];
+        features.forEach(feature => {
+          featureValues.push(feature.getProperties());
+        });
+
+        this._model.syncIdentifiedFeatures(
+          featureValues,
+          this._mainViewModel.id
+        );
+        break;
+      }
+      default: {
+        console.warn('Layer not implemented');
+      }
+    }
+  }
 
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();

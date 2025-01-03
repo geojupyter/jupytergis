@@ -73,6 +73,7 @@ export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
   viewportState: { value?: IViewPortState; emitter?: string | null };
   pointer: { value?: Pointer; emitter?: string | null };
+  identifiedFeatures: { value?: any; emitter?: string | null };
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
@@ -199,6 +200,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   syncViewport(viewport?: IViewPortState, emitter?: string): void;
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
   syncPointer(pointer?: Pointer, emitter?: string): void;
+  syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void;
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;
@@ -206,6 +208,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   addMetadata(key: string, value: string): void;
   removeMetadata(key: string): void;
   centerOnAnnotation(id: string): void;
+
+  toggleIdentify(): void;
+  isIdentifying: boolean;
 
   disposed: ISignal<any, void>;
 }
