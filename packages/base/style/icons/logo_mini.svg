@@ -7,6 +7,7 @@
    viewBox="0 0 8.4666666 8.4666666"
    version="1.1"
    id="svg1"
+   class="jp-icon-selectable jgis-main-logo"
    inkscape:version="1.3.2 (091e20ef0f, 2023-11-25, custom)"
    sodipodi:docname="jupygis_mini_blues.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -15,6 +16,7 @@
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
      id="namedview1"
+     class="jp-icon-selectable jgis-main-logo"
      pagecolor="#292929"
      bordercolor="#000000"
      borderopacity="0.25"
@@ -35,6 +37,7 @@
      inkscape:current-layer="layer1">
     <inkscape:grid
        id="grid1"
+       class="jp-icon-selectable jgis-main-logo"
        units="mm"
        originx="0"
        originy="0"
@@ -51,10 +54,12 @@
        visible="false" />
   </sodipodi:namedview>
   <defs
-     id="defs1">
+     id="defs1"
+     class="jp-icon-selectable jgis-main-logo">
     <inkscape:path-effect
        effect="simplify"
        id="path-effect54"
+       class="jp-icon-selectable jgis-main-logo"
        is_visible="true"
        lpeversion="1.3"
        threshold="35.246751"
@@ -66,6 +71,7 @@
     <inkscape:path-effect
        effect="simplify"
        id="path-effect45"
+       class="jp-icon-selectable jgis-main-logo"
        is_visible="true"
        lpeversion="1.3"
        threshold="33.41627"
@@ -77,6 +83,7 @@
     <inkscape:path-effect
        effect="simplify"
        id="path-effect44"
+       class="jp-icon-selectable jgis-main-logo"
        is_visible="true"
        lpeversion="1.3"
        threshold="64.076819"
@@ -87,46 +94,57 @@
        simplify_just_coalesce="false" />
     <clipPath
        clipPathUnits="userSpaceOnUse"
-       id="clipPath72">
+       id="clipPath72"
+       class="jp-icon-selectable jgis-main-logo">
       <g
          id="g80"
+         class="jp-icon-selectable jgis-main-logo"
          inkscape:label="globe_mask"
          style="fill:#0e96ff;fill-opacity:1;stroke:none;stroke-opacity:1"
          transform="rotate(180,4.0160216,4.085644)">
         <path
            id="path72"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#0e96ff;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            d="M 7.4248698,5.1092489 C 7.2793253,5.178829 7.1169909,5.2416342 6.9396281,5.2989014 6.552555,5.4238799 6.0924054,5.5209537 5.5831217,5.5831217 5.5208884,6.0924969 5.4238034,6.5527921 5.2989014,6.9396281 5.241439,7.117595 5.1785959,7.2804945 5.1087321,7.4264201 A 3.314533,3.314533 0 0 0 7.4248698,5.1092489 Z" />
         <path
            id="path73"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#0e96ff;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            d="m 5.6275635,3.3444987 c 0.021961,0.2855957 0.034623,0.5815825 0.034623,0.8878011 0,0.306279 -0.01162,0.6039712 -0.03359,0.8898682 C 6.0746535,5.0627205 6.4747514,4.9769043 6.8026855,4.8710205 7.1239097,4.7673033 7.3754337,4.643783 7.5328735,4.5237549 A 3.314533,3.314533 0 0 0 7.5478597,4.2333333 3.314533,3.314533 0 0 0 7.5302897,3.9413615 C 7.3727069,3.8218794 7.122358,3.6988624 6.8026855,3.5956462 6.4745637,3.4897016 6.0740105,3.4038414 5.6275635,3.3444987 Z" />
         <path
            id="path74"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#0e96ff;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            d="m 5.1071818,1.037146 c 0.070473,0.1467402 0.1338386,0.3106289 0.1917196,0.4898926 0.124897,0.3868206 0.2204364,0.8482336 0.2826701,1.3570231 0.5096828,0.062187 0.9707404,0.1586464 1.3580566,0.2837036 0.1773628,0.057267 0.3396972,0.1200723 0.4852417,0.1896525 A 3.314533,3.314533 0 0 0 5.1071818,1.037146 Z" />
         <path
            id="path75"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#0e96ff;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            d="m 5.1226847,5.6280802 c -0.2852314,0.022002 -0.5823723,0.034107 -0.8883178,0.034107 -0.3063907,0 -0.6043564,-0.012058 -0.890385,-0.034107 0.05956,0.4456991 0.1458012,0.8446684 0.2516643,1.1725383 0.1028558,0.3185561 0.2250763,0.5704033 0.344165,0.7281209 a 3.314533,3.314533 0 0 0 0.2935221,0.01912 3.314533,3.314533 0 0 0 0.2945557,-0.021187 C 4.6465611,7.3688434 4.7685457,7.1179948 4.8710205,6.8006185 4.9768834,6.4727489 5.0631248,6.0737795 5.1226847,5.6280802 Z" />
         <path
            id="path76"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#0e96ff;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            d="m 4.2343669,3.2540649 c -0.3252715,0 -0.6399866,0.014485 -0.9394776,0.040308 -0.025716,0.2994007 -0.040824,0.6128817 -0.040824,0.9379272 0,0.3253236 0.014032,0.640364 0.039791,0.9399943 0.2998155,0.025912 0.6148197,0.040308 0.9405111,0.040308 0.325105,0 0.6392968,-0.014447 0.938444,-0.040308 0.025759,-0.2996304 0.039791,-0.6146711 0.039791,-0.9399943 0,-0.3248601 -0.015136,-0.6381622 -0.040824,-0.9374105 C 4.8730268,3.2688386 4.5592761,3.2540649 4.2343669,3.2540649 Z" />
         <path
            id="path77"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#0e96ff;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            d="M 4.2333333,0.91880697 A 3.314533,3.314533 0 0 0 3.9398112,0.93792725 C 3.8207224,1.0956068 3.6985021,1.3454248 3.5956462,1.6639811 3.4896444,1.9922806 3.4035487,2.3921801 3.3439819,2.8385864 3.6299807,2.8165648 3.9279192,2.80448 4.2343669,2.80448 c 0.3059761,0 0.6031179,0.011604 0.8883178,0.03359 C 5.0631199,2.3918651 4.9769826,1.9921578 4.8710205,1.6639811 4.7671835,1.3423859 4.6433966,1.0906799 4.5232381,0.93327637 4.5229255,0.93286679 4.5225169,0.93265088 4.5222046,0.93224284 A 3.314533,3.314533 0 0 0 4.2333333,0.91880697 Z" />
         <path
            id="path78"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#0e96ff;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            d="M 2.8835449,5.5831217 C 2.3740511,5.520937 1.9139685,5.4238337 1.5270386,5.2989014 1.3493306,5.2415228 1.1865255,5.1789909 1.0407633,5.1092489 a 3.314533,3.314533 0 0 0 2.3187216,2.319755 C 3.2890926,7.2823721 3.2255904,7.118719 3.1677653,6.9396281 3.0428631,6.5527921 2.9457782,6.0924969 2.8835449,5.5831217 Z" />
         <path
            id="path79"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#0e96ff;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            d="M 2.8391032,3.3439819 C 2.3932489,3.4034793 1.9939617,3.4897689 1.6660482,3.5956462 1.3463757,3.6988623 1.0939842,3.8218795 0.93637695,3.9413615 a 3.314533,3.314533 0 0 0 -0.01757,0.2919718 3.314533,3.314533 0 0 0 0.0149862,0.2904216 C 1.0912378,4.6437829 1.3448239,4.7673034 1.6660482,4.8710205 1.993688,4.9768094 2.3926527,5.0626941 2.8380697,5.122168 2.8161004,4.836271 2.80448,4.5385788 2.80448,4.2322998 c 0,-0.3064032 0.012637,-0.6025646 0.034623,-0.8883179 z" />
         <path
            id="path80"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#0e96ff;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
            d="m 3.3594849,1.0376628 a 3.314533,3.314533 0 0 0 -2.317688,2.319755 C 1.1873413,3.2878376 1.3496757,3.2250324 1.5270386,3.1677653 1.9140247,3.0428146 2.3754409,2.9462608 2.8850952,2.8840617 2.9473288,2.3752722 3.0428681,1.9138592 3.1677653,1.5270386 3.2255905,1.3479475 3.2890926,1.1842948 3.3594849,1.0376628 Z" />
       </g>
@@ -135,86 +153,106 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     class="jp-icon-selectable jgis-main-logo">
     <g
        id="g81"
+       class="jp-icon-selectable jgis-main-logo"
        transform="translate(0.43462326,0.29537852)"
        inkscape:label="planet">
       <g
          id="g40"
+         class="jp-icon-selectable jgis-main-logo"
          inkscape:label="globe"
          style="fill:#5ab59d;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
          transform="rotate(180,4.0160217,4.085644)">
         <path
            id="path1"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#5ab59d;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
            d="M 7.4248698,5.1092489 C 7.2793253,5.178829 7.1169909,5.2416342 6.9396281,5.2989014 6.552555,5.4238799 6.0924054,5.5209537 5.5831217,5.5831217 5.5208884,6.0924969 5.4238034,6.5527921 5.2989014,6.9396281 5.241439,7.117595 5.1785959,7.2804945 5.1087321,7.4264201 A 3.314533,3.314533 0 0 0 7.4248698,5.1092489 Z" />
         <path
            id="path31"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#5ab59d;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
            d="m 5.6275635,3.3444987 c 0.021961,0.2855957 0.034623,0.5815825 0.034623,0.8878011 0,0.306279 -0.01162,0.6039712 -0.03359,0.8898682 C 6.0746535,5.0627205 6.4747514,4.9769043 6.8026855,4.8710205 7.1239097,4.7673033 7.3754337,4.643783 7.5328735,4.5237549 A 3.314533,3.314533 0 0 0 7.5478597,4.2333333 3.314533,3.314533 0 0 0 7.5302897,3.9413615 C 7.3727069,3.8218794 7.122358,3.6988624 6.8026855,3.5956462 6.4745637,3.4897016 6.0740105,3.4038414 5.6275635,3.3444987 Z" />
         <path
            id="path29"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#5ab59d;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
            d="m 5.1071818,1.037146 c 0.070473,0.1467402 0.1338386,0.3106289 0.1917196,0.4898926 0.124897,0.3868206 0.2204364,0.8482336 0.2826701,1.3570231 0.5096828,0.062187 0.9707404,0.1586464 1.3580566,0.2837036 0.1773628,0.057267 0.3396972,0.1200723 0.4852417,0.1896525 A 3.314533,3.314533 0 0 0 5.1071818,1.037146 Z" />
         <path
            id="path19"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#5ab59d;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
            d="m 5.1226847,5.6280802 c -0.2852314,0.022002 -0.5823723,0.034107 -0.8883178,0.034107 -0.3063907,0 -0.6043564,-0.012058 -0.890385,-0.034107 0.05956,0.4456991 0.1458012,0.8446684 0.2516643,1.1725383 0.1028558,0.3185561 0.2250763,0.5704033 0.344165,0.7281209 a 3.314533,3.314533 0 0 0 0.2935221,0.01912 3.314533,3.314533 0 0 0 0.2945557,-0.021187 C 4.6465611,7.3688434 4.7685457,7.1179948 4.8710205,6.8006185 4.9768834,6.4727489 5.0631248,6.0737795 5.1226847,5.6280802 Z" />
         <path
            id="path35"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#5ab59d;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
            d="m 4.2343669,3.2540649 c -0.3252715,0 -0.6399866,0.014485 -0.9394776,0.040308 -0.025716,0.2994007 -0.040824,0.6128817 -0.040824,0.9379272 0,0.3253236 0.014032,0.640364 0.039791,0.9399943 0.2998155,0.025912 0.6148197,0.040308 0.9405111,0.040308 0.325105,0 0.6392968,-0.014447 0.938444,-0.040308 0.025759,-0.2996304 0.039791,-0.6146711 0.039791,-0.9399943 0,-0.3248601 -0.015136,-0.6381622 -0.040824,-0.9374105 C 4.8730268,3.2688386 4.5592761,3.2540649 4.2343669,3.2540649 Z" />
         <path
            id="path33"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#5ab59d;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
            d="M 4.2333333,0.91880697 A 3.314533,3.314533 0 0 0 3.9398112,0.93792725 C 3.8207224,1.0956068 3.6985021,1.3454248 3.5956462,1.6639811 3.4896444,1.9922806 3.4035487,2.3921801 3.3439819,2.8385864 3.6299807,2.8165648 3.9279192,2.80448 4.2343669,2.80448 c 0.3059761,0 0.6031179,0.011604 0.8883178,0.03359 C 5.0631199,2.3918651 4.9769826,1.9921578 4.8710205,1.6639811 4.7671835,1.3423859 4.6433966,1.0906799 4.5232381,0.93327637 4.5229255,0.93286679 4.5225169,0.93265088 4.5222046,0.93224284 A 3.314533,3.314533 0 0 0 4.2333333,0.91880697 Z" />
         <path
            id="path21"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#5ab59d;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
            d="M 2.8835449,5.5831217 C 2.3740511,5.520937 1.9139685,5.4238337 1.5270386,5.2989014 1.3493306,5.2415228 1.1865255,5.1789909 1.0407633,5.1092489 a 3.314533,3.314533 0 0 0 2.3187216,2.319755 C 3.2890926,7.2823721 3.2255904,7.118719 3.1677653,6.9396281 3.0428631,6.5527921 2.9457782,6.0924969 2.8835449,5.5831217 Z" />
         <path
            id="path39"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#5ab59d;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
            d="M 2.8391032,3.3439819 C 2.3932489,3.4034793 1.9939617,3.4897689 1.6660482,3.5956462 1.3463757,3.6988623 1.0939842,3.8218795 0.93637695,3.9413615 a 3.314533,3.314533 0 0 0 -0.01757,0.2919718 3.314533,3.314533 0 0 0 0.0149862,0.2904216 C 1.0912378,4.6437829 1.3448239,4.7673034 1.6660482,4.8710205 1.993688,4.9768094 2.3926527,5.0626941 2.8380697,5.122168 2.8161004,4.836271 2.80448,4.5385788 2.80448,4.2322998 c 0,-0.3064032 0.012637,-0.6025646 0.034623,-0.8883179 z" />
         <path
            id="path37"
+           class="jp-icon-selectable jgis-main-logo"
            style="font-variation-settings:'wght' 600;fill:#5ab59d;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
            d="m 3.3594849,1.0376628 a 3.314533,3.314533 0 0 0 -2.317688,2.319755 C 1.1873413,3.2878376 1.3496757,3.2250324 1.5270386,3.1677653 1.9140247,3.0428146 2.3754409,2.9462608 2.8850952,2.8840617 2.9473288,2.3752722 3.0428681,1.9138592 3.1677653,1.5270386 3.2255905,1.3479475 3.2890926,1.1842948 3.3594849,1.0376628 Z" />
       </g>
       <g
          id="g54"
+         class="jp-icon-selectable jgis-main-logo"
          inkscape:label="decor"
          style="display:inline"
          clip-path="url(#clipPath72)">
         <g
            id="g88-2"
+           class="jp-icon-selectable jgis-main-logo"
            transform="matrix(0.33494598,-0.15502018,0.15502018,0.33494598,6.9101121,8.7423521)"
            inkscape:label="layers">
           <g
              id="g87-9"
+             class="jp-icon-selectable jgis-main-logo"
              inkscape:label="topo"
              style="fill:#baebc9;fill-opacity:1">
             <path
                id="path84-6-0"
+               class="jp-icon-selectable jgis-main-logo"
                style="font-variation-settings:'wght' 600;fill:#baebc9;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
                d="m 5.8120483,-13.174906 a 9.265132,4.3162475 0 0 1 -7.9953776,2.13837 9.265132,4.3162475 0 0 1 -7.9958947,-2.138887 8.2971029,8.2971029 0 0 0 7.9958947,6.1200397 8.2971029,8.2971029 0 0 0 7.9953776,-6.1195227 z" />
             <path
                id="path86-9"
+               class="jp-icon-selectable jgis-main-logo"
                style="font-variation-settings:'wght' 600;fill:#baebc9;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
                d="m -2.1833293,-23.649719 a 8.2971029,8.2971029 0 0 0 -7.9964107,6.12004 9.265132,4.3162475 0 0 1 7.9964107,-2.139405 9.265132,4.3162475 0 0 1 8.0046794,2.144056 8.2971029,8.2971029 0 0 0 -8.0046794,-6.124691 z" />
           </g>
           <g
              id="g86-9"
+             class="jp-icon-selectable jgis-main-logo"
              transform="translate(-0.13423014,0.11304345)"
              inkscape:label="logo"
              style="fill:#e18335;fill-opacity:1">
             <path
                id="path84-4"
+               class="jp-icon-selectable jgis-main-logo"
                style="font-variation-settings:'wght' 600;fill:#e18335;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
                d="m 4.0157756,-11.591541 a 8.7066393,5.4086871 0 0 1 -6.0647461,1.534274 8.7066393,5.4086871 0 0 1 -6.0652629,-1.534274 7.1981392,7.1981392 0 0 0 6.0652629,3.3238286 7.1981392,7.1981392 0 0 0 6.0647461,-3.3238286 z" />
             <path
                id="path85-5"
+               class="jp-icon-selectable jgis-main-logo"
                style="font-variation-settings:'wght' 600;fill:#e18335;fill-opacity:1;stroke:#3aaed8;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
                d="m -2.0489705,-22.663733 a 7.1981392,7.1981392 0 0 0 -6.0652629,3.323828 8.7066393,5.4086871 0 0 1 6.0652629,-1.53479 8.7066393,5.4086871 0 0 1 6.0575114,1.524972 7.1981392,7.1981392 0 0 0 -6.0575114,-3.31401 z" />
           </g>
@@ -223,23 +261,27 @@
     </g>
     <g
        id="g83"
+       class="jp-icon-selectable jgis-main-logo"
        inkscape:label="moons"
        style="fill:#2d93ac;fill-opacity:1">
       <circle
          style="font-variation-settings:'wght' 600;fill:#2d93ac;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
          id="path81"
+         class="jp-icon-selectable jgis-main-logo"
          cx="0.96336174"
          cy="0.94979668"
          r="0.45812771" />
       <circle
          style="font-variation-settings:'wght' 600;fill:#2d93ac;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
          id="path82"
+         class="jp-icon-selectable jgis-main-logo"
          cx="7.1098151"
          cy="1.0457554"
          r="0.69682437" />
       <circle
          style="font-variation-settings:'wght' 600;fill:#2d93ac;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
          id="path83"
+         class="jp-icon-selectable jgis-main-logo"
          cx="1.3378263"
          cy="7.3802752"
          r="0.5190413" />
