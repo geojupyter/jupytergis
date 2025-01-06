@@ -1,5 +1,6 @@
 import {
   IDict,
+  IJupyterGISClientState,
   IJupyterGISModel,
   IJupyterGISTracker
 } from '@jupytergis/schema';
@@ -7,6 +8,7 @@ import { LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { useEffect, useRef, useState } from 'react';
 import { IControlPanelModel } from '../../../types';
+import { User } from '@jupyterlab/services';
 
 export class IdentifyPanel extends Panel {
   constructor(options: IdentifyPanel.IOptions) {
@@ -50,8 +52,8 @@ const IdentifyPanelComponent = ({
 }: IIdentifyComponentProps) => {
   const [widgetId, setWidgetId] = useState('');
   const [features, setFeatures] = useState<IDict<any>>();
-
   const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({});
+  const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
     controlPanelModel?.jGISModel
   );
@@ -89,22 +91,41 @@ const IdentifyPanelComponent = ({
   }, [features]);
 
   useEffect(() => {
-    const handleClientStateChanged = () => {
-      if (!jgisModel?.localState?.identifiedFeatures?.value) {
+    const handleClientStateChanged = (
+      sender: IJupyterGISModel,
+      clients: Map<number, IJupyterGISClientState>
+    ) => {
+      const remoteUserId = jgisModel?.localState?.remoteUser;
+
+      // If following a collaborator
+      if (remoteUserId) {
+        const remoteState = clients.get(remoteUserId);
+        if (remoteState) {
+          if (remoteState.user?.username !== remoteUser?.username) {
+            setRemoteUser(remoteState.user);
+          }
+
+          setFeatures(remoteState.identifiedFeatures?.value ?? {});
+        }
+        return;
+      }
+
+      // If not following a collaborator
+      const identifiedFeatures =
+        jgisModel?.localState?.identifiedFeatures?.value;
+
+      if (!identifiedFeatures) {
         setFeatures({});
         return;
       }
 
       if (
         jgisModel.isIdentifying &&
-        featuresRef.current !== jgisModel?.localState?.identifiedFeatures?.value
+        featuresRef.current !== identifiedFeatures
       ) {
-        setFeatures(jgisModel.localState.identifiedFeatures.value);
+        setFeatures(identifiedFeatures);
       }
     };
-
-    // Initial state
-    handleClientStateChanged();
 
     jgisModel?.clientStateChanged.connect(handleClientStateChanged);
 
@@ -121,7 +142,14 @@ const IdentifyPanelComponent = ({
   };
 
   return (
-    <div className="jgis-identify-wrapper">
+    <div
+      className="jgis-identify-wrapper"
+      style={{
+        border: jgisModel?.localState?.remoteUser
+          ? `solid 3px ${remoteUser?.color}`
+          : 'unset'
+      }}
+    >
       {features &&
         Object.values(features).map((feature, featureIndex) => (
           <div key={featureIndex} className="jgis-identify-grid-item">
