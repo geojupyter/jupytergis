@@ -5,7 +5,7 @@ import {
 } from '@jupytergis/schema';
 import { LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { IControlPanelModel } from '../../../types';
 
 export class IdentifyPanel extends Panel {
@@ -50,11 +50,13 @@ const IdentifyPanelComponent = ({
 }: IIdentifyComponentProps) => {
   const [widgetId, setWidgetId] = useState('');
   const [features, setFeatures] = useState<IDict<any>>();
+
   const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({});
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
     controlPanelModel?.jGISModel
   );
 
+  const featuresRef = useRef(features);
   /**
    * Update the model when it changes.
    */
@@ -83,12 +85,20 @@ const IdentifyPanelComponent = ({
   }, []);
 
   useEffect(() => {
+    featuresRef.current = features;
+  }, [features]);
+
+  useEffect(() => {
     const handleClientStateChanged = () => {
       if (!jgisModel?.localState?.identifiedFeatures?.value) {
+        setFeatures({});
         return;
       }
 
-      if (features !== jgisModel.localState.identifiedFeatures.value) {
+      if (
+        jgisModel.isIdentifying &&
+        featuresRef.current !== jgisModel?.localState?.identifiedFeatures?.value
+      ) {
         setFeatures(jgisModel.localState.identifiedFeatures.value);
       }
     };
