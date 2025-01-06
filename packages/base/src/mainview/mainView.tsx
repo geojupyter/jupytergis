@@ -237,7 +237,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       selectInteraction.on('select', event => {
         const featureValues: IDict<any> = [];
-        event.selected.forEach(feature => {
+        selectInteraction.getFeatures().forEach(feature => {
           featureValues.push(feature.getProperties());
         });
 
