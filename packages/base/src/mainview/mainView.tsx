@@ -32,7 +32,7 @@ import { JSONValue, UUID } from '@lumino/coreutils';
 import { Collection, MapBrowserEvent, Map as OlMap, View } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
-import DragAndDrop from 'ol/interaction/DragAndDrop';
+import { DragAndDrop, Select } from 'ol/interaction';
 import {
   Image as ImageLayer,
   Layer,
@@ -72,6 +72,8 @@ import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
+import { Circle, Fill, Style } from 'ol/style';
+import { singleClick } from 'ol/events/condition';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -179,6 +181,7 @@ export class MainView extends React.Component<IProps, IStates> {
         controls: [new ScaleLine()]
       });
 
+      // Add map interactions
       const dragAndDropInteraction = new DragAndDrop({
         formatConstructors: [GeoJSON]
       });
@@ -215,6 +218,36 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.addInteraction(dragAndDropInteraction);
+
+      const selectInteraction = new Select({
+        hitTolerance: 5,
+        multi: true,
+        condition: (event: MapBrowserEvent<any>) => {
+          return singleClick(event) && this._model.isIdentifying;
+        },
+        style: new Style({
+          image: new Circle({
+            radius: 5,
+            fill: new Fill({
+              color: '#f37626'
+            })
+          })
+        })
+      });
+
+      selectInteraction.on('select', event => {
+        const featureValues: IDict<any> = [];
+        event.selected.forEach(feature => {
+          featureValues.push(feature.getProperties());
+        });
+
+        this._model.syncIdentifiedFeatures(
+          featureValues,
+          this._mainViewModel.id
+        );
+      });
+
+      this._Map.addInteraction(selectInteraction);
 
       const view = this._Map.getView();
 
@@ -791,9 +824,7 @@ export class MainView extends React.Component<IProps, IStates> {
       'stroke-color': '#3399CC',
       'stroke-width': 1.25,
       'circle-radius': 5,
-      'circle-fill-color': 'rgba(255,255,255,0.4)',
-      'circle-stroke-width': 1.25,
-      'circle-stroke-color': '#3399CC'
+      'circle-fill-color': 'rgba(255,255,255,0.4)'
     };
 
     const defaultRules: Rule = {
@@ -1395,22 +1426,6 @@ export class MainView extends React.Component<IProps, IStates> {
           this._mainViewModel.id
         );
 
-        break;
-      }
-      case 'VectorLayer': {
-        const features = this._Map.getFeaturesAtPixel(e.pixel, {
-          hitTolerance: 5
-        });
-
-        const featureValues: IDict<any> = [];
-        features.forEach(feature => {
-          featureValues.push(feature.getProperties());
-        });
-
-        this._model.syncIdentifiedFeatures(
-          featureValues,
-          this._mainViewModel.id
-        );
         break;
       }
       default: {
