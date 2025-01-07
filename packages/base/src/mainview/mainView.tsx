@@ -636,38 +636,15 @@ export class MainView extends React.Component<IProps, IStates> {
       }
     }
 
-    // Remove layers that are no longer in the `layerIds` list and are not part of any group.
+    // Remove layers that are no longer in the `layerIds` list.
     previousLayerIds.forEach(layerId => {
-      // Ensure we don't remove layers that are part of any group
-      if (!layerIds.includes(layerId) && !this.isLayerInAnyGroup(layerId)) {
-        const layer = this.getLayer(layerId);
-        if (layer !== undefined) {
-          this._Map.removeLayer(layer);
-        }
+      const layer = this.getLayer(layerId);
+      if (layer !== undefined) {
+        this._Map.removeLayer(layer);
       }
     });
 
     this._ready = true;
-  }
-
-  /**
-   * Helper method to check if a layer is part of any group.
-   *
-   * @param layerId - ID of layer to check if it's in a group
-   * @returns A boolean indicating whether the layer is part of any group.
-   */
-  private isLayerInAnyGroup(layerId: string): boolean {
-    const layerTree = this._model.sharedModel.layerTree;
-
-    function findLayerInGroup(group: any): boolean {
-      // search each subgroup recursively.
-      if (Array.isArray(group.layers)) {
-        return group.layers.some((subGroup: any) => findLayerInGroup(subGroup));
-      }
-      return group.layers && group.layers.includes(layerId);
-    }
-
-    return findLayerInGroup(layerTree);
   }
 
   /**
