@@ -339,9 +339,7 @@ export class JupyterGISModel implements IJupyterGISModel {
    *   from root of layer tree.
    */
   addGroup(name: string, groupName?: string, position?: number): void {
-    const layerTree = this.getLayerTree();
-    const indexesPath = Private.findItemPath(layerTree, name);
-
+    const indexesPath = Private.findItemPath(this.getLayerTree(), name);
     if (indexesPath.length) {
       console.warn(`The group "${groupName}" already exist in the layer tree`);
       return;
@@ -350,9 +348,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       name,
       layers: []
     };
-
-    this._addLayerTreeItem(item, layerTree, groupName, position);
-    this._syncLayerTree(layerTree);
+    this._addLayerTreeItem(item, groupName, position);
   }
 
   /**
@@ -371,21 +367,15 @@ export class JupyterGISModel implements IJupyterGISModel {
     groupName?: string,
     position?: number
   ): void {
-    const layerTree = this.getLayerTree();
-
     if (!this.getLayer(id)) {
       this.sharedModel.addLayer(id, layer);
     }
 
-    this._addLayerTreeItem(id, layerTree, groupName, position);
-    this._syncLayerTree(layerTree);
+    this._addLayerTreeItem(id, groupName, position);
   }
 
   removeLayer(layer_id: string) {
-    const layerTree = this.getLayerTree();
-
-    this._removeLayerTreeLayer(layerTree, layer_id);
-    this._syncLayerTree(layerTree);
+    this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
   }
 
@@ -432,7 +422,6 @@ export class JupyterGISModel implements IJupyterGISModel {
    * Add an item in the layer tree.
    *
    * @param item - the item to add.
-   * @param layerTree - The copy of the layerTree that is being updated. Note: Must call _syncLayerTree() after calling this function to sync layer tree changes with the y.js document
    * @param groupName - (optional) the name of the parent group in which to include the
    *   new item.
    * @param index - (optional) the index of the new item in its parent group or
@@ -440,12 +429,11 @@ export class JupyterGISModel implements IJupyterGISModel {
    */
   private _addLayerTreeItem(
     item: IJGISLayerItem,
-    layerTree: IJGISLayerItem[],
     groupName?: string,
     index?: number
   ): void {
     if (groupName) {
-      const layerTreeInfo = this._getLayerTreeInfo(groupName, layerTree);
+      const layerTreeInfo = this._getLayerTreeInfo(groupName);
 
       if (layerTreeInfo) {
         layerTreeInfo.workingGroup.layers.splice(
@@ -454,15 +442,16 @@ export class JupyterGISModel implements IJupyterGISModel {
           item
         );
 
-        layerTree?.splice(
+        this._sharedModel.updateLayerTreeItem(
           layerTreeInfo.mainGroupIndex,
-          1,
           layerTreeInfo.mainGroup
         );
       }
     } else {
-      const insertAt = index ?? this.getLayerTree().length;
-      layerTree?.splice(insertAt, 0, item);
+      this.sharedModel.addLayerTreeItem(
+        index ?? this.getLayerTree().length,
+        item
+      );
     }
   }
 
@@ -472,30 +461,28 @@ export class JupyterGISModel implements IJupyterGISModel {
       if (this.getLayer(item)) {
         // the item is a layer, remove and add it at the correct position.
         this._removeLayerTreeLayer(layerTree, item);
-        this._addLayerTreeItem(item, layerTree, groupName, index);
+        this._addLayerTreeItem(item, groupName, index);
       } else {
         // the item is a group, let's copy it before removing it.
-        const treeInfo = this._getLayerTreeInfo(item, layerTree);
+        const treeInfo = this._getLayerTreeInfo(item);
         if (treeInfo === undefined) {
           continue;
         }
         const group = { ...treeInfo.workingGroup };
         this._removeLayerTreeGroup(layerTree, item);
-        this._addLayerTreeItem(group, layerTree, groupName, index);
+        this._addLayerTreeItem(group, groupName, index);
       }
     }
-    this._syncLayerTree(layerTree);
   }
 
   moveItemRelatedTo(item: string, relativeItem: string, after: boolean) {
     const layerTree = this.getLayerTree();
-
     let insertedItem: string | IJGISLayerGroup;
     if (this.getLayer(item)) {
       this._removeLayerTreeLayer(layerTree, item);
       insertedItem = item;
     } else {
-      const treeInfo = this._getLayerTreeInfo(item, layerTree);
+      const treeInfo = this._getLayerTreeInfo(item);
       if (treeInfo === undefined) {
         return;
       }
@@ -517,14 +504,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       }
       parentGroupName = workingGroup.name;
     }
-    this._addLayerTreeItem(
-      insertedItem,
-      layerTree,
-      parentGroupName,
-      insertedIndex
-    );
-
-    this._syncLayerTree(layerTree);
+    this._addLayerTreeItem(insertedItem, parentGroupName, insertedIndex);
   }
 
   addNewLayerGroup(
@@ -536,57 +516,52 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._removeLayerTreeLayer(layerTree, item);
     }
 
-    this._addLayerTreeItem(group, layerTree);
-    this._syncLayerTree(layerTree);
+    this._addLayerTreeItem(group);
   }
 
   private _removeLayerTreeLayer(
     layerTree: IJGISLayerItem[],
     layerIdToRemove: string
   ) {
-    // Iterate over each item in the layerTree
-    for (let i = 0; i < layerTree.length; i++) {
-      const currentItem = layerTree[i];
-
-      // Check if the current item is a string and matches the target
-      if (typeof currentItem === 'string' && currentItem === layerIdToRemove) {
-        // Remove the item from the array
-        layerTree.splice(i, 1);
-        // Decrement i to ensure the next iteration processes the remaining items correctly
-        i--;
-      } else if (typeof currentItem !== 'string' && 'layers' in currentItem) {
-        // If the current item is a group, recursively call the function on its layers
-        this._removeLayerTreeLayer(currentItem.layers, layerIdToRemove);
-      }
-    }
+    this._removeLayerTreeItem(layerTree, layerIdToRemove, true);
+    this.sharedModel.layerTree = layerTree;
   }
 
   private _removeLayerTreeGroup(
     layerTree: IJGISLayerItem[],
     groupName: string
   ) {
+    this._removeLayerTreeItem(layerTree, groupName, false);
+    this.sharedModel.layerTree = layerTree;
+  }
+
+  private _removeLayerTreeItem(
+    layerTree: IJGISLayerItem[],
+    target: string,
+    isLayer: boolean
+  ) {
     // Iterate over each item in the layerTree
     for (let i = 0; i < layerTree.length; i++) {
       const currentItem = layerTree[i];
+      const matches = isLayer
+        ? typeof currentItem === 'string' && currentItem === target
+        : typeof currentItem !== 'string' && currentItem.name === target;
 
       // Check if the current item is a string and matches the target
-      if (typeof currentItem !== 'string' && currentItem.name === groupName) {
+      if (matches) {
         // Remove the item from the array
         layerTree.splice(i, 1);
         // Decrement i to ensure the next iteration processes the remaining items correctly
         i--;
       } else if (typeof currentItem !== 'string' && 'layers' in currentItem) {
         // If the current item is a group, recursively call the function on its layers
-        this._removeLayerTreeGroup(currentItem.layers, groupName);
+        this._removeLayerTreeItem(currentItem.layers, target, isLayer);
       }
     }
   }
 
   renameLayerGroup(groupName: string, newName: string): void {
-    const layerTreeInfo = this._getLayerTreeInfo(
-      groupName,
-      this.getLayerTree()
-    );
+    const layerTreeInfo = this._getLayerTreeInfo(groupName);
 
     if (layerTreeInfo) {
       layerTreeInfo.workingGroup.name = newName;
@@ -601,7 +576,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   removeLayerGroup(groupName: string) {
     const layerTree = this.getLayerTree();
-    const layerTreeInfo = this._getLayerTreeInfo(groupName, layerTree);
+    const layerTreeInfo = this._getLayerTreeInfo(groupName);
     const updatedLayerTree = removeLayerGroupEntry(layerTree, groupName);
 
     function removeLayerGroupEntry(
@@ -630,16 +605,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
-  private _getLayerTreeInfo(
-    groupName: string,
-    layerTree: IJGISLayerItem[]
-  ):
+  private _getLayerTreeInfo(groupName: string):
     | {
         mainGroup: IJGISLayerGroup;
         workingGroup: IJGISLayerGroup;
         mainGroupIndex: number;
       }
     | undefined {
+    const layerTree = this.getLayerTree();
     const indexesPath = Private.findItemPath(layerTree, groupName);
     if (!indexesPath.length) {
       console.warn(`The group "${groupName}" does not exist in the layer tree`);
@@ -679,10 +652,6 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._userChanged.emit(this.users);
     }
   };
-
-  _syncLayerTree(layerTree: IJGISLayerTree) {
-    this.sharedModel.layerTree = layerTree;
-  }
 
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
