@@ -8,7 +8,7 @@ exclude: '.*\.jgis$'
 repos:
   # Autoformat and linting, misc. details
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: forbid-new-submodules
       - id: end-of-file-fixer
@@ -27,8 +27,14 @@ repos:
 
   # Autoformat: Python code
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.5
+    rev: v0.8.6
     hooks:
       - id: ruff
         args: ['--fix']
       - id: ruff-format
+
+  - repo: https://github.com/rstcheck/rstcheck
+    rev: v6.2.4
+    hooks:
+      - id: rstcheck
+        args: ['--ignore-directives=tabs,toctree,autoclass', '--report-level=warning']

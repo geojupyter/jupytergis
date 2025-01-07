@@ -1,6 +1,12 @@
-<p align="center"><img width="300" src="https://raw.githubusercontent.com/geojupyter/jupytergis/main/packages/base/style/icons/logo.svg"></p>
-<h1 align="center">JupyterGIS</h1>
-<h2 align="center">A JupyterLab extension for collaborative GIS</h1>
+<p align="center"><img width="100" src="https://raw.githubusercontent.com/geojupyter/jupytergis/main/packages/base/style/icons/logo.svg"></p>
+<h1 align="center">JupyterGIS - A JupyterLab extension for collaborative GIS</h1>
+
+[![lite-badge]][lite] [![docs-badge]][docs]
+
+[lite-badge]: https://jupyterlite.rtfd.io/en/latest/_static/badge.svg
+[lite]: https://geojupyter.github.io/jupytergis/lite/lab/index.html?path=france_hiking.jGIS/
+[docs-badge]: https://readthedocs.org/projects/jupytergis/badge/?version=latest
+[docs]: https://geojupyter.github.io/jupytergis
 
 ⚠️ This extension is work in progress. Features and APIs are subject to change quickly. ⚠️
 

@@ -1,5 +1,3 @@
-.. _contributing:
-
 ============
 Contributing
 ============
@@ -12,8 +10,8 @@ Development install
     You will need `Node.js <https://nodejs.org/>`_ to build the extension package.
 
     The ``jlpm`` command is JupyterLab's pinned version of
-    `yarn <https://yarnpkg.com/>`_ that is installed with JupyterLab. You may use
-    `yarn <https://yarnpkg.com/>`_ or `npm <https://www.npmjs.com/>`_ in lieu of ``jlpm`` below.
+    `yarn <https://yarnpkg.com/>`__ that is installed with JupyterLab. You may use
+    `yarn <https://yarnpkg.com/>`__ or `npm <https://www.npmjs.com/>`_ in lieu of ``jlpm`` below.
 
 
 Clone the source
@@ -38,7 +36,7 @@ Create a virtual environment
         .. code-block:: bash
 
             # Create a virtual environment
-            micromamba create --name jupytergis_dev -c conda-forge pip yarn=3 "nodejs<22" qgis
+            micromamba create --name jupytergis_dev -c conda-forge pip "nodejs<22" qgis
 
             # Activate it
             micromamba activate jupytergis_dev
@@ -49,7 +47,7 @@ Create a virtual environment
         .. note::
 
             You may need to install some non-Python dependencies (e.g. QGIS,
-            yarn) separately when using this method.
+            Node.js) separately when using this method.
 
 
         .. code-block:: bash
@@ -65,6 +63,7 @@ Install dependencies and build
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
+
     # Install JupyterLab for jlpm
     python -m pip install jupyterlab
 
@@ -102,6 +101,11 @@ You can watch the source directory and run JupyterLab at the same time in differ
 
 With the watch command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
 
+.. note::
+
+   ``jlpm run watch`` will sit and wait for a change once started. Edit a file
+   to trigger a build.
+
 
 Development uninstall
 ----------------------
@@ -111,6 +115,32 @@ Development uninstall
     pip uninstall jupytergis
 
 In development mode, you will also need to remove the symlink created by ``jupyter labextension develop`` command. To find its location, you can run ``jupyter labextension list`` to figure out where the ``labextensions`` folder is located. Then you can remove the symlink named ``jupytergis`` within that folder.
+
+
+Code quality
+------------
+
+We have several tools configured for checking code quality:
+
+* Pre-commit checks run automatically at commit time.
+  Install checks with ``pre-commit install``.
+  Run them manually with ``pre-commit run --all-files``.
+  **Will exit non-zero when finding errors or changing files.**
+
+  * Ruff formats and lints (sometimes autofixes) Python code.
+
+  * Generic pre-commit checks help avoid common mistakes like committing large
+    files or trailing whitespace.
+
+* Package scripts (defined in ``package.json``) to check (and/or fix)
+  TypeScript, JavaScript, CSS, JSON, Markdown, and YAML.
+  Run manually with ``jlpm run lint``.
+  **Will exit 0 when applying fixes.
+  Check the logs and/or ``git status`` after every run.**
+
+  * Prettier formats the file types listed above.
+
+  * Eslint lints (sometimes autofixes) JS/TS code.
 
 
 Troubleshooting
