@@ -1,8 +1,9 @@
-<p align="center"><img width="300" src="https://raw.githubusercontent.com/geojupyter/jupytergis/main/packages/base/style/icons/logo.svg"></p>
-<h1 align="center">JupyterGIS</h1>
-<h2 align="center">A JupyterLab extension for collaborative GIS</h1>
+<p align="center"><img width="100" src="https://raw.githubusercontent.com/geojupyter/jupytergis/main/packages/base/style/icons/logo.svg"></p>
+<h1 align="center">JupyterGIS - A JupyterLab extension for collaborative GIS</h1>
 
-⚠️ This extension is work in progress. Features and APIs are subject to change quickly. ⚠️
+[![Lite](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://geojupyter.github.io/jupytergis/lite/lab/index.html?path=france_hiking.jGIS/)
+
+⚠️ This extension is work in progress. Features and APIs are subject to change quickly. Please note that [JupyterGIS' real-time collaboration features are not yet supported in JupyterLite](https://jupyterlite.readthedocs.io/en/latest/howto/configure/rtc.html).⚠️
 
 ![jupytergis](./jupytergis.png)
 
@@ -11,13 +12,6 @@
 - **Collaborative GIS Environment**: Work together on geographic data projects in real-time.
 - **QGIS File Support**: Load, visualize, and manipulate QGIS project files (`.qgs`, `.qgz`), and other GIS data formats.
 - **Interactive Maps**: Render interactive maps and geospatial visualizations within Jupyter notebooks using the JupyterGIS Python API.
-
-## [🪄 Try JupyterGIS now! ✨](https://geojupyter.github.io/jupytergis/lite/lab/index.html?path=france_hiking.jGIS)
-
-This demo runs a JupyterLab instance entirely in your browser with WebAssembly! 🤯
-
-Powered by [JupyterLite](https://jupyterlite.readthedocs.io/en/stable/?badge=latest).
-Please note that [JupyterGIS' real-time collaboration features are not yet supported in JupyterLite](https://jupyterlite.readthedocs.io/en/latest/howto/configure/rtc.html).
 
 ## Installation
 
