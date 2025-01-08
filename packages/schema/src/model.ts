@@ -312,7 +312,10 @@ export class JupyterGISModel implements IJupyterGISModel {
    * @param type - Type of the source file (e.g., "GeoJSONSource", "ShapefileSource").
    * @returns A promise that resolves to the file content.
    */
-  async loadFile(filepath: string, type: IJGISSource['type']): Promise<any | undefined> {
+  async loadFile(
+    filepath: string,
+    type: IJGISSource['type']
+  ): Promise<any | undefined> {
     // Handle URLs directly for ImageSource and ShapefileSource
     if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
       switch (type) {
@@ -323,7 +326,9 @@ export class JupyterGISModel implements IJupyterGISModel {
         case 'ShapefileSource': {
           try {
             // Proxy request to fetch remote shapefile
-            const response = await fetch(`/jupytergis_core/proxy?url=${filepath}`);
+            const response = await fetch(
+              `/jupytergis_core/proxy?url=${filepath}`
+            );
             const arrayBuffer = await response.arrayBuffer();
             const geojson = await shp(arrayBuffer);
             return geojson;
