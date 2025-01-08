@@ -523,22 +523,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     layerTree: IJGISLayerItem[],
     layerIdToRemove: string
   ) {
-    // Iterate over each item in the layerTree
-    for (let i = 0; i < layerTree.length; i++) {
-      const currentItem = layerTree[i];
-
-      // Check if the current item is a string and matches the target
-      if (typeof currentItem === 'string' && currentItem === layerIdToRemove) {
-        // Remove the item from the array
-        layerTree.splice(i, 1);
-        // Decrement i to ensure the next iteration processes the remaining items correctly
-        i--;
-      } else if (typeof currentItem !== 'string' && 'layers' in currentItem) {
-        // If the current item is a group, recursively call the function on its layers
-        this._removeLayerTreeLayer(currentItem.layers, layerIdToRemove);
-      }
-    }
-
+    this._removeLayerTreeItem(layerTree, layerIdToRemove, true);
     this.sharedModel.layerTree = layerTree;
   }
 
@@ -546,23 +531,33 @@ export class JupyterGISModel implements IJupyterGISModel {
     layerTree: IJGISLayerItem[],
     groupName: string
   ) {
+    this._removeLayerTreeItem(layerTree, groupName, false);
+    this.sharedModel.layerTree = layerTree;
+  }
+
+  private _removeLayerTreeItem(
+    layerTree: IJGISLayerItem[],
+    target: string,
+    isLayer: boolean
+  ) {
     // Iterate over each item in the layerTree
     for (let i = 0; i < layerTree.length; i++) {
       const currentItem = layerTree[i];
+      const matches = isLayer
+        ? typeof currentItem === 'string' && currentItem === target
+        : typeof currentItem !== 'string' && currentItem.name === target;
 
       // Check if the current item is a string and matches the target
-      if (typeof currentItem !== 'string' && currentItem.name === groupName) {
+      if (matches) {
         // Remove the item from the array
         layerTree.splice(i, 1);
         // Decrement i to ensure the next iteration processes the remaining items correctly
         i--;
       } else if (typeof currentItem !== 'string' && 'layers' in currentItem) {
         // If the current item is a group, recursively call the function on its layers
-        this._removeLayerTreeGroup(currentItem.layers, groupName);
+        this._removeLayerTreeItem(currentItem.layers, target, isLayer);
       }
     }
-
-    this.sharedModel.layerTree = layerTree;
   }
 
   renameLayerGroup(groupName: string, newName: string): void {
