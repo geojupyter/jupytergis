@@ -1428,9 +1428,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
         break;
       }
-      default: {
-        console.warn('Layer not implemented');
-      }
     }
   }
 
