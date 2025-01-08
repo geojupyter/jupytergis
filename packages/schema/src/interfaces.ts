@@ -185,7 +185,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   getOptions(): IJGISOptions;
   setOptions(value: IJGISOptions): void;
 
-  readFile(filepath: string, type: SourceType): Promise<any | undefined>;
+  loadFile(filepath: string, type: SourceType): Promise<any | undefined>;
 
   removeLayerGroup(groupName: string): void;
   renameLayerGroup(groupName: string, newName: string): void;

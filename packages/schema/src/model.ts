@@ -312,7 +312,7 @@ export class JupyterGISModel implements IJupyterGISModel {
    * @param type - Type of the source file (e.g., "GeoJSONSource", "ShapefileSource").
    * @returns A promise that resolves to the file content.
    */
-  async readFile(filepath: string, type: IJGISSource['type']): Promise<any | undefined> {
+  async loadFile(filepath: string, type: IJGISSource['type']): Promise<any | undefined> {
     // Handle URLs directly for ImageSource and ShapefileSource
     if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
       switch (type) {

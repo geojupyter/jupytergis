@@ -209,7 +209,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
         break;
       }
       case 'GeoJSONSource': {
-        const data = await model?.readFile(
+        const data = await model?.loadFile(
           source.parameters?.path,
           'GeoJSONSource'
         );

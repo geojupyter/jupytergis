@@ -409,7 +409,7 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'GeoJSONSource': {
         const data =
           source.parameters?.data ||
-          (await this._model.readFile(
+          (await this._model.loadFile(
             source.parameters?.path,
             'GeoJSONSource'
           ));
@@ -435,7 +435,7 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'ShapefileSource': {
         const parameters = source.parameters as IShapefileSource;
 
-        const geojson = await this._model.readFile(
+        const geojson = await this._model.loadFile(
           parameters.path,
           'ShapefileSource'
         );
@@ -482,7 +482,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         const extent = [minX, minY, maxX, maxY];
 
-        const imageUrl = await this._model.readFile(
+        const imageUrl = await this._model.loadFile(
           sourceParameters.url,
           'ImageSource'
         );

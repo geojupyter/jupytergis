@@ -35,7 +35,7 @@ export const useGetProperties = ({
         throw new Error('Source not found');
       }
 
-      const data = await model.readFile(
+      const data = await model.loadFile(
         source.parameters?.path,
         'GeoJSONSource'
       );
