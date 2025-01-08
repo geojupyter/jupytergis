@@ -74,6 +74,7 @@ import { FollowIndicator } from './FollowIndicator';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { singleClick } from 'ol/events/condition';
+import TileSource from 'ol/source/Tile';
 import { FeatureLike } from 'ol/Feature';
 
 interface IProps {
@@ -1403,9 +1404,36 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
+    // annotation?
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
       this._moveToPosition(annotation.position, annotation.zoom);
+    }
+
+    // layer?
+    const olLayer = this.getLayer(id) as Layer;
+    const source = olLayer?.getSource();
+
+    let extent;
+
+    if (source instanceof VectorSource) {
+      extent = source.getExtent();
+    }
+
+    if (source instanceof TileSource) {
+      // Tiled sources don't have getExtent() so we get it from the grid
+      const tileGrid = source.getTileGrid();
+      extent = tileGrid?.getExtent();
+    }
+
+    if (extent) {
+      this._Map.getView().fit(extent, {
+        size: this._Map.getSize(), // Ensure the map view fits within the map size
+        maxZoom: 16, // Optional: Set a maximum zoom level
+        duration: 500
+      });
+    } else {
+      console.warn('Layer has no extent.');
     }
   }
 
