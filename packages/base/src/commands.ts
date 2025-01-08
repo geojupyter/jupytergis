@@ -870,6 +870,17 @@ export function addCommands(
       }
     }
   });
+
+  commands.addCommand(CommandIDs.zoomToLayer, {
+    label: trans.__('Select the completion suggestion.'),
+    execute: () => {
+      const currentWidget = tracker.currentWidget;
+      if (!currentWidget || !completionProviderManager) {
+        return;
+      }
+      console.log('zooming');
+    }
+  });
 }
 
 namespace Private {

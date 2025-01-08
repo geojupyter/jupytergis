@@ -185,6 +185,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
       selector: '.jp-gis-layerItem'
     });
 
+    app.contextMenu.addItem({
+      command: CommandIDs.zoomToLayer,
+      selector: '.jp-gis-layerItem',
+      rank: 2
+    });
+
     const moveLayerSubmenu = new Menu({ commands: app.commands });
     moveLayerSubmenu.title.label = translator
       .load('jupyterlab')
