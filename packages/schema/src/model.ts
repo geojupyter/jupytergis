@@ -320,7 +320,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       throw new Error('ContentsManager is not initialized.');
     }
 
-    const absolutePath = PathExt.resolve(PathExt.dirname(this._filePath), filepath);
+    const absolutePath = PathExt.resolve(
+      PathExt.dirname(this._filePath),
+      filepath
+    );
 
     try {
       const file = await this._contentsManager.get(absolutePath, {
@@ -340,12 +343,14 @@ export class JupyterGISModel implements IJupyterGISModel {
         }
 
         case 'ShapefileSource': {
-          const arrayBuffer = await this._stringToArrayBuffer(file.content as string);
+          const arrayBuffer = await this._stringToArrayBuffer(
+            file.content as string
+          );
           const geojson = await shp(arrayBuffer);
           return geojson;
         }
 
-        case'ImageSource': {
+        case 'ImageSource': {
           if (typeof file.content === 'string') {
             // Convert base64 to a data URL
             const mimeType = this._getMimeType(filepath);
@@ -387,7 +392,9 @@ export class JupyterGISModel implements IJupyterGISModel {
       case 'svg':
         return 'image/svg+xml';
       default:
-        console.warn(`Unknown file extension: ${extension}, defaulting to 'application/octet-stream'`);
+        console.warn(
+          `Unknown file extension: ${extension}, defaulting to 'application/octet-stream'`
+        );
         return 'application/octet-stream';
     }
   }
@@ -398,7 +405,9 @@ export class JupyterGISModel implements IJupyterGISModel {
    * @returns An ArrayBuffer.
    */
   private async _stringToArrayBuffer(content: string): Promise<ArrayBuffer> {
-    const base64Response = await fetch(`data:application/octet-stream;base64,${content}`);
+    const base64Response = await fetch(
+      `data:application/octet-stream;base64,${content}`
+    );
     return await base64Response.arrayBuffer();
   }
 

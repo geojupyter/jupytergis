@@ -209,7 +209,10 @@ const FilterComponent = (props: IFilterComponentProps) => {
         break;
       }
       case 'GeoJSONSource': {
-        const data = await model?.readFile(source.parameters?.path, 'GeoJSONSource');
+        const data = await model?.readFile(
+          source.parameters?.path,
+          'GeoJSONSource'
+        );
         data?.features.forEach((feature: GeoJSONFeature1) => {
           feature.properties &&
             addFeatureValue(feature.properties, aggregatedProperties);
