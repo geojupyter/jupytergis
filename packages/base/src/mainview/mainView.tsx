@@ -59,7 +59,6 @@ import { get as getProjection } from 'ol/proj.js';
 import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
-import shp from 'shpjs';
 import { isLightTheme, loadGeoTIFFWithCache, throttle } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
@@ -329,21 +328,6 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   };
 
-  private async _loadShapefileAsGeoJSON(
-    url: string
-  ): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
-    try {
-      const response = await fetch(`/jupytergis_core/proxy?url=${url}`);
-      const arrayBuffer = await response.arrayBuffer();
-      const geojson = await shp(arrayBuffer);
-
-      return geojson;
-    } catch (error) {
-      console.error('Error loading shapefile:', error);
-      throw error;
-    }
-  }
-
   private async _loadGeoTIFFWithCache(sourceInfo: {
     url?: string | undefined;
   }) {
@@ -451,19 +435,10 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'ShapefileSource': {
         const parameters = source.parameters as IShapefileSource;
 
-        let geojson: any;
-        if (
-          parameters?.path?.startsWith('http://') ||
-          parameters?.path?.startsWith('https://')
-        ) {
-          geojson = await this._loadShapefileAsGeoJSON(parameters.path);
-        } else {
-          // Handle local files using the model's readFile method
-          geojson = await this._model.readFile(
-            parameters.path,
-            'ShapefileSource'
-          );
-        }
+        const geojson = await this._model.readFile(
+          parameters.path,
+          'ShapefileSource'
+        );
 
         const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
 
@@ -507,19 +482,10 @@ export class MainView extends React.Component<IProps, IStates> {
 
         const extent = [minX, minY, maxX, maxY];
 
-        let imageUrl: string;
-
-        if (
-          sourceParameters.url.startsWith('http://') ||
-          sourceParameters.url.startsWith('https://')
-        ) {
-          imageUrl = sourceParameters.url;
-        } else {
-          imageUrl = await this._model.readFile(
-            sourceParameters.url,
-            'ImageSource'
-          );
-        }
+        const imageUrl = await this._model.readFile(
+          sourceParameters.url,
+          'ImageSource'
+        );
 
         newSource = new Static({
           imageExtent: extent,
