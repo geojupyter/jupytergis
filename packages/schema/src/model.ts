@@ -345,14 +345,6 @@ export class JupyterGISModel implements IJupyterGISModel {
           return geojson;
         }
 
-        // case 'GeoTiffSource': {
-        //   const arrayBuffer = await this._stringToArrayBuffer(file.content as string);
-        //   const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
-        //   const image = await tiff.getImage();
-        //   const rasterData = await image.readRasters();
-        //   return rasterData;
-        // }
-
         case'ImageSource': {
           if (typeof file.content === 'string') {
             // Convert base64 to a data URL
@@ -374,31 +366,31 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
- * Determine the MIME type based on the file extension.
- *
- * @param filename - The name of the file.
- * @returns A string representing the MIME type.
- */
-private _getMimeType(filename: string): string {
-  const extension = filename.split('.').pop()?.toLowerCase();
+   * Determine the MIME type based on the file extension.
+   *
+   * @param filename - The name of the file.
+   * @returns A string representing the MIME type.
+   */
+  private _getMimeType(filename: string): string {
+    const extension = filename.split('.').pop()?.toLowerCase();
 
-  switch (extension) {
-    case 'png':
-      return 'image/png';
-    case 'jpg':
-    case 'jpeg':
-      return 'image/jpeg';
-    case 'gif':
-      return 'image/gif';
-    case 'webp':
-      return 'image/webp';
-    case 'svg':
-      return 'image/svg+xml';
-    default:
-      console.warn(`Unknown file extension: ${extension}, defaulting to 'application/octet-stream'`);
-      return 'application/octet-stream';
+    switch (extension) {
+      case 'png':
+        return 'image/png';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'svg':
+        return 'image/svg+xml';
+      default:
+        console.warn(`Unknown file extension: ${extension}, defaulting to 'application/octet-stream'`);
+        return 'application/octet-stream';
+    }
   }
-}
 
   /**
    * Helper to convert a string (base64) to ArrayBuffer.
@@ -449,10 +441,6 @@ private _getMimeType(filename: string): string {
     position?: number
   ): void {
     if (!this.getLayer(id)) {
-      console.log(this.sharedModel);
-      console.log(id, layer);
-
-
       this.sharedModel.addLayer(id, layer);
     }
 
