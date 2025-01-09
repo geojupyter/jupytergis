@@ -5,13 +5,17 @@ import { VectorTile } from '@mapbox/vector-tile';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import * as d3Color from 'd3-color';
+import { PathExt } from '@jupyterlab/coreutils';
+import shp from 'shpjs';
 
 import {
   IDict,
   IJGISLayerBrowserRegistry,
   IJGISOptions,
-  IRasterLayerGalleryEntry
+  IRasterLayerGalleryEntry,
+  IJGISSource
 } from '@jupytergis/schema';
+import { Contents } from '@jupyterlab/services';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
 import { getGdal } from './gdal';
 
@@ -451,4 +455,129 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
     metadata,
     sourceUrl: sourceInfo.url
   };
+};
+
+/**
+ * Generalized file reader for different source types.
+ *
+ * @param fileInfo - Object containing the file path and source type.
+ * @returns A promise that resolves to the file content.
+ */
+export const loadFile = async (fileInfo: {
+  filepath: string;
+  type: IJGISSource['type'];
+  contentsManager?: Contents.IManager;
+  filePath?: string;
+}) => {
+  const { filepath, type, contentsManager, filePath } = fileInfo;
+
+  if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
+    switch (type) {
+      case 'ImageSource': {
+        return filepath; // Return the URL directly
+      }
+
+      case 'ShapefileSource': {
+        try {
+          const response = await fetch(`/jupytergis_core/proxy?url=${filepath}`);
+          const arrayBuffer = await response.arrayBuffer();
+          const geojson = await shp(arrayBuffer);
+          return geojson;
+        } catch (error) {
+          console.error('Error loading remote shapefile:', error);
+          throw error;
+        }
+      }
+
+      default: {
+        throw new Error(`Unsupported URL handling for source type: ${type}`);
+      }
+    }
+  }
+
+  if (!contentsManager || !filePath) {
+    throw new Error('ContentsManager or filePath is not initialized.');
+  }
+
+  const absolutePath = PathExt.resolve(PathExt.dirname(filePath), filepath);
+
+  try {
+    const file = await contentsManager.get(absolutePath, { content: true });
+
+    if (!file.content) {
+      throw new Error(`File at ${absolutePath} is empty or inaccessible.`);
+    }
+
+    switch (type) {
+      case 'GeoJSONSource': {
+        return typeof file.content === 'string'
+          ? JSON.parse(file.content)
+          : file.content;
+      }
+
+      case 'ShapefileSource': {
+        const arrayBuffer = await stringToArrayBuffer(file.content as string);
+        const geojson = await shp(arrayBuffer);
+        return geojson;
+      }
+
+      case 'ImageSource': {
+        if (typeof file.content === 'string') {
+          const mimeType = getMimeType(filepath);
+          return `data:${mimeType};base64,${file.content}`;
+        } else {
+          throw new Error('Invalid file format for image content.');
+        }
+      }
+
+      default: {
+        throw new Error(`Unsupported source type: ${type}`);
+      }
+    }
+  } catch (error) {
+    console.error(`Error reading file '${filepath}':`, error);
+    throw error;
+  }
+};
+
+/**
+ * Determine the MIME type based on the file extension.
+ *
+ * @param filename - The name of the file.
+ * @returns A string representing the MIME type.
+ */
+export const getMimeType = (filename: string): string => {
+  const extension = filename.split('.').pop()?.toLowerCase();
+
+  switch (extension) {
+    case 'png':
+      return 'image/png';
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'gif':
+      return 'image/gif';
+    case 'webp':
+      return 'image/webp';
+    case 'svg':
+      return 'image/svg+xml';
+    default:
+      console.warn(
+        `Unknown file extension: ${extension}, defaulting to 'application/octet-stream'.`
+      );
+      return 'application/octet-stream';
+  }
+};
+
+/**
+ * Helper to convert a string (base64) to ArrayBuffer.
+ *
+ * @param content - File content as a base64 string.
+ * @returns An ArrayBuffer.
+ */
+export const stringToArrayBuffer = async (content: string): Promise<ArrayBuffer> => {
+  const base64Response = await fetch(
+    `data:application/octet-stream;base64,${content}`
+  );
+  return await base64Response.arrayBuffer();
 };

@@ -167,6 +167,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     value: Contents.IManager | undefined,
     filePath: string
   ): void;
+  getContentsManager(): Contents.IManager | undefined;
+  getFilePath(): string;
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
@@ -184,8 +186,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   removeLayer(id: string): void;
   getOptions(): IJGISOptions;
   setOptions(value: IJGISOptions): void;
-
-  loadFile(filepath: string, type: SourceType): Promise<any | undefined>;
 
   removeLayerGroup(groupName: string): void;
   renameLayerGroup(groupName: string, newName: string): void;

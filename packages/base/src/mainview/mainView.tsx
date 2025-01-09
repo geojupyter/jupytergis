@@ -71,6 +71,7 @@ import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
+import { loadFile } from '../tools';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -409,10 +410,12 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'GeoJSONSource': {
         const data =
           source.parameters?.data ||
-          (await this._model.loadFile(
-            source.parameters?.path,
-            'GeoJSONSource'
-          ));
+          await loadFile({
+            filepath: source.parameters?.path,
+            type: 'GeoJSONSource',
+            contentsManager: this._model.getContentsManager(),
+            filePath: this._model.getFilePath()
+          });
 
         const format = new GeoJSON({
           featureProjection: this._Map.getView().getProjection()
@@ -435,10 +438,12 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'ShapefileSource': {
         const parameters = source.parameters as IShapefileSource;
 
-        const geojson = await this._model.loadFile(
-          parameters.path,
-          'ShapefileSource'
-        );
+        const geojson = await loadFile({
+          filepath: parameters.path,
+          type: 'ShapefileSource',
+          contentsManager: this._model.getContentsManager(),
+          filePath: this._model.getFilePath()
+        });
 
         const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
 
@@ -482,10 +487,12 @@ export class MainView extends React.Component<IProps, IStates> {
 
         const extent = [minX, minY, maxX, maxY];
 
-        const imageUrl = await this._model.loadFile(
-          sourceParameters.url,
-          'ImageSource'
-        );
+        const imageUrl = await loadFile({
+          filepath: sourceParameters.url,
+          type: 'ImageSource',
+          contentsManager: this._model.getContentsManager(),
+          filePath: this._model.getFilePath()
+        });
 
         newSource = new Static({
           imageExtent: extent,

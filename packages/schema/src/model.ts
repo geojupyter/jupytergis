@@ -1,11 +1,10 @@
 import { MapChange } from '@jupyter/ydoc';
-import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
+import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 
-import shp from 'shpjs';
 // import GeoTIFF from 'geotiff';
 import {
   IJGISContent,
@@ -254,6 +253,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._filePath = filePath;
   }
 
+  getContentsManager() {
+    return this._contentsManager;
+  }
+
+  getFilePath() {
+    return this._filePath;
+  }
+
   getLayers(): IJGISLayers {
     return this.sharedModel.layers;
   }
@@ -303,141 +310,6 @@ export class JupyterGISModel implements IJupyterGISModel {
       }
     });
     return usingLayers;
-  }
-
-  /**
-   * Generalized file reader for different source types.
-   *
-   * @param filepath - Path to the file.
-   * @param type - Type of the source file (e.g., "GeoJSONSource", "ShapefileSource").
-   * @returns A promise that resolves to the file content.
-   */
-  async loadFile(
-    filepath: string,
-    type: IJGISSource['type']
-  ): Promise<any | undefined> {
-    // Handle URLs directly for ImageSource and ShapefileSource
-    if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
-      switch (type) {
-        case 'ImageSource': {
-          return filepath; // Return the URL directly
-        }
-
-        case 'ShapefileSource': {
-          try {
-            // Proxy request to fetch remote shapefile
-            const response = await fetch(
-              `/jupytergis_core/proxy?url=${filepath}`
-            );
-            const arrayBuffer = await response.arrayBuffer();
-            const geojson = await shp(arrayBuffer);
-            return geojson;
-          } catch (error) {
-            console.error('Error loading remote shapefile:', error);
-            throw error;
-          }
-        }
-
-        default: {
-          throw new Error(`Unsupported URL handling for source type: ${type}`);
-        }
-      }
-    }
-
-    // Handle local files using ContentsManager
-    if (!this._contentsManager) {
-      throw new Error('ContentsManager is not initialized.');
-    }
-
-    const absolutePath = PathExt.resolve(
-      PathExt.dirname(this._filePath),
-      filepath
-    );
-
-    try {
-      const file = await this._contentsManager.get(absolutePath, {
-        content: true
-      });
-
-      if (!file.content) {
-        throw new Error(`File at ${absolutePath} is empty or inaccessible.`);
-      }
-
-      switch (type) {
-        case 'GeoJSONSource': {
-          if (typeof file.content === 'string') {
-            return JSON.parse(file.content);
-          }
-          return file.content;
-        }
-
-        case 'ShapefileSource': {
-          const arrayBuffer = await this._stringToArrayBuffer(
-            file.content as string
-          );
-          const geojson = await shp(arrayBuffer);
-          return geojson;
-        }
-
-        case 'ImageSource': {
-          if (typeof file.content === 'string') {
-            // Convert base64 to a data URL
-            const mimeType = this._getMimeType(filepath);
-            return `data:${mimeType};base64,${file.content}`;
-          } else {
-            throw new Error('Invalid file format for image content');
-          }
-        }
-
-        default: {
-          throw new Error(`Unsupported source type: ${type}`);
-        }
-      }
-    } catch (error) {
-      console.error(`Error reading file '${filepath}':`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Determine the MIME type based on the file extension.
-   *
-   * @param filename - The name of the file.
-   * @returns A string representing the MIME type.
-   */
-  private _getMimeType(filename: string): string {
-    const extension = filename.split('.').pop()?.toLowerCase();
-
-    switch (extension) {
-      case 'png':
-        return 'image/png';
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      case 'gif':
-        return 'image/gif';
-      case 'webp':
-        return 'image/webp';
-      case 'svg':
-        return 'image/svg+xml';
-      default:
-        console.warn(
-          `Unknown file extension: ${extension}, defaulting to 'application/octet-stream'`
-        );
-        return 'application/octet-stream';
-    }
-  }
-
-  /**
-   * Helper to convert a string (base64) to ArrayBuffer.
-   * @param content - File content as a base64 string.
-   * @returns An ArrayBuffer.
-   */
-  private async _stringToArrayBuffer(content: string): Promise<ArrayBuffer> {
-    const base64Response = await fetch(
-      `data:application/octet-stream;base64,${content}`
-    );
-    return await base64Response.arrayBuffer();
   }
 
   /**

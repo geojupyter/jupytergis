@@ -2,6 +2,7 @@
 
 import { GeoJSONFeature1, IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
+import { loadFile } from '../../../tools';
 
 interface IUseGetPropertiesProps {
   layerId?: string;
@@ -35,9 +36,8 @@ export const useGetProperties = ({
         throw new Error('Source not found');
       }
 
-      const data = await model.loadFile(
+      const data = await loadFile(
         source.parameters?.path,
-        'GeoJSONSource'
       );
 
       if (!data) {
