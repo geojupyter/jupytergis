@@ -210,7 +210,7 @@ export class MainView extends React.Component<IProps, IStates> {
           }
         };
 
-        this.addLayer(layerId, layerModel, this.getLayers().length);
+        this.addLayer(layerId, layerModel, this.getLayerIDs().length);
         this._model.addLayer(layerId, layerModel);
       });
 
@@ -593,21 +593,57 @@ export class MainView extends React.Component<IProps, IStates> {
     this._updateLayersImpl(layerIds);
   }
 
+  /**
+   * Updates the position and existence of layers in the OL map based on the layer IDs.
+   *
+   * @param layerIds - An array of layer IDs that should be present on the map.
+   * @returns {} Nothing is returned.
+   */
   private async _updateLayersImpl(layerIds: string[]): Promise<void> {
-    const mapLayers: BaseLayer[] = [];
-    for (const layerId of layerIds) {
+    // get layers that are currently on the OL map
+    const previousLayerIds = this.getLayerIDs();
+
+    // Iterate over the new layer IDs:
+    //   * Add layers to the map that are present in the list but not the map.
+    //   * Remove layers from the map that are present in the map but not the list.
+    //   * Update layer positions to match the list.
+    for (
+      let targetLayerPosition = 0;
+      targetLayerPosition < layerIds.length;
+      targetLayerPosition++
+    ) {
+      const layerId = layerIds[targetLayerPosition];
       const layer = this._model.sharedModel.getLayer(layerId);
 
       if (!layer) {
-        console.log(`Layer id ${layerId} does not exist`);
+        console.warn(
+          `Layer with ID ${layerId} does not exist in the shared model.`
+        );
         continue;
       }
-      const newMapLayer = await this._buildMapLayer(layerId, layer);
-      if (newMapLayer !== undefined) {
-        mapLayers.push(newMapLayer);
+
+      const mapLayer = this.getLayer(layerId);
+
+      if (mapLayer !== undefined) {
+        this.moveLayer(layerId, targetLayerPosition);
+      } else {
+        await this.addLayer(layerId, layer, targetLayerPosition);
+      }
+
+      const previousIndex = previousLayerIds.indexOf(layerId);
+      if (previousIndex > -1) {
+        previousLayerIds.splice(previousIndex, 1);
       }
     }
-    this._Map.setLayers(mapLayers);
+
+    // Remove layers that are no longer in the `layerIds` list.
+    previousLayerIds.forEach(layerId => {
+      const layer = this.getLayer(layerId);
+      if (layer !== undefined) {
+        this._Map.removeLayer(layer);
+      }
+    });
+
     this._ready = true;
   }
 
@@ -1102,13 +1138,48 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   /**
+   * Convenience method to get a specific layer index from OpenLayers Map
+   * @param id Layer to retrieve
+   */
+  private getLayerIndex(id: string) {
+    return this._Map
+      .getLayers()
+      .getArray()
+      .findIndex(layer => layer.get('id') === id);
+  }
+
+  /**
    * Convenience method to get list layer IDs from the OpenLayers Map
    */
-  private getLayers() {
+  private getLayerIDs(): string[] {
     return this._Map
       .getLayers()
       .getArray()
       .map(layer => layer.get('id'));
+  }
+
+  /**
+   * Move layer `id` in the stack to `index`.
+   *
+   * @param id - id of the layer.
+   * @param index - expected index of the layer.
+   */
+  moveLayer(id: string, index: number): void {
+    const currentIndex = this.getLayerIndex(id);
+    if (currentIndex === index || currentIndex === -1) {
+      return;
+    }
+    const layer = this.getLayer(id);
+    let nextIndex = index;
+    // should not be undefined since the id exists above
+    if (layer === undefined) {
+      return;
+    }
+    this._Map.getLayers().removeAt(currentIndex);
+    if (currentIndex < index) {
+      nextIndex -= 1;
+    }
+    this._Map.getLayers().insertAt(nextIndex, layer);
   }
 
   private _onLayersChanged(

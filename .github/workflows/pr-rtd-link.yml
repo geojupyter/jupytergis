@@ -20,5 +20,6 @@ jobs:
         with:
           project-slug: 'jupytergis'
           message-template: |
+            ---
             📚 Documentation preview: {docs-pr-index-url}
-            💡 JupyterLite preview: {docs-pre-index-url}/lite
+            💡 JupyterLite preview is available from the doc, by clicking on ![lite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)
