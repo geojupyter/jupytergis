@@ -91,7 +91,7 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: args => {
+    execute: () => {
       const current = tracker.currentWidget;
 
       if (current) {
@@ -108,7 +108,7 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: args => {
+    execute: () => {
       const current = tracker.currentWidget;
 
       if (current) {
@@ -125,7 +125,7 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: args => {
+    execute: () => {
       const current = tracker.currentWidget;
 
       if (!current) {
