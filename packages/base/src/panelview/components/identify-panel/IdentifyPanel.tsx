@@ -52,7 +52,9 @@ const IdentifyPanelComponent = ({
 }: IIdentifyComponentProps) => {
   const [widgetId, setWidgetId] = useState('');
   const [features, setFeatures] = useState<IDict<any>>();
-  const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({});
+  const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
+    0: true
+  });
   const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
     controlPanelModel?.jGISModel
@@ -77,7 +79,7 @@ const IdentifyPanelComponent = ({
         setWidgetId(tracker.currentWidget.id);
       }
       setFeatures({});
-      setVisibleFeatures({});
+      setVisibleFeatures({ 0: true });
     };
     tracker.currentChanged.connect(handleCurrentChanged);
 
@@ -135,6 +137,7 @@ const IdentifyPanelComponent = ({
   }, [jgisModel]);
 
   const toggleFeatureVisibility = (index: number) => {
+    console.log('visibleFeatures', visibleFeatures);
     setVisibleFeatures(prev => ({
       ...prev,
       [index]: !prev[index]
