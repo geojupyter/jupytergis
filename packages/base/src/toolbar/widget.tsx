@@ -160,6 +160,12 @@ export class ToolbarWidget extends ReactiveToolbar {
         })
       );
 
+      options.commands.addKeyBinding({
+        command: CommandIDs.identify,
+        keys: ['Escape'],
+        selector: '#main'
+      });
+
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
       // Users

@@ -159,6 +159,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._zoomToAnnotationSignal;
   }
 
+  set isIdentifying(isIdentifying: boolean) {
+    this._isIdentifying = isIdentifying;
+  }
+
+  get isIdentifying(): boolean {
+    return this._isIdentifying;
+  }
+
   centerOnAnnotation(id: string) {
     this._zoomToAnnotationSignal.emit(id);
   }
@@ -611,10 +619,6 @@ export class JupyterGISModel implements IJupyterGISModel {
         updatedLayerTree[layerTreeInfo.mainGroupIndex]
       );
     }
-  }
-
-  get isIdentifying(): boolean {
-    return this._isIdentifying;
   }
 
   toggleIdentify() {
