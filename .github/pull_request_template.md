@@ -9,6 +9,7 @@ What does this PR change? Why?
 ## Checklist
 
 - [ ] PR has a descriptive title and content.
+- [ ] PR description contains [linkages](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) to any issues the PR resolves, e.g. `Resolves #XXX`.
 - [ ] PR has one of the labels: documentation, bug, enhancement, feature, maintenance
 - [ ] Checks are passing.
       Failing lint checks can be resolved with:
