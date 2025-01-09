@@ -222,6 +222,17 @@ export class MainView extends React.Component<IProps, IStates> {
       const selectInteraction = new Select({
         hitTolerance: 5,
         multi: true,
+        layers: layer => {
+          const localState = this._model?.sharedModel.awareness.getLocalState();
+          const selectedLayers = localState?.selected?.value;
+
+          if (!selectedLayers) {
+            return false;
+          }
+          const selectedLayerId = Object.keys(selectedLayers)[0];
+
+          return layer === this.getLayer(selectedLayerId);
+        },
         condition: (event: MapBrowserEvent<any>) => {
           return singleClick(event) && this._model.isIdentifying;
         },
@@ -1398,8 +1409,8 @@ export class MainView extends React.Component<IProps, IStates> {
       console.warn('Layer must be selected to use identify tool');
       return;
     }
-    const layerId = Object.keys(selectedLayer)[0];
 
+    const layerId = Object.keys(selectedLayer)[0];
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
