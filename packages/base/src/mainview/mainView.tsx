@@ -240,13 +240,13 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       selectInteraction.on('select', event => {
-        const featureValues: IDict<any> = [];
+        const identifiedFeatures: IDict<any> = [];
         selectInteraction.getFeatures().forEach(feature => {
-          featureValues.push(feature.getProperties());
+          identifiedFeatures.push(feature.getProperties());
         });
 
         this._model.syncIdentifiedFeatures(
-          featureValues,
+          identifiedFeatures,
           this._mainViewModel.id
         );
       });
@@ -1393,15 +1393,12 @@ export class MainView extends React.Component<IProps, IStates> {
 
     const localState = this._model?.sharedModel.awareness.getLocalState();
     const selectedLayer = localState?.selected?.value;
-    let layerId;
 
-    // Use top layer if no layer selected
-    if (selectedLayer) {
-      // TODO: Handle multiple selected layers better
-      layerId = Object.keys(selectedLayer)[0];
-    } else {
-      layerId = JupyterGISModel.getOrderedLayerIds(this._model).reverse()[0];
+    if (!selectedLayer) {
+      console.warn('Layer must be selected to use identify tool');
+      return;
     }
+    const layerId = Object.keys(selectedLayer)[0];
 
     const jgisLayer = this._model.getLayer(layerId);
 
