@@ -72,7 +72,7 @@ import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
-import { Circle, Fill, Style } from 'ol/style';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { singleClick } from 'ol/events/condition';
 
 interface IProps {
@@ -229,7 +229,11 @@ export class MainView extends React.Component<IProps, IStates> {
           image: new Circle({
             radius: 5,
             fill: new Fill({
-              color: '#f37626'
+              color: '#C52707'
+            }),
+            stroke: new Stroke({
+              color: '#171717',
+              width: 2
             })
           })
         })
