@@ -13,8 +13,6 @@ The `jlpm` command is JupyterLab's pinned version of
 git clone https://github.com/geojupyter/jupytergis.git
 # Change directory to the jupytergis directory
 cd jupytergis
-# Install JupyterLab for jlpm
-pip install jupyterlab
 # Install package in development mode
 python scripts/dev-install.py
 ```
