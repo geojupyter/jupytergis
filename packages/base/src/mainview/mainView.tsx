@@ -410,12 +410,12 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'GeoJSONSource': {
         const data =
           source.parameters?.data ||
-          await loadFile({
+          (await loadFile({
             filepath: source.parameters?.path,
             type: 'GeoJSONSource',
             contentsManager: this._model.getContentsManager(),
             filePath: this._model.getFilePath()
-          });
+          }));
 
         const format = new GeoJSON({
           featureProjection: this._Map.getView().getProjection()

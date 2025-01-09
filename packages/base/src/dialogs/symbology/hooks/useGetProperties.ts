@@ -36,9 +36,7 @@ export const useGetProperties = ({
         throw new Error('Source not found');
       }
 
-      const data = await loadFile(
-        source.parameters?.path,
-      );
+      const data = await loadFile(source.parameters?.path);
 
       if (!data) {
         throw new Error('Failed to read GeoJSON data');

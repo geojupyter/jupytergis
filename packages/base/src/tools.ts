@@ -479,7 +479,9 @@ export const loadFile = async (fileInfo: {
 
       case 'ShapefileSource': {
         try {
-          const response = await fetch(`/jupytergis_core/proxy?url=${filepath}`);
+          const response = await fetch(
+            `/jupytergis_core/proxy?url=${filepath}`
+          );
           const arrayBuffer = await response.arrayBuffer();
           const geojson = await shp(arrayBuffer);
           return geojson;
@@ -575,7 +577,9 @@ export const getMimeType = (filename: string): string => {
  * @param content - File content as a base64 string.
  * @returns An ArrayBuffer.
  */
-export const stringToArrayBuffer = async (content: string): Promise<ArrayBuffer> => {
+export const stringToArrayBuffer = async (
+  content: string
+): Promise<ArrayBuffer> => {
   const base64Response = await fetch(
     `data:application/octet-stream;base64,${content}`
   );
