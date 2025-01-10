@@ -42,7 +42,7 @@ import {
 } from 'ol/layer';
 import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
-import { fromLonLat, toLonLat } from 'ol/proj';
+import { fromLonLat, toLonLat, transformExtent } from 'ol/proj';
 import Feature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -1404,17 +1404,17 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
-    // annotation?
+    // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
       this._moveToPosition(annotation.position, annotation.zoom);
+      return;
     }
 
-    // layer?
-    const olLayer = this.getLayer(id) as Layer;
-    const source = olLayer?.getSource();
-
+    // The id is a layer
     let extent;
+    const layer = this.getLayer(id) as Layer;
+    const source = layer?.getSource();
 
     if (source instanceof VectorSource) {
       extent = source.getExtent();
@@ -1426,15 +1426,24 @@ export class MainView extends React.Component<IProps, IStates> {
       extent = tileGrid?.getExtent();
     }
 
-    if (extent) {
-      this._Map.getView().fit(extent, {
-        size: this._Map.getSize(), // Ensure the map view fits within the map size
-        maxZoom: 16, // Optional: Set a maximum zoom level
-        duration: 500
-      });
-    } else {
+    if (!extent) {
       console.warn('Layer has no extent.');
+      return;
     }
+
+    // Convert layer extent value to view projection if needed
+    const sourceProjection = source?.getProjection();
+    const viewProjection = this._Map.getView().getProjection();
+
+    const transformedExtent =
+      sourceProjection && sourceProjection !== viewProjection
+        ? transformExtent(extent, sourceProjection, viewProjection)
+        : extent;
+
+    this._Map.getView().fit(transformedExtent, {
+      size: this._Map.getSize(),
+      duration: 500
+    });
   }
 
   private _moveToPosition(
