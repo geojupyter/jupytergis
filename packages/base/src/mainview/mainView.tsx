@@ -29,10 +29,10 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { Collection, Map as OlMap, View } from 'ol';
+import { Collection, MapBrowserEvent, Map as OlMap, View } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
-import DragAndDrop from 'ol/interaction/DragAndDrop';
+import { DragAndDrop, Select } from 'ol/interaction';
 import {
   Image as ImageLayer,
   Layer,
@@ -72,6 +72,8 @@ import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+import { singleClick } from 'ol/events/condition';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -179,6 +181,7 @@ export class MainView extends React.Component<IProps, IStates> {
         controls: [new ScaleLine()]
       });
 
+      // Add map interactions
       const dragAndDropInteraction = new DragAndDrop({
         formatConstructors: [GeoJSON]
       });
@@ -215,6 +218,51 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.addInteraction(dragAndDropInteraction);
+
+      const selectInteraction = new Select({
+        hitTolerance: 5,
+        multi: true,
+        layers: layer => {
+          const localState = this._model?.sharedModel.awareness.getLocalState();
+          const selectedLayers = localState?.selected?.value;
+
+          if (!selectedLayers) {
+            return false;
+          }
+          const selectedLayerId = Object.keys(selectedLayers)[0];
+
+          return layer === this.getLayer(selectedLayerId);
+        },
+        condition: (event: MapBrowserEvent<any>) => {
+          return singleClick(event) && this._model.isIdentifying;
+        },
+        style: new Style({
+          image: new Circle({
+            radius: 5,
+            fill: new Fill({
+              color: '#C52707'
+            }),
+            stroke: new Stroke({
+              color: '#171717',
+              width: 2
+            })
+          })
+        })
+      });
+
+      selectInteraction.on('select', event => {
+        const identifiedFeatures: IDict<any> = [];
+        selectInteraction.getFeatures().forEach(feature => {
+          identifiedFeatures.push(feature.getProperties());
+        });
+
+        this._model.syncIdentifiedFeatures(
+          identifiedFeatures,
+          this._mainViewModel.id
+        );
+      });
+
+      this._Map.addInteraction(selectInteraction);
 
       const view = this._Map.getView();
 
@@ -275,6 +323,8 @@ export class MainView extends React.Component<IProps, IStates> {
           ...updatedOptions
         });
       });
+
+      this._Map.on('click', this._identifyFeature.bind(this));
 
       this._Map
         .getViewport()
@@ -1348,6 +1398,52 @@ export class MainView extends React.Component<IProps, IStates> {
     };
     this._model.syncPointer(pointer);
   });
+
+  private _identifyFeature(e: MapBrowserEvent<any>) {
+    if (!this._model.isIdentifying) {
+      return;
+    }
+
+    const localState = this._model?.sharedModel.awareness.getLocalState();
+    const selectedLayer = localState?.selected?.value;
+
+    if (!selectedLayer) {
+      console.warn('Layer must be selected to use identify tool');
+      return;
+    }
+
+    const layerId = Object.keys(selectedLayer)[0];
+    const jgisLayer = this._model.getLayer(layerId);
+
+    switch (jgisLayer?.type) {
+      case 'WebGlLayer': {
+        const layer = this.getLayer(layerId) as WebGlTileLayer;
+        const data = layer.getData(e.pixel);
+
+        // TODO: Handle dataviews?
+        if (!data || data instanceof DataView) {
+          return;
+        }
+
+        const bandValues: IDict<number> = {};
+
+        // Data is an array of band values
+        for (let i = 0; i < data.length - 1; i++) {
+          bandValues[`Band ${i + 1}`] = data[i];
+        }
+
+        // last element is alpha
+        bandValues['Alpha'] = data[data.length - 1];
+
+        this._model.syncIdentifiedFeatures(
+          [bandValues],
+          this._mainViewModel.id
+        );
+
+        break;
+      }
+    }
+  }
 
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();

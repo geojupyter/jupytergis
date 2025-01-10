@@ -29,7 +29,8 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   ISelection,
-  IUserData
+  IUserData,
+  IDict
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
 import { Contents } from '@jupyterlab/services';
@@ -156,6 +157,14 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get zoomToAnnotationSignal(): ISignal<this, string> {
     return this._zoomToAnnotationSignal;
+  }
+
+  set isIdentifying(isIdentifying: boolean) {
+    this._isIdentifying = isIdentifying;
+  }
+
+  get isIdentifying(): boolean {
+    return this._isIdentifying;
   }
 
   centerOnAnnotation(id: string) {
@@ -390,21 +399,28 @@ export class JupyterGISModel implements IJupyterGISModel {
   syncViewport(viewport?: IViewPortState, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('viewportState', {
       value: viewport,
-      emitter: emitter
+      emitter
     });
   }
 
   syncPointer(pointer?: Pointer, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('pointer', {
       value: pointer,
-      emitter: emitter
+      emitter
     });
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('selected', {
       value,
-      emitter: emitter
+      emitter
+    });
+  }
+
+  syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
+      value: features,
+      emitter
     });
   }
 
@@ -605,6 +621,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
+  toggleIdentify() {
+    this._isIdentifying = !this._isIdentifying;
+  }
+
   private _getLayerTreeInfo(groupName: string):
     | {
         mainGroup: IJGISLayerGroup;
@@ -677,6 +697,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   >(this);
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
   private _zoomToAnnotationSignal = new Signal<this, string>(this);
+
+  private _isIdentifying = false;
 
   static worker: Worker;
 }

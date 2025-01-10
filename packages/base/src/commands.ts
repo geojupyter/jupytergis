@@ -19,6 +19,7 @@ import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import { JupyterGISWidget } from './widget';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 
 interface ICreateEntry {
   tracker: WidgetTracker<JupyterGISWidget>;
@@ -91,7 +92,7 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: args => {
+    execute: () => {
       const current = tracker.currentWidget;
 
       if (current) {
@@ -108,7 +109,7 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: args => {
+    execute: () => {
       const current = tracker.currentWidget;
 
       if (current) {
@@ -116,6 +117,43 @@ export function addCommands(
       }
     },
     ...icons.get(CommandIDs.undo)
+  });
+
+  commands.addCommand(CommandIDs.identify, {
+    label: trans.__('Identify'),
+    isToggled: () => {
+      return tracker.currentWidget?.context.model.isIdentifying || false;
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: args => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const luminoEvent = args['_luminoEvent'] as
+        | ReadonlyPartialJSONObject
+        | undefined;
+
+      if (luminoEvent) {
+        const keysPressed = luminoEvent.keys as string[] | undefined;
+        if (keysPressed?.includes('Escape')) {
+          current.context.model.isIdentifying = false;
+          current.node.classList.remove('jGIS-identify-tool');
+          commands.notifyCommandChanged(CommandIDs.identify);
+          return;
+        }
+      }
+
+      current.node.classList.toggle('jGIS-identify-tool');
+      current.context.model.toggleIdentify();
+      commands.notifyCommandChanged(CommandIDs.identify);
+    },
+    ...icons.get(CommandIDs.identify)
   });
 
   /**
