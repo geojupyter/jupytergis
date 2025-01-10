@@ -321,7 +321,7 @@ class GISDocument(CommWidget):
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
 
         layer = {
-            "type": LayerType.RasterLayer,
+            "type": LayerType.ImageLayer,
             "name": name,
             "visible": True,
             "parameters": {"source": source_id, "opacity": opacity},
