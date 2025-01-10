@@ -662,3 +662,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 .jGIS-property-panel .jp-select-wrapper select {
   background-image: unset !important;
 }
+
+.lm-TabBar-tabIcon .jgis-main-logo[fill] {
+  fill: var(--jp-inverse-layout-color3);
+}
