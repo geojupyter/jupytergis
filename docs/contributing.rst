@@ -64,9 +64,6 @@ Install dependencies and build
 
 .. code-block:: bash
 
-    # Install JupyterLab for jlpm
-    python -m pip install jupyterlab
-
     # Install packages in development mode.
     # WARNING: This step may hang indefinitely due to a bug in Nx. See
     #          troubleshooting below.
