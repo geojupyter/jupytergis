@@ -10,6 +10,9 @@ jobs:
   build:
     name: Build jupytergis
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.10, 3.11, 3.12, 3.13]
 
     steps:
       - name: Checkout
@@ -20,7 +23,7 @@ jobs:
         with:
           environment-name: gis
           create-args: >-
-            python=3.9
+            python=${{ matrix.python-version }}
             jupyterlab=4
             yarn=3
             pillow
@@ -31,9 +34,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-3.9-${{ hashFiles('package.json') }}
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
           restore-keys: |
-            pip-3.9-
+            pip-${{ matrix.python-version }}-
             pip-
 
       - name: Get yarn cache directory path
@@ -77,6 +80,9 @@ jobs:
 
   python_tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.10, 3.11, 3.12, 3.13]
 
     steps:
       - name: Install Conda environment with Micromamba
@@ -84,7 +90,7 @@ jobs:
         with:
           environment-name: gis
           create-args: >-
-            python=3.9
+            python=${{ matrix.python-version }}
             jupyterlab=4
             yarn=3
             qgis
