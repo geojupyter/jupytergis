@@ -29,7 +29,7 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { Collection, MapBrowserEvent, Map as OlMap, View } from 'ol';
+import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
 import { DragAndDrop, Select } from 'ol/interaction';
@@ -488,6 +488,10 @@ export class MainView extends React.Component<IProps, IStates> {
         });
 
         const featureCollection = new Collection(featureArray);
+
+        featureCollection.forEach(feature => {
+          feature.setId(getUid(feature));
+        });
 
         newSource = new VectorSource({
           features: featureCollection
