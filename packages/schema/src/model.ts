@@ -29,7 +29,8 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   ISelection,
-  IUserData
+  IUserData,
+  IDict
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
 import { Contents } from '@jupyterlab/services';
@@ -156,6 +157,14 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get zoomToAnnotationSignal(): ISignal<this, string> {
     return this._zoomToAnnotationSignal;
+  }
+
+  set isIdentifying(isIdentifying: boolean) {
+    this._isIdentifying = isIdentifying;
+  }
+
+  get isIdentifying(): boolean {
+    return this._isIdentifying;
   }
 
   centerOnAnnotation(id: string) {
@@ -373,21 +382,28 @@ export class JupyterGISModel implements IJupyterGISModel {
   syncViewport(viewport?: IViewPortState, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('viewportState', {
       value: viewport,
-      emitter: emitter
+      emitter
     });
   }
 
   syncPointer(pointer?: Pointer, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('pointer', {
       value: pointer,
-      emitter: emitter
+      emitter
     });
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('selected', {
       value,
-      emitter: emitter
+      emitter
+    });
+  }
+
+  syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
+      value: features,
+      emitter
     });
   }
 
@@ -506,22 +522,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     layerTree: IJGISLayerItem[],
     layerIdToRemove: string
   ) {
-    // Iterate over each item in the layerTree
-    for (let i = 0; i < layerTree.length; i++) {
-      const currentItem = layerTree[i];
-
-      // Check if the current item is a string and matches the target
-      if (typeof currentItem === 'string' && currentItem === layerIdToRemove) {
-        // Remove the item from the array
-        layerTree.splice(i, 1);
-        // Decrement i to ensure the next iteration processes the remaining items correctly
-        i--;
-      } else if (typeof currentItem !== 'string' && 'layers' in currentItem) {
-        // If the current item is a group, recursively call the function on its layers
-        this._removeLayerTreeLayer(currentItem.layers, layerIdToRemove);
-      }
-    }
-
+    this._removeLayerTreeItem(layerTree, layerIdToRemove, true);
     this.sharedModel.layerTree = layerTree;
   }
 
@@ -529,23 +530,33 @@ export class JupyterGISModel implements IJupyterGISModel {
     layerTree: IJGISLayerItem[],
     groupName: string
   ) {
+    this._removeLayerTreeItem(layerTree, groupName, false);
+    this.sharedModel.layerTree = layerTree;
+  }
+
+  private _removeLayerTreeItem(
+    layerTree: IJGISLayerItem[],
+    target: string,
+    isLayer: boolean
+  ) {
     // Iterate over each item in the layerTree
     for (let i = 0; i < layerTree.length; i++) {
       const currentItem = layerTree[i];
+      const matches = isLayer
+        ? typeof currentItem === 'string' && currentItem === target
+        : typeof currentItem !== 'string' && currentItem.name === target;
 
       // Check if the current item is a string and matches the target
-      if (typeof currentItem !== 'string' && currentItem.name === groupName) {
+      if (matches) {
         // Remove the item from the array
         layerTree.splice(i, 1);
         // Decrement i to ensure the next iteration processes the remaining items correctly
         i--;
       } else if (typeof currentItem !== 'string' && 'layers' in currentItem) {
         // If the current item is a group, recursively call the function on its layers
-        this._removeLayerTreeGroup(currentItem.layers, groupName);
+        this._removeLayerTreeItem(currentItem.layers, target, isLayer);
       }
     }
-
-    this.sharedModel.layerTree = layerTree;
   }
 
   renameLayerGroup(groupName: string, newName: string): void {
@@ -591,6 +602,10 @@ export class JupyterGISModel implements IJupyterGISModel {
         updatedLayerTree[layerTreeInfo.mainGroupIndex]
       );
     }
+  }
+
+  toggleIdentify() {
+    this._isIdentifying = !this._isIdentifying;
   }
 
   private _getLayerTreeInfo(groupName: string):
@@ -665,6 +680,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   >(this);
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
   private _zoomToAnnotationSignal = new Signal<this, string>(this);
+
+  private _isIdentifying = false;
 
   static worker: Worker;
 }

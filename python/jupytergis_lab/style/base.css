@@ -639,6 +639,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   right: 0;
   display: block;
 }
+
 .jGIS-property-panel
   .jp-FormGroup-content
   fieldset
@@ -659,6 +660,74 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   outline: none;
   appearance: none;
 }
+
 .jGIS-property-panel .jp-select-wrapper select {
   background-image: unset !important;
+}
+
+.lm-TabBar-tabIcon .jgis-main-logo[fill] {
+  fill: var(--jp-inverse-layout-color3);
+}
+
+.jGIS-identify-tool {
+  cursor: crosshair;
+}
+
+.jgis-identify-grid-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  position: relative;
+  gap: 1px;
+}
+
+.jgis-identify-grid-item-header {
+  display: flex;
+  grid-column: span 2;
+  font-weight: bold;
+  font-size: var(--jp-ui-font-size1);
+  padding: 2px 0;
+  cursor: pointer;
+  margin: 0 5px;
+  line-height: 25px;
+}
+
+.jgis-identify-grid-item:not(:last-of-type)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  border-bottom: 1px solid var(--jp-border-color0);
+}
+
+.jgis-identify-grid-body {
+  display: contents;
+}
+
+.jgis-identify-grid-body span a:link {
+  color: var(--jp-content-link-color);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.jgis-identify-grid-body span a:visited {
+  color: var(--jp-content-link-visited-color);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.jgis-identify-grid-body strong {
+  grid-column: 1;
+  text-transform: capitalize;
+  margin-left: 21px;
+}
+
+.jgis-identify-grid-body span {
+  grid-column: 2;
+}
+
+.jgis-identify-grid-body:last-of-type strong:last-of-type {
+  padding-bottom: 8px;
 }

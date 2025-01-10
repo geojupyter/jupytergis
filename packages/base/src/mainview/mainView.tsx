@@ -29,10 +29,10 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { Collection, Map as OlMap, View } from 'ol';
+import { Collection, MapBrowserEvent, Map as OlMap, View } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
-import DragAndDrop from 'ol/interaction/DragAndDrop';
+import { DragAndDrop, Select } from 'ol/interaction';
 import {
   Image as ImageLayer,
   Layer,
@@ -72,6 +72,8 @@ import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { loadFile } from '../tools';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+import { singleClick } from 'ol/events/condition';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -179,6 +181,7 @@ export class MainView extends React.Component<IProps, IStates> {
         controls: [new ScaleLine()]
       });
 
+      // Add map interactions
       const dragAndDropInteraction = new DragAndDrop({
         formatConstructors: [GeoJSON]
       });
@@ -210,11 +213,56 @@ export class MainView extends React.Component<IProps, IStates> {
           }
         };
 
-        this.addLayer(layerId, layerModel, this.getLayers().length);
+        this.addLayer(layerId, layerModel, this.getLayerIDs().length);
         this._model.addLayer(layerId, layerModel);
       });
 
       this._Map.addInteraction(dragAndDropInteraction);
+
+      const selectInteraction = new Select({
+        hitTolerance: 5,
+        multi: true,
+        layers: layer => {
+          const localState = this._model?.sharedModel.awareness.getLocalState();
+          const selectedLayers = localState?.selected?.value;
+
+          if (!selectedLayers) {
+            return false;
+          }
+          const selectedLayerId = Object.keys(selectedLayers)[0];
+
+          return layer === this.getLayer(selectedLayerId);
+        },
+        condition: (event: MapBrowserEvent<any>) => {
+          return singleClick(event) && this._model.isIdentifying;
+        },
+        style: new Style({
+          image: new Circle({
+            radius: 5,
+            fill: new Fill({
+              color: '#C52707'
+            }),
+            stroke: new Stroke({
+              color: '#171717',
+              width: 2
+            })
+          })
+        })
+      });
+
+      selectInteraction.on('select', event => {
+        const identifiedFeatures: IDict<any> = [];
+        selectInteraction.getFeatures().forEach(feature => {
+          identifiedFeatures.push(feature.getProperties());
+        });
+
+        this._model.syncIdentifiedFeatures(
+          identifiedFeatures,
+          this._mainViewModel.id
+        );
+      });
+
+      this._Map.addInteraction(selectInteraction);
 
       const view = this._Map.getView();
 
@@ -275,6 +323,8 @@ export class MainView extends React.Component<IProps, IStates> {
           ...updatedOptions
         });
       });
+
+      this._Map.on('click', this._identifyFeature.bind(this));
 
       this._Map
         .getViewport()
@@ -598,21 +648,57 @@ export class MainView extends React.Component<IProps, IStates> {
     this._updateLayersImpl(layerIds);
   }
 
+  /**
+   * Updates the position and existence of layers in the OL map based on the layer IDs.
+   *
+   * @param layerIds - An array of layer IDs that should be present on the map.
+   * @returns {} Nothing is returned.
+   */
   private async _updateLayersImpl(layerIds: string[]): Promise<void> {
-    const mapLayers: BaseLayer[] = [];
-    for (const layerId of layerIds) {
+    // get layers that are currently on the OL map
+    const previousLayerIds = this.getLayerIDs();
+
+    // Iterate over the new layer IDs:
+    //   * Add layers to the map that are present in the list but not the map.
+    //   * Remove layers from the map that are present in the map but not the list.
+    //   * Update layer positions to match the list.
+    for (
+      let targetLayerPosition = 0;
+      targetLayerPosition < layerIds.length;
+      targetLayerPosition++
+    ) {
+      const layerId = layerIds[targetLayerPosition];
       const layer = this._model.sharedModel.getLayer(layerId);
 
       if (!layer) {
-        console.log(`Layer id ${layerId} does not exist`);
+        console.warn(
+          `Layer with ID ${layerId} does not exist in the shared model.`
+        );
         continue;
       }
-      const newMapLayer = await this._buildMapLayer(layerId, layer);
-      if (newMapLayer !== undefined) {
-        mapLayers.push(newMapLayer);
+
+      const mapLayer = this.getLayer(layerId);
+
+      if (mapLayer !== undefined) {
+        this.moveLayer(layerId, targetLayerPosition);
+      } else {
+        await this.addLayer(layerId, layer, targetLayerPosition);
+      }
+
+      const previousIndex = previousLayerIds.indexOf(layerId);
+      if (previousIndex > -1) {
+        previousLayerIds.splice(previousIndex, 1);
       }
     }
-    this._Map.setLayers(mapLayers);
+
+    // Remove layers that are no longer in the `layerIds` list.
+    previousLayerIds.forEach(layerId => {
+      const layer = this.getLayer(layerId);
+      if (layer !== undefined) {
+        this._Map.removeLayer(layer);
+      }
+    });
+
     this._ready = true;
   }
 
@@ -1107,13 +1193,48 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   /**
+   * Convenience method to get a specific layer index from OpenLayers Map
+   * @param id Layer to retrieve
+   */
+  private getLayerIndex(id: string) {
+    return this._Map
+      .getLayers()
+      .getArray()
+      .findIndex(layer => layer.get('id') === id);
+  }
+
+  /**
    * Convenience method to get list layer IDs from the OpenLayers Map
    */
-  private getLayers() {
+  private getLayerIDs(): string[] {
     return this._Map
       .getLayers()
       .getArray()
       .map(layer => layer.get('id'));
+  }
+
+  /**
+   * Move layer `id` in the stack to `index`.
+   *
+   * @param id - id of the layer.
+   * @param index - expected index of the layer.
+   */
+  moveLayer(id: string, index: number): void {
+    const currentIndex = this.getLayerIndex(id);
+    if (currentIndex === index || currentIndex === -1) {
+      return;
+    }
+    const layer = this.getLayer(id);
+    let nextIndex = index;
+    // should not be undefined since the id exists above
+    if (layer === undefined) {
+      return;
+    }
+    this._Map.getLayers().removeAt(currentIndex);
+    if (currentIndex < index) {
+      nextIndex -= 1;
+    }
+    this._Map.getLayers().insertAt(nextIndex, layer);
   }
 
   private _onLayersChanged(
@@ -1282,6 +1403,52 @@ export class MainView extends React.Component<IProps, IStates> {
     };
     this._model.syncPointer(pointer);
   });
+
+  private _identifyFeature(e: MapBrowserEvent<any>) {
+    if (!this._model.isIdentifying) {
+      return;
+    }
+
+    const localState = this._model?.sharedModel.awareness.getLocalState();
+    const selectedLayer = localState?.selected?.value;
+
+    if (!selectedLayer) {
+      console.warn('Layer must be selected to use identify tool');
+      return;
+    }
+
+    const layerId = Object.keys(selectedLayer)[0];
+    const jgisLayer = this._model.getLayer(layerId);
+
+    switch (jgisLayer?.type) {
+      case 'WebGlLayer': {
+        const layer = this.getLayer(layerId) as WebGlTileLayer;
+        const data = layer.getData(e.pixel);
+
+        // TODO: Handle dataviews?
+        if (!data || data instanceof DataView) {
+          return;
+        }
+
+        const bandValues: IDict<number> = {};
+
+        // Data is an array of band values
+        for (let i = 0; i < data.length - 1; i++) {
+          bandValues[`Band ${i + 1}`] = data[i];
+        }
+
+        // last element is alpha
+        bandValues['Alpha'] = data[data.length - 1];
+
+        this._model.syncIdentifiedFeatures(
+          [bandValues],
+          this._mainViewModel.id
+        );
+
+        break;
+      }
+    }
+  }
 
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
