@@ -33,7 +33,7 @@ dynamic = ["version", "description", "authors", "urls", "keywords"]
 license = {file = "LICENSE"}
 name = "jupytergis_qgis"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 
 [tool.hatch.version]
 source = "nodejs"

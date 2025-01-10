@@ -27,7 +27,7 @@ dynamic = ["version", "description", "authors", "urls", "keywords"]
 license = {file = "LICENSE"}
 name = "jupytergis_core"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 
 [project.entry-points.jupyter_ydoc]
 jgis = "jupytergis_core.jgis_ydoc:YJGIS"
