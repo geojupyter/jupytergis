@@ -2,6 +2,8 @@ import { expect, IJupyterLabPageFixture, test } from '@jupyterlab/galata';
 import * as path from 'path';
 const klaw = require('klaw-sync');
 
+const FILENAME = 'eq.json';
+
 const testCellOutputs = async (
   page: IJupyterLabPageFixture,
   tmpPath: string,
@@ -64,6 +66,10 @@ test.describe('Notebook API Visual Regression', () => {
     await page.contents.uploadDirectory(
       path.resolve(__dirname, './notebooks'),
       tmpPath
+    );
+    await page.contents.uploadFile(
+      path.resolve(__dirname, `./gis-files/${FILENAME}`),
+      `/${tmpPath}/${FILENAME}`
     );
     await page.filebrowser.openDirectory(tmpPath);
   });
