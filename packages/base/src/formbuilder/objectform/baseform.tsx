@@ -8,6 +8,7 @@ import { Signal } from '@lumino/signaling';
 import { deepCopy } from '../../tools';
 import { IDict } from '../../types';
 import { Slider, SliderLabel } from '@jupyter/react-components';
+import { FileSelectorWidget } from './fileselectorwidget';
 
 export interface IBaseFormStates {
   schema?: IDict;
@@ -66,6 +67,12 @@ export interface IBaseFormProps {
    * extra errors or not.
    */
   formErrorSignal?: Signal<Dialog<any>, boolean>;
+
+  /**
+   * Configuration options for the dialog, including settings for layer data, source data,
+   * and other form-related parameters.
+   */
+  dialogOptions?: any;
 }
 
 const WrappedFormComponent = (props: any): JSX.Element => {
@@ -194,6 +201,20 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
         if (this.props.formContext === 'update') {
           this.removeFormEntry(k, data, schema, uiSchema);
         }
+      }
+
+      // Customize the widget for path field
+      if (schema.properties && schema.properties.path) {
+        const docManager =
+          this.props.formChangedSignal?.sender.props.formSchemaRegistry.getDocManager();
+
+        uiSchema.path = {
+          'ui:widget': FileSelectorWidget,
+          'ui:options': {
+            docManager,
+            formOptions: this.props
+          }
+        };
       }
     });
   }

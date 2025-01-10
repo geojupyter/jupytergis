@@ -11,6 +11,7 @@ import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 import { Contents, User } from '@jupyterlab/services';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel } from '@lumino/widgets';
+import { IDocumentManager } from '@jupyterlab/docmanager';
 
 import {
   IJGISContent,
@@ -246,6 +247,8 @@ export interface IJGISFormSchemaRegistry {
    * @memberof IJGISFormSchemaRegistry
    */
   has(name: string): boolean;
+
+  getDocManager(): IDocumentManager;
 }
 
 export interface IJGISExternalCommand {
