@@ -9,19 +9,9 @@
       "type": "string",
       "description": "The url to the tile provider"
     },
-    "tileSize": {
-      "type": "number",
-      "description": " The tile size",
-      "default": 512
-    },
     "attribution": {
       "type": "string",
       "description": "The attribution for the raster-dem source"
-    },
-    "encoding": {
-      "type": "string",
-      "enum": ["terrarium", "mapbox"],
-      "default": "mapbox"
     },
     "urlParameters": {
       "type": "object",

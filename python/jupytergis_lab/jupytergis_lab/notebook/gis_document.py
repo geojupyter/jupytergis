@@ -23,6 +23,7 @@ from .objects import (
     IVectorTileSource,
     IVideoSource,
     IWebGlLayer,
+    IRasterDemSource,
     LayerType,
     SourceType,
 )
@@ -414,6 +415,41 @@ class GISDocument(CommWidget):
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
+    def add_hillshade_layer(
+        self,
+        url: str,
+        name: str = "Hillshade Layer",
+        urlParameters: Dict = {},
+        attribution: str = "",
+    ):
+        """
+        Add a hillshade layer
+
+        :param str url: URL of the hillshade layer
+        :param str name: The name that will be used for the object in the document, defaults to "Hillshade Layer"
+        :param attribution: The attribution.
+        """
+
+        source = {
+            "type": SourceType.RasterDemSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "attribution": attribution,
+                "urlParameters": urlParameters,
+            },
+        }
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.HillshadeLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {"source": source_id},
+        }
+
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
     def create_color_expr(
         self,
         color_stops: Dict,
@@ -655,6 +691,7 @@ class JGISSource(BaseModel):
         IImageSource,
         IVideoSource,
         IGeoTiffSource,
+        IRasterDemSource,
     ]
     _parent = Optional[GISDocument]
 
@@ -740,3 +777,4 @@ OBJECT_FACTORY.register_factory(SourceType.GeoJSONSource, IGeoJSONSource)
 OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)
 OBJECT_FACTORY.register_factory(SourceType.VideoSource, IVideoSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoTiffSource, IGeoTiffSource)
+OBJECT_FACTORY.register_factory(SourceType.RasterDemSource, IRasterDemSource)
