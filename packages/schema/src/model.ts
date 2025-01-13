@@ -5,7 +5,6 @@ import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 
-// import GeoTIFF from 'geotiff';
 import {
   IJGISContent,
   IJGISLayer,
