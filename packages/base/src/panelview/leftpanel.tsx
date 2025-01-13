@@ -37,6 +37,7 @@ export class LeftPanelWidget extends SidePanel {
   constructor(options: LeftPanelWidget.IOptions) {
     super();
     this.addClass('jGIS-sidepanel-widget');
+
     this._model = options.model;
     this._state = options.state;
 
