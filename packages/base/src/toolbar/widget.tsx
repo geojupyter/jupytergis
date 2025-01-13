@@ -47,6 +47,12 @@ export class ToolbarWidget extends ReactiveToolbar {
         })
       );
 
+      options.commands.addKeyBinding({
+        command: CommandIDs.undo,
+        keys: ['Accel Z'],
+        selector: '#main'
+      });
+
       this.addItem(
         'redo',
         new CommandToolbarButton({
@@ -56,6 +62,12 @@ export class ToolbarWidget extends ReactiveToolbar {
           commands: options.commands
         })
       );
+
+      options.commands.addKeyBinding({
+        command: CommandIDs.redo,
+        keys: ['Accel Shift Z'],
+        selector: '#main'
+      });
 
       this.addItem('separator0', new Separator());
 
