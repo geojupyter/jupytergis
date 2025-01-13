@@ -463,8 +463,8 @@ export class MainView extends React.Component<IProps, IStates> {
           (await loadFile({
             filepath: source.parameters?.path,
             type: 'GeoJSONSource',
-            contentsManager: this._model.getContentsManager(),
-            filePath: this._model.getFilePath()
+            contentsManager: this._model.contentsManager,
+            filePath: this._model.filePath
           }));
 
         const format = new GeoJSON({
@@ -491,8 +491,8 @@ export class MainView extends React.Component<IProps, IStates> {
         const geojson = await loadFile({
           filepath: parameters.path,
           type: 'ShapefileSource',
-          contentsManager: this._model.getContentsManager(),
-          filePath: this._model.getFilePath()
+          contentsManager: this._model.contentsManager,
+          filePath: this._model.filePath
         });
 
         const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
@@ -540,8 +540,8 @@ export class MainView extends React.Component<IProps, IStates> {
         const imageUrl = await loadFile({
           filepath: sourceParameters.url,
           type: 'ImageSource',
-          contentsManager: this._model.getContentsManager(),
-          filePath: this._model.getFilePath()
+          contentsManager: this._model.contentsManager,
+          filePath: this._model.filePath
         });
 
         newSource = new Static({

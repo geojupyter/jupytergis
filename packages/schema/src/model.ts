@@ -254,20 +254,33 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
-  setContentsManager(
-    value: Contents.IManager | undefined,
-    filePath: string
-  ): void {
-    this._contentsManager = value;
-    this._filePath = filePath;
-  }
-
-  getContentsManager() {
+  /**
+   * Getter for the contents manager.
+   */
+  get contentsManager(): Contents.IManager | undefined {
     return this._contentsManager;
   }
 
-  getFilePath() {
+  /**
+   * Setter for the contents manager.
+   * Also updates the file path.
+   */
+  set contentsManager(manager: Contents.IManager | undefined) {
+    this._contentsManager = manager;
+  }
+    
+  /**
+   * Getter for the file path associated with the contents manager.
+   */
+  get filePath(): string {
     return this._filePath;
+  }
+
+  /**
+   * Setter for the file path associated with the contents manager.
+   */
+  set filePath(path: string) {
+    this._filePath = path;
   }
 
   getLayers(): IJGISLayers {

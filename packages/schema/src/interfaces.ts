@@ -164,12 +164,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToAnnotationSignal: ISignal<IJupyterGISModel, string>;
 
-  setContentsManager(
-    value: Contents.IManager | undefined,
-    filePath: string
-  ): void;
-  getContentsManager(): Contents.IManager | undefined;
-  getFilePath(): string;
+  contentsManager: Contents.IManager | undefined;
+  filePath: string;
+
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
