@@ -268,7 +268,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   set contentsManager(manager: Contents.IManager | undefined) {
     this._contentsManager = manager;
   }
-    
+
   /**
    * Getter for the file path associated with the contents manager.
    */
