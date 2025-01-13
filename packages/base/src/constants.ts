@@ -78,12 +78,14 @@ const iconObject = {
   ImageSource: { iconClass: 'fa fa-image' },
   VideoSource: { iconClass: 'fa fa-video' },
   ShapefileSource: { iconClass: 'fa fa-file' },
+  GeoTiffSource: { iconClass: 'fa fa-gear' },
 
   RasterLayer: { icon: rasterIcon },
   VectorLayer: { iconClass: 'fa fa-vector-square' },
   HillshadeLayer: { icon: moundIcon },
   ImageLayer: { iconClass: 'fa fa-image' },
   VideoLayer: { iconClass: 'fa fa-video' },
+  WebGlLayer: { iconClass: 'fa fa-gear' },
 
   [CommandIDs.redo]: { icon: redoIcon },
   [CommandIDs.undo]: { icon: undoIcon },
@@ -95,7 +97,7 @@ const iconObject = {
   [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
   [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
-  [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
+  [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-gear' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
   [CommandIDs.identify]: { iconClass: 'fa fa-info' }
 };
