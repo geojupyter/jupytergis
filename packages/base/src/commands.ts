@@ -887,7 +887,7 @@ export function addCommands(
       }
 
       const layerId = Object.keys(selectedItems)[0];
-      model.centerOnAnnotation(layerId);
+      model.centerOnPosition(layerId);
     }
   });
 }

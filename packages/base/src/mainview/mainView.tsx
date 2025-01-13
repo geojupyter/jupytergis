@@ -121,7 +121,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onSharedMetadataChanged,
       this
     );
-    this._model.zoomToAnnotationSignal.connect(this._onZoomToAnnotation, this);
+    this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -1403,7 +1403,7 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
-  private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
+  private _onZoomToPosition(_: IJupyterGISModel, id: string) {
     // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
