@@ -466,7 +466,7 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
 export const loadFile = async (fileInfo: {
   filepath: string;
   type: IJGISSource['type'];
-  model: IJupyterGISModel
+  model: IJupyterGISModel;
 }) => {
   const { filepath, type, model } = fileInfo;
 
@@ -500,10 +500,15 @@ export const loadFile = async (fileInfo: {
     throw new Error('ContentsManager or filePath is not initialized.');
   }
 
-  const absolutePath = PathExt.resolve(PathExt.dirname(model.filePath), filepath);
+  const absolutePath = PathExt.resolve(
+    PathExt.dirname(model.filePath),
+    filepath
+  );
 
   try {
-    const file = await model.contentsManager.get(absolutePath, { content: true });
+    const file = await model.contentsManager.get(absolutePath, {
+      content: true
+    });
 
     if (!file.content) {
       throw new Error(`File at ${absolutePath} is empty or inaccessible.`);
@@ -683,7 +688,7 @@ export const MIME_TYPES: { [ext: string]: string } = {
   '.xul': 'text/xul',
   '.xwd': 'image/x-xwindowdump',
   '.zip': 'application/zip',
-  '.ipynb': 'application/json',
+  '.ipynb': 'application/json'
 };
 
 /**
