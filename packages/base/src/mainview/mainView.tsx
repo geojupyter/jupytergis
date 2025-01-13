@@ -579,8 +579,6 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     newSource.set('id', id);
-    console.log('Adding source', id, newSource);
-
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
   }
