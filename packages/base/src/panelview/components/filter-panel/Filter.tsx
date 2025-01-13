@@ -211,8 +211,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
         const data = await loadFile({
           filepath: source.parameters?.path,
           type: 'GeoJSONSource',
-          contentsManager: model.contentsManager,
-          filePath: model.filePath
+          model: model
         });
         data?.features.forEach((feature: GeoJSONFeature1) => {
           feature.properties &&

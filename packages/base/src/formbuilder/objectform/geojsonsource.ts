@@ -71,8 +71,7 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
         const geoJSONData = await loadFile({
           filepath: path,
           type: 'GeoJSONSource',
-          contentsManager: this.props.model.contentsManager,
-          filePath: this.props.model.filePath
+          model: this.props.model
         });
         valid = this._validate(geoJSONData);
         if (!valid) {

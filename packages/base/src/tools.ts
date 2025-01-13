@@ -13,9 +13,9 @@ import {
   IJGISLayerBrowserRegistry,
   IJGISOptions,
   IRasterLayerGalleryEntry,
-  IJGISSource
+  IJGISSource,
+  IJupyterGISModel
 } from '@jupytergis/schema';
-import { Contents } from '@jupyterlab/services';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
 import { getGdal } from './gdal';
 
@@ -466,10 +466,9 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
 export const loadFile = async (fileInfo: {
   filepath: string;
   type: IJGISSource['type'];
-  contentsManager?: Contents.IManager;
-  filePath?: string;
+  model: IJupyterGISModel
 }) => {
-  const { filepath, type, contentsManager, filePath } = fileInfo;
+  const { filepath, type, model } = fileInfo;
 
   if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
     switch (type) {
@@ -497,14 +496,14 @@ export const loadFile = async (fileInfo: {
     }
   }
 
-  if (!contentsManager || !filePath) {
+  if (!model.contentsManager || !model.filePath) {
     throw new Error('ContentsManager or filePath is not initialized.');
   }
 
-  const absolutePath = PathExt.resolve(PathExt.dirname(filePath), filepath);
+  const absolutePath = PathExt.resolve(PathExt.dirname(model.filePath), filepath);
 
   try {
-    const file = await contentsManager.get(absolutePath, { content: true });
+    const file = await model.contentsManager.get(absolutePath, { content: true });
 
     if (!file.content) {
       throw new Error(`File at ${absolutePath} is empty or inaccessible.`);
