@@ -12,7 +12,6 @@ import { Contents, User } from '@jupyterlab/services';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel } from '@lumino/widgets';
 
-import { GeoJSON } from './_interface/geojsonsource';
 import {
   IJGISContent,
   IJGISLayer,
@@ -164,10 +163,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToAnnotationSignal: ISignal<IJupyterGISModel, string>;
 
-  setContentsManager(
-    value: Contents.IManager | undefined,
-    filePath: string
-  ): void;
+  contentsManager: Contents.IManager | undefined;
+  filePath: string;
+
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
@@ -185,8 +183,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   removeLayer(id: string): void;
   getOptions(): IJGISOptions;
   setOptions(value: IJGISOptions): void;
-
-  readGeoJSON(filepath: string): Promise<GeoJSON | undefined>;
 
   removeLayerGroup(groupName: string): void;
   renameLayerGroup(groupName: string, newName: string): void;

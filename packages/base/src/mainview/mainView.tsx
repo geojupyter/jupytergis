@@ -59,7 +59,6 @@ import { get as getProjection } from 'ol/proj.js';
 import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
-import shp from 'shpjs';
 import { isLightTheme, loadGeoTIFFWithCache, throttle } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
@@ -72,6 +71,7 @@ import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
+import { loadFile } from '../tools';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { singleClick } from 'ol/events/condition';
 import { FeatureLike } from 'ol/Feature';
@@ -416,21 +416,6 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   };
 
-  private async _loadShapefileAsGeoJSON(
-    url: string
-  ): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
-    try {
-      const response = await fetch(`/jupytergis_core/proxy?url=${url}`);
-      const arrayBuffer = await response.arrayBuffer();
-      const geojson = await shp(arrayBuffer);
-
-      return geojson;
-    } catch (error) {
-      console.error('Error loading shapefile:', error);
-      throw error;
-    }
-  }
-
   private async _loadGeoTIFFWithCache(sourceInfo: {
     url?: string | undefined;
   }) {
@@ -512,7 +497,11 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'GeoJSONSource': {
         const data =
           source.parameters?.data ||
-          (await this._model.readGeoJSON(source.parameters?.path));
+          (await loadFile({
+            filepath: source.parameters?.path,
+            type: 'GeoJSONSource',
+            model: this._model
+          }));
 
         const format = new GeoJSON({
           featureProjection: this._Map.getView().getProjection()
@@ -539,7 +528,12 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'ShapefileSource': {
         const parameters = source.parameters as IShapefileSource;
 
-        const geojson = await this._loadShapefileAsGeoJSON(parameters.path);
+        const geojson = await loadFile({
+          filepath: parameters.path,
+          type: 'ShapefileSource',
+          model: this._model
+        });
+
         const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
 
         const format = new GeoJSON();
@@ -582,9 +576,15 @@ export class MainView extends React.Component<IProps, IStates> {
 
         const extent = [minX, minY, maxX, maxY];
 
+        const imageUrl = await loadFile({
+          filepath: sourceParameters.url,
+          type: 'ImageSource',
+          model: this._model
+        });
+
         newSource = new Static({
           imageExtent: extent,
-          url: sourceParameters.url,
+          url: imageUrl,
           interpolate: true,
           crossOrigin: ''
         });

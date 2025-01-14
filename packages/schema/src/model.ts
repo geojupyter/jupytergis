@@ -1,11 +1,10 @@
 import { MapChange } from '@jupyter/ydoc';
-import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
+import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 
-import { GeoJSON } from './_interface/geojsonsource';
 import {
   IJGISContent,
   IJGISLayer,
@@ -254,12 +253,33 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
-  setContentsManager(
-    value: Contents.IManager | undefined,
-    filePath: string
-  ): void {
-    this._contentsManager = value;
-    this._filePath = filePath;
+  /**
+   * Getter for the contents manager.
+   */
+  get contentsManager(): Contents.IManager | undefined {
+    return this._contentsManager;
+  }
+
+  /**
+   * Setter for the contents manager.
+   * Also updates the file path.
+   */
+  set contentsManager(manager: Contents.IManager | undefined) {
+    this._contentsManager = manager;
+  }
+
+  /**
+   * Getter for the file path associated with the contents manager.
+   */
+  get filePath(): string {
+    return this._filePath;
+  }
+
+  /**
+   * Setter for the file path associated with the contents manager.
+   */
+  set filePath(path: string) {
+    this._filePath = path;
   }
 
   getLayers(): IJGISLayers {
@@ -311,31 +331,6 @@ export class JupyterGISModel implements IJupyterGISModel {
       }
     });
     return usingLayers;
-  }
-
-  /**
-   * Read a GeoJSON file.
-   *
-   * @param filepath - the path of the GeoJSON file.
-   * @returns a promise to the GeoJSON data.
-   */
-  async readGeoJSON(filepath: string): Promise<GeoJSON | undefined> {
-    if (!this._contentsManager) {
-      return;
-    }
-
-    const absolutePath = PathExt.resolve(
-      PathExt.dirname(this._filePath),
-      filepath
-    );
-    const file = await this._contentsManager.get(absolutePath, {
-      content: true
-    });
-
-    if (typeof file.content === 'string') {
-      return JSON.parse(file.content);
-    }
-    return file.content;
   }
 
   /**

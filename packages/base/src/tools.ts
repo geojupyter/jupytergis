@@ -5,12 +5,16 @@ import { VectorTile } from '@mapbox/vector-tile';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import * as d3Color from 'd3-color';
+import { PathExt } from '@jupyterlab/coreutils';
+import shp from 'shpjs';
 
 import {
   IDict,
   IJGISLayerBrowserRegistry,
   IJGISOptions,
-  IRasterLayerGalleryEntry
+  IRasterLayerGalleryEntry,
+  IJGISSource,
+  IJupyterGISModel
 } from '@jupytergis/schema';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
 import { getGdal } from './gdal';
@@ -451,4 +455,288 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
     metadata,
     sourceUrl: sourceInfo.url
   };
+};
+
+/**
+ * Generalized file reader for different source types.
+ *
+ * @param fileInfo - Object containing the file path and source type.
+ * @returns A promise that resolves to the file content.
+ */
+export const loadFile = async (fileInfo: {
+  filepath: string;
+  type: IJGISSource['type'];
+  model: IJupyterGISModel;
+}) => {
+  const { filepath, type, model } = fileInfo;
+
+  if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
+    switch (type) {
+      case 'ImageSource': {
+        return filepath; // Return the URL directly
+      }
+
+      case 'ShapefileSource': {
+        try {
+          const response = await fetch(
+            `/jupytergis_core/proxy?url=${filepath}`
+          );
+          const arrayBuffer = await response.arrayBuffer();
+          const geojson = await shp(arrayBuffer);
+          return geojson;
+        } catch (error) {
+          console.error('Error loading remote shapefile:', error);
+          throw error;
+        }
+      }
+
+      case 'GeoJSONSource': {
+        try {
+          const response = await fetch(
+            `/jupytergis_core/proxy?url=${filepath}`
+          );
+          if (!response.ok) {
+            throw new Error(`Failed to fetch GeoJSON from URL: ${filepath}`);
+          }
+          const geojson = await response.json();
+          return geojson;
+        } catch (error) {
+          console.error('Error loading remote GeoJSON:', error);
+          throw error;
+        }
+      }
+
+      default: {
+        throw new Error(`Unsupported URL handling for source type: ${type}`);
+      }
+    }
+  }
+
+  if (!model.contentsManager || !model.filePath) {
+    throw new Error('ContentsManager or filePath is not initialized.');
+  }
+
+  const absolutePath = PathExt.resolve(
+    PathExt.dirname(model.filePath),
+    filepath
+  );
+
+  try {
+    const file = await model.contentsManager.get(absolutePath, {
+      content: true
+    });
+
+    if (!file.content) {
+      throw new Error(`File at ${absolutePath} is empty or inaccessible.`);
+    }
+
+    switch (type) {
+      case 'GeoJSONSource': {
+        return typeof file.content === 'string'
+          ? JSON.parse(file.content)
+          : file.content;
+      }
+
+      case 'ShapefileSource': {
+        const arrayBuffer = await stringToArrayBuffer(file.content as string);
+        const geojson = await shp(arrayBuffer);
+        return geojson;
+      }
+
+      case 'ImageSource': {
+        if (typeof file.content === 'string') {
+          const mimeType = getMimeType(filepath);
+          return `data:${mimeType};base64,${file.content}`;
+        } else {
+          throw new Error('Invalid file format for image content.');
+        }
+      }
+
+      default: {
+        throw new Error(`Unsupported source type: ${type}`);
+      }
+    }
+  } catch (error) {
+    console.error(`Error reading file '${filepath}':`, error);
+    throw error;
+  }
+};
+
+/**
+ * A mapping of file extensions to their corresponding MIME types.
+ */
+export const MIME_TYPES: { [ext: string]: string } = {
+  // from https://github.com/python/cpython/blob/3.9/Lib/mimetypes.py
+  '.a': 'application/octet-stream',
+  '.ai': 'application/postscript',
+  '.aif': 'audio/x-aiff',
+  '.aifc': 'audio/x-aiff',
+  '.aiff': 'audio/x-aiff',
+  '.au': 'audio/basic',
+  '.avi': 'video/x-msvideo',
+  '.bat': 'text/plain',
+  '.bcpio': 'application/x-bcpio',
+  '.bin': 'application/octet-stream',
+  '.bmp': 'image/bmp',
+  '.c': 'text/plain',
+  '.cdf': 'application/x-netcdf',
+  '.cpio': 'application/x-cpio',
+  '.csh': 'application/x-csh',
+  '.css': 'text/css',
+  '.csv': 'text/csv',
+  '.dll': 'application/octet-stream',
+  '.doc': 'application/msword',
+  '.dot': 'application/msword',
+  '.dvi': 'application/x-dvi',
+  '.eml': 'message/rfc822',
+  '.eps': 'application/postscript',
+  '.etx': 'text/x-setext',
+  '.exe': 'application/octet-stream',
+  '.gif': 'image/gif',
+  '.gtar': 'application/x-gtar',
+  '.h': 'text/plain',
+  '.hdf': 'application/x-hdf',
+  '.htm': 'text/html',
+  '.html': 'text/html',
+  '.ico': 'image/vnd.microsoft.icon',
+  '.ief': 'image/ief',
+  '.jpe': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.jpg': 'image/jpg',
+  '.js': 'application/javascript',
+  '.json': 'application/json',
+  '.ksh': 'text/plain',
+  '.latex': 'application/x-latex',
+  '.m1v': 'video/mpeg',
+  '.m3u': 'application/vnd.apple.mpegurl',
+  '.m3u8': 'application/vnd.apple.mpegurl',
+  '.man': 'application/x-troff-man',
+  '.me': 'application/x-troff-me',
+  '.mht': 'message/rfc822',
+  '.mhtml': 'message/rfc822',
+  '.mid': 'audio/midi',
+  '.midi': 'audio/midi',
+  '.mif': 'application/x-mif',
+  '.mjs': 'application/javascript',
+  '.mov': 'video/quicktime',
+  '.movie': 'video/x-sgi-movie',
+  '.mp2': 'audio/mpeg',
+  '.mp3': 'audio/mpeg',
+  '.mp4': 'video/mp4',
+  '.mpa': 'video/mpeg',
+  '.mpe': 'video/mpeg',
+  '.mpeg': 'video/mpeg',
+  '.mpg': 'video/mpeg',
+  '.ms': 'application/x-troff-ms',
+  '.nc': 'application/x-netcdf',
+  '.nws': 'message/rfc822',
+  '.o': 'application/octet-stream',
+  '.obj': 'application/octet-stream',
+  '.oda': 'application/oda',
+  '.p12': 'application/x-pkcs12',
+  '.p7c': 'application/pkcs7-mime',
+  '.pbm': 'image/x-portable-bitmap',
+  '.pct': 'image/pict',
+  '.pdf': 'application/pdf',
+  '.pfx': 'application/x-pkcs12',
+  '.pgm': 'image/x-portable-graymap',
+  '.pic': 'image/pict',
+  '.pict': 'image/pict',
+  '.pl': 'text/plain',
+  '.png': 'image/png',
+  '.pnm': 'image/x-portable-anymap',
+  '.pot': 'application/vnd.ms-powerpoint',
+  '.ppa': 'application/vnd.ms-powerpoint',
+  '.ppm': 'image/x-portable-pixmap',
+  '.pps': 'application/vnd.ms-powerpoint',
+  '.ppt': 'application/vnd.ms-powerpoint',
+  '.ps': 'application/postscript',
+  '.pwz': 'application/vnd.ms-powerpoint',
+  '.py': 'text/x-python',
+  '.pyc': 'application/x-python-code',
+  '.pyo': 'application/x-python-code',
+  '.qt': 'video/quicktime',
+  '.ra': 'audio/x-pn-realaudio',
+  '.ram': 'application/x-pn-realaudio',
+  '.ras': 'image/x-cmu-raster',
+  '.rdf': 'application/xml',
+  '.rgb': 'image/x-rgb',
+  '.roff': 'application/x-troff',
+  '.rtf': 'application/rtf',
+  '.rtx': 'text/richtext',
+  '.sgm': 'text/x-sgml',
+  '.sgml': 'text/x-sgml',
+  '.sh': 'application/x-sh',
+  '.shar': 'application/x-shar',
+  '.snd': 'audio/basic',
+  '.so': 'application/octet-stream',
+  '.src': 'application/x-wais-source',
+  '.sv4cpio': 'application/x-sv4cpio',
+  '.sv4crc': 'application/x-sv4crc',
+  '.svg': 'image/svg+xml',
+  '.swf': 'application/x-shockwave-flash',
+  '.t': 'application/x-troff',
+  '.tar': 'application/x-tar',
+  '.tcl': 'application/x-tcl',
+  '.tex': 'application/x-tex',
+  '.texi': 'application/x-texinfo',
+  '.texinfo': 'application/x-texinfo',
+  '.tif': 'image/tiff',
+  '.tiff': 'image/tiff',
+  '.tr': 'application/x-troff',
+  '.tsv': 'text/tab-separated-values',
+  '.txt': 'text/plain',
+  '.ustar': 'application/x-ustar',
+  '.vcf': 'text/x-vcard',
+  '.wasm': 'application/wasm',
+  '.wav': 'audio/x-wav',
+  '.webm': 'video/webm',
+  '.webmanifest': 'application/manifest+json',
+  '.wiz': 'application/msword',
+  '.wsdl': 'application/xml',
+  '.xbm': 'image/x-xbitmap',
+  '.xlb': 'application/vnd.ms-excel',
+  '.xls': 'application/vnd.ms-excel',
+  '.xml': 'text/xml',
+  '.xpdl': 'application/xml',
+  '.xpm': 'image/x-xpixmap',
+  '.xsl': 'application/xml',
+  '.xul': 'text/xul',
+  '.xwd': 'image/x-xwindowdump',
+  '.zip': 'application/zip',
+  '.ipynb': 'application/json'
+};
+
+/**
+ * Determine the MIME type based on the file extension.
+ *
+ * @param filename - The name of the file.
+ * @returns A string representing the MIME type.
+ */
+export const getMimeType = (filename: string): string => {
+  const extension = `.${filename.split('.').pop()?.toLowerCase() || ''}`;
+
+  if (MIME_TYPES[extension]) {
+    return MIME_TYPES[extension];
+  }
+
+  console.warn(
+    `Unknown file extension: ${extension}, defaulting to 'application/octet-stream'.`
+  );
+  return 'application/octet-stream';
+};
+
+/**
+ * Helper to convert a string (base64) to ArrayBuffer.
+ *
+ * @param content - File content as a base64 string.
+ * @returns An ArrayBuffer.
+ */
+export const stringToArrayBuffer = async (
+  content: string
+): Promise<ArrayBuffer> => {
+  const base64Response = await fetch(
+    `data:application/octet-stream;base64,${content}`
+  );
+  return await base64Response.arrayBuffer();
 };
