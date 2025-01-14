@@ -121,6 +121,10 @@
       "yjs-widgets": {
         "singleton": true,
         "bundled": false
+      },
+      "@jupyter/react-components": {
+        "singleton": true,
+        "bundled": true
       }
     }
   }
