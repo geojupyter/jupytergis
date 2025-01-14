@@ -13,3 +13,4 @@ from ._schema.geojsonsource import IGeoJSONSource  # noqa
 from ._schema.videoSource import IVideoSource  # noqa
 from ._schema.imageSource import IImageSource  # noqa
 from ._schema.geoTiffSource import IGeoTiffSource  # noqa
+from ._schema.rasterDemSource import IRasterDemSource  # noqa

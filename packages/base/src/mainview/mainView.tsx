@@ -74,6 +74,7 @@ import { FollowIndicator } from './FollowIndicator';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { singleClick } from 'ol/events/condition';
+import { FeatureLike } from 'ol/Feature';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -219,50 +220,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       this._Map.addInteraction(dragAndDropInteraction);
 
-      const selectInteraction = new Select({
-        hitTolerance: 5,
-        multi: true,
-        layers: layer => {
-          const localState = this._model?.sharedModel.awareness.getLocalState();
-          const selectedLayers = localState?.selected?.value;
-
-          if (!selectedLayers) {
-            return false;
-          }
-          const selectedLayerId = Object.keys(selectedLayers)[0];
-
-          return layer === this.getLayer(selectedLayerId);
-        },
-        condition: (event: MapBrowserEvent<any>) => {
-          return singleClick(event) && this._model.isIdentifying;
-        },
-        style: new Style({
-          image: new Circle({
-            radius: 5,
-            fill: new Fill({
-              color: '#C52707'
-            }),
-            stroke: new Stroke({
-              color: '#171717',
-              width: 2
-            })
-          })
-        })
-      });
-
-      selectInteraction.on('select', event => {
-        const identifiedFeatures: IDict<any> = [];
-        selectInteraction.getFeatures().forEach(feature => {
-          identifiedFeatures.push(feature.getProperties());
-        });
-
-        this._model.syncIdentifiedFeatures(
-          identifiedFeatures,
-          this._mainViewModel.id
-        );
-      });
-
-      this._Map.addInteraction(selectInteraction);
+      this.createSelectInteraction();
 
       const view = this._Map.getView();
 
@@ -350,6 +308,85 @@ export class MainView extends React.Component<IProps, IStates> {
       this.setState(old => ({ ...old, loading: false }));
     }
   }
+
+  createSelectInteraction = () => {
+    const pointStyle = new Style({
+      image: new Circle({
+        radius: 5,
+        fill: new Fill({
+          color: '#C52707'
+        }),
+        stroke: new Stroke({
+          color: '#171717',
+          width: 2
+        })
+      })
+    });
+
+    const lineStyle = new Style({
+      stroke: new Stroke({
+        color: '#171717',
+        width: 2
+      })
+    });
+
+    const polygonStyle = new Style({
+      fill: new Fill({ color: '#C5270780' }),
+      stroke: new Stroke({
+        color: '#171717',
+        width: 2
+      })
+    });
+
+    const styleFunction = (feature: FeatureLike) => {
+      const geometryType = feature.getGeometry()?.getType();
+      switch (geometryType) {
+        case 'Point':
+        case 'MultiPoint':
+          return pointStyle;
+        case 'LineString':
+        case 'MultiLineString':
+          return lineStyle;
+        case 'Polygon':
+        case 'MultiPolygon':
+          return polygonStyle;
+      }
+    };
+
+    const selectInteraction = new Select({
+      hitTolerance: 5,
+      multi: true,
+      layers: layer => {
+        const localState = this._model?.sharedModel.awareness.getLocalState();
+        const selectedLayers = localState?.selected?.value;
+
+        if (!selectedLayers) {
+          return false;
+        }
+        const selectedLayerId = Object.keys(selectedLayers)[0];
+
+        return layer === this.getLayer(selectedLayerId);
+      },
+      condition: (event: MapBrowserEvent<any>) => {
+        return singleClick(event) && this._model.isIdentifying;
+      },
+      style: styleFunction
+    });
+
+    selectInteraction.on('select', event => {
+      const identifiedFeatures: IDict<any> = [];
+      selectInteraction.getFeatures().forEach(feature => {
+        identifiedFeatures.push(feature.getProperties());
+      });
+
+      this._model.syncIdentifiedFeatures(
+        identifiedFeatures,
+        this._mainViewModel.id
+      );
+    });
+
+    this._Map.addInteraction(selectInteraction);
+  };
 
   addContextMenu = (): void => {
     this._commands.addCommand(CommandIDs.addAnnotation, {
