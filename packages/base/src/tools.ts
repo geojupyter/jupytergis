@@ -490,6 +490,22 @@ export const loadFile = async (fileInfo: {
         }
       }
 
+      case 'GeoJSONSource': {
+        try {
+          const response = await fetch(
+            `/jupytergis_core/proxy?url=${filepath}`
+          );
+          if (!response.ok) {
+            throw new Error(`Failed to fetch GeoJSON from URL: ${filepath}`);
+          }
+          const geojson = await response.json();
+          return geojson;
+        } catch (error) {
+          console.error('Error loading remote GeoJSON:', error);
+          throw error;
+        }
+      }
+
       default: {
         throw new Error(`Unsupported URL handling for source type: ${type}`);
       }
