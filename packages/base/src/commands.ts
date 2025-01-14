@@ -870,6 +870,26 @@ export function addCommands(
       }
     }
   });
+
+  commands.addCommand(CommandIDs.zoomToLayer, {
+    label: trans.__('Zoom to Layer'),
+    execute: () => {
+      const currentWidget = tracker.currentWidget;
+      if (!currentWidget || !completionProviderManager) {
+        return;
+      }
+      console.log('zooming');
+      const model = tracker.currentWidget.context.model;
+      const selectedItems = model.localState?.selected.value;
+
+      if (!selectedItems) {
+        return;
+      }
+
+      const layerId = Object.keys(selectedItems)[0];
+      model.centerOnPosition(layerId);
+    }
+  });
 }
 
 namespace Private {

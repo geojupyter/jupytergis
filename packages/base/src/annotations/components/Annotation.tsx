@@ -63,7 +63,7 @@ const Annotation = ({
   };
 
   const centerOnAnnotation = () => {
-    jgisModel?.centerOnAnnotation(itemId);
+    jgisModel?.centerOnPosition(itemId);
   };
 
   return (

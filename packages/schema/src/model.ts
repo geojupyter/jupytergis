@@ -154,8 +154,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedMetadataChanged;
   }
 
-  get zoomToAnnotationSignal(): ISignal<this, string> {
-    return this._zoomToAnnotationSignal;
+  get zoomToPositionSignal(): ISignal<this, string> {
+    return this._zoomToPositionSignal;
   }
 
   set isIdentifying(isIdentifying: boolean) {
@@ -166,8 +166,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._isIdentifying;
   }
 
-  centerOnAnnotation(id: string) {
-    this._zoomToAnnotationSignal.emit(id);
+  centerOnPosition(id: string) {
+    this._zoomToPositionSignal.emit(id);
   }
 
   private _metadataChangedHandler(_: IJupyterGISDoc, args: MapChange) {
@@ -691,7 +691,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     Map<number, IJupyterGISClientState>
   >(this);
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
-  private _zoomToAnnotationSignal = new Signal<this, string>(this);
+  private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _isIdentifying = false;
 

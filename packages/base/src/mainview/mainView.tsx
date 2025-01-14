@@ -42,7 +42,7 @@ import {
 } from 'ol/layer';
 import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
-import { fromLonLat, toLonLat } from 'ol/proj';
+import { fromLonLat, toLonLat, transformExtent } from 'ol/proj';
 import Feature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -74,6 +74,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { loadFile } from '../tools';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { singleClick } from 'ol/events/condition';
+import TileSource from 'ol/source/Tile';
 import { FeatureLike } from 'ol/Feature';
 
 interface IProps {
@@ -120,7 +121,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onSharedMetadataChanged,
       this
     );
-    this._model.zoomToAnnotationSignal.connect(this._onZoomToAnnotation, this);
+    this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -1402,11 +1403,47 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
-  private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
+  private _onZoomToPosition(_: IJupyterGISModel, id: string) {
+    // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
       this._moveToPosition(annotation.position, annotation.zoom);
+      return;
     }
+
+    // The id is a layer
+    let extent;
+    const layer = this.getLayer(id) as Layer;
+    const source = layer?.getSource();
+
+    if (source instanceof VectorSource) {
+      extent = source.getExtent();
+    }
+
+    if (source instanceof TileSource) {
+      // Tiled sources don't have getExtent() so we get it from the grid
+      const tileGrid = source.getTileGrid();
+      extent = tileGrid?.getExtent();
+    }
+
+    if (!extent) {
+      console.warn('Layer has no extent.');
+      return;
+    }
+
+    // Convert layer extent value to view projection if needed
+    const sourceProjection = source?.getProjection();
+    const viewProjection = this._Map.getView().getProjection();
+
+    const transformedExtent =
+      sourceProjection && sourceProjection !== viewProjection
+        ? transformExtent(extent, sourceProjection, viewProjection)
+        : extent;
+
+    this._Map.getView().fit(transformedExtent, {
+      size: this._Map.getSize(),
+      duration: 500
+    });
   }
 
   private _moveToPosition(
