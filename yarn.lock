@@ -763,7 +763,7 @@ __metadata:
     "@types/node": ^18.15.11
     "@types/proj4": ^2.5.5
     "@types/shpjs": ^3.4.7
-    "@types/three": ^0.135.0
+    "@types/three": ^0.134.0
     "@types/uuid": ^10.0.0
     ajv: ^8.14.0
     colormap: ^2.3.2
@@ -2948,10 +2948,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/three@npm:^0.135.0":
-  version: 0.135.0
-  resolution: "@types/three@npm:0.135.0"
-  checksum: 85977e55cc3d7a14be88816a50bcec4eb0f141876d3cdc6dd7870f72122605af87462d7583e950cd0ee6ab21949b8c1b8304a88174d536648deb8ef97968fa1b
+"@types/three@npm:^0.134.0":
+  version: 0.134.0
+  resolution: "@types/three@npm:0.134.0"
+  checksum: 4dc0463b3833fb81ac3645af47404349af6a0e69e3dae37ae9e84dc1ac237689d77c28a6066375e85665191d037843f4adc22d345ab8fe90a5008591f78e86d1
   languageName: node
   linkType: hard
 
