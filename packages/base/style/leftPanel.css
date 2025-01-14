@@ -64,6 +64,14 @@
 .jp-gis-layerGroupHeader.jp-mod-selected .jp-icon-selectable {
   fill: var(--jp-ui-inverse-font-color1);
 }
+.jp-gis-layer.jp-mod-selected path,
+.jp-gis-source.jp-mod-selected path {
+  fill: var(--jp-ui-inverse-font-color1);
+}
+.jp-gis-layer.jp-mod-selected button:hover,
+.jp-gis-source.jp-mod-selected button:hover {
+  background: none;
+}
 
 .jp-gis-layer button,
 .jp-gis-source button {
