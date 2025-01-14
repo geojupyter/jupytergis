@@ -78,6 +78,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
       completionProviderManager
     );
 
+    app.shell.addClass('data-jgis-keybinding');
+
     // SOURCES context menu
     const newSourceSubMenu = new Menu({ commands: app.commands });
     newSourceSubMenu.title.label = translator
@@ -129,22 +131,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
       command: CommandIDs.removeSource
     });
 
-    app.commands.addKeyBinding({
-      command: CommandIDs.removeSource,
-      keys: ['Delete'],
-      selector: '.jp-gis-source.jp-gis-sourceUnused'
-    });
-
     app.contextMenu.addItem({
       selector: '.jp-gis-source',
       rank: 1,
       command: CommandIDs.renameSource
-    });
-
-    app.commands.addKeyBinding({
-      command: CommandIDs.renameSource,
-      keys: ['F2'],
-      selector: '.jp-gis-sourceItem'
     });
 
     // LAYERS and LAYER GROUPS context menu
@@ -167,22 +157,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
       rank: 2
     });
 
-    app.commands.addKeyBinding({
-      command: CommandIDs.removeLayer,
-      keys: ['Delete'],
-      selector: '.jp-gis-layerItem'
-    });
-
     app.contextMenu.addItem({
       command: CommandIDs.renameLayer,
       selector: '.jp-gis-layerItem',
       rank: 2
-    });
-
-    app.commands.addKeyBinding({
-      command: CommandIDs.renameLayer,
-      keys: ['F2'],
-      selector: '.jp-gis-layerItem'
     });
 
     app.contextMenu.addItem({
@@ -214,22 +192,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
       rank: 2
     });
 
-    app.commands.addKeyBinding({
-      command: CommandIDs.removeGroup,
-      keys: ['Delete'],
-      selector: '.jp-gis-layerGroupHeader'
-    });
-
     app.contextMenu.addItem({
       command: CommandIDs.renameGroup,
       selector: '.jp-gis-layerGroupHeader',
       rank: 2
-    });
-
-    app.commands.addKeyBinding({
-      command: CommandIDs.renameGroup,
-      keys: ['F2'],
-      selector: '.jp-gis-layerGroupHeader'
     });
 
     // Separator
@@ -273,27 +239,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }
-
-    // Keybindings for the console
-    app.commands.addKeyBinding({
-      command: CommandIDs.executeConsole,
-      keys: ['Shift Enter'],
-      selector:
-        ".jpgis-console .jp-CodeConsole[data-jp-interaction-mode='notebook'] .jp-CodeConsole-promptCell"
-    });
-
-    app.commands.addKeyBinding({
-      command: CommandIDs.invokeCompleter,
-      keys: ['Tab'],
-      selector:
-        '.jpgis-console .jp-CodeConsole-promptCell .jp-mod-completer-enabled'
-    });
-
-    app.commands.addKeyBinding({
-      command: CommandIDs.selectCompleter,
-      keys: ['Enter'],
-      selector: '.jpgis-console .jp-ConsolePanel .jp-mod-completer-active'
-    });
   }
 };
 

@@ -14,12 +14,14 @@ import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
+import { CommandRegistry } from '@lumino/commands';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { CommandIDs, icons } from './constants';
 import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
+import keybindings from './keybindings.json';
 import { JupyterGISWidget } from './widget';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 
 interface ICreateEntry {
   tracker: WidgetTracker<JupyterGISWidget>;
@@ -31,6 +33,16 @@ interface ICreateEntry {
   layerData?: IDict;
   sourceType: SourceType;
   layerType?: LayerType;
+}
+
+function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
+  keybindings.forEach(binding => {
+    commands.addKeyBinding({
+      command: binding.command,
+      keys: binding.keys,
+      selector: binding.selector
+    });
+  });
 }
 
 /**
@@ -890,6 +902,8 @@ export function addCommands(
       model.centerOnPosition(layerId);
     }
   });
+
+  loadKeybindings(commands, keybindings);
 }
 
 namespace Private {
