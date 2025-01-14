@@ -41,7 +41,7 @@
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "latest",
-    "@jupyter/react-components": "^0.17.1",
+    "@jupyter/react-components": "^0.16.6",
     "@jupyter/ydoc": "^2.0.0 || ^3.0.0",
     "@jupytergis/schema": "^0.2.1",
     "@jupyterlab/application": "^4.3.0",
