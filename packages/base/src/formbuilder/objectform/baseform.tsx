@@ -7,6 +7,7 @@ import { Dialog } from '@jupyterlab/apputils';
 import { Signal } from '@lumino/signaling';
 import { deepCopy } from '../../tools';
 import { IDict } from '../../types';
+import { Slider } from '@jupyter/react-components';
 
 export interface IBaseFormStates {
   schema?: IDict;
@@ -156,6 +157,32 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       if (v['type'] === 'object') {
         this.processSchema(data, v, uiSchema[k]);
       }
+      if (k === 'opacity') {
+        uiSchema[k] = {
+          'ui:field': (props: any) => {
+            const handleChange = (event: CustomEvent) => {
+              const target = event.target as any;
+              if (target && '_value' in target) {
+                const value = parseFloat(target._value);
+                props.onChange(value);
+              }
+            };
+            
+            console.log('props', props);
+            
+            return (
+              <Slider
+                min={0.1}
+                max={1}
+                step={0.1}
+                value={props.formData}
+                onChange={handleChange}
+              />
+            );
+          },
+        };
+      }
+      
 
       // Don't show readOnly properties when it's a form for updating an object
       if (v['readOnly']) {
