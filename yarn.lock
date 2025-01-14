@@ -826,7 +826,6 @@ __metadata:
   resolution: "@jupytergis/jupytergis-lab@workspace:python/jupytergis_lab"
   dependencies:
     "@jupyter/collaborative-drive": ^3.0.0
-    "@jupyter/react-components": ^0.16.6
     "@jupytergis/base": ^0.2.1
     "@jupytergis/jupytergis-core": ^0.2.1
     "@jupytergis/schema": ^0.2.1
