@@ -58,8 +58,6 @@
     "@jupyterlab/services": " ^7.0.0"
   },
   "devDependencies": {
-    "@types/colormap": "^2.3.4",
-    "@types/proj4": "^2.5.5",
     "@types/webpack-env": "^1.18.5",
     "@typescript-eslint/eslint-plugin": "5.55.0",
     "@typescript-eslint/parser": "5.55.0",
@@ -73,18 +71,5 @@
     "rimraf": "^3.0.2",
     "typescript": "^5",
     "webpack": "^5.76.3"
-  },
-  "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.5.2",
-    "@fortawesome/free-solid-svg-icons": "^6.5.2",
-    "@fortawesome/react-fontawesome": "latest",
-    "@jupyter/react-components": "^0.17.1",
-    "colormap": "^2.3.2",
-    "geojson-vt": "^4.0.2",
-    "geotiff": "^2.1.3",
-    "ol": "^10.1.0",
-    "pmtiles": "^3.0.7",
-    "proj4": "^2.14.0",
-    "proj4-list": "^1.0.2"
   }
 }

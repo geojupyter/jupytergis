@@ -262,8 +262,8 @@ jobs:
           create-args: >-
             python=3.10
             pip
-            jupyterlite-core>=0.2.0,<0.3.0
-            jupyterlite-xeus>=0.1.2,<0.2
+            jupyterlite-core>=0.4.0,<0.6.0
+            jupyterlite-xeus>=2,<3
             jupyterlite-sphinx
             sphinx
             sphinx-tabs
