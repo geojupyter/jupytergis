@@ -71,7 +71,7 @@ jobs:
       - name: Upload extension packages
         uses: actions/upload-artifact@v4
         with:
-          name: extension-artifacts-${{ github.run_id }}-${{ matrix.python-version }}
+          name: extension-artifacts-${{ matrix.python-version }}
           path: |
             python/jupytergis_core/dist/jupytergis*
             python/jupytergis_lab/dist/jupytergis*
@@ -121,7 +121,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: extension-artifacts
+          name: extension-artifacts-3.12
 
       - name: Install and Test
         shell: bash -l {0}
@@ -166,7 +166,7 @@ jobs:
       - name: Download extension package
         uses: actions/download-artifact@v4
         with:
-          name: extension-artifacts
+          name: extension-artifacts-3.12
 
       - name: Install the extension
         shell: bash -l {0}
@@ -279,7 +279,7 @@ jobs:
       - name: Download extension package
         uses: actions/download-artifact@v4
         with:
-          name: extension-artifacts
+          name: extension-artifacts-3.12
 
       - name: Install the extension
         shell: bash -l {0}
