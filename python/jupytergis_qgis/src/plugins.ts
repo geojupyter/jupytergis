@@ -26,7 +26,12 @@ import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Widget } from '@lumino/widgets';
 
-import { JupyterGISWidget, logoMiniIcon, requestAPI } from '@jupytergis/base';
+import {
+  JupyterGISWidget,
+  logoMiniIcon,
+  logoMiniIconQGZ,
+  requestAPI
+} from '@jupytergis/base';
 import { JupyterGISWidgetFactory } from '@jupytergis/jupytergis-core';
 import { IJupyterGISDocTracker, IJupyterGISWidget } from '@jupytergis/schema';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
@@ -143,7 +148,7 @@ const activate = async (
     extensions: ['.qgz', '.QGZ'],
     fileFormat: 'base64',
     contentType: 'QGZ',
-    icon: logoMiniIcon
+    icon: logoMiniIconQGZ
   });
 
   const QGISSharedModelFactory: SharedDocumentFactory = () => {
@@ -159,6 +164,7 @@ const activate = async (
   );
 
   const widgetCreatedCallback = (sender: any, widget: JupyterGISWidget) => {
+    widget.title.icon = logoMiniIconQGZ;
     // Notify the instance tracker if restore data needs to update.
     widget.context.pathChanged.connect(() => {
       tracker.save(widget);
