@@ -87,7 +87,6 @@ export const FileSelectorWidget = (props: any) => {
       <h3 className="jp-FormGroup-fieldLabel jp-FormGroup-contentItem">Enter URL</h3>
         <input
           type="text"
-          id="root_path"
           className="jp-mod-styled"
           onChange={handleURLChange}
           value={props.value || ''}
