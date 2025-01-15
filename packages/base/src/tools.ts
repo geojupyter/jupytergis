@@ -457,6 +457,25 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
   };
 };
 
+const getFromCache = async (key: string) => {
+  const cachedData = await getFromIndexedDB(key);
+  if (cachedData) {
+    return {
+      data: new Blob([cachedData.file]),
+      metadata: cachedData.metadata
+    };
+  }
+  return null;
+};
+
+const saveToCache = async (
+  key: string,
+  data: Blob,
+  metadata?: any
+) => {
+  await saveToIndexedDB(key, data, metadata);
+};
+
 /**
  * Generalized file reader for different source types.
  *
@@ -473,7 +492,15 @@ export const loadFile = async (fileInfo: {
   if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
     switch (type) {
       case 'ImageSource': {
-        return filepath; // Return the URL directly
+        const cached = await getFromCache(filepath);
+        if (cached) {
+          return URL.createObjectURL(cached.data); // Use Object URL directly
+        }
+        const response = await fetch(filepath);
+        const fileBlob = await response.blob();
+        await saveToCache(filepath, fileBlob);
+
+        return URL.createObjectURL(fileBlob);
       }
 
       case 'ShapefileSource': {
