@@ -73,7 +73,6 @@ export const FileSelectorWidget = (props: any) => {
       <div>
         <input
           type="text"
-          id="root_path"
           className="jp-mod-styled"
           value={props.value || ''}
           readOnly
@@ -89,6 +88,7 @@ export const FileSelectorWidget = (props: any) => {
         </h3>
         <input
           type="text"
+          id="root_path"
           className="jp-mod-styled"
           onChange={handleURLChange}
           value={props.value || ''}
