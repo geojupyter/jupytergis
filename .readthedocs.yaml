@@ -4,7 +4,7 @@ version: 2
 build:
   os: "ubuntu-24.04"
   tools:
-    python: "3.13"
+    python: "3.12"
     nodejs: "20"
   jobs:
     # Install micromamba
@@ -23,7 +23,7 @@ build:
       # Create the env for building the docs
       - /bin/bash --login -c "micromamba env create -n jupytergis-docs -f docs/environment-docs.yml"
       # Create the isolated env for building JupyterGIS
-      - /bin/bash --login -c "micromamba create -n jupytergis-build -c conda-forge yarn=3 hatch pip python=3.13"
+      - /bin/bash --login -c "micromamba create -n jupytergis-build -c conda-forge yarn=3 hatch pip python=3.12"
       - /bin/bash --login -c "micromamba run -n jupytergis-build pip install -r requirements-build.txt"
 
     # Override the install step to do nothing - we already created the envs
