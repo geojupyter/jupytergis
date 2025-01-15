@@ -26,7 +26,7 @@ export const FileSelectorWidget = (props: any) => {
       }
 
       const output = await FileDialog.getOpenFiles({
-        title: 'Select a GeoJSON File',
+        title: 'Select a File',
         manager: docManager
       });
 
