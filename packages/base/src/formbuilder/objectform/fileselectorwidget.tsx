@@ -84,7 +84,9 @@ export const FileSelectorWidget = (props: any) => {
         </button>
       </div>
       <div>
-      <h3 className="jp-FormGroup-fieldLabel jp-FormGroup-contentItem">Enter URL</h3>
+        <h3 className="jp-FormGroup-fieldLabel jp-FormGroup-contentItem">
+          Enter URL
+        </h3>
         <input
           type="text"
           className="jp-mod-styled"
