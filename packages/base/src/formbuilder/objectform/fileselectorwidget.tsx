@@ -7,7 +7,7 @@ import { PathExt } from '@jupyterlab/coreutils';
 export const FileSelectorWidget = (props: any) => {
   const { options } = props;
   const { docManager, formOptions } = options;
-  
+
   const handleBrowseServerFiles = async () => {
     try {
       const dialogElement = document.querySelector(

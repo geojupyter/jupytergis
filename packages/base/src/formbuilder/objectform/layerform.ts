@@ -47,9 +47,8 @@ export class LayerPropertiesForm extends BaseForm {
 
   protected onFormChange(e: IChangeEvent): void {
     super.onFormChange(e);
-    if (this.props.dialogOptions){
+    if (this.props.dialogOptions) {
       this.props.dialogOptions.layerData = { ...e.formData };
-
     }
   }
 }

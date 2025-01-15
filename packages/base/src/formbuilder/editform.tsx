@@ -127,5 +127,5 @@ export class EditForm extends React.Component<IEditFormProps, any> {
     );
   }
   private sourceFormChangedSignal: Signal<React.Component<any>, IDict<any>> =
-  new Signal(this);
+    new Signal(this);
 }
