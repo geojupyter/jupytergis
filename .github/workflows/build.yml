@@ -10,6 +10,9 @@ jobs:
   build:
     name: Build jupytergis
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.12']
 
     steps:
       - name: Checkout
@@ -20,7 +23,7 @@ jobs:
         with:
           environment-name: gis
           create-args: >-
-            python=3.9
+            python=${{ matrix.python-version }}
             jupyterlab=4
             yarn=3
             pillow
@@ -31,9 +34,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-3.9-${{ hashFiles('package.json') }}
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('package.json') }}
           restore-keys: |
-            pip-3.9-
+            pip-${{ matrix.python-version }}-
             pip-
 
       - name: Get yarn cache directory path
@@ -68,7 +71,7 @@ jobs:
       - name: Upload extension packages
         uses: actions/upload-artifact@v4
         with:
-          name: extension-artifacts
+          name: extension-artifacts-${{ matrix.python-version }}
           path: |
             python/jupytergis_core/dist/jupytergis*
             python/jupytergis_lab/dist/jupytergis*
@@ -77,6 +80,9 @@ jobs:
 
   python_tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.12']
 
     steps:
       - name: Install Conda environment with Micromamba
@@ -84,7 +90,7 @@ jobs:
         with:
           environment-name: gis
           create-args: >-
-            python=3.9
+            python=${{ matrix.python-version }}
             jupyterlab=4
             yarn=3
             qgis
@@ -115,7 +121,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: extension-artifacts
+          name: extension-artifacts-3.12
 
       - name: Install and Test
         shell: bash -l {0}
@@ -152,7 +158,7 @@ jobs:
           micromamba-version: '1.5.5-0'
           environment-name: gis
           create-args: >-
-            python=3.9
+            python=3.12
             jupyterlab=4
             ipywidgets
             qgis
@@ -160,7 +166,7 @@ jobs:
       - name: Download extension package
         uses: actions/download-artifact@v4
         with:
-          name: extension-artifacts
+          name: extension-artifacts-3.12
 
       - name: Install the extension
         shell: bash -l {0}
@@ -223,7 +229,7 @@ jobs:
         with:
           environment-name: gis
           create-args: >-
-            python=3.9
+            python=3.12
             jupyterlab=4
             yarn=3
 
@@ -273,7 +279,7 @@ jobs:
       - name: Download extension package
         uses: actions/download-artifact@v4
         with:
-          name: extension-artifacts
+          name: extension-artifacts-3.12
 
       - name: Install the extension
         shell: bash -l {0}
