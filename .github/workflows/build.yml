@@ -71,7 +71,7 @@ jobs:
       - name: Upload extension packages
         uses: actions/upload-artifact@v4
         with:
-          name: extension-artifacts
+          name: extension-artifacts-${{ github.job }}
           path: |
             python/jupytergis_core/dist/jupytergis*
             python/jupytergis_lab/dist/jupytergis*
