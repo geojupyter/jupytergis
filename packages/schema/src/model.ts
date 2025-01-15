@@ -1,11 +1,10 @@
 import { MapChange } from '@jupyter/ydoc';
-import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
+import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 
-import { GeoJSON } from './_interface/geojsonsource';
 import {
   IJGISContent,
   IJGISLayer,
@@ -29,7 +28,8 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   ISelection,
-  IUserData
+  IUserData,
+  IDict
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
 import { Contents } from '@jupyterlab/services';
@@ -154,12 +154,20 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedMetadataChanged;
   }
 
-  get zoomToAnnotationSignal(): ISignal<this, string> {
-    return this._zoomToAnnotationSignal;
+  get zoomToPositionSignal(): ISignal<this, string> {
+    return this._zoomToPositionSignal;
   }
 
-  centerOnAnnotation(id: string) {
-    this._zoomToAnnotationSignal.emit(id);
+  set isIdentifying(isIdentifying: boolean) {
+    this._isIdentifying = isIdentifying;
+  }
+
+  get isIdentifying(): boolean {
+    return this._isIdentifying;
+  }
+
+  centerOnPosition(id: string) {
+    this._zoomToPositionSignal.emit(id);
   }
 
   private _metadataChangedHandler(_: IJupyterGISDoc, args: MapChange) {
@@ -245,12 +253,33 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
-  setContentsManager(
-    value: Contents.IManager | undefined,
-    filePath: string
-  ): void {
-    this._contentsManager = value;
-    this._filePath = filePath;
+  /**
+   * Getter for the contents manager.
+   */
+  get contentsManager(): Contents.IManager | undefined {
+    return this._contentsManager;
+  }
+
+  /**
+   * Setter for the contents manager.
+   * Also updates the file path.
+   */
+  set contentsManager(manager: Contents.IManager | undefined) {
+    this._contentsManager = manager;
+  }
+
+  /**
+   * Getter for the file path associated with the contents manager.
+   */
+  get filePath(): string {
+    return this._filePath;
+  }
+
+  /**
+   * Setter for the file path associated with the contents manager.
+   */
+  set filePath(path: string) {
+    this._filePath = path;
   }
 
   getLayers(): IJGISLayers {
@@ -302,31 +331,6 @@ export class JupyterGISModel implements IJupyterGISModel {
       }
     });
     return usingLayers;
-  }
-
-  /**
-   * Read a GeoJSON file.
-   *
-   * @param filepath - the path of the GeoJSON file.
-   * @returns a promise to the GeoJSON data.
-   */
-  async readGeoJSON(filepath: string): Promise<GeoJSON | undefined> {
-    if (!this._contentsManager) {
-      return;
-    }
-
-    const absolutePath = PathExt.resolve(
-      PathExt.dirname(this._filePath),
-      filepath
-    );
-    const file = await this._contentsManager.get(absolutePath, {
-      content: true
-    });
-
-    if (typeof file.content === 'string') {
-      return JSON.parse(file.content);
-    }
-    return file.content;
   }
 
   /**
@@ -390,21 +394,28 @@ export class JupyterGISModel implements IJupyterGISModel {
   syncViewport(viewport?: IViewPortState, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('viewportState', {
       value: viewport,
-      emitter: emitter
+      emitter
     });
   }
 
   syncPointer(pointer?: Pointer, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('pointer', {
       value: pointer,
-      emitter: emitter
+      emitter
     });
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('selected', {
       value,
-      emitter: emitter
+      emitter
+    });
+  }
+
+  syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
+      value: features,
+      emitter
     });
   }
 
@@ -605,6 +616,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
+  toggleIdentify() {
+    this._isIdentifying = !this._isIdentifying;
+  }
+
   private _getLayerTreeInfo(groupName: string):
     | {
         mainGroup: IJGISLayerGroup;
@@ -676,7 +691,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     Map<number, IJupyterGISClientState>
   >(this);
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
-  private _zoomToAnnotationSignal = new Signal<this, string>(this);
+  private _zoomToPositionSignal = new Signal<this, string>(this);
+
+  private _isIdentifying = false;
 
   static worker: Worker;
 }

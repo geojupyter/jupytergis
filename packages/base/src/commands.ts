@@ -14,10 +14,13 @@ import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
+import { CommandRegistry } from '@lumino/commands';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { CommandIDs, icons } from './constants';
 import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
+import keybindings from './keybindings.json';
 import { JupyterGISWidget } from './widget';
 
 interface ICreateEntry {
@@ -30,6 +33,16 @@ interface ICreateEntry {
   layerData?: IDict;
   sourceType: SourceType;
   layerType?: LayerType;
+}
+
+function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
+  keybindings.forEach(binding => {
+    commands.addKeyBinding({
+      command: binding.command,
+      keys: binding.keys,
+      selector: binding.selector
+    });
+  });
 }
 
 /**
@@ -91,7 +104,7 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: args => {
+    execute: () => {
       const current = tracker.currentWidget;
 
       if (current) {
@@ -108,7 +121,7 @@ export function addCommands(
         ? tracker.currentWidget.context.model.sharedModel.editable
         : false;
     },
-    execute: args => {
+    execute: () => {
       const current = tracker.currentWidget;
 
       if (current) {
@@ -116,6 +129,43 @@ export function addCommands(
       }
     },
     ...icons.get(CommandIDs.undo)
+  });
+
+  commands.addCommand(CommandIDs.identify, {
+    label: trans.__('Identify'),
+    isToggled: () => {
+      return tracker.currentWidget?.context.model.isIdentifying || false;
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: args => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const luminoEvent = args['_luminoEvent'] as
+        | ReadonlyPartialJSONObject
+        | undefined;
+
+      if (luminoEvent) {
+        const keysPressed = luminoEvent.keys as string[] | undefined;
+        if (keysPressed?.includes('Escape')) {
+          current.context.model.isIdentifying = false;
+          current.node.classList.remove('jGIS-identify-tool');
+          commands.notifyCommandChanged(CommandIDs.identify);
+          return;
+        }
+      }
+
+      current.node.classList.toggle('jGIS-identify-tool');
+      current.context.model.toggleIdentify();
+      commands.notifyCommandChanged(CommandIDs.identify);
+    },
+    ...icons.get(CommandIDs.identify)
   });
 
   /**
@@ -832,6 +882,28 @@ export function addCommands(
       }
     }
   });
+
+  commands.addCommand(CommandIDs.zoomToLayer, {
+    label: trans.__('Zoom to Layer'),
+    execute: () => {
+      const currentWidget = tracker.currentWidget;
+      if (!currentWidget || !completionProviderManager) {
+        return;
+      }
+      console.log('zooming');
+      const model = tracker.currentWidget.context.model;
+      const selectedItems = model.localState?.selected.value;
+
+      if (!selectedItems) {
+        return;
+      }
+
+      const layerId = Object.keys(selectedItems)[0];
+      model.centerOnPosition(layerId);
+    }
+  });
+
+  loadKeybindings(commands, keybindings);
 }
 
 namespace Private {

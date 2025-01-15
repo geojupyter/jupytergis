@@ -29,10 +29,10 @@ import {
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { Collection, Map as OlMap, View } from 'ol';
+import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
 import { ScaleLine } from 'ol/control';
 import { GeoJSON, MVT } from 'ol/format';
-import DragAndDrop from 'ol/interaction/DragAndDrop';
+import { DragAndDrop, Select } from 'ol/interaction';
 import {
   Image as ImageLayer,
   Layer,
@@ -42,7 +42,7 @@ import {
 } from 'ol/layer';
 import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
-import { fromLonLat, toLonLat } from 'ol/proj';
+import { fromLonLat, toLonLat, transformExtent } from 'ol/proj';
 import Feature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -59,7 +59,6 @@ import { get as getProjection } from 'ol/proj.js';
 import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import * as React from 'react';
-import shp from 'shpjs';
 import { isLightTheme, loadGeoTIFFWithCache, throttle } from '../tools';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
@@ -72,6 +71,11 @@ import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import { FollowIndicator } from './FollowIndicator';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
+import { loadFile } from '../tools';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+import { singleClick } from 'ol/events/condition';
+import TileSource from 'ol/source/Tile';
+import { FeatureLike } from 'ol/Feature';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -117,7 +121,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onSharedMetadataChanged,
       this
     );
-    this._model.zoomToAnnotationSignal.connect(this._onZoomToAnnotation, this);
+    this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -179,6 +183,7 @@ export class MainView extends React.Component<IProps, IStates> {
         controls: [new ScaleLine()]
       });
 
+      // Add map interactions
       const dragAndDropInteraction = new DragAndDrop({
         formatConstructors: [GeoJSON]
       });
@@ -215,6 +220,8 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.addInteraction(dragAndDropInteraction);
+
+      this.createSelectInteraction();
 
       const view = this._Map.getView();
 
@@ -276,6 +283,8 @@ export class MainView extends React.Component<IProps, IStates> {
         });
       });
 
+      this._Map.on('click', this._identifyFeature.bind(this));
+
       this._Map
         .getViewport()
         .addEventListener('pointermove', this._onPointerMove.bind(this));
@@ -300,6 +309,85 @@ export class MainView extends React.Component<IProps, IStates> {
       this.setState(old => ({ ...old, loading: false }));
     }
   }
+
+  createSelectInteraction = () => {
+    const pointStyle = new Style({
+      image: new Circle({
+        radius: 5,
+        fill: new Fill({
+          color: '#C52707'
+        }),
+        stroke: new Stroke({
+          color: '#171717',
+          width: 2
+        })
+      })
+    });
+
+    const lineStyle = new Style({
+      stroke: new Stroke({
+        color: '#171717',
+        width: 2
+      })
+    });
+
+    const polygonStyle = new Style({
+      fill: new Fill({ color: '#C5270780' }),
+      stroke: new Stroke({
+        color: '#171717',
+        width: 2
+      })
+    });
+
+    const styleFunction = (feature: FeatureLike) => {
+      const geometryType = feature.getGeometry()?.getType();
+      switch (geometryType) {
+        case 'Point':
+        case 'MultiPoint':
+          return pointStyle;
+        case 'LineString':
+        case 'MultiLineString':
+          return lineStyle;
+        case 'Polygon':
+        case 'MultiPolygon':
+          return polygonStyle;
+      }
+    };
+
+    const selectInteraction = new Select({
+      hitTolerance: 5,
+      multi: true,
+      layers: layer => {
+        const localState = this._model?.sharedModel.awareness.getLocalState();
+        const selectedLayers = localState?.selected?.value;
+
+        if (!selectedLayers) {
+          return false;
+        }
+        const selectedLayerId = Object.keys(selectedLayers)[0];
+
+        return layer === this.getLayer(selectedLayerId);
+      },
+      condition: (event: MapBrowserEvent<any>) => {
+        return singleClick(event) && this._model.isIdentifying;
+      },
+      style: styleFunction
+    });
+
+    selectInteraction.on('select', event => {
+      const identifiedFeatures: IDict<any> = [];
+      selectInteraction.getFeatures().forEach(feature => {
+        identifiedFeatures.push(feature.getProperties());
+      });
+
+      this._model.syncIdentifiedFeatures(
+        identifiedFeatures,
+        this._mainViewModel.id
+      );
+    });
+
+    this._Map.addInteraction(selectInteraction);
+  };
 
   addContextMenu = (): void => {
     this._commands.addCommand(CommandIDs.addAnnotation, {
@@ -328,21 +416,6 @@ export class MainView extends React.Component<IProps, IStates> {
       rank: 1
     });
   };
-
-  private async _loadShapefileAsGeoJSON(
-    url: string
-  ): Promise<GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[]> {
-    try {
-      const response = await fetch(`/jupytergis_core/proxy?url=${url}`);
-      const arrayBuffer = await response.arrayBuffer();
-      const geojson = await shp(arrayBuffer);
-
-      return geojson;
-    } catch (error) {
-      console.error('Error loading shapefile:', error);
-      throw error;
-    }
-  }
 
   private async _loadGeoTIFFWithCache(sourceInfo: {
     url?: string | undefined;
@@ -425,7 +498,11 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'GeoJSONSource': {
         const data =
           source.parameters?.data ||
-          (await this._model.readGeoJSON(source.parameters?.path));
+          (await loadFile({
+            filepath: source.parameters?.path,
+            type: 'GeoJSONSource',
+            model: this._model
+          }));
 
         const format = new GeoJSON({
           featureProjection: this._Map.getView().getProjection()
@@ -439,6 +516,10 @@ export class MainView extends React.Component<IProps, IStates> {
 
         const featureCollection = new Collection(featureArray);
 
+        featureCollection.forEach(feature => {
+          feature.setId(getUid(feature));
+        });
+
         newSource = new VectorSource({
           features: featureCollection
         });
@@ -448,7 +529,12 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'ShapefileSource': {
         const parameters = source.parameters as IShapefileSource;
 
-        const geojson = await this._loadShapefileAsGeoJSON(parameters.path);
+        const geojson = await loadFile({
+          filepath: parameters.path,
+          type: 'ShapefileSource',
+          model: this._model
+        });
+
         const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
 
         const format = new GeoJSON();
@@ -491,9 +577,15 @@ export class MainView extends React.Component<IProps, IStates> {
 
         const extent = [minX, minY, maxX, maxY];
 
+        const imageUrl = await loadFile({
+          filepath: sourceParameters.url,
+          type: 'ImageSource',
+          model: this._model
+        });
+
         newSource = new Static({
           imageExtent: extent,
-          url: sourceParameters.url,
+          url: imageUrl,
           interpolate: true,
           crossOrigin: ''
         });
@@ -1311,11 +1403,47 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
-  private _onZoomToAnnotation(_: IJupyterGISModel, id: string) {
+  private _onZoomToPosition(_: IJupyterGISModel, id: string) {
+    // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
       this._moveToPosition(annotation.position, annotation.zoom);
+      return;
     }
+
+    // The id is a layer
+    let extent;
+    const layer = this.getLayer(id) as Layer;
+    const source = layer?.getSource();
+
+    if (source instanceof VectorSource) {
+      extent = source.getExtent();
+    }
+
+    if (source instanceof TileSource) {
+      // Tiled sources don't have getExtent() so we get it from the grid
+      const tileGrid = source.getTileGrid();
+      extent = tileGrid?.getExtent();
+    }
+
+    if (!extent) {
+      console.warn('Layer has no extent.');
+      return;
+    }
+
+    // Convert layer extent value to view projection if needed
+    const sourceProjection = source?.getProjection();
+    const viewProjection = this._Map.getView().getProjection();
+
+    const transformedExtent =
+      sourceProjection && sourceProjection !== viewProjection
+        ? transformExtent(extent, sourceProjection, viewProjection)
+        : extent;
+
+    this._Map.getView().fit(transformedExtent, {
+      size: this._Map.getSize(),
+      duration: 500
+    });
   }
 
   private _moveToPosition(
@@ -1348,6 +1476,52 @@ export class MainView extends React.Component<IProps, IStates> {
     };
     this._model.syncPointer(pointer);
   });
+
+  private _identifyFeature(e: MapBrowserEvent<any>) {
+    if (!this._model.isIdentifying) {
+      return;
+    }
+
+    const localState = this._model?.sharedModel.awareness.getLocalState();
+    const selectedLayer = localState?.selected?.value;
+
+    if (!selectedLayer) {
+      console.warn('Layer must be selected to use identify tool');
+      return;
+    }
+
+    const layerId = Object.keys(selectedLayer)[0];
+    const jgisLayer = this._model.getLayer(layerId);
+
+    switch (jgisLayer?.type) {
+      case 'WebGlLayer': {
+        const layer = this.getLayer(layerId) as WebGlTileLayer;
+        const data = layer.getData(e.pixel);
+
+        // TODO: Handle dataviews?
+        if (!data || data instanceof DataView) {
+          return;
+        }
+
+        const bandValues: IDict<number> = {};
+
+        // Data is an array of band values
+        for (let i = 0; i < data.length - 1; i++) {
+          bandValues[`Band ${i + 1}`] = data[i];
+        }
+
+        // last element is alpha
+        bandValues['Alpha'] = data[data.length - 1];
+
+        this._model.syncIdentifiedFeatures(
+          [bandValues],
+          this._mainViewModel.id
+        );
+
+        break;
+      }
+    }
+  }
 
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();

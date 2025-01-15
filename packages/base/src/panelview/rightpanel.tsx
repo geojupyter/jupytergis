@@ -8,16 +8,17 @@ import {
 import { SidePanel } from '@jupyterlab/ui-components';
 
 import { IControlPanelModel } from '../types';
-import { FilterPanel } from './components/filter-panel/Filter';
 import { ControlPanelHeader } from './header';
 import { ObjectProperties } from './objectproperties';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Annotations } from './annotationPanel';
+import IdentifyPanel from './components/identify-panel/IdentifyPanel';
 
 export class RightPanelWidget extends SidePanel {
   constructor(options: RightPanelWidget.IOptions) {
     super();
     this.addClass('jGIS-sidepanel-widget');
+
     this._model = options.model;
     this._annotationModel = options.annotationModel;
 
@@ -37,15 +38,13 @@ export class RightPanelWidget extends SidePanel {
     });
     this.addWidget(annotations);
 
-    const filterPanel = new FilterPanel({
+    const identifyPanel = new IdentifyPanel({
       model: this._model,
-      tracker: options.tracker,
-      formSchemaRegistry: options.formSchemaRegistry
+      tracker: options.tracker
     });
-
-    filterPanel.title.caption = 'Filters';
-    filterPanel.title.label = 'Filters';
-    this.addWidget(filterPanel);
+    identifyPanel.title.caption = 'Identify';
+    identifyPanel.title.label = 'Identify';
+    this.addWidget(identifyPanel);
 
     this._model.documentChanged.connect((_, changed) => {
       if (changed) {

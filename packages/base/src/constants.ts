@@ -9,6 +9,7 @@ export namespace CommandIDs {
   export const redo = 'jupytergis:redo';
   export const undo = 'jupytergis:undo';
   export const symbology = 'jupytergis:symbology';
+  export const identify = 'jupytergis:identify';
 
   // Layers and sources creation commands
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
@@ -62,6 +63,7 @@ export namespace CommandIDs {
 
   // Map Commands
   export const addAnnotation = 'jupytergis:addAnnotation';
+  export const zoomToLayer = 'jupytergis:zoomToLayer';
 }
 
 interface IRegisteredIcon {
@@ -95,7 +97,8 @@ const iconObject = {
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
   [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
   [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
-  [CommandIDs.symbology]: { iconClass: 'fa fa-brush' }
+  [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
+  [CommandIDs.identify]: { iconClass: 'fa fa-info' }
 };
 
 /**

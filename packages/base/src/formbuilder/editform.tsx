@@ -92,7 +92,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
       <div>
         {this.props.layer && LayerForm && (
           <div>
-            <h3>Layer Properties</h3>
+            <h3 style={{ paddingLeft: '5px' }}>Layer Properties</h3>
             <LayerForm
               formContext="create"
               sourceType={source?.type || 'RasterSource'}
@@ -108,7 +108,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
         )}
         {this.props.source && SourceForm && (
           <div>
-            <h3>Source Properties</h3>
+            <h3 style={{ paddingLeft: '5px' }}>Source Properties</h3>
             <SourceForm
               formContext="create"
               model={this.props.context.model}

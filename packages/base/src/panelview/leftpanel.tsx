@@ -12,6 +12,7 @@ import { IControlPanelModel } from '../types';
 import { LayersPanel } from './components/layers';
 import { SourcesPanel } from './components/sources';
 import { ControlPanelHeader } from './header';
+import { FilterPanel } from './components/filter-panel/Filter';
 
 /**
  * Options of the left panel widget.
@@ -36,6 +37,7 @@ export class LeftPanelWidget extends SidePanel {
   constructor(options: LeftPanelWidget.IOptions) {
     super();
     this.addClass('jGIS-sidepanel-widget');
+
     this._model = options.model;
     this._state = options.state;
 
@@ -58,6 +60,15 @@ export class LeftPanelWidget extends SidePanel {
     layerTree.title.caption = 'Layer tree';
     layerTree.title.label = 'Layers';
     this.addWidget(layerTree);
+
+    const filterPanel = new FilterPanel({
+      model: this._model,
+      tracker: options.tracker
+    });
+
+    filterPanel.title.caption = 'Filters';
+    filterPanel.title.label = 'Filters';
+    this.addWidget(filterPanel);
 
     options.tracker.currentChanged.connect((_, changed) => {
       if (changed) {

@@ -41,12 +41,9 @@ test.describe('context menu', () => {
       .getByText('Open Topo Map')
       .click({ button: 'right' });
 
-    await page.getByRole('menu').hover();
+    await page.getByText('Move Selected Layers to Group').hover();
 
-    const submenu = page.locator('div').filter({
-      hasText:
-        'Move to Rootlevel 1 grouplevel 2 groupMove Selected Layers to New Group'
-    });
+    const submenu = page.locator('#jp-gis-contextmenu-movelayer');
 
     const firstItem = page.getByText('Move to Root');
     await expect(firstItem).toBeVisible();

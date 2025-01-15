@@ -5,6 +5,7 @@ import { Ajv, ValidateFunction } from 'ajv';
 import * as geojson from '@jupytergis/schema/src/schema/geojson.json';
 
 import { BaseForm, IBaseFormProps } from './baseform';
+import { loadFile } from '../../tools';
 
 /**
  * The form to modify a GeoJSON source.
@@ -67,7 +68,11 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
     let valid = false;
     if (path) {
       try {
-        const geoJSONData = await this.props.model.readGeoJSON(path);
+        const geoJSONData = await loadFile({
+          filepath: path,
+          type: 'GeoJSONSource',
+          model: this.props.model
+        });
         valid = this._validate(geoJSONData);
         if (!valid) {
           error = `"${path}" is not a valid GeoJSON file`;

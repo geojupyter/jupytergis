@@ -1,0 +1,62 @@
+[
+  {
+    "command": "jupytergis:undo",
+    "keys": ["Accel Z"],
+    "selector": ".data-jgis-keybinding"
+  },
+  {
+    "command": "jupytergis:redo",
+    "keys": ["Accel Shift Z"],
+    "selector": ".data-jgis-keybinding"
+  },
+  {
+    "command": "jupytergis:identify",
+    "keys": ["Escape"],
+    "selector": ".data-jgis-keybinding"
+  },
+  {
+    "command": "jupytergis:removeSource",
+    "keys": ["Delete"],
+    "selector": ".data-jgis-keybinding .jp-gis-source.jp-gis-sourceUnused"
+  },
+  {
+    "command": "jupytergis:renameSource",
+    "keys": ["F2"],
+    "selector": ".data-jgis-keybinding .jp-gis-source"
+  },
+  {
+    "command": "jupytergis:removeLayer",
+    "keys": ["Delete"],
+    "selector": ".data-jgis-keybinding .jp-gis-layerItem"
+  },
+  {
+    "command": "jupytergis:renameLayer",
+    "keys": ["F2"],
+    "selector": ".data-jgis-keybinding .jp-gis-layerItem"
+  },
+  {
+    "command": "jupytergis:removeGroup",
+    "keys": ["Delete"],
+    "selector": ".data-jgis-keybinding .jp-gis-layerGroupHeader"
+  },
+  {
+    "command": "jupytergis:renameGroup",
+    "keys": ["F2"],
+    "selector": ".data-jgis-keybinding .jp-gis-layerGroupHeader"
+  },
+  {
+    "command": "jupytergis:executeConsole",
+    "keys": ["Shift Enter"],
+    "selector": ".jpgis-console .jp-CodeConsole[data-jp-interaction-mode='notebook'] .jp-CodeConsole-promptCell"
+  },
+  {
+    "command": "jupytergis:invokeConsoleCompleter",
+    "keys": ["Tab"],
+    "selector": ".jpgis-console .jp-CodeConsole-promptCell .jp-mod-completer-enabled"
+  },
+  {
+    "command": "jupytergis:selectConsoleCompleter",
+    "keys": ["Enter"],
+    "selector": ".jpgis-console .jp-ConsolePanel .jp-mod-completer-active"
+  }
+]
