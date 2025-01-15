@@ -2,13 +2,13 @@
   "type": "object",
   "description": "ImageSource",
   "title": "IImageSource",
-  "required": ["url", "coordinates"],
+  "required": ["path", "coordinates"],
   "additionalProperties": false,
   "properties": {
-    "url": {
+    "path": {
       "type": "string",
       "readOnly": true,
-      "description": "URL that points to an image"
+      "description": "Path that points to an image"
     },
     "coordinates": {
       "type": "array",
