@@ -429,10 +429,10 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
     return null;
   }
 
-  const cachedData = await getFromIndexedDB(sourceInfo.url);
+  const cachedData = await getFromCache(sourceInfo.url);
   if (cachedData) {
     return {
-      file: new Blob([cachedData.file]),
+      file: cachedData.data,
       metadata: cachedData.metadata,
       sourceUrl: sourceInfo.url
     };
@@ -448,7 +448,7 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
   const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
   Gdal.close(tifDataset);
 
-  await saveToIndexedDB(sourceInfo.url, fileBlob, metadata);
+  await saveToCache(sourceInfo.url, fileBlob, metadata);
 
   return {
     file: fileBlob,
@@ -506,7 +506,7 @@ export const loadFile = async (fileInfo: {
       case 'ShapefileSource': {
         const cached = await getFromCache(filepath);
         if (cached) {
-          return cached.data.text();
+          return JSON.parse(await cached.data.text());
         }
 
         try {
