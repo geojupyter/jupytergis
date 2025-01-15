@@ -468,11 +468,7 @@ const getFromCache = async (key: string) => {
   return null;
 };
 
-const saveToCache = async (
-  key: string,
-  data: Blob,
-  metadata?: any
-) => {
+const saveToCache = async (key: string, data: Blob, metadata?: any) => {
   await saveToIndexedDB(key, data, metadata);
 };
 
