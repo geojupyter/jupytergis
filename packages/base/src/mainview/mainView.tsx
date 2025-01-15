@@ -40,13 +40,19 @@ import {
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer
 } from 'ol/layer';
-import BaseLayer from 'ol/layer/Base';
+// import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
-import { fromLonLat, toLonLat, transformExtent } from 'ol/proj';
+import {
+  fromLonLat,
+  get as olGetProj,
+  toLonLat,
+  transformExtent
+} from 'ol/proj';
 import Feature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
+  Source,
   Vector as VectorSource,
   VectorTile as VectorTileSource,
   XYZ as XYZSource
@@ -96,8 +102,35 @@ export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
 
-    proj4.defs(Array.from(proj4list));
-    register(proj4);
+    // console.log('proj4list["EPSG:22300"]', proj4list['EPSG:22300']);
+    // const proj4Values: [string, string][] = Object.values(proj4list);
+
+    // const proj4Filtered = proj4Values.filter(([_, second]) => second !== '');
+
+    // const excludedCodes = [
+    //   'EPSG:4326',
+    //   'EPSG:4269',
+    //   'EPSG:32601',
+    //   'EPSG:32701',
+    //   'EPSG:32602',
+    //   'EPSG:32702',
+    //   'EPSG:32603',
+    //   'EPSG:32703',
+    //   'EPSG:32604',
+    //   'EPSG:32704',
+    //   'EPSG:32605',
+    //   'EPSG:32705',
+    //   'EPSG:32606',
+    //   'EPSG:32706',
+    //   'EPSG:32607',
+    //   'EPSG:3785',
+    //   'EPSG:5514',
+    //   'EPSG:27700',
+    //   'EPSG:28992'
+    // ];
+    // proj4.defs(proj4Filtered);
+
+    // register(proj4);
 
     this._mainViewModel = this.props.viewModel;
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
@@ -435,7 +468,8 @@ export class MainView extends React.Component<IProps, IStates> {
     source: IJGISSource,
     layerId?: string
   ): Promise<void> {
-    let newSource;
+    let newSource: Source;
+    this._ready = false;
 
     switch (source.type) {
       case 'RasterSource': {
@@ -620,9 +654,54 @@ export class MainView extends React.Component<IProps, IStates> {
       }
     }
 
-    newSource.set('id', id);
-    // _sources is a list of OpenLayers sources
-    this._sources[id] = newSource;
+    //@ts-expect-error isidsd
+    this.waitForSourceReady(newSource)
+      .then(() => {
+        console.log('The source is ready!');
+        newSource.set('id', id);
+        // const sp = newSource.getProjection();
+        // const c = sp?.getCode();
+        // console.log('source = id', id);
+        // console.log('source = sp', sp);
+        // _sources is a list of OpenLayers sources
+        this.addProj(newSource);
+        this._sources[id] = newSource;
+
+        // const l1 = olGetProj(c);
+        // console.log('l1', l1, c);
+        // if (!l1) {
+        //   proj4.defs([proj4list[c]]);
+        //   register(proj4);
+        // }
+        // const l2 = olGetProj(c);
+        // console.log('l2', l2);
+        this._ready = true;
+      })
+      .catch(error => {
+        console.error('An error occurred:', error.message);
+      });
+  }
+
+  waitForSourceReady(source: Source) {
+    return new Promise<void>((resolve, reject) => {
+      const checkState = () => {
+        const state = source.getState();
+        console.log(`Source state: ${state}`);
+        if (state === 'ready') {
+          source.un('change', checkState); // Stop listening once it's ready
+          resolve(); // Resolve the promise
+        } else if (state === 'error') {
+          source.un('change', checkState); // Stop listening on error
+          reject(new Error('Source failed to load.'));
+        }
+      };
+
+      // Listen for state changes
+      source.on('change', checkState);
+
+      // Check the state immediately in case it's already 'ready'
+      checkState();
+    });
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -749,7 +828,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private async _buildMapLayer(
     id: string,
     layer: IJGISLayer
-  ): Promise<BaseLayer | undefined> {
+  ): Promise<Layer | undefined> {
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getLayerSource(sourceId);
     if (!source) {
@@ -866,8 +945,50 @@ export class MainView extends React.Component<IProps, IStates> {
 
     const newMapLayer = await this._buildMapLayer(id, layer);
     if (newMapLayer !== undefined) {
+      await this.waitForReady();
+
+      console.log('calling insert');
       this._Map.getLayers().insertAt(index, newMapLayer);
     }
+  }
+
+  addProj(newMapLayer: Source) {
+    // const s = newMapLayer.getSource();
+    // console.log('josn shit', JSON.parse(JSON.stringify(s)));
+    const spp = newMapLayer.getProjection();
+    const c = spp?.getCode();
+    console.log('addProj projection', spp);
+    const test = olGetProj('EPSG:3857');
+    console.log('test projection', test);
+    const l1 = olGetProj(c);
+    console.log('added projection pre', l1);
+    if (!l1) {
+      proj4.defs([proj4list[c]]);
+      register(proj4);
+    }
+    const l2 = olGetProj(c);
+    console.log('added projection post', l2);
+  }
+
+  /**
+   * Waits until the `ready` boolean in the parent class is `true`.
+   */
+  private waitForReady(): Promise<void> {
+    return new Promise(resolve => {
+      const checkReady = () => {
+        if (this._ready) {
+          // If ready, resolve the promise
+          console.log('ready in waitForReady');
+          resolve();
+        } else {
+          // If not ready, check again after a short delay
+          console.log('setting timeout in waitForReady');
+          setTimeout(checkReady, 50); // Poll every 50ms
+        }
+      };
+
+      checkReady();
+    });
   }
 
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
@@ -996,7 +1117,7 @@ export class MainView extends React.Component<IProps, IStates> {
   async updateLayer(
     id: string,
     layer: IJGISLayer,
-    mapLayer: BaseLayer
+    mapLayer: Layer
   ): Promise<void> {
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getLayerSource(sourceId);
@@ -1226,7 +1347,7 @@ export class MainView extends React.Component<IProps, IStates> {
     return this._Map
       .getLayers()
       .getArray()
-      .find(layer => layer.get('id') === id);
+      .find(layer => layer.get('id') === id) as Layer;
   }
 
   /**
