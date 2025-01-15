@@ -504,12 +504,18 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'ShapefileSource': {
+        const cached = await getFromCache(filepath);
+        if (cached) {
+          return cached.data.text();
+        }
+
         try {
           const response = await fetch(
             `/jupytergis_core/proxy?url=${filepath}`
           );
           const arrayBuffer = await response.arrayBuffer();
           const geojson = await shp(arrayBuffer);
+          await saveToCache(filepath, new Blob([JSON.stringify(geojson)]));
           return geojson;
         } catch (error) {
           console.error('Error loading remote shapefile:', error);
