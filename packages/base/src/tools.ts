@@ -524,6 +524,11 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoJSONSource': {
+        const cached = await getFromCache(filepath);
+        if (cached) {
+          return JSON.parse(await cached.data.text());
+        }
+
         try {
           const response = await fetch(
             `/jupytergis_core/proxy?url=${filepath}`
@@ -532,6 +537,7 @@ export const loadFile = async (fileInfo: {
             throw new Error(`Failed to fetch GeoJSON from URL: ${filepath}`);
           }
           const geojson = await response.json();
+          await saveToCache(filepath, new Blob([JSON.stringify(geojson)]));
           return geojson;
         } catch (error) {
           console.error('Error loading remote GeoJSON:', error);
