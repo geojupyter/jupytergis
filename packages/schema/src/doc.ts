@@ -55,10 +55,14 @@ export class JupyterGISDoc
     return { layers, layerTree, sources, options, metadata };
   }
 
-  setSource(value: JSONObject): void {
+  setSource(value: JSONObject | string): void {
     if (!value) {
       return;
     }
+    if (typeof value === 'string') {
+      value = JSON.parse(value);
+    }
+    value = value as JSONObject;
     this.transact(() => {
       const layers = value['layers'] ?? {};
       Object.entries(layers).forEach(([key, val]) =>
