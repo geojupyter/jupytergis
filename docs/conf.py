@@ -21,7 +21,12 @@ copyright = "2024, The JupyterGIS Development Team"
 author = "The JupyterGIS Development Team"
 language = "en"
 
-jupyterlite_contents = ["../examples/*.jGIS", "../examples/*.json"]
+jupyterlite_contents = [
+    "../examples/*.jGIS",
+    "../examples/*.json",
+    "../examples/nyc.zip",
+    "../examples/radar.gif",
+]
 jupyterlite_dir = "."
 jupyterlite_config = "jupyter_lite_config.json"
 jupyterlite_silence = False
