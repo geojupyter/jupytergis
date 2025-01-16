@@ -854,18 +854,42 @@ export class MainView extends React.Component<IProps, IStates> {
     // we need to keep track of which source has which layers
     this._sourceToLayerMap.set(layerParameters.source, id);
 
-    const sourceProjection = newMapLayer.getSource().getProjection();
-    const projectionCode = sourceProjection?.getCode();
-    const isProjectionRegistered = getRegisteredProjection(projectionCode);
-
-    if (!isProjectionRegistered) {
-      proj4.defs([proj4list[projectionCode]]);
-      register(proj4);
-    }
+    this.addProjection(newMapLayer);
 
     this._loadingLayers.delete(id);
 
     return newMapLayer;
+  }
+
+  addProjection(newMapLayer: Layer) {
+    const sourceProjection = newMapLayer.getSource()?.getProjection();
+    if (!sourceProjection) {
+      console.warn('Layer source projection is undefined or invalid');
+      return;
+    }
+
+    const projectionCode = sourceProjection.getCode();
+
+    const isProjectionRegistered = getRegisteredProjection(projectionCode);
+    if (!isProjectionRegistered) {
+      // Check if the projection exists in proj4list
+      if (!proj4list[projectionCode]) {
+        console.warn(
+          `Projection code '${projectionCode}' not found in proj4list`
+        );
+        return;
+      }
+
+      try {
+        proj4.defs([proj4list[projectionCode]]);
+        register(proj4);
+      } catch (error: any) {
+        console.warn(
+          `Failed to register projection '${projectionCode}'. Error: ${error.message}`
+        );
+        return;
+      }
+    }
   }
 
   /**
