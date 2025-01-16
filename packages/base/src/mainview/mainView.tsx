@@ -40,9 +40,13 @@ import {
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer
 } from 'ol/layer';
-import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
-import { fromLonLat, toLonLat, transformExtent } from 'ol/proj';
+import {
+  fromLonLat,
+  get as getRegisteredProjection,
+  toLonLat,
+  transformExtent
+} from 'ol/proj';
 import Feature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -96,9 +100,6 @@ export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
 
-    proj4.defs(Array.from(proj4list));
-    register(proj4);
-
     this._mainViewModel = this.props.viewModel;
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
 
@@ -133,6 +134,7 @@ export class MainView extends React.Component<IProps, IStates> {
     };
 
     this._sources = [];
+    this._loadingLayers = new Set();
     this._commands = new CommandRegistry();
     this._contextMenu = new ContextMenu({ commands: this._commands });
   }
@@ -749,7 +751,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private async _buildMapLayer(
     id: string,
     layer: IJGISLayer
-  ): Promise<BaseLayer | undefined> {
+  ): Promise<Layer | undefined> {
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getLayerSource(sourceId);
     if (!source) {
@@ -759,6 +761,8 @@ export class MainView extends React.Component<IProps, IStates> {
     if (!this._sources[sourceId]) {
       await this.addSource(sourceId, source, id);
     }
+
+    this._loadingLayers.add(id);
 
     let newMapLayer;
     let layerParameters;
@@ -842,13 +846,50 @@ export class MainView extends React.Component<IProps, IStates> {
       }
     }
 
+    await this._waitForSourceReady(newMapLayer);
+
     // OpenLayers doesn't have name/id field so add it
     newMapLayer.set('id', id);
 
     // we need to keep track of which source has which layers
     this._sourceToLayerMap.set(layerParameters.source, id);
 
+    this.addProjection(newMapLayer);
+
+    this._loadingLayers.delete(id);
+
     return newMapLayer;
+  }
+
+  addProjection(newMapLayer: Layer) {
+    const sourceProjection = newMapLayer.getSource()?.getProjection();
+    if (!sourceProjection) {
+      console.warn('Layer source projection is undefined or invalid');
+      return;
+    }
+
+    const projectionCode = sourceProjection.getCode();
+
+    const isProjectionRegistered = getRegisteredProjection(projectionCode);
+    if (!isProjectionRegistered) {
+      // Check if the projection exists in proj4list
+      if (!proj4list[projectionCode]) {
+        console.warn(
+          `Projection code '${projectionCode}' not found in proj4list`
+        );
+        return;
+      }
+
+      try {
+        proj4.defs([proj4list[projectionCode]]);
+        register(proj4);
+      } catch (error: any) {
+        console.warn(
+          `Failed to register projection '${projectionCode}'. Error: ${error.message}`
+        );
+        return;
+      }
+    }
   }
 
   /**
@@ -866,6 +907,8 @@ export class MainView extends React.Component<IProps, IStates> {
 
     const newMapLayer = await this._buildMapLayer(id, layer);
     if (newMapLayer !== undefined) {
+      await this._waitForReady();
+
       this._Map.getLayers().insertAt(index, newMapLayer);
     }
   }
@@ -996,7 +1039,7 @@ export class MainView extends React.Component<IProps, IStates> {
   async updateLayer(
     id: string,
     layer: IJGISLayer,
-    mapLayer: BaseLayer
+    mapLayer: Layer
   ): Promise<void> {
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getLayerSource(sourceId);
@@ -1055,6 +1098,48 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
     }
+  }
+
+  /**
+   * Wait for all layers to be loaded.
+   */
+  private _waitForReady(): Promise<void> {
+    return new Promise(resolve => {
+      const checkReady = () => {
+        if (this._loadingLayers.size === 0) {
+          resolve();
+        } else {
+          setTimeout(checkReady, 50);
+        }
+      };
+
+      checkReady();
+    });
+  }
+
+  /**
+   * Wait for a layers source state to be 'ready'
+   * @param layer The Layer to check
+   */
+  private _waitForSourceReady(layer: Layer) {
+    return new Promise<void>((resolve, reject) => {
+      const checkState = () => {
+        const state = layer.getSourceState();
+        if (state === 'ready') {
+          layer.un('change', checkState);
+          resolve();
+        } else if (state === 'error') {
+          layer.un('change', checkState);
+          reject(new Error('Source failed to load.'));
+        }
+      };
+
+      // Listen for state changes
+      layer.on('change', checkState);
+
+      // Check the state immediately in case it's already 'ready'
+      checkState();
+    });
   }
 
   /**
@@ -1226,7 +1311,7 @@ export class MainView extends React.Component<IProps, IStates> {
     return this._Map
       .getLayers()
       .getArray()
-      .find(layer => layer.get('id') === id);
+      .find(layer => layer.get('id') === id) as Layer;
   }
 
   /**
@@ -1600,4 +1685,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
+  private _loadingLayers: Set<string>;
 }
