@@ -289,7 +289,7 @@ export function addCommands(
       createSource: true,
       sourceData: {
         name: 'Custom Image Source',
-        url: 'https://maplibre.org/maplibre-gl-js/docs/assets/radar.gif',
+        path: 'https://maplibre.org/maplibre-gl-js/docs/assets/radar.gif',
         coordinates: [
           [-80.425, 46.437],
           [-71.516, 46.437],

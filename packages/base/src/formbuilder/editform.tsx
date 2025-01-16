@@ -13,6 +13,7 @@ import * as React from 'react';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 import { LayerPropertiesForm } from './objectform/layerform';
 import { BaseForm } from './objectform/baseform';
+import { Signal } from '@lumino/signaling';
 
 export interface IEditFormProps {
   /**
@@ -118,10 +119,13 @@ export class EditForm extends React.Component<IEditFormProps, any> {
               syncData={(properties: { [key: string]: any }) => {
                 this.syncObjectProperties(this.props.source, properties);
               }}
+              formChangedSignal={this.sourceFormChangedSignal}
             />
           </div>
         )}
       </div>
     );
   }
+  private sourceFormChangedSignal: Signal<React.Component<any>, IDict<any>> =
+    new Signal(this);
 }

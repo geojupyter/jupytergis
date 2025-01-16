@@ -1,6 +1,6 @@
 import { IDict } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
-import { ISubmitEvent } from '@rjsf/core';
+import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 import { Ajv, ValidateFunction } from 'ajv';
 import * as geojson from '@jupytergis/schema/src/schema/geojson.json';
 
@@ -43,6 +43,14 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
     }
 
     this._validatePath(value);
+  }
+
+  // we need to use `onFormChange` instead of `onFormBlur` because it's no longer a text field
+  protected onFormChange(e: IChangeEvent): void {
+    super.onFormChange(e);
+    if (e.formData?.path) {
+      this._validatePath(e.formData.path);
+    }
   }
 
   protected onFormSubmit(e: ISubmitEvent<any>) {

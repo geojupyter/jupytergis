@@ -316,7 +316,7 @@ class GISDocument(CommWidget):
         source = {
             "type": SourceType.ImageSource,
             "name": f"{name} Source",
-            "parameters": {"url": url, "coordinates": coordinates},
+            "parameters": {"path": url, "coordinates": coordinates},
         }
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))

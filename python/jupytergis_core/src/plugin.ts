@@ -18,6 +18,7 @@ import {
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ITranslator } from '@jupyterlab/translation';
+import { IDocumentManager } from '@jupyterlab/docmanager';
 
 import { JupyterGISExternalCommandRegistry } from './externalcommand';
 import { JupyterGISLayerBrowserRegistry } from './layerBrowserRegistry';
@@ -48,10 +49,13 @@ export const formSchemaRegistryPlugin: JupyterFrontEndPlugin<IJGISFormSchemaRegi
   {
     id: 'jupytergis:core:form-schema-registry',
     autoStart: true,
-    requires: [],
+    requires: [IDocumentManager],
     provides: IJGISFormSchemaRegistryToken,
-    activate: (app: JupyterFrontEnd): IJGISFormSchemaRegistry => {
-      const registry = new JupyterGISFormSchemaRegistry();
+    activate: (
+      app: JupyterFrontEnd,
+      docmanager: IDocumentManager
+    ): IJGISFormSchemaRegistry => {
+      const registry = new JupyterGISFormSchemaRegistry(docmanager);
       return registry;
     }
   };

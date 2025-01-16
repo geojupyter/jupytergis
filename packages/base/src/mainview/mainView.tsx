@@ -580,7 +580,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const extent = [minX, minY, maxX, maxY];
 
         const imageUrl = await loadFile({
-          filepath: sourceParameters.url,
+          filepath: sourceParameters.path,
           type: 'ImageSource',
           model: this._model
         });
