@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileDialog } from '@jupyterlab/filebrowser';
 import { Dialog } from '@jupyterlab/apputils';
 import { CreationFormDialog } from '../../dialogs/formdialog';
@@ -7,6 +7,24 @@ import { PathExt } from '@jupyterlab/coreutils';
 export const FileSelectorWidget = (props: any) => {
   const { options } = props;
   const { docManager, formOptions } = options;
+
+  const [serverFilePath, setServerFilePath] = useState('');
+  const [urlPath, setUrlPath] = useState('');
+
+  useEffect(() => {
+    if (props.value) {
+      if (
+        props.value.startsWith('http://') ||
+        props.value.startsWith('https://')
+      ) {
+        setUrlPath(props.value);
+        setServerFilePath('');
+      } else {
+        setServerFilePath(props.value);
+        setUrlPath('');
+      }
+    }
+  }, [props.value]);
 
   const handleBrowseServerFiles = async () => {
     try {
@@ -37,6 +55,9 @@ export const FileSelectorWidget = (props: any) => {
           formOptions.filePath,
           selectedFilePath
         );
+
+        setServerFilePath(relativePath);
+        setUrlPath('');
         props.onChange(relativePath);
 
         if (dialogElement) {
@@ -65,6 +86,8 @@ export const FileSelectorWidget = (props: any) => {
 
   const handleURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const url = event.target.value;
+    setServerFilePath('');
+    setUrlPath(url);
     props.onChange(url);
   };
 
@@ -74,7 +97,7 @@ export const FileSelectorWidget = (props: any) => {
         <input
           type="text"
           className="jp-mod-styled"
-          value={props.value || ''}
+          value={serverFilePath || ''}
           readOnly
           style={{ width: '70%', marginRight: '10px' }}
         />
@@ -84,14 +107,14 @@ export const FileSelectorWidget = (props: any) => {
       </div>
       <div>
         <h3 className="jp-FormGroup-fieldLabel jp-FormGroup-contentItem">
-          Enter URL
+          Or enter external URL
         </h3>
         <input
           type="text"
           id="root_path"
           className="jp-mod-styled"
           onChange={handleURLChange}
-          value={props.value || ''}
+          value={urlPath || ''}
           style={{ width: '100%' }}
         />
       </div>
