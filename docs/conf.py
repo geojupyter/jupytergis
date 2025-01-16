@@ -24,8 +24,8 @@ language = "en"
 jupyterlite_contents = [
     "../examples/*.jGIS",
     "../examples/*.json",
-    "../examples/nyc.zip",
-    "../examples/radar.gif",
+    "../examples/*.zip",
+    "../examples/*.gif",
 ]
 jupyterlite_dir = "."
 jupyterlite_config = "jupyter_lite_config.json"
