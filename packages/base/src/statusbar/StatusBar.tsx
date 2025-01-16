@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
 import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
+import { version } from '../../package.json'; // Adjust the path as necessary
 
 interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
@@ -35,6 +36,7 @@ const StatusBar = ({ jgisModel, loading, projection }: IStatusBarProps) => {
       <div style={{ width: '20%' }}>
         {loading ? <Progress height={14} /> : null}
       </div>
+      <div>jgis: {version}</div>
       <div>
         <FontAwesomeIcon icon={faLocationDot} /> x: {Math.trunc(coords.x)} y:{' '}
         {Math.trunc(coords.y)}
