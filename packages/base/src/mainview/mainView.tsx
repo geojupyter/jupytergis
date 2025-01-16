@@ -134,6 +134,7 @@ export class MainView extends React.Component<IProps, IStates> {
     };
 
     this._sources = [];
+    this._loadingLayers = new Set();
     this._commands = new CommandRegistry();
     this._contextMenu = new ContextMenu({ commands: this._commands });
   }
@@ -761,10 +762,7 @@ export class MainView extends React.Component<IProps, IStates> {
       await this.addSource(sourceId, source, id);
     }
 
-    if (this._layerCounter === -1) {
-      this._layerCounter = 0;
-    }
-    this._layerCounter++;
+    this._loadingLayers.add(id);
 
     let newMapLayer;
     let layerParameters;
@@ -865,7 +863,7 @@ export class MainView extends React.Component<IProps, IStates> {
       register(proj4);
     }
 
-    this._layerCounter--;
+    this._loadingLayers.delete(id);
 
     return newMapLayer;
   }
@@ -1084,7 +1082,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _waitForReady(): Promise<void> {
     return new Promise(resolve => {
       const checkReady = () => {
-        if (this._layerCounter === 0) {
+        if (this._loadingLayers.size === 0) {
           resolve();
         } else {
           setTimeout(checkReady, 50);
@@ -1663,5 +1661,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _sourceToLayerMap = new Map();
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
-  private _layerCounter = -1;
+  private _loadingLayers: Set<string>;
 }
