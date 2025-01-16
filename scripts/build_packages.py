@@ -1,23 +1,23 @@
-import subprocess
 from pathlib import Path
 
-
-def execute(cmd: str, cwd=None):
-    subprocess.run(cmd.split(" "), check=True, cwd=cwd)
+from utils import execute
 
 
 def build_packages():
     root_path = Path(__file__).parents[1]
-    requirements_build_path = root_path / "requirements-build.txt"
-    install_build_deps = f"python -m pip install -r {requirements_build_path}"
 
-    python_package_prefix = "python"
-    python_packages = ["jupytergis_core", "jupytergis_lab", "jupytergis_qgis"]
+    try:
+        execute(["uv", "--version"])
+    except FileNotFoundError as e:
+        raise Exception(
+            "uv is not installed. Please refer to https://docs.astral.sh/uv/configuration/installer/ for installation instructions."
+        ) from e
 
-    execute(install_build_deps)
+    execute(["uv", "sync", "--group", "build"])
 
-    for py_package in python_packages:
-        execute("hatch build", cwd=root_path / python_package_prefix / py_package)
+    for py_package in ["jupytergis_core", "jupytergis_lab", "jupytergis_qgis"]:
+        package_path = root_path / "python" / py_package
+        execute(["hatch", "build"], cwd=package_path)
 
 
 if __name__ == "__main__":

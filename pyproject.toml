@@ -7,14 +7,70 @@ name = "jupytergis-root"
 readme = "README.md"
 license = { file = "LICENSE" }
 dynamic = ["version"]
+requires-python = ">=3.10"
 
+dependencies = [
+    "datamodel-code-generator>=0.23.0",
+    "hatchling>=1.5.0,<2",
+    "jupyterlab>=4,<5",
+    "mercantile>=1.2",
+    "pillow>=10",
+    "pydantic>=2.4.2,<3",
+    "ruff>=0.6",
+    "xyzservices>=2024.6.0",
+]
+[dependency-groups]
+build = [
+    "hatchling>=1.5.0,<2",
+    "jupyterlab>=4.0.0",
+]
+dev = [
+    "jupytergis-core",
+    "jupytergis-lab",
+    "jupytergis-qgis",
+]
+docs = [
+    "python==3.12",
+    "pip",
+    "jupyterlite-core>=0.4.0,<0.6.0",
+    "jupyterlite-xeus>=2,<3",
+    "jupyterlite-sphinx",
+    "sphinx",
+    "sphinx-tabs",
+    "pydata-sphinx-theme",
+    "sphinx-autodoc-typehints",
+    "xeus-python", # TODO: Do we need this?
+]
+test = [
+    "pytest",
+    "dirty-equals",
+]
 
 [tool.hatch.version]
 path = "python/jupytergis/jupytergis/__init__.py"
 
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "python/jupytergis_core",
+    "python/jupytergis_lab",
+    "python/jupytergis_qgis"
+]
+
+[tool.uv]
+package = true
+override-dependencies = [
+    "ruff ; sys_platform == 'never'",
+]
+
+[tool.uv.sources]
+jupytergis-core = { path = "python/jupytergis_core", editable = true }
+jupytergis-lab = { path = "python/jupytergis_lab", editable = true }
+jupytergis-qgis = { path = "python/jupytergis_qgis", editable = true }
+jupytergis-docs = { path = "docs", editable = false }
+
 [tool.jupyter-releaser]
 skip = [ "check-python" ]
-
 
 [tool.jupyter-releaser.options]
 version-cmd = "python scripts/bump-version.py"
@@ -26,9 +82,11 @@ python_packages = [
 ]
 
 [tool.jupyter-releaser.hooks]
-before-bump-version = ["python -m pip install hatch 'jupyterlab>=4.0.0'"]
+before-bump-version = [
+    "uv add hatch 'jupyterlab>=4.0.0'",
+]
 before-build-npm = [
-    "python -m pip install -r requirements-build.txt",
+    "uv add -G build",
     "jlpm",
     "jlpm build:prod",
 ]
