@@ -1,5 +1,9 @@
 import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
-import { JupyterGISPanel } from '@jupytergis/base';
+import {
+  JupyterGISPanel,
+  JupyterGISWidget,
+  ToolbarWidget
+} from '@jupytergis/base';
 import { JupyterGISModel, IJupyterGISDoc } from '@jupytergis/schema';
 
 import {
@@ -35,7 +39,15 @@ export class YJupyterGISLuminoWidget extends Panel {
     super();
 
     this.addClass(CLASS_NAME);
-    this._jgisWidget = new JupyterGISPanel(options);
+    this._jgisWidget = new JupyterGISWidget({
+      // FIXME: Where do we get a context object?
+      // context: ...,
+      content: new JupyterGISPanel(options),
+      toolbar: new ToolbarWidget({
+        model: options.model,
+        externalCommands: [],
+      }),
+    });
     this.addWidget(this._jgisWidget);
   }
 
@@ -48,7 +60,7 @@ export class YJupyterGISLuminoWidget extends Panel {
     }
   };
 
-  private _jgisWidget: JupyterGISPanel;
+  private _jgisWidget: JupyterGISWidget;
 }
 
 export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
