@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ISymbologyDialogProps } from '../symbologyDialog';
 import SingleBandPseudoColor from './types/SingleBandPseudoColor';
+import MultibandColor from './types/MultibandColor';
 
 const TiffRendering = ({
   context,
@@ -26,6 +27,17 @@ const TiffRendering = ({
       case 'Singleband Pseudocolor':
         RenderComponent = (
           <SingleBandPseudoColor
+            context={context}
+            state={state}
+            okSignalPromise={okSignalPromise}
+            cancel={cancel}
+            layerId={layerId}
+          />
+        );
+        break;
+      case 'Multiband Color':
+        RenderComponent = (
+          <MultibandColor
             context={context}
             state={state}
             okSignalPromise={okSignalPromise}
