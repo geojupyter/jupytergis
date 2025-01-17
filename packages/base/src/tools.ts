@@ -473,7 +473,24 @@ export const loadFile = async (fileInfo: {
   if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
     switch (type) {
       case 'ImageSource': {
-        return filepath; // Return the URL directly
+        try {
+          const response = await fetch(filepath);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch image from URL: ${filepath}`);
+          }
+
+          const contentType = response.headers.get('Content-Type');
+          if (!contentType || !contentType.startsWith('image/')) {
+            throw new Error(`Invalid image URL. Content-Type: ${contentType}`);
+          }
+
+          // load the image to verify it's not corrupted
+          await validateImage(await response.blob());
+          return filepath;
+        } catch (error) {
+          console.error('Error validating remote image:', error);
+          throw error;
+        }
       }
 
       case 'ShapefileSource': {
@@ -546,7 +563,18 @@ export const loadFile = async (fileInfo: {
       case 'ImageSource': {
         if (typeof file.content === 'string') {
           const mimeType = getMimeType(filepath);
-          return `data:${mimeType};base64,${file.content}`;
+          if (!mimeType.startsWith('image/')) {
+            throw new Error(`Invalid image file. MIME type: ${mimeType}`);
+          }
+
+          // Attempt to decode the base64 data
+          try {
+            await validateImage(await base64ToBlob(file.content, mimeType));
+            return `data:${mimeType};base64,${file.content}`;
+          } catch (error) {
+            console.error('Error image content failed to decode.:', error);
+            throw error;
+          }
         } else {
           throw new Error('Invalid file format for image content.');
         }
@@ -560,6 +588,36 @@ export const loadFile = async (fileInfo: {
     console.error(`Error reading file '${filepath}':`, error);
     throw error;
   }
+};
+
+/**
+ * Validates whether a given Blob represents a valid image.
+ *
+ * @param blob - The Blob to validate.
+ * @returns A promise that resolves if the Blob is a valid image, or rejects with an error otherwise.
+ */
+const validateImage = async (blob: Blob): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(); // Valid image
+    img.onerror = () => reject(new Error('Invalid image content.'));
+    img.src = URL.createObjectURL(blob);
+  });
+};
+
+/**
+ * Converts a base64-encoded string to a Blob.
+ *
+ * @param base64 - The base64-encoded string representing the file data.
+ * @param mimeType - The MIME type of the data.
+ * @returns A promise that resolves to a Blob representing the decoded data.
+ */
+export const base64ToBlob = async (
+  base64: string,
+  mimeType: string
+): Promise<Blob> => {
+  const response = await fetch(`data:${mimeType};base64,${base64}`);
+  return await response.blob();
 };
 
 /**

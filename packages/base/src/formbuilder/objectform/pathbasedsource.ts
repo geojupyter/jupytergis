@@ -1,21 +1,22 @@
-import { IDict } from '@jupytergis/schema';
+import { IDict, SourceType } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
-import { Ajv, ValidateFunction } from 'ajv';
-import * as geojson from '@jupytergis/schema/src/schema/geojson.json';
 
 import { BaseForm, IBaseFormProps } from './baseform';
 import { loadFile } from '../../tools';
 import { FileSelectorWidget } from './fileselectorwidget';
 
 /**
- * The form to modify a GeoJSON source.
+ * The form to modify a PathBasedSource source.
  */
-export class GeoJSONSourcePropertiesForm extends BaseForm {
+export class PathBasedSourcePropertiesForm extends BaseForm {
+  private _sourceType: SourceType;
+
   constructor(props: IBaseFormProps) {
     super(props);
-    const ajv = new Ajv();
-    this._validate = ajv.compile(geojson);
+    this._sourceType = (
+      this.constructor as typeof BaseForm & { sourceType: SourceType }
+    ).sourceType;
     this._validatePath(props.sourceData?.path ?? '');
   }
 
@@ -24,17 +25,10 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
     schema: IDict,
     uiSchema: IDict
   ) {
-    if (data?.path !== '') {
-      this.removeFormEntry('data', data, schema, uiSchema);
-    }
-
     super.processSchema(data, schema, uiSchema);
     if (!schema.properties || !data) {
       return;
     }
-
-    // This is not user-editable
-    delete schema.properties.valid;
 
     // Customize the widget for path field
     if (schema.properties && schema.properties.path) {
@@ -56,7 +50,6 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
     if (!id.endsWith('_path')) {
       return;
     }
-
     this._validatePath(value);
   }
 
@@ -70,17 +63,14 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
 
   protected onFormSubmit(e: ISubmitEvent<any>) {
     if (this.state.extraErrors?.path?.__errors?.length >= 1) {
-      showErrorMessage(
-        'Invalid JSON file',
-        this.state.extraErrors.path.__errors[0]
-      );
+      showErrorMessage('Invalid file', this.state.extraErrors.path.__errors[0]);
       return;
     }
     super.onFormSubmit(e);
   }
 
   /**
-   * Validate the path, to avoid invalid path or invalid GeoJSON.
+   * Validate the path, to avoid invalid path.
    *
    * @param path - the path to validate.
    */
@@ -88,32 +78,27 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
     const extraErrors: IDict = this.state.extraErrors;
 
     let error = '';
-    let valid = false;
-    if (path) {
+    let valid = true;
+    if (!path) {
+      valid = false;
+      error = 'Path is required';
+    } else {
       try {
-        const geoJSONData = await loadFile({
+        await loadFile({
           filepath: path,
-          type: 'GeoJSONSource',
+          type: this._sourceType,
           model: this.props.model
         });
-        valid = this._validate(geoJSONData);
-        if (!valid) {
-          error = `"${path}" is not a valid GeoJSON file`;
-        }
       } catch (e) {
-        error = `"${path}" is not a valid GeoJSON file: ${e}`;
+        valid = false;
+        error = `"${path}" is not a valid ${this._sourceType} file.`;
       }
-    } else {
-      error = 'Path is required';
     }
 
     if (!valid) {
       extraErrors.path = {
         __errors: [error]
       };
-      this._validate.errors?.reverse().forEach(error => {
-        extraErrors.path.__errors.push(error.message);
-      });
 
       this.setState(old => ({ ...old, extraErrors }));
     } else {
@@ -127,6 +112,4 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
       this.props.formErrorSignal.emit(!valid);
     }
   }
-
-  private _validate: ValidateFunction;
 }
