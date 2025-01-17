@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
 import { IBandRow } from '../types/SingleBandPseudoColor';
 
-const BandRow = ({
-  index,
-  bandRow,
-  bandRows,
-  setSelectedBand,
-  setBandRows
-}: {
+interface IBandRowProps {
+  label: string;
   index: number;
   bandRow: IBandRow;
   bandRows: IBandRow[];
   setSelectedBand: (band: number) => void;
   setBandRows: (bandRows: IBandRow[]) => void;
-}) => {
+}
+
+const BandRow = ({
+  label,
+  index,
+  bandRow,
+  bandRows,
+  setSelectedBand,
+  setBandRows
+}: IBandRowProps) => {
   const [minValue, setMinValue] = useState(bandRow.stats.minimum);
   const [maxValue, setMaxValue] = useState(bandRow.stats.maximum);
 
@@ -41,7 +45,7 @@ const BandRow = ({
   return (
     <>
       <div className="jp-gis-symbology-row">
-        <label htmlFor={`band-select-${index}`}>Band:</label>
+        <label htmlFor={`band-select-${index}`}>{label}:</label>
         <div className="jp-select-wrapper">
           <select
             name={`band-select-${index}`}

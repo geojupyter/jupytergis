@@ -37,7 +37,7 @@ export interface IBandHistogram {
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
-type TifBandData = {
+export type TifBandData = {
   band: number;
   colorInterpretation: string;
   minimum: number;
@@ -437,6 +437,7 @@ const SingleBandPseudoColor = ({
           <Spinner loading={bandRows.length === 0} />
         ) : (
           <BandRow
+            label="Band"
             // Band numbers are 1 indexed
             index={selectedBand - 1}
             bandRow={bandRows[selectedBand - 1]}
