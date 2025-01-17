@@ -11,12 +11,19 @@ const TiffRendering = ({
   layerId
 }: ISymbologyDialogProps) => {
   const renderTypes = ['Singleband Pseudocolor', 'Multiband Color'];
-  const [selectedRenderType, setSelectedRenderType] = useState(
-    'Singleband Pseudocolor'
-  );
+  const [selectedRenderType, setSelectedRenderType] = useState<string>();
   const [componentToRender, setComponentToRender] = useState<any>(null);
 
   let RenderComponent;
+
+  if (!layerId) {
+    return;
+  }
+  useEffect(() => {
+    const layer = context.model.getLayer(layerId);
+    const renderType = layer?.parameters?.symbologyState.renderType;
+    setSelectedRenderType(renderType ?? 'Singleband Pseudocolor');
+  }, []);
 
   useEffect(() => {
     if (!selectedRenderType) {
