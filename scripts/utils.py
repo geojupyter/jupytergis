@@ -1,5 +1,6 @@
 import subprocess
 
+
 def execute(cmd: list, cwd=None):
     try:
         subprocess.run(cmd, check=True, cwd=cwd)
