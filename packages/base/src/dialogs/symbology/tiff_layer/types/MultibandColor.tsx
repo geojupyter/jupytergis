@@ -7,19 +7,29 @@ import { loadGeoTIFFWithCache } from '../../../../tools';
 import { Spinner } from '../../../../mainview/spinner';
 import { ExpressionValue } from 'ol/expr/expression';
 
+interface ISelectedBands {
+  red: number;
+  green: number;
+  blue: number;
+}
+
 const MultibandColor = ({
   context,
   okSignalPromise,
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
-  const [selectedRedBand, setSelectedRedBand] = useState(1);
-  const [selectedGreenBand, setSelectedGreenBand] = useState(2);
-  const [selectedBlueBand, setSelectedBlueBand] = useState(3);
+  const [selectedBands, setSelectedBands] = useState<ISelectedBands>({
+    red: 1,
+    green: 2,
+    blue: 3
+  });
 
-  const selectedRedBandRef = useRef<number>();
-  const selectedGreenBandRef = useRef<number>();
-  const selectedBlueBandRef = useRef<number>();
+  const selectedBandsRef = useRef<ISelectedBands>({
+    red: selectedBands.red,
+    green: selectedBands.green,
+    blue: selectedBands.blue
+  });
 
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
 
@@ -46,21 +56,13 @@ const MultibandColor = ({
     };
   }, []);
 
-  useEffect(() => {
-    selectedRedBandRef.current = selectedRedBand;
-    selectedGreenBandRef.current = selectedGreenBand;
-    selectedBlueBandRef.current = selectedBlueBand;
-  }, [selectedRedBand, selectedGreenBand, selectedBlueBand]);
-
   const populateOptions = async () => {
     const layerParams = layer.parameters as IWebGlLayer;
-    const redBand = layerParams.symbologyState?.redBand ?? 1;
-    const greenBand = layerParams.symbologyState?.greenBand ?? 2;
-    const blueBand = layerParams.symbologyState?.blueBand ?? 3;
+    const red = layerParams.symbologyState?.redBand ?? 1;
+    const green = layerParams.symbologyState?.greenBand ?? 2;
+    const blue = layerParams.symbologyState?.blueBand ?? 3;
 
-    setSelectedRedBand(redBand);
-    setSelectedGreenBand(greenBand);
-    setSelectedBlueBand(blueBand);
+    setSelectedBands({ red, green, blue });
   };
 
   const preloadGeoTiffFile = async (sourceInfo: {
@@ -101,6 +103,15 @@ const MultibandColor = ({
     }
   };
 
+  const updateBand = (color: 'red' | 'green' | 'blue', value: number) => {
+    setSelectedBands(prevBands => ({
+      ...prevBands,
+      [color]: value
+    }));
+    selectedBandsRef.current[color] = value;
+    console.log('updateing', value);
+  };
+
   const handleOk = () => {
     // Update layer
     if (!layer.parameters) {
@@ -109,17 +120,18 @@ const MultibandColor = ({
 
     const colorExpr: ExpressionValue[] = ['array'];
 
+    console.log('selectedBandsRef.current', selectedBandsRef.current);
     // Set NoData values to transparent
-    colorExpr.push(['band', selectedRedBandRef.current]);
-    colorExpr.push(['band', selectedGreenBandRef.current]);
-    colorExpr.push(['band', selectedBlueBandRef.current]);
+    colorExpr.push(['band', selectedBandsRef.current['red']]);
+    colorExpr.push(['band', selectedBandsRef.current['green']]);
+    colorExpr.push(['band', selectedBandsRef.current['blue']]);
     colorExpr.push(['band', 5]);
 
     const symbologyState = {
       renderType: 'Multiband Color',
-      redBand: selectedRedBandRef.current,
-      greenBand: selectedGreenBandRef.current,
-      blueBand: selectedBlueBandRef.current
+      redBand: selectedBandsRef.current['red'],
+      greenBand: selectedBandsRef.current['green'],
+      blueBand: selectedBandsRef.current['blue']
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -138,30 +150,30 @@ const MultibandColor = ({
           <>
             <BandRow
               label="Red Band"
-              index={selectedRedBand - 1}
-              bandRow={bandRows[selectedRedBand - 1]}
+              index={selectedBands['red'] - 1}
+              bandRow={bandRows[selectedBands['red'] - 1]}
               bandRows={bandRows}
-              setSelectedBand={setSelectedRedBand}
+              setSelectedBand={val => updateBand('red', val)}
               setBandRows={setBandRows}
               hideMinMax={true}
             />
 
             <BandRow
               label="Green Band"
-              index={selectedGreenBand - 1}
-              bandRow={bandRows[selectedGreenBand - 1]}
+              index={selectedBands['green'] - 1}
+              bandRow={bandRows[selectedBands['green'] - 1]}
               bandRows={bandRows}
-              setSelectedBand={setSelectedGreenBand}
+              setSelectedBand={val => updateBand('green', val)}
               setBandRows={setBandRows}
               hideMinMax={true}
             />
 
             <BandRow
               label="Blue Band"
-              index={selectedBlueBand - 1}
-              bandRow={bandRows[selectedBlueBand - 1]}
+              index={selectedBands['blue'] - 1}
+              bandRow={bandRows[selectedBands['blue'] - 1]}
               bandRows={bandRows}
-              setSelectedBand={setSelectedBlueBand}
+              setSelectedBand={val => updateBand('blue', val)}
               setBandRows={setBandRows}
               hideMinMax={true}
             />
