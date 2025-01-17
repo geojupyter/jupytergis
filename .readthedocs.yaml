@@ -9,7 +9,9 @@ build:
   jobs:
     # Install uv
     pre_create_environment:
-      - curl -fsSL https://raw.githubusercontent.com/astral-sh/uv/main/install.sh | bash
+      - curl -LsSf https://astral.sh/uv/install.sh | sh
+      - export PATH="$HOME/.local/bin:$PATH"
+      - /bin/bash --login -c "uv --version"
 
     # Create and lock environments using uv
     create_environment:
