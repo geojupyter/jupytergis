@@ -16,10 +16,10 @@ jobs:
   autolink-rtd-previews:
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'readthedocs/actions/preview@v1'
+      - uses: 'mfisher87/readthedocs-actions/preview@main'
         with:
           project-slug: 'jupytergis'
           message-template: |
             ---
             📚 Documentation preview: {docs-pr-index-url}
-            💡 JupyterLite preview is available from the doc, by clicking on ![lite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)
+            💡 JupyterLite preview is available from the doc, by clicking on [![lite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)]({docs-pr-index-url}/lite)
