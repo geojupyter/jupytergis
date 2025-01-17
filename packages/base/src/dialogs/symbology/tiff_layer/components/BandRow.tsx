@@ -8,6 +8,8 @@ interface IBandRowProps {
   bandRows: IBandRow[];
   setSelectedBand: (band: number) => void;
   setBandRows: (bandRows: IBandRow[]) => void;
+  // TODO: QGIS uses these values for contrast enhancement in multiband color
+  hideMinMax?: boolean;
 }
 
 const BandRow = ({
@@ -16,7 +18,8 @@ const BandRow = ({
   bandRow,
   bandRows,
   setSelectedBand,
-  setBandRows
+  setBandRows,
+  hideMinMax
 }: IBandRowProps) => {
   const [minValue, setMinValue] = useState(bandRow.stats.minimum);
   const [maxValue, setMaxValue] = useState(bandRow.stats.maximum);
@@ -39,6 +42,7 @@ const BandRow = ({
     const newBandRows = [...bandRows];
     newBandRows[index].stats.minimum = minValue;
     newBandRows[index].stats.maximum = maxValue;
+    console.log('newBandRows', newBandRows);
     setBandRows(newBandRows);
   };
 
@@ -65,46 +69,48 @@ const BandRow = ({
           </select>
         </div>
       </div>
-      <div className="jp-gis-symbology-row" style={{ gap: '0.5rem' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            width: '50%'
-          }}
-        >
-          <label htmlFor="band-min" style={{ alignSelf: 'center' }}>
-            Min
-          </label>
-          <input
-            type="number"
-            className="jp-mod-styled"
-            style={{ marginRight: 15 }}
-            value={minValue}
-            onChange={handleMinValueChange}
-          />
+      {hideMinMax ? null : (
+        <div className="jp-gis-symbology-row" style={{ gap: '0.5rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              width: '50%'
+            }}
+          >
+            <label htmlFor="band-min" style={{ alignSelf: 'center' }}>
+              Min
+            </label>
+            <input
+              type="number"
+              className="jp-mod-styled"
+              style={{ marginRight: 15 }}
+              value={minValue}
+              onChange={handleMinValueChange}
+            />
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              width: '50%',
+              paddingRight: '2px'
+            }}
+          >
+            <label htmlFor="band-max" style={{ alignSelf: 'center' }}>
+              Max
+            </label>
+            <input
+              type="number"
+              className="jp-mod-styled"
+              // defaultValue={bandRow.stats.maximum}
+              value={maxValue}
+              onChange={handleMaxValueChange}
+              onBlur={setNewBands}
+            />
+          </div>
         </div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            width: '50%',
-            paddingRight: '2px'
-          }}
-        >
-          <label htmlFor="band-max" style={{ alignSelf: 'center' }}>
-            Max
-          </label>
-          <input
-            type="number"
-            className="jp-mod-styled"
-            // defaultValue={bandRow.stats.maximum}
-            value={maxValue}
-            onChange={handleMaxValueChange}
-            onBlur={setNewBands}
-          />
-        </div>
-      </div>
+      )}
     </>
   );
 };
