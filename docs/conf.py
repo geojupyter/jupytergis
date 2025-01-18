@@ -5,6 +5,11 @@ on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {"github_url": "https://github.com/geojupyter/jupytergis"}
 
+html_static_path = ["assets"]
+html_css_files = [
+    "css/custom.css",
+]
+
 extensions = [
     "jupyterlite_sphinx",
     "sphinx.ext.autodoc",
