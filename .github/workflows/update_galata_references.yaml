@@ -83,7 +83,7 @@ jobs:
         with:
           environment-name: gis
           create-args: >-
-            python=3.9
+            python=3.10
             jupyterlab=4
 
       - name: Install the extension
