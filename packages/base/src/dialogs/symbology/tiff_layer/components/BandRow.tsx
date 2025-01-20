@@ -8,10 +8,19 @@ interface IBandRowProps {
   bandRows: IBandRow[];
   setSelectedBand: (band: number) => void;
   setBandRows: (bandRows: IBandRow[]) => void;
-  // TODO: QGIS uses these values for contrast enhancement in multiband color
-  hideMinMax?: boolean;
+  isMultibandColor?: boolean;
 }
 
+/**
+ *
+ * @param label Label displayed in symbology dialog
+ * @param index Index of current row in band row data
+ * @param bandRow Band from bands array, will be undefined when band is 'unset' in Multiband color
+ * @param bandRows Bands array from tiff data
+ * @param setSelectedBand Function to set selected band parent
+ * @param setBandRows Function to update band rows in parent
+ * @param isMultibandColor Used to hide min/max input and add 'Unset' option to drop down menu for MultiBand symbology
+ */
 const BandRow = ({
   label,
   index,
@@ -19,10 +28,10 @@ const BandRow = ({
   bandRows,
   setSelectedBand,
   setBandRows,
-  hideMinMax
+  isMultibandColor
 }: IBandRowProps) => {
-  const [minValue, setMinValue] = useState(bandRow.stats.minimum);
-  const [maxValue, setMaxValue] = useState(bandRow.stats.maximum);
+  const [minValue, setMinValue] = useState(bandRow?.stats.minimum);
+  const [maxValue, setMaxValue] = useState(bandRow?.stats.maximum);
 
   const handleMinValueChange = (event: {
     target: { value: string | number };
@@ -60,16 +69,26 @@ const BandRow = ({
               <option
                 key={bandIndex}
                 value={band.band}
-                selected={band.band === bandRow.band}
+                selected={band.band === bandRow?.band}
                 className="jp-mod-styled"
               >
                 {`Band ${band.band} (${band.colorInterpretation})`}
               </option>
             ))}
+            {isMultibandColor ? (
+              <option
+                key={'unset'}
+                value={0}
+                selected={!bandRow}
+                className="jp-mod-styled"
+              >
+                Unset
+              </option>
+            ) : null}
           </select>
         </div>
       </div>
-      {hideMinMax ? null : (
+      {isMultibandColor ? null : (
         <div className="jp-gis-symbology-row" style={{ gap: '0.5rem' }}>
           <div
             style={{

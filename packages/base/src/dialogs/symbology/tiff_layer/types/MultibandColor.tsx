@@ -1,17 +1,19 @@
+import { IWebGlLayer } from '@jupytergis/schema';
+import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
+import { Spinner } from '../../../../mainview/spinner';
+import { loadGeoTIFFWithCache } from '../../../../tools';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from '../components/BandRow';
 import { IBandRow, TifBandData } from './SingleBandPseudoColor';
-import { IWebGlLayer } from '@jupytergis/schema';
-import { loadGeoTIFFWithCache } from '../../../../tools';
-import { Spinner } from '../../../../mainview/spinner';
-import { ExpressionValue } from 'ol/expr/expression';
 
 interface ISelectedBands {
   red: number;
   green: number;
   blue: number;
 }
+
+type rgbEnum = 'red' | 'green' | 'blue';
 
 const MultibandColor = ({
   context,
@@ -103,13 +105,15 @@ const MultibandColor = ({
     }
   };
 
-  const updateBand = (color: 'red' | 'green' | 'blue', value: number) => {
+  useEffect(() => {
+    selectedBandsRef.current = selectedBands;
+  }, [selectedBands]);
+
+  const updateBand = (color: rgbEnum, value: number) => {
     setSelectedBands(prevBands => ({
       ...prevBands,
       [color]: value
     }));
-    selectedBandsRef.current[color] = value;
-    console.log('updateing', value);
   };
 
   const handleOk = () => {
@@ -121,10 +125,14 @@ const MultibandColor = ({
     const colorExpr: ExpressionValue[] = ['array'];
 
     console.log('selectedBandsRef.current', selectedBandsRef.current);
-    // Set NoData values to transparent
-    colorExpr.push(['band', selectedBandsRef.current['red']]);
-    colorExpr.push(['band', selectedBandsRef.current['green']]);
-    colorExpr.push(['band', selectedBandsRef.current['blue']]);
+    const rgb: rgbEnum[] = ['red', 'green', 'blue'];
+
+    rgb.forEach(color => {
+      const bandValue = selectedBandsRef.current[color];
+      colorExpr.push(bandValue !== 0 ? ['band', bandValue] : 0);
+    });
+
+    // Array expression expects 4 values
     colorExpr.push(['band', 5]);
 
     const symbologyState = {
@@ -155,7 +163,7 @@ const MultibandColor = ({
               bandRows={bandRows}
               setSelectedBand={val => updateBand('red', val)}
               setBandRows={setBandRows}
-              hideMinMax={true}
+              isMultibandColor={true}
             />
 
             <BandRow
@@ -165,7 +173,7 @@ const MultibandColor = ({
               bandRows={bandRows}
               setSelectedBand={val => updateBand('green', val)}
               setBandRows={setBandRows}
-              hideMinMax={true}
+              isMultibandColor={true}
             />
 
             <BandRow
@@ -175,7 +183,7 @@ const MultibandColor = ({
               bandRows={bandRows}
               setSelectedBand={val => updateBand('blue', val)}
               setBandRows={setBandRows}
-              hideMinMax={true}
+              isMultibandColor={true}
             />
           </>
         )}
