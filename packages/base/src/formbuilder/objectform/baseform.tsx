@@ -216,8 +216,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                   step={1}
                   value={props.formData * 10}
                   onChange={handleSliderChange}
-                >
-                </Slider>
+                ></Slider>
                 <input
                   type="number"
                   value={inputValue}
