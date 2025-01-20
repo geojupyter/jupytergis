@@ -7,6 +7,7 @@ import { TileSourcePropertiesForm } from './objectform/tilesourceform';
 import { VectorLayerPropertiesForm } from './objectform/vectorlayerform';
 import { WebGlLayerPropertiesForm } from './objectform/webGlLayerForm';
 import { GeoTiffSourcePropertiesForm } from './objectform/geotiffsource';
+import { PathBasedSourcePropertiesForm } from './objectform/pathbasedsource';
 
 export function getLayerTypeForm(
   layerType: LayerType
@@ -36,6 +37,12 @@ export function getSourceTypeForm(sourceType: SourceType): typeof BaseForm {
     case 'GeoJSONSource':
       SourceForm = GeoJSONSourcePropertiesForm;
       break;
+    case 'ImageSource':
+      SourceForm = PathBasedSourcePropertiesForm;
+      break;
+    case 'ShapefileSource':
+      SourceForm = PathBasedSourcePropertiesForm;
+      break;
     case 'GeoTiffSource':
       SourceForm = GeoTiffSourcePropertiesForm;
       break;
@@ -45,6 +52,5 @@ export function getSourceTypeForm(sourceType: SourceType): typeof BaseForm {
       break;
     // ADD MORE FORM TYPES HERE
   }
-
   return SourceForm;
 }
