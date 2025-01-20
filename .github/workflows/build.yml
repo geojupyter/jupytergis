@@ -68,6 +68,10 @@ jobs:
           pip install hatch
           yarn build:packages
 
+      - name: Log extension package name
+        run: |
+          echo "Extension package name: ${{ matrix.python-version == '3.12' && 'extension-artifacts' || format('extension-artifacts-{0}', matrix.python-version) }}"
+
       - name: Upload extension packages
         uses: actions/upload-artifact@v4
         with:
