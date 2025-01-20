@@ -28,9 +28,16 @@ import {
 } from '@jupytergis/schema';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
+import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
+import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
+//@ts-expect-error no types for ol-pmtiles
+import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
+import { FeatureLike } from 'ol/Feature';
 import { ScaleLine } from 'ol/control';
+import { Coordinate } from 'ol/coordinate';
+import { singleClick } from 'ol/events/condition';
 import { GeoJSON, MVT } from 'ol/format';
 import { DragAndDrop, Select } from 'ol/interaction';
 import {
@@ -47,6 +54,8 @@ import {
   toLonLat,
   transformExtent
 } from 'ol/proj';
+import { get as getProjection } from 'ol/proj.js';
+import { register } from 'ol/proj/proj4.js';
 import Feature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -55,32 +64,28 @@ import {
   VectorTile as VectorTileSource,
   XYZ as XYZSource
 } from 'ol/source';
+import ImageSource from 'ol/source/Image';
 import Static from 'ol/source/ImageStatic';
-//@ts-expect-error no types for ol-pmtiles
-import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
-import { register } from 'ol/proj/proj4.js';
-import { get as getProjection } from 'ol/proj.js';
+import TileSource from 'ol/source/Tile';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
-import * as React from 'react';
-import { isLightTheme, loadGeoTIFFWithCache, throttle } from '../tools';
-import { MainViewModel } from './mainviewmodel';
-import { Spinner } from './spinner';
-//@ts-expect-error no types for proj4-list
+//@ts-expect-error no types for proj4list
 import proj4list from 'proj4-list';
-import { ContextMenu } from '@lumino/widgets';
-import { CommandRegistry } from '@lumino/commands';
-import { Coordinate } from 'ol/coordinate';
+import * as React from 'react';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
-import { FollowIndicator } from './FollowIndicator';
+import StatusBar from '../statusbar/StatusBar';
+import {
+  isLightTheme,
+  loadFile,
+  loadGeoTIFFWithCache,
+  throttle
+} from '../tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
-import { loadFile } from '../tools';
-import { Circle, Fill, Stroke, Style } from 'ol/style';
-import { singleClick } from 'ol/events/condition';
-import TileSource from 'ol/source/Tile';
-import { FeatureLike } from 'ol/Feature';
-import ImageSource from 'ol/source/Image';
+import { FollowIndicator } from './FollowIndicator';
+import { MainViewModel } from './mainviewmodel';
+import { Spinner } from './spinner';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -95,6 +100,9 @@ interface IStates {
   firstLoad: boolean;
   annotations: IDict<IAnnotation>;
   clientPointers: IDict<ClientPointer>;
+  viewProjection: { code: string; units: string };
+  loadingLayer: boolean;
+  scale: number;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -131,7 +139,10 @@ export class MainView extends React.Component<IProps, IStates> {
       loading: true,
       firstLoad: true,
       annotations: {},
-      clientPointers: {}
+      clientPointers: {},
+      viewProjection: { code: '', units: '' },
+      loadingLayer: false,
+      scale: 0
     };
 
     this._sources = [];
@@ -269,6 +280,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const projection = view.getProjection();
         const latLng = toLonLat(center, projection);
         const bearing = view.getRotation();
+        const resolution = view.getResolution();
 
         const updatedOptions: Partial<IJGISOptions> = {
           latitude: latLng[1],
@@ -284,6 +296,19 @@ export class MainView extends React.Component<IProps, IStates> {
           ...currentOptions,
           ...updatedOptions
         });
+
+        // Calculate scale
+        if (resolution) {
+          // DPI and inches per meter values taken from OpenLayers
+          const dpi = 25.4 / 0.28;
+          const inchesPerMeter = 1000 / 25.4;
+          const scale = resolution * inchesPerMeter * dpi;
+
+          this.setState(old => ({
+            ...old,
+            scale
+          }));
+        }
       });
 
       this._Map.on('click', this._identifyFeature.bind(this));
@@ -309,7 +334,14 @@ export class MainView extends React.Component<IProps, IStates> {
         this._contextMenu.open(event);
       });
 
-      this.setState(old => ({ ...old, loading: false }));
+      this.setState(old => ({
+        ...old,
+        loading: false,
+        viewProjection: {
+          code: view.getProjection().getCode(),
+          units: view.getProjection().getUnits()
+        }
+      }));
     }
   }
 
@@ -759,6 +791,9 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
 
+    this.setState(old => ({ ...old, loadingLayer: true }));
+    this._loadingLayers.add(id);
+
     if (!this._sources[sourceId]) {
       await this.addSource(sourceId, source, id);
     }
@@ -1108,6 +1143,7 @@ export class MainView extends React.Component<IProps, IStates> {
     return new Promise(resolve => {
       const checkReady = () => {
         if (this._loadingLayers.size === 0) {
+          this.setState(old => ({ ...old, loadingLayer: false }));
           resolve();
         } else {
           setTimeout(checkReady, 50);
@@ -1685,6 +1721,12 @@ export class MainView extends React.Component<IProps, IStates> {
             }}
           />
         </div>
+        <StatusBar
+          jgisModel={this._model}
+          loading={this.state.loadingLayer}
+          projection={this.state.viewProjection}
+          scale={this.state.scale}
+        />
       </>
     );
   }
