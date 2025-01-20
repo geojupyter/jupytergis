@@ -3,7 +3,7 @@
   justify-content: space-around;
   align-items: center;
   height: 16px;
-  background-color: #292e32;
+  background-color: var(--jp-layout-color1);
   font-size: var(--jp-ui-font-size0);
 }
 
