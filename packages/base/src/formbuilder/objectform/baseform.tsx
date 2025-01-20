@@ -7,7 +7,7 @@ import { Dialog } from '@jupyterlab/apputils';
 import { Signal } from '@lumino/signaling';
 import { deepCopy } from '../../tools';
 import { IDict } from '../../types';
-import { Slider, SliderLabel } from '@jupyter/react-components';
+import { Slider } from '@jupyter/react-components';
 import { SourceType } from '@jupytergis/schema';
 
 export interface IBaseFormStates {
@@ -217,8 +217,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                   value={props.formData * 10}
                   onChange={handleSliderChange}
                 >
-                  <SliderLabel position="1">10%</SliderLabel>
-                  <SliderLabel position="10">100%</SliderLabel>
                 </Slider>
                 <input
                   type="number"
