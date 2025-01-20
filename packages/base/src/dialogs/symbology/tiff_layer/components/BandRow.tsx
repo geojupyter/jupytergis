@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { IBandRow } from '../../hooks/useGetBandInfo';
-// import { IBandRow } from '../types/SingleBandPseudoColor';
 
 interface IBandRowProps {
   label: string;
@@ -52,7 +51,6 @@ const BandRow = ({
     const newBandRows = [...bandRows];
     newBandRows[index].stats.minimum = minValue;
     newBandRows[index].stats.maximum = maxValue;
-    console.log('newBandRows', newBandRows);
     setBandRows(newBandRows);
   };
 

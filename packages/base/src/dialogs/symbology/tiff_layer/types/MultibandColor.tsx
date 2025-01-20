@@ -2,7 +2,6 @@ import { IWebGlLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 import { Spinner } from '../../../../mainview/spinner';
-// import { loadGeoTIFFWithCache } from '../../../../tools';
 import useGetBandInfo from '../../hooks/useGetBandInfo';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from '../components/BandRow';
@@ -84,8 +83,6 @@ const MultibandColor = ({
     }
 
     const colorExpr: ExpressionValue[] = ['array'];
-
-    console.log('selectedBandsRef.current', selectedBandsRef.current);
     const rgb: rgbEnum[] = ['red', 'green', 'blue'];
 
     rgb.forEach(color => {
