@@ -18,7 +18,7 @@ export class PathBasedSourcePropertiesForm extends BaseForm {
       this.constructor as typeof BaseForm & { sourceType: SourceType }
     ).sourceType;
     if (this._sourceType !== 'GeoJSONSource')
-      this._validatePath(props.sourceData?.path ?? '');
+      {this._validatePath(props.sourceData?.path ?? '');}
   }
 
   protected processSchema(
