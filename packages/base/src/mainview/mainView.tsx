@@ -64,6 +64,7 @@ import {
   VectorTile as VectorTileSource,
   XYZ as XYZSource
 } from 'ol/source';
+import ImageSource from 'ol/source/Image';
 import Static from 'ol/source/ImageStatic';
 import TileSource from 'ol/source/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
@@ -82,12 +83,9 @@ import {
   throttle
 } from '../tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
-import { loadFile } from '../tools';
-import { Circle, Fill, Stroke, Style } from 'ol/style';
-import { singleClick } from 'ol/events/condition';
-import TileSource from 'ol/source/Tile';
-import { FeatureLike } from 'ol/Feature';
-import ImageSource from 'ol/source/Image';
+import { FollowIndicator } from './FollowIndicator';
+import { MainViewModel } from './mainviewmodel';
+import { Spinner } from './spinner';
 
 interface IProps {
   viewModel: MainViewModel;
