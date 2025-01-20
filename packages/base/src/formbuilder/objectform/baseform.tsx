@@ -8,6 +8,7 @@ import { Signal } from '@lumino/signaling';
 import { deepCopy } from '../../tools';
 import { IDict } from '../../types';
 import { Slider, SliderLabel } from '@jupyter/react-components';
+import { SourceType } from '@jupytergis/schema';
 
 export interface IBaseFormStates {
   schema?: IDict;
@@ -72,6 +73,11 @@ export interface IBaseFormProps {
    * and other form-related parameters.
    */
   dialogOptions?: any;
+
+  /**
+   * Source type property
+   */
+  sourceType: SourceType;
 }
 
 const WrappedFormComponent = (props: any): JSX.Element => {

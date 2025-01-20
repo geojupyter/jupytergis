@@ -1,4 +1,4 @@
-import { IDict, SourceType } from '@jupytergis/schema';
+import { IDict } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
@@ -10,14 +10,10 @@ import { FileSelectorWidget } from './fileselectorwidget';
  * The form to modify a PathBasedSource source.
  */
 export class PathBasedSourcePropertiesForm extends BaseForm {
-  protected _sourceType: SourceType;
-
   constructor(props: IBaseFormProps) {
     super(props);
-    this._sourceType = (
-      this.constructor as typeof BaseForm & { sourceType: SourceType }
-    ).sourceType;
-    if (this._sourceType !== 'GeoJSONSource') {
+
+    if (this.props.sourceType !== 'GeoJSONSource') {
       this._validatePath(props.sourceData?.path ?? '');
     }
   }
@@ -90,12 +86,12 @@ export class PathBasedSourcePropertiesForm extends BaseForm {
       try {
         await loadFile({
           filepath: path,
-          type: this._sourceType,
+          type: this.props.sourceType,
           model: this.props.model
         });
       } catch (e) {
         valid = false;
-        error = `"${path}" is not a valid ${this._sourceType} file.`;
+        error = `"${path}" is not a valid ${this.props.sourceType} file.`;
       }
     }
 

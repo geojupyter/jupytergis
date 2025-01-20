@@ -52,7 +52,5 @@ export function getSourceTypeForm(sourceType: SourceType): typeof BaseForm {
       break;
     // ADD MORE FORM TYPES HERE
   }
-  (SourceForm as any).sourceType = sourceType;
-
   return SourceForm;
 }
