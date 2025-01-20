@@ -1,17 +1,17 @@
 import { IDict } from '@jupytergis/schema';
-import { showErrorMessage } from '@jupyterlab/apputils';
-import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 import { Ajv, ValidateFunction } from 'ajv';
 import * as geojson from '@jupytergis/schema/src/schema/geojson.json';
 
-import { BaseForm, IBaseFormProps } from './baseform';
+import { IBaseFormProps } from './baseform';
+import { PathBasedSourcePropertiesForm } from './pathbasedsource';
 import { loadFile } from '../../tools';
-import { FileSelectorWidget } from './fileselectorwidget';
 
 /**
  * The form to modify a GeoJSON source.
  */
-export class GeoJSONSourcePropertiesForm extends BaseForm {
+export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
+  private _validate: ValidateFunction;
+
   constructor(props: IBaseFormProps) {
     super(props);
     const ajv = new Ajv();
@@ -29,54 +29,6 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
     }
 
     super.processSchema(data, schema, uiSchema);
-    if (!schema.properties || !data) {
-      return;
-    }
-
-    // This is not user-editable
-    delete schema.properties.valid;
-
-    // Customize the widget for path field
-    if (schema.properties && schema.properties.path) {
-      const docManager =
-        this.props.formChangedSignal?.sender.props.formSchemaRegistry.getDocManager();
-
-      uiSchema.path = {
-        'ui:widget': FileSelectorWidget,
-        'ui:options': {
-          docManager,
-          formOptions: this.props
-        }
-      };
-    }
-  }
-
-  protected onFormBlur(id: string, value: any) {
-    // Is there a better way to spot the path text entry?
-    if (!id.endsWith('_path')) {
-      return;
-    }
-
-    this._validatePath(value);
-  }
-
-  // we need to use `onFormChange` instead of `onFormBlur` because it's no longer a text field
-  protected onFormChange(e: IChangeEvent): void {
-    super.onFormChange(e);
-    if (e.formData?.path !== undefined) {
-      this._validatePath(e.formData.path);
-    }
-  }
-
-  protected onFormSubmit(e: ISubmitEvent<any>) {
-    if (this.state.extraErrors?.path?.__errors?.length >= 1) {
-      showErrorMessage(
-        'Invalid JSON file',
-        this.state.extraErrors.path.__errors[0]
-      );
-      return;
-    }
-    super.onFormSubmit(e);
   }
 
   /**
@@ -84,7 +36,7 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
    *
    * @param path - the path to validate.
    */
-  private async _validatePath(path: string) {
+  protected async _validatePath(path: string) {
     const extraErrors: IDict = this.state.extraErrors;
 
     let error = '';
@@ -93,7 +45,7 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
       try {
         const geoJSONData = await loadFile({
           filepath: path,
-          type: 'GeoJSONSource',
+          type: this._sourceType,
           model: this.props.model
         });
         valid = this._validate(geoJSONData);
@@ -127,6 +79,4 @@ export class GeoJSONSourcePropertiesForm extends BaseForm {
       this.props.formErrorSignal.emit(!valid);
     }
   }
-
-  private _validate: ValidateFunction;
 }

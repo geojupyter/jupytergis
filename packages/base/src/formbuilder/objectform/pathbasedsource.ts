@@ -10,14 +10,15 @@ import { FileSelectorWidget } from './fileselectorwidget';
  * The form to modify a PathBasedSource source.
  */
 export class PathBasedSourcePropertiesForm extends BaseForm {
-  private _sourceType: SourceType;
+  protected _sourceType: SourceType;
 
   constructor(props: IBaseFormProps) {
     super(props);
     this._sourceType = (
       this.constructor as typeof BaseForm & { sourceType: SourceType }
     ).sourceType;
-    this._validatePath(props.sourceData?.path ?? '');
+    if (this._sourceType !== 'GeoJSONSource')
+      this._validatePath(props.sourceData?.path ?? '');
   }
 
   protected processSchema(
@@ -43,6 +44,8 @@ export class PathBasedSourcePropertiesForm extends BaseForm {
         }
       };
     }
+    // This is not user-editable
+    delete schema.properties.valid;
   }
 
   protected onFormBlur(id: string, value: any) {
@@ -74,7 +77,7 @@ export class PathBasedSourcePropertiesForm extends BaseForm {
    *
    * @param path - the path to validate.
    */
-  private async _validatePath(path: string) {
+  protected async _validatePath(path: string) {
     const extraErrors: IDict = this.state.extraErrors;
 
     let error = '';
