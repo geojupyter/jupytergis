@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { IBandRow } from '../types/SingleBandPseudoColor';
+import { IBandRow } from '../../hooks/useGetBandInfo';
+// import { IBandRow } from '../types/SingleBandPseudoColor';
 
 interface IBandRowProps {
   label: string;

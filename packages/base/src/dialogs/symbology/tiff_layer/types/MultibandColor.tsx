@@ -2,10 +2,10 @@ import { IWebGlLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 import { Spinner } from '../../../../mainview/spinner';
-import { loadGeoTIFFWithCache } from '../../../../tools';
+// import { loadGeoTIFFWithCache } from '../../../../tools';
+import useGetBandInfo from '../../hooks/useGetBandInfo';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 import BandRow from '../components/BandRow';
-import { IBandRow, TifBandData } from './SingleBandPseudoColor';
 
 interface ISelectedBands {
   red: number;
@@ -21,6 +21,16 @@ const MultibandColor = ({
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
+  if (!layerId) {
+    return;
+  }
+  const layer = context.model.getLayer(layerId);
+  if (!layer?.parameters) {
+    return;
+  }
+
+  const { bandRows, setBandRows, loading } = useGetBandInfo(context, layer);
+
   const [selectedBands, setSelectedBands] = useState<ISelectedBands>({
     red: 1,
     green: 2,
@@ -33,19 +43,8 @@ const MultibandColor = ({
     blue: selectedBands.blue
   });
 
-  const [bandRows, setBandRows] = useState<IBandRow[]>([]);
-
-  if (!layerId) {
-    return;
-  }
-  const layer = context.model.getLayer(layerId);
-  if (!layer?.parameters) {
-    return;
-  }
-
   useEffect(() => {
     populateOptions();
-    getBandInfo();
 
     okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk);
@@ -65,44 +64,6 @@ const MultibandColor = ({
     const blue = layerParams.symbologyState?.blueBand ?? 3;
 
     setSelectedBands({ red, green, blue });
-  };
-
-  const preloadGeoTiffFile = async (sourceInfo: {
-    url?: string | undefined;
-  }) => {
-    return await loadGeoTIFFWithCache(sourceInfo);
-  };
-
-  const getBandInfo = async () => {
-    const bandsArr: IBandRow[] = [];
-    const source = context.model.getSource(layer?.parameters?.source);
-    const sourceInfo = source?.parameters?.urls[0];
-
-    if (!sourceInfo?.url) {
-      return;
-    }
-
-    // Preload the file only once
-    const preloadedFile = await preloadGeoTiffFile(sourceInfo);
-    const { file, metadata, sourceUrl } = { ...preloadedFile };
-
-    if (file && metadata && sourceUrl === sourceInfo.url) {
-      metadata['bands'].forEach((bandData: TifBandData) => {
-        bandsArr.push({
-          band: bandData.band,
-          colorInterpretation: bandData.colorInterpretation,
-          stats: {
-            minimum: sourceInfo.min ?? bandData.minimum,
-            maximum: sourceInfo.max ?? bandData.maximum,
-            mean: bandData.mean,
-            stdDev: bandData.stdDev
-          },
-          metadata: bandData.metadata,
-          histogram: bandData.histogram
-        });
-      });
-      setBandRows(bandsArr);
-    }
   };
 
   useEffect(() => {
@@ -152,8 +113,8 @@ const MultibandColor = ({
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
-        {bandRows.length === 0 ? (
-          <Spinner loading={bandRows.length === 0} />
+        {loading ? (
+          <Spinner loading={loading} />
         ) : (
           <>
             <BandRow
