@@ -6,3 +6,7 @@
   background-color: #292e32;
   font-size: var(--jp-ui-font-size0);
 }
+
+.jgis-status-bar-item {
+  flex: 0 0 content;
+}

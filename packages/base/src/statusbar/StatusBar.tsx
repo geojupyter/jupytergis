@@ -1,4 +1,8 @@
-import { faGlobe, faLocationDot } from '@fortawesome/free-solid-svg-icons';
+import {
+  faGlobe,
+  faLocationDot,
+  faRuler
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
 import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
@@ -8,9 +12,15 @@ import { version } from '../../package.json'; // Adjust the path as necessary
 interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
   loading?: boolean;
-  projection?: string;
+  projection?: { code: string; units: string };
+  scale: number;
 }
-const StatusBar = ({ jgisModel, loading, projection }: IStatusBarProps) => {
+const StatusBar = ({
+  jgisModel,
+  loading,
+  projection,
+  scale
+}: IStatusBarProps) => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -33,17 +43,29 @@ const StatusBar = ({ jgisModel, loading, projection }: IStatusBarProps) => {
 
   return (
     <div className="jgis-status-bar">
-      <div style={{ width: '20%' }}>
-        {loading ? <Progress height={14} /> : null}
+      {loading && (
+        <div style={{ width: '16%', padding: '0 6px' }}>
+          <Progress height={14} />
+        </div>
+      )}
+      <div className="jgis-status-bar-item">
+        <span>jgis: {version}</span>
       </div>
-      <div>jgis: {version}</div>
-      <div>
-        <FontAwesomeIcon icon={faLocationDot} /> x: {Math.trunc(coords.x)} y:{' '}
-        {Math.trunc(coords.y)}
+      <div className="jgis-status-bar-item">
+        <FontAwesomeIcon icon={faLocationDot} />{' '}
+        <span>
+          x: {Math.trunc(coords.x)} y: {Math.trunc(coords.y)}
+        </span>
       </div>
-      <div>
-        <FontAwesomeIcon icon={faGlobe} /> {projection ?? null}
+      <div className="jgis-status-bar-item">
+        <FontAwesomeIcon icon={faRuler} />{' '}
+        <span>Scale: 1: {Math.trunc(scale)}</span>
       </div>
+      <div className="jgis-status-bar-item">
+        <FontAwesomeIcon icon={faGlobe} />{' '}
+        <span>{projection?.code ?? null}</span>
+      </div>
+      <div className="jgis-status-bar-item">Units: {projection?.units}</div>
     </div>
   );
 };

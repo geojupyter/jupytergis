@@ -102,8 +102,9 @@ interface IStates {
   firstLoad: boolean;
   annotations: IDict<IAnnotation>;
   clientPointers: IDict<ClientPointer>;
-  viewProjection: string;
+  viewProjection: { code: string; units: string };
   loadingLayer: boolean;
+  scale: number;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -141,8 +142,9 @@ export class MainView extends React.Component<IProps, IStates> {
       firstLoad: true,
       annotations: {},
       clientPointers: {},
-      viewProjection: '',
-      loadingLayer: false
+      viewProjection: { code: '', units: '' },
+      loadingLayer: false,
+      scale: 0
     };
 
     this._sources = [];
@@ -280,6 +282,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const projection = view.getProjection();
         const latLng = toLonLat(center, projection);
         const bearing = view.getRotation();
+        const resolution = view.getResolution();
 
         const updatedOptions: Partial<IJGISOptions> = {
           latitude: latLng[1],
@@ -295,6 +298,19 @@ export class MainView extends React.Component<IProps, IStates> {
           ...currentOptions,
           ...updatedOptions
         });
+
+        // Calculate scale
+        if (resolution) {
+          // DPI and inches per meter values taken from OpenLayers
+          const dpi = 25.4 / 0.28;
+          const inchesPerMeter = 1000 / 25.4;
+          const scale = resolution * inchesPerMeter * dpi;
+
+          this.setState(old => ({
+            ...old,
+            scale
+          }));
+        }
       });
 
       this._Map.on('click', this._identifyFeature.bind(this));
@@ -323,7 +339,10 @@ export class MainView extends React.Component<IProps, IStates> {
       this.setState(old => ({
         ...old,
         loading: false,
-        viewProjection: view.getProjection().getCode()
+        viewProjection: {
+          code: view.getProjection().getCode(),
+          units: view.getProjection().getUnits()
+        }
       }));
     }
   }
@@ -1708,6 +1727,7 @@ export class MainView extends React.Component<IProps, IStates> {
           jgisModel={this._model}
           loading={this.state.loadingLayer}
           projection={this.state.viewProjection}
+          scale={this.state.scale}
         />
       </>
     );
