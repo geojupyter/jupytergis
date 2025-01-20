@@ -173,7 +173,9 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       if (k === 'opacity') {
         uiSchema[k] = {
           'ui:field': (props: any) => {
-            const [inputValue, setInputValue] = React.useState(props.formData.toFixed(1));
+            const [inputValue, setInputValue] = React.useState(
+              props.formData.toFixed(1)
+            );
 
             React.useEffect(() => {
               setInputValue(props.formData.toFixed(1));
@@ -188,18 +190,26 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
               }
             };
 
-            const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+            const handleInputChange = (
+              event: React.ChangeEvent<HTMLInputElement>
+            ) => {
               const value = event.target.value;
               setInputValue(value);
 
               const parsedValue = parseFloat(value);
-              if (!isNaN(parsedValue) && parsedValue >= 0.1 && parsedValue <= 1) {
+              if (
+                !isNaN(parsedValue) &&
+                parsedValue >= 0.1 &&
+                parsedValue <= 1
+              ) {
                 props.onChange(parsedValue);
               }
             };
 
             return (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
                 <Slider
                   min={1}
                   max={10}
@@ -222,7 +232,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                     textAlign: 'center',
                     border: '1px solid #ccc',
                     borderRadius: '4px',
-                    padding: '4px',
+                    padding: '4px'
                   }}
                 />
               </div>
