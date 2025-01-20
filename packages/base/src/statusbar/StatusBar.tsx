@@ -51,9 +51,10 @@ const StatusBar = ({
       <div className="jgis-status-bar-item">
         <span>jgis: {version}</span>
       </div>
-      <div className="jgis-status-bar-item">
-        <FontAwesomeIcon icon={faLocationDot} />{' '}
+      <div className="jgis-status-bar-item jgis-status-bar-coords">
+        <FontAwesomeIcon icon={faLocationDot} />
         <span>
+          {' '}
           x: {Math.trunc(coords.x)} y: {Math.trunc(coords.y)}
         </span>
       </div>

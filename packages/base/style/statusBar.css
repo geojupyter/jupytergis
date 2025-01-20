@@ -10,3 +10,7 @@
 .jgis-status-bar-item {
   flex: 0 0 content;
 }
+
+.jgis-status-bar-coords {
+  min-width: 160px;
+}
