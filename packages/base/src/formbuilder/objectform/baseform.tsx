@@ -168,6 +168,12 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       if (k === 'opacity') {
         uiSchema[k] = {
           'ui:field': (props: any) => {
+            const [inputValue, setInputValue] = React.useState(props.formData.toFixed(1));
+
+            React.useEffect(() => {
+              setInputValue(props.formData.toFixed(1));
+            }, [props.formData]);
+      
             const handleSliderChange = (event: CustomEvent) => {
               const target = event.target as any;
               if (target && '_value' in target) {
@@ -178,9 +184,12 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
             };
 
             const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-              const inputValue = parseFloat(event.target.value);
-              if (!isNaN(inputValue) && inputValue >= 0.1 && inputValue <= 1) {
-                props.onChange(inputValue);
+              const value = event.target.value;
+              setInputValue(value); // Update local inputValue state immediately for user feedback
+
+              const parsedValue = parseFloat(value);
+              if (!isNaN(parsedValue)) {
+                props.onChange(parsedValue);
               }
             };
 
@@ -198,10 +207,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                 </Slider>
                 <input
                   type="number"
-                  min="0.1"
-                  max="1"
-                  step="0.1"
-                  value={props.formData.toFixed(1)}
+                  value={inputValue}
                   onChange={handleInputChange}
                   style={{
                     width: '50px',
