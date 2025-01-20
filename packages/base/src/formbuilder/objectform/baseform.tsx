@@ -173,7 +173,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
             React.useEffect(() => {
               setInputValue(props.formData.toFixed(1));
             }, [props.formData]);
-      
+
             const handleSliderChange = (event: CustomEvent) => {
               const target = event.target as any;
               if (target && '_value' in target) {
@@ -185,10 +185,10 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
 
             const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
               const value = event.target.value;
-              setInputValue(value); // Update local inputValue state immediately for user feedback
+              setInputValue(value);
 
               const parsedValue = parseFloat(value);
-              if (!isNaN(parsedValue)) {
+              if (!isNaN(parsedValue) && parsedValue >= 0.1 && parsedValue <= 1) {
                 props.onChange(parsedValue);
               }
             };
@@ -208,6 +208,9 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                 <input
                   type="number"
                   value={inputValue}
+                  step={0.1}
+                  min={0.1}
+                  max={1}
                   onChange={handleInputChange}
                   style={{
                     width: '50px',
