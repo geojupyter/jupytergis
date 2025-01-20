@@ -80,6 +80,7 @@ import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { singleClick } from 'ol/events/condition';
 import TileSource from 'ol/source/Tile';
 import { FeatureLike } from 'ol/Feature';
+import ImageSource from 'ol/source/Image';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -1127,6 +1128,21 @@ export class MainView extends React.Component<IProps, IStates> {
         const state = layer.getSourceState();
         if (state === 'ready') {
           layer.un('change', checkState);
+
+          // Apply image smoothing logic for image layers only
+          const source = layer.getSource();
+          if (source && source instanceof ImageSource) {
+            layer.on('prerender', event => {
+              const context = event.context;
+              if (context && context.canvas) {
+                const canvasContext = context.canvas.getContext('2d');
+                if (canvasContext) {
+                  canvasContext.imageSmoothingEnabled = false;
+                }
+              }
+            });
+          }
+
           resolve();
         } else if (state === 'error') {
           layer.un('change', checkState);
