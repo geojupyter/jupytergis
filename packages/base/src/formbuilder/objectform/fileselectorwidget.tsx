@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FileDialog } from '@jupyterlab/filebrowser';
 import { Dialog } from '@jupyterlab/apputils';
 import { CreationFormDialog } from '../../dialogs/formdialog';
@@ -10,9 +10,10 @@ export const FileSelectorWidget = (props: any) => {
 
   const [serverFilePath, setServerFilePath] = useState('');
   const [urlPath, setUrlPath] = useState('');
+  const isTypingURL = useRef(false); // Tracks whether the user is manually typing a URL
 
   useEffect(() => {
-    if (props.value) {
+    if (!isTypingURL.current && props.value) {
       if (
         props.value.startsWith('http://') ||
         props.value.startsWith('https://')
@@ -85,10 +86,15 @@ export const FileSelectorWidget = (props: any) => {
   };
 
   const handleURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const url = event.target.value;
-    setServerFilePath('');
+    const url = event.target.value.trim();
+    isTypingURL.current = true;
     setUrlPath(url);
+    setServerFilePath('');
     props.onChange(url);
+  };
+
+  const handleURLBlur = () => {
+    isTypingURL.current = false;
   };
 
   return (
@@ -114,6 +120,7 @@ export const FileSelectorWidget = (props: any) => {
           id="root_path"
           className="jp-mod-styled"
           onChange={handleURLChange}
+          onBlur={handleURLBlur}
           value={urlPath || ''}
           style={{ width: '100%' }}
         />
