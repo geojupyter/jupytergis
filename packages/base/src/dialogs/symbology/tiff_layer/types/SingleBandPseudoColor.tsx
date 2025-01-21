@@ -1,52 +1,21 @@
-import { IDict, IWebGlLayer } from '@jupytergis/schema';
+import { IWebGlLayer } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { GeoTiffClassifications } from '../../classificationModes';
+import { Spinner } from '../../../../mainview/spinner';
 import { GlobalStateDbManager } from '../../../../store';
-import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
-import BandRow from '../components/BandRow';
+import { GeoTiffClassifications } from '../../classificationModes';
 import ColorRamp, {
   ColorRampOptions
 } from '../../components/color_ramp/ColorRamp';
 import StopRow from '../../components/color_stops/StopRow';
+import useGetBandInfo, { IBandRow } from '../../hooks/useGetBandInfo';
+import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import { Utils } from '../../symbologyUtils';
-import { Spinner } from '../../../../mainview/spinner';
-import { loadGeoTIFFWithCache } from '../../../../tools';
-
-export interface IBandRow {
-  band: number;
-  colorInterpretation: string;
-  stats: {
-    minimum: number;
-    maximum: number;
-    mean: number;
-    stdDev: number;
-  };
-  metadata: IDict;
-  histogram: IBandHistogram;
-}
-
-export interface IBandHistogram {
-  buckets: number[];
-  count: number;
-  max: number;
-  min: number;
-}
+import BandRow from '../components/BandRow';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
-
-type TifBandData = {
-  band: number;
-  colorInterpretation: string;
-  minimum: number;
-  maximum: number;
-  mean: number;
-  stdDev: number;
-  metadata: any;
-  histogram: IBandHistogram;
-};
 
 const SingleBandPseudoColor = ({
   context,
@@ -54,25 +23,6 @@ const SingleBandPseudoColor = ({
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
-  const functions = ['discrete', 'linear', 'exact'];
-  const modeOptions = ['continuous', 'equal interval', 'quantile'];
-  const stopRowsRef = useRef<IStopRow[]>();
-  const bandRowsRef = useRef<IBandRow[]>([]);
-  const selectedFunctionRef = useRef<InterpolationType>();
-  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
-  const layerStateRef = useRef<ReadonlyJSONObject | undefined>();
-  const selectedBandRef = useRef<number>();
-
-  const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
-  const [selectedBand, setSelectedBand] = useState(1);
-  const [stopRows, setStopRows] = useState<IStopRow[]>([]);
-  const [bandRows, setBandRows] = useState<IBandRow[]>([]);
-  const [selectedFunction, setSelectedFunction] =
-    useState<InterpolationType>('linear');
-  const [colorRampOptions, setColorRampOptions] = useState<
-    ColorRampOptions | undefined
-  >();
-
   if (!layerId) {
     return;
   }
@@ -80,7 +30,28 @@ const SingleBandPseudoColor = ({
   if (!layer?.parameters) {
     return;
   }
+
+  const functions = ['discrete', 'linear', 'exact'];
+  const modeOptions = ['continuous', 'equal interval', 'quantile'];
+
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
+
+  const { bandRows, setBandRows, loading } = useGetBandInfo(context, layer);
+
+  const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
+  const [selectedBand, setSelectedBand] = useState(1);
+  const [stopRows, setStopRows] = useState<IStopRow[]>([]);
+  const [selectedFunction, setSelectedFunction] =
+    useState<InterpolationType>('linear');
+  const [colorRampOptions, setColorRampOptions] = useState<
+    ColorRampOptions | undefined
+  >();
+
+  const stopRowsRef = useRef<IStopRow[]>();
+  const bandRowsRef = useRef<IBandRow[]>([]);
+  const selectedFunctionRef = useRef<InterpolationType>();
+  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
+  const selectedBandRef = useRef<number>();
 
   useEffect(() => {
     populateOptions();
@@ -97,11 +68,6 @@ const SingleBandPseudoColor = ({
   }, []);
 
   useEffect(() => {
-    layerStateRef.current = layerState;
-    getBandInfo();
-  }, [layerState]);
-
-  useEffect(() => {
     bandRowsRef.current = bandRows;
     buildColorInfo();
   }, [bandRows]);
@@ -111,7 +77,6 @@ const SingleBandPseudoColor = ({
     selectedFunctionRef.current = selectedFunction;
     colorRampOptionsRef.current = colorRampOptions;
     selectedBandRef.current = selectedBand;
-    layerStateRef.current = layerState;
   }, [stopRows, selectedFunction, colorRampOptions, selectedBand, layerState]);
 
   const populateOptions = async () => {
@@ -127,44 +92,6 @@ const SingleBandPseudoColor = ({
 
     setSelectedBand(band);
     setSelectedFunction(interpolation);
-  };
-
-  const preloadGeoTiffFile = async (sourceInfo: {
-    url?: string | undefined;
-  }) => {
-    return await loadGeoTIFFWithCache(sourceInfo);
-  };
-
-  const getBandInfo = async () => {
-    const bandsArr: IBandRow[] = [];
-    const source = context.model.getSource(layer?.parameters?.source);
-    const sourceInfo = source?.parameters?.urls[0];
-
-    if (!sourceInfo?.url) {
-      return;
-    }
-
-    // Preload the file only once
-    const preloadedFile = await preloadGeoTiffFile(sourceInfo);
-    const { file, metadata, sourceUrl } = { ...preloadedFile };
-
-    if (file && metadata && sourceUrl === sourceInfo.url) {
-      metadata['bands'].forEach((bandData: TifBandData) => {
-        bandsArr.push({
-          band: bandData.band,
-          colorInterpretation: bandData.colorInterpretation,
-          stats: {
-            minimum: sourceInfo.min ?? bandData.minimum,
-            maximum: sourceInfo.max ?? bandData.maximum,
-            mean: bandData.mean,
-            stdDev: bandData.stdDev
-          },
-          metadata: bandData.metadata,
-          histogram: bandData.histogram
-        });
-      });
-      setBandRows(bandsArr);
-    }
   };
 
   const buildColorInfo = () => {
@@ -433,10 +360,11 @@ const SingleBandPseudoColor = ({
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
-        {bandRows.length === 0 ? (
-          <Spinner loading={bandRows.length === 0} />
+        {loading ? (
+          <Spinner loading={loading} />
         ) : (
           <BandRow
+            label="Band"
             // Band numbers are 1 indexed
             index={selectedBand - 1}
             bandRow={bandRows[selectedBand - 1]}
