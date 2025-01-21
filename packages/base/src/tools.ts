@@ -492,11 +492,27 @@ export const loadFile = async (fileInfo: {
         if (cached) {
           return URL.createObjectURL(cached.data); // Use Object URL directly
         }
-        const response = await fetch(filepath);
-        const fileBlob = await response.blob();
-        await saveToCache(filepath, fileBlob);
 
-        return URL.createObjectURL(fileBlob);
+        try {
+          const response = await fetch(filepath);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch image from URL: ${filepath}`);
+          }
+
+          const contentType = response.headers.get('Content-Type');
+          if (!contentType || !contentType.startsWith('image/')) {
+            throw new Error(`Invalid image URL. Content-Type: ${contentType}`);
+          }
+
+          const fileBlob = await response.blob();
+          await validateImage(fileBlob);
+          await saveToCache(filepath, fileBlob);
+
+          return URL.createObjectURL(fileBlob);
+        } catch (error) {
+          console.error('Error validating remote image:', error);
+          throw error;
+        }
       }
 
       case 'ShapefileSource': {
