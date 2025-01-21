@@ -51,19 +51,21 @@
     "symbologyState": {
       "type": "object",
       "description": "The state of the symbology panel options",
-      "required": [
-        "renderType",
-        "band",
-        "interpolation",
-        "colorRamp",
-        "nClasses",
-        "mode"
-      ],
+      "required": ["renderType"],
       "properties": {
         "renderType": {
           "type": "string"
         },
         "band": {
+          "type": "number"
+        },
+        "redBand": {
+          "type": "number"
+        },
+        "greenBand": {
+          "type": "number"
+        },
+        "blueBand": {
           "type": "number"
         },
         "interpolation": {
