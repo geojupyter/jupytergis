@@ -488,11 +488,6 @@ export const loadFile = async (fileInfo: {
   if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
     switch (type) {
       case 'ImageSource': {
-        const cached = await getFromCache(filepath);
-        if (cached) {
-          return URL.createObjectURL(cached.data); // Use Object URL directly
-        }
-
         try {
           const response = await fetch(filepath);
           if (!response.ok) {
@@ -504,11 +499,9 @@ export const loadFile = async (fileInfo: {
             throw new Error(`Invalid image URL. Content-Type: ${contentType}`);
           }
 
-          const fileBlob = await response.blob();
-          await validateImage(fileBlob);
-          await saveToCache(filepath, fileBlob);
-
-          return URL.createObjectURL(fileBlob);
+            // load the image to verify it's not corrupted
+            await validateImage(await response.blob());
+            return filepath;
         } catch (error) {
           console.error('Error validating remote image:', error);
           throw error;
