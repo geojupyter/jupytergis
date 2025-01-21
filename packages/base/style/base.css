@@ -49,3 +49,7 @@
   display: block;
   position: relative;
 }
+
+.jp-Dialog-button.jp-mod-accept.jp-mod-styled {
+  background-color: var(--jp-brand-color1) !important;
+}
