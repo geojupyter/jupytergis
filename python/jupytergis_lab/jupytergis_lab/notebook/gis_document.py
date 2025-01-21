@@ -16,6 +16,7 @@ from .objects import (
     IHillshadeLayer,
     IImageLayer,
     IImageSource,
+    IRasterDemSource,
     IRasterLayer,
     IRasterSource,
     IVectorLayer,
@@ -23,7 +24,6 @@ from .objects import (
     IVectorTileSource,
     IVideoSource,
     IWebGlLayer,
-    IRasterDemSource,
     LayerType,
     SourceType,
 )
@@ -57,7 +57,7 @@ class GISDocument(CommWidget):
         pitch: Optional[float] = None,
         projection: Optional[str] = None,
     ):
-        comm_metadata = GISDocument._path_to_comm(path)
+        comm_metadata = GISDocument._path_to_comm(str(path))
 
         ydoc = Doc()
 
