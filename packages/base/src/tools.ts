@@ -384,7 +384,10 @@ export const openDatabase = () => {
  */
 export const saveToIndexedDB = async (
   key: string,
-  file: Blob,
+  file:
+    | Blob
+    | shp.FeatureCollectionWithFilename
+    | shp.FeatureCollectionWithFilename[],
   metadata: any
 ) => {
   const db = await openDatabase();
@@ -460,15 +463,27 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
 const getFromCache = async (key: string) => {
   const cachedData = await getFromIndexedDB(key);
   if (cachedData) {
+    const data =
+      cachedData.file instanceof Blob
+        ? new Blob([cachedData.file])
+        : cachedData.file;
+
     return {
-      data: new Blob([cachedData.file]),
+      data,
       metadata: cachedData.metadata
     };
   }
   return null;
 };
 
-const saveToCache = async (key: string, data: Blob, metadata?: any) => {
+const saveToCache = async (
+  key: string,
+  data:
+    | Blob
+    | shp.FeatureCollectionWithFilename
+    | shp.FeatureCollectionWithFilename[],
+  metadata?: any
+) => {
   await saveToIndexedDB(key, data, metadata);
 };
 
@@ -511,7 +526,7 @@ export const loadFile = async (fileInfo: {
       case 'ShapefileSource': {
         const cached = await getFromCache(filepath);
         if (cached) {
-          return JSON.parse(await cached.data.text());
+          return cached.data;
         }
 
         try {
@@ -520,7 +535,7 @@ export const loadFile = async (fileInfo: {
           );
           const arrayBuffer = await response.arrayBuffer();
           const geojson = await shp(arrayBuffer);
-          await saveToCache(filepath, new Blob([JSON.stringify(geojson)]));
+          await saveToCache(filepath, geojson);
           return geojson;
         } catch (error) {
           console.error('Error loading remote shapefile:', error);
@@ -531,7 +546,7 @@ export const loadFile = async (fileInfo: {
       case 'GeoJSONSource': {
         const cached = await getFromCache(filepath);
         if (cached) {
-          return JSON.parse(await cached.data.text());
+          return cached.data;
         }
 
         try {
@@ -542,7 +557,10 @@ export const loadFile = async (fileInfo: {
             throw new Error(`Failed to fetch GeoJSON from URL: ${filepath}`);
           }
           const geojson = await response.json();
-          await saveToCache(filepath, new Blob([JSON.stringify(geojson)]));
+          await saveToCache(
+            filepath,
+            geojson as shp.FeatureCollectionWithFilename
+          );
           return geojson;
         } catch (error) {
           console.error('Error loading remote GeoJSON:', error);
