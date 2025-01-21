@@ -229,7 +229,8 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                     textAlign: 'center',
                     border: '1px solid #ccc',
                     borderRadius: '4px',
-                    padding: '4px'
+                    padding: '4px',
+                    marginBottom: '5px'
                   }}
                 />
               </div>
