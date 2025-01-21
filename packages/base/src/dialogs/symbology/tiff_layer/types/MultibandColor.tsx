@@ -36,6 +36,7 @@ const MultibandColor = ({
     blue: 3
   });
 
+  const numOfBandsRef = useRef(0);
   const selectedBandsRef = useRef<ISelectedBands>({
     red: selectedBands.red,
     green: selectedBands.green,
@@ -56,6 +57,14 @@ const MultibandColor = ({
     };
   }, []);
 
+  useEffect(() => {
+    numOfBandsRef.current = bandRows.length;
+  }, [bandRows]);
+
+  useEffect(() => {
+    selectedBandsRef.current = selectedBands;
+  }, [selectedBands]);
+
   const populateOptions = async () => {
     const layerParams = layer.parameters as IWebGlLayer;
     const red = layerParams.symbologyState?.redBand ?? 1;
@@ -64,10 +73,6 @@ const MultibandColor = ({
 
     setSelectedBands({ red, green, blue });
   };
-
-  useEffect(() => {
-    selectedBandsRef.current = selectedBands;
-  }, [selectedBands]);
 
   const updateBand = (color: rgbEnum, value: number) => {
     setSelectedBands(prevBands => ({
@@ -91,7 +96,8 @@ const MultibandColor = ({
     });
 
     // Array expression expects 4 values
-    colorExpr.push(['band', 5]);
+    // Last band should be alpha band added by OpenLayers
+    colorExpr.push(['band', numOfBandsRef.current + 1]);
 
     const symbologyState = {
       renderType: 'Multiband Color',
