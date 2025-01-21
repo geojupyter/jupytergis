@@ -64,7 +64,6 @@ import {
   VectorTile as VectorTileSource,
   XYZ as XYZSource
 } from 'ol/source';
-import ImageSource from 'ol/source/Image';
 import Static from 'ol/source/ImageStatic';
 import TileSource from 'ol/source/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
@@ -621,7 +620,7 @@ export class MainView extends React.Component<IProps, IStates> {
         newSource = new Static({
           imageExtent: extent,
           url: imageUrl,
-          interpolate: true,
+          interpolate: false,
           crossOrigin: ''
         });
 
@@ -1164,21 +1163,6 @@ export class MainView extends React.Component<IProps, IStates> {
         const state = layer.getSourceState();
         if (state === 'ready') {
           layer.un('change', checkState);
-
-          // Apply image smoothing logic for image layers only
-          const source = layer.getSource();
-          if (source && source instanceof ImageSource) {
-            layer.on('prerender', event => {
-              const context = event.context;
-              if (context && context.canvas) {
-                const canvasContext = context.canvas.getContext('2d');
-                if (canvasContext) {
-                  canvasContext.imageSmoothingEnabled = false;
-                }
-              }
-            });
-          }
-
           resolve();
         } else if (state === 'error') {
           layer.un('change', checkState);
