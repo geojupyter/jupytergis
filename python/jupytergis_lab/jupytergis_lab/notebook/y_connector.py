@@ -7,10 +7,13 @@ logger = logging.getLogger(__file__)
 
 
 class YDocConnector(Widget):
-    def __init__(self, path: Optional[str], **kwargs) -> None:
+    def __init__(self, path: Optional[str | Path], **kwargs) -> None:
         self.path = None
         self._format = None
         self._contentType = None
+
+        if isinstance(path, Path):
+            path = str(path)
 
         if path is not None:
             self.path = path
