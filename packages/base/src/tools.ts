@@ -499,9 +499,9 @@ export const loadFile = async (fileInfo: {
             throw new Error(`Invalid image URL. Content-Type: ${contentType}`);
           }
 
-            // load the image to verify it's not corrupted
-            await validateImage(await response.blob());
-            return filepath;
+          // load the image to verify it's not corrupted
+          await validateImage(await response.blob());
+          return filepath;
         } catch (error) {
           console.error('Error validating remote image:', error);
           throw error;
