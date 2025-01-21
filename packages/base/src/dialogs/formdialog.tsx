@@ -18,6 +18,11 @@ export interface ICreationFormWrapperProps extends ICreationFormProps {
    * some extra errors or not.
    */
   formErrorSignalPromise?: PromiseDelegate<Signal<Dialog<any>, boolean>>;
+  /**
+   * Configuration options for the dialog, including settings for layer data, source data,
+   * and other form-related parameters.
+   */
+  dialogOptions?: any;
 }
 
 export interface ICreationFormDialogOptions extends ICreationFormProps {
@@ -53,6 +58,7 @@ export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
         ok={okSignal.current}
         cancel={props.cancel}
         formErrorSignal={formErrorSignal.current}
+        dialogOptions={props.dialogOptions}
       />
     )
   );
@@ -88,6 +94,7 @@ export class CreationFormDialog extends Dialog<IDict> {
           okSignalPromise={okSignalPromise}
           cancel={cancelCallback}
           formErrorSignalPromise={formErrorSignalPromise}
+          dialogOptions={options}
         />
       </div>
     );

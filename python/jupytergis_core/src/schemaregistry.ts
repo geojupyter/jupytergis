@@ -1,9 +1,13 @@
 import { IDict, IJGISFormSchemaRegistry } from '@jupytergis/schema';
 import formSchema from '@jupytergis/schema/lib/_interface/forms.json';
+import { IDocumentManager } from '@jupyterlab/docmanager';
 
 export class JupyterGISFormSchemaRegistry implements IJGISFormSchemaRegistry {
-  constructor() {
+  private _docManager: IDocumentManager;
+
+  constructor(docManager: IDocumentManager) {
     this._registry = new Map<string, IDict>(Object.entries(formSchema));
+    this._docManager = docManager;
   }
 
   registerSchema(name: string, schema: IDict): void {
@@ -20,6 +24,10 @@ export class JupyterGISFormSchemaRegistry implements IJGISFormSchemaRegistry {
 
   getSchemas(): Map<string, IDict> {
     return this._registry;
+  }
+
+  getDocManager(): IDocumentManager {
+    return this._docManager;
   }
 
   private _registry: Map<string, IDict>;

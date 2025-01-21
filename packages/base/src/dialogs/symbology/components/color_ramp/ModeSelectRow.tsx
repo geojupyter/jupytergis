@@ -28,20 +28,21 @@ const ModeSelectRow = ({
       </div>
       <div className="jp-gis-color-ramp-div">
         <label htmlFor="mode-select">Mode:</label>
-        <select
-          name="mode-select"
-          onChange={event => setSelectedMode(event.target.value)}
-        >
-          {modeOptions.map(mode => (
-            <option
-              className="jp-mod-styled"
-              value={mode}
-              selected={selectedMode === mode}
-            >
-              {mode}
-            </option>
-          ))}
-        </select>
+        <div className="jp-select-wrapper">
+          <select
+            name="mode-select"
+            id="mode-select"
+            className="jp-mod-styled"
+            value={selectedMode}
+            onChange={event => setSelectedMode(event.target.value)}
+          >
+            {modeOptions.map(mode => (
+              <option key={mode} value={mode} selected={selectedMode === mode}>
+                {mode}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
     </div>
   );

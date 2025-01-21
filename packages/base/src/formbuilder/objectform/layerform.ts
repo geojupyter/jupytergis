@@ -1,6 +1,7 @@
 import { IDict, SourceType } from '@jupytergis/schema';
 import { BaseForm, IBaseFormProps } from './baseform';
 import { Signal } from '@lumino/signaling';
+import { IChangeEvent } from '@rjsf/core';
 
 export interface ILayerProps extends IBaseFormProps {
   /**
@@ -42,5 +43,12 @@ export class LayerPropertiesForm extends BaseForm {
 
     schema.properties.source.enumNames = Object.values(availableSources);
     schema.properties.source.enum = Object.keys(availableSources);
+  }
+
+  protected onFormChange(e: IChangeEvent): void {
+    super.onFormChange(e);
+    if (this.props.dialogOptions) {
+      this.props.dialogOptions.layerData = { ...e.formData };
+    }
   }
 }

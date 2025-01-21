@@ -7,7 +7,8 @@ import { Dialog } from '@jupyterlab/apputils';
 import { Signal } from '@lumino/signaling';
 import { deepCopy } from '../../tools';
 import { IDict } from '../../types';
-import { Slider, SliderLabel } from '@jupyter/react-components';
+import { Slider } from '@jupyter/react-components';
+import { SourceType } from '@jupytergis/schema';
 
 export interface IBaseFormStates {
   schema?: IDict;
@@ -66,6 +67,17 @@ export interface IBaseFormProps {
    * extra errors or not.
    */
   formErrorSignal?: Signal<Dialog<any>, boolean>;
+
+  /**
+   * Configuration options for the dialog, including settings for layer data, source data,
+   * and other form-related parameters.
+   */
+  dialogOptions?: any;
+
+  /**
+   * Source type property
+   */
+  sourceType: SourceType;
 }
 
 const WrappedFormComponent = (props: any): JSX.Element => {
@@ -161,25 +173,67 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       if (k === 'opacity') {
         uiSchema[k] = {
           'ui:field': (props: any) => {
-            const handleChange = (event: CustomEvent) => {
+            const [inputValue, setInputValue] = React.useState(
+              props.formData.toFixed(1)
+            );
+
+            React.useEffect(() => {
+              setInputValue(props.formData.toFixed(1));
+            }, [props.formData]);
+
+            const handleSliderChange = (event: CustomEvent) => {
               const target = event.target as any;
               if (target && '_value' in target) {
-                const value = parseFloat(target._value);
-                props.onChange(value);
+                const sliderValue = parseFloat(target._value); // Slider value is in 0–10 range
+                const normalizedValue = sliderValue / 10; // Normalize to 0.1–1 range
+                props.onChange(normalizedValue);
+              }
+            };
+
+            const handleInputChange = (
+              event: React.ChangeEvent<HTMLInputElement>
+            ) => {
+              const value = event.target.value;
+              setInputValue(value);
+
+              const parsedValue = parseFloat(value);
+              if (
+                !isNaN(parsedValue) &&
+                parsedValue >= 0.1 &&
+                parsedValue <= 1
+              ) {
+                props.onChange(parsedValue);
               }
             };
 
             return (
-              <Slider
-                min={0.1}
-                max={1}
-                step={0.1}
-                value={props.formData * 10}
-                onChange={handleChange}
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
               >
-                <SliderLabel position="0">0%</SliderLabel>
-                <SliderLabel position="100">100%</SliderLabel>
-              </Slider>
+                <Slider
+                  min={1}
+                  max={10}
+                  step={1}
+                  value={props.formData * 10}
+                  onChange={handleSliderChange}
+                ></Slider>
+                <input
+                  type="number"
+                  value={inputValue}
+                  step={0.1}
+                  min={0.1}
+                  max={1}
+                  onChange={handleInputChange}
+                  style={{
+                    width: '50px',
+                    textAlign: 'center',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    padding: '4px',
+                    marginBottom: '5px'
+                  }}
+                />
+              </div>
             );
           }
         };

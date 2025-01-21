@@ -214,7 +214,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 
 .jGIS-Mainview {
   width: 100%;
-  height: 100%;
+  height: calc(100% - 16px);
   box-sizing: border-box;
 }
 
