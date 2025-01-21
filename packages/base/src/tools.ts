@@ -444,7 +444,17 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
     };
   }
 
-  const response = await fetch(sourceInfo.url);
+  const response = await fetch(`/jupytergis_core/proxy?url=${sourceInfo.url}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch file. Status: ${response.status}`);
+  }
+
+  const contentType = response.headers.get('Content-Type');
+
+  if (!contentType || !contentType.startsWith('image/tiff')) {
+    throw new Error('Invalid file type. Expected GeoTIFF (image/tiff).');
+  }
+
   const fileBlob = await response.blob();
   const file = new File([fileBlob], 'loaded.tif');
 
@@ -541,6 +551,16 @@ export const loadFile = async (fileInfo: {
         }
       }
 
+      case 'GeoTiffSource': {
+        try {
+          const tiff = loadGeoTIFFWithCache({ url: filepath });
+          return tiff;
+        } catch (error) {
+          console.error('Error loading remote GeoTIFF:', error);
+          throw error;
+        }
+      }
+
       default: {
         throw new Error(`Unsupported URL handling for source type: ${type}`);
       }
@@ -595,6 +615,47 @@ export const loadFile = async (fileInfo: {
           }
         } else {
           throw new Error('Invalid file format for image content.');
+        }
+      }
+
+      case 'GeoTiffSource': {
+        if (typeof file.content === 'string') {
+          const mimeType = getMimeType(filepath);
+          if (!mimeType.startsWith('image/tiff')) {
+            throw new Error(`Invalid Tiff file. MIME type: ${mimeType}`);
+          }
+
+          try {
+            const cachedData = await getFromIndexedDB(filepath);
+            if (cachedData) {
+              return {
+                file: new Blob([cachedData.file]),
+                metadata: cachedData.metadata,
+                sourceUrl: filepath
+              };
+            }
+            const fileBlob = await base64ToBlob(file.content, mimeType);
+            const geotiff = new File([fileBlob], file.name);
+
+            const Gdal = await getGdal();
+            const result = await Gdal.open(geotiff);
+            const tifDataset = result.datasets[0];
+            const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
+            Gdal.close(tifDataset);
+
+            await saveToIndexedDB(filepath, fileBlob, metadata);
+
+            return {
+              file: fileBlob,
+              metadata,
+              sourceUrl: filepath
+            };
+          } catch (error) {
+            console.error('Error tiff content failed to decode.:', error);
+            throw error;
+          }
+        } else {
+          throw new Error('Invalid file format for tiff content.');
         }
       }
 
