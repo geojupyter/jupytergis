@@ -2,12 +2,16 @@
   "type": "object",
   "description": "HeatmapLayer",
   "title": "IHeatmapLayer",
-  "required": ["source"],
+  "required": ["source", "blur", "radius", "feature"],
   "additionalProperties": false,
   "properties": {
     "source": {
       "type": "string",
       "description": "The id of the source"
+    },
+    "feature": {
+      "type": "string",
+      "description": "The feature to use"
     },
     "opacity": {
       "type": "number",

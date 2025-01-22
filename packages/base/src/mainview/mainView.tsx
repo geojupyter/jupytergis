@@ -880,7 +880,13 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'HeatmapLayer': {
         layerParameters = layer.parameters as IHeatmapLayer;
 
-        newMapLayer = new HeatmapLayer();
+        newMapLayer = new HeatmapLayer({
+          opacity: layerParameters.opacity,
+          source: this._sources[layerParameters.source],
+          blur: layerParameters.blur,
+          radius: layerParameters.radius,
+          weight: layerParameters.feature
+        });
         break;
       }
     }
@@ -1135,6 +1141,14 @@ export class MainView extends React.Component<IProps, IStates> {
           });
         }
         break;
+      }
+      case 'HeatmapLayer': {
+        const layerParams = layer.parameters as IHeatmapLayer;
+        const heatmap = mapLayer as HeatmapLayer;
+
+        heatmap.setOpacity(layerParams.opacity || 1);
+        heatmap.setBlur(layerParams.blur);
+        heatmap.setRadius(layerParams.radius);
       }
     }
   }
