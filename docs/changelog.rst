@@ -1,2 +1,2 @@
 .. include:: ../CHANGELOG.md
-   :parser: myst_parser
+   :parser: myst_parser.sphinx_
