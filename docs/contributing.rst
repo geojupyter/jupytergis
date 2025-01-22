@@ -1,2 +1,2 @@
-.. include:: contributing.md
-   :parser: myst_parser
+.. include:: ../CONTRIBUTING.md
+   :parser: myst_parser.sphinx_
