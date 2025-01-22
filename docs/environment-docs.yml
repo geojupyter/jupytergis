@@ -17,3 +17,7 @@ dependencies:
   - myst_parser
 
   - xeus-python # TODO: Do we need this?
+
+  # Install myst-parser via pip
+  - pip:
+      - myst-parser
