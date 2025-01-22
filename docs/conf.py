@@ -17,6 +17,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx_tabs.tabs",
+    "myst_parser",
 ]
 
 source_suffix = ".rst"

@@ -1,2 +1,2 @@
-.. include:: ../CONTRIBUTING.md
+.. include:: ../CHANGELOG.md
    :parser: myst_parser.sphinx_
