@@ -1042,7 +1042,7 @@ namespace Private {
     itemTypeToRemove: SelectionType,
     removeFunction: (id: string) => void
   ) {
-    const selected = model?.localState?.selected.value;
+    const selected = model?.localState?.selected?.value;
 
     if (!selected) {
       console.info('Nothing selected');

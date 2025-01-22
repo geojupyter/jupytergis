@@ -82,6 +82,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
+import { showErrorMessage } from '@jupyterlab/apputils';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -646,7 +647,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
     }
-
+    
     newSource.set('id', id);
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
@@ -944,11 +945,21 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
 
-    const newMapLayer = await this._buildMapLayer(id, layer);
-    if (newMapLayer !== undefined) {
-      await this._waitForReady();
+    try {
+      const newMapLayer = await this._buildMapLayer(id, layer);
+      if (newMapLayer !== undefined) {
+        await this._waitForReady();
 
-      this._Map.getLayers().insertAt(index, newMapLayer);
+        this._Map.getLayers().insertAt(index, newMapLayer);
+      }
+    } catch (error) {
+      await showErrorMessage(
+        `Error Adding ${layer.name}`,
+        `Failed to add ${layer.name}. Please remove it`
+      );
+      this.setState(old => ({ ...old, loadingLayer: false }));
+      this._loadingLayers.delete(id);
+      this._model.removeLayer(id);
     }
   }
 
