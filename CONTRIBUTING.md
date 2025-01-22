@@ -75,8 +75,7 @@ jupyter lab
 
 With the `watch` command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
 
-> **Note**
-> `jlpm run watch` will sit and wait for a change once started. Edit a file to trigger a build.
+> **Note** > `jlpm run watch` will sit and wait for a change once started. Edit a file to trigger a build.
 
 ## Development Uninstall
 
