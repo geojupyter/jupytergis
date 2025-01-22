@@ -3,6 +3,7 @@ import {
   IAnnotation,
   IDict,
   IGeoTiffSource,
+  IHeatmapLayer,
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
@@ -41,6 +42,7 @@ import { singleClick } from 'ol/events/condition';
 import { GeoJSON, MVT } from 'ol/format';
 import { DragAndDrop, Select } from 'ol/interaction';
 import {
+  Heatmap as HeatmapLayer,
   Image as ImageLayer,
   Layer,
   Vector as VectorLayer,
@@ -873,6 +875,12 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         newMapLayer = new WebGlTileLayer(layerOptions);
+        break;
+      }
+      case 'HeatmapLayer': {
+        layerParameters = layer.parameters as IHeatmapLayer;
+
+        newMapLayer = new HeatmapLayer();
         break;
       }
     }

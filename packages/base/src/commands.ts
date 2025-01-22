@@ -665,6 +665,26 @@ export function addCommands(
     ...icons.get(CommandIDs.newShapefileLayer)
   });
 
+  commands.addCommand(CommandIDs.newHeatmapLayer, {
+    label: trans.__('New Heatmap Layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Heatmap Layer',
+      createLayer: true,
+      createSource: false,
+      layerData: { name: 'Custom Heatmap Layer' },
+      sourceType: 'GeoJSONSource',
+      layerType: 'HeatmapLayer'
+    }),
+    ...icons.get(CommandIDs.newShapefileLayer)
+  });
+
   /**
    * LAYERS and LAYER GROUP actions.
    */

@@ -41,6 +41,7 @@ export namespace CommandIDs {
   export const newVideoLayer = 'jupytergis:newVideoLayer';
   export const newShapefileLayer = 'jupytergis:newShapefileLayer';
   export const newWebGlTileLayer = 'jupytergis:newWebGlTileLayer';
+  export const newHeatmapLayer = 'jupytergis:newHeatmapLayer';
 
   // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';
@@ -85,6 +86,7 @@ const iconObject = {
   HillshadeLayer: { icon: moundIcon },
   ImageLayer: { iconClass: 'fa fa-image' },
   VideoLayer: { iconClass: 'fa fa-video' },
+  HeatmapLayer: { iconClass: 'fa fa-compact-disc' },
 
   [CommandIDs.redo]: { icon: redoIcon },
   [CommandIDs.undo]: { icon: undoIcon },
