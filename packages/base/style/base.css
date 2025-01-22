@@ -49,3 +49,12 @@
   display: block;
   position: relative;
 }
+
+/*This is being upstreamed. Will remove once upstream's been fixed.*/
+button.jp-mod-styled.jp-mod-accept {
+  background-color: var(--jp-brand-color1) !important;
+}
+
+button.jp-mod-styled.jp-mod-reject {
+  background-color: var(--jp-layout-color4) !important;
+}

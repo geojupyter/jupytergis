@@ -16,6 +16,7 @@ from .objects import (
     IHillshadeLayer,
     IImageLayer,
     IImageSource,
+    IRasterDemSource,
     IRasterLayer,
     IRasterSource,
     IVectorLayer,
@@ -23,7 +24,6 @@ from .objects import (
     IVectorTileSource,
     IVideoSource,
     IWebGlLayer,
-    IRasterDemSource,
     LayerType,
     SourceType,
 )
@@ -48,7 +48,7 @@ class GISDocument(CommWidget):
 
     def __init__(
         self,
-        path: Optional[str] = None,
+        path: Optional[str | Path] = None,
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
         zoom: Optional[float] = None,
@@ -57,6 +57,9 @@ class GISDocument(CommWidget):
         pitch: Optional[float] = None,
         projection: Optional[str] = None,
     ):
+        if isinstance(path, Path):
+            path = str(path)
+
         comm_metadata = GISDocument._path_to_comm(path)
 
         ydoc = Doc()
@@ -102,9 +105,12 @@ class GISDocument(CommWidget):
         """
         return self._layerTree.to_py()
 
-    def export_to_qgis(self, path: str) -> bool:
+    def export_to_qgis(self, path: str | Path) -> bool:
         # Lazy import, jupytergis_qgis of qgis may not be installed
         from jupytergis_qgis.qgis_loader import export_project_to_qgis
+
+        if isinstance(path, Path):
+            path = str(path)
 
         virtual_file = {
             "layers": self._layers.to_py(),
@@ -227,7 +233,7 @@ class GISDocument(CommWidget):
 
     def add_geojson_layer(
         self,
-        path: str | None = None,
+        path: str | Path | None = None,
         data: Dict | None = None,
         name: str = "GeoJSON Layer",
         type: "circle" | "fill" | "line" = "line",
@@ -249,6 +255,9 @@ class GISDocument(CommWidget):
         :param opacity: The opacity, between 0 and 1.
         :param color_expr: The style expression used to style the layer, defaults to None
         """
+        if isinstance(path, Path):
+            path = str(path)
+
         if path is None and data is None:
             raise ValueError("Cannot create a GeoJSON layer without data")
 
