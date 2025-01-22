@@ -275,6 +275,7 @@ jobs:
             sphinx-tabs
             pydata-sphinx-theme
             sphinx-autodoc-typehints
+            myst-parser<4.0.0
 
       - name: Download extension package
         uses: actions/download-artifact@v4
