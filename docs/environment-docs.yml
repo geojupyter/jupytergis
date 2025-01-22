@@ -19,4 +19,4 @@ dependencies:
 
   # Install myst-parser via pip
   - pip:
-      - myst-parser
+    - myst-parser<4.0.0
