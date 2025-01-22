@@ -21,7 +21,7 @@ const TiffRendering = ({
   }
   useEffect(() => {
     const layer = context.model.getLayer(layerId);
-    const renderType = layer?.parameters?.symbologyState.renderType;
+    const renderType = layer?.parameters?.symbologyState?.renderType;
     setSelectedRenderType(renderType ?? 'Singleband Pseudocolor');
   }, []);
 
