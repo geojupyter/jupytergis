@@ -532,7 +532,7 @@ export const loadFile = async (fileInfo: {
           const geojson = await response.json();
           await saveToIndexedDB(
             filepath,
-            geojson as shp.FeatureCollectionWithFilename
+            geojson
           );
           return geojson;
         } catch (error) {
