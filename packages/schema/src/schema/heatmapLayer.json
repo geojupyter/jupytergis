@@ -35,6 +35,21 @@
       "type": "array",
       "items": {
         "type": "string"
+      },
+      "default": ["#00f", "#0ff", "#0f0", "#ff0", "#f00"]
+    },
+    "symbologyState": {
+      "type": "object",
+      "description": "The state of the symbology panel options",
+      "required": ["renderType"],
+      "properties": {
+        "renderType": {
+          "type": "string"
+        },
+        "colorRamp": {
+          "type": "string",
+          "default": "cool"
+        }
       }
     }
   }
