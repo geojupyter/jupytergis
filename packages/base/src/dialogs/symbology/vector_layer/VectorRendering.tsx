@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { ISymbologyDialogProps } from '../symbologyDialog';
-import Graduated from './types/Graduated';
-import SimpleSymbol from './types/SimpleSymbol';
 import Categorized from './types/Categorized';
+import Graduated from './types/Graduated';
+import Heatmap from './types/Heatmap';
+import SimpleSymbol from './types/SimpleSymbol';
 
 const VectorRendering = ({
   context,
@@ -29,12 +30,12 @@ const VectorRendering = ({
 
   useEffect(() => {
     const renderType = layer.parameters?.symbologyState?.renderType;
-    setSelectedRenderType(renderType ?? 'Single Symbol');
+    setSelectedRenderType(renderType);
 
-    if (layer.type === 'VectorLayer') {
-      const options = ['Single Symbol', 'Graduated', 'Categorized'];
-      setRenderTypeOptions(options);
-    }
+    const options = ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap'];
+    setRenderTypeOptions(options);
+    // if (layer.type === 'VectorLayer') {
+    // }
   }, []);
 
   useEffect(() => {
@@ -72,8 +73,19 @@ const VectorRendering = ({
           />
         );
         break;
+      case 'Heatmap':
+        RenderComponent = (
+          <Heatmap
+            context={context}
+            state={state}
+            okSignalPromise={okSignalPromise}
+            cancel={cancel}
+            layerId={layerId}
+          />
+        );
+        break;
       default:
-        RenderComponent = <div>Render Type Not Implemented (yet)</div>;
+        RenderComponent = <div>Select a render type</div>;
     }
     setComponentToRender(RenderComponent);
   }, [selectedRenderType]);

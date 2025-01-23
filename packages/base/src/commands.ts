@@ -87,7 +87,8 @@ export function addCommands(
       const isValidLayer = [
         'VectorLayer',
         'VectorTileLayer',
-        'WebGlLayer'
+        'WebGlLayer',
+        'HeatmapLayer'
       ].includes(layer.type);
 
       return isValidLayer;

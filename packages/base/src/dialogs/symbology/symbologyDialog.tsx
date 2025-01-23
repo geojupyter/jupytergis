@@ -75,6 +75,7 @@ const SymbologyDialog = ({
     switch (layer.type) {
       case 'VectorLayer':
       case 'VectorTileLayer':
+      case 'HeatmapLayer':
         LayerSymbology = (
           <VectorRendering
             context={context}
