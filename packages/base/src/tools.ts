@@ -448,10 +448,10 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
   if (!response.ok) {
     throw new Error(`Failed to fetch file. Status: ${response.status}`);
   }
-
-  const contentType = response.headers.get('Content-Type');
-
-  if (!contentType || !contentType.startsWith('image/tiff')) {
+  if (
+    !getMimeType(sourceInfo.url) ||
+    !getMimeType(sourceInfo.url).startsWith('image/tiff')
+  ) {
     throw new Error('Invalid file type. Expected GeoTIFF (image/tiff).');
   }
 
