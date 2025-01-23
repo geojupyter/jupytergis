@@ -1,9 +1,6 @@
 import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
-import {
-  JupyterGISPanel,
-  JupyterGISWidget,
-  ToolbarWidget
-} from '@jupytergis/base';
+import { IDocumentManager } from '@jupyterlab/docmanager';
+import { JupyterGISWidget } from '@jupytergis/base';
 import { JupyterGISModel, IJupyterGISDoc } from '@jupytergis/schema';
 
 import {
@@ -35,20 +32,21 @@ export class YJupyterGISModel extends JupyterYModel {
 }
 
 export class YJupyterGISLuminoWidget extends Panel {
-  constructor(options: { model: JupyterGISModel }) {
+  constructor(options: {
+    model: JupyterGISModel,
+    docManager: IDocumentManager,
+  }) {
     super();
 
+    const path: String = "espm-157/debug.jgis";
+    const widget = options.docManager.open(`RTC:${path}`);
+    if (widget instanceof JupyterGISWidget) {
+      this._jgisWidget = widget;
+      this.addWidget(this._jgisWidget);
+      this._jgisWidget.show();
+    }
+
     this.addClass(CLASS_NAME);
-    this._jgisWidget = new JupyterGISWidget({
-      // FIXME: Where do we get a context object?
-      // context: ...,
-      content: new JupyterGISPanel(options),
-      toolbar: new ToolbarWidget({
-        model: options.model,
-        externalCommands: [],
-      }),
-    });
-    this.addWidget(this._jgisWidget);
   }
 
   onResize = (): void => {
@@ -63,12 +61,15 @@ export class YJupyterGISLuminoWidget extends Panel {
   private _jgisWidget: JupyterGISWidget;
 }
 
+// TODO: Typo
 export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
+  requires: [IDocumentManager],
   optional: [IJupyterYWidgetManager, ICollaborativeDrive],
   activate: (
     app: JupyterFrontEnd,
+    docManager: IDocumentManager,
     yWidgetManager?: IJupyterYWidgetManager,
     drive?: ICollaborativeDrive
   ): void => {
@@ -108,7 +109,8 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
         this.node = node;
 
         const widget = new YJupyterGISLuminoWidget({
-          model: yModel.jupyterGISModel
+          model: yModel.jupyterGISModel,
+          docManager,
         });
         // Widget.attach(widget, node);
 

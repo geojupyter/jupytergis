@@ -1,4 +1,4 @@
-from sidecar import Sidecar
+# from jupyterlab import
 
 from jupytergis_lab import GISDocument
 
@@ -6,6 +6,7 @@ from jupytergis_lab import GISDocument
 def geo_debug(geojson_path: str) -> None:
     """Run a JupyterGIS data interaction interface alongside a Notebook."""
     # TODO: allow user to specify a different project file;
+    # TODO: Just create the .jgis file
     doc = GISDocument("debug.jgis")
 
     # TODO: Basemap choices
@@ -26,7 +27,4 @@ def geo_debug(geojson_path: str) -> None:
     # TODO: Activate left and right panel -- not sure how feasible yet from Python.
     #       Also, if using sidecar, right panel can't be displayed. Can we open a
     #       "native" JupyterLab pane instead of using sidecar?
-
-    sc = Sidecar(title="JupyterGIS sidecar")
-    with sc:
-        display(doc)
+    display(doc)
