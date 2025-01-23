@@ -23,6 +23,7 @@ dependencies = [
   "jupytergis_lab>=0.1.0,<1",
   "jupytergis_qgis>=0.1.0,<1",
   "jupyter-collaboration>=3,<4",
+  "jupyterlab>=4.3,<5",
 ]
 dynamic = ["version"]
 license = {file = "LICENSE"}

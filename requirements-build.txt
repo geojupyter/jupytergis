@@ -2,7 +2,7 @@
 datamodel-code-generator>=0.23.0
 hatchling>=1.5.0,<2
 jupyter-collaboration>=3,<4
-jupyterlab>=4,<5
+jupyterlab>=4.3,<5
 mercantile>=1.2
 pillow>=10
 pydantic>=2.4.2,<3

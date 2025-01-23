@@ -25,9 +25,7 @@ classifiers = [
 dependencies = [
   "mapbox-vector-tile",
   "requests",
-  "jupyter_server>=2.0.1,<3",
   "jupyter-ydoc>=2,<3",
-  "jupyterlab>=4.3,<5",
   "ypywidgets>=0.9.0,<0.10.0",
   "yjs-widgets>=0.3.5,<0.4",
   "comm>=0.1.2,<0.2.0",
