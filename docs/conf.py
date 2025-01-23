@@ -33,6 +33,7 @@ jupyterlite_contents = [
     "../examples/*.zip",
     "../examples/*.gif",
     "../examples/*.geojson",
+    "../examples/*.tif",
 ]
 jupyterlite_dir = "."
 jupyterlite_config = "jupyter_lite_config.json"
