@@ -37,3 +37,4 @@ Table of contents
    python_api
    collab.rst
    contributing.rst
+   changelog.rst

@@ -132,7 +132,7 @@ jobs:
           sudo rm -rf $(which node)
 
           cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl
+          python -m pip install jupytergis*.whl "jupyterlab>=4.3,<5"
 
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
@@ -173,7 +173,7 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl "jupyter-collaboration>=3,<4"
+          python -m pip install jupytergis*.whl "jupyter-collaboration>=3,<4" "jupyterlab>=4.3,<5"
 
       - name: Install dependencies
         shell: bash -l {0}
@@ -275,6 +275,7 @@ jobs:
             sphinx-tabs
             pydata-sphinx-theme
             sphinx-autodoc-typehints
+            myst-parser<4.0.0
 
       - name: Download extension package
         uses: actions/download-artifact@v4
