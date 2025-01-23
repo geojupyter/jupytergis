@@ -384,11 +384,8 @@ export const openDatabase = () => {
  */
 export const saveToIndexedDB = async (
   key: string,
-  file:
-    | Blob
-    | shp.FeatureCollectionWithFilename
-    | shp.FeatureCollectionWithFilename[],
-  metadata: any
+  file: any,
+  metadata?: any | undefined
 ) => {
   const db = await openDatabase();
   return new Promise<void>((resolve, reject) => {
@@ -409,7 +406,10 @@ export const saveToIndexedDB = async (
  */
 export const getFromIndexedDB = async (key: string) => {
   const db = await openDatabase();
-  return new Promise<any>((resolve, reject) => {
+  return new Promise<{
+    file: any;
+    metadata?: any | undefined;
+  } | undefined>((resolve, reject) => {
     const transaction = db.transaction('files', 'readonly');
     const store = transaction.objectStore('files');
     const request = store.get(key);
@@ -432,10 +432,10 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
     return null;
   }
 
-  const cachedData = await getFromCache(sourceInfo.url);
+  const cachedData = await getFromIndexedDB(sourceInfo.url);
   if (cachedData) {
     return {
-      file: cachedData.data,
+      file: cachedData.file,
       metadata: cachedData.metadata,
       sourceUrl: sourceInfo.url
     };
@@ -451,40 +451,13 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
   const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
   Gdal.close(tifDataset);
 
-  await saveToCache(sourceInfo.url, fileBlob, metadata);
+  await saveToIndexedDB(sourceInfo.url, fileBlob, metadata);
 
   return {
     file: fileBlob,
     metadata,
     sourceUrl: sourceInfo.url
   };
-};
-
-const getFromCache = async (key: string) => {
-  const cachedData = await getFromIndexedDB(key);
-  if (cachedData) {
-    const data =
-      cachedData.file instanceof Blob
-        ? new Blob([cachedData.file])
-        : cachedData.file;
-
-    return {
-      data,
-      metadata: cachedData.metadata
-    };
-  }
-  return null;
-};
-
-const saveToCache = async (
-  key: string,
-  data:
-    | Blob
-    | shp.FeatureCollectionWithFilename
-    | shp.FeatureCollectionWithFilename[],
-  metadata?: any
-) => {
-  await saveToIndexedDB(key, data, metadata);
 };
 
 /**
@@ -524,9 +497,9 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'ShapefileSource': {
-        const cached = await getFromCache(filepath);
+        const cached = await getFromIndexedDB(filepath);
         if (cached) {
-          return cached.data;
+          return cached.file;
         }
 
         try {
@@ -535,7 +508,7 @@ export const loadFile = async (fileInfo: {
           );
           const arrayBuffer = await response.arrayBuffer();
           const geojson = await shp(arrayBuffer);
-          await saveToCache(filepath, geojson);
+          await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
           console.error('Error loading remote shapefile:', error);
@@ -544,9 +517,9 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoJSONSource': {
-        const cached = await getFromCache(filepath);
+        const cached = await getFromIndexedDB(filepath);
         if (cached) {
-          return cached.data;
+          return cached.file;
         }
 
         try {
@@ -557,7 +530,7 @@ export const loadFile = async (fileInfo: {
             throw new Error(`Failed to fetch GeoJSON from URL: ${filepath}`);
           }
           const geojson = await response.json();
-          await saveToCache(
+          await saveToIndexedDB(
             filepath,
             geojson as shp.FeatureCollectionWithFilename
           );
