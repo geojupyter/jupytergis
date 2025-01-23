@@ -406,10 +406,13 @@ export const saveToIndexedDB = async (
  */
 export const getFromIndexedDB = async (key: string) => {
   const db = await openDatabase();
-  return new Promise<{
-    file: any;
-    metadata?: any | undefined;
-  } | undefined>((resolve, reject) => {
+  return new Promise<
+    | {
+        file: any;
+        metadata?: any | undefined;
+      }
+    | undefined
+  >((resolve, reject) => {
     const transaction = db.transaction('files', 'readonly');
     const store = transaction.objectStore('files');
     const request = store.get(key);
@@ -530,10 +533,7 @@ export const loadFile = async (fileInfo: {
             throw new Error(`Failed to fetch GeoJSON from URL: ${filepath}`);
           }
           const geojson = await response.json();
-          await saveToIndexedDB(
-            filepath,
-            geojson
-          );
+          await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
           console.error('Error loading remote GeoJSON:', error);
