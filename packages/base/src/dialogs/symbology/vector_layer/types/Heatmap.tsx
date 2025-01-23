@@ -1,5 +1,5 @@
 import colormap from 'colormap';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import CanvasSelectComponent from '../../components/color_ramp/CanvasSelectComponent';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 
@@ -11,6 +11,7 @@ const Heatmap = ({
   layerId
 }: ISymbologyDialogProps) => {
   const [selectedRamp, setSelectedRamp] = useState('');
+  const selectedRampRef = useRef('cool');
 
   if (!layerId) {
     return;
@@ -34,11 +35,15 @@ const Heatmap = ({
     };
   }, []);
 
+  useEffect(() => {
+    selectedRampRef.current = selectedRamp;
+  }, [selectedRamp]);
+
   const populateOptions = async () => {
     let colorRamp;
 
     if (layer.parameters?.symbologyState) {
-      colorRamp = layer.parameters?.symbologyState.colorRamp;
+      colorRamp = layer.parameters.symbologyState.colorRamp;
     }
 
     setSelectedRamp(colorRamp ? colorRamp : 'cool');
@@ -49,33 +54,27 @@ const Heatmap = ({
   };
 
   const handleOk = () => {
-    const colorMap1 = colormap({
-      colormap: selectedRamp,
-      nshades: 9,
-      format: 'rgba'
-    });
+    if (!layer.parameters) {
+      return;
+    }
 
-    const colorMap2 = colormap({
-      colormap: selectedRamp,
-      nshades: 9,
-      format: 'float'
-    });
-
-    const colorMap3 = colormap({
-      colormap: selectedRamp,
+    const colorMap = colormap({
+      colormap: selectedRampRef.current,
       nshades: 9,
       format: 'hex'
     });
 
-    const colorMap4 = colormap({
-      colormap: selectedRamp,
-      nshades: 9,
-      format: 'rgbaString'
-    });
-    console.log('ok', colorMap1);
-    console.log('ok2', colorMap2);
-    console.log('ok3', colorMap3);
-    console.log('ok4', colorMap4);
+    const symbologyState = {
+      renderType: 'Heatmap',
+      colorRamp: selectedRampRef.current
+    };
+
+    layer.parameters.symbologyState = symbologyState;
+    layer.parameters.color = colorMap;
+
+    context.model.sharedModel.updateLayer(layerId, layer);
+
+    cancel();
   };
 
   return (

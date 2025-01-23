@@ -885,7 +885,8 @@ export class MainView extends React.Component<IProps, IStates> {
           source: this._sources[layerParameters.source],
           blur: layerParameters.blur,
           radius: layerParameters.radius,
-          weight: layerParameters.feature
+          weight: layerParameters.feature,
+          gradient: layerParameters.color
         });
         break;
       }
@@ -1149,6 +1150,9 @@ export class MainView extends React.Component<IProps, IStates> {
         heatmap.setOpacity(layerParams.opacity || 1);
         heatmap.setBlur(layerParams.blur);
         heatmap.setRadius(layerParams.radius);
+        heatmap.setGradient(
+          layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
+        );
       }
     }
   }
