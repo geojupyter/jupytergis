@@ -384,8 +384,8 @@ export const openDatabase = () => {
  */
 export const saveToIndexedDB = async (
   key: string,
-  file: Blob,
-  metadata: any
+  file: any,
+  metadata?: any | undefined
 ) => {
   const db = await openDatabase();
   return new Promise<void>((resolve, reject) => {
@@ -406,7 +406,13 @@ export const saveToIndexedDB = async (
  */
 export const getFromIndexedDB = async (key: string) => {
   const db = await openDatabase();
-  return new Promise<any>((resolve, reject) => {
+  return new Promise<
+    | {
+        file: any;
+        metadata?: any | undefined;
+      }
+    | undefined
+  >((resolve, reject) => {
     const transaction = db.transaction('files', 'readonly');
     const store = transaction.objectStore('files');
     const request = store.get(key);
@@ -432,7 +438,7 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
   const cachedData = await getFromIndexedDB(sourceInfo.url);
   if (cachedData) {
     return {
-      file: new Blob([cachedData.file]),
+      file: cachedData.file,
       metadata: cachedData.metadata,
       sourceUrl: sourceInfo.url
     };
@@ -494,12 +500,18 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'ShapefileSource': {
+        const cached = await getFromIndexedDB(filepath);
+        if (cached) {
+          return cached.file;
+        }
+
         try {
           const response = await fetch(
             `/jupytergis_core/proxy?url=${filepath}`
           );
           const arrayBuffer = await response.arrayBuffer();
           const geojson = await shp(arrayBuffer);
+          await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
           console.error('Error loading remote shapefile:', error);
@@ -508,6 +520,11 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoJSONSource': {
+        const cached = await getFromIndexedDB(filepath);
+        if (cached) {
+          return cached.file;
+        }
+
         try {
           const response = await fetch(
             `/jupytergis_core/proxy?url=${filepath}`
@@ -516,6 +533,7 @@ export const loadFile = async (fileInfo: {
             throw new Error(`Failed to fetch GeoJSON from URL: ${filepath}`);
           }
           const geojson = await response.json();
+          await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
           console.error('Error loading remote GeoJSON:', error);
