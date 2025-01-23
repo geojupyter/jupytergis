@@ -30,6 +30,12 @@
       "type": "number",
       "description": "Blur size in pixels",
       "default": 15
+    },
+    "color": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

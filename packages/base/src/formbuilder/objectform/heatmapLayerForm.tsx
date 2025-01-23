@@ -44,7 +44,8 @@ export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
     schema: IDict,
     uiSchema: IDict
   ) {
-    super.processSchema(data, schema, uiSchema);
+    this.removeFormEntry('color', data, schema, uiSchema);
+
     uiSchema['feature'] = { enum: this.features };
 
     if (!data) {
@@ -54,6 +55,7 @@ export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
     if (this.features.length !== 0) {
       schema.properties.feature.enum = this.features;
     }
+    super.processSchema(data, schema, uiSchema);
   }
 
   private async fetchFeatureNames(
