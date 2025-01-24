@@ -244,6 +244,7 @@ def test_qgis_saver():
                 ],
                 "name": "group0",
             },
+            layer_ids[4],
         ],
         "sources": {
             source_ids[0]: {
