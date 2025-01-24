@@ -1,7 +1,7 @@
 import { IDict, IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { useEffect, useState } from 'react';
-import { loadGeoTIFFWithCache } from '../../../tools';
+import { loadFile } from '../../../tools';
 
 export interface IBandHistogram {
   buckets: number[];
@@ -34,8 +34,17 @@ interface ITifBandData {
   histogram: any;
 }
 
-const preloadGeoTiffFile = async (sourceInfo: { url?: string | undefined }) => {
-  return await loadGeoTIFFWithCache(sourceInfo);
+const preloadGeoTiffFile = async (
+  sourceInfo: {
+    url?: string | undefined;
+  },
+  model: IJupyterGISModel
+): Promise<{ file: Blob; metadata: any; sourceUrl: string }> => {
+  return await loadFile({
+    filepath: sourceInfo.url ?? '',
+    type: 'GeoTiffSource',
+    model: model
+  });
 };
 
 const useGetBandInfo = (
@@ -61,7 +70,7 @@ const useGetBandInfo = (
         return;
       }
 
-      const preloadedFile = await preloadGeoTiffFile(sourceInfo);
+      const preloadedFile = await preloadGeoTiffFile(sourceInfo, context.model);
       const { file, metadata, sourceUrl } = { ...preloadedFile };
 
       if (file && metadata && sourceUrl === sourceInfo.url) {

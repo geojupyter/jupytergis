@@ -45,7 +45,7 @@ export const FileSelectorWidget = (props: any) => {
       }
 
       const output = await FileDialog.getOpenFiles({
-        title: 'Select a File',
+        title: `Select ${formOptions.sourceType.split('Source')[0]} File`,
         manager: docManager
       });
 
@@ -62,10 +62,24 @@ export const FileSelectorWidget = (props: any) => {
         props.onChange(relativePath);
 
         if (dialogElement) {
-          formOptions.dialogOptions.sourceData = {
-            ...formOptions.sourceData,
-            path: relativePath
-          };
+          if (formOptions.sourceType === 'GeoTiffSource') {
+            formOptions.dialogOptions.sourceData = {
+              ...formOptions.sourceData,
+              urls: formOptions.dialogOptions.sourceData.urls.map(
+                (urlObject: any) => {
+                  return {
+                    ...urlObject,
+                    url: relativePath
+                  };
+                }
+              )
+            };
+          } else {
+            formOptions.dialogOptions.sourceData = {
+              ...formOptions.sourceData,
+              path: relativePath
+            };
+          }
 
           const formDialog = new CreationFormDialog({
             ...formOptions.dialogOptions

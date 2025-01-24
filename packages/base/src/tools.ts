@@ -3,7 +3,7 @@ import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
 
 import { URLExt } from '@jupyterlab/coreutils';
-import { ServerConnection } from '@jupyterlab/services';
+import { Contents, ServerConnection } from '@jupyterlab/services';
 import * as d3Color from 'd3-color';
 import { PathExt } from '@jupyterlab/coreutils';
 import shp from 'shpjs';
@@ -428,11 +428,19 @@ export const getFromIndexedDB = async (key: string) => {
  * @param sourceInfo object containing the URL of the GeoTIFF file.
  * @returns A promise that resolves to the file as a Blob, or undefined .
  */
-export const loadGeoTIFFWithCache = async (sourceInfo: {
-  url?: string | undefined;
-}) => {
+export const loadGeoTiff = async (
+  sourceInfo: {
+    url?: string | undefined;
+  },
+  file?: Contents.IModel | null
+) => {
   if (!sourceInfo?.url) {
     return null;
+  }
+
+  const mimeType = getMimeType(sourceInfo.url);
+  if (!mimeType || !mimeType.startsWith('image/tiff')) {
+    throw new Error('Invalid file type. Expected GeoTIFF (image/tiff).');
   }
 
   const cachedData = await getFromIndexedDB(sourceInfo.url);
@@ -444,12 +452,23 @@ export const loadGeoTIFFWithCache = async (sourceInfo: {
     };
   }
 
-  const response = await fetch(sourceInfo.url);
-  const fileBlob = await response.blob();
-  const file = new File([fileBlob], 'loaded.tif');
+  let fileBlob: Blob;
+  if (!file) {
+    const response = await fetch(
+      `/jupytergis_core/proxy?url=${sourceInfo.url}`
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch file. Status: ${response.status}`);
+    }
+    fileBlob = await response.blob();
+  } else {
+    fileBlob = await base64ToBlob(file.content, mimeType);
+  }
+
+  const geotiff = new File([fileBlob], 'loaded.tif');
 
   const Gdal = await getGdal();
-  const result = await Gdal.open(file);
+  const result = await Gdal.open(geotiff);
   const tifDataset = result.datasets[0];
   const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
   Gdal.close(tifDataset);
@@ -541,6 +560,16 @@ export const loadFile = async (fileInfo: {
         }
       }
 
+      case 'GeoTiffSource': {
+        try {
+          const tiff = loadGeoTiff({ url: filepath });
+          return tiff;
+        } catch (error) {
+          console.error('Error loading remote GeoTIFF:', error);
+          throw error;
+        }
+      }
+
       default: {
         throw new Error(`Unsupported URL handling for source type: ${type}`);
       }
@@ -595,6 +624,15 @@ export const loadFile = async (fileInfo: {
           }
         } else {
           throw new Error('Invalid file format for image content.');
+        }
+      }
+
+      case 'GeoTiffSource': {
+        if (typeof file.content === 'string') {
+          const tiff = loadGeoTiff({ url: filepath }, file);
+          return tiff;
+        } else {
+          throw new Error('Invalid file format for tiff content.');
         }
       }
 

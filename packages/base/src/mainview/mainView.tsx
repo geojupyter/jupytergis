@@ -75,12 +75,7 @@ import * as React from 'react';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import StatusBar from '../statusbar/StatusBar';
-import {
-  isLightTheme,
-  loadFile,
-  loadGeoTIFFWithCache,
-  throttle
-} from '../tools';
+import { isLightTheme, loadFile, throttle } from '../tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import { MainViewModel } from './mainviewmodel';
@@ -451,13 +446,6 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   };
 
-  private async _loadGeoTIFFWithCache(sourceInfo: {
-    url?: string | undefined;
-  }) {
-    const result = await loadGeoTIFFWithCache(sourceInfo);
-    return result?.file;
-  }
-
   /**
    * Add a source in the map.
    *
@@ -639,8 +627,16 @@ export class MainView extends React.Component<IProps, IStates> {
         };
         const sourcesWithBlobs = await Promise.all(
           sourceParameters.urls.map(async sourceInfo => {
-            const blob = await this._loadGeoTIFFWithCache(sourceInfo);
-            return { ...addNoData(sourceInfo), blob };
+            const geotiff = await loadFile({
+              filepath: sourceInfo.url ?? '',
+              type: 'GeoTiffSource',
+              model: this._model
+            });
+            return {
+              ...addNoData(sourceInfo),
+              geotiff,
+              url: URL.createObjectURL(geotiff.file)
+            };
           })
         );
 
