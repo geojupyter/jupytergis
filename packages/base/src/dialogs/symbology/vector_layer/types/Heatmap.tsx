@@ -49,10 +49,6 @@ const Heatmap = ({
     setSelectedRamp(colorRamp ? colorRamp : 'cool');
   };
 
-  const buildColorInfoFromClassification = (selectedRamp: string) => {
-    console.log('buikld');
-  };
-
   const handleOk = () => {
     if (!layer.parameters) {
       return;
