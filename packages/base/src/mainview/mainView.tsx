@@ -1417,6 +1417,12 @@ export class MainView extends React.Component<IProps, IStates> {
     this._Map.getLayers().insertAt(nextIndex, layer);
   }
 
+  changeLayerType(id: string, layer: IJGISLayer) {
+    const layerIndex = this.getLayerIndex(id);
+    this.removeLayer(id);
+    this.addLayer(id, layer, layerIndex);
+  }
+
   private _onLayersChanged(
     _: IJupyterGISDoc,
     change: IJGISLayerDocChange
@@ -1428,11 +1434,15 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     change.layerChange?.forEach(change => {
-      const { id, newValue: layer } = change;
+      const { id, oldValue: oldLayer, newValue: newLayer } = change;
 
-      // If the layer is missing or empty, remove it
-      if (!layer || Object.keys(layer).length === 0) {
+      if (!newLayer || Object.keys(newLayer).length === 0) {
         this.removeLayer(id);
+        return;
+      }
+
+      if (oldLayer.type !== newLayer.type) {
+        this.changeLayerType(id, newLayer);
         return;
       }
 
@@ -1444,7 +1454,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       if (layerTree.includes(id)) {
-        this.updateLayer(id, layer, mapLayer);
+        this.updateLayer(id, newLayer, mapLayer);
       } else {
         this.updateLayers(layerTree);
       }

@@ -336,6 +336,7 @@ export class JupyterGISDoc
   private _layersObserver(events: Y.YEvent<any>[]): void {
     const changes: Array<{
       id: string;
+      oldValue: IDict;
       newValue: IJGISLayer;
     }> = [];
     let needEmit = false;
@@ -346,6 +347,7 @@ export class JupyterGISDoc
         }
         changes.push({
           id: key as string,
+          oldValue: change.oldValue,
           newValue: JSONExt.deepCopy(event.target.toJSON()[key])
         });
       });
