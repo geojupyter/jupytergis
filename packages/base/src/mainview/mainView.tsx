@@ -834,8 +834,6 @@ export class MainView extends React.Component<IProps, IStates> {
           source: this._sources[layerParameters.source]
         });
 
-        this.updateLayer(id, layer, newMapLayer);
-
         break;
       }
       case 'HillshadeLayer': {
@@ -1085,6 +1083,7 @@ export class MainView extends React.Component<IProps, IStates> {
   async updateLayer(
     id: string,
     layer: IJGISLayer,
+    oldLayer: IDict,
     mapLayer: Layer
   ): Promise<void> {
     const sourceId = layer.parameters?.source;
@@ -1146,6 +1145,12 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'HeatmapLayer': {
         const layerParams = layer.parameters as IHeatmapLayer;
         const heatmap = mapLayer as HeatmapLayer;
+
+        if (oldLayer.feature !== layerParams.feature) {
+          // No way to change 'weight' attribute (feature used for heatmap stuff) so need to replace layer
+          this.replaceLayer(id, layer);
+          return;
+        }
 
         heatmap.setOpacity(layerParams.opacity || 1);
         heatmap.setBlur(layerParams.blur);
@@ -1417,7 +1422,12 @@ export class MainView extends React.Component<IProps, IStates> {
     this._Map.getLayers().insertAt(nextIndex, layer);
   }
 
-  changeLayerType(id: string, layer: IJGISLayer) {
+  /**
+   * Remove and recreate layer
+   * @param id ID of layer being replaced
+   * @param layer New layer to replace with
+   */
+  replaceLayer(id: string, layer: IJGISLayer) {
     const layerIndex = this.getLayerIndex(id);
     this.removeLayer(id);
     this.addLayer(id, layer, layerIndex);
@@ -1442,7 +1452,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       if (oldLayer.type !== newLayer.type) {
-        this.changeLayerType(id, newLayer);
+        this.replaceLayer(id, newLayer);
         return;
       }
 
@@ -1454,7 +1464,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       if (layerTree.includes(id)) {
-        this.updateLayer(id, newLayer, mapLayer);
+        this.updateLayer(id, newLayer, oldLayer, mapLayer);
       } else {
         this.updateLayers(layerTree);
       }
