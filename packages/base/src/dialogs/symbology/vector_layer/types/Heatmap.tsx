@@ -10,9 +10,6 @@ const Heatmap = ({
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
-  const [selectedRamp, setSelectedRamp] = useState('');
-  const selectedRampRef = useRef('cool');
-
   if (!layerId) {
     return;
   }
@@ -20,6 +17,16 @@ const Heatmap = ({
   if (!layer?.parameters) {
     return;
   }
+  const [selectedRamp, setSelectedRamp] = useState('');
+  const [heatmapOptions, setHetamapOptions] = useState({
+    radius: 8,
+    blur: 15
+  });
+  const selectedRampRef = useRef('cool');
+  const heatmapOptionsRef = useRef({
+    radius: 8,
+    blur: 15
+  });
 
   useEffect(() => {
     populateOptions();
@@ -37,7 +44,8 @@ const Heatmap = ({
 
   useEffect(() => {
     selectedRampRef.current = selectedRamp;
-  }, [selectedRamp]);
+    heatmapOptionsRef.current = heatmapOptions;
+  }, [selectedRamp, heatmapOptions]);
 
   const populateOptions = async () => {
     let colorRamp;
@@ -67,6 +75,8 @@ const Heatmap = ({
 
     layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = colorMap;
+    layer.parameters.blur = heatmapOptionsRef.current.blur;
+    layer.parameters.radius = heatmapOptionsRef.current.radius;
     layer.type = 'HeatmapLayer';
 
     context.model.sharedModel.updateLayer(layerId, layer);
@@ -76,14 +86,40 @@ const Heatmap = ({
 
   return (
     <div className="jp-gis-layer-symbology-container" style={{ height: 400 }}>
-      <div className="jp-gis-color-ramp-container">
-        <div className="jp-gis-symbology-row">
-          <label htmlFor="color-ramp-select">Color Ramp:</label>
-          <CanvasSelectComponent
-            selectedRamp={selectedRamp}
-            setSelected={setSelectedRamp}
-          />
-        </div>
+      <div className="jp-gis-symbology-row">
+        <label htmlFor="color-ramp-select">Color Ramp:</label>
+        <CanvasSelectComponent
+          selectedRamp={selectedRamp}
+          setSelected={setSelectedRamp}
+        />
+      </div>
+      <div className="jp-gis-symbology-row">
+        <label htmlFor={'vector-value-select'}>Radius:</label>
+        <input
+          type="number"
+          value={heatmapOptions.radius}
+          className="jp-mod-styled"
+          onChange={event =>
+            setHetamapOptions(prevState => ({
+              ...prevState,
+              radius: +event.target.value
+            }))
+          }
+        />
+      </div>
+      <div className="jp-gis-symbology-row">
+        <label htmlFor={'vector-value-select'}>Blur:</label>
+        <input
+          type="number"
+          value={heatmapOptions.blur}
+          className="jp-mod-styled"
+          onChange={event =>
+            setHetamapOptions(prevState => ({
+              ...prevState,
+              blur: +event.target.value
+            }))
+          }
+        />
       </div>
     </div>
   );
