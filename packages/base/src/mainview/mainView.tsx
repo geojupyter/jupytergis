@@ -1451,7 +1451,7 @@ export class MainView extends React.Component<IProps, IStates> {
         return;
       }
 
-      if (oldLayer.type !== newLayer.type) {
+      if (oldLayer && oldLayer.type !== newLayer.type) {
         this.replaceLayer(id, newLayer);
         return;
       }

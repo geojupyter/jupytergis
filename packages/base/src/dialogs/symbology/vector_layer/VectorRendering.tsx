@@ -12,7 +12,7 @@ const VectorRendering = ({
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
-  const [selectedRenderType, setSelectedRenderType] = useState('Single Symbol');
+  const [selectedRenderType, setSelectedRenderType] = useState('');
   const [componentToRender, setComponentToRender] = useState<any>(null);
   const [renderTypeOptions, setRenderTypeOptions] = useState<string[]>([
     'Single Symbol'
@@ -34,8 +34,6 @@ const VectorRendering = ({
 
     const options = ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap'];
     setRenderTypeOptions(options);
-    // if (layer.type === 'VectorLayer') {
-    // }
   }, []);
 
   useEffect(() => {

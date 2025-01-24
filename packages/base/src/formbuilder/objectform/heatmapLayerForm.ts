@@ -6,7 +6,6 @@ import { ILayerProps, LayerPropertiesForm } from './layerform';
 export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
   protected currentFormData: IHeatmapLayer;
   private features: any = [];
-  private currentSourceId: string;
 
   constructor(props: ILayerProps) {
     super(props);
@@ -66,8 +65,6 @@ export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
     sourceData?: IGeoJSONSource
   ) {
     if (data && data.source) {
-      this.currentSourceId = data.source;
-
       if (!sourceData) {
         const currentSource = this.props.model.getSource(data.source);
 
