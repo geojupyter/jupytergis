@@ -220,7 +220,7 @@ def test_qgis_saver():
                         "circle-stroke-width": 1.25,
                     },
                     "opacity": 1.0,
-                    "source": "dc048820-75cd-4b8d-a1fb-91642901cd82",
+                    "source": source_ids[4],
                     "symbologyState": {
                         "colorRamp": "cool",
                         "mode": "",
