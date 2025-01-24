@@ -125,8 +125,8 @@ def test_qgis_saver():
     if os.path.exists(filename):
         os.remove(filename)
 
-    layer_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
-    source_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
+    layer_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
+    source_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
     jgis = {
         "options": {
             "bearing": 0.0,
