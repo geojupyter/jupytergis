@@ -86,7 +86,6 @@ const iconObject = {
   HillshadeLayer: { icon: moundIcon },
   ImageLayer: { iconClass: 'fa fa-image' },
   VideoLayer: { iconClass: 'fa fa-video' },
-  HeatmapLayer: { iconClass: 'fa fa-compact-disc' },
 
   [CommandIDs.redo]: { icon: redoIcon },
   [CommandIDs.undo]: { icon: undoIcon },

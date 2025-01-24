@@ -667,7 +667,10 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.newHeatmapLayer, {
-    label: trans.__('New Heatmap Layer'),
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Heatmap')
+        : trans.__('Add HeatmapLayer'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
@@ -683,7 +686,7 @@ export function addCommands(
       sourceType: 'GeoJSONSource',
       layerType: 'HeatmapLayer'
     }),
-    ...icons.get(CommandIDs.newShapefileLayer)
+    ...icons.get(CommandIDs.newHeatmapLayer)
   });
 
   /**
