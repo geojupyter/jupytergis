@@ -4,7 +4,7 @@ import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
 import { BaseForm, IBaseFormProps } from './baseform';
 import { FileSelectorWidget } from './fileselectorwidget';
-import { loadFile } from '../../tools';
+import { getMimeType } from '../../tools';
 
 /**
  * The form to modify a GeoTiff source.
@@ -96,16 +96,11 @@ export class GeoTiffSourcePropertiesForm extends BaseForm {
       for (let i = 0; i < urls.length; i++) {
         const { url, min, max } = urls[i];
         if (this._isSubmitted) {
-          try {
-            await loadFile({
-              filepath: url,
-              type: this.props.sourceType,
-              model: this.props.model
-            });
-          } catch (e) {
+          const mimeType = getMimeType(url);
+          if (!mimeType || !mimeType.startsWith('image/tiff')) {
             valid = false;
             errors.push(
-              `"${url}" is not a valid ${this.props.sourceType} file: ${e}.`
+              `"${url}" is not a valid ${this.props.sourceType} file.`
             );
           }
         } else {
