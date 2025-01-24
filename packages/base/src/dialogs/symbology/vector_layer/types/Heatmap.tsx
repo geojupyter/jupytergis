@@ -85,7 +85,7 @@ const Heatmap = ({
   };
 
   return (
-    <div className="jp-gis-layer-symbology-container" style={{ height: 400 }}>
+    <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-symbology-row">
         <label htmlFor="color-ramp-select">Color Ramp:</label>
         <CanvasSelectComponent
