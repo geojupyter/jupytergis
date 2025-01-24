@@ -13,6 +13,7 @@ from ypywidgets.comm import CommWidget
 from .objects import (
     IGeoJSONSource,
     IGeoTiffSource,
+    IHeatmapLayer,
     IHillshadeLayer,
     IImageLayer,
     IImageSource,
@@ -459,6 +460,74 @@ class GISDocument(CommWidget):
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
+    def add_heatmap_layer(
+        self,
+        feature: string,
+        path: str | Path | None = None,
+        data: Dict | None = None,
+        name: str = "Heatmap Layer",
+        opacity: float = 1,
+        blur: number = 15,
+        radius: number = 8,
+        gradient: List[str] = ["#00f", "#0ff", "#0f0", "#ff0", "#f00"],
+    ):
+        """
+        Add a Heatmap Layer to the document.
+
+        :param name: The name that will be used for the object in the document.
+        :param path: The path to the JSON file to embed into the jGIS file.
+        :param data: The raw GeoJSON data to embed into the jGIS file.
+        :param gradient: The color gradient to apply.
+        :param opacity: The opacity, between 0 and 1.
+        :param blur: The blur size in pixels
+        :param radius: The radius size in pixels
+        :param feature: The feature to use to heatmap weights
+        """
+        if isinstance(path, Path):
+            path = str(path)
+
+        if path is None and data is None:
+            raise ValueError("Cannot create a GeoJSON source without data")
+
+        if path is not None and data is not None:
+            raise ValueError("Cannot set GeoJSON source data and path at the same time")
+
+        if path is not None:
+            # We cannot put the path to the file in the model
+            # We don't know where the kernel runs/live
+            # The front-end would have no way of finding the file reliably
+            # TODO Support urls to JSON files, in that case, don't embed the data
+            with open(path, "r") as fobj:
+                parameters = {"data": json.loads(fobj.read())}
+
+        if data is not None:
+            parameters = {"data": data}
+
+        source = {
+            "type": SourceType.GeoJSONSource,
+            "name": f"{name} Source",
+            "parameters": parameters,
+        }
+
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.HeatmapLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {
+                "source": source_id,
+                "type": type,
+                "color": gradient,
+                "opacity": opacity,
+                "blur": blur,
+                "radius": radius,
+                "feature": feature,
+            },
+        }
+
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
     def create_color_expr(
         self,
         color_stops: Dict,
@@ -678,6 +747,7 @@ class JGISLayer(BaseModel):
         IHillshadeLayer,
         IImageLayer,
         IWebGlLayer,
+        IHeatmapLayer,
     ]
     _parent = Optional[GISDocument]
 
@@ -779,6 +849,7 @@ OBJECT_FACTORY.register_factory(LayerType.VectorTileLayer, IVectorTileLayer)
 OBJECT_FACTORY.register_factory(LayerType.HillshadeLayer, IHillshadeLayer)
 OBJECT_FACTORY.register_factory(LayerType.WebGlLayer, IWebGlLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
+OBJECT_FACTORY.register_factory(LayerType.HeatmapLayer, IHeatmapLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterSource, IRasterSource)
