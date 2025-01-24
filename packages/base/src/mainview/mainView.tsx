@@ -1426,20 +1426,27 @@ export class MainView extends React.Component<IProps, IStates> {
     if (!this._ready) {
       return;
     }
+
     change.layerChange?.forEach(change => {
-      const layer = change.newValue;
+      const { id, newValue: layer } = change;
+
+      // If the layer is missing or empty, remove it
       if (!layer || Object.keys(layer).length === 0) {
-        this.removeLayer(change.id);
+        this.removeLayer(id);
+        return;
+      }
+
+      const mapLayer = this.getLayer(id);
+      const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
+
+      if (!mapLayer) {
+        return;
+      }
+
+      if (layerTree.includes(id)) {
+        this.updateLayer(id, layer, mapLayer);
       } else {
-        const mapLayer = this.getLayer(change.id);
-        const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
-        if (mapLayer) {
-          if (layerTree.includes(change.id)) {
-            this.updateLayer(change.id, layer, mapLayer);
-          } else {
-            this.updateLayers(layerTree);
-          }
-        }
+        this.updateLayers(layerTree);
       }
     });
   }
