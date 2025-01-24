@@ -29,7 +29,10 @@ const VectorRendering = ({
   }
 
   useEffect(() => {
-    const renderType = layer.parameters?.symbologyState?.renderType;
+    let renderType = layer.parameters?.symbologyState?.renderType;
+    if (!renderType) {
+      renderType = layer.type === 'HeatmapLayer' ? 'Heatmap' : 'Single Symbol';
+    }
     setSelectedRenderType(renderType);
 
     const options = ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap'];
