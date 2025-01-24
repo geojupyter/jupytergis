@@ -389,7 +389,7 @@ def jgis_layer_to_qgis(
         zmax = parameters.get("maxZoom", None)
         zmin = parameters.get("minZoom", 0)
 
-        if source_type in ["RasterSource", "VectorTileSource"]:
+        if source_type in ["RasterSource", "VectorTileSource", "GeoJSONSource"]:
             url = parameters.get("url", None)
             if url is None:
                 return
@@ -476,6 +476,23 @@ def jgis_layer_to_qgis(
                 parsed_styles.append(style)
 
             renderer.setStyles(parsed_styles)
+
+    if layer_type == "VectorLayer" and source_type == "GeoJSONSource":
+        source_parameters = source.get("parameters", {})
+        uri = build_uri(source_parameters, "GeoJSONSource")
+        if uri is None:
+            logs["warnings"].append(
+                f"Layer {layer_id} not exported: unable to build URI for vector layer."
+            )
+            return
+
+        # Create a vector layer using the built URI
+        map_layer = QgsVectorLayer(uri, layer_name, "ogr")
+        if not map_layer.isValid():
+            logs["warnings"].append(
+                f"Layer {layer_id} not exported: invalid vector layer."
+            )
+            return
 
     if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
         source_parameters = source.get("parameters", {})
