@@ -46,6 +46,8 @@ export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
   ) {
     this.removeFormEntry('color', data, schema, uiSchema);
     this.removeFormEntry('symbologyState', data, schema, uiSchema);
+    this.removeFormEntry('blur', data, schema, uiSchema);
+    this.removeFormEntry('radius', data, schema, uiSchema);
     super.processSchema(data, schema, uiSchema);
 
     uiSchema['feature'] = { enum: this.features };
