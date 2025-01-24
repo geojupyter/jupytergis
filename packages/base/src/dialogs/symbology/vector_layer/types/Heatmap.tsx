@@ -67,6 +67,7 @@ const Heatmap = ({
 
     layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = colorMap;
+    layer.type = 'HeatmapLayer';
 
     context.model.sharedModel.updateLayer(layerId, layer);
 

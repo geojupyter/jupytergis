@@ -252,6 +252,7 @@ const SingleBandPseudoColor = ({
 
     layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = colorExpr;
+    layer.type = 'WebGlLayer';
 
     context.model.sharedModel.updateLayer(layerId, layer);
     cancel();
