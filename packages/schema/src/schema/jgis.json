@@ -35,7 +35,8 @@
         "VectorTileLayer",
         "HillshadeLayer",
         "WebGlLayer",
-        "ImageLayer"
+        "ImageLayer",
+        "HeatmapLayer"
       ]
     },
     "sourceType": {

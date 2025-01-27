@@ -41,6 +41,7 @@ export namespace CommandIDs {
   export const newVideoLayer = 'jupytergis:newVideoLayer';
   export const newShapefileLayer = 'jupytergis:newShapefileLayer';
   export const newWebGlTileLayer = 'jupytergis:newWebGlTileLayer';
+  export const newHeatmapLayer = 'jupytergis:newHeatmapLayer';
 
   // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';

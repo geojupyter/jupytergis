@@ -236,6 +236,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
       args: { from: 'contextMenu' }
     });
 
+    newLayerSubMenu.addItem({
+      command: CommandIDs.newHeatmapLayer,
+      args: { from: 'contextMenu' }
+    });
+
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }

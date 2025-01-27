@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { ISymbologyDialogProps } from '../symbologyDialog';
-import Graduated from './types/Graduated';
-import SimpleSymbol from './types/SimpleSymbol';
 import Categorized from './types/Categorized';
+import Graduated from './types/Graduated';
+import Heatmap from './types/Heatmap';
+import SimpleSymbol from './types/SimpleSymbol';
 
 const VectorRendering = ({
   context,
@@ -11,7 +12,7 @@ const VectorRendering = ({
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
-  const [selectedRenderType, setSelectedRenderType] = useState('Single Symbol');
+  const [selectedRenderType, setSelectedRenderType] = useState('');
   const [componentToRender, setComponentToRender] = useState<any>(null);
   const [renderTypeOptions, setRenderTypeOptions] = useState<string[]>([
     'Single Symbol'
@@ -28,13 +29,14 @@ const VectorRendering = ({
   }
 
   useEffect(() => {
-    const renderType = layer.parameters?.symbologyState?.renderType;
-    setSelectedRenderType(renderType ?? 'Single Symbol');
-
-    if (layer.type === 'VectorLayer') {
-      const options = ['Single Symbol', 'Graduated', 'Categorized'];
-      setRenderTypeOptions(options);
+    let renderType = layer.parameters?.symbologyState?.renderType;
+    if (!renderType) {
+      renderType = layer.type === 'HeatmapLayer' ? 'Heatmap' : 'Single Symbol';
     }
+    setSelectedRenderType(renderType);
+
+    const options = ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap'];
+    setRenderTypeOptions(options);
   }, []);
 
   useEffect(() => {
@@ -72,8 +74,19 @@ const VectorRendering = ({
           />
         );
         break;
+      case 'Heatmap':
+        RenderComponent = (
+          <Heatmap
+            context={context}
+            state={state}
+            okSignalPromise={okSignalPromise}
+            cancel={cancel}
+            layerId={layerId}
+          />
+        );
+        break;
       default:
-        RenderComponent = <div>Render Type Not Implemented (yet)</div>;
+        RenderComponent = <div>Select a render type</div>;
     }
     setComponentToRender(RenderComponent);
   }, [selectedRenderType]);
