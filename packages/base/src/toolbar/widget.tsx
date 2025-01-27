@@ -172,6 +172,15 @@ export class ToolbarWidget extends ReactiveToolbar {
         })
       );
 
+      this.addItem(
+        'temporal',
+        new CommandToolbarButton({
+          id: CommandIDs.temporal,
+          label: '',
+          commands: options.commands
+        })
+      );
+
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
       // Users

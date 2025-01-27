@@ -170,6 +170,19 @@ export function addCommands(
     ...icons.get(CommandIDs.identify)
   });
 
+  commands.addCommand(CommandIDs.temporal, {
+    label: trans.__('Temporal'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: args => {
+      console.log('TIME');
+    },
+    ...icons.get(CommandIDs.temporal)
+  });
+
   /**
    * SOURCES and LAYERS creation commands.
    */
