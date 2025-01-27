@@ -525,7 +525,7 @@ def jgis_layer_to_qgis(
 
             # Single Symbol Renderer
             if render_type == "Single Symbol":
-                fill_color = QColor(color_params.get("circle-fill-color", "#3399CC"))
+                fill_color = QColor(color_params.get("circle-fill-color"))
                 symbol.setColor(fill_color)
                 renderer = QgsSingleSymbolRenderer(symbol)
 
@@ -533,19 +533,44 @@ def jgis_layer_to_qgis(
             elif render_type == "Categorized":
                 fill_color_rules = color_params.get("circle-fill-color", [])
                 if isinstance(fill_color_rules, list) and fill_color_rules[0] == "case":
-                    categories = []
+                    # Create a base symbol
+                    base_symbol = QgsMarkerSymbol()
+                    base_symbol.symbolLayer(0).setStrokeColor(
+                        QColor(color_params.get("circle-stroke-color"))
+                    )
+                    base_symbol.symbolLayer(0).setStrokeWidth(
+                        color_params.get("circle-stroke-width", 1)
+                    )
+                    base_symbol.setOpacity(opacity)
+
+                    renderer = QgsCategorizedSymbolRenderer(
+                        symbology_state.get("value")
+                    )
+
                     for i in range(1, len(fill_color_rules) - 1, 2):
                         condition = fill_color_rules[i]
                         color = fill_color_rules[i + 1]
-                        category_symbol = symbol.clone()
-                        category_symbol.setColor(QColor(*color))
+
+                        if isinstance(color, list) and len(color) == 4:
+                            r, g, b, a = color
+                            color = [r, g, b, 1.0]
+
+                        category_symbol = base_symbol.clone()
+                        category_symbol.setColor(
+                            QColor(
+                                int(color[0]),
+                                int(color[1]),
+                                int(color[2]),
+                                int(color[3] * 255),
+                            )
+                        )
+
+                        category_symbol.setOpacity(1.0)
+
                         category = QgsRendererCategory(
                             condition[2], category_symbol, str(condition[2])
                         )
-                        categories.append(category)
-                    renderer = QgsCategorizedSymbolRenderer(
-                        symbology_state.get("value"), categories
-                    )
+                        renderer.addCategory(category)
 
             # Graduated Renderer
             elif render_type == "Graduated":
