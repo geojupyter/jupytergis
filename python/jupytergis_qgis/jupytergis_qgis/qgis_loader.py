@@ -508,7 +508,7 @@ def jgis_layer_to_qgis(
         if geometry_type == QgsWkbTypes.PointGeometry:
             symbol = QgsMarkerSymbol()
             color_params = layer_params.get("color", {})
-            color = QColor(color_params.get("circle-stroke-color", "#000000")[:7])
+            color = QColor(color_params.get("circle-stroke-color", "#000000"))
             opacity = int(layer_params.get("opacity"))
             print(f"Point Color: {color.name()}, Opacity: {opacity}")
             symbol.setColor(color)
@@ -518,7 +518,7 @@ def jgis_layer_to_qgis(
         elif geometry_type == QgsWkbTypes.LineGeometry:
             symbol = QgsLineSymbol()
             color_params = layer_params.get("color", {})
-            color = QColor(color_params.get("stroke-color", "#000000")[:7])
+            color = QColor(color_params.get("stroke-color", "#000000"))
             opacity = int(layer_params.get("opacity"))
             print(f"Line Color: {color.name()}, Opacity: {opacity}")
             symbol.setColor(color)
@@ -528,7 +528,7 @@ def jgis_layer_to_qgis(
         elif geometry_type == QgsWkbTypes.PolygonGeometry:
             symbol = QgsFillSymbol()
             color_params = layer_params.get("color", {})
-            color = QColor(color_params.get("fill-color", "#000000")[:7])
+            color = QColor(color_params.get("fill-color", "#000000"))
             opacity = int(layer_params.get("opacity"))
             print(f"Polygon Color: {color.name()}, Opacity: {opacity}")
             symbol.setColor(color)

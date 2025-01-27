@@ -198,7 +198,7 @@ def test_qgis_saver():
                     "opacity": 1.0,
                     "source": source_ids[4],
                     "symbologyState": {"renderType": "Single Symbol"},
-                    "type": "line",
+                    "type": "fill",
                 },
                 "type": "VectorLayer",
                 "visible": True,
