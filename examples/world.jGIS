@@ -1,0 +1,51 @@
+{
+  "layerTree": [
+    "ef427395-3dad-411d-ae4b-d56190cb2e68"
+  ],
+  "layers": {
+    "ef427395-3dad-411d-ae4b-d56190cb2e68": {
+      "name": "Custom GeoJSON Layer",
+      "parameters": {
+        "color": {
+          "fill-color": "#4ea4d0",
+          "stroke-color": "#ff0000",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
+        "opacity": 1.0,
+        "source": "5c228c74-5167-4437-a38b-f9302be9b80f",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        },
+        "type": "line"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -5350224.080333857,
+      -8168086.573252421,
+      13275562.199623892,
+      12116960.46690232
+    ],
+    "latitude": 17.459989741135686,
+    "longitude": 35.59726182186651,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 2.7438377054069027
+  },
+  "sources": {
+    "5c228c74-5167-4437-a38b-f9302be9b80f": {
+      "name": "Custom GeoJSON Layer Source",
+      "parameters": {
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+      },
+      "type": "GeoJSONSource"
+    }
+  }
+}
