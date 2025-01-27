@@ -212,6 +212,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   toggleIdentify(): void;
   isIdentifying: boolean;
+  isTemporal: boolean;
+  toggleTemporal(): void;
 
   disposed: ISignal<any, void>;
 }

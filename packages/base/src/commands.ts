@@ -179,6 +179,12 @@ export function addCommands(
     },
     execute: args => {
       console.log('TIME');
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      current.context.model.toggleTemporal();
+      commands.notifyCommandChanged(CommandIDs.identify);
     },
     ...icons.get(CommandIDs.temporal)
   });

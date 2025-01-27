@@ -166,6 +166,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._isIdentifying;
   }
 
+  set isTemporal(isTemporal: boolean) {
+    this._isTemporal = isTemporal;
+  }
+
+  get isTemporal(): boolean {
+    return this._isTemporal;
+  }
+
   centerOnPosition(id: string) {
     this._zoomToPositionSignal.emit(id);
   }
@@ -620,6 +628,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._isIdentifying = !this._isIdentifying;
   }
 
+  toggleTemporal() {
+    this.isTemporal = !this.isTemporal;
+  }
+
   private _getLayerTreeInfo(groupName: string):
     | {
         mainGroup: IJGISLayerGroup;
@@ -694,6 +706,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _isIdentifying = false;
+  private _isTemporal = false;
 
   static worker: Worker;
 }
