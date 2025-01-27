@@ -499,17 +499,14 @@ def jgis_layer_to_qgis(
             return
 
         map_layer = QgsVectorLayer(uri, layer_name, "ogr")
-        if not map_layer.isValid():
-            logs["warnings"].append(
-                f"Layer {layer_id} not exported: failed to load GeoJSON source."
-            )
-            return
+        crs_84 = QgsCoordinateReferenceSystem("EPSG:4326")
+        map_layer.setCrs(crs_84)
 
-        geometry_type = map_layer.geometryType()
+        geometry_type = layer.get("parameters", {}).get("type")
         layer_params = layer.get("parameters", {})
         print(f"Geometry Type: {geometry_type}", layer_params)
 
-        if geometry_type == QgsWkbTypes.PointGeometry:
+        if geometry_type == "circle":
             symbol = QgsMarkerSymbol()
             color_params = layer_params.get("color", {})
             opacity = layer_params.get("opacity", 1.0)
