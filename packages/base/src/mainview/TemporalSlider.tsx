@@ -11,6 +11,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [layerId, setLayerId] = useState('');
   const [selectedLayer, setSelectedLayer] = useState('');
   const [selectedFeature, setSelectedFeature] = useState('');
+  const [range, setRange] = useState({ start: 0, end: 1 });
   const { featureProps } = useGetProperties({ layerId, model });
 
   useEffect(() => {
@@ -30,6 +31,19 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     console.log('layerId', layerId);
     console.log('featureProps', featureProps);
   }, [layerId, featureProps]);
+
+  useEffect(() => {
+    console.log('selectedFeature', selectedFeature);
+    if (!selectedFeature) {
+      return;
+    }
+    const values: number[] = Array.from(featureProps[selectedFeature]);
+    console.log('values', values);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    setRange({ start: min, end: max });
+    console.log('min, max', min, max);
+  }, [selectedFeature]);
 
   const handleChange = (e: any) => {
     console.log('change', e.target.value);
@@ -94,9 +108,16 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
           })}
         </select>
       </div>
-      <div>start</div>
-      <Slider onChange={handleChange} className="jp-gis-temporal-slider" />
-      <div>end</div>
+      <div>{new Date(range.start).toLocaleString()}</div>
+      <Slider
+        min={range.start}
+        max={range.end}
+        step={60 * 60 * 1000}
+        onChange={handleChange}
+        className="jp-gis-temporal-slider"
+      />
+      <div>{new Date(range.end).toLocaleString()}</div>
+
       <div>step</div>
     </div>
   );
