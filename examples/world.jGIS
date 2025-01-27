@@ -18,7 +18,7 @@
         "symbologyState": {
           "renderType": "Single Symbol"
         },
-        "type": "line"
+        "type": "fill"
       },
       "type": "VectorLayer",
       "visible": true

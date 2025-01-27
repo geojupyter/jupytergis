@@ -1,0 +1,41 @@
+{
+  "layerTree": [
+    "af9e8ee5-c731-4989-86c9-b0ce1652db89"
+  ],
+  "layers": {
+    "af9e8ee5-c731-4989-86c9-b0ce1652db89": {
+      "name": "Custom GeoJSON Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "d068cd81-937d-43da-bc0f-54c15b732aba",
+        "type": "line"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -8404397.907933624,
+      5827696.305260475,
+      -7956403.143802778,
+      6355321.0749559635
+    ],
+    "latitude": 47.90767334218202,
+    "longitude": -73.48578822606775,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 8.00859824882083
+  },
+  "sources": {
+    "d068cd81-937d-43da-bc0f-54c15b732aba": {
+      "name": "Custom GeoJSON Layer Source",
+      "parameters": {
+        "path": "https://raw.githubusercontent.com/openlayers/openlayers/main/examples/data/geojson/line-samples.geojson"
+      },
+      "type": "GeoJSONSource"
+    }
+  }
+}
