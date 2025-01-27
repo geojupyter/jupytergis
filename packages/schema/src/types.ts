@@ -17,6 +17,7 @@ export * from './_interface/vectorlayer';
 export * from './_interface/vectorTileLayer';
 export * from './_interface/webGlLayer';
 export * from './_interface/imageLayer';
+export * from './_interface/heatmapLayer';
 
 // Other
 export * from './doc';

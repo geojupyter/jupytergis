@@ -1,0 +1,56 @@
+{
+  "type": "object",
+  "description": "HeatmapLayer",
+  "title": "IHeatmapLayer",
+  "required": ["source", "blur", "radius", "feature"],
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "The id of the source"
+    },
+    "feature": {
+      "type": "string",
+      "description": "The feature to use"
+    },
+    "opacity": {
+      "type": "number",
+      "description": "The opacity of the source",
+      "default": 1,
+      "multipleOf": 0.1,
+      "minimum": 0,
+      "maximum": 1
+    },
+    "radius": {
+      "type": "number",
+      "description": "Radius size in pixels",
+      "default": 8
+    },
+    "blur": {
+      "type": "number",
+      "description": "Blur size in pixels",
+      "default": 15
+    },
+    "color": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": ["#00f", "#0ff", "#0f0", "#ff0", "#f00"]
+    },
+    "symbologyState": {
+      "type": "object",
+      "description": "The state of the symbology panel options",
+      "required": ["renderType"],
+      "properties": {
+        "renderType": {
+          "type": "string"
+        },
+        "colorRamp": {
+          "type": "string",
+          "default": "cool"
+        }
+      }
+    }
+  }
+}

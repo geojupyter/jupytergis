@@ -523,6 +523,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   order: 1;
   margin-top: 2px;
   margin-bottom: 2px;
+  text-transform: capitalize;
 }
 
 .jGIS-property-panel

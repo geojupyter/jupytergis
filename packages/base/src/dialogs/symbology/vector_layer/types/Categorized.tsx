@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import ValueSelect from '../components/ValueSelect';
-import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
-import { useGetProperties } from '../../hooks/useGetProperties';
-import StopContainer from '../../components/color_stops/StopContainer';
-import { Utils, VectorUtils } from '../../symbologyUtils';
-import ColorRamp from '../../components/color_ramp/ColorRamp';
+import { IVectorLayer } from '@jupytergis/schema';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
-import { IVectorLayer } from '@jupytergis/schema';
+import React, { useEffect, useRef, useState } from 'react';
+import ColorRamp from '../../components/color_ramp/ColorRamp';
+import StopContainer from '../../components/color_stops/StopContainer';
+import { useGetProperties } from '../../hooks/useGetProperties';
+import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
+import { Utils, VectorUtils } from '../../symbologyUtils';
+import ValueSelect from '../components/ValueSelect';
 
 const Categorized = ({
   context,
@@ -125,6 +125,7 @@ const Categorized = ({
 
     layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = newStyle;
+    layer.type = 'VectorLayer';
 
     context.model.sharedModel.updateLayer(layerId, layer);
     cancel();

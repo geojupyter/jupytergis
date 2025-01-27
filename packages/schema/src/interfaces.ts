@@ -7,11 +7,11 @@ import {
 } from '@jupyter/ydoc';
 import { IWidgetTracker } from '@jupyterlab/apputils';
 import { IChangedArgs } from '@jupyterlab/coreutils';
+import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 import { Contents, User } from '@jupyterlab/services';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel } from '@lumino/widgets';
-import { IDocumentManager } from '@jupyterlab/docmanager';
 
 import {
   IJGISContent,
@@ -46,6 +46,7 @@ export interface IDict<T = any> {
 export interface IJGISLayerDocChange {
   layerChange?: Array<{
     id: string;
+    oldValue: IDict;
     newValue: IJGISLayer | undefined;
   }>;
 }

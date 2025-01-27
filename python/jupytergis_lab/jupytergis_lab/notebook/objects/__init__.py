@@ -6,6 +6,7 @@ from ._schema.vectorTileLayer import IVectorTileLayer  # noqa
 from ._schema.hillshadeLayer import IHillshadeLayer  # noqa
 from ._schema.imageLayer import IImageLayer  # noqa
 from ._schema.webGlLayer import IWebGlLayer  # noqa
+from ._schema.heatmapLayer import IHeatmapLayer  # noqa
 
 from ._schema.vectortilesource import IVectorTileSource  # noqa
 from ._schema.rastersource import IRasterSource  # noqa

@@ -87,7 +87,8 @@ export function addCommands(
       const isValidLayer = [
         'VectorLayer',
         'VectorTileLayer',
-        'WebGlLayer'
+        'WebGlLayer',
+        'HeatmapLayer'
       ].includes(layer.type);
 
       return isValidLayer;
@@ -663,6 +664,29 @@ export function addCommands(
       layerType: 'VectorLayer'
     }),
     ...icons.get(CommandIDs.newShapefileLayer)
+  });
+
+  commands.addCommand(CommandIDs.newHeatmapLayer, {
+    label: args =>
+      args.from === 'contextMenu'
+        ? trans.__('Heatmap')
+        : trans.__('Add HeatmapLayer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.context.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Heatmap Layer',
+      createLayer: true,
+      createSource: false,
+      layerData: { name: 'Custom Heatmap Layer' },
+      sourceType: 'GeoJSONSource',
+      layerType: 'HeatmapLayer'
+    }),
+    ...icons.get(CommandIDs.newHeatmapLayer)
   });
 
   /**

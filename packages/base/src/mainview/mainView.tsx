@@ -3,6 +3,7 @@ import {
   IAnnotation,
   IDict,
   IGeoTiffSource,
+  IHeatmapLayer,
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
@@ -41,6 +42,7 @@ import { singleClick } from 'ol/events/condition';
 import { GeoJSON, MVT } from 'ol/format';
 import { DragAndDrop, Select } from 'ol/interaction';
 import {
+  Heatmap as HeatmapLayer,
   Image as ImageLayer,
   Layer,
   Vector as VectorLayer,
@@ -832,8 +834,6 @@ export class MainView extends React.Component<IProps, IStates> {
           source: this._sources[layerParameters.source]
         });
 
-        this.updateLayer(id, layer, newMapLayer);
-
         break;
       }
       case 'HillshadeLayer': {
@@ -873,6 +873,19 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         newMapLayer = new WebGlTileLayer(layerOptions);
+        break;
+      }
+      case 'HeatmapLayer': {
+        layerParameters = layer.parameters as IHeatmapLayer;
+
+        newMapLayer = new HeatmapLayer({
+          opacity: layerParameters.opacity,
+          source: this._sources[layerParameters.source],
+          blur: layerParameters.blur,
+          radius: layerParameters.radius,
+          weight: layerParameters.feature,
+          gradient: layerParameters.color
+        });
         break;
       }
     }
@@ -1070,6 +1083,7 @@ export class MainView extends React.Component<IProps, IStates> {
   async updateLayer(
     id: string,
     layer: IJGISLayer,
+    oldLayer: IDict,
     mapLayer: Layer
   ): Promise<void> {
     const sourceId = layer.parameters?.source;
@@ -1127,6 +1141,23 @@ export class MainView extends React.Component<IProps, IStates> {
           });
         }
         break;
+      }
+      case 'HeatmapLayer': {
+        const layerParams = layer.parameters as IHeatmapLayer;
+        const heatmap = mapLayer as HeatmapLayer;
+
+        if (oldLayer.feature !== layerParams.feature) {
+          // No way to change 'weight' attribute (feature used for heatmap stuff) so need to replace layer
+          this.replaceLayer(id, layer);
+          return;
+        }
+
+        heatmap.setOpacity(layerParams.opacity || 1);
+        heatmap.setBlur(layerParams.blur);
+        heatmap.setRadius(layerParams.radius);
+        heatmap.setGradient(
+          layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
+        );
       }
     }
   }
@@ -1391,6 +1422,17 @@ export class MainView extends React.Component<IProps, IStates> {
     this._Map.getLayers().insertAt(nextIndex, layer);
   }
 
+  /**
+   * Remove and recreate layer
+   * @param id ID of layer being replaced
+   * @param layer New layer to replace with
+   */
+  replaceLayer(id: string, layer: IJGISLayer) {
+    const layerIndex = this.getLayerIndex(id);
+    this.removeLayer(id);
+    this.addLayer(id, layer, layerIndex);
+  }
+
   private _onLayersChanged(
     _: IJupyterGISDoc,
     change: IJGISLayerDocChange
@@ -1400,20 +1442,31 @@ export class MainView extends React.Component<IProps, IStates> {
     if (!this._ready) {
       return;
     }
+
     change.layerChange?.forEach(change => {
-      const layer = change.newValue;
-      if (!layer || Object.keys(layer).length === 0) {
-        this.removeLayer(change.id);
+      const { id, oldValue: oldLayer, newValue: newLayer } = change;
+
+      if (!newLayer || Object.keys(newLayer).length === 0) {
+        this.removeLayer(id);
+        return;
+      }
+
+      if (oldLayer && oldLayer.type !== newLayer.type) {
+        this.replaceLayer(id, newLayer);
+        return;
+      }
+
+      const mapLayer = this.getLayer(id);
+      const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
+
+      if (!mapLayer) {
+        return;
+      }
+
+      if (layerTree.includes(id)) {
+        this.updateLayer(id, newLayer, oldLayer, mapLayer);
       } else {
-        const mapLayer = this.getLayer(change.id);
-        const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
-        if (mapLayer) {
-          if (layerTree.includes(change.id)) {
-            this.updateLayer(change.id, layer, mapLayer);
-          } else {
-            this.updateLayers(layerTree);
-          }
-        }
+        this.updateLayers(layerTree);
       }
     });
   }

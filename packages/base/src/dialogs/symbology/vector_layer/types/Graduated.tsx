@@ -154,6 +154,7 @@ const Graduated = ({
 
     layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = newStyle;
+    layer.type = 'VectorLayer';
 
     context.model.sharedModel.updateLayer(layerId, layer);
     cancel();
