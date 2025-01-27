@@ -1,0 +1,8 @@
+.jp-gis-temporal-slider-container {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.jp-gis-temporal-slider {
+  flex: 1 0 40%;
+}
