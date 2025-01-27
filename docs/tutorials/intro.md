@@ -51,7 +51,7 @@ We will start the JupyterGIS application and create a basic map.
 
 :::{admonition} Get JupyterGIS
 :class: tip
-Before beginning this exercise, JupyterGIS must be installed on your computer (see [Installation instructions](https://geojupyter.github.io/jupytergis/install.html)) or you can use an online version of JupyterGIS (such as [![Jupyterlite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://geojupyter.github.io/jupytergis/lite/lab/index.html?path=france_hiking.jGIS/)). 
+Before beginning this exercise, JupyterGIS must be installed on your computer (see [Installation instructions](https://geojupyter.github.io/jupytergis/install.html)) or you can use an online version of JupyterGIS (such as [![Jupyterlite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://geojupyter.github.io/jupytergis/lite/lab/index.html?path=france_hiking.jGIS/)).
 :::
 
 
@@ -67,7 +67,7 @@ Follow along to add a vector layer available online.
 
 1. Click on the GIS File Icon in the "Other" section of the Launcher to create a new JGIS Editor. You will have a new, blank map.
 ![JGIS Editor](../assets/images/JGIS_editor.png)
-2. Open Layer Browser (see image below) and select for instance *OpenStreetMap.Mapnik*. An interactive map will appear and you will be able to zoom in and zoom out with your mouse. 
+2. Open Layer Browser (see image below) and select for instance *OpenStreetMap.Mapnik*. An interactive map will appear and you will be able to zoom in and zoom out with your mouse.
 ![Open Layer Browser](../assets/images/OpenLayerBrowser.png)
 3. Click on the **+** to add another type of layer and select "New Shapefile Layer" to add a new vector layer (stored as a shapefile).
 ![Add a Vector Layer](../assets/images/addVectorLayer.png)
@@ -84,10 +84,10 @@ One of the main strength of JupyterGIS is its collaborative capabilities. To be 
 ```{exercise-start}
 :label: add-vector-layer
 ```
-- Add a new Shapefile Layer to your map: 
+- Add a new Shapefile Layer to your map:
 ```
 https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip
-``` 
+```
 - Zoom over New-York (USA) and check if you can see the newly added layer.
 - Let's customize this new layer by changing the color. In the GIS Layer/Browser Panel, select the top layer (corresponds to the last layer you added) and right click to **Edit Symbology**. Then change the **Stroke Color** to a color of your choice. You can also change the Stroke Width and check the result after pressing **OK*.
 - In a similar way, you can edit the symbology of the first Shapefile Layer we added and change the **Fill Color**, **Stroke Color** and **Stroke Width**.
@@ -110,7 +110,7 @@ And when editing the symbology of the other Shapefile Layer:
 And updating the opacity (for instance to 0.5) of the US county Shapefile Layer, you can get a map that can look like to (depending on the colors and Stroke width you chose!):
 
 ![final map for the intro exercise](../assets/images/finalIntroMap.png)
-``` 
+```
 
 ## Hiding and Reordering Layers
 
@@ -153,7 +153,7 @@ It is a good practice to rename your layers with meaningful names. To rename a l
 
 ## Save your JGIS project
 
-Your jGIS file corresponds to your GIS project (similar to `.qgz´ for QGIS) and you probably already noticed that the default name is `untitled.jGIS`. If you creater several jGIS files without renaming them, a number will be added before the extension e.g. `untitled1.jGIS`, `untitled2.jGIS`, etc. 
+Your jGIS file corresponds to your GIS project (similar to `.qgz´ for QGIS) and you probably already noticed that the default name is `untitled.jGIS`. If you creater several jGIS files without renaming them, a number will be added before the extension e.g. `untitled1.jGIS`, `untitled2.jGIS`, etc.
 
 It is important to give meaningful name to your jGIS project.
 
@@ -175,5 +175,3 @@ Now you’ve learned how to add all the layers you need from various sources and
 - [QGIS Tutorials and Tips](https://www.qgistutorials.com/en/index.html)
 
 Happy Mapping!
-
-
