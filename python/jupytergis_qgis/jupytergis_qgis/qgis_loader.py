@@ -30,6 +30,8 @@ from qgis.core import (
     QgsSingleBandPseudoColorRenderer,
     QgsVectorLayer,
     QgsVectorTileLayer,
+    QgsWkbTypes,
+    QgsSingleSymbolRenderer,
 )
 
 # Prevent any Qt application and event loop to spawn when
@@ -389,7 +391,7 @@ def jgis_layer_to_qgis(
         zmax = parameters.get("maxZoom", None)
         zmin = parameters.get("minZoom", 0)
 
-        if source_type in ["RasterSource", "VectorTileSource", "GeoJSONSource"]:
+        if source_type in ["RasterSource", "VectorTileSource"]:
             url = parameters.get("url", None)
             if url is None:
                 return
@@ -399,6 +401,12 @@ def jgis_layer_to_qgis(
                     url = url.replace(f"{{{k}}}", v)
             layer_config["url"] = url
             layer_config["type"] = "xyz"
+
+        if source_type == "GeoJSONSource":
+            path = parameters.get("path", None)
+            if path is None:
+                return
+            return path
 
         if source_type == "RasterSource":
             layer_config["crs"] = "EPSG:3857"
@@ -480,19 +488,54 @@ def jgis_layer_to_qgis(
     if layer_type == "VectorLayer" and source_type == "GeoJSONSource":
         source_parameters = source.get("parameters", {})
         uri = build_uri(source_parameters, "GeoJSONSource")
-        if uri is None:
+        if not uri:
             logs["warnings"].append(
-                f"Layer {layer_id} not exported: unable to build URI for vector layer."
+                f"Layer {layer_id} not exported: invalid GeoJSON source."
             )
             return
 
-        # Create a vector layer using the built URI
         map_layer = QgsVectorLayer(uri, layer_name, "ogr")
         if not map_layer.isValid():
             logs["warnings"].append(
-                f"Layer {layer_id} not exported: invalid vector layer."
+                f"Layer {layer_id} not exported: failed to load GeoJSON source."
             )
             return
+
+        geometry_type = map_layer.geometryType()
+        layer_params = layer.get("parameters", {})
+        print(f"Geometry Type: {geometry_type}", layer_params)
+
+        if geometry_type == QgsWkbTypes.PointGeometry:
+            symbol = QgsMarkerSymbol()
+            color_params = layer_params.get("color", {})
+            color = QColor(color_params.get("circle-stroke-color", "#000000")[:7])
+            opacity = int(layer_params.get("opacity"))
+            print(f"Point Color: {color.name()}, Opacity: {opacity}")
+            symbol.setColor(color)
+            symbol.setOpacity(opacity)
+            renderer = QgsSingleSymbolRenderer(symbol)
+
+        elif geometry_type == QgsWkbTypes.LineGeometry:
+            symbol = QgsLineSymbol()
+            color_params = layer_params.get("color", {})
+            color = QColor(color_params.get("stroke-color", "#000000")[:7])
+            opacity = int(layer_params.get("opacity"))
+            print(f"Line Color: {color.name()}, Opacity: {opacity}")
+            symbol.setColor(color)
+            symbol.setOpacity(opacity)
+            renderer = QgsSingleSymbolRenderer(symbol)
+
+        elif geometry_type == QgsWkbTypes.PolygonGeometry:
+            symbol = QgsFillSymbol()
+            color_params = layer_params.get("color", {})
+            color = QColor(color_params.get("fill-color", "#000000")[:7])
+            opacity = int(layer_params.get("opacity"))
+            print(f"Polygon Color: {color.name()}, Opacity: {opacity}")
+            symbol.setColor(color)
+            symbol.setOpacity(opacity)
+            renderer = QgsSingleSymbolRenderer(symbol)
+
+        map_layer.setRenderer(renderer)
 
     if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
         source_parameters = source.get("parameters", {})
