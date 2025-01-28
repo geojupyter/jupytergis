@@ -1,0 +1,83 @@
+{
+  "layerTree": [
+    "8de7c2c0-6024-4716-b542-031a89fb87f9",
+    "3e21d680-406f-4099-bd9e-3a4edb9a2c8b"
+  ],
+  "layers": {
+    "3e21d680-406f-4099-bd9e-3a4edb9a2c8b": {
+      "filters": {
+        "appliedFilters": [
+          {
+            "feature": "time",
+            "operator": ">=",
+            "value": 1506612291990.0
+          }
+        ],
+        "logicalOp": "all"
+      },
+      "name": "Custom GeoJSON Layer",
+      "parameters": {
+        "color": {
+          "circle-fill-color": "#3584e4",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#62a0ea",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25
+        },
+        "opacity": 1.0,
+        "source": "348d85fa-3a71-447f-8a64-e283ec47cc7c",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        },
+        "type": "circle"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "8de7c2c0-6024-4716-b542-031a89fb87f9": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "b2ea427a-a51b-43ad-ae72-02cd900736d5"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -21054033.93842902,
+      -12436489.089978427,
+      19020982.747149467,
+      12436489.08997842
+    ],
+    "latitude": -2.842170943040401e-14,
+    "longitude": -9.131604792619116,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 2.2057932493971575
+  },
+  "sources": {
+    "348d85fa-3a71-447f-8a64-e283ec47cc7c": {
+      "name": "Custom GeoJSON Layer Source",
+      "parameters": {
+        "path": "../../examples/eq.json"
+      },
+      "type": "GeoJSONSource"
+    },
+    "b2ea427a-a51b-43ad-ae72-02cd900736d5": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  }
+}
