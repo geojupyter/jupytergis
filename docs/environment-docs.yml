@@ -14,7 +14,7 @@ dependencies:
   - sphinx-tabs
   - pydata-sphinx-theme
   - sphinx-autodoc-typehints
-  - sphinx_exercise
+  - sphinx-exercise
 
   - xeus-python # TODO: Do we need this?
 
