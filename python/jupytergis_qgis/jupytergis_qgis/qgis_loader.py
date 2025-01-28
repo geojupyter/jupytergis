@@ -637,7 +637,7 @@ def jgis_layer_to_qgis(
             # fill_color = QColor(color_params.get("fill-color"))
             # symbol.setColor(fill_color)
 
-            stroke_color = QColor(color_params.get("stroke-color"))
+            stroke_color = QColor(color_params.get("stroke-color", "#000000"))
             stroke_width = color_params.get("stroke-width", 1)
 
             symbol_layer = symbol.symbolLayer(0)
@@ -657,7 +657,7 @@ def jgis_layer_to_qgis(
                 fill_color_rules = color_params.get("circle-fill-color", [])
                 if isinstance(fill_color_rules, list) and fill_color_rules[0] == "case":
                     # Create a base symbol
-                    base_symbol = QgsMarkerSymbol()
+                    base_symbol = symbol.clone()
                     base_symbol.symbolLayer(0).setStrokeColor(
                         QColor(color_params.get("circle-stroke-color"))
                     )
@@ -667,9 +667,10 @@ def jgis_layer_to_qgis(
                         symbology_state.get("value")
                     )
 
-                    for i in range(0, len(fill_color_rules), 2):
-                        condition = fill_color_rules[i]
-                        color = fill_color_rules[i + 1]
+                    for i in range(2, len(fill_color_rules), 2):
+                        condition = fill_color_rules[i - 1]
+                        color = fill_color_rules[i]
+                        print("COLOER", color)
 
                         if isinstance(color, list) and len(color) == 4:
                             r, g, b, a = color
