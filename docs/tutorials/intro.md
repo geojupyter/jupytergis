@@ -154,7 +154,7 @@ It is a good practice to rename your layers with meaningful names. To rename a l
 
 ## Save your JGIS project
 
-Your jGIS file corresponds to your GIS project (similar to `.qgz´ for QGIS) and you probably already noticed that the default name is `untitled.jGIS`. If you creater several jGIS files without renaming them, a number will be added before the extension e.g. `untitled1.jGIS`, `untitled2.jGIS`, etc.
+Your jGIS file corresponds to your GIS project (similar to `.qgz` for QGIS) and you probably already noticed that the default name is `untitled.jGIS`. If you creater several jGIS files without renaming them, a number will be added before the extension e.g. `untitled1.jGIS`, `untitled2.jGIS`, etc.
 
 It is important to give meaningful name to your jGIS project.
 
