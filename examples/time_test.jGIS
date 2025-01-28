@@ -1,0 +1,99 @@
+{
+  "layerTree": [
+    "8de7c2c0-6024-4716-b542-031a89fb87f9",
+    "3e21d680-406f-4099-bd9e-3a4edb9a2c8b",
+    "00d18d9e-fe3d-4fd2-8bbd-fa50cb4e87d8"
+  ],
+  "layers": {
+    "00d18d9e-fe3d-4fd2-8bbd-fa50cb4e87d8": {
+      "filters": {
+        "appliedFilters": [],
+        "logicalOp": "all"
+      },
+      "name": "pirates",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "3a2d852f-8fd3-4acb-90e7-154e9f53558c",
+        "type": "circle"
+      },
+      "type": "VectorLayer",
+      "visible": false
+    },
+    "3e21d680-406f-4099-bd9e-3a4edb9a2c8b": {
+      "filters": {
+        "appliedFilters": [],
+        "logicalOp": "all"
+      },
+      "name": "earthquakes",
+      "parameters": {
+        "color": {
+          "circle-fill-color": "#3584e4",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#62a0ea",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25
+        },
+        "opacity": 1.0,
+        "source": "348d85fa-3a71-447f-8a64-e283ec47cc7c",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        },
+        "type": "circle"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "8de7c2c0-6024-4716-b542-031a89fb87f9": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "b2ea427a-a51b-43ad-ae72-02cd900736d5"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      4411741.095920008,
+      -7226144.228711288,
+      20843337.516080517,
+      16086786.11300372
+    ],
+    "latitude": 36.93694189913924,
+    "longitude": 113.4351155940005,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 2.28340994912359
+  },
+  "sources": {
+    "348d85fa-3a71-447f-8a64-e283ec47cc7c": {
+      "name": "Custom GeoJSON Layer Source",
+      "parameters": {
+        "path": "../../examples/eq.json"
+      },
+      "type": "GeoJSONSource"
+    },
+    "3a2d852f-8fd3-4acb-90e7-154e9f53558c": {
+      "name": "Custom GeoJSON Layer Source",
+      "parameters": {
+        "path": "../../examples/pirates.geojson"
+      },
+      "type": "GeoJSONSource"
+    },
+    "b2ea427a-a51b-43ad-ae72-02cd900736d5": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  }
+}
