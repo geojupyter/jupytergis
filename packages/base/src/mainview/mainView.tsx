@@ -1033,6 +1033,7 @@ export class MainView extends React.Component<IProps, IStates> {
         });
       }
 
+      console.log('filterExpr', filterExpr);
       layerStyle.filter = filterExpr;
     }
 
