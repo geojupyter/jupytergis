@@ -6,8 +6,18 @@
     "af9e8ee5-c731-4989-86c9-b0ce1652db89": {
       "name": "Custom GeoJSON Layer",
       "parameters": {
+        "color": {
+          "fill-color": "#3399CC",
+          "stroke-color": "#3399CC",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "d068cd81-937d-43da-bc0f-54c15b732aba",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        },
         "type": "line"
       },
       "type": "VectorLayer",
@@ -18,22 +28,22 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8404397.907933624,
-      5827696.305260475,
-      -7956403.143802778,
-      6355321.0749559635
+      -96394061.92234886,
+      -20037508.342789244,
+      -62505741.3610417,
+      20037508.342789236
     ],
-    "latitude": 47.90767334218202,
-    "longitude": -73.48578822606775,
+    "latitude": -2.842170943040401e-14,
+    "longitude": 6.2893903347247715,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 8.00859824882083
+    "zoom": 1.7615512324444795
   },
   "sources": {
     "d068cd81-937d-43da-bc0f-54c15b732aba": {
       "name": "Custom GeoJSON Layer Source",
       "parameters": {
-        "path": "https://raw.githubusercontent.com/openlayers/openlayers/main/examples/data/geojson/line-samples.geojson"
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson"
       },
       "type": "GeoJSONSource"
     }
