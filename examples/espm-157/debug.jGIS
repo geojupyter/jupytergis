@@ -1,0 +1,550 @@
+{
+  "layerTree": [
+    "72c882c3-927c-4876-b561-fc6929057571",
+    "4722d40c-e025-404e-a28f-a960c9e5549e"
+  ],
+  "layers": {
+    "4722d40c-e025-404e-a28f-a960c9e5549e": {
+      "filters": {
+        "appliedFilters": [
+          {
+            "feature": null,
+            "operator": null,
+            "value": null
+          }
+        ],
+        "logicalOp": null
+      },
+      "name": "GeoJSON Layer",
+      "parameters": {
+        "color": null,
+        "opacity": 1.0,
+        "source": "2db53792-10a5-4c0d-8c38-417877eaa4ed",
+        "sourceLayer": null,
+        "symbologyState": null,
+        "type": "line"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "72c882c3-927c-4876-b561-fc6929057571": {
+      "filters": null,
+      "name": "Raster Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "8f3f22ce-de8b-4a2b-8ca2-c371e717eebc"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -8119789.892274434,
+      5062391.865552574,
+      -8111810.8138090465,
+      5067305.0912085995
+    ],
+    "latitude": 41.35501710777166,
+    "longitude": -72.90547500000002,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 14.281457379038391
+  },
+  "sources": {
+    "2db53792-10a5-4c0d-8c38-417877eaa4ed": {
+      "name": "GeoJSON Layer Source",
+      "parameters": {
+        "data": {
+          "bbox": null,
+          "features": [
+            {
+              "bbox": null,
+              "geometry": {
+                "bbox": null,
+                "coordinates": [
+                  [
+                    [
+                      [
+                        -72.9,
+                        41.36885
+                      ],
+                      [
+                        -72.90325,
+                        41.36999
+                      ],
+                      [
+                        -72.90644,
+                        41.37108
+                      ],
+                      [
+                        -72.90804,
+                        41.36644
+                      ],
+                      [
+                        -72.90102,
+                        41.36493
+                      ],
+                      [
+                        -72.89904,
+                        41.36851
+                      ],
+                      [
+                        -72.9,
+                        41.36885
+                      ]
+                    ]
+                  ]
+                ],
+                "type": "MultiPolygon"
+              },
+              "id": null,
+              "properties": {
+                "area_id": 3569.0,
+                "category": "Best",
+                "city": "New Haven",
+                "city_survey": true,
+                "commercial": false,
+                "fill": "#76a865",
+                "grade": "A",
+                "industrial": false,
+                "label": "A1",
+                "residential": true,
+                "state": "CT"
+              },
+              "type": "Feature"
+            },
+            {
+              "bbox": null,
+              "geometry": {
+                "bbox": null,
+                "coordinates": [
+                  [
+                    [
+                      [
+                        -72.89401,
+                        41.36331
+                      ],
+                      [
+                        -72.89256,
+                        41.36574
+                      ],
+                      [
+                        -72.89904,
+                        41.36851
+                      ],
+                      [
+                        -72.90102,
+                        41.36493
+                      ],
+                      [
+                        -72.89401,
+                        41.36331
+                      ]
+                    ]
+                  ]
+                ],
+                "type": "MultiPolygon"
+              },
+              "id": null,
+              "properties": {
+                "area_id": 3568.0,
+                "category": "Best",
+                "city": "New Haven",
+                "city_survey": true,
+                "commercial": false,
+                "fill": "#76a865",
+                "grade": "A",
+                "industrial": false,
+                "label": "A2",
+                "residential": true,
+                "state": "CT"
+              },
+              "type": "Feature"
+            },
+            {
+              "bbox": null,
+              "geometry": {
+                "bbox": null,
+                "coordinates": [
+                  [
+                    [
+                      [
+                        -72.90981,
+                        41.35949
+                      ],
+                      [
+                        -72.90284,
+                        41.35795
+                      ],
+                      [
+                        -72.90178,
+                        41.36076
+                      ],
+                      [
+                        -72.90132,
+                        41.36172
+                      ],
+                      [
+                        -72.90069,
+                        41.36266
+                      ],
+                      [
+                        -72.90062,
+                        41.36305
+                      ],
+                      [
+                        -72.90078,
+                        41.36333
+                      ],
+                      [
+                        -72.90073,
+                        41.36396
+                      ],
+                      [
+                        -72.90102,
+                        41.36493
+                      ],
+                      [
+                        -72.90804,
+                        41.36644
+                      ],
+                      [
+                        -72.90644,
+                        41.37108
+                      ],
+                      [
+                        -72.90768,
+                        41.37158
+                      ],
+                      [
+                        -72.90794,
+                        41.37081
+                      ],
+                      [
+                        -72.90844,
+                        41.37044
+                      ],
+                      [
+                        -72.90842,
+                        41.36985
+                      ],
+                      [
+                        -72.90868,
+                        41.36905
+                      ],
+                      [
+                        -72.90935,
+                        41.3684
+                      ],
+                      [
+                        -72.91134,
+                        41.36756
+                      ],
+                      [
+                        -72.9125,
+                        41.36733
+                      ],
+                      [
+                        -72.91544,
+                        41.36673
+                      ],
+                      [
+                        -72.91561,
+                        41.36632
+                      ],
+                      [
+                        -72.91753,
+                        41.36557
+                      ],
+                      [
+                        -72.91818,
+                        41.36519
+                      ],
+                      [
+                        -72.91832,
+                        41.36462
+                      ],
+                      [
+                        -72.91839,
+                        41.3642
+                      ],
+                      [
+                        -72.91383,
+                        41.36306
+                      ],
+                      [
+                        -72.91114,
+                        41.36279
+                      ],
+                      [
+                        -72.90932,
+                        41.36237
+                      ],
+                      [
+                        -72.9096,
+                        41.35969
+                      ],
+                      [
+                        -72.90981,
+                        41.35949
+                      ]
+                    ]
+                  ]
+                ],
+                "type": "MultiPolygon"
+              },
+              "id": null,
+              "properties": {
+                "area_id": 3566.0,
+                "category": "Best",
+                "city": "New Haven",
+                "city_survey": true,
+                "commercial": false,
+                "fill": "#76a865",
+                "grade": "A",
+                "industrial": false,
+                "label": "A3",
+                "residential": true,
+                "state": "CT"
+              },
+              "type": "Feature"
+            },
+            {
+              "bbox": null,
+              "geometry": {
+                "bbox": null,
+                "coordinates": [
+                  [
+                    [
+                      [
+                        -72.90284,
+                        41.35795
+                      ],
+                      [
+                        -72.8999,
+                        41.35712
+                      ],
+                      [
+                        -72.89788,
+                        41.36147
+                      ],
+                      [
+                        -72.89564,
+                        41.36069
+                      ],
+                      [
+                        -72.89401,
+                        41.36331
+                      ],
+                      [
+                        -72.90102,
+                        41.36493
+                      ],
+                      [
+                        -72.90073,
+                        41.36396
+                      ],
+                      [
+                        -72.90078,
+                        41.36333
+                      ],
+                      [
+                        -72.90062,
+                        41.36305
+                      ],
+                      [
+                        -72.90069,
+                        41.36266
+                      ],
+                      [
+                        -72.90132,
+                        41.36172
+                      ],
+                      [
+                        -72.90178,
+                        41.36076
+                      ],
+                      [
+                        -72.90284,
+                        41.35795
+                      ]
+                    ]
+                  ]
+                ],
+                "type": "MultiPolygon"
+              },
+              "id": null,
+              "properties": {
+                "area_id": 3567.0,
+                "category": "Best",
+                "city": "New Haven",
+                "city_survey": true,
+                "commercial": false,
+                "fill": "#76a865",
+                "grade": "A",
+                "industrial": false,
+                "label": "A4",
+                "residential": true,
+                "state": "CT"
+              },
+              "type": "Feature"
+            },
+            {
+              "bbox": null,
+              "geometry": {
+                "bbox": null,
+                "coordinates": [
+                  [
+                    [
+                      [
+                        -72.89801,
+                        41.3493
+                      ],
+                      [
+                        -72.89883,
+                        41.34937
+                      ],
+                      [
+                        -72.9027,
+                        41.35013
+                      ],
+                      [
+                        -72.90569,
+                        41.34575
+                      ],
+                      [
+                        -72.90976,
+                        41.34024
+                      ],
+                      [
+                        -72.90956,
+                        41.33932
+                      ],
+                      [
+                        -72.90925,
+                        41.33868
+                      ],
+                      [
+                        -72.90892,
+                        41.33903
+                      ],
+                      [
+                        -72.90857,
+                        41.33906
+                      ],
+                      [
+                        -72.90721,
+                        41.33878
+                      ],
+                      [
+                        -72.90567,
+                        41.34024
+                      ],
+                      [
+                        -72.90249,
+                        41.33966
+                      ],
+                      [
+                        -72.90192,
+                        41.33845
+                      ],
+                      [
+                        -72.89924,
+                        41.34017
+                      ],
+                      [
+                        -72.89837,
+                        41.34152
+                      ],
+                      [
+                        -72.90214,
+                        41.34213
+                      ],
+                      [
+                        -72.90237,
+                        41.3438
+                      ],
+                      [
+                        -72.90121,
+                        41.34359
+                      ],
+                      [
+                        -72.90016,
+                        41.34354
+                      ],
+                      [
+                        -72.89875,
+                        41.34364
+                      ],
+                      [
+                        -72.89792,
+                        41.34374
+                      ],
+                      [
+                        -72.89748,
+                        41.34626
+                      ],
+                      [
+                        -72.89735,
+                        41.34745
+                      ],
+                      [
+                        -72.89731,
+                        41.34854
+                      ],
+                      [
+                        -72.89758,
+                        41.34911
+                      ],
+                      [
+                        -72.89801,
+                        41.3493
+                      ]
+                    ]
+                  ]
+                ],
+                "type": "MultiPolygon"
+              },
+              "id": null,
+              "properties": {
+                "area_id": 3564.0,
+                "category": "Best",
+                "city": "New Haven",
+                "city_survey": true,
+                "commercial": false,
+                "fill": "#76a865",
+                "grade": "A",
+                "industrial": false,
+                "label": "A5",
+                "residential": true,
+                "state": "CT"
+              },
+              "type": "Feature"
+            }
+          ],
+          "type": "FeatureCollection"
+        },
+        "path": null,
+        "valid": null
+      },
+      "type": "GeoJSONSource"
+    },
+    "8f3f22ce-de8b-4a2b-8ca2-c371e717eebc": {
+      "name": "Raster Layer Source",
+      "parameters": {
+        "attribution": "",
+        "bounds": [],
+        "htmlAttribution": "",
+        "maxZoom": 24.0,
+        "minZoom": 0.0,
+        "provider": "",
+        "url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  }
+}
