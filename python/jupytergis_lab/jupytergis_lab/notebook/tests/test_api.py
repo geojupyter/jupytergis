@@ -1,7 +1,23 @@
+import os
 import unittest
 
 from jupytergis_lab import GISDocument
 
+class ProjectCreation(unittest.TestCase):
+    filename = "test.jgis"
+
+    def setUp(self):
+        if os.path.isfile(self.filename):
+            os.remove(self.filename)
+
+    def tearDown(self):
+        if os.path.isfile(self.filename):
+            os.remove(self.filename)
+
+    def test_creation(self):
+        self.doc = GISDocument(self.filename)
+
+        assert os.path.isfile(self.filename)
 
 class VectorTileTests(unittest.TestCase):
     def setUp(self):
