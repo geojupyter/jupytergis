@@ -3,6 +3,7 @@ import unittest
 
 from jupytergis_lab import GISDocument
 
+
 class ProjectCreation(unittest.TestCase):
     filename = "test.jgis"
 
@@ -18,6 +19,7 @@ class ProjectCreation(unittest.TestCase):
         self.doc = GISDocument(self.filename)
 
         assert os.path.isfile(self.filename)
+
 
 class VectorTileTests(unittest.TestCase):
     def setUp(self):
