@@ -31,7 +31,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { ContextMenu, Menu } from '@lumino/widgets';
-import { notebookRenderePlugin } from './notebookrenderer';
+import { notebookRendererPlugin } from './notebookrenderer';
 
 const NAME_SPACE = 'jupytergis';
 
@@ -381,4 +381,4 @@ function buildGroupsMenu(
   });
 }
 
-export default [plugin, controlPanel, notebookRenderePlugin];
+export default [plugin, controlPanel, notebookRendererPlugin];
