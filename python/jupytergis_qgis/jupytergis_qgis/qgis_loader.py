@@ -510,7 +510,7 @@ def jgis_layer_to_qgis(
 
         if geometry_type == "circle":
             symbol = QgsMarkerSymbol()
-            symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
+            # symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
             color_params = layer_params.get("color", {})
             opacity = layer_params.get("opacity", 1.0)
             symbology_state = layer_params.get("symbologyState", {})
@@ -518,9 +518,7 @@ def jgis_layer_to_qgis(
 
             # Set stroke color and width
             stroke_color = QColor(color_params.get("circle-stroke-color", "#3399CC"))
-            stroke_width = color_params.get("circle-stroke-width", 1.25)
             symbol.symbolLayer(0).setStrokeColor(stroke_color)
-            symbol.symbolLayer(0).setStrokeWidth(stroke_width)
             symbol.setOpacity(opacity)
 
             # Single Symbol Renderer
@@ -537,9 +535,6 @@ def jgis_layer_to_qgis(
                     base_symbol = QgsMarkerSymbol()
                     base_symbol.symbolLayer(0).setStrokeColor(
                         QColor(color_params.get("circle-stroke-color"))
-                    )
-                    base_symbol.symbolLayer(0).setStrokeWidth(
-                        color_params.get("circle-stroke-width", 1)
                     )
                     base_symbol.setOpacity(opacity)
 
