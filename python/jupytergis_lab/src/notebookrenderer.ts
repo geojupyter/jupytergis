@@ -1,5 +1,6 @@
 import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
-import { JupyterGISPanel } from '@jupytergis/base';
+import { IDocumentManager } from '@jupyterlab/docmanager';
+import { JupyterGISWidget } from '@jupytergis/base';
 import { JupyterGISModel, IJupyterGISDoc } from '@jupytergis/schema';
 
 import {
@@ -31,12 +32,18 @@ export class YJupyterGISModel extends JupyterYModel {
 }
 
 export class YJupyterGISLuminoWidget extends Panel {
-  constructor(options: { model: JupyterGISModel }) {
+  constructor(options: {docManager: IDocumentManager}) {
     super();
 
+    const path: String = "examples/espm-157/debug.jGIS";
+    const widget = options.docManager.open(`RTC:${path}`);
+    if (widget instanceof JupyterGISWidget) {
+      this._jgisWidget = widget;
+      this.addWidget(this._jgisWidget);
+      this._jgisWidget.show();
+    }
+
     this.addClass(CLASS_NAME);
-    this._jgisWidget = new JupyterGISPanel(options);
-    this.addWidget(this._jgisWidget);
   }
 
   onResize = (): void => {
@@ -48,15 +55,18 @@ export class YJupyterGISLuminoWidget extends Panel {
     }
   };
 
-  private _jgisWidget: JupyterGISPanel;
+  private _jgisWidget: JupyterGISWidget;
 }
 
+// TODO: Typo
 export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
+  requires: [IDocumentManager],
   optional: [IJupyterYWidgetManager, ICollaborativeDrive],
   activate: (
     app: JupyterFrontEnd,
+    docManager: IDocumentManager,
     yWidgetManager?: IJupyterYWidgetManager,
     drive?: ICollaborativeDrive
   ): void => {
@@ -95,9 +105,9 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
         this.yModel = yModel;
         this.node = node;
 
-        const widget = new YJupyterGISLuminoWidget({
-          model: yModel.jupyterGISModel
-        });
+        console.log('MODEL', yModel);
+
+        const widget = new YJupyterGISLuminoWidget({ docManager });
         // Widget.attach(widget, node);
 
         MessageLoop.sendMessage(widget, Widget.Msg.BeforeAttach);
