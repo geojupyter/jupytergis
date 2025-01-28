@@ -955,7 +955,7 @@ export class MainView extends React.Component<IProps, IStates> {
     } catch (error) {
       await showErrorMessage(
         `Error Adding ${layer.name}`,
-        `Failed to add ${layer.name}. Please remove it`
+        `Failed to add ${layer.name}.`
       );
       this.setState(old => ({ ...old, loadingLayer: false }));
       this._loadingLayers.delete(id);
