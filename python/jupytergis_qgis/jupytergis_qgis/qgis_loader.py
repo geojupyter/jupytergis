@@ -506,7 +506,6 @@ def jgis_layer_to_qgis(
 
         geometry_type = layer.get("parameters", {}).get("type")
         layer_params = layer.get("parameters", {})
-        print(f"Geometry Type: {geometry_type}", layer_params)
 
         if geometry_type == "circle":
             symbol = QgsMarkerSymbol()
@@ -570,7 +569,6 @@ def jgis_layer_to_qgis(
             # Graduated Renderer
             elif render_type == "Graduated":
                 fill_color_rules = color_params.get("circle-fill-color", [])
-                print("FILL COLOR RULES:", fill_color_rules)
                 if (
                     isinstance(fill_color_rules, list)
                     and fill_color_rules[0] == "interpolate"
@@ -620,10 +618,9 @@ def jgis_layer_to_qgis(
             symbol = QgsLineSymbol()
             symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
             color_params = layer_params.get("color", {})
-            # color = QColor(color_params.get("stroke-color"))
+
             opacity = int(layer_params.get("opacity"))
-            # print(f"Line Color: {color.name()}, Opacity: {opacity}")
-            # symbol.setColor(color)
+
             symbol.setOpacity(opacity)
             symbology_state = layer_params.get("symbologyState", {})
             render_type = symbology_state.get("renderType", "Single Symbol")
@@ -652,7 +649,6 @@ def jgis_layer_to_qgis(
                     for i in range(2, len(fill_color_rules), 2):
                         condition = fill_color_rules[i - 1]
                         color = fill_color_rules[i]
-                        print("COLOER", color)
 
                         if isinstance(color, list) and len(color) == 4:
                             r, g, b, a = color
@@ -678,7 +674,6 @@ def jgis_layer_to_qgis(
             # Graduated Renderer
             elif render_type == "Graduated":
                 fill_color_rules = color_params.get("stroke-color", [])
-                print("FILL COLOR RULES:", fill_color_rules)
                 if (
                     isinstance(fill_color_rules, list)
                     and fill_color_rules[0] == "interpolate"
@@ -767,7 +762,6 @@ def jgis_layer_to_qgis(
                     for i in range(2, len(fill_color_rules), 2):
                         condition = fill_color_rules[i - 1]
                         color = fill_color_rules[i]
-                        print("COLOER", color)
 
                         if isinstance(color, list) and len(color) == 4:
                             r, g, b, a = color
@@ -793,7 +787,6 @@ def jgis_layer_to_qgis(
             # Graduated Renderer
             elif render_type == "Graduated":
                 fill_color_rules = color_params.get("fill-color", [])
-                print("FILL COLOR RULES:", fill_color_rules)
                 if (
                     isinstance(fill_color_rules, list)
                     and fill_color_rules[0] == "interpolate"
@@ -949,7 +942,7 @@ def jgis_layer_to_qgis(
         logs["warnings"].append(
             f"Layer {layer_id} not exported: enable to export layer type {layer_type}"
         )
-        print(f"JUPYTERGIS - Enable to export layer type {layer_type}")
+        print(f"JUPYTERGIS - Unable to export layer type {layer_type}")
         return
 
     map_layer.setId(layer_id)
