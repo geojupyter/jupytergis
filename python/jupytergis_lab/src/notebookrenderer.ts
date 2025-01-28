@@ -51,7 +51,7 @@ export class YJupyterGISLuminoWidget extends Panel {
   private _jgisWidget: JupyterGISPanel;
 }
 
-export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
+export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
   optional: [IJupyterYWidgetManager, ICollaborativeDrive],
