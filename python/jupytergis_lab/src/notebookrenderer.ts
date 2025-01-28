@@ -32,13 +32,10 @@ export class YJupyterGISModel extends JupyterYModel {
 }
 
 export class YJupyterGISLuminoWidget extends Panel {
-  constructor(options: {
-    model: JupyterGISModel,
-    docManager: IDocumentManager,
-  }) {
+  constructor(options: {docManager: IDocumentManager}) {
     super();
 
-    const path: String = "espm-157/debug.jgis";
+    const path: String = "examples/espm-157/debug.jGIS";
     const widget = options.docManager.open(`RTC:${path}`);
     if (widget instanceof JupyterGISWidget) {
       this._jgisWidget = widget;
@@ -108,10 +105,9 @@ export const notebookRenderePlugin: JupyterFrontEndPlugin<void> = {
         this.yModel = yModel;
         this.node = node;
 
-        const widget = new YJupyterGISLuminoWidget({
-          model: yModel.jupyterGISModel,
-          docManager,
-        });
+        console.log('MODEL', yModel);
+
+        const widget = new YJupyterGISLuminoWidget({ docManager });
         // Widget.attach(widget, node);
 
         MessageLoop.sendMessage(widget, Widget.Msg.BeforeAttach);
