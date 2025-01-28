@@ -36,6 +36,7 @@ from qgis.core import (
     QgsRendererCategory,
     QgsGraduatedSymbolRenderer,
     QgsRendererRange,
+    Qgis,
 )
 
 # Prevent any Qt application and event loop to spawn when
@@ -498,6 +499,7 @@ def jgis_layer_to_qgis(
             )
             return
 
+        # Not checking for file.isValid() since it will eventually fail to load the file (relative path on the original file does not match server root)
         map_layer = QgsVectorLayer(uri, layer_name, "ogr")
         crs_84 = QgsCoordinateReferenceSystem("EPSG:4326")
         map_layer.setCrs(crs_84)
@@ -508,6 +510,7 @@ def jgis_layer_to_qgis(
 
         if geometry_type == "circle":
             symbol = QgsMarkerSymbol()
+            symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
             color_params = layer_params.get("color", {})
             opacity = layer_params.get("opacity", 1.0)
             symbology_state = layer_params.get("symbologyState", {})
@@ -598,8 +601,9 @@ def jgis_layer_to_qgis(
                         symbology_state.get("value"), ranges
                     )
 
-        elif geometry_type == QgsWkbTypes.LineGeometry:
+        elif geometry_type == "line":
             symbol = QgsLineSymbol()
+            symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
             color_params = layer_params.get("color", {})
             color = QColor(color_params.get("stroke-color"))
             opacity = int(layer_params.get("opacity"))
@@ -608,8 +612,9 @@ def jgis_layer_to_qgis(
             symbol.setOpacity(opacity)
             renderer = QgsSingleSymbolRenderer(symbol)
 
-        elif geometry_type == QgsWkbTypes.PolygonGeometry:
+        elif geometry_type == "fill":
             symbol = QgsFillSymbol()
+            symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
             color_params = layer_params.get("color", {})
             opacity = layer_params.get("opacity", 1.0)
             symbol.setOpacity(opacity)
