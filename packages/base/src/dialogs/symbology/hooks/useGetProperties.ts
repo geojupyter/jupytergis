@@ -51,17 +51,16 @@ export const useGetProperties = ({
       data.features.forEach((feature: GeoJSONFeature1) => {
         if (feature.properties) {
           Object.entries(feature.properties).forEach(([key, value]) => {
-            if (typeof value !== 'string') {
-              if (!(key in result)) {
-                result[key] = new Set();
-              }
-              result[key].add(value);
+            if (!(key in result)) {
+              result[key] = new Set();
             }
+            result[key].add(value);
           });
         }
       });
 
       setFeatureProps(result);
+      console.log('result', result);
       setIsLoading(false);
     } catch (err) {
       setError(err as Error);

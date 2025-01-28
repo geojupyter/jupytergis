@@ -2,6 +2,7 @@ import { IVectorLayer } from '@jupytergis/schema';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
+import { filterFeatureProperties } from '../../../../tools';
 import ColorRamp from '../../components/color_ramp/ColorRamp';
 import StopContainer from '../../components/color_stops/StopContainer';
 import { useGetProperties } from '../../hooks/useGetProperties';
@@ -25,6 +26,7 @@ const Categorized = ({
   const [colorRampOptions, setColorRampOptions] = useState<
     ReadonlyJSONObject | undefined
   >();
+  const [features, setFeatures] = useState<Record<string, Set<number>>>({});
 
   if (!layerId) {
     return;
@@ -55,7 +57,16 @@ const Categorized = ({
   }, []);
 
   useEffect(() => {
-    populateOptions();
+    // We only want number values here
+    const filteredRecord = filterFeatureProperties(featureProps);
+
+    setFeatures(filteredRecord);
+
+    const layerParams = layer.parameters as IVectorLayer;
+    const value =
+      layerParams.symbologyState?.value ?? Object.keys(filteredRecord)[0];
+
+    setSelectedValue(value);
   }, [featureProps]);
 
   useEffect(() => {
@@ -63,14 +74,6 @@ const Categorized = ({
     stopRowsRef.current = stopRows;
     colorRampOptionsRef.current = colorRampOptions;
   }, [selectedValue, stopRows, colorRampOptions]);
-
-  const populateOptions = async () => {
-    const layerParams = layer.parameters as IVectorLayer;
-    const value =
-      layerParams.symbologyState?.value ?? Object.keys(featureProps)[0];
-
-    setSelectedValue(value);
-  };
 
   const buildColorInfoFromClassification = (
     selectedMode: string,
@@ -85,7 +88,7 @@ const Categorized = ({
       selectedMode: ''
     });
 
-    const stops = Array.from(featureProps[selectedValue]).sort((a, b) => a - b);
+    const stops = Array.from(features[selectedValue]).sort((a, b) => a - b);
 
     const valueColorPairs = Utils.getValueColorPairs(
       stops,
@@ -145,7 +148,7 @@ const Categorized = ({
   return (
     <div className="jp-gis-layer-symbology-container">
       <ValueSelect
-        featureProperties={featureProps}
+        featureProperties={features}
         selectedValue={selectedValue}
         setSelectedValue={setSelectedValue}
       />
