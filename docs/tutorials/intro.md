@@ -73,7 +73,7 @@ Follow along to add a vector layer available online.
 
 :::{admonition} Why don't we add a local shapefile?
 :class: tip
-One of the main strength of JupyterGIS is its collaborative capabilities. To be able to collaborate, it is much easier to work with data shared and available online.
+One of the main strength of JupyterGIS is its collaborative capabilities. To be able to collaborate, it is much easier to work with data that is available to everyone online.
 :::
 
 ```{exercise-start}
