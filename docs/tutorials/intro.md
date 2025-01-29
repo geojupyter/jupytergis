@@ -81,6 +81,35 @@ Follow along to add a vector layer available online.
 One of the main strength of JupyterGIS is its collaborative capabilities. To be able to collaborate, it is much easier to work with data that is available to everyone online.
 :::
 
+## Renaming Sources and Layers
+
+When adding a new source or layer, default names are assigned. It is good practice to rename both the source and layer with meaningful names to avoid confusion when adding similar layers in the future. To rename a source, select it in the GIS Sources List / Browser Panel, and right click to **Rename Source**.
+
+Let's rename the source called 'Custom Shapefile Source' to 'US Counties' so that we can easily identify it in the list when adding a new source.
+![Rename 'Custom Shapefile Source' to 'US Counties'](../assets/images/renameSource.png)
+
+```{exercise}
+:label: Rename-layer
+
+- Rename the **Custom Shapefile Layer** with a meaningful name e.g., **US Counties** for the US County Shapefile Layer.
+
+```
+
+```{solution} Rename-layer
+:class: dropdown
+![Rename 'Custom Shapefile Layer' to 'US Counties'](../assets/images/renameLayer.png)
+```
+
+:::{admonition} Ordering in the list of Sources versus Layers
+:class: warning
+Did you notice in the figures above that in the list of sources, the source for 'US Counties' appears before the source for 'OpenStreetMap.Mapmik'? In contrast, you can see the reverse order in the list of Layers.
+The reason is that sources are ordered alphabetically, while layers are ordered based on the order in which they are added, with the top layer being the most recently added to your map.
+:::
+
+## Adding a new layer on top of an existing one
+
+Let's do an exercise to practice adding a new layer.
+
 ```{exercise-start}
 :label: add-vector-layer
 ```
@@ -92,8 +121,9 @@ https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08
 ```
 
 - Zoom over New-York (USA) and check if you can see the newly added layer.
+- Rename both the newly added layer and its corresponding source, e.g. 'NYC Roads'.
 - Let's customize this new layer by changing the color. In the GIS Layer/Browser Panel, select the top layer (corresponds to the last layer you added) and right click to **Edit Symbology**. Then change the **Stroke Color** to a color of your choice. You can also change the Stroke Width and check the result after pressing \*_OK_.
-- In a similar way, you can edit the symbology of the first Shapefile Layer we added and change the **Fill Color**, **Stroke Color** and **Stroke Width**.
+- In a similar way, you can edit the symbology of the 'US Counties' Shapefile Layer we added earlier and change the **Fill Color**, **Stroke Color** and **Stroke Width**.
 - Do you still see the roads in New-York? Try to adjust the **Opacity** value (default is 1) to a lower value for this Shapefile Layer. Can you see all your layers now?
 
 ```{exercise-end}
@@ -109,7 +139,7 @@ After adding the new Shapefile Layer and zooming over New-York, you should have 
 When you right click to edit the symbology, you should get the following pop-up menu:
 ![Edit symbology](../assets/images/editSymbology.png)
 
-And when editing the symbology of the other Shapefile Layer:
+And when editing the symbology of the 'US Counties' Shapefile Layer:
 ![Adjust Symbology](../assets/images/adjustSymbology.png)
 
 And updating the opacity (for instance to 0.5) of the US county Shapefile Layer, you can get a map that looks like this (depending on the colors and Stroke width you chose!):
@@ -137,22 +167,6 @@ would hide all the custom shapefile layers underneath the OpenStreetMap raster l
 
 To solve this problem, you can click and drag on a layer in the Layers list to move it up or down, and reordering the layers as you wish them to be viewed on the map.
 
-## Renaming Layers
-
-As shown on the previous image, the two custom shapefile layers we added have the same name in the GIS Layers List / Browser Panel which can be very confusing.
-It is a good practice to rename your layers with meaningful names. To rename a layer, select it in the GIS Layers List / Browser Panel, and right click to **Rename Layer**.
-
-```{exercise}
-:label: Rename-layer
-
-- Rename each **Custom Shapefile Layer** with a meaningful name e.g., **cb_2015_us_county_500k** for the US County Shapefile Layer and **nyc_roads** for the roads in New-York.
-
-```
-
-```{solution} Rename-layer
-:class: dropdown
-![Map with renamed layers](../assets/images/renameLayer.png)
-```
 
 ## Save your JGIS project
 
