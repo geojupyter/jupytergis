@@ -64,7 +64,7 @@ Follow along to add a vector layer available online.
    ![JGIS Editor](../assets/images/JGIS_editor.png)
 2. Open Layer Browser (see image below) and select for instance _OpenStreetMap.Mapnik_. An interactive map will appear and you will be able to zoom in and zoom out with your mouse.
    ![Open Layer Browser](../assets/images/OpenLayerBrowser.png)
-3. Click on the **+** to add another type of layer and select "New Shapefile Layer" to add a new vector layer (stored as a shapefile).
+3. Click on the **+** to add a user-defined layer and select "New Shapefile Layer" to add a new vector layer (stored as a shapefile).
    ![Add a Vector Layer](../assets/images/addVectorLayer.png)
 4. Set the path of the new shapefile Layer to `https://www2.census.gov/geo/tiger/GENZ2015/shp/cb_2015_us_county_500k.zip` and click **Ok**.
    ![Set Shapefile Layer](../assets/images/CreateShapefileLayer.png)
