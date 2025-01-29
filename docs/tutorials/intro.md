@@ -68,7 +68,7 @@ Follow along to add a vector layer available online.
    ![Add a Vector Layer](../assets/images/addVectorLayer.png)
 4. Set the path of the new shapefile Layer to `https://www2.census.gov/geo/tiger/GENZ2015/shp/cb_2015_us_county_500k.zip` and click **Ok**.
    ![Set Shapefile Layer](../assets/images/CreateShapefileLayer.png)
-5. You should then be able to see the new Shapefile Layer on the map and when clicking on the **Custom Shapefile Layer** (see figure below), you should also see the details of the object properties on the right of the map. The map being interactive, you can zoom in and out as you wish to focus on your area of interest (here over the US).
+5. You will see the new Shapefile Layer on the map. When clicking on the **Custom Shapefile Layer** (see figure below), you will also see the details of the object properties on the right of the map. You can pan and zoom to focus on your area of interest, or automatically focus on your new data layer by right-clicking on the **Custom Shapefile Layer** and selecting "Zoom to Layer".
    ![View Shapefile Layer](../assets/images/viewShapefileLayer.png)
 
 :::{admonition} Why don't we add a local shapefile?
