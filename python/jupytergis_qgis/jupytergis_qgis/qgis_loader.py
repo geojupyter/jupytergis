@@ -399,11 +399,11 @@ def get_base_symbol(geometry_type, color_params, opacity):
     symbol.setOpacity(opacity)
     symbol_layer = symbol.symbolLayer(0)
 
-    if geometry_type == ["circle", "fill"]:
+    if geometry_type in ["circle", "fill"]:
         stroke_color = QColor(color_params.get("stroke-color", "#000000"))
         symbol_layer.setStrokeColor(stroke_color)
 
-    if geometry_type == ["line", "fill"]:
+    if geometry_type in ["line", "fill"]:
         stroke_width = color_params.get("stroke-width", 1)
         symbol_layer.setStrokeWidth(stroke_width)
 
