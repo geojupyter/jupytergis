@@ -2,7 +2,8 @@
 
 Welcome to the first tutorial in the JupyterGIS series! This guide will introduce you to the basics of JupyterGIS and help you set up your environment, create your first map, and understand its key features.
 
-## Objectives
+:::{admonition} Objectives
+:class: seealso
 
 By the end of this tutorial, you will:
 
@@ -10,6 +11,7 @@ By the end of this tutorial, you will:
 2. Set up the required tools and libraries.
 3. Create a simple map and add layers.
 4. Explore basic geospatial analysis using JupyterGIS.
+:::
 
 ## Introduction to JupyterGIS
 
@@ -25,19 +27,22 @@ JupyterGIS is designed for researchers, data scientists, and GIS professionals a
 
 We will explore the JupyterGIS user interface to help you become familiar with its menus, toolbars, map canvas, and layers list, which make up the core structure of the interface.
 
+:::{admonition} Lesson goal
+:class: tip
 **The objective of this lesson is to understand the fundamentals of the JupyterGIS user interface.**
+::: 
 
 ![JupyterGIS User Interface explained](../assets/images/jupyterGIS_interface.png)
 
 The elements shown in the figure above are:
 
 1. The application Launcher helps you to select which application you want to start e.g. a Notebook, a Console, and another application such as a Terminal or open a GIS file (which can be either a JupyterGIS file or a QGIS file).
-2. GIS Layers List / Browser Panel
-3. Left Sidebar which contains a file browser, a list of tabs in the main work and of running kernels and terminals, the command palette, the table of contents, the extension manager, and the JupyterGIS extension which allows you to see the GIS layers list.
-4. The GIS object properties, annotations and filters of a selected GIS layer.
-5. The Jupyter toolbar menu which you will use with Jupyter Notebooks.
-6. The Log console (which you can you for debugging).
-7. Right Sidebar showing the property inspector (active in notebooks), the debugger, and GIS object properties, annotation and filters.
+2. Left Sidebar which contains a file browser, a list of tabs in the main work and of running kernels and terminals, the command palette, the table of contents, the extension manager, and the JupyterGIS extension which allows you to see the GIS layers list.
+3. GIS Layers List / Browser Panel
+4. Right Sidebar showing the property inspector (active in notebooks), the debugger, and GIS object properties, annotation and filters.
+5. The GIS object properties, annotations and filters of a selected GIS layer.
+6. The Jupyter toolbar menu which you will use with Jupyter Notebooks.
+7. The Log console (which you can you for debugging).
 
 ## Adding your first layers
 
@@ -137,13 +142,10 @@ To solve this problem, you can click and drag on a layer in the Layers list to m
 As shown on the previous image, the two custom shapefile layers we added have the same name in the GIS Layers List / Browser Panel which can be very confusing.
 It is a good practice to rename your layers with meaningful names. To rename a layer, select it in the GIS Layers List / Browser Panel, and right click to **Rename Layer**.
 
-```{exercise-start}
+```{exercise}
 :label: Rename-layer
-```
 
 - Rename each **Custom Shapefile Layer** with a meaningful name e.g., **cb_2015_us_county_500k** for the US County Shapefile Layer and **nyc_roads** for the roads in New-York.
-
-```{exercise-end}
 
 ```
 
