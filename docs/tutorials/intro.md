@@ -164,7 +164,7 @@ To rename it, you can click on **File** in the Jupyter toolbar menu and select *
 
 ## Conclusion
 
-Now you’ve learned how to add all the layers you need from various sources and have created a basic map!
+Congratulations on completing this tutorial! You've created a basic map in JupyterGIS, learned how to add new layers, rearrange layers, alter symbology, and save your project. You're now well on your way to becoming a pro JupyterGIS user!
 
 ## Additional resources
 
