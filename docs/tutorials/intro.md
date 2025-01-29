@@ -107,7 +107,7 @@ When you right click to edit the symbology, you should get the following pop-up 
 And when editing the symbology of the other Shapefile Layer:
 ![Adjust Symbology](../assets/images/adjustSymbology.png)
 
-And updating the opacity (for instance to 0.5) of the US county Shapefile Layer, you can get a map that can look like to (depending on the colors and Stroke width you chose!):
+And updating the opacity (for instance to 0.5) of the US county Shapefile Layer, you can get a map that looks like this (depending on the colors and Stroke width you chose!):
 
 ![final map for the intro exercise](../assets/images/finalIntroMap.png)
 ```
