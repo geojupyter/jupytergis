@@ -128,7 +128,7 @@ The order in which the layers have been loaded into the map is probably not logi
 For example, this layer order:
 ![Wrong layer order](../assets/images/wrongLayerOrder.png)
 
-would hide all the custom shapefile layers.
+would hide all the custom shapefile layers underneath the OpenStreetMap raster layer.
 
 To solve this problem, you can click and drag on a layer in the Layers list to move it up or down, and reordering the layers as you wish them to be viewed on the map.
 
