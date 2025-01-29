@@ -383,6 +383,111 @@ def import_project_from_qgis(path: str | Path):
     }
 
 
+def get_base_symbol(geometry_type, color_params, opacity):
+    """Returns a base symbol based on geometry type."""
+    if geometry_type == "circle":
+        symbol = QgsMarkerSymbol()
+    elif geometry_type == "line":
+        symbol = QgsLineSymbol()
+        symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
+    elif geometry_type == "fill":
+        symbol = QgsFillSymbol()
+        symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
+    else:
+        return None
+
+    symbol.setOpacity(opacity)
+    symbol_layer = symbol.symbolLayer(0)
+
+    if geometry_type == ["circle", "fill"]:
+        stroke_color = QColor(color_params.get("stroke-color", "#000000"))
+        symbol_layer.setStrokeColor(stroke_color)
+
+    if geometry_type == ["line", "fill"]:
+        stroke_width = color_params.get("stroke-width", 1)
+        symbol_layer.setStrokeWidth(stroke_width)
+
+    return symbol
+
+
+def create_categorized_renderer(
+    symbology_state, geometry_type, color_params, base_symbol
+):
+    """Creates a categorized renderer."""
+    fill_color_rules = color_params.get("circle-fill-color", [])
+
+    renderer = QgsCategorizedSymbolRenderer(symbology_state.get("value"))
+
+    for i in range(1, len(fill_color_rules) - 1, 2):
+        condition = fill_color_rules[i]
+        color = fill_color_rules[i + 1]
+
+        if isinstance(color, list) and len(color) == 4:
+            r, g, b, a = color
+            color = [r, g, b, 1.0]
+
+        category_symbol = base_symbol.clone()
+        category_symbol.setColor(
+            QColor(int(color[0]), int(color[1]), int(color[2]), int(color[3] * 255))
+        )
+        category_symbol.setOpacity(1.0)
+
+        category = QgsRendererCategory(condition[2], category_symbol, str(condition[2]))
+        renderer.addCategory(category)
+
+    return renderer
+
+
+def create_graduated_renderer(
+    symbology_state, geometry_type, color_params, base_symbol
+):
+    """Creates a graduated renderer."""
+    if geometry_type == "circle":
+        fill_color_rules = color_params.get("circle-fill-color", [])
+    elif geometry_type == "fill":
+        fill_color_rules = color_params.get("fill-color", [])
+    elif geometry_type == "line":
+        fill_color_rules = color_params.get("stroke-color", [])
+
+    ranges = []
+    previous_value = 0
+    last_color = None
+
+    for i in range(3, len(fill_color_rules) - 2, 2):
+        lower_value = fill_color_rules[i]
+        upper_value = fill_color_rules[i + 2]
+        color = fill_color_rules[i + 1]
+
+        if isinstance(color, list) and len(color) == 4:
+            r, g, b, a = color
+            qcolor = QColor(int(r), int(g), int(b), int(a * 255))
+            last_color = qcolor
+
+        range_symbol = base_symbol.clone()
+        range_symbol.setColor(qcolor)
+        g_range = QgsRendererRange(
+            previous_value,
+            lower_value,
+            range_symbol,
+            f"{previous_value} - {lower_value}",
+        )
+        ranges.append(g_range)
+        previous_value = lower_value
+
+    if last_color:
+        final_symbol = base_symbol.clone()
+        final_symbol.setColor(last_color)
+        g_range = QgsRendererRange(
+            previous_value,
+            upper_value,
+            final_symbol,
+            f"{previous_value} - {upper_value}",
+        )
+        ranges.append(g_range)
+
+    return QgsGraduatedSymbolRenderer(symbology_state.get("value"), ranges)
+
+
 def jgis_layer_to_qgis(
     layer_id: str,
     layers: dict[str, dict[str, Any]],
@@ -519,99 +624,24 @@ def jgis_layer_to_qgis(
             symbol.symbolLayer(0).setStrokeColor(stroke_color)
             symbol.setOpacity(opacity)
 
-            # Single Symbol Renderer
+            symbol = get_base_symbol(geometry_type, color_params, opacity)
+
+            render_type = symbology_state.get("renderType", "Single Symbol")
+
             if render_type == "Single Symbol":
                 fill_color = QColor(color_params.get("circle-fill-color"))
                 symbol.setColor(fill_color)
                 renderer = QgsSingleSymbolRenderer(symbol)
 
-            # Categorized Renderer
             elif render_type == "Categorized":
-                fill_color_rules = color_params.get("circle-fill-color", [])
-                if isinstance(fill_color_rules, list) and fill_color_rules[0] == "case":
-                    # Create a base symbol
-                    base_symbol = QgsMarkerSymbol()
-                    base_symbol.symbolLayer(0).setStrokeColor(
-                        QColor(color_params.get("circle-stroke-color"))
-                    )
-                    base_symbol.setOpacity(opacity)
+                renderer = create_categorized_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
 
-                    renderer = QgsCategorizedSymbolRenderer(
-                        symbology_state.get("value")
-                    )
-
-                    for i in range(1, len(fill_color_rules) - 1, 2):
-                        condition = fill_color_rules[i]
-                        color = fill_color_rules[i + 1]
-
-                        if isinstance(color, list) and len(color) == 4:
-                            r, g, b, a = color
-                            color = [r, g, b, 1.0]
-
-                        category_symbol = base_symbol.clone()
-                        category_symbol.setColor(
-                            QColor(
-                                int(color[0]),
-                                int(color[1]),
-                                int(color[2]),
-                                int(color[3] * 255),
-                            )
-                        )
-
-                        category_symbol.setOpacity(1.0)
-
-                        category = QgsRendererCategory(
-                            condition[2], category_symbol, str(condition[2])
-                        )
-                        renderer.addCategory(category)
-
-            # Graduated Renderer
             elif render_type == "Graduated":
-                fill_color_rules = color_params.get("circle-fill-color", [])
-                if (
-                    isinstance(fill_color_rules, list)
-                    and fill_color_rules[0] == "interpolate"
-                ):
-                    ranges = []
-                    previous_value = 0
-                    last_color = None
-
-                    for i in range(3, len(fill_color_rules) - 2, 2):
-                        lower_value = fill_color_rules[i]
-                        upper_value = fill_color_rules[i + 2]
-                        color = fill_color_rules[i + 1]
-
-                        if isinstance(color, list) and len(color) == 4:
-                            r, g, b, a = color
-                            qcolor = QColor(int(r), int(g), int(b), int(a * 255))
-                            last_color = qcolor
-
-                        range_symbol = symbol.clone()
-                        range_symbol.setColor(qcolor)
-                        g_range = QgsRendererRange(
-                            previous_value,
-                            lower_value,
-                            range_symbol,
-                            f"{previous_value} - {lower_value}",
-                        )
-                        ranges.append(g_range)
-
-                        previous_value = lower_value
-
-                    if last_color:
-                        final_symbol = symbol.clone()
-                        final_symbol.setColor(last_color)
-                        g_range = QgsRendererRange(
-                            previous_value,
-                            upper_value,
-                            final_symbol,
-                            f"{previous_value} - {upper_value}",
-                        )
-                        ranges.append(g_range)
-
-                    renderer = QgsGraduatedSymbolRenderer(
-                        symbology_state.get("value"), ranges
-                    )
+                renderer = create_graduated_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
 
         elif geometry_type == "line":
             symbol = QgsLineSymbol()
@@ -624,99 +654,24 @@ def jgis_layer_to_qgis(
             symbology_state = layer_params.get("symbologyState", {})
             render_type = symbology_state.get("renderType", "Single Symbol")
 
-            # Single Symbol Renderer
+            symbol = get_base_symbol(geometry_type, color_params, opacity)
+
+            render_type = symbology_state.get("renderType", "Single Symbol")
+
             if render_type == "Single Symbol":
                 fill_color = QColor(color_params.get("circle-fill-color"))
                 symbol.setColor(fill_color)
                 renderer = QgsSingleSymbolRenderer(symbol)
 
-            # Categorized Renderer
             elif render_type == "Categorized":
-                fill_color_rules = color_params.get("circle-fill-color", [])
-                if isinstance(fill_color_rules, list) and fill_color_rules[0] == "case":
-                    # Create a base symbol
-                    base_symbol = symbol.clone()
-                    base_symbol.symbolLayer(0).setStrokeColor(
-                        QColor(color_params.get("circle-stroke-color"))
-                    )
-                    base_symbol.setOpacity(opacity)
+                renderer = create_categorized_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
 
-                    renderer = QgsCategorizedSymbolRenderer(
-                        symbology_state.get("value")
-                    )
-
-                    for i in range(2, len(fill_color_rules), 2):
-                        condition = fill_color_rules[i - 1]
-                        color = fill_color_rules[i]
-
-                        if isinstance(color, list) and len(color) == 4:
-                            r, g, b, a = color
-                            color = [r, g, b, 1.0]
-
-                        category_symbol = base_symbol.clone()
-                        category_symbol.setColor(
-                            QColor(
-                                int(color[0]),
-                                int(color[1]),
-                                int(color[2]),
-                                int(color[3] * 255),
-                            )
-                        )
-
-                        category_symbol.setOpacity(1.0)
-
-                        category = QgsRendererCategory(
-                            condition[2], category_symbol, str(condition[2])
-                        )
-                        renderer.addCategory(category)
-
-            # Graduated Renderer
             elif render_type == "Graduated":
-                fill_color_rules = color_params.get("stroke-color", [])
-                if (
-                    isinstance(fill_color_rules, list)
-                    and fill_color_rules[0] == "interpolate"
-                ):
-                    ranges = []
-                    previous_value = 0
-                    last_color = None
-
-                    for i in range(3, len(fill_color_rules) - 2, 2):
-                        lower_value = fill_color_rules[i]
-                        upper_value = fill_color_rules[i + 2]
-                        color = fill_color_rules[i + 1]
-
-                        if isinstance(color, list) and len(color) == 4:
-                            r, g, b, a = color
-                            qcolor = QColor(int(r), int(g), int(b), int(a * 255))
-                            last_color = qcolor
-
-                        range_symbol = symbol.clone()
-                        range_symbol.setColor(qcolor)
-                        g_range = QgsRendererRange(
-                            previous_value,
-                            lower_value,
-                            range_symbol,
-                            f"{previous_value} - {lower_value}",
-                        )
-                        ranges.append(g_range)
-
-                        previous_value = lower_value
-
-                    if last_color:
-                        final_symbol = symbol.clone()
-                        final_symbol.setColor(last_color)
-                        g_range = QgsRendererRange(
-                            previous_value,
-                            upper_value,
-                            final_symbol,
-                            f"{previous_value} - {upper_value}",
-                        )
-                        ranges.append(g_range)
-
-                    renderer = QgsGraduatedSymbolRenderer(
-                        symbology_state.get("value"), ranges
-                    )
+                renderer = create_graduated_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
 
         elif geometry_type == "fill":
             symbol = QgsFillSymbol()
@@ -724,7 +679,6 @@ def jgis_layer_to_qgis(
             color_params = layer_params.get("color", {})
             opacity = layer_params.get("opacity", 1.0)
             symbol.setOpacity(opacity)
-
 
             stroke_color = QColor(color_params.get("stroke-color", "#000000"))
             stroke_width = color_params.get("stroke-width", 1)
@@ -735,99 +689,24 @@ def jgis_layer_to_qgis(
             symbology_state = layer_params.get("symbologyState", {})
             render_type = symbology_state.get("renderType", "Single Symbol")
 
-            # Single Symbol Renderer
+            symbol = get_base_symbol(geometry_type, color_params, opacity)
+
+            render_type = symbology_state.get("renderType", "Single Symbol")
+
             if render_type == "Single Symbol":
                 fill_color = QColor(color_params.get("circle-fill-color"))
                 symbol.setColor(fill_color)
                 renderer = QgsSingleSymbolRenderer(symbol)
 
-            # Categorized Renderer
             elif render_type == "Categorized":
-                fill_color_rules = color_params.get("circle-fill-color", [])
-                if isinstance(fill_color_rules, list) and fill_color_rules[0] == "case":
-                    # Create a base symbol
-                    base_symbol = symbol.clone()
-                    base_symbol.symbolLayer(0).setStrokeColor(
-                        QColor(color_params.get("circle-stroke-color"))
-                    )
-                    base_symbol.setOpacity(opacity)
+                renderer = create_categorized_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
 
-                    renderer = QgsCategorizedSymbolRenderer(
-                        symbology_state.get("value")
-                    )
-
-                    for i in range(2, len(fill_color_rules), 2):
-                        condition = fill_color_rules[i - 1]
-                        color = fill_color_rules[i]
-
-                        if isinstance(color, list) and len(color) == 4:
-                            r, g, b, a = color
-                            color = [r, g, b, 1.0]
-
-                        category_symbol = base_symbol.clone()
-                        category_symbol.setColor(
-                            QColor(
-                                int(color[0]),
-                                int(color[1]),
-                                int(color[2]),
-                                int(color[3] * 255),
-                            )
-                        )
-
-                        category_symbol.setOpacity(1.0)
-
-                        category = QgsRendererCategory(
-                            condition[2], category_symbol, str(condition[2])
-                        )
-                        renderer.addCategory(category)
-
-            # Graduated Renderer
             elif render_type == "Graduated":
-                fill_color_rules = color_params.get("fill-color", [])
-                if (
-                    isinstance(fill_color_rules, list)
-                    and fill_color_rules[0] == "interpolate"
-                ):
-                    ranges = []
-                    previous_value = 0
-                    last_color = None
-
-                    for i in range(3, len(fill_color_rules) - 2, 2):
-                        lower_value = fill_color_rules[i]
-                        upper_value = fill_color_rules[i + 2]
-                        color = fill_color_rules[i + 1]
-
-                        if isinstance(color, list) and len(color) == 4:
-                            r, g, b, a = color
-                            qcolor = QColor(int(r), int(g), int(b), int(a * 255))
-                            last_color = qcolor
-
-                        range_symbol = symbol.clone()
-                        range_symbol.setColor(qcolor)
-                        g_range = QgsRendererRange(
-                            previous_value,
-                            lower_value,
-                            range_symbol,
-                            f"{previous_value} - {lower_value}",
-                        )
-                        ranges.append(g_range)
-
-                        previous_value = lower_value
-
-                    if last_color:
-                        final_symbol = symbol.clone()
-                        final_symbol.setColor(last_color)
-                        g_range = QgsRendererRange(
-                            previous_value,
-                            upper_value,
-                            final_symbol,
-                            f"{previous_value} - {upper_value}",
-                        )
-                        ranges.append(g_range)
-
-                    renderer = QgsGraduatedSymbolRenderer(
-                        symbology_state.get("value"), ranges
-                    )
+                renderer = create_graduated_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
 
         map_layer.setRenderer(renderer)
 
