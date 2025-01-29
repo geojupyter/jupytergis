@@ -15,6 +15,7 @@ dependencies:
   - pydata-sphinx-theme
   - sphinx-autodoc-typehints
   - sphinx-exercise
+  - sphinx-togglebutton
 
   - xeus-python # TODO: Do we need this?
 

@@ -276,6 +276,7 @@ jobs:
             pydata-sphinx-theme
             sphinx-autodoc-typehints
             sphinx-exercise
+            sphinx-togglebutton
             myst-parser<4.0.0
 
       - name: Download extension package

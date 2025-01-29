@@ -18,6 +18,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_tabs.tabs",
     "sphinx_exercise",
+    "sphinx_togglebutton",
     "myst_parser",
 ]
 
