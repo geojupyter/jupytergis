@@ -670,10 +670,6 @@ def jgis_layer_to_qgis(
             color_params = layer_params.get("color", {})
             opacity = layer_params.get("opacity", 1.0)
 
-            stroke_width = color_params.get("stroke-width", 1)
-
-            symbol_layer = symbol.symbolLayer(0)
-            symbol_layer.setStrokeWidth(stroke_width)
             symbology_state = layer_params.get("symbologyState", {})
             render_type = symbology_state.get("renderType", "Single Symbol")
 
