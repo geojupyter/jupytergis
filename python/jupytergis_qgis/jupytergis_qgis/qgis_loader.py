@@ -694,8 +694,11 @@ def jgis_layer_to_qgis(
             render_type = symbology_state.get("renderType", "Single Symbol")
 
             if render_type == "Single Symbol":
-                fill_color = QColor(color_params.get("circle-fill-color"))
+                fill_color = QColor(color_params.get("fill-color"))
+                stroke_color = QColor(color_params.get("stroke-color"))
                 symbol.setColor(fill_color)
+                symbol_layer = symbol.symbolLayer(0)
+                symbol_layer.setStrokeColor(stroke_color)
                 renderer = QgsSingleSymbolRenderer(symbol)
 
             elif render_type == "Categorized":
