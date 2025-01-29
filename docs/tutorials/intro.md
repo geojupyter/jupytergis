@@ -30,7 +30,7 @@ We will explore the JupyterGIS user interface to help you become familiar with i
 :::{admonition} Lesson goal
 :class: tip
 **The objective of this lesson is to understand the fundamentals of the JupyterGIS user interface.**
-::: 
+:::
 
 ![JupyterGIS User Interface explained](../assets/images/jupyterGIS_interface.png)
 
