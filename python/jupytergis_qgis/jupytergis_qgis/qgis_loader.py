@@ -30,7 +30,6 @@ from qgis.core import (
     QgsSingleBandPseudoColorRenderer,
     QgsVectorLayer,
     QgsVectorTileLayer,
-    QgsWkbTypes,
     QgsSingleSymbolRenderer,
     QgsCategorizedSymbolRenderer,
     QgsRendererCategory,
@@ -403,9 +402,8 @@ def get_base_symbol(geometry_type, color_params, opacity):
         stroke_color = QColor(color_params.get("stroke-color", "#000000"))
         symbol_layer.setStrokeColor(stroke_color)
 
-    if geometry_type in ["line", "fill"]:
-        stroke_width = color_params.get("stroke-width", 1)
-        symbol_layer.setStrokeWidth(stroke_width)
+    stroke_width = color_params.get("stroke-width", 1)
+    symbol_layer.setStrokeWidth(stroke_width)
 
     return symbol
 
@@ -430,7 +428,6 @@ def create_categorized_renderer(
         category_symbol.setColor(
             QColor(int(color[0]), int(color[1]), int(color[2]), int(color[3] * 255))
         )
-        category_symbol.setOpacity(1.0)
 
         category = QgsRendererCategory(condition[2], category_symbol, str(condition[2]))
         renderer.addCategory(category)
@@ -619,11 +616,6 @@ def jgis_layer_to_qgis(
             symbology_state = layer_params.get("symbologyState", {})
             render_type = symbology_state.get("renderType", "Single Symbol")
 
-            # Set stroke color and width
-            stroke_color = QColor(color_params.get("circle-stroke-color", "#3399CC"))
-            symbol.symbolLayer(0).setStrokeColor(stroke_color)
-            symbol.setOpacity(opacity)
-
             symbol = get_base_symbol(geometry_type, color_params, opacity)
 
             render_type = symbology_state.get("renderType", "Single Symbol")
@@ -650,7 +642,6 @@ def jgis_layer_to_qgis(
 
             opacity = int(layer_params.get("opacity"))
 
-            symbol.setOpacity(opacity)
             symbology_state = layer_params.get("symbologyState", {})
             render_type = symbology_state.get("renderType", "Single Symbol")
 
@@ -678,13 +669,10 @@ def jgis_layer_to_qgis(
             symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
             color_params = layer_params.get("color", {})
             opacity = layer_params.get("opacity", 1.0)
-            symbol.setOpacity(opacity)
 
-            stroke_color = QColor(color_params.get("stroke-color", "#000000"))
             stroke_width = color_params.get("stroke-width", 1)
 
             symbol_layer = symbol.symbolLayer(0)
-            symbol_layer.setStrokeColor(stroke_color)
             symbol_layer.setStrokeWidth(stroke_width)
             symbology_state = layer_params.get("symbologyState", {})
             render_type = symbology_state.get("renderType", "Single Symbol")
