@@ -659,7 +659,7 @@ def jgis_layer_to_qgis(
             render_type = symbology_state.get("renderType", "Single Symbol")
 
             if render_type == "Single Symbol":
-                fill_color = QColor(color_params.get("circle-fill-color"))
+                fill_color = QColor(color_params.get("stroke-color"))
                 symbol.setColor(fill_color)
                 renderer = QgsSingleSymbolRenderer(symbol)
 
