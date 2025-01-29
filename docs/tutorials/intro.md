@@ -60,7 +60,7 @@ jupyter lab
 
 Follow along to add a vector layer available online.
 
-1. Click on the GIS File Icon in the "Other" section of the Launcher to create a new JGIS Editor. You will have a new, blank map.
+1. Click on the GIS File Icon in the "Other" section of the Launcher to create a new JGIS project file. You will have a new, blank map.
    ![JGIS Editor](../assets/images/JGIS_editor.png)
 2. Open Layer Browser (see image below) and select for instance _OpenStreetMap.Mapnik_. An interactive map will appear and you will be able to zoom in and zoom out with your mouse.
    ![Open Layer Browser](../assets/images/OpenLayerBrowser.png)
