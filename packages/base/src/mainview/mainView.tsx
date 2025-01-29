@@ -649,7 +649,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
     }
-    
+
     newSource.set('id', id);
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
@@ -735,6 +735,9 @@ export class MainView extends React.Component<IProps, IStates> {
       targetLayerPosition++
     ) {
       const layerId = layerIds[targetLayerPosition];
+      if (this.state.loadingErrors.find(item => item.id === layerId)) {
+        continue;
+      }
       const layer = this._model.sharedModel.getLayer(layerId);
 
       if (!layer) {
@@ -957,7 +960,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
       }
-    } catch (error) {
+    } catch (error: any) {
       if (this.state.loadingErrors.find(item => item.id === id)) {
         this._loadingLayers.delete(id);
         return;
@@ -965,7 +968,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       await showErrorMessage(
         `Error Adding ${layer.name}`,
-        `Failed to add ${layer.name}.`
+        `Failed to add ${layer.name}: ${error.message || 'invalid file path.'}`
       );
       this.setState(old => ({ ...old, loadingLayer: false }));
       this.state.loadingErrors.push({ id, error, index });
