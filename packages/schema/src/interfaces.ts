@@ -10,6 +10,7 @@ import { IChangedArgs } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 import { Contents, User } from '@jupyterlab/services';
+import { JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel } from '@lumino/widgets';
 
@@ -26,7 +27,6 @@ import {
   SourceType
 } from './_interface/jgis';
 import { IRasterSource } from './_interface/rastersource';
-
 export { IGeoJSONSource } from './_interface/geojsonsource';
 
 export type JgisCoordinates = { x: number; y: number };
@@ -89,6 +89,9 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
 
   readonly editable: boolean;
   readonly toJGISEndpoint?: string;
+
+  getSource(): JSONObject;
+  setSource(value: JSONObject | string): void;
 
   layerExists(id: string): boolean;
   getLayer(id: string): IJGISLayer | undefined;
