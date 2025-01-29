@@ -15,7 +15,7 @@ By the end of this tutorial, you will:
 
 JupyterGIS integrates geospatial analysis with the interactivity of Jupyter Notebooks, enabling users to:
 
-- Visualize and create interactive maps.
+- Visualize geospatial data and create interactive maps.
 - Process and analyze geospatial data.
 - Share and collaborate on geospatial workflows.
 
