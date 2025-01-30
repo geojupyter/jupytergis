@@ -210,11 +210,8 @@ select option {
   border-radius: var(--jp-border-radius);
 }
 
-.jp-Dialog-content:has(.jp-gis-color-canvas-display) {
-  overflow: visible;
-}
-
-.jp-Dialog-body:has(.jp-gis-color-canvas-display) {
+.jp-Dialog-content:has(.jp-gis-heatmap),
+.jp-Dialog-body:has(.jp-gis-heatmap) {
   overflow: visible;
 }
 

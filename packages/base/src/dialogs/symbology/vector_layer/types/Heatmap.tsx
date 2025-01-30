@@ -86,7 +86,7 @@ const Heatmap = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
-      <div className="jp-gis-symbology-row">
+      <div className="jp-gis-symbology-row jp-gis-heatmap">
         <label htmlFor="color-ramp-select">Color Ramp:</label>
         <CanvasSelectComponent
           selectedRamp={selectedRamp}
