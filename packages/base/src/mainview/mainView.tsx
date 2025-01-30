@@ -735,9 +735,6 @@ export class MainView extends React.Component<IProps, IStates> {
       targetLayerPosition++
     ) {
       const layerId = layerIds[targetLayerPosition];
-      if (this.state.loadingErrors.find(item => item.id === layerId)) {
-        continue;
-      }
       const layer = this._model.sharedModel.getLayer(layerId);
 
       if (!layer) {
@@ -961,17 +958,25 @@ export class MainView extends React.Component<IProps, IStates> {
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
       }
     } catch (error: any) {
-      if (this.state.loadingErrors.find(item => item.id === id)) {
+      if (
+        this.state.loadingErrors.find(
+          item => item.id === id && item.error === error.message
+        )
+      ) {
         this._loadingLayers.delete(id);
         return;
       }
 
       await showErrorMessage(
         `Error Adding ${layer.name}`,
-        `Failed to add ${layer.name}: ${error.message || 'invalid file path.'}`
+        `Failed to add ${layer.name}: ${error.message || 'invalid file path'}`
       );
       this.setState(old => ({ ...old, loadingLayer: false }));
-      this.state.loadingErrors.push({ id, error, index });
+      this.state.loadingErrors.push({
+        id,
+        error: error.message || 'invalid file path',
+        index
+      });
       this._loadingLayers.delete(id);
     }
   }
