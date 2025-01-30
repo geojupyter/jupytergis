@@ -182,10 +182,21 @@ def qgis_layer_to_jgis(
             color["stroke-color"] = symbol.color().name() + alpha
 
         if isinstance(symbol, QgsFillSymbol):
-            color["fill-color"] = symbol.color().name() + alpha
+            color["fill-color"] = symbol.color().name()
+            color["stroke-color"] = symbol.color().name()
+            color["stroke-line-cap"] = (
+                symbol.symbolLayer(0).penCapStyle().name().lower()
+            )
+            color["stroke-line-join"] = (
+                symbol.symbolLayer(0).penJoinStyle().name().lower()
+            )
+            color["stroke-width"] = symbol.symbolLayer(0).width()
 
         layer_parameters.update(type="fill")
         layer_parameters.update(color=color)
+
+        if isinstance(renderer, QgsSingleSymbolRenderer):
+            layer_parameters.update(symbologyState={"renderType": "Single Symbol"})
 
     if isinstance(layer, QgsVectorTileLayer):
         layer_type = "VectorTileLayer"
@@ -240,7 +251,7 @@ def qgis_layer_to_jgis(
         layer_parameters.update(color=color)
 
     if layer_type is None:
-        print(f"JUPYTERGIS - Enable to load layer type {type(layer)}")
+        print(f"JUPYTERGIS - Unable to load layer type {type(layer)}")
         return
 
     layer_id = layer.id()
