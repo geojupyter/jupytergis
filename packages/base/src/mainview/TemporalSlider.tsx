@@ -166,7 +166,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     const nf = {
       feature: selectedFeature,
       operator: '>=' as const,
-      value: val
+      value: +e.target.value
     };
 
     // if no filters then add this one
@@ -179,7 +179,8 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     }
 
     layer.filters = { logicalOp: 'all', appliedFilters: newFilters };
-    model?.sharedModel.updateLayer(layerId, layer);
+    // model?.sharedModel.updateLayer(layerId, layer);
+    model.addFeatureTimeThins(layerId, nf);
   };
 
   const setFeature = (e: any) => {
