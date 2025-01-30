@@ -13,6 +13,11 @@ By the end of this tutorial, you will:
 4. Explore basic geospatial analysis using JupyterGIS.
    :::
 
+:::{admonition} Prerequisites
+:class: warning
+Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://geojupyter.github.io/jupytergis/install.html)) or you can use an online version of JupyterGIS (such as [![Jupyterlite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://geojupyter.github.io/jupytergis/lite/lab/index.html?path=france_hiking.jGIS/)).
+:::
+
 ## Introduction to JupyterGIS
 
 JupyterGIS integrates geospatial analysis with the interactivity of Jupyter Notebooks, enabling users to:
@@ -48,15 +53,7 @@ The elements shown in the figure above are:
 
 We will start the JupyterGIS application and create a basic map.
 
-:::{admonition} Lesson goal
-:class: tip
 **The goal for this lesson: To get started with an example map.**
-:::
-
-:::{admonition} Get JupyterGIS
-:class: tip
-Before beginning this exercise, JupyterGIS must be installed on your computer (see [Installation instructions](https://geojupyter.github.io/jupytergis/install.html)) or you can use an online version of JupyterGIS (such as [![Jupyterlite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://geojupyter.github.io/jupytergis/lite/lab/index.html?path=france_hiking.jGIS/)).
-:::
 
 Launch JupyterGIS from your terminal or start an online version of JupyterGIS depending on what you decided to use for this exercise.
 
@@ -70,6 +67,10 @@ Follow along to add a vector layer available online.
 
 1. Click on the GIS File Icon in the "Other" section of the Launcher to create a new JGIS project file. You will have a new, blank map.
    ![JGIS Editor](../assets/images/JGIS_editor.png)
+   :::{admonition} Why can't I see all the elements in the JupyterGIS User Interface?
+   :class: attention
+   If you don't see **GIS File** (under the JupyterGIS icon) in the **Other** section of the application launcher, you may have an issue with the JupyterGIS installation or may have forgotten to install it. Please refer to the prerequisites at the top of this tutorial to continue.
+   :::
 2. Open Layer Browser (see image below) and select for instance _OpenStreetMap.Mapnik_. An interactive map will appear and you will be able to zoom in and zoom out with your mouse.
    ![Open Layer Browser](../assets/images/OpenLayerBrowser.png)
 3. Click on the **+** to add a user-defined layer and select "New Shapefile Layer" to add a new vector layer (stored as a shapefile).
