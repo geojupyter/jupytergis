@@ -23,7 +23,6 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "mapbox-vector-tile",
   "requests",
   "jupyter-ydoc>=2,<4",
   "ypywidgets>=0.9.0,<0.10.0",

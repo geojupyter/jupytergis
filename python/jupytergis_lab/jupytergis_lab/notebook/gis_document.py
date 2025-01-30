@@ -29,7 +29,7 @@ from .objects import (
     LayerType,
     SourceType,
 )
-from .utils import get_source_layer_names, normalize_path
+from .utils import normalize_path
 
 logger = logging.getLogger(__file__)
 
@@ -172,7 +172,6 @@ class GISDocument(CommWidget):
         self,
         url: str,
         name: str = "Vector Tile Layer",
-        source_layer: str | None = None,
         attribution: str = "",
         min_zoom: int = 0,
         max_zoom: int = 24,
@@ -189,15 +188,9 @@ class GISDocument(CommWidget):
 
         :param name: The name that will be used for the object in the document.
         :param url: The tiles url.
-        :param source_layer: The source layer to use.
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
         """
-        source_layers = get_source_layer_names(url)
-        if source_layer is None and len(source_layers) == 1:
-            source_layer = source_layers[0]
-        if source_layer not in source_layers:
-            raise ValueError(f"source_layer should be one of {source_layers}")
 
         source = {
             "type": SourceType.VectorTileSource,
@@ -224,7 +217,6 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "type": type,
                 "opacity": opacity,
-                "sourceLayer": source_layer,
                 "color": color_expr,
                 "opacity": opacity,
             },

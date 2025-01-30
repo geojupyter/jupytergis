@@ -9,10 +9,9 @@ import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import { cloneDeep } from 'lodash';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
-import { debounce, getLayerTileInfo } from '../../../tools';
+import { debounce, loadFile } from '../../../tools';
 import { IControlPanelModel } from '../../../types';
 import FilterRow from './FilterRow';
-import { loadFile } from '../../../tools';
 
 /**
  * The filters panel widget.
@@ -165,7 +164,6 @@ const FilterComponent = (props: IFilterComponentProps) => {
     }
     const layer = model.getLayer(currentLayer ?? selectedLayer);
     const source = model.getSource(layer?.parameters?.source);
-    const { latitude, longitude, extent, zoom } = model.getOptions();
 
     if (!source || !layer) {
       return;
@@ -189,24 +187,6 @@ const FilterComponent = (props: IFilterComponentProps) => {
     }
 
     switch (source.type) {
-      case 'VectorTileSource': {
-        try {
-          const tile = await getLayerTileInfo(source?.parameters?.url, {
-            latitude,
-            longitude,
-            extent,
-            zoom
-          });
-          const layerValue = tile.layers[layer.parameters?.sourceLayer];
-          for (let i = 0; i < layerValue.length; i++) {
-            const feature = layerValue.feature(i);
-            addFeatureValue(feature.properties, aggregatedProperties);
-          }
-        } catch (error) {
-          console.warn(`Error fetching tile info: ${error}`);
-        }
-        break;
-      }
       case 'GeoJSONSource': {
         const data = await loadFile({
           filepath: source.parameters?.path,

@@ -8,7 +8,6 @@ from typing import Any
 from urllib.parse import unquote
 from uuid import uuid4
 
-from jupytergis_lab.notebook.utils import get_source_layer_names
 from PyQt5.QtGui import QColor
 from qgis.core import (
     QgsApplication,
@@ -223,13 +222,6 @@ def qgis_layer_to_jgis(
 
             if geometry_type == 2:
                 color["fill-color"] = symbol.color().name() + alpha
-
-        # TODO Load source-layer properly, from qgis symbology?
-        try:
-            source_layer = get_source_layer_names(url)[0]
-            layer_parameters["sourceLayer"] = source_layer
-        except ValueError:
-            pass
 
         layer_parameters.update(type="fill")
         layer_parameters.update(color=color)

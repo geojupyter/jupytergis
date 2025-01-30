@@ -10,7 +10,6 @@
         "color": "#086600",
         "opacity": 1.0,
         "source": "7a7ee6fd-c1e2-4c5d-a4e2-a7974db138a4",
-        "sourceLayer": "bingmlbuildings",
         "type": "fill"
       },
       "type": "VectorTileLayer",
