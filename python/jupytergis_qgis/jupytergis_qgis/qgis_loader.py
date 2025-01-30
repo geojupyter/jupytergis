@@ -157,13 +157,12 @@ def qgis_layer_to_jgis(
         source_type = "GeoJSONSource"
         source = layer.source()
 
-        components = source.split("/")
-
-        # Get the last component, which should be the file name
-        file_name = components[-1]
-
-        # Remove any query parameters
-        file_name = file_name.split("|")[0]
+        if source.startswith("http://") or source.startswith("https://"):
+            file_name = source
+        else:
+            components = source.split("/")
+            file_name = components[-1]
+            file_name = file_name.split("|")[0]
 
         source_parameters.update(path=file_name)
 
