@@ -1,8 +1,8 @@
 import {
+  IJupyterLabPageFixture,
   expect,
-  test,
   galata,
-  IJupyterLabPageFixture
+  test
 } from '@jupyterlab/galata';
 import { Locator } from '@playwright/test';
 import path from 'path';
@@ -48,12 +48,14 @@ test.describe('#geoJSONLayer', () => {
 
   test('Add a GeoJSON layer', async ({ page, tmpPath }) => {
     const panel = await openGIS(page, tmpPath, FILENAME);
-    const button = panel?.locator('.jp-ToolbarButton[data-jp-item-name="New"]');
     const main = panel?.locator('.jGIS-Mainview');
 
-    await button?.click();
     await page
-      .locator('.lm-Menu-itemLabel')
+      .locator('div:nth-child(9) > .jp-ToolbarButtonComponent > .control')
+      .click();
+    await page.getByText('Add Vector Layer').hover();
+    await page
+      .locator('#jp-gis-toolbar-vector-menu')
       .getByText('New GeoJSON layer')
       .click();
 
