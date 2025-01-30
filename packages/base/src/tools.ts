@@ -2,19 +2,18 @@ import Protobuf from 'pbf';
 
 import { VectorTile } from '@mapbox/vector-tile';
 
-import { URLExt } from '@jupyterlab/coreutils';
+import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import * as d3Color from 'd3-color';
-import { PathExt } from '@jupyterlab/coreutils';
 import shp from 'shpjs';
 
 import {
   IDict,
   IJGISLayerBrowserRegistry,
   IJGISOptions,
-  IRasterLayerGalleryEntry,
   IJGISSource,
-  IJupyterGISModel
+  IJupyterGISModel,
+  IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
 import { getGdal } from './gdal';
@@ -288,21 +287,6 @@ export async function getLayerTileInfo(
   const tile = new VectorTile(new Protobuf(arrayBuffer));
 
   return tile;
-}
-
-export async function getSourceLayerNames(
-  tileUrl: string,
-  urlParameters?: IDict<string>
-) {
-  const tile = await getLayerTileInfo(
-    tileUrl,
-    { latitude: 0, longitude: 0, zoom: 0, extent: [] },
-    urlParameters
-  );
-
-  const layerNames = Object.keys(tile.layers);
-
-  return layerNames;
 }
 
 export interface IParsedStyle {

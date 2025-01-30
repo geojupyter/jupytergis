@@ -125,8 +125,8 @@ def test_qgis_saver():
     if os.path.exists(filename):
         os.remove(filename)
 
-    layer_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
-    source_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
+    layer_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
+    source_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
     jgis = {
         "options": {
             "bearing": 0.0,
@@ -170,7 +170,6 @@ def test_qgis_saver():
                         "stroke-color": "#e5b636ff",
                     },
                     "source": source_ids[2],
-                    "sourceLayer": "bingmlbuildings",
                     "type": "fill",
                 },
                 "type": "VectorTileLayer",
@@ -185,6 +184,21 @@ def test_qgis_saver():
                 "type": "RasterLayer",
                 "visible": False,
             },
+            layer_ids[4]: {
+                "name": "Custom GeoJSON Layer",
+                "parameters": {
+                    "color": {
+                        "fill-color": "#4ea4d0",
+                        "stroke-color": "#4ea4d0",
+                    },
+                    "opacity": 1.0,
+                    "source": source_ids[4],
+                    "symbologyState": {"renderType": "Single Symbol"},
+                    "type": "fill",
+                },
+                "type": "VectorLayer",
+                "visible": True,
+            },
         },
         "layerTree": [
             layer_ids[0],
@@ -196,6 +210,7 @@ def test_qgis_saver():
                 ],
                 "name": "group0",
             },
+            layer_ids[4],
         ],
         "sources": {
             source_ids[0]: {
@@ -233,6 +248,13 @@ def test_qgis_saver():
                     "maxZoom": 19,
                     "minZoom": 0,
                 },
+            },
+            source_ids[4]: {
+                "name": "Custom GeoJSON Layer Source",
+                "parameters": {
+                    "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+                },
+                "type": "GeoJSONSource",
             },
         },
         "metadata": {},

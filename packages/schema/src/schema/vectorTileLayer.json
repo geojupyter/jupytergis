@@ -15,10 +15,6 @@
       "default": "line",
       "description": "The type of vector layer"
     },
-    "sourceLayer": {
-      "type": "string",
-      "description": "The source layer to use"
-    },
     "color": {
       "type": "object",
       "description": "The color of the the object"
