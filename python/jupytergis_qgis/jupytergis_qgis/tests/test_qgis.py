@@ -190,8 +190,7 @@ def test_qgis_saver():
                 "parameters": {
                     "color": {
                         "fill-color": "#4ea4d0",
-                        "stroke-color": "#ff0000",
-                        "stroke-width": 1.25,
+                        "stroke-color": "#4ea4d0",
                     },
                     "opacity": 1.0,
                     "source": source_ids[4],
