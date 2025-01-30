@@ -542,8 +542,6 @@ def jgis_layer_to_qgis(
 
         if source_type == "GeoJSONSource":
             path = parameters.get("path", None)
-            if path is None:
-                return
             return path
 
         if source_type == "RasterSource":
