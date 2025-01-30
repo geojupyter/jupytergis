@@ -48,7 +48,10 @@ The elements shown in the figure above are:
 
 We will start the JupyterGIS application and create a basic map.
 
+:::{admonition} Lesson goal
+:class: tip
 **The goal for this lesson: To get started with an example map.**
+:::
 
 :::{admonition} Get JupyterGIS
 :class: tip
