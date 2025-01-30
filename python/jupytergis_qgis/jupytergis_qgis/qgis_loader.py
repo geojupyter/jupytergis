@@ -671,7 +671,7 @@ def jgis_layer_to_qgis(
             symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
             color_params = layer_params.get("color", {})
 
-            opacity = int(layer_params.get("opacity"))
+            opacity = layer_params.get("opacity")
 
             symbology_state = layer_params.get("symbologyState", {})
             render_type = symbology_state.get("renderType", "Single Symbol")
