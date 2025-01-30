@@ -398,12 +398,15 @@ def get_base_symbol(geometry_type, color_params, opacity):
     symbol.setOpacity(opacity)
     symbol_layer = symbol.symbolLayer(0)
 
-    if geometry_type in ["circle", "fill"]:
+    if geometry_type in ["line", "fill"]:
         stroke_color = QColor(color_params.get("stroke-color", "#000000"))
         symbol_layer.setStrokeColor(stroke_color)
 
-    stroke_width = color_params.get("stroke-width", 1)
-    symbol_layer.setStrokeWidth(stroke_width)
+        stroke_width = color_params.get("stroke-width", 1)
+        symbol_layer.setStrokeWidth(stroke_width)
+    elif geometry_type == "circle":
+        stroke_color = QColor(color_params.get("circle-stroke-color", "#000000"))
+        symbol_layer.setStrokeColor(stroke_color)
 
     return symbol
 
