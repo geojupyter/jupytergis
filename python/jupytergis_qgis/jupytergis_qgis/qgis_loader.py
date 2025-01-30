@@ -29,6 +29,12 @@ from qgis.core import (
     QgsSingleBandPseudoColorRenderer,
     QgsVectorLayer,
     QgsVectorTileLayer,
+    QgsSingleSymbolRenderer,
+    QgsCategorizedSymbolRenderer,
+    QgsRendererCategory,
+    QgsGraduatedSymbolRenderer,
+    QgsRendererRange,
+    Qgis,
 )
 
 # Prevent any Qt application and event loop to spawn when
@@ -150,13 +156,12 @@ def qgis_layer_to_jgis(
         source_type = "GeoJSONSource"
         source = layer.source()
 
-        components = source.split("/")
-
-        # Get the last component, which should be the file name
-        file_name = components[-1]
-
-        # Remove any query parameters
-        file_name = file_name.split("|")[0]
+        if source.startswith("http://") or source.startswith("https://"):
+            file_name = source
+        else:
+            components = source.split("/")
+            file_name = components[-1]
+            file_name = file_name.split("|")[0]
 
         source_parameters.update(path=file_name)
 
@@ -176,10 +181,14 @@ def qgis_layer_to_jgis(
             color["stroke-color"] = symbol.color().name() + alpha
 
         if isinstance(symbol, QgsFillSymbol):
-            color["fill-color"] = symbol.color().name() + alpha
+            color["fill-color"] = symbol.color().name()
+            color["stroke-color"] = symbol.color().name()
 
         layer_parameters.update(type="fill")
         layer_parameters.update(color=color)
+
+        if isinstance(renderer, QgsSingleSymbolRenderer):
+            layer_parameters.update(symbologyState={"renderType": "Single Symbol"})
 
     if isinstance(layer, QgsVectorTileLayer):
         layer_type = "VectorTileLayer"
@@ -227,7 +236,7 @@ def qgis_layer_to_jgis(
         layer_parameters.update(color=color)
 
     if layer_type is None:
-        print(f"JUPYTERGIS - Enable to load layer type {type(layer)}")
+        print(f"JUPYTERGIS - Unable to load layer type {type(layer)}")
         return
 
     layer_id = layer.id()
@@ -368,6 +377,137 @@ def import_project_from_qgis(path: str | Path):
     }
 
 
+def get_base_symbol(geometry_type, color_params, opacity):
+    """Returns a base symbol based on geometry type."""
+    if geometry_type == "circle":
+        symbol = QgsMarkerSymbol()
+    elif geometry_type == "line":
+        symbol = QgsLineSymbol()
+    elif geometry_type == "fill":
+        symbol = QgsFillSymbol()
+    else:
+        return None
+
+    symbol.setOpacity(opacity)
+    symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
+    symbol_layer = symbol.symbolLayer(0)
+
+    if geometry_type == "circle":
+        stroke_color = QColor(color_params.get("circle-stroke-color", "#000000"))
+        symbol_layer.setStrokeColor(stroke_color)
+        stroke_width = color_params.get("circle-stroke-width", 1)
+        symbol_layer.setStrokeWidth(stroke_width)
+    elif geometry_type == "line":
+        stroke_color = QColor(color_params.get("stroke-color", "#000000"))
+        symbol_layer.setStrokeColor(stroke_color)
+        stroke_width = color_params.get("stroke-width", 1)
+        symbol_layer.setWidth(stroke_width)
+    elif geometry_type == "fill":
+        stroke_color = QColor(color_params.get("stroke-color", "#000000"))
+        symbol_layer.setStrokeColor(stroke_color)
+        stroke_width = color_params.get("stroke-width", 1)
+        symbol_layer.setStrokeWidth(stroke_width)
+
+    return symbol
+
+
+def create_categorized_renderer(
+    symbology_state, geometry_type, color_params, base_symbol
+):
+    """Creates a categorized renderer."""
+    fill_color_rules = color_params.get("circle-fill-color", [])
+    radius_rules = (
+        color_params.get("circle-radius", []) if geometry_type == "circle" else []
+    )
+
+    renderer = QgsCategorizedSymbolRenderer(symbology_state.get("value"))
+
+    for i in range(1, len(fill_color_rules) - 1, 2):
+        condition = fill_color_rules[i]
+        color = fill_color_rules[i + 1]
+
+        if isinstance(color, list) and len(color) == 4:
+            r, g, b, a = color
+            color = [r, g, b, 1.0]
+
+        category_symbol = base_symbol.clone()
+        category_symbol.setColor(
+            QColor(int(color[0]), int(color[1]), int(color[2]), int(color[3] * 255))
+        )
+
+        if geometry_type == "circle" and len(radius_rules) > i:
+            radius = radius_rules[i + 3]
+            category_symbol.setSize(2 * radius)
+
+        category = QgsRendererCategory(condition[2], category_symbol, str(condition[2]))
+        renderer.addCategory(category)
+
+    return renderer
+
+
+def create_graduated_renderer(
+    symbology_state, geometry_type, color_params, base_symbol
+):
+    """Creates a graduated renderer."""
+    if geometry_type == "circle":
+        fill_color_rules = color_params.get("circle-fill-color", [])
+        radius_rules = color_params.get("circle-radius", [])
+    elif geometry_type == "fill":
+        fill_color_rules = color_params.get("fill-color", [])
+    elif geometry_type == "line":
+        fill_color_rules = color_params.get("stroke-color", [])
+
+    ranges = []
+    previous_value = 0
+    last_color = None
+    last_radius = None
+
+    for i in range(3, len(fill_color_rules) - 2, 2):
+        lower_value = fill_color_rules[i]
+        upper_value = fill_color_rules[i + 2]
+        color = fill_color_rules[i + 1]
+
+        if isinstance(color, list) and len(color) == 4:
+            r, g, b, a = color
+            qcolor = QColor(int(r), int(g), int(b), int(a * 255))
+            last_color = qcolor
+
+        range_symbol = base_symbol.clone()
+        range_symbol.setColor(qcolor)
+
+        if geometry_type == "circle" and len(radius_rules) > i + 1:
+            radius = radius_rules[i + 1]
+            if isinstance(radius, (int, float)):
+                range_symbol.setSize(2 * radius)
+                last_radius = radius
+
+        g_range = QgsRendererRange(
+            previous_value,
+            lower_value,
+            range_symbol,
+            f"{previous_value} - {lower_value}",
+        )
+        ranges.append(g_range)
+        previous_value = lower_value
+
+    if last_color:
+        final_symbol = base_symbol.clone()
+        final_symbol.setColor(last_color)
+
+        if geometry_type == "circle" and last_radius is not None:
+            final_symbol.setSize(2 * last_radius)
+
+        g_range = QgsRendererRange(
+            previous_value,
+            upper_value,
+            final_symbol,
+            f"{previous_value} - {upper_value}",
+        )
+        ranges.append(g_range)
+
+    return QgsGraduatedSymbolRenderer(symbology_state.get("value"), ranges)
+
+
 def jgis_layer_to_qgis(
     layer_id: str,
     layers: dict[str, dict[str, Any]],
@@ -391,6 +531,10 @@ def jgis_layer_to_qgis(
                     url = url.replace(f"{{{k}}}", v)
             layer_config["url"] = url
             layer_config["type"] = "xyz"
+
+        if source_type == "GeoJSONSource":
+            path = parameters.get("path", None)
+            return path
 
         if source_type == "RasterSource":
             layer_config["crs"] = "EPSG:3857"
@@ -468,6 +612,113 @@ def jgis_layer_to_qgis(
                 parsed_styles.append(style)
 
             renderer.setStyles(parsed_styles)
+
+    if layer_type == "VectorLayer" and source_type == "GeoJSONSource":
+        source_parameters = source.get("parameters", {})
+        uri = build_uri(source_parameters, "GeoJSONSource")
+        if not uri:
+            logs["warnings"].append(
+                f"Layer {layer_id} not exported: invalid GeoJSON source."
+            )
+            return
+
+        # Not checking for file.isValid() since it will eventually fail to load the file (relative path on the original file does not match server root)
+        map_layer = QgsVectorLayer(uri, layer_name, "ogr")
+        crs_84 = QgsCoordinateReferenceSystem("EPSG:4326")
+        map_layer.setCrs(crs_84)
+
+        geometry_type = layer.get("parameters", {}).get("type")
+        layer_params = layer.get("parameters", {})
+
+        if geometry_type == "circle":
+            symbol = QgsMarkerSymbol()
+            color_params = layer_params.get("color", {})
+            opacity = layer_params.get("opacity", 1.0)
+            symbology_state = layer_params.get("symbologyState", {})
+            render_type = symbology_state.get("renderType", "Single Symbol")
+
+            symbol = get_base_symbol(geometry_type, color_params, opacity)
+
+            render_type = symbology_state.get("renderType", "Single Symbol")
+
+            if render_type == "Single Symbol":
+                fill_color = QColor(color_params.get("circle-fill-color"))
+                symbol.setColor(fill_color)
+                radius = color_params.get("circle-radius", 5)
+                symbol.setSize(2 * radius)
+                renderer = QgsSingleSymbolRenderer(symbol)
+
+            elif render_type == "Categorized":
+                renderer = create_categorized_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
+
+            elif render_type == "Graduated":
+                renderer = create_graduated_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
+
+        elif geometry_type == "line":
+            symbol = QgsLineSymbol()
+            symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
+            color_params = layer_params.get("color", {})
+
+            opacity = layer_params.get("opacity")
+
+            symbology_state = layer_params.get("symbologyState", {})
+            render_type = symbology_state.get("renderType", "Single Symbol")
+
+            symbol = get_base_symbol(geometry_type, color_params, opacity)
+
+            render_type = symbology_state.get("renderType", "Single Symbol")
+
+            if render_type == "Single Symbol":
+                fill_color = QColor(color_params.get("stroke-color"))
+                symbol.setColor(fill_color)
+                renderer = QgsSingleSymbolRenderer(symbol)
+
+            elif render_type == "Categorized":
+                renderer = create_categorized_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
+
+            elif render_type == "Graduated":
+                renderer = create_graduated_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
+
+        elif geometry_type == "fill":
+            symbol = QgsFillSymbol()
+            symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
+            color_params = layer_params.get("color", {})
+            opacity = layer_params.get("opacity", 1.0)
+
+            symbology_state = layer_params.get("symbologyState", {})
+            render_type = symbology_state.get("renderType", "Single Symbol")
+
+            symbol = get_base_symbol(geometry_type, color_params, opacity)
+
+            render_type = symbology_state.get("renderType", "Single Symbol")
+
+            if render_type == "Single Symbol":
+                fill_color = QColor(color_params.get("fill-color"))
+                stroke_color = QColor(color_params.get("stroke-color"))
+                symbol.setColor(fill_color)
+                symbol_layer = symbol.symbolLayer(0)
+                symbol_layer.setStrokeColor(stroke_color)
+                renderer = QgsSingleSymbolRenderer(symbol)
+
+            elif render_type == "Categorized":
+                renderer = create_categorized_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
+
+            elif render_type == "Graduated":
+                renderer = create_graduated_renderer(
+                    symbology_state, geometry_type, color_params, symbol
+                )
+
+        map_layer.setRenderer(renderer)
 
     if layer_type == "WebGlLayer" and source_type == "GeoTiffSource":
         source_parameters = source.get("parameters", {})
@@ -577,7 +828,7 @@ def jgis_layer_to_qgis(
         logs["warnings"].append(
             f"Layer {layer_id} not exported: enable to export layer type {layer_type}"
         )
-        print(f"JUPYTERGIS - Enable to export layer type {layer_type}")
+        print(f"JUPYTERGIS - Unable to export layer type {layer_type}")
         return
 
     map_layer.setId(layer_id)

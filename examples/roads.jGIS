@@ -1,0 +1,165 @@
+{
+  "layerTree": [
+    "af9e8ee5-c731-4989-86c9-b0ce1652db89"
+  ],
+  "layers": {
+    "af9e8ee5-c731-4989-86c9-b0ce1652db89": {
+      "name": "Custom GeoJSON Layer",
+      "parameters": {
+        "color": {
+          "circle-fill-color": [
+            "case",
+            [
+              "==",
+              [
+                "get",
+                "expressway"
+              ],
+              0.0
+            ],
+            [
+              125.0,
+              0.0,
+              179.0,
+              1.0
+            ],
+            [
+              "==",
+              [
+                "get",
+                "expressway"
+              ],
+              1.0
+            ],
+            [
+              147.0,
+              255.0,
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "fill-color": "#3399CC",
+          "stroke-color": [
+            "interpolate",
+            [
+              "linear"
+            ],
+            [
+              "get",
+              "orig_fid"
+            ],
+            4210.0,
+            [
+              125.0,
+              0.0,
+              179.0,
+              1.0
+            ],
+            8420.0,
+            [
+              116.0,
+              0.0,
+              218.0,
+              1.0
+            ],
+            12630.0,
+            [
+              98.0,
+              74.0,
+              237.0,
+              1.0
+            ],
+            16840.0,
+            [
+              68.0,
+              146.0,
+              231.0,
+              1.0
+            ],
+            21050.0,
+            [
+              0.0,
+              204.0,
+              197.0,
+              1.0
+            ],
+            25260.0,
+            [
+              0.0,
+              247.0,
+              146.0,
+              1.0
+            ],
+            29470.0,
+            [
+              0.0,
+              255.0,
+              88.0,
+              1.0
+            ],
+            33680.0,
+            [
+              40.0,
+              255.0,
+              8.0,
+              1.0
+            ],
+            37890.0,
+            [
+              147.0,
+              255.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
+        "opacity": 1.0,
+        "source": "d068cd81-937d-43da-bc0f-54c15b732aba",
+        "symbologyState": {
+          "colorRamp": "cool",
+          "method": "color",
+          "mode": "equal interval",
+          "nClasses": "9",
+          "renderType": "Graduated",
+          "value": "orig_fid"
+        },
+        "type": "line"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -156165167.61157694,
+      -19031255.21022601,
+      -116090150.92599846,
+      17090358.99858201
+    ],
+    "latitude": -8.684240841198346,
+    "longitude": -142.85556912566426,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 1.9113919878434593
+  },
+  "sources": {
+    "d068cd81-937d-43da-bc0f-54c15b732aba": {
+      "name": "Custom GeoJSON Layer Source",
+      "parameters": {
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson"
+      },
+      "type": "GeoJSONSource"
+    }
+  }
+}
