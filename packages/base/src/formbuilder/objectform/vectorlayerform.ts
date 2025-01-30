@@ -29,7 +29,7 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
       });
     }
     props.model.clientStateChanged.connect(() => {
-      if (!props.model.localState?.selected.value) {
+      if (!props.model.localState?.selected?.value) {
         return;
       }
       const l = this.props.model.getLayer(
