@@ -191,8 +191,6 @@ def test_qgis_saver():
                     "color": {
                         "fill-color": "#4ea4d0",
                         "stroke-color": "#ff0000",
-                        "stroke-line-cap": "round",
-                        "stroke-line-join": "round",
                         "stroke-width": 1.25,
                     },
                     "opacity": 1.0,

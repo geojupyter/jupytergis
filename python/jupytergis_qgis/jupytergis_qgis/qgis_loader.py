@@ -184,12 +184,6 @@ def qgis_layer_to_jgis(
         if isinstance(symbol, QgsFillSymbol):
             color["fill-color"] = symbol.color().name()
             color["stroke-color"] = symbol.color().name()
-            color["stroke-line-cap"] = (
-                symbol.symbolLayer(0).penCapStyle().name().lower()
-            )
-            color["stroke-line-join"] = (
-                symbol.symbolLayer(0).penJoinStyle().name().lower()
-            )
             color["stroke-width"] = symbol.symbolLayer(0).width()
 
         layer_parameters.update(type="fill")
