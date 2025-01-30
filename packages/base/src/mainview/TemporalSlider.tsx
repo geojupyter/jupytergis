@@ -91,11 +91,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       convertedValues = values; // Keep numbers as they are
     }
 
-    // Convert all values to milliseconds if the values are strings
-    // const convertedValues = isString
-    //   ? values.map(value => Date.parse(value)) // Convert all strings to milliseconds
-    //   : values; // Keep numbers as they are
-
     // Calculate min and max
     const min = Math.min(...convertedValues);
     const max = Math.max(...convertedValues);
@@ -142,45 +137,13 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const handleChange = (e: any) => {
     console.log('change', e.target.value);
 
-    const layer = model?.getLayer(layerId);
-    if (!layer) {
-      return;
-    }
-
-    // I think i want to replace filters?
-    // or save old ones and reapply them when turning temporal off?
-    // Really i want this filter to work with existing filters
-    // I want to replace the one being added instead of adding a new one
-    // add a type or source or something to the filter item??
-    const oldFilters = layer.filters?.appliedFilters;
-    const newFilters = oldFilters ? [...oldFilters] : [];
-
-    // If values have been converted, convert them back
-    let val: string | number = +e.target.value;
-    if (converted) {
-      const date = new Date(+e.target.value);
-      val = millisecondsToDateString(+e.target.value, inferredDateFormat);
-      console.log('we', val);
-    }
-
-    const nf = {
-      feature: selectedFeature,
+    const newFilter = {
+      feature: `converted${selectedFeature}`,
       operator: '>=' as const,
       value: +e.target.value
     };
 
-    // if no filters then add this one
-    // if there are filters we want to replace time one
-    // assume that is the last entry for now
-    if (newFilters.length === 0) {
-      newFilters.push(nf);
-    } else {
-      newFilters.splice(newFilters.length - 1, 1, nf);
-    }
-
-    layer.filters = { logicalOp: 'all', appliedFilters: newFilters };
-    // model?.sharedModel.updateLayer(layerId, layer);
-    model.addFeatureTimeThins(layerId, nf);
+    model.addFeatureTimeThins(layerId, selectedFeature, newFilter);
   };
 
   const setFeature = (e: any) => {

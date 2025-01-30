@@ -144,6 +144,51 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: []
     };
 
+    this._model.addFeaturesSignal.connect((_, args) => {
+      const json = JSON.parse(args);
+      console.log('json', json);
+      const { id: layerId, selectedFeature, newFilter } = json;
+      console.log('id', layerId);
+      console.log('nf', newFilter);
+      console.log('weee adduing stugg weeowoewoe', layerId);
+      const olLayer = this.getLayer(layerId);
+      const source = olLayer.getSource() as VectorSource;
+
+      console.log('selectedFeature', selectedFeature);
+
+      source.forEachFeature(feature => {
+        // will also need to send selectedFeature from temporal slider
+        const time = feature.get(selectedFeature);
+        const t = Date.parse(time);
+        feature.set(`converted${selectedFeature}`, t);
+      });
+
+      const layer = this._model.getLayer(layerId);
+      if (!layer) {
+        return;
+      }
+
+      // I think i want to replace filters?
+      // or save old ones and reapply them when turning temporal off?
+      // Really i want this filter to work with existing filters
+      // I want to replace the one being added instead of adding a new one
+      // add a type or source or something to the filter item??
+      const oldFilters = layer.filters?.appliedFilters;
+      const newFilters = oldFilters ? [...oldFilters] : [];
+
+      // if no filters then add this one
+      // if there are filters we want to replace time one
+      // assume that is the last entry for now
+      if (newFilters.length === 0) {
+        newFilters.push(newFilter);
+      } else {
+        newFilters.splice(newFilters.length - 1, 1, newFilter);
+      }
+
+      layer.filters = { logicalOp: 'all', appliedFilters: newFilters };
+      this._model.sharedModel.updateLayer(layerId, layer);
+    });
+
     this._sources = [];
     this._loadingLayers = new Set();
     this._commands = new CommandRegistry();
@@ -545,6 +590,7 @@ export class MainView extends React.Component<IProps, IStates> {
         newSource = new VectorSource({
           features: featureCollection
         });
+        console.log('finish');
 
         break;
       }

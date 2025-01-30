@@ -5,8 +5,10 @@ import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 
+import { Contents } from '@jupyterlab/services';
 import {
   IJGISContent,
+  IJGISFilterItem,
   IJGISLayer,
   IJGISLayerGroup,
   IJGISLayerItem,
@@ -18,9 +20,8 @@ import {
 } from './_interface/jgis';
 import { JupyterGISDoc } from './doc';
 import {
-  IViewPortState,
-  Pointer,
   IAnnotationModel,
+  IDict,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -29,10 +30,10 @@ import {
   IJupyterGISModel,
   ISelection,
   IUserData,
-  IDict
+  IViewPortState,
+  Pointer
 } from './interfaces';
 import jgisSchema from './schema/jgis.json';
-import { Contents } from '@jupyterlab/services';
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: JupyterGISModel.IOptions) {
@@ -680,6 +681,20 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   };
 
+  addFeatureTimeThins = (
+    id: string,
+    selectedFeature: string,
+    newFilter: IJGISFilterItem
+  ) => {
+    this.addFeaturesSignal.emit(
+      JSON.stringify({ id, selectedFeature, newFilter })
+    );
+  };
+
+  get addFeaturesSignal() {
+    return this._addFeaturesSignal;
+  }
+
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
   readonly annotationModel?: IAnnotationModel;
@@ -704,6 +719,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   >(this);
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
   private _zoomToPositionSignal = new Signal<this, string>(this);
+
+  private _addFeaturesSignal = new Signal<this, string>(this);
 
   private _isIdentifying = false;
   private _isTemporal = false;

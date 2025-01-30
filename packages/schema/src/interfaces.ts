@@ -16,6 +16,7 @@ import { SplitPanel } from '@lumino/widgets';
 
 import {
   IJGISContent,
+  IJGISFilterItem,
   IJGISLayer,
   IJGISLayerGroup,
   IJGISLayerItem,
@@ -167,9 +168,15 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToPositionSignal: ISignal<IJupyterGISModel, string>;
-
+  addFeaturesSignal: ISignal<IJupyterGISModel, string>;
   contentsManager: Contents.IManager | undefined;
   filePath: string;
+
+  addFeatureTimeThins(
+    id: string,
+    selectedFeature: string,
+    newFilter: IJGISFilterItem
+  ): void;
 
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
