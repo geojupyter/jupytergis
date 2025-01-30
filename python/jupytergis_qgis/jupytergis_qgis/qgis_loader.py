@@ -398,25 +398,30 @@ def get_base_symbol(geometry_type, color_params, opacity):
         symbol = QgsMarkerSymbol()
     elif geometry_type == "line":
         symbol = QgsLineSymbol()
-        symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
     elif geometry_type == "fill":
         symbol = QgsFillSymbol()
-        symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
     else:
         return None
 
     symbol.setOpacity(opacity)
+    symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
     symbol_layer = symbol.symbolLayer(0)
 
-    if geometry_type in ["line", "fill"]:
-        stroke_color = QColor(color_params.get("stroke-color", "#000000"))
-        symbol_layer.setStrokeColor(stroke_color)
-
-        stroke_width = color_params.get("stroke-width", 1)
-        symbol_layer.setStrokeWidth(stroke_width)
-    elif geometry_type == "circle":
+    if geometry_type == "circle":
         stroke_color = QColor(color_params.get("circle-stroke-color", "#000000"))
         symbol_layer.setStrokeColor(stroke_color)
+        stroke_width = color_params.get("circle-stroke-width", 1)
+        symbol_layer.setStrokeWidth(stroke_width)
+    elif geometry_type == "line":
+        stroke_color = QColor(color_params.get("stroke-color", "#000000"))
+        symbol_layer.setStrokeColor(stroke_color)
+        stroke_width = color_params.get("stroke-width", 1)
+        symbol_layer.setWidth(stroke_width)
+    elif geometry_type == "fill":
+        stroke_color = QColor(color_params.get("stroke-color", "#000000"))
+        symbol_layer.setStrokeColor(stroke_color)
+        stroke_width = color_params.get("stroke-width", 1)
+        symbol_layer.setStrokeWidth(stroke_width)
 
     return symbol
 
@@ -426,6 +431,9 @@ def create_categorized_renderer(
 ):
     """Creates a categorized renderer."""
     fill_color_rules = color_params.get("circle-fill-color", [])
+    radius_rules = (
+        color_params.get("circle-radius", []) if geometry_type == "circle" else []
+    )
 
     renderer = QgsCategorizedSymbolRenderer(symbology_state.get("value"))
 
@@ -442,6 +450,10 @@ def create_categorized_renderer(
             QColor(int(color[0]), int(color[1]), int(color[2]), int(color[3] * 255))
         )
 
+        if geometry_type == "circle" and len(radius_rules) > i:
+            radius = radius_rules[i + 3]
+            category_symbol.setSize(2 * radius)
+
         category = QgsRendererCategory(condition[2], category_symbol, str(condition[2]))
         renderer.addCategory(category)
 
@@ -454,6 +466,7 @@ def create_graduated_renderer(
     """Creates a graduated renderer."""
     if geometry_type == "circle":
         fill_color_rules = color_params.get("circle-fill-color", [])
+        radius_rules = color_params.get("circle-radius", [])
     elif geometry_type == "fill":
         fill_color_rules = color_params.get("fill-color", [])
     elif geometry_type == "line":
@@ -462,6 +475,7 @@ def create_graduated_renderer(
     ranges = []
     previous_value = 0
     last_color = None
+    last_radius = None
 
     for i in range(3, len(fill_color_rules) - 2, 2):
         lower_value = fill_color_rules[i]
@@ -475,6 +489,13 @@ def create_graduated_renderer(
 
         range_symbol = base_symbol.clone()
         range_symbol.setColor(qcolor)
+
+        if geometry_type == "circle" and len(radius_rules) > i + 1:
+            radius = radius_rules[i + 1]
+            if isinstance(radius, (int, float)):
+                range_symbol.setSize(2 * radius)
+                last_radius = radius
+
         g_range = QgsRendererRange(
             previous_value,
             lower_value,
@@ -487,6 +508,10 @@ def create_graduated_renderer(
     if last_color:
         final_symbol = base_symbol.clone()
         final_symbol.setColor(last_color)
+
+        if geometry_type == "circle" and last_radius is not None:
+            final_symbol.setSize(2 * last_radius)
+
         g_range = QgsRendererRange(
             previous_value,
             upper_value,
@@ -636,6 +661,8 @@ def jgis_layer_to_qgis(
             if render_type == "Single Symbol":
                 fill_color = QColor(color_params.get("circle-fill-color"))
                 symbol.setColor(fill_color)
+                radius = color_params.get("circle-radius", 5)
+                symbol.setSize(2 * radius)
                 renderer = QgsSingleSymbolRenderer(symbol)
 
             elif render_type == "Categorized":
