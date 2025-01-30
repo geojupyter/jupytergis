@@ -170,7 +170,6 @@ def test_qgis_saver():
                         "stroke-color": "#e5b636ff",
                     },
                     "source": source_ids[2],
-                    "sourceLayer": "bingmlbuildings",
                     "type": "fill",
                 },
                 "type": "VectorTileLayer",
