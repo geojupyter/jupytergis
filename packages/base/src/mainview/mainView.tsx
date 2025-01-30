@@ -263,10 +263,6 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.on('moveend', () => {
-        if (!this._initializedPosition) {
-          return;
-        }
-
         const currentOptions = this._model.getOptions();
 
         const view = this._Map.getView();
@@ -319,7 +315,6 @@ export class MainView extends React.Component<IProps, IStates> {
         );
         const options = this._model.getOptions();
         this.updateOptions(options);
-        this._initializedPosition = true;
       }
 
       this._Map.getViewport().addEventListener('contextmenu', event => {
@@ -1298,16 +1293,10 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   };
 
-  private _onSharedOptionsChanged(
-    sender?: IJupyterGISDoc,
-    change?: MapChange
-  ): void {
-    if (!this._initializedPosition) {
+  private _onSharedOptionsChanged(): void {
+    if (!this.state.remoteUser) {
       const options = this._model.getOptions();
-
       this.updateOptions(options);
-
-      this._initializedPosition = true;
     }
   }
 
@@ -1766,7 +1755,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _clickCoords: Coordinate;
   private _commands: CommandRegistry;
-  private _initializedPosition = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
   private _Map: OlMap;
   private _model: IJupyterGISModel;

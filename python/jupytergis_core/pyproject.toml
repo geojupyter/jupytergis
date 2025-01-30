@@ -19,7 +19,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "jupyter-ydoc>=2,<3",
+  "jupyter-ydoc>=2,<4",
 ]
 dynamic = ["version", "description", "authors", "urls", "keywords"]
 license = {file = "LICENSE"}
