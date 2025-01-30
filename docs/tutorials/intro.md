@@ -11,7 +11,7 @@ By the end of this tutorial, you will:
 2. Set up the required tools and libraries.
 3. Create a simple map and add layers.
 4. Explore basic geospatial analysis using JupyterGIS.
-:::
+   :::
 
 ## Introduction to JupyterGIS
 
@@ -166,7 +166,6 @@ For example, this layer order:
 would hide all the custom shapefile layers underneath the OpenStreetMap raster layer.
 
 To solve this problem, you can click and drag on a layer in the Layers list to move it up or down, and reordering the layers as you wish them to be viewed on the map.
-
 
 ## Save your JGIS project
 
