@@ -1,6 +1,7 @@
 import { IJGISExternalCommand, JupyterGISModel } from '@jupytergis/schema';
 import { CommandToolbarButton } from '@jupyterlab/apputils';
 import {
+  MenuSvg,
   ReactWidget,
   ReactiveToolbar,
   Toolbar,
@@ -138,7 +139,7 @@ export class ToolbarWidget extends ReactiveToolbar {
         command: CommandIDs.newGeoTiffEntry
       });
 
-      const NewSubMenu = new Menu({ commands: options.commands });
+      const NewSubMenu = new MenuSvg({ commands: options.commands });
       NewSubMenu.title.label = 'Add Layer';
 
       NewSubMenu.addItem({ type: 'submenu', submenu: rasterSubMenu });
