@@ -1,12 +1,16 @@
-import { JSONValue } from '@lumino/coreutils';
-import { ISignal, Signal } from '@lumino/signaling';
-import { SplitPanel } from '@lumino/widgets';
-
+import { MainAreaWidget } from '@jupyterlab/apputils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
-
-import { IJupyterGISModel, IJupyterGISWidget } from '@jupytergis/schema';
+import { JSONValue } from '@lumino/coreutils';
+import { ISignal, Signal } from '@lumino/signaling';
+import { SplitPanel } from '@lumino/widgets';
+import {
+  IJupyterGISModel,
+  IJupyterGISWidgetContext,
+  IJupyterGISOutputWidget,
+  IJupyterGISWidget
+} from '@jupytergis/schema';
 
 import { JupyterGISMainViewPanel } from './mainview';
 import { MainViewModel } from './mainview/mainviewmodel';
@@ -33,6 +37,28 @@ export class JupyterGISWidget
   onResize = (msg: any): void => {
     window.dispatchEvent(new Event('resize'));
   };
+}
+
+/**
+ * A main area widget designed to be used as Notebook cell output widget, to ease the
+ * integration of toolbar and tracking.
+ */
+export class JupyterGISOutputWidget
+  extends MainAreaWidget<JupyterGISPanel>
+  implements IJupyterGISOutputWidget
+{
+  constructor(options: JupyterGISOutputWidget.IOptions) {
+    super(options);
+    this.context = options.context;
+  }
+
+  readonly context: IJupyterGISWidgetContext;
+}
+
+export namespace JupyterGISOutputWidget {
+  export interface IOptions extends MainAreaWidget.IOptions<JupyterGISPanel> {
+    context: IJupyterGISWidgetContext;
+  }
 }
 
 export class JupyterGISPanel extends SplitPanel {

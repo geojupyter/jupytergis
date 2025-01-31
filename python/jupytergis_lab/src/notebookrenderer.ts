@@ -1,12 +1,24 @@
 import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
-import { JupyterGISPanel } from '@jupytergis/base';
-import { JupyterGISModel, IJupyterGISDoc } from '@jupytergis/schema';
-
+import {
+  JupyterGISOutputWidget,
+  JupyterGISPanel,
+  JupyterGISTracker,
+  ToolbarWidget
+} from '@jupytergis/base';
+import {
+  IJGISExternalCommandRegistry,
+  IJGISExternalCommandRegistryToken,
+  IJupyterGISDoc,
+  IJupyterGISDocTracker,
+  IJupyterGISWidgetContext,
+  JupyterGISModel
+} from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { Contents } from '@jupyterlab/services';
+import { CommandRegistry } from '@lumino/commands';
 import { MessageLoop } from '@lumino/messaging';
 import { Panel, Widget } from '@lumino/widgets';
 import * as Y from 'yjs';
@@ -31,12 +43,35 @@ export class YJupyterGISModel extends JupyterYModel {
 }
 
 export class YJupyterGISLuminoWidget extends Panel {
-  constructor(options: { model: JupyterGISModel }) {
+  constructor(options: {
+    commands: CommandRegistry;
+    model: JupyterGISModel;
+    externalCommands: IJGISExternalCommandRegistry;
+  }) {
     super();
-
+    const { commands, model, externalCommands } = options;
     this.addClass(CLASS_NAME);
-    this._jgisWidget = new JupyterGISPanel(options);
+    const content = new JupyterGISPanel({ model });
+    const toolbar = new ToolbarWidget({
+      commands,
+      model,
+      externalCommands: externalCommands.getCommands()
+    });
+    const context: IJupyterGISWidgetContext = {
+      model,
+      path: model.filePath
+    };
+    this._jgisWidget = new JupyterGISOutputWidget({
+      context,
+      content,
+      toolbar
+    });
+
     this.addWidget(this._jgisWidget);
+  }
+
+  get jgisWidget(): JupyterGISOutputWidget {
+    return this._jgisWidget;
   }
 
   onResize = (): void => {
@@ -48,15 +83,22 @@ export class YJupyterGISLuminoWidget extends Panel {
     }
   };
 
-  private _jgisWidget: JupyterGISPanel;
+  private _jgisWidget: JupyterGISOutputWidget;
 }
 
 export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
-  optional: [IJupyterYWidgetManager, ICollaborativeDrive],
+  optional: [
+    IJGISExternalCommandRegistryToken,
+    IJupyterGISDocTracker,
+    IJupyterYWidgetManager,
+    ICollaborativeDrive
+  ],
   activate: (
     app: JupyterFrontEnd,
+    externalCommandRegistry: IJGISExternalCommandRegistry,
+    jgisTracker: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
     drive?: ICollaborativeDrive
   ): void => {
@@ -75,7 +117,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         const { path, format, contentType } = commMetadata;
 
         const fileFormat = format as Contents.FileFormat;
-
         const sharedModel = drive!.sharedModelFactory.createNew({
           path,
           format: fileFormat,
@@ -85,7 +126,24 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         this.jupyterGISModel = new JupyterGISModel({
           sharedModel: sharedModel as IJupyterGISDoc
         });
+        const onchange = (_: any, args: any) => {
+          if (args.stateChange) {
+            args.stateChange.forEach((change: any) => {
+              if (change.name === 'path') {
+                this.jupyterGISModel.filePath = change.newValue;
+              }
+            });
+          }
+        };
 
+        this.jupyterGISModel.contentsManager = app.serviceManager.contents;
+        sharedModel.changed.connect(onchange);
+
+        if (sharedModel.getState('path')) {
+          this.jupyterGISModel.filePath = sharedModel.getState(
+            'path'
+          ) as string;
+        }
         return this.jupyterGISModel.sharedModel.ydoc;
       }
     }
@@ -96,10 +154,12 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         this.node = node;
 
         const widget = new YJupyterGISLuminoWidget({
-          model: yModel.jupyterGISModel
+          commands: app.commands,
+          model: yModel.jupyterGISModel,
+          externalCommands: externalCommandRegistry
         });
         // Widget.attach(widget, node);
-
+        jgisTracker.add(widget.jgisWidget);
         MessageLoop.sendMessage(widget, Widget.Msg.BeforeAttach);
         node.appendChild(widget.node);
         MessageLoop.sendMessage(widget, Widget.Msg.AfterAttach);

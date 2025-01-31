@@ -12,7 +12,7 @@ import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 import { Contents, User } from '@jupyterlab/services';
 import { JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
-import { SplitPanel } from '@lumino/widgets';
+import { SplitPanel, Widget } from '@lumino/widgets';
 
 import {
   IJGISContent,
@@ -228,7 +228,13 @@ export interface IJupyterGISWidgetContext {
   path: string;
 }
 
-export type IJupyterGISTracker = IWidgetTracker<IJupyterGISWidget>;
+export interface IJupyterGISOutputWidget extends Widget {
+  context: IJupyterGISWidgetContext;
+}
+
+export type IJupyterGISTracker = IWidgetTracker<
+  IJupyterGISWidget | IJupyterGISOutputWidget
+>;
 
 export interface IJGISFormSchemaRegistry {
   /**

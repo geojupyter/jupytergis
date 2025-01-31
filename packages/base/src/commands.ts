@@ -10,7 +10,7 @@ import {
   SourceType
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
@@ -21,10 +21,10 @@ import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import keybindings from './keybindings.json';
-import { JupyterGISWidget } from './widget';
+import { JupyterGISTracker } from './types';
 
 interface ICreateEntry {
-  tracker: WidgetTracker<JupyterGISWidget>;
+  tracker: JupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   title: string;
   createLayer: boolean;
@@ -50,7 +50,7 @@ function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
  */
 export function addCommands(
   app: JupyterFrontEnd,
-  tracker: WidgetTracker<JupyterGISWidget>,
+  tracker: JupyterGISTracker,
   translator: ITranslator,
   formSchemaRegistry: IJGISFormSchemaRegistry,
   layerBrowserRegistry: IJGISLayerBrowserRegistry,
@@ -932,7 +932,7 @@ export function addCommands(
 
 namespace Private {
   export function createLayerBrowser(
-    tracker: WidgetTracker<JupyterGISWidget>,
+    tracker: JupyterGISTracker,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
     formSchemaRegistry: IJGISFormSchemaRegistry
   ) {
@@ -953,7 +953,7 @@ namespace Private {
   }
 
   export function createSymbologyDialog(
-    tracker: WidgetTracker<JupyterGISWidget>,
+    tracker: JupyterGISTracker,
     state: IStateDB
   ) {
     return async () => {
@@ -1112,9 +1112,7 @@ namespace Private {
     }
   }
 
-  export function executeConsole(
-    tracker: WidgetTracker<JupyterGISWidget>
-  ): void {
+  export function executeConsole(tracker: JupyterGISTracker): void {
     const current = tracker.currentWidget;
 
     if (!current) {
@@ -1123,9 +1121,7 @@ namespace Private {
     current.content.executeConsole();
   }
 
-  export function removeConsole(
-    tracker: WidgetTracker<JupyterGISWidget>
-  ): void {
+  export function removeConsole(tracker: JupyterGISTracker): void {
     const current = tracker.currentWidget;
 
     if (!current) {
@@ -1135,7 +1131,7 @@ namespace Private {
   }
 
   export async function toggleConsole(
-    tracker: WidgetTracker<JupyterGISWidget>
+    tracker: JupyterGISTracker
   ): Promise<void> {
     const current = tracker.currentWidget;
 

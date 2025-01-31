@@ -1,4 +1,8 @@
-import { AnnotationModel, JupyterGISWidget } from '@jupytergis/base';
+import {
+  AnnotationModel,
+  JupyterGISOutputWidget,
+  JupyterGISWidget
+} from '@jupytergis/base';
 import {
   IAnnotationModel,
   IAnnotationToken,
@@ -37,7 +41,9 @@ export const trackerPlugin: JupyterFrontEndPlugin<IJupyterGISTracker> = {
     translator: ITranslator,
     mainMenu?: IMainMenu
   ): IJupyterGISTracker => {
-    const tracker = new WidgetTracker<JupyterGISWidget>({
+    const tracker = new WidgetTracker<
+      JupyterGISWidget | JupyterGISOutputWidget
+    >({
       namespace: NAME_SPACE
     });
     console.log('jupytergis:core:tracker is activated!');
