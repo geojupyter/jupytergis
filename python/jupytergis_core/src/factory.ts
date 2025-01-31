@@ -61,9 +61,8 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
     const { model } = context;
     if (this._contentsManager) {
       model.contentsManager = this._contentsManager;
-      model.filePath = context.path;
+      model.filePath = context.localPath;
     }
-
     const content = new JupyterGISPanel({
       model,
       manager: this.options.manager,

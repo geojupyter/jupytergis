@@ -72,7 +72,7 @@ export class LeftPanelWidget extends SidePanel {
 
     options.tracker.currentChanged.connect((_, changed) => {
       if (changed) {
-        header.title.label = changed.context.path;
+        header.title.label = changed.context.localPath;
       } else {
         header.title.label = '-';
       }

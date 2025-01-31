@@ -81,7 +81,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
   constructor(props: ICreationFormProps) {
     super(props);
 
-    this.filePath = props.context.path;
+    this.filePath = props.context.localPath;
     this.jGISModel = props.context.model;
   }
 

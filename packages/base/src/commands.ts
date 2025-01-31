@@ -1138,13 +1138,7 @@ namespace Private {
     if (!current) {
       return;
     }
-    const currentPath = current.context.path.split(':');
-    let realPath = '';
-    if (currentPath.length > 1) {
-      realPath = currentPath[1];
-    } else {
-      realPath = currentPath[0];
-    }
-    await current.content.toggleConsole(realPath);
+
+    await current.content.toggleConsole(current.context.localPath);
   }
 }

@@ -48,10 +48,10 @@ export class RightPanelWidget extends SidePanel {
     this._model.documentChanged.connect((_, changed) => {
       if (changed) {
         if (changed.context.model.sharedModel.editable) {
-          header.title.label = changed.context.path;
+          header.title.label = changed.context.localPath;
           properties.show();
         } else {
-          header.title.label = `${changed.context.path} - Read Only`;
+          header.title.label = `${changed.context.localPath} - Read Only`;
           properties.hide();
         }
       } else {
@@ -62,7 +62,7 @@ export class RightPanelWidget extends SidePanel {
     options.tracker.currentChanged.connect(async (_, changed) => {
       if (changed) {
         this._currentContext = changed.context;
-        header.title.label = this._currentContext.path;
+        header.title.label = this._currentContext.localPath;
         this._annotationModel.context =
           options.tracker.currentWidget?.context || undefined;
         // await changed.context.ready;

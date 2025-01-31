@@ -76,7 +76,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         this.setState(old => ({
           ...old,
           context: changed.context,
-          filePath: changed.context.path,
+          filePath: changed.context.localPath,
           clientId: changed.context.model.getClientId()
         }));
       } else {

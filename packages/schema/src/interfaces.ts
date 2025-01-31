@@ -225,7 +225,7 @@ export type IJupyterGISWidget = IDocumentWidget<SplitPanel, IJupyterGISModel>;
 
 export interface IJupyterGISWidgetContext {
   model: IJupyterGISModel;
-  path: string;
+  localPath: string;
 }
 
 export interface IJupyterGISOutputWidget extends Widget {

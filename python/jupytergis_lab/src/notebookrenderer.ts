@@ -59,7 +59,7 @@ export class YJupyterGISLuminoWidget extends Panel {
     });
     const context: IJupyterGISWidgetContext = {
       model,
-      path: model.filePath
+      localPath: model.filePath
     };
     this._jgisWidget = new JupyterGISOutputWidget({
       context,
