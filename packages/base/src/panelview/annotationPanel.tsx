@@ -21,7 +21,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
     this._rightPanelModel = props.rightPanelModel;
 
     this._annotationModel.contextChanged.connect(async () => {
-      await this._annotationModel?.context?.ready;
+      // await this._annotationModel?.context?.ready;
 
       this._annotationModel?.context?.model?.sharedMetadataChanged.disconnect(
         updateCallback

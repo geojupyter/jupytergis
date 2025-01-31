@@ -223,6 +223,11 @@ export interface IUserData {
 
 export type IJupyterGISWidget = IDocumentWidget<SplitPanel, IJupyterGISModel>;
 
+export interface IJupyterGISWidgetContext {
+  model: IJupyterGISModel;
+  path: string;
+}
+
 export type IJupyterGISTracker = IWidgetTracker<IJupyterGISWidget>;
 
 export interface IJGISFormSchemaRegistry {
@@ -290,7 +295,7 @@ export interface IAnnotationModel {
   updateSignal: ISignal<this, null>;
   user: User.IIdentity | undefined;
 
-  context: DocumentRegistry.IContext<IJupyterGISModel> | undefined;
+  context: IJupyterGISWidgetContext | undefined;
   contextChanged: ISignal<this, void>;
 
   update(): void;

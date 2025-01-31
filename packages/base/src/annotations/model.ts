@@ -2,9 +2,8 @@ import {
   IAnnotation,
   IAnnotationContent,
   IAnnotationModel,
-  IJupyterGISModel
+  IJupyterGISWidgetContext
 } from '@jupytergis/schema';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { User } from '@jupyterlab/services';
 import { ISignal, Signal } from '@lumino/signaling';
 
@@ -21,9 +20,7 @@ export class AnnotationModel implements IAnnotationModel {
     return this._user;
   }
 
-  set context(
-    context: DocumentRegistry.IContext<IJupyterGISModel> | undefined
-  ) {
+  set context(context: IJupyterGISWidgetContext | undefined) {
     this._context = context;
 
     const state = this._context?.model.sharedModel.awareness.getLocalState();
@@ -32,7 +29,7 @@ export class AnnotationModel implements IAnnotationModel {
     this._contextChanged.emit(void 0);
   }
 
-  get context(): DocumentRegistry.IContext<IJupyterGISModel> | undefined {
+  get context(): IJupyterGISWidgetContext | undefined {
     return this._context;
   }
 
@@ -91,7 +88,7 @@ export class AnnotationModel implements IAnnotationModel {
     }
   }
 
-  private _context: DocumentRegistry.IContext<IJupyterGISModel> | undefined;
+  private _context: IJupyterGISWidgetContext | undefined;
   private _contextChanged = new Signal<this, void>(this);
   private _updateSignal = new Signal<this, null>(this);
   private _user?: User.IIdentity;
@@ -99,6 +96,6 @@ export class AnnotationModel implements IAnnotationModel {
 
 namespace AnnotationModel {
   export interface IOptions {
-    context: DocumentRegistry.IContext<IJupyterGISModel> | undefined;
+    context: IJupyterGISWidgetContext | undefined;
   }
 }

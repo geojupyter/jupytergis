@@ -6,20 +6,19 @@ import {
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISSource,
-  IJupyterGISModel,
+  IJupyterGISWidgetContext,
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
+import { Signal } from '@lumino/signaling';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 
 import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { CreationFormWrapper } from './formdialog';
-import { Signal } from '@lumino/signaling';
 
 interface ILayerBrowserDialogProps {
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  context: IJupyterGISWidgetContext;
   registry: IRasterLayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
   okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
@@ -244,7 +243,7 @@ export const LayerBrowserComponent = ({
 };
 
 export interface ILayerBrowserOptions {
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  context: IJupyterGISWidgetContext;
   registry: IRasterLayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
 }

@@ -1,6 +1,5 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
+import { IJupyterGISWidgetContext } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
@@ -9,7 +8,7 @@ import TiffRendering from './tiff_layer/TiffRendering';
 import VectorRendering from './vector_layer/VectorRendering';
 
 export interface ISymbologyDialogProps {
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  context: IJupyterGISWidgetContext;
   state: IStateDB;
   okSignalPromise: PromiseDelegate<Signal<SymbologyWidget, null>>;
   cancel: () => void;
@@ -17,7 +16,7 @@ export interface ISymbologyDialogProps {
 }
 
 export interface ISymbologyWidgetOptions {
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  context: IJupyterGISWidgetContext;
   state: IStateDB;
 }
 

@@ -1,19 +1,16 @@
-import { DocumentRegistry } from '@jupyterlab/docregistry';
-
 import {
   IDict,
   IJGISFormSchemaRegistry,
   IJGISSource,
-  IJupyterGISModel
+  IJupyterGISWidgetContext
 } from '@jupytergis/schema';
+import { Signal } from '@lumino/signaling';
+import * as React from 'react';
 
 import { deepCopy } from '../tools';
-
-import * as React from 'react';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 import { LayerPropertiesForm } from './objectform/layerform';
 import { BaseForm } from './objectform/baseform';
-import { Signal } from '@lumino/signaling';
 
 export interface IEditFormProps {
   /**
@@ -27,7 +24,7 @@ export interface IEditFormProps {
   source: string | undefined;
 
   formSchemaRegistry: IJGISFormSchemaRegistry;
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  context: IJupyterGISWidgetContext;
 }
 
 /**

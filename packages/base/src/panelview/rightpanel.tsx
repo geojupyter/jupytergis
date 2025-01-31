@@ -1,8 +1,8 @@
 import {
   IAnnotationModel,
   IJGISFormSchemaRegistry,
-  IJupyterGISModel,
   IJupyterGISTracker,
+  IJupyterGISWidgetContext,
   JupyterGISDoc
 } from '@jupytergis/schema';
 import { SidePanel } from '@jupyterlab/ui-components';
@@ -10,7 +10,6 @@ import { SidePanel } from '@jupyterlab/ui-components';
 import { IControlPanelModel } from '../types';
 import { ControlPanelHeader } from './header';
 import { ObjectProperties } from './objectproperties';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Annotations } from './annotationPanel';
 import IdentifyPanel from './components/identify-panel/IdentifyPanel';
 
@@ -49,10 +48,10 @@ export class RightPanelWidget extends SidePanel {
     this._model.documentChanged.connect((_, changed) => {
       if (changed) {
         if (changed.context.model.sharedModel.editable) {
-          header.title.label = changed.context.localPath;
+          header.title.label = changed.context.path;
           properties.show();
         } else {
-          header.title.label = `${changed.context.localPath} - Read Only`;
+          header.title.label = `${changed.context.path} - Read Only`;
           properties.hide();
         }
       } else {
@@ -63,10 +62,10 @@ export class RightPanelWidget extends SidePanel {
     options.tracker.currentChanged.connect(async (_, changed) => {
       if (changed) {
         this._currentContext = changed.context;
-        header.title.label = this._currentContext.localPath;
+        header.title.label = this._currentContext.path;
         this._annotationModel.context =
           options.tracker.currentWidget?.context || undefined;
-        await changed.context.ready;
+        // await changed.context.ready;
       } else {
         header.title.label = '-';
         this._currentContext = null;
@@ -79,7 +78,7 @@ export class RightPanelWidget extends SidePanel {
     super.dispose();
   }
 
-  private _currentContext: DocumentRegistry.IContext<IJupyterGISModel> | null;
+  private _currentContext: IJupyterGISWidgetContext | null;
   private _model: IControlPanelModel;
   private _annotationModel: IAnnotationModel;
 }

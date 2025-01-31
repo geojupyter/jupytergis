@@ -1,11 +1,10 @@
-import { DocumentRegistry } from '@jupyterlab/docregistry';
-
 import {
   IDict,
   IJGISFormSchemaRegistry,
   IJGISLayer,
   IJGISSource,
   IJupyterGISModel,
+  IJupyterGISWidgetContext,
   LayerType,
   SourceType
 } from '@jupytergis/schema';
@@ -60,7 +59,7 @@ export interface ICreationFormProps {
   cancel?: () => void;
 
   formSchemaRegistry: IJGISFormSchemaRegistry;
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  context: IJupyterGISWidgetContext;
 
   /**
    * A signal emitting when the form changed, with a boolean whether there are some

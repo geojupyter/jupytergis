@@ -2,7 +2,8 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISClientState,
   IJupyterGISModel,
-  IJupyterGISTracker
+  IJupyterGISTracker,
+  IJupyterGISWidgetContext
 } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/apputils';
 import { PanelWithToolbar } from '@jupyterlab/ui-components';
@@ -12,7 +13,6 @@ import { v4 as uuid } from 'uuid';
 
 import { IControlPanelModel } from '../types';
 import { EditForm } from '../formbuilder/editform';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
 
 export class ObjectProperties extends PanelWithToolbar {
   constructor(params: ObjectProperties.IOptions) {
@@ -31,7 +31,7 @@ export class ObjectProperties extends PanelWithToolbar {
 }
 
 interface IStates {
-  context: DocumentRegistry.IContext<IJupyterGISModel> | undefined;
+  context: IJupyterGISWidgetContext | undefined;
   selectedObject?: string;
   clientId: number | null; // ID of the yjs client
   id: string; // ID of the component, it is used to identify which component
@@ -76,7 +76,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         this.setState(old => ({
           ...old,
           context: changed.context,
-          filePath: changed.context.localPath,
+          filePath: changed.context.path,
           clientId: changed.context.model.getClientId()
         }));
       } else {

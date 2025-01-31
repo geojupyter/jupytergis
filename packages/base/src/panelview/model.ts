@@ -19,7 +19,7 @@ export class ControlPanelModel implements IControlPanelModel {
   }
 
   get filePath(): string | undefined {
-    return this._tracker.currentWidget?.context.localPath;
+    return this._tracker.currentWidget?.context.path;
   }
 
   get jGISModel(): IJupyterGISModel | undefined {
