@@ -36,5 +36,6 @@ Table of contents
    extension
    python_api
    collab.rst
+   tutorials/intro.md
    contributing.rst
    changelog.rst

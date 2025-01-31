@@ -17,7 +17,13 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx_tabs.tabs",
+    "sphinx_exercise",
+    "sphinx_togglebutton",
     "myst_parser",
+]
+
+myst_enable_extensions = [
+    "colon_fence",
 ]
 
 source_suffix = ".rst"
