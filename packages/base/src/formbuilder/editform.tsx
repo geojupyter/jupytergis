@@ -95,7 +95,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
               formContext="create"
               sourceType={source?.type || 'RasterSource'}
               model={this.props.context.model}
-              filePath={`${this.props.context.path}::panel`}
+              filePath={this.props.context.path}
               schema={layerSchema}
               sourceData={layerData}
               syncData={(properties: { [key: string]: any }) => {
@@ -110,7 +110,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
             <SourceForm
               formContext="create"
               model={this.props.context.model}
-              filePath={`${this.props.context.path}::panel`}
+              filePath={this.props.context.path}
               schema={sourceSchema}
               sourceData={sourceData}
               syncData={(properties: { [key: string]: any }) => {

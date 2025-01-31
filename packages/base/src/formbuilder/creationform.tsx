@@ -201,7 +201,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
             <SourceForm
               formContext="create"
               model={this.jGISModel}
-              filePath={`${this.filePath}::panel`}
+              filePath={this.filePath}
               schema={sourceSchema}
               sourceData={this.props.sourceData}
               syncData={(properties: { [key: string]: any }) => {
@@ -223,7 +223,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               formContext="create"
               sourceType={this.props.sourceType}
               model={this.jGISModel}
-              filePath={`${this.filePath}::panel`}
+              filePath={this.filePath}
               schema={layerSchema}
               sourceData={layerData}
               syncData={(properties: { [key: string]: any }) => {
