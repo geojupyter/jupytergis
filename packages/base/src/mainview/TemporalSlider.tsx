@@ -40,16 +40,14 @@ const stepMap = {
 
 const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [layerId, setLayerId] = useState('');
-  //   const [selectedLayer, setSelectedLayer] = useState('');
   const [selectedFeature, setSelectedFeature] = useState('');
   const [range, setRange] = useState({ start: 0, end: 1 });
   const [validFeatures, setValidFeatures] = useState<string[]>([]);
 
-  // False is values are already numbers, true if values are strings
-  const [converted, setConverted] = useState(false);
   const [inferredDateFormat, setInferredDateFormat] = useState('yyyy-MM-dd');
   const [step, setStep] = useState(stepMap.day);
   const { featureProps } = useGetProperties({ layerId, model });
+  const [currentValue, setCurrentValue] = useState('');
 
   useEffect(() => {
     const localState = model.sharedModel.awareness.getLocalState();
@@ -75,45 +73,18 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
       // We only want to look at strings and whole numbers
       // ? Is there a better way to check if number values are valid timestamps?
+      // ! QGIS doesn't actually support number values for their time thing
       const isString = typeof checkValue === 'string';
       const isNumber =
         typeof checkValue === 'number' && Number.isInteger(checkValue);
       if (!isString && !isNumber) {
-        console.log('not string or number');
+        console.log('Invalid value type');
         continue;
       }
 
-      // ! QGIS doesn't actually support number values for their time thing
-      if (isNumber) {
-        // Check if number returns a valid date
-        const date = toDate(checkValue);
-        console.log('date', date);
-
-        checkIfDateIsValid = isValid(toDate(checkValue));
-
-        if (!checkIfDateIsValid) {
-          console.log('key invalid', key);
-          continue;
-        }
-      }
-
-      if (isString) {
-        const date = toDate(checkValue);
-        console.log('date', date);
-        // const inferredFormat = inferDateFormat(checkValue);
-        // if (!inferredFormat) {
-        //   console.log('date not inferred from', key);
-        //   continue;
-        // }
-
-        // checkIfDateIsValid = !!inferredFormat;
-        checkIfDateIsValid = isValid(toDate(checkValue));
-        // setConverted(true);
-        // setInferredDateFormat(inferredFormat);
-        if (!checkIfDateIsValid) {
-          console.log('key invalid', key);
-          continue;
-        }
+      checkIfDateIsValid = isValid(toDate(checkValue));
+      if (!checkIfDateIsValid) {
+        continue;
       }
 
       if (checkValue && checkIfDateIsValid) {
@@ -133,24 +104,19 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     const values: any[] = Array.from(featureProps[selectedFeature]);
 
     // Check the type of the first element
-    // const firstValue = values[0];
     const isString = typeof values[0] === 'string';
     let convertedValues;
 
     if (isString) {
-      console.log('string');
       const inferredFormat = inferDateFormat(values[0]);
       if (!inferredFormat) {
-        console.log('broke');
+        console.log('Datestring has an unsupported format');
         return;
       }
 
       setInferredDateFormat(inferredFormat);
 
       convertedValues = values.map(value => Date.parse(value)); // Convert all strings to milliseconds
-
-      // setConverted(true);
-      // console.log('inferred', inferred);
       setInferredDateFormat(inferredFormat);
     } else {
       console.log('not string');
@@ -164,12 +130,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     // Update the range state
     setRange({ start: min, end: max });
   }, [selectedFeature]);
-
-  const isValidDate = (val: any) => {
-    const date = new Date(val);
-
-    return !isNaN(date.getTime());
-  };
 
   // Infer the date format from a date string
   const inferDateFormat = (dateString: string): string | null => {
@@ -185,15 +145,16 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   };
 
   // Convert a date string to milliseconds
-  const dateStringToMilliseconds = (
-    dateString: string,
-    dateFormat: string
-  ): number => {
-    const date = parse(dateString, dateFormat, new Date()); // Parse the date string
-    return date.getUTCMilliseconds(); // Convert to milliseconds
-  };
+  // const dateStringToMilliseconds = (
+  //   dateString: string,
+  //   dateFormat: string
+  // ): number => {
+  //   const date = parse(dateString, dateFormat, new Date()); // Parse the date string
+  //   return date.getUTCMilliseconds(); // Convert to milliseconds
+  // };
 
   // Convert milliseconds back to the original date string format
+  // TODO I'm pretty sure this ends up in local time, not UTC time
   const millisecondsToDateString = (
     milliseconds: number,
     dateFormat: string
@@ -203,10 +164,10 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   };
 
   const handleChange = (e: any) => {
-    console.log('change', e.target.value);
-
-    const sd = millisecondsToDateString(+e.target.value, inferredDateFormat);
-    console.log('sd', sd);
+    const currentValueString = millisecondsToDateString(
+      +e.target.value,
+      inferredDateFormat
+    );
 
     const newFilter = {
       feature: `converted${selectedFeature}`,
@@ -214,11 +175,11 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       value: +e.target.value
     };
 
+    setCurrentValue(currentValueString);
     model.addFeatureTimeThins(layerId, selectedFeature, newFilter);
   };
 
   const setFeature = (e: any) => {
-    console.log('e.target.value', e.target.value);
     setSelectedFeature(e.target.value);
   };
 
@@ -226,47 +187,52 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     <div className="jp-gis-temporal-slider-container">
       {layerId ? (
         <>
-          <div>
-            <select onChange={setFeature}>
-              <option></option>
-              {validFeatures.map(feature => {
-                return (
-                  <option
-                    value={feature}
-                    selected={selectedFeature === feature}
-                  >
-                    {feature}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-          <div>
-            {inferredDateFormat &&
-              millisecondsToDateString(range.start, inferredDateFormat)}
-          </div>
-          <Slider
-            min={range.start}
-            max={range.end}
-            step={step}
-            onChange={handleChange}
-            className="jp-gis-temporal-slider"
-          />
-          <div>
-            {inferredDateFormat &&
-              millisecondsToDateString(range.end, inferredDateFormat)}
-          </div>
+          <div className="jp-gis-temporal-slider-row">
+            <div>
+              <select onChange={setFeature}>
+                <option></option>
+                {validFeatures.map(feature => {
+                  return (
+                    <option
+                      value={feature}
+                      selected={selectedFeature === feature}
+                    >
+                      {feature}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <div>
+              {inferredDateFormat &&
+                millisecondsToDateString(range.start, inferredDateFormat)}
+            </div>
+            <Slider
+              min={range.start}
+              max={range.end}
+              step={step}
+              onChange={handleChange}
+              className="jp-gis-temporal-slider"
+            />
+            <div>
+              {inferredDateFormat &&
+                millisecondsToDateString(range.end, inferredDateFormat)}
+            </div>
 
-          <div>
-            <select
-              onChange={e => {
-                setStep(+e.target.value);
-              }}
-            >
-              {Object.entries(stepMap).map(([key, val]) => {
-                return <option value={val}>{key}</option>;
-              })}
-            </select>
+            <div>
+              <select
+                onChange={e => {
+                  setStep(+e.target.value);
+                }}
+              >
+                {Object.entries(stepMap).map(([key, val]) => {
+                  return <option value={val}>{key}</option>;
+                })}
+              </select>
+            </div>
+          </div>
+          <div className="jp-gis-temporal-slider-row">
+            Current Value: {currentValue}
           </div>
         </>
       ) : (
