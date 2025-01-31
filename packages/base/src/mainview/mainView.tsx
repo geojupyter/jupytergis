@@ -157,10 +157,9 @@ export class MainView extends React.Component<IProps, IStates> {
       console.log('selectedFeature', selectedFeature);
 
       source.forEachFeature(feature => {
-        // will also need to send selectedFeature from temporal slider
         const time = feature.get(selectedFeature);
-        const t = Date.parse(time);
-        feature.set(`converted${selectedFeature}`, t);
+        const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
+        feature.set(`converted${selectedFeature}`, parsedTime);
       });
 
       const layer = this._model.getLayer(layerId);

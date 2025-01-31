@@ -1,6 +1,14 @@
 import { Slider } from '@jupyter/react-components';
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { format, isValid, parse, toDate } from 'date-fns';
+import {
+  daysInYear,
+  millisecondsInDay,
+  millisecondsInHour,
+  millisecondsInMinute,
+  millisecondsInWeek,
+  minutesInMonth
+} from 'date-fns/constants';
 import React, { useEffect, useState } from 'react';
 import { useGetProperties } from '../dialogs/symbology/hooks/useGetProperties';
 
@@ -23,11 +31,11 @@ const commonDateFormats = [
 
 // Time steps in milliseconds
 const stepMap = {
-  hour: 3600000,
-  day: 86400000,
-  week: 604800000,
-  month: 2592000000, // 30 days
-  year: 31536000000 // 365 days
+  hour: millisecondsInHour,
+  day: millisecondsInDay,
+  week: millisecondsInWeek,
+  month: minutesInMonth * millisecondsInMinute,
+  year: millisecondsInDay * daysInYear
 };
 
 const TemporalSlider = ({ model }: ITemporalSliderProps) => {
