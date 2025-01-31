@@ -78,6 +78,7 @@ export interface IJupyterGISClientState {
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
+  isTemporal: boolean;
 }
 
 export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
@@ -214,7 +215,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isIdentifying: boolean;
 
   isTemporal: boolean;
-  toggleTemporal(): void;
+  toggleTemporal(emitter: string): void;
   addTimeFeature(id: string, selectedFeature: string): void;
 
   disposed: ISignal<any, void>;

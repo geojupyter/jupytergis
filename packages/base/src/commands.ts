@@ -178,12 +178,11 @@ export function addCommands(
         : false;
     },
     execute: args => {
-      console.log('TIME');
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
-      current.context.model.toggleTemporal();
+      current.context.model.toggleTemporal(CommandIDs.temporal);
       commands.notifyCommandChanged(CommandIDs.identify);
     },
     ...icons.get(CommandIDs.temporal)

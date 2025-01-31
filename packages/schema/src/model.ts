@@ -628,8 +628,13 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._isIdentifying = !this._isIdentifying;
   }
 
-  toggleTemporal() {
-    this.isTemporal = !this.isTemporal;
+  toggleTemporal(emitter: string) {
+    this._isTemporal = !this._isTemporal;
+
+    this.sharedModel.awareness.setLocalStateField('isTemporal', {
+      value: this._isTemporal,
+      emitter
+    });
   }
 
   private _getLayerTreeInfo(groupName: string):
