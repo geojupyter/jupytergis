@@ -82,6 +82,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
+import { showErrorMessage } from '@jupyterlab/apputils';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -99,6 +100,7 @@ interface IStates {
   viewProjection: { code: string; units: string };
   loadingLayer: boolean;
   scale: number;
+  loadingErrors: Array<{ id: string; error: any; index: number }>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -138,7 +140,8 @@ export class MainView extends React.Component<IProps, IStates> {
       clientPointers: {},
       viewProjection: { code: '', units: '' },
       loadingLayer: false,
-      scale: 0
+      scale: 0,
+      loadingErrors: []
     };
 
     this._sources = [];
@@ -944,11 +947,37 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
 
-    const newMapLayer = await this._buildMapLayer(id, layer);
-    if (newMapLayer !== undefined) {
-      await this._waitForReady();
+    try {
+      const newMapLayer = await this._buildMapLayer(id, layer);
+      if (newMapLayer !== undefined) {
+        await this._waitForReady();
 
-      this._Map.getLayers().insertAt(index, newMapLayer);
+        // Adjust index to ensure it's within bounds
+        const numLayers = this._Map.getLayers().getLength();
+        const safeIndex = Math.min(index, numLayers);
+        this._Map.getLayers().insertAt(safeIndex, newMapLayer);
+      }
+    } catch (error: any) {
+      if (
+        this.state.loadingErrors.find(
+          item => item.id === id && item.error === error.message
+        )
+      ) {
+        this._loadingLayers.delete(id);
+        return;
+      }
+
+      await showErrorMessage(
+        `Error Adding ${layer.name}`,
+        `Failed to add ${layer.name}: ${error.message || 'invalid file path'}`
+      );
+      this.setState(old => ({ ...old, loadingLayer: false }));
+      this.state.loadingErrors.push({
+        id,
+        error: error.message || 'invalid file path',
+        index
+      });
+      this._loadingLayers.delete(id);
     }
   }
 
@@ -1408,7 +1437,11 @@ export class MainView extends React.Component<IProps, IStates> {
     if (currentIndex < index) {
       nextIndex -= 1;
     }
-    this._Map.getLayers().insertAt(nextIndex, layer);
+    // Adjust index to ensure it's within bounds
+    const numLayers = this._Map.getLayers().getLength();
+    const safeIndex = Math.min(index, numLayers);
+
+    this._Map.getLayers().insertAt(safeIndex, layer);
   }
 
   /**
