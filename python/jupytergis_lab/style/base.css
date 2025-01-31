@@ -732,3 +732,11 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 .jgis-identify-grid-body:last-of-type strong:last-of-type {
   padding-bottom: 8px;
 }
+
+/* Style the file path text */
+.file-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 10px;
+}
