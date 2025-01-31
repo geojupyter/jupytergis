@@ -1,6 +1,6 @@
 import { Slider } from '@jupyter/react-components';
 import { IJupyterGISModel } from '@jupytergis/schema';
-import { format, isValid, parse } from 'date-fns';
+import { format, isValid, parse, toDate } from 'date-fns';
 import React, { useEffect, useState } from 'react';
 import { useGetProperties } from '../dialogs/symbology/hooks/useGetProperties';
 
@@ -21,6 +21,15 @@ const commonDateFormats = [
   'MM.dd.yyyy' // US format with dots (e.g., 10.05.2023)
 ];
 
+// Time steps in milliseconds
+const stepMap = {
+  hour: 3600000,
+  day: 86400000,
+  week: 604800000,
+  month: 2592000000, // 30 days
+  year: 31536000000 // 365 days
+};
+
 const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [layerId, setLayerId] = useState('');
   //   const [selectedLayer, setSelectedLayer] = useState('');
@@ -30,8 +39,8 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
   // False is values are already numbers, true if values are strings
   const [converted, setConverted] = useState(false);
-  const [inferredDateFormat, setInferredDateFormat] = useState('');
-
+  const [inferredDateFormat, setInferredDateFormat] = useState('yyyy-MM-dd');
+  const [step, setStep] = useState(stepMap.day);
   const { featureProps } = useGetProperties({ layerId, model });
 
   useEffect(() => {
@@ -52,10 +61,54 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
     // We only want to show features that could be time values
     for (const [key, set] of Object.entries(featureProps)) {
+      let checkIfDateIsValid = false;
       const checkValue = set.values().next().value;
-      // const [cv2] = set;
+      console.log('checking ', key, checkValue);
 
-      if (checkValue && isValidDate(checkValue)) {
+      // We only want to look at strings and whole numbers
+      // ? Is there a better way to check if number values are valid timestamps?
+      const isString = typeof checkValue === 'string';
+      const isNumber =
+        typeof checkValue === 'number' && Number.isInteger(checkValue);
+      if (!isString && !isNumber) {
+        console.log('not string or number');
+        continue;
+      }
+
+      // ! QGIS doesn't actually support number values for their time thing
+      if (isNumber) {
+        // Check if number returns a valid date
+        const date = toDate(checkValue);
+        console.log('date', date);
+
+        checkIfDateIsValid = isValid(toDate(checkValue));
+
+        if (!checkIfDateIsValid) {
+          console.log('key invalid', key);
+          continue;
+        }
+      }
+
+      if (isString) {
+        const date = toDate(checkValue);
+        console.log('date', date);
+        // const inferredFormat = inferDateFormat(checkValue);
+        // if (!inferredFormat) {
+        //   console.log('date not inferred from', key);
+        //   continue;
+        // }
+
+        // checkIfDateIsValid = !!inferredFormat;
+        checkIfDateIsValid = isValid(toDate(checkValue));
+        // setConverted(true);
+        // setInferredDateFormat(inferredFormat);
+        if (!checkIfDateIsValid) {
+          console.log('key invalid', key);
+          continue;
+        }
+      }
+
+      if (checkValue && checkIfDateIsValid) {
         featuresForSelect.push(key);
       }
     }
@@ -72,22 +125,27 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     const values: any[] = Array.from(featureProps[selectedFeature]);
 
     // Check the type of the first element
-    const firstValue = values[0];
-    const isString = typeof firstValue === 'string';
+    // const firstValue = values[0];
+    const isString = typeof values[0] === 'string';
     let convertedValues;
 
     if (isString) {
-      const inferred = inferDateFormat(values[0]);
-      if (!inferred) {
+      console.log('string');
+      const inferredFormat = inferDateFormat(values[0]);
+      if (!inferredFormat) {
         console.log('broke');
         return;
       }
 
+      setInferredDateFormat(inferredFormat);
+
       convertedValues = values.map(value => Date.parse(value)); // Convert all strings to milliseconds
-      setConverted(true);
-      console.log('inferred', inferred);
-      setInferredDateFormat(inferred);
+
+      // setConverted(true);
+      // console.log('inferred', inferred);
+      setInferredDateFormat(inferredFormat);
     } else {
+      console.log('not string');
       convertedValues = values; // Keep numbers as they are
     }
 
@@ -108,7 +166,9 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   // Infer the date format from a date string
   const inferDateFormat = (dateString: string): string | null => {
     for (const format of commonDateFormats) {
+      console.log('inferring', dateString, format);
       const parsedDate = parse(dateString, format, new Date());
+      console.log('parsedDate', parsedDate);
       if (isValid(parsedDate)) {
         return format; // Return the format if the date is valid
       }
@@ -122,7 +182,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     dateFormat: string
   ): number => {
     const date = parse(dateString, dateFormat, new Date()); // Parse the date string
-    return date.getTime(); // Convert to milliseconds
+    return date.getUTCMilliseconds(); // Convert to milliseconds
   };
 
   // Convert milliseconds back to the original date string format
@@ -136,6 +196,9 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
   const handleChange = (e: any) => {
     console.log('change', e.target.value);
+
+    const sd = millisecondsToDateString(+e.target.value, inferredDateFormat);
+    console.log('sd', sd);
 
     const newFilter = {
       feature: `converted${selectedFeature}`,
@@ -157,22 +220,46 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
         <>
           <div>
             <select onChange={setFeature}>
+              <option></option>
               {validFeatures.map(feature => {
-                return <option value={feature}>{feature}</option>;
+                return (
+                  <option
+                    value={feature}
+                    selected={selectedFeature === feature}
+                  >
+                    {feature}
+                  </option>
+                );
               })}
             </select>
           </div>
-          <div>{new Date(range.start).toUTCString()}</div>
+          <div>
+            {inferredDateFormat &&
+              millisecondsToDateString(range.start, inferredDateFormat)}
+          </div>
           <Slider
             min={range.start}
             max={range.end}
-            // step={60 * 60 * 1000}
+            step={step}
             onChange={handleChange}
             className="jp-gis-temporal-slider"
           />
-          <div>{new Date(range.end).toUTCString()}</div>
+          <div>
+            {inferredDateFormat &&
+              millisecondsToDateString(range.end, inferredDateFormat)}
+          </div>
 
-          <div>step</div>
+          <div>
+            <select
+              onChange={e => {
+                setStep(+e.target.value);
+              }}
+            >
+              {Object.entries(stepMap).map(([key, val]) => {
+                return <option value={val}>{key}</option>;
+              })}
+            </select>
+          </div>
         </>
       ) : (
         <div>Select a layer</div>
