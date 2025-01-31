@@ -110,7 +110,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     if (isString) {
       const inferredFormat = inferDateFormat(values[0]);
       if (!inferredFormat) {
-        console.log('Datestring has an unsupported format');
+        console.log('Date string has an unsupported format');
         return;
       }
 
@@ -119,7 +119,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       convertedValues = values.map(value => Date.parse(value)); // Convert all strings to milliseconds
       setInferredDateFormat(inferredFormat);
     } else {
-      console.log('not string');
       convertedValues = values; // Keep numbers as they are
     }
 
@@ -129,6 +128,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
     // Update the range state
     setRange({ start: min, end: max });
+    model.addTimeFeature(layerId, selectedFeature);
   }, [selectedFeature]);
 
   // Infer the date format from a date string
@@ -176,7 +176,32 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     };
 
     setCurrentValue(currentValueString);
-    model.addFeatureTimeThins(layerId, selectedFeature, newFilter);
+
+    const layer = model.getLayer(layerId);
+    if (!layer) {
+      return;
+    }
+
+    // I think i want to replace filters?
+    // or save old ones and reapply them when turning temporal off?
+    // Really i want this filter to work with existing filters
+    // I want to replace the one being added instead of adding a new one
+    // add a type or source or something to the filter item??
+    const oldFilters = layer.filters?.appliedFilters;
+    const newFilters = oldFilters ? [...oldFilters] : [];
+
+    // if no filters then add this one
+    // if there are filters we want to replace time one
+    // assume that is the last entry for now
+    if (newFilters.length === 0) {
+      newFilters.push(newFilter);
+    } else {
+      newFilters.splice(newFilters.length - 1, 1, newFilter);
+    }
+
+    layer.filters = { logicalOp: 'all', appliedFilters: newFilters };
+    model.sharedModel.updateLayer(layerId, layer);
+    // model.addFeatureTimeThins(layerId, selectedFeature, newFilter);
   };
 
   const setFeature = (e: any) => {

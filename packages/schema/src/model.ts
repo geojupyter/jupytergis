@@ -8,7 +8,6 @@ import Ajv from 'ajv';
 import { Contents } from '@jupyterlab/services';
 import {
   IJGISContent,
-  IJGISFilterItem,
   IJGISLayer,
   IJGISLayerGroup,
   IJGISLayerItem,
@@ -681,14 +680,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   };
 
-  addFeatureTimeThins = (
-    id: string,
-    selectedFeature: string,
-    newFilter: IJGISFilterItem
-  ) => {
-    this.addFeaturesSignal.emit(
-      JSON.stringify({ id, selectedFeature, newFilter })
-    );
+  addTimeFeature = (id: string, selectedFeature: string) => {
+    this.addFeaturesSignal.emit(JSON.stringify({ id, selectedFeature }));
   };
 
   get addFeaturesSignal() {

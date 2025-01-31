@@ -161,31 +161,6 @@ export class MainView extends React.Component<IProps, IStates> {
         const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
         feature.set(`converted${selectedFeature}`, parsedTime);
       });
-
-      const layer = this._model.getLayer(layerId);
-      if (!layer) {
-        return;
-      }
-
-      // I think i want to replace filters?
-      // or save old ones and reapply them when turning temporal off?
-      // Really i want this filter to work with existing filters
-      // I want to replace the one being added instead of adding a new one
-      // add a type or source or something to the filter item??
-      const oldFilters = layer.filters?.appliedFilters;
-      const newFilters = oldFilters ? [...oldFilters] : [];
-
-      // if no filters then add this one
-      // if there are filters we want to replace time one
-      // assume that is the last entry for now
-      if (newFilters.length === 0) {
-        newFilters.push(newFilter);
-      } else {
-        newFilters.splice(newFilters.length - 1, 1, newFilter);
-      }
-
-      layer.filters = { logicalOp: 'all', appliedFilters: newFilters };
-      this._model.sharedModel.updateLayer(layerId, layer);
     });
 
     this._sources = [];
