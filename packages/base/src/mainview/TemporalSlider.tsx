@@ -134,9 +134,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   // Infer the date format from a date string
   const inferDateFormat = (dateString: string): string | null => {
     for (const format of commonDateFormats) {
-      console.log('inferring', dateString, format);
       const parsedDate = parse(dateString, format, new Date());
-      console.log('parsedDate', parsedDate);
       if (isValid(parsedDate)) {
         return format; // Return the format if the date is valid
       }
@@ -182,17 +180,15 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       return;
     }
 
-    // I think i want to replace filters?
-    // or save old ones and reapply them when turning temporal off?
-    // Really i want this filter to work with existing filters
-    // I want to replace the one being added instead of adding a new one
-    // add a type or source or something to the filter item??
     const oldFilters = layer.filters?.appliedFilters;
     const newFilters = oldFilters ? [...oldFilters] : [];
 
     // if no filters then add this one
     // if there are filters we want to replace time one
     // assume that is the last entry for now
+    // TODO Need a better way to distinguish time slider filter from other filers
+    // ? Could have a source attribute on the filter item object or something
+    // ? Could even do this in memory without writing to jgis file?
     if (newFilters.length === 0) {
       newFilters.push(newFilter);
     } else {
@@ -201,7 +197,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
     layer.filters = { logicalOp: 'all', appliedFilters: newFilters };
     model.sharedModel.updateLayer(layerId, layer);
-    // model.addFeatureTimeThins(layerId, selectedFeature, newFilter);
   };
 
   const setFeature = (e: any) => {
@@ -214,7 +209,8 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
         <>
           <div className="jp-gis-temporal-slider-row">
             <div>
-              <select onChange={setFeature}>
+              <label htmlFor="time-feature-select">Feature: </label>
+              <select id="time-feature-select" onChange={setFeature}>
                 <option></option>
                 {validFeatures.map(feature => {
                   return (
@@ -229,23 +225,9 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
               </select>
             </div>
             <div>
-              {inferredDateFormat &&
-                millisecondsToDateString(range.start, inferredDateFormat)}
-            </div>
-            <Slider
-              min={range.start}
-              max={range.end}
-              step={step}
-              onChange={handleChange}
-              className="jp-gis-temporal-slider"
-            />
-            <div>
-              {inferredDateFormat &&
-                millisecondsToDateString(range.end, inferredDateFormat)}
-            </div>
-
-            <div>
+              <label htmlFor="time-step-select">Step: </label>
               <select
+                id="time-step-select"
                 onChange={e => {
                   setStep(+e.target.value);
                 }}
@@ -257,7 +239,18 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
             </div>
           </div>
           <div className="jp-gis-temporal-slider-row">
-            Current Value: {currentValue}
+            <div>{inferredDateFormat && currentValue}</div>
+            <Slider
+              min={range.start}
+              max={range.end}
+              step={step}
+              onChange={handleChange}
+              className="jp-gis-temporal-slider"
+            />
+            <div>
+              {inferredDateFormat &&
+                millisecondsToDateString(range.end, inferredDateFormat)}
+            </div>
           </div>
         </>
       ) : (
