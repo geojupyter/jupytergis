@@ -1,6 +1,13 @@
 .jp-gis-temporal-slider-container {
   display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.jp-gis-temporal-slider-row {
+  display: flex;
   gap: 0.25rem;
+  justify-content: space-around;
 }
 
 .jp-gis-temporal-slider {
