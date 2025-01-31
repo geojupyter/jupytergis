@@ -1,16 +1,24 @@
 {
   "layerTree": [
-    "8de7c2c0-6024-4716-b542-031a89fb87f9",
-    "3e21d680-406f-4099-bd9e-3a4edb9a2c8b"
+    "d793fed9-f3f8-4e2f-bfca-b01d7f5a91eb",
+    "e7127387-d529-4f1a-9187-dda676b69b78"
   ],
   "layers": {
-    "3e21d680-406f-4099-bd9e-3a4edb9a2c8b": {
+    "d793fed9-f3f8-4e2f-bfca-b01d7f5a91eb": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "9cb7ef3b-e831-4dec-9baa-5a000ff3bb98"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "e7127387-d529-4f1a-9187-dda676b69b78": {
       "filters": {
         "appliedFilters": [
           {
-            "feature": "convertedtime",
+            "feature": "convertedsubreg",
             "operator": ">=",
-            "value": 1506561891990.0
+            "value": 1356825600000.0
           }
         ],
         "logicalOp": "all"
@@ -20,13 +28,13 @@
         "color": {
           "circle-fill-color": "#f66151",
           "circle-radius": 5.0,
-          "circle-stroke-color": "#62a0ea",
+          "circle-stroke-color": "#3399CC",
           "circle-stroke-line-cap": "round",
           "circle-stroke-line-join": "round",
           "circle-stroke-width": 1.25
         },
         "opacity": 1.0,
-        "source": "348d85fa-3a71-447f-8a64-e283ec47cc7c",
+        "source": "f5967740-f35c-4a9f-a721-67b798496398",
         "symbologyState": {
           "renderType": "Single Symbol"
         },
@@ -34,40 +42,25 @@
       },
       "type": "VectorLayer",
       "visible": true
-    },
-    "8de7c2c0-6024-4716-b542-031a89fb87f9": {
-      "name": "OpenStreetMap.Mapnik Layer",
-      "parameters": {
-        "source": "b2ea427a-a51b-43ad-ae72-02cd900736d5"
-      },
-      "type": "RasterLayer",
-      "visible": true
     }
   },
   "metadata": {},
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8743782.33482077,
-      -9086918.06770886,
-      3974641.244421752,
-      19283053.908469707
+      -19118720.268355727,
+      -12812863.718760101,
+      -1222492.139435364,
+      12812863.718760109
     ],
-    "latitude": 41.57863106624126,
-    "longitude": -21.420961668139388,
+    "latitude": 4.263256414560601e-14,
+    "longitude": -91.36411001720195,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 2.6670105136699993
+    "zoom": 2.1686721181322306
   },
   "sources": {
-    "348d85fa-3a71-447f-8a64-e283ec47cc7c": {
-      "name": "Custom GeoJSON Layer Source",
-      "parameters": {
-        "path": "../../examples/eq.json"
-      },
-      "type": "GeoJSONSource"
-    },
-    "b2ea427a-a51b-43ad-ae72-02cd900736d5": {
+    "9cb7ef3b-e831-4dec-9baa-5a000ff3bb98": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
@@ -78,6 +71,13 @@
         "urlParameters": {}
       },
       "type": "RasterSource"
+    },
+    "f5967740-f35c-4a9f-a721-67b798496398": {
+      "name": "Custom GeoJSON Layer Source",
+      "parameters": {
+        "path": "../../examples/pirates.geojson"
+      },
+      "type": "GeoJSONSource"
     }
   }
 }
