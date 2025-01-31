@@ -113,18 +113,13 @@ export const FileSelectorWidget = (props: any) => {
 
   return (
     <div>
-      <div>
-        <input
-          type="text"
-          className="jp-mod-styled"
-          value={serverFilePath || ''}
-          readOnly
-          style={{ width: '70%', marginRight: '10px' }}
-        />
+      <div className="file-container">
         <button className="jp-mod-styled" onClick={handleBrowseServerFiles}>
           Browse Server Files
         </button>
+        <p>{serverFilePath || ''}</p>
       </div>
+
       <div>
         <h3 className="jp-FormGroup-fieldLabel jp-FormGroup-contentItem">
           Or enter external URL
