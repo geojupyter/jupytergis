@@ -70,7 +70,7 @@ jobs:
           fi
 
       - name: Download extension package
-        uses: dawidd6/action-download-artifact@v7
+        uses: dawidd6/action-download-artifact@v8
         with:
           pr: ${{github.event.issue.number}}
           workflow: 'build.yml'
