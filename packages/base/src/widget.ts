@@ -57,10 +57,7 @@ export class JupyterGISOutputWidget
 
     const resizeObserver = new ResizeObserver(() => {
       // Send a resize message to the widget, to update the child size.
-      MessageLoop.sendMessage(
-        this,
-        Widget.ResizeMessage.UnknownSize
-      );
+      MessageLoop.sendMessage(this, Widget.ResizeMessage.UnknownSize);
     });
     resizeObserver.observe(this.node);
   }
