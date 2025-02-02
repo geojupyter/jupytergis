@@ -4,7 +4,7 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { JSONValue } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
-import { SplitPanel } from '@lumino/widgets';
+import { SplitPanel, Widget } from '@lumino/widgets';
 import {
   IJupyterGISModel,
   IJupyterGISWidgetContext,
@@ -15,6 +15,9 @@ import {
 import { JupyterGISMainViewPanel } from './mainview';
 import { MainViewModel } from './mainview/mainviewmodel';
 import { ConsoleView } from './console';
+import { MessageLoop } from '@lumino/messaging';
+
+const CELL_OUTPUT_WIDGET_CLASS = 'jgis-cell-output-widget';
 
 export class JupyterGISWidget
   extends DocumentWidget<JupyterGISPanel, IJupyterGISModel>
@@ -49,7 +52,17 @@ export class JupyterGISOutputWidget
 {
   constructor(options: JupyterGISOutputWidget.IOptions) {
     super(options);
+    this.addClass(CELL_OUTPUT_WIDGET_CLASS);
     this.context = options.context;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // Send a resize message to the widget, to update the child size.
+      MessageLoop.sendMessage(
+        this,
+        Widget.ResizeMessage.UnknownSize
+      );
+    });
+    resizeObserver.observe(this.node);
   }
 
   readonly context: IJupyterGISWidgetContext;

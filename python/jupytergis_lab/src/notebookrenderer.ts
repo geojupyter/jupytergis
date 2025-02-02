@@ -74,15 +74,6 @@ export class YJupyterGISLuminoWidget extends Panel {
     return this._jgisWidget;
   }
 
-  onResize = (): void => {
-    if (this._jgisWidget) {
-      MessageLoop.sendMessage(
-        this._jgisWidget,
-        Widget.ResizeMessage.UnknownSize
-      );
-    }
-  };
-
   private _jgisWidget: JupyterGISOutputWidget;
 }
 
