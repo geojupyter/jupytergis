@@ -72,7 +72,9 @@ class GISDocument(CommWidget):
         ydoc = Doc()
 
         super().__init__(
-            comm_metadata=dict(ymodel_name="@jupytergis:widget", cwd=os.getcwd(), **comm_metadata),
+            comm_metadata=dict(
+                ymodel_name="@jupytergis:widget", cwd=os.getcwd(), **comm_metadata
+            ),
             ydoc=ydoc,
         )
 
