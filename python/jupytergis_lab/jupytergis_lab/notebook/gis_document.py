@@ -29,7 +29,6 @@ from .objects import (
     LayerType,
     SourceType,
 )
-from .utils import normalize_path
 
 logger = logging.getLogger(__file__)
 
@@ -708,7 +707,7 @@ class GISDocument(CommWidget):
         contentType = None
 
         if filePath is not None:
-            path = normalize_path(filePath)
+            path = filePath
             file_name = Path(path).name
             try:
                 ext = file_name.split(".")[1].lower()
