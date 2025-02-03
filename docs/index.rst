@@ -37,5 +37,5 @@ Table of contents
    python_api
    collab.rst
    tutorials/intro.md
-   contributing.rst
+   contributing/index.rst
    changelog.rst
