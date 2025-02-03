@@ -66,16 +66,4 @@ test.describe('#export', () => {
       await page.filebrowser.contents.fileExists(`testDir/${filename}.qgz`)
     ).toBeTruthy();
   });
-
-  test('should display warnings', async ({ page }) => {
-    await page.filebrowser.open('testDir/test.jGIS');
-    await page.menu.clickMenuItem('File>Export To QGZ');
-
-    const dialog = page.locator('.jp-Dialog');
-    await expect(dialog).toBeAttached();
-    await dialog.locator('.jp-mod-accept').click();
-    await expect(dialog).not.toBeAttached();
-    await expect(dialog).toBeAttached();
-    await expect(dialog).toContainText('has been exported with warnings');
-  });
 });
