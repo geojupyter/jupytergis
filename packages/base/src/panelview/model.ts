@@ -23,26 +23,26 @@ export class ControlPanelModel implements IControlPanelModel {
   }
 
   get filePath(): string | undefined {
-    return this._tracker.currentWidget?.context.localPath;
+    return this._tracker.currentWidget?.model.filePath;
   }
 
   get jGISModel(): IJupyterGISModel | undefined {
-    return this._tracker.currentWidget?.context.model;
+    return this._tracker.currentWidget?.model;
   }
 
   get sharedModel(): IJupyterGISDoc | undefined {
-    return this._tracker.currentWidget?.context.model.sharedModel;
+    return this._tracker.currentWidget?.model.sharedModel;
   }
 
   disconnect(f: any): void {
     this._tracker.forEach(w => {
-      w.context.model.sharedLayersChanged.disconnect(f);
-      w.context.model.sharedSourcesChanged.disconnect(f);
-      w.context.model.sharedOptionsChanged.disconnect(f);
+      w.model.sharedLayersChanged.disconnect(f);
+      w.model.sharedSourcesChanged.disconnect(f);
+      w.model.sharedOptionsChanged.disconnect(f);
     });
-    this._tracker.forEach(w => w.context.model.themeChanged.disconnect(f));
+    this._tracker.forEach(w => w.model.themeChanged.disconnect(f));
     this._tracker.forEach(w =>
-      w.context.model.clientStateChanged.disconnect(f)
+      w.model.clientStateChanged.disconnect(f)
     );
   }
 

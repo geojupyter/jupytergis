@@ -2,7 +2,6 @@ import {
   IDict,
   IJGISLayer,
   IJupyterGISModel,
-  IJupyterGISWidgetContext
 } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
 import { loadFile } from '../../../tools';
@@ -52,7 +51,7 @@ const preloadGeoTiffFile = async (
 };
 
 const useGetBandInfo = (
-  context: IJupyterGISWidgetContext,
+  model: IJupyterGISModel,
   layer: IJGISLayer
 ) => {
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
@@ -65,7 +64,7 @@ const useGetBandInfo = (
 
     try {
       const bandsArr: IBandRow[] = [];
-      const source = context.model.getSource(layer?.parameters?.source);
+      const source = model.getSource(layer?.parameters?.source);
       const sourceInfo = source?.parameters?.urls[0];
 
       if (!sourceInfo?.url) {
@@ -74,7 +73,7 @@ const useGetBandInfo = (
         return;
       }
 
-      const preloadedFile = await preloadGeoTiffFile(sourceInfo, context.model);
+      const preloadedFile = await preloadGeoTiffFile(sourceInfo, model);
       const { file, metadata, sourceUrl } = { ...preloadedFile };
 
       if (file && metadata && sourceUrl === sourceInfo.url) {

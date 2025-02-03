@@ -7,7 +7,6 @@ import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel, Widget } from '@lumino/widgets';
 import {
   IJupyterGISModel,
-  IJupyterGISWidgetContext,
   IJupyterGISOutputWidget,
   IJupyterGISWidget
 } from '@jupytergis/schema';
@@ -27,6 +26,10 @@ export class JupyterGISWidget
     options: DocumentWidget.IOptions<JupyterGISPanel, IJupyterGISModel>
   ) {
     super(options);
+  }
+
+  get model(): IJupyterGISModel {
+    return this.context.model;
   }
 
   /**
@@ -53,7 +56,7 @@ export class JupyterGISOutputWidget
   constructor(options: JupyterGISOutputWidget.IOptions) {
     super(options);
     this.addClass(CELL_OUTPUT_WIDGET_CLASS);
-    this.context = options.context;
+    this.model = options.model;
 
     const resizeObserver = new ResizeObserver(() => {
       // Send a resize message to the widget, to update the child size.
@@ -62,12 +65,12 @@ export class JupyterGISOutputWidget
     resizeObserver.observe(this.node);
   }
 
-  readonly context: IJupyterGISWidgetContext;
+  readonly model: IJupyterGISModel;
 }
 
 export namespace JupyterGISOutputWidget {
   export interface IOptions extends MainAreaWidget.IOptions<JupyterGISPanel> {
-    context: IJupyterGISWidgetContext;
+    model: IJupyterGISModel;
   }
 }
 

@@ -20,14 +20,14 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
     this._annotationModel = props.annotationModel;
     this._rightPanelModel = props.rightPanelModel;
 
-    this._annotationModel.contextChanged.connect(async () => {
+    this._annotationModel.modelChanged.connect(async () => {
       // await this._annotationModel?.context?.ready;
 
-      this._annotationModel?.context?.model?.sharedMetadataChanged.disconnect(
+      this._annotationModel?.model?.sharedMetadataChanged.disconnect(
         updateCallback
       );
       this._annotationModel = props.annotationModel;
-      this._annotationModel?.context?.model?.sharedMetadataChanged.connect(
+      this._annotationModel?.model?.sharedMetadataChanged.connect(
         updateCallback
       );
       this.forceUpdate();

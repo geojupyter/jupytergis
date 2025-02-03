@@ -10,7 +10,6 @@ import {
   IJGISExternalCommandRegistryToken,
   IJupyterGISDoc,
   IJupyterGISDocTracker,
-  IJupyterGISWidgetContext,
   JupyterGISModel
 } from '@jupytergis/schema';
 import {
@@ -57,12 +56,8 @@ export class YJupyterGISLuminoWidget extends Panel {
       model,
       externalCommands: externalCommands.getCommands()
     });
-    const context: IJupyterGISWidgetContext = {
-      model,
-      localPath: model.filePath
-    };
     this._jgisWidget = new JupyterGISOutputWidget({
-      context,
+      model,
       content,
       toolbar
     });

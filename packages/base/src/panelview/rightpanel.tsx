@@ -1,8 +1,8 @@
 import {
   IAnnotationModel,
   IJGISFormSchemaRegistry,
+  IJupyterGISModel,
   IJupyterGISTracker,
-  IJupyterGISWidgetContext,
   JupyterGISDoc
 } from '@jupytergis/schema';
 import { SidePanel } from '@jupyterlab/ui-components';
@@ -47,11 +47,11 @@ export class RightPanelWidget extends SidePanel {
 
     this._model.documentChanged.connect((_, changed) => {
       if (changed) {
-        if (changed.context.model.sharedModel.editable) {
-          header.title.label = changed.context.localPath;
+        if (changed.model.sharedModel.editable) {
+          header.title.label = changed.model.filePath;
           properties.show();
         } else {
-          header.title.label = `${changed.context.localPath} - Read Only`;
+          header.title.label = `${changed.model.filePath} - Read Only`;
           properties.hide();
         }
       } else {
@@ -61,15 +61,15 @@ export class RightPanelWidget extends SidePanel {
 
     options.tracker.currentChanged.connect(async (_, changed) => {
       if (changed) {
-        this._currentContext = changed.context;
-        header.title.label = this._currentContext.localPath;
-        this._annotationModel.context =
-          options.tracker.currentWidget?.context || undefined;
+        this._currentModel = changed.model;
+        header.title.label = this._currentModel.filePath;
+        this._annotationModel.model =
+          options.tracker.currentWidget?.model || undefined;
         // await changed.context.ready;
       } else {
         header.title.label = '-';
-        this._currentContext = null;
-        this._annotationModel.context = undefined;
+        this._currentModel = null;
+        this._annotationModel.model = undefined;
       }
     });
   }
@@ -78,7 +78,7 @@ export class RightPanelWidget extends SidePanel {
     super.dispose();
   }
 
-  private _currentContext: IJupyterGISWidgetContext | null;
+  private _currentModel: IJupyterGISModel | null;
   private _model: IControlPanelModel;
   private _annotationModel: IAnnotationModel;
 }

@@ -4,7 +4,6 @@ import {
   IJGISLayer,
   IJGISSource,
   IJupyterGISModel,
-  IJupyterGISWidgetContext,
   LayerType,
   SourceType
 } from '@jupytergis/schema';
@@ -59,7 +58,7 @@ export interface ICreationFormProps {
   cancel?: () => void;
 
   formSchemaRegistry: IJGISFormSchemaRegistry;
-  context: IJupyterGISWidgetContext;
+  model: IJupyterGISModel,
 
   /**
    * A signal emitting when the form changed, with a boolean whether there are some
@@ -81,8 +80,8 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
   constructor(props: ICreationFormProps) {
     super(props);
 
-    this.filePath = props.context.localPath;
-    this.jGISModel = props.context.model;
+    this.filePath = props.model.filePath;
+    this.jGISModel = props.model;
   }
 
   render() {

@@ -12,7 +12,7 @@ import { Utils, VectorUtils } from '../../symbologyUtils';
 import { IVectorLayer } from '@jupytergis/schema';
 
 const Graduated = ({
-  context,
+  model,
   state,
   okSignalPromise,
   cancel,
@@ -43,14 +43,14 @@ const Graduated = ({
   if (!layerId) {
     return;
   }
-  const layer = context.model.getLayer(layerId);
+  const layer = model.getLayer(layerId);
   if (!layer?.parameters) {
     return;
   }
 
   const { featureProps } = useGetProperties({
     layerId,
-    model: context.model
+    model: model
   });
 
   useEffect(() => {
@@ -156,7 +156,7 @@ const Graduated = ({
     layer.parameters.color = newStyle;
     layer.type = 'VectorLayer';
 
-    context.model.sharedModel.updateLayer(layerId, layer);
+    model.sharedModel.updateLayer(layerId, layer);
     cancel();
   };
 

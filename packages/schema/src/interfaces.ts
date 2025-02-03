@@ -221,15 +221,12 @@ export interface IUserData {
   userData: User.IIdentity;
 }
 
-export type IJupyterGISWidget = IDocumentWidget<SplitPanel, IJupyterGISModel>;
-
-export interface IJupyterGISWidgetContext {
-  model: IJupyterGISModel;
-  localPath: string;
+export interface IJupyterGISWidget extends IDocumentWidget<SplitPanel, IJupyterGISModel> {
+  readonly model: IJupyterGISModel;
 }
 
 export interface IJupyterGISOutputWidget extends Widget {
-  context: IJupyterGISWidgetContext;
+  model: IJupyterGISModel;
 }
 
 export type IJupyterGISTracker = IWidgetTracker<
@@ -301,8 +298,8 @@ export interface IAnnotationModel {
   updateSignal: ISignal<this, null>;
   user: User.IIdentity | undefined;
 
-  context: IJupyterGISWidgetContext | undefined;
-  contextChanged: ISignal<this, void>;
+  model: IJupyterGISModel | undefined;
+  modelChanged: ISignal<this, void>;
 
   update(): void;
 

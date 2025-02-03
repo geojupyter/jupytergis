@@ -6,7 +6,7 @@ import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
 
 const VectorRendering = ({
-  context,
+  model,
   state,
   okSignalPromise,
   cancel,
@@ -23,7 +23,7 @@ const VectorRendering = ({
   if (!layerId) {
     return;
   }
-  const layer = context.model.getLayer(layerId);
+  const layer = model.getLayer(layerId);
   if (!layer?.parameters) {
     return;
   }
@@ -44,7 +44,7 @@ const VectorRendering = ({
       case 'Single Symbol':
         RenderComponent = (
           <SimpleSymbol
-            context={context}
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}
@@ -55,7 +55,7 @@ const VectorRendering = ({
       case 'Graduated':
         RenderComponent = (
           <Graduated
-            context={context}
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}
@@ -66,7 +66,7 @@ const VectorRendering = ({
       case 'Categorized':
         RenderComponent = (
           <Categorized
-            context={context}
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}
@@ -77,7 +77,7 @@ const VectorRendering = ({
       case 'Heatmap':
         RenderComponent = (
           <Heatmap
-            context={context}
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}

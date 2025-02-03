@@ -170,7 +170,7 @@ const activate = async (
       tracker.save(widget);
     });
     themeManager.themeChanged.connect((_, changes) =>
-      widget.context.model.themeChanged.emit(changes)
+      widget.model.themeChanged.emit(changes)
     );
 
     tracker.add(widget);
@@ -192,16 +192,16 @@ const activate = async (
       label: 'Export To QGZ',
       isEnabled: () =>
         tracker.currentWidget
-          ? tracker.currentWidget.context.model.sharedModel.editable
+          ? tracker.currentWidget.model.sharedModel.editable
           : false,
       execute: async args => {
         const sourceExtension = '.jGIS';
         const extension = '.qgz';
-        const model = tracker.currentWidget?.context.model.sharedModel;
+        const model = tracker.currentWidget?.model.sharedModel;
         if (!model) {
           return;
         }
-        const sourcePath = tracker.currentWidget.context.localPath;
+        const sourcePath = tracker.currentWidget.model.filePath;
 
         let filepath: string | null = (args.filepath as string) ?? null;
         if (!filepath) {

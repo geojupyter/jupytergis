@@ -2,14 +2,14 @@ import {
   IAnnotation,
   IAnnotationContent,
   IAnnotationModel,
-  IJupyterGISWidgetContext
+  IJupyterGISModel
 } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
 import { ISignal, Signal } from '@lumino/signaling';
 
 export class AnnotationModel implements IAnnotationModel {
   constructor(options: AnnotationModel.IOptions) {
-    this.context = options.context;
+    this.model = options.model;
   }
 
   get updateSignal(): ISignal<this, null> {
@@ -20,21 +20,21 @@ export class AnnotationModel implements IAnnotationModel {
     return this._user;
   }
 
-  set context(context: IJupyterGISWidgetContext | undefined) {
-    this._context = context;
+  set model(model: IJupyterGISModel | undefined) {
+    this._model = model;
 
-    const state = this._context?.model.sharedModel.awareness.getLocalState();
+    const state = this._model?.sharedModel.awareness.getLocalState();
     this._user = state?.user;
 
-    this._contextChanged.emit(void 0);
+    this._modelChanged.emit(void 0);
   }
 
-  get context(): IJupyterGISWidgetContext | undefined {
-    return this._context;
+  get model(): IJupyterGISModel | undefined {
+    return this._model;
   }
 
-  get contextChanged(): ISignal<this, void> {
-    return this._contextChanged;
+  get modelChanged(): ISignal<this, void> {
+    return this._modelChanged;
   }
 
   update(): void {
@@ -42,7 +42,7 @@ export class AnnotationModel implements IAnnotationModel {
   }
 
   getAnnotation(id: string): IAnnotation | undefined {
-    const rawData = this._context?.model.sharedModel.getMetadata(id);
+    const rawData = this._model?.sharedModel.getMetadata(id);
     if (rawData) {
       return JSON.parse(rawData) as IAnnotation;
     }
@@ -50,7 +50,7 @@ export class AnnotationModel implements IAnnotationModel {
 
   getAnnotationIds(): string[] {
     const annotationIds: string[] = [];
-    for (const id in this._context?.model.sharedModel.metadata) {
+    for (const id in this._model?.sharedModel.metadata) {
       if (id.startsWith('annotation')) {
         annotationIds.push(id);
       }
@@ -59,14 +59,14 @@ export class AnnotationModel implements IAnnotationModel {
   }
 
   addAnnotation(key: string, value: IAnnotation): void {
-    this._context?.model.sharedModel.setMetadata(
+    this._model?.sharedModel.setMetadata(
       `annotation_${key}`,
       JSON.stringify(value)
     );
   }
 
   removeAnnotation(key: string): void {
-    this._context?.model.removeMetadata(key);
+    this._model?.removeMetadata(key);
   }
 
   addContent(id: string, value: string): void {
@@ -81,21 +81,21 @@ export class AnnotationModel implements IAnnotationModel {
         contents: [...currentAnnotation.contents, newContent]
       };
 
-      this._context?.model.sharedModel.setMetadata(
+      this._model?.sharedModel.setMetadata(
         id,
         JSON.stringify(newAnnotation)
       );
     }
   }
 
-  private _context: IJupyterGISWidgetContext | undefined;
-  private _contextChanged = new Signal<this, void>(this);
+  private _model: IJupyterGISModel | undefined;
+  private _modelChanged = new Signal<this, void>(this);
   private _updateSignal = new Signal<this, null>(this);
   private _user?: User.IIdentity;
 }
 
 namespace AnnotationModel {
   export interface IOptions {
-    context: IJupyterGISWidgetContext | undefined;
+    model: IJupyterGISModel | undefined;
   }
 }

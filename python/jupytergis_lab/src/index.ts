@@ -317,11 +317,11 @@ function buildGroupsMenu(
   contextMenu: ContextMenu,
   tracker: WidgetTracker<JupyterGISWidget>
 ) {
-  if (!tracker.currentWidget?.context.model) {
+  if (!tracker.currentWidget?.model) {
     return;
   }
 
-  const model = tracker.currentWidget?.context.model;
+  const model = tracker.currentWidget?.model;
 
   const submenu =
     contextMenu.menu.items.find(

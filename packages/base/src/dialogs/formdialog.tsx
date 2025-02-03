@@ -47,7 +47,7 @@ export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
   return (
     ready && (
       <CreationForm
-        context={props.context}
+        model={props.model}
         formSchemaRegistry={props.formSchemaRegistry}
         createLayer={props.createLayer}
         createSource={props.createSource}
@@ -83,7 +83,7 @@ export class CreationFormDialog extends Dialog<IDict> {
     const body = (
       <div style={{ overflow: 'auto' }}>
         <CreationFormWrapper
-          context={options.context}
+          model={options.model}
           formSchemaRegistry={options.formSchemaRegistry}
           createLayer={options.createLayer}
           createSource={options.createSource}
