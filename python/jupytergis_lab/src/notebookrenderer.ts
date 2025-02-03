@@ -134,7 +134,10 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           }
         } else {
           // The path of the project is set to the path of the kernel, to be able to add local geoJSON/shape file.
-          this.jupyterGISModel.filePath = PathExt.join(commMetadata.cwd, 'unsaved_project');
+          this.jupyterGISModel.filePath = PathExt.join(
+            commMetadata.cwd,
+            'unsaved_project'
+          );
         }
         return this.jupyterGISModel.sharedModel.ydoc;
       }
