@@ -58,7 +58,7 @@ export interface ICreationFormProps {
   cancel?: () => void;
 
   formSchemaRegistry: IJGISFormSchemaRegistry;
-  model: IJupyterGISModel,
+  model: IJupyterGISModel;
 
   /**
    * A signal emitting when the form changed, with a boolean whether there are some

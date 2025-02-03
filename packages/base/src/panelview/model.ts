@@ -41,9 +41,7 @@ export class ControlPanelModel implements IControlPanelModel {
       w.model.sharedOptionsChanged.disconnect(f);
     });
     this._tracker.forEach(w => w.model.themeChanged.disconnect(f));
-    this._tracker.forEach(w =>
-      w.model.clientStateChanged.disconnect(f)
-    );
+    this._tracker.forEach(w => w.model.clientStateChanged.disconnect(f));
   }
 
   private readonly _tracker: IJupyterGISTracker;

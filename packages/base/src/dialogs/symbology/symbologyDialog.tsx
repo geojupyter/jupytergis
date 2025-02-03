@@ -42,9 +42,7 @@ const SymbologyDialog = ({
         return;
       }
 
-      const currentLayer = Object.keys(
-        model.localState.selected.value
-      )[0];
+      const currentLayer = Object.keys(model.localState.selected.value)[0];
 
       setSelectedLayer(currentLayer);
     };

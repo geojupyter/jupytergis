@@ -1,8 +1,4 @@
-import {
-  IDict,
-  IJGISLayer,
-  IJupyterGISModel,
-} from '@jupytergis/schema';
+import { IDict, IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
 import { loadFile } from '../../../tools';
 
@@ -50,10 +46,7 @@ const preloadGeoTiffFile = async (
   });
 };
 
-const useGetBandInfo = (
-  model: IJupyterGISModel,
-  layer: IJGISLayer
-) => {
+const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

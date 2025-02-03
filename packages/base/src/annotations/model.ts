@@ -81,10 +81,7 @@ export class AnnotationModel implements IAnnotationModel {
         contents: [...currentAnnotation.contents, newContent]
       };
 
-      this._model?.sharedModel.setMetadata(
-        id,
-        JSON.stringify(newAnnotation)
-      );
+      this._model?.sharedModel.setMetadata(id, JSON.stringify(newAnnotation));
     }
   }
 
