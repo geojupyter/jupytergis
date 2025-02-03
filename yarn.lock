@@ -832,6 +832,7 @@ __metadata:
     "@jupyterlab/apputils": ^4.3.0
     "@jupyterlab/builder": ^4.3.0
     "@jupyterlab/completer": ^4.3.0
+    "@jupyterlab/coreutils": ^6.3.0
     "@jupyterlab/mainmenu": ^4.3.0
     "@jupyterlab/services": ^7.3.0
     "@jupyterlab/statedb": ^4.3.0

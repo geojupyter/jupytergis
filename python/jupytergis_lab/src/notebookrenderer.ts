@@ -16,6 +16,7 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { PathExt } from '@jupyterlab/coreutils';
 import { Contents } from '@jupyterlab/services';
 import { CommandRegistry } from '@lumino/commands';
 import { MessageLoop } from '@lumino/messaging';
@@ -33,6 +34,7 @@ export interface ICommMetadata {
   format: string;
   contentType: string;
   ymodel_name: string;
+  cwd: string;
 }
 
 export const CLASS_NAME = 'jupytergis-notebook-widget';
@@ -101,7 +103,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     class YJupyterGISModelFactory extends YJupyterGISModel {
       ydocFactory(commMetadata: ICommMetadata): Y.Doc {
         const { path, format, contentType } = commMetadata;
-
         const fileFormat = format as Contents.FileFormat;
         const sharedModel = drive!.sharedModelFactory.createNew({
           path,
@@ -112,23 +113,28 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         this.jupyterGISModel = new JupyterGISModel({
           sharedModel: sharedModel as IJupyterGISDoc
         });
-        const onchange = (_: any, args: any) => {
-          if (args.stateChange) {
-            args.stateChange.forEach((change: any) => {
-              if (change.name === 'path') {
-                this.jupyterGISModel.filePath = change.newValue;
-              }
-            });
-          }
-        };
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
-        sharedModel.changed.connect(onchange);
 
-        if (sharedModel.getState('path')) {
-          this.jupyterGISModel.filePath = sharedModel.getState(
-            'path'
-          ) as string;
+        if (sharedModel) {
+          const onchange = (_: any, args: any) => {
+            if (args.stateChange) {
+              args.stateChange.forEach((change: any) => {
+                if (change.name === 'path') {
+                  this.jupyterGISModel.filePath = change.newValue;
+                }
+              });
+            }
+          };
+          sharedModel.changed.connect(onchange);
+          if (sharedModel.getState('path')) {
+            this.jupyterGISModel.filePath = sharedModel.getState(
+              'path'
+            ) as string;
+          }
+        } else {
+          // The path of the project is set to the path of the kernel, to be able to add local geoJSON/shape file.
+          this.jupyterGISModel.filePath = PathExt.join(commMetadata.cwd, 'unsaved_project');
         }
         return this.jupyterGISModel.sharedModel.ydoc;
       }
