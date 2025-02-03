@@ -52,6 +52,13 @@ def closeQgis():
     qgs.exitQgis()
 
 
+def rgb_to_hex(rgb_str):
+    """Converts an RGB string (comma-separated) to a hex color code."""
+    rgb_values = rgb_str.split(",")[:3]
+    r, g, b = [int(val) for val in rgb_values]
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
 def qgis_layer_to_jgis(
     qgis_layer: QgsLayerTreeLayer,
     layers: dict[str, dict[str, Any]],
@@ -60,6 +67,7 @@ def qgis_layer_to_jgis(
 ) -> str:
     """Load a QGIS layer into the provided layers/sources dictionary in the JGIS format. Returns the layer id or None if enable to load the layer."""
     layer = qgis_layer.layer()
+    print("HIIIIIIIII")
     if layer is None:
         return
 
@@ -152,6 +160,8 @@ def qgis_layer_to_jgis(
                 minZoom=min_zoom,
             )
     if isinstance(layer, QgsVectorLayer):
+        print("VECTOR LAYER")
+
         layer_type = "VectorLayer"
         source_type = "GeoJSONSource"
         source = layer.source()
@@ -166,29 +176,111 @@ def qgis_layer_to_jgis(
         source_parameters.update(path=file_name)
 
         renderer = layer.renderer()
-        symbol = renderer.symbol()
 
-        # Opacity stuff
-        opacity = symbol.opacity()
-        alpha = hex(int(opacity * 255))[2:].zfill(2)
-
+        # Default symbol extraction
+        symbol = None
         color = {}
-        if isinstance(symbol, QgsMarkerSymbol):
-            color["circle-fill-color"] = symbol.color().name() + alpha
-            color["circle-stroke-color"] = symbol.color().name() + alpha
 
-        if isinstance(symbol, QgsLineSymbol):
-            color["stroke-color"] = symbol.color().name() + alpha
+        if isinstance(renderer, QgsSingleSymbolRenderer):
+            symbol = renderer.symbol()
+            layer_parameters["symbologyState"]["renderType"] = "Single Symbol"
 
-        if isinstance(symbol, QgsFillSymbol):
-            color["fill-color"] = symbol.color().name()
-            color["stroke-color"] = symbol.color().name()
+        elif isinstance(renderer, QgsCategorizedSymbolRenderer):
+            case_conditions = ["case"]
+            field_name = renderer.classAttribute()
+            for category in renderer.categories():
+                cat_symbol = category.symbol()
+                print(cat_symbol.symbolLayer(0).properties())
+                opacity = cat_symbol.opacity()
+
+                category_color = cat_symbol.color().name()
+                case_conditions.append(["==", ["get", field_name], category.value()])
+                case_conditions.append(category_color)
+
+            layer_parameters["symbologyState"] = {
+                "colorRamp": "cool",
+                "mode": "",
+                "nClasses": "",
+                "renderType": "Categorized",
+                "value": field_name,
+            }
+            case_conditions.append([0.0, 0.0, 0.0, 0.0])
+            outline_color_str = (
+                cat_symbol.symbolLayer(0).properties().get("outline_color", "0,0,0,255")
+            )
+            if isinstance(cat_symbol, QgsMarkerSymbol):
+                color["circle-fill-color"] = case_conditions
+                color["circle-stroke-color"] = rgb_to_hex(outline_color_str)
+            elif isinstance(cat_symbol, QgsLineSymbol):
+                color["stroke-color"] = case_conditions
+                color["stroke-line-cap"] = (
+                    symbol.symbolLayer(0).properties().get("capstyle")
+                )
+                color["stroke-line-join"] = (
+                    symbol.symbolLayer(0).properties().get("joinstyle")
+                )
+                color["stroke-width"] = (
+                    symbol.symbolLayer(0).properties().get("line_width")
+                )
+            elif isinstance(cat_symbol, QgsFillSymbol):
+                color["circle-fill-color"] = case_conditions
+                color["stroke-color"] = rgb_to_hex(outline_color_str)
+
+        elif isinstance(renderer, QgsGraduatedSymbolRenderer):
+            ranges = []
+            for range in renderer.ranges():
+                range_symbol = range.symbol()
+                opacity = range_symbol.opacity()
+                alpha = hex(int(opacity * 255))[2:].zfill(2)
+
+                range_color = range_symbol.color().name() + alpha
+                ranges.append(
+                    {
+                        "lower": range.lowerValue(),
+                        "upper": range.upperValue(),
+                        "color": range_color,
+                        "label": range.label(),
+                    }
+                )
+            layer_parameters["symbologyState"] = {
+                "renderType": "Graduated",
+                "value": renderer.classAttribute(),
+            }
+
+        if symbol:
+            print("SYMBOL.......", symbol)
+            if symbol.symbolLayerCount() > 0:
+                print(symbol.symbolLayer(0).properties())
+
+            # Opacity handling
+            opacity = symbol.opacity()
+            alpha = hex(int(opacity * 255))[2:].zfill(2)
+
+            if isinstance(symbol, QgsMarkerSymbol):
+                color["circle-fill-color"] = symbol.color().name()
+                color["circle-stroke-color"] = symbol.color().name()
+
+            elif isinstance(symbol, QgsLineSymbol):
+                color["stroke-color"] = symbol.color().name()
+                color["stroke-line-cap"] = (
+                    symbol.symbolLayer(0).properties().get("capstyle")
+                )
+                color["stroke-line-join"] = (
+                    symbol.symbolLayer(0).properties().get("joinstyle")
+                )
+                color["stroke-width"] = (
+                    symbol.symbolLayer(0).properties().get("line_width")
+                )
+
+            elif isinstance(symbol, QgsFillSymbol):
+                color["circle-fill-color"] = symbol.color().name()
+                outline_color_str = (
+                    symbol.symbolLayer(0).properties().get("outline_color", "0,0,0,255")
+                )
+                color["stroke-color"] = rgb_to_hex(outline_color_str)
 
         layer_parameters.update(type="fill")
         layer_parameters.update(color=color)
-
-        if isinstance(renderer, QgsSingleSymbolRenderer):
-            layer_parameters.update(symbologyState={"renderType": "Single Symbol"})
 
     if isinstance(layer, QgsVectorTileLayer):
         layer_type = "VectorTileLayer"
@@ -265,6 +357,9 @@ def qgis_layer_to_jgis(
         "type": source_type,
         "parameters": source_parameters,
     }
+
+    print("LAYER.......", layer)
+    print("LAYERSS.......", layers)
 
     return layer_id
 
