@@ -81,7 +81,6 @@ def qgis_layer_to_jgis(
 ) -> str:
     """Load a QGIS layer into the provided layers/sources dictionary in the JGIS format. Returns the layer id or None if enable to load the layer."""
     layer = qgis_layer.layer()
-    print("HIIIIIIIII")
     if layer is None:
         return
 
@@ -174,8 +173,6 @@ def qgis_layer_to_jgis(
                 minZoom=min_zoom,
             )
     if isinstance(layer, QgsVectorLayer):
-        print("VECTOR LAYER")
-
         layer_type = "VectorLayer"
         source_type = "GeoJSONSource"
         source = layer.source()
@@ -207,7 +204,6 @@ def qgis_layer_to_jgis(
             field_name = renderer.classAttribute()
             for category in renderer.categories():
                 cat_symbol = category.symbol()
-                print(cat_symbol.symbolLayer(0).properties())
                 opacity = cat_symbol.opacity()
 
                 category_color = cat_symbol.color().name()
@@ -304,10 +300,6 @@ def qgis_layer_to_jgis(
                 layer_parameters.update(type="fill")
 
         if symbol:
-            print("SYMBOL.......", symbol)
-            if symbol.symbolLayerCount() > 0:
-                print(symbol.symbolLayer(0).properties())
-
             # Opacity handling
             opacity = symbol.opacity()
             alpha = hex(int(opacity * 255))[2:].zfill(2)
@@ -415,9 +407,6 @@ def qgis_layer_to_jgis(
         "type": source_type,
         "parameters": source_parameters,
     }
-
-    print("LAYER.......", layer)
-    print("LAYERSS.......", layers)
 
     return layer_id
 
