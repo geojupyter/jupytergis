@@ -289,7 +289,7 @@ def qgis_layer_to_jgis(
                 color["stroke-line-join"] = (
                     symbol.symbolLayer(0).properties().get("joinstyle")
                 )
-                color["stroke-width"] = (
+                color["stroke-width"] = float(
                     symbol.symbolLayer(0).properties().get("line_width")
                 )
                 layer_parameters.update(type="line")
