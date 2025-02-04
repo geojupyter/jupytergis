@@ -206,7 +206,7 @@
       "properties": {
         "operator": {
           "type": "string",
-          "enum": ["==", "!=", ">", "<", ">=", "<="],
+          "enum": ["==", "!=", ">", "<", ">=", "<=", "between"],
           "default": "=="
         },
         "feature": {
@@ -214,6 +214,12 @@
           "default": ""
         },
         "value": {
+          "type": ["string", "number"]
+        },
+        "betweenMin": {
+          "type": ["string", "number"]
+        },
+        "betweenMax": {
           "type": ["string", "number"]
         }
       }

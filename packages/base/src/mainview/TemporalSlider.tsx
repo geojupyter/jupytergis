@@ -178,12 +178,20 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     console.log('currentValueString', currentValueString);
 
     setRange({ start: +e.target.value, end: +e.target.value + step });
+    // const newFilter = {
+    //   feature: `converted${selectedFeature}`,
+    //   operator: '>=' as const,
+    //   value: +e.target.value
+    // };
+
+    // Between returns true if value is between value2 and value3 (inclusive)
     const newFilter = {
       feature: `converted${selectedFeature}`,
-      operator: '>=' as const,
-      value: +e.target.value
+      operator: 'between' as const,
+      value: +e.target.value,
+      betweenMin: +e.target.value,
+      betweenMax: +e.target.value + step
     };
-
     // setCurrentValue(currentValueString);
 
     const layer = model.getLayer(layerId);

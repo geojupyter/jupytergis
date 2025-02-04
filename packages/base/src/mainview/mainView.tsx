@@ -7,6 +7,7 @@ import {
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
+  IJGISFilterItem,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -1019,34 +1020,26 @@ export class MainView extends React.Component<IProps, IStates> {
 
     const layerStyle = { ...defaultRules };
 
-    if (
-      layer.filters &&
-      layer.filters.logicalOp &&
-      layer.filters.appliedFilters.length !== 0
-    ) {
-      const filterExpr: any[] = [];
+    if (layer.filters?.logicalOp && layer.filters.appliedFilters?.length > 0) {
+      const buildCondition = (filter: IJGISFilterItem): any[] => {
+        const base = [filter.operator, ['get', filter.feature]];
+        return filter.operator === 'between'
+          ? [...base, filter.betweenMin, filter.betweenMax]
+          : [...base, filter.value];
+      };
+
+      let filterExpr: any[];
 
       // 'Any' and 'All' operators require more than one argument
       // So if there's only one filter, skip that part to avoid error
       if (layer.filters.appliedFilters.length === 1) {
-        layer.filters.appliedFilters.forEach(filter => {
-          filterExpr.push(
-            filter.operator,
-            ['get', filter.feature],
-            filter.value
-          );
-        });
+        filterExpr = buildCondition(layer.filters.appliedFilters[0]);
       } else {
-        filterExpr.push(layer.filters.logicalOp);
-
         // Arguments for "Any" and 'All' need to be wrapped in brackets
-        layer.filters.appliedFilters.forEach(filter => {
-          filterExpr.push([
-            filter.operator,
-            ['get', filter.feature],
-            filter.value
-          ]);
-        });
+        filterExpr = [
+          layer.filters.logicalOp,
+          ...layer.filters.appliedFilters.map(buildCondition)
+        ];
       }
 
       layerStyle.filter = filterExpr;
