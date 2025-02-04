@@ -53,11 +53,11 @@ JupyterGIS is published to:
 - Conda Forge
   - <https://github.com/conda-forge/jupytergis-packages-feedstock>
 - npm:
-  - <https://www.npmjs.com/package/@jupytergis/base> 
-  - <https://www.npmjs.com/package/@jupytergis/schema> 
-  - <https://www.npmjs.com/package/@jupytergis/jupytergis-core> 
-  - <https://www.npmjs.com/package/@jupytergis/jupytergis-lab> 
-  - <https://www.npmjs.com/package/@jupytergis/jupytergis-qgis> 
+  - <https://www.npmjs.com/package/@jupytergis/base>
+  - <https://www.npmjs.com/package/@jupytergis/schema>
+  - <https://www.npmjs.com/package/@jupytergis/jupytergis-core>
+  - <https://www.npmjs.com/package/@jupytergis/jupytergis-lab>
+  - <https://www.npmjs.com/package/@jupytergis/jupytergis-qgis>
 
 Release assets are also available on GitHub. For example for
 [`0.3.0`](https://github.com/geojupyter/jupytergis/releases/tag/v0.3.0):
