@@ -223,7 +223,7 @@ def qgis_layer_to_jgis(
                     symbol.symbolLayer(0).properties().get("line_width")
                 )
             elif isinstance(cat_symbol, QgsFillSymbol):
-                color["circle-fill-color"] = case_conditions
+                color["fill-color"] = case_conditions
                 color["stroke-color"] = rgb_to_hex(outline_color_str)
 
         elif isinstance(renderer, QgsGraduatedSymbolRenderer):
