@@ -16,8 +16,11 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
+import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { Contents } from '@jupyterlab/services';
+import { Toolbar } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { MessageLoop } from '@lumino/messaging';
 import { Panel, Widget } from '@lumino/widgets';
@@ -34,7 +37,6 @@ export interface ICommMetadata {
   format: string;
   contentType: string;
   ymodel_name: string;
-  cwd: string;
 }
 
 export const CLASS_NAME = 'jupytergis-notebook-widget';
@@ -53,11 +55,14 @@ export class YJupyterGISLuminoWidget extends Panel {
     const { commands, model, externalCommands } = options;
     this.addClass(CLASS_NAME);
     const content = new JupyterGISPanel({ model });
-    const toolbar = new ToolbarWidget({
-      commands,
-      model,
-      externalCommands: externalCommands.getCommands()
-    });
+    let toolbar: Toolbar | undefined = undefined;
+    if (model.filePath) {
+      toolbar = new ToolbarWidget({
+        commands,
+        model,
+        externalCommands: externalCommands.getCommands()
+      });
+    }
     this._jgisWidget = new JupyterGISOutputWidget({
       model,
       content,
@@ -81,14 +86,18 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     IJGISExternalCommandRegistryToken,
     IJupyterGISDocTracker,
     IJupyterYWidgetManager,
-    ICollaborativeDrive
+    ICollaborativeDrive,
+    IConsoleTracker,
+    INotebookTracker
   ],
   activate: (
     app: JupyterFrontEnd,
     externalCommandRegistry: IJGISExternalCommandRegistry,
     jgisTracker: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
-    drive?: ICollaborativeDrive
+    drive?: ICollaborativeDrive,
+    consoleTracker?: IConsoleTracker,
+    notebookTracker?: INotebookTracker
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -115,7 +124,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         });
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
-
         if (sharedModel) {
           const onchange = (_: any, args: any) => {
             if (args.stateChange) {
@@ -133,11 +141,21 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
             ) as string;
           }
         } else {
-          // The path of the project is set to the path of the kernel, to be able to add local geoJSON/shape file.
-          this.jupyterGISModel.filePath = PathExt.join(
-            commMetadata.cwd,
-            'unsaved_project'
-          );
+          // The path of the project is set to the path of the notebook, to be able to
+          // add local geoJSON/shape file in a "file-less" project.
+          const currentWidget = app.shell.currentWidget;
+          let currentPath: string | undefined = undefined;
+          if (currentWidget instanceof NotebookPanel && notebookTracker) {
+            currentPath = notebookTracker.currentWidget?.context.localPath;
+          } else if (currentWidget instanceof ConsolePanel && consoleTracker) {
+            currentPath = consoleTracker.currentWidget?.sessionContext.path;
+          }
+          if (currentPath) {
+            this.jupyterGISModel.filePath = PathExt.join(
+              PathExt.dirname(currentPath),
+              'unsaved_project'
+            );
+          }
         }
         return this.jupyterGISModel.sharedModel.ydoc;
       }
