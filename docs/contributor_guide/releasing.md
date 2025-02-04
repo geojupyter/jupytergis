@@ -15,7 +15,6 @@ Most changes are minor version bumps, even breaking changes.
 See [the SemVer FAQ](https://semver.org/#how-should-i-deal-with-revisions-in-the-0yz-initial-development-phase) for more.
 :::
 
-
 ### Specifying a version spec
 
 When prompted for a "New Version Specifier", the default value is `next`.
@@ -37,12 +36,11 @@ For example:
 You can also specify a version part, e.g.:
 
 - `patch`
-	- Would bump `0.3.0` -> `0.3.1`
+  - Would bump `0.3.0` -> `0.3.1`
 - `minor`
-	- Would bump `0.3.0` -> `0.4.0`
+  - Would bump `0.3.0` -> `0.4.0`
 - `major`
-	- Would bump `0.3.0` -> `1.0.0`
-
+  - Would bump `0.3.0` -> `1.0.0`
 
 ## Release assets
 
