@@ -4,7 +4,6 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
-
 import { Contents } from '@jupyterlab/services';
 import {
   IJGISContent,
@@ -693,6 +692,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._addFeaturesSignal;
   }
 
+  get updateLayersSignal() {
+    return this._updateLayersSignal;
+  }
+
+  updateLayersOnCommand = (layerId: string, layer: IJGISLayer) => {
+    this.updateLayersSignal.emit(JSON.stringify({ layerId, layer }));
+  };
+
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
   readonly annotationModel?: IAnnotationModel;
@@ -719,6 +726,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _addFeaturesSignal = new Signal<this, string>(this);
+
+  private _updateLayersSignal = new Signal<this, string>(this);
 
   private _isIdentifying = false;
   private _isTemporal = false;

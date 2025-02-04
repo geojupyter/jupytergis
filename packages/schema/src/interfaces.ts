@@ -169,6 +169,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToPositionSignal: ISignal<IJupyterGISModel, string>;
   addFeaturesSignal: ISignal<IJupyterGISModel, string>;
+  updateLayersSignal: ISignal<IJupyterGISModel, string>;
+
   contentsManager: Contents.IManager | undefined;
   filePath: string;
 
@@ -217,6 +219,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isTemporal: boolean;
   toggleTemporal(emitter: string): void;
   addTimeFeature(id: string, selectedFeature: string): void;
+  updateLayersOnCommand(layerId: string, layer: IJGISLayer): void;
 
   disposed: ISignal<any, void>;
 }

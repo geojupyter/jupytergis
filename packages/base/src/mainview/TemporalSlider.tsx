@@ -213,7 +213,8 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
     // Apply the updated filters to the layer
     layer.filters = { logicalOp: 'all', appliedFilters };
-    model.sharedModel.updateLayer(layerId, layer);
+    // model.sharedModel.updateLayer(layerId, layer);
+    model.updateLayersOnCommand(layerId, layer);
   };
 
   const setFeature = (e: any) => {
