@@ -607,7 +607,6 @@ def create_graduated_renderer(
 
     ranges = []
     previous_value = 0
-    last_color = None
     last_radius = None
 
     for i in range(3, len(fill_color_rules) - 2, 2):
@@ -617,10 +616,10 @@ def create_graduated_renderer(
 
         if isinstance(color, list) and len(color) == 4:
             r, g, b, a = color
-            last_color = QColor(int(r), int(g), int(b), int(a * 255))
+            range_color = QColor(int(r), int(g), int(b), int(a * 255))
 
         range_symbol = base_symbol.clone()
-        range_symbol.setColor(last_color)
+        range_symbol.setColor(range_color)
 
         if geometry_type == "circle" and len(radius_rules) > i + 1:
             radius = radius_rules[i + 1]
@@ -637,6 +636,12 @@ def create_graduated_renderer(
         ranges.append(g_range)
         previous_value = lower_value
 
+    if (
+        isinstance(fill_color_rules[len(fill_color_rules) - 1], list)
+        and len(fill_color_rules[len(fill_color_rules) - 1]) == 4
+    ):
+        r, g, b, a = fill_color_rules[len(fill_color_rules) - 1]
+        last_color = QColor(int(r), int(g), int(b), int(a * 255))
     if last_color:
         final_symbol = base_symbol.clone()
         final_symbol.setColor(last_color)
