@@ -59,6 +59,20 @@ def rgb_to_hex(rgb_str):
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
+def hex_to_rgba(hex_color):
+    """Convert a hex color to an RGBA tuple."""
+    hex_color = hex_color.lstrip("#")
+    if len(hex_color) == 6:
+        r, g, b = tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
+        a = 255  # Default alpha value
+    elif len(hex_color) == 8:
+        r, g, b, a = tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4, 6))
+    else:
+        raise ValueError(f"Invalid hex color: {hex_color}")
+
+    return r, g, b, a
+
+
 def qgis_layer_to_jgis(
     qgis_layer: QgsLayerTreeLayer,
     layers: dict[str, dict[str, Any]],
@@ -211,20 +225,23 @@ def qgis_layer_to_jgis(
             if isinstance(cat_symbol, QgsMarkerSymbol):
                 color["circle-fill-color"] = case_conditions
                 color["circle-stroke-color"] = rgb_to_hex(outline_color_str)
+                layer_parameters.update(type="circle")
             elif isinstance(cat_symbol, QgsLineSymbol):
                 color["stroke-color"] = case_conditions
                 color["stroke-line-cap"] = (
-                    symbol.symbolLayer(0).properties().get("capstyle")
+                    cat_symbol.symbolLayer(0).properties().get("capstyle")
                 )
                 color["stroke-line-join"] = (
-                    symbol.symbolLayer(0).properties().get("joinstyle")
+                    cat_symbol.symbolLayer(0).properties().get("joinstyle")
                 )
-                color["stroke-width"] = (
-                    symbol.symbolLayer(0).properties().get("line_width")
+                color["stroke-width"] = float(
+                    cat_symbol.symbolLayer(0).properties().get("line_width")
                 )
+                layer_parameters.update(type="line")
             elif isinstance(cat_symbol, QgsFillSymbol):
                 color["fill-color"] = case_conditions
                 color["stroke-color"] = rgb_to_hex(outline_color_str)
+                layer_parameters.update(type="fill")
 
         elif isinstance(renderer, QgsGraduatedSymbolRenderer):
             ranges = []
@@ -259,6 +276,7 @@ def qgis_layer_to_jgis(
             if isinstance(symbol, QgsMarkerSymbol):
                 color["circle-fill-color"] = symbol.color().name()
                 color["circle-stroke-color"] = symbol.color().name()
+                layer_parameters.update(type="circle")
 
             elif isinstance(symbol, QgsLineSymbol):
                 color["stroke-color"] = symbol.color().name()
@@ -271,6 +289,7 @@ def qgis_layer_to_jgis(
                 color["stroke-width"] = (
                     symbol.symbolLayer(0).properties().get("line_width")
                 )
+                layer_parameters.update(type="line")
 
             elif isinstance(symbol, QgsFillSymbol):
                 color["circle-fill-color"] = symbol.color().name()
@@ -278,8 +297,8 @@ def qgis_layer_to_jgis(
                     symbol.symbolLayer(0).properties().get("outline_color", "0,0,0,255")
                 )
                 color["stroke-color"] = rgb_to_hex(outline_color_str)
+                layer_parameters.update(type="fill")
 
-        layer_parameters.update(type="fill")
         layer_parameters.update(color=color)
 
     if isinstance(layer, QgsVectorTileLayer):
@@ -493,10 +512,8 @@ def get_base_symbol(geometry_type, color_params, opacity):
         stroke_width = color_params.get("circle-stroke-width", 1)
         symbol_layer.setStrokeWidth(stroke_width)
     elif geometry_type == "line":
-        stroke_color = QColor(color_params.get("stroke-color", "#000000"))
-        symbol_layer.setStrokeColor(stroke_color)
         stroke_width = color_params.get("stroke-width", 1)
-        symbol_layer.setWidth(stroke_width)
+        symbol_layer.setWidth(float(stroke_width))
     elif geometry_type == "fill":
         stroke_color = QColor(color_params.get("stroke-color", "#000000"))
         symbol_layer.setStrokeColor(stroke_color)
@@ -510,10 +527,13 @@ def create_categorized_renderer(
     symbology_state, geometry_type, color_params, base_symbol
 ):
     """Creates a categorized renderer."""
-    fill_color_rules = color_params.get("circle-fill-color", [])
-    radius_rules = (
-        color_params.get("circle-radius", []) if geometry_type == "circle" else []
-    )
+    if geometry_type == "circle":
+        fill_color_rules = color_params.get("circle-fill-color", [])
+        radius_rules = color_params.get("circle-radius", [])
+    elif geometry_type == "fill":
+        fill_color_rules = color_params.get("fill-color", [])
+    elif geometry_type == "line":
+        fill_color_rules = color_params.get("stroke-color", [])
 
     renderer = QgsCategorizedSymbolRenderer(symbology_state.get("value"))
 
@@ -526,9 +546,16 @@ def create_categorized_renderer(
             color = [r, g, b, 1.0]
 
         category_symbol = base_symbol.clone()
-        category_symbol.setColor(
-            QColor(int(color[0]), int(color[1]), int(color[2]), int(color[3] * 255))
-        )
+        if isinstance(color, str) and color.startswith("#"):
+            r, g, b, a = hex_to_rgba(color)
+        elif isinstance(color, list) and len(color) == 4:
+            r, g, b, a = color
+            a *= 255
+        else:
+            raise ValueError(f"Unexpected color format: {color}")
+
+        category_symbol = base_symbol.clone()
+        category_symbol.setColor(QColor(r, g, b, int(a)))
 
         if geometry_type == "circle" and isinstance(radius_rules, (int, float)):
             radius = radius_rules
@@ -566,12 +593,11 @@ def create_graduated_renderer(
         color = fill_color_rules[i + 1]
 
         if isinstance(color, list) and len(color) == 4:
-            r, g, b, a = color
-            qcolor = QColor(int(r), int(g), int(b), int(a * 255))
-            last_color = qcolor
+            r, g, b, a = hex_to_rgba(color)
+            last_color = QColor(int(r), int(g), int(b), int(a * 255))
 
         range_symbol = base_symbol.clone()
-        range_symbol.setColor(qcolor)
+        range_symbol.setColor(last_color)
 
         if geometry_type == "circle" and len(radius_rules) > i + 1:
             radius = radius_rules[i + 1]
