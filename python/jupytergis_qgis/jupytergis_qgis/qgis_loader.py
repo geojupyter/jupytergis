@@ -530,7 +530,10 @@ def create_categorized_renderer(
             QColor(int(color[0]), int(color[1]), int(color[2]), int(color[3] * 255))
         )
 
-        if geometry_type == "circle" and len(radius_rules) > i:
+        if geometry_type == "circle" and isinstance(radius_rules, (int, float)):
+            radius = radius_rules
+            category_symbol.setSize(2 * radius)
+        elif geometry_type == "circle" and len(radius_rules) > i:
             radius = radius_rules[i + 3]
             category_symbol.setSize(2 * radius)
 
