@@ -23,8 +23,8 @@ build:
       # Create the env for building the docs
       - /bin/bash --login -c "micromamba env create -n jupytergis-docs -f docs/environment-docs.yml"
       # Create the isolated env for building JupyterGIS
-      - /bin/bash --login -c "micromamba create -n jupytergis-build -c conda-forge yarn=3 hatch pip python=3.12"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build pip install -r requirements-build.txt"
+      - /bin/bash --login -c "micromamba create -n jupytergis-build -c conda-forge nodejs hatch pip python=3.13"
+      - /bin/bash --login -c "micromamba run -n jupytergis-build pip install jupyterlab==4.3' 'datamodel-code-generator>=0.23.0'"
 
     # Override the install step to do nothing - we already created the envs
     install:
@@ -33,18 +33,8 @@ build:
     # Before building the docs, build JupyterGIS in its isolated environment,
     # then install the wheels into the docs environment.
     pre_build:
-      - /bin/bash --login -c "micromamba run -n jupytergis-build yarn install"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build yarn dev"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build jupyter labextension list 2>&1 | grep -ie 'jupytergis-core.*OK'"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build jupyter labextension list 2>&1 | grep -ie 'jupytergis-lab.*OK'"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build yarn build:packages"
-
-      - |-
-        /bin/bash --login -c "micromamba run -n jupytergis-docs \
-          python -m pip install \
-          $(ls ./python/jupytergis_core/dist/jupytergis*.whl) \
-          $(ls ./python/jupytergis_lab/dist/jupytergis*.whl) \
-          $(ls ./python/jupytergis_qgis/dist/jupytergis*.whl)"
+      - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm install"
+      - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm build"
 
     build:
       html:
