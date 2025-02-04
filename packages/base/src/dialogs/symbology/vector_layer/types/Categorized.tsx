@@ -113,7 +113,18 @@ const Categorized = ({
     colorExpr.push([0, 0, 0, 0.0]);
 
     const newStyle = { ...layer.parameters.color };
-    newStyle['circle-fill-color'] = colorExpr;
+
+    if (layer.parameters.type === 'fill') {
+      newStyle['fill-color'] = colorExpr;
+    }
+
+    if (layer.parameters.type === 'line') {
+      newStyle['stroke-color'] = colorExpr;
+    }
+
+    if (layer.parameters.type === 'circle') {
+      newStyle['circle-fill-color'] = colorExpr;
+    }
 
     const symbologyState = {
       renderType: 'Categorized',
