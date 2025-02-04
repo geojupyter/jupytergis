@@ -775,7 +775,7 @@ __metadata:
     pbf: ^4.0.1
     pmtiles: ^3.0.7
     proj4: ^2.14.0
-    proj4-list: ^1.0.2
+    proj4-list: ^1.0.4
     react: ^18.0.1
     rimraf: ^3.0.2
     shpjs: ^6.1.0
@@ -8994,10 +8994,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"proj4-list@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "proj4-list@npm:1.0.2"
-  checksum: 8705bfb92b7572c514d98944e148a6ab8891dc69aa49388677a999180d46d374758ddf0b733068e242b1454de2565c9e9bfcfd1c6b035d93834a0a879cd696d8
+"proj4-list@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "proj4-list@npm:1.0.4"
+  checksum: 3833f61bbbc93684e97555fa11db72009954565ad56313d7dd306ab7c9e4fc480ab64280ae418c0108ee83d0ae0810b334a42dbf8f8f8be4d58371a29a8a35ef
   languageName: node
   linkType: hard
 
