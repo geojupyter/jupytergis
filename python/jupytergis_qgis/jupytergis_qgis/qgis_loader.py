@@ -243,35 +243,30 @@ def qgis_layer_to_jgis(
                 layer_parameters.update(type="fill")
 
         elif isinstance(renderer, QgsGraduatedSymbolRenderer):
-            case_conditions = ["case"]
             field_name = renderer.classAttribute()
+            interpolate_conditions = ["interpolate", ["linear"], ["get", field_name]]
 
             for range in renderer.ranges():
                 range_symbol = range.symbol()
                 opacity = range_symbol.opacity()
-                alpha = hex(int(opacity * 255))[2:].zfill(2)
-                range_color = range_symbol.color().name() + alpha
-                lower = range.lowerValue()
-                upper = range.upperValue()
+                alpha = opacity
 
-                case_conditions.append(
-                    [
-                        "all",
-                        [">=", ["get", field_name], lower],
-                        ["<", ["get", field_name], upper],
-                    ]
-                )
-                case_conditions.append(range_color)
+                range_color = range_symbol.color().getRgbF()
+                r, g, b, _ = range_color
+
+                lower = range.lowerValue()
+
+                interpolate_conditions.append(lower)
+                interpolate_conditions.append([r * 255, g * 255, b * 255, alpha])
 
             layer_parameters["symbologyState"] = {
                 "renderType": "Graduated",
                 "value": field_name,
             }
 
-            case_conditions.append([0.0, 0.0, 0.0, 0.0])
-
+            # Determine geometry type and apply color interpolation
             if isinstance(range_symbol, QgsMarkerSymbol):
-                color["circle-fill-color"] = case_conditions
+                color["circle-fill-color"] = interpolate_conditions
                 color["circle-stroke-color"] = rgb_to_hex(
                     range_symbol.symbolLayer(0)
                     .properties()
@@ -279,7 +274,7 @@ def qgis_layer_to_jgis(
                 )
                 layer_parameters.update(type="circle")
             elif isinstance(range_symbol, QgsLineSymbol):
-                color["stroke-color"] = case_conditions
+                color["stroke-color"] = interpolate_conditions
                 color["stroke-line-cap"] = (
                     range_symbol.symbolLayer(0).properties().get("capstyle")
                 )
@@ -291,7 +286,7 @@ def qgis_layer_to_jgis(
                 )
                 layer_parameters.update(type="line")
             elif isinstance(range_symbol, QgsFillSymbol):
-                color["fill-color"] = case_conditions
+                color["fill-color"] = interpolate_conditions
                 color["stroke-color"] = rgb_to_hex(
                     range_symbol.symbolLayer(0)
                     .properties()
