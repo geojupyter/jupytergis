@@ -12,4 +12,5 @@
 
 .jp-gis-temporal-slider {
   flex: 1 0 40%;
+  min-width: 300px;
 }

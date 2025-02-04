@@ -1,3 +1,5 @@
+import { faPlay } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Slider } from '@jupyter/react-components';
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { format, isValid, parse, toDate } from 'date-fns';
@@ -41,13 +43,17 @@ const stepMap = {
 const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [layerId, setLayerId] = useState('');
   const [selectedFeature, setSelectedFeature] = useState('');
+  // min/max of current range being displayed
   const [range, setRange] = useState({ start: 0, end: 1 });
+  // min/max of data
+  const [minMax, setMinMax] = useState({ min: 0, max: 1 });
   const [validFeatures, setValidFeatures] = useState<string[]>([]);
 
   const [inferredDateFormat, setInferredDateFormat] = useState('yyyy-MM-dd');
-  const [step, setStep] = useState(stepMap.day);
+  const [step, setStep] = useState(stepMap.year);
+  const [currentValue, setCurrentValue] = useState(0);
+
   const { featureProps } = useGetProperties({ layerId, model });
-  const [currentValue, setCurrentValue] = useState('');
 
   useEffect(() => {
     const localState = model.sharedModel.awareness.getLocalState();
@@ -126,8 +132,10 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     const min = Math.min(...convertedValues);
     const max = Math.max(...convertedValues);
 
-    // Update the range state
-    setRange({ start: min, end: max });
+    // Update the range and minMax state
+    setCurrentValue(min);
+    setMinMax({ min, max });
+    setRange({ start: min, end: min + step });
     model.addTimeFeature(layerId, selectedFeature);
   }, [selectedFeature]);
 
@@ -167,13 +175,16 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       inferredDateFormat
     );
 
+    console.log('currentValueString', currentValueString);
+
+    setRange({ start: +e.target.value, end: +e.target.value + step });
     const newFilter = {
       feature: `converted${selectedFeature}`,
       operator: '>=' as const,
       value: +e.target.value
     };
 
-    setCurrentValue(currentValueString);
+    // setCurrentValue(currentValueString);
 
     const layer = model.getLayer(layerId);
     if (!layer) {
@@ -208,6 +219,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       {layerId ? (
         <>
           <div className="jp-gis-temporal-slider-row">
+            {/* Feature select */}
             <div>
               <label htmlFor="time-feature-select">Feature: </label>
               <select id="time-feature-select" onChange={setFeature}>
@@ -224,6 +236,38 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
                 })}
               </select>
             </div>
+            {/* Current frame */}
+            <div>
+              Current Frame:{' '}
+              {millisecondsToDateString(range.start, inferredDateFormat)} ≤ t ≤{' '}
+              {millisecondsToDateString(range.end, inferredDateFormat)}
+            </div>
+          </div>
+          <div className="jp-gis-temporal-slider-row">
+            {/* controls */}
+            <div>
+              <FontAwesomeIcon icon={faPlay} />
+            </div>
+            {/* slider */}
+            <div>
+              <Slider
+                min={minMax.min}
+                max={minMax.max - step}
+                value={currentValue}
+                step={step}
+                onChange={handleChange}
+                className="jp-gis-temporal-slider"
+              />
+            </div>
+          </div>
+          <div className="jp-gis-temporal-slider-row">
+            {/* range */}
+            <div>
+              Animation Range:{' '}
+              {millisecondsToDateString(minMax.min, inferredDateFormat)} to{' '}
+              {millisecondsToDateString(minMax.max, inferredDateFormat)}
+            </div>
+            {/* step */}
             <div>
               <label htmlFor="time-step-select">Step: </label>
               <select
@@ -233,23 +277,13 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
                 }}
               >
                 {Object.entries(stepMap).map(([key, val]) => {
-                  return <option value={val}>{key}</option>;
+                  return (
+                    <option selected={val === step} value={val}>
+                      {key}
+                    </option>
+                  );
                 })}
               </select>
-            </div>
-          </div>
-          <div className="jp-gis-temporal-slider-row">
-            <div>{inferredDateFormat && currentValue}</div>
-            <Slider
-              min={range.start}
-              max={range.end}
-              step={step}
-              onChange={handleChange}
-              className="jp-gis-temporal-slider"
-            />
-            <div>
-              {inferredDateFormat &&
-                millisecondsToDateString(range.end, inferredDateFormat)}
             </div>
           </div>
         </>
