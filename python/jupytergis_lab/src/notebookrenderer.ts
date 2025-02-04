@@ -18,7 +18,7 @@ import {
 } from '@jupyterlab/application';
 import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
-import {  NotebookPanel } from '@jupyterlab/notebook';
+import { NotebookPanel } from '@jupyterlab/notebook';
 import { Contents } from '@jupyterlab/services';
 import { Toolbar } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
@@ -120,14 +120,14 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     IJGISExternalCommandRegistryToken,
     IJupyterGISDocTracker,
     IJupyterYWidgetManager,
-    ICollaborativeDrive,
+    ICollaborativeDrive
   ],
   activate: (
     app: JupyterFrontEnd,
     externalCommandRegistry?: IJGISExternalCommandRegistry,
     jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
-    drive?: ICollaborativeDrive,
+    drive?: ICollaborativeDrive
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -154,7 +154,10 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         });
 
         const currentWidget = app.shell.currentWidget;
-        if (currentWidget instanceof NotebookPanel || currentWidget instanceof ConsolePanel) {
+        if (
+          currentWidget instanceof NotebookPanel ||
+          currentWidget instanceof ConsolePanel
+        ) {
           this.parent = currentWidget;
         }
 
