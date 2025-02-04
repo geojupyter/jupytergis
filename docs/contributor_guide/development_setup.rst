@@ -1,9 +1,9 @@
-============
-Contributing
-============
+=================
+Development setup
+=================
 
 Development install
--------------------
+===================
 
 .. note::
 
@@ -15,7 +15,7 @@ Development install
 
 
 Clone the source
-^^^^^^^^^^^^^^^^
+----------------
 
 .. code-block:: bash
 
@@ -27,7 +27,7 @@ Clone the source
 
 
 Create a virtual environment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
 .. tabs::
 
@@ -60,7 +60,7 @@ Create a virtual environment
 
 
 Install dependencies and build
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 .. code-block:: bash
 
@@ -84,7 +84,7 @@ Install dependencies and build
 
 
 Watch for changes and rebuild
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 
 You can watch the source directory and run JupyterLab at the same time in different terminals to watch for changes in the extension's source and automatically rebuild the extension.
 
@@ -105,47 +105,10 @@ With the watch command running, every saved change will immediately be built loc
 
 
 Development uninstall
-----------------------
+======================
 
 .. code-block:: bash
 
     pip uninstall jupytergis
 
 In development mode, you will also need to remove the symlink created by ``jupyter labextension develop`` command. To find its location, you can run ``jupyter labextension list`` to figure out where the ``labextensions`` folder is located. Then you can remove the symlink named ``jupytergis`` within that folder.
-
-
-Code quality
-------------
-
-We have several tools configured for checking code quality:
-
-* Pre-commit checks run automatically at commit time.
-  Install checks with ``pre-commit install``.
-  Run them manually with ``pre-commit run --all-files``.
-  **Will exit non-zero when finding errors or changing files.**
-
-  * Ruff formats and lints (sometimes autofixes) Python code.
-
-  * Generic pre-commit checks help avoid common mistakes like committing large
-    files or trailing whitespace.
-
-* Package scripts (defined in ``package.json``) to check (and/or fix)
-  TypeScript, JavaScript, CSS, JSON, Markdown, and YAML.
-  Run manually with ``jlpm run lint``.
-  **Will exit 0 when applying fixes.
-  Check the logs and/or ``git status`` after every run.**
-
-  * Prettier formats the file types listed above.
-
-  * Eslint lints (sometimes autofixes) JS/TS code.
-
-
-Troubleshooting
----------------
-
-* Setup of development environment hangs indefinitely when running the
-  ``dev-install.py`` step, specifically on the Yarn linking step.
-
-  * This may be caused by having a ``.gitignore`` file in your home directory.
-    This is a `known issue with Nx <https://github.com/nrwl/nx/issues/27494>`_.
-    The `only known workaround <https://github.com/nrwl/nx/issues/27494#issuecomment-2481207598>`_ is to remove the ``.gitignore`` file from your home directory or to work in a location outside of the home directory tree.
