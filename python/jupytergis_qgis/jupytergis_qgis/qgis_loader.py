@@ -197,6 +197,9 @@ def qgis_layer_to_jgis(
 
         if isinstance(renderer, QgsSingleSymbolRenderer):
             symbol = renderer.symbol()
+            if "symbologyState" not in layer_parameters:
+                layer_parameters["symbologyState"] = {}
+
             layer_parameters["symbologyState"]["renderType"] = "Single Symbol"
 
         elif isinstance(renderer, QgsCategorizedSymbolRenderer):
@@ -292,7 +295,7 @@ def qgis_layer_to_jgis(
                 layer_parameters.update(type="line")
 
             elif isinstance(symbol, QgsFillSymbol):
-                color["circle-fill-color"] = symbol.color().name()
+                color["fill-color"] = symbol.color().name()
                 outline_color_str = (
                     symbol.symbolLayer(0).properties().get("outline_color", "0,0,0,255")
                 )
