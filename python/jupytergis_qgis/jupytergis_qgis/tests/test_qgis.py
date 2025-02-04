@@ -125,8 +125,22 @@ def test_qgis_saver():
     if os.path.exists(filename):
         os.remove(filename)
 
-    layer_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
-    source_ids = [str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())]
+    layer_ids = [
+        str(uuid4()),
+        str(uuid4()),
+        str(uuid4()),
+        str(uuid4()),
+        str(uuid4()),
+        str(uuid4()),
+    ]
+    source_ids = [
+        str(uuid4()),
+        str(uuid4()),
+        str(uuid4()),
+        str(uuid4()),
+        str(uuid4()),
+        str(uuid4()),
+    ]
     jgis = {
         "options": {
             "bearing": 0.0,
@@ -199,6 +213,49 @@ def test_qgis_saver():
                 "type": "VectorLayer",
                 "visible": True,
             },
+            layer_ids[5]: {
+                "name": "Custom GeoJSON Layer",
+                "parameters": {
+                    "color": {
+                        "fill-color": [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "POP_RANK"],
+                            2.888888888888889,
+                            [125.0, 0.0, 179.0, 1.0],
+                            4.777777777777778,
+                            [116.0, 0.0, 218.0, 1.0],
+                            6.666666666666666,
+                            [98.0, 74.0, 237.0, 1.0],
+                            8.555555555555555,
+                            [68.0, 146.0, 231.0, 1.0],
+                            10.444444444444445,
+                            [0.0, 204.0, 197.0, 1.0],
+                            12.333333333333334,
+                            [0.0, 247.0, 146.0, 1.0],
+                            14.222222222222223,
+                            [0.0, 255.0, 88.0, 1.0],
+                            16.11111111111111,
+                            [40.0, 255.0, 8.0, 1.0],
+                            18.0,
+                            [147.0, 255.0, 0.0, 1.0],
+                        ]
+                    },
+                    "opacity": 1.0,
+                    "source": source_ids[5],
+                    "symbologyState": {
+                        "colorRamp": "cool",
+                        "method": "color",
+                        "mode": "equal interval",
+                        "nClasses": "9",
+                        "renderType": "Graduated",
+                        "value": "POP_RANK",
+                    },
+                    "type": "fill",
+                },
+                "type": "VectorLayer",
+                "visible": True,
+            },
         },
         "layerTree": [
             layer_ids[0],
@@ -211,6 +268,7 @@ def test_qgis_saver():
                 "name": "group0",
             },
             layer_ids[4],
+            layer_ids[5],
         ],
         "sources": {
             source_ids[0]: {
@@ -250,6 +308,13 @@ def test_qgis_saver():
                 },
             },
             source_ids[4]: {
+                "name": "Custom GeoJSON Layer Source",
+                "parameters": {
+                    "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+                },
+                "type": "GeoJSONSource",
+            },
+            source_ids[5]: {
                 "name": "Custom GeoJSON Layer Source",
                 "parameters": {
                     "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
