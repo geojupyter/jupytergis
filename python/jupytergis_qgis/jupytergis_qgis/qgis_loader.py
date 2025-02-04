@@ -247,25 +247,61 @@ def qgis_layer_to_jgis(
                 layer_parameters.update(type="fill")
 
         elif isinstance(renderer, QgsGraduatedSymbolRenderer):
-            ranges = []
+            case_conditions = ["case"]
+            field_name = renderer.classAttribute()
+
             for range in renderer.ranges():
                 range_symbol = range.symbol()
                 opacity = range_symbol.opacity()
                 alpha = hex(int(opacity * 255))[2:].zfill(2)
-
                 range_color = range_symbol.color().name() + alpha
-                ranges.append(
-                    {
-                        "lower": range.lowerValue(),
-                        "upper": range.upperValue(),
-                        "color": range_color,
-                        "label": range.label(),
-                    }
+                lower = range.lowerValue()
+                upper = range.upperValue()
+
+                case_conditions.append(
+                    [
+                        "all",
+                        [">=", ["get", field_name], lower],
+                        ["<", ["get", field_name], upper],
+                    ]
                 )
+                case_conditions.append(range_color)
+
             layer_parameters["symbologyState"] = {
                 "renderType": "Graduated",
-                "value": renderer.classAttribute(),
+                "value": field_name,
             }
+
+            case_conditions.append([0.0, 0.0, 0.0, 0.0])
+
+            if isinstance(range_symbol, QgsMarkerSymbol):
+                color["circle-fill-color"] = case_conditions
+                color["circle-stroke-color"] = rgb_to_hex(
+                    range_symbol.symbolLayer(0)
+                    .properties()
+                    .get("outline_color", "0,0,0,255")
+                )
+                layer_parameters.update(type="circle")
+            elif isinstance(range_symbol, QgsLineSymbol):
+                color["stroke-color"] = case_conditions
+                color["stroke-line-cap"] = (
+                    range_symbol.symbolLayer(0).properties().get("capstyle")
+                )
+                color["stroke-line-join"] = (
+                    range_symbol.symbolLayer(0).properties().get("joinstyle")
+                )
+                color["stroke-width"] = float(
+                    range_symbol.symbolLayer(0).properties().get("line_width")
+                )
+                layer_parameters.update(type="line")
+            elif isinstance(range_symbol, QgsFillSymbol):
+                color["fill-color"] = case_conditions
+                color["stroke-color"] = rgb_to_hex(
+                    range_symbol.symbolLayer(0)
+                    .properties()
+                    .get("outline_color", "0,0,0,255")
+                )
+                layer_parameters.update(type="fill")
 
         if symbol:
             print("SYMBOL.......", symbol)
@@ -596,7 +632,7 @@ def create_graduated_renderer(
         color = fill_color_rules[i + 1]
 
         if isinstance(color, list) and len(color) == 4:
-            r, g, b, a = hex_to_rgba(color)
+            r, g, b, a = color
             last_color = QColor(int(r), int(g), int(b), int(a * 255))
 
         range_symbol = base_symbol.clone()
