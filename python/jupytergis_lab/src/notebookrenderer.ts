@@ -6,6 +6,7 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { PathExt } from '@jupyterlab/coreutils';
 import { Contents } from '@jupyterlab/services';
 import { MessageLoop } from '@lumino/messaging';
 import { Panel, Widget } from '@lumino/widgets';
@@ -94,6 +95,17 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
       constructor(yModel: YJupyterGISModel, node: HTMLElement) {
         this.yModel = yModel;
         this.node = node;
+
+        if (!yModel.jupyterGISModel.contentsManager) {
+          yModel.jupyterGISModel.contentsManager = app.serviceManager.contents;
+        }
+        if (!yModel.jupyterGISModel.filePath) {
+          const path = yModel.sharedModel.commMetadata.path;
+          const normalizedPath = PathExt.normalize(path);
+          const relativePath = normalizedPath.replace(/^.*?\/jupytergis\//, '');
+          // No need to add the RTC prefix when we update to the new jupyter-collaboration version.
+          yModel.jupyterGISModel.filePath = `RTC:/${relativePath}`;
+        }
 
         const widget = new YJupyterGISLuminoWidget({
           model: yModel.jupyterGISModel
