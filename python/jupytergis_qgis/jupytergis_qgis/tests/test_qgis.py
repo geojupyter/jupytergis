@@ -239,7 +239,8 @@ def test_qgis_saver():
                             [40.0, 255.0, 8.0, 1.0],
                             18.0,
                             [147.0, 255.0, 0.0, 1.0],
-                        ]
+                        ],
+                        "stroke-color": "#000000",
                     },
                     "opacity": 1.0,
                     "source": source_ids[5],
