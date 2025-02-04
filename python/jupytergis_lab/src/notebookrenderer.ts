@@ -50,6 +50,7 @@ export class YJupyterGISLuminoWidget extends Panel {
     super();
     const { model } = options;
     this.addClass(CLASS_NAME);
+
     this._buildWidget(options);
 
     // If the filepath was not set when building the widget, the toolbar is not built.
@@ -58,8 +59,8 @@ export class YJupyterGISLuminoWidget extends Panel {
       if (args.stateChange) {
         args.stateChange.forEach((change: any) => {
           if (change.name === 'path') {
-            model.filePath = change.newValue;
             this.layout?.removeWidget(this._jgisWidget);
+            this._jgisWidget.dispose();
             this._buildWidget(options);
           }
         });
@@ -78,14 +79,18 @@ export class YJupyterGISLuminoWidget extends Panel {
    * @param options
    */
   private _buildWidget = (options: IOptions) => {
-    const { commands, model, externalCommands } = options;
+    const { commands, model, externalCommands, tracker } = options;
+    // Ensure the model filePath is relevant with the shared model path.
+    if (model.sharedModel.getState('path')) {
+      model.filePath = model.sharedModel.getState('path') as string;
+    }
     const content = new JupyterGISPanel({ model });
     let toolbar: Toolbar | undefined = undefined;
     if (model.filePath) {
       toolbar = new ToolbarWidget({
         commands,
         model,
-        externalCommands: externalCommands.getCommands()
+        externalCommands: externalCommands?.getCommands() || []
       });
     }
     this._jgisWidget = new JupyterGISOutputWidget({
@@ -94,6 +99,7 @@ export class YJupyterGISLuminoWidget extends Panel {
       toolbar
     });
     this.addWidget(this._jgisWidget);
+    tracker?.add(this._jgisWidget);
   };
 
   private _jgisWidget: JupyterGISOutputWidget;
@@ -102,7 +108,8 @@ export class YJupyterGISLuminoWidget extends Panel {
 interface IOptions {
   commands: CommandRegistry;
   model: JupyterGISModel;
-  externalCommands: IJGISExternalCommandRegistry;
+  externalCommands?: IJGISExternalCommandRegistry;
+  tracker?: JupyterGISTracker;
 }
 
 export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
@@ -118,8 +125,8 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
   ],
   activate: (
     app: JupyterFrontEnd,
-    externalCommandRegistry: IJGISExternalCommandRegistry,
-    jgisTracker: JupyterGISTracker,
+    externalCommandRegistry?: IJGISExternalCommandRegistry,
+    jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
     drive?: ICollaborativeDrive,
     consoleTracker?: IConsoleTracker,
@@ -150,13 +157,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         });
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
-        if (sharedModel) {
-          if (sharedModel.getState('path')) {
-            this.jupyterGISModel.filePath = sharedModel.getState(
-              'path'
-            ) as string;
-          }
-        } else {
+        if (!sharedModel) {
           // The path of the project is set to the path of the notebook, to be able to
           // add local geoJSON/shape file in a "file-less" project.
           const currentWidget = app.shell.currentWidget;
@@ -184,10 +185,10 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         const widget = new YJupyterGISLuminoWidget({
           commands: app.commands,
           model: yModel.jupyterGISModel,
-          externalCommands: externalCommandRegistry
+          externalCommands: externalCommandRegistry,
+          tracker: jgisTracker
         });
         // Widget.attach(widget, node);
-        jgisTracker.add(widget.jgisWidget);
         MessageLoop.sendMessage(widget, Widget.Msg.BeforeAttach);
         node.appendChild(widget.node);
         MessageLoop.sendMessage(widget, Widget.Msg.AfterAttach);
