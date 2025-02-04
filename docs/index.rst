@@ -26,16 +26,33 @@ both collaborative mapping and in-depth geospatial analysis.
 .. image:: ../jupytergis.png
   :alt: JupyterGIS application
 
-Table of contents
-=================
+
+User guide
+==========
+
+Information about using JupyterGIS.
 
 .. toctree::
    :maxdepth: 2
 
-   install
-   extension
-   python_api
-   collab.rst
-   tutorials/intro.md
-   contributing.rst
-   changelog.rst
+   user_guide/index
+
+
+Contributor guide
+=================
+
+Information about contributing to the JupyterGIS project.
+
+.. toctree::
+   :maxdepth: 2
+
+   contributor_guide/index
+
+
+More
+====
+
+.. toctree::
+   :maxdepth: 2
+
+   changelog

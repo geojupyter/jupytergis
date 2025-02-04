@@ -1,4 +1,4 @@
-# JupyterGIS Changelog
+# Changelog
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
