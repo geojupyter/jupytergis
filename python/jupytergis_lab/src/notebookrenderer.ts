@@ -46,14 +46,39 @@ export class YJupyterGISModel extends JupyterYModel {
 }
 
 export class YJupyterGISLuminoWidget extends Panel {
-  constructor(options: {
-    commands: CommandRegistry;
-    model: JupyterGISModel;
-    externalCommands: IJGISExternalCommandRegistry;
-  }) {
+  constructor(options: IOptions) {
     super();
-    const { commands, model, externalCommands } = options;
+    const { model } = options;
     this.addClass(CLASS_NAME);
+    this._buildWidget(options);
+
+    // If the filepath was not set when building the widget, the toolbar is not built.
+    // The widget has to be built again to include the toolbar.
+    const onchange = (_: any, args: any) => {
+      if (args.stateChange) {
+        args.stateChange.forEach((change: any) => {
+          if (change.name === 'path') {
+            model.filePath = change.newValue;
+            this.layout?.removeWidget(this._jgisWidget);
+            this._buildWidget(options);
+          }
+        });
+      }
+    };
+
+    model.sharedModel.changed.connect(onchange);
+  }
+
+  get jgisWidget(): JupyterGISOutputWidget {
+    return this._jgisWidget;
+  }
+
+  /**
+   * Build the widget and add it to the panel.
+   * @param options
+   */
+  private _buildWidget = (options: IOptions) => {
+    const { commands, model, externalCommands } = options;
     const content = new JupyterGISPanel({ model });
     let toolbar: Toolbar | undefined = undefined;
     if (model.filePath) {
@@ -68,15 +93,16 @@ export class YJupyterGISLuminoWidget extends Panel {
       content,
       toolbar
     });
-
     this.addWidget(this._jgisWidget);
-  }
-
-  get jgisWidget(): JupyterGISOutputWidget {
-    return this._jgisWidget;
-  }
+  };
 
   private _jgisWidget: JupyterGISOutputWidget;
+}
+
+interface IOptions {
+  commands: CommandRegistry;
+  model: JupyterGISModel;
+  externalCommands: IJGISExternalCommandRegistry;
 }
 
 export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
@@ -125,16 +151,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
         if (sharedModel) {
-          const onchange = (_: any, args: any) => {
-            if (args.stateChange) {
-              args.stateChange.forEach((change: any) => {
-                if (change.name === 'path') {
-                  this.jupyterGISModel.filePath = change.newValue;
-                }
-              });
-            }
-          };
-          sharedModel.changed.connect(onchange);
           if (sharedModel.getState('path')) {
             this.jupyterGISModel.filePath = sharedModel.getState(
               'path'
@@ -165,7 +181,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
       constructor(yModel: YJupyterGISModel, node: HTMLElement) {
         this.yModel = yModel;
         this.node = node;
-
         const widget = new YJupyterGISLuminoWidget({
           commands: app.commands,
           model: yModel.jupyterGISModel,
