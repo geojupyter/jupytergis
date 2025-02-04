@@ -75,7 +75,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     for (const [key, set] of Object.entries(featureProps)) {
       let checkIfDateIsValid = false;
       const checkValue = set.values().next().value;
-      console.log('checking ', key, checkValue);
+      // console.log('checking ', key, checkValue);
 
       // We only want to look at strings and whole numbers
       // ? Is there a better way to check if number values are valid timestamps?
@@ -174,17 +174,10 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       +e.target.value,
       inferredDateFormat
     );
-
     console.log('currentValueString', currentValueString);
 
     setRange({ start: +e.target.value, end: +e.target.value + step });
-    // const newFilter = {
-    //   feature: `converted${selectedFeature}`,
-    //   operator: '>=' as const,
-    //   value: +e.target.value
-    // };
 
-    // Between returns true if value is between value2 and value3 (inclusive)
     const newFilter = {
       feature: `converted${selectedFeature}`,
       operator: 'between' as const,
@@ -192,29 +185,34 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       betweenMin: +e.target.value,
       betweenMax: +e.target.value + step
     };
-    // setCurrentValue(currentValueString);
 
     const layer = model.getLayer(layerId);
     if (!layer) {
       return;
     }
 
-    const oldFilters = layer.filters?.appliedFilters;
-    const newFilters = oldFilters ? [...oldFilters] : [];
+    const appliedFilters = layer.filters?.appliedFilters || [];
 
-    // if no filters then add this one
-    // if there are filters we want to replace time one
-    // assume that is the last entry for now
-    // TODO Need a better way to distinguish time slider filter from other filers
-    // ? Could have a source attribute on the filter item object or something
-    // ? Could even do this in memory without writing to jgis file?
-    if (newFilters.length === 0) {
-      newFilters.push(newFilter);
+    // This is the only way to add a 'between' filter so
+    // find the index of the existing 'between' filter
+    const betweenFilterIndex = appliedFilters.findIndex(
+      filter => filter.operator === 'between'
+    );
+
+    // console.log('betweenFilterIndex', betweenFilterIndex);
+
+    if (betweenFilterIndex !== -1) {
+      // If found, replace the existing filter
+      appliedFilters[betweenFilterIndex] = {
+        ...newFilter
+      };
     } else {
-      newFilters.splice(newFilters.length - 1, 1, newFilter);
+      // If not found, add the new filter
+      appliedFilters.push(newFilter);
     }
 
-    layer.filters = { logicalOp: 'all', appliedFilters: newFilters };
+    // Apply the updated filters to the layer
+    layer.filters = { logicalOp: 'all', appliedFilters };
     model.sharedModel.updateLayer(layerId, layer);
   };
 
