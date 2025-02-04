@@ -244,10 +244,6 @@ def test_qgis_saver():
                     "opacity": 1.0,
                     "source": source_ids[5],
                     "symbologyState": {
-                        "colorRamp": "cool",
-                        "method": "color",
-                        "mode": "equal interval",
-                        "nClasses": "9",
                         "renderType": "Graduated",
                         "value": "POP_RANK",
                     },
