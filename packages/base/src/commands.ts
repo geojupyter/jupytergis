@@ -172,6 +172,9 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.temporal, {
     label: trans.__('Temporal'),
+    isToggled: () => {
+      return tracker.currentWidget?.context.model.isTemporal || false;
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.context.model.sharedModel.editable
@@ -182,8 +185,9 @@ export function addCommands(
       if (!current) {
         return;
       }
+
       current.context.model.toggleTemporal(CommandIDs.temporal);
-      commands.notifyCommandChanged(CommandIDs.identify);
+      commands.notifyCommandChanged(CommandIDs.temporal);
     },
     ...icons.get(CommandIDs.temporal)
   });
