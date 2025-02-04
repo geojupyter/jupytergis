@@ -27,12 +27,12 @@ import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Widget } from '@lumino/widgets';
 
 import {
-  JupyterGISWidget,
+  JupyterGISDocumentWidget,
   logoMiniIcon,
   logoMiniIconQGZ,
   requestAPI
 } from '@jupytergis/base';
-import { JupyterGISWidgetFactory } from '@jupytergis/jupytergis-core';
+import { JupyterGISDocumentWidgetFactory } from '@jupytergis/jupytergis-core';
 import { IJupyterGISDocTracker, IJupyterGISWidget } from '@jupytergis/schema';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
 
@@ -93,7 +93,7 @@ const activate = async (
     }
     return installed;
   };
-  const QGSWidgetFactory = new JupyterGISWidgetFactory({
+  const QGSWidgetFactory = new JupyterGISDocumentWidgetFactory({
     name: 'JupyterGIS QGS Factory',
     modelName: 'jupytergis-qgsmodel',
     fileTypes: ['QGS'],
@@ -108,7 +108,7 @@ const activate = async (
     mimeTypeService: editorServices.mimeTypeService,
     consoleTracker
   });
-  const QGZWidgetFactory = new JupyterGISWidgetFactory({
+  const QGZWidgetFactory = new JupyterGISDocumentWidgetFactory({
     name: 'JupyterGIS QGZ Factory',
     modelName: 'jupytergis-qgzmodel',
     fileTypes: ['QGZ'],
@@ -163,7 +163,10 @@ const activate = async (
     QGISSharedModelFactory
   );
 
-  const widgetCreatedCallback = (sender: any, widget: JupyterGISWidget) => {
+  const widgetCreatedCallback = (
+    sender: any,
+    widget: JupyterGISDocumentWidget
+  ) => {
     widget.title.icon = logoMiniIconQGZ;
     // Notify the instance tracker if restore data needs to update.
     widget.context.pathChanged.connect(() => {

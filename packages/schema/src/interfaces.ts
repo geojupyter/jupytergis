@@ -5,14 +5,14 @@ import {
   StateChange,
   YDocument
 } from '@jupyter/ydoc';
-import { IWidgetTracker } from '@jupyterlab/apputils';
+import { IWidgetTracker, MainAreaWidget } from '@jupyterlab/apputils';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 import { Contents, User } from '@jupyterlab/services';
 import { JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
-import { SplitPanel, Widget } from '@lumino/widgets';
+import { SplitPanel } from '@lumino/widgets';
 
 import {
   IJGISContent,
@@ -221,18 +221,20 @@ export interface IUserData {
   userData: User.IIdentity;
 }
 
-export interface IJupyterGISWidget
+export interface IJupyterGISDocumentWidget
   extends IDocumentWidget<SplitPanel, IJupyterGISModel> {
   readonly model: IJupyterGISModel;
 }
 
-export interface IJupyterGISOutputWidget extends Widget {
+export interface IJupyterGISOutputWidget extends MainAreaWidget {
   model: IJupyterGISModel;
 }
 
-export type IJupyterGISTracker = IWidgetTracker<
-  IJupyterGISWidget | IJupyterGISOutputWidget
->;
+export type IJupyterGISWidget =
+  | IJupyterGISDocumentWidget
+  | IJupyterGISOutputWidget;
+
+export type IJupyterGISTracker = IWidgetTracker<IJupyterGISWidget>;
 
 export interface IJGISFormSchemaRegistry {
   /**

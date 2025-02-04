@@ -12,7 +12,7 @@ import { CommandRegistry } from '@lumino/commands';
 
 import {
   JupyterGISPanel,
-  JupyterGISWidget,
+  JupyterGISDocumentWidget,
   ToolbarWidget
 } from '@jupytergis/base';
 import { Contents, ServiceManager } from '@jupyterlab/services';
@@ -30,8 +30,8 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   drive?: ICollaborativeDrive | null;
 }
 
-export class JupyterGISWidgetFactory extends ABCWidgetFactory<
-  JupyterGISWidget,
+export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
+  JupyterGISDocumentWidget,
   JupyterGISModel
 > {
   constructor(private options: IOptions) {
@@ -51,7 +51,7 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
    */
   protected createNewWidget(
     context: DocumentRegistry.IContext<JupyterGISModel>
-  ): JupyterGISWidget {
+  ): JupyterGISDocumentWidget {
     if (this._backendCheck) {
       const checked = this._backendCheck();
       if (!checked) {
@@ -77,7 +77,7 @@ export class JupyterGISWidgetFactory extends ABCWidgetFactory<
       model,
       externalCommands: this._externalCommandRegistry.getCommands()
     });
-    return new JupyterGISWidget({ context, content, toolbar });
+    return new JupyterGISDocumentWidget({ context, content, toolbar });
   }
 
   private _commands: CommandRegistry;

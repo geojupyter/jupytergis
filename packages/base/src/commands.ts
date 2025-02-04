@@ -22,6 +22,7 @@ import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
+import { JupyterGISDocumentWidget } from './widget';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -853,6 +854,7 @@ export function addCommands(
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -862,6 +864,7 @@ export function addCommands(
   });
   commands.addCommand(CommandIDs.executeConsole, {
     label: trans.__('Execute console'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -871,6 +874,7 @@ export function addCommands(
   });
   commands.addCommand(CommandIDs.removeConsole, {
     label: trans.__('Remove console'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -881,9 +885,14 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.invokeCompleter, {
     label: trans.__('Display the completion helper.'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     execute: () => {
       const currentWidget = tracker.currentWidget;
-      if (!currentWidget || !completionProviderManager) {
+      if (
+        !currentWidget ||
+        !completionProviderManager ||
+        !(currentWidget instanceof JupyterGISDocumentWidget)
+      ) {
         return;
       }
       const id = currentWidget.content.consolePanel?.id;
@@ -895,9 +904,14 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.selectCompleter, {
     label: trans.__('Select the completion suggestion.'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     execute: () => {
       const currentWidget = tracker.currentWidget;
-      if (!currentWidget || !completionProviderManager) {
+      if (
+        !currentWidget ||
+        !completionProviderManager ||
+        !(currentWidget instanceof JupyterGISDocumentWidget)
+      ) {
         return;
       }
       const id = currentWidget.content.consolePanel?.id;
@@ -1114,8 +1128,7 @@ namespace Private {
 
   export function executeConsole(tracker: JupyterGISTracker): void {
     const current = tracker.currentWidget;
-
-    if (!current) {
+    if (!current || !(current instanceof JupyterGISDocumentWidget)) {
       return;
     }
     current.content.executeConsole();
@@ -1124,7 +1137,7 @@ namespace Private {
   export function removeConsole(tracker: JupyterGISTracker): void {
     const current = tracker.currentWidget;
 
-    if (!current) {
+    if (!current || !(current instanceof JupyterGISDocumentWidget)) {
       return;
     }
     current.content.removeConsole();
@@ -1135,7 +1148,7 @@ namespace Private {
   ): Promise<void> {
     const current = tracker.currentWidget;
 
-    if (!current) {
+    if (!current || !(current instanceof JupyterGISDocumentWidget)) {
       return;
     }
 

@@ -8,7 +8,7 @@ import { SplitPanel, Widget } from '@lumino/widgets';
 import {
   IJupyterGISModel,
   IJupyterGISOutputWidget,
-  IJupyterGISWidget
+  IJupyterGISDocumentWidget
 } from '@jupytergis/schema';
 
 import { JupyterGISMainViewPanel } from './mainview';
@@ -18,9 +18,13 @@ import { MessageLoop } from '@lumino/messaging';
 
 const CELL_OUTPUT_WIDGET_CLASS = 'jgis-cell-output-widget';
 
-export class JupyterGISWidget
+export type JupyterGISWidget =
+  | JupyterGISDocumentWidget
+  | JupyterGISOutputWidget;
+
+export class JupyterGISDocumentWidget
   extends DocumentWidget<JupyterGISPanel, IJupyterGISModel>
-  implements IJupyterGISWidget
+  implements IJupyterGISDocumentWidget
 {
   constructor(
     options: DocumentWidget.IOptions<JupyterGISPanel, IJupyterGISModel>

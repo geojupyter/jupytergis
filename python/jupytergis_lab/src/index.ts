@@ -2,7 +2,6 @@ import {
   CommandIDs,
   ControlPanelModel,
   GlobalStateDbManager,
-  JupyterGISWidget,
   LeftPanelWidget,
   RightPanelWidget,
   addCommands,
@@ -18,7 +17,8 @@ import {
   IJGISLayerBrowserRegistryToken,
   IJGISLayerItem,
   IJupyterGISDocTracker,
-  IJupyterGISTracker
+  IJupyterGISTracker,
+  IJupyterGISWidget
 } from '@jupytergis/schema';
 import {
   ILayoutRestorer,
@@ -47,7 +47,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   optional: [IMainMenu, ITranslator, ICompletionProviderManager],
   activate: (
     app: JupyterFrontEnd,
-    tracker: WidgetTracker<JupyterGISWidget>,
+    tracker: WidgetTracker<IJupyterGISWidget>,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
     state: IStateDB,
@@ -315,7 +315,7 @@ function populateMenus(mainMenu: IMainMenu, isEnabled: () => boolean): void {
  */
 function buildGroupsMenu(
   contextMenu: ContextMenu,
-  tracker: WidgetTracker<JupyterGISWidget>
+  tracker: WidgetTracker<IJupyterGISWidget>
 ) {
   if (!tracker.currentWidget?.model) {
     return;

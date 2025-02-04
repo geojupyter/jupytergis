@@ -1,7 +1,6 @@
 import {
   IJupyterGISDoc,
   IJupyterGISModel,
-  IJupyterGISOutputWidget,
   IJupyterGISTracker,
   IJupyterGISWidget
 } from '@jupytergis/schema';
@@ -15,10 +14,7 @@ export class ControlPanelModel implements IControlPanelModel {
     this._documentChanged = this._tracker.currentChanged;
   }
 
-  get documentChanged(): ISignal<
-    IJupyterGISTracker,
-    IJupyterGISWidget | IJupyterGISOutputWidget | null
-  > {
+  get documentChanged(): ISignal<IJupyterGISTracker, IJupyterGISWidget | null> {
     return this._documentChanged;
   }
 
@@ -47,7 +43,7 @@ export class ControlPanelModel implements IControlPanelModel {
   private readonly _tracker: IJupyterGISTracker;
   private _documentChanged: ISignal<
     IJupyterGISTracker,
-    IJupyterGISWidget | IJupyterGISOutputWidget | null
+    IJupyterGISWidget | null
   >;
 }
 

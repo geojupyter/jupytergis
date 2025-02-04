@@ -2,7 +2,6 @@ import {
   IDict,
   IJupyterGISDoc,
   IJupyterGISModel,
-  IJupyterGISOutputWidget,
   IJupyterGISTracker,
   IJupyterGISWidget
 } from '@jupytergis/schema';
@@ -10,21 +9,14 @@ import { WidgetTracker } from '@jupyterlab/apputils';
 import { ISignal } from '@lumino/signaling';
 import { Map } from 'ol';
 
-import { JupyterGISOutputWidget, JupyterGISWidget } from './widget';
-
 export { IDict };
 export type ValueOf<T> = T[keyof T];
 
-export type JupyterGISTracker = WidgetTracker<
-  JupyterGISWidget | JupyterGISOutputWidget
->;
+export type JupyterGISTracker = WidgetTracker<IJupyterGISWidget>;
 
 export interface IControlPanelModel {
   disconnect(f: any): void;
-  documentChanged: ISignal<
-    IJupyterGISTracker,
-    IJupyterGISWidget | IJupyterGISOutputWidget | null
-  >;
+  documentChanged: ISignal<IJupyterGISTracker, IJupyterGISWidget | null>;
   filePath: string | undefined;
   jGISModel: IJupyterGISModel | undefined;
   sharedModel: IJupyterGISDoc | undefined;
