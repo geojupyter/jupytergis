@@ -254,7 +254,7 @@ def qgis_layer_to_jgis(
                 range_color = range_symbol.color().getRgbF()
                 r, g, b, _ = range_color
 
-                lower = range.lowerValue()
+                lower = range.upperValue()
 
                 interpolate_conditions.append(lower)
                 interpolate_conditions.append([r * 255, g * 255, b * 255, alpha])
