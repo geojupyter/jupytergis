@@ -62,14 +62,28 @@ export class JupyterGISOutputWidget
     this.addClass(CELL_OUTPUT_WIDGET_CLASS);
     this.model = options.model;
 
-    const resizeObserver = new ResizeObserver(() => {
+    this.resizeObserver = new ResizeObserver(() => {
       // Send a resize message to the widget, to update the child size.
       MessageLoop.sendMessage(this, Widget.ResizeMessage.UnknownSize);
     });
-    resizeObserver.observe(this.node);
+    this.resizeObserver.observe(this.node);
+
+    this.model.disposed.connect(() => this.dispose());
+  }
+
+  /**
+   * Dispose of the resources held by the widget.
+   */
+  dispose(): void {
+    if (!this.isDisposed) {
+      this.resizeObserver.disconnect();
+      this.content.dispose();
+      super.dispose();
+    }
   }
 
   readonly model: IJupyterGISModel;
+  readonly resizeObserver: ResizeObserver;
 }
 
 export namespace JupyterGISOutputWidget {

@@ -16,9 +16,9 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
+import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
-import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
+import {  NotebookPanel } from '@jupyterlab/notebook';
 import { Contents } from '@jupyterlab/services';
 import { Toolbar } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
@@ -43,6 +43,7 @@ export const CLASS_NAME = 'jupytergis-notebook-widget';
 
 export class YJupyterGISModel extends JupyterYModel {
   jupyterGISModel: JupyterGISModel;
+  parent?: NotebookPanel | ConsolePanel;
 }
 
 export class YJupyterGISLuminoWidget extends Panel {
@@ -120,8 +121,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     IJupyterGISDocTracker,
     IJupyterYWidgetManager,
     ICollaborativeDrive,
-    IConsoleTracker,
-    INotebookTracker
   ],
   activate: (
     app: JupyterFrontEnd,
@@ -129,8 +128,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
     drive?: ICollaborativeDrive,
-    consoleTracker?: IConsoleTracker,
-    notebookTracker?: INotebookTracker
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -156,25 +153,33 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           sharedModel: sharedModel as IJupyterGISDoc
         });
 
+        const currentWidget = app.shell.currentWidget;
+        if (currentWidget instanceof NotebookPanel || currentWidget instanceof ConsolePanel) {
+          this.parent = currentWidget;
+        }
+
+        this.parent?.disposed.connect(this.dispose);
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
+
         if (!sharedModel) {
           // The path of the project is set to the path of the notebook, to be able to
           // add local geoJSON/shape file in a "file-less" project.
-          const currentWidget = app.shell.currentWidget;
-          let currentPath: string | undefined = undefined;
-          if (currentWidget instanceof NotebookPanel && notebookTracker) {
-            currentPath = notebookTracker.currentWidget?.context.localPath;
-          } else if (currentWidget instanceof ConsolePanel && consoleTracker) {
-            currentPath = consoleTracker.currentWidget?.sessionContext.path;
-          }
-          if (currentPath) {
+          let currentWidgetPath: string | undefined = undefined;
+          currentWidgetPath = this.parent?.sessionContext.path;
+          if (currentWidgetPath) {
             this.jupyterGISModel.filePath = PathExt.join(
-              PathExt.dirname(currentPath),
+              PathExt.dirname(currentWidgetPath),
               'unsaved_project'
             );
           }
         }
         return this.jupyterGISModel.sharedModel.ydoc;
+      }
+
+      dispose(): void {
+        this.parent?.disposed.disconnect(this.dispose);
+        this.jupyterGISModel.dispose();
+        super.dispose();
       }
     }
 
