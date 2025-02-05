@@ -937,7 +937,6 @@ def vector_to_geojson(
             filepath = "zip://" + filepath
     ext = os.path.splitext(filepath)[1].lower()
     if ext == ".kml":
-
         try:
             import fiona
         except ImportError:
