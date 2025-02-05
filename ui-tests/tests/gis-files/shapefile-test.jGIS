@@ -1,24 +1,14 @@
 {
   "layerTree": [
     "56629dbf-c321-4953-9c54-cc9321af53ba",
-    "19c17b24-704f-4557-bc8e-4c98df293a7a"
+    "14e7f33a-6736-4a9f-b863-9a7c7d2213d5"
   ],
   "layers": {
-    "19c17b24-704f-4557-bc8e-4c98df293a7a": {
+    "14e7f33a-6736-4a9f-b863-9a7c7d2213d5": {
       "name": "Custom Shapefile Layer",
       "parameters": {
-        "color": {
-          "fill-color": "#3399CC",
-          "stroke-color": "#ff0000",
-          "stroke-line-cap": "round",
-          "stroke-line-join": "round",
-          "stroke-width": 1.25
-        },
         "opacity": 1.0,
-        "source": "1c374c77-ab13-4583-a225-8a2f1d8d55b8",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        },
+        "source": "6614d6a0-bd68-4c3c-8e4d-a4444f5be4f1",
         "type": "line"
       },
       "type": "VectorLayer",
@@ -37,25 +27,24 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8259674.347807843,
-      4953484.09974397,
-      -8213588.0820831265,
-      4998572.434517955
+      -18961181.26425519,
+      -19169742.233455848,
+      21113835.4213233,
+      20037508.342789244
     ],
-    "latitude": 40.75334749489974,
-    "longitude": -73.99091710041472,
+    "latitude": 3.8946351373010657,
+    "longitude": 9.668810653588531,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 11.752835218692987
+    "zoom": 1.988684686772166
   },
   "sources": {
-    "1c374c77-ab13-4583-a225-8a2f1d8d55b8": {
+    "6614d6a0-bd68-4c3c-8e4d-a4444f5be4f1": {
       "name": "Custom Shapefile Source",
       "parameters": {
-        "additionalFiles": {},
         "attribution": "",
         "encoding": "UTF-8",
-        "path": "https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip",
+        "path": "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/world-administrative-boundaries/exports/shp?lang=en&timezone=Asia%2FKolkata",
         "projection": "WGS84"
       },
       "type": "ShapefileSource"
