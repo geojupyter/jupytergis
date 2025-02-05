@@ -1,7 +1,7 @@
 {
   "layerTree": [
     "54e0ea1f-32fd-4ff2-90fb-ad449a38f902",
-    "9ccab8f8-a170-4977-92b1-ab5f42175c48",
+    "f909d9b9-bf07-42f6-8841-8d6470665dcb",
     "61ef4256-0d6b-4810-93a7-cf29b9e3ae00"
   ],
   "layers": {
@@ -29,16 +29,29 @@
         },
         "opacity": 1.0,
         "source": "df86531e-086d-48fa-bfec-98477ec554a4",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        },
         "type": "line"
       },
       "type": "VectorLayer",
       "visible": true
     },
-    "9ccab8f8-a170-4977-92b1-ab5f42175c48": {
+    "f909d9b9-bf07-42f6-8841-8d6470665dcb": {
       "name": "Custom Shapefile Layer",
       "parameters": {
+        "color": {
+          "fill-color": "#eaa4e7",
+          "stroke-color": "#3399CC",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
-        "source": "284311a5-01a0-4333-a120-19c23a37e064",
+        "source": "eb4b68da-eab6-44a1-8e75-ca9c871d2755",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        },
         "type": "line"
       },
       "type": "VectorLayer",
@@ -49,29 +62,18 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8262247.857073612,
-      4961071.288111334,
-      -8221407.547578438,
-      5002025.042910661
+      -18426165.47087102,
+      -12938060.196881127,
+      21616739.82313248,
+      18980663.028651733
     ],
-    "latitude": 40.79089967838061,
-    "longitude": -74.03759794079146,
+    "latitude": 26.179270968888744,
+    "longitude": 14.330708528781068,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 11.430346702791901
+    "zoom": 2.2854022188622487
   },
   "sources": {
-    "284311a5-01a0-4333-a120-19c23a37e064": {
-      "name": "Custom Shapefile Source",
-      "parameters": {
-        "additionalFiles": {},
-        "attribution": "",
-        "encoding": "UTF-8",
-        "path": "https://www2.census.gov/geo/tiger/GENZ2015/shp/cb_2015_us_county_500k.zip",
-        "projection": "WGS84"
-      },
-      "type": "ShapefileSource"
-    },
     "780c4234-ba6d-4da2-9731-739f6c4d8033": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
@@ -91,6 +93,16 @@
         "attribution": "",
         "encoding": "UTF-8",
         "path": "https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip",
+        "projection": "WGS84"
+      },
+      "type": "ShapefileSource"
+    },
+    "eb4b68da-eab6-44a1-8e75-ca9c871d2755": {
+      "name": "Custom Shapefile Source",
+      "parameters": {
+        "attribution": "",
+        "encoding": "UTF-8",
+        "path": "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/world-administrative-boundaries/exports/shp",
         "projection": "WGS84"
       },
       "type": "ShapefileSource"

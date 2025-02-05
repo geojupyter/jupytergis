@@ -4,14 +4,15 @@
 Installing JupyterGIS
 =====================
 
-JupyterGIS can be installed with ``pip``
+It is best to install JupyterGIS using ``mamba`` or ``conda``, since you'll be able to install ``qgis`` as well, allowing you to open ``.qgz`` files.
+
+.. code-block:: bash
+
+   mamba install -c conda-forge jupytergis qgis
+
+
+Alternatively, you can install JupyterGIS with ``pip``
 
 .. code-block:: bash
 
    pip install jupytergis
-
-It is best if you also install ``qgis``, this will allow you to open ``.qgz`` files. It can be installed using ``mamba`` or ``conda``
-
-.. code-block:: bash
-
-   mamba install -c conda-forge qgis
