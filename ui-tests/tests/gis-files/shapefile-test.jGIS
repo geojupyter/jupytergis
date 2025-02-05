@@ -1,14 +1,14 @@
 {
   "layerTree": [
     "56629dbf-c321-4953-9c54-cc9321af53ba",
-    "19c17b24-704f-4557-bc8e-4c98df293a7a"
+    "14e7f33a-6736-4a9f-b863-9a7c7d2213d5"
   ],
   "layers": {
-    "19c17b24-704f-4557-bc8e-4c98df293a7a": {
+    "14e7f33a-6736-4a9f-b863-9a7c7d2213d5": {
       "name": "Custom Shapefile Layer",
       "parameters": {
         "opacity": 1.0,
-        "source": "1c374c77-ab13-4583-a225-8a2f1d8d55b8",
+        "source": "6614d6a0-bd68-4c3c-8e4d-a4444f5be4f1",
         "type": "line"
       },
       "type": "VectorLayer",
@@ -27,25 +27,24 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -17620912.59852034,
-      -6585660.780064824,
-      -8006231.205808346,
-      13926831.331991654
+      -18961181.26425518,
+      -15538276.763081899,
+      21113835.421323292,
+      16406042.872415295
     ],
-    "latitude": 31.29089481271825,
-    "longitude": -115.10627483878677,
+    "latitude": 3.8946351373010657,
+    "longitude": 9.668810653588531,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 3.154789187805573
+    "zoom": 2.2842457498296707
   },
   "sources": {
-    "1c374c77-ab13-4583-a225-8a2f1d8d55b8": {
+    "6614d6a0-bd68-4c3c-8e4d-a4444f5be4f1": {
       "name": "Custom Shapefile Source",
       "parameters": {
-        "additionalFiles": {},
         "attribution": "",
         "encoding": "UTF-8",
-        "path": "https://www2.census.gov/geo/tiger/GENZ2015/shp/cb_2015_us_county_500k.zip",
+        "path": "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/world-administrative-boundaries/exports/shp",
         "projection": "WGS84"
       },
       "type": "ShapefileSource"
