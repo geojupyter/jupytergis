@@ -16,9 +16,5 @@ dependencies:
   - sphinx-autodoc-typehints
   - sphinx-exercise
   - sphinx-togglebutton
-
+  - myst-parser
   - xeus-python # TODO: Do we need this?
-
-  # Install myst-parser via pip
-  - pip:
-      - myst-parser<4.0.0
