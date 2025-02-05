@@ -294,7 +294,10 @@ def test_qgis_saver():
                             ["==", ["get", "min_label"], 10.2],
                             [147.0, 255.0, 0.0, 1.0],
                             [0.0, 0.0, 0.0, 0.0],
-                        ]
+                        ],
+                        "stroke-line-cap": "square",
+                        "stroke-line-join": "bevel",
+                        "stroke-width": 1.0,
                     },
                     "opacity": 1.0,
                     "source": source_ids[6],

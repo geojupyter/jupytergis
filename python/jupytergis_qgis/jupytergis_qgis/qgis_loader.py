@@ -208,7 +208,8 @@ def qgis_layer_to_jgis(
 
                 category_color = cat_symbol.color().name()
                 case_conditions.append(["==", ["get", field_name], category.value()])
-                case_conditions.append(category_color)
+                r, g, b, a = hex_to_rgba(category_color)
+                case_conditions.append([r, g, b, a / 255])
 
             layer_parameters["symbologyState"] = {
                 "colorRamp": "cool",
