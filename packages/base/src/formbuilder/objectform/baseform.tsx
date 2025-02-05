@@ -1,14 +1,13 @@
-import { FormComponent } from '@jupyterlab/ui-components';
-import validatorAjv8 from '@rjsf/validator-ajv8';
-import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
-import * as React from 'react';
-import { IJupyterGISModel } from '@jupytergis/schema';
+import { Slider } from '@jupyter/react-components';
+import { IJupyterGISModel, SourceType } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
+import { FormComponent } from '@jupyterlab/ui-components';
 import { Signal } from '@lumino/signaling';
+import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
+import validatorAjv8 from '@rjsf/validator-ajv8';
+import * as React from 'react';
 import { deepCopy } from '../../tools';
 import { IDict } from '../../types';
-import { Slider } from '@jupyter/react-components';
-import { SourceType } from '@jupytergis/schema';
 
 export interface IBaseFormStates {
   schema?: IDict;
@@ -214,7 +213,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                   min={1}
                   max={10}
                   step={1}
-                  value={props.formData * 10}
+                  valueAsNumber={props.formData * 10}
                   onChange={handleSliderChange}
                 ></Slider>
                 <input
