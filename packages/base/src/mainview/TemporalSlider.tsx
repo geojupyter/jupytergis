@@ -1,6 +1,6 @@
 import { faPlay } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Slider } from '@jupyter/react-components';
+import { Button, Slider } from '@jupyter/react-components';
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { format, isValid, parse, toDate } from 'date-fns';
 import {
@@ -11,7 +11,7 @@ import {
   millisecondsInWeek,
   minutesInMonth
 } from 'date-fns/constants';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useGetProperties } from '../dialogs/symbology/hooks/useGetProperties';
 
 interface ITemporalSliderProps {
@@ -53,6 +53,8 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [step, setStep] = useState(stepMap.year);
   const [currentValue, setCurrentValue] = useState(0);
 
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const { featureProps } = useGetProperties({ layerId, model });
 
   useEffect(() => {
@@ -66,7 +68,13 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
     const selectedLayerId = Object.keys(selectedLayer)[0];
     setLayerId(selectedLayerId);
-  });
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const featuresForSelect = [];
@@ -176,14 +184,19 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     );
     console.log('currentValueString', currentValueString);
 
+    setCurrentValue(+e.target.value);
     setRange({ start: +e.target.value, end: +e.target.value + step });
 
+    // applyFilter(+e.target.value);
+  };
+
+  const applyFilter = (value: number) => {
     const newFilter = {
       feature: `converted${selectedFeature}`,
       operator: 'between' as const,
-      value: +e.target.value,
-      betweenMin: +e.target.value,
-      betweenMax: +e.target.value + step
+      value: value,
+      betweenMin: value,
+      betweenMax: value + step
     };
 
     const layer = model.getLayer(layerId);
@@ -221,6 +234,50 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     setSelectedFeature(e.target.value);
   };
 
+  useEffect(() => {
+    console.log(
+      'currentValue',
+      millisecondsToDateString(currentValue, inferredDateFormat)
+    );
+    applyFilter(currentValue);
+  }, [currentValue]);
+
+  const handleAnimation = () => {
+    // Clear any existing interval first
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    const incrementValue = () => {
+      setCurrentValue(prev => {
+        // Stop condition check
+        if (prev >= minMax.max) {
+          console.log('shouldnt happen');
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+          }
+          return prev;
+        }
+
+        // Calculate next value with safety bounds
+        const nextValue = Math.min(prev + step, minMax.max);
+
+        // Clear interval if we've reached the max
+        if (nextValue === minMax.max && intervalRef.current) {
+          clearInterval(intervalRef.current);
+          return minMax.max - step;
+        }
+
+        return nextValue;
+      });
+    };
+
+    // Start animation only if needed
+    intervalRef.current = setInterval(incrementValue, 1000);
+    // if (currentValue < minMax.max) {
+    // }
+  };
+
   return (
     <div className="jp-gis-temporal-slider-container">
       {layerId ? (
@@ -253,14 +310,20 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
           <div className="jp-gis-temporal-slider-row">
             {/* controls */}
             <div>
-              <FontAwesomeIcon icon={faPlay} />
+              <Button
+                appearance="neutral"
+                scale="medium"
+                onClick={handleAnimation}
+              >
+                <FontAwesomeIcon icon={faPlay} />
+              </Button>
             </div>
             {/* slider */}
             <div>
               <Slider
                 min={minMax.min}
                 max={minMax.max - step}
-                value={currentValue}
+                valueAsNumber={currentValue}
                 step={step}
                 onChange={handleChange}
                 className="jp-gis-temporal-slider"
