@@ -16,4 +16,3 @@ Alternatively, you can install JupyterGIS with ``pip``
 .. code-block:: bash
 
    pip install jupytergis
-
