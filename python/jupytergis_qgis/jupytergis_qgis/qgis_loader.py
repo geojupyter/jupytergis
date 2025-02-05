@@ -579,7 +579,7 @@ def create_categorized_renderer(
             raise ValueError(f"Unexpected color format: {color}")
 
         category_symbol = base_symbol.clone()
-        category_symbol.setColor(QColor(r, g, b, int(a)))
+        category_symbol.setColor(QColor(int(r), int(g), int(b), int(a)))
 
         if geometry_type == "circle" and isinstance(radius_rules, (int, float)):
             radius = radius_rules
