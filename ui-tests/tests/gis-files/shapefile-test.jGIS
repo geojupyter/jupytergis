@@ -7,8 +7,18 @@
     "19c17b24-704f-4557-bc8e-4c98df293a7a": {
       "name": "Custom Shapefile Layer",
       "parameters": {
+        "color": {
+          "fill-color": "#3399CC",
+          "stroke-color": "#ff0000",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "1c374c77-ab13-4583-a225-8a2f1d8d55b8",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        },
         "type": "line"
       },
       "type": "VectorLayer",
@@ -27,16 +37,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -17620912.59852034,
-      -6585660.780064824,
-      -8006231.205808346,
-      13926831.331991654
+      -8259674.347807843,
+      4953484.09974397,
+      -8213588.0820831265,
+      4998572.434517955
     ],
-    "latitude": 31.29089481271825,
-    "longitude": -115.10627483878677,
+    "latitude": 40.75334749489974,
+    "longitude": -73.99091710041472,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 3.154789187805573
+    "zoom": 11.752835218692987
   },
   "sources": {
     "1c374c77-ab13-4583-a225-8a2f1d8d55b8": {
@@ -45,7 +55,7 @@
         "additionalFiles": {},
         "attribution": "",
         "encoding": "UTF-8",
-        "path": "https://www2.census.gov/geo/tiger/GENZ2015/shp/cb_2015_us_county_500k.zip",
+        "path": "https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip",
         "projection": "WGS84"
       },
       "type": "ShapefileSource"
