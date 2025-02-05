@@ -1,14 +1,17 @@
 name: jupytergis-docs
 channels:
   - conda-forge
-  - nodefaults
 dependencies:
+  - micromamba=2.0.5
   - python=3.12
-  - pip # Needed to install jupytergis wheels in RTD build
+  # Needed to install jupytergis wheels in RTD build
+  - pip
+  - yarn=3
+  - jupyterlab
 
   # Build docs & JupyterLite
-  - jupyterlite-core>=0.4.0,<0.6.0
-  - jupyterlite-xeus>=2,<3
+  - jupyterlite-core>=0.4,<0.6
+  - jupyterlite-xeus>=2,<4
   - jupyterlite-sphinx
   - sphinx
   - sphinx-tabs
@@ -17,8 +20,8 @@ dependencies:
   - sphinx-exercise
   - sphinx-togglebutton
 
-  - xeus-python # TODO: Do we need this?
-
   # Install myst-parser via pip
   - pip:
-      - myst-parser<4.0.0
+    - myst-parser<4.0.0
+    - ../python/jupytergis_core
+    - ../python/jupytergis_lab

@@ -1,54 +1,12 @@
-# See https://docs.readthedocs.io/en/stable/config-file/v2.html
 version: 2
 
 build:
-  os: "ubuntu-24.04"
+  os: "ubuntu-20.04"
   tools:
-    python: "3.12"
-    nodejs: "20"
-  jobs:
-    # Install micromamba
-    pre_create_environment:
-      # The recommended syntax in the micromamba docs is process substitution.
-      # RTD's default shell chokes on it, so we're doing it in multiple steps
-      # instead.
-      - curl -L micro.mamba.pm/install.sh > /tmp/micromamba-install.sh
-      - chmod +x /tmp/micromamba-install.sh
-      # For some reason, SHELL is not set. The install script requires it.
-      - SHELL=/bin/bash /bin/bash /tmp/micromamba-install.sh
+    python: "mambaforge-4.10"
 
-    # Override the create_environment step (undocumented feature) to create
-    # multiple environments.
-    create_environment:
-      # Create the env for building the docs
-      - /bin/bash --login -c "micromamba env create -n jupytergis-docs -f docs/environment-docs.yml"
-      # Create the isolated env for building JupyterGIS
-      - /bin/bash --login -c "micromamba create -n jupytergis-build -c conda-forge yarn=3 hatch pip python=3.12"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build pip install -r requirements-build.txt"
+conda:
+  environment: docs/build-environment.yml
 
-    # Override the install step to do nothing - we already created the envs
-    install:
-      - "echo 'Skipping! We already have the environments we need.'"
-
-    # Before building the docs, build JupyterGIS in its isolated environment,
-    # then install the wheels into the docs environment.
-    pre_build:
-      - /bin/bash --login -c "micromamba run -n jupytergis-build yarn install"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build yarn dev"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build jupyter labextension list 2>&1 | grep -ie 'jupytergis-core.*OK'"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build jupyter labextension list 2>&1 | grep -ie 'jupytergis-lab.*OK'"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build yarn build:packages"
-
-      - |-
-        /bin/bash --login -c "micromamba run -n jupytergis-docs \
-          python -m pip install \
-          $(ls ./python/jupytergis_core/dist/jupytergis*.whl) \
-          $(ls ./python/jupytergis_lab/dist/jupytergis*.whl) \
-          $(ls ./python/jupytergis_qgis/dist/jupytergis*.whl)"
-
-    build:
-      html:
-        - |-
-          /bin/bash --login -c "cd docs && micromamba run -n jupytergis-docs \
-          python -m sphinx -T -b html -d _build/doctrees -D language=en . \
-          $READTHEDOCS_OUTPUT/html"
+sphinx:
+  configuration: docs/conf.py
