@@ -65,7 +65,6 @@ docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
 Replace `latest` with a specific version number if you prefer.
 Docker build source is at <https://github.com/geojupyter/jupytergis-docker>.
 
-
 ## Documentation
 
 https://geojupyter.github.io/jupytergis
