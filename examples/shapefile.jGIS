@@ -62,16 +62,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -35089851.97598989,
-      -14970651.775556188,
-      693136.6359205209,
-      20037508.342789244
+      -18426165.47087102,
+      -12938060.196881127,
+      21616739.82313248,
+      18980663.028651733
     ],
-    "latitude": 22.182313644033513,
-    "longitude": -154.4954755674636,
+    "latitude": 26.179270968888744,
+    "longitude": 14.330708528781068,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 2.152113920845456
+    "zoom": 2.2854022188622487
   },
   "sources": {
     "780c4234-ba6d-4da2-9731-739f6c4d8033": {
@@ -102,7 +102,7 @@
       "parameters": {
         "attribution": "",
         "encoding": "UTF-8",
-        "path": "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/world-administrative-boundaries/exports/shp?lang=en&timezone=Asia%2FKolkata",
+        "path": "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/world-administrative-boundaries/exports/shp",
         "projection": "WGS84"
       },
       "type": "ShapefileSource"
