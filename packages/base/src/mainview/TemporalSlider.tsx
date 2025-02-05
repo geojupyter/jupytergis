@@ -1,4 +1,4 @@
-import { faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button, Slider } from '@jupyter/react-components';
 import { IJupyterGISModel } from '@jupytergis/schema';
@@ -141,6 +141,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     const max = Math.max(...convertedValues);
 
     // Update the range and minMax state
+    console.log('check');
     setCurrentValue(min);
     setMinMax({ min, max });
     setRange({ start: min, end: min + step });
@@ -178,16 +179,18 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   };
 
   const handleChange = (e: any) => {
-    const currentValueString = millisecondsToDateString(
-      +e.target.value,
-      inferredDateFormat
-    );
-    console.log('currentValueString', currentValueString);
+    // const currentValueStringTarget = millisecondsToDateString(
+    //   +e.target.value,
+    //   inferredDateFormat
+    // );
 
+    // console.log('currentValueString target', currentValueStringTarget);
+
+    console.log('+e.target.value', +e.target.value);
     setCurrentValue(+e.target.value);
     setRange({ start: +e.target.value, end: +e.target.value + step });
 
-    // applyFilter(+e.target.value);
+    applyFilter(+e.target.value);
   };
 
   const applyFilter = (value: number) => {
@@ -235,14 +238,20 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   };
 
   useEffect(() => {
-    console.log(
-      'currentValue',
-      millisecondsToDateString(currentValue, inferredDateFormat)
+    // console.log(
+    //   'currentValue',
+    //   millisecondsToDateString(currentValue, inferredDateFormat)
+    // );
+    // applyFilter(currentValue);
+
+    const currentValueStringCurrent = millisecondsToDateString(
+      currentValue,
+      inferredDateFormat
     );
-    applyFilter(currentValue);
+    console.log('currentValueString current', currentValueStringCurrent);
   }, [currentValue]);
 
-  const handleAnimation = () => {
+  const playAnimation = () => {
     // Clear any existing interval first
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -260,12 +269,12 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
         }
 
         // Calculate next value with safety bounds
-        const nextValue = Math.min(prev + step, minMax.max);
+        const nextValue = prev + step;
 
         // Clear interval if we've reached the max
-        if (nextValue === minMax.max && intervalRef.current) {
+        if (nextValue >= minMax.max - step && intervalRef.current) {
           clearInterval(intervalRef.current);
-          return minMax.max - step;
+          return minMax.max - step; // Ensure it reaches the exact max value
         }
 
         return nextValue;
@@ -276,6 +285,12 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     intervalRef.current = setInterval(incrementValue, 1000);
     // if (currentValue < minMax.max) {
     // }
+  };
+
+  const pauseAnimation = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
   };
 
   return (
@@ -302,18 +317,26 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
             </div>
             {/* Current frame */}
             <div>
-              Current Frame:{' '}
-              {millisecondsToDateString(range.start, inferredDateFormat)} ≤ t ≤{' '}
+              <span>Current Frame:</span>{' '}
+              {millisecondsToDateString(range.start, inferredDateFormat)} ≤{' '}
+              <span>t</span> ≤{' '}
               {millisecondsToDateString(range.end, inferredDateFormat)}
             </div>
           </div>
           <div className="jp-gis-temporal-slider-row">
             {/* controls */}
-            <div>
+            <div style={{ margin: 'auto' }}>
               <Button
                 appearance="neutral"
                 scale="medium"
-                onClick={handleAnimation}
+                onClick={pauseAnimation}
+              >
+                <FontAwesomeIcon icon={faPause} />
+              </Button>
+              <Button
+                appearance="neutral"
+                scale="medium"
+                onClick={playAnimation}
               >
                 <FontAwesomeIcon icon={faPlay} />
               </Button>
@@ -333,8 +356,9 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
           <div className="jp-gis-temporal-slider-row">
             {/* range */}
             <div>
-              Animation Range:{' '}
-              {millisecondsToDateString(minMax.min, inferredDateFormat)} to{' '}
+              <span>Range: </span>
+              {millisecondsToDateString(minMax.min, inferredDateFormat)}{' '}
+              <span>to </span>
               {millisecondsToDateString(minMax.max, inferredDateFormat)}
             </div>
             {/* step */}

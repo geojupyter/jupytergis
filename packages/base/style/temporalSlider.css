@@ -2,12 +2,25 @@
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  padding: 0.5rem;
+  background-color: var(--jp-layout-color1);
+}
+
+.jp-gis-temporal-slider-container span,
+.jp-gis-temporal-slider-container label {
+  font-weight: bold;
 }
 
 .jp-gis-temporal-slider-row {
   display: flex;
   gap: 0.25rem;
-  justify-content: space-around;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.jp-gis-temporal-slider-row select,
+.jp-gis-temporal-slider-row option {
+  text-transform: capitalize;
 }
 
 .jp-gis-temporal-slider {
