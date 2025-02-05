@@ -14,5 +14,5 @@ dependencies:
   - pydantic>=2,<3
   - pip:
     - my-jupyter-shared-drive==0.1.13
-    - python/jupytergis_lab
-    - python/jupytergis_core
+    - ../python/jupytergis_lab
+    - ../python/jupytergis_core
