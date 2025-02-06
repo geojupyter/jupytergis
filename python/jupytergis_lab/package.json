@@ -69,7 +69,7 @@
     "@lumino/messaging": "^2.0.0",
     "@lumino/widgets": "^2.0.0",
     "react": "^18.0.1",
-    "yjs-widgets": "^0.3.5"
+    "yjs-widgets": "^0.3.9"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.3.0",
