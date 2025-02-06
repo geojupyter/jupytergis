@@ -173,13 +173,11 @@ export function addCommands(
   commands.addCommand(CommandIDs.temporalController, {
     label: trans.__('Temporal Controller'),
     isToggled: () => {
-      return (
-        tracker.currentWidget?.context.model.isTemporalControllerActive || false
-      );
+      return tracker.currentWidget?.model.isTemporalControllerActive || false;
     },
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: args => {
@@ -188,9 +186,7 @@ export function addCommands(
         return;
       }
 
-      current.context.model.toggleTemporalController(
-        CommandIDs.temporalController
-      );
+      current.model.toggleTemporalController(CommandIDs.temporalController);
       commands.notifyCommandChanged(CommandIDs.temporalController);
     },
     ...icons.get(CommandIDs.temporalController)
