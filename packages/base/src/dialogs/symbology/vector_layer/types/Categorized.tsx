@@ -2,7 +2,7 @@ import { IVectorLayer } from '@jupytergis/schema';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { filterFeatureProperties } from '../../../../tools';
+import { getNumericFeatures } from '../../../../tools';
 import ColorRamp from '../../components/color_ramp/ColorRamp';
 import StopContainer from '../../components/color_stops/StopContainer';
 import { useGetProperties } from '../../hooks/useGetProperties';
@@ -35,7 +35,7 @@ const Categorized = ({
   if (!layer?.parameters) {
     return;
   }
-  const { featureProps } = useGetProperties({
+  const { featureProperties } = useGetProperties({
     layerId,
     model: model
   });
@@ -58,16 +58,16 @@ const Categorized = ({
 
   useEffect(() => {
     // We only want number values here
-    const filteredRecord = filterFeatureProperties(featureProps);
+    const numericFeatures = getNumericFeatures(featureProperties);
 
-    setFeatures(filteredRecord);
+    setFeatures(numericFeatures);
 
     const layerParams = layer.parameters as IVectorLayer;
     const value =
-      layerParams.symbologyState?.value ?? Object.keys(filteredRecord)[0];
+      layerParams.symbologyState?.value ?? Object.keys(numericFeatures)[0];
 
     setSelectedValue(value);
-  }, [featureProps]);
+  }, [featureProperties]);
 
   useEffect(() => {
     selectedValueRef.current = selectedValue;

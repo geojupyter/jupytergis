@@ -1,10 +1,10 @@
 import { MapChange } from '@jupyter/ydoc';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { Contents } from '@jupyterlab/services';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
-import { Contents } from '@jupyterlab/services';
 import {
   IJGISContent,
   IJGISLayer,
@@ -165,12 +165,12 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._isIdentifying;
   }
 
-  set isTemporal(isTemporal: boolean) {
-    this._isTemporal = isTemporal;
+  set isTemporalControllerActive(isActive: boolean) {
+    this._isTemporalControllerActive = isActive;
   }
 
-  get isTemporal(): boolean {
-    return this._isTemporal;
+  get isTemporalControllerActive(): boolean {
+    return this._isTemporalControllerActive;
   }
 
   centerOnPosition(id: string) {
@@ -627,13 +627,16 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._isIdentifying = !this._isIdentifying;
   }
 
-  toggleTemporal(emitter: string) {
-    this._isTemporal = !this._isTemporal;
+  toggleTemporalController(emitter: string) {
+    this._isTemporalControllerActive = !this._isTemporalControllerActive;
 
-    this.sharedModel.awareness.setLocalStateField('isTemporal', {
-      value: this._isTemporal,
-      emitter
-    });
+    this.sharedModel.awareness.setLocalStateField(
+      'isTemporalControllerActive',
+      {
+        value: this._isTemporalControllerActive,
+        emitter
+      }
+    );
   }
 
   private _getLayerTreeInfo(groupName: string):
@@ -684,20 +687,20 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   };
 
-  addTimeFeature = (id: string, selectedFeature: string) => {
-    this.addFeaturesSignal.emit(JSON.stringify({ id, selectedFeature }));
+  addFeatureAsMs = (id: string, selectedFeature: string) => {
+    this.addFeatureAsMsSignal.emit(JSON.stringify({ id, selectedFeature }));
   };
 
-  get addFeaturesSignal() {
-    return this._addFeaturesSignal;
+  get addFeatureAsMsSignal() {
+    return this._addFeatureAsMsSignal;
   }
 
-  get updateLayersSignal() {
-    return this._updateLayersSignal;
+  get updateLayerSignal() {
+    return this._updateLayerSignal;
   }
 
-  updateLayersOnCommand = (layerId: string, layer: IJGISLayer) => {
-    this.updateLayersSignal.emit(JSON.stringify({ layerId, layer }));
+  triggerLayerUpdate = (layerId: string, layer: IJGISLayer) => {
+    this.updateLayerSignal.emit(JSON.stringify({ layerId, layer }));
   };
 
   readonly defaultKernelName: string = '';
@@ -725,12 +728,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
-  private _addFeaturesSignal = new Signal<this, string>(this);
+  private _addFeatureAsMsSignal = new Signal<this, string>(this);
 
-  private _updateLayersSignal = new Signal<this, string>(this);
+  private _updateLayerSignal = new Signal<this, string>(this);
 
   private _isIdentifying = false;
-  private _isTemporal = false;
+  private _isTemporalControllerActive = false;
 
   static worker: Worker;
 }

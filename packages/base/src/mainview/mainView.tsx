@@ -28,6 +28,7 @@ import {
   IWebGlLayer,
   JupyterGISModel
 } from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { CommandRegistry } from '@lumino/commands';
@@ -83,7 +84,6 @@ import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
-import { showErrorMessage } from '@jupyterlab/apputils';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -102,7 +102,7 @@ interface IStates {
   loadingLayer: boolean;
   scale: number;
   loadingErrors: Array<{ id: string; error: any; index: number }>;
-  displayTimeBar: boolean;
+  displayTemporalController: boolean;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -127,27 +127,13 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
-    this._mainViewModel.jGISModel.sharedMetadataChanged.connect(
+    this._model.sharedMetadataChanged.connect(
       this._onSharedMetadataChanged,
       this
     );
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
-
-    this._model.updateLayersSignal.connect((_, args) => {
-      // ? could send just the filters object and modify that instead of emitting whole layer
-      const json = JSON.parse(args);
-      console.log('json', json);
-      const { layerId, layer: jgisLayer } = json;
-      console.log('id', layerId);
-      const olLayer = this.getLayer(layerId);
-
-      if (!jgisLayer) {
-        console.log('Layer not found');
-        return;
-      }
-
-      this.updateLayer(layerId, jgisLayer, olLayer);
-    });
+    this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
+    this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -160,21 +146,8 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingLayer: false,
       scale: 0,
       loadingErrors: [],
-      displayTimeBar: false
+      displayTemporalController: false
     };
-
-    this._model.addFeaturesSignal.connect((_, args) => {
-      const json = JSON.parse(args);
-      const { id: layerId, selectedFeature } = json;
-      const olLayer = this.getLayer(layerId);
-      const source = olLayer.getSource() as VectorSource;
-
-      source.forEachFeature(feature => {
-        const time = feature.get(selectedFeature);
-        const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
-        feature.set(`converted${selectedFeature}`, parsedTime);
-      });
-    });
 
     this._sources = [];
     this._loadingLayers = new Set();
@@ -1346,11 +1319,17 @@ export class MainView extends React.Component<IProps, IStates> {
       this.setState(old => ({ ...old, clientPointers: clientPointers }));
     });
 
-    // Time stuff
-    // TODO: Temporary?
-    const isTemporal = this._model.localState?.isTemporal;
-    if (isTemporal) {
-      this.setState(old => ({ ...old, displayTimeBar: isTemporal }));
+    // Temporal controller bit
+    // ? There's probably a better way to get changes in the model to trigger react rerenders
+    const isTemporalControllerActive =
+      this._model.localState?.isTemporalControllerActive;
+
+    if (isTemporalControllerActive) {
+      console.log('isTemporalControllerActive', isTemporalControllerActive);
+      this.setState(old => ({
+        ...old,
+        displayTemporalController: isTemporalControllerActive
+      }));
     }
   };
 
@@ -1559,6 +1538,7 @@ export class MainView extends React.Component<IProps, IStates> {
     _: any,
     change: IJupyterGISDocChange
   ) => {
+    console.log('change', change);
     const changedState = change.stateChange?.map(value => value.name);
     if (!changedState?.includes('path')) {
       return;
@@ -1747,6 +1727,33 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
+  private _triggerLayerUpdate(_: IJupyterGISModel, args: string) {
+    // ? could send just the filters object and modify that instead of emitting whole layer
+    const json = JSON.parse(args);
+    const { layerId, layer: jgisLayer } = json;
+    const olLayer = this.getLayer(layerId);
+
+    if (!jgisLayer) {
+      console.log('Layer not found');
+      return;
+    }
+
+    this.updateLayer(layerId, jgisLayer, olLayer);
+  }
+
+  private _convertFeatureToMs(_: IJupyterGISModel, args: string) {
+    const json = JSON.parse(args);
+    const { id: layerId, selectedFeature } = json;
+    const olLayer = this.getLayer(layerId);
+    const source = olLayer.getSource() as VectorSource;
+
+    source.forEachFeature(feature => {
+      const time = feature.get(selectedFeature);
+      const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
+      feature.set(`${selectedFeature}ms`, parsedTime);
+    });
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -1788,7 +1795,9 @@ export class MainView extends React.Component<IProps, IStates> {
           );
         })}
 
-        {this._model.isTemporal && <TemporalSlider model={this._model} />}
+        {this._model.isTemporalControllerActive && (
+          <TemporalSlider model={this._model} />
+        )}
         <div
           className="jGIS-Mainview"
           style={{

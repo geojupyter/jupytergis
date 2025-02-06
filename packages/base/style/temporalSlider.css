@@ -18,8 +18,8 @@
   align-items: center;
 }
 
-.jp-gis-temporal-slider-row select,
-.jp-gis-temporal-slider-row option {
+select,
+select option {
   text-transform: capitalize;
 }
 

@@ -1,7 +1,7 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { filterFeatureProperties } from '../../../../tools';
+import { getNumericFeatures } from '../../../../tools';
 import { VectorClassifications } from '../../classificationModes';
 import ColorRamp, {
   ColorRampOptions
@@ -49,7 +49,7 @@ const Graduated = ({
     return;
   }
 
-  const { featureProps } = useGetProperties({
+  const { featureProperties } = useGetProperties({
     layerId,
     model: model
   });
@@ -94,20 +94,19 @@ const Graduated = ({
       setMethodOptions(options);
     }
 
-    console.log('featureProps', featureProps);
     // We only want number values here
-    const filteredRecord = filterFeatureProperties(featureProps);
+    const numericFeatures = getNumericFeatures(featureProperties);
 
-    setFeatures(filteredRecord);
+    setFeatures(numericFeatures);
 
     const layerParams = layer.parameters as IVectorLayer;
     const value =
-      layerParams.symbologyState?.value ?? Object.keys(filteredRecord)[0];
+      layerParams.symbologyState?.value ?? Object.keys(numericFeatures)[0];
     const method = layerParams.symbologyState?.method ?? 'color';
 
     setSelectedValue(value);
     setSelectedMethod(method);
-  }, [featureProps]);
+  }, [featureProperties]);
 
   const handleOk = () => {
     if (!layer.parameters) {

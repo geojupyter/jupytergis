@@ -43,19 +43,16 @@ const stepMap = {
 const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [layerId, setLayerId] = useState('');
   const [selectedFeature, setSelectedFeature] = useState('');
-  // min/max of current range being displayed
-  const [range, setRange] = useState({ start: 0, end: 1 });
-  // min/max of data
-  const [minMax, setMinMax] = useState({ min: 0, max: 1 });
+  const [range, setRange] = useState({ start: 0, end: 1 }); // min/max of current range being displayed
+  const [minMax, setMinMax] = useState({ min: 0, max: 1 }); // min/max of data values
   const [validFeatures, setValidFeatures] = useState<string[]>([]);
-
   const [inferredDateFormat, setInferredDateFormat] = useState('yyyy-MM-dd');
   const [step, setStep] = useState(stepMap.year);
   const [currentValue, setCurrentValue] = useState(0);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { featureProps } = useGetProperties({ layerId, model });
+  const { featureProperties } = useGetProperties({ layerId, model });
 
   useEffect(() => {
     const localState = model.sharedModel.awareness.getLocalState();
@@ -80,10 +77,9 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     const featuresForSelect = [];
 
     // We only want to show features that could be time values
-    for (const [key, set] of Object.entries(featureProps)) {
+    for (const [key, set] of Object.entries(featureProperties)) {
       let checkIfDateIsValid = false;
       const checkValue = set.values().next().value;
-      // console.log('checking ', key, checkValue);
 
       // We only want to look at strings and whole numbers
       // ? Is there a better way to check if number values are valid timestamps?
@@ -107,7 +103,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     }
 
     setValidFeatures(featuresForSelect);
-  }, [layerId, featureProps]);
+  }, [featureProperties]);
 
   useEffect(() => {
     if (!selectedFeature) {
@@ -115,7 +111,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     }
 
     // Get the values from the selected feature
-    const values: any[] = Array.from(featureProps[selectedFeature]);
+    const values: any[] = Array.from(featureProperties[selectedFeature]);
 
     // Check the type of the first element
     const isString = typeof values[0] === 'string';
@@ -141,11 +137,10 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     const max = Math.max(...convertedValues);
 
     // Update the range and minMax state
-    console.log('check');
     setCurrentValue(min);
     setMinMax({ min, max });
     setRange({ start: min, end: min + step });
-    model.addTimeFeature(layerId, selectedFeature);
+    model.addFeatureAsMs(layerId, selectedFeature);
   }, [selectedFeature]);
 
   // Infer the date format from a date string
@@ -159,15 +154,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     return null; // Return null if no format matches
   };
 
-  // Convert a date string to milliseconds
-  // const dateStringToMilliseconds = (
-  //   dateString: string,
-  //   dateFormat: string
-  // ): number => {
-  //   const date = parse(dateString, dateFormat, new Date()); // Parse the date string
-  //   return date.getUTCMilliseconds(); // Convert to milliseconds
-  // };
-
   // Convert milliseconds back to the original date string format
   // TODO I'm pretty sure this ends up in local time, not UTC time
   const millisecondsToDateString = (
@@ -179,23 +165,14 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   };
 
   const handleChange = (e: any) => {
-    // const currentValueStringTarget = millisecondsToDateString(
-    //   +e.target.value,
-    //   inferredDateFormat
-    // );
-
-    // console.log('currentValueString target', currentValueStringTarget);
-
-    console.log('+e.target.value', +e.target.value);
     setCurrentValue(+e.target.value);
     setRange({ start: +e.target.value, end: +e.target.value + step });
-
     applyFilter(+e.target.value);
   };
 
   const applyFilter = (value: number) => {
     const newFilter = {
-      feature: `converted${selectedFeature}`,
+      feature: `${selectedFeature}ms`,
       operator: 'between' as const,
       value: value,
       betweenMin: value,
@@ -208,14 +185,13 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     }
 
     const appliedFilters = layer.filters?.appliedFilters || [];
+    const logicalOp = layer.filters?.logicalOp || 'all';
 
     // This is the only way to add a 'between' filter so
     // find the index of the existing 'between' filter
     const betweenFilterIndex = appliedFilters.findIndex(
       filter => filter.operator === 'between'
     );
-
-    // console.log('betweenFilterIndex', betweenFilterIndex);
 
     if (betweenFilterIndex !== -1) {
       // If found, replace the existing filter
@@ -228,28 +204,9 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     }
 
     // Apply the updated filters to the layer
-    layer.filters = { logicalOp: 'all', appliedFilters };
-    // model.sharedModel.updateLayer(layerId, layer);
-    model.updateLayersOnCommand(layerId, layer);
+    layer.filters = { logicalOp, appliedFilters };
+    model.triggerLayerUpdate(layerId, layer);
   };
-
-  const setFeature = (e: any) => {
-    setSelectedFeature(e.target.value);
-  };
-
-  useEffect(() => {
-    // console.log(
-    //   'currentValue',
-    //   millisecondsToDateString(currentValue, inferredDateFormat)
-    // );
-    // applyFilter(currentValue);
-
-    const currentValueStringCurrent = millisecondsToDateString(
-      currentValue,
-      inferredDateFormat
-    );
-    console.log('currentValueString current', currentValueStringCurrent);
-  }, [currentValue]);
 
   const playAnimation = () => {
     // Clear any existing interval first
@@ -259,32 +216,22 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
     const incrementValue = () => {
       setCurrentValue(prev => {
-        // Stop condition check
-        if (prev >= minMax.max) {
-          console.log('shouldnt happen');
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-          }
-          return prev;
-        }
-
         // Calculate next value with safety bounds
         const nextValue = prev + step;
 
         // Clear interval if we've reached the max
+        // step is subtracted to keep range values correct
         if (nextValue >= minMax.max - step && intervalRef.current) {
           clearInterval(intervalRef.current);
-          return minMax.max - step; // Ensure it reaches the exact max value
+          return minMax.max - step;
         }
 
         return nextValue;
       });
     };
 
-    // Start animation only if needed
+    // Start animation
     intervalRef.current = setInterval(incrementValue, 1000);
-    // if (currentValue < minMax.max) {
-    // }
   };
 
   const pauseAnimation = () => {
@@ -301,7 +248,12 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
             {/* Feature select */}
             <div>
               <label htmlFor="time-feature-select">Feature: </label>
-              <select id="time-feature-select" onChange={setFeature}>
+              <select
+                id="time-feature-select"
+                onChange={e => {
+                  setSelectedFeature(e.target.value);
+                }}
+              >
                 <option></option>
                 {validFeatures.map(feature => {
                   return (

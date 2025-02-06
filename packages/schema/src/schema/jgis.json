@@ -217,10 +217,10 @@
           "type": ["string", "number"]
         },
         "betweenMin": {
-          "type": ["string", "number"]
+          "type": ["number"]
         },
         "betweenMax": {
-          "type": ["string", "number"]
+          "type": ["number"]
         }
       }
     },

@@ -170,10 +170,12 @@ export function addCommands(
     ...icons.get(CommandIDs.identify)
   });
 
-  commands.addCommand(CommandIDs.temporal, {
-    label: trans.__('Temporal'),
+  commands.addCommand(CommandIDs.temporalController, {
+    label: trans.__('Temporal Controller'),
     isToggled: () => {
-      return tracker.currentWidget?.context.model.isTemporal || false;
+      return (
+        tracker.currentWidget?.context.model.isTemporalControllerActive || false
+      );
     },
     isEnabled: () => {
       return tracker.currentWidget
@@ -186,10 +188,12 @@ export function addCommands(
         return;
       }
 
-      current.context.model.toggleTemporal(CommandIDs.temporal);
-      commands.notifyCommandChanged(CommandIDs.temporal);
+      current.context.model.toggleTemporalController(
+        CommandIDs.temporalController
+      );
+      commands.notifyCommandChanged(CommandIDs.temporalController);
     },
-    ...icons.get(CommandIDs.temporal)
+    ...icons.get(CommandIDs.temporalController)
   });
 
   /**

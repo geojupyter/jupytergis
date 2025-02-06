@@ -78,7 +78,7 @@ export interface IJupyterGISClientState {
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
-  isTemporal: boolean;
+  isTemporalControllerActive: boolean;
 }
 
 export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
@@ -168,8 +168,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToPositionSignal: ISignal<IJupyterGISModel, string>;
-  addFeaturesSignal: ISignal<IJupyterGISModel, string>;
-  updateLayersSignal: ISignal<IJupyterGISModel, string>;
+  addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
+  updateLayerSignal: ISignal<IJupyterGISModel, string>;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;
@@ -216,10 +216,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   toggleIdentify(): void;
   isIdentifying: boolean;
 
-  isTemporal: boolean;
-  toggleTemporal(emitter: string): void;
-  addTimeFeature(id: string, selectedFeature: string): void;
-  updateLayersOnCommand(layerId: string, layer: IJGISLayer): void;
+  isTemporalControllerActive: boolean;
+  toggleTemporalController(emitter: string): void;
+  addFeatureAsMs(id: string, selectedFeature: string): void;
+  triggerLayerUpdate(layerId: string, layer: IJGISLayer): void;
 
   disposed: ISignal<any, void>;
 }

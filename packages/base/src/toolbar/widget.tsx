@@ -173,9 +173,9 @@ export class ToolbarWidget extends ReactiveToolbar {
       );
 
       this.addItem(
-        'temporal',
+        'temporalController',
         new CommandToolbarButton({
-          id: CommandIDs.temporal,
+          id: CommandIDs.temporalController,
           label: '',
           commands: options.commands
         })
