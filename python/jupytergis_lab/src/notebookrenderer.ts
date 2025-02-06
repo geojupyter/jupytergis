@@ -43,7 +43,6 @@ export const CLASS_NAME = 'jupytergis-notebook-widget';
 
 export class YJupyterGISModel extends JupyterYModel {
   jupyterGISModel: JupyterGISModel;
-  parent?: NotebookPanel | ConsolePanel;
 }
 
 export class YJupyterGISLuminoWidget extends Panel {
@@ -153,22 +152,20 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           sharedModel: sharedModel as IJupyterGISDoc
         });
 
-        const currentWidget = app.shell.currentWidget;
-        if (
-          currentWidget instanceof NotebookPanel ||
-          currentWidget instanceof ConsolePanel
-        ) {
-          this.parent = currentWidget;
-        }
-
-        this.parent?.disposed.connect(this.dispose);
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
 
         if (!sharedModel) {
           // The path of the project is set to the path of the notebook, to be able to
           // add local geoJSON/shape file in a "file-less" project.
           let currentWidgetPath: string | undefined = undefined;
-          currentWidgetPath = this.parent?.sessionContext.path;
+          const currentWidget = app.shell.currentWidget;
+          if (
+            currentWidget instanceof NotebookPanel ||
+            currentWidget instanceof ConsolePanel
+          ) {
+            currentWidgetPath = currentWidget.sessionContext.path;
+          }
+
           if (currentWidgetPath) {
             this.jupyterGISModel.filePath = PathExt.join(
               PathExt.dirname(currentWidgetPath),
@@ -177,11 +174,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           }
         }
         return this.jupyterGISModel.sharedModel.ydoc;
-      }
-
-      dispose(): void {
-        this.parent?.disposed.disconnect(this.dispose);
-        super.dispose();
       }
     }
 
@@ -195,14 +187,21 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           externalCommands: externalCommandRegistry,
           tracker: jgisTracker
         });
-        // Widget.attach(widget, node);
+        this._jgisWidget = widget.jgisWidget;
+
         MessageLoop.sendMessage(widget, Widget.Msg.BeforeAttach);
         node.appendChild(widget.node);
         MessageLoop.sendMessage(widget, Widget.Msg.AfterAttach);
       }
 
+      dispose(): void {
+        // Dispose of the widget.
+        this._jgisWidget.dispose();
+      }
+
       readonly yModel: YJupyterGISModel;
       readonly node: HTMLElement;
+      private _jgisWidget: JupyterGISOutputWidget;
     }
 
     yWidgetManager.registerWidget(
