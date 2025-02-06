@@ -10,7 +10,7 @@ import {
   SourceType
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
@@ -21,10 +21,11 @@ import { CreationFormDialog } from './dialogs/formdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import keybindings from './keybindings.json';
-import { JupyterGISWidget } from './widget';
+import { JupyterGISTracker } from './types';
+import { JupyterGISDocumentWidget } from './widget';
 
 interface ICreateEntry {
-  tracker: WidgetTracker<JupyterGISWidget>;
+  tracker: JupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   title: string;
   createLayer: boolean;
@@ -50,7 +51,7 @@ function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
  */
 export function addCommands(
   app: JupyterFrontEnd,
-  tracker: WidgetTracker<JupyterGISWidget>,
+  tracker: JupyterGISTracker,
   translator: ITranslator,
   formSchemaRegistry: IJGISFormSchemaRegistry,
   layerBrowserRegistry: IJGISLayerBrowserRegistry,
@@ -63,7 +64,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
     isEnabled: () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       const localState = model?.sharedModel.awareness.getLocalState();
 
       if (!model || !localState || !localState['selected']?.value) {
@@ -102,14 +103,14 @@ export function addCommands(
     label: trans.__('Redo'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: () => {
       const current = tracker.currentWidget;
 
       if (current) {
-        return current.context.model.sharedModel.redo();
+        return current.model.sharedModel.redo();
       }
     },
     ...icons.get(CommandIDs.redo)?.icon
@@ -119,14 +120,14 @@ export function addCommands(
     label: trans.__('Undo'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: () => {
       const current = tracker.currentWidget;
 
       if (current) {
-        return current.context.model.sharedModel.undo();
+        return current.model.sharedModel.undo();
       }
     },
     ...icons.get(CommandIDs.undo)
@@ -135,11 +136,11 @@ export function addCommands(
   commands.addCommand(CommandIDs.identify, {
     label: trans.__('Identify'),
     isToggled: () => {
-      return tracker.currentWidget?.context.model.isIdentifying || false;
+      return tracker.currentWidget?.model.isIdentifying || false;
     },
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: args => {
@@ -155,7 +156,7 @@ export function addCommands(
       if (luminoEvent) {
         const keysPressed = luminoEvent.keys as string[] | undefined;
         if (keysPressed?.includes('Escape')) {
-          current.context.model.isIdentifying = false;
+          current.model.isIdentifying = false;
           current.node.classList.remove('jGIS-identify-tool');
           commands.notifyCommandChanged(CommandIDs.identify);
           return;
@@ -163,7 +164,7 @@ export function addCommands(
       }
 
       current.node.classList.toggle('jGIS-identify-tool');
-      current.context.model.toggleIdentify();
+      current.model.toggleIdentify();
       commands.notifyCommandChanged(CommandIDs.identify);
     },
     ...icons.get(CommandIDs.identify)
@@ -176,7 +177,7 @@ export function addCommands(
     label: trans.__('Open Layer Browser'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createLayerBrowser(
@@ -194,7 +195,7 @@ export function addCommands(
     label: trans.__('New Raster Layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -218,7 +219,7 @@ export function addCommands(
     label: trans.__('New Vector Tile Layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -239,7 +240,7 @@ export function addCommands(
     label: trans.__('New GeoJSON layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -259,7 +260,7 @@ export function addCommands(
     label: trans.__('New Hillshade layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -279,7 +280,7 @@ export function addCommands(
     label: trans.__('New Image layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -309,7 +310,7 @@ export function addCommands(
     label: trans.__('New Video layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -345,7 +346,7 @@ export function addCommands(
         : trans.__('Add Shapefile Source'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -364,7 +365,7 @@ export function addCommands(
     label: trans.__('New GeoTiff layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -394,7 +395,7 @@ export function addCommands(
         : trans.__('New Raster Source'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -416,7 +417,7 @@ export function addCommands(
         : trans.__('New Raster DEM Source'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -438,7 +439,7 @@ export function addCommands(
         : trans.__('New Vector Source'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -460,7 +461,7 @@ export function addCommands(
         : trans.__('Add GeoJSON data from file'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -482,7 +483,7 @@ export function addCommands(
         : trans.__('Add Image Source'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -504,7 +505,7 @@ export function addCommands(
         : trans.__('Add Video Source'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -527,7 +528,7 @@ export function addCommands(
         : trans.__('Add Raster layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -552,7 +553,7 @@ export function addCommands(
         : trans.__('Add New Vector layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -577,7 +578,7 @@ export function addCommands(
         : trans.__('Add Hillshade layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -602,7 +603,7 @@ export function addCommands(
         : trans.__('Add Image layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -627,7 +628,7 @@ export function addCommands(
         : trans.__('Add Video layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -649,7 +650,7 @@ export function addCommands(
     label: trans.__('New Shapefile Layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -673,7 +674,7 @@ export function addCommands(
         : trans.__('Add HeatmapLayer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -695,7 +696,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.renameLayer, {
     label: trans.__('Rename Layer'),
     execute: async () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       await Private.renameSelectedItem(model, 'layer', (layerId, newName) => {
         const layer = model?.getLayer(layerId);
         if (layer) {
@@ -709,7 +710,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.removeLayer, {
     label: trans.__('Remove Layer'),
     execute: () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       Private.removeSelectedItems(model, 'layer', selection => {
         model?.removeLayer(selection);
       });
@@ -719,7 +720,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.renameGroup, {
     label: trans.__('Rename Group'),
     execute: async () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       await Private.renameSelectedItem(model, 'group', (groupName, newName) => {
         model?.renameLayerGroup(groupName, newName);
       });
@@ -729,7 +730,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.removeGroup, {
     label: trans.__('Remove Group'),
     execute: async () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       Private.removeSelectedItems(model, 'group', selection => {
         model?.removeLayerGroup(selection);
       });
@@ -740,7 +741,7 @@ export function addCommands(
     label: args =>
       args['label'] ? (args['label'] as string) : trans.__('Move to Root'),
     execute: args => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       const groupName = args['label'] as string;
 
       const selectedLayers = model?.localState?.selected?.value;
@@ -756,7 +757,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.moveLayerToNewGroup, {
     label: trans.__('Move Selected Layers to New Group'),
     execute: async () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       const selectedLayers = model?.localState?.selected?.value;
 
       if (!selectedLayers) {
@@ -822,7 +823,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.renameSource, {
     label: trans.__('Rename Source'),
     execute: async () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       await Private.renameSelectedItem(model, 'source', (sourceId, newName) => {
         const source = model?.getSource(sourceId);
         if (source) {
@@ -836,7 +837,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.removeSource, {
     label: trans.__('Remove Source'),
     execute: () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       Private.removeSelectedItems(model, 'source', selection => {
         if (!(model?.getLayersBySource(selection).length ?? true)) {
           model?.sharedModel.removeSource(selection);
@@ -853,27 +854,30 @@ export function addCommands(
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: async () => await Private.toggleConsole(tracker)
   });
   commands.addCommand(CommandIDs.executeConsole, {
     label: trans.__('Execute console'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: () => Private.executeConsole(tracker)
   });
   commands.addCommand(CommandIDs.removeConsole, {
     label: trans.__('Remove console'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: () => Private.removeConsole(tracker)
@@ -881,9 +885,14 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.invokeCompleter, {
     label: trans.__('Display the completion helper.'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     execute: () => {
       const currentWidget = tracker.currentWidget;
-      if (!currentWidget || !completionProviderManager) {
+      if (
+        !currentWidget ||
+        !completionProviderManager ||
+        !(currentWidget instanceof JupyterGISDocumentWidget)
+      ) {
         return;
       }
       const id = currentWidget.content.consolePanel?.id;
@@ -895,9 +904,14 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.selectCompleter, {
     label: trans.__('Select the completion suggestion.'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     execute: () => {
       const currentWidget = tracker.currentWidget;
-      if (!currentWidget || !completionProviderManager) {
+      if (
+        !currentWidget ||
+        !completionProviderManager ||
+        !(currentWidget instanceof JupyterGISDocumentWidget)
+      ) {
         return;
       }
       const id = currentWidget.content.consolePanel?.id;
@@ -915,7 +929,7 @@ export function addCommands(
         return;
       }
       console.log('zooming');
-      const model = tracker.currentWidget.context.model;
+      const model = tracker.currentWidget.model;
       const selectedItems = model.localState?.selected.value;
 
       if (!selectedItems) {
@@ -932,7 +946,7 @@ export function addCommands(
 
 namespace Private {
   export function createLayerBrowser(
-    tracker: WidgetTracker<JupyterGISWidget>,
+    tracker: JupyterGISTracker,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
     formSchemaRegistry: IJGISFormSchemaRegistry
   ) {
@@ -944,7 +958,7 @@ namespace Private {
       }
 
       const dialog = new LayerBrowserWidget({
-        context: current.context,
+        model: current.model,
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry
       });
@@ -953,7 +967,7 @@ namespace Private {
   }
 
   export function createSymbologyDialog(
-    tracker: WidgetTracker<JupyterGISWidget>,
+    tracker: JupyterGISTracker,
     state: IStateDB
   ) {
     return async () => {
@@ -964,7 +978,7 @@ namespace Private {
       }
 
       const dialog = new SymbologyWidget({
-        context: current.context,
+        model: current.model,
         state
       });
       await dialog.launch();
@@ -990,7 +1004,7 @@ namespace Private {
       }
 
       const dialog = new CreationFormDialog({
-        context: current.context,
+        model: current.model,
         title,
         createLayer,
         createSource,
@@ -1112,43 +1126,32 @@ namespace Private {
     }
   }
 
-  export function executeConsole(
-    tracker: WidgetTracker<JupyterGISWidget>
-  ): void {
+  export function executeConsole(tracker: JupyterGISTracker): void {
     const current = tracker.currentWidget;
-
-    if (!current) {
+    if (!current || !(current instanceof JupyterGISDocumentWidget)) {
       return;
     }
     current.content.executeConsole();
   }
 
-  export function removeConsole(
-    tracker: WidgetTracker<JupyterGISWidget>
-  ): void {
+  export function removeConsole(tracker: JupyterGISTracker): void {
     const current = tracker.currentWidget;
 
-    if (!current) {
+    if (!current || !(current instanceof JupyterGISDocumentWidget)) {
       return;
     }
     current.content.removeConsole();
   }
 
   export async function toggleConsole(
-    tracker: WidgetTracker<JupyterGISWidget>
+    tracker: JupyterGISTracker
   ): Promise<void> {
     const current = tracker.currentWidget;
 
-    if (!current) {
+    if (!current || !(current instanceof JupyterGISDocumentWidget)) {
       return;
     }
-    const currentPath = current.context.path.split(':');
-    let realPath = '';
-    if (currentPath.length > 1) {
-      realPath = currentPath[1];
-    } else {
-      realPath = currentPath[0];
-    }
-    await current.content.toggleConsole(realPath);
+
+    await current.content.toggleConsole(current.model.filePath);
   }
 }

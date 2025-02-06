@@ -53,7 +53,7 @@ export const FileSelectorWidget = (props: any) => {
         const selectedFilePath = output.value[0].path;
 
         const relativePath = PathExt.relative(
-          formOptions.filePath,
+          PathExt.dirname(formOptions.filePath),
           selectedFilePath
         );
 

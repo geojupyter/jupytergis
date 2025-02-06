@@ -1,19 +1,16 @@
-import { DocumentRegistry } from '@jupyterlab/docregistry';
-
 import {
   IDict,
   IJGISFormSchemaRegistry,
   IJGISSource,
   IJupyterGISModel
 } from '@jupytergis/schema';
+import { Signal } from '@lumino/signaling';
+import * as React from 'react';
 
 import { deepCopy } from '../tools';
-
-import * as React from 'react';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 import { LayerPropertiesForm } from './objectform/layerform';
 import { BaseForm } from './objectform/baseform';
-import { Signal } from '@lumino/signaling';
 
 export interface IEditFormProps {
   /**
@@ -27,7 +24,7 @@ export interface IEditFormProps {
   source: string | undefined;
 
   formSchemaRegistry: IJGISFormSchemaRegistry;
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  model: IJupyterGISModel;
 }
 
 /**
@@ -42,7 +39,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
       return;
     }
 
-    this.props.context.model.sharedModel.updateObjectParameters(id, properties);
+    this.props.model.sharedModel.updateObjectParameters(id, properties);
   }
 
   render() {
@@ -50,7 +47,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
     let LayerForm: typeof LayerPropertiesForm | undefined = undefined;
     let layerData: IDict | undefined = undefined;
     if (this.props.layer) {
-      const layer = this.props.context.model.getLayer(this.props.layer);
+      const layer = this.props.model.getLayer(this.props.layer);
       if (!layer) {
         return;
       }
@@ -72,7 +69,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
     let sourceData: IDict | undefined = undefined;
     let source: IJGISSource | undefined = undefined;
     if (this.props.source) {
-      source = this.props.context.model.getSource(this.props.source);
+      source = this.props.model.getSource(this.props.source);
       if (!source) {
         return;
       }
@@ -97,8 +94,8 @@ export class EditForm extends React.Component<IEditFormProps, any> {
             <LayerForm
               formContext="create"
               sourceType={source?.type || 'RasterSource'}
-              model={this.props.context.model}
-              filePath={`${this.props.context.path}::panel`}
+              model={this.props.model}
+              filePath={this.props.model.filePath}
               schema={layerSchema}
               sourceData={layerData}
               syncData={(properties: { [key: string]: any }) => {
@@ -112,8 +109,8 @@ export class EditForm extends React.Component<IEditFormProps, any> {
             <h3 style={{ paddingLeft: '5px' }}>Source Properties</h3>
             <SourceForm
               formContext="create"
-              model={this.props.context.model}
-              filePath={`${this.props.context.path}::panel`}
+              model={this.props.model}
+              filePath={this.props.model.filePath}
               schema={sourceSchema}
               sourceData={sourceData}
               syncData={(properties: { [key: string]: any }) => {

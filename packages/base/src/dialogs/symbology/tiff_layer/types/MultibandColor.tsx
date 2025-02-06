@@ -15,7 +15,7 @@ interface ISelectedBands {
 type rgbEnum = 'red' | 'green' | 'blue';
 
 const MultibandColor = ({
-  context,
+  model,
   okSignalPromise,
   cancel,
   layerId
@@ -23,12 +23,12 @@ const MultibandColor = ({
   if (!layerId) {
     return;
   }
-  const layer = context.model.getLayer(layerId);
+  const layer = model.getLayer(layerId);
   if (!layer?.parameters) {
     return;
   }
 
-  const { bandRows, setBandRows, loading } = useGetBandInfo(context, layer);
+  const { bandRows, setBandRows, loading } = useGetBandInfo(model, layer);
 
   const [selectedBands, setSelectedBands] = useState<ISelectedBands>({
     red: 1,
@@ -110,7 +110,7 @@ const MultibandColor = ({
     layer.parameters.color = colorExpr;
     layer.type = 'WebGlLayer';
 
-    context.model.sharedModel.updateLayer(layerId, layer);
+    model.sharedModel.updateLayer(layerId, layer);
     cancel();
   };
 

@@ -5,11 +5,14 @@ import {
   IJupyterGISTracker,
   IJupyterGISWidget
 } from '@jupytergis/schema';
+import { WidgetTracker } from '@jupyterlab/apputils';
 import { ISignal } from '@lumino/signaling';
 import { Map } from 'ol';
 
 export { IDict };
 export type ValueOf<T> = T[keyof T];
+
+export type JupyterGISTracker = WidgetTracker<IJupyterGISWidget>;
 
 export interface IControlPanelModel {
   disconnect(f: any): void;

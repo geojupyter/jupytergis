@@ -4,7 +4,7 @@ import CanvasSelectComponent from '../../components/color_ramp/CanvasSelectCompo
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 
 const Heatmap = ({
-  context,
+  model,
   state,
   okSignalPromise,
   cancel,
@@ -13,7 +13,7 @@ const Heatmap = ({
   if (!layerId) {
     return;
   }
-  const layer = context.model.getLayer(layerId);
+  const layer = model.getLayer(layerId);
   if (!layer?.parameters) {
     return;
   }
@@ -79,7 +79,7 @@ const Heatmap = ({
     layer.parameters.radius = heatmapOptionsRef.current.radius;
     layer.type = 'HeatmapLayer';
 
-    context.model.sharedModel.updateLayer(layerId, layer);
+    model.sharedModel.updateLayer(layerId, layer);
 
     cancel();
   };

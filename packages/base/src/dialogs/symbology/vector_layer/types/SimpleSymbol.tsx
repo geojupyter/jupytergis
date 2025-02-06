@@ -4,7 +4,7 @@ import { IParsedStyle, parseColor } from '../../../../tools';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 
 const SimpleSymbol = ({
-  context,
+  model,
   state,
   okSignalPromise,
   cancel,
@@ -28,7 +28,7 @@ const SimpleSymbol = ({
   if (!layerId) {
     return;
   }
-  const layer = context.model.getLayer(layerId);
+  const layer = model.getLayer(layerId);
   if (!layer) {
     return;
   }
@@ -105,7 +105,7 @@ const SimpleSymbol = ({
     layer.parameters.color = styleExpr;
     layer.type = 'VectorLayer';
 
-    context.model.sharedModel.updateLayer(layerId, layer);
+    model.sharedModel.updateLayer(layerId, layer);
     cancel();
   };
 

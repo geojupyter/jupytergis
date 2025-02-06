@@ -65,7 +65,7 @@ const IdentifyPanelComponent = ({
    * Update the model when it changes.
    */
   controlPanelModel?.documentChanged.connect((_, widget) => {
-    setJgisModel(widget?.context.model);
+    setJgisModel(widget?.model);
   });
 
   // Reset state values when current widget changes

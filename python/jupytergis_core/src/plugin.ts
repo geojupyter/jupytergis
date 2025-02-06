@@ -1,4 +1,4 @@
-import { AnnotationModel, JupyterGISWidget } from '@jupytergis/base';
+import { AnnotationModel } from '@jupytergis/base';
 import {
   IAnnotationModel,
   IAnnotationToken,
@@ -9,7 +9,8 @@ import {
   IJGISLayerBrowserRegistry,
   IJGISLayerBrowserRegistryToken,
   IJupyterGISDocTracker,
-  IJupyterGISTracker
+  IJupyterGISTracker,
+  IJupyterGISWidget
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -37,7 +38,7 @@ export const trackerPlugin: JupyterFrontEndPlugin<IJupyterGISTracker> = {
     translator: ITranslator,
     mainMenu?: IMainMenu
   ): IJupyterGISTracker => {
-    const tracker = new WidgetTracker<JupyterGISWidget>({
+    const tracker = new WidgetTracker<IJupyterGISWidget>({
       namespace: NAME_SPACE
     });
     console.log('jupytergis:core:tracker is activated!');
@@ -93,11 +94,11 @@ export const annotationPlugin: JupyterFrontEndPlugin<IAnnotationModel> = {
   provides: IAnnotationToken,
   activate: (app: JupyterFrontEnd, tracker: IJupyterGISTracker) => {
     const annotationModel = new AnnotationModel({
-      context: tracker.currentWidget?.context
+      model: tracker.currentWidget?.model
     });
 
     tracker.currentChanged.connect((_, changed) => {
-      annotationModel.context = changed?.context || undefined;
+      annotationModel.model = changed?.model || undefined;
     });
     return annotationModel;
   }

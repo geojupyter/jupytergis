@@ -5,7 +5,7 @@ import {
   StateChange,
   YDocument
 } from '@jupyter/ydoc';
-import { IWidgetTracker } from '@jupyterlab/apputils';
+import { IWidgetTracker, MainAreaWidget } from '@jupyterlab/apputils';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
@@ -221,7 +221,18 @@ export interface IUserData {
   userData: User.IIdentity;
 }
 
-export type IJupyterGISWidget = IDocumentWidget<SplitPanel, IJupyterGISModel>;
+export interface IJupyterGISDocumentWidget
+  extends IDocumentWidget<SplitPanel, IJupyterGISModel> {
+  readonly model: IJupyterGISModel;
+}
+
+export interface IJupyterGISOutputWidget extends MainAreaWidget {
+  model: IJupyterGISModel;
+}
+
+export type IJupyterGISWidget =
+  | IJupyterGISDocumentWidget
+  | IJupyterGISOutputWidget;
 
 export type IJupyterGISTracker = IWidgetTracker<IJupyterGISWidget>;
 
@@ -290,8 +301,8 @@ export interface IAnnotationModel {
   updateSignal: ISignal<this, null>;
   user: User.IIdentity | undefined;
 
-  context: DocumentRegistry.IContext<IJupyterGISModel> | undefined;
-  contextChanged: ISignal<this, void>;
+  model: IJupyterGISModel | undefined;
+  modelChanged: ISignal<this, void>;
 
   update(): void;
 

@@ -97,7 +97,7 @@ function SourcesBodyComponent(props: IBodyProps): JSX.Element {
    * Update the model when it changes.
    */
   props.model?.documentChanged.connect((_, widget) => {
-    setModel(widget?.context.model);
+    setModel(widget?.model);
   });
 
   return (

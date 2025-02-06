@@ -28,7 +28,7 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
-import { JupyterGISWidgetFactory } from '../factory';
+import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
 import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 
@@ -56,7 +56,7 @@ const activate = (
     window.jupytergisMaps = {};
   }
 
-  const widgetFactory = new JupyterGISWidgetFactory({
+  const widgetFactory = new JupyterGISDocumentWidgetFactory({
     name: FACTORY,
     modelName: MODEL_NAME,
     fileTypes: [CONTENT_TYPE],
@@ -115,7 +115,7 @@ const activate = (
       tracker.save(widget);
     });
     themeManager.themeChanged.connect((_, changes) =>
-      widget.context.model.themeChanged.emit(changes)
+      widget.model.themeChanged.emit(changes)
     );
     app.shell.activateById('jupytergis::leftControlPanel');
     app.shell.activateById('jupytergis::rightControlPanel');

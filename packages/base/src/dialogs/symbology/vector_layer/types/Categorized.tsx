@@ -10,7 +10,7 @@ import { Utils, VectorUtils } from '../../symbologyUtils';
 import ValueSelect from '../components/ValueSelect';
 
 const Categorized = ({
-  context,
+  model,
   state,
   okSignalPromise,
   cancel,
@@ -29,13 +29,13 @@ const Categorized = ({
   if (!layerId) {
     return;
   }
-  const layer = context.model.getLayer(layerId);
+  const layer = model.getLayer(layerId);
   if (!layer?.parameters) {
     return;
   }
   const { featureProps } = useGetProperties({
     layerId,
-    model: context.model
+    model: model
   });
 
   useEffect(() => {
@@ -138,7 +138,7 @@ const Categorized = ({
     layer.parameters.color = newStyle;
     layer.type = 'VectorLayer';
 
-    context.model.sharedModel.updateLayer(layerId, layer);
+    model.sharedModel.updateLayer(layerId, layer);
     cancel();
   };
 

@@ -1,6 +1,5 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
@@ -9,7 +8,7 @@ import TiffRendering from './tiff_layer/TiffRendering';
 import VectorRendering from './vector_layer/VectorRendering';
 
 export interface ISymbologyDialogProps {
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  model: IJupyterGISModel;
   state: IStateDB;
   okSignalPromise: PromiseDelegate<Signal<SymbologyWidget, null>>;
   cancel: () => void;
@@ -17,7 +16,7 @@ export interface ISymbologyDialogProps {
 }
 
 export interface ISymbologyWidgetOptions {
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  model: IJupyterGISModel;
   state: IStateDB;
 }
 
@@ -27,7 +26,7 @@ export interface IStopRow {
 }
 
 const SymbologyDialog = ({
-  context,
+  model,
   state,
   okSignalPromise,
   cancel
@@ -39,13 +38,11 @@ const SymbologyDialog = ({
 
   useEffect(() => {
     const handleClientStateChanged = () => {
-      if (!context.model.localState?.selected?.value) {
+      if (!model.localState?.selected?.value) {
         return;
       }
 
-      const currentLayer = Object.keys(
-        context.model.localState.selected.value
-      )[0];
+      const currentLayer = Object.keys(model.localState.selected.value)[0];
 
       setSelectedLayer(currentLayer);
     };
@@ -53,10 +50,10 @@ const SymbologyDialog = ({
     // Initial state
     handleClientStateChanged();
 
-    context.model.clientStateChanged.connect(handleClientStateChanged);
+    model.clientStateChanged.connect(handleClientStateChanged);
 
     return () => {
-      context.model.clientStateChanged.disconnect(handleClientStateChanged);
+      model.clientStateChanged.disconnect(handleClientStateChanged);
     };
   }, []);
 
@@ -65,7 +62,7 @@ const SymbologyDialog = ({
       return;
     }
 
-    const layer = context.model.getLayer(selectedLayer);
+    const layer = model.getLayer(selectedLayer);
 
     if (!layer) {
       return;
@@ -78,7 +75,7 @@ const SymbologyDialog = ({
       case 'HeatmapLayer':
         LayerSymbology = (
           <VectorRendering
-            context={context}
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}
@@ -89,7 +86,7 @@ const SymbologyDialog = ({
       case 'WebGlLayer':
         LayerSymbology = (
           <TiffRendering
-            context={context}
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}
@@ -120,7 +117,7 @@ export class SymbologyWidget extends Dialog<boolean> {
 
     const body = (
       <SymbologyDialog
-        context={options.context}
+        model={options.model}
         okSignalPromise={okSignalPromise}
         cancel={cancelCallback}
         state={options.state}

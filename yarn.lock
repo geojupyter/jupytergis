@@ -827,19 +827,19 @@ __metadata:
   dependencies:
     "@jupyter/collaborative-drive": ^3.0.0
     "@jupytergis/base": ^0.3.0
-    "@jupytergis/jupytergis-core": ^0.3.0
     "@jupytergis/schema": ^0.3.0
     "@jupyterlab/application": ^4.3.0
     "@jupyterlab/apputils": ^4.3.0
     "@jupyterlab/builder": ^4.3.0
+    "@jupyterlab/completer": ^4.3.0
+    "@jupyterlab/console": ^4.3.0
     "@jupyterlab/coreutils": ^6.3.0
-    "@jupyterlab/docregistry": ^4.3.0
-    "@jupyterlab/filebrowser": ^4.3.0
-    "@jupyterlab/launcher": ^4.3.0
     "@jupyterlab/mainmenu": ^4.3.0
+    "@jupyterlab/notebook": ^4.3.0
     "@jupyterlab/services": ^7.3.0
+    "@jupyterlab/statedb": ^4.3.0
     "@jupyterlab/translation": ^4.3.0
-    "@jupyterlab/ui-components": ^4.3.0
+    "@lumino/commands": ^2.0.0
     "@lumino/messaging": ^2.0.0
     "@lumino/widgets": ^2.0.0
     css-loader: ^6.7.1
@@ -1513,7 +1513,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/statedb@npm:^4.3.4":
+"@jupyterlab/statedb@npm:^4.3.0, @jupyterlab/statedb@npm:^4.3.4":
   version: 4.3.4
   resolution: "@jupyterlab/statedb@npm:4.3.4"
   dependencies:

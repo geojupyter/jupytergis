@@ -36,7 +36,7 @@ const Annotation = ({
    * Update the model when it changes.
    */
   rightPanelModel?.documentChanged.connect((_, widget) => {
-    setJgisModel(widget?.context.model);
+    setJgisModel(widget?.model);
   });
 
   const handleSubmit = () => {

@@ -181,8 +181,8 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
    * Update the model when it changes.
    */
   props.model?.documentChanged.connect((_, widget) => {
-    setModel(widget?.context.model);
-    setLayerTree(widget?.context.model?.getLayerTree() || []);
+    setModel(widget?.model);
+    setLayerTree(widget?.model?.getLayerTree() || []);
   });
 
   return (
