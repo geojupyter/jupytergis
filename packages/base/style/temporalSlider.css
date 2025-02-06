@@ -18,6 +18,23 @@
   align-items: center;
 }
 
+.jp-gis-temporal-slider-controls {
+  display: flex;
+  flex-grow: 1;
+  justify-content: space-around;
+}
+
+.jp-gis-temporal-slider-sub-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.jp-gis-temporal-slider-sub-controls > input {
+  width: 35px;
+}
+
 select,
 select option {
   text-transform: capitalize;

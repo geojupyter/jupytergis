@@ -49,6 +49,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [inferredDateFormat, setInferredDateFormat] = useState('yyyy-MM-dd');
   const [step, setStep] = useState(stepMap.year);
   const [currentValue, setCurrentValue] = useState(0);
+  const [fps, setFps] = useState(1);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -231,7 +232,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     };
 
     // Start animation
-    intervalRef.current = setInterval(incrementValue, 1000);
+    intervalRef.current = setInterval(incrementValue, 1000 / fps);
   };
 
   const pauseAnimation = () => {
@@ -277,21 +278,35 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
           </div>
           <div className="jp-gis-temporal-slider-row">
             {/* controls */}
-            <div style={{ margin: 'auto' }}>
-              <Button
-                appearance="neutral"
-                scale="medium"
-                onClick={pauseAnimation}
+            <div className="jp-gis-temporal-slider-controls">
+              <div className="jp-gis-temporal-slider-sub-controls">
+                <Button
+                  appearance="neutral"
+                  scale="medium"
+                  onClick={pauseAnimation}
+                >
+                  <FontAwesomeIcon icon={faPause} />
+                </Button>
+                <Button
+                  appearance="neutral"
+                  scale="medium"
+                  onClick={playAnimation}
+                >
+                  <FontAwesomeIcon icon={faPlay} />
+                </Button>
+              </div>
+              <div
+                className="jp-gis-temporal-slider-sub-controls"
+                style={{ minWidth: 0 }}
               >
-                <FontAwesomeIcon icon={faPause} />
-              </Button>
-              <Button
-                appearance="neutral"
-                scale="medium"
-                onClick={playAnimation}
-              >
-                <FontAwesomeIcon icon={faPlay} />
-              </Button>
+                <label htmlFor="fps-number-input">FPS:</label>
+                <input
+                  name="fps-number-input"
+                  type="number"
+                  value={fps}
+                  onChange={e => setFps(+e.target.value)}
+                />
+              </div>
             </div>
             {/* slider */}
             <div>
