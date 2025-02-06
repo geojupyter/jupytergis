@@ -16,3 +16,9 @@ Alternatively, you can install JupyterGIS with ``pip``
 .. code-block:: bash
 
    pip install jupytergis
+
+Or you can run JupyterGIS from a Docker image:
+
+.. code-block:: bash
+
+   docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
