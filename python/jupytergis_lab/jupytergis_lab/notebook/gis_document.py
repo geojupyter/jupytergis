@@ -726,7 +726,7 @@ class GISDocument(CommWidget):
             else:
                 raise ValueError("File extension is not supported!")
         return dict(
-            path=path, format=format, contentType=contentType, createydoc=path is None
+            path=path, format=format, contentType=contentType, create_ydoc=path is None
         )
 
 
