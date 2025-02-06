@@ -29,6 +29,7 @@ import * as Y from 'yjs';
 import {
   IJupyterYWidget,
   IJupyterYWidgetManager,
+  // JupyterYDoc,
   JupyterYModel
 } from 'yjs-widgets';
 
@@ -135,7 +136,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     }
 
     class YJupyterGISModelFactory extends YJupyterGISModel {
-      ydocFactory(commMetadata: ICommMetadata): Y.Doc {
+      async ydocFactory(commMetadata: ICommMetadata): Promise<Y.Doc> {
         const { path, format, contentType } = commMetadata;
         const fileFormat = format as Contents.FileFormat;
 
@@ -144,11 +145,46 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
             'Error using the JupyterGIS Python API',
             'You cannot use the JupyterGIS Python API without a collaborative drive. You need to install a package providing collaboration features (e.g. jupyter-collaboration).'
           );
-          throw new Error('Failed to create the YDoc without a collaborative drive');
+          throw new Error(
+            'Failed to create the YDoc without a collaborative drive'
+          );
+        }
+
+        // The path of the project is relative to the path of the notebook
+        let currentWidgetPath: string = '';
+        const currentWidget = app.shell.currentWidget;
+        if (
+          currentWidget instanceof NotebookPanel ||
+          currentWidget instanceof ConsolePanel
+        ) {
+          currentWidgetPath = currentWidget.sessionContext.path;
+        }
+
+        let localPath = '';
+        let fileless = false;
+        if (path) {
+          localPath = PathExt.join(PathExt.dirname(currentWidgetPath), path);
+
+          // If the file does not exist yet, create it
+          try {
+            await app.serviceManager.contents.get(localPath);
+          } catch (e) {
+            await app.serviceManager.contents.save(localPath, {
+              content: btoa('{}'),
+              format: 'base64'
+            });
+          }
+        } else {
+          // If the user did not provide a path, do not create
+          localPath = PathExt.join(
+            PathExt.dirname(currentWidgetPath),
+            'unsaved_project'
+          );
+          fileless = true;
         }
 
         const sharedModel = drive!.sharedModelFactory.createNew({
-          path,
+          path: localPath,
           format: fileFormat,
           contentType,
           collaborative: true
@@ -159,25 +195,10 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
 
-        if (!sharedModel) {
-          // The path of the project is set to the path of the notebook, to be able to
-          // add local geoJSON/shape file in a "file-less" project.
-          let currentWidgetPath: string | undefined = undefined;
-          const currentWidget = app.shell.currentWidget;
-          if (
-            currentWidget instanceof NotebookPanel ||
-            currentWidget instanceof ConsolePanel
-          ) {
-            currentWidgetPath = currentWidget.sessionContext.path;
-          }
-
-          if (currentWidgetPath) {
-            this.jupyterGISModel.filePath = PathExt.join(
-              PathExt.dirname(currentWidgetPath),
-              'unsaved_project'
-            );
-          }
+        if (fileless) {
+          this.jupyterGISModel.filePath = localPath;
         }
+
         return this.jupyterGISModel.sharedModel.ydoc;
       }
     }
