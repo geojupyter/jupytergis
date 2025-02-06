@@ -16,6 +16,7 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { NotebookPanel } from '@jupyterlab/notebook';
@@ -132,16 +133,20 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
       console.error('Missing IJupyterYWidgetManager token!');
       return;
     }
-    if (!drive) {
-      console.error(
-        'Cannot setup JupyterGIS Python API without a collaborative drive'
-      );
-      return;
-    }
+
     class YJupyterGISModelFactory extends YJupyterGISModel {
       ydocFactory(commMetadata: ICommMetadata): Y.Doc {
         const { path, format, contentType } = commMetadata;
         const fileFormat = format as Contents.FileFormat;
+
+        if (!drive) {
+          showErrorMessage(
+            'Error using the JupyterGIS Python API',
+            'You cannot use the JupyterGIS Python API without a collaborative drive. You need to install a package providing collaboration features (e.g. jupyter-collaboration).'
+          );
+          throw new Error('Failed to create the YDoc without a collaborative drive');
+        }
+
         const sharedModel = drive!.sharedModelFactory.createNew({
           path,
           format: fileFormat,
