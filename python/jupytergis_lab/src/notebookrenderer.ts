@@ -181,7 +181,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
 
       dispose(): void {
         this.parent?.disposed.disconnect(this.dispose);
-        this.jupyterGISModel.dispose();
         super.dispose();
       }
     }
