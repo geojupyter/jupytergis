@@ -13,6 +13,6 @@ dependencies:
   - comm>=0.1.2,<0.2.0
   - pydantic>=2,<3
   - pip:
-    - my-jupyter-shared-drive==0.1.13
-    - ../python/jupytergis_lab
-    - ../python/jupytergis_core
+      - my-jupyter-shared-drive==0.1.13
+      - ../python/jupytergis_lab
+      - ../python/jupytergis_core
