@@ -266,10 +266,6 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.on('moveend', () => {
-        if (!this._isPositionInitialized) {
-          return;
-        }
-
         const currentOptions = this._model.getOptions();
 
         const view = this._Map.getView();
@@ -315,6 +311,14 @@ export class MainView extends React.Component<IProps, IStates> {
       this._Map
         .getViewport()
         .addEventListener('pointermove', this._onPointerMove.bind(this));
+
+      if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
+        await this._updateLayersImpl(
+          JupyterGISModel.getOrderedLayerIds(this._model)
+        );
+        const options = this._model.getOptions();
+        this.updateOptions(options);
+      }
 
       this._Map.getViewport().addEventListener('contextmenu', event => {
         event.preventDefault();
