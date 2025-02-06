@@ -266,6 +266,10 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.on('moveend', () => {
+        if (!this._isPositionInitialized) {
+          return;
+        }
+
         const currentOptions = this._model.getOptions();
 
         const view = this._Map.getView();
@@ -311,14 +315,6 @@ export class MainView extends React.Component<IProps, IStates> {
       this._Map
         .getViewport()
         .addEventListener('pointermove', this._onPointerMove.bind(this));
-
-      if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
-        await this._updateLayersImpl(
-          JupyterGISModel.getOrderedLayerIds(this._model)
-        );
-        const options = this._model.getOptions();
-        this.updateOptions(options);
-      }
 
       this._Map.getViewport().addEventListener('contextmenu', event => {
         event.preventDefault();
@@ -1323,9 +1319,10 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _onSharedOptionsChanged(): void {
-    if (!this.state.remoteUser) {
+    if (!this._isPositionInitialized) {
       const options = this._model.getOptions();
       this.updateOptions(options);
+      this._isPositionInitialized = true;
     }
   }
 
@@ -1339,7 +1336,6 @@ export class MainView extends React.Component<IProps, IStates> {
       zoom,
       bearing
     } = options;
-
     let view = this._Map.getView();
     const currentProjection = view.getProjection().getCode();
 
@@ -1788,6 +1784,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _clickCoords: Coordinate;
   private _commands: CommandRegistry;
+  private _isPositionInitialized = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
   private _Map: OlMap;
   private _model: IJupyterGISModel;
