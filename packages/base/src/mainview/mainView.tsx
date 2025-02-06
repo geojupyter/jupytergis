@@ -1243,7 +1243,12 @@ export class MainView extends React.Component<IProps, IStates> {
     sender: IJupyterGISModel,
     clients: Map<number, IJupyterGISClientState>
   ): void => {
-    const remoteUser = this._model.localState?.remoteUser;
+    const localState = this._model.localState;
+    if (!localState) {
+      return;
+    }
+
+    const remoteUser = localState.remoteUser;
     // If we are in following mode, we update our position and selection
     if (remoteUser) {
       const remoteState = clients.get(remoteUser);
@@ -1267,7 +1272,7 @@ export class MainView extends React.Component<IProps, IStates> {
       // If we are unfollowing a remote user, we reset our center and zoom to their previous values
       if (this.state.remoteUser !== null) {
         this.setState(old => ({ ...old, remoteUser: null }));
-        const viewportState = this._model.localState?.viewportState?.value;
+        const viewportState = localState.viewportState?.value;
 
         if (viewportState) {
           this._moveToPosition(viewportState.coordinates, viewportState.zoom);
@@ -1321,11 +1326,9 @@ export class MainView extends React.Component<IProps, IStates> {
 
     // Temporal controller bit
     // ? There's probably a better way to get changes in the model to trigger react rerenders
-    const isTemporalControllerActive =
-      this._model.localState?.isTemporalControllerActive;
+    const isTemporalControllerActive = localState.isTemporalControllerActive;
 
-    if (isTemporalControllerActive) {
-      console.log('isTemporalControllerActive', isTemporalControllerActive);
+    if (isTemporalControllerActive !== this.state.displayTemporalController) {
       this.setState(old => ({
         ...old,
         displayTemporalController: isTemporalControllerActive
@@ -1538,7 +1541,6 @@ export class MainView extends React.Component<IProps, IStates> {
     _: any,
     change: IJupyterGISDocChange
   ) => {
-    console.log('change', change);
     const changedState = change.stateChange?.map(value => value.name);
     if (!changedState?.includes('path')) {
       return;

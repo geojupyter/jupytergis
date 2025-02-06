@@ -632,10 +632,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this.sharedModel.awareness.setLocalStateField(
       'isTemporalControllerActive',
-      {
-        value: this._isTemporalControllerActive,
-        emitter
-      }
+      this._isTemporalControllerActive
     );
   }
 
