@@ -14,7 +14,12 @@ def install_dev():
     build_js = "jlpm build"
 
     python_package_prefix = "python"
-    python_packages = ["jupytergis_core", "jupytergis_lab", "jupytergis_qgis", "jupytergis"]
+    python_packages = [
+        "jupytergis_core",
+        "jupytergis_lab",
+        "jupytergis_qgis",
+        "jupytergis",
+    ]
 
     execute(install_build_deps)
     execute(install_js_deps)
