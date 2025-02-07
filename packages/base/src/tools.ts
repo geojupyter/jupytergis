@@ -530,10 +530,13 @@ export const loadFile = async (fileInfo: {
           await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
-          console.warn('Cannot communicate with the JupyterGIS proxy server:', error);
+          console.warn(
+            'Cannot communicate with the JupyterGIS proxy server:',
+            error
+          );
         }
 
-         // Trying through an external proxy server
+        // Trying through an external proxy server
         try {
           const response = await fetch(`https://corsproxy.io/?url=${filepath}`);
           const arrayBuffer = await response.arrayBuffer();
@@ -541,15 +544,11 @@ export const loadFile = async (fileInfo: {
           await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
-          console.warn(
-             'Cannot communicate with external proxy server',
-             error
-          );
-       }
+          console.warn('Cannot communicate with external proxy server', error);
+        }
 
-       showErrorMessage('Network error', 'Failed to fetch ${filepath}');
-       throw new Error('Failed to fetch ${filepath}');
-
+        showErrorMessage('Network error', 'Failed to fetch ${filepath}');
+        throw new Error('Failed to fetch ${filepath}');
       }
 
       case 'GeoJSONSource': {
