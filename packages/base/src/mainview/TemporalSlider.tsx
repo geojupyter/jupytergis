@@ -87,6 +87,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
     return () => {
       model.clientStateChanged.disconnect(handleClientStateChanged);
+      removeFilter();
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
@@ -235,6 +236,32 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     // Apply the updated filters to the layer
     layer.filters = { logicalOp, appliedFilters };
     model.triggerLayerUpdate(layerId, layer);
+  };
+
+  const removeFilter = () => {
+    console.log('removing');
+    const layer = model.getLayer(layerIdRef.current);
+    if (!layer) {
+      return;
+    }
+
+    const appliedFilters = layer.filters?.appliedFilters || [];
+    const logicalOp = layer.filters?.logicalOp || 'all';
+
+    // This is the only way to add a 'between' filter so
+    // find the index of the existing 'between' filter
+    const betweenFilterIndex = appliedFilters.findIndex(
+      filter => filter.operator === 'between'
+    );
+
+    if (betweenFilterIndex !== -1) {
+      // If found, replace the existing filter
+      appliedFilters.splice(betweenFilterIndex, 1);
+    }
+
+    // Apply the updated filters to the layer
+    layer.filters = { logicalOp, appliedFilters };
+    model.triggerLayerUpdate(layerIdRef.current, layer);
   };
 
   const playAnimation = () => {
