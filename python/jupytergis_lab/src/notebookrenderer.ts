@@ -82,10 +82,6 @@ export class YJupyterGISLuminoWidget extends Panel {
    */
   private _buildWidget = (options: IOptions) => {
     const { commands, model, externalCommands, tracker } = options;
-    // Ensure the model filePath is relevant with the shared model path.
-    if (model.sharedModel.getState('path')) {
-      model.filePath = model.sharedModel.getState('path') as string;
-    }
     const content = new JupyterGISPanel({ model });
     let toolbar: Toolbar | undefined = undefined;
     if (model.filePath) {
@@ -163,7 +159,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         }
 
         let localPath = '';
-        let fileless = false;
         if (path) {
           localPath = PathExt.join(PathExt.dirname(currentWidgetPath), path);
 
@@ -182,7 +177,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
             PathExt.dirname(currentWidgetPath),
             'unsaved_project'
           );
-          fileless = true;
         }
 
         const sharedModel = drive!.sharedModelFactory.createNew({
@@ -196,10 +190,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         });
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
-
-        if (fileless) {
-          this.jupyterGISModel.filePath = localPath;
-        }
+        this.jupyterGISModel.filePath = localPath;
 
         this.ydoc = this.jupyterGISModel.sharedModel.ydoc;
         this.sharedModel = new JupyterYDoc(commMetadata, this.ydoc);
