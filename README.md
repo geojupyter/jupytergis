@@ -67,7 +67,7 @@ Docker build source is at <https://github.com/geojupyter/jupytergis-docker>.
 
 ## Documentation
 
-https://geojupyter.github.io/jupytergis
+https://jupytergis.readthedocs.io
 
 ## Contributing
 
