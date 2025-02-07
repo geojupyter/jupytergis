@@ -1796,35 +1796,37 @@ export class MainView extends React.Component<IProps, IStates> {
           );
         })}
 
-        {this._model.isTemporalControllerActive && (
-          <TemporalSlider model={this._model} />
-        )}
-        <div
-          className="jGIS-Mainview"
-          style={{
-            border: this.state.remoteUser
-              ? `solid 3px ${this.state.remoteUser.color}`
-              : 'unset'
-          }}
-        >
-          <Spinner loading={this.state.loading} />
-          <FollowIndicator remoteUser={this.state.remoteUser} />
-          <CollaboratorPointers clients={this.state.clientPointers} />
-
+        <div className="jGIS-Mainview-Container">
+          {this._model.isTemporalControllerActive && (
+            <TemporalSlider model={this._model} />
+          )}
           <div
-            ref={this.divRef}
+            className="jGIS-Mainview"
             style={{
-              width: '100%',
-              height: 'calc(100%)'
+              border: this.state.remoteUser
+                ? `solid 3px ${this.state.remoteUser.color}`
+                : 'unset'
             }}
+          >
+            <Spinner loading={this.state.loading} />
+            <FollowIndicator remoteUser={this.state.remoteUser} />
+            <CollaboratorPointers clients={this.state.clientPointers} />
+
+            <div
+              ref={this.divRef}
+              style={{
+                width: '100%',
+                height: '100%'
+              }}
+            />
+          </div>
+          <StatusBar
+            jgisModel={this._model}
+            loading={this.state.loadingLayer}
+            projection={this.state.viewProjection}
+            scale={this.state.scale}
           />
         </div>
-        <StatusBar
-          jgisModel={this._model}
-          loading={this.state.loadingLayer}
-          projection={this.state.viewProjection}
-          scale={this.state.scale}
-        />
       </>
     );
   }
