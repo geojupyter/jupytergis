@@ -15,7 +15,6 @@ def install_dev():
 
     python_package_prefix = "python"
     python_packages = [
-        "jupytergis",
         "jupytergis_core",
         "jupytergis_lab",
         "jupytergis_qgis",
@@ -32,11 +31,7 @@ def install_dev():
         if py_package == "jupytergis_qgis":
             execute("jupyter server extension enable jupytergis_qgis")
 
-        # Only the metapackage doesn't have a labext
-        if py_package != "jupytergis":
-            execute(
-                f"jupyter labextension develop {python_package_prefix}/{py_package} --overwrite"
-            )
+    execute(f"pip install -e {python_package_prefix}/jupytergis")
 
 
 if __name__ == "__main__":
