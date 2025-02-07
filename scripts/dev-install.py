@@ -15,10 +15,10 @@ def install_dev():
 
     python_package_prefix = "python"
     python_packages = [
+        "jupytergis",
         "jupytergis_core",
         "jupytergis_lab",
         "jupytergis_qgis",
-        "jupytergis",
     ]
 
     execute(install_build_deps)
