@@ -10,7 +10,7 @@
 
 ⚠️ This extension is work in progress. Features and APIs are subject to change quickly. ⚠️
 
-![jupytergis](../../jupytergis.png)
+![jupytergis](https://github.com/geojupyter/jupytergis/blob/main/jupytergis.png)
 
 ## Features
 
@@ -79,8 +79,8 @@ We welcome contributions from the community! To contribute:
 - Make your changes
 - Submit a pull request
 
-For more details, check out our [CONTRIBUTING.md](../../CONTRIBUTING.md).
+For more details, check out our [CONTRIBUTING.md](https://github.com/geojupyter/jupytergis/blob/main/CONTRIBUTING.md).
 
 ## License
 
-JupyterGIS is licensed under the BSD 3-Clause License. See [LICENSE](../../LICENSE) for more information.
+JupyterGIS is licensed under the BSD 3-Clause License. See [LICENSE](./LICENSE) for more information.
