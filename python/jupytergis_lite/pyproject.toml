@@ -33,6 +33,9 @@ requires-python = ">=3.10"
 [tool.hatch.version]
 path = "jupytergis/__init__.py"
 
+[tool.hatch.build.targets.wheel]
+packages = ["jupytergis"]
+
 [tool.jupyter-releaser.options]
 version_cmd = "hatch version"
 
