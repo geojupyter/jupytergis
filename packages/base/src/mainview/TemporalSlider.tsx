@@ -271,112 +271,99 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
   return (
     <div className="jp-gis-temporal-slider-container">
-      {layerId && validFeatures.length > 0 ? (
-        <>
-          <div className="jp-gis-temporal-slider-row">
-            {/* Feature select */}
-            <div>
-              <label htmlFor="time-feature-select">Feature: </label>
-              <select
-                id="time-feature-select"
-                onChange={e => {
-                  setSelectedFeature(e.target.value);
-                }}
-              >
-                <option></option>
-                {validFeatures.map(feature => {
-                  return (
-                    <option
-                      value={feature}
-                      selected={selectedFeature === feature}
-                    >
-                      {feature}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            {/* Current frame */}
-            <div>
-              <span>Current Frame:</span>{' '}
-              {millisecondsToDateString(range.start, inferredDateFormat)} ≤{' '}
-              <span>t</span> ≤{' '}
-              {millisecondsToDateString(range.end, inferredDateFormat)}
-            </div>
+      <div className="jp-gis-temporal-slider-row">
+        {/* Feature select */}
+        <div>
+          <label htmlFor="time-feature-select">Feature: </label>
+          <select
+            id="time-feature-select"
+            onChange={e => {
+              setSelectedFeature(e.target.value);
+            }}
+          >
+            <option></option>
+            {validFeatures.map(feature => {
+              return (
+                <option value={feature} selected={selectedFeature === feature}>
+                  {feature}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+        {/* Current frame */}
+        <div>
+          <span>Current Frame:</span>{' '}
+          {millisecondsToDateString(range.start, inferredDateFormat)} ≤{' '}
+          <span>t</span> ≤{' '}
+          {millisecondsToDateString(range.end, inferredDateFormat)}
+        </div>
+      </div>
+      <div className="jp-gis-temporal-slider-row">
+        {/* controls */}
+        <div className="jp-gis-temporal-slider-controls">
+          <div className="jp-gis-temporal-slider-sub-controls">
+            <Button
+              appearance="neutral"
+              scale="medium"
+              onClick={pauseAnimation}
+            >
+              <FontAwesomeIcon icon={faPause} />
+            </Button>
+            <Button appearance="neutral" scale="medium" onClick={playAnimation}>
+              <FontAwesomeIcon icon={faPlay} />
+            </Button>
           </div>
-          <div className="jp-gis-temporal-slider-row">
-            {/* controls */}
-            <div className="jp-gis-temporal-slider-controls">
-              <div className="jp-gis-temporal-slider-sub-controls">
-                <Button
-                  appearance="neutral"
-                  scale="medium"
-                  onClick={pauseAnimation}
-                >
-                  <FontAwesomeIcon icon={faPause} />
-                </Button>
-                <Button
-                  appearance="neutral"
-                  scale="medium"
-                  onClick={playAnimation}
-                >
-                  <FontAwesomeIcon icon={faPlay} />
-                </Button>
-              </div>
-              <div
-                className="jp-gis-temporal-slider-sub-controls"
-                style={{ minWidth: 0 }}
-              >
-                <label htmlFor="fps-number-input">FPS:</label>
-                <input
-                  name="fps-number-input"
-                  type="number"
-                  value={fps}
-                  onChange={e => setFps(+e.target.value)}
-                />
-              </div>
-            </div>
-            {/* slider */}
-            <div>
-              <Slider
-                min={minMax.min}
-                max={minMax.max - step}
-                valueAsNumber={currentValue}
-                step={step}
-                onChange={handleChange}
-                className="jp-gis-temporal-slider"
-              />
-            </div>
+          <div
+            className="jp-gis-temporal-slider-sub-controls"
+            style={{ minWidth: 0 }}
+          >
+            <label htmlFor="fps-number-input">FPS:</label>
+            <input
+              name="fps-number-input"
+              type="number"
+              value={fps}
+              onChange={e => setFps(+e.target.value)}
+            />
           </div>
-          <div className="jp-gis-temporal-slider-row">
-            {/* range */}
-            <div>
-              <span>Range: </span>
-              {millisecondsToDateString(minMax.min, inferredDateFormat)}{' '}
-              <span>to </span>
-              {millisecondsToDateString(minMax.max, inferredDateFormat)}
-            </div>
-            {/* step */}
-            <div>
-              <label htmlFor="time-step-select">Step: </label>
-              <select
-                id="time-step-select"
-                onChange={e => {
-                  setStep(+e.target.value);
-                }}
-              >
-                {Object.entries(validSteps).map(([key, val]) => (
-                  <option key={key} selected={val === step} value={val}>
-                    {key}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div>Select a vector layer</div>
-      )}
+        </div>
+        {/* slider */}
+        <div>
+          <Slider
+            min={minMax.min}
+            max={minMax.max - step}
+            valueAsNumber={currentValue}
+            step={step}
+            onChange={handleChange}
+            className="jp-gis-temporal-slider"
+          />
+        </div>
+      </div>
+      <div className="jp-gis-temporal-slider-row">
+        {/* range */}
+        <div>
+          <span>Range: </span>
+          {millisecondsToDateString(minMax.min, inferredDateFormat)}{' '}
+          <span>to </span>
+          {millisecondsToDateString(minMax.max, inferredDateFormat)}
+        </div>
+        {/* step */}
+        <div>
+          <label htmlFor="time-step-select">Step: </label>
+          <select
+            id="time-step-select"
+            onChange={e => {
+              setStep(+e.target.value);
+            }}
+          >
+            {Object.entries(validSteps).map(([key, val]) => (
+              <option key={key} selected={val === step} value={val}>
+                {key}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
     </div>
   );
 };
