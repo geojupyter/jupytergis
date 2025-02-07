@@ -1,7 +1,7 @@
 import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button, Slider } from '@jupyter/react-components';
-import { IJupyterGISModel } from '@jupytergis/schema';
+import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { format, isValid, parse, toDate } from 'date-fns';
 import {
   daysInYear,
@@ -50,6 +50,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [step, setStep] = useState(stepMap.year);
   const [currentValue, setCurrentValue] = useState(0);
   const [fps, setFps] = useState(1);
+  const [validSteps, setValidSteps] = useState<IDict>({});
 
   const layerIdRef = useRef('');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -74,6 +75,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
         setStep(stepMap.year);
         setCurrentValue(0);
         setFps(1);
+        setValidSteps({});
         setLayerId(selectedLayerId);
       }
     };
@@ -158,10 +160,16 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     const min = Math.min(...convertedValues);
     const max = Math.max(...convertedValues);
 
+    // Get valid step options
+    const filteredSteps = Object.fromEntries(
+      Object.entries(stepMap).filter(([_, val]) => val < max - min)
+    );
+
     // Update the range and minMax state
     setCurrentValue(min);
     setMinMax({ min, max });
     setRange({ start: min, end: min + step });
+    setValidSteps(filteredSteps);
     model.addFeatureAsMs(layerId, selectedFeature);
   }, [selectedFeature]);
 
@@ -357,13 +365,11 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
                   setStep(+e.target.value);
                 }}
               >
-                {Object.entries(stepMap).map(([key, val]) => {
-                  return (
-                    <option selected={val === step} value={val}>
-                      {key}
-                    </option>
-                  );
-                })}
+                {Object.entries(validSteps).map(([key, val]) => (
+                  <option key={key} selected={val === step} value={val}>
+                    {key}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
