@@ -5,6 +5,7 @@
   height: 16px;
   background-color: var(--jp-layout-color1);
   font-size: var(--jp-ui-font-size0);
+  border-top: 1px solid var(--jp-border-color1);
 }
 
 .jgis-status-bar-item {
