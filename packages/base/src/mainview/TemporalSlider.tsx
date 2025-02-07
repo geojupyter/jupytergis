@@ -51,28 +51,49 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [currentValue, setCurrentValue] = useState(0);
   const [fps, setFps] = useState(1);
 
+  const layerIdRef = useRef('');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { featureProperties } = useGetProperties({ layerId, model });
 
   useEffect(() => {
-    const localState = model.sharedModel.awareness.getLocalState();
-    const selectedLayer = localState?.selected?.value;
+    const handleClientStateChanged = () => {
+      if (!model.localState?.selected?.value) {
+        return;
+      }
 
-    if (!selectedLayer) {
-      console.warn('Layer must be selected to use identify tool');
-      return;
-    }
+      const selectedLayerId = Object.keys(model.localState.selected.value)[0];
 
-    const selectedLayerId = Object.keys(selectedLayer)[0];
-    setLayerId(selectedLayerId);
+      // reset
+      if (selectedLayerId !== layerIdRef.current) {
+        setSelectedFeature('');
+        setRange({ start: 0, end: 1 });
+        setMinMax({ min: 0, max: 1 });
+        setValidFeatures([]);
+        setInferredDateFormat('yyyy-MM-dd');
+        setStep(stepMap.year);
+        setCurrentValue(0);
+        setFps(1);
+        setLayerId(selectedLayerId);
+      }
+    };
+
+    // Initial state
+    handleClientStateChanged();
+
+    model.clientStateChanged.connect(handleClientStateChanged);
 
     return () => {
+      model.clientStateChanged.disconnect(handleClientStateChanged);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
   }, []);
+
+  useEffect(() => {
+    layerIdRef.current = layerId;
+  }, [layerId]);
 
   useEffect(() => {
     const featuresForSelect = [];
@@ -156,7 +177,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   };
 
   // Convert milliseconds back to the original date string format
-  // TODO I'm pretty sure this ends up in local time, not UTC time
   const millisecondsToDateString = (
     milliseconds: number,
     dateFormat: string
@@ -243,7 +263,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
   return (
     <div className="jp-gis-temporal-slider-container">
-      {layerId ? (
+      {layerId && validFeatures.length > 0 ? (
         <>
           <div className="jp-gis-temporal-slider-row">
             {/* Feature select */}
@@ -349,7 +369,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
           </div>
         </>
       ) : (
-        <div>Select a layer</div>
+        <div>Select a vector layer</div>
       )}
     </div>
   );
