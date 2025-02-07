@@ -197,12 +197,12 @@ export class JupyterGISPanel extends SplitPanel {
 
         (this._consoleTracker.widgetAdded as any).emit(consolePanel);
         await consolePanel.sessionContext.ready;
-        await consolePanel.console.inject(
-          `from jupytergis_lab import GISDocument\ndoc = GISDocument("${jgisPath}")`
-        );
         this.addWidget(this._consoleView);
         this.setRelativeSizes([2, 1]);
         this._consoleOpened = true;
+        await consolePanel.console.inject(
+          `from jupytergis_lab import GISDocument\ndoc = GISDocument("${jgisPath}")`
+        );
         consolePanel.console.sessionContext.kernelChanged.connect((_, arg) => {
           if (!arg.newValue) {
             this.removeConsole();

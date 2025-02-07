@@ -29,7 +29,6 @@ from .objects import (
     LayerType,
     SourceType,
 )
-from .utils import normalize_path
 
 logger = logging.getLogger(__file__)
 
@@ -63,11 +62,6 @@ class GISDocument(CommWidget):
             path = str(path)
 
         comm_metadata = GISDocument._path_to_comm(path)
-
-        # Create an empty project file if it does not exist
-        if comm_metadata["path"] and not os.path.isfile(comm_metadata["path"]):
-            with open(comm_metadata["path"], "w") as fd:
-                fd.write("{}")
 
         ydoc = Doc()
 
@@ -708,7 +702,7 @@ class GISDocument(CommWidget):
         contentType = None
 
         if filePath is not None:
-            path = normalize_path(filePath)
+            path = filePath
             file_name = Path(path).name
             try:
                 ext = file_name.split(".")[1].lower()
