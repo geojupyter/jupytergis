@@ -512,7 +512,8 @@ export const loadFile = async (fileInfo: {
         // First trying a direct fetch
         try {
           const response = await fetch(filepath);
-          const geojson = awair shp(arrayBuffer);
+          const arrayBuffer = await response.arrayBuffer();
+          const geojson = await shp(arrayBuffer);
           await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
