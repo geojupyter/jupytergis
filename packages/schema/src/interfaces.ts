@@ -217,7 +217,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isIdentifying: boolean;
 
   isTemporalControllerActive: boolean;
-  toggleTemporalController(emitter: string): void;
+  toggleTemporalController(): void;
   addFeatureAsMs(id: string, selectedFeature: string): void;
   triggerLayerUpdate(layerId: string, layer: IJGISLayer): void;
 

@@ -627,7 +627,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._isIdentifying = !this._isIdentifying;
   }
 
-  toggleTemporalController(emitter: string) {
+  toggleTemporalController() {
     this._isTemporalControllerActive = !this._isTemporalControllerActive;
 
     this.sharedModel.awareness.setLocalStateField(

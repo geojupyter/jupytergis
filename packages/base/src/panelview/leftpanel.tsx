@@ -13,6 +13,8 @@ import { LayersPanel } from './components/layers';
 import { SourcesPanel } from './components/sources';
 import { ControlPanelHeader } from './header';
 import { FilterPanel } from './components/filter-panel/Filter';
+import { CommandRegistry } from '@lumino/commands';
+import { CommandIDs } from '../constants';
 
 /**
  * Options of the left panel widget.
@@ -40,6 +42,7 @@ export class LeftPanelWidget extends SidePanel {
 
     this._model = options.model;
     this._state = options.state;
+    this._commands = options.commands;
 
     const header = new ControlPanelHeader();
     this.header.addWidget(header);
@@ -178,6 +181,7 @@ export class LeftPanelWidget extends SidePanel {
       this._lastSelectedNodeId = nodeId;
 
       jGISModel.syncSelected(updatedSelectedValue, this.id);
+      this._commands.notifyCommandChanged(CommandIDs.temporalController);
     }
   };
 
@@ -191,11 +195,13 @@ export class LeftPanelWidget extends SidePanel {
       this._lastSelectedNodeId = nodeId;
     }
     this._model?.jGISModel?.syncSelected(selection, this.id);
+    this._commands.notifyCommandChanged(CommandIDs.temporalController);
   }
 
   private _lastSelectedNodeId: string;
   private _model: IControlPanelModel;
   private _state: IStateDB;
+  private _commands: CommandRegistry;
 }
 
 export namespace LeftPanelWidget {
@@ -203,6 +209,7 @@ export namespace LeftPanelWidget {
     model: IControlPanelModel;
     tracker: IJupyterGISTracker;
     state: IStateDB;
+    commands: CommandRegistry;
   }
 
   export interface IProps {

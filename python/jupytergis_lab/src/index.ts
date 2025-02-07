@@ -270,7 +270,8 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     const leftControlPanel = new LeftPanelWidget({
       model: controlModel,
       tracker,
-      state
+      state,
+      commands: app.commands
     });
     leftControlPanel.id = 'jupytergis::leftControlPanel';
     leftControlPanel.title.caption = 'JupyterGIS Control Panel';

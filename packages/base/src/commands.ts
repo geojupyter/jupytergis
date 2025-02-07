@@ -176,17 +176,36 @@ export function addCommands(
       return tracker.currentWidget?.model.isTemporalControllerActive || false;
     },
     isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return false;
+      }
+
+      const selectedLayers = model.localState?.selected?.value;
+
+      // No selection / too many selections / selection is a source
+      if (
+        !selectedLayers ||
+        Object.keys(selectedLayers).length !== 1 ||
+        model.getSource(Object.keys(selectedLayers)[0])
+      ) {
+        if (model.isTemporalControllerActive) {
+          model.toggleTemporalController();
+          commands.notifyCommandChanged(CommandIDs.temporalController);
+        }
+
+        return false;
+      }
+
+      return true;
     },
-    execute: args => {
+    execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
 
-      current.model.toggleTemporalController(CommandIDs.temporalController);
+      current.model.toggleTemporalController();
       commands.notifyCommandChanged(CommandIDs.temporalController);
     },
     ...icons.get(CommandIDs.temporalController)
