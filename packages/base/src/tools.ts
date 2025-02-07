@@ -4,6 +4,7 @@ import { VectorTile } from '@mapbox/vector-tile';
 
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import * as d3Color from 'd3-color';
 import shp from 'shpjs';
 
@@ -508,6 +509,18 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
+        // First trying a direct fetch
+        try {
+          const response = await fetch(filepath);
+          const arrayBuffer = await response.arrayBuffer();
+          const geojson = await shp(arrayBuffer);
+          await saveToIndexedDB(filepath, geojson);
+          return geojson;
+        } catch (error) {
+          console.warn('Cannot load shapefile from ${filepath}: ${error}');
+        }
+
+        // Trying through our proxy server
         try {
           const response = await fetch(
             `/jupytergis_core/proxy?url=${filepath}`
@@ -517,9 +530,25 @@ export const loadFile = async (fileInfo: {
           await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
-          console.error('Error loading remote shapefile:', error);
-          throw error;
+          console.warn(
+            'Cannot communicate with the JupyterGIS proxy server:',
+            error
+          );
         }
+
+        // Trying through an external proxy server
+        try {
+          const response = await fetch(`https://corsproxy.io/?url=${filepath}`);
+          const arrayBuffer = await response.arrayBuffer();
+          const geojson = await shp(arrayBuffer);
+          await saveToIndexedDB(filepath, geojson);
+          return geojson;
+        } catch (error) {
+          console.warn('Cannot communicate with external proxy server', error);
+        }
+
+        showErrorMessage('Network error', 'Failed to fetch ${filepath}');
+        throw new Error('Failed to fetch ${filepath}');
       }
 
       case 'GeoJSONSource': {
