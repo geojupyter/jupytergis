@@ -29,7 +29,6 @@ import {
   IJupyterYWidget,
   IJupyterYWidgetManager,
   JupyterYDoc,
-  // JupyterYDoc,
   JupyterYModel
 } from 'yjs-widgets';
 

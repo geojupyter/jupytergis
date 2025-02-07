@@ -16,3 +16,4 @@ dependencies:
       - my-jupyter-shared-drive
       - ../python/jupytergis_lab
       - ../python/jupytergis_core
+      - ../python/jupytergis_lite

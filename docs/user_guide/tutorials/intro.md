@@ -15,7 +15,7 @@ By the end of this tutorial, you will:
 
 :::{admonition} Prerequisites
 :class: warning
-Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)) or you can use an online version of JupyterGIS (such as [![Jupyterlite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://geojupyter.github.io/jupytergis/lite/lab/index.html?path=france_hiking.jGIS/)).
+Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)) or you can use an online version of JupyterGIS (such as [![Jupyterlite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html?path=france_hiking.jGIS/)).
 :::
 
 ## Introduction to JupyterGIS
@@ -187,7 +187,6 @@ Congratulations on completing this tutorial! You've created a basic map in Jupyt
 
 ## Additional resources
 
-- [JupyterGIS Documentation](https://geojupyter.github.io/jupytergis)
 - [Folium Library](https://python-visualization.github.io/folium/latest/)
 - [Geopandas Documentation](https://geopandas.org/en/stable/docs.html)
 - [QGIS Documentation](https://www.qgis.org)
