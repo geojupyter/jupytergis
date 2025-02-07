@@ -538,6 +538,7 @@ export const loadFile = async (fileInfo: {
           const response = await fetch(`https://corsproxy.io/?url=${filepath}`);
           const arrayBuffer = await response.arrayBuffer();
           const geojson = await shp(arrayBuffer);
+          await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
           console.warn(
