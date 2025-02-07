@@ -4,9 +4,9 @@
 [![lite-badge]][lite] [![docs-badge]][docs]
 
 [lite-badge]: https://jupyterlite.rtfd.io/en/latest/_static/badge.svg
-[lite]: https://geojupyter.github.io/jupytergis/lite/lab/index.html?path=france_hiking.jGIS/
+[lite]: https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html?path=france_hiking.jGIS/
 [docs-badge]: https://readthedocs.org/projects/jupytergis/badge/?version=latest
-[docs]: https://geojupyter.github.io/jupytergis
+[docs]: https://jupytergis.readthedocs.io
 
 ⚠️ This extension is work in progress. Features and APIs are subject to change quickly. ⚠️
 
@@ -18,7 +18,7 @@
 - **QGIS File Support**: Load, visualize, and manipulate QGIS project files (`.qgs`, `.qgz`), and other GIS data formats.
 - **Interactive Maps**: Render interactive maps and geospatial visualizations within Jupyter notebooks using the JupyterGIS Python API.
 
-## [🪄 Try JupyterGIS now! ✨](https://geojupyter.github.io/jupytergis/lite/lab/index.html?path=france_hiking.jGIS)
+## [🪄 Try JupyterGIS now! ✨](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html?path=france_hiking.jGIS)
 
 This demo runs a JupyterLab instance entirely in your browser with WebAssembly! 🤯
 
