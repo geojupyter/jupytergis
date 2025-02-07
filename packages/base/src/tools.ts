@@ -520,6 +520,20 @@ export const loadFile = async (fileInfo: {
           console.error('Error loading remote shapefile:', error);
           throw error;
         }
+
+         // Trying through an external proxy server
+        try {
+          const response = await fetch(`https://corsproxy.io/?url=${url}`);
+          const arrayBuffer = await response.arrayBuffer();
+          const geojson = await shp(arrayBuffer);
+          return geojson;
+        } catch (error) {
+          console.warn(
+             'Cannot communicate with the JupyterGIS proxy server',
+             error
+          );
+       }
+
       }
 
       case 'GeoJSONSource': {
