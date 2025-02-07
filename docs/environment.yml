@@ -9,10 +9,10 @@ dependencies:
   - requests
   - jupyter_ydoc=2.1.5
   - ypywidgets>=0.9.6,<0.10.0
-  - yjs-widgets>=0.3.5,<0.4
   - comm>=0.1.2,<0.2.0
   - pydantic>=2,<3
   - pip:
+      - yjs-widgets>=0.4,<0.5
       - my-jupyter-shared-drive==0.1.13
       - ../python/jupytergis_lab
       - ../python/jupytergis_core
