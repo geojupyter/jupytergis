@@ -359,6 +359,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
           <Slider
             min={minMax.min}
             max={minMax.max - step}
+            value={currentValue}
             valueAsNumber={currentValue}
             step={step}
             onChange={handleChange}
