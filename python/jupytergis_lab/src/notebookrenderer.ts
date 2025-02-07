@@ -25,10 +25,10 @@ import { Toolbar } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { MessageLoop } from '@lumino/messaging';
 import { Panel, Widget } from '@lumino/widgets';
-import * as Y from 'yjs';
 import {
   IJupyterYWidget,
   IJupyterYWidgetManager,
+  JupyterYDoc,
   // JupyterYDoc,
   JupyterYModel
 } from 'yjs-widgets';
@@ -136,7 +136,9 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     }
 
     class YJupyterGISModelFactory extends YJupyterGISModel {
-      async ydocFactory(commMetadata: ICommMetadata): Promise<Y.Doc> {
+      protected async initialize(commMetadata: {
+        [key: string]: any;
+      }): Promise<void> {
         const { path, format, contentType } = commMetadata;
         const fileFormat = format as Contents.FileFormat;
 
@@ -151,7 +153,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         }
 
         // The path of the project is relative to the path of the notebook
-        let currentWidgetPath: string = '';
+        let currentWidgetPath = '';
         const currentWidget = app.shell.currentWidget;
         if (
           currentWidget instanceof NotebookPanel ||
@@ -199,7 +201,8 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           this.jupyterGISModel.filePath = localPath;
         }
 
-        return this.jupyterGISModel.sharedModel.ydoc;
+        this.ydoc = this.jupyterGISModel.sharedModel.ydoc;
+        this.sharedModel = new JupyterYDoc(commMetadata, this.ydoc);
       }
     }
 
