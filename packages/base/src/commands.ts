@@ -183,11 +183,12 @@ export function addCommands(
 
       const selectedLayers = model.localState?.selected?.value;
 
-      // No selection / too many selections / selection is a source
+      // No selection / too many selections / selection is a source /selection is not a vector layer
       if (
         !selectedLayers ||
         Object.keys(selectedLayers).length !== 1 ||
-        model.getSource(Object.keys(selectedLayers)[0])
+        model.getSource(Object.keys(selectedLayers)[0]) ||
+        model.getLayer(Object.keys(selectedLayers)[0])?.type !== 'VectorLayer'
       ) {
         if (model.isTemporalControllerActive) {
           model.toggleTemporalController();
