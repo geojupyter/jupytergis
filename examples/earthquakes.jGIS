@@ -6,13 +6,7 @@
   "layers": {
     "3e21d680-406f-4099-bd9e-3a4edb9a2c8b": {
       "filters": {
-        "appliedFilters": [
-          {
-            "feature": "convertedtime",
-            "operator": ">=",
-            "value": 1506561891990.0
-          }
-        ],
+        "appliedFilters": [],
         "logicalOp": "all"
       },
       "name": "Custom GeoJSON Layer",
@@ -48,13 +42,13 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8743782.33482077,
-      -9086918.06770886,
-      3974641.244421752,
-      19283053.908469707
+      -14723872.80667293,
+      -4835119.4874388315,
+      -1931504.9042952778,
+      13305887.78837996
     ],
-    "latitude": 41.57863106624126,
-    "longitude": -21.420961668139388,
+    "latitude": 35.52446437432016,
+    "longitude": -74.80890180273175,
     "pitch": 0.0,
     "projection": "EPSG:3857",
     "zoom": 2.6670105136699993
