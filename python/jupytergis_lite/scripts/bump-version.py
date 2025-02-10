@@ -1,11 +1,24 @@
 from pathlib import Path
 from subprocess import run
 from typing import List
+from packaging.version import parse as parse_version
 import tomlkit
 import argparse
 
 HATCH_VERSION = "hatch version"
 ROOT = Path(__file__).parent.parent
+
+
+def get_version():
+    cmd = run([HATCH_VERSION], capture_output=True, shell=True, check=True, cwd=ROOT)
+    return cmd.stdout.decode("utf-8").strip().split("\n")[-1]
+
+
+def next_version():
+    v = parse_version(get_version())
+    if v.is_prerelease:
+        return f"{v.major}.{v.minor}.{v.micro}{v.pre[0]}{v.pre[1] + 1}"
+    return f"{v.major}.{v.minor}.{v.micro + 1}"
 
 
 def bump_jupytergis_deps(py_version: str):
