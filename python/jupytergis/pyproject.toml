@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling>=1.5.0,<2"]
+requires = ["hatchling>=1.5.0,<2", "tomlkit>=0.13.2,<0.14"]
 
 [project]
 classifiers = [
@@ -19,9 +19,9 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "jupytergis_core>=0.1.0,<1",
-  "jupytergis_lab>=0.1.0,<1",
-  "jupytergis_qgis>=0.1.0,<1",
+  "jupytergis_core==0.3.0",
+  "jupytergis_lab==0.3.0",
+  "jupytergis_qgis==0.3.0",
   "jupyter-collaboration>=3,<4",
   "jupyterlab>=4.3,<5",
 ]
