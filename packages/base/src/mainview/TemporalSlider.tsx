@@ -128,6 +128,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     }
 
     setValidFeatures(featuresForSelect);
+    setSelectedFeature(featuresForSelect[0]);
   }, [featureProperties]);
 
   useEffect(() => {
@@ -308,7 +309,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
               setSelectedFeature(e.target.value);
             }}
           >
-            <option></option>
             {validFeatures.map(feature => {
               return (
                 <option value={feature} selected={selectedFeature === feature}>
