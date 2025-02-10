@@ -198,11 +198,12 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       Object.entries(stepMap).filter(([_, val]) => val < max - min)
     );
 
-    // Update the range and minMax state
     setCurrentValue(min);
     setMinMax({ min, max });
     setRange({ start: min, end: min + step });
     setValidSteps(filteredSteps);
+    setStep(Object.values(filteredSteps)[0]);
+
     model.addFeatureAsMs(layerId, selectedFeature);
   }, [selectedFeature]);
 
