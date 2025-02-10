@@ -76,7 +76,7 @@
     "pbf": "^4.0.1",
     "pmtiles": "^3.0.7",
     "proj4": "^2.14.0",
-    "proj4-list": "^1.0.2",
+    "proj4-list": "^1.0.4",
     "react": "^18.0.1",
     "shpjs": "^6.1.0",
     "styled-components": "^5.3.6",

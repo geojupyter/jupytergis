@@ -71,7 +71,6 @@ import TileSource from 'ol/source/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
-//@ts-expect-error no types for proj4list
 import proj4list from 'proj4-list';
 import * as React from 'react';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
