@@ -1332,6 +1332,10 @@ export class MainView extends React.Component<IProps, IStates> {
         ...old,
         displayTemporalController: isTemporalControllerActive
       }));
+
+      this._mainViewModel.commands.notifyCommandChanged(
+        CommandIDs.temporalController
+      );
     }
   };
 
@@ -1734,7 +1738,7 @@ export class MainView extends React.Component<IProps, IStates> {
     const { layerId, layer: jgisLayer } = json;
     const olLayer = this.getLayer(layerId);
 
-    if (!jgisLayer) {
+    if (!jgisLayer || !olLayer) {
       console.log('Layer not found');
       return;
     }
