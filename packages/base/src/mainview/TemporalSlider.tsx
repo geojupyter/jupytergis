@@ -1,7 +1,12 @@
 import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button, Slider } from '@jupyter/react-components';
-import { IDict, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IDict,
+  IJGISLayerDocChange,
+  IJupyterGISDoc,
+  IJupyterGISModel
+} from '@jupytergis/schema';
 import { format, isValid, parse, toDate } from 'date-fns';
 import {
   daysInYear,
@@ -80,13 +85,40 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       }
     };
 
+    const handleLayerChange = (
+      _: IJupyterGISDoc,
+      change: IJGISLayerDocChange
+    ) => {
+      // Get the changes for the selected layer
+      const selectedLayer = change.layerChange?.find(
+        layer => layer.id === layerIdRef.current
+      );
+
+      // Bail if there's no relevant change
+      if (!selectedLayer?.newValue) {
+        return;
+      }
+
+      const { newValue, oldValue } = selectedLayer;
+
+      // If layer was deleted (empty object) or the layer type changed, close the temporal controller
+      if (
+        Object.keys(newValue).length === 0 ||
+        newValue.type !== oldValue.type
+      ) {
+        model.toggleTemporalController();
+      }
+    };
+
     // Initial state
     handleClientStateChanged();
 
     model.clientStateChanged.connect(handleClientStateChanged);
+    model.sharedLayersChanged.connect(handleLayerChange);
 
     return () => {
       model.clientStateChanged.disconnect(handleClientStateChanged);
+      model.sharedLayersChanged.disconnect(handleLayerChange);
       removeFilter();
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -113,7 +145,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       const isNumber =
         typeof checkValue === 'number' && Number.isInteger(checkValue);
       if (!isString && !isNumber) {
-        console.log('Invalid value type');
         continue;
       }
 
@@ -240,7 +271,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   };
 
   const removeFilter = () => {
-    console.log('removing');
     const layer = model.getLayer(layerIdRef.current);
     if (!layer) {
       return;
