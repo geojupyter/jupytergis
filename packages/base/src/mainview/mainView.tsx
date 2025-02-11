@@ -889,7 +889,7 @@ export class MainView extends React.Component<IProps, IStates> {
           source: this._sources[layerParameters.source],
           blur: layerParameters.blur,
           radius: layerParameters.radius,
-          weight: layerParameters.feature,
+          // weight: layerParameters.feature,
           gradient: layerParameters.color
         });
         break;
@@ -1170,13 +1170,6 @@ export class MainView extends React.Component<IProps, IStates> {
         const layerParams = layer.parameters as IHeatmapLayer;
         const heatmap = mapLayer as HeatmapLayer;
 
-        // no old layer when filter is in memory
-        if (oldLayer && oldLayer?.parameters.feature !== layerParams.feature) {
-          // No way to change 'weight' attribute (feature used for heatmap stuff) so need to replace layer
-          this.replaceLayer(id, layer);
-          return;
-        }
-
         heatmap.setOpacity(layerParams.opacity ?? 1);
         heatmap.setBlur(layerParams.blur);
         heatmap.setRadius(layerParams.radius);
@@ -1193,7 +1186,6 @@ export class MainView extends React.Component<IProps, IStates> {
           // Save original features on first filter application
           if (this._ogFeatures.length === 0) {
             this._ogFeatures = source.getFeatures();
-            console.log('preFeatureCount', this._ogFeatures);
           }
 
           // clear current features
@@ -1202,18 +1194,20 @@ export class MainView extends React.Component<IProps, IStates> {
           const startTime = activeFilter.betweenMin ?? 0;
           const endTime = activeFilter.betweenMax ?? 1;
 
+          console.log('startTime, endTime', startTime, endTime);
+
           const filteredFeatures = this._ogFeatures.filter(feature => {
             const featureTime = feature.get(activeFilter.feature);
             return featureTime >= startTime && featureTime <= endTime;
           });
+
+          console.log('filteredFeatures', filteredFeatures);
 
           source.addFeatures(filteredFeatures);
         } else {
           // Restore original features when no filters are applied
           source.addFeatures(this._ogFeatures);
           this._ogFeatures = [];
-          const postFeatureCount = source.getFeatures();
-          console.log('postFeatureCount', postFeatureCount);
         }
 
         break;

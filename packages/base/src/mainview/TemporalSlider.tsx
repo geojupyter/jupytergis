@@ -63,6 +63,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const { featureProperties } = useGetProperties({ layerId, model });
 
   useEffect(() => {
+    // This is for when the selected layer changes
     const handleClientStateChanged = () => {
       if (!model.localState?.selected?.value) {
         return;
@@ -85,6 +86,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       }
     };
 
+    // this is for when the layer itself changes
     const handleLayerChange = (
       _: IJupyterGISDoc,
       change: IJGISLayerDocChange
@@ -269,6 +271,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     // Apply the updated filters to the layer
     layer.filters = { logicalOp, appliedFilters };
     model.triggerLayerUpdate(layerId, layer);
+    // model.sharedModel.updateLayer(layerId, layer);
   };
 
   const removeFilter = () => {
