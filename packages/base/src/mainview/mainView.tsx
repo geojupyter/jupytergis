@@ -37,7 +37,7 @@ import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
-import { FeatureLike } from 'ol/Feature';
+import Feature, { FeatureLike } from 'ol/Feature';
 import { ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
@@ -60,7 +60,7 @@ import {
 } from 'ol/proj';
 import { get as getProjection } from 'ol/proj.js';
 import { register } from 'ol/proj/proj4.js';
-import Feature from 'ol/render/Feature';
+import RenderFeature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
@@ -84,6 +84,9 @@ import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
+import BaseVectorLayer from 'ol/layer/BaseVector';
+import WebGLPointsLayerRenderer from 'ol/renderer/webgl/PointsLayer';
+import { Geometry } from 'ol/geom';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -511,7 +514,7 @@ export class MainView extends React.Component<IProps, IStates> {
             minZoom: sourceParameters.minZoom,
             maxZoom: sourceParameters.maxZoom,
             url: url,
-            format: new MVT({ featureClass: Feature })
+            format: new MVT({ featureClass: RenderFeature })
           });
         } else {
           newSource = new PMTilesVectorSource({
@@ -1167,21 +1170,58 @@ export class MainView extends React.Component<IProps, IStates> {
         const layerParams = layer.parameters as IHeatmapLayer;
         const heatmap = mapLayer as HeatmapLayer;
 
-        if (oldLayer?.feature !== layerParams.feature) {
+        // no old layer when filter is in memory
+        if (oldLayer && oldLayer?.parameters.feature !== layerParams.feature) {
           // No way to change 'weight' attribute (feature used for heatmap stuff) so need to replace layer
           this.replaceLayer(id, layer);
           return;
         }
 
-        heatmap.setOpacity(layerParams.opacity || 1);
+        heatmap.setOpacity(layerParams.opacity ?? 1);
         heatmap.setBlur(layerParams.blur);
         heatmap.setRadius(layerParams.radius);
         heatmap.setGradient(
           layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
         );
+
+        const source: VectorSource = this._sources[layerParams.source];
+
+        if (layer.filters?.appliedFilters.length) {
+          // If heatmaps ever support other filter types this won't work
+          const activeFilter = layer.filters.appliedFilters[0];
+
+          // Save original features on first filter application
+          if (this._ogFeatures.length === 0) {
+            this._ogFeatures = source.getFeatures();
+            console.log('preFeatureCount', this._ogFeatures);
+          }
+
+          // clear current features
+          source.clear();
+
+          const startTime = activeFilter.betweenMin ?? 0;
+          const endTime = activeFilter.betweenMax ?? 1;
+
+          const filteredFeatures = this._ogFeatures.filter(feature => {
+            const featureTime = feature.get(activeFilter.feature);
+            return featureTime >= startTime && featureTime <= endTime;
+          });
+
+          source.addFeatures(filteredFeatures);
+        } else {
+          // Restore original features when no filters are applied
+          source.addFeatures(this._ogFeatures);
+          this._ogFeatures = [];
+          const postFeatureCount = source.getFeatures();
+          console.log('postFeatureCount', postFeatureCount);
+        }
+
+        break;
       }
     }
   }
+
+  private _ogFeatures: Feature<Geometry>[] = [];
 
   /**
    * Wait for all layers to be loaded.
