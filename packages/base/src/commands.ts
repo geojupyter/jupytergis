@@ -236,6 +236,22 @@ export function addCommands(
     ...icons.get(CommandIDs.newVectorTileEntry)
   });
 
+  commands.addCommand(CommandIDs.buffer, {
+    label: trans.__('Buffer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+
+      if (current) {
+        console.log(current);
+      }
+    }
+  });
+
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),
     isEnabled: () => {
