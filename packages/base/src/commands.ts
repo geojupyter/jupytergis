@@ -182,13 +182,16 @@ export function addCommands(
       }
 
       const selectedLayers = model.localState?.selected?.value;
-
+      if (!selectedLayers) {
+        return false;
+      }
+      const layerType = model.getLayer(Object.keys(selectedLayers)[0])?.type;
       // Selection should only be one vector layer
+      ['VectorLayer', 'HeatmapLayer'].includes(layerType ?? '');
       if (
-        !selectedLayers ||
         Object.keys(selectedLayers).length !== 1 ||
         model.getSource(Object.keys(selectedLayers)[0]) ||
-        model.getLayer(Object.keys(selectedLayers)[0])?.type !== 'VectorLayer'
+        !['VectorLayer', 'HeatmapLayer'].includes(layerType ?? '')
       ) {
         if (model.isTemporalControllerActive) {
           model.toggleTemporalController();
