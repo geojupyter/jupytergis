@@ -868,7 +868,7 @@ export const stringToArrayBuffer = async (
   return await base64Response.arrayBuffer();
 };
 
-export const getNumericFeatures = (
+export const getNumericFeatureAttributes = (
   featureProperties: Record<string, Set<any>>
 ) => {
   // We only want number values here

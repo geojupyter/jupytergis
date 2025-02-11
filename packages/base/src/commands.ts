@@ -183,7 +183,7 @@ export function addCommands(
 
       const selectedLayers = model.localState?.selected?.value;
 
-      // No selection / too many selections / selection is a source /selection is not a vector layer
+      // Selection should only be one vector layer
       if (
         !selectedLayers ||
         Object.keys(selectedLayers).length !== 1 ||

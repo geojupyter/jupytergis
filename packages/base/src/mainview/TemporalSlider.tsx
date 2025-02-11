@@ -51,7 +51,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [range, setRange] = useState({ start: 0, end: 1 }); // min/max of current range being displayed
   const [minMax, setMinMax] = useState({ min: 0, max: 1 }); // min/max of data values
   const [validFeatures, setValidFeatures] = useState<string[]>([]);
-  const [inferredDateFormat, setInferredDateFormat] = useState('yyyy-MM-dd');
+  const [dateFormat, setDateFormat] = useState('yyyy-MM-dd');
   const [step, setStep] = useState(stepMap.year);
   const [currentValue, setCurrentValue] = useState(0);
   const [fps, setFps] = useState(1);
@@ -76,7 +76,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
         setRange({ start: 0, end: 1 });
         setMinMax({ min: 0, max: 1 });
         setValidFeatures([]);
-        setInferredDateFormat('yyyy-MM-dd');
+        setDateFormat('yyyy-MM-dd');
         setStep(stepMap.year);
         setCurrentValue(0);
         setFps(1);
@@ -135,7 +135,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
 
     // We only want to show features that could be time values
     for (const [key, set] of Object.entries(featureProperties)) {
-      let checkIfDateIsValid = false;
+      let isDateValid = false;
       const checkValue = set.values().next().value;
 
       // We only want to look at strings and whole numbers
@@ -148,12 +148,12 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
         continue;
       }
 
-      checkIfDateIsValid = isValid(toDate(checkValue));
-      if (!checkIfDateIsValid) {
+      isDateValid = isValid(toDate(checkValue));
+      if (!isDateValid) {
         continue;
       }
 
-      if (checkValue && checkIfDateIsValid) {
+      if (checkValue) {
         featuresForSelect.push(key);
       }
     }
@@ -175,16 +175,16 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     let convertedValues;
 
     if (isString) {
-      const inferredFormat = inferDateFormat(values[0]);
-      if (!inferredFormat) {
+      const dateFormatFromString = determineDateFormat(values[0]);
+      if (!dateFormatFromString) {
         console.log('Date string has an unsupported format');
         return;
       }
 
-      setInferredDateFormat(inferredFormat);
+      setDateFormat(dateFormatFromString);
 
       convertedValues = values.map(value => Date.parse(value)); // Convert all strings to milliseconds
-      setInferredDateFormat(inferredFormat);
+      setDateFormat(dateFormatFromString);
     } else {
       convertedValues = values; // Keep numbers as they are
     }
@@ -208,7 +208,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   }, [selectedFeature]);
 
   // Infer the date format from a date string
-  const inferDateFormat = (dateString: string): string | null => {
+  const determineDateFormat = (dateString: string): string | null => {
     for (const format of commonDateFormats) {
       const parsedDate = parse(dateString, format, new Date());
       if (isValid(parsedDate)) {
@@ -352,9 +352,8 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
         {/* Current frame */}
         <div>
           <span>Current Frame:</span>{' '}
-          {millisecondsToDateString(range.start, inferredDateFormat)} ≤{' '}
-          <span>t</span> ≤{' '}
-          {millisecondsToDateString(range.end, inferredDateFormat)}
+          {millisecondsToDateString(range.start, dateFormat)} ≤ <span>t</span> ≤{' '}
+          {millisecondsToDateString(range.end, dateFormat)}
         </div>
       </div>
       <div className="jp-gis-temporal-slider-row">
@@ -402,9 +401,8 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
         {/* range */}
         <div>
           <span>Range: </span>
-          {millisecondsToDateString(minMax.min, inferredDateFormat)}{' '}
-          <span>to </span>
-          {millisecondsToDateString(minMax.max, inferredDateFormat)}
+          {millisecondsToDateString(minMax.min, dateFormat)} <span>to </span>
+          {millisecondsToDateString(minMax.max, dateFormat)}
         </div>
         {/* step */}
         <div>

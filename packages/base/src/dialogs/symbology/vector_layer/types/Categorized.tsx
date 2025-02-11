@@ -2,7 +2,7 @@ import { IVectorLayer } from '@jupytergis/schema';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { getNumericFeatures } from '../../../../tools';
+import { getNumericFeatureAttributes } from '../../../../tools';
 import ColorRamp from '../../components/color_ramp/ColorRamp';
 import StopContainer from '../../components/color_stops/StopContainer';
 import { useGetProperties } from '../../hooks/useGetProperties';
@@ -58,7 +58,7 @@ const Categorized = ({
 
   useEffect(() => {
     // We only want number values here
-    const numericFeatures = getNumericFeatures(featureProperties);
+    const numericFeatures = getNumericFeatureAttributes(featureProperties);
 
     setFeatures(numericFeatures);
 

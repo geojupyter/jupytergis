@@ -1,7 +1,7 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { getNumericFeatures } from '../../../../tools';
+import { getNumericFeatureAttributes } from '../../../../tools';
 import { VectorClassifications } from '../../classificationModes';
 import ColorRamp, {
   ColorRampOptions
@@ -95,7 +95,7 @@ const Graduated = ({
     }
 
     // We only want number values here
-    const numericFeatures = getNumericFeatures(featureProperties);
+    const numericFeatures = getNumericFeatureAttributes(featureProperties);
 
     setFeatures(numericFeatures);
 
