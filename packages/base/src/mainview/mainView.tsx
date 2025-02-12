@@ -704,7 +704,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this.removeSource(id);
     try {
-      // create updated source
       await this.addSource(id, source, layerId);
 
       // change source of target layer
@@ -723,38 +722,9 @@ export class MainView extends React.Component<IProps, IStates> {
         loadingErrors: old.loadingErrors.filter(item => item.id !== layerId)
       }));
     } catch (error: any) {
-      if (!error.message) {
-        error.message = 'invalid file path';
-      }
-      if (
-        this.state.loadingErrors.find(
-          item => item.id === id && item.error === error.message
-        )
-      ) {
-        this.setState(old => ({ ...old, loadingLayer: false }));
-        this._loadingLayers.delete(id);
-        return;
-      }
       const layer = this._model.sharedModel.getLayer(layerId);
       if (layer) {
-        await showErrorMessage(
-          `Error Adding ${layer.name}`,
-          `Failed to add ${layer.name}: ${error.message || 'invalid file path'}`
-        );
-        layer.visible = false;
-        mapLayer.setVisible(layer.visible);
-        layer.failed = true;
-        this._model.sharedModel.updateLayer(layerId, layer);
-        this.setState(old => ({
-          ...old,
-          loadingLayer: false,
-          loadingErrors: [
-            ...old.loadingErrors,
-            { id, error: error.message || 'invalid file path' }
-          ]
-        }));
-
-        this._loadingLayers.delete(id);
+        await this.handleLayerError(layerId, layer, error, mapLayer);
       }
     }
   }
@@ -1015,7 +985,6 @@ export class MainView extends React.Component<IProps, IStates> {
       if (newMapLayer !== undefined) {
         await this._waitForReady();
 
-        // Adjust index to ensure it's within bounds
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
@@ -1027,40 +996,7 @@ export class MainView extends React.Component<IProps, IStates> {
         }));
       }
     } catch (error: any) {
-      if (!error.message) {
-        error.message = 'invalid file path';
-      }
-
-      // Check if the error message has already been recorded
-      if (
-        this.state.loadingErrors.find(
-          item => item.id === id && item.error === error.message
-        )
-      ) {
-        this.setState(old => ({ ...old, loadingLayer: false }));
-        this._loadingLayers.delete(id);
-        return;
-      }
-
-      await showErrorMessage(
-        `Error Adding ${layer.name}`,
-        `Failed to add ${layer.name}: ${error.message || 'invalid file path'}`
-      );
-      layer.visible = false;
-      layer.failed = true;
-      this._model.sharedModel.updateLayer(id, layer);
-
-      this.setState(old => ({
-        ...old,
-        loadingLayer: false,
-        loadingErrors: [
-          ...old.loadingErrors,
-          { id, error: error.message || 'invalid file path' }
-        ]
-      }));
-
-      // Remove from _loadingLayers after the error handling
-      this._loadingLayers.delete(id);
+      await this.handleLayerError(id, layer, error);
     }
   }
 
@@ -1800,6 +1736,45 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
     }
+  }
+
+  private async handleLayerError(
+    id: string,
+    layer: IJGISLayer,
+    error: any,
+    mapLayer?: Layer
+  ): Promise<void> {
+    if (!error.message) {
+      error.message = 'Invalid file path';
+    }
+
+    if (
+      this.state.loadingErrors.find(
+        item => item.id === id && item.error === error.message
+      )
+    ) {
+      this.setState(old => ({ ...old, loadingLayer: false }));
+      this._loadingLayers.delete(id);
+      return;
+    }
+
+    await showErrorMessage(
+      `Error Adding ${layer.name}`,
+      `Failed to add ${layer.name}: ${error.message}`
+    );
+
+    layer.visible = false;
+    mapLayer?.setVisible(layer.visible);
+    layer.failed = true;
+    this._model.sharedModel.updateLayer(id, layer);
+
+    this.setState(old => ({
+      ...old,
+      loadingLayer: false,
+      loadingErrors: [...old.loadingErrors, { id, error: error.message }]
+    }));
+
+    this._loadingLayers.delete(id);
   }
 
   private _handleThemeChange = (): void => {
