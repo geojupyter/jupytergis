@@ -72,17 +72,11 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       const selectedLayerId = Object.keys(model.localState.selected.value)[0];
 
       // reset
+      // ? TODO restore from existing filter object if possible?
       if (selectedLayerId !== layerIdRef.current) {
-        setSelectedFeature('');
-        setRange({ start: 0, end: 1 });
-        setMinMax({ min: 0, max: 1 });
-        setValidFeatures([]);
-        setDateFormat('yyyy-MM-dd');
-        setStep(stepMap.year);
-        setCurrentValue(0);
-        setFps(1);
-        setValidSteps({});
         setLayerId(selectedLayerId);
+        setDateFormat('yyyy-MM-dd');
+        setFps(1);
       }
     };
 
@@ -133,6 +127,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   }, [layerId]);
 
   useEffect(() => {
+    console.log('feature prop effect');
     const featuresForSelect = [];
 
     // We only want to show features that could be time values
@@ -204,7 +199,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     setMinMax({ min, max });
     setRange({ start: min, end: min + step });
     setValidSteps(filteredSteps);
-    setStep(Object.values(filteredSteps)[0]);
+    setStep(Object.values(filteredSteps).slice(-1)[0]);
 
     model.addFeatureAsMs(layerId, selectedFeature);
   }, [selectedFeature]);

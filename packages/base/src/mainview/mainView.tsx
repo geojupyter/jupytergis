@@ -1176,34 +1176,7 @@ export class MainView extends React.Component<IProps, IStates> {
           layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
         );
 
-        const source: VectorSource = this._sources[layerParams.source];
-
-        if (layer.filters?.appliedFilters.length) {
-          // Heatmaps don't work with existing filter system so this should be fine
-          const activeFilter = layer.filters.appliedFilters[0];
-
-          // Save original features on first filter application
-          if (!Object.keys(this._ogFeatures).includes(id)) {
-            this._ogFeatures[id] = source.getFeatures();
-          }
-
-          // clear current features
-          source.clear();
-
-          const startTime = activeFilter.betweenMin ?? 0;
-          const endTime = activeFilter.betweenMax ?? 1;
-
-          const filteredFeatures = this._ogFeatures[id].filter(feature => {
-            const featureTime = feature.get(activeFilter.feature);
-            return featureTime >= startTime && featureTime <= endTime;
-          });
-
-          source.addFeatures(filteredFeatures);
-        } else {
-          // Restore original features when no filters are applied
-          source.addFeatures(this._ogFeatures[id]);
-          delete this._ogFeatures[id];
-        }
+        this.handleTimeStuff(id, layer);
 
         break;
       }
@@ -1211,6 +1184,52 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _ogFeatures: IDict<Feature<Geometry>[]> = {};
+  handleTimeStuff = (id: string, layer: IJGISLayer) => {
+    const selectedLayer = this._model?.localState?.selected?.value;
+
+    if (!selectedLayer || Object.keys(selectedLayer).length !== 1) {
+      console.warn('This shouldnt happen');
+      return;
+    }
+
+    const selectedLayerId = Object.keys(selectedLayer)[0];
+
+    // Don't do anything to nonselected layers
+    if (selectedLayerId !== id) {
+      return;
+    }
+
+    const layerParams = layer.parameters as IHeatmapLayer;
+
+    const source: VectorSource = this._sources[layerParams.source];
+
+    if (layer.filters?.appliedFilters.length) {
+      // Heatmaps don't work with existing filter system so this should be fine
+      const activeFilter = layer.filters.appliedFilters[0];
+
+      // Save original features on first filter application
+      if (!Object.keys(this._ogFeatures).includes(id)) {
+        this._ogFeatures[id] = source.getFeatures();
+      }
+
+      // clear current features
+      source.clear();
+
+      const startTime = activeFilter.betweenMin ?? 0;
+      const endTime = activeFilter.betweenMax ?? 1;
+
+      const filteredFeatures = this._ogFeatures[id].filter(feature => {
+        const featureTime = feature.get(activeFilter.feature);
+        return featureTime >= startTime && featureTime <= endTime;
+      });
+
+      source.addFeatures(filteredFeatures);
+    } else {
+      // Restore original features when no filters are applied
+      source.addFeatures(this._ogFeatures[id]);
+      delete this._ogFeatures[id];
+    }
+  };
 
   /**
    * Wait for all layers to be loaded.
