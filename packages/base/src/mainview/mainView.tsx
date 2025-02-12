@@ -99,7 +99,7 @@ interface IStates {
   viewProjection: { code: string; units: string };
   loadingLayer: boolean;
   scale: number;
-  loadingErrors: Array<{ id: string; error: any; index: number }>;
+  loadingErrors: Array<{ id: string; error: any }>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -683,17 +683,50 @@ export class MainView extends React.Component<IProps, IStates> {
   async updateSource(id: string, source: IJGISSource): Promise<void> {
     // get the layer id associated with this source
     const layerId = this._sourceToLayerMap.get(id);
+
     // get the OL layer
-    const mapLayer = this.getLayer(layerId);
+    let mapLayer = this.getLayer(layerId);
+
     if (!mapLayer) {
-      return;
+      // The layer was never added due to an invalid source
+      const layer = this._model.sharedModel.getLayer(layerId);
+      if (layer) {
+        await this.addLayer(layerId, layer, this._Map.getLayers().getLength());
+        mapLayer = this.getLayer(layerId);
+        if (!mapLayer) {
+          console.error(`Failed to add missing layer: ${layerId}`);
+          return;
+        }
+      } else {
+        return;
+      }
     }
-    // remove source being updated
+
     this.removeSource(id);
-    // create updated source
-    await this.addSource(id, source, layerId);
-    // change source of target layer
-    (mapLayer as Layer).setSource(this._sources[id]);
+    try {
+      await this.addSource(id, source, layerId);
+
+      // change source of target layer
+      (mapLayer as Layer).setSource(this._sources[id]);
+
+      const layer = this._model.sharedModel.getLayer(layerId);
+      if (layer) {
+        layer.failed = false;
+        layer.visible = true;
+        mapLayer.setVisible(layer.visible);
+        this._model.sharedModel.updateLayer(layerId, layer);
+      }
+      this.setState(old => ({
+        ...old,
+        loadingLayer: false,
+        loadingErrors: old.loadingErrors.filter(item => item.id !== layerId)
+      }));
+    } catch (error: any) {
+      const layer = this._model.sharedModel.getLayer(layerId);
+      if (layer) {
+        await this.handleLayerError(layerId, layer, error, mapLayer);
+      }
+    }
   }
 
   /**
@@ -945,38 +978,25 @@ export class MainView extends React.Component<IProps, IStates> {
       // Layer already exists
       return;
     }
+    this._sourceToLayerMap.set(layer.parameters?.source, id);
 
     try {
       const newMapLayer = await this._buildMapLayer(id, layer);
       if (newMapLayer !== undefined) {
         await this._waitForReady();
 
-        // Adjust index to ensure it's within bounds
         const numLayers = this._Map.getLayers().getLength();
         const safeIndex = Math.min(index, numLayers);
         this._Map.getLayers().insertAt(safeIndex, newMapLayer);
+
+        this.setState(old => ({
+          ...old,
+          loadingLayer: false,
+          loadingErrors: old.loadingErrors.filter(item => item.id !== id)
+        }));
       }
     } catch (error: any) {
-      if (
-        this.state.loadingErrors.find(
-          item => item.id === id && item.error === error.message
-        )
-      ) {
-        this._loadingLayers.delete(id);
-        return;
-      }
-
-      await showErrorMessage(
-        `Error Adding ${layer.name}`,
-        `Failed to add ${layer.name}: ${error.message || 'invalid file path'}`
-      );
-      this.setState(old => ({ ...old, loadingLayer: false }));
-      this.state.loadingErrors.push({
-        id,
-        error: error.message || 'invalid file path',
-        index
-      });
-      this._loadingLayers.delete(id);
+      await this.handleLayerError(id, layer, error);
     }
   }
 
@@ -1109,79 +1129,83 @@ export class MainView extends React.Component<IProps, IStates> {
     oldLayer: IDict,
     mapLayer: Layer
   ): Promise<void> {
-    const sourceId = layer.parameters?.source;
-    const source = this._model.sharedModel.getLayerSource(sourceId);
-    if (!source) {
-      return;
-    }
-
-    if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source, id);
-    }
-
-    mapLayer.setVisible(layer.visible);
-
-    switch (layer.type) {
-      case 'RasterLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity || 1);
-        break;
+    try {
+      const sourceId = layer.parameters?.source;
+      const source = this._model.sharedModel.getLayerSource(sourceId);
+      if (!source) {
+        return;
       }
-      case 'VectorLayer': {
-        const layerParams = layer.parameters as IVectorLayer;
 
-        mapLayer.setOpacity(layerParams.opacity || 1);
-
-        (mapLayer as VectorLayer).setStyle(
-          this.vectorLayerStyleRuleBuilder(layer)
-        );
-
-        break;
+      if (!this._sources[sourceId]) {
+        await this.addSource(sourceId, source, id);
       }
-      case 'VectorTileLayer': {
-        const layerParams = layer.parameters as IVectorTileLayer;
 
-        mapLayer.setOpacity(layerParams.opacity || 1);
+      mapLayer.setVisible(layer.visible);
 
-        (mapLayer as VectorTileLayer).setStyle(
-          this.vectorLayerStyleRuleBuilder(layer)
-        );
-
-        break;
-      }
-      case 'HillshadeLayer': {
-        // TODO figure out color here
-        break;
-      }
-      case 'ImageLayer': {
-        break;
-      }
-      case 'WebGlLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity);
-
-        if (layer?.parameters?.color) {
-          (mapLayer as WebGlTileLayer).setStyle({
-            color: layer.parameters.color
-          });
+      switch (layer.type) {
+        case 'RasterLayer': {
+          mapLayer.setOpacity(layer.parameters?.opacity || 1);
+          break;
         }
-        break;
-      }
-      case 'HeatmapLayer': {
-        const layerParams = layer.parameters as IHeatmapLayer;
-        const heatmap = mapLayer as HeatmapLayer;
+        case 'VectorLayer': {
+          const layerParams = layer.parameters as IVectorLayer;
 
-        if (oldLayer.feature !== layerParams.feature) {
-          // No way to change 'weight' attribute (feature used for heatmap stuff) so need to replace layer
-          this.replaceLayer(id, layer);
-          return;
+          mapLayer.setOpacity(layerParams.opacity || 1);
+
+          (mapLayer as VectorLayer).setStyle(
+            this.vectorLayerStyleRuleBuilder(layer)
+          );
+
+          break;
         }
+        case 'VectorTileLayer': {
+          const layerParams = layer.parameters as IVectorTileLayer;
 
-        heatmap.setOpacity(layerParams.opacity || 1);
-        heatmap.setBlur(layerParams.blur);
-        heatmap.setRadius(layerParams.radius);
-        heatmap.setGradient(
-          layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
-        );
+          mapLayer.setOpacity(layerParams.opacity || 1);
+
+          (mapLayer as VectorTileLayer).setStyle(
+            this.vectorLayerStyleRuleBuilder(layer)
+          );
+
+          break;
+        }
+        case 'HillshadeLayer': {
+          // TODO figure out color here
+          break;
+        }
+        case 'ImageLayer': {
+          break;
+        }
+        case 'WebGlLayer': {
+          mapLayer.setOpacity(layer.parameters?.opacity);
+
+          if (layer?.parameters?.color) {
+            (mapLayer as WebGlTileLayer).setStyle({
+              color: layer.parameters.color
+            });
+          }
+          break;
+        }
+        case 'HeatmapLayer': {
+          const layerParams = layer.parameters as IHeatmapLayer;
+          const heatmap = mapLayer as HeatmapLayer;
+
+          if (oldLayer.feature !== layerParams.feature) {
+            // No way to change 'weight' attribute (feature used for heatmap stuff) so need to replace layer
+            this.replaceLayer(id, layer);
+            return;
+          }
+
+          heatmap.setOpacity(layerParams.opacity || 1);
+          heatmap.setBlur(layerParams.blur);
+          heatmap.setRadius(layerParams.radius);
+          heatmap.setGradient(
+            layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
+          );
+        }
       }
+    } catch (error: any) {
+      console.error('Error updating layer:', error);
     }
   }
 
@@ -1712,6 +1736,45 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
     }
+  }
+
+  private async handleLayerError(
+    id: string,
+    layer: IJGISLayer,
+    error: any,
+    mapLayer?: Layer
+  ): Promise<void> {
+    if (!error.message) {
+      error.message = 'Invalid file path';
+    }
+
+    if (
+      this.state.loadingErrors.find(
+        item => item.id === id && item.error === error.message
+      )
+    ) {
+      this.setState(old => ({ ...old, loadingLayer: false }));
+      this._loadingLayers.delete(id);
+      return;
+    }
+
+    await showErrorMessage(
+      `Error Adding ${layer.name}`,
+      `Failed to add ${layer.name}: ${error.message}`
+    );
+
+    layer.visible = false;
+    mapLayer?.setVisible(layer.visible);
+    layer.failed = true;
+    this._model.sharedModel.updateLayer(id, layer);
+
+    this.setState(old => ({
+      ...old,
+      loadingLayer: false,
+      loadingErrors: [...old.loadingErrors, { id, error: error.message }]
+    }));
+
+    this._loadingLayers.delete(id);
   }
 
   private _handleThemeChange = (): void => {

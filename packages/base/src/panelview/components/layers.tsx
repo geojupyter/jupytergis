@@ -410,6 +410,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
       onDragOver={Private.onDragOver}
       onDragEnd={Private.onDragEnd}
       data-id={layerId}
+      style={{ textDecoration: layer.failed ? 'line-through' : 'none' }}
     >
       <div
         className={LAYER_TITLE_CLASS}

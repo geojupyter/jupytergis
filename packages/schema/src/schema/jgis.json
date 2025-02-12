@@ -73,6 +73,10 @@
         },
         "filters": {
           "$ref": "#/definitions/jGISFilter"
+        },
+        "failed": {
+          "type": "boolean",
+          "default": false
         }
       }
     },
