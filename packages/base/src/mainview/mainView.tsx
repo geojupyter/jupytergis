@@ -84,8 +84,6 @@ import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
-import BaseVectorLayer from 'ol/layer/BaseVector';
-import WebGLPointsLayerRenderer from 'ol/renderer/webgl/PointsLayer';
 import { Geometry } from 'ol/geom';
 
 interface IProps {
@@ -106,6 +104,7 @@ interface IStates {
   scale: number;
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
+  filterStates: IDict<IJGISFilterItem | undefined>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -149,7 +148,8 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingLayer: false,
       scale: 0,
       loadingErrors: [],
-      displayTemporalController: false
+      displayTemporalController: false,
+      filterStates: {}
     };
 
     this._sources = [];
@@ -1223,6 +1223,15 @@ export class MainView extends React.Component<IProps, IStates> {
         return featureTime >= startTime && featureTime <= endTime;
       });
 
+      // set state for restoration
+      this.setState(old => ({
+        ...old,
+        filterStates: {
+          ...this.state.filterStates,
+          [selectedLayerId]: activeFilter
+        }
+      }));
+
       source.addFeatures(filteredFeatures);
     } else {
       // Restore original features when no filters are applied
@@ -1850,7 +1859,10 @@ export class MainView extends React.Component<IProps, IStates> {
 
         <div className="jGIS-Mainview-Container">
           {this.state.displayTemporalController && (
-            <TemporalSlider model={this._model} />
+            <TemporalSlider
+              model={this._model}
+              filterStates={this.state.filterStates}
+            />
           )}
           <div
             className="jGIS-Mainview"

@@ -22,6 +22,7 @@ import { useGetProperties } from '../dialogs/symbology/hooks/useGetProperties';
 
 interface ITemporalSliderProps {
   model: IJupyterGISModel;
+  filterStates: IDict<IJGISFilterItem | undefined>;
 }
 
 // List of common date formats to try
@@ -46,7 +47,7 @@ const stepMap = {
   year: millisecondsInDay * daysInYear
 };
 
-const TemporalSlider = ({ model }: ITemporalSliderProps) => {
+const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
   const [layerId, setLayerId] = useState('');
   const [selectedFeature, setSelectedFeature] = useState('');
   const [range, setRange] = useState({ start: 0, end: 1 }); // min/max of current range being displayed
@@ -57,9 +58,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [currentValue, setCurrentValue] = useState(0);
   const [fps, setFps] = useState(1);
   const [validSteps, setValidSteps] = useState<IDict>({});
-  const [filterStates, setFilterStates] = useState<
-    IDict<IJGISFilterItem | undefined>
-  >({});
 
   const layerIdRef = useRef('');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -259,7 +257,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   };
 
   const applyFilter = (value: number) => {
-    console.log('apply filter');
     const newFilter = {
       feature: `${selectedFeature}ms`,
       operator: 'between' as const,
@@ -292,10 +289,10 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       appliedFilters.push(newFilter);
     }
 
-    setFilterStates(prevState => ({
-      ...prevState,
-      [layerId]: newFilter
-    }));
+    // setFilterStates(prevState => ({
+    //   ...prevState,
+    //   [layerId]: newFilter
+    // }));
 
     // Apply the updated filters to the layer
     layer.filters = { logicalOp, appliedFilters };
