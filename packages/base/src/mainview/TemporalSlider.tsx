@@ -8,12 +8,13 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel
 } from '@jupytergis/schema';
-import { format, isValid, parse, toDate } from 'date-fns';
+import { format, isValid, parse } from 'date-fns';
 import {
   daysInYear,
   millisecondsInDay,
   millisecondsInHour,
   millisecondsInMinute,
+  millisecondsInSecond,
   millisecondsInWeek,
   minutesInMonth
 } from 'date-fns/constants';
@@ -26,6 +27,7 @@ interface ITemporalSliderProps {
 }
 
 // List of common date formats to try
+// TODO: Not even close to every valid format
 const commonDateFormats = [
   'yyyy-MM-dd', // ISO format (e.g., 2023-10-05)
   'dd/MM/yyyy', // European format (e.g., 05/10/2023)
@@ -40,6 +42,9 @@ const commonDateFormats = [
 
 // Time steps in milliseconds
 const stepMap = {
+  millisecond: 1,
+  second: millisecondsInSecond,
+  minute: millisecondsInMinute,
   hour: millisecondsInHour,
   day: millisecondsInDay,
   week: millisecondsInWeek,
@@ -64,6 +69,7 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
 
   const { featureProperties } = useGetProperties({ layerId, model });
 
+  console.log('top', currentValue);
   useEffect(() => {
     // This is for when the selected layer changes
     const handleClientStateChanged = () => {
@@ -74,7 +80,6 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
       const selectedLayerId = Object.keys(model.localState.selected.value)[0];
 
       // reset
-      // ? TODO restore from existing filter object if possible?
       if (selectedLayerId !== layerIdRef.current) {
         setLayerId(selectedLayerId);
         setDateFormat('yyyy-MM-dd');
@@ -129,65 +134,64 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
   }, [layerId]);
 
   useEffect(() => {
-    const featuresForSelect = [];
+    const results: string[] = [];
 
-    // We only want to show features that could be time values
     for (const [key, set] of Object.entries(featureProperties)) {
-      let isDateValid = false;
-      const checkValue = set.values().next().value;
-
-      // We only want to look at strings and whole numbers
-      // ? Is there a better way to check if number values are valid timestamps?
-      // ! QGIS doesn't actually support number values for their time thing
-      const isString = typeof checkValue === 'string';
-      const isNumber =
-        typeof checkValue === 'number' && Number.isInteger(checkValue);
-      if (!isString && !isNumber) {
+      if (set.size === 0) {
         continue;
       }
 
-      isDateValid = isValid(toDate(checkValue));
-      if (!isDateValid) {
+      const sampleValue = set.values().next().value;
+
+      // Validate value type
+      const isString = typeof sampleValue === 'string';
+      const isInteger = Number.isInteger(sampleValue);
+      if (!isString && !isInteger) {
         continue;
       }
 
-      if (checkValue) {
-        featuresForSelect.push(key);
+      // Date validation
+      if (isString) {
+        const dateFormatFromString = determineDateFormat(sampleValue);
+
+        if (!dateFormatFromString) {
+          continue;
+        }
+        setDateFormat(dateFormatFromString);
       }
+
+      results.push(key);
     }
 
-    setValidFeatures(featuresForSelect);
-    // const currentStateSelectedValue = filterStates[layerId]?.feature;
-
-    // // Delete the ms
-    // const loseMS = currentStateSelectedValue?.slice(0, -2);
-    // console.log('loseMS', loseMS);
-    setSelectedFeature(featuresForSelect[0]);
+    // if we have state then remove the ms from the converted feature name
+    const currentState = filterStates[layerId];
+    const currentFeature = currentState?.feature.slice(0, -2);
+    setValidFeatures(results);
+    setSelectedFeature(currentFeature ?? results[0]);
   }, [featureProperties]);
 
   useEffect(() => {
-    if (!selectedFeature) {
+    console.log('selecting feature');
+    if (!selectedFeature || !featureProperties[selectedFeature]) {
       return;
     }
 
-    // Get the values from the selected feature
-    const values: any[] = Array.from(featureProperties[selectedFeature]);
+    // Get and validate values
+    const valueSet = featureProperties[selectedFeature];
+    if (valueSet.size === 0) {
+      return;
+    }
+
+    const values = Array.from(valueSet);
+    const [firstValue] = values;
 
     // Check the type of the first element
-    const isString = typeof values[0] === 'string';
-    let convertedValues;
+    const isString = typeof firstValue === 'string';
+
+    let convertedValues: number[];
 
     if (isString) {
-      const dateFormatFromString = determineDateFormat(values[0]);
-      if (!dateFormatFromString) {
-        console.log('Date string has an unsupported format');
-        return;
-      }
-
-      setDateFormat(dateFormatFromString);
-
       convertedValues = values.map(value => Date.parse(value)); // Convert all strings to milliseconds
-      setDateFormat(dateFormatFromString);
     } else {
       convertedValues = values; // Keep numbers as they are
     }
@@ -203,19 +207,16 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
 
     //using filter item as a state object to restore prev values
     const currentState = filterStates[layerId];
-    if (typeof currentState?.value === 'string') {
-      return;
-    }
+    const step =
+      Object.values(filteredSteps).slice(-1)[0] ?? stepMap.millisecond;
 
+    setValidSteps(filteredSteps);
+    setStep(step);
     setMinMax({ min, max });
-
     setRange({
       start: currentState?.betweenMin ?? min,
       end: currentState?.betweenMax ?? min + step
     });
-
-    setValidSteps(filteredSteps);
-    setStep(Object.values(filteredSteps).slice(-1)[0]);
 
     model.addFeatureAsMs(layerId, selectedFeature);
   }, [selectedFeature]);
@@ -251,6 +252,7 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
   };
 
   const handleChange = (e: any) => {
+    console.log('hanfdle change', e.target.value);
     setCurrentValue(+e.target.value);
     setRange({ start: +e.target.value, end: +e.target.value + step });
     applyFilter(+e.target.value);
