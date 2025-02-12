@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button, Slider } from '@jupyter/react-components';
 import {
   IDict,
+  IJGISFilterItem,
   IJGISLayerDocChange,
   IJupyterGISDoc,
   IJupyterGISModel
@@ -56,6 +57,9 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   const [currentValue, setCurrentValue] = useState(0);
   const [fps, setFps] = useState(1);
   const [validSteps, setValidSteps] = useState<IDict>({});
+  const [filterStates, setFilterStates] = useState<
+    IDict<IJGISFilterItem | undefined>
+  >({});
 
   const layerIdRef = useRef('');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -127,7 +131,6 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   }, [layerId]);
 
   useEffect(() => {
-    console.log('feature prop effect');
     const featuresForSelect = [];
 
     // We only want to show features that could be time values
@@ -156,6 +159,11 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
     }
 
     setValidFeatures(featuresForSelect);
+    // const currentStateSelectedValue = filterStates[layerId]?.feature;
+
+    // // Delete the ms
+    // const loseMS = currentStateSelectedValue?.slice(0, -2);
+    // console.log('loseMS', loseMS);
     setSelectedFeature(featuresForSelect[0]);
   }, [featureProperties]);
 
@@ -195,14 +203,34 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       Object.entries(stepMap).filter(([_, val]) => val < max - min)
     );
 
-    setCurrentValue(min);
+    //using filter item as a state object to restore prev values
+    const currentState = filterStates[layerId];
+    if (typeof currentState?.value === 'string') {
+      return;
+    }
+
     setMinMax({ min, max });
-    setRange({ start: min, end: min + step });
+
+    setRange({
+      start: currentState?.betweenMin ?? min,
+      end: currentState?.betweenMax ?? min + step
+    });
+
     setValidSteps(filteredSteps);
     setStep(Object.values(filteredSteps).slice(-1)[0]);
 
     model.addFeatureAsMs(layerId, selectedFeature);
   }, [selectedFeature]);
+
+  useEffect(() => {
+    const currentState = filterStates[layerId];
+    if (typeof currentState?.value === 'string') {
+      console.log('broke');
+      return;
+    }
+
+    setCurrentValue(currentState?.value ?? 0);
+  }, [minMax]);
 
   // Infer the date format from a date string
   const determineDateFormat = (dateString: string): string | null => {
@@ -231,6 +259,7 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
   };
 
   const applyFilter = (value: number) => {
+    console.log('apply filter');
     const newFilter = {
       feature: `${selectedFeature}ms`,
       operator: 'between' as const,
@@ -262,6 +291,11 @@ const TemporalSlider = ({ model }: ITemporalSliderProps) => {
       // If not found, add the new filter
       appliedFilters.push(newFilter);
     }
+
+    setFilterStates(prevState => ({
+      ...prevState,
+      [layerId]: newFilter
+    }));
 
     // Apply the updated filters to the layer
     layer.filters = { logicalOp, appliedFilters };
