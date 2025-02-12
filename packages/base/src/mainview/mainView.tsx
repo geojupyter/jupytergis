@@ -887,9 +887,8 @@ export class MainView extends React.Component<IProps, IStates> {
         newMapLayer = new HeatmapLayer({
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source],
-          blur: layerParameters.blur,
-          radius: layerParameters.radius,
-          // weight: layerParameters.feature,
+          blur: layerParameters.blur ?? 15,
+          radius: layerParameters.radius ?? 8,
           gradient: layerParameters.color
         });
         break;
@@ -1171,8 +1170,8 @@ export class MainView extends React.Component<IProps, IStates> {
         const heatmap = mapLayer as HeatmapLayer;
 
         heatmap.setOpacity(layerParams.opacity ?? 1);
-        heatmap.setBlur(layerParams.blur);
-        heatmap.setRadius(layerParams.radius);
+        heatmap.setBlur(layerParams.blur ?? 15);
+        heatmap.setRadius(layerParams.radius ?? 8);
         heatmap.setGradient(
           layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
         );
@@ -1180,12 +1179,12 @@ export class MainView extends React.Component<IProps, IStates> {
         const source: VectorSource = this._sources[layerParams.source];
 
         if (layer.filters?.appliedFilters.length) {
-          // If heatmaps ever support other filter types this won't work
+          // Heatmaps don't work with existing filter system so this should be fine
           const activeFilter = layer.filters.appliedFilters[0];
 
           // Save original features on first filter application
-          if (this._ogFeatures.length === 0) {
-            this._ogFeatures = source.getFeatures();
+          if (!Object.keys(this._ogFeatures).includes(id)) {
+            this._ogFeatures[id] = source.getFeatures();
           }
 
           // clear current features
@@ -1194,20 +1193,16 @@ export class MainView extends React.Component<IProps, IStates> {
           const startTime = activeFilter.betweenMin ?? 0;
           const endTime = activeFilter.betweenMax ?? 1;
 
-          console.log('startTime, endTime', startTime, endTime);
-
-          const filteredFeatures = this._ogFeatures.filter(feature => {
+          const filteredFeatures = this._ogFeatures[id].filter(feature => {
             const featureTime = feature.get(activeFilter.feature);
             return featureTime >= startTime && featureTime <= endTime;
           });
 
-          console.log('filteredFeatures', filteredFeatures);
-
           source.addFeatures(filteredFeatures);
         } else {
           // Restore original features when no filters are applied
-          source.addFeatures(this._ogFeatures);
-          this._ogFeatures = [];
+          source.addFeatures(this._ogFeatures[id]);
+          delete this._ogFeatures[id];
         }
 
         break;
@@ -1215,7 +1210,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
-  private _ogFeatures: Feature<Geometry>[] = [];
+  private _ogFeatures: IDict<Feature<Geometry>[]> = {};
 
   /**
    * Wait for all layers to be loaded.
