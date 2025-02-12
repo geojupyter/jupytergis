@@ -1193,79 +1193,83 @@ export class MainView extends React.Component<IProps, IStates> {
     oldLayer: IDict,
     mapLayer: Layer
   ): Promise<void> {
-    const sourceId = layer.parameters?.source;
-    const source = this._model.sharedModel.getLayerSource(sourceId);
-    if (!source) {
-      return;
-    }
-
-    if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source, id);
-    }
-
-    mapLayer.setVisible(layer.visible);
-
-    switch (layer.type) {
-      case 'RasterLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity || 1);
-        break;
+    try {
+      const sourceId = layer.parameters?.source;
+      const source = this._model.sharedModel.getLayerSource(sourceId);
+      if (!source) {
+        return;
       }
-      case 'VectorLayer': {
-        const layerParams = layer.parameters as IVectorLayer;
 
-        mapLayer.setOpacity(layerParams.opacity || 1);
-
-        (mapLayer as VectorLayer).setStyle(
-          this.vectorLayerStyleRuleBuilder(layer)
-        );
-
-        break;
+      if (!this._sources[sourceId]) {
+        await this.addSource(sourceId, source, id);
       }
-      case 'VectorTileLayer': {
-        const layerParams = layer.parameters as IVectorTileLayer;
 
-        mapLayer.setOpacity(layerParams.opacity || 1);
+      mapLayer.setVisible(layer.visible);
 
-        (mapLayer as VectorTileLayer).setStyle(
-          this.vectorLayerStyleRuleBuilder(layer)
-        );
-
-        break;
-      }
-      case 'HillshadeLayer': {
-        // TODO figure out color here
-        break;
-      }
-      case 'ImageLayer': {
-        break;
-      }
-      case 'WebGlLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity);
-
-        if (layer?.parameters?.color) {
-          (mapLayer as WebGlTileLayer).setStyle({
-            color: layer.parameters.color
-          });
+      switch (layer.type) {
+        case 'RasterLayer': {
+          mapLayer.setOpacity(layer.parameters?.opacity || 1);
+          break;
         }
-        break;
-      }
-      case 'HeatmapLayer': {
-        const layerParams = layer.parameters as IHeatmapLayer;
-        const heatmap = mapLayer as HeatmapLayer;
+        case 'VectorLayer': {
+          const layerParams = layer.parameters as IVectorLayer;
 
-        if (oldLayer.feature !== layerParams.feature) {
-          // No way to change 'weight' attribute (feature used for heatmap stuff) so need to replace layer
-          this.replaceLayer(id, layer);
-          return;
+          mapLayer.setOpacity(layerParams.opacity || 1);
+
+          (mapLayer as VectorLayer).setStyle(
+            this.vectorLayerStyleRuleBuilder(layer)
+          );
+
+          break;
         }
+        case 'VectorTileLayer': {
+          const layerParams = layer.parameters as IVectorTileLayer;
 
-        heatmap.setOpacity(layerParams.opacity || 1);
-        heatmap.setBlur(layerParams.blur);
-        heatmap.setRadius(layerParams.radius);
-        heatmap.setGradient(
-          layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
-        );
+          mapLayer.setOpacity(layerParams.opacity || 1);
+
+          (mapLayer as VectorTileLayer).setStyle(
+            this.vectorLayerStyleRuleBuilder(layer)
+          );
+
+          break;
+        }
+        case 'HillshadeLayer': {
+          // TODO figure out color here
+          break;
+        }
+        case 'ImageLayer': {
+          break;
+        }
+        case 'WebGlLayer': {
+          mapLayer.setOpacity(layer.parameters?.opacity);
+
+          if (layer?.parameters?.color) {
+            (mapLayer as WebGlTileLayer).setStyle({
+              color: layer.parameters.color
+            });
+          }
+          break;
+        }
+        case 'HeatmapLayer': {
+          const layerParams = layer.parameters as IHeatmapLayer;
+          const heatmap = mapLayer as HeatmapLayer;
+
+          if (oldLayer.feature !== layerParams.feature) {
+            // No way to change 'weight' attribute (feature used for heatmap stuff) so need to replace layer
+            this.replaceLayer(id, layer);
+            return;
+          }
+
+          heatmap.setOpacity(layerParams.opacity || 1);
+          heatmap.setBlur(layerParams.blur);
+          heatmap.setRadius(layerParams.radius);
+          heatmap.setGradient(
+            layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
+          );
+        }
       }
+    } catch (error: any) {
+      console.error('Error updating layer:', error);
     }
   }
 
