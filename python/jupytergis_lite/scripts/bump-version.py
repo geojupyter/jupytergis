@@ -41,7 +41,7 @@ def bump():
     args = parser.parse_args()
     py_version = next_version() if args.version == "next" else args.version
     # bump the Python version with hatch
-    run(f"{HATCH_VERSION}", shell=True, check=True, cwd=ROOT)
+    run(f"{HATCH_VERSION} {py_version}", shell=True, check=True, cwd=ROOT)
     # pin jupytergis_* package to the same version
     bump_jupytergis_deps(py_version)
 
