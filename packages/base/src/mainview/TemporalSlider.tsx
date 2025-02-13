@@ -69,7 +69,6 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
 
   const { featureProperties } = useGetProperties({ layerId, model });
 
-  console.log('top', currentValue);
   useEffect(() => {
     // This is for when the selected layer changes
     const handleClientStateChanged = () => {
@@ -171,7 +170,6 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
   }, [featureProperties]);
 
   useEffect(() => {
-    console.log('selecting feature');
     if (!selectedFeature || !featureProperties[selectedFeature]) {
       return;
     }
@@ -221,17 +219,16 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
     model.addFeatureAsMs(layerId, selectedFeature);
   }, [selectedFeature]);
 
+  // minMax needs to be set before current value so the slider displays correctly
   useEffect(() => {
     const currentState = filterStates[layerId];
-    if (typeof currentState?.value === 'string') {
-      console.log('broke');
-      return;
-    }
 
-    setCurrentValue(currentState?.value ?? 0);
+    setCurrentValue(
+      typeof currentState?.value === 'number' ? currentState.value : minMax.min
+    );
   }, [minMax]);
 
-  // Infer the date format from a date string
+  // Guess the date format from a date string
   const determineDateFormat = (dateString: string): string | null => {
     for (const format of commonDateFormats) {
       const parsedDate = parse(dateString, format, new Date());
@@ -252,7 +249,6 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
   };
 
   const handleChange = (e: any) => {
-    console.log('hanfdle change', e.target.value);
     setCurrentValue(+e.target.value);
     setRange({ start: +e.target.value, end: +e.target.value + step });
     applyFilter(+e.target.value);
@@ -291,15 +287,9 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
       appliedFilters.push(newFilter);
     }
 
-    // setFilterStates(prevState => ({
-    //   ...prevState,
-    //   [layerId]: newFilter
-    // }));
-
     // Apply the updated filters to the layer
     layer.filters = { logicalOp, appliedFilters };
     model.triggerLayerUpdate(layerId, layer);
-    // model.sharedModel.updateLayer(layerId, layer);
   };
 
   const removeFilter = () => {

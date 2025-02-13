@@ -185,18 +185,22 @@ export function addCommands(
       if (!selectedLayers) {
         return false;
       }
-      const layerType = model.getLayer(Object.keys(selectedLayers)[0])?.type;
-      // Selection should only be one vector layer
-      ['VectorLayer', 'HeatmapLayer'].includes(layerType ?? '');
-      if (
-        Object.keys(selectedLayers).length !== 1 ||
-        model.getSource(Object.keys(selectedLayers)[0]) ||
-        !['VectorLayer', 'HeatmapLayer'].includes(layerType ?? '')
-      ) {
-        if (model.isTemporalControllerActive) {
-          model.toggleTemporalController();
-          commands.notifyCommandChanged(CommandIDs.temporalController);
-        }
+
+      const layerId = Object.keys(selectedLayers)[0];
+      const layerType = model.getLayer(layerId)?.type;
+      if (!layerType) {
+        return false;
+      }
+
+      // Selection should only be one vector or heatmap layer
+      const isSelectionValid =
+        Object.keys(selectedLayers).length === 1 &&
+        !model.getSource(layerId) &&
+        ['VectorLayer', 'HeatmapLayer'].includes(layerType);
+
+      if (!isSelectionValid && model.isTemporalControllerActive) {
+        model.toggleTemporalController();
+        commands.notifyCommandChanged(CommandIDs.temporalController);
 
         return false;
       }
