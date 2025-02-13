@@ -15,6 +15,7 @@ import { JupyterGISMainViewPanel } from './mainview';
 import { MainViewModel } from './mainview/mainviewmodel';
 import { ConsoleView } from './console';
 import { MessageLoop } from '@lumino/messaging';
+import { CommandRegistry } from '@lumino/commands';
 
 const CELL_OUTPUT_WIDGET_CLASS = 'jgis-cell-output-widget';
 
@@ -95,18 +96,23 @@ export namespace JupyterGISOutputWidget {
 export class JupyterGISPanel extends SplitPanel {
   constructor(options: JupyterGISPanel.IOptions) {
     super({ orientation: 'vertical', spacing: 0 });
-    const { model, consoleTracker, ...consoleOption } = options;
-    this._initModel({ model });
+    const { model, consoleTracker, commandRegistry, ...consoleOption } =
+      options;
+    this._initModel({ model, commandRegistry });
     this._initView();
     this._consoleOption = consoleOption;
     this._consoleTracker = consoleTracker;
   }
 
-  _initModel(options: { model: IJupyterGISModel }) {
+  _initModel(options: {
+    model: IJupyterGISModel;
+    commandRegistry: CommandRegistry;
+  }) {
     this._view = new ObservableMap<JSONValue>();
     this._mainViewModel = new MainViewModel({
       jGISModel: options.model,
-      viewSetting: this._view
+      viewSetting: this._view,
+      commands: options.commandRegistry
     });
   }
 
@@ -235,6 +241,7 @@ export class JupyterGISPanel extends SplitPanel {
 export namespace JupyterGISPanel {
   export interface IOptions extends Partial<ConsoleView.IOptions> {
     model: IJupyterGISModel;
+    commandRegistry: CommandRegistry;
     consoleTracker?: IConsoleTracker;
   }
 }

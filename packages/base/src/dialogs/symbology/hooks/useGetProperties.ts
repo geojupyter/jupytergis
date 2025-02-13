@@ -10,7 +10,7 @@ interface IUseGetPropertiesProps {
 }
 
 interface IUseGetPropertiesResult {
-  featureProps: Record<string, Set<any>>;
+  featureProperties: Record<string, Set<any>>;
   isLoading: boolean;
   error?: Error;
 }
@@ -19,7 +19,7 @@ export const useGetProperties = ({
   layerId,
   model
 }: IUseGetPropertiesProps): IUseGetPropertiesResult => {
-  const [featureProps, setFeatureProps] = useState<any>({});
+  const [featureProperties, setFeatureProperties] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | undefined>(undefined);
 
@@ -51,17 +51,15 @@ export const useGetProperties = ({
       data.features.forEach((feature: GeoJSONFeature1) => {
         if (feature.properties) {
           Object.entries(feature.properties).forEach(([key, value]) => {
-            if (typeof value !== 'string') {
-              if (!(key in result)) {
-                result[key] = new Set();
-              }
-              result[key].add(value);
+            if (!(key in result)) {
+              result[key] = new Set();
             }
+            result[key].add(value);
           });
         }
       });
 
-      setFeatureProps(result);
+      setFeatureProperties(result);
       setIsLoading(false);
     } catch (err) {
       setError(err as Error);
@@ -73,5 +71,5 @@ export const useGetProperties = ({
     getProperties();
   }, [model, layerId]);
 
-  return { featureProps, isLoading, error };
+  return { featureProperties, isLoading, error };
 };

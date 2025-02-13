@@ -867,3 +867,24 @@ export const stringToArrayBuffer = async (
   );
   return await base64Response.arrayBuffer();
 };
+
+export const getNumericFeatureAttributes = (
+  featureProperties: Record<string, Set<any>>
+) => {
+  // We only want number values here
+  const filteredRecord: Record<string, Set<number>> = {};
+
+  for (const [key, set] of Object.entries(featureProperties)) {
+    const firstValue = set.values().next().value;
+
+    // Check if the first value is a string that cannot be parsed as a number
+    const isInvalidString =
+      typeof firstValue === 'string' && isNaN(Number(firstValue));
+
+    if (!isInvalidString) {
+      filteredRecord[key] = set;
+    }
+  }
+
+  return filteredRecord;
+};

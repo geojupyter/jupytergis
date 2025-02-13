@@ -170,6 +170,55 @@ export function addCommands(
     ...icons.get(CommandIDs.identify)
   });
 
+  commands.addCommand(CommandIDs.temporalController, {
+    label: trans.__('Temporal Controller'),
+    isToggled: () => {
+      return tracker.currentWidget?.model.isTemporalControllerActive || false;
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return false;
+      }
+
+      const selectedLayers = model.localState?.selected?.value;
+      if (!selectedLayers) {
+        return false;
+      }
+
+      const layerId = Object.keys(selectedLayers)[0];
+      const layerType = model.getLayer(layerId)?.type;
+      if (!layerType) {
+        return false;
+      }
+
+      // Selection should only be one vector or heatmap layer
+      const isSelectionValid =
+        Object.keys(selectedLayers).length === 1 &&
+        !model.getSource(layerId) &&
+        ['VectorLayer', 'HeatmapLayer'].includes(layerType);
+
+      if (!isSelectionValid && model.isTemporalControllerActive) {
+        model.toggleTemporalController();
+        commands.notifyCommandChanged(CommandIDs.temporalController);
+
+        return false;
+      }
+
+      return true;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      current.model.toggleTemporalController();
+      commands.notifyCommandChanged(CommandIDs.temporalController);
+    },
+    ...icons.get(CommandIDs.temporalController)
+  });
+
   /**
    * SOURCES and LAYERS creation commands.
    */

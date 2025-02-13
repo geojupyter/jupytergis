@@ -7,6 +7,7 @@ import {
   IHillshadeLayer,
   IImageLayer,
   IImageSource,
+  IJGISFilterItem,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -27,6 +28,7 @@ import {
   IWebGlLayer,
   JupyterGISModel
 } from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { CommandRegistry } from '@lumino/commands';
@@ -35,7 +37,7 @@ import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
-import { FeatureLike } from 'ol/Feature';
+import Feature, { FeatureLike } from 'ol/Feature';
 import { ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
@@ -58,7 +60,7 @@ import {
 } from 'ol/proj';
 import { get as getProjection } from 'ol/proj.js';
 import { register } from 'ol/proj/proj4.js';
-import Feature from 'ol/render/Feature';
+import RenderFeature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
@@ -79,9 +81,10 @@ import StatusBar from '../statusbar/StatusBar';
 import { isLightTheme, loadFile, throttle } from '../tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
+import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
-import { showErrorMessage } from '@jupyterlab/apputils';
+import { Geometry } from 'ol/geom';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -100,6 +103,8 @@ interface IStates {
   loadingLayer: boolean;
   scale: number;
   loadingErrors: Array<{ id: string; error: any; index: number }>;
+  displayTemporalController: boolean;
+  filterStates: IDict<IJGISFilterItem | undefined>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -124,11 +129,13 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
-    this._mainViewModel.jGISModel.sharedMetadataChanged.connect(
+    this._model.sharedMetadataChanged.connect(
       this._onSharedMetadataChanged,
       this
     );
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
+    this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
+    this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
 
     this.state = {
       id: this._mainViewModel.id,
@@ -140,7 +147,9 @@ export class MainView extends React.Component<IProps, IStates> {
       viewProjection: { code: '', units: '' },
       loadingLayer: false,
       scale: 0,
-      loadingErrors: []
+      loadingErrors: [],
+      displayTemporalController: false,
+      filterStates: {}
     };
 
     this._sources = [];
@@ -505,7 +514,7 @@ export class MainView extends React.Component<IProps, IStates> {
             minZoom: sourceParameters.minZoom,
             maxZoom: sourceParameters.maxZoom,
             url: url,
-            format: new MVT({ featureClass: Feature })
+            format: new MVT({ featureClass: RenderFeature })
           });
         } else {
           newSource = new PMTilesVectorSource({
@@ -878,9 +887,8 @@ export class MainView extends React.Component<IProps, IStates> {
         newMapLayer = new HeatmapLayer({
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source],
-          blur: layerParameters.blur,
-          radius: layerParameters.radius,
-          weight: layerParameters.feature,
+          blur: layerParameters.blur ?? 15,
+          radius: layerParameters.radius ?? 8,
           gradient: layerParameters.color
         });
         break;
@@ -1002,34 +1010,26 @@ export class MainView extends React.Component<IProps, IStates> {
 
     const layerStyle = { ...defaultRules };
 
-    if (
-      layer.filters &&
-      layer.filters.logicalOp &&
-      layer.filters.appliedFilters.length !== 0
-    ) {
-      const filterExpr: any[] = [];
+    if (layer.filters?.logicalOp && layer.filters.appliedFilters?.length > 0) {
+      const buildCondition = (filter: IJGISFilterItem): any[] => {
+        const base = [filter.operator, ['get', filter.feature]];
+        return filter.operator === 'between'
+          ? [...base, filter.betweenMin, filter.betweenMax]
+          : [...base, filter.value];
+      };
+
+      let filterExpr: any[];
 
       // 'Any' and 'All' operators require more than one argument
       // So if there's only one filter, skip that part to avoid error
       if (layer.filters.appliedFilters.length === 1) {
-        layer.filters.appliedFilters.forEach(filter => {
-          filterExpr.push(
-            filter.operator,
-            ['get', filter.feature],
-            filter.value
-          );
-        });
+        filterExpr = buildCondition(layer.filters.appliedFilters[0]);
       } else {
-        filterExpr.push(layer.filters.logicalOp);
-
         // Arguments for "Any" and 'All' need to be wrapped in brackets
-        layer.filters.appliedFilters.forEach(filter => {
-          filterExpr.push([
-            filter.operator,
-            ['get', filter.feature],
-            filter.value
-          ]);
-        });
+        filterExpr = [
+          layer.filters.logicalOp,
+          ...layer.filters.appliedFilters.map(buildCondition)
+        ];
       }
 
       layerStyle.filter = filterExpr;
@@ -1106,8 +1106,8 @@ export class MainView extends React.Component<IProps, IStates> {
   async updateLayer(
     id: string,
     layer: IJGISLayer,
-    oldLayer: IDict,
-    mapLayer: Layer
+    mapLayer: Layer,
+    oldLayer?: IDict
   ): Promise<void> {
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getLayerSource(sourceId);
@@ -1169,21 +1169,80 @@ export class MainView extends React.Component<IProps, IStates> {
         const layerParams = layer.parameters as IHeatmapLayer;
         const heatmap = mapLayer as HeatmapLayer;
 
-        if (oldLayer.feature !== layerParams.feature) {
-          // No way to change 'weight' attribute (feature used for heatmap stuff) so need to replace layer
-          this.replaceLayer(id, layer);
-          return;
-        }
-
-        heatmap.setOpacity(layerParams.opacity || 1);
-        heatmap.setBlur(layerParams.blur);
-        heatmap.setRadius(layerParams.radius);
+        heatmap.setOpacity(layerParams.opacity ?? 1);
+        heatmap.setBlur(layerParams.blur ?? 15);
+        heatmap.setRadius(layerParams.radius ?? 8);
         heatmap.setGradient(
           layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
         );
+
+        this.handleTemporalController(id, layer);
+
+        break;
       }
     }
   }
+
+  /**
+   * Heatmap layers don't work with style based filtering.
+   * This modifies the features in the underlying source
+   * to work with the temporal controller
+   */
+  handleTemporalController = (id: string, layer: IJGISLayer) => {
+    const selectedLayer = this._model?.localState?.selected?.value;
+
+    // Temporal Controller shouldn't be active if more than one layer is selected
+    if (!selectedLayer || Object.keys(selectedLayer).length !== 1) {
+      return;
+    }
+
+    const selectedLayerId = Object.keys(selectedLayer)[0];
+
+    // Don't do anything to unselected layers
+    if (selectedLayerId !== id) {
+      return;
+    }
+
+    const layerParams = layer.parameters as IHeatmapLayer;
+
+    const source: VectorSource = this._sources[layerParams.source];
+
+    if (layer.filters?.appliedFilters.length) {
+      // Heatmaps don't work with existing filter system so this should be fine
+      const activeFilter = layer.filters.appliedFilters[0];
+
+      // Save original features on first filter application
+      if (!Object.keys(this._originalFeatures).includes(id)) {
+        this._originalFeatures[id] = source.getFeatures();
+      }
+
+      // clear current features
+      source.clear();
+
+      const startTime = activeFilter.betweenMin ?? 0;
+      const endTime = activeFilter.betweenMax ?? 1000;
+
+      const filteredFeatures = this._originalFeatures[id].filter(feature => {
+        const featureTime = feature.get(activeFilter.feature);
+        return featureTime >= startTime && featureTime <= endTime;
+      });
+
+      // set state for restoration
+      this.setState(old => ({
+        ...old,
+        filterStates: {
+          ...this.state.filterStates,
+          [selectedLayerId]: activeFilter
+        }
+      }));
+
+      source.addFeatures(filteredFeatures);
+    } else {
+      // Restore original features when no filters are applied
+      source.addFeatures(this._originalFeatures[id]);
+      delete this._originalFeatures[id];
+    }
+  };
 
   /**
    * Wait for all layers to be loaded.
@@ -1244,7 +1303,12 @@ export class MainView extends React.Component<IProps, IStates> {
     sender: IJupyterGISModel,
     clients: Map<number, IJupyterGISClientState>
   ): void => {
-    const remoteUser = this._model.localState?.remoteUser;
+    const localState = this._model.localState;
+    if (!localState) {
+      return;
+    }
+
+    const remoteUser = localState.remoteUser;
     // If we are in following mode, we update our position and selection
     if (remoteUser) {
       const remoteState = clients.get(remoteUser);
@@ -1268,7 +1332,7 @@ export class MainView extends React.Component<IProps, IStates> {
       // If we are unfollowing a remote user, we reset our center and zoom to their previous values
       if (this.state.remoteUser !== null) {
         this.setState(old => ({ ...old, remoteUser: null }));
-        const viewportState = this._model.localState?.viewportState?.value;
+        const viewportState = localState.viewportState?.value;
 
         if (viewportState) {
           this._moveToPosition(viewportState.coordinates, viewportState.zoom);
@@ -1319,6 +1383,21 @@ export class MainView extends React.Component<IProps, IStates> {
 
       this.setState(old => ({ ...old, clientPointers: clientPointers }));
     });
+
+    // Temporal controller bit
+    // ? There's probably a better way to get changes in the model to trigger react rerenders
+    const isTemporalControllerActive = localState.isTemporalControllerActive;
+
+    if (isTemporalControllerActive !== this.state.displayTemporalController) {
+      this.setState(old => ({
+        ...old,
+        displayTemporalController: isTemporalControllerActive
+      }));
+
+      this._mainViewModel.commands.notifyCommandChanged(
+        CommandIDs.temporalController
+      );
+    }
   };
 
   private _onSharedOptionsChanged(): void {
@@ -1485,7 +1564,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       if (layerTree.includes(id)) {
-        this.updateLayer(id, newLayer, oldLayer, mapLayer);
+        this.updateLayer(id, newLayer, mapLayer, oldLayer);
       } else {
         this.updateLayers(layerTree);
       }
@@ -1714,6 +1793,33 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
+  private _triggerLayerUpdate(_: IJupyterGISModel, args: string) {
+    // ? could send just the filters object and modify that instead of emitting whole layer
+    const json = JSON.parse(args);
+    const { layerId, layer: jgisLayer } = json;
+    const olLayer = this.getLayer(layerId);
+
+    if (!jgisLayer || !olLayer) {
+      console.log('Layer not found');
+      return;
+    }
+
+    this.updateLayer(layerId, jgisLayer, olLayer);
+  }
+
+  private _convertFeatureToMs(_: IJupyterGISModel, args: string) {
+    const json = JSON.parse(args);
+    const { id: layerId, selectedFeature } = json;
+    const olLayer = this.getLayer(layerId);
+    const source = olLayer.getSource() as VectorSource;
+
+    source.forEachFeature(feature => {
+      const time = feature.get(selectedFeature);
+      const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
+      feature.set(`${selectedFeature}ms`, parsedTime);
+    });
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -1755,32 +1861,40 @@ export class MainView extends React.Component<IProps, IStates> {
           );
         })}
 
-        <div
-          className="jGIS-Mainview"
-          style={{
-            border: this.state.remoteUser
-              ? `solid 3px ${this.state.remoteUser.color}`
-              : 'unset'
-          }}
-        >
-          <Spinner loading={this.state.loading} />
-          <FollowIndicator remoteUser={this.state.remoteUser} />
-          <CollaboratorPointers clients={this.state.clientPointers} />
-
+        <div className="jGIS-Mainview-Container">
+          {this.state.displayTemporalController && (
+            <TemporalSlider
+              model={this._model}
+              filterStates={this.state.filterStates}
+            />
+          )}
           <div
-            ref={this.divRef}
+            className="jGIS-Mainview"
             style={{
-              width: '100%',
-              height: 'calc(100%)'
+              border: this.state.remoteUser
+                ? `solid 3px ${this.state.remoteUser.color}`
+                : 'unset'
             }}
+          >
+            <Spinner loading={this.state.loading} />
+            <FollowIndicator remoteUser={this.state.remoteUser} />
+            <CollaboratorPointers clients={this.state.clientPointers} />
+
+            <div
+              ref={this.divRef}
+              style={{
+                width: '100%',
+                height: '100%'
+              }}
+            />
+          </div>
+          <StatusBar
+            jgisModel={this._model}
+            loading={this.state.loadingLayer}
+            projection={this.state.viewProjection}
+            scale={this.state.scale}
           />
         </div>
-        <StatusBar
-          jgisModel={this._model}
-          loading={this.state.loadingLayer}
-          projection={this.state.viewProjection}
-          scale={this.state.scale}
-        />
       </>
     );
   }
@@ -1798,4 +1912,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
+  private _originalFeatures: IDict<Feature<Geometry>[]> = {};
 }

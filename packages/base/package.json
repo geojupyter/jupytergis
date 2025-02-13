@@ -68,6 +68,7 @@
     "ajv": "^8.14.0",
     "colormap": "^2.3.2",
     "d3-color": "^3.1.0",
+    "date-fns": "^4.1.0",
     "gdal3.js": "^2.8.1",
     "geojson-vt": "^4.0.2",
     "geotiff": "^2.1.3",

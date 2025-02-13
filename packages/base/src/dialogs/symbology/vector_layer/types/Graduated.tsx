@@ -1,15 +1,16 @@
+import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
+import { getNumericFeatureAttributes } from '../../../../tools';
 import { VectorClassifications } from '../../classificationModes';
-import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import ColorRamp, {
   ColorRampOptions
 } from '../../components/color_ramp/ColorRamp';
-import ValueSelect from '../components/ValueSelect';
 import StopContainer from '../../components/color_stops/StopContainer';
 import { useGetProperties } from '../../hooks/useGetProperties';
+import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import { Utils, VectorUtils } from '../../symbologyUtils';
-import { IVectorLayer } from '@jupytergis/schema';
+import ValueSelect from '../components/ValueSelect';
 
 const Graduated = ({
   model,
@@ -35,7 +36,7 @@ const Graduated = ({
   const [selectedMethod, setSelectedMethod] = useState('color');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [methodOptions, setMethodOptions] = useState<string[]>(['color']);
-
+  const [features, setFeatures] = useState<Record<string, Set<number>>>({});
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampOptions | undefined
   >();
@@ -48,7 +49,7 @@ const Graduated = ({
     return;
   }
 
-  const { featureProps } = useGetProperties({
+  const { featureProperties } = useGetProperties({
     layerId,
     model: model
   });
@@ -87,24 +88,25 @@ const Graduated = ({
   }, [selectedValue, selectedMethod, stopRows, colorRampOptions]);
 
   useEffect(() => {
-    populateOptions();
-  }, [featureProps]);
-
-  const populateOptions = async () => {
     // Set up method options
     if (layer?.parameters?.type === 'circle') {
       const options = ['color', 'radius'];
       setMethodOptions(options);
     }
 
+    // We only want number values here
+    const numericFeatures = getNumericFeatureAttributes(featureProperties);
+
+    setFeatures(numericFeatures);
+
     const layerParams = layer.parameters as IVectorLayer;
     const value =
-      layerParams.symbologyState?.value ?? Object.keys(featureProps)[0];
+      layerParams.symbologyState?.value ?? Object.keys(numericFeatures)[0];
     const method = layerParams.symbologyState?.method ?? 'color';
 
     setSelectedValue(value);
     setSelectedMethod(method);
-  };
+  }, [featureProperties]);
 
   const handleOk = () => {
     if (!layer.parameters) {
@@ -173,7 +175,7 @@ const Graduated = ({
 
     let stops;
 
-    const values = Array.from(featureProps[selectedValue]);
+    const values = Array.from(features[selectedValue]);
 
     switch (selectedMode) {
       case 'quantile':
@@ -230,7 +232,7 @@ const Graduated = ({
   return (
     <div className="jp-gis-layer-symbology-container">
       <ValueSelect
-        featureProperties={featureProps}
+        featureProperties={features}
         selectedValue={selectedValue}
         setSelectedValue={setSelectedValue}
       />
