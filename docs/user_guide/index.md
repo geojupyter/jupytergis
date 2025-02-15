@@ -4,7 +4,7 @@ Thanks for trying out JupyterGIS!
 
 ```{cssclass} try-in-jupyterlite-button
 
-[Try it with JupyterLite!](lite/)
+[Try it with JupyterLite!](/lite)
 ```
 
 JupyterGIS offers:
