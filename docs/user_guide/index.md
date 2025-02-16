@@ -2,9 +2,9 @@
 
 Thanks for trying out JupyterGIS!
 
-```{cssclass} try-in-jupyterlite-button
-
-[Try it with JupyterLite!](/lite)
+```{jupyterlite}
+:new_tab: True
+:new_tab_button_text: Try it with JupyterLite!
 ```
 
 JupyterGIS offers:
