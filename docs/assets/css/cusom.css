@@ -1,0 +1,18 @@
+.try_examples_button {
+	background-color: var(--jupyter-light-primary);
+	border: none;
+	padding: 5px 10px;
+	border-radius: 15px;
+	font-family: vibur;
+	font-size: larger;
+	box-shadow: 0 2px 5px rgba(108, 108, 108, 0.2);
+	color: black;
+}
+
+.try_examples_button:hover {
+	background-color: var(--jupyter-light-primary-muted);
+	transform: scale(1.02);
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+	cursor: pointer;
+	color: white;
+}
