@@ -1,5 +1,5 @@
 .try_examples_button {
-	background-color: var(--jupyter-light-primary);
+	background-color: #f7dc1e;
 	border: none;
 	padding: 5px 10px;
 	border-radius: 15px;
@@ -10,7 +10,6 @@
 }
 
 .try_examples_button:hover {
-	background-color: var(--jupyter-light-primary-muted);
 	transform: scale(1.02);
 	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 	cursor: pointer;
