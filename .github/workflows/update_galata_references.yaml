@@ -91,7 +91,7 @@ jobs:
         shell: bash -l {0}
         run: |
           whereis python
-          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
+          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl ./jupytergis/dist/jupytergis*.whl .
           python -m pip install jupytergis*.whl
 
       - name: Install dependencies
