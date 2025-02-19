@@ -520,6 +520,21 @@ class GISDocument(CommWidget):
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
+    def remove_layer(self, layer_id: str):
+        """
+        Remove a layer from the GIS document.
+
+        :param layer_id: The ID of the layer to remove.
+        :raises KeyError: If the layer does not exist.
+        """
+
+        layer = self._layers.get(layer_id)
+
+        if layer is None:
+            raise KeyError(f"No layer found with ID: {layer_id}")
+
+        del self._layers[layer_id]
+
     def create_color_expr(
         self,
         color_stops: Dict,
