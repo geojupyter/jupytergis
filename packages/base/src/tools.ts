@@ -407,6 +407,34 @@ export const getFromIndexedDB = async (key: string) => {
   });
 };
 
+const fetchWithProxies = async <T>(
+  url: string,
+  parseResponse: (response: Response) => Promise<T>
+): Promise<T | null> => {
+  const proxyUrls = [
+    url, // Direct fetch
+    `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
+    `https://corsproxy.io/?url=${encodeURIComponent(url)}` // External proxy
+  ];
+
+  for (const proxyUrl of proxyUrls) {
+    try {
+      const response = await fetch(proxyUrl);
+      if (!response.ok) {
+        console.warn(
+          `Failed to fetch from ${proxyUrl}: ${response.statusText}`
+        );
+        continue;
+      }
+      return await parseResponse(response);
+    } catch (error) {
+      console.warn(`Error fetching from ${proxyUrl}:`, error);
+    }
+  }
+
+  return null;
+};
+
 /**
  * Load a GeoTIFF file from IndexedDB database cache or fetch it .
  *
@@ -414,56 +442,53 @@ export const getFromIndexedDB = async (key: string) => {
  * @returns A promise that resolves to the file as a Blob, or undefined .
  */
 export const loadGeoTiff = async (
-  sourceInfo: {
-    url?: string | undefined;
-  },
+  sourceInfo: { url?: string | undefined },
   file?: Contents.IModel | null
 ) => {
   if (!sourceInfo?.url) {
     return null;
   }
 
-  const mimeType = getMimeType(sourceInfo.url);
+  const url = sourceInfo.url;
+  const mimeType = getMimeType(url);
   if (!mimeType || !mimeType.startsWith('image/tiff')) {
     throw new Error('Invalid file type. Expected GeoTIFF (image/tiff).');
   }
 
-  const cachedData = await getFromIndexedDB(sourceInfo.url);
+  const cachedData = await getFromIndexedDB(url);
   if (cachedData) {
     return {
       file: cachedData.file,
       metadata: cachedData.metadata,
-      sourceUrl: sourceInfo.url
+      sourceUrl: url
     };
   }
 
-  let fileBlob: Blob;
+  let fileBlob: Blob | null = null;
+
   if (!file) {
-    const response = await fetch(
-      `/jupytergis_core/proxy?url=${sourceInfo.url}`
-    );
-    if (!response.ok) {
-      throw new Error(`Failed to fetch file. Status: ${response.status}`);
+    fileBlob = await fetchWithProxies(url, async response => response.blob());
+    if (!fileBlob) {
+      showErrorMessage('Network error', `Failed to fetch ${url}`);
+      throw new Error(`Failed to fetch ${url}`);
     }
-    fileBlob = await response.blob();
   } else {
     fileBlob = await base64ToBlob(file.content, mimeType);
   }
 
   const geotiff = new File([fileBlob], 'loaded.tif');
-
   const Gdal = await getGdal();
   const result = await Gdal.open(geotiff);
   const tifDataset = result.datasets[0];
   const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
   Gdal.close(tifDataset);
 
-  await saveToIndexedDB(sourceInfo.url, fileBlob, metadata);
+  await saveToIndexedDB(url, fileBlob, metadata);
 
   return {
     file: fileBlob,
     metadata,
-    sourceUrl: sourceInfo.url
+    sourceUrl: url
   };
 };
 
@@ -509,46 +534,18 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
-        // First trying a direct fetch
-        try {
-          const response = await fetch(filepath);
+        const geojson = await fetchWithProxies(filepath, async response => {
           const arrayBuffer = await response.arrayBuffer();
-          const geojson = await shp(arrayBuffer);
+          return shp(arrayBuffer);
+        });
+
+        if (geojson) {
           await saveToIndexedDB(filepath, geojson);
           return geojson;
-        } catch (error) {
-          console.warn('Cannot load shapefile from ${filepath}: ${error}');
         }
 
-        // Trying through our proxy server
-        try {
-          const response = await fetch(
-            `/jupytergis_core/proxy?url=${filepath}`
-          );
-          const arrayBuffer = await response.arrayBuffer();
-          const geojson = await shp(arrayBuffer);
-          await saveToIndexedDB(filepath, geojson);
-          return geojson;
-        } catch (error) {
-          console.warn(
-            'Cannot communicate with the JupyterGIS proxy server:',
-            error
-          );
-        }
-
-        // Trying through an external proxy server
-        try {
-          const response = await fetch(`https://corsproxy.io/?url=${filepath}`);
-          const arrayBuffer = await response.arrayBuffer();
-          const geojson = await shp(arrayBuffer);
-          await saveToIndexedDB(filepath, geojson);
-          return geojson;
-        } catch (error) {
-          console.warn('Cannot communicate with external proxy server', error);
-        }
-
-        showErrorMessage('Network error', 'Failed to fetch ${filepath}');
-        throw new Error('Failed to fetch ${filepath}');
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
       }
 
       case 'GeoJSONSource': {
@@ -557,20 +554,17 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
-        try {
-          const response = await fetch(
-            `/jupytergis_core/proxy?url=${filepath}`
-          );
-          if (!response.ok) {
-            throw new Error(`Failed to fetch GeoJSON from URL: ${filepath}`);
-          }
-          const geojson = await response.json();
+        const geojson = await fetchWithProxies(filepath, async response =>
+          response.json()
+        );
+
+        if (geojson) {
           await saveToIndexedDB(filepath, geojson);
           return geojson;
-        } catch (error) {
-          console.error('Error loading remote GeoJSON:', error);
-          throw error;
         }
+
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
       }
 
       case 'GeoTiffSource': {
