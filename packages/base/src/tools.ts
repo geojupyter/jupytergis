@@ -571,22 +571,31 @@ export const loadFile = async (fileInfo: {
 
         // Trying through our proxy server
         try {
-          const response = await fetch(`/jupytergis_core/proxy?url=${filepath}`);
+          const response = await fetch(
+            `/jupytergis_core/proxy?url=${filepath}`
+          );
           if (!response.ok) {
-            throw new Error(`Failed to fetch GeoJSON via internal proxy: ${filepath}`);
+            throw new Error(
+              `Failed to fetch GeoJSON via internal proxy: ${filepath}`
+            );
           }
           const geojson = await response.json();
           await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
-          console.warn('Cannot communicate with the JupyterGIS proxy server:', error);
+          console.warn(
+            'Cannot communicate with the JupyterGIS proxy server:',
+            error
+          );
         }
 
         // Trying through an external proxy server
         try {
           const response = await fetch(`https://corsproxy.io/?url=${filepath}`);
           if (!response.ok) {
-            throw new Error(`Failed to fetch GeoJSON via external proxy: ${filepath}`);
+            throw new Error(
+              `Failed to fetch GeoJSON via external proxy: ${filepath}`
+            );
           }
           const geojson = await response.json();
           await saveToIndexedDB(filepath, geojson);
