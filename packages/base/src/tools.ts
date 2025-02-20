@@ -434,7 +434,7 @@ export const loadGeoTiff = async (
     return {
       file: cachedData.file,
       metadata: cachedData.metadata,
-      sourceUrl: url,
+      sourceUrl: url
     };
   }
 
@@ -461,7 +461,10 @@ export const loadGeoTiff = async (
         }
         fileBlob = await response.blob();
       } catch (error) {
-        console.warn('Cannot communicate with the JupyterGIS proxy server:', error);
+        console.warn(
+          'Cannot communicate with the JupyterGIS proxy server:',
+          error
+        );
       }
     }
 
@@ -499,10 +502,9 @@ export const loadGeoTiff = async (
   return {
     file: fileBlob,
     metadata,
-    sourceUrl: url,
+    sourceUrl: url
   };
 };
-
 
 /**
  * Generalized file reader for different source types.
