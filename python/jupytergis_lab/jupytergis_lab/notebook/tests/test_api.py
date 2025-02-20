@@ -27,3 +27,14 @@ class TestTiffLayer(TestDocument):
             color_expr=color,
         )
         assert self.doc.layers[tif_layer]["parameters"]["color"] == color
+
+
+class TestLayerManipulation(TestDocument):
+    def test_add_remove_layer(self):
+        layer_id = self.doc.add_tiff_layer(
+            url="https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif",
+        )
+        assert len(self.doc.layers) == 1
+
+        self.doc.remove_layer(layer_id)
+        assert len(self.doc.layers) == 0
