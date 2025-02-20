@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 from jupytergis_lab import GISDocument
 
 
@@ -38,3 +40,7 @@ class TestLayerManipulation(TestDocument):
 
         self.doc.remove_layer(layer_id)
         assert len(self.doc.layers) == 0
+
+    def test_remove_nonexistent_layer_raises(self):
+        with pytest.raises(KeyError):
+            self.doc.remove_layer("foo")
