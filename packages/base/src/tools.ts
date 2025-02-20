@@ -423,29 +423,65 @@ export const loadGeoTiff = async (
     return null;
   }
 
-  const mimeType = getMimeType(sourceInfo.url);
+  const url = sourceInfo.url;
+  const mimeType = getMimeType(url);
   if (!mimeType || !mimeType.startsWith('image/tiff')) {
     throw new Error('Invalid file type. Expected GeoTIFF (image/tiff).');
   }
 
-  const cachedData = await getFromIndexedDB(sourceInfo.url);
+  const cachedData = await getFromIndexedDB(url);
   if (cachedData) {
     return {
       file: cachedData.file,
       metadata: cachedData.metadata,
-      sourceUrl: sourceInfo.url
+      sourceUrl: url,
     };
   }
 
-  let fileBlob: Blob;
+  let fileBlob: Blob | null = null;
+
+  // First trying a direct fetch
   if (!file) {
-    const response = await fetch(
-      `/jupytergis_core/proxy?url=${sourceInfo.url}`
-    );
-    if (!response.ok) {
-      throw new Error(`Failed to fetch file. Status: ${response.status}`);
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch GeoTIFF from URL: ${url}`);
+      }
+      fileBlob = await response.blob();
+    } catch (error) {
+      console.warn(`Cannot load GeoTIFF from ${url}:`, error);
     }
-    fileBlob = await response.blob();
+
+    // Trying through our internal proxy
+    if (!fileBlob) {
+      try {
+        const response = await fetch(`/jupytergis_core/proxy?url=${url}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch GeoTIFF via internal proxy: ${url}`);
+        }
+        fileBlob = await response.blob();
+      } catch (error) {
+        console.warn('Cannot communicate with the JupyterGIS proxy server:', error);
+      }
+    }
+
+    // Trying through an external proxy
+    if (!fileBlob) {
+      try {
+        const response = await fetch(`https://corsproxy.io/?url=${url}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch GeoTIFF via external proxy: ${url}`);
+        }
+        fileBlob = await response.blob();
+      } catch (error) {
+        console.warn('Cannot communicate with external proxy server:', error);
+      }
+    }
+
+    if (!fileBlob) {
+      showErrorMessage('Network error', `Failed to fetch ${url}`);
+      throw new Error(`Failed to fetch ${url}`);
+    }
   } else {
     fileBlob = await base64ToBlob(file.content, mimeType);
   }
@@ -458,14 +494,15 @@ export const loadGeoTiff = async (
   const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
   Gdal.close(tifDataset);
 
-  await saveToIndexedDB(sourceInfo.url, fileBlob, metadata);
+  await saveToIndexedDB(url, fileBlob, metadata);
 
   return {
     file: fileBlob,
     metadata,
-    sourceUrl: sourceInfo.url
+    sourceUrl: url,
   };
 };
+
 
 /**
  * Generalized file reader for different source types.
