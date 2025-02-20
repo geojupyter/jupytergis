@@ -517,7 +517,7 @@ export const loadFile = async (fileInfo: {
           await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
-          console.warn('Cannot load shapefile from ${filepath}: ${error}');
+          console.warn(`Cannot load shapefile from ${filepath}: ${error}`);
         }
 
         // Trying through our proxy server
@@ -547,8 +547,8 @@ export const loadFile = async (fileInfo: {
           console.warn('Cannot communicate with external proxy server', error);
         }
 
-        showErrorMessage('Network error', 'Failed to fetch ${filepath}');
-        throw new Error('Failed to fetch ${filepath}');
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
       }
 
       case 'GeoJSONSource': {
@@ -558,9 +558,7 @@ export const loadFile = async (fileInfo: {
         }
 
         try {
-          const response = await fetch(
-            `/jupytergis_core/proxy?url=${filepath}`
-          );
+          const response = await fetch(filepath);
           if (!response.ok) {
             throw new Error(`Failed to fetch GeoJSON from URL: ${filepath}`);
           }
@@ -568,9 +566,37 @@ export const loadFile = async (fileInfo: {
           await saveToIndexedDB(filepath, geojson);
           return geojson;
         } catch (error) {
-          console.error('Error loading remote GeoJSON:', error);
-          throw error;
+          console.warn(`Cannot load GeoJSON from ${filepath}:`, error);
         }
+
+        // Trying through our proxy server
+        try {
+          const response = await fetch(`/jupytergis_core/proxy?url=${filepath}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch GeoJSON via internal proxy: ${filepath}`);
+          }
+          const geojson = await response.json();
+          await saveToIndexedDB(filepath, geojson);
+          return geojson;
+        } catch (error) {
+          console.warn('Cannot communicate with the JupyterGIS proxy server:', error);
+        }
+
+        // Trying through an external proxy server
+        try {
+          const response = await fetch(`https://corsproxy.io/?url=${filepath}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch GeoJSON via external proxy: ${filepath}`);
+          }
+          const geojson = await response.json();
+          await saveToIndexedDB(filepath, geojson);
+          return geojson;
+        } catch (error) {
+          console.warn('Cannot communicate with external proxy server:', error);
+        }
+
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
       }
 
       case 'GeoTiffSource': {
