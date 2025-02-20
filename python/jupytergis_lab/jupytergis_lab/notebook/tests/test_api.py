@@ -1,18 +1,14 @@
 import os
-import unittest
 
 from jupytergis_lab import GISDocument
 
 
-class VectorTileTests(unittest.TestCase):
-    def setUp(self):
+class TestDocument:
+    def setup_method(self):
         self.doc = GISDocument()
 
 
-class TiffLayerTests(unittest.TestCase):
-    def setUp(self):
-        self.doc = GISDocument()
-
+class TestTiffLayer(TestDocument):
     def test_sourcelayer(self):
         color = self.doc.create_color_expr(
             interpolation_type="linear",
