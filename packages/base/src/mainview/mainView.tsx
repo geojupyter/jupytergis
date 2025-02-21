@@ -466,8 +466,8 @@ export class MainView extends React.Component<IProps, IStates> {
     layerId?: string
   ): Promise<void> {
     const rasterSourceCommon = {
-      interpolate: false,
-    }
+      interpolate: false
+    };
     let newSource;
 
     switch (source.type) {
