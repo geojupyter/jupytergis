@@ -220,7 +220,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         const layerId = UUID.uuid4();
 
-        this.addSource(sourceId, sourceModel, layerId);
+        this.addSource(sourceId, sourceModel);
 
         this._model.sharedModel.addSource(sourceId, sourceModel);
 
@@ -463,7 +463,6 @@ export class MainView extends React.Component<IProps, IStates> {
   async addSource(
     id: string,
     source: IJGISSource,
-    layerId?: string
   ): Promise<void> {
     const rasterSourceCommon = {
       interpolate: false
@@ -707,7 +706,7 @@ export class MainView extends React.Component<IProps, IStates> {
     // remove source being updated
     this.removeSource(id);
     // create updated source
-    await this.addSource(id, source, layerId);
+    await this.addSource(id, source);
     // change source of target layer
     (mapLayer as Layer).setSource(this._sources[id]);
   }
@@ -805,7 +804,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._loadingLayers.add(id);
 
     if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source, id);
+      await this.addSource(sourceId, source);
     }
 
     this._loadingLayers.add(id);
@@ -1123,7 +1122,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source, id);
+      await this.addSource(sourceId, source);
     }
 
     mapLayer.setVisible(layer.visible);
