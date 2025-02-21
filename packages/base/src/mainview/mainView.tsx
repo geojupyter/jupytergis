@@ -465,6 +465,9 @@ export class MainView extends React.Component<IProps, IStates> {
     source: IJGISSource,
     layerId?: string
   ): Promise<void> {
+    const rasterSourceCommon = {
+      interpolate: false,
+    }
     let newSource;
 
     switch (source.type) {
@@ -476,6 +479,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         if (!pmTiles) {
           newSource = new XYZSource({
+            ...rasterSourceCommon,
             attributions: sourceParameters.attribution,
             minZoom: sourceParameters.minZoom,
             maxZoom: sourceParameters.maxZoom,
@@ -484,6 +488,7 @@ export class MainView extends React.Component<IProps, IStates> {
           });
         } else {
           newSource = new PMTilesRasterSource({
+            ...rasterSourceCommon,
             attributions: sourceParameters.attribution,
             tileSize: 256,
             url: url
@@ -496,6 +501,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const sourceParameters = source.parameters as IRasterDemSource;
 
         newSource = new ImageTileSource({
+          ...rasterSourceCommon,
           url: this.computeSourceUrl(source),
           attributions: sourceParameters.attribution
         });
@@ -614,9 +620,9 @@ export class MainView extends React.Component<IProps, IStates> {
         });
 
         newSource = new Static({
+          ...rasterSourceCommon,
           imageExtent: extent,
           url: imageUrl,
-          interpolate: false,
           crossOrigin: ''
         });
 
@@ -649,6 +655,7 @@ export class MainView extends React.Component<IProps, IStates> {
         );
 
         newSource = new GeoTIFFSource({
+          ...rasterSourceCommon,
           sources: sourcesWithBlobs,
           normalize: sourceParameters.normalize,
           wrapX: sourceParameters.wrapX
