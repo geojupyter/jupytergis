@@ -534,7 +534,7 @@ class GISDocument(CommWidget):
             raise KeyError(f"No layer found with ID: {layer_id}")
 
         del self._layers[layer_id]
-        self._remove_source_if_orphaned(layer['parameters']['source'])
+        self._remove_source_if_orphaned(layer["parameters"]["source"])
 
     def _remove_source_if_orphaned(self, source_id: str):
         source = self._sources.get(source_id)
@@ -543,7 +543,7 @@ class GISDocument(CommWidget):
             raise KeyError(f"No source found with ID: {source_id}")
 
         source_is_orphan = not any(
-            layer['parameters']['source'] == source_id
+            layer["parameters"]["source"] == source_id
             for layer in self._layers.values()
         )
 
