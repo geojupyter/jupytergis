@@ -534,6 +534,21 @@ class GISDocument(CommWidget):
             raise KeyError(f"No layer found with ID: {layer_id}")
 
         del self._layers[layer_id]
+        self._remove_source_if_orphaned(layer['parameters']['source'])
+
+    def _remove_source_if_orphaned(self, source_id: str):
+        source = self._sources.get(source_id)
+
+        if source is None:
+            raise KeyError(f"No source found with ID: {source_id}")
+
+        source_is_orphan = not any(
+            layer['parameters']['source'] == source_id
+            for layer in self._layers.values()
+        )
+
+        if source_is_orphan:
+            del self._sources[source_id]
 
     def create_color_expr(
         self,
