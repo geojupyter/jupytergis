@@ -416,7 +416,6 @@ function LayerComponent(props: ILayerProps): JSX.Element {
         onClick={setSelection}
         onContextMenu={setSelection}
       >
-
         <Button
           title={layer.visible ? 'Hide layer' : 'Show layer'}
           onClick={toggleVisibility}
@@ -439,7 +438,6 @@ function LayerComponent(props: ILayerProps): JSX.Element {
         <span id={id} className={LAYER_TEXT_CLASS}>
           {name}
         </span>
-
       </div>
     </div>
   );
