@@ -460,10 +460,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - the source id.
    * @param source - the source object.
    */
-  async addSource(
-    id: string,
-    source: IJGISSource,
-  ): Promise<void> {
+  async addSource(id: string, source: IJGISSource): Promise<void> {
     const rasterSourceCommon = {
       interpolate: false
     };
