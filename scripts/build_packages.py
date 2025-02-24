@@ -17,7 +17,7 @@ def build_packages():
         "jupytergis_core",
         "jupytergis_lab",
         "jupytergis_qgis",
-        "juptyergis_lite",
+        "jupytergis_lite",
     ]
 
     execute(install_build_deps)
