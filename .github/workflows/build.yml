@@ -77,6 +77,7 @@ jobs:
             python/jupytergis_core/dist/jupytergis*
             python/jupytergis_lab/dist/jupytergis*
             python/jupytergis_qgis/dist/jupytergis*
+            python/jupytergis_lite/dist/jupytergis*
           if-no-files-found: error
 
   python_tests:
