@@ -291,7 +291,7 @@ jobs:
 
       - name: Build JupyterLite
         shell: bash -l {0}
-        working-directory: lite
+        working-directory: docs
         run: |
           set -eux
           mkdir -p content
@@ -301,5 +301,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lite-artifacts
-          path: ./lite/dist
+          path: ./docs/dist
           retention-days: 30
