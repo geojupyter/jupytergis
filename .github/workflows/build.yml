@@ -294,7 +294,7 @@ jobs:
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload Lite artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: lite-artifacts
           path: ./lite/dist
