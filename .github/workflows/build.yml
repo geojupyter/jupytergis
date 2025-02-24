@@ -251,3 +251,51 @@ jobs:
       - uses: jupyterlab/maintainer-tools/.github/actions/check-links@v1
         with:
           ignore_links: 'lite/'
+
+  build-lite:
+    name: Build JupyterLite artifacts
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          micromamba-version: '1.5.5-0'
+          environment-name: build-env
+          create-args: >-
+            python=3.10
+            pip
+            jupyterlite-core
+            jupyterlite-xeus
+            jupyter_server
+
+      - name: Download extension package
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-artifacts
+
+      - name: Install the extension
+        shell: bash -l {0}
+        run: |
+          set -eux
+          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl ./jupytergis_lite/dist/jupytergis*.whl .
+          python -m pip install jupytergis*.whl
+
+      - name: Build JupyterLite
+        shell: bash -l {0}
+        working-directory: lite
+        run: |
+          set -eux
+          mkdir -p content
+          jupyter lite build --contents content --output-dir dist
+
+      - name: Upload Lite artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: lite-artifacts
+          path: ./lite/dist
+          retention-days: 30
