@@ -300,7 +300,6 @@ jobs:
         run: |
           set -eux
           mkdir -p content
-          jlpm install
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload Lite artifacts
