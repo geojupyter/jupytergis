@@ -220,7 +220,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         const layerId = UUID.uuid4();
 
-        this.addSource(sourceId, sourceModel, layerId);
+        this.addSource(sourceId, sourceModel);
 
         this._model.sharedModel.addSource(sourceId, sourceModel);
 
@@ -460,11 +460,10 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param id - the source id.
    * @param source - the source object.
    */
-  async addSource(
-    id: string,
-    source: IJGISSource,
-    layerId?: string
-  ): Promise<void> {
+  async addSource(id: string, source: IJGISSource): Promise<void> {
+    const rasterSourceCommon = {
+      interpolate: false
+    };
     let newSource;
 
     switch (source.type) {
@@ -476,6 +475,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         if (!pmTiles) {
           newSource = new XYZSource({
+            ...rasterSourceCommon,
             attributions: sourceParameters.attribution,
             minZoom: sourceParameters.minZoom,
             maxZoom: sourceParameters.maxZoom,
@@ -484,6 +484,7 @@ export class MainView extends React.Component<IProps, IStates> {
           });
         } else {
           newSource = new PMTilesRasterSource({
+            ...rasterSourceCommon,
             attributions: sourceParameters.attribution,
             tileSize: 256,
             url: url
@@ -496,6 +497,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const sourceParameters = source.parameters as IRasterDemSource;
 
         newSource = new ImageTileSource({
+          ...rasterSourceCommon,
           url: this.computeSourceUrl(source),
           attributions: sourceParameters.attribution
         });
@@ -614,9 +616,9 @@ export class MainView extends React.Component<IProps, IStates> {
         });
 
         newSource = new Static({
+          ...rasterSourceCommon,
           imageExtent: extent,
           url: imageUrl,
-          interpolate: false,
           crossOrigin: ''
         });
 
@@ -649,6 +651,7 @@ export class MainView extends React.Component<IProps, IStates> {
         );
 
         newSource = new GeoTIFFSource({
+          ...rasterSourceCommon,
           sources: sourcesWithBlobs,
           normalize: sourceParameters.normalize,
           wrapX: sourceParameters.wrapX
@@ -700,7 +703,7 @@ export class MainView extends React.Component<IProps, IStates> {
     // remove source being updated
     this.removeSource(id);
     // create updated source
-    await this.addSource(id, source, layerId);
+    await this.addSource(id, source);
     // change source of target layer
     (mapLayer as Layer).setSource(this._sources[id]);
   }
@@ -798,7 +801,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._loadingLayers.add(id);
 
     if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source, id);
+      await this.addSource(sourceId, source);
     }
 
     this._loadingLayers.add(id);
@@ -1116,7 +1119,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source, id);
+      await this.addSource(sourceId, source);
     }
 
     mapLayer.setVisible(layer.visible);
