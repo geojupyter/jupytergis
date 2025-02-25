@@ -76,6 +76,7 @@ jobs:
           workflow: 'build.yml'
           workflow_conclusion: ''
           name: lite-artifacts
+          path: dist
           allow_forks: true
 
       - name: Install dependencies
