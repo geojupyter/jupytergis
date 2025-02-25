@@ -294,7 +294,7 @@ jobs:
 
       - name: Build JupyterLite
         shell: bash -l {0}
-        working-directory: docs
+        working-directory: lite
         run: |
           set -eux
           mkdir -p content && cp ../examples/*.jGIS ../examples/*.qgz ../examples/*.json ../examples/*.tif ../examples/*.zip ../examples/*.ipynb ../examples/*.gif ./content
