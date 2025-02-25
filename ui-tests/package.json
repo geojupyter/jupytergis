@@ -5,13 +5,14 @@
   "private": true,
   "scripts": {
     "start": "JGIS_EXPOSE_MAPS=1 jupyter lab --config jupyter_server_test_config.py",
+    "start:lite": "cd ../dist && python -m http.server -b 127.0.0.1 8000",
     "test": "npx playwright test --workers 1",
     "test:lite": "npx playwright test tests/lite.spec.ts --workers 1 --config playwright-lite.config.js",
     "test:update": "npx playwright test --update-snapshots",
     "test:debug": "PWDEBUG=1 npx playwright test --workers 1"
   },
   "devDependencies": {
-    "@jupyterlab/galata": "5.3.0",
+    "@jupyterlab/galata": "^5.3.4",
     "@playwright/test": "^1.48.0",
     "@types/klaw-sync": "^6.0.1"
   },
