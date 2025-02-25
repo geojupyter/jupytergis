@@ -292,8 +292,6 @@ jobs:
           cp ./jupytergis_lite/dist/jupytergis*.whl jupytergis_lite-0.0.1-py3-none-any.whl
           cp ./jupytergis/dist/jupytergis*.whl jupytergis-0.0.1-py3-none-any.whl
 
-          python -m pip install jupytergis*.whl
-
       - name: Build JupyterLite
         shell: bash -l {0}
         working-directory: docs
