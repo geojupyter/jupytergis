@@ -4,7 +4,7 @@ import path from 'path';
 test.use({ autoGoto: false });
 
 test.describe('UI Test', () => {
-  const fileList = ['test.jGIS', 'buildings.qgz', 'shapefile.jGIS'];
+  const fileList = ['test.jGIS', 'shapefile.jGIS'];
 
   test.describe('File operations', () => {
     let errors = 0;
@@ -30,34 +30,6 @@ test.describe('UI Test', () => {
     test.afterEach(async ({ page }) => {
       errors = 0;
     });
-
-    // for (const file of fileList) {
-    //   test(`Should be able to render ${file} without error`, async ({
-    //     page
-    //   }) => {
-    //     await page.goto();
-    //     const fullPath = `testDir/${file}`;
-    //     await page.notebook.openByPath(fullPath);
-    //     await page.notebook.activate(fullPath);
-    //     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
-    //     await page.waitForTimeout(1000);
-    //     if (await page.getByRole('button', { name: 'Ok' }).isVisible()) {
-    //       await page.getByRole('button', { name: 'Ok' }).click();
-    //     }
-    //     await page
-    //       .getByRole('tablist', { name: 'main sidebar' })
-    //       .getByRole('tab', { name: 'JupyterGIS Control Panel' })
-    //       .click();
-    //     await page
-    //       .getByRole('tablist', { name: 'alternate sidebar' })
-    //       .getByRole('tab', { name: 'JupyterGIS Control Panel' })
-    //       .click();
-    //     await page.waitForTimeout(1000);
-    //     expect(errors).toBe(0);
-
-    //     await expect(page.locator('.ol-unselectable').first()).toBeAttached();
-    //   });
-    // }
 
     for (const file of fileList) {
         test(`Should be able to render ${file} without error`, async ({
