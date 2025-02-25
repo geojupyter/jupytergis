@@ -308,3 +308,64 @@ jobs:
           name: lite-artifacts
           path: ./docs/dist
           retention-days: 30
+
+  integration-tests-lite:
+    name: Integration tests Lite
+    needs: build-lite
+    runs-on: ubuntu-latest
+
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/pw-browsers
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          micromamba-version: '1.5.5-0'
+          environment-name: gis
+          create-args: >-
+            python=3.9
+            jupyterlab
+
+      - name: Download extension package
+        uses: actions/download-artifact@v4
+        with:
+          name: lite-artifacts
+          path: dist
+
+      - name: Install dependencies
+        shell: bash -l {0}
+        working-directory: ui-tests
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        run: jlpm install
+
+      - name: Set up browser cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/pw-browsers
+          key: ${{ runner.os }}-${{ hashFiles('ui-tests/yarn.lock') }}
+
+      - name: Install browser
+        shell: bash -l {0}
+        run: npx playwright install chromium
+        working-directory: ui-tests
+
+      - name: Execute integration tests
+        shell: bash -l {0}
+        working-directory: ui-tests
+        run: jlpm run test:lite
+
+      - name: Upload Playwright Test report
+        id: upload-galata-artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jupytergis-lite-playwright-tests
+          path: |
+            ui-tests/test-results
+            ui-tests/playwright-report
