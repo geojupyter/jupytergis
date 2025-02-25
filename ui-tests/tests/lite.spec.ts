@@ -64,4 +64,36 @@ test.describe('UI Test', () => {
         });
     }
   });
+
+  test('Should open jgis.ipynb and execute it', async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await page.goto('lab/index.html?path=jgis.ipynb', {
+      waitUntil: 'domcontentloaded'
+    });
+
+    const Notebook = await page.waitForSelector('.jp-Notebook', {
+      state: 'visible'
+    });
+    await Notebook.click();
+
+    await page.keyboard.press('Control+Enter');
+
+    await page.locator('.jp-InputArea-prompt >> text="[1]:"').first().waitFor();
+
+    const outputErrors = await page.$$('.jp-OutputArea-error');
+    expect(outputErrors.length).toBe(0);
+
+    const jgisWidget = await page.waitForSelector(
+      '.jupytergis-notebook-widget',
+      {
+        state: 'visible'
+      }
+    );
+
+    expect(await jgisWidget.screenshot()).toMatchSnapshot({
+      name: 'Render-notebook.png',
+      maxDiffPixelRatio: 0.01
+    });
+  });
 });
