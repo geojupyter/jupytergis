@@ -5,11 +5,11 @@
   "private": true,
   "scripts": {
     "start": "JGIS_EXPOSE_MAPS=1 jupyter lab --config jupyter_server_test_config.py",
-    "start:lite": "cd ../dist && python -m http.server -b 127.0.0.1 8000",
+    "start:lite": "cd ./dist && python -m http.server -b 127.0.0.1 8000",
     "test": "npx playwright test --workers 1",
     "test:lite": "npx playwright test tests/lite.spec.ts --workers 1 --config playwright-lite.config.js",
     "test:update": "npx playwright test --update-snapshots",
-    "test:updatelite": "cd ./dist && python -m http.server -b 127.0.0.1 8000 jlpm run test:lite --update-snapshots",
+    "test:updatelite": "jlpm run test:lite --update-snapshots",
     "test:debug": "PWDEBUG=1 npx playwright test --workers 1"
   },
   "devDependencies": {
