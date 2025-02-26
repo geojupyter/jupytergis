@@ -100,7 +100,7 @@ test.describe('Console activation test', () => {
     await page.keyboard.press('Shift+Enter');
     await page.waitForTimeout(1000);
 
-    const main = await page.locator('canvas');
+    const main = await page.locator('#jp-main-dock-panel');
 
     if (main) {
       expect(await main.screenshot()).toMatchSnapshot({
