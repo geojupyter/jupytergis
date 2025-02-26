@@ -27,14 +27,14 @@ We have several tools configured for checking code quality:
   * Eslint lints (sometimes autofixes) JS/TS code.
 
 * UI tests using [Galata](https://github.com/jupyterlab/galata), defined in the
-  `ui-tests/` directory.
-  First, move to the `ui-tests/` directory.
-  Next, run `jlpm install` (if this is your first time running tests, or if the
-  dependencies in `package.json` have changed), and finally run `jlpm run test`.
-  If you receive error messages indicating to run `yarn playwright install`, instead
-  run `jlpm playwright install`.
-  This command may yield even more instructions to install dependencies on your host
-  machine; follow those as well, then run `jlpm run test` again.
+  `ui-tests/` directory. To run locally:
+
+  ```bash
+  cd ui-tests
+  jlpm install  # If you haven't already
+  jlpm playwright install  # if you haven't already
+  jlpm run test
+  ```
 
   * DOM testing: Interact with the application programmatically and verify
     resulting DOM looks correct.
