@@ -1,3 +1,8 @@
+import {
+  IJupyterGISDocumentWidget,
+  IJupyterGISModel,
+  IJupyterGISOutputWidget
+} from '@jupytergis/schema';
 import { MainAreaWidget } from '@jupyterlab/apputils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { DocumentWidget } from '@jupyterlab/docregistry';
@@ -5,17 +10,12 @@ import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { JSONValue } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel, Widget } from '@lumino/widgets';
-import {
-  IJupyterGISModel,
-  IJupyterGISOutputWidget,
-  IJupyterGISDocumentWidget
-} from '@jupytergis/schema';
 
+import { CommandRegistry } from '@lumino/commands';
+import { MessageLoop } from '@lumino/messaging';
+import { ConsoleView } from './console';
 import { JupyterGISMainViewPanel } from './mainview';
 import { MainViewModel } from './mainview/mainviewmodel';
-import { ConsoleView } from './console';
-import { MessageLoop } from '@lumino/messaging';
-import { CommandRegistry } from '@lumino/commands';
 
 const CELL_OUTPUT_WIDGET_CLASS = 'jgis-cell-output-widget';
 
@@ -100,7 +100,7 @@ export class JupyterGISPanel extends SplitPanel {
       options;
     this._initModel({ model, commandRegistry });
     this._initView();
-    this._consoleOption = consoleOption;
+    this._consoleOption = { commandRegistry, ...consoleOption };
     this._consoleTracker = consoleTracker;
   }
 
