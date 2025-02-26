@@ -1,8 +1,7 @@
 {
   "layerTree": [
     "54e0ea1f-32fd-4ff2-90fb-ad449a38f902",
-    "f909d9b9-bf07-42f6-8841-8d6470665dcb",
-    "61ef4256-0d6b-4810-93a7-cf29b9e3ae00"
+    "f909d9b9-bf07-42f6-8841-8d6470665dcb"
   ],
   "layers": {
     "54e0ea1f-32fd-4ff2-90fb-ad449a38f902": {
@@ -11,30 +10,6 @@
         "source": "780c4234-ba6d-4da2-9731-739f6c4d8033"
       },
       "type": "RasterLayer",
-      "visible": true
-    },
-    "61ef4256-0d6b-4810-93a7-cf29b9e3ae00": {
-      "filters": {
-        "appliedFilters": [],
-        "logicalOp": "all"
-      },
-      "name": "Custom Shapefile Layer",
-      "parameters": {
-        "color": {
-          "fill-color": "#ff0000",
-          "stroke-color": "#ff0000",
-          "stroke-line-cap": "round",
-          "stroke-line-join": "round",
-          "stroke-width": 1.25
-        },
-        "opacity": 1.0,
-        "source": "df86531e-086d-48fa-bfec-98477ec554a4",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        },
-        "type": "line"
-      },
-      "type": "VectorLayer",
       "visible": true
     },
     "f909d9b9-bf07-42f6-8841-8d6470665dcb": {
@@ -62,10 +37,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -18426165.47087102,
-      -12938060.196881127,
-      21616739.82313248,
-      18980663.028651733
+      -14315907.349273225,
+      -10963209.615019688,
+      17506481.70153469,
+      17005812.446790293
     ],
     "latitude": 26.179270968888744,
     "longitude": 14.330708528781068,
@@ -85,17 +60,6 @@
         "urlParameters": {}
       },
       "type": "RasterSource"
-    },
-    "df86531e-086d-48fa-bfec-98477ec554a4": {
-      "name": "Custom Shapefile Source",
-      "parameters": {
-        "additionalFiles": {},
-        "attribution": "",
-        "encoding": "UTF-8",
-        "path": "https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip",
-        "projection": "WGS84"
-      },
-      "type": "ShapefileSource"
     },
     "eb4b68da-eab6-44a1-8e75-ca9c871d2755": {
       "name": "Custom Shapefile Source",

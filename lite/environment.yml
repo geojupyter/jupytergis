@@ -1,0 +1,19 @@
+name: xeus-python-kernel
+channels:
+  - https://prefix.dev/emscripten-forge-dev
+  - conda-forge
+dependencies:
+  - python=3.13
+  - pip
+  - xeus-python
+  - requests
+  - jupyter_ydoc=2.1.5
+  - ypywidgets>=0.9.6,<0.10.0
+  - comm>=0.1.2,<0.2.0
+  - pydantic>=2,<3
+  - pip:
+      - yjs-widgets>=0.4,<0.5
+      - my-jupyter-shared-drive
+      - ../jupytergis_lab-0.0.1-py3-none-any.whl
+      - ../jupytergis_core-0.0.1-py3-none-any.whl
+      - ../jupytergis_lite-0.0.1-py3-none-any.whl
