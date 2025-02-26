@@ -70,7 +70,7 @@ import {
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import TileSource from 'ol/source/Tile';
-import { Circle, Fill, Stroke, Style } from 'ol/style';
+import { Circle, Fill, Stroke, Style, Icon } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
@@ -830,8 +830,20 @@ export class MainView extends React.Component<IProps, IStates> {
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: this.vectorLayerStyleRuleBuilder(layer)
+          style: new Style({
+            image: new Icon({
+              crossOrigin: 'anonymous',
+              src: 'sq.png',
+              size: [20, 20],
+              color: '#4271AE',
+              scale: 2,
+            }),
+          })
         });
+        console.log('from vectorstylerulebuilder', this.vectorLayerStyleRuleBuilder(layer));
+
+        console.log('VectorLayer', newMapLayer);
+
 
         break;
       }
@@ -998,17 +1010,16 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     const defaultStyle = {
-      'fill-color': 'rgba(255,255,255,0.4)',
-      'stroke-color': '#3399CC',
-      'stroke-width': 1.25,
-      'circle-radius': 5,
-      'circle-fill-color': 'rgba(255,255,255,0.4)',
-      'circle-stroke-width': 1.25,
-      'circle-stroke-color': '#3399CC'
+      'icon-image': 'sq.png', // Path to the icon image
+      'icon-size': [32, 32], // Specify size as an array [width, height]
+      'icon-color': '#3399CC',
+      'icon-opacity': 1.0,
+      'icon-stroke-color': '#000000',
+      'icon-stroke-width': 1.25,
     };
 
     const defaultRules: Rule = {
-      style: defaultStyle
+      style: defaultStyle,
     };
 
     const layerStyle = { ...defaultRules };
@@ -1022,6 +1033,10 @@ export class MainView extends React.Component<IProps, IStates> {
       };
 
       let filterExpr: any[];
+
+
+      // 'Any' and 'All' operators require more than one argument
+      // So if there's only one filter, skip that part to avoid error
 
       // 'Any' and 'All' operators require more than one argument
       // So if there's only one filter, skip that part to avoid error
@@ -1045,6 +1060,8 @@ export class MainView extends React.Component<IProps, IStates> {
     const newStyle = { ...defaultStyle, ...layerParams.color };
 
     layerStyle.style = newStyle;
+
+    console.log('layerStyle', layerStyle);
 
     return [layerStyle];
   };
@@ -1137,6 +1154,9 @@ export class MainView extends React.Component<IProps, IStates> {
         (mapLayer as VectorLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer)
         );
+
+        console.log('VectorLayer', mapLayer);
+
 
         break;
       }
