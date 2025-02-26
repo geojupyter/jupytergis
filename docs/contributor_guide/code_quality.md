@@ -31,8 +31,8 @@ We have several tools configured for checking code quality:
   First, move to the `ui-tests/` directory.
   Next, run `jlpm install` (if this is your first time running tests, or if the
   dependencies in `package.json` have changed), and finally run `jlpm run test`.
-  If you receive error messages indicating to run `npx playwright install`, run `jlpm
-  playwright install` instead.
+  If you receive error messages indicating to run `yarn playwright install`, instead
+  run `jlpm playwright install`.
   This command may yield even more instructions to install dependencies on your host
   machine; follow those as well, then run `jlpm run test` again.
 
