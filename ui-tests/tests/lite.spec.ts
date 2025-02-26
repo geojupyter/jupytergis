@@ -32,36 +32,36 @@ test.describe('UI Test', () => {
     });
 
     for (const file of fileList) {
-        test(`Should be able to render ${file} without error`, async ({
-          browser
-        }) => {
-          const context = await browser.newContext();
-          const page = await context.newPage();
+      test(`Should be able to render ${file} without error`, async ({
+        browser
+      }) => {
+        const context = await browser.newContext();
+        const page = await context.newPage();
 
-          await page.goto(`lab/index.html?path=${file}`, {
-            waitUntil: 'domcontentloaded'
-          });
-
-          await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
-
-          if (await page.getByRole('button', { name: 'Ok' }).isVisible()) {
-            await page.getByRole('button', { name: 'Ok' }).click();
-          }
-
-          const main = await page.waitForSelector('.jp-MainAreaWidget', {
-            state: 'visible'
-          });
-
-          await page.waitForTimeout(10000);
-
-          expect(errors).toBe(0);
-          if (main) {
-            expect(await main.screenshot()).toMatchSnapshot({
-              name: `Render-${file}.png`,
-              maxDiffPixelRatio: 0.01
-            });
-          }
+        await page.goto(`lab/index.html?path=${file}`, {
+          waitUntil: 'domcontentloaded'
         });
+
+        await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
+
+        if (await page.getByRole('button', { name: 'Ok' }).isVisible()) {
+          await page.getByRole('button', { name: 'Ok' }).click();
+        }
+
+        const main = await page.waitForSelector('.jp-MainAreaWidget', {
+          state: 'visible'
+        });
+
+        await page.waitForTimeout(10000);
+
+        expect(errors).toBe(0);
+        if (main) {
+          expect(await main.screenshot()).toMatchSnapshot({
+            name: `Render-${file}.png`,
+            maxDiffPixelRatio: 0.01
+          });
+        }
+      });
     }
   });
 
