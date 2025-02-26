@@ -91,6 +91,8 @@ test.describe('UI Test', () => {
       }
     );
 
+    await page.waitForTimeout(10000);
+
     expect(await jgisWidget.screenshot()).toMatchSnapshot({
       name: 'Render-notebook.png',
       maxDiffPixelRatio: 0.01
