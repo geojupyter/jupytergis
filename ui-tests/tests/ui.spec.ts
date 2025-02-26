@@ -68,3 +68,44 @@ test.describe('UI Test', () => {
     }
   });
 });
+
+test.describe('Console activation test', () => {
+  test.beforeAll(async ({ request }) => {
+    const content = galata.newContentsHelper(request);
+    await content.deleteDirectory('/testDir');
+    await content.uploadDirectory(
+      path.resolve(__dirname, './gis-files'),
+      '/testDir'
+    );
+  });
+
+  test('should open console', async ({ page }) => {
+    await page.goto();
+    await page.sidebar.close('right');
+    await page.sidebar.close('left');
+    await page.getByLabel('notebook content').getByText('GIS File').click();
+    await page.getByRole('button', { name: 'Toggle console' }).click();
+    await page.getByRole('button', { name: 'Remove console' });
+    await page
+      .getByRole('textbox')
+      .filter({ hasText: /^$/ })
+      .locator('div')
+      .click();
+    await page
+      .getByRole('textbox')
+      .filter({ hasText: /^$/ })
+      .locator('div')
+      .fill('doc.add_geojson_layer(path="testDir/eq.json")');
+    await page.waitForTimeout(1000);
+    await page.keyboard.press('Shift+Enter');
+    await page.waitForTimeout(1000);
+
+    const main = await page.locator('canvas');
+
+    if (main) {
+      expect(await main.screenshot()).toMatchSnapshot({
+        name: `JGIS-Console.png`
+      });
+    }
+  });
+});
