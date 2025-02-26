@@ -99,6 +99,7 @@ test.describe('Console activation test', () => {
     await page.waitForTimeout(1000);
     await page.keyboard.press('Shift+Enter');
     await page.waitForTimeout(1000);
+    await page.getByLabel('Toggle console').nth(2).click();
 
     const main = await page.locator('#jp-main-dock-panel');
 
