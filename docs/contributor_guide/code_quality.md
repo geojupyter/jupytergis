@@ -1,12 +1,14 @@
-============
-Code quality
-============
+# Code quality
+
+```{seealso}
+Complete [dev install](./development_setup) instructions before continuing.
+```
 
 We have several tools configured for checking code quality:
 
 * Pre-commit checks run automatically at commit time.
-  Install checks with ``pre-commit install``.
-  Run them manually with ``pre-commit run --all-files``.
+  Install checks with `pre-commit install`.
+  Run them manually with `pre-commit run --all-files`.
   **Will exit non-zero when finding errors or changing files.**
 
   * Ruff formats and lints (sometimes autofixes) Python code.
@@ -14,24 +16,25 @@ We have several tools configured for checking code quality:
   * Generic pre-commit checks help avoid common mistakes like committing large
     files or trailing whitespace.
 
-* Package scripts (defined in ``package.json``) to check (and/or fix)
+* Package scripts (defined in `package.json`) to check (and/or fix)
   TypeScript, JavaScript, CSS, JSON, Markdown, and YAML.
-  Run manually with ``jlpm run lint``.
+  Run manually with `jlpm run lint`.
   **Will exit 0 when applying fixes.
-  Check the logs and/or ``git status`` after every run.**
+  Check the logs and/or `git status` after every run.**
 
   * Prettier formats the file types listed above.
 
   * Eslint lints (sometimes autofixes) JS/TS code.
 
 * UI tests using [Galata](https://github.com/jupyterlab/galata), defined in the
-  `ui-tests/` directory. To execute, first build the app (`jlpm run build`). Then,
-  move to the `ui-tests/` directory. Next, run `jlpm install` (if this is your
-  first time running tests, or if the dependencies in `package.json` have
-  changed), and finally run `jlpm run test`. If you receive error messages
-  indicating to run `npx playwright install`, do that. This command may yield
-  even more instructions to install dependencies on your host machin; follow
-  those as well, then run `jlpm run test` again.
+  `ui-tests/` directory.
+  First, move to the `ui-tests/` directory.
+  Next, run `jlpm install` (if this is your first time running tests, or if the
+  dependencies in `package.json` have changed), and finally run `jlpm run test`.
+  If you receive error messages indicating to run `npx playwright install`, run `jlpm
+  playwright install` instead.
+  This command may yield even more instructions to install dependencies on your host
+  machine; follow those as well, then run `jlpm run test` again.
 
   * DOM testing: Interact with the application programmatically and verify
     resulting DOM looks correct.
