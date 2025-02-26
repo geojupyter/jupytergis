@@ -26,12 +26,12 @@ We have several tools configured for checking code quality:
 
 * UI tests using [Galata](https://github.com/jupyterlab/galata), defined in the
   `ui-tests/` directory. To execute, first build the app (`jlpm run build`). Then,
-  move to the `ui-tests/` directory. Next, run `npm install` (if this is your
+  move to the `ui-tests/` directory. Next, run `jlpm install` (if this is your
   first time running tests, or if the dependencies in `package.json` have
-  changed), and finally run `npm run test`. If you receive error messages
+  changed), and finally run `jlpm run test`. If you receive error messages
   indicating to run `npx playwright install`, do that. This command may yield
   even more instructions to install dependencies on your host machin; follow
-  those as well, then run `npm run test` again.
+  those as well, then run `jlpm run test` again.
 
   * DOM testing: Interact with the application programmatically and verify
     resulting DOM looks correct.
