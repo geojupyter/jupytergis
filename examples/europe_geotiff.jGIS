@@ -105,10 +105,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -2302429.2175875264,
-      3879138.3430050514,
-      3177682.148824832,
-      7877316.342290832
+      -1079073.6667191056,
+      4817841.003706928,
+      1954326.597956411,
+      6938613.6815889515
     ],
     "latitude": 46.60741102745533,
     "longitude": 3.9312654280044197,
@@ -125,7 +125,7 @@
           {
             "max": 1000.0,
             "min": 0.0,
-            "url": "http://eoresults.esa.int/d/APEX_TEST/2020/03/01/europe_aggr-orgc_00-020_mean_100_202003-202210/europe_aggr-orgc_00-020_mean_100_202003-202210.tif"
+            "url": "https://eoresults.esa.int/d/APEX_TEST/2020/03/01/europe_aggr-orgc_00-020_mean_100_202003-202210/europe_aggr-orgc_00-020_mean_100_202003-202210.tif"
           }
         ],
         "wrapX": false
