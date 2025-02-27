@@ -95,11 +95,10 @@ test.describe('Console activation test', () => {
       .getByRole('textbox')
       .filter({ hasText: /^$/ })
       .locator('div')
-      .fill('doc.add_geojson_layer(path="testDir/eq.json")');
+      .fill('doc.add_geojson_layer(path="testDir/eq.json");');
     await page.waitForTimeout(1000);
     await page.keyboard.press('Shift+Enter');
     await page.waitForTimeout(1000);
-    await page.getByLabel('Toggle console').nth(2).click();
 
     const main = await page.locator('#jp-main-dock-panel');
 
