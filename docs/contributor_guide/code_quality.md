@@ -6,7 +6,7 @@ Complete [dev install](./development_setup) instructions before continuing.
 
 We have several tools configured for checking code quality:
 
-- Pre-commit checks run automatically at commit time.
+- **Pre-commit checks run automatically at commit time.**
   Install checks with `pre-commit install`.
   Run them manually with `pre-commit run --all-files`.
   **Will exit non-zero when finding errors or changing files.**
@@ -16,8 +16,9 @@ We have several tools configured for checking code quality:
   - Generic pre-commit checks help avoid common mistakes like committing large
     files or trailing whitespace.
 
-- Package scripts (defined in `package.json`) to check (and/or fix)
-  TypeScript, JavaScript, CSS, JSON, Markdown, and YAML.
+- **Formatting and lint checks and autofixers for Typescript, Javascript, CSS, JSON,
+- Markdown, and YAML.**
+  Defined as package scripts (in `package.json`).
   Run manually with `jlpm run lint`.
   **Will exit 0 when applying fixes.
   Check the logs and/or `git status` after every run.**
@@ -26,7 +27,7 @@ We have several tools configured for checking code quality:
 
   - Eslint lints (sometimes autofixes) JS/TS code.
 
-- UI tests using [Galata](https://github.com/jupyterlab/galata), defined in the
+- **UI tests using [Galata](https://github.com/jupyterlab/galata)**, defined in the
   `ui-tests/` directory.
 
   ```{warning}
