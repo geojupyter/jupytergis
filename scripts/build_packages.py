@@ -12,7 +12,13 @@ def build_packages():
     install_build_deps = f"python -m pip install -r {requirements_build_path}"
 
     python_package_prefix = "python"
-    python_packages = ["jupytergis_core", "jupytergis_lab", "jupytergis_qgis"]
+    python_packages = [
+        "jupytergis",
+        "jupytergis_core",
+        "jupytergis_lab",
+        "jupytergis_qgis",
+        "jupytergis_lite",
+    ]
 
     execute(install_build_deps)
 

@@ -212,10 +212,16 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   border: solid 1.5px red;
 }
 
+.jGIS-Mainview-Container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .jGIS-Mainview {
   width: 100%;
-  height: calc(100% - 16px);
   box-sizing: border-box;
+  flex: 1;
 }
 
 .jGIS-Popup-Wrapper {

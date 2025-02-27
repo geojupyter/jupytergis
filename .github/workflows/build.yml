@@ -73,9 +73,11 @@ jobs:
         with:
           name: ${{ matrix.python-version == '3.12' && 'extension-artifacts' || format('extension-artifacts-{0}', matrix.python-version) }}
           path: |
+            python/jupytergis/dist/jupytergis*
             python/jupytergis_core/dist/jupytergis*
             python/jupytergis_lab/dist/jupytergis*
             python/jupytergis_qgis/dist/jupytergis*
+            python/jupytergis_lite/dist/jupytergis*
           if-no-files-found: error
 
   python_tests:
@@ -131,7 +133,7 @@ jobs:
           sudo rm -rf $(which node)
           sudo rm -rf $(which node)
 
-          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
+          cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
           python -m pip install jupytergis*.whl "jupyterlab>=4.3,<5"
 
           jupyter labextension list
@@ -172,7 +174,7 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
+          cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
           python -m pip install jupytergis*.whl "jupyter-collaboration>=3,<4" "jupyterlab>=4.3,<5"
 
       - name: Install dependencies
@@ -251,8 +253,8 @@ jobs:
         with:
           ignore_links: 'lite/'
 
-  build-docs-and-lite:
-    name: Build docs with JupyterLite deployment
+  build-lite:
+    name: Build JupyterLite artifacts
     needs: build
     runs-on: ubuntu-latest
 
@@ -268,56 +270,100 @@ jobs:
           create-args: >-
             python=3.10
             pip
-            jupyterlite-core>=0.4.0,<0.6.0
-            jupyterlite-xeus>=2,<3
-            jupyterlite-sphinx
-            sphinx
-            sphinx-tabs
-            pydata-sphinx-theme
-            sphinx-autodoc-typehints
-            sphinx-exercise
-            sphinx-togglebutton
-            myst-parser<4.0.0
+            jupyterlite-core
+            jupyterlite-xeus
+            jupyter_server
 
       - name: Download extension package
         uses: actions/download-artifact@v4
         with:
           name: extension-artifacts
 
+      - name: debug
+        run: ls
+
       - name: Install the extension
         shell: bash -l {0}
         run: |
           set -eux
-          cp ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl
+          cp ./jupytergis_core/dist/jupytergis*.whl jupytergis_core-0.0.1-py3-none-any.whl
+          cp ./jupytergis_lab/dist/jupytergis*.whl jupytergis_lab-0.0.1-py3-none-any.whl
+          cp ./jupytergis_qgis/dist/jupytergis*.whl jupytergis_qgis-0.0.1-py3-none-any.whl
+          cp ./jupytergis_lite/dist/jupytergis*.whl jupytergis_lite-0.0.1-py3-none-any.whl
+          cp ./jupytergis/dist/jupytergis*.whl jupytergis-0.0.1-py3-none-any.whl
 
-      - name: Build the docs site
+      - name: Build JupyterLite
         shell: bash -l {0}
-        working-directory: docs
+        working-directory: lite
         run: |
           set -eux
-          sphinx-build . dist
+          mkdir -p content && cp ../examples/*.jGIS ../examples/*.qgz ../examples/*.json ../examples/*.tif ../examples/*.zip ../examples/*.ipynb ../examples/*.gif ./content
+          jupyter lite build --contents content --output-dir dist
 
-      - name: Upload artifact
-        id: upload-docs-artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload Lite artifacts
+        uses: actions/upload-artifact@v4
         with:
-          path: ./docs/dist
+          name: lite-artifacts
+          path: ./lite/dist
           retention-days: 30
 
-  deploy:
-    needs: build-docs-and-lite
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
+  integration-tests-lite:
+    name: Integration tests Lite
+    needs: build-lite
     runs-on: ubuntu-latest
+
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/pw-browsers
+
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          micromamba-version: '1.5.5-0'
+          environment-name: gis
+          create-args: >-
+            python=3.9
+            jupyterlab
+
+      - name: Download extension package
+        uses: actions/download-artifact@v4
+        with:
+          name: lite-artifacts
+          path: dist
+
+      - name: Install dependencies
+        shell: bash -l {0}
+        working-directory: ui-tests
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        run: jlpm install
+
+      - name: Set up browser cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/pw-browsers
+          key: ${{ runner.os }}-${{ hashFiles('ui-tests/yarn.lock') }}
+
+      - name: Install browser
+        shell: bash -l {0}
+        run: npx playwright install chromium
+        working-directory: ui-tests
+
+      - name: Execute integration tests
+        shell: bash -l {0}
+        working-directory: ui-tests
+        run: jlpm run test:lite
+
+      - name: Upload Playwright Test report
+        id: upload-galata-artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jupytergis-lite-playwright-tests
+          path: |
+            ui-tests/test-results
+            ui-tests/playwright-report

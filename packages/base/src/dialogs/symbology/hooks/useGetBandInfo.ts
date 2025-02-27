@@ -1,6 +1,6 @@
-import { IDict, IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
+import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
-import { loadFile } from '../../../tools';
+import { fromUrl } from 'geotiff';
 
 export interface IBandHistogram {
   buckets: number[];
@@ -11,40 +11,12 @@ export interface IBandHistogram {
 
 export interface IBandRow {
   band: number;
-  colorInterpretation: string;
+  colorInterpretation?: string;
   stats: {
     minimum: number;
     maximum: number;
-    mean: number;
-    stdDev: number;
   };
-  metadata: IDict;
-  histogram: IBandHistogram;
 }
-
-interface ITifBandData {
-  band: number;
-  colorInterpretation: string;
-  minimum: number;
-  maximum: number;
-  mean: number;
-  stdDev: number;
-  metadata: object;
-  histogram: any;
-}
-
-const preloadGeoTiffFile = async (
-  sourceInfo: {
-    url?: string | undefined;
-  },
-  model: IJupyterGISModel
-): Promise<{ file: Blob; metadata: any; sourceUrl: string }> => {
-  return await loadFile({
-    filepath: sourceInfo.url ?? '',
-    type: 'GeoTiffSource',
-    model: model
-  });
-};
 
 const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
@@ -66,29 +38,22 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
         return;
       }
 
-      const preloadedFile = await preloadGeoTiffFile(sourceInfo, model);
-      const { file, metadata, sourceUrl } = { ...preloadedFile };
+      // TODO Get band names + get band stats
+      const tiff = await fromUrl(sourceInfo.url);
+      const image = await tiff.getImage();
+      const numberOfBands = image.getSamplesPerPixel();
 
-      if (file && metadata && sourceUrl === sourceInfo.url) {
-        metadata['bands'].forEach((bandData: ITifBandData) => {
-          bandsArr.push({
-            band: bandData.band,
-            colorInterpretation: bandData.colorInterpretation,
-            stats: {
-              minimum: sourceInfo.min ?? bandData.minimum,
-              maximum: sourceInfo.max ?? bandData.maximum,
-              mean: bandData.mean,
-              stdDev: bandData.stdDev
-            },
-            metadata: bandData.metadata,
-            histogram: bandData.histogram
-          });
+      for (let i = 0; i < numberOfBands; i++) {
+        bandsArr.push({
+          band: i,
+          stats: {
+            minimum: sourceInfo.min ?? 0,
+            maximum: sourceInfo.max ?? 100
+          }
         });
-
-        setBandRows(bandsArr);
-      } else {
-        setError('Failed to preload the file or metadata mismatch.');
       }
+
+      setBandRows(bandsArr);
     } catch (err: any) {
       setError(`Error fetching band info: ${err.message}`);
     } finally {

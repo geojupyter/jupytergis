@@ -9,6 +9,7 @@
 @import url('./filterPanel.css');
 @import url('./symbologyDialog.css');
 @import url('./statusBar.css');
+@import url('./temporalSlider.css');
 @import url('ol/ol.css');
 
 .jGIS-Toolbar-GroupName {

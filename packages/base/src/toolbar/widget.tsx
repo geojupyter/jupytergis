@@ -172,6 +172,15 @@ export class ToolbarWidget extends ReactiveToolbar {
         })
       );
 
+      this.addItem(
+        'temporalController',
+        new CommandToolbarButton({
+          id: CommandIDs.temporalController,
+          label: '',
+          commands: options.commands
+        })
+      );
+
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
       this.addItem('Buffer',

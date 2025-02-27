@@ -54,10 +54,6 @@ export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
     if (!data) {
       return;
     }
-
-    if (this.features.length !== 0) {
-      schema.properties.feature.enum = this.features;
-    }
   }
 
   private async fetchFeatureNames(

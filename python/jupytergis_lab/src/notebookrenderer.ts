@@ -16,6 +16,7 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { NotebookPanel } from '@jupyterlab/notebook';
@@ -24,10 +25,10 @@ import { Toolbar } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { MessageLoop } from '@lumino/messaging';
 import { Panel, Widget } from '@lumino/widgets';
-import * as Y from 'yjs';
 import {
   IJupyterYWidget,
   IJupyterYWidgetManager,
+  JupyterYDoc,
   JupyterYModel
 } from 'yjs-widgets';
 
@@ -80,11 +81,7 @@ export class YJupyterGISLuminoWidget extends Panel {
    */
   private _buildWidget = (options: IOptions) => {
     const { commands, model, externalCommands, tracker } = options;
-    // Ensure the model filePath is relevant with the shared model path.
-    if (model.sharedModel.getState('path')) {
-      model.filePath = model.sharedModel.getState('path') as string;
-    }
-    const content = new JupyterGISPanel({ model });
+    const content = new JupyterGISPanel({ model, commandRegistry: commands });
     let toolbar: Toolbar | undefined = undefined;
     if (model.filePath) {
       toolbar = new ToolbarWidget({
@@ -132,18 +129,57 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
       console.error('Missing IJupyterYWidgetManager token!');
       return;
     }
-    if (!drive) {
-      console.error(
-        'Cannot setup JupyterGIS Python API without a collaborative drive'
-      );
-      return;
-    }
+
     class YJupyterGISModelFactory extends YJupyterGISModel {
-      ydocFactory(commMetadata: ICommMetadata): Y.Doc {
+      protected async initialize(commMetadata: {
+        [key: string]: any;
+      }): Promise<void> {
         const { path, format, contentType } = commMetadata;
         const fileFormat = format as Contents.FileFormat;
+
+        if (!drive) {
+          showErrorMessage(
+            'Error using the JupyterGIS Python API',
+            'You cannot use the JupyterGIS Python API without a collaborative drive. You need to install a package providing collaboration features (e.g. jupyter-collaboration).'
+          );
+          throw new Error(
+            'Failed to create the YDoc without a collaborative drive'
+          );
+        }
+
+        // The path of the project is relative to the path of the notebook
+        let currentWidgetPath = '';
+        const currentWidget = app.shell.currentWidget;
+        if (
+          currentWidget instanceof NotebookPanel ||
+          currentWidget instanceof ConsolePanel
+        ) {
+          currentWidgetPath = currentWidget.sessionContext.path;
+        }
+
+        let localPath = '';
+        if (path) {
+          localPath = PathExt.join(PathExt.dirname(currentWidgetPath), path);
+
+          // If the file does not exist yet, create it
+          try {
+            await app.serviceManager.contents.get(localPath);
+          } catch (e) {
+            await app.serviceManager.contents.save(localPath, {
+              content: btoa('{}'),
+              format: 'base64'
+            });
+          }
+        } else {
+          // If the user did not provide a path, do not create
+          localPath = PathExt.join(
+            PathExt.dirname(currentWidgetPath),
+            'unsaved_project'
+          );
+        }
+
         const sharedModel = drive!.sharedModelFactory.createNew({
-          path,
+          path: localPath,
           format: fileFormat,
           contentType,
           collaborative: true
@@ -153,27 +189,10 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         });
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
+        this.jupyterGISModel.filePath = localPath;
 
-        if (!sharedModel) {
-          // The path of the project is set to the path of the notebook, to be able to
-          // add local geoJSON/shape file in a "file-less" project.
-          let currentWidgetPath: string | undefined = undefined;
-          const currentWidget = app.shell.currentWidget;
-          if (
-            currentWidget instanceof NotebookPanel ||
-            currentWidget instanceof ConsolePanel
-          ) {
-            currentWidgetPath = currentWidget.sessionContext.path;
-          }
-
-          if (currentWidgetPath) {
-            this.jupyterGISModel.filePath = PathExt.join(
-              PathExt.dirname(currentWidgetPath),
-              'unsaved_project'
-            );
-          }
-        }
-        return this.jupyterGISModel.sharedModel.ydoc;
+        this.ydoc = this.jupyterGISModel.sharedModel.ydoc;
+        this.sharedModel = new JupyterYDoc(commMetadata, this.ydoc);
       }
     }
 

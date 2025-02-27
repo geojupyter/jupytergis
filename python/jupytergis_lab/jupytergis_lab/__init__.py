@@ -8,13 +8,6 @@ except ImportError:
 
     __version__ = "dev"
 
-import sys
-
-if sys.platform == "emscripten":
-    raise ImportError(
-        "Cannot use the JupyterGIS Python API in a JupyterLite kernel yet"
-    )
-
 from .notebook import GISDocument  # noqa
 
 

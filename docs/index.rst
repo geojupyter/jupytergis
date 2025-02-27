@@ -2,9 +2,9 @@
 JupyterGIS
 ==========
 
-.. cssclass:: try-in-jupyterlite-button
-
-  `Try it with JupyterLite! <lite/>`_
+.. jupyterlite::
+   :new_tab: True
+   :new_tab_button_text: Try it with JupyterLite!
 
 JupyterGIS is a JupyterLab extension for collaborative GIS (Geographical Information System). It is designed to
 allow multiple people to work on the same geospatial project simultaneously, facilitating discussion and collaboration

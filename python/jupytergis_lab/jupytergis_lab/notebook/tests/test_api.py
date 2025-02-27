@@ -1,35 +1,18 @@
 import os
-import unittest
+
+import pytest
 
 from jupytergis_lab import GISDocument
 
-
-class ProjectCreation(unittest.TestCase):
-    filename = "test.jgis"
-
-    def setUp(self):
-        if os.path.isfile(self.filename):
-            os.remove(self.filename)
-
-    def tearDown(self):
-        if os.path.isfile(self.filename):
-            os.remove(self.filename)
-
-    def test_creation(self):
-        self.doc = GISDocument(self.filename)
-
-        assert os.path.isfile(self.filename)
+TEST_TIF = "https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif"
 
 
-class VectorTileTests(unittest.TestCase):
-    def setUp(self):
+class TestDocument:
+    def setup_method(self):
         self.doc = GISDocument()
 
 
-class TiffLayerTests(unittest.TestCase):
-    def setUp(self):
-        self.doc = GISDocument()
-
+class TestTiffLayer(TestDocument):
     def test_sourcelayer(self):
         color = self.doc.create_color_expr(
             interpolation_type="linear",
@@ -43,8 +26,21 @@ class TiffLayerTests(unittest.TestCase):
             },
         )
 
-        tif_layer = self.doc.add_tiff_layer(
-            url="https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif",
-            color_expr=color,
-        )
+        tif_layer = self.doc.add_tiff_layer(url=TEST_TIF, color_expr=color)
         assert self.doc.layers[tif_layer]["parameters"]["color"] == color
+
+
+class TestLayerManipulation(TestDocument):
+    def test_add_and_remove_layer_and_source(self):
+        layer_id = self.doc.add_tiff_layer(url=TEST_TIF)
+        assert len(self.doc.layers) == 1
+
+        # After removing the layer, the source is not associated with any layer, so we
+        # expect it to be removed as well.
+        self.doc.remove_layer(layer_id)
+        assert len(self.doc.layers) == 0
+        assert len(self.doc._sources) == 0
+
+    def test_remove_nonexistent_layer_raises(self):
+        with pytest.raises(KeyError):
+            self.doc.remove_layer("foo")

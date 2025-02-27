@@ -5,10 +5,11 @@
 
 import argparse
 import json
+from typing import List
 from packaging.version import parse as parse_version
 from pathlib import Path
 from subprocess import run
-
+import tomlkit
 
 ENC = dict(encoding="utf-8")
 HATCH_VERSION = "hatch version"
@@ -25,6 +26,20 @@ def next_version():
     if v.is_prerelease:
         return f"{v.major}.{v.minor}.{v.micro}{v.pre[0]}{v.pre[1] + 1}"
     return f"{v.major}.{v.minor}.{v.micro + 1}"
+
+
+def bump_jupytergis_deps(py_version: str):
+    with open(ROOT / "pyproject.toml", "r") as f:
+        data = tomlkit.load(f)
+    dependencies: List[str] = data["project"]["dependencies"]
+
+    for index, value in enumerate(dependencies):
+        if value.startswith("jupytergis"):
+            lib = value.split("==")[0]
+            dependencies[index] = f"{lib}=={py_version}"
+
+    with open(ROOT / "pyproject.toml", "w") as f:
+        tomlkit.dump(data, f)
 
 
 def bump():
@@ -51,6 +66,8 @@ def bump():
     )
     # bump the Python version with hatch
     run(f"{HATCH_VERSION} {py_version}", shell=True, check=True, cwd=ROOT)
+    # pin jupytergis_* package to the same version
+    bump_jupytergis_deps(py_version)
     # bump the JS version with lerna
     run(f"yarn run bump:js:version {js_version}", shell=True, check=True)
 

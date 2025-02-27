@@ -15,7 +15,7 @@ By the end of this tutorial, you will:
 
 :::{admonition} Prerequisites
 :class: warning
-Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)) or you can use an online version of JupyterGIS (such as [![Jupyterlite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://geojupyter.github.io/jupytergis/lite/lab/index.html?path=france_hiking.jGIS/)).
+Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)) or you can use an online version of JupyterGIS (such as [![Jupyterlite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html?path=france_hiking.jGIS/)).
 :::
 
 ## Introduction to JupyterGIS
@@ -75,7 +75,7 @@ Follow along to add a vector layer available online.
    ![Open Layer Browser](../../assets/images/OpenLayerBrowser.png)
 3. Click on the **+** to add a user-defined layer and select "New Shapefile Layer" to add a new vector layer (stored as a shapefile).
    ![Add a Vector Layer](../../assets/images/addVectorLayer.png)
-4. Set the path of the new shapefile Layer to `https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/world-administrative-boundaries/exports/shp` and click **Ok**.
+4. Set the path of the new shapefile Layer to `https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/georef-united-states-of-america-county/exports/shp` and click **Ok**.
    ![Set Shapefile Layer](../../assets/images/CreateShapefileLayer.png)
 5. You will see the new Shapefile Layer on the map. When clicking on the **Custom Shapefile Layer** (see figure below), you will also see the details of the object properties on the right of the map. You can pan and zoom to focus on your area of interest, or automatically focus on your new data layer by right-clicking on the **Custom Shapefile Layer** and selecting "Zoom to Layer".
    ![View Shapefile Layer](../../assets/images/viewShapefileLayer.png)
@@ -187,7 +187,6 @@ Congratulations on completing this tutorial! You've created a basic map in Jupyt
 
 ## Additional resources
 
-- [JupyterGIS Documentation](https://geojupyter.github.io/jupytergis)
 - [Folium Library](https://python-visualization.github.io/folium/latest/)
 - [Geopandas Documentation](https://geopandas.org/en/stable/docs.html)
 - [QGIS Documentation](https://www.qgis.org)

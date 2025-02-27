@@ -71,7 +71,9 @@ const BandRow = ({
                 selected={band.band === bandRow?.band}
                 className="jp-mod-styled"
               >
-                {`Band ${band.band} (${band.colorInterpretation})`}
+                {band.colorInterpretation
+                  ? `Band ${band.band} (${band.colorInterpretation})`
+                  : `Band ${band.band}`}
               </option>
             ))}
             {isMultibandColor ? (

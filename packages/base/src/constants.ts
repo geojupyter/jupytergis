@@ -10,6 +10,7 @@ export namespace CommandIDs {
   export const undo = 'jupytergis:undo';
   export const symbology = 'jupytergis:symbology';
   export const identify = 'jupytergis:identify';
+  export const temporalController = 'jupytergis:temporalController';
 
   // Layers and sources creation commands
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
@@ -102,7 +103,8 @@ const iconObject = {
   [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
   [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
-  [CommandIDs.identify]: { iconClass: 'fa fa-info' }
+  [CommandIDs.identify]: { iconClass: 'fa fa-info' },
+  [CommandIDs.temporalController]: { iconClass: 'fa fa-clock' }
 };
 
 /**

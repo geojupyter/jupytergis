@@ -3,7 +3,8 @@ import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
 
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
-import { Contents, ServerConnection } from '@jupyterlab/services';
+import { ServerConnection } from '@jupyterlab/services';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import * as d3Color from 'd3-color';
 import shp from 'shpjs';
 
@@ -16,7 +17,6 @@ import {
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
-import { getGdal } from './gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -406,64 +406,32 @@ export const getFromIndexedDB = async (key: string) => {
   });
 };
 
-/**
- * Load a GeoTIFF file from IndexedDB database cache or fetch it .
- *
- * @param sourceInfo object containing the URL of the GeoTIFF file.
- * @returns A promise that resolves to the file as a Blob, or undefined .
- */
-export const loadGeoTiff = async (
-  sourceInfo: {
-    url?: string | undefined;
-  },
-  file?: Contents.IModel | null
-) => {
-  if (!sourceInfo?.url) {
-    return null;
-  }
+const fetchWithProxies = async <T>(
+  url: string,
+  parseResponse: (response: Response) => Promise<T>
+): Promise<T | null> => {
+  const proxyUrls = [
+    url, // Direct fetch
+    `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
+    `https://corsproxy.io/?url=${encodeURIComponent(url)}` // External proxy
+  ];
 
-  const mimeType = getMimeType(sourceInfo.url);
-  if (!mimeType || !mimeType.startsWith('image/tiff')) {
-    throw new Error('Invalid file type. Expected GeoTIFF (image/tiff).');
-  }
-
-  const cachedData = await getFromIndexedDB(sourceInfo.url);
-  if (cachedData) {
-    return {
-      file: cachedData.file,
-      metadata: cachedData.metadata,
-      sourceUrl: sourceInfo.url
-    };
-  }
-
-  let fileBlob: Blob;
-  if (!file) {
-    const response = await fetch(
-      `/jupytergis_core/proxy?url=${sourceInfo.url}`
-    );
-    if (!response.ok) {
-      throw new Error(`Failed to fetch file. Status: ${response.status}`);
+  for (const proxyUrl of proxyUrls) {
+    try {
+      const response = await fetch(proxyUrl);
+      if (!response.ok) {
+        console.warn(
+          `Failed to fetch from ${proxyUrl}: ${response.statusText}`
+        );
+        continue;
+      }
+      return await parseResponse(response);
+    } catch (error) {
+      console.warn(`Error fetching from ${proxyUrl}:`, error);
     }
-    fileBlob = await response.blob();
-  } else {
-    fileBlob = await base64ToBlob(file.content, mimeType);
   }
 
-  const geotiff = new File([fileBlob], 'loaded.tif');
-
-  const Gdal = await getGdal();
-  const result = await Gdal.open(geotiff);
-  const tifDataset = result.datasets[0];
-  const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
-  Gdal.close(tifDataset);
-
-  await saveToIndexedDB(sourceInfo.url, fileBlob, metadata);
-
-  return {
-    file: fileBlob,
-    metadata,
-    sourceUrl: sourceInfo.url
-  };
+  return null;
 };
 
 /**
@@ -508,18 +476,18 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
-        try {
-          const response = await fetch(
-            `/jupytergis_core/proxy?url=${filepath}`
-          );
+        const geojson = await fetchWithProxies(filepath, async response => {
           const arrayBuffer = await response.arrayBuffer();
-          const geojson = await shp(arrayBuffer);
+          return shp(arrayBuffer);
+        });
+
+        if (geojson) {
           await saveToIndexedDB(filepath, geojson);
           return geojson;
-        } catch (error) {
-          console.error('Error loading remote shapefile:', error);
-          throw error;
         }
+
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
       }
 
       case 'GeoJSONSource': {
@@ -528,30 +496,17 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
-        try {
-          const response = await fetch(
-            `/jupytergis_core/proxy?url=${filepath}`
-          );
-          if (!response.ok) {
-            throw new Error(`Failed to fetch GeoJSON from URL: ${filepath}`);
-          }
-          const geojson = await response.json();
+        const geojson = await fetchWithProxies(filepath, async response =>
+          response.json()
+        );
+
+        if (geojson) {
           await saveToIndexedDB(filepath, geojson);
           return geojson;
-        } catch (error) {
-          console.error('Error loading remote GeoJSON:', error);
-          throw error;
         }
-      }
 
-      case 'GeoTiffSource': {
-        try {
-          const tiff = loadGeoTiff({ url: filepath });
-          return tiff;
-        } catch (error) {
-          console.error('Error loading remote GeoTIFF:', error);
-          throw error;
-        }
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
       }
 
       default: {
@@ -608,15 +563,6 @@ export const loadFile = async (fileInfo: {
           }
         } else {
           throw new Error('Invalid file format for image content.');
-        }
-      }
-
-      case 'GeoTiffSource': {
-        if (typeof file.content === 'string') {
-          const tiff = loadGeoTiff({ url: filepath }, file);
-          return tiff;
-        } else {
-          throw new Error('Invalid file format for tiff content.');
         }
       }
 
@@ -837,4 +783,25 @@ export const stringToArrayBuffer = async (
     `data:application/octet-stream;base64,${content}`
   );
   return await base64Response.arrayBuffer();
+};
+
+export const getNumericFeatureAttributes = (
+  featureProperties: Record<string, Set<any>>
+) => {
+  // We only want number values here
+  const filteredRecord: Record<string, Set<number>> = {};
+
+  for (const [key, set] of Object.entries(featureProperties)) {
+    const firstValue = set.values().next().value;
+
+    // Check if the first value is a string that cannot be parsed as a number
+    const isInvalidString =
+      typeof firstValue === 'string' && isNaN(Number(firstValue));
+
+    if (!isInvalidString) {
+      filteredRecord[key] = set;
+    }
+  }
+
+  return filteredRecord;
 };

@@ -1,0 +1,136 @@
+{
+  "layerTree": [
+    "0783dff4-27ff-407c-97fa-10073745503a"
+  ],
+  "layers": {
+    "0783dff4-27ff-407c-97fa-10073745503a": {
+      "name": "Custom GeoTiff Layer",
+      "parameters": {
+        "color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "band",
+            1.0
+          ],
+          0.0,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          0.0,
+          [
+            0.0,
+            0.0,
+            255.0,
+            1.0
+          ],
+          0.125,
+          [
+            0.0,
+            32.0,
+            239.0,
+            1.0
+          ],
+          0.25,
+          [
+            0.0,
+            64.0,
+            223.0,
+            1.0
+          ],
+          0.375,
+          [
+            0.0,
+            96.0,
+            207.0,
+            1.0
+          ],
+          0.5,
+          [
+            0.0,
+            128.0,
+            192.0,
+            1.0
+          ],
+          0.625,
+          [
+            0.0,
+            159.0,
+            176.0,
+            1.0
+          ],
+          0.75,
+          [
+            0.0,
+            191.0,
+            160.0,
+            1.0
+          ],
+          0.875,
+          [
+            0.0,
+            223.0,
+            144.0,
+            1.0
+          ],
+          1.0,
+          [
+            0.0,
+            255.0,
+            128.0,
+            1.0
+          ]
+        ],
+        "opacity": 1.0,
+        "source": "d14dc4d2-48a4-40a6-b6e1-5e77b81acdeb",
+        "symbologyState": {
+          "band": 1.0,
+          "colorRamp": "winter",
+          "interpolation": "linear",
+          "mode": "equal interval",
+          "nClasses": "9",
+          "renderType": "Singleband Pseudocolor"
+        }
+      },
+      "type": "WebGlLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -2302429.2175875264,
+      3879138.3430050514,
+      3177682.148824832,
+      7877316.342290832
+    ],
+    "latitude": 46.60741102745533,
+    "longitude": 3.9312654280044197,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 5.170778564449867
+  },
+  "sources": {
+    "d14dc4d2-48a4-40a6-b6e1-5e77b81acdeb": {
+      "name": "Custom GeoTiff Source",
+      "parameters": {
+        "normalize": true,
+        "urls": [
+          {
+            "max": 1000.0,
+            "min": 0.0,
+            "url": "http://eoresults.esa.int/d/APEX_TEST/2020/03/01/europe_aggr-orgc_00-020_mean_100_202003-202210/europe_aggr-orgc_00-020_mean_100_202003-202210.tif"
+          }
+        ],
+        "wrapX": false
+      },
+      "type": "GeoTiffSource"
+    }
+  }
+}

@@ -21,4 +21,5 @@ module.exports = {
       maxDiffPixelRatio: 0.002,
     },
   },
+  testIgnore: ["tests/lite.spec.ts"],
 };

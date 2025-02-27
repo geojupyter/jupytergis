@@ -1,0 +1,12 @@
+{
+  "LiteBuildConfig": {
+    "extra_file_types": {
+      "jgis": {
+        "name": "jgis",
+        "extensions": [".jgis", ".JGIS"],
+        "mimeTypes": ["text/plain"],
+        "fileFormat": "text"
+      }
+    }
+  }
+}
