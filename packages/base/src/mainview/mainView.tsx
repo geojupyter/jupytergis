@@ -635,24 +635,20 @@ export class MainView extends React.Component<IProps, IStates> {
         const addNoData = (url: (typeof sourceParameters.urls)[0]) => {
           return { ...url, nodata: 0 };
         };
-        const sourcesWithBlobs = await Promise.all(
+        const sources = await Promise.all(
           sourceParameters.urls.map(async sourceInfo => {
-            const geotiff = await loadFile({
-              filepath: sourceInfo.url ?? '',
-              type: 'GeoTiffSource',
-              model: this._model
-            });
             return {
               ...addNoData(sourceInfo),
-              geotiff,
-              url: URL.createObjectURL(geotiff.file)
+              min: sourceInfo.min,
+              max: sourceInfo.max,
+              url: sourceInfo.url
             };
           })
         );
 
         newSource = new GeoTIFFSource({
           ...rasterSourceCommon,
-          sources: sourcesWithBlobs,
+          sources,
           normalize: sourceParameters.normalize,
           wrapX: sourceParameters.wrapX
         });
