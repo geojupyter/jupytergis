@@ -3,7 +3,6 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
 import { BaseForm, IBaseFormProps } from './baseform';
-import { FileSelectorWidget } from './fileselectorwidget';
 import { getMimeType } from '../../tools';
 
 /**
@@ -27,26 +26,6 @@ export class GeoTiffSourcePropertiesForm extends BaseForm {
     super.processSchema(data, schema, uiSchema);
     if (!schema.properties || !data) {
       return;
-    }
-
-    // Customize the widget for urls
-    if (schema.properties && schema.properties.urls) {
-      const docManager =
-        this.props.formChangedSignal?.sender.props.formSchemaRegistry.getDocManager();
-
-      uiSchema.urls = {
-        ...uiSchema.urls,
-        items: {
-          ...uiSchema.urls.items,
-          url: {
-            'ui:widget': FileSelectorWidget,
-            'ui:options': {
-              docManager,
-              formOptions: this.props
-            }
-          }
-        }
-      };
     }
 
     // This is not user-editable
