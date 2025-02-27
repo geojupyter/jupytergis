@@ -122,7 +122,7 @@ thumbnails_providers_positions = {
     "Esri": {
         "Special Rules": {},
         "Default": san_francisco,
-    }
+    },
 }
 
 
