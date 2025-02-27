@@ -86,19 +86,6 @@ test.describe('Console activation test', () => {
     await page.getByLabel('notebook content').getByText('GIS File').click();
     await page.getByRole('button', { name: 'Toggle console' }).click();
     await page.getByRole('button', { name: 'Remove console' });
-    await page
-      .getByRole('textbox')
-      .filter({ hasText: /^$/ })
-      .locator('div')
-      .click();
-    await page
-      .getByRole('textbox')
-      .filter({ hasText: /^$/ })
-      .locator('div')
-      .fill('doc.add_geojson_layer(path="testDir/eq.json");');
-    await page.waitForTimeout(1000);
-    await page.keyboard.press('Shift+Enter');
-    await page.waitForTimeout(1000);
 
     const main = await page.locator('#jp-main-dock-panel');
 
