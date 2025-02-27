@@ -75,7 +75,6 @@
 
 .jp-gis-layer button,
 .jp-gis-source button {
-  margin-left: auto;
   min-height: unset;
   min-width: unset;
   padding: unset;

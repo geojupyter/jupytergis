@@ -118,8 +118,14 @@ test.describe('#layerPanel', () => {
       const layerIcons = layerTree.locator(
         '.jp-gis-layer .jp-gis-layerIcon svg'
       );
+      const visToggleIcon = layerIcons.nth(0);
+      const rasterIcon = layerIcons.nth(1);
 
-      await expect(layerIcons.first()).toHaveAttribute(
+      await expect(visToggleIcon).toHaveAttribute(
+        'data-icon',
+        'jupytergis::visibility'
+      );
+      await expect(rasterIcon).toHaveAttribute(
         'data-icon',
         'jupytergis::raster'
       );
