@@ -2,6 +2,48 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.4.1
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.4.0...8a87ee1f424e09578a372b89d0848d2a1ddea921))
+
+### Enhancements made
+
+- Gallery: Add ESRI maps [#508](https://github.com/geojupyter/jupytergis/pull/508) ([@martinRenou](https://github.com/martinRenou))
+- Disable smoothing on all raster sources [#485](https://github.com/geojupyter/jupytergis/pull/485) ([@mfisher87](https://github.com/mfisher87))
+- Add `remove_layer` method to Python `GISDocument` API [#478](https://github.com/geojupyter/jupytergis/pull/478) ([@mfisher87](https://github.com/mfisher87))
+
+### Bugs fixed
+
+- Fix to vector colors notebook [#507](https://github.com/geojupyter/jupytergis/pull/507) ([@arjxn-py](https://github.com/arjxn-py))
+- Fix examples in JupyterLite [#506](https://github.com/geojupyter/jupytergis/pull/506) ([@martinRenou](https://github.com/martinRenou))
+- Fix COG performances [#503](https://github.com/geojupyter/jupytergis/pull/503) ([@martinRenou](https://github.com/martinRenou))
+- Put commandRegistry back in consoleOptions [#499](https://github.com/geojupyter/jupytergis/pull/499) ([@gjmooney](https://github.com/gjmooney))
+- Fix "Try it with JupyterLite" button in user guide [#470](https://github.com/geojupyter/jupytergis/pull/470) ([@mfisher87](https://github.com/mfisher87))
+- Lazy import jupyter_server [#465](https://github.com/geojupyter/jupytergis/pull/465) ([@martinRenou](https://github.com/martinRenou))
+- Fix bump script for jupytergis-lite [#464](https://github.com/geojupyter/jupytergis/pull/464) ([@martinRenou](https://github.com/martinRenou))
+
+### Maintenance and upkeep improvements
+
+- Use `dist/` while using lite-artifacts [#491](https://github.com/geojupyter/jupytergis/pull/491) ([@arjxn-py](https://github.com/arjxn-py))
+- Separate bot for lite snapshots update [#490](https://github.com/geojupyter/jupytergis/pull/490) ([@arjxn-py](https://github.com/arjxn-py))
+- Configure ui-tests for lite deployment [#489](https://github.com/geojupyter/jupytergis/pull/489) ([@arjxn-py](https://github.com/arjxn-py))
+- Install JupyterGIS metapackage in Update snapshots workflow [#477](https://github.com/geojupyter/jupytergis/pull/477) ([@arjxn-py](https://github.com/arjxn-py))
+
+### Documentation improvements
+
+- Update README screenshot [#482](https://github.com/geojupyter/jupytergis/pull/482) ([@martinRenou](https://github.com/martinRenou))
+- Update `image.jGIS` and file handling logic to load correctly [#481](https://github.com/geojupyter/jupytergis/pull/481) ([@arjxn-py](https://github.com/arjxn-py))
+- Convert the Troubleshooting document to MyST [#479](https://github.com/geojupyter/jupytergis/pull/479) ([@jmarokhovsky](https://github.com/jmarokhovsky))
+- Update user guide tutorial [#475](https://github.com/geojupyter/jupytergis/pull/475) ([@elifsu-simula](https://github.com/elifsu-simula))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-02-13&to=2025-02-27&type=c))
+
+[@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-02-13..2025-02-27&type=Issues) | [@brichet](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2025-02-13..2025-02-27&type=Issues) | [@elifsu-simula](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aelifsu-simula+updated%3A2025-02-13..2025-02-27&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-02-13..2025-02-27&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2025-02-13..2025-02-27&type=Issues) | [@jmarokhovsky](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Ajmarokhovsky+updated%3A2025-02-13..2025-02-27&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-02-13..2025-02-27&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-02-13..2025-02-27&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.4.0
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.3.0...142a554f57d7d7ccf1c960d82432f78ea69f3e39))
@@ -66,8 +108,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-01-21&to=2025-02-13&type=c))
 
 [@annefou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aannefou+updated%3A2025-01-21..2025-02-13&type=Issues) | [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-01-21..2025-02-13&type=Issues) | [@brichet](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2025-01-21..2025-02-13&type=Issues) | [@davidbrochart](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adavidbrochart+updated%3A2025-01-21..2025-02-13&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adependabot+updated%3A2025-01-21..2025-02-13&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-01-21..2025-02-13&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2025-01-21..2025-02-13&type=Issues) | [@josueggh](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Ajosueggh+updated%3A2025-01-21..2025-02-13&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-01-21..2025-02-13&type=Issues) | [@Meriem-BenIsmail](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMeriem-BenIsmail+updated%3A2025-01-21..2025-02-13&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-01-21..2025-02-13&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.3.0
 
