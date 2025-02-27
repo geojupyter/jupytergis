@@ -27,13 +27,23 @@ We have several tools configured for checking code quality:
   - Eslint lints (sometimes autofixes) JS/TS code.
 
 - UI tests using [Galata](https://github.com/jupyterlab/galata), defined in the
-  `ui-tests/` directory. To run locally:
+  `ui-tests/` directory.
+
+  ```{warning}
+  Some UI tests depend on snapshot (screenshot) comparison, which depends strongly on
+  the system used to generate the snapshots. Variables like GPU, operating system,
+  display scaling, and more can affect the outcome of snapshot testing. The instructions
+  below will skip snapshot tests for this reason. Please **do not** run snapshot tests
+  locally and instead rely on CI (GitHub Actions). 
+  ```
+
+  To run locally:
 
   ```bash
   cd ui-tests
-  jlpm install  # If you haven't already
-  jlpm playwright install  # if you haven't already
-  jlpm run test
+  jlpm install             # If you haven't already
+  jlpm playwright install  # If you haven't already
+  jlpm run test:local      # Or, to test in jupyterlite, run `test:locallite`
   ```
 
   - DOM testing: Interact with the application programmatically and verify
