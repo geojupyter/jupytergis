@@ -16,12 +16,11 @@ We have several tools configured for checking code quality:
   - Generic pre-commit checks help avoid common mistakes like committing large
     files or trailing whitespace.
 
-- **Formatting and lint checks and autofixers for Typescript, Javascript, CSS, JSON,
-- Markdown, and YAML.**
+- **Formatting and lint checks and autofixers for Typescript, Javascript, CSS, JSON, Markdown, and YAML.**
   Defined as package scripts (in `package.json`).
   Run manually with `jlpm run lint`.
-  **Will exit 0 when applying fixes.
-  Check the logs and/or `git status` after every run.**
+  **Will exit 0 when applying fixes.**
+  **Check the logs and/or `git status` after every run.**
 
   - Prettier formats the file types listed above.
 
