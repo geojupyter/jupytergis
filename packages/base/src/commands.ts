@@ -25,6 +25,8 @@ import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
 import { getGdal } from './gdal';
 import { loadFile } from './tools';
+import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -296,7 +298,7 @@ export function addCommands(
     },
     execute: async () => {
       const Gdal = await getGdal();
-      const url = 'eq.json';
+      const url = 'hi.json';
 
       const fileContent = await loadFile({filepath: url, type: 'GeoJSONSource', model: tracker.currentWidget?.model as IJupyterGISModel});
 
@@ -310,10 +312,8 @@ export function addCommands(
           geojsonString = fileContent; // Assume it's already a string
       }
 
-      // Create a Blob from the string
       const fileBlob = new Blob([geojsonString], { type: 'application/geo+json' });
 
-      // Convert Blob to File
       const geoFile = new File([fileBlob], 'data.geojson', { type: 'application/geo+json' });
 
       console.log('Opening file...');
@@ -334,9 +334,7 @@ export function addCommands(
 
         const metadata = await Gdal.gdalinfo(dataset, ['-json']);
         console.log('Metadata:', metadata);
-        // const outputPath = '/vsimem/output.geojson';
 
-        // const sqlQuery = `SELECT ST_Union(ST_Buffer(geometry, 1.0)) AS geometry,* FROM """${layerName}""" GROUP BY """name"""`;
         const sqlQuery = `
           SELECT ST_Union(ST_Buffer(geometry, 0.01)) AS geometry, *
           FROM "${layerName}"
@@ -358,6 +356,26 @@ export function addCommands(
         const bufferedGeoJSON = await Gdal.getFileBytes(outputFilePath);
         console.log('Buffered GeoJSON data:', bufferedGeoJSON);
         const bufferedBlob = new Blob([bufferedGeoJSON], { type: 'application/geo+json' });
+
+        const sourceId = UUID.uuid4();
+
+        const sourceModel: IJGISSource = {
+          type: 'GeoJSONSource',
+          name: 'tile.name',
+          parameters: {path: url}
+        };
+
+        const layerModel: IJGISLayer = {
+          type: 'VectorLayer',
+          parameters: {
+            source: sourceId
+          },
+          visible: true,
+          name: 'tile.name' + ' Buffer'
+        };
+
+        tracker.currentWidget?.model.sharedModel.addSource(sourceId, sourceModel);
+        tracker.currentWidget?.model.addLayer(UUID.uuid4(), layerModel);
 
         // Create a link element to trigger the download
         const downloadLink = document.createElement('a');
