@@ -251,6 +251,11 @@ const activate = (
       command: CommandIDs.moveLayerToNewGroup,
       category: 'JupyterGIS'
     });
+
+    palette.addItem({
+      command: CommandIDs.buffer,
+      category: 'JupyterGIS'
+    });
   }
 };
 

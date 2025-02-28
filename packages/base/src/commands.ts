@@ -23,6 +23,10 @@ import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
+import { getGdal } from './gdal';
+import { loadFile } from './tools';
+import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -283,6 +287,108 @@ export function addCommands(
       layerType: 'VectorTileLayer'
     }),
     ...icons.get(CommandIDs.newVectorTileEntry)
+  });
+
+  commands.addCommand(CommandIDs.buffer, {
+    label: trans.__('Buffer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const Gdal = await getGdal();
+      const url = 'hi.json';
+
+      const fileContent = await loadFile({filepath: url, type: 'GeoJSONSource', model: tracker.currentWidget?.model as IJupyterGISModel});
+
+      console.log('File content:', fileContent);
+
+      // Ensure the content is a string
+      let geojsonString: string;
+      if (typeof fileContent === 'object') {
+          geojsonString = JSON.stringify(fileContent); // Convert JSON to string if needed
+      } else {
+          geojsonString = fileContent; // Assume it's already a string
+      }
+
+      const fileBlob = new Blob([geojsonString], { type: 'application/geo+json' });
+
+      const geoFile = new File([fileBlob], 'data.geojson', { type: 'application/geo+json' });
+
+      console.log('Opening file...');
+
+      const result = await Gdal.open(geoFile);
+      console.log('GDAL Dataset:', result);
+
+      if (result.datasets.length > 0) {
+        const dataset = result.datasets[0];
+        console.log('Dataset:', dataset);
+        //@ts-ignore
+        const layerName = dataset.info.layers[0].name;
+        console.log('Layer name:', layerName);
+        //@ts-ignore
+        console.log('Fields:', dataset.info.layers[0].fields);
+
+
+
+        const metadata = await Gdal.gdalinfo(dataset, ['-json']);
+        console.log('Metadata:', metadata);
+
+        const sqlQuery = `
+          SELECT ST_Union(ST_Buffer(geometry, 0.01)) AS geometry, *
+          FROM "${layerName}"
+        `;
+
+        // Define options for ogr2ogr
+        const options = [
+          '-f', 'GeoJSON',   // Output format
+          '-t_srs', 'EPSG:4326',  // Ensure correct spatial reference
+          '-dialect', 'SQLITE',  // Use SQLite dialect for spatial functions
+          '-sql', sqlQuery,
+          'output.geojson'   // Output file
+        ];
+
+        // Perform the buffer operation using ogr2ogr
+        const outputFilePath = await Gdal.ogr2ogr(dataset, options);
+        console.log('Buffered output file path:', outputFilePath);
+
+        const bufferedGeoJSON = await Gdal.getFileBytes(outputFilePath);
+        console.log('Buffered GeoJSON data:', bufferedGeoJSON);
+        const bufferedBlob = new Blob([bufferedGeoJSON], { type: 'application/geo+json' });
+
+        const sourceId = UUID.uuid4();
+
+        const sourceModel: IJGISSource = {
+          type: 'GeoJSONSource',
+          name: 'tile.name',
+          parameters: {path: url}
+        };
+
+        const layerModel: IJGISLayer = {
+          type: 'VectorLayer',
+          parameters: {
+            source: sourceId
+          },
+          visible: true,
+          name: 'tile.name' + ' Buffer'
+        };
+
+        tracker.currentWidget?.model.sharedModel.addSource(sourceId, sourceModel);
+        tracker.currentWidget?.model.addLayer(UUID.uuid4(), layerModel);
+
+        // Create a link element to trigger the download
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(bufferedBlob);
+        downloadLink.download = 'buffered_output.geojson';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+
+
+        Gdal.close(dataset);
+      }
+    }
   });
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
