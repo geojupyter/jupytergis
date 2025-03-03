@@ -300,37 +300,34 @@ export function addCommands(
       const Gdal = await getGdal();
       const url = 'hi.json';
 
-      const fileContent = await loadFile({filepath: url, type: 'GeoJSONSource', model: tracker.currentWidget?.model as IJupyterGISModel});
+      const fileContent = await loadFile({
+        filepath: url,
+        type: 'GeoJSONSource',
+        model: tracker.currentWidget?.model as IJupyterGISModel
+      });
 
       console.log('File content:', fileContent);
 
-      // Ensure the content is a string
       let geojsonString: string;
       if (typeof fileContent === 'object') {
-          geojsonString = JSON.stringify(fileContent); // Convert JSON to string if needed
+        geojsonString = JSON.stringify(fileContent);
       } else {
-          geojsonString = fileContent; // Assume it's already a string
+        geojsonString = fileContent;
       }
 
       const fileBlob = new Blob([geojsonString], { type: 'application/geo+json' });
-
       const geoFile = new File([fileBlob], 'data.geojson', { type: 'application/geo+json' });
 
       console.log('Opening file...');
-
       const result = await Gdal.open(geoFile);
       console.log('GDAL Dataset:', result);
 
       if (result.datasets.length > 0) {
-        const dataset = result.datasets[0];
+        const dataset = result.datasets[0] as any;
         console.log('Dataset:', dataset);
-        //@ts-ignore
         const layerName = dataset.info.layers[0].name;
         console.log('Layer name:', layerName);
-        //@ts-ignore
         console.log('Fields:', dataset.info.layers[0].fields);
-
-
 
         const metadata = await Gdal.gdalinfo(dataset, ['-json']);
         console.log('Metadata:', metadata);
@@ -340,29 +337,31 @@ export function addCommands(
           FROM "${layerName}"
         `;
 
-        // Define options for ogr2ogr
         const options = [
-          '-f', 'GeoJSON',   // Output format
-          '-t_srs', 'EPSG:4326',  // Ensure correct spatial reference
-          '-dialect', 'SQLITE',  // Use SQLite dialect for spatial functions
+          '-f', 'GeoJSON',
+          '-t_srs', 'EPSG:4326',
+          '-dialect', 'SQLITE',
           '-sql', sqlQuery,
-          'output.geojson'   // Output file
+          'output.geojson'
         ];
 
-        // Perform the buffer operation using ogr2ogr
         const outputFilePath = await Gdal.ogr2ogr(dataset, options);
         console.log('Buffered output file path:', outputFilePath);
 
-        const bufferedGeoJSON = await Gdal.getFileBytes(outputFilePath);
-        console.log('Buffered GeoJSON data:', bufferedGeoJSON);
-        const bufferedBlob = new Blob([bufferedGeoJSON], { type: 'application/geo+json' });
+        const bufferedBytes = await Gdal.getFileBytes(outputFilePath);
+        console.log('Buffered GeoJSON (raw bytes):', bufferedBytes);
 
+        const bufferedGeoJSONString = new TextDecoder().decode(bufferedBytes);
+        console.log('Buffered GeoJSON (string):', bufferedGeoJSONString);
+
+        const bufferedGeoJSON = JSON.parse(bufferedGeoJSONString);
+
+        // Store in shared model
         const sourceId = UUID.uuid4();
-
         const sourceModel: IJGISSource = {
           type: 'GeoJSONSource',
           name: 'tile.name',
-          parameters: {path: url}
+          parameters: { path: bufferedGeoJSON }
         };
 
         const layerModel: IJGISLayer = {
@@ -377,19 +376,11 @@ export function addCommands(
         tracker.currentWidget?.model.sharedModel.addSource(sourceId, sourceModel);
         tracker.currentWidget?.model.addLayer(UUID.uuid4(), layerModel);
 
-        // Create a link element to trigger the download
-        const downloadLink = document.createElement('a');
-        downloadLink.href = URL.createObjectURL(bufferedBlob);
-        downloadLink.download = 'buffered_output.geojson';
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-
-
         Gdal.close(dataset);
       }
     }
   });
+
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),

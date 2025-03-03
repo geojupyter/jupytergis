@@ -441,11 +441,15 @@ const fetchWithProxies = async <T>(
  * @returns A promise that resolves to the file content.
  */
 export const loadFile = async (fileInfo: {
-  filepath: string;
+  filepath: any;
   type: IJGISSource['type'];
   model: IJupyterGISModel;
 }) => {
   const { filepath, type, model } = fileInfo;
+
+  if (typeof filepath === 'object' && filepath !== null) {
+      return filepath;
+  }
 
   if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
     switch (type) {
