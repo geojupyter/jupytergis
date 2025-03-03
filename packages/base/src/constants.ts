@@ -24,6 +24,9 @@ export namespace CommandIDs {
   export const newVideoEntry = 'jupytergis:newVideoEntry';
   export const newGeoTiffEntry = 'jupytergis:newGeoTiffEntry';
 
+  // Processing commands
+  export const buffer = 'jupytergis:buffer';
+
   // Sources only commands
   export const newRasterSource = 'jupytergis:newRasterSource';
   export const newRasterDemSource = 'jupytergis:newRasterDemSource';

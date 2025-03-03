@@ -1,0 +1,45 @@
+{
+    "type": "object",
+    "description": "Buffer operation parameters",
+    "title": "IBuffer",
+    "required": ["InputLayer", "bufferDistance"],
+    "additionalProperties": false,
+    "properties": {
+      "InputLayer": {
+        "title": "IJGISLayer",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "type", "visible"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "visible": {
+            "type": "boolean",
+            "default": true
+          },
+          "parameters": {
+            "type": "object"
+          }
+        }
+      },
+      "bufferDistance": {
+        "type": "number",
+        "description": "The distance used for buffering the geometry."
+      },
+      "projection": {
+        "type": "string",
+        "description": "The spatial reference system of the buffered output.",
+        "default": "EPSG:4326"
+      },
+      "attribution": {
+        "type": "string",
+        "readOnly": true,
+        "description": "Attribution for the buffered dataset.",
+        "default": ""
+      }
+    }
+  }

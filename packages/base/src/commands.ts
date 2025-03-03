@@ -23,6 +23,10 @@ import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
+import { getGdal } from './gdal';
+import { loadFile } from './tools';
+import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -284,6 +288,99 @@ export function addCommands(
     }),
     ...icons.get(CommandIDs.newVectorTileEntry)
   });
+
+  commands.addCommand(CommandIDs.buffer, {
+    label: trans.__('Buffer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const Gdal = await getGdal();
+      const url = 'hi.json';
+
+      const fileContent = await loadFile({
+        filepath: url,
+        type: 'GeoJSONSource',
+        model: tracker.currentWidget?.model as IJupyterGISModel
+      });
+
+      console.log('File content:', fileContent);
+
+      let geojsonString: string;
+      if (typeof fileContent === 'object') {
+        geojsonString = JSON.stringify(fileContent);
+      } else {
+        geojsonString = fileContent;
+      }
+
+      const fileBlob = new Blob([geojsonString], { type: 'application/geo+json' });
+      const geoFile = new File([fileBlob], 'data.geojson', { type: 'application/geo+json' });
+
+      console.log('Opening file...');
+      const result = await Gdal.open(geoFile);
+      console.log('GDAL Dataset:', result);
+
+      if (result.datasets.length > 0) {
+        const dataset = result.datasets[0] as any;
+        console.log('Dataset:', dataset);
+        const layerName = dataset.info.layers[0].name;
+        console.log('Layer name:', layerName);
+        console.log('Fields:', dataset.info.layers[0].fields);
+
+        const metadata = await Gdal.gdalinfo(dataset, ['-json']);
+        console.log('Metadata:', metadata);
+
+        const sqlQuery = `
+          SELECT ST_Union(ST_Buffer(geometry, 0.01)) AS geometry, *
+          FROM "${layerName}"
+        `;
+
+        const options = [
+          '-f', 'GeoJSON',
+          '-t_srs', 'EPSG:4326',
+          '-dialect', 'SQLITE',
+          '-sql', sqlQuery,
+          'output.geojson'
+        ];
+
+        const outputFilePath = await Gdal.ogr2ogr(dataset, options);
+        console.log('Buffered output file path:', outputFilePath);
+
+        const bufferedBytes = await Gdal.getFileBytes(outputFilePath);
+        console.log('Buffered GeoJSON (raw bytes):', bufferedBytes);
+
+        const bufferedGeoJSONString = new TextDecoder().decode(bufferedBytes);
+        console.log('Buffered GeoJSON (string):', bufferedGeoJSONString);
+
+        const bufferedGeoJSON = JSON.parse(bufferedGeoJSONString);
+
+        // Store in shared model
+        const sourceId = UUID.uuid4();
+        const sourceModel: IJGISSource = {
+          type: 'GeoJSONSource',
+          name: 'tile.name',
+          parameters: { path: bufferedGeoJSON }
+        };
+
+        const layerModel: IJGISLayer = {
+          type: 'VectorLayer',
+          parameters: {
+            source: sourceId
+          },
+          visible: true,
+          name: 'tile.name' + ' Buffer'
+        };
+
+        tracker.currentWidget?.model.sharedModel.addSource(sourceId, sourceModel);
+        tracker.currentWidget?.model.addLayer(UUID.uuid4(), layerModel);
+
+        Gdal.close(dataset);
+      }
+    }
+  });
+
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),
