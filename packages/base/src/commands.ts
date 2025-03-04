@@ -297,6 +297,18 @@ export function addCommands(
         : false;
     },
     execute: async () => {
+      const dialog = new CreationFormDialog({
+        model: tracker.currentWidget?.model as IJupyterGISModel,
+        title: 'Buffer GeoJSON',
+        createLayer: false,
+        createSource: false,
+        // sourceData,
+        layerData: { name: 'Buffer Layer' },
+        sourceType: 'GeoJSONSource',
+        layerType: 'VectorLayer',
+        formSchemaRegistry
+      });
+      await dialog.launch();
       const Gdal = await getGdal();
       const url = 'hi.json';
 
