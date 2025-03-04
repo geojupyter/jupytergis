@@ -300,12 +300,12 @@ export function addCommands(
       const dialog = new CreationFormDialog({
         model: tracker.currentWidget?.model as IJupyterGISModel,
         title: 'Buffer GeoJSON',
-        createLayer: false,
+        createLayer: true,
         createSource: false,
         // sourceData,
         layerData: { name: 'Buffer Layer' },
         sourceType: 'GeoJSONSource',
-        layerType: 'VectorLayer',
+        layerType: 'Buffer',
         formSchemaRegistry
       });
       await dialog.launch();
