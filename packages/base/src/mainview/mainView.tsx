@@ -892,18 +892,6 @@ export class MainView extends React.Component<IProps, IStates> {
         });
         break;
       }
-
-      case 'Buffer': {
-        layerParameters = layer.parameters as IVectorLayer;
-
-        newMapLayer = new VectorLayer({
-          opacity: layerParameters.opacity,
-          visible: layer.visible,
-          source: this._sources[layerParameters.source],
-          style: this.vectorLayerStyleRuleBuilder(layer)
-        });
-        break;
-      }
     }
 
     await this._waitForSourceReady(newMapLayer);

@@ -1,12 +1,12 @@
 {
     "type": "object",
-    "description": "Buffer operation parameters",
+    "description": "Buffer",
     "title": "IBuffer",
     "required": ["InputLayer", "bufferDistance"],
     "additionalProperties": false,
     "properties": {
       "InputLayer": {
-        "title": "IJGISLayer",
+        "title": "InputLayer",
         "type": "object",
         "additionalProperties": false,
         "required": ["name", "type", "visible"],

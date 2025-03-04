@@ -36,8 +36,7 @@
         "HillshadeLayer",
         "WebGlLayer",
         "ImageLayer",
-        "HeatmapLayer",
-        "Buffer"
+        "HeatmapLayer"
       ]
     },
     "sourceType": {

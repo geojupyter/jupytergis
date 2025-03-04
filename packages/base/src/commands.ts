@@ -27,6 +27,7 @@ import { getGdal } from './gdal';
 import { loadFile } from './tools';
 import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
+import { ProcessingFormDialog } from './formbuilder/processingformdialog';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -297,17 +298,27 @@ export function addCommands(
         : false;
     },
     execute: async () => {
-      const dialog = new CreationFormDialog({
+      const dialog = new ProcessingFormDialog({
+        title: 'Buffer',
+        schema: formSchemaRegistry.getSchemas().get('Buffer') as IDict,
         model: tracker.currentWidget?.model as IJupyterGISModel,
-        title: 'Buffer GeoJSON',
-        createLayer: true,
-        createSource: false,
-        // sourceData,
-        layerData: { name: 'Buffer Layer' },
-        sourceType: 'GeoJSONSource',
-        layerType: 'Buffer',
-        formSchemaRegistry
-      });
+        sourceData: {
+          InputLayer: {
+            name: '',
+            type: '',
+            visible: true,
+            parameters: {}
+          },
+          bufferDistance: 0,
+          projection: 'EPSG:4326',
+          attribution: ''
+        },
+        cancelButton: false,
+        syncData: (props: IDict) => {
+          console.log('Buffer:', props
+          )
+        }
+    });
       await dialog.launch();
       const Gdal = await getGdal();
       const url = 'hi.json';
