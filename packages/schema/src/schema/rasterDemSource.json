@@ -18,6 +18,11 @@
       "additionalProperties": {
         "type": "string"
       }
+    },
+    "interpolate": {
+      "type": "boolean",
+      "description": "Whether to interpolate between pixels or grid cells when overzooming",
+      "default": false
     }
   }
 }
