@@ -298,20 +298,40 @@ export function addCommands(
         : false;
     },
     execute: async () => {
+      const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
+      const sources = tracker.currentWidget?.model.sharedModel.sources ?? {};
+
+      const layerOptions = Object.keys(layers).map(layerId => ({
+        value: layerId,
+        label: layers[layerId].name
+      }));
+
+      if (layerOptions.length === 0) {
+        console.warn('No layers available to buffer.');
+        return;
+      }
+
+      const schema = { ...(formSchemaRegistry.getSchemas().get('Buffer') as IDict) };
+      if (schema && schema.properties?.InputLayer) {
+        schema.properties.InputLayer.enum = layerOptions.map(option => option.value);
+        schema.properties.InputLayer.enumNames = layerOptions.map(option => option.label);
+      }
+
+      // Open form and get user input
       const formValues = await new Promise<IDict>((resolve) => {
         const dialog = new ProcessingFormDialog({
           title: 'Buffer',
-          schema: formSchemaRegistry.getSchemas().get('Buffer') as IDict,
+          schema: schema,
           model: tracker.currentWidget?.model as IJupyterGISModel,
           sourceData: {
-            InputLayer: '',
+            InputLayer: layerOptions[0].value, // Default to the first layer
             bufferDistance: 0,
             projection: 'EPSG:4326',
             attribution: ''
           },
           cancelButton: false,
           syncData: (props: IDict) => {
-            resolve(props); // Resolve with form data
+            resolve(props);
           }
         });
 
@@ -324,12 +344,27 @@ export function addCommands(
       }
 
       const bufferDistance = formValues.bufferDistance || 0.01;
+      const selectedLayerId = formValues.InputLayer;
+      const selectedLayer = layers[selectedLayerId];
+
+      if (!selectedLayer.parameters) {
+        console.error('Selected layer not found.');
+        return;
+      }
+
+      const sourceId = selectedLayer.parameters.source;
+      const source = sources[sourceId];
+
+      if (!source.parameters) {
+        console.error(`Source with ID ${sourceId} not found or missing path.`);
+        return;
+      }
+
+      const filePath = source.parameters.path;
 
       const Gdal = await getGdal();
-      const url = 'hi.json';
-
       const fileContent = await loadFile({
-        filepath: url,
+        filepath: filePath,
         type: 'GeoJSONSource',
         model: tracker.currentWidget?.model as IJupyterGISModel
       });
@@ -355,10 +390,6 @@ export function addCommands(
         console.log('Dataset:', dataset);
         const layerName = dataset.info.layers[0].name;
         console.log('Layer name:', layerName);
-        console.log('Fields:', dataset.info.layers[0].fields);
-
-        const metadata = await Gdal.gdalinfo(dataset, ['-json']);
-        console.log('Metadata:', metadata);
 
         const sqlQuery = `
           SELECT ST_Union(ST_Buffer(geometry, ${bufferDistance})) AS geometry, *
@@ -385,29 +416,30 @@ export function addCommands(
         const bufferedGeoJSON = JSON.parse(bufferedGeoJSONString);
 
         // Store in shared model
-        const sourceId = UUID.uuid4();
+        const newSourceId = UUID.uuid4();
         const sourceModel: IJGISSource = {
           type: 'GeoJSONSource',
-          name: 'tile.name',
+          name: selectedLayer.name + ' Buffer',
           parameters: { path: bufferedGeoJSON }
         };
 
         const layerModel: IJGISLayer = {
           type: 'VectorLayer',
           parameters: {
-            source: sourceId
+            source: newSourceId
           },
           visible: true,
-          name: 'tile.name' + ' Buffer'
+          name: selectedLayer.name + ' Buffer'
         };
 
-        tracker.currentWidget?.model.sharedModel.addSource(sourceId, sourceModel);
+        tracker.currentWidget?.model.sharedModel.addSource(newSourceId, sourceModel);
         tracker.currentWidget?.model.addLayer(UUID.uuid4(), layerModel);
 
         Gdal.close(dataset);
       }
     }
   });
+
 
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
