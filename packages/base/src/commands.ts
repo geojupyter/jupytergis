@@ -298,23 +298,33 @@ export function addCommands(
         : false;
     },
     execute: async () => {
-      const dialog = new ProcessingFormDialog({
-        title: 'Buffer',
-        schema: formSchemaRegistry.getSchemas().get('Buffer') as IDict,
-        model: tracker.currentWidget?.model as IJupyterGISModel,
-        sourceData: {
-          InputLayer: '',
-          bufferDistance: 0,
-          projection: 'EPSG:4326',
-          attribution: ''
-        },
-        cancelButton: false,
-        syncData: (props: IDict) => {
-          console.log('Buffer:', props
-          )
-        }
-    });
-      await dialog.launch();
+      const formValues = await new Promise<IDict>((resolve) => {
+        const dialog = new ProcessingFormDialog({
+          title: 'Buffer',
+          schema: formSchemaRegistry.getSchemas().get('Buffer') as IDict,
+          model: tracker.currentWidget?.model as IJupyterGISModel,
+          sourceData: {
+            InputLayer: '',
+            bufferDistance: 0,
+            projection: 'EPSG:4326',
+            attribution: ''
+          },
+          cancelButton: false,
+          syncData: (props: IDict) => {
+            resolve(props); // Resolve with form data
+          }
+        });
+
+        dialog.launch();
+      });
+
+      if (!formValues) {
+        console.log('Form cancelled, skipping execution.');
+        return;
+      }
+
+      const bufferDistance = formValues.bufferDistance || 0.01;
+
       const Gdal = await getGdal();
       const url = 'hi.json';
 
@@ -351,7 +361,7 @@ export function addCommands(
         console.log('Metadata:', metadata);
 
         const sqlQuery = `
-          SELECT ST_Union(ST_Buffer(geometry, 0.01)) AS geometry, *
+          SELECT ST_Union(ST_Buffer(geometry, ${bufferDistance})) AS geometry, *
           FROM "${layerName}"
         `;
 
