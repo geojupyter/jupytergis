@@ -96,8 +96,6 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
   }
 
   removeArrayButton(schema: IDict, uiSchema: IDict): void {
-    console.log('fuiohh', schema, uiSchema);
-
     if (!schema || typeof schema !== 'object') {
       return;
     }

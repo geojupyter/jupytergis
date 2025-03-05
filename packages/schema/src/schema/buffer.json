@@ -7,24 +7,9 @@
     "properties": {
       "InputLayer": {
         "title": "InputLayer",
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["name", "type", "visible"],
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "visible": {
-            "type": "boolean",
-            "default": true
-          },
-          "parameters": {
-            "type": "object"
-          }
-        }
+        "type": "string",
+        "fcType": "App::PropertyLink",
+        "description": "Select an input layer for buffering"
       },
       "bufferDistance": {
         "type": "number",

@@ -303,12 +303,7 @@ export function addCommands(
         schema: formSchemaRegistry.getSchemas().get('Buffer') as IDict,
         model: tracker.currentWidget?.model as IJupyterGISModel,
         sourceData: {
-          InputLayer: {
-            name: '',
-            type: '',
-            visible: true,
-            parameters: {}
-          },
+          InputLayer: '',
           bufferDistance: 0,
           projection: 'EPSG:4326',
           attribution: ''
