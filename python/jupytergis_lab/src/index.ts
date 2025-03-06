@@ -198,6 +198,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
       rank: 2
     });
 
+    app.contextMenu.addItem({
+      command: CommandIDs.buffer,
+      selector: '.jp-gis-layerGroupHeader',
+      rank: 2
+    });
+
     // Separator
     app.contextMenu.addItem({
       type: 'separator',
