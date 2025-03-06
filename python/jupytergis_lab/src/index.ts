@@ -200,7 +200,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     app.contextMenu.addItem({
       command: CommandIDs.buffer,
-      selector: '.jp-gis-layerGroupHeader',
+      selector: '.jp-gis-layerItem',
       rank: 2
     });
 

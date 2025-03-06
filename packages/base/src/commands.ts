@@ -315,6 +315,14 @@ export function addCommands(
         ...(formSchemaRegistry.getSchemas().get('Buffer') as IDict)
       };
 
+      const model = tracker.currentWidget?.model;
+      const localState = model?.sharedModel.awareness.getLocalState();
+      if (!model || !localState || !localState['selected']?.value) {
+        return;
+      }
+      const selectedLayer = localState['selected'].value;
+      const selectedLayerId = Object.keys(selectedLayer)[0];
+
       // Open form and get user input
       const formValues = await new Promise<IDict>(resolve => {
         const dialog = new ProcessingFormDialog({
@@ -322,7 +330,7 @@ export function addCommands(
           schema: schema,
           model: tracker.currentWidget?.model as IJupyterGISModel,
           sourceData: {
-            InputLayer: layerOptions[0].value, // Default to the first layer
+            InputLayer: selectedLayerId,
             bufferDistance: 0,
             projection: 'EPSG:4326',
             attribution: ''
@@ -342,8 +350,8 @@ export function addCommands(
       }
 
       const bufferDistance = formValues.bufferDistance || 0.01;
-      const selectedLayerId = formValues.InputLayer;
-      const selectedLayer = layers[selectedLayerId];
+      // const selectedLayerId = formValues.InputLayer;
+      // const selectedLayer = layers[selectedLayerId];
 
       if (!selectedLayer.parameters) {
         console.error('Selected layer not found.');
