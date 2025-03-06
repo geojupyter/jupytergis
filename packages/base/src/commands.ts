@@ -320,8 +320,8 @@ export function addCommands(
       if (!model || !localState || !localState['selected']?.value) {
         return;
       }
-      const selectedLayer = localState['selected'].value;
-      const selectedLayerId = Object.keys(selectedLayer)[0];
+      const localSelectedLayer = localState['selected'].value;
+      const localSelectedLayerId = Object.keys(localSelectedLayer)[0];
 
       // Open form and get user input
       const formValues = await new Promise<IDict>(resolve => {
@@ -330,7 +330,7 @@ export function addCommands(
           schema: schema,
           model: tracker.currentWidget?.model as IJupyterGISModel,
           sourceData: {
-            InputLayer: selectedLayerId,
+            InputLayer: localSelectedLayerId,
             bufferDistance: 0,
             projection: 'EPSG:4326',
             attribution: ''
@@ -350,8 +350,8 @@ export function addCommands(
       }
 
       const bufferDistance = formValues.bufferDistance || 0.01;
-      // const selectedLayerId = formValues.InputLayer;
-      // const selectedLayer = layers[selectedLayerId];
+      const selectedLayerId = formValues.InputLayer;
+      const selectedLayer = layers[selectedLayerId];
 
       if (!selectedLayer.parameters) {
         console.error('Selected layer not found.');
