@@ -311,14 +311,12 @@ export function addCommands(
         return;
       }
 
-      const schema = { ...(formSchemaRegistry.getSchemas().get('Buffer') as IDict) };
-      if (schema && schema.properties?.InputLayer) {
-        schema.properties.InputLayer.enum = layerOptions.map(option => option.value);
-        schema.properties.InputLayer.enumNames = layerOptions.map(option => option.label);
-      }
+      const schema = {
+        ...(formSchemaRegistry.getSchemas().get('Buffer') as IDict)
+      };
 
       // Open form and get user input
-      const formValues = await new Promise<IDict>((resolve) => {
+      const formValues = await new Promise<IDict>(resolve => {
         const dialog = new ProcessingFormDialog({
           title: 'Buffer',
           schema: schema,
@@ -369,15 +367,24 @@ export function addCommands(
           model: tracker.currentWidget?.model as IJupyterGISModel
         });
 
-        geojsonString = typeof fileContent === 'object' ? JSON.stringify(fileContent) : fileContent;
+        geojsonString =
+          typeof fileContent === 'object'
+            ? JSON.stringify(fileContent)
+            : fileContent;
       } else if (source.parameters.data) {
         geojsonString = JSON.stringify(source.parameters.data);
       } else {
-        throw new Error(`Source ${sourceId} is missing both 'path' and 'data' parameters.`);
+        throw new Error(
+          `Source ${sourceId} is missing both 'path' and 'data' parameters.`
+        );
       }
 
-      const fileBlob = new Blob([geojsonString], { type: 'application/geo+json' });
-      const geoFile = new File([fileBlob], 'data.geojson', { type: 'application/geo+json' });
+      const fileBlob = new Blob([geojsonString], {
+        type: 'application/geo+json'
+      });
+      const geoFile = new File([fileBlob], 'data.geojson', {
+        type: 'application/geo+json'
+      });
 
       console.log('Opening file...');
       const Gdal = await getGdal();
@@ -396,10 +403,14 @@ export function addCommands(
         `;
 
         const options = [
-          '-f', 'GeoJSON',
-          '-t_srs', 'EPSG:4326',
-          '-dialect', 'SQLITE',
-          '-sql', sqlQuery,
+          '-f',
+          'GeoJSON',
+          '-t_srs',
+          'EPSG:4326',
+          '-dialect',
+          'SQLITE',
+          '-sql',
+          sqlQuery,
           'output.geojson'
         ];
 
@@ -431,15 +442,16 @@ export function addCommands(
           name: selectedLayer.name + ' Buffer'
         };
 
-        tracker.currentWidget?.model.sharedModel.addSource(newSourceId, sourceModel);
+        tracker.currentWidget?.model.sharedModel.addSource(
+          newSourceId,
+          sourceModel
+        );
         tracker.currentWidget?.model.addLayer(UUID.uuid4(), layerModel);
 
         Gdal.close(dataset);
       }
     }
   });
-
-
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),

@@ -126,7 +126,6 @@ export class ObjectPropertiesForm extends React.Component<IProps, IStates> {
     };
   }
 
-
   generateUiSchema(schema: IDict): IDict {
     const uiSchema = {
       additionalProperties: {

@@ -1,30 +1,30 @@
 {
-    "type": "object",
-    "description": "Buffer",
-    "title": "IBuffer",
-    "required": ["InputLayer", "bufferDistance"],
-    "additionalProperties": false,
-    "properties": {
-      "InputLayer": {
-        "title": "InputLayer",
-        "type": "string",
-        "fcType": "App::PropertyLink",
-        "description": "Select an input layer for buffering"
-      },
-      "bufferDistance": {
-        "type": "number",
-        "description": "The distance used for buffering the geometry."
-      },
-      "projection": {
-        "type": "string",
-        "description": "The spatial reference system of the buffered output.",
-        "default": "EPSG:4326"
-      },
-      "attribution": {
-        "type": "string",
-        "readOnly": true,
-        "description": "Attribution for the buffered dataset.",
-        "default": ""
-      }
+  "type": "object",
+  "description": "Buffer",
+  "title": "IBuffer",
+  "required": ["InputLayer", "bufferDistance"],
+  "additionalProperties": false,
+  "properties": {
+    "InputLayer": {
+      "title": "InputLayer",
+      "type": "string",
+      "fcType": "App::PropertyLink",
+      "description": "Select an input layer for buffering"
+    },
+    "bufferDistance": {
+      "type": "number",
+      "description": "The distance used for buffering the geometry."
+    },
+    "projection": {
+      "type": "string",
+      "description": "The spatial reference system of the buffered output.",
+      "default": "EPSG:4326"
+    },
+    "attribution": {
+      "type": "string",
+      "readOnly": true,
+      "description": "Attribution for the buffered dataset.",
+      "default": ""
     }
   }
+}

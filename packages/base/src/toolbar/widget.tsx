@@ -183,7 +183,8 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
-      this.addItem('Buffer',
+      this.addItem(
+        'Buffer',
         new CommandToolbarButton({
           id: CommandIDs.buffer,
           label: 'Buffer',
