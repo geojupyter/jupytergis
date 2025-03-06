@@ -23,7 +23,7 @@ python_packages = [
     "python/jupytergis_core:jupytergis_core",
     "python/jupytergis_lab:jupytergis_lab",
     "python/jupytergis_qgis:jupytergis_qgis",
-    "python/jupytergis_lite:jupytergis",
+    "python/jupytergis_lite:jupytergis_lite",
 ]
 
 [tool.jupyter-releaser.hooks]
