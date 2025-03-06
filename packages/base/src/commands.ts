@@ -360,28 +360,27 @@ export function addCommands(
         return;
       }
 
-      const filePath = source.parameters.path;
-
-      const Gdal = await getGdal();
-      const fileContent = await loadFile({
-        filepath: filePath,
-        type: 'GeoJSONSource',
-        model: tracker.currentWidget?.model as IJupyterGISModel
-      });
-
-      console.log('File content:', fileContent);
-
       let geojsonString: string;
-      if (typeof fileContent === 'object') {
-        geojsonString = JSON.stringify(fileContent);
+
+      if (source.parameters.path) {
+        const fileContent = await loadFile({
+          filepath: source.parameters.path,
+          type: 'GeoJSONSource',
+          model: tracker.currentWidget?.model as IJupyterGISModel
+        });
+
+        geojsonString = typeof fileContent === 'object' ? JSON.stringify(fileContent) : fileContent;
+      } else if (source.parameters.data) {
+        geojsonString = JSON.stringify(source.parameters.data);
       } else {
-        geojsonString = fileContent;
+        throw new Error(`Source ${sourceId} is missing both 'path' and 'data' parameters.`);
       }
 
       const fileBlob = new Blob([geojsonString], { type: 'application/geo+json' });
       const geoFile = new File([fileBlob], 'data.geojson', { type: 'application/geo+json' });
 
       console.log('Opening file...');
+      const Gdal = await getGdal();
       const result = await Gdal.open(geoFile);
       console.log('GDAL Dataset:', result);
 
@@ -420,7 +419,7 @@ export function addCommands(
         const sourceModel: IJGISSource = {
           type: 'GeoJSONSource',
           name: selectedLayer.name + ' Buffer',
-          parameters: { path: bufferedGeoJSON }
+          parameters: { data: bufferedGeoJSON }
         };
 
         const layerModel: IJGISLayer = {
