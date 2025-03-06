@@ -447,10 +447,6 @@ export const loadFile = async (fileInfo: {
 }) => {
   const { filepath, type, model } = fileInfo;
 
-  if (typeof filepath === 'object' && filepath !== null) {
-      return filepath;
-  }
-
   if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
     switch (type) {
       case 'ImageSource': {
