@@ -2,6 +2,31 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.4.2
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.4.1...4978e892b2d8deaa59a9d9cc515d98d6126b504e))
+
+### Bugs fixed
+
+- Fix releaser for publishing jupytergis-lite [#524](https://github.com/geojupyter/jupytergis/pull/524) ([@martinRenou](https://github.com/martinRenou))
+- Move layer visibility toggle to the left of the layer title and icon [#487](https://github.com/geojupyter/jupytergis/pull/487) ([@mfisher87](https://github.com/mfisher87))
+
+### Maintenance and upkeep improvements
+
+- Bump the gha-dependencies group with 3 updates [#512](https://github.com/geojupyter/jupytergis/pull/512) ([@dependabot](https://github.com/dependabot))
+
+### Documentation improvements
+
+- Removing misleading comment [#511](https://github.com/geojupyter/jupytergis/pull/511) ([@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-02-27&to=2025-03-06&type=c))
+
+[@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-02-27..2025-03-06&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adependabot+updated%3A2025-02-27..2025-03-06&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-02-27..2025-03-06&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-02-27..2025-03-06&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-02-27..2025-03-06&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.4.1
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.4.0...8a87ee1f424e09578a372b89d0848d2a1ddea921))
@@ -41,8 +66,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-02-13&to=2025-02-27&type=c))
 
 [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-02-13..2025-02-27&type=Issues) | [@brichet](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abrichet+updated%3A2025-02-13..2025-02-27&type=Issues) | [@elifsu-simula](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aelifsu-simula+updated%3A2025-02-13..2025-02-27&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-02-13..2025-02-27&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2025-02-13..2025-02-27&type=Issues) | [@jmarokhovsky](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Ajmarokhovsky+updated%3A2025-02-13..2025-02-27&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-02-13..2025-02-27&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-02-13..2025-02-27&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.4.0
 
