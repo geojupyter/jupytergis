@@ -80,11 +80,6 @@ Follow along to add a vector layer available online.
 5. You will see the new Shapefile Layer on the map. When clicking on the **Custom Shapefile Layer** (see figure below), you will also see the details of the object properties on the right of the map. You can pan and zoom to focus on your area of interest, or automatically focus on your new data layer by right-clicking on the **Custom Shapefile Layer** and selecting "Zoom to Layer".
    ![View Shapefile Layer](../../assets/images/viewShapefileLayer.png)
 
-:::{admonition} Why don't we add a local shapefile?
-:class: tip
-One of the main strength of JupyterGIS is its collaborative capabilities. To be able to collaborate, it is much easier to work with data that is available to everyone online.
-:::
-
 ## Renaming Sources and Layers
 
 When adding a new source or layer, default names are assigned. It is good practice to rename both the source and layer with meaningful names to avoid confusion when adding similar layers in the future. To rename a source, select it in the GIS Sources List / Browser Panel, and right click to **Rename Source**.

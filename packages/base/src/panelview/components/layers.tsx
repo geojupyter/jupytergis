@@ -416,27 +416,29 @@ function LayerComponent(props: ILayerProps): JSX.Element {
         onClick={setSelection}
         onContextMenu={setSelection}
       >
+        <Button
+          title={layer.visible ? 'Hide layer' : 'Show layer'}
+          onClick={toggleVisibility}
+          minimal
+        >
+          <LabIcon.resolveReact
+            icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
+            className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-gis-mod-hidden'}`}
+            tag="span"
+          />
+        </Button>
+
         {icons.has(layer.type) && (
           <LabIcon.resolveReact
             {...icons.get(layer.type)}
             className={LAYER_ICON_CLASS}
           />
         )}
+
         <span id={id} className={LAYER_TEXT_CLASS}>
           {name}
         </span>
       </div>
-      <Button
-        title={layer.visible ? 'Hide layer' : 'Show layer'}
-        onClick={toggleVisibility}
-        minimal
-      >
-        <LabIcon.resolveReact
-          icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
-          className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-gis-mod-hidden'}`}
-          tag="span"
-        />
-      </Button>
     </div>
   );
 }

@@ -118,7 +118,11 @@ thumbnails_providers_positions = {
     # 'SafeCast': {
     #     'Special Rules': {},
     #     'Default': san_francisco,
-    # }
+    # },
+    "Esri": {
+        "Special Rules": {},
+        "Default": san_francisco,
+    },
 }
 
 
