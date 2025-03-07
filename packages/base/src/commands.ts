@@ -331,7 +331,7 @@ export function addCommands(
           model: tracker.currentWidget?.model as IJupyterGISModel,
           sourceData: {
             InputLayer: localSelectedLayerId,
-            bufferDistance: 0,
+            bufferDistance: 10,
             projection: 'EPSG:4326',
           },
           cancelButton: false,

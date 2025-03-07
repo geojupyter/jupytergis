@@ -12,6 +12,7 @@
     },
     "bufferDistance": {
       "type": "number",
+      "default": 10,
       "description": "The distance used for buffering the geometry."
     },
     "projection": {
