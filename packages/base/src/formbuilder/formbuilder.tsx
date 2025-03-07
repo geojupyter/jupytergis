@@ -3,7 +3,6 @@ import * as React from 'react';
 import { FormComponent } from '@jupyterlab/ui-components';
 import validatorAjv8 from '@rjsf/validator-ajv8';
 import { IDict } from '../types';
-import CustomArrayField from './customarrayfield';
 
 interface IStates {
   internalData?: IDict;
