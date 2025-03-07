@@ -6,7 +6,6 @@
   "additionalProperties": false,
   "properties": {
     "inputLayer": {
-      "title": "inputLayer",
       "type": "string",
       "description": "Select an input layer for buffering"
     },
