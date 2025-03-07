@@ -169,6 +169,24 @@ const plugin: JupyterFrontEndPlugin<void> = {
       rank: 2
     });
 
+    // Create the Processing submenu
+    const processingSubmenu = new Menu({ commands: app.commands });
+    processingSubmenu.title.label = translator
+      .load('jupyterlab')
+      .__('Processing');
+    processingSubmenu.id = 'jp-gis-contextmenu-processing';
+
+    processingSubmenu.addItem({
+      command: CommandIDs.buffer
+    });
+
+    app.contextMenu.addItem({
+      type: 'submenu',
+      selector: '.jp-gis-layerItem',
+      rank: 2,
+      submenu: processingSubmenu
+    });
+
     const moveLayerSubmenu = new Menu({ commands: app.commands });
     moveLayerSubmenu.title.label = translator
       .load('jupyterlab')

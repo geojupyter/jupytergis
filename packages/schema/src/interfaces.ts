@@ -72,6 +72,11 @@ export interface ISelection {
 
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
+  selectedPropField?: {
+    id: string | null;
+    value: any;
+    parentType: 'panel' | 'dialog';
+  };
   viewportState: { value?: IViewPortState; emitter?: string | null };
   pointer: { value?: Pointer; emitter?: string | null };
   identifiedFeatures: { value?: any; emitter?: string | null };

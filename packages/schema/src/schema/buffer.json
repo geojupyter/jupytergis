@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "description": "Buffer",
+  "title": "IBuffer",
+  "required": ["inputLayer", "bufferDistance"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "Select an input layer for buffering"
+    },
+    "bufferDistance": {
+      "type": "number",
+      "default": 10,
+      "description": "The distance used for buffering the geometry."
+    },
+    "projection": {
+      "type": "string",
+      "description": "The spatial reference system of the buffered output.",
+      "default": "EPSG:4326"
+    }
+  }
+}
