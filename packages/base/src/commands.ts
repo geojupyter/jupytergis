@@ -333,7 +333,6 @@ export function addCommands(
             InputLayer: localSelectedLayerId,
             bufferDistance: 0,
             projection: 'EPSG:4326',
-            attribution: ''
           },
           cancelButton: false,
           syncData: (props: IDict) => {
@@ -349,7 +348,7 @@ export function addCommands(
         return;
       }
 
-      const bufferDistance = formValues.bufferDistance || 0.01;
+      const bufferDistance = formValues.bufferDistance;
       const selectedLayerId = formValues.InputLayer;
       const selectedLayer = layers[selectedLayerId];
 
@@ -371,7 +370,7 @@ export function addCommands(
       if (source.parameters.path) {
         const fileContent = await loadFile({
           filepath: source.parameters.path,
-          type: 'GeoJSONSource',
+          type: source.type,
           model: tracker.currentWidget?.model as IJupyterGISModel
         });
 

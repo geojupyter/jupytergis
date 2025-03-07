@@ -5,10 +5,9 @@
   "required": ["InputLayer", "bufferDistance"],
   "additionalProperties": false,
   "properties": {
-    "InputLayer": {
+    "inputLayer": {
       "title": "InputLayer",
       "type": "string",
-      "fcType": "App::PropertyLink",
       "description": "Select an input layer for buffering"
     },
     "bufferDistance": {
@@ -19,12 +18,6 @@
       "type": "string",
       "description": "The spatial reference system of the buffered output.",
       "default": "EPSG:4326"
-    },
-    "attribution": {
-      "type": "string",
-      "readOnly": true,
-      "description": "Attribution for the buffered dataset.",
-      "default": ""
     }
   }
 }
