@@ -2,11 +2,11 @@
   "type": "object",
   "description": "Buffer",
   "title": "IBuffer",
-  "required": ["InputLayer", "bufferDistance"],
+  "required": ["inputLayer", "bufferDistance"],
   "additionalProperties": false,
   "properties": {
     "inputLayer": {
-      "title": "InputLayer",
+      "title": "inputLayer",
       "type": "string",
       "description": "Select an input layer for buffering"
     },

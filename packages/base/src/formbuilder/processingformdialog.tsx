@@ -40,11 +40,11 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       label: layers[layerId].name
     }));
 
-    if (options.schema && options.schema.properties?.InputLayer) {
-      options.schema.properties.InputLayer.enum = layerOptions.map(
+    if (options.schema && options.schema.properties?.inputLayer) {
+      options.schema.properties.inputLayer.enum = layerOptions.map(
         option => option.value
       );
-      options.schema.properties.InputLayer.enumNames = layerOptions.map(
+      options.schema.properties.inputLayer.enumNames = layerOptions.map(
         option => option.label
       );
     }

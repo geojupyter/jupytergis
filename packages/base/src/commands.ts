@@ -293,9 +293,33 @@ export function addCommands(
   commands.addCommand(CommandIDs.buffer, {
     label: trans.__('Buffer'),
     isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
+      const model = tracker.currentWidget?.model;
+      const localState = model?.sharedModel.awareness.getLocalState();
+
+      if (!model || !localState || !localState['selected']?.value) {
+        return false;
+      }
+
+      const selectedLayers = localState['selected'].value;
+
+      // Can't open more than one symbology dialog at once
+      if (Object.keys(selectedLayers).length > 1) {
+        return false;
+      }
+
+      const layerId = Object.keys(selectedLayers)[0];
+      const layer = model.getLayer(layerId);
+
+      if (!layer) {
+        return false;
+      }
+
+      const isValidLayer = [
+        'VectorLayer',
+        'ShapefileLayer',
+      ].includes(layer.type);
+
+      return isValidLayer;
     },
     execute: async () => {
       const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
@@ -330,7 +354,7 @@ export function addCommands(
           schema: schema,
           model: tracker.currentWidget?.model as IJupyterGISModel,
           sourceData: {
-            InputLayer: localSelectedLayerId,
+            inputLayer: localSelectedLayerId,
             bufferDistance: 10,
             projection: 'EPSG:4326',
           },
@@ -349,7 +373,7 @@ export function addCommands(
       }
 
       const bufferDistance = formValues.bufferDistance;
-      const selectedLayerId = formValues.InputLayer;
+      const selectedLayerId = formValues.inputLayer;
       const selectedLayer = layers[selectedLayerId];
 
       if (!selectedLayer.parameters) {
