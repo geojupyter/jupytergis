@@ -361,6 +361,7 @@ export function addCommands(
           cancelButton: false,
           syncData: (props: IDict) => {
             resolve(props);
+            dialog.dispose();
           }
         });
 
@@ -368,7 +369,6 @@ export function addCommands(
       });
 
       if (!formValues) {
-        console.log('Form cancelled, skipping execution.');
         return;
       }
 
@@ -417,16 +417,12 @@ export function addCommands(
         type: 'application/geo+json'
       });
 
-      console.log('Opening file...');
       const Gdal = await getGdal();
       const result = await Gdal.open(geoFile);
-      console.log('GDAL Dataset:', result);
 
       if (result.datasets.length > 0) {
         const dataset = result.datasets[0] as any;
-        console.log('Dataset:', dataset);
         const layerName = dataset.info.layers[0].name;
-        console.log('Layer name:', layerName);
 
         const sqlQuery = `
           SELECT ST_Union(ST_Buffer(geometry, ${bufferDistance})) AS geometry, *
@@ -446,13 +442,8 @@ export function addCommands(
         ];
 
         const outputFilePath = await Gdal.ogr2ogr(dataset, options);
-        console.log('Buffered output file path:', outputFilePath);
-
         const bufferedBytes = await Gdal.getFileBytes(outputFilePath);
-        console.log('Buffered GeoJSON (raw bytes):', bufferedBytes);
-
         const bufferedGeoJSONString = new TextDecoder().decode(bufferedBytes);
-        console.log('Buffered GeoJSON (string):', bufferedGeoJSONString);
 
         const bufferedGeoJSON = JSON.parse(bufferedGeoJSONString);
 
