@@ -23,22 +23,22 @@ By following this tutorial, you will be able to:
 - In the search box, type **JupyterGIS**.
 - Click **Interactive JupyterGIS Notebook** and then click the **Run Tool** button.
 
-![Run Tool](../../assets/images/tutorials/collab/run_tool.png)
+![Run Tool](../../assets/images/tutorials/collaboration/run_tool.png)
 
 - Click on **Interactive Tools** on the left sidebar.
 - Wait a few minutes until the job status changes to “running.”
 - Click on the **Jupyter Interactive GIS Tool** link that appears to open JupyterLab.
 
-![Start JGIS](../../assets/images/tutorials/collab/start_jgis.png)
+![Start JGIS](../../assets/images/tutorials/collaboration/start_jgis.png)
 
 ### 1.3. Create Your GIS File
 - In the JupyterLab Launcher, scroll down to the **Other** section.
 - Click **GIS File** to open a blank canvas for your project.  
 
-![New GIS File](../../assets/images/tutorials/collab/new_gis_file.png)
+![New GIS File](../../assets/images/tutorials/collaboration/new_gis_file.png)
 - Notice that you are given an anonymous username, which you can see in the upper right corner. Every user in the project will be assigned an anonymous username.
 
-![Username](../../assets/images/tutorials/collab/username.png)
+![Username](../../assets/images/tutorials/collaboration/username.png)
 ---
 
 ## 2. Sharing Your Document
@@ -47,13 +47,13 @@ By following this tutorial, you will be able to:
 - Click on the **Share** button in your interface on the upper right corner, then click on the **Copy Link** button.
 - Share this link with colleagues to invite them to your session.  
 
-![Share](../../assets/images/tutorials/collab/share.png)
+![Share](../../assets/images/tutorials/collaboration/share.png)
 
 ### 2.2. Confirm Collaborator Access
 - When your colleagues join using the link, their usernames appear in the top right corner.
 - This lets you know exactly who is working on the document.  
 
-![Shared Users](../../assets/images/tutorials/collab/shared_users.png)
+![Shared Users](../../assets/images/tutorials/collaboration/shared_users.png)
 
 ---
 
@@ -64,13 +64,13 @@ By following this tutorial, you will be able to:
 - The new layer appears immediately for all collaborators in your session.
 - Experiment by adjusting settings like opacity or color, each change is instantly visible to your collaborators.
 
-![Add Layers](../../assets/images/tutorials/collab/add_layers.gif)
+![Add Layers](../../assets/images/tutorials/collaboration/add_layers.gif)
 
 ### 3.2. Tracking Collaborators with Cursors
 - Each user's cursor appears on the document in the same color as their icon. This feature makes it easy to see where your teammates are focused on.
 - Click on a cursor to display the location (latitude and longitude) where that user is working.
 
-![Cursor](../../assets/images/tutorials/collab/cursor.png)
+![Cursor](../../assets/images/tutorials/collaboration/cursor.png)
 
 ---
 
@@ -81,7 +81,7 @@ Follow mode allows you to track another user’s activity in the document in rea
 - Click on a collaborator's user icon in the upper right corner to activate follow mode. Observe that the document will then have a frame in their assigned color.
 - Click on the user icon again to exit follow mode.
 
-![Follow Mode](../../assets/images/tutorials/collab/follow_mode.gif)
+![Follow Mode](../../assets/images/tutorials/collaboration/follow_mode.gif)
 
 ---
 
@@ -97,7 +97,7 @@ Annotations and comments let you add notes directly on your GIS file, which make
 - Open the right sidebar to view all annotations and comments in the document. 
 - Click on the middle button to locate the annotation.
 
-![Annotation](../../assets/images/tutorials/collab/annotation.gif)
+![Annotation](../../assets/images/tutorials/collaboration/annotation.gif)
 
 ---
 
@@ -108,18 +108,18 @@ Real-time collaboration in notebooks is a powerful tool for teams working on cod
 ### 6.1. Accessing a Shared Notebook
 - To create a notebook, click on the **+** icon to open the Launcher, then select one of the kernels under **Notebook**.
 
-![Notebook](../../assets/images/tutorials/collab/create_notebook.png)
+![Notebook](../../assets/images/tutorials/collaboration/create_notebook.png)
 - Once a notebook is created, it is automatically accessible to all collaborators—no additional sharing is needed.
 - To open a shared notebook, click on the explorer button in the left sidebar, then locate and click on the notebook.
 
-![Notebook](../../assets/images/tutorials/collab/open_notebook.png)
+![Notebook](../../assets/images/tutorials/collaboration/open_notebook.png)
 - Anyone in the session can open, edit, and run the notebook.
 
 ### 6.2. Real-Time Code Collaboration
 - As you write or execute code, every change is visible to your team instantly.
 - Multiple users can write, edit, and run code in the same notebook at the same time for a dynamic, interactive coding experience.
 
-![Notebook](../../assets/images/tutorials/collab/notebook.gif)
+![Notebook](../../assets/images/tutorials/collaboration/notebook.gif)
 
 ---
 
