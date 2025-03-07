@@ -183,7 +183,6 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
-
       // Users
       this.addItem(
         'users',

@@ -314,10 +314,9 @@ export function addCommands(
         return false;
       }
 
-      const isValidLayer = [
-        'VectorLayer',
-        'ShapefileLayer',
-      ].includes(layer.type);
+      const isValidLayer = ['VectorLayer', 'ShapefileLayer'].includes(
+        layer.type
+      );
 
       return isValidLayer;
     },
@@ -356,7 +355,7 @@ export function addCommands(
           sourceData: {
             inputLayer: localSelectedLayerId,
             bufferDistance: 10,
-            projection: 'EPSG:4326',
+            projection: 'EPSG:4326'
           },
           cancelButton: false,
           syncData: (props: IDict) => {

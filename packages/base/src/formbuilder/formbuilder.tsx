@@ -29,7 +29,7 @@ const WrappedFormComponent = (props: any): JSX.Element => {
       {...rest}
       validator={validatorAjv8}
       fields={{
-        ...fields,
+        ...fields
       }}
     />
   );

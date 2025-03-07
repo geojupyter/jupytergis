@@ -171,7 +171,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     // Create the Processing submenu
     const processingSubmenu = new Menu({ commands: app.commands });
-    processingSubmenu.title.label = translator.load('jupyterlab').__('Processing');
+    processingSubmenu.title.label = translator
+      .load('jupyterlab')
+      .__('Processing');
     processingSubmenu.id = 'jp-gis-contextmenu-processing';
 
     processingSubmenu.addItem({
