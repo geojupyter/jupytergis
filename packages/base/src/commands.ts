@@ -302,7 +302,6 @@ export function addCommands(
 
       const selectedLayers = localState['selected'].value;
 
-      // Can't open more than one symbology dialog at once
       if (Object.keys(selectedLayers).length > 1) {
         return false;
       }
@@ -323,16 +322,6 @@ export function addCommands(
     execute: async () => {
       const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
       const sources = tracker.currentWidget?.model.sharedModel.sources ?? {};
-
-      const layerOptions = Object.keys(layers).map(layerId => ({
-        value: layerId,
-        label: layers[layerId].name
-      }));
-
-      if (layerOptions.length === 0) {
-        console.warn('No layers available to buffer.');
-        return;
-      }
 
       const schema = {
         ...(formSchemaRegistry.getSchemas().get('Buffer') as IDict)
@@ -432,7 +421,7 @@ export function addCommands(
           '-f',
           'GeoJSON',
           '-t_srs',
-          'EPSG:4326',
+          formValues.projection,
           '-dialect',
           'SQLITE',
           '-sql',
