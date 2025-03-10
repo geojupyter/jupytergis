@@ -64,7 +64,6 @@
     },
     "interpolate": {
       "type": "boolean",
-      "title": "Interpolate",
       "description": "Interpolate between grid cells when overzooming?",
       "default": false
     }
