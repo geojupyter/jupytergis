@@ -34,7 +34,8 @@
     },
     "interpolate": {
       "type": "boolean",
-      "description": "Whether to interpolate between pixels or grid cells when overzooming",
+      "title": "Interpolate",
+      "description": "Interpolate between grid cells when overzooming?",
       "default": false
     }
   }
