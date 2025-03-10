@@ -332,8 +332,8 @@ export function addCommands(
       if (!model || !localState || !localState['selected']?.value) {
         return;
       }
-      const localSelectedLayer = localState['selected'].value;
-      const localSelectedLayerId = Object.keys(localSelectedLayer)[0];
+      const selectedLayer = localState['selected'].value;
+      const selectedLayerId = Object.keys(selectedLayer)[0];
 
       // Open form and get user input
       const formValues = await new Promise<IDict>(resolve => {
@@ -342,7 +342,7 @@ export function addCommands(
           schema: schema,
           model: tracker.currentWidget?.model as IJupyterGISModel,
           sourceData: {
-            inputLayer: localSelectedLayerId,
+            inputLayer: selectedLayerId,
             bufferDistance: 10,
             projection: 'EPSG:4326'
           },
@@ -361,15 +361,15 @@ export function addCommands(
       }
 
       const bufferDistance = formValues.bufferDistance;
-      const selectedLayerId = formValues.inputLayer;
-      const selectedLayer = layers[selectedLayerId];
+      const inputLayerId = formValues.inputLayer;
+      const inputLayer = layers[inputLayerId];
 
-      if (!selectedLayer.parameters) {
+      if (!inputLayer.parameters) {
         console.error('Selected layer not found.');
         return;
       }
 
-      const sourceId = selectedLayer.parameters.source;
+      const sourceId = inputLayer.parameters.source;
       const source = sources[sourceId];
 
       if (!source.parameters) {
@@ -432,6 +432,7 @@ export function addCommands(
         const outputFilePath = await Gdal.ogr2ogr(dataset, options);
         const bufferedBytes = await Gdal.getFileBytes(outputFilePath);
         const bufferedGeoJSONString = new TextDecoder().decode(bufferedBytes);
+        Gdal.close(dataset);
 
         const bufferedGeoJSON = JSON.parse(bufferedGeoJSONString);
 
@@ -439,7 +440,7 @@ export function addCommands(
         const newSourceId = UUID.uuid4();
         const sourceModel: IJGISSource = {
           type: 'GeoJSONSource',
-          name: selectedLayer.name + ' Buffer',
+          name: inputLayer.name + ' Buffer',
           parameters: { data: bufferedGeoJSON }
         };
 
@@ -449,7 +450,7 @@ export function addCommands(
             source: newSourceId
           },
           visible: true,
-          name: selectedLayer.name + ' Buffer'
+          name: inputLayer.name + ' Buffer'
         };
 
         tracker.currentWidget?.model.sharedModel.addSource(
@@ -457,8 +458,6 @@ export function addCommands(
           sourceModel
         );
         tracker.currentWidget?.model.addLayer(UUID.uuid4(), layerModel);
-
-        Gdal.close(dataset);
       }
     }
   });
