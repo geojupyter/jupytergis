@@ -1,0 +1,56 @@
+{
+  "type": "object",
+  "description": "ExportSchema",
+  "title": "IExportLayer",
+  "required": ["exportFileName", "exportFormat"],
+  "additionalProperties": false,
+  "properties": {
+    "exportFileName": {
+      "type": "string",
+      "title": "File Name",
+      "default": "exported_layer",
+      "description": "The name of the exported file."
+    },
+    "exportFormat": {
+      "type": "string",
+      "title": "Export Format",
+      "enum": ["GeoJSON", "GeoTIFF"],
+      "default": "GeoJSON",
+      "description": "The format for exporting the layer."
+    },
+    "resolutionX": {
+      "type": "number",
+      "title": "Resolution (Width)",
+      "default": 1200,
+      "minimum": 1,
+      "maximum": 10000,
+      "description": "The width resolution for raster exports."
+    },
+    "resolutionY": {
+      "type": "number",
+      "title": "Resolution (Height)",
+      "default": 1200,
+      "minimum": 1,
+      "maximum": 10000,
+      "description": "The height resolution for raster exports."
+    }
+  },
+  "dependencies": {
+    "exportFormat": {
+      "oneOf": [
+        {
+          "properties": {
+            "exportFormat": { "enum": ["GeoTIFF"] },
+            "resolutionX": {},
+            "resolutionY": {}
+          }
+        },
+        {
+          "properties": {
+            "exportFormat": { "enum": ["GeoJSON"] }
+          }
+        }
+      ]
+    }
+  }
+}

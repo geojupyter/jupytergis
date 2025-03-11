@@ -1211,46 +1211,7 @@ export function addCommands(
       }
 
       const exportSchema = {
-        type: 'object',
-        properties: {
-          exportFileName: {
-            type: 'string',
-            title: 'File Name',
-            default: 'exported_layer'
-          },
-          exportFormat: {
-            type: 'string',
-            title: 'Export Format',
-            enum: ['GeoJSON', 'GeoTIFF'],
-            default: 'GeoJSON'
-          },
-          resolutionX: {
-            type: 'number',
-            title: 'Resolution (Width)',
-            default: 1200,
-            minimum: 1,
-            maximum: 10000
-          },
-          resolutionY: {
-            type: 'number',
-            title: 'Resolution (Height)',
-            default: 1200,
-            minimum: 1,
-            maximum: 10000
-          }
-        },
-        dependencies: {
-          exportFormat: {
-            oneOf: [
-              {
-                properties: { exportFormat: { enum: ['GeoTIFF'] }, resolutionX: {}, resolutionY: {} }
-              },
-              {
-                properties: { exportFormat: { enum: ['GeoJSON'] } }
-              }
-            ]
-          }
-        }
+        ...(formSchemaRegistry.getSchemas().get('Buffer') as IDict)
       };
 
       const formValues = await new Promise<IDict>(resolve => {
@@ -1258,7 +1219,11 @@ export function addCommands(
           title: 'Export Layer',
           schema: exportSchema,
           model: tracker.currentWidget?.model as IJupyterGISModel,
-          sourceData: { exportFormat: 'GeoJSON', resolutionX: 1200, resolutionY: 1200 },
+          sourceData: {
+            exportFormat: 'GeoJSON',
+            resolutionX: 1200,
+            resolutionY: 1200
+          },
           cancelButton: true,
           syncData: (props: IDict) => {
             resolve(props);
@@ -1295,17 +1260,24 @@ export function addCommands(
           model: tracker.currentWidget?.model as IJupyterGISModel
         });
 
-        geojsonString = typeof fileContent === 'object' ? JSON.stringify(fileContent) : fileContent;
+        geojsonString =
+          typeof fileContent === 'object'
+            ? JSON.stringify(fileContent)
+            : fileContent;
       } else if (source.parameters.data) {
         geojsonString = JSON.stringify(source.parameters.data);
       } else {
-        throw new Error(`Source ${sourceId} is missing both 'path' and 'data' parameters.`);
+        throw new Error(
+          `Source ${sourceId} is missing both 'path' and 'data' parameters.`
+        );
       }
 
       console.log('GeoJSON string:', geojsonString);
 
       if (exportFormat === 'GeoJSON') {
-        const blob = new Blob([geojsonString], { type: 'application/geo+json' });
+        const blob = new Blob([geojsonString], {
+          type: 'application/geo+json'
+        });
         const url = URL.createObjectURL(blob);
         const downloadLink = document.createElement('a');
         downloadLink.href = url;
@@ -1319,7 +1291,9 @@ export function addCommands(
 
       const Gdal = await getGdal();
       const datasetList = await Gdal.open(
-        new File([geojsonString], 'data.geojson', { type: 'application/geo+json' })
+        new File([geojsonString], 'data.geojson', {
+          type: 'application/geo+json'
+        })
       );
       console.log('Dataset list:', datasetList);
 
@@ -1335,13 +1309,21 @@ export function addCommands(
 
       if (exportFormat === 'GeoTIFF') {
         options = [
-          '-of', 'GTiff',
-          '-ot', 'Float32',
-          '-a_nodata', '-1.0',
-          '-burn', '0.0',
-          '-ts', resolutionX.toString(), resolutionY.toString(),
-          '-l', 'data',
-          'data.geojson', 'output.tif'
+          '-of',
+          'GTiff',
+          '-ot',
+          'Float32',
+          '-a_nodata',
+          '-1.0',
+          '-burn',
+          '0.0',
+          '-ts',
+          resolutionX.toString(),
+          resolutionY.toString(),
+          '-l',
+          'data',
+          'data.geojson',
+          'output.tif'
         ];
       }
 
@@ -1349,7 +1331,9 @@ export function addCommands(
       console.log('Exported file path:', outputFilePath);
 
       const exportedBytes = await Gdal.getFileBytes(outputFilePath);
-      const exportedBlob = new Blob([exportedBytes], { type: 'application/octet-stream' });
+      const exportedBlob = new Blob([exportedBytes], {
+        type: 'application/octet-stream'
+      });
       const exportedURL = URL.createObjectURL(exportedBlob);
 
       // Create a download link

@@ -20,6 +20,9 @@ export * from './_interface/imageLayer';
 export * from './_interface/heatmapLayer';
 export * from './_interface/buffer';
 
+// exportLayer
+export * from './_interface/exportSchema';
+
 // Other
 export * from './doc';
 export * from './interfaces';
