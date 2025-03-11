@@ -1221,7 +1221,7 @@ export function addCommands(
           exportFormat: {
             type: 'string',
             title: 'Export Format',
-            enum: ['GeoJSON', 'GeoTIFF', 'PNG', 'JPEG'],
+            enum: ['GeoJSON', 'GeoTIFF'],
             default: 'GeoJSON'
           },
           resolutionX: {
@@ -1246,7 +1246,7 @@ export function addCommands(
                 properties: { exportFormat: { enum: ['GeoTIFF'] }, resolutionX: {}, resolutionY: {} }
               },
               {
-                properties: { exportFormat: { enum: ['GeoJSON', 'PNG', 'JPEG'] } }
+                properties: { exportFormat: { enum: ['GeoJSON'] } }
               }
             ]
           }
@@ -1343,8 +1343,6 @@ export function addCommands(
           '-l', 'data',
           'data.geojson', 'output.tif'
         ];
-      } else if (exportFormat === 'PNG' || exportFormat === 'JPEG') {
-        options = ['-of', exportFormat, 'output.' + exportFormat.toLowerCase()];
       }
 
       const outputFilePath = await Gdal.gdal_rasterize(dataset, options);
