@@ -1167,6 +1167,162 @@ export function addCommands(
     }
   });
 
+  commands.addCommand(CommandIDs.exportLayer, {
+    label: trans.__('Export Layer'),
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const localState = model?.sharedModel.awareness.getLocalState();
+
+      if (!model || !localState || !localState['selected']?.value) {
+        return false;
+      }
+
+      const selectedLayers = localState['selected'].value;
+
+      if (Object.keys(selectedLayers).length > 1) {
+        return false;
+      }
+
+      const layerId = Object.keys(selectedLayers)[0];
+      const layer = model.getLayer(layerId);
+
+      if (!layer) {
+        return false;
+      }
+
+      return ['VectorLayer', 'RasterLayer', 'ShapefileLayer'].includes(layer.type);
+    },
+    execute: async () => {
+      const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
+      const sources = tracker.currentWidget?.model.sharedModel.sources ?? {};
+
+      const model = tracker.currentWidget?.model;
+      const localState = model?.sharedModel.awareness.getLocalState();
+      if (!model || !localState || !localState['selected']?.value) {
+        return;
+      }
+
+      const selectedLayerId = Object.keys(localState['selected'].value)[0];
+      const selectedLayer = layers[selectedLayerId];
+
+      if (!selectedLayer || !selectedLayer.parameters) {
+        console.error('Selected layer not found.');
+        return;
+      }
+
+      const exportSchema = {
+        type: 'object',
+        properties: {
+          exportFormat: {
+            type: 'string',
+            title: 'Export Format',
+            enum: ['GeoJSON', 'Shapefile', 'GeoTIFF', 'PNG', 'JPEG'],
+            default: 'GeoJSON'
+          }
+        }
+      };
+
+      const formValues = await new Promise<IDict>(resolve => {
+        const dialog = new ProcessingFormDialog({
+          title: 'Export Layer',
+          schema: exportSchema,
+          model: tracker.currentWidget?.model as IJupyterGISModel,
+          sourceData: { exportFormat: 'GeoJSON' },
+          cancelButton: true,
+          syncData: (props: IDict) => {
+            resolve(props);
+            dialog.dispose();
+          }
+        });
+
+        dialog.launch();
+      });
+
+      if (!formValues) {
+        console.log('Form cancelled, skipping execution.');
+        return;
+      }
+
+      const exportFormat = formValues.exportFormat;
+      const sourceId = selectedLayer.parameters.source;
+      const source = sources[sourceId];
+
+      if (!source.parameters) {
+        console.error(`Source with ID ${sourceId} not found or missing path.`);
+        return;
+      }
+
+      let geojsonString: string;
+      if (source.parameters.path) {
+        const fileContent = await loadFile({
+          filepath: source.parameters.path,
+          type: source.type,
+          model: tracker.currentWidget?.model as IJupyterGISModel
+        });
+
+        geojsonString = typeof fileContent === 'object' ? JSON.stringify(fileContent) : fileContent;
+      } else if (source.parameters.data) {
+        geojsonString = JSON.stringify(source.parameters.data);
+      } else {
+        throw new Error(`Source ${sourceId} is missing both 'path' and 'data' parameters.`);
+      }
+
+      console.log('GeoJSON string:', geojsonString);
+
+      if (exportFormat === 'GeoJSON') {
+        const blob = new Blob([geojsonString], { type: 'application/geo+json' });
+        const url = URL.createObjectURL(blob);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = 'exported_layer.geojson';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        console.log('Exported GeoJSON directly without GDAL.');
+        return;
+      }
+
+      const Gdal = await getGdal();
+      const datasetList = await Gdal.open(new File([geojsonString], 'data.geojson', { type: 'application/geo+json' }));
+      console.log('Dataset list:', datasetList);
+
+      const dataset = datasetList.datasets[0]; // Extract the first dataset
+      console.log('Dataset:', dataset);
+
+      if (!dataset) {
+        console.error('Dataset could not be opened.');
+        return;
+      }
+
+      let options: string[] = [];
+
+      if (exportFormat === 'GeoTIFF') {
+        options = ['-f', 'GTiff', '-t_srs', 'EPSG:4326', '-co', 'COMPRESS=LZW', 'output.tif'];
+      } else if (exportFormat === 'Shapefile') {
+        options = ['-f', 'ESRI Shapefile', 'output.shp'];
+      } else if (exportFormat === 'PNG' || exportFormat === 'JPEG') {
+        options = ['-of', exportFormat, 'output.' + exportFormat.toLowerCase()];
+      }
+
+      const outputFilePath = await Gdal.ogr2ogr(dataset, options);
+      console.log('Exported file path:', outputFilePath);
+
+      const exportedBytes = await Gdal.getFileBytes(outputFilePath);
+      const exportedBlob = new Blob([exportedBytes], { type: 'application/octet-stream' });
+      const exportedURL = URL.createObjectURL(exportedBlob);
+
+      // Create a download link
+      const downloadLink = document.createElement('a');
+      downloadLink.href = exportedURL;
+      downloadLink.download = `exported_layer.${exportFormat.toLowerCase()}`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+
+      Gdal.close(dataset);
+    }
+  });
+
   loadKeybindings(commands, keybindings);
 }
 

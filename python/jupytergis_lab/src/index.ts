@@ -169,6 +169,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
       rank: 2
     });
 
+    app.contextMenu.addItem({
+      command: CommandIDs.exportLayer,
+      selector: '.jp-gis-layerItem',
+      rank: 2
+    });
+
     // Create the Processing submenu
     const processingSubmenu = new Menu({ commands: app.commands });
     processingSubmenu.title.label = translator
