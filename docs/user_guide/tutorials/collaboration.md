@@ -90,9 +90,8 @@ Follow mode allows you to track another user’s activity in the document in rea
 
 ![Follow Mode](../../assets/images/tutorials/collaboration/follow_mode.gif)
 
-```{exercise-start}
+````{exercise}
 :label: enable-follow-mode
-```
 
 - Create a new collaborative JupyterGIS session.
 - Share the link with a colleague. If you are using a local installation, you can open a new browser and paste the link to simulate a different user.
@@ -106,9 +105,7 @@ https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/openaq/exports
 - Locate your colleague's cursor on the document.
 - Enable follow mode to track your colleague's actions.
 
-```{exercise-end}
-
-```
+````
 
 ```{solution} enable-follow-mode
 :class: dropdown
