@@ -1213,6 +1213,11 @@ export function addCommands(
       const exportSchema = {
         type: 'object',
         properties: {
+          exportFileName: {
+            type: 'string',
+            title: 'File Name',
+            default: 'exported_layer'
+          },
           exportFormat: {
             type: 'string',
             title: 'Export Format',
@@ -1269,6 +1274,7 @@ export function addCommands(
         return;
       }
 
+      const exportFileName = formValues.exportFileName;
       const exportFormat = formValues.exportFormat;
       const resolutionX = formValues.resolutionX ?? 1200;
       const resolutionY = formValues.resolutionY ?? 1200;
@@ -1303,7 +1309,7 @@ export function addCommands(
         const url = URL.createObjectURL(blob);
         const downloadLink = document.createElement('a');
         downloadLink.href = url;
-        downloadLink.download = 'exported_layer.geojson';
+        downloadLink.download = `${exportFileName}.geojson`;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -1351,7 +1357,7 @@ export function addCommands(
       // Create a download link
       const downloadLink = document.createElement('a');
       downloadLink.href = exportedURL;
-      downloadLink.download = `exported_layer.${exportFormat.toLowerCase()}`;
+      downloadLink.download = `${exportFileName}.${exportFormat.toLowerCase()}`;
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
