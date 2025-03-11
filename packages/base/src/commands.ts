@@ -1190,7 +1190,7 @@ export function addCommands(
         return false;
       }
 
-      return ['VectorLayer', 'RasterLayer', 'ShapefileLayer'].includes(layer.type);
+      return ['VectorLayer', 'RasterLayer'].includes(layer.type);
     },
     execute: async () => {
       const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
@@ -1216,8 +1216,34 @@ export function addCommands(
           exportFormat: {
             type: 'string',
             title: 'Export Format',
-            enum: ['GeoJSON', 'Shapefile', 'GeoTIFF', 'PNG', 'JPEG'],
+            enum: ['GeoJSON', 'GeoTIFF', 'PNG', 'JPEG'],
             default: 'GeoJSON'
+          },
+          resolutionX: {
+            type: 'number',
+            title: 'Resolution (Width)',
+            default: 1200,
+            minimum: 1,
+            maximum: 10000
+          },
+          resolutionY: {
+            type: 'number',
+            title: 'Resolution (Height)',
+            default: 1200,
+            minimum: 1,
+            maximum: 10000
+          }
+        },
+        dependencies: {
+          exportFormat: {
+            oneOf: [
+              {
+                properties: { exportFormat: { enum: ['GeoTIFF'] }, resolutionX: {}, resolutionY: {} }
+              },
+              {
+                properties: { exportFormat: { enum: ['GeoJSON', 'PNG', 'JPEG'] } }
+              }
+            ]
           }
         }
       };
@@ -1227,7 +1253,7 @@ export function addCommands(
           title: 'Export Layer',
           schema: exportSchema,
           model: tracker.currentWidget?.model as IJupyterGISModel,
-          sourceData: { exportFormat: 'GeoJSON' },
+          sourceData: { exportFormat: 'GeoJSON', resolutionX: 1200, resolutionY: 1200 },
           cancelButton: true,
           syncData: (props: IDict) => {
             resolve(props);
@@ -1244,6 +1270,9 @@ export function addCommands(
       }
 
       const exportFormat = formValues.exportFormat;
+      const resolutionX = formValues.resolutionX ?? 1200;
+      const resolutionY = formValues.resolutionY ?? 1200;
+
       const sourceId = selectedLayer.parameters.source;
       const source = sources[sourceId];
 
@@ -1283,7 +1312,9 @@ export function addCommands(
       }
 
       const Gdal = await getGdal();
-      const datasetList = await Gdal.open(new File([geojsonString], 'data.geojson', { type: 'application/geo+json' }));
+      const datasetList = await Gdal.open(
+        new File([geojsonString], 'data.geojson', { type: 'application/geo+json' })
+      );
       console.log('Dataset list:', datasetList);
 
       const dataset = datasetList.datasets[0]; // Extract the first dataset
@@ -1297,14 +1328,20 @@ export function addCommands(
       let options: string[] = [];
 
       if (exportFormat === 'GeoTIFF') {
-        options = ['-f', 'GTiff', '-t_srs', 'EPSG:4326', '-co', 'COMPRESS=LZW', 'output.tif'];
-      } else if (exportFormat === 'Shapefile') {
-        options = ['-f', 'ESRI Shapefile', 'output.shp'];
+        options = [
+          '-of', 'GTiff',
+          '-ot', 'Float32',
+          '-a_nodata', '-1.0',
+          '-burn', '0.0',
+          '-ts', resolutionX.toString(), resolutionY.toString(),
+          '-l', 'data',
+          'data.geojson', 'output.tif'
+        ];
       } else if (exportFormat === 'PNG' || exportFormat === 'JPEG') {
         options = ['-of', exportFormat, 'output.' + exportFormat.toLowerCase()];
       }
 
-      const outputFilePath = await Gdal.ogr2ogr(dataset, options);
+      const outputFilePath = await Gdal.gdal_rasterize(dataset, options);
       console.log('Exported file path:', outputFilePath);
 
       const exportedBytes = await Gdal.getFileBytes(outputFilePath);
