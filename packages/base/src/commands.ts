@@ -23,6 +23,11 @@ import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
+import { getGdal } from './gdal';
+import { loadFile } from './tools';
+import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
+import { ProcessingFormDialog } from './formbuilder/processingformdialog';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -283,6 +288,178 @@ export function addCommands(
       layerType: 'VectorTileLayer'
     }),
     ...icons.get(CommandIDs.newVectorTileEntry)
+  });
+
+  commands.addCommand(CommandIDs.buffer, {
+    label: trans.__('Buffer'),
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const localState = model?.sharedModel.awareness.getLocalState();
+
+      if (!model || !localState || !localState['selected']?.value) {
+        return false;
+      }
+
+      const selectedLayers = localState['selected'].value;
+
+      if (Object.keys(selectedLayers).length > 1) {
+        return false;
+      }
+
+      const layerId = Object.keys(selectedLayers)[0];
+      const layer = model.getLayer(layerId);
+
+      if (!layer) {
+        return false;
+      }
+
+      const isValidLayer = ['VectorLayer', 'ShapefileLayer'].includes(
+        layer.type
+      );
+
+      return isValidLayer;
+    },
+    execute: async () => {
+      const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
+      const sources = tracker.currentWidget?.model.sharedModel.sources ?? {};
+
+      const schema = {
+        ...(formSchemaRegistry.getSchemas().get('Buffer') as IDict)
+      };
+
+      const model = tracker.currentWidget?.model;
+      const localState = model?.sharedModel.awareness.getLocalState();
+      if (!model || !localState || !localState['selected']?.value) {
+        return;
+      }
+      const selectedLayer = localState['selected'].value;
+      const selectedLayerId = Object.keys(selectedLayer)[0];
+
+      // Open form and get user input
+      const formValues = await new Promise<IDict>(resolve => {
+        const dialog = new ProcessingFormDialog({
+          title: 'Buffer',
+          schema: schema,
+          model: tracker.currentWidget?.model as IJupyterGISModel,
+          sourceData: {
+            inputLayer: selectedLayerId,
+            bufferDistance: 10,
+            projection: 'EPSG:4326'
+          },
+          cancelButton: false,
+          syncData: (props: IDict) => {
+            resolve(props);
+            dialog.dispose();
+          }
+        });
+
+        dialog.launch();
+      });
+
+      if (!formValues) {
+        return;
+      }
+
+      const bufferDistance = formValues.bufferDistance;
+      const inputLayerId = formValues.inputLayer;
+      const inputLayer = layers[inputLayerId];
+
+      if (!inputLayer.parameters) {
+        console.error('Selected layer not found.');
+        return;
+      }
+
+      const sourceId = inputLayer.parameters.source;
+      const source = sources[sourceId];
+
+      if (!source.parameters) {
+        console.error(`Source with ID ${sourceId} not found or missing path.`);
+        return;
+      }
+
+      let geojsonString: string;
+
+      if (source.parameters.path) {
+        const fileContent = await loadFile({
+          filepath: source.parameters.path,
+          type: source.type,
+          model: tracker.currentWidget?.model as IJupyterGISModel
+        });
+
+        geojsonString =
+          typeof fileContent === 'object'
+            ? JSON.stringify(fileContent)
+            : fileContent;
+      } else if (source.parameters.data) {
+        geojsonString = JSON.stringify(source.parameters.data);
+      } else {
+        throw new Error(
+          `Source ${sourceId} is missing both 'path' and 'data' parameters.`
+        );
+      }
+
+      const fileBlob = new Blob([geojsonString], {
+        type: 'application/geo+json'
+      });
+      const geoFile = new File([fileBlob], 'data.geojson', {
+        type: 'application/geo+json'
+      });
+
+      const Gdal = await getGdal();
+      const result = await Gdal.open(geoFile);
+
+      if (result.datasets.length > 0) {
+        const dataset = result.datasets[0] as any;
+        const layerName = dataset.info.layers[0].name;
+
+        const sqlQuery = `
+          SELECT ST_Union(ST_Buffer(geometry, ${bufferDistance})) AS geometry, *
+          FROM "${layerName}"
+        `;
+
+        const options = [
+          '-f',
+          'GeoJSON',
+          '-t_srs',
+          formValues.projection,
+          '-dialect',
+          'SQLITE',
+          '-sql',
+          sqlQuery,
+          'output.geojson'
+        ];
+
+        const outputFilePath = await Gdal.ogr2ogr(dataset, options);
+        const bufferedBytes = await Gdal.getFileBytes(outputFilePath);
+        const bufferedGeoJSONString = new TextDecoder().decode(bufferedBytes);
+        Gdal.close(dataset);
+
+        const bufferedGeoJSON = JSON.parse(bufferedGeoJSONString);
+
+        // Store in shared model
+        const newSourceId = UUID.uuid4();
+        const sourceModel: IJGISSource = {
+          type: 'GeoJSONSource',
+          name: inputLayer.name + ' Buffer',
+          parameters: { data: bufferedGeoJSON }
+        };
+
+        const layerModel: IJGISLayer = {
+          type: 'VectorLayer',
+          parameters: {
+            source: newSourceId
+          },
+          visible: true,
+          name: inputLayer.name + ' Buffer'
+        };
+
+        tracker.currentWidget?.model.sharedModel.addSource(
+          newSourceId,
+          sourceModel
+        );
+        tracker.currentWidget?.model.addLayer(UUID.uuid4(), layerModel);
+      }
+    }
   });
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
