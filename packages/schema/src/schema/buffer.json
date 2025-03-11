@@ -12,7 +12,7 @@
     "bufferDistance": {
       "type": "number",
       "default": 10,
-      "description": "The distance used for buffering the geometry (degrees)."
+      "description": "The distance used for buffering the geometry (in projection units)."
     },
     "projection": {
       "type": "string",
