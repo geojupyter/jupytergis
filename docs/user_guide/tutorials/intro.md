@@ -96,7 +96,7 @@ Let's rename the source called 'Custom Shapefile Source' to 'US Counties' so tha
 
 ```{solution} Rename-layer
 :class: dropdown
-![Rename 'Custom Shapefile Layer' to 'US Counties'](../../assets/images/renameLayer.png)
+![Rename 'Custom Shapefile Layer' to 'US Counties'](../../assets/images/tutorials/intro/renameLayer.png)
 ```
 
 :::{admonition} Ordering in the list of Sources versus Layers
@@ -133,17 +133,17 @@ https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08
 :class: dropdown
 
 After adding the new Shapefile Layer and zooming over New-York, you should have the following map:
-![View several shapefile Layer on the same map](../../assets/images/severalShapefileLayers.png)
+![View several shapefile Layer on the same map](../../assets/images/tutorials/intro/severalShapefileLayers.png)
 
 When you right click to edit the symbology, you should get the following pop-up menu:
-![Edit symbology](../../assets/images/editSymbology.png)
+![Edit symbology](../../assets/images/tutorials/intro/editSymbology.png)
 
 And when editing the symbology of the 'US Counties' Shapefile Layer:
-![Adjust Symbology](../../assets/images/adjustSymbology.png)
+![Adjust Symbology](../../assets/images/tutorials/intro/adjustSymbology.png)
 
 And updating the opacity (for instance to 0.5) of the US county Shapefile Layer, you can get a map that looks like this (depending on the colors and Stroke width you chose!):
 
-![final map for the intro exercise](../../assets/images/finalIntroMap.png)
+![final map for the intro exercise](../../assets/images/tutorials/intro/finalIntroMap.png)
 ```
 
 ## Hiding and Reordering Layers
