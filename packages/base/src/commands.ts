@@ -62,6 +62,45 @@ function downloadFile(content: BlobPart, fileName: string, mimeType: string) {
   document.body.removeChild(downloadLink);
 }
 
+function getSelectedLayer(tracker: JupyterGISTracker): { model: IJupyterGISModel; selectedLayer: any; sources: any } | null {
+  const model = tracker.currentWidget?.model as IJupyterGISModel;
+  if (!model) {
+    return null;
+  }
+
+  const localState = model.sharedModel.awareness.getLocalState();
+  if (!localState || !localState['selected']?.value) {
+    return null;
+  }
+
+  const selectedLayerId = Object.keys(localState['selected'].value)[0];
+  const layers = model.sharedModel.layers ?? {};
+  const sources = model.sharedModel.sources ?? {};
+
+  const selectedLayer = layers[selectedLayerId];
+  if (!selectedLayer || !selectedLayer.parameters) {
+    return null;
+  }
+
+  return { model, selectedLayer, sources };
+}
+
+async function getGeoJSONString(source: any, model: IJupyterGISModel): Promise<string | null> {
+  if (source.parameters.path) {
+    const fileContent = await loadFile({
+      filepath: source.parameters.path,
+      type: source.type,
+      model
+    });
+    return typeof fileContent === 'object' ? JSON.stringify(fileContent) : fileContent;
+  } else if (source.parameters.data) {
+    return JSON.stringify(source.parameters.data);
+  }
+  console.error("Source is missing both 'path' and 'data' parameters.");
+  return null;
+}
+
+
 /**
  * Add the commands to the application's command registry.
  */
@@ -1178,64 +1217,28 @@ export function addCommands(
     }
   });
 
-  commands.addCommand(CommandIDs.exportLayer, {
-    label: trans.__('Export Layer'),
+  commands.addCommand(CommandIDs.downloadGeoJSON, {
+    label: trans.__('Download as GeoJSON'),
     isEnabled: () => {
-      const model = tracker.currentWidget?.model;
-      const localState = model?.sharedModel.awareness.getLocalState();
-
-      if (!model || !localState || !localState['selected']?.value) {
-        return false;
-      }
-
-      const selectedLayers = localState['selected'].value;
-
-      if (Object.keys(selectedLayers).length > 1) {
-        return false;
-      }
-
-      const layerId = Object.keys(selectedLayers)[0];
-      const layer = model.getLayer(layerId);
-
-      if (!layer) {
-        return false;
-      }
-
-      return ['VectorLayer', 'ShapefileLayer'].includes(layer.type);
+      const selectedLayer = getSelectedLayer(tracker);
+      return selectedLayer ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.selectedLayer.type) : false;
     },
     execute: async () => {
-      const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
-      const sources = tracker.currentWidget?.model.sharedModel.sources ?? {};
-
-      const model = tracker.currentWidget?.model;
-      const localState = model?.sharedModel.awareness.getLocalState();
-      if (!model || !localState || !localState['selected']?.value) {
+      const selectedData = getSelectedLayer(tracker);
+      if (!selectedData) {
         return;
       }
 
-      const selectedLayerId = Object.keys(localState['selected'].value)[0];
-      const selectedLayer = layers[selectedLayerId];
-
-      if (!selectedLayer || !selectedLayer.parameters) {
-        console.error('Selected layer not found.');
-        return;
-      }
-
-      const exportSchema = {
-        ...(formSchemaRegistry.getSchemas().get('ExportSchema') as IDict)
-      };
+      const { model, selectedLayer, sources } = selectedData;
+      const exportSchema = { ...(formSchemaRegistry.getSchemas().get('ExportGeoJSONSchema') as IDict) };
 
       const formValues = await new Promise<IDict>(resolve => {
         const dialog = new ProcessingFormDialog({
-          title: 'Export Layer',
+          title: 'Download GeoJSON',
           schema: exportSchema,
-          model: tracker.currentWidget?.model as IJupyterGISModel,
-          sourceData: {
-            exportFormat: 'GeoJSON',
-            resolutionX: 1200,
-            resolutionY: 1200
-          },
-          cancelButton: true,
+          model,
+          sourceData: { exportFormat: 'GeoJSON' },
+          cancelButton: false,
           syncData: (props: IDict) => {
             resolve(props);
             dialog.dispose();
@@ -1250,87 +1253,92 @@ export function addCommands(
       }
 
       const exportFileName = formValues.exportFileName;
-      const exportFormat = formValues.exportFormat;
-      const resolutionX = formValues.resolutionX ?? 1200;
-      const resolutionY = formValues.resolutionY ?? 1200;
-
       const sourceId = selectedLayer.parameters.source;
       const source = sources[sourceId];
 
-      if (!source.parameters) {
-        console.error(`Source with ID ${sourceId} not found or missing path.`);
+      const geojsonString = await getGeoJSONString(source, model);
+      if (!geojsonString) {
         return;
       }
 
-      let geojsonString: string;
-      if (source.parameters.path) {
-        const fileContent = await loadFile({
-          filepath: source.parameters.path,
-          type: source.type,
-          model: tracker.currentWidget?.model as IJupyterGISModel
-        });
+      downloadFile(geojsonString, `${exportFileName}.geojson`, 'application/geo+json');
+    }
+  });
 
-        geojsonString =
-          typeof fileContent === 'object'
-            ? JSON.stringify(fileContent)
-            : fileContent;
-      } else if (source.parameters.data) {
-        geojsonString = JSON.stringify(source.parameters.data);
-      } else {
-        throw new Error(
-          `Source ${sourceId} is missing both 'path' and 'data' parameters.`
-        );
+  commands.addCommand(CommandIDs.downloadGeoTIFF, {
+    label: trans.__('Download as GeoTIFF'),
+    isEnabled: () => {
+      const selectedLayer = getSelectedLayer(tracker);
+      return selectedLayer ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.selectedLayer.type) : false;
+    },
+    execute: async () => {
+      const selectedData = getSelectedLayer(tracker);
+      if (!selectedData) {
+        return;
       }
 
-      if (exportFormat === 'GeoJSON') {
-        downloadFile(geojsonString, `${exportFileName}.geojson`, 'application/geo+json');
+      const { model, selectedLayer, sources } = selectedData;
+      const exportSchema = { ...(formSchemaRegistry.getSchemas().get('ExportGeoTIFFSchema') as IDict) };
+      console.log(exportSchema);
+
+
+      const formValues = await new Promise<IDict>(resolve => {
+        const dialog = new ProcessingFormDialog({
+          title: 'Download GeoTIFF',
+          schema: exportSchema,
+          model,
+          sourceData: { resolutionX: 1200, resolutionY: 1200 },
+          cancelButton: false,
+          syncData: (props: IDict) => {
+            resolve(props);
+            dialog.dispose();
+          }
+        });
+
+        dialog.launch();
+      });
+
+      if (!formValues) {
+        return;
+      }
+
+      const exportFileName = formValues.exportFileName;
+      const resolutionX = formValues.resolutionX ?? 1200;
+      const resolutionY = formValues.resolutionY ?? 1200;
+      const sourceId = selectedLayer.parameters.source;
+      const source = sources[sourceId];
+
+      const geojsonString = await getGeoJSONString(source, model);
+      if (!geojsonString) {
         return;
       }
 
       const Gdal = await getGdal();
-      const datasetList = await Gdal.open(
-        new File([geojsonString], 'data.geojson', {
-          type: 'application/geo+json'
-        })
-      );
-
-      const dataset = datasetList.datasets[0]; // Extract the first dataset
+      const datasetList = await Gdal.open(new File([geojsonString], 'data.geojson', { type: 'application/geo+json' }));
+      const dataset = datasetList.datasets[0];
 
       if (!dataset) {
         console.error('Dataset could not be opened.');
         return;
       }
 
-      let options: string[] = [];
-
-      if (exportFormat === 'GeoTIFF') {
-        options = [
-          '-of',
-          'GTiff',
-          '-ot',
-          'Float32',
-          '-a_nodata',
-          '-1.0',
-          '-burn',
-          '0.0',
-          '-ts',
-          resolutionX.toString(),
-          resolutionY.toString(),
-          '-l',
-          'data',
-          'data.geojson',
-          'output.tif'
-        ];
-      }
+      const options = [
+        '-of', 'GTiff',
+        '-ot', 'Float32',
+        '-a_nodata', '-1.0',
+        '-burn', '0.0',
+        '-ts', resolutionX.toString(), resolutionY.toString(),
+        '-l', 'data', 'data.geojson', 'output.tif'
+      ];
 
       const outputFilePath = await Gdal.gdal_rasterize(dataset, options);
-
       const exportedBytes = await Gdal.getFileBytes(outputFilePath);
-      downloadFile(exportedBytes, `${exportFileName}.${exportFormat.toLowerCase()}`, 'application/octet-stream');
+      downloadFile(exportedBytes, `${exportFileName}.tif`, 'application/octet-stream');
 
       Gdal.close(dataset);
     }
   });
+
 
   loadKeybindings(commands, keybindings);
 }

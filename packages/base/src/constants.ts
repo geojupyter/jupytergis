@@ -69,7 +69,8 @@ export namespace CommandIDs {
   // Map Commands
   export const addAnnotation = 'jupytergis:addAnnotation';
   export const zoomToLayer = 'jupytergis:zoomToLayer';
-  export const exportLayer = 'jupytergis:exportLayer';
+  export const downloadGeoJSON = 'jupytergis:downloadGeoJSON';
+  export const downloadGeoTIFF = 'jupytergis:downloadGeoTIFF';
 }
 
 interface IRegisteredIcon {

@@ -169,10 +169,24 @@ const plugin: JupyterFrontEndPlugin<void> = {
       rank: 2
     });
 
+    // Create the Download submenu
+    const downloadSubmenu = new Menu({ commands: app.commands });
+    downloadSubmenu.title.label = translator.load('jupyterlab').__('Download');
+    downloadSubmenu.id = 'jp-gis-contextmenu-download';
+
+    downloadSubmenu.addItem({
+      command: CommandIDs.downloadGeoJSON
+    });
+    downloadSubmenu.addItem({
+      command: CommandIDs.downloadGeoTIFF
+    });
+
+    // Add the Download submenu to the context menu
     app.contextMenu.addItem({
-      command: CommandIDs.exportLayer,
+      type: 'submenu',
       selector: '.jp-gis-layerItem',
-      rank: 2
+      rank: 2,
+      submenu: downloadSubmenu
     });
 
     // Create the Processing submenu
