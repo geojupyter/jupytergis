@@ -343,33 +343,18 @@ export function addCommands(
   commands.addCommand(CommandIDs.buffer, {
     label: trans.__('Buffer'),
     isEnabled: () => {
-      const model = tracker.currentWidget?.model;
-      const localState = model?.sharedModel.awareness.getLocalState();
-
-      if (!model || !localState || !localState['selected']?.value) {
+      const selected = getSelectedLayer(tracker);
+      if (!selected) {
         return false;
       }
-
-      const selectedLayers = localState['selected'].value;
-
-      if (Object.keys(selectedLayers).length > 1) {
-        return false;
-      }
-
-      const layerId = Object.keys(selectedLayers)[0];
-      const layer = model.getLayer(layerId);
-
-      if (!layer) {
-        return false;
-      }
-
-      const isValidLayer = ['VectorLayer', 'ShapefileLayer'].includes(
-        layer.type
-      );
-
-      return isValidLayer;
+      return ['VectorLayer', 'ShapefileLayer'].includes(selected.selectedLayer.type);
     },
     execute: async () => {
+      const selected = getSelectedLayer(tracker);
+      if (!selected) {
+        console.error('No valid selected layer.');
+        return;
+      }
       const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
       const sources = tracker.currentWidget?.model.sharedModel.sources ?? {};
 
@@ -390,7 +375,7 @@ export function addCommands(
         const dialog = new ProcessingFormDialog({
           title: 'Buffer',
           schema: schema,
-          model: tracker.currentWidget?.model as IJupyterGISModel,
+          model: model,
           sourceData: {
             inputLayer: selectedLayerId,
             bufferDistance: 10,
@@ -422,30 +407,14 @@ export function addCommands(
       const sourceId = inputLayer.parameters.source;
       const source = sources[sourceId];
 
-      if (!source.parameters) {
+      if (!source || !source.parameters) {
         console.error(`Source with ID ${sourceId} not found or missing path.`);
         return;
       }
 
-      let geojsonString: string;
-
-      if (source.parameters.path) {
-        const fileContent = await loadFile({
-          filepath: source.parameters.path,
-          type: source.type,
-          model: tracker.currentWidget?.model as IJupyterGISModel
-        });
-
-        geojsonString =
-          typeof fileContent === 'object'
-            ? JSON.stringify(fileContent)
-            : fileContent;
-      } else if (source.parameters.data) {
-        geojsonString = JSON.stringify(source.parameters.data);
-      } else {
-        throw new Error(
-          `Source ${sourceId} is missing both 'path' and 'data' parameters.`
-        );
+      const geojsonString = await getGeoJSONString(source, model);
+      if (!geojsonString) {
+        return;
       }
 
       const fileBlob = new Blob([geojsonString], {
@@ -468,14 +437,10 @@ export function addCommands(
         `;
 
         const options = [
-          '-f',
-          'GeoJSON',
-          '-t_srs',
-          formValues.projection,
-          '-dialect',
-          'SQLITE',
-          '-sql',
-          sqlQuery,
+          '-f', 'GeoJSON',
+          '-t_srs', formValues.projection,
+          '-dialect', 'SQLITE',
+          '-sql', sqlQuery,
           'output.geojson'
         ];
 
@@ -496,18 +461,13 @@ export function addCommands(
 
         const layerModel: IJGISLayer = {
           type: 'VectorLayer',
-          parameters: {
-            source: newSourceId
-          },
+          parameters: { source: newSourceId },
           visible: true,
           name: inputLayer.name + ' Buffer'
         };
 
-        tracker.currentWidget?.model.sharedModel.addSource(
-          newSourceId,
-          sourceModel
-        );
-        tracker.currentWidget?.model.addLayer(UUID.uuid4(), layerModel);
+        model.sharedModel.addSource(newSourceId, sourceModel);
+        model.addLayer(UUID.uuid4(), layerModel);
       }
     }
   });
