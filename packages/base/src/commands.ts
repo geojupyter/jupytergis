@@ -51,6 +51,17 @@ function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
   });
 }
 
+function downloadFile(content: BlobPart, fileName: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const downloadLink = document.createElement('a');
+  downloadLink.href = url;
+  downloadLink.download = fileName;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
 /**
  * Add the commands to the application's command registry.
  */
@@ -1190,7 +1201,7 @@ export function addCommands(
         return false;
       }
 
-      return ['VectorLayer', 'RasterLayer'].includes(layer.type);
+      return ['VectorLayer', 'ShapefileLayer'].includes(layer.type);
     },
     execute: async () => {
       const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
@@ -1211,7 +1222,7 @@ export function addCommands(
       }
 
       const exportSchema = {
-        ...(formSchemaRegistry.getSchemas().get('Buffer') as IDict)
+        ...(formSchemaRegistry.getSchemas().get('ExportSchema') as IDict)
       };
 
       const formValues = await new Promise<IDict>(resolve => {
@@ -1235,7 +1246,6 @@ export function addCommands(
       });
 
       if (!formValues) {
-        console.log('Form cancelled, skipping execution.');
         return;
       }
 
@@ -1272,20 +1282,8 @@ export function addCommands(
         );
       }
 
-      console.log('GeoJSON string:', geojsonString);
-
       if (exportFormat === 'GeoJSON') {
-        const blob = new Blob([geojsonString], {
-          type: 'application/geo+json'
-        });
-        const url = URL.createObjectURL(blob);
-        const downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        downloadLink.download = `${exportFileName}.geojson`;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-        console.log('Exported GeoJSON directly without GDAL.');
+        downloadFile(geojsonString, `${exportFileName}.geojson`, 'application/geo+json');
         return;
       }
 
@@ -1295,10 +1293,8 @@ export function addCommands(
           type: 'application/geo+json'
         })
       );
-      console.log('Dataset list:', datasetList);
 
       const dataset = datasetList.datasets[0]; // Extract the first dataset
-      console.log('Dataset:', dataset);
 
       if (!dataset) {
         console.error('Dataset could not be opened.');
@@ -1328,21 +1324,9 @@ export function addCommands(
       }
 
       const outputFilePath = await Gdal.gdal_rasterize(dataset, options);
-      console.log('Exported file path:', outputFilePath);
 
       const exportedBytes = await Gdal.getFileBytes(outputFilePath);
-      const exportedBlob = new Blob([exportedBytes], {
-        type: 'application/octet-stream'
-      });
-      const exportedURL = URL.createObjectURL(exportedBlob);
-
-      // Create a download link
-      const downloadLink = document.createElement('a');
-      downloadLink.href = exportedURL;
-      downloadLink.download = `${exportFileName}.${exportFormat.toLowerCase()}`;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
+      downloadFile(exportedBytes, `${exportFileName}.${exportFormat.toLowerCase()}`, 'application/octet-stream');
 
       Gdal.close(dataset);
     }
