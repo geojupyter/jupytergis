@@ -62,7 +62,9 @@ function downloadFile(content: BlobPart, fileName: string, mimeType: string) {
   document.body.removeChild(downloadLink);
 }
 
-function getSelectedLayer(tracker: JupyterGISTracker): { model: IJupyterGISModel; selectedLayer: any; sources: any } | null {
+function getSelectedLayer(
+  tracker: JupyterGISTracker
+): { model: IJupyterGISModel; selectedLayer: any; sources: any } | null {
   const model = tracker.currentWidget?.model as IJupyterGISModel;
   if (!model) {
     return null;
@@ -85,21 +87,25 @@ function getSelectedLayer(tracker: JupyterGISTracker): { model: IJupyterGISModel
   return { model, selectedLayer, sources };
 }
 
-async function getGeoJSONString(source: any, model: IJupyterGISModel): Promise<string | null> {
+async function getGeoJSONString(
+  source: any,
+  model: IJupyterGISModel
+): Promise<string | null> {
   if (source.parameters.path) {
     const fileContent = await loadFile({
       filepath: source.parameters.path,
       type: source.type,
       model
     });
-    return typeof fileContent === 'object' ? JSON.stringify(fileContent) : fileContent;
+    return typeof fileContent === 'object'
+      ? JSON.stringify(fileContent)
+      : fileContent;
   } else if (source.parameters.data) {
     return JSON.stringify(source.parameters.data);
   }
   console.error("Source is missing both 'path' and 'data' parameters.");
   return null;
 }
-
 
 /**
  * Add the commands to the application's command registry.
@@ -347,7 +353,9 @@ export function addCommands(
       if (!selected) {
         return false;
       }
-      return ['VectorLayer', 'ShapefileLayer'].includes(selected.selectedLayer.type);
+      return ['VectorLayer', 'ShapefileLayer'].includes(
+        selected.selectedLayer.type
+      );
     },
     execute: async () => {
       const selected = getSelectedLayer(tracker);
@@ -437,10 +445,14 @@ export function addCommands(
         `;
 
         const options = [
-          '-f', 'GeoJSON',
-          '-t_srs', formValues.projection,
-          '-dialect', 'SQLITE',
-          '-sql', sqlQuery,
+          '-f',
+          'GeoJSON',
+          '-t_srs',
+          formValues.projection,
+          '-dialect',
+          'SQLITE',
+          '-sql',
+          sqlQuery,
           'output.geojson'
         ];
 
@@ -1181,7 +1193,11 @@ export function addCommands(
     label: trans.__('Download as GeoJSON'),
     isEnabled: () => {
       const selectedLayer = getSelectedLayer(tracker);
-      return selectedLayer ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.selectedLayer.type) : false;
+      return selectedLayer
+        ? ['VectorLayer', 'ShapefileLayer'].includes(
+            selectedLayer.selectedLayer.type
+          )
+        : false;
     },
     execute: async () => {
       const selectedData = getSelectedLayer(tracker);
@@ -1190,7 +1206,9 @@ export function addCommands(
       }
 
       const { model, selectedLayer, sources } = selectedData;
-      const exportSchema = { ...(formSchemaRegistry.getSchemas().get('ExportGeoJSONSchema') as IDict) };
+      const exportSchema = {
+        ...(formSchemaRegistry.getSchemas().get('ExportGeoJSONSchema') as IDict)
+      };
 
       const formValues = await new Promise<IDict>(resolve => {
         const dialog = new ProcessingFormDialog({
@@ -1221,7 +1239,11 @@ export function addCommands(
         return;
       }
 
-      downloadFile(geojsonString, `${exportFileName}.geojson`, 'application/geo+json');
+      downloadFile(
+        geojsonString,
+        `${exportFileName}.geojson`,
+        'application/geo+json'
+      );
     }
   });
 
@@ -1229,7 +1251,11 @@ export function addCommands(
     label: trans.__('Download as GeoTIFF'),
     isEnabled: () => {
       const selectedLayer = getSelectedLayer(tracker);
-      return selectedLayer ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.selectedLayer.type) : false;
+      return selectedLayer
+        ? ['VectorLayer', 'ShapefileLayer'].includes(
+            selectedLayer.selectedLayer.type
+          )
+        : false;
     },
     execute: async () => {
       const selectedData = getSelectedLayer(tracker);
@@ -1238,9 +1264,10 @@ export function addCommands(
       }
 
       const { model, selectedLayer, sources } = selectedData;
-      const exportSchema = { ...(formSchemaRegistry.getSchemas().get('ExportGeoTIFFSchema') as IDict) };
+      const exportSchema = {
+        ...(formSchemaRegistry.getSchemas().get('ExportGeoTIFFSchema') as IDict)
+      };
       console.log(exportSchema);
-
 
       const formValues = await new Promise<IDict>(resolve => {
         const dialog = new ProcessingFormDialog({
@@ -1274,7 +1301,11 @@ export function addCommands(
       }
 
       const Gdal = await getGdal();
-      const datasetList = await Gdal.open(new File([geojsonString], 'data.geojson', { type: 'application/geo+json' }));
+      const datasetList = await Gdal.open(
+        new File([geojsonString], 'data.geojson', {
+          type: 'application/geo+json'
+        })
+      );
       const dataset = datasetList.datasets[0];
 
       if (!dataset) {
@@ -1283,22 +1314,34 @@ export function addCommands(
       }
 
       const options = [
-        '-of', 'GTiff',
-        '-ot', 'Float32',
-        '-a_nodata', '-1.0',
-        '-burn', '0.0',
-        '-ts', resolutionX.toString(), resolutionY.toString(),
-        '-l', 'data', 'data.geojson', 'output.tif'
+        '-of',
+        'GTiff',
+        '-ot',
+        'Float32',
+        '-a_nodata',
+        '-1.0',
+        '-burn',
+        '0.0',
+        '-ts',
+        resolutionX.toString(),
+        resolutionY.toString(),
+        '-l',
+        'data',
+        'data.geojson',
+        'output.tif'
       ];
 
       const outputFilePath = await Gdal.gdal_rasterize(dataset, options);
       const exportedBytes = await Gdal.getFileBytes(outputFilePath);
-      downloadFile(exportedBytes, `${exportFileName}.tif`, 'application/octet-stream');
+      downloadFile(
+        exportedBytes,
+        `${exportFileName}.tif`,
+        'application/octet-stream'
+      );
 
       Gdal.close(dataset);
     }
   });
-
 
   loadKeybindings(commands, keybindings);
 }
