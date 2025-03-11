@@ -461,9 +461,6 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param source - the source object.
    */
   async addSource(id: string, source: IJGISSource): Promise<void> {
-    const rasterSourceCommon = {
-      interpolate: false
-    };
     let newSource;
 
     switch (source.type) {
@@ -475,7 +472,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         if (!pmTiles) {
           newSource = new XYZSource({
-            ...rasterSourceCommon,
+            interpolate: sourceParameters.interpolate,
             attributions: sourceParameters.attribution,
             minZoom: sourceParameters.minZoom,
             maxZoom: sourceParameters.maxZoom,
@@ -484,7 +481,7 @@ export class MainView extends React.Component<IProps, IStates> {
           });
         } else {
           newSource = new PMTilesRasterSource({
-            ...rasterSourceCommon,
+            interpolate: sourceParameters.interpolate,
             attributions: sourceParameters.attribution,
             tileSize: 256,
             url: url
@@ -497,7 +494,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const sourceParameters = source.parameters as IRasterDemSource;
 
         newSource = new ImageTileSource({
-          ...rasterSourceCommon,
+          interpolate: sourceParameters.interpolate,
           url: this.computeSourceUrl(source),
           attributions: sourceParameters.attribution
         });
@@ -616,7 +613,7 @@ export class MainView extends React.Component<IProps, IStates> {
         });
 
         newSource = new Static({
-          ...rasterSourceCommon,
+          interpolate: sourceParameters.interpolate,
           imageExtent: extent,
           url: imageUrl,
           crossOrigin: ''
@@ -647,7 +644,7 @@ export class MainView extends React.Component<IProps, IStates> {
         );
 
         newSource = new GeoTIFFSource({
-          ...rasterSourceCommon,
+          interpolate: sourceParameters.interpolate,
           sources,
           normalize: sourceParameters.normalize,
           wrapX: sourceParameters.wrapX

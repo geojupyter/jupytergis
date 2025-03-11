@@ -61,6 +61,11 @@
         "type": "string"
       },
       "default": {}
+    },
+    "interpolate": {
+      "type": "boolean",
+      "description": "Interpolate between grid cells when overzooming?",
+      "default": false
     }
   }
 }
