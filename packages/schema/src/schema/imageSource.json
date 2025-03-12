@@ -25,6 +25,11 @@
       "maxItems": 4,
       "default": [],
       "description": "Corners of image specified in longitude, latitude pairs"
+    },
+    "interpolate": {
+      "type": "boolean",
+      "description": "Interpolate between grid cells when overzooming?",
+      "default": false
     }
   }
 }
