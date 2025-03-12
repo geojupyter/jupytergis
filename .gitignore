@@ -141,4 +141,4 @@ untitled*
 .nx
 
 # GeoJSON schema
-packages/schema/src/schema/jgis/geojson.json
+packages/schema/src/schema/geojson.json
