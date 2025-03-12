@@ -15,7 +15,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources
-} from './_interface/jgis';
+} from './_interface/jgis/jgis';
 import { JupyterGISDoc } from './doc';
 import {
   IAnnotationModel,
