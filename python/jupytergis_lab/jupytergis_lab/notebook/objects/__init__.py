@@ -10,7 +10,7 @@ from ._schema.jgis.heatmapLayer import IHeatmapLayer  # noqa
 
 from ._schema.jgis.vectortilesource import IVectorTileSource  # noqa
 from ._schema.jgis.rastersource import IRasterSource  # noqa
-from ._schema.jgis.geojsonsource import IGeoJSONSource  # noqa
+from ._schema.geojsonsource import IGeoJSONSource  # noqa
 from ._schema.jgis.videoSource import IVideoSource  # noqa
 from ._schema.jgis.imageSource import IImageSource  # noqa
 from ._schema.jgis.geoTiffSource import IGeoTiffSource  # noqa
