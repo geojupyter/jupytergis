@@ -1,7 +1,7 @@
 from ._schema.jgis.jgis import *  # noqa
 
 from ._schema.jgis.rasterlayer import IRasterLayer  # noqa
-from ._schema.vectorlayer import IVectorLayer  # noqa
+from ._schema.jgis.vectorlayer import IVectorLayer  # noqa
 from ._schema.jgis.vectorTileLayer import IVectorTileLayer  # noqa
 from ._schema.jgis.hillshadeLayer import IHillshadeLayer  # noqa
 from ._schema.jgis.imageLayer import IImageLayer  # noqa
