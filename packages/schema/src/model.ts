@@ -31,7 +31,7 @@ import {
   IViewPortState,
   Pointer
 } from './interfaces';
-import jgisSchema from './schema/jgis.json';
+import jgisSchema from './schema/jgis/jgis.json';
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: JupyterGISModel.IOptions) {
