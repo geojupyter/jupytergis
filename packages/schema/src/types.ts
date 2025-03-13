@@ -20,6 +20,10 @@ export * from './_interface/imageLayer';
 export * from './_interface/heatmapLayer';
 export * from './_interface/buffer';
 
+// exportLayer
+export * from './_interface/exportGeojson';
+export * from './_interface/exportGeotiff';
+
 // Other
 export * from './doc';
 export * from './interfaces';
