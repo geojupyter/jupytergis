@@ -24,7 +24,7 @@ import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
 import { getGdal } from './gdal';
-import { loadFile } from './tools';
+import { loadFile, downloadFile } from './tools';
 import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { FormDialog } from './formbuilder/formdialog';
@@ -51,20 +51,9 @@ function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
   });
 }
 
-function downloadFile(content: BlobPart, fileName: string, mimeType: string) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const downloadLink = document.createElement('a');
-  downloadLink.href = url;
-  downloadLink.download = fileName;
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
-
 function getSelectedLayer(
   tracker: JupyterGISTracker
-): { model: IJupyterGISModel; selectedLayer: any; sources: any } | null {
+): IJGISLayer | null {
   const model = tracker.currentWidget?.model as IJupyterGISModel;
   if (!model) {
     return null;
@@ -77,14 +66,13 @@ function getSelectedLayer(
 
   const selectedLayerId = Object.keys(localState['selected'].value)[0];
   const layers = model.sharedModel.layers ?? {};
-  const sources = model.sharedModel.sources ?? {};
 
   const selectedLayer = layers[selectedLayerId];
   if (!selectedLayer || !selectedLayer.parameters) {
     return null;
   }
 
-  return { model, selectedLayer, sources };
+  return selectedLayer;
 }
 
 async function getGeoJSONString(
@@ -349,12 +337,12 @@ export function addCommands(
   commands.addCommand(CommandIDs.buffer, {
     label: trans.__('Buffer'),
     isEnabled: () => {
-      const selected = getSelectedLayer(tracker);
-      if (!selected) {
+      const selectedLayer = getSelectedLayer(tracker);
+      if (!selectedLayer) {
         return false;
       }
       return ['VectorLayer', 'ShapefileLayer'].includes(
-        selected.selectedLayer.type
+        selectedLayer.type
       );
     },
     execute: async () => {
@@ -1195,17 +1183,18 @@ export function addCommands(
       const selectedLayer = getSelectedLayer(tracker);
       return selectedLayer
         ? ['VectorLayer', 'ShapefileLayer'].includes(
-            selectedLayer.selectedLayer.type
+            selectedLayer.type
           )
         : false;
     },
     execute: async () => {
-      const selectedData = getSelectedLayer(tracker);
-      if (!selectedData) {
+      const selectedLayer = getSelectedLayer(tracker);
+      if (!selectedLayer) {
         return;
       }
+      const model = tracker.currentWidget?.model as IJupyterGISModel;
+      const sources = model.sharedModel.sources ?? {};
 
-      const { model, selectedLayer, sources } = selectedData;
       const exportSchema = {
         ...(formSchemaRegistry.getSchemas().get('ExportGeoJSONSchema') as IDict)
       };
@@ -1226,7 +1215,7 @@ export function addCommands(
         dialog.launch();
       });
 
-      if (!formValues) {
+      if (!formValues || !selectedLayer.parameters) {
         return;
       }
 
@@ -1253,17 +1242,19 @@ export function addCommands(
       const selectedLayer = getSelectedLayer(tracker);
       return selectedLayer
         ? ['VectorLayer', 'ShapefileLayer'].includes(
-            selectedLayer.selectedLayer.type
+            selectedLayer.type
           )
         : false;
     },
     execute: async () => {
-      const selectedData = getSelectedLayer(tracker);
-      if (!selectedData) {
+      const selectedLayer = getSelectedLayer(tracker);
+      if (!selectedLayer) {
         return;
       }
 
-      const { model, selectedLayer, sources } = selectedData;
+      const model = tracker.currentWidget?.model as IJupyterGISModel;
+      const sources = model.sharedModel.sources ?? {};
+
       const exportSchema = {
         ...(formSchemaRegistry.getSchemas().get('ExportGeoTIFFSchema') as IDict)
       };
@@ -1285,7 +1276,7 @@ export function addCommands(
         dialog.launch();
       });
 
-      if (!formValues) {
+      if (!formValues || !selectedLayer.parameters) {
         return;
       }
 
