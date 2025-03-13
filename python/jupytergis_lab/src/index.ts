@@ -177,9 +177,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     downloadSubmenu.addItem({
       command: CommandIDs.downloadGeoJSON
     });
-    downloadSubmenu.addItem({
-      command: CommandIDs.downloadGeoTIFF
-    });
 
     // Add the Download submenu to the context menu
     app.contextMenu.addItem({
