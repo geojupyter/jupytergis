@@ -27,7 +27,7 @@ import { getGdal } from './gdal';
 import { loadFile } from './tools';
 import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import { ProcessingFormDialog } from './formbuilder/processingformdialog';
+import { FormDialog } from './formbuilder/formdialog';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -380,7 +380,7 @@ export function addCommands(
 
       // Open form and get user input
       const formValues = await new Promise<IDict>(resolve => {
-        const dialog = new ProcessingFormDialog({
+        const dialog = new FormDialog({
           title: 'Buffer',
           schema: schema,
           model: model,
@@ -1211,7 +1211,7 @@ export function addCommands(
       };
 
       const formValues = await new Promise<IDict>(resolve => {
-        const dialog = new ProcessingFormDialog({
+        const dialog = new FormDialog({
           title: 'Download GeoJSON',
           schema: exportSchema,
           model,
@@ -1270,7 +1270,7 @@ export function addCommands(
       console.log(exportSchema);
 
       const formValues = await new Promise<IDict>(resolve => {
-        const dialog = new ProcessingFormDialog({
+        const dialog = new FormDialog({
           title: 'Download GeoTIFF',
           schema: exportSchema,
           model,

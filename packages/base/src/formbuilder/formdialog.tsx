@@ -22,7 +22,7 @@ export interface IFormDialogOptions {
   model: IJupyterGISModel;
 }
 
-export class ProcessingFormDialog extends Dialog<IDict> {
+export class FormDialog extends Dialog<IDict> {
   constructor(options: IFormDialogOptions) {
     let cancelCallback: (() => void) | undefined = undefined;
     if (options.cancelButton) {
