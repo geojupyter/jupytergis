@@ -24,7 +24,7 @@ import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
 import { getGdal } from './gdal';
-import { getGeoJSONDataFromLayerSource, downloadFile,  } from './tools';
+import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { FormDialog } from './formbuilder/formdialog';

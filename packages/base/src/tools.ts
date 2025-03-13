@@ -14,7 +14,8 @@ import {
   IJGISOptions,
   IJGISSource,
   IJupyterGISModel,
-  IRasterLayerGalleryEntry
+  IRasterLayerGalleryEntry,
+  SourceType
 } from '@jupytergis/schema';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
 
@@ -821,6 +822,13 @@ export async function getGeoJSONDataFromLayerSource(
   source: any,
   model: IJupyterGISModel
 ): Promise<string | null> {
+  const vectorSourceTypes: SourceType[] = ['GeoJSONSource', 'ShapefileSource'];
+
+  if (!vectorSourceTypes.includes(source.type as SourceType)) {
+    console.error(`Invalid source type '${source.type}'. Expected one of: ${vectorSourceTypes.join(', ')}`);
+    return null;
+  }
+
   if (source.parameters.path) {
     const fileContent = await loadFile({
       filepath: source.parameters.path,
