@@ -694,7 +694,7 @@ export class MainView extends React.Component<IProps, IStates> {
         await this.addLayer(layerId, layer, this._Map.getLayers().getLength());
         mapLayer = this.getLayer(layerId);
         if (!mapLayer) {
-          console.error(`Failed to add missing layer: ${layerId}`);
+          console.error(`Failed to add layer: ${layerId}`);
           return;
         }
       } else {
