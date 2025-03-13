@@ -823,7 +823,7 @@ export function downloadFile(
 }
 
 export async function getGeoJSONDataFromLayerSource(
-  source: any,
+  source: IJGISSource,
   model: IJupyterGISModel
 ): Promise<string | null> {
   const vectorSourceTypes: SourceType[] = ['GeoJSONSource', 'ShapefileSource'];
@@ -832,6 +832,11 @@ export async function getGeoJSONDataFromLayerSource(
     console.error(
       `Invalid source type '${source.type}'. Expected one of: ${vectorSourceTypes.join(', ')}`
     );
+    return null;
+  }
+
+  if (!source.parameters) {
+    console.error('Source parameters are missing.');
     return null;
   }
 
