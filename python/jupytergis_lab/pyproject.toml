@@ -48,7 +48,7 @@ artifacts = ["jupytergis_lab/labextension", "/jupytergis_lab/notebook/objects/_s
 exclude = [".github", "binder", "node_modules"]
 
 [tool.hatch.build.targets.wheel]
-artifacts = ["/jupytergis_lab/notebook/objects/_schema/*.py"]
+artifacts = ["/jupytergis_lab/notebook/objects/_schema/**/*.py"]
 
 [tool.hatch.build.targets.wheel.shared-data]
 "install.json" = "share/jupyter/labextensions/@jupytergis/jupytergis-lab/install.json"
