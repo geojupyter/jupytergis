@@ -37,11 +37,11 @@ jupyter lab
 - In the JupyterLab Launcher, scroll down to the **Other** section.
 - Click **GIS File** to open a blank canvas for your project.
 
-![New GIS File](../../assets/images/tutorials/collaboration/new_gis_file.png)
+![New GIS File](images/new_gis_file.png)
 
 - Notice that you are given an anonymous username, which you can see in the upper right corner. Every user in the project will be assigned an anonymous username.
 
-![Username](../../assets/images/tutorials/collaboration/username.png)
+![Username](images/username.png)
 
 ### 1.2. Generate a Shareable Link
 
@@ -49,14 +49,14 @@ jupyter lab
 - Share this link with colleagues to invite them to your session.
 - If you are using a local installation, you can open a new browser and paste the link to simulate a different user.
 
-![Share](../../assets/images/tutorials/collaboration/share.png)
+![Share](images/share.png)
 
 ### 1.3. Confirm Collaborator Access
 
 - When your colleagues join using the link, their usernames appear in the top right corner.
 - This lets you know exactly who is working on the document.
 
-![Shared Users](../../assets/images/tutorials/collaboration/shared_users.png)
+![Shared Users](images/shared_users.png)
 
 ---
 
@@ -68,14 +68,14 @@ jupyter lab
 - The new layer appears immediately for all collaborators in your session.
 - Experiment by adjusting settings like opacity or color, each change is instantly visible to your collaborators.
 
-![Add Layers](../../assets/images/tutorials/collaboration/add_layers.gif)
+![Add Layers](images/add_layers.gif)
 
 ### 2.2. Tracking Collaborators with Cursors
 
 - Each user's cursor appears on the document in the same color as their icon. This feature makes it easy to see where your teammates are focused on.
 - Click on a cursor to display the location (latitude and longitude) where that user is working.
 
-![Cursor](../../assets/images/tutorials/collaboration/cursor.png)
+![Cursor](images/cursor.png)
 
 ---
 
@@ -88,7 +88,7 @@ Follow mode allows you to track another user’s activity in the document in rea
 - Click on a collaborator's user icon in the upper right corner to activate follow mode. Observe that the document will then have a frame in their assigned color.
 - Click on the user icon again to exit follow mode.
 
-![Follow Mode](../../assets/images/tutorials/collaboration/follow_mode.gif)
+![Follow Mode](images/follow_mode.gif)
 
 ````{exercise}
 :label: enable-follow-mode
@@ -135,7 +135,7 @@ Annotations and comments let you add notes directly on your GIS file, which make
 - Open the right sidebar to view all annotations and comments in the document.
 - Click on the middle button to locate the annotation.
 
-![Annotation](../../assets/images/tutorials/collaboration/annotation.gif)
+![Annotation](images/annotation.gif)
 
 ```{exercise}
 :label: add-annotations
@@ -167,12 +167,12 @@ Real-time collaboration in notebooks is a powerful tool for teams working on cod
 
 - To create a notebook, click on the **+** icon to open the Launcher, then select one of the kernels under **Notebook**.
 
-![Notebook](../../assets/images/tutorials/collaboration/create_notebook.png)
+![Notebook](images/create_notebook.png)
 
 - Once a notebook is created, it is automatically accessible to all collaborators—no additional sharing is needed.
 - To open a shared notebook, click on the explorer button in the left sidebar, then locate and click on the notebook.
 
-![Notebook](../../assets/images/tutorials/collaboration/open_notebook.png)
+![Notebook](images/open_notebook.png)
 
 - Anyone in the session can open, edit, and run the notebook.
 
@@ -181,7 +181,7 @@ Real-time collaboration in notebooks is a powerful tool for teams working on cod
 - As you write or execute code, every change is visible to your team instantly.
 - Multiple users can write, edit, and run code in the same notebook at the same time for a dynamic, interactive coding experience.
 
-![Notebook](../../assets/images/tutorials/collaboration/notebook.gif)
+![Notebook](images/notebook.gif)
 
 ```{exercise}
 :label: notebook-collaboration
