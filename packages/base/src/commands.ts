@@ -51,9 +51,7 @@ function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
   });
 }
 
-function getSelectedLayer(
-  tracker: JupyterGISTracker
-): IJGISLayer | null {
+function getSelectedLayer(tracker: JupyterGISTracker): IJGISLayer | null {
   const model = tracker.currentWidget?.model as IJupyterGISModel;
   if (!model) {
     return null;
@@ -321,9 +319,7 @@ export function addCommands(
       if (!selectedLayer) {
         return false;
       }
-      return ['VectorLayer', 'ShapefileLayer'].includes(
-        selectedLayer.type
-      );
+      return ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type);
     },
     execute: async () => {
       const selected = getSelectedLayer(tracker);
@@ -1162,9 +1158,7 @@ export function addCommands(
     isEnabled: () => {
       const selectedLayer = getSelectedLayer(tracker);
       return selectedLayer
-        ? ['VectorLayer', 'ShapefileLayer'].includes(
-            selectedLayer.type
-          )
+        ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
         : false;
     },
     execute: async () => {
@@ -1221,9 +1215,7 @@ export function addCommands(
     isEnabled: () => {
       const selectedLayer = getSelectedLayer(tracker);
       return selectedLayer
-        ? ['VectorLayer', 'ShapefileLayer'].includes(
-            selectedLayer.type
-          )
+        ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
         : false;
     },
     execute: async () => {

@@ -807,7 +807,11 @@ export const getNumericFeatureAttributes = (
   return filteredRecord;
 };
 
-export function downloadFile(content: BlobPart, fileName: string, mimeType: string) {
+export function downloadFile(
+  content: BlobPart,
+  fileName: string,
+  mimeType: string
+) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const downloadLink = document.createElement('a');
@@ -825,7 +829,9 @@ export async function getGeoJSONDataFromLayerSource(
   const vectorSourceTypes: SourceType[] = ['GeoJSONSource', 'ShapefileSource'];
 
   if (!vectorSourceTypes.includes(source.type as SourceType)) {
-    console.error(`Invalid source type '${source.type}'. Expected one of: ${vectorSourceTypes.join(', ')}`);
+    console.error(
+      `Invalid source type '${source.type}'. Expected one of: ${vectorSourceTypes.join(', ')}`
+    );
     return null;
   }
 
