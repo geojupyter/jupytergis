@@ -51,7 +51,10 @@ function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
   });
 }
 
-function getSelectedLayer(tracker: JupyterGISTracker): IJGISLayer | null {
+/**
+ * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
+ */
+function getSingleSelectedLayer(tracker: JupyterGISTracker): IJGISLayer | null {
   const model = tracker.currentWidget?.model as IJupyterGISModel;
   if (!model) {
     return null;
@@ -62,15 +65,18 @@ function getSelectedLayer(tracker: JupyterGISTracker): IJGISLayer | null {
     return null;
   }
 
-  const selectedLayerId = Object.keys(localState['selected'].value)[0];
-  const layers = model.sharedModel.layers ?? {};
+  const selectedLayers = Object.keys(localState['selected'].value);
 
-  const selectedLayer = layers[selectedLayerId];
-  if (!selectedLayer || !selectedLayer.parameters) {
+  // Ensure only one layer is selected
+  if (selectedLayers.length !== 1) {
     return null;
   }
 
-  return selectedLayer;
+  const selectedLayerId = selectedLayers[0];
+  const layers = model.sharedModel.layers ?? {};
+  const selectedLayer = layers[selectedLayerId];
+
+  return selectedLayer && selectedLayer.parameters ? selectedLayer : null;
 }
 
 /**
@@ -315,14 +321,14 @@ export function addCommands(
   commands.addCommand(CommandIDs.buffer, {
     label: trans.__('Buffer'),
     isEnabled: () => {
-      const selectedLayer = getSelectedLayer(tracker);
+      const selectedLayer = getSingleSelectedLayer(tracker);
       if (!selectedLayer) {
         return false;
       }
       return ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type);
     },
     execute: async () => {
-      const selected = getSelectedLayer(tracker);
+      const selected = getSingleSelectedLayer(tracker);
       if (!selected) {
         console.error('No valid selected layer.');
         return;
@@ -1156,13 +1162,13 @@ export function addCommands(
   commands.addCommand(CommandIDs.downloadGeoJSON, {
     label: trans.__('Download as GeoJSON'),
     isEnabled: () => {
-      const selectedLayer = getSelectedLayer(tracker);
+      const selectedLayer = getSingleSelectedLayer(tracker);
       return selectedLayer
         ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
         : false;
     },
     execute: async () => {
-      const selectedLayer = getSelectedLayer(tracker);
+      const selectedLayer = getSingleSelectedLayer(tracker);
       if (!selectedLayer) {
         return;
       }
