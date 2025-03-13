@@ -816,3 +816,23 @@ export function downloadFile(content: BlobPart, fileName: string, mimeType: stri
   downloadLink.click();
   document.body.removeChild(downloadLink);
 }
+
+export async function getGeoJSONDataFromLayerSource(
+  source: any,
+  model: IJupyterGISModel
+): Promise<string | null> {
+  if (source.parameters.path) {
+    const fileContent = await loadFile({
+      filepath: source.parameters.path,
+      type: source.type,
+      model
+    });
+    return typeof fileContent === 'object'
+      ? JSON.stringify(fileContent)
+      : fileContent;
+  } else if (source.parameters.data) {
+    return JSON.stringify(source.parameters.data);
+  }
+  console.error("Source is missing both 'path' and 'data' parameters.");
+  return null;
+}

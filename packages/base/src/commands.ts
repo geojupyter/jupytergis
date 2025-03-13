@@ -24,7 +24,7 @@ import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
 import { getGdal } from './gdal';
-import { loadFile, downloadFile } from './tools';
+import { getGeoJSONDataFromLayerSource, downloadFile,  } from './tools';
 import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { FormDialog } from './formbuilder/formdialog';
@@ -73,26 +73,6 @@ function getSelectedLayer(
   }
 
   return selectedLayer;
-}
-
-async function getGeoJSONString(
-  source: any,
-  model: IJupyterGISModel
-): Promise<string | null> {
-  if (source.parameters.path) {
-    const fileContent = await loadFile({
-      filepath: source.parameters.path,
-      type: source.type,
-      model
-    });
-    return typeof fileContent === 'object'
-      ? JSON.stringify(fileContent)
-      : fileContent;
-  } else if (source.parameters.data) {
-    return JSON.stringify(source.parameters.data);
-  }
-  console.error("Source is missing both 'path' and 'data' parameters.");
-  return null;
 }
 
 /**
@@ -408,7 +388,7 @@ export function addCommands(
         return;
       }
 
-      const geojsonString = await getGeoJSONString(source, model);
+      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
       if (!geojsonString) {
         return;
       }
@@ -1223,7 +1203,7 @@ export function addCommands(
       const sourceId = selectedLayer.parameters.source;
       const source = sources[sourceId];
 
-      const geojsonString = await getGeoJSONString(source, model);
+      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
       if (!geojsonString) {
         return;
       }
@@ -1286,7 +1266,7 @@ export function addCommands(
       const sourceId = selectedLayer.parameters.source;
       const source = sources[sourceId];
 
-      const geojsonString = await getGeoJSONString(source, model);
+      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
       if (!geojsonString) {
         return;
       }
