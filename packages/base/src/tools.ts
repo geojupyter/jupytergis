@@ -14,7 +14,8 @@ import {
   IJGISOptions,
   IJGISSource,
   IJupyterGISModel,
-  IRasterLayerGalleryEntry
+  IRasterLayerGalleryEntry,
+  SourceType
 } from '@jupytergis/schema';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
 
@@ -805,3 +806,52 @@ export const getNumericFeatureAttributes = (
 
   return filteredRecord;
 };
+
+export function downloadFile(
+  content: BlobPart,
+  fileName: string,
+  mimeType: string
+) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const downloadLink = document.createElement('a');
+  downloadLink.href = url;
+  downloadLink.download = fileName;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
+export async function getGeoJSONDataFromLayerSource(
+  source: IJGISSource,
+  model: IJupyterGISModel
+): Promise<string | null> {
+  const vectorSourceTypes: SourceType[] = ['GeoJSONSource', 'ShapefileSource'];
+
+  if (!vectorSourceTypes.includes(source.type as SourceType)) {
+    console.error(
+      `Invalid source type '${source.type}'. Expected one of: ${vectorSourceTypes.join(', ')}`
+    );
+    return null;
+  }
+
+  if (!source.parameters) {
+    console.error('Source parameters are missing.');
+    return null;
+  }
+
+  if (source.parameters.path) {
+    const fileContent = await loadFile({
+      filepath: source.parameters.path,
+      type: source.type,
+      model
+    });
+    return typeof fileContent === 'object'
+      ? JSON.stringify(fileContent)
+      : fileContent;
+  } else if (source.parameters.data) {
+    return JSON.stringify(source.parameters.data);
+  }
+  console.error("Source is missing both 'path' and 'data' parameters.");
+  return null;
+}
