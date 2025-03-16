@@ -24,10 +24,10 @@ import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
 import { getGdal } from './gdal';
-import { loadFile } from './tools';
+import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import { ProcessingFormDialog } from './formbuilder/processingformdialog';
+import { FormDialog } from './formbuilder/formdialog';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -49,6 +49,34 @@ function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
       selector: binding.selector
     });
   });
+}
+
+/**
+ * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
+ */
+function getSingleSelectedLayer(tracker: JupyterGISTracker): IJGISLayer | null {
+  const model = tracker.currentWidget?.model as IJupyterGISModel;
+  if (!model) {
+    return null;
+  }
+
+  const localState = model.sharedModel.awareness.getLocalState();
+  if (!localState || !localState['selected']?.value) {
+    return null;
+  }
+
+  const selectedLayers = Object.keys(localState['selected'].value);
+
+  // Ensure only one layer is selected
+  if (selectedLayers.length !== 1) {
+    return null;
+  }
+
+  const selectedLayerId = selectedLayers[0];
+  const layers = model.sharedModel.layers ?? {};
+  const selectedLayer = layers[selectedLayerId];
+
+  return selectedLayer && selectedLayer.parameters ? selectedLayer : null;
 }
 
 /**
@@ -293,33 +321,18 @@ export function addCommands(
   commands.addCommand(CommandIDs.buffer, {
     label: trans.__('Buffer'),
     isEnabled: () => {
-      const model = tracker.currentWidget?.model;
-      const localState = model?.sharedModel.awareness.getLocalState();
-
-      if (!model || !localState || !localState['selected']?.value) {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
         return false;
       }
-
-      const selectedLayers = localState['selected'].value;
-
-      if (Object.keys(selectedLayers).length > 1) {
-        return false;
-      }
-
-      const layerId = Object.keys(selectedLayers)[0];
-      const layer = model.getLayer(layerId);
-
-      if (!layer) {
-        return false;
-      }
-
-      const isValidLayer = ['VectorLayer', 'ShapefileLayer'].includes(
-        layer.type
-      );
-
-      return isValidLayer;
+      return ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type);
     },
     execute: async () => {
+      const selected = getSingleSelectedLayer(tracker);
+      if (!selected) {
+        console.error('No valid selected layer.');
+        return;
+      }
       const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
       const sources = tracker.currentWidget?.model.sharedModel.sources ?? {};
 
@@ -337,10 +350,10 @@ export function addCommands(
 
       // Open form and get user input
       const formValues = await new Promise<IDict>(resolve => {
-        const dialog = new ProcessingFormDialog({
+        const dialog = new FormDialog({
           title: 'Buffer',
           schema: schema,
-          model: tracker.currentWidget?.model as IJupyterGISModel,
+          model: model,
           sourceData: {
             inputLayer: selectedLayerId,
             bufferDistance: 10,
@@ -372,30 +385,14 @@ export function addCommands(
       const sourceId = inputLayer.parameters.source;
       const source = sources[sourceId];
 
-      if (!source.parameters) {
+      if (!source || !source.parameters) {
         console.error(`Source with ID ${sourceId} not found or missing path.`);
         return;
       }
 
-      let geojsonString: string;
-
-      if (source.parameters.path) {
-        const fileContent = await loadFile({
-          filepath: source.parameters.path,
-          type: source.type,
-          model: tracker.currentWidget?.model as IJupyterGISModel
-        });
-
-        geojsonString =
-          typeof fileContent === 'object'
-            ? JSON.stringify(fileContent)
-            : fileContent;
-      } else if (source.parameters.data) {
-        geojsonString = JSON.stringify(source.parameters.data);
-      } else {
-        throw new Error(
-          `Source ${sourceId} is missing both 'path' and 'data' parameters.`
-        );
+      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
+      if (!geojsonString) {
+        return;
       }
 
       const fileBlob = new Blob([geojsonString], {
@@ -446,18 +443,13 @@ export function addCommands(
 
         const layerModel: IJGISLayer = {
           type: 'VectorLayer',
-          parameters: {
-            source: newSourceId
-          },
+          parameters: { source: newSourceId },
           visible: true,
           name: inputLayer.name + ' Buffer'
         };
 
-        tracker.currentWidget?.model.sharedModel.addSource(
-          newSourceId,
-          sourceModel
-        );
-        tracker.currentWidget?.model.addLayer(UUID.uuid4(), layerModel);
+        model.sharedModel.addSource(newSourceId, sourceModel);
+        model.addLayer(UUID.uuid4(), layerModel);
       }
     }
   });
@@ -1164,6 +1156,63 @@ export function addCommands(
 
       const layerId = Object.keys(selectedItems)[0];
       model.centerOnPosition(layerId);
+    }
+  });
+
+  commands.addCommand(CommandIDs.downloadGeoJSON, {
+    label: trans.__('Download as GeoJSON'),
+    isEnabled: () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      return selectedLayer
+        ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
+        : false;
+    },
+    execute: async () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return;
+      }
+      const model = tracker.currentWidget?.model as IJupyterGISModel;
+      const sources = model.sharedModel.sources ?? {};
+
+      const exportSchema = {
+        ...(formSchemaRegistry.getSchemas().get('ExportGeoJSONSchema') as IDict)
+      };
+
+      const formValues = await new Promise<IDict>(resolve => {
+        const dialog = new FormDialog({
+          title: 'Download GeoJSON',
+          schema: exportSchema,
+          model,
+          sourceData: { exportFormat: 'GeoJSON' },
+          cancelButton: false,
+          syncData: (props: IDict) => {
+            resolve(props);
+            dialog.dispose();
+          }
+        });
+
+        dialog.launch();
+      });
+
+      if (!formValues || !selectedLayer.parameters) {
+        return;
+      }
+
+      const exportFileName = formValues.exportFileName;
+      const sourceId = selectedLayer.parameters.source;
+      const source = sources[sourceId];
+
+      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
+      if (!geojsonString) {
+        return;
+      }
+
+      downloadFile(
+        geojsonString,
+        `${exportFileName}.geojson`,
+        'application/geo+json'
+      );
     }
   });
 

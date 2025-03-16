@@ -21,7 +21,7 @@ build:
     # multiple environments.
     create_environment:
       # Pin micromamba
-      - /bin/bash --login -c "micromamba self-update --version 2.0.5"
+      - /bin/bash --login -c "micromamba self-update --version 2.0.7"
       # Create the env for building the docs
       - /bin/bash --login -c "micromamba env create -n jupytergis-docs -f docs/environment-docs.yml"
       # Create the isolated env for building JupyterGIS

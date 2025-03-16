@@ -20,6 +20,10 @@ export * from './_interface/jgis/imageLayer';
 export * from './_interface/jgis/heatmapLayer';
 export * from './_interface/processing/buffer';
 
+// exportLayer
+export * from './_interface/exportGeojson';
+export * from './_interface/exportGeotiff';
+
 // Other
 export * from './doc';
 export * from './interfaces';

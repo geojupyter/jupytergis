@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "description": "ExportGeoJSONSchema",
+  "title": "IExportGeoJSON",
+  "required": ["exportFileName"],
+  "additionalProperties": false,
+  "properties": {
+    "exportFileName": {
+      "type": "string",
+      "title": "GeoJSON File Name",
+      "default": "exported_layer",
+      "description": "The name of the exported GeoJSON file."
+    }
+  }
+}
