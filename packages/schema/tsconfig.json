@@ -4,5 +4,11 @@
     "outDir": "lib",
     "rootDir": "src"
   },
-  "include": ["src/**/*", "src/schema/jgis/*.json", "src/schema/processing/*.json", "src/schema/export/*.json", "src/_interface/*.json"]
+  "include": [
+    "src/**/*",
+    "src/schema/jgis/*.json",
+    "src/schema/processing/*.json",
+    "src/schema/export/*.json",
+    "src/_interface/*.json"
+  ]
 }

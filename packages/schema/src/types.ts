@@ -18,11 +18,13 @@ export * from './_interface/jgis/vectorTileLayer';
 export * from './_interface/jgis/webGlLayer';
 export * from './_interface/jgis/imageLayer';
 export * from './_interface/jgis/heatmapLayer';
+
+// Processing
 export * from './_interface/processing/buffer';
 
 // exportLayer
-export * from './_interface/exportGeojson';
-export * from './_interface/exportGeotiff';
+export * from './_interface/export/exportGeojson';
+export * from './_interface/export/exportGeotiff';
 
 // Other
 export * from './doc';
