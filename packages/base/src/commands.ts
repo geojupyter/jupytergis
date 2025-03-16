@@ -454,6 +454,166 @@ export function addCommands(
     }
   });
 
+  commands.addCommand(CommandIDs.dissolve, {
+    label: trans.__('Dissolve'),
+    isEnabled: () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+      return ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type);
+    },
+    execute: async () => {
+      const selected = getSingleSelectedLayer(tracker);
+      if (!selected) {
+        console.error('No valid selected layer.');
+        return;
+      }
+
+      const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
+      const sources = tracker.currentWidget?.model.sharedModel.sources ?? {};
+      const model = tracker.currentWidget?.model;
+      const localState = model?.sharedModel.awareness.getLocalState();
+
+      if (!model || !localState || !localState['selected']?.value) {
+        return;
+      }
+
+      const selectedLayer = localState['selected'].value;
+      const selectedLayerId = Object.keys(selectedLayer)[0];
+      const inputLayer = layers[selectedLayerId];
+
+      if (!inputLayer.parameters) {
+        console.error('Selected layer not found.');
+        return;
+      }
+
+      const sourceId = inputLayer.parameters.source;
+      const source = sources[sourceId];
+
+      if (!source || !source.parameters) {
+        console.error(`Source with ID ${sourceId} not found or missing path.`);
+        return;
+      }
+
+      // Load GeoJSON data
+      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
+      if (!geojsonString) {
+        return;
+      }
+
+      const geojson = JSON.parse(geojsonString);
+      if (!geojson.features || geojson.features.length === 0) {
+        console.error('Invalid GeoJSON: No features found.');
+        return;
+      }
+
+      // Extract field names from the first feature's properties
+      const properties = geojson.features[0].properties;
+      const fieldNames = Object.keys(properties);
+
+      if (fieldNames.length === 0) {
+        console.error('No attribute fields found in GeoJSON.');
+        return;
+      }
+
+      // Retrieve dissolve schema and update fields dynamically
+      const schema = {
+        ...(formSchemaRegistry.getSchemas().get('Dissolve') as IDict),
+        properties: {
+          ...formSchemaRegistry.getSchemas().get('Dissolve')?.properties,
+          dissolveField: {
+            type: 'string',
+            enum: fieldNames, // Populate dropdown with field names
+            description: 'Select the field for dissolving features.'
+          }
+        }
+      };
+
+      // Open form and get user input
+      const formValues = await new Promise<IDict>(resolve => {
+        const dialog = new FormDialog({
+          title: 'Dissolve',
+          schema: schema,
+          model: model,
+          sourceData: {
+            inputLayer: selectedLayerId,
+            dissolveField: fieldNames[0] // Default to the first field
+          },
+          cancelButton: false,
+          syncData: (props: IDict) => {
+            resolve(props);
+            dialog.dispose();
+          }
+        });
+
+        dialog.launch();
+      });
+
+      if (!formValues) {
+        return;
+      }
+
+      const dissolveField = formValues.dissolveField;
+      const fileBlob = new Blob([geojsonString], {
+        type: 'application/geo+json'
+      });
+      const geoFile = new File([fileBlob], 'data.geojson', {
+        type: 'application/geo+json'
+      });
+
+      const Gdal = await getGdal();
+      const result = await Gdal.open(geoFile);
+
+      if (result.datasets.length > 0) {
+        const dataset = result.datasets[0] as any;
+        const layerName = dataset.info.layers[0].name;
+
+        const sqlQuery = `
+          SELECT ST_Union(geometry) AS geometry, ${dissolveField}
+          FROM ${layerName}
+          GROUP BY ${dissolveField}
+        `;
+
+        const options = [
+          '-f',
+          'GeoJSON',
+          '-nlt',
+          'PROMOTE_TO_MULTI',
+          '-dialect',
+          'sqlite',
+          '-sql',
+          sqlQuery,
+          'output.geojson'
+        ];
+
+        const outputFilePath = await Gdal.ogr2ogr(dataset, options);
+        const dissolvedBytes = await Gdal.getFileBytes(outputFilePath);
+        const dissolvedGeoJSONString = new TextDecoder().decode(dissolvedBytes);
+        Gdal.close(dataset);
+
+        const dissolvedGeoJSON = JSON.parse(dissolvedGeoJSONString);
+
+        const newSourceId = UUID.uuid4();
+        const sourceModel: IJGISSource = {
+          type: 'GeoJSONSource',
+          name: inputLayer.name + ' Dissolved',
+          parameters: { data: dissolvedGeoJSON }
+        };
+
+        const layerModel: IJGISLayer = {
+          type: 'VectorLayer',
+          parameters: { source: newSourceId },
+          visible: true,
+          name: inputLayer.name + ' Dissolved'
+        };
+
+        model.sharedModel.addSource(newSourceId, sourceModel);
+        model.addLayer(UUID.uuid4(), layerModel);
+      }
+    }
+  });
+
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),
     isEnabled: () => {

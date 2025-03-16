@@ -26,6 +26,7 @@ export namespace CommandIDs {
 
   // Processing commands
   export const buffer = 'jupytergis:buffer';
+  export const dissolve = 'jupytergis:dissolve';
 
   // Sources only commands
   export const newRasterSource = 'jupytergis:newRasterSource';
