@@ -12,11 +12,6 @@
     "dissolveField": {
       "type": "string",
       "description": "The field based on which geometries will be dissolved."
-    },
-    "projection": {
-      "type": "string",
-      "description": "The spatial reference system of the output.",
-      "default": "EPSG:4326"
     }
   }
 }
