@@ -6,9 +6,7 @@
   },
   "include": [
     "src/**/*",
-    "src/schema/jgis/*.json",
-    "src/schema/processing/*.json",
-    "src/schema/export/*.json",
+    "src/schema/**/*.json",
     "src/_interface/*.json"
   ]
 }
