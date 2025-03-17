@@ -1,107 +1,124 @@
-import { Dialog } from '@jupyterlab/apputils';
-import {
-  IDict,
-  IJupyterGISClientState,
-  IJupyterGISModel
-} from '@jupytergis/schema';
-import * as React from 'react';
-import { ObjectPropertiesForm } from '../formbuilder';
-import { focusInputField, removeStyleFromProperty } from '../utils';
+import { FormDialog } from '../formdialog';
+import { IDict, IJupyterGISModel, IGeoJSONSource } from '@jupytergis/schema';
+import { IChangeEvent } from '@rjsf/core';
+import { loadFile } from '../../tools';
 
-export interface IDissolveFormDialogOptions {
+interface IDissolveFormOptions {
   schema: IDict;
   sourceData: IDict;
   title: string;
   cancelButton: (() => void) | boolean;
   syncData: (props: IDict) => void;
-  syncSelectedPropField?: (
-    id: string | null,
-    value: any,
-    parentType: 'dialog' | 'panel'
-  ) => void;
   model: IJupyterGISModel;
 }
 
-export class DissolveFormDialog extends Dialog<IDict> {
-  constructor(options: IDissolveFormDialogOptions) {
-    let cancelCallback: (() => void) | undefined = undefined;
-    if (options.cancelButton) {
-      cancelCallback = () => {
-        if (options.cancelButton !== true && options.cancelButton !== false) {
-          options.cancelButton();
-        }
-        this.resolve(0);
-      };
+export class DissolveFormDialog extends FormDialog {
+  private model: IJupyterGISModel;
+  private schema: IDict;
+  private features: string[] = [];
+
+  constructor(options: IDissolveFormOptions) {
+    super(options);
+    this.model = options.model;
+    this.schema = options.schema;
+
+    console.log('DissolveFormDialog initialized with options:', options);
+
+    this.fetchFieldNames(options.sourceData.inputLayer);
+    this.handleFormChange = this.handleFormChange.bind(this);
+  }
+
+  /**
+   * Fetch field names from the selected layer and update the dropdown.
+   */
+  private async fetchFieldNames(layerId: string) {
+    const layer = this.model.getLayer(layerId);
+    console.log('Layer:', layer);
+
+    if (!layer?.parameters?.source) {
+        console.error(`⚠️ Layer ${layerId} has no associated source!`);
+        return;
     }
 
-    const layers = options.model.sharedModel.layers ?? {};
-    const layerOptions = Object.keys(layers).map(layerId => ({
-      value: layerId,
-      label: layers[layerId].name
-    }));
+    const sourceId = layer.parameters.source;
+    console.log('🔍 Extracted sourceId:', sourceId);
 
-    if (options.schema && options.schema.properties?.inputLayer) {
-      options.schema.properties.inputLayer.enum = layerOptions.map(
-        option => option.value
-      );
-      options.schema.properties.inputLayer.enumNames = layerOptions.map(
-        option => option.label
-      );
+    // Fetch the actual source
+    const source = this.model.getSource(sourceId);
+    if (!source || source.type !== 'GeoJSONSource') {
+      console.log('Invalid source:', source);
+      this.features = [];
+      return;
     }
 
-    const filePath = options.model.filePath;
-    const jgisModel = options.model;
-    const body = (
-      <div style={{ overflow: 'hidden' }}>
-        <ObjectPropertiesForm
-          parentType="dialog"
-          filePath={`${filePath}::dialog`}
-          sourceData={options.sourceData}
-          schema={options.schema}
-          syncData={options.syncData}
-          cancel={cancelCallback}
-          syncSelectedField={options.syncSelectedPropField}
-        />
-      </div>
-    );
+    const sourceData = source.parameters as IGeoJSONSource;
 
-    let lastSelectedPropFieldId: string | undefined = undefined;
+    if (!sourceData?.path) {
+      console.log('No path found in source data:', sourceData);
+      this.features = [];
+      return;
+    }
 
-    const onClientSharedStateChanged = (
-      sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>
-    ): void => {
-      const remoteUser = jgisModel?.localState?.remoteUser;
-      if (remoteUser) {
-        const newState = clients.get(remoteUser);
+    try {
+      console.log('Loading file from path:', sourceData.path);
+      const jsonData = await loadFile({
+        filepath: sourceData.path,
+        type: 'GeoJSONSource',
+        model: this.model
+      });
 
-        const id = newState?.selectedPropField?.id;
-        const value = newState?.selectedPropField?.value;
-        const parentType = newState?.selectedPropField?.parentType;
-
-        if (parentType === 'dialog') {
-          lastSelectedPropFieldId = focusInputField(
-            `${filePath}::dialog`,
-            id,
-            value,
-            newState?.user?.color,
-            lastSelectedPropFieldId
-          );
-        }
-      } else {
-        if (lastSelectedPropFieldId) {
-          removeStyleFromProperty(
-            `${filePath}::dialog`,
-            lastSelectedPropFieldId,
-            ['border-color', 'box-shadow']
-          );
-          lastSelectedPropFieldId = undefined;
-        }
+      if (!jsonData?.features?.length) {
+        console.log('No features found in GeoJSON.');
+        this.features = [];
+        return;
       }
-    };
 
-    jgisModel?.clientStateChanged.connect(onClientSharedStateChanged);
-    super({ title: options.title, body, buttons: [Dialog.cancelButton()] });
-    this.addClass('jGIS-DissolveFormDialog');
+      this.features = Object.keys(jsonData.features[0].properties);
+      console.log('Extracted features:', this.features);
+
+      this.updateSchema();
+    } catch (error) {
+      console.error('Error loading GeoJSON file:', error);
+    }
+  }
+
+  /**
+   * Handle form changes and update available fields.
+   */
+  public handleFormChange(e: IChangeEvent) {
+    console.log('Form changed:', e.formData);
+
+    if (e.formData.inputLayer) {
+      console.log('New inputLayer detected:', e.formData.inputLayer);
+      this.fetchFieldNames(e.formData.inputLayer);
+    }
+  }
+
+  /**
+   * Updates the schema when new field names are fetched.
+   */
+  private updateSchema() {
+    console.log('Updating schema with new field names:', this.features);
+
+    if (this.schema.properties?.dissolveField) {
+      this.schema.properties.dissolveField.enum = this.features;
+    }
+
+    this.refreshForm();
+  }
+
+  /**
+   * Refreshes the form.
+   */
+  private refreshForm() {
+    console.log('Refreshing form...');
+
+    if (typeof (this as any).updateFormData === 'function') {
+      (this as any).updateFormData();
+    } else {
+      console.warn('updateFormData method not found on FormDialog. Relaunching the dialog.');
+      this.launch(); // Relaunching to update UI
+
+    }
   }
 }
