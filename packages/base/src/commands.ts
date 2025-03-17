@@ -479,16 +479,8 @@ export function addCommands(
         return;
       }
 
-      const selectedLayer = localState['selected'].value;
-      const selectedLayerId = Object.keys(selectedLayer)[0];
-      const inputLayer = layers[selectedLayerId];
 
-      if (!inputLayer.parameters) {
-        console.error('Selected layer not found.');
-        return;
-      }
-
-      const sourceId = inputLayer.parameters.source;
+      const sourceId = selected.parameters.source;
       const source = sources[sourceId];
 
       if (!source || !source.parameters) {
