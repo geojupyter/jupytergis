@@ -4,9 +4,5 @@
     "outDir": "lib",
     "rootDir": "src"
   },
-  "include": [
-    "src/**/*",
-    "src/schema/**/*.json",
-    "src/_interface/*.json"
-  ]
+  "include": ["src/**/*", "src/schema/**/*.json", "src/_interface/*.json"]
 }
