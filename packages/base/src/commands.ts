@@ -470,12 +470,11 @@ export function addCommands(
         return;
       }
 
-      const layers = tracker.currentWidget?.model.sharedModel.layers ?? {};
       const sources = tracker.currentWidget?.model.sharedModel.sources ?? {};
       const model = tracker.currentWidget?.model;
       const localState = model?.sharedModel.awareness.getLocalState();
 
-      if (!model || !localState || !localState['selected']?.value) {
+      if (!model || !localState || !localState['selected']?.value || !selected.parameters) {
         return;
       }
 
@@ -521,6 +520,9 @@ export function addCommands(
           }
         }
       };
+
+      const selectedLayer = localState['selected'].value;
+      const selectedLayerId = Object.keys(selectedLayer)[0];
 
       // Open form and get user input
       const formValues = await new Promise<IDict>(resolve => {
@@ -589,7 +591,7 @@ export function addCommands(
         const newSourceId = UUID.uuid4();
         const sourceModel: IJGISSource = {
           type: 'GeoJSONSource',
-          name: inputLayer.name + ' Dissolved',
+          name: selected.name + ' Dissolved',
           parameters: { data: dissolvedGeoJSON }
         };
 
@@ -597,7 +599,7 @@ export function addCommands(
           type: 'VectorLayer',
           parameters: { source: newSourceId },
           visible: true,
-          name: inputLayer.name + ' Dissolved'
+          name: selected.name + ' Dissolved'
         };
 
         model.sharedModel.addSource(newSourceId, sourceModel);
