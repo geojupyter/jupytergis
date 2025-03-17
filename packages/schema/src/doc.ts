@@ -11,7 +11,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources
-} from './_interface/jgis/jgis';
+} from './_interface/project/jgis';
 import {
   IDict,
   IJGISLayerDocChange,

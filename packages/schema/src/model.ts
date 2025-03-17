@@ -15,7 +15,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources
-} from './_interface/jgis/jgis';
+} from './_interface/project/jgis';
 import { JupyterGISDoc } from './doc';
 import {
   IAnnotationModel,
@@ -31,7 +31,7 @@ import {
   IViewPortState,
   Pointer
 } from './interfaces';
-import jgisSchema from './schema/jgis/jgis.json';
+import jgisSchema from './schema/project/jgis.json';
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: JupyterGISModel.IOptions) {
