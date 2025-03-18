@@ -66,12 +66,6 @@ export interface IBaseFormProps {
    * extra errors or not.
    */
   formErrorSignal?: Signal<Dialog<any>, boolean>;
-
-  /**
-   * Configuration options for the dialog, including settings for layer data, source data,
-   * and other form-related parameters.
-   */
-  dialogOptions?: any;
 }
 
 const WrappedFormComponent = (props: any): JSX.Element => {
