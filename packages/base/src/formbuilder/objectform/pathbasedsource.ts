@@ -1,4 +1,4 @@
-import { IDict } from '@jupytergis/schema';
+import { IDict, SourceType } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
@@ -6,11 +6,16 @@ import { BaseForm, IBaseFormProps } from './baseform';
 import { loadFile } from '../../tools';
 import { FileSelectorWidget } from './fileselectorwidget';
 
+export interface IPathBasedSourceFormProps extends IBaseFormProps {
+  sourceType: SourceType;
+}
+
 /**
  * The form to modify a PathBasedSource source.
  */
 export class PathBasedSourcePropertiesForm extends BaseForm {
-  constructor(props: IBaseFormProps) {
+  props: IPathBasedSourceFormProps;
+  constructor(props: IPathBasedSourceFormProps) {
     super(props);
 
     if (this.props.sourceType !== 'GeoJSONSource') {

@@ -117,7 +117,6 @@ export class EditForm extends React.Component<IEditFormProps, any> {
                 this.syncObjectProperties(this.props.source, properties);
               }}
               formChangedSignal={this.sourceFormChangedSignal}
-              sourceType={source?.type || 'RasterSource'}
             />
           </div>
         )}

@@ -360,6 +360,7 @@ export function addCommands(
             bufferDistance: 10,
             projection: 'EPSG:4326'
           },
+          formContext: 'create',
           cancelButton: false,
           syncData: (props: IDict) => {
             resolve(props);
@@ -535,6 +536,7 @@ export function addCommands(
             inputLayer: selectedLayerId,
             dissolveField: fieldNames[0] // Default to the first field
           },
+          formContext: 'create',
           cancelButton: false,
           syncData: (props: IDict) => {
             resolve(props);
@@ -1340,6 +1342,7 @@ export function addCommands(
           schema: exportSchema,
           model,
           sourceData: { exportFormat: 'GeoJSON' },
+          formContext: 'create',
           cancelButton: false,
           syncData: (props: IDict) => {
             resolve(props);

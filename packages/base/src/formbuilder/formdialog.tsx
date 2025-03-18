@@ -4,9 +4,10 @@ import {
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
-import { BaseForm } from './objectform/baseform';
+import { BaseForm, IBaseFormProps } from './objectform/baseform';
 
-export interface IFormDialogOptions {
+export interface IFormDialogOptions extends IBaseFormProps{
+  formContext: 'update' | 'create';
   schema: IDict;
   sourceData: IDict;
   title: string;
@@ -56,7 +57,6 @@ export class FormDialog extends Dialog<IDict> {
           filePath={filePath}
           model={jgisModel}
           sourceData={options.sourceData}
-          sourceType={options.sourceData.type}
           schema={options.schema}
           syncData={options.syncData}
           cancel={cancelCallback}

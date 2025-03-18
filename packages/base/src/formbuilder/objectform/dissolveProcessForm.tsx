@@ -2,8 +2,9 @@ import { FormDialog } from '../formdialog';
 import { IDict, IJupyterGISModel, IGeoJSONSource } from '@jupytergis/schema';
 import { IChangeEvent } from '@rjsf/core';
 import { loadFile } from '../../tools';
+import { IBaseFormProps } from './baseform';
 
-interface IDissolveFormOptions {
+interface IDissolveFormOptions extends IBaseFormProps{
   schema: IDict;
   sourceData: IDict;
   title: string;
@@ -36,8 +37,8 @@ export class DissolveFormDialog extends FormDialog {
     console.log('Layer:', layer);
 
     if (!layer?.parameters?.source) {
-        console.error(`⚠️ Layer ${layerId} has no associated source!`);
-        return;
+      console.error(`⚠️ Layer ${layerId} has no associated source!`);
+      return;
     }
 
     const sourceId = layer.parameters.source;
@@ -118,7 +119,6 @@ export class DissolveFormDialog extends FormDialog {
     } else {
       console.warn('updateFormData method not found on FormDialog. Relaunching the dialog.');
       this.launch(); // Relaunching to update UI
-
     }
   }
 }

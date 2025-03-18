@@ -211,7 +211,6 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               formChangedSignal={this.sourceFormChangedSignal}
               formErrorSignal={this.props.formErrorSignal}
               dialogOptions={this.props.dialogOptions}
-              sourceType={this.props.sourceType}
             />
           </div>
         )}

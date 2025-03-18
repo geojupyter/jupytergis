@@ -1,5 +1,5 @@
 import { Slider } from '@jupyter/react-components';
-import { IJupyterGISModel, SourceType } from '@jupytergis/schema';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { FormComponent } from '@jupyterlab/ui-components';
 import { Signal } from '@lumino/signaling';
@@ -72,11 +72,6 @@ export interface IBaseFormProps {
    * and other form-related parameters.
    */
   dialogOptions?: any;
-
-  /**
-   * Source type property
-   */
-  sourceType: SourceType;
 }
 
 const WrappedFormComponent = (props: any): JSX.Element => {
