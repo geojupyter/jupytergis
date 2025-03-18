@@ -1,12 +1,10 @@
 import {
   IDict,
-  IJupyterGISClientState,
   IJupyterGISModel
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
-import { ObjectPropertiesForm } from './formbuilder';
-import { focusInputField, removeStyleFromProperty } from './utils';
+import { BaseForm } from './objectform/baseform';
 
 export interface IFormDialogOptions {
   schema: IDict;
@@ -53,54 +51,19 @@ export class FormDialog extends Dialog<IDict> {
     const jgisModel = options.model;
     const body = (
       <div style={{ overflow: 'hidden' }}>
-        <ObjectPropertiesForm
-          parentType="dialog"
-          filePath={`${filePath}::dialog`}
+        <BaseForm
+          formContext="create"
+          filePath={filePath}
+          model={jgisModel}
           sourceData={options.sourceData}
+          sourceType={options.sourceData.type}
           schema={options.schema}
           syncData={options.syncData}
           cancel={cancelCallback}
-          syncSelectedField={options.syncSelectedPropField}
         />
       </div>
     );
 
-    let lastSelectedPropFieldId: string | undefined = undefined;
-
-    const onClientSharedStateChanged = (
-      sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>
-    ): void => {
-      const remoteUser = jgisModel?.localState?.remoteUser;
-      if (remoteUser) {
-        const newState = clients.get(remoteUser);
-
-        const id = newState?.selectedPropField?.id;
-        const value = newState?.selectedPropField?.value;
-        const parentType = newState?.selectedPropField?.parentType;
-
-        if (parentType === 'dialog') {
-          lastSelectedPropFieldId = focusInputField(
-            `${filePath}::dialog`,
-            id,
-            value,
-            newState?.user?.color,
-            lastSelectedPropFieldId
-          );
-        }
-      } else {
-        if (lastSelectedPropFieldId) {
-          removeStyleFromProperty(
-            `${filePath}::dialog`,
-            lastSelectedPropFieldId,
-            ['border-color', 'box-shadow']
-          );
-          lastSelectedPropFieldId = undefined;
-        }
-      }
-    };
-
-    jgisModel?.clientStateChanged.connect(onClientSharedStateChanged);
     super({ title: options.title, body, buttons: [Dialog.cancelButton()] });
     this.addClass('jGIS-property-FormDialog');
   }
