@@ -1,12 +1,9 @@
-import {
-  IDict,
-  IJupyterGISModel
-} from '@jupytergis/schema';
+import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 import { BaseForm, IBaseFormProps } from './objectform/baseform';
 
-export interface IFormDialogOptions extends IBaseFormProps{
+export interface IFormDialogOptions extends IBaseFormProps {
   formContext: 'update' | 'create';
   schema: IDict;
   sourceData: IDict;

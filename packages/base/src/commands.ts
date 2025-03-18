@@ -476,10 +476,14 @@ export function addCommands(
       const model = tracker.currentWidget?.model;
       const localState = model?.sharedModel.awareness.getLocalState();
 
-      if (!model || !localState || !localState['selected']?.value || !selected.parameters) {
+      if (
+        !model ||
+        !localState ||
+        !localState['selected']?.value ||
+        !selected.parameters
+      ) {
         return;
       }
-
 
       const sourceId = selected.parameters.source;
       const source = sources[sourceId];
@@ -528,7 +532,7 @@ export function addCommands(
 
       // Open form and get user input
       const formValues = await new Promise<IDict>(resolve => {
-        const dialog = new DissolveFormDialog({
+        new DissolveFormDialog({
           title: 'Dissolve',
           schema: schema,
           model: model,
@@ -540,11 +544,8 @@ export function addCommands(
           cancelButton: false,
           syncData: (props: IDict) => {
             resolve(props);
-            dialog.dispose();
           }
         });
-
-        dialog.launch();
       });
 
       if (!formValues) {

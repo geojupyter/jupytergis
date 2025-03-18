@@ -1,57 +1,67 @@
-import { IDict } from '@jupytergis/schema';
-import { Dialog } from '@jupyterlab/apputils';
-import * as React from 'react';
-import { BaseForm, IBaseFormProps } from './baseform';
+import { BaseForm, IBaseFormProps } from './baseform'; // Import BaseForm
+import { IDict, IJupyterGISModel, IGeoJSONSource } from '@jupytergis/schema';
+import { IChangeEvent } from '@rjsf/core';
+import { loadFile } from '../../tools';
 
-export interface IDissolveFormOptions extends IBaseFormProps {
-title: string;
-cancelButton: (() => void) | boolean;
+interface IDissolveFormOptions extends IBaseFormProps {
+  schema: IDict;
+  sourceData: IDict;
+  title: string;
+  cancelButton: (() => void) | boolean;
+  syncData: (props: IDict) => void;
+  model: IJupyterGISModel;
 }
 
-export class DissolveFormDialog extends Dialog<IDict> {
-constructor(options: IDissolveFormOptions) {
-    let cancelCallback: (() => void) | undefined = undefined;
-    if (options.cancelButton) {
-    cancelCallback = () => {
-        if (options.cancelButton !== true && options.cancelButton !== false) {
-        options.cancelButton();
-        }
-        this.resolve(0);
-    };
+export class DissolveFormDialog extends BaseForm {
+  private model: IJupyterGISModel;
+  private schema: IDict;
+  private features: string[] = [];
+
+  constructor(options: IDissolveFormOptions) {
+    super(options);
+    this.model = options.model;
+    this.schema = options.schema;
+
+    console.log('DissolveFormDialog initialized with options:', options);
+    this.fetchFieldNames(options.sourceData.inputLayer);
+  }
+
+  private async fetchFieldNames(layerId: string) {
+    const layer = this.model.getLayer(layerId);
+    if (!layer?.parameters?.source) {return;}
+
+    const source = this.model.getSource(layer.parameters.source);
+    if (!source || source.type !== 'GeoJSONSource') {return;}
+
+    const sourceData = source.parameters as IGeoJSONSource;
+    if (!sourceData?.path) {return;}
+
+    try {
+      console.log('Loading GeoJSON:', sourceData.path);
+      const jsonData = await loadFile({
+        filepath: sourceData.path,
+        type: 'GeoJSONSource',
+        model: this.model
+      });
+
+      if (!jsonData?.features?.length) {return;}
+
+      this.features = Object.keys(jsonData.features[0].properties);
+      this.updateSchema();
+    } catch (error) {
+      console.error('Error loading GeoJSON:', error);
     }
+  }
 
-    const layers = options.model.sharedModel.layers ?? {};
-    const layerOptions = Object.keys(layers).map(layerId => ({
-    value: layerId,
-    label: layers[layerId].name
-    }));
-
-    if (options.schema && options.schema.properties?.inputLayer) {
-    options.schema.properties.inputLayer.enum = layerOptions.map(
-        option => option.value
-    );
-    options.schema.properties.inputLayer.enumNames = layerOptions.map(
-        option => option.label
-    );
+  public handleFormChange(e: IChangeEvent) {
+    if (e.formData.inputLayer) {
+      this.fetchFieldNames(e.formData.inputLayer);
     }
+  }
 
-    const filePath = options.model.filePath;
-    const jgisModel = options.model;
-    const body = (
-    <div style={{ overflow: 'hidden' }}>
-        <BaseForm
-        formContext="create"
-        filePath={filePath}
-        model={jgisModel}
-        sourceData={options.sourceData}
-        schema={options.schema}
-        syncData={options.syncData}
-        cancel={cancelCallback}
-        />
-    </div>
-    );
-
-    super({ title: options.title, body, buttons: [Dialog.cancelButton()] });
-    this.addClass('jGIS-property-DissolveFormDialog');
-}
+  private updateSchema() {
+    if (this.schema.properties?.dissolveField) {
+      this.schema.properties.dissolveField.enum = this.features;
+    }
+  }
 }
