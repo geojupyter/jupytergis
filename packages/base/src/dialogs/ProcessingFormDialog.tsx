@@ -2,6 +2,7 @@ import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 import { BaseForm, IBaseFormProps } from '../formbuilder/objectform/baseform';
+import { DissolveForm } from '../formbuilder/objectform/dissolveProcessForm';
 
 export interface IProcessingFormDialogOptions extends IBaseFormProps {
   formContext: 'update' | 'create';
@@ -16,6 +17,7 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
     parentType: 'dialog' | 'panel'
   ) => void;
   model: IJupyterGISModel;
+  processingType: 'buffer' | 'dissolve' | 'export';
 }
 
 export class ProcessingFormDialog extends Dialog<IDict> {
@@ -29,6 +31,7 @@ export class ProcessingFormDialog extends Dialog<IDict> {
         this.resolve(0);
       };
     }
+
     const layers = options.model.sharedModel.layers ?? {};
 
     const layerOptions = Object.keys(layers).map(layerId => ({
@@ -47,10 +50,26 @@ export class ProcessingFormDialog extends Dialog<IDict> {
 
     const filePath = options.model.filePath;
     const jgisModel = options.model;
+
+    let FormComponent;
+    switch (options.processingType) {
+      case 'dissolve':
+        FormComponent = DissolveForm;
+        break;
+      case 'buffer':
+        FormComponent = BaseForm;
+        break;
+      case 'export':
+        FormComponent = BaseForm;
+        break;
+      default:
+        FormComponent = BaseForm;
+    }
+
     const body = (
       <div style={{ overflow: 'hidden' }}>
-        <BaseForm
-          formContext="create"
+        <FormComponent
+          formContext={options.formContext}
           filePath={filePath}
           model={jgisModel}
           sourceData={options.sourceData}
@@ -62,6 +81,6 @@ export class ProcessingFormDialog extends Dialog<IDict> {
     );
 
     super({ title: options.title, body, buttons: [Dialog.cancelButton()] });
-    this.addClass('jGIS-property-FormDialog');
+    this.addClass('jGIS-processing-FormDialog');
   }
 }
