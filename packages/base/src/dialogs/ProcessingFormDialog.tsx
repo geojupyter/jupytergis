@@ -3,6 +3,7 @@ import { Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 import { BaseForm, IBaseFormProps } from '../formbuilder/objectform/baseform';
 import { DissolveForm } from '../formbuilder/objectform/dissolveProcessForm';
+import { BufferForm } from '../formbuilder/objectform/bufferProcessForm';
 
 export interface IProcessingFormDialogOptions extends IBaseFormProps {
   formContext: 'update' | 'create';
@@ -57,7 +58,7 @@ export class ProcessingFormDialog extends Dialog<IDict> {
         FormComponent = DissolveForm;
         break;
       case 'buffer':
-        FormComponent = BaseForm;
+        FormComponent = BufferForm;
         break;
       case 'export':
         FormComponent = BaseForm;
