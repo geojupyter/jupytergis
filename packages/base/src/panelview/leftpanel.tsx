@@ -181,7 +181,8 @@ export class LeftPanelWidget extends SidePanel {
       this._lastSelectedNodeId = nodeId;
 
       jGISModel.syncSelected(updatedSelectedValue, this.id);
-      this._commands.notifyCommandChanged(CommandIDs.temporalController);
+
+      this._notifyCommands();
     }
   };
 
@@ -195,6 +196,12 @@ export class LeftPanelWidget extends SidePanel {
       this._lastSelectedNodeId = nodeId;
     }
     this._model?.jGISModel?.syncSelected(selection, this.id);
+    this._notifyCommands();
+  }
+
+  private _notifyCommands() {
+    // Notify commands that need updating
+    this._commands.notifyCommandChanged(CommandIDs.identify);
     this._commands.notifyCommandChanged(CommandIDs.temporalController);
   }
 
