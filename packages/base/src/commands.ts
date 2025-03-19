@@ -533,7 +533,7 @@ export function addCommands(
 
       // Open form and get user input
       const formValues = await new Promise<IDict>(resolve => {
-        new ProcessingFormDialog({
+        const dialog = new ProcessingFormDialog({
           title: 'Dissolve',
           schema: schema,
           model: model,
@@ -546,8 +546,11 @@ export function addCommands(
           processingType: 'dissolve',
           syncData: (props: IDict) => {
             resolve(props);
+            dialog.dispose();
           }
         });
+
+        dialog.launch()
       });
 
       if (!formValues) {
