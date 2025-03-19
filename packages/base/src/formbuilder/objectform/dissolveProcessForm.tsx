@@ -32,13 +32,19 @@ export class DissolveForm extends BaseForm {
 
   private async fetchFieldNames(layerId: string) {
     const layer = this.model.getLayer(layerId);
-    if (!layer?.parameters?.source) {return;}
+    if (!layer?.parameters?.source) {
+      return;
+    }
 
     const source = this.model.getSource(layer.parameters.source);
-    if (!source || source.type !== 'GeoJSONSource') {return;}
+    if (!source || source.type !== 'GeoJSONSource') {
+      return;
+    }
 
     const sourceData = source.parameters as IGeoJSONSource;
-    if (!sourceData?.path) {return;}
+    if (!sourceData?.path) {
+      return;
+    }
 
     try {
       const jsonData = await loadFile({
@@ -47,7 +53,9 @@ export class DissolveForm extends BaseForm {
         model: this.model
       });
 
-      if (!jsonData?.features?.length) {return;}
+      if (!jsonData?.features?.length) {
+        return;
+      }
 
       this.features = Object.keys(jsonData.features[0].properties);
       this.updateSchema();
@@ -65,19 +73,22 @@ export class DissolveForm extends BaseForm {
   }
 
   private updateSchema() {
-    this.setState((prevState: IBaseFormStates) => ({
-      schema: {
-        ...prevState.schema,
-        properties: {
-          ...prevState.schema?.properties,
-          dissolveField: {
-            ...prevState.schema?.properties?.dissolveField,
-            enum: [...this.features]
+    this.setState(
+      (prevState: IBaseFormStates) => ({
+        schema: {
+          ...prevState.schema,
+          properties: {
+            ...prevState.schema?.properties,
+            dissolveField: {
+              ...prevState.schema?.properties?.dissolveField,
+              enum: [...this.features]
+            }
           }
         }
+      }),
+      () => {
+        this.forceUpdate();
       }
-    }), () => {
-      this.forceUpdate();
-    });
+    );
   }
 }

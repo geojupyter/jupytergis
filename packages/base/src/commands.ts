@@ -550,7 +550,7 @@ export function addCommands(
           }
         });
 
-        dialog.launch()
+        dialog.launch();
       });
 
       if (!formValues) {

@@ -34,7 +34,9 @@ export function getLayerTypeForm(
   return LayerForm;
 }
 
-export function getSourceTypeForm(sourceType: SourceType): typeof SourcePropertiesForm {
+export function getSourceTypeForm(
+  sourceType: SourceType
+): typeof SourcePropertiesForm {
   let SourceForm = SourcePropertiesForm;
   switch (sourceType) {
     case 'GeoJSONSource':
