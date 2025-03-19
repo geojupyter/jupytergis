@@ -1,4 +1,4 @@
-import { BaseForm, IBaseFormProps } from './baseform'; // Import BaseForm
+import { BaseForm, IBaseFormProps, IBaseFormStates } from './baseform'; // Ensure BaseForm imports states
 import { IDict, IJupyterGISModel, IGeoJSONSource } from '@jupytergis/schema';
 import { IChangeEvent } from '@rjsf/core';
 import { loadFile } from '../../tools';
@@ -14,15 +14,19 @@ interface IDissolveFormOptions extends IBaseFormProps {
 
 export class DissolveForm extends BaseForm {
   private model: IJupyterGISModel;
-  private schema: IDict;
   private features: string[] = [];
 
   constructor(options: IDissolveFormOptions) {
     super(options);
     this.model = options.model;
-    this.schema = options.schema;
 
-    console.log('DissolveForm initialized with options:', options);
+    // Ensure initial state matches IBaseFormStates
+    this.state = {
+      schema: options.schema ?? {} // Ensure schema is never undefined
+    };
+
+    this.onFormChange = this.handleFormChange.bind(this);
+
     this.fetchFieldNames(options.sourceData.inputLayer);
   }
 
@@ -37,7 +41,6 @@ export class DissolveForm extends BaseForm {
     if (!sourceData?.path) {return;}
 
     try {
-      console.log('Loading GeoJSON:', sourceData.path);
       const jsonData = await loadFile({
         filepath: sourceData.path,
         type: 'GeoJSONSource',
@@ -54,14 +57,27 @@ export class DissolveForm extends BaseForm {
   }
 
   public handleFormChange(e: IChangeEvent) {
+    super.onFormChange(e);
+
     if (e.formData.inputLayer) {
       this.fetchFieldNames(e.formData.inputLayer);
     }
   }
 
   private updateSchema() {
-    if (this.schema.properties?.dissolveField) {
-      this.schema.properties.dissolveField.enum = this.features;
-    }
+    this.setState((prevState: IBaseFormStates) => ({
+      schema: {
+        ...prevState.schema,
+        properties: {
+          ...prevState.schema?.properties,
+          dissolveField: {
+            ...prevState.schema?.properties?.dissolveField,
+            enum: [...this.features]
+          }
+        }
+      }
+    }), () => {
+      this.forceUpdate();
+    });
   }
 }
