@@ -28,7 +28,7 @@ import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { FormDialog } from './formbuilder/formdialog';
-import { DissolveFormDialog } from './formbuilder/objectform/dissolveProcessForm';
+import { DissolveForm } from './formbuilder/objectform/dissolveProcessForm';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -532,7 +532,7 @@ export function addCommands(
 
       // Open form and get user input
       const formValues = await new Promise<IDict>(resolve => {
-        new DissolveFormDialog({
+        new DissolveForm({
           title: 'Dissolve',
           schema: schema,
           model: model,

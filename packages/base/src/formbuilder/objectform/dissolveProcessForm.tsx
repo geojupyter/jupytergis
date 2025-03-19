@@ -12,7 +12,7 @@ interface IDissolveFormOptions extends IBaseFormProps {
   model: IJupyterGISModel;
 }
 
-export class DissolveFormDialog extends BaseForm {
+export class DissolveForm extends BaseForm {
   private model: IJupyterGISModel;
   private schema: IDict;
   private features: string[] = [];
@@ -22,7 +22,7 @@ export class DissolveFormDialog extends BaseForm {
     this.model = options.model;
     this.schema = options.schema;
 
-    console.log('DissolveFormDialog initialized with options:', options);
+    console.log('DissolveForm initialized with options:', options);
     this.fetchFieldNames(options.sourceData.inputLayer);
   }
 
