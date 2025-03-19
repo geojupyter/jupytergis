@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FileDialog } from '@jupyterlab/filebrowser';
 import { Dialog } from '@jupyterlab/apputils';
-import { LayerCreationFormDialog } from '../../dialogs/layerCreationFormdialog';
+import { LayerCreationFormDialog } from '../../dialogs/layerCreationFormDialog';
 import { PathExt } from '@jupyterlab/coreutils';
 
 export const FileSelectorWidget = (props: any) => {

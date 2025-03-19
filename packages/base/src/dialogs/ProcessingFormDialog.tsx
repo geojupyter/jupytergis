@@ -1,9 +1,9 @@
 import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
-import { BaseForm, IBaseFormProps } from './objectform/baseform';
+import { BaseForm, IBaseFormProps } from '../formbuilder/objectform/baseform';
 
-export interface IFormDialogOptions extends IBaseFormProps {
+export interface IProcessingFormDialogOptions extends IBaseFormProps {
   formContext: 'update' | 'create';
   schema: IDict;
   sourceData: IDict;
@@ -18,8 +18,8 @@ export interface IFormDialogOptions extends IBaseFormProps {
   model: IJupyterGISModel;
 }
 
-export class FormDialog extends Dialog<IDict> {
-  constructor(options: IFormDialogOptions) {
+export class ProcessingFormDialog extends Dialog<IDict> {
+  constructor(options: IProcessingFormDialogOptions) {
     let cancelCallback: (() => void) | undefined = undefined;
     if (options.cancelButton) {
       cancelCallback = () => {

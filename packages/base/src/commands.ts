@@ -17,7 +17,7 @@ import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { CommandIDs, icons } from './constants';
-import { LayerCreationFormDialog } from './dialogs/layerCreationFormdialog';
+import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import keybindings from './keybindings.json';
@@ -27,8 +27,9 @@ import { getGdal } from './gdal';
 import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import { FormDialog } from './formbuilder/formdialog';
+import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 import { DissolveForm } from './formbuilder/objectform/dissolveProcessForm';
+
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -351,7 +352,7 @@ export function addCommands(
 
       // Open form and get user input
       const formValues = await new Promise<IDict>(resolve => {
-        const dialog = new FormDialog({
+        const dialog = new ProcessingFormDialog({
           title: 'Buffer',
           schema: schema,
           model: model,
@@ -1338,7 +1339,7 @@ export function addCommands(
       };
 
       const formValues = await new Promise<IDict>(resolve => {
-        const dialog = new FormDialog({
+        const dialog = new ProcessingFormDialog({
           title: 'Download GeoJSON',
           schema: exportSchema,
           model,
