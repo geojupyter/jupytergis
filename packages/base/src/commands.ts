@@ -17,7 +17,7 @@ import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { CommandIDs, icons } from './constants';
-import { CreationFormDialog } from './dialogs/formdialog';
+import { LayerCreationFormDialog } from './dialogs/layerCreationFormdialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import keybindings from './keybindings.json';
@@ -1437,7 +1437,7 @@ namespace Private {
         return;
       }
 
-      const dialog = new CreationFormDialog({
+      const dialog = new LayerCreationFormDialog({
         model: current.model,
         title,
         createLayer,
