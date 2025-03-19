@@ -17,7 +17,7 @@ import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { CommandIDs, icons } from './constants';
-import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
+import { LayerCreationFormDialog } from './dialogs/layersCreationFormDialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import keybindings from './keybindings.json';
@@ -29,6 +29,7 @@ import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 import { DissolveForm } from './formbuilder/objectform/dissolveProcessForm';
+
 
 
 interface ICreateEntry {
