@@ -2,14 +2,13 @@ import { IDict } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
-import { BaseForm } from './baseform';
 import { getMimeType } from '../../tools';
-import { ISourceFormProps } from './sourceform';
+import { ISourceFormProps, SourcePropertiesForm } from './sourceform';
 
 /**
  * The form to modify a GeoTiff source.
  */
-export class GeoTiffSourcePropertiesForm extends BaseForm {
+export class GeoTiffSourcePropertiesForm extends SourcePropertiesForm {
   private _isSubmitted: boolean;
   props: ISourceFormProps;
 

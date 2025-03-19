@@ -210,6 +210,8 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               cancel={this.props.cancel}
               formChangedSignal={this.sourceFormChangedSignal}
               formErrorSignal={this.props.formErrorSignal}
+              dialogOptions={this.props.dialogOptions}
+              sourceType={this.props.sourceType}
             />
           </div>
         )}
@@ -230,6 +232,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               cancel={this.props.cancel}
               sourceFormChangedSignal={this.sourceFormChangedSignal}
               formErrorSignal={this.props.formErrorSignal}
+              dialogOptions={this.props.dialogOptions}
             />
           </div>
         )}

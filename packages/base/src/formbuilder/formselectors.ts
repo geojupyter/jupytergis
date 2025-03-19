@@ -1,5 +1,4 @@
 import { LayerType, SourceType } from '@jupytergis/schema';
-import { BaseForm } from './objectform/baseform';
 import { GeoJSONSourcePropertiesForm } from './objectform/geojsonsource';
 import { GeoTiffSourcePropertiesForm } from './objectform/geotiffsource';
 import { HeatmapLayerPropertiesForm } from './objectform/heatmapLayerForm';
@@ -9,6 +8,7 @@ import { PathBasedSourcePropertiesForm } from './objectform/pathbasedsource';
 import { TileSourcePropertiesForm } from './objectform/tilesourceform';
 import { VectorLayerPropertiesForm } from './objectform/vectorlayerform';
 import { WebGlLayerPropertiesForm } from './objectform/webGlLayerForm';
+import { SourcePropertiesForm } from './objectform/sourceform';
 
 export function getLayerTypeForm(
   layerType: LayerType
@@ -34,8 +34,8 @@ export function getLayerTypeForm(
   return LayerForm;
 }
 
-export function getSourceTypeForm(sourceType: SourceType): typeof BaseForm {
-  let SourceForm = BaseForm;
+export function getSourceTypeForm(sourceType: SourceType): typeof SourcePropertiesForm {
+  let SourceForm = SourcePropertiesForm;
   switch (sourceType) {
     case 'GeoJSONSource':
       SourceForm = GeoJSONSourcePropertiesForm;
