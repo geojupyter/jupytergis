@@ -25,8 +25,8 @@ import {
   IJGISSource,
   IJGISSources,
   SourceType
-} from './_interface/jgis';
-import { IRasterSource } from './_interface/rastersource';
+} from './_interface/project/jgis';
+import { IRasterSource } from './_interface/project/sources/rastersource';
 export { IGeoJSONSource } from './_interface/geojsonsource';
 
 export type JgisCoordinates = { x: number; y: number };
