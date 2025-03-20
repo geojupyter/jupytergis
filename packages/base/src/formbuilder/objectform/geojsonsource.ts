@@ -2,9 +2,9 @@ import { IDict } from '@jupytergis/schema';
 import { Ajv, ValidateFunction } from 'ajv';
 import * as geojson from '@jupytergis/schema/src/schema/geojson.json';
 
-import { IBaseFormProps } from './baseform';
 import { PathBasedSourcePropertiesForm } from './pathbasedsource';
 import { loadFile } from '../../tools';
+import { ISourceFormProps } from './sourceform';
 
 /**
  * The form to modify a GeoJSON source.
@@ -12,7 +12,7 @@ import { loadFile } from '../../tools';
 export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
   private _validate: ValidateFunction;
 
-  constructor(props: IBaseFormProps) {
+  constructor(props: ISourceFormProps) {
     super(props);
     const ajv = new Ajv();
     this._validate = ajv.compile(geojson);

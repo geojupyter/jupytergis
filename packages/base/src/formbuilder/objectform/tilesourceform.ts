@@ -1,7 +1,7 @@
 import { IDict } from '@jupytergis/schema';
-import { BaseForm } from './baseform';
+import { SourcePropertiesForm } from './sourceform';
 
-export class TileSourcePropertiesForm extends BaseForm {
+export class TileSourcePropertiesForm extends SourcePropertiesForm {
   private _urlParameters: string[] = [];
 
   protected processSchema(

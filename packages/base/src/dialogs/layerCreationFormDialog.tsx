@@ -67,7 +67,7 @@ export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
 /**
  * Form for creating a source, a layer or both at the same time
  */
-export class CreationFormDialog extends Dialog<IDict> {
+export class LayerCreationFormDialog extends Dialog<IDict> {
   constructor(options: ICreationFormDialogOptions) {
     const cancelCallback = () => {
       this.resolve(0);
