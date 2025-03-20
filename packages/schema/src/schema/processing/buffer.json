@@ -13,11 +13,6 @@
       "type": "number",
       "default": 10,
       "description": "The distance used for buffering the geometry (in projection units)."
-    },
-    "projection": {
-      "type": "string",
-      "description": "The spatial reference system of the buffered output.",
-      "default": "EPSG:4326"
     }
   }
 }

@@ -383,7 +383,6 @@ export function addCommands(
           sourceData: {
             inputLayer: selectedLayerId,
             bufferDistance: 10,
-            projection: 'EPSG:4326'
           },
           formContext: 'create',
           processingType: 'buffer',
@@ -444,8 +443,6 @@ export function addCommands(
         const options = [
           '-f',
           'GeoJSON',
-          '-t_srs',
-          formValues.projection,
           '-dialect',
           'SQLITE',
           '-sql',
