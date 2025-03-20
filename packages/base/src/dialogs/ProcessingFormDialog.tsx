@@ -9,7 +9,6 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
   schema: IDict;
   sourceData: IDict;
   title: string;
-  cancelButton: (() => void) | boolean;
   syncData: (props: IDict) => void;
   syncSelectedPropField?: (
     id: string | null,
@@ -22,15 +21,6 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
 
 export class ProcessingFormDialog extends Dialog<IDict> {
   constructor(options: IProcessingFormDialogOptions) {
-    let cancelCallback: (() => void) | undefined = undefined;
-    if (options.cancelButton) {
-      cancelCallback = () => {
-        if (options.cancelButton !== true && options.cancelButton !== false) {
-          options.cancelButton();
-        }
-        this.resolve(0);
-      };
-    }
 
     const layers = options.model.sharedModel.layers ?? {};
 
@@ -75,12 +65,16 @@ export class ProcessingFormDialog extends Dialog<IDict> {
           sourceData={options.sourceData}
           schema={options.schema}
           syncData={options.syncData}
-          cancel={cancelCallback}
         />
       </div>
     );
 
-    super({ title: options.title, body, buttons: [Dialog.cancelButton()] });
+    super({
+      title: options.title,
+      body,
+      buttons: [Dialog.cancelButton()]
+    });
+
     this.addClass('jGIS-processing-FormDialog');
   }
 }

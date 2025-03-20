@@ -361,7 +361,6 @@ export function addCommands(
             projection: 'EPSG:4326'
           },
           formContext: 'create',
-          cancelButton: false,
           processingType: 'buffer',
           syncData: (props: IDict) => {
             resolve(props);
@@ -542,7 +541,6 @@ export function addCommands(
             dissolveField: fieldNames[0] // Default to the first field
           },
           formContext: 'create',
-          cancelButton: false,
           processingType: 'dissolve',
           syncData: (props: IDict) => {
             resolve(props);
@@ -1349,7 +1347,6 @@ export function addCommands(
           model,
           sourceData: { exportFormat: 'GeoJSON' },
           formContext: 'create',
-          cancelButton: false,
           processingType: 'export',
           syncData: (props: IDict) => {
             resolve(props);
