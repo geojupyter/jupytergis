@@ -382,7 +382,7 @@ export function addCommands(
           model: model,
           sourceData: {
             inputLayer: selectedLayerId,
-            bufferDistance: 10,
+            bufferDistance: 10
           },
           formContext: 'create',
           processingType: 'buffer',
