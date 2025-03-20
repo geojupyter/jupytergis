@@ -10,7 +10,6 @@ import { ISourceFormProps, SourcePropertiesForm } from './sourceform';
  */
 export class GeoTiffSourcePropertiesForm extends SourcePropertiesForm {
   private _isSubmitted: boolean;
-  props: ISourceFormProps;
 
   constructor(props: ISourceFormProps) {
     super(props);

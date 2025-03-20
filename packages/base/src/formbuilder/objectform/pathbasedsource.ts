@@ -10,7 +10,6 @@ import { ISourceFormProps, SourcePropertiesForm } from './sourceform';
  * The form to modify a PathBasedSource source.
  */
 export class PathBasedSourcePropertiesForm extends SourcePropertiesForm {
-  props: ISourceFormProps;
   constructor(props: ISourceFormProps) {
     super(props);
 

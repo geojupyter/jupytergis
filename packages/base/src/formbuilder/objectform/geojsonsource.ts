@@ -11,7 +11,6 @@ import { ISourceFormProps } from './sourceform';
  */
 export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
   private _validate: ValidateFunction;
-  props: ISourceFormProps;
 
   constructor(props: ISourceFormProps) {
     super(props);
