@@ -336,6 +336,8 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
               onSubmit={this.onFormSubmit.bind(this)}
               onChange={this.onFormChange.bind(this)}
               onBlur={this.onFormBlur.bind(this)}
+              ok={this.props.ok}
+              cancel={this.props.cancel}
               liveValidate
               children={
                 <button
