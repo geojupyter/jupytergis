@@ -44,7 +44,7 @@ extend-include = ["*.ipynb"]
 select = [
     # pycodestyle
     "E",
-    # bugbear: Disallow mutable argument defaults
-    "B006",
+    # bugbear
+    "B",
 ]
 ignore = ["E501", "E731"]
