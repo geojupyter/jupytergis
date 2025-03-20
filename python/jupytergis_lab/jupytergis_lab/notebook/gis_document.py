@@ -243,7 +243,6 @@ class GISDocument(CommWidget):
         :param path: The path to the JSON file to embed into the jGIS file.
         :param data: The raw GeoJSON data to embed into the jGIS file.
         :param type: The type of the vector layer to create.
-        :param color: The color to apply to features.
         :param opacity: The opacity, between 0 and 1.
         :param color_expr: The style expression used to style the layer, defaults to None
         """
@@ -333,7 +332,7 @@ class GISDocument(CommWidget):
 
     def add_video_layer(
         self,
-        urls: [],
+        urls: List,
         name: str = "Image Layer",
         coordinates: [] = [],
         opacity: float = 1,
