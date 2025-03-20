@@ -741,8 +741,9 @@ class GISDocument(CommWidget):
             file_name = Path(path).name
             try:
                 ext = file_name.split(".")[1].lower()
-            except Exception:
-                raise ValueError("Can not detect file extension!")
+            except Exception as e:
+                raise ValueError("Can not detect file extension!") from e
+
             if ext == "jgis":
                 format = "text"
                 contentType = "jgis"

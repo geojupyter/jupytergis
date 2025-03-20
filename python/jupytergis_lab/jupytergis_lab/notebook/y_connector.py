@@ -19,8 +19,9 @@ class YDocConnector(Widget):
             self.path = path
             try:
                 ext = path.split(".")[1].lower()
-            except Exception:
-                raise Exception("Can not detect file extension!")
+            except Exception as e:
+                raise Exception("Can not detect file extension!") from e
+
             if ext == "jgis":
                 self._format = "text"
                 self._contentType = "jgis"
