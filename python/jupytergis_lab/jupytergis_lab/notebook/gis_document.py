@@ -234,7 +234,7 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, number, float] | None = None,
+        value: Union[str, int, float] | None = None,
         color_expr=None,
     ):
         """
@@ -454,13 +454,13 @@ class GISDocument(CommWidget):
 
     def add_heatmap_layer(
         self,
-        feature: string,
+        feature: str,
         path: str | Path | None = None,
         data: Dict | None = None,
         name: str = "Heatmap Layer",
         opacity: float = 1,
-        blur: number = 15,
-        radius: number = 8,
+        blur: int = 15,
+        radius: int = 8,
         gradient: List[str] = ["#00f", "#0ff", "#0f0", "#ff0", "#f00"],
     ):
         """
@@ -609,16 +609,16 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, number, float],
+        value: Union[str, int, float],
     ):
         """
         Add a filter to a layer
 
-        :param str layer_id: The ID of the layer to filter
-        :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param str feature: The feature to be filtered on
-        :param str operator: The operator used to compare the feature and value
-        :param Union[str, number, float] value: The value to be filtered on
+        :param layer_id: The ID of the layer to filter
+        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param feature: The feature to be filtered on
+        :param operator: The operator used to compare the feature and value
+        :param value: The value to be filtered on
         """
         layer = self._layers.get(layer_id)
 
@@ -655,16 +655,16 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, number, float],
+        value: Union[str, int, float],
     ):
         """
         Update a filter applied to a layer
 
-        :param str layer_id: The ID of the layer to filter
-        :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param str feature: The feature to update the value for
-        :param str operator: The operator used to compare the feature and value
-        :param Union[str, number, float] value: The new value to be filtered on
+        :param layer_id: The ID of the layer to filter
+        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param feature: The feature to update the value for
+        :param operator: The operator used to compare the feature and value
+        :param value: The new value to be filtered on
         """
         layer = self._layers.get(layer_id)
 
