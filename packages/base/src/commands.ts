@@ -169,12 +169,38 @@ export function addCommands(
   commands.addCommand(CommandIDs.identify, {
     label: trans.__('Identify'),
     isToggled: () => {
-      return tracker.currentWidget?.model.isIdentifying || false;
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+      const canIdentify = [
+        'VectorLayer',
+        'ShapefileLayer',
+        'WebGlLayer'
+      ].includes(selectedLayer.type);
+      const isIdentifying = current.model.isIdentifying;
+
+      if (isIdentifying && !canIdentify) {
+        current.model.isIdentifying = false;
+        current.node.classList.remove('jGIS-identify-tool');
+        return false;
+      }
+
+      return isIdentifying;
     },
     isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+      return ['VectorLayer', 'ShapefileLayer', 'WebGlLayer'].includes(
+        selectedLayer.type
+      );
     },
     execute: args => {
       const current = tracker.currentWidget;
