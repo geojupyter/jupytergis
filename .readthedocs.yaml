@@ -36,7 +36,13 @@ build:
     # then install the wheels into the docs environment.
     pre_build:
       - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm install"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm build"
+      - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm build:packages"
+      - |-
+        /bin/bash --login -c "micromamba run -n jupytergis-docs \
+          python -m pip install \
+          $(ls ./python/jupytergis_core/dist/jupytergis*.whl) \
+          $(ls ./python/jupytergis_lab/dist/jupytergis*.whl) \
+          $(ls ./python/jupytergis_qgis/dist/jupytergis*.whl)"
 
     build:
       html:
