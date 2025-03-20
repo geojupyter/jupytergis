@@ -382,14 +382,14 @@ class GISDocument(CommWidget):
         """
         Add a tiff layer
 
-        :param str url: URL of the tif
-        :param int min: Minimum pixel value to be displayed, defaults to letting the map display set the value
-        :param int max: Maximum pixel value to be displayed, defaults to letting the map display set the value
-        :param str name: The name that will be used for the object in the document, defaults to "Tiff Layer"
-        :param bool normalize: Select whether to normalize values between 0..1, if false than min/max have no effect, defaults to True
-        :param bool wrapX: Render tiles beyond the tile grid extent, defaults to False
-        :param float opacity: The opacity, between 0 and 1, defaults to 1.0
-        :param _type_ color_expr: The style expression used to style the layer, defaults to None
+        :param url: URL of the tif
+        :param min: Minimum pixel value to be displayed, defaults to letting the map display set the value
+        :param max: Maximum pixel value to be displayed, defaults to letting the map display set the value
+        :param name: The name that will be used for the object in the document, defaults to "Tiff Layer"
+        :param normalize: Select whether to normalize values between 0..1, if false than min/max have no effect, defaults to True
+        :param wrapX: Render tiles beyond the tile grid extent, defaults to False
+        :param opacity: The opacity, between 0 and 1, defaults to 1.0
+        :param color_expr: The style expression used to style the layer, defaults to None
         """
 
         source = {
