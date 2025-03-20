@@ -334,7 +334,7 @@ class GISDocument(CommWidget):
         self,
         urls: List,
         name: str = "Image Layer",
-        coordinates: [] = [],
+        coordinates: Optional[List] = None,
         opacity: float = 1,
     ):
         """
@@ -345,6 +345,8 @@ class GISDocument(CommWidget):
         :param coordinates: Corners of video specified in longitude, latitude pairs.
         :param opacity: The opacity, between 0 and 1.
         """
+        if coordinates is None:
+            coordinates = []
 
         if urls is None or coordinates is None:
             raise ValueError("URLs and Coordinates are required")
@@ -419,7 +421,7 @@ class GISDocument(CommWidget):
         self,
         url: str,
         name: str = "Hillshade Layer",
-        urlParameters: Dict = {},
+        urlParameters: Optional[Dict] = None,
         attribution: str = "",
     ):
         """
@@ -429,6 +431,8 @@ class GISDocument(CommWidget):
         :param str name: The name that will be used for the object in the document, defaults to "Hillshade Layer"
         :param attribution: The attribution.
         """
+        if urlParameters is None:
+            urlParameters = {}
 
         source = {
             "type": SourceType.RasterDemSource,
@@ -459,7 +463,7 @@ class GISDocument(CommWidget):
         opacity: float = 1,
         blur: int = 15,
         radius: int = 8,
-        gradient: List[str] = ["#00f", "#0ff", "#0f0", "#ff0", "#f00"],
+        gradient: Optional[List[str]] = None,
     ):
         """
         Add a Heatmap Layer to the document.
@@ -492,6 +496,9 @@ class GISDocument(CommWidget):
 
         if data is not None:
             parameters = {"data": data}
+
+        if gradient is None:
+            gradient = ["#00f", "#0ff", "#0f0", "#ff0", "#f00"]
 
         source = {
             "type": SourceType.GeoJSONSource,
