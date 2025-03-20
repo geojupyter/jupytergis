@@ -1,4 +1,4 @@
-## Building Local JupyterGIS Documentation Workflow
+## Building JupyterGIS documentation locally
 
 To install a conda environment with **([Micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html))**, run the following command inside `docs/`:
 
