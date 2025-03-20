@@ -6,7 +6,7 @@ To chat with other contributors, please
 [join us on Zulip](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter)!
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 1
 
 development_setup
 code_quality
