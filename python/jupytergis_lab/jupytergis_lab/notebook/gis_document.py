@@ -43,8 +43,7 @@ class GISDocument(CommWidget):
     """
     Create a new GISDocument object.
 
-    :param path: the path to the file that you would like to open.
-    If not provided, a new empty document will be created.
+    :param path: the path to the file that you would like to open. If not provided, a new empty document will be created.
     """
 
     def __init__(
