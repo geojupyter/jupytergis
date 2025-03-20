@@ -11,5 +11,6 @@ To chat with other contributors, please
 development_setup
 code_quality
 releasing
+docs
 troubleshooting
 ```
