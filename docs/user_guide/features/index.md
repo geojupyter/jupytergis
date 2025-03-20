@@ -1,7 +1,7 @@
 # Features
 
 ```{toctree}
-:maxdepth:
+:maxdepth: 2
 
 extension.rst
 collab.rst
