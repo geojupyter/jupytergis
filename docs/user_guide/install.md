@@ -1,4 +1,4 @@
-(_install)=
+(\_install)=
 
 ## Installing JupyterGIS
 
@@ -22,11 +22,9 @@ Finally, start JupyterLab:
 jupyter lab
 ```
 
-
 ### Quickstart
 
 Here are a few neat options to quickstart in a temporary environment:
-
 
 #### [Docker](https://www.docker.com/)
 
@@ -39,7 +37,6 @@ docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
 ```bash
 pixi exec --spec jupytergis --spec qgis jupyter lab
 ```
-
 
 #### [uv](https://github.com/astral-sh/uv)
 
