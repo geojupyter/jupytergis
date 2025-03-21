@@ -14,7 +14,7 @@ By following this tutorial, you will be able to:
 - Work together on GIS files and notebooks with live updates.
 - Use follow mode to monitor collaborator activities.
 - Add annotations and comments to provide context, ask questions, or share insights.
-  :::
+:::
 
 :::{admonition} Prerequisites
 :class: warning
@@ -27,21 +27,22 @@ Before beginning this tutorial, JupyterGIS must be installed on your computer (s
 
 ### 1.1. Create Your GIS File
 
-- If you are using a local installation, run JupyterLab.
+- Open JupyterLab
+    - If you are using a local installation, start JupyterLab.
 
-```
-jupyter lab
-```
+      ```
+      jupyter lab
+      ```
 
-- If you are using an online version, navigate to the JupyterGIS platform.
+    - If you are using an online version, navigate to the JupyterGIS platform.
 - In the JupyterLab Launcher, scroll down to the **Other** section.
 - Click **GIS File** to open a blank canvas for your project.
 
-![New GIS File](images/new_gis_file.png)
+  ![New GIS File](images/new_gis_file.png)
 
 - Notice that you are given an anonymous username, which you can see in the upper right corner. Every user in the project will be assigned an anonymous username.
 
-![Username](images/username.png)
+  ![Username](images/username.png)
 
 ### 1.2. Generate a Shareable Link
 
@@ -167,12 +168,12 @@ Real-time collaboration in notebooks is a powerful tool for teams working on cod
 
 - To create a notebook, click on the **+** icon to open the Launcher, then select one of the kernels under **Notebook**.
 
-![Notebook](images/create_notebook.png)
+  ![Notebook](images/create_notebook.png)
 
 - Once a notebook is created, it is automatically accessible to all collaborators—no additional sharing is needed.
 - To open a shared notebook, click on the explorer button in the left sidebar, then locate and click on the notebook.
 
-![Notebook](images/open_notebook.png)
+  ![Notebook](images/open_notebook.png)
 
 - Anyone in the session can open, edit, and run the notebook.
 
@@ -197,20 +198,19 @@ Real-time collaboration in notebooks is a powerful tool for teams working on cod
 - Create a new notebook from the JupyterLab launcher (select Python kernel).
 - Load your GIS document using the following Python code:
 
-```python
-from jupytergis import GISDocument
-doc = GISDocument("your_project_name.jGIS")
-```
+  ```python
+  from jupytergis import GISDocument
+  doc = GISDocument("your_project_name.jGIS")
+  ```
 - Your colleague can add and execute the following code to list all layers:
-```python
-doc.layers
-```
+  ```python
+  doc.layers
+  ```
 - Then they can find the air quality layer ID (the layer with the name Custom GeoJSON Layer) and remove it using:
-```python
-air_quality_layer_id = "your_layer_id"
-doc.remove_layer(air_quality_layer_id)
-
-````
+  ```python
+  air_quality_layer_id = "your_layer_id"
+  doc.remove_layer(air_quality_layer_id)
+  ```
 
 ---
 
