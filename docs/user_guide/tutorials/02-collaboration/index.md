@@ -18,7 +18,7 @@ By following this tutorial, you will be able to:
 
 :::{admonition} Prerequisites
 :class: warning
-Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)) or you can use an online version of JupyterGIS. Currently, real-time collaboration is not supported in [JupyterLite](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html?path=france_hiking.jGIS/).
+Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)). Alternatively, you can use an online installation of JupyterGIS, for example on a [JupyterHub](https://jupyter.org/hub). Note that currently, real-time collaboration is not supported in [JupyterLite](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html?path=france_hiking.jGIS/).
 :::
 
 ---
@@ -48,7 +48,16 @@ Before beginning this tutorial, JupyterGIS must be installed on your computer (s
 
 - Click on the **Share** button in your interface on the upper right corner, then click on the **Copy Link** button.
 - Share this link with colleagues to invite them to your session.
-- If you are using a local installation, you can open a new browser and paste the link to simulate a different user.
+
+:::{admonition} A note about local installations
+:class: warning
+
+If you are using a local installation, your JupyterLab instance is not open to the Internet by default and collaborators will not be able to join your session.
+
+In this case, we recommend [using VSCode's LiveShare functionality to share a local server](https://learn.microsoft.com/en-us/visualstudio/liveshare/use/share-server-visual-studio-code#share-a-server) with a collaborator.
+
+You can also open a new browser window and paste the share link to simulate a different user.
+:::
 
 ![Share](images/share.png)
 
@@ -65,7 +74,7 @@ Before beginning this tutorial, JupyterGIS must be installed on your computer (s
 
 ### 2.1. Adding and Editing Layers
 
-- Open the layer panel and add a new layer to your GIS file.
+- From the toolbar, open the layer browser or the add layer menu and add a new layer to your GIS file.
 - The new layer appears immediately for all collaborators in your session.
 - Experiment by adjusting settings like opacity or color, each change is instantly visible to your collaborators.
 
@@ -74,7 +83,7 @@ Before beginning this tutorial, JupyterGIS must be installed on your computer (s
 ### 2.2. Tracking Collaborators with Cursors
 
 - Each user's cursor appears on the document in the same color as their icon. This feature makes it easy to see where your teammates are focused on.
-- Click on a cursor to display the location (latitude and longitude) where that user is working.
+- Click on a cursor to display the location (latitude and longitude) where collaborators are working.
 
 ![Cursor](images/cursor.png)
 
@@ -100,7 +109,7 @@ Follow mode allows you to track another user’s activity in the document in rea
 - Ask your colleague to add the World Air Quality GeoJSON layer:
 
 ```
-https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/openaq/exports/geojson.
+https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/openaq/exports/geojson
 ```
 
 - Locate your colleague's cursor on the document.
