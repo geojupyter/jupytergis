@@ -26,7 +26,6 @@ myst_enable_extensions = [
     "colon_fence",
 ]
 
-source_suffix = ".rst"
 master_doc = "index"
 project = "JupyterGIS"
 copyright = "2024, The JupyterGIS Development Team"
