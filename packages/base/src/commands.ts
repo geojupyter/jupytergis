@@ -24,7 +24,7 @@ import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
 import { getGdal } from './gdal';
-import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
+import { getGeoJSONDataFromLayerSource, downloadFile, uint8ArrayToBase64 } from './tools';
 import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
@@ -1397,6 +1397,109 @@ export function addCommands(
         `${exportFileName}.geojson`,
         'application/geo+json'
       );
+    }
+  });
+
+  commands.addCommand(CommandIDs.rasterize, {
+    label: trans.__('Rasterize'),
+    isEnabled: () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      return selectedLayer
+        ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
+        : false;
+    },
+    execute: async () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return;
+      }
+
+      const model = tracker.currentWidget?.model as IJupyterGISModel;
+      const sources = model.sharedModel.sources ?? {};
+
+      const exportSchema = {
+        ...(formSchemaRegistry.getSchemas().get('ExportGeoTIFFSchema') as IDict)
+      };
+      console.log(exportSchema);
+
+      const formValues = await new Promise<IDict>(resolve => {
+        const dialog = new ProcessingFormDialog({
+          title: 'Download GeoTIFF',
+          schema: exportSchema,
+          model,
+          formContext: 'create',
+          processingType: 'export',
+          sourceData: { resolutionX: 1200, resolutionY: 1200 },
+          syncData: (props: IDict) => {
+            resolve(props);
+            dialog.dispose();
+          }
+        });
+
+        dialog.launch();
+      });
+
+      if (!formValues || !selectedLayer.parameters) {
+        return;
+      }
+
+      const exportFileName = formValues.exportFileName;
+      const resolutionX = formValues.resolutionX ?? 1200;
+      const resolutionY = formValues.resolutionY ?? 1200;
+      const sourceId = selectedLayer.parameters.source;
+      const source = sources[sourceId];
+
+      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
+      if (!geojsonString) {
+        return;
+      }
+
+      const Gdal = await getGdal();
+      const datasetList = await Gdal.open(
+        new File([geojsonString], 'data.geojson', {
+          type: 'application/geo+json'
+        })
+      );
+      const dataset = datasetList.datasets[0];
+
+      if (!dataset) {
+        console.error('Dataset could not be opened.');
+        return;
+      }
+
+      const options = [
+        '-of',
+        'GTiff',
+        '-ot',
+        'Float32',
+        '-a_nodata',
+        '-1.0',
+        '-burn',
+        '0.0',
+        '-ts',
+        resolutionX.toString(),
+        resolutionY.toString(),
+        '-l',
+        'data',
+        'data.geojson',
+        'output.tif'
+      ];
+
+      const outputFilePath = await Gdal.gdal_rasterize(dataset, options);
+      const exportedBytes = await Gdal.getFileBytes(outputFilePath);
+
+      const base64String = uint8ArrayToBase64(exportedBytes);
+
+
+      const savePath = `examples/${exportFileName}.tif`;
+
+      await app.serviceManager.contents.save(savePath, {
+        type: 'file',
+        format: 'base64',
+        content: base64String
+      });
+
+      Gdal.close(dataset);
     }
   });
 
