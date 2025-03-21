@@ -1,10 +1,8 @@
-=================
-Development setup
-=================
+# Development setup
 
-Development install
-===================
+## Development install
 
+```{eval-rst}
 .. note::
 
     You will need `Node.js <https://nodejs.org/>`_ to build the extension package.
@@ -13,22 +11,21 @@ Development install
     `yarn <https://yarnpkg.com/>`__ that is installed with JupyterLab. You may use
     `yarn <https://yarnpkg.com/>`__ or `npm <https://www.npmjs.com/>`_ in lieu of ``jlpm`` below.
 
+```
 
-Clone the source
-----------------
+### Clone the source
 
-.. code-block:: bash
+```bash
+# Clone the repo to your local environment
+git clone https://github.com/geojupyter/jupytergis.git
 
-    # Clone the repo to your local environment
-    git clone https://github.com/geojupyter/jupytergis.git
+# Change directory to the jupytergis directory
+cd jupytergis
+```
 
-    # Change directory to the jupytergis directory
-    cd jupytergis
+### Create a virtual environment
 
-
-Create a virtual environment
-----------------------------
-
+```{eval-rst}
 .. tabs::
 
     .. tab:: Micromamba (recommended)
@@ -58,21 +55,21 @@ Create a virtual environment
             # Activate it
             source .venv/bin/activate
 
+```
 
-Install dependencies and build
-------------------------------
+### Install dependencies and build
 
-.. code-block:: bash
+```bash
+# Install packages in development mode.
+# WARNING: This step may hang indefinitely due to a bug in Nx. See
+#          troubleshooting below.
+python scripts/dev-install.py
 
-    # Install packages in development mode.
-    # WARNING: This step may hang indefinitely due to a bug in Nx. See
-    #          troubleshooting below.
-    python scripts/dev-install.py
+# Rebuild extension Typescript source after making changes
+jlpm run build
+```
 
-    # Rebuild extension Typescript source after making changes
-    jlpm run build
-
-
+```{eval-rst}
 .. note::
 
     By default, the ``jlpm run build`` command generates the source maps for this extension to make it easier to debug using the browser dev tools.
@@ -82,33 +79,34 @@ Install dependencies and build
 
         jupyter lab build --minimize=False
 
+```
 
-Watch for changes and rebuild
------------------------------
+### Watch for changes and rebuild
 
 You can watch the source directory and run JupyterLab at the same time in different terminals to watch for changes in the extension's source and automatically rebuild the extension.
 
-.. code-block:: bash
+```bash
+# Watch the source directory in one terminal, automatically rebuilding when needed
+jlpm run watch
 
-    # Watch the source directory in one terminal, automatically rebuilding when needed
-    jlpm run watch
-
-    # Run JupyterLab in another terminal
-    jupyter lab
+# Run JupyterLab in another terminal
+jupyter lab
+```
 
 With the watch command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
 
+```{eval-rst}
 .. note::
 
    ``jlpm run watch`` will sit and wait for a change once started. Edit a file
    to trigger a build.
 
+```
 
-Development uninstall
-======================
+## Development uninstall
 
-.. code-block:: bash
+```bash
+pip uninstall jupytergis
+```
 
-    pip uninstall jupytergis
-
-In development mode, you will also need to remove the symlink created by ``jupyter labextension develop`` command. To find its location, you can run ``jupyter labextension list`` to figure out where the ``labextensions`` folder is located. Then you can remove the symlink named ``jupytergis`` within that folder.
+In development mode, you will also need to remove the symlink created by `jupyter labextension develop` command. To find its location, you can run `jupyter labextension list` to figure out where the `labextensions` folder is located. Then you can remove the symlink named `jupytergis` within that folder.
