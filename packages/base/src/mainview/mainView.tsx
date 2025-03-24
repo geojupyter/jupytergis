@@ -636,11 +636,7 @@ export class MainView extends React.Component<IProps, IStates> {
           sourceParameters.urls.map(async sourceInfo => {
             const isRemote = sourceInfo.url?.startsWith('http://') || sourceInfo.url?.startsWith('https://');
 
-            console.log(sourceInfo.url);
-
             if (isRemote) {
-              console.log('Loading remote file');
-
               return {
                 ...addNoData(sourceInfo),
                 min: sourceInfo.min,
@@ -649,8 +645,6 @@ export class MainView extends React.Component<IProps, IStates> {
               };
 
             } else {
-              console.log('Loading local file');
-
               const geotiff = await loadFile({
                 filepath: sourceInfo.url ?? '',
                 type: 'GeoTiffSource',
