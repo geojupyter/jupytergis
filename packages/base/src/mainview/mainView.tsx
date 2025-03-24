@@ -632,14 +632,38 @@ export class MainView extends React.Component<IProps, IStates> {
         const addNoData = (url: (typeof sourceParameters.urls)[0]) => {
           return { ...url, nodata: 0 };
         };
-        const sources = await Promise.all(
+        const sources= await Promise.all(
           sourceParameters.urls.map(async sourceInfo => {
-            return {
-              ...addNoData(sourceInfo),
-              min: sourceInfo.min,
-              max: sourceInfo.max,
-              url: sourceInfo.url
-            };
+            const isRemote = sourceInfo.url?.startsWith('http://') || sourceInfo.url?.startsWith('https://');
+
+            console.log(sourceInfo.url);
+
+            if (isRemote) {
+              console.log('Loading remote file');
+
+              return {
+                ...addNoData(sourceInfo),
+                min: sourceInfo.min,
+                max: sourceInfo.max,
+                url: sourceInfo.url
+              };
+
+            } else {
+              console.log('Loading local file');
+
+              const geotiff = await loadFile({
+                filepath: sourceInfo.url ?? '',
+                type: 'GeoTiffSource',
+                model: this._model
+              });
+              return {
+                ...addNoData(sourceInfo),
+                min: sourceInfo.min,
+                max: sourceInfo.max,
+                geotiff,
+                url: URL.createObjectURL(geotiff.file)
+              };
+            }
           })
         );
 

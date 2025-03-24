@@ -4,6 +4,7 @@ import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
 import { getMimeType } from '../../tools';
 import { ISourceFormProps, SourcePropertiesForm } from './sourceform';
+import { FileSelectorWidget } from './fileselectorwidget';
 
 /**
  * The form to modify a GeoTiff source.
@@ -26,6 +27,26 @@ export class GeoTiffSourcePropertiesForm extends SourcePropertiesForm {
     super.processSchema(data, schema, uiSchema);
     if (!schema.properties || !data) {
       return;
+    }
+
+    // Customize the widget for urls
+    if (schema.properties && schema.properties.urls) {
+      const docManager =
+        this.props.formChangedSignal?.sender.props.formSchemaRegistry.getDocManager();
+
+      uiSchema.urls = {
+        ...uiSchema.urls,
+        items: {
+          ...uiSchema.urls.items,
+          url: {
+            'ui:widget': FileSelectorWidget,
+            'ui:options': {
+              docManager,
+              formOptions: this.props
+            }
+          }
+        }
+      };
     }
 
     // This is not user-editable
