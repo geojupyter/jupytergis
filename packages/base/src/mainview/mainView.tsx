@@ -632,9 +632,11 @@ export class MainView extends React.Component<IProps, IStates> {
         const addNoData = (url: (typeof sourceParameters.urls)[0]) => {
           return { ...url, nodata: 0 };
         };
-        const sources= await Promise.all(
+        const sources = await Promise.all(
           sourceParameters.urls.map(async sourceInfo => {
-            const isRemote = sourceInfo.url?.startsWith('http://') || sourceInfo.url?.startsWith('https://');
+            const isRemote =
+              sourceInfo.url?.startsWith('http://') ||
+              sourceInfo.url?.startsWith('https://');
 
             if (isRemote) {
               return {
@@ -643,7 +645,6 @@ export class MainView extends React.Component<IProps, IStates> {
                 max: sourceInfo.max,
                 url: sourceInfo.url
               };
-
             } else {
               const geotiff = await loadFile({
                 filepath: sourceInfo.url ?? '',
