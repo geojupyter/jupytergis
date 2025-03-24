@@ -2,8 +2,8 @@ import { IDict } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
-import { loadFile } from '../../tools';
-import { FileSelectorWidget } from './fileselectorwidget';
+import { loadFile } from '../../../tools';
+import { FileSelectorWidget } from '../fileselectorwidget';
 import { ISourceFormProps, SourcePropertiesForm } from './sourceform';
 
 /**
