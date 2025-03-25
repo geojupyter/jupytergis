@@ -12,4 +12,5 @@ development_setup
 code_quality
 releasing
 troubleshooting
+tutorial_writing_guide
 ```
