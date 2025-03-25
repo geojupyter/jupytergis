@@ -11,7 +11,8 @@ By the end of this tutorial, you will:
 2. Set up the required tools and libraries.
 3. Create a simple map and add layers.
 4. Explore basic geospatial analysis using JupyterGIS.
-   :::
+
+:::
 
 :::{admonition} Prerequisites
 :class: warning

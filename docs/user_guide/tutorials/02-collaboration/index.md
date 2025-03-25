@@ -14,6 +14,7 @@ By following this tutorial, you will be able to:
 - Work together on GIS files and notebooks with live updates.
 - Use follow mode to monitor collaborator activities.
 - Add annotations and comments to provide context, ask questions, or share insights.
+
 :::
 
 :::{admonition} Prerequisites
@@ -30,21 +31,20 @@ First, let's create a GIS file and invite collaborators to your session.
 ### Create Your GIS File
 
 1. Open JupyterLab
-    - If you are using a local installation, start JupyterLab.
 
-      ```
-      jupyter lab
-      ```
+   - If you are using a local installation, start JupyterLab.
 
-    - If you are using an online version, navigate to the JupyterGIS platform.
+     ```
+     jupyter lab
+     ```
+
+   - If you are using an online version, navigate to the JupyterGIS platform.
+
 2. In the JupyterLab Launcher, scroll down to the **Other** section.
 3. Click **GIS File** to open a blank canvas for your project.
-
-  ![New GIS File](images/new_gis_file.png)
-
+   ![New GIS File](images/new_gis_file.png)
 4. Notice that you are given an anonymous username, which you can see in the upper right corner. Every user in the project will be assigned an anonymous username.
-
-  ![Username](images/username.png)
+   ![Username](images/username.png)
 
 ### Generate a Shareable Link
 
@@ -100,28 +100,26 @@ To activate the follow mode, click on a collaborator's user icon in the upper ri
 :label: enable-follow-mode
 :nonumber:
 
-1.  Create a new collaborative JupyterGIS session.
-2.  Share the link with a colleague. If you are using a local installation, you can open a new browser and paste the link to simulate a different user.
-3.  From the layer browser, add OpenStreetMap.Mapnik to your GIS file.
-4.  Ask your colleague to add the World Air Quality GeoJSON layer:
-
-```
-https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/openaq/exports/geojson
-```
-
-5.  Locate your colleague's cursor on the document.
-6.  Enable follow mode to track your colleague's actions.
+1. Create a new collaborative JupyterGIS session.
+2. Share the link with a colleague. If you are using a local installation, you can open a new browser and paste the link to simulate a different user.
+3. From the layer browser, add OpenStreetMap.Mapnik to your GIS file.
+4. Ask your colleague to add the World Air Quality GeoJSON layer:
+    ```
+    https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/openaq/exports/geojson
+    ```
+5. Locate your colleague's cursor on the document.
+6. Enable follow mode to track your colleague's actions.
 
 ````
 
 ```{solution} enable-follow-mode
 :class: dropdown
 
-1.  Open a new GIS file in JupyterGIS. Click the **Share** button and copy the link. Send this to your colleague.
-2.  In the layer browser, select **OpenStreetMap.Mapnik**.
-3.  Your colleague can add the GeoJSON URL by clicking **+** → **New Vector Layer** → **Add GeoJSON Layer** → pasting the provided URL.
-4.  You can find their cursor on the map.
-5.  Click on your colleague's icon on the top right corner to activate **Follow Mode**. Your screen will follow their movements and edits in real-time.
+1. Open a new GIS file in JupyterGIS. Click the **Share** button and copy the link. Send this to your colleague.
+2. In the layer browser, select **OpenStreetMap.Mapnik**.
+3. Your colleague can add the GeoJSON URL by clicking **+** → **New Vector Layer** → **Add GeoJSON Layer** → pasting the provided URL.
+4. You can find their cursor on the map.
+5. Click on your colleague's icon on the top right corner to activate **Follow Mode**. Your screen will follow their movements and edits in real-time.
 
 ```
 
@@ -145,9 +143,9 @@ Once you add an annotation, you can click on it to type your comment. You can th
 :label: add-annotations
 :nonumber:
 
-1.  Add an annotation to your GIS file. Then add a comment to the annotation.
-2.  Ask your colleague to locate the annotation and add a reply.
-3.  Locate your colleague's reply from the right sidebar.
+1. Add an annotation to your GIS file. Then add a comment to the annotation.
+2. Ask your colleague to locate the annotation and add a reply.
+3. Locate your colleague's reply from the right sidebar.
 
 ```
 
@@ -155,10 +153,10 @@ Once you add an annotation, you can click on it to type your comment. You can th
 :class: dropdown
 
 
-1.  Right click on the desired location on your map.
-2.  Choose **Add Annotation**, click on the annotation and enter your comment.
-3.  Your colleague can see your annotation instantly; they can click it and reply.
-4.  Open the annotations panel on the right sidebar to view their reply.
+1. Right click on the desired location on your map.
+2. Choose **Add Annotation**, click on the annotation and enter your comment.
+3. Your colleague can see your annotation instantly; they can click it and reply.
+4. Open the annotations panel on the right sidebar to view their reply.
 
 ```
 
@@ -171,49 +169,45 @@ Real-time collaboration in notebooks is a powerful tool for teams working on cod
 ### Accessing a Shared Notebook
 
 To create a notebook, you can click on the **+** icon to open the Launcher, then select one of the kernels under **Notebook**.
-
-  ![Notebook](images/create_notebook.png)
+![Notebook](images/create_notebook.png)
 
 Once a notebook is created, it is automatically accessible to all collaborators—no additional sharing is needed. To open a shared notebook, you can click on the explorer button in the left sidebar, then locate and click on the notebook. Anyone in the session can open, edit, and run the notebook.
-
-  ![Notebook](images/open_notebook.png)
-
+![Notebook](images/open_notebook.png)
 
 ### Real-Time Code Collaboration
 
 As you write or execute code, every change is visible to your team instantly. Multiple users can write, edit, and run code in the same notebook at the same time for a dynamic, interactive coding experience.
-
 ![Notebook](images/notebook.gif)
 
 ```{exercise} 3
 :label: notebook-collaboration
 :nonumber:
 
-1.  Create a new notebook and load your GIS document.
-2.  Ask your colleague to open the notebook, write the code to remove the air quality layer of the GIS file and run the code cell.
+1. Create a new notebook and load your GIS document.
+2. Ask your colleague to open the notebook, write the code to remove the air quality layer of the GIS file and run the code cell.
 
 ```
 
 ````{solution} notebook-collaboration
 :class: dropdown
 
-1.  Create a new notebook from the JupyterLab launcher (select Python kernel).
-2.  Load your GIS document using the following Python code:
-
-  ```python
-  from jupytergis import GISDocument
-  doc = GISDocument("your_project_name.jGIS")
-  ```
+1. Create a new notebook from the JupyterLab launcher (select Python kernel).
+2. Load your GIS document using the following Python code:
+    ```python
+    from jupytergis import GISDocument
+    doc = GISDocument("your_project_name.jGIS")
+    ```
 3. Your colleague can add and execute the following code to list all layers:
-  ```python
-  doc.layers
-  ```
-4.  Then they can find the air quality layer ID (the layer with the name Custom GeoJSON Layer) and remove it using:
-  ```python
-  air_quality_layer_id = "your_layer_id"
-  doc.remove_layer(air_quality_layer_id)
-  ```
+    ```python
+    doc.layers
+    ```
+4. Then they can find the air quality layer ID (the layer with the name Custom GeoJSON Layer) and remove it using:
+    ```python
+    air_quality_layer_id = "your_layer_id"
+    doc.remove_layer(air_quality_layer_id)
+    ```
 ````
+
 ---
 
 Congratulations! You have completed the Collaboration Features of JupyerGIS tutorial. You now have the knowledge and tools to collaborate effectively with your team on GIS files and notebooks.
