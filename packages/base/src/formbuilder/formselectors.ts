@@ -3,7 +3,8 @@ import {
   GeoJSONSourcePropertiesForm,
   GeoTiffSourcePropertiesForm,
   PathBasedSourcePropertiesForm,
-  TileSourcePropertiesForm
+  TileSourcePropertiesForm,
+  SourcePropertiesForm
 } from './objectform/source';
 import {
   HeatmapLayerPropertiesForm,
@@ -12,7 +13,6 @@ import {
   VectorLayerPropertiesForm,
   WebGlLayerPropertiesForm
 } from './objectform/layer';
-import { SourcePropertiesForm } from './objectform/source';
 
 export function getLayerTypeForm(
   layerType: LayerType
