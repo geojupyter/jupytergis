@@ -26,7 +26,7 @@ Before beginning this tutorial, JupyterGIS must be installed on your computer (s
 
 ## Sharing Your Document
 
-First, let's create a GIS file and invite collaborators to your session.
+First, let's create a GIS file and invite collaborators to the session.
 
 ### Create Your GIS File
 
@@ -48,7 +48,7 @@ First, let's create a GIS file and invite collaborators to your session.
 
 ### Generate a Shareable Link
 
-You can invite collaborators to your session via a link. Click on the **Share** button in your interface in the upper right corner, then click on the **Copy Link** button.
+You can invite collaborators to your session by sharing a link. Click on the **Share** button in your interface in the upper right corner, then click on the **Copy Link** button.
 
 :::{admonition} A note about local installations
 :class: warning
