@@ -2,7 +2,7 @@ import { IDict } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
-import { getMimeType } from '../../tools';
+import { getMimeType } from '../../../tools';
 import { ISourceFormProps, SourcePropertiesForm } from './sourceform';
 import { FileSelectorWidget } from './fileselectorwidget';
 
