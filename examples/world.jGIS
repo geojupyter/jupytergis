@@ -1,10 +1,11 @@
 {
   "layerTree": [
-    "6e55cdae-35b0-4bff-9dd1-c8aa9563b2a6"
+    "6e55cdae-35b0-4bff-9dd1-c8aa9563b2a6",
+    "f80d0fa2-3e2b-4922-b7d5-fefd4b085259"
   ],
   "layers": {
     "6e55cdae-35b0-4bff-9dd1-c8aa9563b2a6": {
-      "name": "Custom GeoJSON Layer",
+      "name": "World",
       "parameters": {
         "color": {
           "fill-color": [
@@ -95,26 +96,53 @@
       },
       "type": "VectorLayer",
       "visible": true
+    },
+    "f80d0fa2-3e2b-4922-b7d5-fefd4b085259": {
+      "name": "France",
+      "parameters": {
+        "color": {
+          "fill-color": "#ff0000",
+          "stroke-color": "#3399CC",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
+        "opacity": 1.0,
+        "source": "5970d6c9-26be-4cc6-84c9-16593dd3edfe",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        },
+        "type": "line"
+      },
+      "type": "VectorLayer",
+      "visible": true
     }
   },
   "metadata": {},
   "options": {
     "bearing": 0.0,
     "extent": [
-      -35938860.79774074,
-      -17466155.24107265,
-      4136155.887837734,
-      18813049.299423713
+      -19065470.770224877,
+      -18193969.787702393,
+      21009545.91535361,
+      20037508.342789244
     ],
-    "latitude": 6.038467945870664,
-    "longitude": -142.8442794845441,
+    "latitude": 8.251719751227498,
+    "longitude": 8.731962081730105,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 2.100662339005199
+    "zoom": 1.834471049984222
   },
   "sources": {
+    "5970d6c9-26be-4cc6-84c9-16593dd3edfe": {
+      "name": "France",
+      "parameters": {
+        "path": "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_FRA_1.json"
+      },
+      "type": "GeoJSONSource"
+    },
     "b4287bea-e217-443c-b527-58f7559c824c": {
-      "name": "Custom GeoJSON Layer Source",
+      "name": "World",
       "parameters": {
         "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
       },

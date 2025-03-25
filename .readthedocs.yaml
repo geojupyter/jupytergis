@@ -37,10 +37,17 @@ build:
     pre_build:
       - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm install"
       - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm build"
+      - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm build:packages"
+      - |-
+        /bin/bash --login -c "micromamba run -n jupytergis-docs \
+          python -m pip install \
+          $(ls ./python/jupytergis_core/dist/jupytergis*.whl) \
+          $(ls ./python/jupytergis_lab/dist/jupytergis*.whl) \
+          $(ls ./python/jupytergis_qgis/dist/jupytergis*.whl)"
 
     build:
       html:
         - |-
           /bin/bash --login -c "cd docs && micromamba run -n jupytergis-docs \
-          python -m sphinx -T -b html -d _build/doctrees -D language=en . \
+          python -m sphinx --fail-on-warning --keep-going --nitpicky --show-traceback --builder html --doctree-dir _build/doctrees --define language=en . \
           $READTHEDOCS_OUTPUT/html"

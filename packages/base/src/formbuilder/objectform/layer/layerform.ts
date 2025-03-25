@@ -1,5 +1,5 @@
 import { IDict, SourceType } from '@jupytergis/schema';
-import { BaseForm, IBaseFormProps } from './baseform';
+import { BaseForm, IBaseFormProps } from '../baseform';
 import { Signal } from '@lumino/signaling';
 import { IChangeEvent } from '@rjsf/core';
 
@@ -13,6 +13,12 @@ export interface ILayerProps extends IBaseFormProps {
    * The signal emitted when the attached source form has changed, if it exists
    */
   sourceFormChangedSignal?: Signal<any, IDict<any>>;
+
+  /**
+   * Configuration options for the dialog, including settings for layer data, source data,
+   * and other form-related parameters.
+   */
+  dialogOptions?: any;
 }
 
 export class LayerPropertiesForm extends BaseForm {

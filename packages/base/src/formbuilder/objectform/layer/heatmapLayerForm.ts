@@ -1,6 +1,6 @@
 import { IDict, IGeoJSONSource, IHeatmapLayer } from '@jupytergis/schema';
 import { IChangeEvent } from '@rjsf/core';
-import { loadFile } from '../../tools';
+import { loadFile } from '../../../tools';
 import { ILayerProps, LayerPropertiesForm } from './layerform';
 
 export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {

@@ -43,8 +43,7 @@ class GISDocument(CommWidget):
     """
     Create a new GISDocument object.
 
-    :param path: the path to the file that you would like to open.
-    If not provided, a new empty document will be created.
+    :param path: the path to the file that you would like to open. If not provided, a new empty document will be created.
     """
 
     def __init__(
@@ -234,7 +233,7 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, number, float] | None = None,
+        value: Union[str, int, float] | None = None,
         color_expr=None,
     ):
         """
@@ -244,7 +243,6 @@ class GISDocument(CommWidget):
         :param path: The path to the JSON file to embed into the jGIS file.
         :param data: The raw GeoJSON data to embed into the jGIS file.
         :param type: The type of the vector layer to create.
-        :param color: The color to apply to features.
         :param opacity: The opacity, between 0 and 1.
         :param color_expr: The style expression used to style the layer, defaults to None
         """
@@ -334,9 +332,9 @@ class GISDocument(CommWidget):
 
     def add_video_layer(
         self,
-        urls: [],
+        urls: List,
         name: str = "Image Layer",
-        coordinates: [] = [],
+        coordinates: Optional[List] = None,
         opacity: float = 1,
     ):
         """
@@ -347,6 +345,8 @@ class GISDocument(CommWidget):
         :param coordinates: Corners of video specified in longitude, latitude pairs.
         :param opacity: The opacity, between 0 and 1.
         """
+        if coordinates is None:
+            coordinates = []
 
         if urls is None or coordinates is None:
             raise ValueError("URLs and Coordinates are required")
@@ -383,14 +383,14 @@ class GISDocument(CommWidget):
         """
         Add a tiff layer
 
-        :param str url: URL of the tif
-        :param int min: Minimum pixel value to be displayed, defaults to letting the map display set the value
-        :param int max: Maximum pixel value to be displayed, defaults to letting the map display set the value
-        :param str name: The name that will be used for the object in the document, defaults to "Tiff Layer"
-        :param bool normalize: Select whether to normalize values between 0..1, if false than min/max have no effect, defaults to True
-        :param bool wrapX: Render tiles beyond the tile grid extent, defaults to False
-        :param float opacity: The opacity, between 0 and 1, defaults to 1.0
-        :param _type_ color_expr: The style expression used to style the layer, defaults to None
+        :param url: URL of the tif
+        :param min: Minimum pixel value to be displayed, defaults to letting the map display set the value
+        :param max: Maximum pixel value to be displayed, defaults to letting the map display set the value
+        :param name: The name that will be used for the object in the document, defaults to "Tiff Layer"
+        :param normalize: Select whether to normalize values between 0..1, if false than min/max have no effect, defaults to True
+        :param wrapX: Render tiles beyond the tile grid extent, defaults to False
+        :param opacity: The opacity, between 0 and 1, defaults to 1.0
+        :param color_expr: The style expression used to style the layer, defaults to None
         """
 
         source = {
@@ -421,7 +421,7 @@ class GISDocument(CommWidget):
         self,
         url: str,
         name: str = "Hillshade Layer",
-        urlParameters: Dict = {},
+        urlParameters: Optional[Dict] = None,
         attribution: str = "",
     ):
         """
@@ -431,6 +431,8 @@ class GISDocument(CommWidget):
         :param str name: The name that will be used for the object in the document, defaults to "Hillshade Layer"
         :param attribution: The attribution.
         """
+        if urlParameters is None:
+            urlParameters = {}
 
         source = {
             "type": SourceType.RasterDemSource,
@@ -454,14 +456,14 @@ class GISDocument(CommWidget):
 
     def add_heatmap_layer(
         self,
-        feature: string,
+        feature: str,
         path: str | Path | None = None,
         data: Dict | None = None,
         name: str = "Heatmap Layer",
         opacity: float = 1,
-        blur: number = 15,
-        radius: number = 8,
-        gradient: List[str] = ["#00f", "#0ff", "#0f0", "#ff0", "#f00"],
+        blur: int = 15,
+        radius: int = 8,
+        gradient: Optional[List[str]] = None,
     ):
         """
         Add a Heatmap Layer to the document.
@@ -494,6 +496,9 @@ class GISDocument(CommWidget):
 
         if data is not None:
             parameters = {"data": data}
+
+        if gradient is None:
+            gradient = ["#00f", "#0ff", "#0f0", "#ff0", "#f00"]
 
         source = {
             "type": SourceType.GeoJSONSource,
@@ -609,16 +614,16 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, number, float],
+        value: Union[str, int, float],
     ):
         """
         Add a filter to a layer
 
-        :param str layer_id: The ID of the layer to filter
-        :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param str feature: The feature to be filtered on
-        :param str operator: The operator used to compare the feature and value
-        :param Union[str, number, float] value: The value to be filtered on
+        :param layer_id: The ID of the layer to filter
+        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param feature: The feature to be filtered on
+        :param operator: The operator used to compare the feature and value
+        :param value: The value to be filtered on
         """
         layer = self._layers.get(layer_id)
 
@@ -655,16 +660,16 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, number, float],
+        value: Union[str, int, float],
     ):
         """
         Update a filter applied to a layer
 
-        :param str layer_id: The ID of the layer to filter
-        :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param str feature: The feature to update the value for
-        :param str operator: The operator used to compare the feature and value
-        :param Union[str, number, float] value: The new value to be filtered on
+        :param layer_id: The ID of the layer to filter
+        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param feature: The feature to update the value for
+        :param operator: The operator used to compare the feature and value
+        :param value: The new value to be filtered on
         """
         layer = self._layers.get(layer_id)
 
@@ -736,8 +741,9 @@ class GISDocument(CommWidget):
             file_name = Path(path).name
             try:
                 ext = file_name.split(".")[1].lower()
-            except Exception:
-                raise ValueError("Can not detect file extension!")
+            except Exception as e:
+                raise ValueError("Can not detect file extension!") from e
+
             if ext == "jgis":
                 format = "text"
                 contentType = "jgis"

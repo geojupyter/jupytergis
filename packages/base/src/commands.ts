@@ -17,7 +17,7 @@ import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { CommandIDs, icons } from './constants';
-import { CreationFormDialog } from './dialogs/formdialog';
+import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import keybindings from './keybindings.json';
@@ -27,7 +27,7 @@ import { getGdal } from './gdal';
 import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import { FormDialog } from './formbuilder/formdialog';
+import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -169,12 +169,38 @@ export function addCommands(
   commands.addCommand(CommandIDs.identify, {
     label: trans.__('Identify'),
     isToggled: () => {
-      return tracker.currentWidget?.model.isIdentifying || false;
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+      const canIdentify = [
+        'VectorLayer',
+        'ShapefileLayer',
+        'WebGlLayer'
+      ].includes(selectedLayer.type);
+      const isIdentifying = current.model.isIdentifying;
+
+      if (isIdentifying && !canIdentify) {
+        current.model.isIdentifying = false;
+        current.node.classList.remove('jGIS-identify-tool');
+        return false;
+      }
+
+      return isIdentifying;
     },
     isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+      return ['VectorLayer', 'ShapefileLayer', 'WebGlLayer'].includes(
+        selectedLayer.type
+      );
     },
     execute: args => {
       const current = tracker.currentWidget;
@@ -350,16 +376,16 @@ export function addCommands(
 
       // Open form and get user input
       const formValues = await new Promise<IDict>(resolve => {
-        const dialog = new FormDialog({
+        const dialog = new ProcessingFormDialog({
           title: 'Buffer',
           schema: schema,
           model: model,
           sourceData: {
             inputLayer: selectedLayerId,
-            bufferDistance: 10,
-            projection: 'EPSG:4326'
+            bufferDistance: 10
           },
-          cancelButton: false,
+          formContext: 'create',
+          processingType: 'buffer',
           syncData: (props: IDict) => {
             resolve(props);
             dialog.dispose();
@@ -417,8 +443,6 @@ export function addCommands(
         const options = [
           '-f',
           'GeoJSON',
-          '-t_srs',
-          formValues.projection,
           '-dialect',
           'SQLITE',
           '-sql',
@@ -446,6 +470,165 @@ export function addCommands(
           parameters: { source: newSourceId },
           visible: true,
           name: inputLayer.name + ' Buffer'
+        };
+
+        model.sharedModel.addSource(newSourceId, sourceModel);
+        model.addLayer(UUID.uuid4(), layerModel);
+      }
+    }
+  });
+
+  commands.addCommand(CommandIDs.dissolve, {
+    label: trans.__('Dissolve'),
+    isEnabled: () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+      return ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type);
+    },
+    execute: async () => {
+      const selected = getSingleSelectedLayer(tracker);
+      if (!selected) {
+        console.error('No valid selected layer.');
+        return;
+      }
+
+      const sources = tracker.currentWidget?.model.sharedModel.sources ?? {};
+      const model = tracker.currentWidget?.model;
+      const localState = model?.sharedModel.awareness.getLocalState();
+
+      if (
+        !model ||
+        !localState ||
+        !localState['selected']?.value ||
+        !selected.parameters
+      ) {
+        return;
+      }
+
+      const sourceId = selected.parameters.source;
+      const source = sources[sourceId];
+
+      if (!source || !source.parameters) {
+        console.error(`Source with ID ${sourceId} not found or missing path.`);
+        return;
+      }
+
+      // Load GeoJSON data
+      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
+      if (!geojsonString) {
+        return;
+      }
+
+      const geojson = JSON.parse(geojsonString);
+      if (!geojson.features || geojson.features.length === 0) {
+        console.error('Invalid GeoJSON: No features found.');
+        return;
+      }
+
+      // Extract field names from the first feature's properties
+      const properties = geojson.features[0].properties;
+      const fieldNames = Object.keys(properties);
+
+      if (fieldNames.length === 0) {
+        console.error('No attribute fields found in GeoJSON.');
+        return;
+      }
+
+      // Retrieve dissolve schema and update fields dynamically
+      const schema = {
+        ...(formSchemaRegistry.getSchemas().get('Dissolve') as IDict),
+        properties: {
+          ...formSchemaRegistry.getSchemas().get('Dissolve')?.properties,
+          dissolveField: {
+            type: 'string',
+            enum: fieldNames, // Populate dropdown with field names
+            description: 'Select the field for dissolving features.'
+          }
+        }
+      };
+
+      const selectedLayer = localState['selected'].value;
+      const selectedLayerId = Object.keys(selectedLayer)[0];
+
+      // Open form and get user input
+      const formValues = await new Promise<IDict>(resolve => {
+        const dialog = new ProcessingFormDialog({
+          title: 'Dissolve',
+          schema: schema,
+          model: model,
+          sourceData: {
+            inputLayer: selectedLayerId,
+            dissolveField: fieldNames[0] // Default to the first field
+          },
+          formContext: 'create',
+          processingType: 'dissolve',
+          syncData: (props: IDict) => {
+            resolve(props);
+            dialog.dispose();
+          }
+        });
+
+        dialog.launch();
+      });
+
+      if (!formValues) {
+        return;
+      }
+
+      const dissolveField = formValues.dissolveField;
+      const fileBlob = new Blob([geojsonString], {
+        type: 'application/geo+json'
+      });
+      const geoFile = new File([fileBlob], 'data.geojson', {
+        type: 'application/geo+json'
+      });
+
+      const Gdal = await getGdal();
+      const result = await Gdal.open(geoFile);
+
+      if (result.datasets.length > 0) {
+        const dataset = result.datasets[0] as any;
+        const layerName = dataset.info.layers[0].name;
+
+        const sqlQuery = `
+          SELECT ST_Union(geometry) AS geometry, ${dissolveField}
+          FROM ${layerName}
+          GROUP BY ${dissolveField}
+        `;
+
+        const options = [
+          '-f',
+          'GeoJSON',
+          '-nlt',
+          'PROMOTE_TO_MULTI',
+          '-dialect',
+          'sqlite',
+          '-sql',
+          sqlQuery,
+          'output.geojson'
+        ];
+
+        const outputFilePath = await Gdal.ogr2ogr(dataset, options);
+        const dissolvedBytes = await Gdal.getFileBytes(outputFilePath);
+        const dissolvedGeoJSONString = new TextDecoder().decode(dissolvedBytes);
+        Gdal.close(dataset);
+
+        const dissolvedGeoJSON = JSON.parse(dissolvedGeoJSONString);
+
+        const newSourceId = UUID.uuid4();
+        const sourceModel: IJGISSource = {
+          type: 'GeoJSONSource',
+          name: selected.name + ' Dissolved',
+          parameters: { data: dissolvedGeoJSON }
+        };
+
+        const layerModel: IJGISLayer = {
+          type: 'VectorLayer',
+          parameters: { source: newSourceId },
+          visible: true,
+          name: selected.name + ' Dissolved'
         };
 
         model.sharedModel.addSource(newSourceId, sourceModel);
@@ -1180,12 +1363,13 @@ export function addCommands(
       };
 
       const formValues = await new Promise<IDict>(resolve => {
-        const dialog = new FormDialog({
+        const dialog = new ProcessingFormDialog({
           title: 'Download GeoJSON',
           schema: exportSchema,
           model,
           sourceData: { exportFormat: 'GeoJSON' },
-          cancelButton: false,
+          formContext: 'create',
+          processingType: 'export',
           syncData: (props: IDict) => {
             resolve(props);
             dialog.dispose();
@@ -1278,7 +1462,7 @@ namespace Private {
         return;
       }
 
-      const dialog = new CreationFormDialog({
+      const dialog = new LayerCreationFormDialog({
         model: current.model,
         title,
         createLayer,

@@ -44,11 +44,11 @@ source = "nodejs"
 fields = ["description", "authors", "urls"]
 
 [tool.hatch.build.targets.sdist]
-artifacts = ["jupytergis_lab/labextension", "/jupytergis_lab/notebook/objects/_schema/*.py"]
+artifacts = ["jupytergis_lab/labextension", "/jupytergis_lab/notebook/objects/_schema/**/*.py"]
 exclude = [".github", "binder", "node_modules"]
 
 [tool.hatch.build.targets.wheel]
-artifacts = ["/jupytergis_lab/notebook/objects/_schema/*.py"]
+artifacts = ["/jupytergis_lab/notebook/objects/_schema/**/*.py"]
 
 [tool.hatch.build.targets.wheel.shared-data]
 "install.json" = "share/jupyter/labextensions/@jupytergis/jupytergis-lab/install.json"
@@ -63,7 +63,7 @@ dependencies = ["hatch-jupyter-builder>=0.5"]
 ensured-targets = [
   "jupytergis_lab/labextension/static/style.js",
   "jupytergis_lab/labextension/package.json",
-  "jupytergis_lab/notebook/objects/_schema/jgis.py",
+  "jupytergis_lab/notebook/objects/_schema/project/jgis.py"
 ]
 skip-if-exists = ["jupytergis_lab/labextension/static/style.js"]
 

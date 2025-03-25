@@ -1,5 +1,5 @@
 import { Slider } from '@jupyter/react-components';
-import { IJupyterGISModel, SourceType } from '@jupytergis/schema';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { FormComponent } from '@jupyterlab/ui-components';
 import { Signal } from '@lumino/signaling';
@@ -66,17 +66,6 @@ export interface IBaseFormProps {
    * extra errors or not.
    */
   formErrorSignal?: Signal<Dialog<any>, boolean>;
-
-  /**
-   * Configuration options for the dialog, including settings for layer data, source data,
-   * and other form-related parameters.
-   */
-  dialogOptions?: any;
-
-  /**
-   * Source type property
-   */
-  sourceType: SourceType;
 }
 
 const WrappedFormComponent = (props: any): JSX.Element => {
@@ -347,6 +336,8 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
               onSubmit={this.onFormSubmit.bind(this)}
               onChange={this.onFormChange.bind(this)}
               onBlur={this.onFormBlur.bind(this)}
+              ok={this.props.ok}
+              cancel={this.props.cancel}
               liveValidate
               children={
                 <button

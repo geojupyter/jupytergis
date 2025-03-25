@@ -1,14 +1,18 @@
 import { LayerType, SourceType } from '@jupytergis/schema';
-import { BaseForm } from './objectform/baseform';
-import { GeoJSONSourcePropertiesForm } from './objectform/geojsonsource';
-import { GeoTiffSourcePropertiesForm } from './objectform/geotiffsource';
-import { HeatmapLayerPropertiesForm } from './objectform/heatmapLayerForm';
-import { HillshadeLayerPropertiesForm } from './objectform/hillshadeLayerForm';
-import { LayerPropertiesForm } from './objectform/layerform';
-import { PathBasedSourcePropertiesForm } from './objectform/pathbasedsource';
-import { TileSourcePropertiesForm } from './objectform/tilesourceform';
-import { VectorLayerPropertiesForm } from './objectform/vectorlayerform';
-import { WebGlLayerPropertiesForm } from './objectform/webGlLayerForm';
+import {
+  GeoJSONSourcePropertiesForm,
+  GeoTiffSourcePropertiesForm,
+  PathBasedSourcePropertiesForm,
+  TileSourcePropertiesForm,
+  SourcePropertiesForm
+} from './objectform/source';
+import {
+  HeatmapLayerPropertiesForm,
+  HillshadeLayerPropertiesForm,
+  LayerPropertiesForm,
+  VectorLayerPropertiesForm,
+  WebGlLayerPropertiesForm
+} from './objectform/layer';
 
 export function getLayerTypeForm(
   layerType: LayerType
@@ -34,8 +38,10 @@ export function getLayerTypeForm(
   return LayerForm;
 }
 
-export function getSourceTypeForm(sourceType: SourceType): typeof BaseForm {
-  let SourceForm = BaseForm;
+export function getSourceTypeForm(
+  sourceType: SourceType
+): typeof SourcePropertiesForm {
+  let SourceForm = SourcePropertiesForm;
   switch (sourceType) {
     case 'GeoJSONSource':
       SourceForm = GeoJSONSourcePropertiesForm;

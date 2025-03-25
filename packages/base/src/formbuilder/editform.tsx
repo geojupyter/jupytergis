@@ -9,8 +9,8 @@ import * as React from 'react';
 
 import { deepCopy } from '../tools';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
-import { LayerPropertiesForm } from './objectform/layerform';
-import { BaseForm } from './objectform/baseform';
+import { LayerPropertiesForm } from './objectform/layer';
+import { SourcePropertiesForm } from './objectform/source';
 
 export interface IEditFormProps {
   /**
@@ -65,7 +65,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
     }
 
     let sourceSchema: IDict | undefined = undefined;
-    let SourceForm: typeof BaseForm | undefined = undefined;
+    let SourceForm: typeof SourcePropertiesForm | undefined = undefined;
     let sourceData: IDict | undefined = undefined;
     let source: IJGISSource | undefined = undefined;
     if (this.props.source) {

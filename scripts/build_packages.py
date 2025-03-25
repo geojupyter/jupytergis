@@ -1,3 +1,8 @@
+"""Build all JupyterGIS packages.
+
+IMPORTANT: Requires dependencies in requirements-build.txt
+"""
+
 import subprocess
 from pathlib import Path
 
@@ -8,8 +13,6 @@ def execute(cmd: str, cwd=None):
 
 def build_packages():
     root_path = Path(__file__).parents[1]
-    requirements_build_path = root_path / "requirements-build.txt"
-    install_build_deps = f"python -m pip install -r {requirements_build_path}"
 
     python_package_prefix = "python"
     python_packages = [
@@ -19,8 +22,6 @@ def build_packages():
         "jupytergis_qgis",
         "jupytergis_lite",
     ]
-
-    execute(install_build_deps)
 
     for py_package in python_packages:
         execute("hatch build", cwd=root_path / python_package_prefix / py_package)
