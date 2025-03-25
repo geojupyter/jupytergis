@@ -9,8 +9,8 @@ import * as React from 'react';
 
 import { deepCopy } from '../tools';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
-import { LayerPropertiesForm } from './objectform/layerform';
-import { SourcePropertiesForm } from './objectform/sourceform';
+import { LayerPropertiesForm } from './objectform/layer';
+import { SourcePropertiesForm } from './objectform/source';
 
 export interface IEditFormProps {
   /**

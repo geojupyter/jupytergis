@@ -1,14 +1,18 @@
 import { LayerType, SourceType } from '@jupytergis/schema';
-import { GeoJSONSourcePropertiesForm } from './objectform/geojsonsource';
-import { GeoTiffSourcePropertiesForm } from './objectform/geotiffsource';
-import { HeatmapLayerPropertiesForm } from './objectform/heatmapLayerForm';
-import { HillshadeLayerPropertiesForm } from './objectform/hillshadeLayerForm';
-import { LayerPropertiesForm } from './objectform/layerform';
-import { PathBasedSourcePropertiesForm } from './objectform/pathbasedsource';
-import { TileSourcePropertiesForm } from './objectform/tilesourceform';
-import { VectorLayerPropertiesForm } from './objectform/vectorlayerform';
-import { WebGlLayerPropertiesForm } from './objectform/webGlLayerForm';
-import { SourcePropertiesForm } from './objectform/sourceform';
+import {
+  GeoJSONSourcePropertiesForm,
+  GeoTiffSourcePropertiesForm,
+  PathBasedSourcePropertiesForm,
+  TileSourcePropertiesForm,
+  SourcePropertiesForm
+} from './objectform/source';
+import {
+  HeatmapLayerPropertiesForm,
+  HillshadeLayerPropertiesForm,
+  LayerPropertiesForm,
+  VectorLayerPropertiesForm,
+  WebGlLayerPropertiesForm
+} from './objectform/layer';
 
 export function getLayerTypeForm(
   layerType: LayerType
