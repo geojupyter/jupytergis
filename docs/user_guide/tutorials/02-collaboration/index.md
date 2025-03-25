@@ -212,6 +212,6 @@ As you write or execute code, every change is visible to your team instantly. Mu
 
 Congratulations! You have completed the Collaboration Features of JupyerGIS tutorial. You now have the knowledge and tools to collaborate effectively with your team on GIS files and notebooks.
 
-## Additional resources
-
-- [JupyterGIS Blog Post](https://blog.jupyter.org/real-time-collaboration-and-collaborative-editing-for-gis-workflows-with-jupyter-and-qgis-d25dbe2832a6)
+If you'd like to explore more of JupyterGIS' functionality, please view our
+[JupyterGIS announcement blog post](https://blog.jupyter.org/real-time-collaboration-and-collaborative-editing-for-gis-workflows-with-jupyter-and-qgis-d25dbe2832a6)
+for video demos of more features.
