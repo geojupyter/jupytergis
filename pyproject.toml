@@ -44,5 +44,7 @@ extend-include = ["*.ipynb"]
 select = [
     # pycodestyle
     "E",
+    # bugbear
+    "B",
 ]
 ignore = ["E501", "E731"]
