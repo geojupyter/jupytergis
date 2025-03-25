@@ -15,7 +15,7 @@ By the end of this tutorial, you will:
 
 :::{admonition} Prerequisites
 :class: warning
-Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)) or you can use an online version of JupyterGIS (such as [![Jupyterlite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html?path=france_hiking.jGIS/)).
+Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)) or you can use an online version of JupyterGIS (such as [![Jupyterlite badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html)).
 :::
 
 ## Introduction to JupyterGIS
@@ -91,7 +91,7 @@ Let's rename the source called 'Custom Shapefile Source' to 'US Counties' so tha
 :label: Rename-layer
 :nonumber:
 
-- Rename the **Custom Shapefile Layer** with a meaningful name e.g., **US Counties** for the US County Shapefile Layer.
+Rename the **Custom Shapefile Layer** with a meaningful name e.g., **US Counties** for the US County Shapefile Layer.
 
 ```
 
@@ -115,17 +115,17 @@ Let's do an exercise to practice adding a new layer.
 :nonumber:
 ```
 
-- Add a new Shapefile Layer to your map:
+1. Add a new Shapefile Layer to your map:
 
 ```
 https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip
 ```
 
-- Zoom over New-York (USA) and check if you can see the newly added layer.
-- Rename both the newly added layer and its corresponding source, e.g. 'NYC Roads'.
-- Let's customize this new layer by changing the color. In the GIS Layer/Browser Panel, select the top layer (corresponds to the last layer you added) and right click to **Edit Symbology**. Then change the **Stroke Color** to a color of your choice. You can also change the Stroke Width and check the result after pressing \*_OK_.
-- In a similar way, you can edit the symbology of the 'US Counties' Shapefile Layer we added earlier and change the **Fill Color**, **Stroke Color** and **Stroke Width**.
-- Do you still see the roads in New-York? Try to adjust the **Opacity** value (default is 1) to a lower value for this Shapefile Layer. Can you see all your layers now?
+2. Zoom over New-York (USA) and check if you can see the newly added layer.
+3. Rename both the newly added layer and its corresponding source, e.g. 'NYC Roads'.
+4. Let's customize this new layer by changing the color. In the GIS Layer/Browser Panel, select the top layer (corresponds to the last layer you added) and right click to **Edit Symbology**. Then change the **Stroke Color** to a color of your choice. You can also change the Stroke Width and check the result after pressing \*_OK_.
+5. In a similar way, you can edit the symbology of the 'US Counties' Shapefile Layer we added earlier and change the **Fill Color**, **Stroke Color** and **Stroke Width**.
+6. Do you still see the roads in New-York? Try to adjust the **Opacity** value (default is 1) to a lower value for this Shapefile Layer. Can you see all your layers now?
 
 ```{exercise-end}
 
