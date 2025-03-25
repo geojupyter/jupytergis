@@ -100,8 +100,9 @@ Follow mode allows you to track another user’s activity in the document in rea
 
 ![Follow Mode](images/follow_mode.gif)
 
-````{exercise}
+````{exercise} 1
 :label: enable-follow-mode
+:nonumber:
 
 - Create a new collaborative JupyterGIS session.
 - Share the link with a colleague. If you are using a local installation, you can open a new browser and paste the link to simulate a different user.
@@ -147,8 +148,9 @@ Annotations and comments let you add notes directly on your GIS file, which make
 
 ![Annotation](images/annotation.gif)
 
-```{exercise}
+```{exercise} 2
 :label: add-annotations
+:nonumber:
 
 - Add an annotation to your GIS file. Then add a comment to the annotation.
 - Ask your colleague to locate the annotation and add a reply.
@@ -193,8 +195,9 @@ Real-time collaboration in notebooks is a powerful tool for teams working on cod
 
 ![Notebook](images/notebook.gif)
 
-```{exercise}
+```{exercise} 3
 :label: notebook-collaboration
+:nonumber:
 
 - Create a new notebook and load your GIS document.
 - Ask your colleague to open the notebook, write the code to remove the air quality layer of the GIS file and run the code cell.

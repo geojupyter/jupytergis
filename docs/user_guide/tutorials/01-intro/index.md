@@ -87,8 +87,9 @@ When adding a new source or layer, default names are assigned. It is good practi
 Let's rename the source called 'Custom Shapefile Source' to 'US Counties' so that we can easily identify it in the list when adding a new source.
 ![Rename 'Custom Shapefile Source' to 'US Counties'](images/renameSource.png)
 
-```{exercise}
+```{exercise} 1
 :label: Rename-layer
+:nonumber:
 
 - Rename the **Custom Shapefile Layer** with a meaningful name e.g., **US Counties** for the US County Shapefile Layer.
 
@@ -109,8 +110,9 @@ The reason is that sources are ordered alphabetically, while layers are ordered 
 
 Let's do an exercise to practice adding a new layer.
 
-```{exercise-start}
+```{exercise-start} 2
 :label: add-vector-layer
+:nonumber:
 ```
 
 - Add a new Shapefile Layer to your map:
