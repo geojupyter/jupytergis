@@ -74,9 +74,8 @@ You can also open a new browser window and paste the share link to simulate a di
 
 ### 2.1. Adding and Editing Layers
 
-- From the toolbar, open the layer browser or the add layer menu and add a new layer to your GIS file.
-- The new layer appears immediately for all collaborators in your session.
-- Experiment by adjusting settings like opacity or color, each change is instantly visible to your collaborators.
+- From the toolbar, open the layer browser or the add layer menu and add a new layer to your GIS file. The new layer appears immediately for all collaborators in your session.
+- Experiment by adjusting settings like opacity or color, each change is instantly visible to your collaborators. You can check the [Getting Started with JupyterGIS](../01-intro/index.md) tutorial for more details on how to change the symbology.
 
 ![Add Layers](images/add_layers.gif)
 
