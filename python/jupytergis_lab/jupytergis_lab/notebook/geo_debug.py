@@ -1,4 +1,4 @@
-# from jupyterlab import
+from sidecar import Sidecar
 
 from jupytergis_lab import GISDocument
 
@@ -27,4 +27,7 @@ def geo_debug(geojson_path: str) -> None:
     # TODO: Activate left and right panel -- not sure how feasible yet from Python.
     #       Also, if using sidecar, right panel can't be displayed. Can we open a
     #       "native" JupyterLab pane instead of using sidecar?
-    display(doc)
+
+    sc = Sidecar(title="JupyterGIS sidecar")
+    with sc:
+        display(doc)
