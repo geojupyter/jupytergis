@@ -4,7 +4,7 @@ import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
 import { getMimeType } from '../../../tools';
 import { ISourceFormProps, SourcePropertiesForm } from './sourceform';
-import { FileSelectorWidget } from './fileselectorwidget';
+import { FileSelectorWidget } from '../fileselectorwidget';
 
 /**
  * The form to modify a GeoTiff source.
