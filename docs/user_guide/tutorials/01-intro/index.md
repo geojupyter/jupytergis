@@ -117,11 +117,9 @@ Let's do an exercise to practice adding a new layer.
 ```
 
 1. Add a new Shapefile Layer to your map:
-
-```
-https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip
-```
-
+   ```
+   https://docs.geoserver.org/stable/en/user/_downloads/30e405b790e068c43354367cb08e71bc/nyc_roads.zip
+   ```
 2. Zoom over New-York (USA) and check if you can see the newly added layer.
 3. Rename both the newly added layer and its corresponding source, e.g. 'NYC Roads'.
 4. Let's customize this new layer by changing the color. In the GIS Layer/Browser Panel, select the top layer (corresponds to the last layer you added) and right click to **Edit Symbology**. Then change the **Stroke Color** to a color of your choice. You can also change the Stroke Width and check the result after pressing \*_OK_.
