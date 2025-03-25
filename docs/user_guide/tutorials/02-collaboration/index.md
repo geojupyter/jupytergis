@@ -135,7 +135,7 @@ In order to create annotations, you can right-click anywhere on your GIS file to
 
 ### Adding and Viewing Comments
 
-Once you add an annotation, you can click on it to type your comment. You can then open the right sidebar to view all annotations and comments in the document, and click on the middle button to locate the annotation.
+Once you add an annotation, you can click on it to type your comment. You can open the right sidebar to view all annotations and comments in the document, and click on the middle button to locate the annotation.
 
 ![Annotation](images/annotation.gif)
 
