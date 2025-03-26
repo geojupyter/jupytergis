@@ -5,7 +5,9 @@ import {
 import {
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
-  JupyterGISDoc
+  JupyterGISDoc,
+  IJupyterGISDocTracker,
+  IJupyterGISWidget
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -33,7 +35,7 @@ import {
   requestAPI
 } from '@jupytergis/base';
 import { JupyterGISDocumentWidgetFactory } from '@jupytergis/jupytergis-core';
-import { IJupyterGISDocTracker, IJupyterGISWidget } from '@jupytergis/schema';
+import {  } from '@jupytergis/schema';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
 
 /**
