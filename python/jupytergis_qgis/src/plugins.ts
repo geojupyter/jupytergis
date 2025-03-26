@@ -35,7 +35,6 @@ import {
   requestAPI
 } from '@jupytergis/base';
 import { JupyterGISDocumentWidgetFactory } from '@jupytergis/jupytergis-core';
-import {  } from '@jupytergis/schema';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
 
 /**
