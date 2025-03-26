@@ -1,3 +1,3 @@
 :::{include} ../CHANGELOG.md
-:parser: myst*parser.sphinx*
+:parser: myst_parser.sphinx_
 :::
