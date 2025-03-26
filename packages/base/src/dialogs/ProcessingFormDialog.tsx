@@ -84,14 +84,23 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       label: layers[layerId].name
     }));
 
-    // Modify schema to include layer options if applicable
-    if (options.schema && options.schema.properties?.inputLayer) {
-      options.schema.properties.inputLayer.enum = layerOptions.map(
-        option => option.value
-      );
-      options.schema.properties.inputLayer.enumNames = layerOptions.map(
-        option => option.label
-      );
+    // Modify schema to include layer options and layer name field
+    if (options.schema) {
+      console.log(options.schema.properties?.inputLayer);
+
+      if (options.schema.properties?.inputLayer) {
+        options.schema.properties.inputLayer.enum = layerOptions.map(option => option.value);
+        options.schema.properties.inputLayer.enumNames = layerOptions.map(option => option.label);
+      }
+
+      // Ensure layerName field exists in schema
+      if (!options.schema.properties?.layerName) {
+        options.schema.properties.layerName = {
+          type: 'string',
+          title: 'Output Layer Name',
+          default: ''
+        };
+      }
     }
 
     const filePath = options.model.filePath;
@@ -104,6 +113,14 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       Signal<Dialog<IDict>, boolean>
     >();
 
+    // Custom syncData function to update layer name in the model
+    const syncData = (props: IDict) => {
+      if (props.layerName && props.inputLayer && layers[props.inputLayer]) {
+        layers[props.inputLayer].name = props.layerName;
+      }
+      options.syncData(props);
+    };
+
     const body = (
       <div style={{ overflow: 'hidden' }}>
         <ProcessingFormWrapper
@@ -112,6 +129,7 @@ export class ProcessingFormDialog extends Dialog<IDict> {
           model={jgisModel}
           okSignalPromise={okSignalPromise}
           formErrorSignalPromise={formErrorSignalPromise}
+          syncData={syncData} // Use the modified sync function
         />
       </div>
     );
