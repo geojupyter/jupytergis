@@ -89,15 +89,19 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       console.log(options.schema.properties?.inputLayer);
 
       if (options.schema.properties?.inputLayer) {
-        options.schema.properties.inputLayer.enum = layerOptions.map(option => option.value);
-        options.schema.properties.inputLayer.enumNames = layerOptions.map(option => option.label);
+        options.schema.properties.inputLayer.enum = layerOptions.map(
+          option => option.value
+        );
+        options.schema.properties.inputLayer.enumNames = layerOptions.map(
+          option => option.label
+        );
       }
 
       // Ensure outputLayerName field exists in schema
       if (!options.schema.properties?.outputLayerName) {
         options.schema.properties.outputLayerName = {
           type: 'string',
-          title: 'outputLayerName',
+          title: 'outputLayerName'
           // default: ''
         };
       }
@@ -115,7 +119,11 @@ export class ProcessingFormDialog extends Dialog<IDict> {
 
     // Custom syncData function to update layer name in the model
     const syncData = (props: IDict) => {
-      if (props.outputLayerName && props.inputLayer && layers[props.inputLayer]) {
+      if (
+        props.outputLayerName &&
+        props.inputLayer &&
+        layers[props.inputLayer]
+      ) {
         layers[props.inputLayer].name = props.outputLayerName;
       }
       options.syncData(props);
