@@ -18,7 +18,7 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
     parentType: 'dialog' | 'panel'
   ) => void;
   model: IJupyterGISModel;
-  processingType: 'buffer' | 'dissolve' | 'export';
+  processingType: 'Buffer' | 'Dissolve' | 'Export';
 }
 
 /**
@@ -47,11 +47,11 @@ const ProcessingFormWrapper = (props: IProcessingFormWrapperProps) => {
 
   let FormComponent;
   switch (props.processingType) {
-    case 'dissolve':
+    case 'Dissolve':
       FormComponent = DissolveForm;
       break;
-    case 'buffer':
-    case 'export':
+    case 'Buffer':
+    case 'Export':
     default:
       FormComponent = BaseForm;
   }
