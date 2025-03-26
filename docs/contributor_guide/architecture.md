@@ -36,7 +36,7 @@ JupyterGIS is a monorepo containing TypeScript and Python packages.
     JupyterLite.
   * `jupytergis_qgis`: Enables importing and exporting QGIS project files.
 * `packages/`: The TypeScript packages.
-  * `base/`: 
+  * `base/`:
     * `src/index.ts`: Entrypoint for Typescript code.
     * :star: `src/constants.ts`: Defines all the JupyterGIS command names and
       corresponding icons.
