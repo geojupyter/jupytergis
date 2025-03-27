@@ -40,7 +40,10 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
       }
 
       let tiff;
-      if (sourceInfo.url.startsWith('http') || sourceInfo.url.startsWith('https')) {
+      if (
+        sourceInfo.url.startsWith('http') ||
+        sourceInfo.url.startsWith('https')
+      ) {
         // Handle remote GeoTIFF file
         tiff = await fromUrl(sourceInfo.url);
       } else {
