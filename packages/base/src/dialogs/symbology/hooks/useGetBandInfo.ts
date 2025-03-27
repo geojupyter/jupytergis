@@ -1,6 +1,7 @@
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
-import { fromUrl } from 'geotiff';
+import { fromUrl, fromBlob } from 'geotiff';
+import { loadFile } from '../../../tools';
 
 export interface IBandHistogram {
   buckets: number[];
@@ -38,8 +39,30 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
         return;
       }
 
-      // TODO Get band names + get band stats
-      const tiff = await fromUrl(sourceInfo.url);
+      let tiff;
+      if (
+        sourceInfo.url.startsWith('http') ||
+        sourceInfo.url.startsWith('https')
+      ) {
+        // Handle remote GeoTIFF file
+        tiff = await fromUrl(sourceInfo.url);
+      } else {
+        // Handle local GeoTIFF file
+        const preloadedFile = await loadFile({
+          filepath: sourceInfo.url,
+          type: 'GeoTiffSource',
+          model
+        });
+
+        if (!preloadedFile.file) {
+          setError('Failed to load local file.');
+          setLoading(false);
+          return;
+        }
+
+        tiff = await fromBlob(preloadedFile.file);
+      }
+
       const image = await tiff.getImage();
       const numberOfBands = image.getSamplesPerPixel();
 
