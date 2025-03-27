@@ -5,9 +5,7 @@ from jupytergis_lab import GISDocument
 
 def geo_debug(geojson_path: str) -> None:
     """Run a JupyterGIS data interaction interface alongside a Notebook."""
-    # TODO: allow user to specify a different project file;
-    # TODO: Just create the .jgis file
-    doc = GISDocument("debug.jGIS")
+    doc = GISDocument()
 
     # TODO: Basemap choices
     doc.add_raster_layer(
