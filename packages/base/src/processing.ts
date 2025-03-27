@@ -1,0 +1,200 @@
+import { IDict, IJGISLayer, IJGISSource, IJupyterGISModel, IJGISFormSchemaRegistry, } from '@jupytergis/schema';
+import { getGdal } from './gdal';
+import { JupyterGISTracker } from './types';
+import { UUID } from '@lumino/coreutils';
+import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
+import { getGeoJSONDataFromLayerSource } from './tools';
+
+
+/**
+ * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
+ */
+export function getSingleSelectedLayer(tracker: JupyterGISTracker): IJGISLayer | null {
+  const model = tracker.currentWidget?.model as IJupyterGISModel;
+  if (!model) {
+    return null;
+  }
+
+  const localState = model.sharedModel.awareness.getLocalState();
+  if (!localState || !localState['selected']?.value) {
+    return null;
+  }
+
+  const selectedLayers = Object.keys(localState['selected'].value);
+
+  // Ensure only one layer is selected
+  if (selectedLayers.length !== 1) {
+    return null;
+  }
+
+  const selectedLayerId = selectedLayers[0];
+  const layers = model.sharedModel.layers ?? {};
+  const selectedLayer = layers[selectedLayerId];
+
+  return selectedLayer && selectedLayer.parameters ? selectedLayer : null;
+}
+
+/**
+ * Check if a valid vector layer is selected
+ */
+export function isLayerTypeSupported(tracker: any): boolean {
+  const selectedLayer = getSingleSelectedLayer(tracker);
+  return selectedLayer
+    ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
+    : false;
+}
+
+/**
+ * Generalized processing function for Buffer & Dissolve
+ */
+export async function processLayer(
+  tracker: JupyterGISTracker,
+  formSchemaRegistry: IJGISFormSchemaRegistry,
+  processingType: 'Buffer' | 'Dissolve',
+  sqlQueryFn: (layerName: string, param: any) => string
+) {
+  const selected = getSingleSelectedLayer(tracker);
+  if (!selected || !tracker.currentWidget) {
+    return;
+  }
+
+  const model = tracker.currentWidget.model;
+  const sources = model?.sharedModel.sources ?? {};
+  // const layers = model?.sharedModel.layers ?? {};
+
+  const geojsonString = await getLayerGeoJSON(selected, sources, model);
+  if (!geojsonString) {
+    return;
+  }
+
+  const schema = {
+    ...(formSchemaRegistry.getSchemas().get(processingType) as IDict)
+  };
+  const selectedLayerId = Object.keys(
+    model?.sharedModel.awareness.getLocalState()?.selected?.value || {}
+  )[0];
+
+  // Open ProcessingFormDialog
+  const formValues = await new Promise<IDict>(resolve => {
+    const dialog = new ProcessingFormDialog({
+      title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
+      schema,
+      model,
+      sourceData: { inputLayer: selectedLayerId },
+      formContext: 'create',
+      processingType,
+      syncData: (props: IDict) => {
+        resolve(props);
+        dialog.dispose();
+      }
+    });
+    dialog.launch();
+  });
+
+  if (!formValues) {
+    return;
+  }
+
+  const processParam =
+    processingType === 'Buffer'
+      ? formValues.bufferDistance
+      : formValues.dissolveField;
+  await executeSQLProcessing(
+    model,
+    geojsonString,
+    sqlQueryFn,
+    processParam,
+    selected.name,
+    processingType
+  );
+}
+
+/**
+ * Extract GeoJSON from selected layer's source
+ */
+export async function getLayerGeoJSON(
+  layer: IJGISLayer,
+  sources: IDict,
+  model: IJupyterGISModel
+): Promise<string | null> {
+  if (!layer.parameters || !layer.parameters.source) {
+    console.error('Selected layer does not have a valid source.');
+    return null;
+  }
+
+  const source = sources[layer.parameters.source];
+  if (!source || !source.parameters) {
+    console.error(
+      `Source with ID ${layer.parameters.source} not found or missing path.`
+    );
+    return null;
+  }
+
+  return await getGeoJSONDataFromLayerSource(source, model);
+}
+
+/**
+ * Execute SQL processing on the layer
+ */
+export async function executeSQLProcessing(
+  model: IJupyterGISModel,
+  geojsonString: string,
+  sqlQueryFn: (layerName: string, param: any) => string,
+  processParam: any,
+  layerNamePrefix: string,
+  processingType: 'Buffer' | 'Dissolve'
+) {
+  const geoFile = new File(
+    [new Blob([geojsonString], { type: 'application/geo+json' })],
+    'data.geojson',
+    {
+      type: 'application/geo+json'
+    }
+  );
+
+  const Gdal = await getGdal();
+  const result = await Gdal.open(geoFile);
+
+  if (result.datasets.length === 0) {
+    return;
+  }
+
+  const dataset = result.datasets[0] as any;
+  const layerName = dataset.info.layers[0].name;
+  const sqlQuery = sqlQueryFn(layerName, processParam);
+
+  const options = [
+    '-f',
+    'GeoJSON',
+    '-dialect',
+    'SQLITE',
+    '-sql',
+    sqlQuery,
+    'output.geojson'
+  ];
+
+  const outputFilePath = await Gdal.ogr2ogr(dataset, options);
+  const processedBytes = await Gdal.getFileBytes(outputFilePath);
+  const processedGeoJSONString = new TextDecoder().decode(processedBytes);
+  Gdal.close(dataset);
+
+  const processedGeoJSON = JSON.parse(processedGeoJSONString);
+
+  // Store in shared model
+  const newSourceId = UUID.uuid4();
+  const sourceModel: IJGISSource = {
+    type: 'GeoJSONSource',
+    name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`,
+    parameters: { data: processedGeoJSON }
+  };
+
+  const layerModel: IJGISLayer = {
+    type: 'VectorLayer',
+    parameters: { source: newSourceId },
+    visible: true,
+    name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`
+  };
+
+  model.sharedModel.addSource(newSourceId, sourceModel);
+  model.addLayer(UUID.uuid4(), layerModel);
+}
