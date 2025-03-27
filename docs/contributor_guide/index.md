@@ -13,4 +13,5 @@ code_quality
 releasing
 docs
 troubleshooting
+tutorial_writing_guide
 ```
