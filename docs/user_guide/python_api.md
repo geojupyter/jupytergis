@@ -9,7 +9,7 @@ add raster or vector layers and apply filtering.
 
 You can open an existing QGIS project and **display it in your Jupyter Notebook**:
 
-```Python
+```python
 from jupytergis import GISDocument
 
 doc = GISDocument('file.qgz')
