@@ -26,6 +26,6 @@ def geo_debug(geojson_path: str) -> None:
     #       Also, if using sidecar, right panel can't be displayed. Can we open a
     #       "native" JupyterLab pane instead of using sidecar?
 
-    sc = Sidecar(title="JupyterGIS sidecar")
+    sc = Sidecar(title="JupyterGIS sidecar", anchor="split-right")
     with sc:
         display(doc)
