@@ -24,7 +24,7 @@ JupyterLab extension or the Python API, will see the edits you make.
 Creating a `GISDocument` object without providing a path to an existing file would create a
 new empty document:
 
-```Python
+```python
 from jupytergis import GISDocument
 
 doc = GISDocument()
