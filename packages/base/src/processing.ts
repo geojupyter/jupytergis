@@ -1,15 +1,22 @@
-import { IDict, IJGISLayer, IJGISSource, IJupyterGISModel, IJGISFormSchemaRegistry, } from '@jupytergis/schema';
+import {
+  IDict,
+  IJGISLayer,
+  IJGISSource,
+  IJupyterGISModel,
+  IJGISFormSchemaRegistry
+} from '@jupytergis/schema';
 import { getGdal } from './gdal';
 import { JupyterGISTracker } from './types';
 import { UUID } from '@lumino/coreutils';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 import { getGeoJSONDataFromLayerSource } from './tools';
 
-
 /**
  * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
  */
-export function getSingleSelectedLayer(tracker: JupyterGISTracker): IJGISLayer | null {
+export function getSingleSelectedLayer(
+  tracker: JupyterGISTracker
+): IJGISLayer | null {
   const model = tracker.currentWidget?.model as IJupyterGISModel;
   if (!model) {
     return null;

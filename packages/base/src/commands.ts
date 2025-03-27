@@ -7,7 +7,7 @@ import {
   IJupyterGISModel,
   LayerType,
   SelectionType,
-  SourceType,
+  SourceType
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -25,7 +25,11 @@ import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
 import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
-import { getSingleSelectedLayer, isLayerTypeSupported, processLayer } from './processing';
+import {
+  getSingleSelectedLayer,
+  isLayerTypeSupported,
+  processLayer
+} from './processing';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -48,7 +52,6 @@ function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
     });
   });
 }
-
 
 /**
  * Add the commands to the application's command registry.
