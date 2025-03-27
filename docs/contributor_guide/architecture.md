@@ -4,7 +4,7 @@ JupyterGIS is a JupyterLab extension (based on the structure defined by
 [jupyterlab/extensions-cookiecutter-ts](https://github.com/jupyterlab/extension-cookiecutter-ts).
 
 Its architecture is based on QuantStack's
-[JupyterCAD](https://github.com/QuantStack/JupyterCAD) architecture.
+[JupyterCAD](https://github.com/jupytercad/JupyterCAD) architecture.
 
 
 ## JupyterLab
