@@ -2,16 +2,13 @@
 
 ## Development install
 
-```{eval-rst}
-.. note::
+:::{note}
+You will need `Node.js <https://nodejs.org/>`_ to build the extension package.
 
-    You will need `Node.js <https://nodejs.org/>`_ to build the extension package.
-
-    The ``jlpm`` command is JupyterLab's pinned version of
-    `yarn <https://yarnpkg.com/>`__ that is installed with JupyterLab. You may use
-    `yarn <https://yarnpkg.com/>`__ or `npm <https://www.npmjs.com/>`_ in lieu of ``jlpm`` below.
-
-```
+The ``jlpm`` command is JupyterLab's pinned version of
+`yarn <https://yarnpkg.com/>`__ that is installed with JupyterLab. You may use
+`yarn <https://yarnpkg.com/>`__ or `npm <https://www.npmjs.com/>`_ in lieu of ``jlpm`` below.
+:::
 
 ### Clone the source
 
@@ -25,37 +22,31 @@ cd jupytergis
 
 ### Create a virtual environment
 
-```{eval-rst}
-.. tabs::
+`````````{tabs}
+``````{tab} Micromamba (Recommended)
+```bash
+# Create a virtual environment
 
-    .. tab:: Micromamba (recommended)
+micromamba create --name jupytergis_dev -c conda-forge pip "nodejs<22" qgis
 
-        .. code-block:: bash
+# Activate it
+micromamba activate jupytergis_dev
 
-            # Create a virtual environment
-            micromamba create --name jupytergis_dev -c conda-forge pip "nodejs<22" qgis
+``````{tab} Plain python
+:::{note}
+You may need to install some non-Python dependencies (e.g. QGIS,
+Node.js) separately when using this method.
+:::
 
-            # Activate it
-            micromamba activate jupytergis_dev
+```bash
+# Create a virtual environment
+python -m venv .venv
 
-
-    .. tab:: Plain python
-
-        .. note::
-
-            You may need to install some non-Python dependencies (e.g. QGIS,
-            Node.js) separately when using this method.
-
-
-        .. code-block:: bash
-
-            # Create a virtual environment
-            python -m venv .venv
-
-            # Activate it
-            source .venv/bin/activate
-
+# Activate it
+source .venv/bin/activate
 ```
+``````
+`````````
 
 ### Install dependencies and build
 
@@ -69,17 +60,14 @@ python scripts/dev-install.py
 jlpm run build
 ```
 
-```{eval-rst}
-.. note::
+:::{note}
+ By default, the ``jlpm run build`` command generates the source maps for this extension to make it easier to debug using the browser dev tools.
+To also generate source maps for the JupyterLab core extensions, you can run the following command:
 
-    By default, the ``jlpm run build`` command generates the source maps for this extension to make it easier to debug using the browser dev tools.
-    To also generate source maps for the JupyterLab core extensions, you can run the following command:
-
-    .. code-block:: bash
-
-        jupyter lab build --minimize=False
-
+```bash
+jupyter lab build --minimize=False
 ```
+:::
 
 ### Watch for changes and rebuild
 
@@ -95,13 +83,9 @@ jupyter lab
 
 With the watch command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
 
-```{eval-rst}
-.. note::
-
-   ``jlpm run watch`` will sit and wait for a change once started. Edit a file
-   to trigger a build.
-
-```
+:::{note}
+ ``jlpm run watch`` will sit and wait for a change once started. Edit a file to trigger a build.
+:::
 
 ## Development uninstall
 
