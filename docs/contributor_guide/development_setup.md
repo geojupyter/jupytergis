@@ -23,7 +23,7 @@ cd jupytergis
 ### Create a virtual environment
 
 ```````{tabs}
-``````{tab} Micromamba (Recommended)
+``````{group-tab} Micromamba (Recommended)
 ```bash
 # Create a virtual environment
 
@@ -32,7 +32,7 @@ micromamba create --name jupytergis_dev -c conda-forge pip "nodejs<22" qgis
 # Activate it
 micromamba activate jupytergis_dev
 
-``````{tab} Plain python
+``````{group-tab} Plain python
 ```note
 You may need to install some non-Python dependencies (e.g. QGIS,
 Node.js) separately when using this method.
