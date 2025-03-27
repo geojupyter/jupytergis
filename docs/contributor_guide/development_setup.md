@@ -33,10 +33,10 @@ micromamba create --name jupytergis_dev -c conda-forge pip "nodejs<22" qgis
 micromamba activate jupytergis_dev
 
 ``````{tab} Plain python
-:::{note}
+```note
 You may need to install some non-Python dependencies (e.g. QGIS,
 Node.js) separately when using this method.
-:::
+```
 
 ```bash
 # Create a virtual environment
