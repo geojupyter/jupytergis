@@ -26,7 +26,7 @@ import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
 import { getGdal } from './gdal';
-import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
+import { getGeoJSONDataFromLayerSource, downloadFile, uint8ArrayToBase64 } from './tools';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 
 interface ICreateEntry {
@@ -1423,18 +1423,18 @@ export function addCommands(
       const sources = model.sharedModel.sources ?? {};
 
       const exportSchema = {
-        ...(formSchemaRegistry.getSchemas().get('ExportGeoTIFFSchema') as IDict)
+        ...(formSchemaRegistry.getSchemas().get('Rasterize') as IDict)
       };
       console.log(exportSchema);
 
       const formValues = await new Promise<IDict>(resolve => {
         const dialog = new ProcessingFormDialog({
-          title: 'Download GeoTIFF',
+          title: 'Rasterize Layer',
           schema: exportSchema,
           model,
           formContext: 'create',
           processingType: 'export',
-          sourceData: { resolutionX: 1200, resolutionY: 1200 },
+          sourceData: { resolutionX: 1200, resolutionY: 1200, outputLayerName: selectedLayer.name + ' Rasterized', },
           syncData: (props: IDict) => {
             resolve(props);
             dialog.dispose();
@@ -1448,7 +1448,7 @@ export function addCommands(
         return;
       }
 
-      const exportFileName = formValues.exportFileName;
+      const outputFileName = formValues.outputLayerName;
       const resolutionX = formValues.resolutionX ?? 1200;
       const resolutionY = formValues.resolutionY ?? 1200;
       const sourceId = selectedLayer.parameters.source;
@@ -1496,7 +1496,7 @@ export function addCommands(
       const base64String = uint8ArrayToBase64(exportedBytes);
 
 
-      const savePath = `examples/${exportFileName}.tif`;
+      const savePath = `examples/${outputFileName}.tif`;
 
       await app.serviceManager.contents.save(savePath, {
         type: 'file',
@@ -1505,6 +1505,24 @@ export function addCommands(
       });
 
       Gdal.close(dataset);
+
+      // Store in shared model
+      const newSourceId = UUID.uuid4();
+      const sourceModel: IJGISSource = {
+        type: 'GeoTiffSource',
+        name: outputFileName,
+        parameters: { urls: [{url: savePath, min: 0, max: 1000}] }
+      };
+
+      const layerModel: IJGISLayer = {
+        type: 'RasterLayer',
+        parameters: { source: newSourceId },
+        visible: true,
+        name: outputFileName
+      };
+
+      model.sharedModel.addSource(newSourceId, sourceModel);
+      model.addLayer(UUID.uuid4(), layerModel);
     }
   });
 
