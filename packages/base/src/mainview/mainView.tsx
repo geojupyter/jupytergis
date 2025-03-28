@@ -634,12 +634,31 @@ export class MainView extends React.Component<IProps, IStates> {
         };
         const sources = await Promise.all(
           sourceParameters.urls.map(async sourceInfo => {
-            return {
-              ...addNoData(sourceInfo),
-              min: sourceInfo.min,
-              max: sourceInfo.max,
-              url: sourceInfo.url
-            };
+            const isRemote =
+              sourceInfo.url?.startsWith('http://') ||
+              sourceInfo.url?.startsWith('https://');
+
+            if (isRemote) {
+              return {
+                ...addNoData(sourceInfo),
+                min: sourceInfo.min,
+                max: sourceInfo.max,
+                url: sourceInfo.url
+              };
+            } else {
+              const geotiff = await loadFile({
+                filepath: sourceInfo.url ?? '',
+                type: 'GeoTiffSource',
+                model: this._model
+              });
+              return {
+                ...addNoData(sourceInfo),
+                min: sourceInfo.min,
+                max: sourceInfo.max,
+                geotiff,
+                url: URL.createObjectURL(geotiff.file)
+              };
+            }
           })
         );
 

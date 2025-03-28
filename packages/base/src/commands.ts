@@ -7,7 +7,9 @@ import {
   IJupyterGISModel,
   LayerType,
   SelectionType,
-  SourceType
+  SourceType,
+  IJGISLayer,
+  IJGISSource
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -15,7 +17,7 @@ import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { CommandIDs, icons } from './constants';
 import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
@@ -24,9 +26,7 @@ import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
 import { getGdal } from './gdal';
-import { getGeoJSONDataFromLayerSource, downloadFile, uint8ArrayToBase64 } from './tools';
-import { IJGISLayer, IJGISSource } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
+import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 
 interface ICreateEntry {
@@ -382,6 +382,7 @@ export function addCommands(
           model: model,
           sourceData: {
             inputLayer: selectedLayerId,
+            outputLayerName: selected.name + ' Buffer',
             bufferDistance: 10
           },
           formContext: 'create',
@@ -402,6 +403,7 @@ export function addCommands(
       const bufferDistance = formValues.bufferDistance;
       const inputLayerId = formValues.inputLayer;
       const inputLayer = layers[inputLayerId];
+      const outputLayerName = formValues.outputLayerName;
 
       if (!inputLayer.parameters) {
         console.error('Selected layer not found.');
@@ -461,7 +463,7 @@ export function addCommands(
         const newSourceId = UUID.uuid4();
         const sourceModel: IJGISSource = {
           type: 'GeoJSONSource',
-          name: inputLayer.name + ' Buffer',
+          name: outputLayerName,
           parameters: { data: bufferedGeoJSON }
         };
 
@@ -469,7 +471,7 @@ export function addCommands(
           type: 'VectorLayer',
           parameters: { source: newSourceId },
           visible: true,
-          name: inputLayer.name + ' Buffer'
+          name: outputLayerName
         };
 
         model.sharedModel.addSource(newSourceId, sourceModel);
@@ -560,6 +562,7 @@ export function addCommands(
           model: model,
           sourceData: {
             inputLayer: selectedLayerId,
+            outputLayerName: selected.name + ' Dissolved',
             dissolveField: fieldNames[0] // Default to the first field
           },
           formContext: 'create',
@@ -578,6 +581,8 @@ export function addCommands(
       }
 
       const dissolveField = formValues.dissolveField;
+      const outputLayerName = formValues.outputLayerName;
+
       const fileBlob = new Blob([geojsonString], {
         type: 'application/geo+json'
       });
@@ -620,7 +625,7 @@ export function addCommands(
         const newSourceId = UUID.uuid4();
         const sourceModel: IJGISSource = {
           type: 'GeoJSONSource',
-          name: selected.name + ' Dissolved',
+          name: outputLayerName,
           parameters: { data: dissolvedGeoJSON }
         };
 
@@ -628,7 +633,7 @@ export function addCommands(
           type: 'VectorLayer',
           parameters: { source: newSourceId },
           visible: true,
-          name: selected.name + ' Dissolved'
+          name: outputLayerName
         };
 
         model.sharedModel.addSource(newSourceId, sourceModel);
