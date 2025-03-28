@@ -26,7 +26,11 @@ import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
 import { getGdal } from './gdal';
-import { getGeoJSONDataFromLayerSource, downloadFile, uint8ArrayToBase64 } from './tools';
+import {
+  getGeoJSONDataFromLayerSource,
+  downloadFile,
+  uint8ArrayToBase64
+} from './tools';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 
 interface ICreateEntry {
@@ -1434,7 +1438,11 @@ export function addCommands(
           model,
           formContext: 'create',
           processingType: 'export',
-          sourceData: { resolutionX: 1200, resolutionY: 1200, outputLayerName: selectedLayer.name + ' Rasterized', },
+          sourceData: {
+            resolutionX: 1200,
+            resolutionY: 1200,
+            outputLayerName: selectedLayer.name + ' Rasterized'
+          },
           syncData: (props: IDict) => {
             resolve(props);
             dialog.dispose();
@@ -1495,8 +1503,15 @@ export function addCommands(
 
       const base64String = uint8ArrayToBase64(exportedBytes);
 
+      const jgisFilePath = tracker.currentWidget?.model.filePath;
+      const jgisDir = jgisFilePath
+        ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
+        : '';
 
-      const savePath = `examples/${outputFileName}.tif`;
+      // Ensure the path is valid and construct the save path
+      const savePath = jgisDir
+        ? `${jgisDir}/${outputFileName}.tif`
+        : `${outputFileName}.tif`;
 
       await app.serviceManager.contents.save(savePath, {
         type: 'file',
@@ -1511,11 +1526,13 @@ export function addCommands(
       const sourceModel: IJGISSource = {
         type: 'GeoTiffSource',
         name: outputFileName,
-        parameters: { urls: [{url: savePath, min: 0, max: 1000}] }
+        parameters: {
+          urls: [{ url: `${outputFileName}.tif`, min: 0, max: 1000 }]
+        }
       };
 
       const layerModel: IJGISLayer = {
-        type: 'RasterLayer',
+        type: 'WebGlLayer',
         parameters: { source: newSourceId },
         visible: true,
         name: outputFileName
