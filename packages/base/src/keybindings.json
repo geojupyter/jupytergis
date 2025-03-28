@@ -13,12 +13,12 @@
     "command": "jupytergis:identify",
     "keys": ["Escape"],
     "selector": ".data-jgis-keybinding"
-  }, 
+  },
   {
     "command": "jupytergis:identify",
     "keys": ["I"],
     "selector": ".data-jgis-keybinding"
-  },                             
+  },
   {
     "command": "jupytergis:removeSource",
     "keys": ["Delete"],
