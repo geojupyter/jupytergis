@@ -26,7 +26,11 @@ import keybindings from './keybindings.json';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
 import { getGdal } from './gdal';
-import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
+import {
+  getGeoJSONDataFromLayerSource,
+  downloadFile,
+  uint8ArrayToBase64
+} from './tools';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 
 interface ICreateEntry {
@@ -1402,6 +1406,140 @@ export function addCommands(
         `${exportFileName}.geojson`,
         'application/geo+json'
       );
+    }
+  });
+
+  commands.addCommand(CommandIDs.rasterize, {
+    label: trans.__('Rasterize'),
+    isEnabled: () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      return selectedLayer
+        ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
+        : false;
+    },
+    execute: async () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return;
+      }
+
+      const model = tracker.currentWidget?.model as IJupyterGISModel;
+      const sources = model.sharedModel.sources ?? {};
+
+      const exportSchema = {
+        ...(formSchemaRegistry.getSchemas().get('Rasterize') as IDict)
+      };
+      console.log(exportSchema);
+
+      const formValues = await new Promise<IDict>(resolve => {
+        const dialog = new ProcessingFormDialog({
+          title: 'Rasterize Layer',
+          schema: exportSchema,
+          model,
+          formContext: 'create',
+          processingType: 'export',
+          sourceData: {
+            resolutionX: 1200,
+            resolutionY: 1200,
+            outputLayerName: selectedLayer.name + ' Rasterized'
+          },
+          syncData: (props: IDict) => {
+            resolve(props);
+            dialog.dispose();
+          }
+        });
+
+        dialog.launch();
+      });
+
+      if (!formValues || !selectedLayer.parameters) {
+        return;
+      }
+
+      const outputFileName = formValues.outputLayerName;
+      const resolutionX = formValues.resolutionX ?? 1200;
+      const resolutionY = formValues.resolutionY ?? 1200;
+      const sourceId = selectedLayer.parameters.source;
+      const source = sources[sourceId];
+
+      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
+      if (!geojsonString) {
+        return;
+      }
+
+      const Gdal = await getGdal();
+      const datasetList = await Gdal.open(
+        new File([geojsonString], 'data.geojson', {
+          type: 'application/geo+json'
+        })
+      );
+      const dataset = datasetList.datasets[0];
+
+      if (!dataset) {
+        console.error('Dataset could not be opened.');
+        return;
+      }
+
+      const options = [
+        '-of',
+        'GTiff',
+        '-ot',
+        'Float32',
+        '-a_nodata',
+        '-1.0',
+        '-burn',
+        '0.0',
+        '-ts',
+        resolutionX.toString(),
+        resolutionY.toString(),
+        '-l',
+        'data',
+        'data.geojson',
+        'output.tif'
+      ];
+
+      const outputFilePath = await Gdal.gdal_rasterize(dataset, options);
+      const exportedBytes = await Gdal.getFileBytes(outputFilePath);
+
+      const base64String = uint8ArrayToBase64(exportedBytes);
+
+      const jgisFilePath = tracker.currentWidget?.model.filePath;
+      const jgisDir = jgisFilePath
+        ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
+        : '';
+
+      // Ensure the path is valid and construct the save path
+      const savePath = jgisDir
+        ? `${jgisDir}/${outputFileName}.tif`
+        : `${outputFileName}.tif`;
+
+      await app.serviceManager.contents.save(savePath, {
+        type: 'file',
+        format: 'base64',
+        content: base64String
+      });
+
+      Gdal.close(dataset);
+
+      // Store in shared model
+      const newSourceId = UUID.uuid4();
+      const sourceModel: IJGISSource = {
+        type: 'GeoTiffSource',
+        name: outputFileName,
+        parameters: {
+          urls: [{ url: `${outputFileName}.tif`, min: 0, max: 1000 }]
+        }
+      };
+
+      const layerModel: IJGISLayer = {
+        type: 'WebGlLayer',
+        parameters: { source: newSourceId },
+        visible: true,
+        name: outputFileName
+      };
+
+      model.sharedModel.addSource(newSourceId, sourceModel);
+      model.addLayer(UUID.uuid4(), layerModel);
     }
   });
 
