@@ -51,7 +51,6 @@ export function isLayerTypeSupported(tracker: any): boolean {
     : false;
 }
 
-
 /**
  * Extract GeoJSON from selected layer's source
  */
@@ -76,8 +75,11 @@ export async function getLayerGeoJSON(
   return await getGeoJSONDataFromLayerSource(source, model);
 }
 
-
-export type GdalFunctions = 'ogr2ogr'| 'gdal_rasterize' | 'gdalwarp' | 'gdal_translate';
+export type GdalFunctions =
+  | 'ogr2ogr'
+  | 'gdal_rasterize'
+  | 'gdalwarp'
+  | 'gdal_translate';
 
 /**
  * Generalized processing function for Buffer & Dissolve
@@ -118,7 +120,10 @@ export async function processLayer(
       title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
       schema,
       model,
-      sourceData: { inputLayer: selectedLayerId, outputLayerName: selected.name },
+      sourceData: {
+        inputLayer: selectedLayerId,
+        outputLayerName: selected.name
+      },
       formContext: 'create',
       processingType,
       syncData: (props: IDict) => {

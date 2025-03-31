@@ -329,9 +329,12 @@ export function addCommands(
         `,
         gdalFunction: 'ogr2ogr',
         options: (sqlQuery: string) => [
-          '-f', 'GeoJSON',
-          '-dialect', 'SQLITE',
-          '-sql', sqlQuery,
+          '-f',
+          'GeoJSON',
+          '-dialect',
+          'SQLITE',
+          '-sql',
+          sqlQuery,
           'output.geojson'
         ]
       });
@@ -350,9 +353,12 @@ export function addCommands(
         `,
         gdalFunction: 'ogr2ogr',
         options: (sqlQuery: string) => [
-          '-f', 'GeoJSON',
-          '-dialect', 'SQLITE',
-          '-sql', sqlQuery,
+          '-f',
+          'GeoJSON',
+          '-dialect',
+          'SQLITE',
+          '-sql',
+          sqlQuery,
           'output.geojson'
         ]
       });
