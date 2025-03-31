@@ -9,7 +9,16 @@ You can use `conda` or `mamba` as drop-in replacements for `micromamba` in the s
 below, but they will not be as fast.
 :::
 
-## 1. Create the environment from `environment-docs.yml`
+## 0. Build JupyterGIS JavaScript packages
+
+Follow the [development environment setup instructions](./development_setup.rst).
+From the root of the repo, run `jlpm build`.
+
+## 1. Create the docs environment from `environment-docs.yml`
+
+:::{important}
+Ensure all other environments are deactivated first!
+:::
 
 ```
 micromamba create -f environment-docs.yml
