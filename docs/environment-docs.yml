@@ -18,7 +18,7 @@ dependencies:
   - sphinx-togglebutton
   - myst-parser
   - xeus-python # TODO: Do we need this?
-  - pip:
-      # Install JupyterGIS so we can autodoc:
-      - ../python/jupytergis_core
-      - ../python/jupytergis_lab
+  # - pip:
+  #     # Install JupyterGIS so we can autodoc:
+  #     - ../python/jupytergis_core
+  #     - ../python/jupytergis_lab
