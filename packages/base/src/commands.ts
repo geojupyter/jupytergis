@@ -322,15 +322,19 @@ export function addCommands(
     label: trans.__('Buffer'),
     isEnabled: () => isLayerTypeSupported(tracker),
     execute: async () => {
-      await processLayer(
-        tracker,
-        formSchemaRegistry,
-        'Buffer',
-        (layerName, bufferDistance) => `
-        SELECT ST_Union(ST_Buffer(geometry, ${bufferDistance})) AS geometry, *
-        FROM "${layerName}"
-      `
-      );
+      await processLayer(tracker, formSchemaRegistry, 'Buffer', {
+        sqlQueryFn: (layerName, bufferDistance) => `
+          SELECT ST_Union(ST_Buffer(geometry, ${bufferDistance})) AS geometry, *
+          FROM "${layerName}"
+        `,
+        gdalFunction: 'ogr2ogr',
+        options: (sqlQuery: string) => [
+          '-f', 'GeoJSON',
+          '-dialect', 'SQLITE',
+          '-sql', sqlQuery,
+          'output.geojson'
+        ]
+      });
     }
   });
 
@@ -338,16 +342,20 @@ export function addCommands(
     label: trans.__('Dissolve'),
     isEnabled: () => isLayerTypeSupported(tracker),
     execute: async () => {
-      await processLayer(
-        tracker,
-        formSchemaRegistry,
-        'Dissolve',
-        (layerName, dissolveField) => `
-        SELECT ST_Union(geometry) AS geometry, ${dissolveField}
-        FROM ${layerName}
-        GROUP BY ${dissolveField}
-      `
-      );
+      await processLayer(tracker, formSchemaRegistry, 'Dissolve', {
+        sqlQueryFn: (layerName, dissolveField) => `
+          SELECT ST_Union(geometry) AS geometry, ${dissolveField}
+          FROM "${layerName}"
+          GROUP BY ${dissolveField}
+        `,
+        gdalFunction: 'ogr2ogr',
+        options: (sqlQuery: string) => [
+          '-f', 'GeoJSON',
+          '-dialect', 'SQLITE',
+          '-sql', sqlQuery,
+          'output.geojson'
+        ]
+      });
     }
   });
 

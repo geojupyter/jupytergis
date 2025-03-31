@@ -51,6 +51,34 @@ export function isLayerTypeSupported(tracker: any): boolean {
     : false;
 }
 
+
+/**
+ * Extract GeoJSON from selected layer's source
+ */
+export async function getLayerGeoJSON(
+  layer: IJGISLayer,
+  sources: IDict,
+  model: IJupyterGISModel
+): Promise<string | null> {
+  if (!layer.parameters || !layer.parameters.source) {
+    console.error('Selected layer does not have a valid source.');
+    return null;
+  }
+
+  const source = sources[layer.parameters.source];
+  if (!source || !source.parameters) {
+    console.error(
+      `Source with ID ${layer.parameters.source} not found or missing path.`
+    );
+    return null;
+  }
+
+  return await getGeoJSONDataFromLayerSource(source, model);
+}
+
+
+export type GdalFunctions = 'ogr2ogr'| 'gdal_rasterize' | 'gdalwarp' | 'gdal_translate';
+
 /**
  * Generalized processing function for Buffer & Dissolve
  */
@@ -58,7 +86,11 @@ export async function processLayer(
   tracker: JupyterGISTracker,
   formSchemaRegistry: IJGISFormSchemaRegistry,
   processingType: 'Buffer' | 'Dissolve',
-  sqlQueryFn: (layerName: string, param: any) => string
+  processingOptions: {
+    sqlQueryFn: (layerName: string, param: any) => string;
+    gdalFunction: GdalFunctions;
+    options: (sqlQuery: string) => string[];
+  }
 ) {
   const selected = getSingleSelectedLayer(tracker);
   if (!selected || !tracker.currentWidget) {
@@ -67,7 +99,6 @@ export async function processLayer(
 
   const model = tracker.currentWidget.model;
   const sources = model?.sharedModel.sources ?? {};
-  // const layers = model?.sharedModel.layers ?? {};
 
   const geojsonString = await getLayerGeoJSON(selected, sources, model);
   if (!geojsonString) {
@@ -106,38 +137,30 @@ export async function processLayer(
     processingType === 'Buffer'
       ? formValues.bufferDistance
       : formValues.dissolveField;
+
+  const fileBlob = new Blob([geojsonString], {
+    type: 'application/geo+json'
+  });
+  const geoFile = new File([fileBlob], 'data.geojson', {
+    type: 'application/geo+json'
+  });
+
+  const Gdal = await getGdal();
+  const result = await Gdal.open(geoFile);
+  const dataset = result.datasets[0] as any;
+  const layerName = dataset.info.layers[0].name;
+
+  const sqlQuery = processingOptions.sqlQueryFn(layerName, processParam);
+  const fullOptions = processingOptions.options(sqlQuery);
+
   await executeSQLProcessing(
     model,
     geojsonString,
-    sqlQueryFn,
-    processParam,
-    selected.name,
+    processingOptions.gdalFunction,
+    fullOptions,
+    layerName,
     processingType
   );
-}
-
-/**
- * Extract GeoJSON from selected layer's source
- */
-export async function getLayerGeoJSON(
-  layer: IJGISLayer,
-  sources: IDict,
-  model: IJupyterGISModel
-): Promise<string | null> {
-  if (!layer.parameters || !layer.parameters.source) {
-    console.error('Selected layer does not have a valid source.');
-    return null;
-  }
-
-  const source = sources[layer.parameters.source];
-  if (!source || !source.parameters) {
-    console.error(
-      `Source with ID ${layer.parameters.source} not found or missing path.`
-    );
-    return null;
-  }
-
-  return await getGeoJSONDataFromLayerSource(source, model);
 }
 
 /**
@@ -146,8 +169,8 @@ export async function getLayerGeoJSON(
 export async function executeSQLProcessing(
   model: IJupyterGISModel,
   geojsonString: string,
-  sqlQueryFn: (layerName: string, param: any) => string,
-  processParam: any,
+  gdalFunction: GdalFunctions,
+  options: string[],
   layerNamePrefix: string,
   processingType: 'Buffer' | 'Dissolve'
 ) {
@@ -167,20 +190,7 @@ export async function executeSQLProcessing(
   }
 
   const dataset = result.datasets[0] as any;
-  const layerName = dataset.info.layers[0].name;
-  const sqlQuery = sqlQueryFn(layerName, processParam);
-
-  const options = [
-    '-f',
-    'GeoJSON',
-    '-dialect',
-    'SQLITE',
-    '-sql',
-    sqlQuery,
-    'output.geojson'
-  ];
-
-  const outputFilePath = await Gdal.ogr2ogr(dataset, options);
+  const outputFilePath = await Gdal[gdalFunction](dataset, options);
   const processedBytes = await Gdal.getFileBytes(outputFilePath);
   const processedGeoJSONString = new TextDecoder().decode(processedBytes);
   Gdal.close(dataset);
