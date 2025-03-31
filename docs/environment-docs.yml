@@ -18,3 +18,5 @@ dependencies:
   - sphinx-togglebutton
   - myst-parser
   - xeus-python # TODO: Do we need this?
+  - pip:
+      - ../python/jupytergis_lab  # For autodoc
