@@ -47,7 +47,7 @@ export function getSingleSelectedLayer(
  */
 export function selectedLayerIsOfType(
   allowedTypes: LayerType[],
-  tracker: any
+  tracker: JupyterGISTracker
 ): boolean {
   const selectedLayer = getSingleSelectedLayer(tracker);
   return selectedLayer ? allowedTypes.includes(selectedLayer.type) : false;
