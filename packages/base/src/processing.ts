@@ -53,7 +53,6 @@ export function selectedLayerIsOfType(
   return selectedLayer ? allowedTypes.includes(selectedLayer.type) : false;
 }
 
-
 /**
  * Extract GeoJSON from selected layer's source
  */
