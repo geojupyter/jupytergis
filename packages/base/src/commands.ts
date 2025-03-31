@@ -28,7 +28,7 @@ import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
   selectedLayerIsOfType,
-  processLayer
+  processSelectedLayer
 } from './processing';
 
 interface ICreateEntry {
@@ -322,7 +322,7 @@ export function addCommands(
     label: trans.__('Buffer'),
     isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
     execute: async () => {
-      await processLayer(tracker, formSchemaRegistry, 'Buffer', {
+      await processSelectedLayer(tracker, formSchemaRegistry, 'Buffer', {
         sqlQueryFn: (layerName, bufferDistance) => `
           SELECT ST_Union(ST_Buffer(geometry, ${bufferDistance})) AS geometry, *
           FROM "${layerName}"
@@ -345,7 +345,7 @@ export function addCommands(
     label: trans.__('Dissolve'),
     isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
     execute: async () => {
-      await processLayer(tracker, formSchemaRegistry, 'Dissolve', {
+      await processSelectedLayer(tracker, formSchemaRegistry, 'Dissolve', {
         sqlQueryFn: (layerName, dissolveField) => `
           SELECT ST_Union(geometry) AS geometry, ${dissolveField}
           FROM "${layerName}"
