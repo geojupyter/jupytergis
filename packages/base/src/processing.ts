@@ -118,7 +118,7 @@ export async function processLayer(
       title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
       schema,
       model,
-      sourceData: { inputLayer: selectedLayerId },
+      sourceData: { inputLayer: selectedLayerId, outputLayerName: selected.name },
       formContext: 'create',
       processingType,
       syncData: (props: IDict) => {
@@ -133,10 +133,18 @@ export async function processLayer(
     return;
   }
 
-  const processParam =
-    processingType === 'Buffer'
-      ? formValues.bufferDistance
-      : formValues.dissolveField;
+  let processParam: any;
+  switch (processingType) {
+    case 'Buffer':
+      processParam = formValues.bufferDistance;
+      break;
+    case 'Dissolve':
+      processParam = formValues.dissolveField;
+      break;
+    default:
+      console.error(`Unsupported processing type: ${processingType}`);
+      return;
+  }
 
   const fileBlob = new Blob([geojsonString], {
     type: 'application/geo+json'
@@ -158,7 +166,7 @@ export async function processLayer(
     geojsonString,
     processingOptions.gdalFunction,
     fullOptions,
-    layerName,
+    formValues.outputLayerName,
     processingType
   );
 }
