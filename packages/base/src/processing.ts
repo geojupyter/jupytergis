@@ -3,7 +3,8 @@ import {
   IJGISLayer,
   IJGISSource,
   IJupyterGISModel,
-  IJGISFormSchemaRegistry
+  IJGISFormSchemaRegistry,
+  LayerType
 } from '@jupytergis/schema';
 import { getGdal } from './gdal';
 import { JupyterGISTracker } from './types';
@@ -42,14 +43,16 @@ export function getSingleSelectedLayer(
 }
 
 /**
- * Check if a valid vector layer is selected
+ * Check if the selected layer is of one of the specified types
  */
-export function isLayerTypeSupported(tracker: any): boolean {
+export function selectedLayerIsOfType(
+  allowedTypes: LayerType[],
+  tracker: any
+): boolean {
   const selectedLayer = getSingleSelectedLayer(tracker);
-  return selectedLayer
-    ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
-    : false;
+  return selectedLayer ? allowedTypes.includes(selectedLayer.type) : false;
 }
+
 
 /**
  * Extract GeoJSON from selected layer's source

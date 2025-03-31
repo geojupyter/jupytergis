@@ -27,7 +27,7 @@ import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
-  isLayerTypeSupported,
+  selectedLayerIsOfType,
   processLayer
 } from './processing';
 
@@ -320,7 +320,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.buffer, {
     label: trans.__('Buffer'),
-    isEnabled: () => isLayerTypeSupported(tracker),
+    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
     execute: async () => {
       await processLayer(tracker, formSchemaRegistry, 'Buffer', {
         sqlQueryFn: (layerName, bufferDistance) => `
@@ -343,7 +343,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.dissolve, {
     label: trans.__('Dissolve'),
-    isEnabled: () => isLayerTypeSupported(tracker),
+    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
     execute: async () => {
       await processLayer(tracker, formSchemaRegistry, 'Dissolve', {
         sqlQueryFn: (layerName, dissolveField) => `
