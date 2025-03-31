@@ -87,7 +87,7 @@ export type GdalFunctions =
 /**
  * Generalized processing function for Buffer & Dissolve
  */
-export async function processLayer(
+export async function processSelectedLayer(
   tracker: JupyterGISTracker,
   formSchemaRegistry: IJGISFormSchemaRegistry,
   processingType: 'Buffer' | 'Dissolve',
