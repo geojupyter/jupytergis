@@ -7,7 +7,9 @@ import {
   IJupyterGISModel,
   LayerType,
   SelectionType,
-  SourceType
+  SourceType,
+  IJGISLayer,
+  IJGISSource
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -15,7 +17,7 @@ import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { CommandIDs, icons } from './constants';
 import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';

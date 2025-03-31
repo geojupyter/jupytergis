@@ -3,10 +3,11 @@ import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
 
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
-import { ServerConnection } from '@jupyterlab/services';
+import { Contents, ServerConnection } from '@jupyterlab/services';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import * as d3Color from 'd3-color';
 import shp from 'shpjs';
+import { getGdal } from './gdal';
 
 import {
   IDict,
@@ -436,6 +437,63 @@ const fetchWithProxies = async <T>(
 };
 
 /**
+ * Load a GeoTIFF file from IndexedDB database cache or fetch it .
+ *
+ * @param sourceInfo object containing the URL of the GeoTIFF file.
+ * @returns A promise that resolves to the file as a Blob, or undefined .
+ */
+export const loadGeoTiff = async (
+  sourceInfo: { url?: string | undefined },
+  file?: Contents.IModel | null
+) => {
+  if (!sourceInfo?.url) {
+    return null;
+  }
+
+  const url = sourceInfo.url;
+  const mimeType = getMimeType(url);
+  if (!mimeType || !mimeType.startsWith('image/tiff')) {
+    throw new Error('Invalid file type. Expected GeoTIFF (image/tiff).');
+  }
+
+  const cachedData = await getFromIndexedDB(url);
+  if (cachedData) {
+    return {
+      file: cachedData.file,
+      metadata: cachedData.metadata,
+      sourceUrl: url
+    };
+  }
+
+  let fileBlob: Blob | null = null;
+
+  if (!file) {
+    fileBlob = await fetchWithProxies(url, async response => response.blob());
+    if (!fileBlob) {
+      showErrorMessage('Network error', `Failed to fetch ${url}`);
+      throw new Error(`Failed to fetch ${url}`);
+    }
+  } else {
+    fileBlob = await base64ToBlob(file.content, mimeType);
+  }
+
+  const geotiff = new File([fileBlob], 'loaded.tif');
+  const Gdal = await getGdal();
+  const result = await Gdal.open(geotiff);
+  const tifDataset = result.datasets[0];
+  const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
+  Gdal.close(tifDataset);
+
+  await saveToIndexedDB(url, fileBlob, metadata);
+
+  return {
+    file: fileBlob,
+    metadata,
+    sourceUrl: url
+  };
+};
+
+/**
  * Generalized file reader for different source types.
  *
  * @param fileInfo - Object containing the file path and source type.
@@ -564,6 +622,15 @@ export const loadFile = async (fileInfo: {
           }
         } else {
           throw new Error('Invalid file format for image content.');
+        }
+      }
+
+      case 'GeoTiffSource': {
+        if (typeof file.content === 'string') {
+          const tiff = loadGeoTiff({ url: filepath }, file);
+          return tiff;
+        } else {
+          throw new Error('Invalid file format for tiff content.');
         }
       }
 
