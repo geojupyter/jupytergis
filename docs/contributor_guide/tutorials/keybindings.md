@@ -10,7 +10,8 @@ JupyterGIS.
 :::{admonition} Prerequisites
 :class: warning
 
-* Knowledge of "commands".
+- Knowledge of "commands".
+
 :::
 
 ## The keybindings file
@@ -43,5 +44,5 @@ _TODO: What do "selectors" do?_
 
 ## References
 
-* A PR which adds a keybinding to toggle the identify tool with `i`:
+- A PR which adds a keybinding to toggle the identify tool with `i`:
   <https://github.com/geojupyter/jupytergis/issues/582>
