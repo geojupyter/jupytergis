@@ -1,8 +1,24 @@
 # Building JupyterGIS documentation locally
 
-To install a conda environment with **([Micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html))**, run the following command inside `docs/`:
+:::{important}
+Navigate to the `docs/` directory before starting any of these steps!
+:::
 
-## 1. Create the environment from `environment-docs.yml`
+:::{tip}
+You can use `conda` or `mamba` as drop-in replacements for `micromamba` in the steps
+below, but they will not be as fast.
+:::
+
+## 0. Build JupyterGIS JavaScript packages
+
+Follow the [development environment setup instructions](./development_setup.rst).
+From the root of the repo, run `jlpm build`.
+
+## 1. Create the docs environment from `environment-docs.yml`
+
+:::{important}
+Ensure all other environments are deactivated first!
+:::
 
 ```
 micromamba create -f environment-docs.yml
@@ -16,24 +32,24 @@ micromamba activate jupytergis-docs
 
 ## 3. Build the documentation
 
+:::{note}
+You may experience failure at this step. Carefully read the last message. Did the build
+fail due to warnings? You may need to search the full log output for "WARNING" to find
+the cause.
+:::
+
 ```
-make html
+./build.sh
 ```
 
 ## 4. Open the documentation
 
-Once the build is complete, open:
+Once the build is successful, open:
 
 ```
-docs/build/index.html
+_build/html/index.html
 ```
 
-## 5. Make changes and rebuild
+## 5. Repeat!
 
-After making docs edits, rerun:
-
-```
-make html
-```
-
-to regenerate the updated documentation.
+Every time you make edits to documentation, repeat steps 3 and 4.
