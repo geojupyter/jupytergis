@@ -46,6 +46,8 @@ class GISDocument(CommWidget):
     :param path: the path to the file that you would like to open. If not provided, a new empty document will be created.
     """
 
+    path: Optional[Path]
+
     def __init__(
         self,
         path: Optional[str | Path] = None,
@@ -57,10 +59,12 @@ class GISDocument(CommWidget):
         pitch: Optional[float] = None,
         projection: Optional[str] = None,
     ):
-        if isinstance(path, Path):
-            path = str(path)
+        if isinstance(path, str):
+            path = Path(path)
 
-        comm_metadata = GISDocument._path_to_comm(path)
+        self.path = path
+
+        comm_metadata = GISDocument._path_to_comm(str(path))
 
         ydoc = Doc()
 
@@ -110,20 +114,28 @@ class GISDocument(CommWidget):
         if isinstance(path, str):
             path = Path(path)
 
+        if path.name.lower().endswith(".qgz"):
+            _export_to_qgis(path)
+            self.path = path
+            return
+
         if not path.name.lower().endswith(".jgis"):
             path = Path(str(path) + ".jGIS")
 
-        path.write_text(json.dumps(self._virtual_file))
+        path.write_text(json.dumps(self.to_py()))
+        self.path = path
 
-    def export_to_qgis(self, path: str | Path) -> bool:
+    def _export_to_qgis(self, path: str | Path) -> bool:
         # Lazy import, jupytergis_qgis of qgis may not be installed
         from jupytergis_qgis.qgis_loader import export_project_to_qgis
 
         if isinstance(path, Path):
             path = str(path)
 
-        virtual_file = self._virtual_file
+        virtual_file = self.to_py()
         virtual_file["layerTree"] = reversed_tree(virtual_file["layerTree"])
+        del virtual_file["metadata"]
+
         return export_project_to_qgis(path, virtual_file)
 
     def add_raster_layer(
@@ -765,14 +777,14 @@ class GISDocument(CommWidget):
             path=path, format=format, contentType=contentType, create_ydoc=path is None
         )
 
-    @property
-    def _virtual_file(self) -> dict:
+    def to_py(self) -> dict:
         """Get the document structure as a Python dictionary."""
         return {
             "layers": self._layers.to_py(),
             "sources": self._sources.to_py(),
             "layerTree": self._layerTree.to_py(),
             "options": self._options.to_py(),
+            "metadata": self._metadata.to_py(),
         }
 
 
