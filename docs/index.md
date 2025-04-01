@@ -1,9 +1,8 @@
 # JupyterGIS
 
-```{eval-rst}
-.. jupyterlite::
-   :new_tab: True
-   :new_tab_button_text: Try it with JupyterLite!
+```{jupyterlite}
+:new_tab: True
+:new_tab_button_text: Try it with JupyterLite!
 ```
 
 JupyterGIS is a JupyterLab extension for collaborative GIS (Geographical Information System). It is designed to
