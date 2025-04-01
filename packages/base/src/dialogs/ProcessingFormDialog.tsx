@@ -18,7 +18,7 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
     parentType: 'dialog' | 'panel'
   ) => void;
   model: IJupyterGISModel;
-  processingType: 'buffer' | 'dissolve' | 'export';
+  processingType: 'Buffer' | 'Dissolve' | 'Export';
 }
 
 /**
@@ -47,11 +47,11 @@ const ProcessingFormWrapper = (props: IProcessingFormWrapperProps) => {
 
   let FormComponent;
   switch (props.processingType) {
-    case 'dissolve':
+    case 'Dissolve':
       FormComponent = DissolveForm;
       break;
-    case 'buffer':
-    case 'export':
+    case 'Buffer':
+    case 'Export':
     default:
       FormComponent = BaseForm;
   }
@@ -84,14 +84,27 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       label: layers[layerId].name
     }));
 
-    // Modify schema to include layer options if applicable
-    if (options.schema && options.schema.properties?.inputLayer) {
-      options.schema.properties.inputLayer.enum = layerOptions.map(
-        option => option.value
-      );
-      options.schema.properties.inputLayer.enumNames = layerOptions.map(
-        option => option.label
-      );
+    // Modify schema to include layer options and layer name field
+    if (options.schema) {
+      console.log(options.schema.properties?.inputLayer);
+
+      if (options.schema.properties?.inputLayer) {
+        options.schema.properties.inputLayer.enum = layerOptions.map(
+          option => option.value
+        );
+        options.schema.properties.inputLayer.enumNames = layerOptions.map(
+          option => option.label
+        );
+      }
+
+      // Ensure outputLayerName field exists in schema
+      if (!options.schema.properties?.outputLayerName) {
+        options.schema.properties.outputLayerName = {
+          type: 'string',
+          title: 'outputLayerName'
+          // default: ''
+        };
+      }
     }
 
     const filePath = options.model.filePath;
@@ -104,6 +117,18 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       Signal<Dialog<IDict>, boolean>
     >();
 
+    // Custom syncData function to update layer name in the model
+    const syncData = (props: IDict) => {
+      if (
+        props.outputLayerName &&
+        props.inputLayer &&
+        layers[props.inputLayer]
+      ) {
+        layers[props.inputLayer].name = props.outputLayerName;
+      }
+      options.syncData(props);
+    };
+
     const body = (
       <div style={{ overflow: 'hidden' }}>
         <ProcessingFormWrapper
@@ -112,6 +137,7 @@ export class ProcessingFormDialog extends Dialog<IDict> {
           model={jgisModel}
           okSignalPromise={okSignalPromise}
           formErrorSignalPromise={formErrorSignalPromise}
+          syncData={syncData} // Use the modified sync function
         />
       </div>
     );

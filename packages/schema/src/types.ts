@@ -21,6 +21,7 @@ export * from './_interface/project/layers/heatmapLayer';
 
 // Processing
 export * from './_interface/processing/buffer';
+export * from './_interface/processing/dissolve';
 
 // exportLayer
 export * from './_interface/export/exportGeojson';
