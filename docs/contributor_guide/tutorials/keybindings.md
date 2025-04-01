@@ -34,7 +34,7 @@ For example, this keybinding triggers the "identify" command when the `I` key is
 ### Where do I find the command ID string?
 
 Command IDs are defined in the `CommandIDs` namespace in the `base` JavaScript package
-(`packages/base/src/constants.ts`). 
+(`packages/base/src/constants.ts`).
 
 ### What selector string do I need?
 
