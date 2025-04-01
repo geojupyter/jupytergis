@@ -22,7 +22,7 @@ cd jupytergis
 
 ### Create a virtual environment
 
-```````{tabs}
+`````````{tabs}
 ``````{group-tab} Micromamba (Recommended)
 ```bash
 # Create a virtual environment
@@ -46,7 +46,7 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 ``````
-```````
+`````````
 
 ### Install dependencies and build
 
