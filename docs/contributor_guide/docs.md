@@ -1,9 +1,5 @@
 # Building JupyterGIS documentation locally
 
-:::{important}
-Navigate to the `docs/` directory before starting any of these steps!
-:::
-
 :::{tip}
 You can use `conda` or `mamba` as drop-in replacements for `micromamba` in the steps
 below, but they will not be as fast.
@@ -11,8 +7,11 @@ below, but they will not be as fast.
 
 ## 0. Build JupyterGIS JavaScript packages
 
-Follow the [development environment setup instructions](./development_setup.md).
-From the root of the repo, run `jlpm build`.
+Follow the [development environment setup instructions](./development_setup.md) through running `jlpm run build` from the **root of the repo**.
+
+:::{important}
+Navigate to the `docs/` directory before starting any of the following steps!
+:::
 
 ## 1. Create the docs environment from `environment-docs.yml`
 
