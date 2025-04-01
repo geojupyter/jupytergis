@@ -64,7 +64,7 @@ class GISDocument(CommWidget):
 
         self.path = path
 
-        comm_metadata = GISDocument._path_to_comm(str(path))
+        comm_metadata = GISDocument._path_to_comm(str(self.path) if self.path else None)
 
         ydoc = Doc()
 
