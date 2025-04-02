@@ -85,7 +85,8 @@ export class DissolveForm extends BaseForm {
             },
             embedOutputLayer: {
               type: 'boolean',
-              title: 'Embed output layer in file'
+              title: 'Embed output layer in file',
+              default: true
             }
           }
         }
