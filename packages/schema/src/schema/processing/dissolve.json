@@ -15,7 +15,7 @@
     },
     "embedOutputLayer": {
       "type": "boolean",
-      "title": "Embed output layer in file",
+      "title": "Embed output dissolved layer in file",
       "default": true
     }
   }

@@ -19,12 +19,7 @@ export class BufferForm extends BaseForm {
       schema: {
         ...options.schema,
         properties: {
-          ...options.schema?.properties,
-          embedOutputLayer: {
-            type: 'boolean',
-            title: 'Embed output layer in file',
-            default: true
-          }
+          ...options.schema?.properties
         }
       }
     };

@@ -82,11 +82,6 @@ export class DissolveForm extends BaseForm {
             dissolveField: {
               ...prevState.schema?.properties?.dissolveField,
               enum: [...this.features]
-            },
-            embedOutputLayer: {
-              type: 'boolean',
-              title: 'Embed output layer in file',
-              default: true
             }
           }
         }
