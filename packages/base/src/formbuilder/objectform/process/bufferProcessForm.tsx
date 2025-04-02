@@ -11,7 +11,6 @@ interface IBufferFormOptions extends IBaseFormProps {
 }
 
 export class BufferForm extends BaseForm {
-
   constructor(options: IBufferFormOptions) {
     super(options);
 
