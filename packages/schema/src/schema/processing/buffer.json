@@ -13,6 +13,11 @@
       "type": "number",
       "default": 10,
       "description": "The distance used for buffering the geometry (in projection units)."
+    },
+    "embedOutputLayer": {
+      "type": "boolean",
+      "title": "Embed output layer in file",
+      "default": true
     }
   }
 }
