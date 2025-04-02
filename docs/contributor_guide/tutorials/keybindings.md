@@ -21,7 +21,8 @@ Keybindings exist in the `base` JavaScript package at
 
 ## Editing the keybindings file
 
-Each keybinding configuration maps a `command` to its keybindings `keys`.
+Each keybinding configuration maps a `command` to its keybindings `keys` and the HTML
+element selectors for which this keybinding is enabled.
 For example, this keybinding triggers the "identify" command when the `I` key is pressed:
 
 ```yaml
@@ -39,8 +40,12 @@ Command IDs are defined in the `CommandIDs` namespace in the `base` JavaScript p
 
 ### What selector string do I need?
 
-Probably `.data-jgis-keybinding`!
-_TODO: What do "selectors" do?_
+Probably only `.data-jgis-keybinding`!
+This selector enables the keybinding to work when
+JupyterGIS is in focus, but not when for example a Jupyter Notebook is in focus.
+
+In some special cases, you may want more selectors to further restrict the focused
+elements that accept the keybinding.
 
 ## References
 
