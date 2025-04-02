@@ -1,4 +1,4 @@
-import { BaseForm, IBaseFormProps} from '../baseform';
+import { BaseForm, IBaseFormProps } from '../baseform';
 import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 
 interface IBufferFormOptions extends IBaseFormProps {
@@ -15,8 +15,19 @@ export class BufferForm extends BaseForm {
   constructor(options: IBufferFormOptions) {
     super(options);
 
+    // Add the embed output checkbox to the schema
     this.state = {
-      schema: options.schema ?? {}
+      schema: {
+        ...options.schema,
+        properties: {
+          ...options.schema?.properties,
+          embedOutputLayer: {
+            type: 'boolean',
+            title: 'Embed output layer in file',
+            default: true
+          }
+        }
+      }
     };
   }
 }
