@@ -10,7 +10,7 @@ import {
   SourceType
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { showErrorMessage } from '@jupyterlab/apputils';
+import { InputDialog, showErrorMessage } from '@jupyterlab/apputils';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
@@ -251,6 +251,45 @@ export function addCommands(
     },
     ...icons.get(CommandIDs.temporalController)
   });
+
+  commands.addCommand(CommandIDs.saveAs, {
+    label: trans.__('Save As...'),
+    isEnabled: () => true,
+    execute: async () => {
+      const oldFilename = tracker.currentWidget?.model.filePath;
+      const newFilename = (await InputDialog.getText({
+        title: 'Save as...',
+        label: 'New filename',
+        placeholder: oldFilename,
+      })).value;
+
+      if (!newFilename) {
+        return;
+      }
+
+      const content = tracker.currentWidget?.model.toJSON();
+
+      // FIXME: This doesn't re-open the project file in the current view where the save button was clicked.
+      app.serviceManager.contents.save(newFilename, {
+        content: JSON.stringify(content),
+        format: 'text',
+        type: 'file',
+        mimetype: 'text/json'
+      });
+      // FIXME: Saves to the currently open directory, while the above save is to the JupyterLab root directory.
+      // FIXME: Get "unsaved_project" from a constant
+      // FIXME: unsaved_project is getting saved even though we're trying not to!
+      if (oldFilename && oldFilename.endsWith('unsaved_project')) {
+        app.serviceManager.contents.save(oldFilename, {
+          content: JSON.stringify(content),
+          format: 'text',
+          type: 'file',
+          mimetype: 'text/json'
+        });
+      }
+    },
+    ...icons.get(CommandIDs.saveAs),
+  })
 
   /**
    * SOURCES and LAYERS creation commands.
