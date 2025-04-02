@@ -23,7 +23,7 @@ build:
     # Pin micromamba
     - /bin/bash --login -c "micromamba self-update --version 2.0.7"
     # Create the environment using the updated environment-docs.yml
-    - /bin/bash --login -c "micromamba env create -n jupytergis -f docs/environment-docs.yml"
+    - /bin/bash --login -c "micromamba env create -n jupytergis-docs -f docs/environment-docs.yml"
 
     # Override the install step to do nothing - we already created the env
     install:
@@ -32,11 +32,11 @@ build:
     # Before building the docs, build JupyterGIS in its environment,
     # then install the wheels into the same environment.
     pre_build:
-      - /bin/bash --login -c "micromamba run -n jupytergis jlpm install"
-      - /bin/bash --login -c "micromamba run -n jupytergis jlpm build"
-      - /bin/bash --login -c "micromamba run -n jupytergis jlpm build:packages"
+      - /bin/bash --login -c "micromamba run -n jupytergis-docs jlpm install"
+      - /bin/bash --login -c "micromamba run -n jupytergis-docs jlpm build"
+      - /bin/bash --login -c "micromamba run -n jupytergis-docs jlpm build:packages"
       - |-
-        /bin/bash --login -c "micromamba run -n jupytergis \
+        /bin/bash --login -c "micromamba run -n jupytergis-docs \
           python -m pip install \
           $(ls ./python/jupytergis_core/dist/jupytergis*.whl) \
           $(ls ./python/jupytergis_lab/dist/jupytergis*.whl) \
@@ -45,6 +45,6 @@ build:
     build:
       html:
         - |-
-          /bin/bash --login -c "cd docs && micromamba run -n jupytergis \
+          /bin/bash --login -c "cd docs && micromamba run -n jupytergis-docs \
           python -m sphinx --fail-on-warning --keep-going --nitpicky --show-traceback --builder html --doctree-dir _build/doctrees --define language=en . \
           $READTHEDOCS_OUTPUT/html"

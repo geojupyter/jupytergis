@@ -1,4 +1,4 @@
-name: jupytergis
+name: jupytergis-docs
 channels:
   - conda-forge
   - nodefaults
