@@ -1,16 +1,15 @@
-==========
-JupyterGIS
-==========
+# JupyterGIS
 
-.. jupyterlite::
-   :new_tab: True
-   :new_tab_button_text: Try it with JupyterLite!
+```{jupyterlite}
+:new_tab: True
+:new_tab_button_text: Try it with JupyterLite!
+```
 
 JupyterGIS is a JupyterLab extension for collaborative GIS (Geographical Information System). It is designed to
 allow multiple people to work on the same geospatial project simultaneously, facilitating discussion and collaboration
 around map layers, spatial analyses, and other GIS data being developed.
 
-JupyterGIS provides basic support for `QGIS <https://www.qgis.org>`_ project files, allowing users to import and export
+JupyterGIS provides basic support for [QGIS](https://www.qgis.org) project files, allowing users to import and export
 projects seamlessly between QGIS and JupyterLab.
 This compatibility preserves layer styles, data sources, and project settings, enabling smooth transitions between GIS work
 in QGIS and collaborative, cloud-based work in JupyterLab.
@@ -23,36 +22,34 @@ Python users can further extend JupyterGIS workflows by integrating with Python 
 and Rasterio, to perform custom analyses and automate processes. Together, these features make JupyterGIS a powerful tool for
 both collaborative mapping and in-depth geospatial analysis.
 
-.. image:: ../jupytergis.png
-  :alt: JupyterGIS application
+```{image} ../jupytergis.png
+:alt: JupyterGIS application
+```
 
-
-User guide
-==========
+## User guide
 
 Information about using JupyterGIS.
 
-.. toctree::
-   :maxdepth: 2
+```{toctree}
+:maxdepth: 2
 
-   user_guide/index
+user_guide/index
+```
 
-
-Contributor guide
-=================
+## Contributor guide
 
 Information about contributing to the JupyterGIS project.
 
-.. toctree::
-   :maxdepth: 2
+```{toctree}
+:maxdepth: 2
 
-   contributor_guide/index
+contributor_guide/index
+```
 
+## More
 
-More
-====
+```{toctree}
+:maxdepth: 2
 
-.. toctree::
-   :maxdepth: 2
-
-   changelog
+changelog
+```
