@@ -40,6 +40,14 @@ export class ToolbarWidget extends ReactiveToolbar {
 
     if (options.commands) {
       this.addItem(
+        'Save as...',
+        new CommandToolbarButton({
+          id: CommandIDs.saveAs,
+          label: '',
+          commands: options.commands
+        }),
+      );
+      this.addItem(
         'undo',
         new CommandToolbarButton({
           id: CommandIDs.undo,
