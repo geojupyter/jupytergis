@@ -9,6 +9,7 @@ To chat with other contributors, please
 :maxdepth: 1
 
 development_setup
+tutorials
 code_quality
 releasing
 docs
