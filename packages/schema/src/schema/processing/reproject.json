@@ -1,18 +1,18 @@
 {
-    "type": "object",
-    "description": "Reproject",
-    "title": "IReproject",
-    "required": ["inputLayer", "targetCRS"],
-    "additionalProperties": false,
-    "properties": {
-      "inputLayer": {
-        "type": "string",
-        "description": "The input layer for reprojection."
-      },
-      "targetCRS": {
-        "type": "string",
-        "default": "EPSG:4326",
-        "description": "The target coordinate reference system (CRS) for reprojection."
-      }
+  "type": "object",
+  "description": "Reproject",
+  "title": "IReproject",
+  "required": ["inputLayer", "targetCRS"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The input layer for reprojection."
+    },
+    "targetCRS": {
+      "type": "string",
+      "default": "EPSG:4326",
+      "description": "The target coordinate reference system (CRS) for reprojection."
     }
   }
+}

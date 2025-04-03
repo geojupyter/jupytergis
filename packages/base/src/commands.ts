@@ -372,15 +372,10 @@ export function addCommands(
       await processSelectedLayer(tracker, formSchemaRegistry, 'Reproject', {
         sqlQueryFn: (layerName, targetSRS) => `${targetSRS}`,
         gdalFunction: 'ogr2ogr',
-        options: (sqlQuery: string) => [
-          '-f', 'GeoJSON',
-          '-t_srs',
-          sqlQuery
-        ]
+        options: (sqlQuery: string) => ['-f', 'GeoJSON', '-t_srs', sqlQuery]
       });
     }
   });
-
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),
