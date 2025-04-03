@@ -5,7 +5,6 @@ import { BaseForm, IBaseFormProps } from '../formbuilder/objectform/baseform';
 import { DissolveForm } from '../formbuilder/objectform/process';
 import { Signal } from '@lumino/signaling';
 import { PromiseDelegate } from '@lumino/coreutils';
-import { BufferForm } from '../formbuilder/objectform/process/bufferProcessForm';
 
 export interface IProcessingFormDialogOptions extends IBaseFormProps {
   formContext: 'update' | 'create';
@@ -52,8 +51,6 @@ const ProcessingFormWrapper = (props: IProcessingFormWrapperProps) => {
       FormComponent = DissolveForm;
       break;
     case 'Buffer':
-      FormComponent = BufferForm;
-      break;
     case 'Export':
     default:
       FormComponent = BaseForm;
