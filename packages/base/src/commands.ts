@@ -365,6 +365,23 @@ export function addCommands(
     }
   });
 
+  commands.addCommand(CommandIDs.reproject, {
+    label: trans.__('Reproject'),
+    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
+    execute: async () => {
+      await processSelectedLayer(tracker, formSchemaRegistry, 'Reproject', {
+        sqlQueryFn: (layerName, targetSRS) => `${targetSRS}`,
+        gdalFunction: 'ogr2ogr',
+        options: (sqlQuery: string) => [
+          '-f', 'GeoJSON',
+          '-t_srs',
+          sqlQuery
+        ]
+      });
+    }
+  });
+
+
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),
     isEnabled: () => {
