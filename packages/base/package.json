@@ -29,7 +29,7 @@
   "scripts": {
     "build": "tsc -b && jlpm run cp:gdal",
     "build:gallery": "python rasterlayer_gallery_generator.py",
-    "cp:gdal": "cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.data lib && cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.wasm lib",
+    "cp:gdal": "cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.data lib && cp ../../node_modules/gdal3.js/dist/package/gdal3WebAssembly.wasm lib && cp ../../node_modules/gdal3.js/dist/package/gdal3.js lib",
     "build:prod": "jlpm run clean && jlpm run build",
     "build:dev": "tsc -b && jlpm run cp:gdal",
     "clean": "rimraf tsconfig.tsbuildinfo",
