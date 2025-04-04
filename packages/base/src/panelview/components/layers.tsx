@@ -32,7 +32,7 @@ const LAYER_ITEM_CLASS = 'jp-gis-layerItem';
 const LAYER_CLASS = 'jp-gis-layer';
 const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
-const LAYER_TEXT_CLASS = 'jp-gis-layerText';
+const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
 
 /**
  * The layers panel widget.
@@ -300,7 +300,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
           className={`${LAYER_GROUP_COLLAPSER_CLASS}${open ? ' jp-mod-expanded' : ''}`}
           tag={'span'}
         />
-        <span id={id} className={LAYER_TEXT_CLASS}>
+        <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
           {name}
         </span>
       </div>
@@ -435,7 +435,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
           />
         )}
 
-        <span id={id} className={LAYER_TEXT_CLASS}>
+        <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
           {name}
         </span>
       </div>
