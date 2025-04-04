@@ -16,7 +16,7 @@
   },
   {
     "command": "jupytergis:identify",
-    "keys": ["Accel I"],
+    "keys": ["I"],
     "selector": ".data-jgis-keybinding"
   },
   {

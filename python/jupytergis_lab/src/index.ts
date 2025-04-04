@@ -78,8 +78,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       completionProviderManager
     );
 
-    app.shell.addClass('data-jgis-keybinding');
-
     // SOURCES context menu
     const newSourceSubMenu = new Menu({ commands: app.commands });
     newSourceSubMenu.title.label = translator
