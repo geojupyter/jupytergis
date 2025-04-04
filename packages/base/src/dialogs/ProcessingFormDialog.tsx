@@ -86,8 +86,6 @@ export class ProcessingFormDialog extends Dialog<IDict> {
 
     // Modify schema to include layer options and layer name field
     if (options.schema) {
-      console.log(options.schema.properties?.inputLayer);
-
       if (options.schema.properties?.inputLayer) {
         options.schema.properties.inputLayer.enum = layerOptions.map(
           option => option.value
