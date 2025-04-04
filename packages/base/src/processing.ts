@@ -11,6 +11,7 @@ import { JupyterGISTracker } from './types';
 import { UUID } from '@lumino/coreutils';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 import { getGeoJSONDataFromLayerSource } from './tools';
+import { JupyterFrontEnd } from '@jupyterlab/application';
 
 /**
  * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
@@ -94,7 +95,8 @@ export async function processSelectedLayer(
     sqlQueryFn: (layerName: string, param: any) => string;
     gdalFunction: GdalFunctions;
     options: (sqlQuery: string) => string[];
-  }
+  },
+  app: JupyterFrontEnd
 ) {
   const selected = getSingleSelectedLayer(tracker);
   if (!selected || !tracker.currentWidget) {
@@ -153,6 +155,8 @@ export async function processSelectedLayer(
       return;
   }
 
+  const embedOutputLayer = formValues.embedOutputLayer;
+
   const fileBlob = new Blob([geojsonString], {
     type: 'application/geo+json'
   });
@@ -174,27 +178,28 @@ export async function processSelectedLayer(
     processingOptions.gdalFunction,
     fullOptions,
     formValues.outputLayerName,
-    processingType
+    processingType,
+    embedOutputLayer,
+    tracker,
+    app
   );
 }
 
-/**
- * Execute SQL processing on the layer
- */
 export async function executeSQLProcessing(
   model: IJupyterGISModel,
   geojsonString: string,
   gdalFunction: GdalFunctions,
   options: string[],
   layerNamePrefix: string,
-  processingType: 'Buffer' | 'Dissolve'
+  processingType: 'Buffer' | 'Dissolve',
+  embedOutputLayer: boolean,
+  tracker: JupyterGISTracker,
+  app: JupyterFrontEnd
 ) {
   const geoFile = new File(
     [new Blob([geojsonString], { type: 'application/geo+json' })],
     'data.geojson',
-    {
-      type: 'application/geo+json'
-    }
+    { type: 'application/geo+json' }
   );
 
   const Gdal = await getGdal();
@@ -210,23 +215,59 @@ export async function executeSQLProcessing(
   const processedGeoJSONString = new TextDecoder().decode(processedBytes);
   Gdal.close(dataset);
 
-  const processedGeoJSON = JSON.parse(processedGeoJSONString);
+  if (!embedOutputLayer) {
+    // Save the output as a file
+    const jgisFilePath = tracker.currentWidget?.model.filePath;
+    const jgisDir = jgisFilePath
+      ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
+      : '';
 
-  // Store in shared model
-  const newSourceId = UUID.uuid4();
-  const sourceModel: IJGISSource = {
-    type: 'GeoJSONSource',
-    name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`,
-    parameters: { data: processedGeoJSON }
-  };
+    const outputFileName = `${layerNamePrefix}_${processingType}.json`;
+    const savePath = jgisDir ? `${jgisDir}/${outputFileName}` : outputFileName;
 
-  const layerModel: IJGISLayer = {
-    type: 'VectorLayer',
-    parameters: { source: newSourceId },
-    visible: true,
-    name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`
-  };
+    await app.serviceManager.contents.save(savePath, {
+      type: 'file',
+      format: 'text',
+      content: processedGeoJSONString
+    });
 
-  model.sharedModel.addSource(newSourceId, sourceModel);
-  model.addLayer(UUID.uuid4(), layerModel);
+    const newSourceId = UUID.uuid4();
+    const sourceModel: IJGISSource = {
+      type: 'GeoJSONSource',
+      name: outputFileName,
+      parameters: {
+        path: outputFileName
+      }
+    };
+
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      parameters: { source: newSourceId },
+      visible: true,
+      name: outputFileName
+    };
+
+    model.sharedModel.addSource(newSourceId, sourceModel);
+    model.addLayer(UUID.uuid4(), layerModel);
+  } else {
+    // Embed the output directly into the model
+    const processedGeoJSON = JSON.parse(processedGeoJSONString);
+    const newSourceId = UUID.uuid4();
+
+    const sourceModel: IJGISSource = {
+      type: 'GeoJSONSource',
+      name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`,
+      parameters: { data: processedGeoJSON }
+    };
+
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      parameters: { source: newSourceId },
+      visible: true,
+      name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`
+    };
+
+    model.sharedModel.addSource(newSourceId, sourceModel);
+    model.addLayer(UUID.uuid4(), layerModel);
+  }
 }
