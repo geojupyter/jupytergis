@@ -89,7 +89,7 @@ export type GdalFunctions =
 export async function processSelectedLayer(
   tracker: JupyterGISTracker,
   formSchemaRegistry: IJGISFormSchemaRegistry,
-  processingType: 'Buffer' | 'Dissolve',
+  processingType: 'Buffer' | 'Dissolve' | 'Reproject',
   processingOptions: {
     sqlQueryFn: (layerName: string, param: any) => string;
     gdalFunction: GdalFunctions;
@@ -148,6 +148,9 @@ export async function processSelectedLayer(
     case 'Dissolve':
       processParam = formValues.dissolveField;
       break;
+    case 'Reproject':
+      processParam = formValues.targetCRS;
+      break;
     default:
       console.error(`Unsupported processing type: ${processingType}`);
       return;
@@ -187,7 +190,7 @@ export async function executeSQLProcessing(
   gdalFunction: GdalFunctions,
   options: string[],
   layerNamePrefix: string,
-  processingType: 'Buffer' | 'Dissolve'
+  processingType: 'Buffer' | 'Dissolve' | 'Reproject'
 ) {
   const geoFile = new File(
     [new Blob([geojsonString], { type: 'application/geo+json' })],
