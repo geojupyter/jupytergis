@@ -39,7 +39,7 @@ export class LeftPanelWidget extends SidePanel {
   constructor(options: LeftPanelWidget.IOptions) {
     super();
     this.addClass('jGIS-sidepanel-widget');
-    this.addClass('data-jcad-keybinding');
+    this.addClass('data-jgis-keybinding');
     this.node.tabIndex = 0;
 
     this._model = options.model;
