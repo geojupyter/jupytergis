@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/jupytergis-lab",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "JupyterGIS Lab extension.",
   "keywords": [
     "jupyter",
@@ -53,8 +53,8 @@
   },
   "dependencies": {
     "@jupyter/collaborative-drive": "^3.0.0",
-    "@jupytergis/base": "^0.4.2",
-    "@jupytergis/schema": "^0.4.2",
+    "@jupytergis/base": "^0.4.3",
+    "@jupytergis/schema": "^0.4.3",
     "@jupyterlab/application": "^4.3.0",
     "@jupyterlab/apputils": "^4.3.0",
     "@jupyterlab/completer": "^4.3.0",
