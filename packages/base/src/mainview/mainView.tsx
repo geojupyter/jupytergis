@@ -1888,7 +1888,8 @@ export class MainView extends React.Component<IProps, IStates> {
             />
           )}
           <div
-            className="jGIS-Mainview"
+            className="jGIS-Mainview data-jgis-keybinding"
+            tabIndex={-2}
             style={{
               border: this.state.remoteUser
                 ? `solid 3px ${this.state.remoteUser.color}`
