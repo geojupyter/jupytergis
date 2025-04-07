@@ -256,18 +256,31 @@ export function addCommands(
     label: trans.__('Save As...'),
     isEnabled: () => true,
     execute: async () => {
-      const oldFilename = tracker.currentWidget?.model.filePath;
-      const newFilename = (await InputDialog.getText({
-        title: 'Save as...',
-        label: 'New filename',
-        placeholder: oldFilename,
-      })).value;
+      if (!tracker.currentWidget) {
+        return;
+      }
+
+      const model = tracker.currentWidget.model;
+      const oldFilename = model.filePath;
+      let newFilename = (
+        await InputDialog.getText({
+          title: 'Save as...',
+          label: 'New filename',
+          placeholder: oldFilename
+        })
+      ).value;
 
       if (!newFilename) {
         return;
       }
 
-      const content = tracker.currentWidget?.model.toJSON();
+      if (newFilename.toLowerCase().endsWith('.qgz')) {
+        throw Error('Not supported yet');
+      } else if (!newFilename.toLowerCase().endsWith('.jgis')) {
+        newFilename += '.jGIS';
+      }
+
+      const content = model.toJSON();
 
       // FIXME: This doesn't re-open the project file in the current view where the save button was clicked.
       app.serviceManager.contents.save(newFilename, {
@@ -276,9 +289,11 @@ export function addCommands(
         type: 'file',
         mimetype: 'text/json'
       });
+      // FIXME: The widget will only save to this new filename once, as opposed to continuously saving changes to the file like we expect.
+      model.filePath = newFilename;
+
       // FIXME: Saves to the currently open directory, while the above save is to the JupyterLab root directory.
       // FIXME: Get "unsaved_project" from a constant
-      // FIXME: unsaved_project is getting saved even though we're trying not to!
       if (oldFilename && !oldFilename.endsWith('unsaved_project')) {
         app.serviceManager.contents.save(oldFilename, {
           content: JSON.stringify(content),
