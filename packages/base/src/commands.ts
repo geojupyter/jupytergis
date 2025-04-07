@@ -279,7 +279,7 @@ export function addCommands(
       // FIXME: Saves to the currently open directory, while the above save is to the JupyterLab root directory.
       // FIXME: Get "unsaved_project" from a constant
       // FIXME: unsaved_project is getting saved even though we're trying not to!
-      if (oldFilename && oldFilename.endsWith('unsaved_project')) {
+      if (oldFilename && !oldFilename.endsWith('unsaved_project')) {
         app.serviceManager.contents.save(oldFilename, {
           content: JSON.stringify(content),
           format: 'text',
