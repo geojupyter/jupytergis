@@ -85,7 +85,6 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 import { Geometry } from 'ol/geom';
-import { AnnotationModel } from '../annotations';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -434,11 +433,8 @@ export class MainView extends React.Component<IProps, IStates> {
           return;
         }
 
-        if (!this._model.annotationModel) {
-          this._model.annotationModel = new AnnotationModel({
-            model: this._model
-          });
-        }
+        console.log(this._model.annotationModel);
+
 
         this._mainViewModel.addAnnotation({
           position: { x: this._clickCoords[0], y: this._clickCoords[1] },
