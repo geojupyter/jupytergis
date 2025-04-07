@@ -435,7 +435,9 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         if (!this._model.annotationModel) {
-          this._model.annotationModel = new AnnotationModel({model : this._model});
+          this._model.annotationModel = new AnnotationModel({
+            model: this._model
+          });
         }
 
         this._mainViewModel.addAnnotation({
