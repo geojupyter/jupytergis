@@ -19,7 +19,7 @@ By following this tutorial, you will be able to:
 
 :::{admonition} Prerequisites
 :class: warning
-Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)). Alternatively, you can use an online installation of JupyterGIS, for example on a [JupyterHub](https://jupyter.org/hub). Note that currently, real-time collaboration is not supported in [JupyterLite](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html).
+Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)). Alternatively, you can use an online installation of JupyterGIS. Check out [the instructions](../../features/collab.md#create-collaborative-jupytergis-sessions) for creating collaborative JupyterGIS sessions.
 :::
 
 ---
@@ -49,16 +49,6 @@ First, let's create a GIS file and invite collaborators to the session.
 ### Generate a Shareable Link
 
 You can invite collaborators to your session by sharing a link. Click on the **Share** button in your interface in the upper right corner, then click on the **Copy Link** button.
-
-:::{admonition} A note about local installations
-:class: warning
-
-If you are using a local installation, your JupyterLab instance is not open to the Internet by default and collaborators will not be able to join your session.
-
-In this case, we recommend [using VSCode's LiveShare functionality to share a local server](https://learn.microsoft.com/en-us/visualstudio/liveshare/use/share-server-visual-studio-code#share-a-server) with a collaborator.
-
-You can also open a new browser window and paste the share link to simulate a different user for this tutorial.
-:::
 
 ![Share](images/share.png)
 
@@ -101,7 +91,7 @@ To activate the follow mode, click on a collaborator's user icon in the upper ri
 :nonumber:
 
 1. Create a new collaborative JupyterGIS session.
-2. Share the link with a colleague. If you are using a local installation, you can open a new browser and paste the link to simulate a different user.
+2. Share the link with a colleague. If you are completing this tutorial without other collaborators, you can open a new browser and paste the link to simulate a different user.
 3. From the layer browser, add OpenStreetMap.Mapnik to your GIS file.
 4. Ask your colleague to add the World Air Quality GeoJSON layer:
     ```
