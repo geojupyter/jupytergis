@@ -7,7 +7,9 @@ import {
   IJGISExternalCommandRegistryToken,
   JupyterGISDoc,
   IJupyterGISDocTracker,
-  IJupyterGISWidget
+  IJupyterGISWidget,
+  IAnnotationModel,
+  IAnnotationToken
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -75,6 +77,7 @@ const activate = async (
   editorServices: IEditorServices,
   rendermime: IRenderMimeRegistry,
   consoleTracker: IConsoleTracker,
+  annotationModel: IAnnotationModel,
   commandPalette: ICommandPalette | null
 ): Promise<void> => {
   const fcCheck = await requestAPI<{ installed: boolean }>(
@@ -130,8 +133,8 @@ const activate = async (
   app.docRegistry.addWidgetFactory(QGZWidgetFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
-  app.docRegistry.addModelFactory(new QGSModelFactory());
-  app.docRegistry.addModelFactory(new QGZModelFactory());
+  app.docRegistry.addModelFactory(new QGSModelFactory({ annotationModel }));
+  app.docRegistry.addModelFactory(new QGZModelFactory({ annotationModel }));
   // register the filetype
   app.docRegistry.addFileType({
     name: 'QGS',
@@ -307,7 +310,8 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
     ConsolePanel.IContentFactory,
     IEditorServices,
     IRenderMimeRegistry,
-    IConsoleTracker
+    IConsoleTracker,
+    IAnnotationToken
   ],
   optional: [ICommandPalette],
   autoStart: true,
