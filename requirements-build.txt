@@ -2,9 +2,9 @@
 datamodel-code-generator>=0.23.0
 hatchling>=1.5.0,<2
 jupyter-collaboration>=3,<4
+jupyter-collaboration-ui>=1,<2
 jupyter-docprovider>=1,<2
 jupyter-server-ydoc>=1,<2
-jupyter-collaboration-ui>=1,<2
 jupyterlab>=4.3,<5
 mercantile>=1.2
 pillow>=10
