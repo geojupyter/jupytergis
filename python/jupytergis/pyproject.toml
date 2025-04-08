@@ -23,6 +23,7 @@ dependencies = [
   "jupytergis_lab==0.4.3",
   "jupytergis_qgis==0.4.3",
   "jupyter-collaboration>=3,<4",
+  "jupyter-docprovider>=1,<2",
   "jupyterlab>=4.3,<5",
 ]
 dynamic = ["version"]
