@@ -34,7 +34,7 @@ micromamba activate jupytergis_dev
 ``````
 
 ``````{group-tab} Plain python
-```note
+```{note}
 You may need to install some non-Python dependencies (e.g. QGIS,
 Node.js) separately when using this method.
 ```
