@@ -15,6 +15,8 @@ import nonVisibilitySvgStr from '../style/icons/nonvisibility.svg';
 import geoJsonSvgStr from '../style/icons/geojson.svg';
 import moundSvgStr from '../style/icons/mound.svg';
 import logoMiniQGZ from '../style/icons/logo_mini_qgz.svg';
+import geolocationSvgStr from '../style/icons/geolocation.svg';
+import targetSvgStr from '../style/icons/target.svg';
 
 export const logoIcon = new LabIcon({
   name: 'jupytergis::logo',
@@ -59,4 +61,14 @@ export const moundIcon = new LabIcon({
 export const logoMiniIconQGZ = new LabIcon({
   name: 'jupytergis::logoQGZ',
   svgstr: logoMiniQGZ
+});
+
+export const geolocationIcon = new LabIcon({
+  name: 'jupytergis::geolocation',
+  svgstr: geolocationSvgStr
+});
+
+export const targetIcon = new LabIcon({
+  name: 'jupytergis::target',
+  svgstr: targetSvgStr
 });
