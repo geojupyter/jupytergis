@@ -25,7 +25,7 @@ Each keybinding configuration maps a `command` to its keybindings `keys` and the
 element selectors for which this keybinding is enabled.
 For example, this keybinding triggers the "identify" command when the `I` key is pressed:
 
-```yaml
+```json
   {
       "command": "jupytergis:identify",
       "keys": ["I"],
