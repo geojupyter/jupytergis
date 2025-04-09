@@ -45,6 +45,7 @@ export class RightPanelWidget extends SidePanel {
     });
     identifyPanel.title.caption = 'Identify';
     identifyPanel.title.label = 'Identify';
+    identifyPanel.addClass('jgis-scrollable');
     this.addWidget(identifyPanel);
 
     this._model.documentChanged.connect((_, changed) => {
