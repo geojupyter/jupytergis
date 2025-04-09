@@ -38,7 +38,7 @@ const CONTENT_TYPE = 'jgis';
 const PALETTE_CATEGORY = 'JupyterGIS';
 const MODEL_NAME = 'jupytergis-jgismodel';
 
-const activate = async (
+const activate = (
   app: JupyterFrontEnd,
   tracker: WidgetTracker<IJupyterGISWidget>,
   themeManager: IThemeManager,
@@ -53,7 +53,7 @@ const activate = async (
   palette: ICommandPalette | null,
   drive: ICollaborativeDrive | null,
   settingRegistry: ISettingRegistry
-): Promise<void> => {
+): void => {
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
   }
