@@ -1,4 +1,4 @@
-# Keybindings
+# Add a keybinding
 
 :::{admonition} Objectives
 :class: seealso

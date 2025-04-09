@@ -9,7 +9,7 @@ To chat with other contributors, please
 :maxdepth: 1
 
 development_setup
-tutorials/index
+how-tos/index
 code_quality
 releasing
 docs
