@@ -99,6 +99,15 @@ export class ToolbarWidget extends ReactiveToolbar {
         })
       );
 
+      this.addItem(
+        'Geolocation',
+        new CommandToolbarButton({
+          id: CommandIDs.getGeolocation,
+          commands: options.commands,
+          label: ''
+        })
+      );
+
       // vector sub menu
       const vectorSubMenu = new Menu({ commands: options.commands });
 

@@ -26,6 +26,7 @@ import {
   IVectorTileLayer,
   IVectorTileSource,
   IWebGlLayer,
+  JgisCoordinates,
   JupyterGISModel
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -37,7 +38,7 @@ import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
-import Feature, { FeatureLike } from 'ol/Feature';
+import { FeatureLike } from 'ol/Feature';
 import { ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
@@ -136,6 +137,10 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
+    this._model.geolocationChanged.connect(
+      this._handleGeolocationChanged,
+      this
+    );
 
     this.state = {
       id: this._mainViewModel.id,
@@ -1837,6 +1842,19 @@ export class MainView extends React.Component<IProps, IStates> {
       const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
       feature.set(`${selectedFeature}ms`, parsedTime);
     });
+  }
+
+  private _handleGeolocationChanged(
+    sender: any,
+    newPosition: JgisCoordinates
+  ): void {
+    const view = this._Map.getView();
+    const zoom = view.getZoom();
+    if (zoom !== undefined && zoom + 2 < 20) {
+      this._moveToPosition(newPosition, zoom + 2);
+    } else {
+      this._moveToPosition(newPosition, 0);
+    }
   }
 
   private _handleThemeChange = (): void => {

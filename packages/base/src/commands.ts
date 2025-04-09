@@ -5,6 +5,7 @@ import {
   IJGISLayerGroup,
   IJGISLayerItem,
   IJupyterGISModel,
+  JgisCoordinates,
   LayerType,
   SelectionType,
   SourceType
@@ -30,6 +31,9 @@ import {
   selectedLayerIsOfType,
   processSelectedLayer
 } from './processing';
+import { fromLonLat } from 'ol/proj';
+import { Coordinate } from 'ol/coordinate';
+import { targetIcon } from './icons';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -1138,6 +1142,36 @@ export function addCommands(
         'application/geo+json'
       );
     }
+  });
+
+  commands.addCommand(CommandIDs.getGeolocation, {
+    label: trans.__('Get Geolocation'),
+    execute: async () => {
+      const viewModel = tracker.currentWidget?.model;
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+      };
+      const success = (pos: any) => {
+        const location: Coordinate = fromLonLat([
+          pos.coords.longitude,
+          pos.coords.latitude
+        ]);
+        const Jgislocation: JgisCoordinates = {
+          x: location[0],
+          y: location[1]
+        };
+        if (viewModel) {
+          viewModel.geolocationChanged.emit(Jgislocation);
+        }
+      };
+      const error = (err: any) => {
+        console.warn(`ERROR(${err.code}): ${err.message}`);
+      };
+      navigator.geolocation.getCurrentPosition(success, error, options);
+    },
+    icon: targetIcon
   });
 
   loadKeybindings(commands, keybindings);

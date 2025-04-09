@@ -29,6 +29,7 @@ import {
   ISelection,
   IUserData,
   IViewPortState,
+  JgisCoordinates,
   Pointer
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
@@ -700,6 +701,19 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.updateLayerSignal.emit(JSON.stringify({ layerId, layer }));
   };
 
+  get geolocation(): JgisCoordinates {
+    return this._geolocation;
+  }
+
+  set geolocation(geolocation: JgisCoordinates) {
+    this._geolocation = geolocation;
+    this.geolocationChanged.emit(this.geolocation);
+  }
+
+  get geolocationChanged() {
+    return this._geolocationChanged;
+  }
+
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
   readonly annotationModel?: IAnnotationModel;
@@ -733,6 +747,9 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _isTemporalControllerActive = false;
 
   static worker: Worker;
+
+  private _geolocation: JgisCoordinates;
+  private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
 }
 
 export namespace JupyterGISModel {

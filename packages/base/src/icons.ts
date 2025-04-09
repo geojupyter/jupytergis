@@ -20,6 +20,9 @@ import vectorSquareSvgStr from '../style/icons/vector_square.svg';
 import infoSvgStr from '../style/icons/info-solid.svg';
 import clockSvgStr from '../style/icons/clock-solid.svg';
 import terminalToolbarSvgStr from '../style/icons/terminal_toolbar.svg';
+import geolocationSvgStr from '../style/icons/geolocation.svg';
+import targetWithoutCenterSvgStr from '../style/icons/target-without-center.svg';
+import targetWithCenterSvgStr from '../style/icons/target-with-center.svg';
 
 export const logoIcon = new LabIcon({
   name: 'jupytergis::logo',
@@ -89,4 +92,20 @@ export const clockIcon = new LabIcon({
 export const terminalToolbarIcon = new LabIcon({
   name: 'jupytergis::terminalToolbar',
   svgstr: terminalToolbarSvgStr
+});
+
+export const geolocationIcon = new LabIcon({
+  name: 'jupytergis::geolocation',
+  svgstr: geolocationSvgStr
+});
+
+export const targetWithoutCenterIcon = new LabIcon({
+  name: 'jupytergis::targetWithCenter',
+  svgstr: targetWithCenterSvgStr
+});
+
+
+export const targetWithCenterIcon = new LabIcon({
+  name: 'jupytergis::targetWithoutCenter',
+  svgstr: targetWithoutCenterSvgStr
 });
