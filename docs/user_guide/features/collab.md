@@ -24,4 +24,6 @@ If you are using a local installation, your JupyterLab instance is not available
      Note that if you have added JupyterGIS to the `requirements.txt` file, it will be installed automatically when you create the Binder instance. In this case you do not need to follow [the installation guide](../install.md).
    - [Amazon SageMaker AI](https://aws.amazon.com/sagemaker-ai): If you prefer to use Amazon SageMaker AI, you can follow [this tutorial](https://docs.aws.amazon.com/sagemaker/latest/dg/onboard-quick-start.html) to set up your environment. After opening SageMaker Studio, create a JupyterLab space, and make sure choosing `Share with my domain` option to enable access for your collaborators.
 
+:::{important}
 Note that currently, real-time collaboration is not supported in [JupyterLite](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html).
+:::
