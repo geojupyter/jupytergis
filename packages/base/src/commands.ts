@@ -10,7 +10,7 @@ import {
   SourceType
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { showErrorMessage } from '@jupyterlab/apputils';
+import { InputDialog, showErrorMessage } from '@jupyterlab/apputils';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
@@ -251,6 +251,60 @@ export function addCommands(
     },
     ...icons.get(CommandIDs.temporalController)
   });
+
+  commands.addCommand(CommandIDs.saveAs, {
+    label: trans.__('Save As...'),
+    isEnabled: () => true,
+    execute: async () => {
+      if (!tracker.currentWidget) {
+        return;
+      }
+
+      const model = tracker.currentWidget.model;
+      const oldFilename = model.filePath;
+      let newFilename = (
+        await InputDialog.getText({
+          title: 'Save as...',
+          label: 'New filename',
+          placeholder: oldFilename
+        })
+      ).value;
+
+      if (!newFilename) {
+        return;
+      }
+
+      if (newFilename.toLowerCase().endsWith('.qgz')) {
+        throw Error('Not supported yet');
+      } else if (!newFilename.toLowerCase().endsWith('.jgis')) {
+        newFilename += '.jGIS';
+      }
+
+      const content = model.toJSON();
+
+      // FIXME: This doesn't re-open the project file in the current view where the save button was clicked.
+      app.serviceManager.contents.save(newFilename, {
+        content: JSON.stringify(content),
+        format: 'text',
+        type: 'file',
+        mimetype: 'text/json'
+      });
+      // FIXME: The widget will only save to this new filename once, as opposed to continuously saving changes to the file like we expect.
+      model.filePath = newFilename;
+
+      // FIXME: Saves to the currently open directory, while the above save is to the JupyterLab root directory.
+      // FIXME: Get "unsaved_project" from a constant
+      if (oldFilename && !oldFilename.endsWith('unsaved_project')) {
+        app.serviceManager.contents.save(oldFilename, {
+          content: JSON.stringify(content),
+          format: 'text',
+          type: 'file',
+          mimetype: 'text/json'
+        });
+      }
+    },
+    ...icons.get(CommandIDs.saveAs),
+  })
 
   /**
    * SOURCES and LAYERS creation commands.
