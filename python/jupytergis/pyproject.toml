@@ -19,10 +19,13 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "jupytergis_core==0.4.2",
-  "jupytergis_lab==0.4.2",
-  "jupytergis_qgis==0.4.2",
+  "jupytergis_core==0.4.4",
+  "jupytergis_lab==0.4.4",
+  "jupytergis_qgis==0.4.4",
   "jupyter-collaboration>=3,<4",
+  "jupyter-docprovider>=1,<2",
+  "jupyter-server-ydoc>=1,<2",
+  "jupyter-collaboration-ui>=1,<2",
   "jupyterlab>=4.3,<5",
 ]
 dynamic = ["version"]

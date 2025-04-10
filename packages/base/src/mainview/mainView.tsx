@@ -1368,7 +1368,7 @@ export class MainView extends React.Component<IProps, IStates> {
         return;
       }
 
-      const clientPointers = this.state.clientPointers;
+      const clientPointers = { ...this.state.clientPointers };
       let currentClientPointer = clientPointers[clientId];
 
       if (pointer) {
@@ -1380,23 +1380,27 @@ export class MainView extends React.Component<IProps, IStates> {
         const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
 
         if (!currentClientPointer) {
-          currentClientPointer = clientPointers[clientId] = {
+          currentClientPointer = {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
             coordinates: { x: pixel[0], y: pixel[1] },
             lonLat: { longitude: lonLat[0], latitude: lonLat[1] }
           };
+        } else {
+          currentClientPointer = {
+            ...currentClientPointer,
+            coordinates: { x: pixel[0], y: pixel[1] },
+            lonLat: { longitude: lonLat[0], latitude: lonLat[1] }
+          };
         }
 
-        currentClientPointer.coordinates.x = pixel[0];
-        currentClientPointer.coordinates.y = pixel[1];
         clientPointers[clientId] = currentClientPointer;
       } else {
         delete clientPointers[clientId];
       }
 
-      this.setState(old => ({ ...old, clientPointers: clientPointers }));
+      this.setState(old => ({ ...old, clientPointers }));
     });
 
     // Temporal controller bit
@@ -1884,7 +1888,8 @@ export class MainView extends React.Component<IProps, IStates> {
             />
           )}
           <div
-            className="jGIS-Mainview"
+            className="jGIS-Mainview data-jgis-keybinding"
+            tabIndex={-2}
             style={{
               border: this.state.remoteUser
                 ? `solid 3px ${this.state.remoteUser.color}`
