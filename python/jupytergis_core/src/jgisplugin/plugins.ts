@@ -26,6 +26,7 @@ import { PageConfig } from '@jupyterlab/coreutils';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import { JupyterGISDocumentWidgetFactory } from '../factory';
@@ -50,7 +51,8 @@ const activate = (
   annotationModel: IAnnotationModel,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
-  drive: ICollaborativeDrive | null
+  drive: ICollaborativeDrive | null,
+  settingRegistry: ISettingRegistry
 ): void => {
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
@@ -270,7 +272,8 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IEditorServices,
     IRenderMimeRegistry,
     IConsoleTracker,
-    IAnnotationToken
+    IAnnotationToken,
+    ISettingRegistry
   ],
   optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
   autoStart: true,
