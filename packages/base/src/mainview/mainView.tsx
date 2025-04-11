@@ -86,6 +86,7 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 import { Geometry } from 'ol/geom';
+import Feature from 'ol/Feature';
 
 interface IProps {
   viewModel: MainViewModel;
