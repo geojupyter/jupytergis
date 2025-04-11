@@ -1145,7 +1145,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.getGeolocation, {
-    label: trans.__('Get Geolocation'),
+    label: trans.__('Center and Zoom on Geolocation'),
     execute: async () => {
       const viewModel = tracker.currentWidget?.model;
       const options = {
