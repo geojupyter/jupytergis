@@ -71,7 +71,6 @@ export class MainViewModel implements IDisposable {
   private _jGISModel: IJupyterGISModel;
   private _viewSetting: ObservableMap<JSONValue>;
   private _commands: CommandRegistry;
-
   private _id: string;
   private _isDisposed = false;
 }
