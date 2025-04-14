@@ -49,8 +49,10 @@ class TestLayerManipulation(TestDocument):
 def test_untitled_doc(tmp_path):
     os.chdir(tmp_path)
 
-    doc = GISDocument()
+    GISDocument()
     assert len(list(tmp_path.iterdir())) == 1
+    assert (tmp_path / "untitled.jGIS").is_file()
 
-    fn = "untitled.jGIS"
-    assert (tmp_path / fn).is_file()
+    GISDocument()
+    assert len(list(tmp_path.iterdir())) == 2
+    assert (tmp_path / "untitled1.jGIS").is_file()
