@@ -46,6 +46,8 @@ class GISDocument(CommWidget):
     :param path: the path to the file that you would like to open. If not provided, a new untitled document will be created.
     """
 
+    path: Path
+
     def __init__(
         self,
         path: Optional[str | Path] = None,
@@ -70,6 +72,8 @@ class GISDocument(CommWidget):
             ydoc=ydoc,
         )
 
+        self._comm.on_msg(self._handle_comm_message)
+
         self.ydoc["layers"] = self._layers = Map()
         self.ydoc["sources"] = self._sources = Map()
         self.ydoc["options"] = self._options = Map()
@@ -91,6 +95,13 @@ class GISDocument(CommWidget):
                 self._options["pitch"] = pitch
             if projection is not None:
                 self._options["projection"] = projection
+
+    def _handle_comm_message(self, content: Dict[str, Any]) -> None:
+        if content.get("method") == "update_path":
+            new_path = content.get("path")
+            if new_path:
+                self.path = Path(new_path)
+                logger.info(f"GISDocument path updated to: {self.path}")
 
     @property
     def layers(self) -> Dict:
