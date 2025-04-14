@@ -171,11 +171,13 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
             });
           }
         } else {
-          // If the user did not provide a path, do not create
-          localPath = PathExt.join(
-            PathExt.dirname(currentWidgetPath),
-            'unsaved_project'
-          );
+          // If the user did not provide a path, create an untitled document
+          let model = await app.serviceManager.contents.newUntitled({
+            path: PathExt.dirname(currentWidgetPath),
+            type: 'file',
+            ext: '.jGIS'
+          });
+          localPath = model.path;
         }
 
         const sharedModel = drive!.sharedModelFactory.createNew({
