@@ -21,8 +21,8 @@ import infoSvgStr from '../style/icons/info-solid.svg';
 import clockSvgStr from '../style/icons/clock-solid.svg';
 import terminalToolbarSvgStr from '../style/icons/terminal_toolbar.svg';
 import geolocationSvgStr from '../style/icons/geolocation.svg';
-import targetWithoutCenterSvgStr from '../style/icons/target-without-center.svg';
-import targetWithCenterSvgStr from '../style/icons/target-with-center.svg';
+import targetWithoutCenterSvgStr from '../style/icons/target_without_center.svg';
+import targetWithCenterSvgStr from '../style/icons/target_with_center.svg';
 
 export const logoIcon = new LabIcon({
   name: 'jupytergis::logo',
