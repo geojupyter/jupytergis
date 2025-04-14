@@ -33,7 +33,7 @@ import {
 } from './processing';
 import { fromLonLat } from 'ol/proj';
 import { Coordinate } from 'ol/coordinate';
-import { targetIcon } from './icons';
+import { targetWithCenterIcon } from './icons';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -1171,7 +1171,7 @@ export function addCommands(
       };
       navigator.geolocation.getCurrentPosition(success, error, options);
     },
-    icon: targetIcon
+    icon: targetWithCenterIcon
   });
 
   loadKeybindings(commands, keybindings);
