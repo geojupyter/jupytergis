@@ -15,6 +15,11 @@ import nonVisibilitySvgStr from '../style/icons/nonvisibility.svg';
 import geoJsonSvgStr from '../style/icons/geojson.svg';
 import moundSvgStr from '../style/icons/mound.svg';
 import logoMiniQGZ from '../style/icons/logo_mini_qgz.svg';
+import bookOpenSvgStr from '../style/icons/book_open.svg';
+import vectorSquareSvgStr from '../style/icons/vector_square.svg';
+import infoSvgStr from '../style/icons/info-solid.svg';
+import clockSvgStr from '../style/icons/clock-solid.svg';
+import terminalToolbarSvgStr from '../style/icons/terminal_toolbar.svg';
 
 export const logoIcon = new LabIcon({
   name: 'jupytergis::logo',
@@ -59,4 +64,29 @@ export const moundIcon = new LabIcon({
 export const logoMiniIconQGZ = new LabIcon({
   name: 'jupytergis::logoQGZ',
   svgstr: logoMiniQGZ
+});
+
+export const bookOpenIcon = new LabIcon({
+  name: 'jupytergis::bookOpen',
+  svgstr: bookOpenSvgStr
+});
+
+export const vectorSquareIcon = new LabIcon({
+  name: 'jupytergis::vectorSquare',
+  svgstr: vectorSquareSvgStr
+});
+
+export const infoIcon = new LabIcon({
+  name: 'jupytergis::info',
+  svgstr: infoSvgStr
+});
+
+export const clockIcon = new LabIcon({
+  name: 'jupytergis::clock',
+  svgstr: clockSvgStr
+});
+
+export const terminalToolbarIcon = new LabIcon({
+  name: 'jupytergis::terminalToolbar',
+  svgstr: terminalToolbarSvgStr
 });

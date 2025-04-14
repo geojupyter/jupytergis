@@ -8,7 +8,6 @@ import {
   ToolbarButton,
   addIcon,
   redoIcon,
-  terminalIcon,
   undoIcon
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
@@ -16,7 +15,7 @@ import { Menu, Widget } from '@lumino/widgets';
 
 import * as React from 'react';
 import { CommandIDs } from '../constants';
-import { rasterIcon } from '../icons';
+import { rasterIcon, terminalToolbarIcon } from '../icons';
 import { UsersItem } from './usertoolbaritem';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
@@ -67,7 +66,7 @@ export class ToolbarWidget extends ReactiveToolbar {
           id: CommandIDs.toggleConsole,
           commands: options.commands,
           label: '',
-          icon: terminalIcon
+          icon: terminalToolbarIcon
         })
       );
 
