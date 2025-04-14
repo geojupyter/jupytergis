@@ -91,6 +91,7 @@
     "access": "public"
   },
   "jupyterlab": {
+    "schemaDir": "schema",
     "discovery": {
       "server": {
         "managers": [
