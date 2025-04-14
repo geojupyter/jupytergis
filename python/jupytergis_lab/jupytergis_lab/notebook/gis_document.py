@@ -46,8 +46,6 @@ class GISDocument(CommWidget):
     :param path: the path to the file that you would like to open. If not provided, a new empty document will be created.
     """
 
-    path: Optional[Path]
-
     def __init__(
         self,
         path: Optional[str | Path] = None,
@@ -59,17 +57,16 @@ class GISDocument(CommWidget):
         pitch: Optional[float] = None,
         projection: Optional[str] = None,
     ):
-        if isinstance(path, str):
-            path = Path(path)
-
-        self.path = path
-
-        comm_metadata = GISDocument._path_to_comm(str(self.path) if self.path else None)
+        if isinstance(path, Path):
+            path = str(path)
 
         ydoc = Doc()
 
         super().__init__(
-            comm_metadata=dict(ymodel_name="@jupytergis:widget", **comm_metadata),
+            comm_metadata={
+                "ymodel_name": "@jupytergis:widget",
+                **self._path_to_comm(path),
+            },
             ydoc=ydoc,
         )
 
