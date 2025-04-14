@@ -17,6 +17,8 @@ export class RightPanelWidget extends SidePanel {
   constructor(options: RightPanelWidget.IOptions) {
     super();
     this.addClass('jGIS-sidepanel-widget');
+    this.addClass('data-jgis-keybinding');
+    this.node.tabIndex = 0;
 
     this._model = options.model;
     this._annotationModel = options.annotationModel;
@@ -43,6 +45,7 @@ export class RightPanelWidget extends SidePanel {
     });
     identifyPanel.title.caption = 'Identify';
     identifyPanel.title.label = 'Identify';
+    identifyPanel.addClass('jgis-scrollable');
     this.addWidget(identifyPanel);
 
     this._model.documentChanged.connect((_, changed) => {

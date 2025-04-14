@@ -322,22 +322,28 @@ export function addCommands(
     label: trans.__('Buffer'),
     isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
     execute: async () => {
-      await processSelectedLayer(tracker, formSchemaRegistry, 'Buffer', {
-        sqlQueryFn: (layerName, bufferDistance) => `
+      await processSelectedLayer(
+        tracker,
+        formSchemaRegistry,
+        'Buffer',
+        {
+          sqlQueryFn: (layerName, bufferDistance) => `
           SELECT ST_Union(ST_Buffer(geometry, ${bufferDistance})) AS geometry, *
           FROM "${layerName}"
         `,
-        gdalFunction: 'ogr2ogr',
-        options: (sqlQuery: string) => [
-          '-f',
-          'GeoJSON',
-          '-dialect',
-          'SQLITE',
-          '-sql',
-          sqlQuery,
-          'output.geojson'
-        ]
-      });
+          gdalFunction: 'ogr2ogr',
+          options: (sqlQuery: string) => [
+            '-f',
+            'GeoJSON',
+            '-dialect',
+            'SQLITE',
+            '-sql',
+            sqlQuery,
+            'output.geojson'
+          ]
+        },
+        app
+      );
     }
   });
 
@@ -345,23 +351,29 @@ export function addCommands(
     label: trans.__('Dissolve'),
     isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
     execute: async () => {
-      await processSelectedLayer(tracker, formSchemaRegistry, 'Dissolve', {
-        sqlQueryFn: (layerName, dissolveField) => `
+      await processSelectedLayer(
+        tracker,
+        formSchemaRegistry,
+        'Dissolve',
+        {
+          sqlQueryFn: (layerName, dissolveField) => `
           SELECT ST_Union(geometry) AS geometry, ${dissolveField}
           FROM "${layerName}"
           GROUP BY ${dissolveField}
         `,
-        gdalFunction: 'ogr2ogr',
-        options: (sqlQuery: string) => [
-          '-f',
-          'GeoJSON',
-          '-dialect',
-          'SQLITE',
-          '-sql',
-          sqlQuery,
-          'output.geojson'
-        ]
-      });
+          gdalFunction: 'ogr2ogr',
+          options: (sqlQuery: string) => [
+            '-f',
+            'GeoJSON',
+            '-dialect',
+            'SQLITE',
+            '-sql',
+            sqlQuery,
+            'output.geojson'
+          ]
+        },
+        app
+      );
     }
   });
 

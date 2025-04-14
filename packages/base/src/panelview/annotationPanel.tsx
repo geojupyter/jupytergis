@@ -66,7 +66,7 @@ export class Annotations extends PanelWithToolbar {
     super({});
 
     this.title.label = 'Annotations';
-    this.addClass('jGIS-Annotations');
+    this.addClass('jgis-scrollable');
 
     this._annotationModel = options.annotationModel;
     this._rightPanelModel = options.rightPanelModel;
