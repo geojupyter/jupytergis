@@ -106,23 +106,7 @@ class GISDocument(CommWidget):
         """
         return self._layerTree.to_py()
 
-    def save_as(self, path: str | Path) -> None:
-        """Save the document at a new path."""
-        if isinstance(path, str):
-            path = Path(path)
-
-        if path.name.lower().endswith(".qgz"):
-            _export_to_qgis(path)
-            self.path = path
-            return
-
-        if not path.name.lower().endswith(".jgis"):
-            path = Path(str(path) + ".jGIS")
-
-        path.write_text(json.dumps(self.to_py()))
-        self.path = path
-
-    def _export_to_qgis(self, path: str | Path) -> bool:
+    def export_to_qgis(self, path: str | Path) -> bool:
         # Lazy import, jupytergis_qgis of qgis may not be installed
         from jupytergis_qgis.qgis_loader import export_project_to_qgis
 
