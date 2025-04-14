@@ -172,7 +172,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           }
         } else {
           // If the user did not provide a path, create an untitled document
-          let model = await app.serviceManager.contents.newUntitled({
+          const model = await app.serviceManager.contents.newUntitled({
             path: PathExt.dirname(currentWidgetPath),
             type: 'file',
             ext: '.jGIS'
