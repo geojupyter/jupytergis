@@ -1851,12 +1851,14 @@ export class MainView extends React.Component<IProps, IStates> {
   ): void {
     const view = this._Map.getView();
     const zoom = view.getZoom();
-    if (zoom !== undefined && zoom + 2 < 20) {
-      this._moveToPosition(newPosition, zoom + 2);
-    } else {
-      this._moveToPosition(newPosition, 0);
+    if (zoom) {
+      this._moveToPosition(newPosition, zoom);
+    }
+    else {
+      throw new Error('Could not move to geolocation, because current zoom is not defined.')
     }
   }
+
 
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
