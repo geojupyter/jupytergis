@@ -104,7 +104,6 @@ export const targetWithoutCenterIcon = new LabIcon({
   svgstr: targetWithCenterSvgStr
 });
 
-
 export const targetWithCenterIcon = new LabIcon({
   name: 'jupytergis::targetWithoutCenter',
   svgstr: targetWithoutCenterSvgStr

@@ -38,7 +38,7 @@ import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
-import { FeatureLike } from 'ol/Feature';
+import { Feature, FeatureLike } from 'ol/Feature';
 import { ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
@@ -86,7 +86,6 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
 import { Geometry } from 'ol/geom';
-import Feature from 'ol/Feature';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -1853,12 +1852,12 @@ export class MainView extends React.Component<IProps, IStates> {
     const zoom = view.getZoom();
     if (zoom) {
       this._moveToPosition(newPosition, zoom);
-    }
-    else {
-      throw new Error('Could not move to geolocation, because current zoom is not defined.')
+    } else {
+      throw new Error(
+        'Could not move to geolocation, because current zoom is not defined.'
+      );
     }
   }
-
 
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
