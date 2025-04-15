@@ -3,7 +3,7 @@ from sidecar import Sidecar
 from jupytergis_lab import GISDocument
 
 
-def geo_debug(geojson_path: str) -> None:
+def explore(geojson_path: str) -> None:
     """Run a JupyterGIS data interaction interface alongside a Notebook."""
     doc = GISDocument()
 
