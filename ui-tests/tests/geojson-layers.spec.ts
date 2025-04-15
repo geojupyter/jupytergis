@@ -48,11 +48,11 @@ test.describe('#geoJSONLayer', () => {
 
   test('Add a GeoJSON layer', async ({ page, tmpPath }) => {
     const panel = await openGIS(page, tmpPath, FILENAME);
-    const main = panel?.locator('.jGIS-Mainview');
 
-    await page
-      .locator('div:nth-child(9) > .jp-ToolbarButtonComponent > .control')
-      .click();
+    const main = panel?.locator('.jGIS-Mainview');
+    console.log('main:', main);
+
+    await page.getByTestId('new-entry-button-test-id').click();
     await page.getByText('Add Vector Layer').hover();
     await page
       .locator('#jp-gis-toolbar-vector-menu')
