@@ -21,7 +21,7 @@ classifiers = [
 dependencies = [
   "jupytergis_core==0.4.4",
   "jupytergis_lab==0.4.4",
-  "my-jupyter-shared-drive",
+  "my-jupyter-shared-drive<0.2.0",
 ]
 dynamic = ["version"]
 license = {file = "LICENSE"}
