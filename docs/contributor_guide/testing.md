@@ -14,9 +14,16 @@ Run the tests:
 pytest --color=yes -v python
 ```
 
-## Integration tests
+## UI tests
 
-We don't recommend running integration tests locally because they are browser-based
-tests and differences between systems can cause test breakage.
-
+We don't recommend running UI tests locally because they are browser-based tests and
+differences between systems can cause test breakage.
 Integration tests will run automatically in CI.
+
+However, if you are developing a new UI test or editing an existing UI test, you may
+want to run them locally:
+
+```bash
+npx playwright install chromium  # Install testing browser
+npx playwright test --retries=2  # Run tests
+```
