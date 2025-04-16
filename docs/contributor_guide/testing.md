@@ -21,9 +21,12 @@ differences between systems can cause test breakage.
 Integration tests will run automatically in CI.
 
 However, if you are developing a new UI test or editing an existing UI test, you may
-want to run them locally:
+want to run them locally.
+
+**From the `ui-tests` directory:**
 
 ```bash
-npx playwright install chromium  # Install testing browser
-npx playwright test --retries=2  # Run tests
+jlpm install                      # Install ui testing dependencies
+jlpm playwright install chromium  # Install testing browser
+jlpm run test                     # Run tests
 ```
