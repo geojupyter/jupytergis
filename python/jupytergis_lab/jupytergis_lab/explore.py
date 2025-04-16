@@ -10,7 +10,7 @@ def explore(geojson_path: str | Path) -> None:
 
     :param geojson_path: Path to a GeoJSON file.
     """
-    doc = GISDocument()
+    doc = GISDocument(open=True)
 
     # TODO: Basemap choices
     doc.add_raster_layer(
@@ -22,12 +22,5 @@ def explore(geojson_path: str | Path) -> None:
 
     # TODO: Zoom to layer; is that feasible to do from Python? Currently not exposed in
     #       Python API.
-
-    # TODO: Make map take up the whole sidebar space.
-    # TODO: Activate left and right panel -- not sure how feasible yet from Python.
-    #       Also, if using sidecar, right panel can't be displayed. Can we open a
-    #       "native" JupyterLab pane instead of using sidecar?
-
-    sc = Sidecar(title="JupyterGIS sidecar", anchor="split-right")
-    with sc:
-        display(doc)
+    # FIXME: The document opens as intended, but the file has no contents and any
+    #        updates performed result in no update to the file.

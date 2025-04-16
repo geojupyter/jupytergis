@@ -134,7 +134,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
       protected async initialize(commMetadata: {
         [key: string]: any;
       }): Promise<void> {
-        const { path, format, contentType } = commMetadata;
+        const { path, open, format, contentType } = commMetadata;
         const fileFormat = format as Contents.FileFormat;
 
         if (!drive) {
@@ -195,6 +195,17 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
 
         this.ydoc = this.jupyterGISModel.sharedModel.ydoc;
         this.sharedModel = new JupyterYDoc(commMetadata, this.ydoc);
+
+        if (open) {
+          app.commands.execute('docmanager:open', {
+            path: localPath,
+            factory: 'JupyterGIS .jgis Viewer',
+            options: {
+              mode: 'split-right',
+            }
+          });
+        }
+
       }
     }
 
