@@ -1661,7 +1661,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       if (data && (val.action === 'add' || val.action === 'update')) {
-        const jsonData = JSON.parse(data);
+        const jsonData = data as IAnnotation;
         jsonData['open'] = open;
         newState[key] = jsonData;
       } else if (val.action === 'delete') {

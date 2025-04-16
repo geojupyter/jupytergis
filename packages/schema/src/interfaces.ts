@@ -129,8 +129,8 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getOption(key: keyof IJGISOptions): IDict | undefined;
   setOption(key: keyof IJGISOptions, value: IDict): void;
 
-  getMetadata(key: string): string | undefined;
-  setMetadata(key: string, value: string): void;
+  getMetadata(key: string): string | IAnnotation | undefined;
+  setMetadata(key: string, value: string | IAnnotation): void;
   removeMetadata(key: string): void;
 
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
@@ -343,4 +343,5 @@ export interface IAnnotation {
   zoom: number;
   contents: IAnnotationContent[];
   parent: string;
+  open?: boolean;
 }
