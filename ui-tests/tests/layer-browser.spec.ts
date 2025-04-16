@@ -99,14 +99,14 @@ test.describe('#layerBrowser', () => {
   test.beforeAll(async ({ request }) => {
     const content = galata.newContentsHelper(request);
     await content.deleteDirectory('/testDir');
-    const uploaded = await content.uploadDirectory(
+    await content.uploadDirectory(
       path.resolve(__dirname, './gis-files'),
       '/testDir'
     );
   });
 
   test.beforeEach(async ({ page }) => {
-    const opened = await page.filebrowser.open('testDir/test.jGIS');
+    await page.filebrowser.open('testDir/test.jGIS');
   });
 
   test.afterEach(async ({ page }) => {

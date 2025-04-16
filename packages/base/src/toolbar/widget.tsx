@@ -46,7 +46,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
 
       this.addItem('undo', undoButton);
-      undoButton.node.dataset.testid = 'undo-button-test-id';
+      undoButton.node.dataset.testid = 'undo-button';
 
       const redoButton = new CommandToolbarButton({
         id: CommandIDs.redo,
@@ -76,7 +76,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
       this.addItem('openLayerBrowser', openLayersBrowserButton);
       openLayersBrowserButton.node.dataset.testid =
-        'open-layers-browser-test-id';
+        'open-layers-browser';
 
       const newRasterEntryButton = new CommandToolbarButton({
         id: CommandIDs.newRasterEntry,
@@ -91,7 +91,7 @@ export class ToolbarWidget extends ReactiveToolbar {
         commands: options.commands
       });
       this.addItem('newVectorTileEntry', newVectorTileEntryButton);
-      newRasterEntryButton.node.dataset.testid = 'new-raster-entry-test-id';
+      newRasterEntryButton.node.dataset.testid = 'new-raster-entry-button';
 
       const geolocationButton = new CommandToolbarButton({
         id: CommandIDs.getGeolocation,
@@ -100,7 +100,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
       this.addItem('Geolocation', geolocationButton);
 
-      geolocationButton.node.dataset.testid = 'geolocation-button-test-id';
+      geolocationButton.node.dataset.testid = 'geolocation-button';
 
       // vector sub menu
       const vectorSubMenu = new Menu({ commands: options.commands });
@@ -160,7 +160,7 @@ export class ToolbarWidget extends ReactiveToolbar {
           NewSubMenu.open(bbox.x, bbox.bottom);
         }
       });
-      NewEntryButton.node.dataset.testid = 'new-entry-button-test-id';
+      NewEntryButton.node.dataset.testid = 'new-entry-button';
 
       this.addItem('New', NewEntryButton);
 
@@ -173,7 +173,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
 
       this.addItem('identify', identifyButton);
-      identifyButton.node.dataset.testid = 'identify-button-test-id';
+      identifyButton.node.dataset.testid = 'identify-button';
 
       const temporalControllerButton = new CommandToolbarButton({
         id: CommandIDs.temporalController,
@@ -182,7 +182,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
       this.addItem('temporalController', temporalControllerButton);
       temporalControllerButton.node.dataset.testid =
-        'temporal-controller-button-test-id';
+        'temporal-controller-button';
 
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
