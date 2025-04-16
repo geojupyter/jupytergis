@@ -65,7 +65,7 @@ export class ToolbarWidget extends ReactiveToolbar {
         icon: terminalToolbarIcon
       });
       this.addItem('Toggle console', toggleConsoleButton);
-      toggleConsoleButton.node.dataset.testid = 'toggle-console-button-test-id';
+      toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
 
       this.addItem('separator1', new Separator());
 
