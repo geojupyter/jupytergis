@@ -1,10 +1,15 @@
+from pathlib import Path
+
 from sidecar import Sidecar
 
 from jupytergis_lab import GISDocument
 
 
-def explore(geojson_path: str) -> None:
-    """Run a JupyterGIS data interaction interface alongside a Notebook."""
+def explore(geojson_path: str | Path) -> None:
+    """Run a JupyterGIS data interaction interface alongside a Notebook.
+
+    :param geojson_path: Path to a GeoJSON file.
+    """
     doc = GISDocument()
 
     # TODO: Basemap choices
@@ -13,7 +18,7 @@ def explore(geojson_path: str) -> None:
     )
 
     # TODO: Support lots of file types, and support Python objects like geodataframes.
-    doc.add_geojson_layer(geojson_path)
+    doc.add_geojson_layer(str(geojson_path))
 
     # TODO: Zoom to layer; is that feasible to do from Python? Currently not exposed in
     #       Python API.
