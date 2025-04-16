@@ -75,8 +75,7 @@ export class ToolbarWidget extends ReactiveToolbar {
         commands: options.commands
       });
       this.addItem('openLayerBrowser', openLayersBrowserButton);
-      openLayersBrowserButton.node.dataset.testid =
-        'open-layers-browser';
+      openLayersBrowserButton.node.dataset.testid = 'open-layers-browser';
 
       const newRasterEntryButton = new CommandToolbarButton({
         id: CommandIDs.newRasterEntry,
