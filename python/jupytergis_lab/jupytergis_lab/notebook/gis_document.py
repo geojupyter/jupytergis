@@ -49,6 +49,7 @@ class GISDocument(CommWidget):
     def __init__(
         self,
         path: Optional[str | Path] = None,
+        open: bool = False,
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
         zoom: Optional[float] = None,
@@ -65,7 +66,7 @@ class GISDocument(CommWidget):
         super().__init__(
             comm_metadata={
                 "ymodel_name": "@jupytergis:widget",
-                **self._path_to_comm(path),
+                **self._make_comm(path=path, open=open),
             },
             ydoc=ydoc,
         )
@@ -730,13 +731,11 @@ class GISDocument(CommWidget):
         return _id
 
     @classmethod
-    def _path_to_comm(cls, filePath: Optional[str]) -> Dict:
-        path = None
+    def _make_comm(cls, *, path: Optional[str], open: bool = False) -> Dict:
         format = None
         contentType = None
 
-        if filePath is not None:
-            path = filePath
+        if path is not None:
             file_name = Path(path).name
             try:
                 ext = file_name.split(".")[1].lower()
@@ -754,8 +753,13 @@ class GISDocument(CommWidget):
                 contentType = "QGS"
             else:
                 raise ValueError("File extension is not supported!")
+
         return dict(
-            path=path, format=format, contentType=contentType, create_ydoc=path is None
+            path=path,
+            open=open,
+            format=format,
+            contentType=contentType,
+            create_ydoc=path is None,
         )
 
     def to_py(self) -> dict:
