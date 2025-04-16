@@ -79,7 +79,7 @@ async function openLayerBrowser(
   const layerBrowser = page.locator('#jupytergis\\:\\:layerBrowser');
 
   if (!(await layerBrowser.isVisible())) {
-    await page.getByTitle('Open Layer Browser').locator('div').click();
+    await page.getByTitle('Open Layer Browser').click();
     await page.waitForCondition(async () => await layerBrowser.isVisible());
   }
   return layerBrowser;
@@ -114,7 +114,7 @@ test.describe('#layerBrowser', () => {
   });
 
   test('toolbar should have layer browser icon', async ({ page }) => {
-    const toolbarIcon = page.getByTitle('Open Layer Browser').locator('div');
+    const toolbarIcon = page.getByTitle('Open Layer Browser');
     await expect(toolbarIcon).toBeVisible();
   });
 
