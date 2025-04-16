@@ -59,10 +59,7 @@ export class AnnotationModel implements IAnnotationModel {
   }
 
   addAnnotation(key: string, value: IAnnotation): void {
-    this._model?.sharedModel.setMetadata(
-      `annotation_${key}`,
-      value
-    );
+    this._model?.sharedModel.setMetadata(`annotation_${key}`, value);
   }
 
   removeAnnotation(key: string): void {
