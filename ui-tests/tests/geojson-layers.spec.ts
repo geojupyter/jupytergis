@@ -50,7 +50,6 @@ test.describe('#geoJSONLayer', () => {
     const panel = await openGIS(page, tmpPath, FILENAME);
 
     const main = panel?.locator('.jGIS-Mainview');
-    console.log('main:', main);
 
     await page.getByTestId('new-entry-button-test-id').click();
     await page.getByText('Add Vector Layer').hover();
