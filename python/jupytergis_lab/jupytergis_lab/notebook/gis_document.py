@@ -43,13 +43,12 @@ class GISDocument(CommWidget):
     """
     Create a new GISDocument object.
 
-    :param path: the path to the file that you would like to open. If not provided, a new untitled document will be created.
+    :param path: the path to the file that you would like to open. If not provided, a new ephemeral widget will be created.
     """
 
     def __init__(
         self,
         path: Optional[str | Path] = None,
-        open: bool = False,
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
         zoom: Optional[float] = None,
@@ -66,7 +65,7 @@ class GISDocument(CommWidget):
         super().__init__(
             comm_metadata={
                 "ymodel_name": "@jupytergis:widget",
-                **self._make_comm(path=path, open=open),
+                **self._make_comm(path=path),
             },
             ydoc=ydoc,
         )
@@ -731,7 +730,7 @@ class GISDocument(CommWidget):
         return _id
 
     @classmethod
-    def _make_comm(cls, *, path: Optional[str], open: bool = False) -> Dict:
+    def _make_comm(cls, *, path: Optional[str]) -> Dict:
         format = None
         contentType = None
 
@@ -756,7 +755,6 @@ class GISDocument(CommWidget):
 
         return dict(
             path=path,
-            open=open,
             format=format,
             contentType=contentType,
             create_ydoc=path is None,

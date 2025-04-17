@@ -134,7 +134,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
       protected async initialize(commMetadata: {
         [key: string]: any;
       }): Promise<void> {
-        const { path, open, format, contentType } = commMetadata;
+        const { path, format, contentType } = commMetadata;
         const fileFormat = format as Contents.FileFormat;
 
         if (!drive) {
@@ -174,21 +174,8 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           // If the user did not provide a path, do not create
           localPath = PathExt.join(
             PathExt.dirname(currentWidgetPath),
-            'unsaved_project.jGIS'
+            'unsaved_project'
           );
-
-          // If the user did not provide a path, create an untitled document
-          // const model = await app.serviceManager.contents.newUntitled({
-          //   path: PathExt.dirname(currentWidgetPath),
-          //   type: 'file',
-          //   ext: '.jGIS'
-          // });
-          // localPath = model.path;
-
-          await app.serviceManager.contents.save(localPath, {
-            content: btoa('{}'),
-            format: 'base64'
-          });
         }
 
         const sharedModel = drive!.sharedModelFactory.createNew({
@@ -206,26 +193,6 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
 
         this.ydoc = this.jupyterGISModel.sharedModel.ydoc;
         this.sharedModel = new JupyterYDoc(commMetadata, this.ydoc);
-
-        if (open) {
-          // HACK: Use setTimeout; without it, the document is opened but
-          // doesn't display the layers.
-          // Is there some sort of race condition between document save and
-          // open?
-          // awaiting the open command does not work either.
-          // TODO: Remove setTimeout!
-          await setTimeout(() => {
-            app.commands.execute('docmanager:open', {
-              path: localPath,
-              factory: 'JupyterGIS .jgis Viewer',
-              options: {
-                mode: 'split-right',
-              }
-            })},
-            0
-          );
-        }
-
       }
     }
 
