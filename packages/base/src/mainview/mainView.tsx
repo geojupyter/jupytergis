@@ -443,7 +443,8 @@ export class MainView extends React.Component<IProps, IStates> {
           zoom: this._Map.getView().getZoom() ?? 0,
           label: 'New annotation',
           contents: [],
-          parent: this._Map.getViewport().id
+          parent: this._Map.getViewport().id,
+          open: true
         });
       },
       label: 'Add annotation',
@@ -1893,7 +1894,6 @@ export class MainView extends React.Component<IProps, IStates> {
                 <AnnotationFloater
                   itemId={key}
                   annotationModel={this._model.annotationModel}
-                  open={false}
                 />
               </div>
             )
