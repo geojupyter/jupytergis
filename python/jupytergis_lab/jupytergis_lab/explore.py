@@ -22,8 +22,7 @@ def explore(geojson_path: str | Path) -> None:
 
     # TODO: Zoom to layer; is that feasible to do from Python? Currently not exposed in
     #       Python API.
-    # FIXME: The document opens as intended, but the file has no contents and any
-    #        updates performed result in no update to the file.
+
     sidecar = Sidecar(
         title="JupyterGIS explorer",
         anchor="split-right",
