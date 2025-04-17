@@ -67,7 +67,9 @@ export class AnnotationModel implements IAnnotationModel {
 
   updateAnnotation(id: string, updates: Partial<IAnnotation>): void {
     const existing = this.getAnnotation(id);
-    if (!existing) {return;}
+    if (!existing) {
+      return;
+    }
 
     this._model?.sharedModel.setMetadata(
       id,
