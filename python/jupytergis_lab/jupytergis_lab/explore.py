@@ -10,7 +10,7 @@ def explore(geojson_path: str | Path) -> None:
 
     :param geojson_path: Path to a GeoJSON file.
     """
-    doc = GISDocument(open=True)
+    doc = GISDocument()
 
     # TODO: Basemap choices
     doc.add_raster_layer(
@@ -24,3 +24,9 @@ def explore(geojson_path: str | Path) -> None:
     #       Python API.
     # FIXME: The document opens as intended, but the file has no contents and any
     #        updates performed result in no update to the file.
+    sidecar = Sidecar(
+        title="JupyterGIS explorer",
+        anchor="split-right",
+    )
+    with sidecar:
+        display(doc)
