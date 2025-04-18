@@ -43,10 +43,10 @@ class GISDocument(CommWidget):
     """
     Create a new GISDocument object.
 
-    :param path: the path to the file that you would like to open. If not provided, a new empty document will be created.
+    :param path: the path to the file that you would like to open. If not provided, a new untitled document will be created.
     """
 
-    path: Optional[Path]
+    path: Path
 
     def __init__(
         self,
@@ -59,19 +59,20 @@ class GISDocument(CommWidget):
         pitch: Optional[float] = None,
         projection: Optional[str] = None,
     ):
-        if isinstance(path, str):
-            path = Path(path)
-
-        self.path = path
-
-        comm_metadata = GISDocument._path_to_comm(str(self.path) if self.path else None)
+        if isinstance(path, Path):
+            path = str(path)
 
         ydoc = Doc()
 
         super().__init__(
-            comm_metadata=dict(ymodel_name="@jupytergis:widget", **comm_metadata),
+            comm_metadata={
+                "ymodel_name": "@jupytergis:widget",
+                **self._path_to_comm(path),
+            },
             ydoc=ydoc,
         )
+
+        self._comm.on_msg(self._handle_comm_message)
 
         self.ydoc["layers"] = self._layers = Map()
         self.ydoc["sources"] = self._sources = Map()
@@ -95,6 +96,13 @@ class GISDocument(CommWidget):
             if projection is not None:
                 self._options["projection"] = projection
 
+    def _handle_comm_message(self, content: Dict[str, Any]) -> None:
+        if content.get("method") == "update_path":
+            new_path = content.get("path")
+            if new_path:
+                self.path = Path(new_path)
+                logger.info(f"GISDocument path updated to: {self.path}")
+
     @property
     def layers(self) -> Dict:
         """
@@ -109,23 +117,7 @@ class GISDocument(CommWidget):
         """
         return self._layerTree.to_py()
 
-    def save_as(self, path: str | Path) -> None:
-        """Save the document at a new path."""
-        if isinstance(path, str):
-            path = Path(path)
-
-        if path.name.lower().endswith(".qgz"):
-            _export_to_qgis(path)
-            self.path = path
-            return
-
-        if not path.name.lower().endswith(".jgis"):
-            path = Path(str(path) + ".jGIS")
-
-        path.write_text(json.dumps(self.to_py()))
-        self.path = path
-
-    def _export_to_qgis(self, path: str | Path) -> bool:
+    def export_to_qgis(self, path: str | Path) -> bool:
         # Lazy import, jupytergis_qgis of qgis may not be installed
         from jupytergis_qgis.qgis_loader import export_project_to_qgis
 
