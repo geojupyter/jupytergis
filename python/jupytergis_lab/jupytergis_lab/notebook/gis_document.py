@@ -107,9 +107,11 @@ class GISDocument(CommWidget):
         self._tile_server_app = FastAPI()
         config = Config()
         async with create_task_group() as tg:
-            binds = await tg.start(partial(serve, self._tile_server_app, config, mode="asgi"))
+            binds = await tg.start(
+                partial(serve, self._tile_server_app, config, mode="asgi")
+            )
             self._tile_server_bind = binds[0]
-            host, _port = binds[0][len("http://"):].split(":")
+            host, _port = binds[0][len("http://") :].split(":")
             port = int(_port)
             while True:
                 try:
@@ -200,7 +202,11 @@ class GISDocument(CommWidget):
         if rescale is not None:
             params["rescale"] = f"{rescale[0]},{rescale[1]}"
         source_id = str(uuid4())
-        url = f"{self._tile_server_bind}/{source_id}/tiles/WebMercatorQuad/" + "{z}/{x}/{y}.png?" + urlencode(params)
+        url = (
+            f"{self._tile_server_bind}/{source_id}/tiles/WebMercatorQuad/"
+            + "{z}/{x}/{y}.png?"
+            + urlencode(params)
+        )
         source = {
             "type": SourceType.RasterSource,
             "name": f"{name} Source",
