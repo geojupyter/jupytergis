@@ -417,6 +417,12 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   height: 600px;
   width: 100%;
 }
+
+/* Support sidecar / "Create new view for cell output" views */
+.jp-LinkedOutputView .jupytergis-notebook-widget {
+  height: 100%;
+}
+
 .jupytergis-notebook-widget > div {
   height: 100%;
   width: 100%;
