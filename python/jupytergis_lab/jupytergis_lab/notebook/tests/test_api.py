@@ -46,12 +46,13 @@ class TestLayerManipulation(TestDocument):
             self.doc.remove_layer("foo")
 
 
-def test_save_as(tmp_path):
+def test_untitled_doc(tmp_path):
     os.chdir(tmp_path)
 
-    doc = GISDocument()
-    assert not list(tmp_path.iterdir())
+    GISDocument()
+    assert len(list(tmp_path.iterdir())) == 1
+    assert (tmp_path / "untitled.jGIS").is_file()
 
-    fn = "test.jgis"
-    doc.save_as(fn)
-    assert (tmp_path / fn).is_file()
+    GISDocument()
+    assert len(list(tmp_path.iterdir())) == 2
+    assert (tmp_path / "untitled1.jGIS").is_file()
