@@ -327,6 +327,8 @@ export interface IAnnotationModel {
 
   addAnnotation(key: string, value: IAnnotation): void;
 
+  updateAnnotation(id: string, updates: Partial<IAnnotation>): void;
+
   removeAnnotation(key: string): void;
 
   addContent(id: string, value: string): void;
@@ -343,5 +345,5 @@ export interface IAnnotation {
   zoom: number;
   contents: IAnnotationContent[];
   parent: string;
-  open?: boolean;
+  open: boolean;
 }
