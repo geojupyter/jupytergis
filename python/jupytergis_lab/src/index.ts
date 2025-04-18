@@ -199,6 +199,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
       command: CommandIDs.dissolve
     });
 
+    processingSubmenu.addItem({
+      command: CommandIDs.reproject
+    });
+
     app.contextMenu.addItem({
       type: 'submenu',
       selector: '.jp-gis-layerItem',
