@@ -3,8 +3,11 @@ from __future__ import annotations
 import json
 import logging
 import os
+from asyncio import Event, Lock, Task, create_task
+from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
+from urllib.parse import urlencode
 from uuid import uuid4
 
 from pycrdt import Array, Doc, Map
@@ -66,11 +69,8 @@ class GISDocument(CommWidget):
 
         comm_metadata = GISDocument._path_to_comm(str(self.path) if self.path else None)
 
-        ydoc = Doc()
-
         super().__init__(
             comm_metadata=dict(ymodel_name="@jupytergis:widget", **comm_metadata),
-            ydoc=ydoc,
         )
 
         self.ydoc["layers"] = self._layers = Map()
@@ -78,6 +78,10 @@ class GISDocument(CommWidget):
         self.ydoc["options"] = self._options = Map()
         self.ydoc["layerTree"] = self._layerTree = Array()
         self.ydoc["metadata"] = self._metadata = Map()
+
+        self._tile_server_task: Task | None = None
+        self._tile_server_started = Event()
+        self._tile_server_lock = Lock()
 
         if path is None:
             if latitude is not None:
@@ -94,6 +98,39 @@ class GISDocument(CommWidget):
                 self._options["pitch"] = pitch
             if projection is not None:
                 self._options["projection"] = projection
+
+    async def _start_tile_server(self):
+        from anyio import connect_tcp, create_task_group
+        from anycorn import Config, serve
+        from fastapi import FastAPI
+
+        self._tile_server_app = FastAPI()
+        config = Config()
+        async with create_task_group() as tg:
+            binds = await tg.start(partial(serve, self._tile_server_app, config, mode="asgi"))
+            self._tile_server_bind = binds[0]
+            host, _port = binds[0][len("http://"):].split(":")
+            port = int(_port)
+            while True:
+                try:
+                    await connect_tcp(host, port)
+                except OSError:
+                    pass
+                else:
+                    self._tile_server_started.set()
+                    break
+
+    def _include_tile_server_router(self, source_id: str):
+        from titiler.xarray.factory import TilerFactory
+        from titiler.xarray.extensions import VariablesExtension
+
+        tiler = TilerFactory(
+            router_prefix=f"/{source_id}",
+            extensions=[
+                VariablesExtension(),
+            ],
+        )
+        self._tile_server_app.include_router(tiler.router, prefix=f"/{source_id}")
 
     @property
     def layers(self) -> Dict:
@@ -137,6 +174,51 @@ class GISDocument(CommWidget):
         del virtual_file["metadata"]
 
         return export_project_to_qgis(path, virtual_file)
+
+    async def add_tiler_layer(
+        self,
+        path: str,
+        variable: str,
+        colormap_name: str = "viridis",
+        rescale: tuple[float, float] | None = None,
+        scale: int = 1,
+        name: str = "Tiler Layer",
+        opacity: float = 1,
+    ):
+        if not self._tile_server_started.is_set():
+            async with self._tile_server_lock:
+                self._tile_server_task = create_task(self._start_tile_server())
+                await self._tile_server_started.wait()
+
+        _url = f"file://{Path(path).absolute()}"
+        params = {
+            "url": _url,
+            "scale": str(scale),
+            "colormap_name": colormap_name,
+            "variable": variable,
+        }
+        if rescale is not None:
+            params["rescale"] = f"{rescale[0]},{rescale[1]}"
+        source_id = str(uuid4())
+        url = f"{self._tile_server_bind}/{source_id}/tiles/WebMercatorQuad/" + "{z}/{x}/{y}.png?" + urlencode(params)
+        source = {
+            "type": SourceType.RasterSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "minZoom": 0,
+                "maxZoom": 24,
+            },
+        }
+        self._add_source(OBJECT_FACTORY.create_source(source, self), id=source_id)
+        layer = {
+            "type": LayerType.RasterLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {"source": source_id, "opacity": opacity},
+        }
+        self._include_tile_server_router(source_id)
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
     def add_raster_layer(
         self,
@@ -735,8 +817,8 @@ class GISDocument(CommWidget):
         layer["filters"]["appliedFilters"] = []
         self._layers[layer_id] = layer
 
-    def _add_source(self, new_object: "JGISObject"):
-        _id = str(uuid4())
+    def _add_source(self, new_object: "JGISObject", id: str | None = None):
+        _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._sources[_id] = obj_dict
         return _id
