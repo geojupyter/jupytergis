@@ -45,7 +45,7 @@ _basemaps: dict[BasemapChoice, list[Basemap]] = {
 def explore(
     data: str | Path | Any,
     *,
-    layer_name: Optional[str] = None,
+    layer_name: Optional[str] = "Exploration layer",
     basemap: BasemapChoice = "topo",
 ) -> GISDocument:
     """Run a JupyterGIS data interaction interface alongside a Notebook.
