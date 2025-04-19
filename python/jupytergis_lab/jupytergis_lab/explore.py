@@ -60,7 +60,6 @@ def _add_layer(doc: GISDocument, data: str | Path | Any) -> None:
         from geopandas import GeoDataFrame
 
         if isinstance(data, GeoDataFrame):
-            print(type(data.to_geo_dict()))
             doc.add_geojson_layer(data=data.to_geo_dict())
             return
     except ImportError:
