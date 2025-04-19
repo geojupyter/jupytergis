@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from pycrdt import Array, Doc, Map
 from pydantic import BaseModel
+from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
 
 from .objects import (
@@ -105,6 +106,28 @@ class GISDocument(CommWidget):
         Get the layer tree
         """
         return self._layerTree.to_py()
+
+    def sidecar(
+        self,
+        *,
+        title: str = "JupyterGIS sidecar",
+        anchor: Literal[
+            "split-right",
+            "split-left",
+            "split-top",
+            "split-bottom",
+            "tab-before",
+            "tab-after",
+            "right",
+        ] = "split-right",
+    ):
+        """Open the document in a new sidecar panel.
+
+        :param anchor: Where to position the new sidecar panel.
+        """
+        sidecar = Sidecar(title=title, anchor=anchor)
+        with sidecar:
+            display(self)
 
     def export_to_qgis(self, path: str | Path) -> bool:
         # Lazy import, jupytergis_qgis of qgis may not be installed

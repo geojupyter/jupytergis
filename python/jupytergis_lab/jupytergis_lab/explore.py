@@ -1,7 +1,5 @@
 from pathlib import Path
 
-from sidecar import Sidecar
-
 from jupytergis_lab import GISDocument
 
 
@@ -23,9 +21,4 @@ def explore(geojson_path: str | Path) -> None:
     # TODO: Zoom to layer; is that feasible to do from Python? Currently not exposed in
     #       Python API.
 
-    sidecar = Sidecar(
-        title="JupyterGIS explorer",
-        anchor="split-right",
-    )
-    with sidecar:
-        display(doc)
+    doc.sidecar(title="JupyterGIS explorer")
