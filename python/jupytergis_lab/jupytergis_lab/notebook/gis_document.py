@@ -162,7 +162,7 @@ class GISDocument(CommWidget):
 
         :return: A layer ID string.
 
-        :raises FileNotFoundException: Received a file path that doesn't exist.
+        :raises FileNotFoundError: Received a file path that doesn't exist.
         :raises NotImplementedError: Received an input value that isn't supported yet.
         :raises TypeError: Received an object type that isn't supported.
         :raises ValueError: Received an input value that isn't supported.
