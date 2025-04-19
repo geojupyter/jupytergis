@@ -1,11 +1,14 @@
 from pathlib import Path
-from typing import Any, Literal
-import re
+from typing import Any, Optional
 
 from jupytergis_lab import GISDocument
 
 
-def explore(data: str | Path | Any) -> GISDocument:
+def explore(
+    data: str | Path | Any,
+    *,
+    layer_name: Optional[str] = None,
+) -> GISDocument:
     """Run a JupyterGIS data interaction interface alongside a Notebook.
 
     :param data: A GeoDataFrame or path to a GeoJSON file.
@@ -22,8 +25,7 @@ def explore(data: str | Path | Any) -> GISDocument:
         "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}"
     )
 
-    # TODO: Extract to GISDocument class
-    _add_layer(doc, data)
+    doc.add_layer(data, name=layer_name)
 
     # TODO: Zoom to layer. Currently not exposed in Python API.
 
@@ -34,35 +36,3 @@ def explore(data: str | Path | Any) -> GISDocument:
     # sidecar for the same widget. The user would need to append a semicolon to disable
     # that behavior. We can't disable that behavior from within this function to the
     # best of my knowlwedge.
-
-
-def _add_layer(doc: GISDocument, data: str | Path | Any) -> None:
-    if isinstance(data, str):
-        if re.match(r"^(http|https)://", data) is not None:
-            raise NotImplementedError("URLs not yet supported.")
-        else:
-            data = Path(data)
-
-    if isinstance(data, Path):
-        if not data.exists():
-            raise FileNotFoundError(f"File not found: {data}")
-
-        ext = data.suffix.lower()
-
-        if ext in [".geojson", ".json"]:
-            doc.add_geojson_layer(path=data)
-            return
-        # TODO: elif ext in ['.tif', '.tiff']:
-        else:
-            raise ValueError(f"Unknown file type: {data}")
-
-    try:
-        from geopandas import GeoDataFrame
-
-        if isinstance(data, GeoDataFrame):
-            doc.add_geojson_layer(data=data.to_geo_dict())
-            return
-    except ImportError:
-        pass
-
-    raise TypeError(f"Unsupported input type: {type(data)}")
