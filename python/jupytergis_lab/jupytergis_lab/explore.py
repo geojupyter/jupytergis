@@ -1,13 +1,52 @@
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 from jupytergis_lab import GISDocument
+
+
+@dataclass
+class Basemap:
+    name: str
+    url: str
+
+
+BasemapChoice = Literal["light", "dark", "topo"]
+_basemaps: dict[BasemapChoice, list[Basemap]] = {
+    "light": [
+        Basemap(
+            name="ArcGIS dark basemap",
+            url="https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.pbf",
+        ),
+        Basemap(
+            name="ArcGIS dark basemap reference",
+            url="https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}.pbf",
+        ),
+    ],
+    "dark": [
+        Basemap(
+            name="ArcGIS light basemap",
+            url="https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}.pbf",
+        ),
+        Basemap(
+            name="ArcGIS light basemap reference",
+            url="https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}.pbf",
+        ),
+    ],
+    "topo": [
+        Basemap(
+            name="USGS topographic basemap",
+            url="https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}",
+        ),
+    ],
+}
 
 
 def explore(
     data: str | Path | Any,
     *,
     layer_name: Optional[str] = None,
+    basemap: BasemapChoice = "topo",
 ) -> GISDocument:
     """Run a JupyterGIS data interaction interface alongside a Notebook.
 
@@ -20,10 +59,8 @@ def explore(
     """
     doc = GISDocument()
 
-    # TODO: Basic basemap choices, e.g. add parameter `basemap: Literal["dark", "light"]`
-    doc.add_raster_layer(
-        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}"
-    )
+    for basemap_obj in _basemaps[basemap]:
+        doc.add_raster_layer(basemap_obj.url, name=basemap_obj.name)
 
     doc.add_layer(data, name=layer_name)
 
