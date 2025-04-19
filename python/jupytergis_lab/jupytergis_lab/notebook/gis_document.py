@@ -147,7 +147,7 @@ class GISDocument(CommWidget):
         self,
         data: Any,
         *,
-        name: Optional[str] = None,
+        name: str,
         attribution: Optional[str] = None,
         opacity: float = 1,
     ) -> str:
@@ -156,6 +156,9 @@ class GISDocument(CommWidget):
         This method currently supports only GeoDataFrames and GeoJSON files.
 
         :param data: A data object. Valid data objects include geopandas GeoDataFrames and paths to GeoJSON files.
+        :param name: The name that will be used for the layer.
+        :param attribution: The attribution.
+        :param opacity: The opacity, between 0 and 1.
 
         :return: A layer ID string.
 
