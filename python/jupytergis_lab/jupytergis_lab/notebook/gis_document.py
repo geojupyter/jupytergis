@@ -3,12 +3,14 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
 
 from pycrdt import Array, Doc, Map
 from pydantic import BaseModel
+from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
 
 from .objects import (
@@ -43,10 +45,8 @@ class GISDocument(CommWidget):
     """
     Create a new GISDocument object.
 
-    :param path: the path to the file that you would like to open. If not provided, a new empty document will be created.
+    :param path: the path to the file that you would like to open. If not provided, a new ephemeral widget will be created.
     """
-
-    path: Optional[Path]
 
     def __init__(
         self,
@@ -59,17 +59,16 @@ class GISDocument(CommWidget):
         pitch: Optional[float] = None,
         projection: Optional[str] = None,
     ):
-        if isinstance(path, str):
-            path = Path(path)
-
-        self.path = path
-
-        comm_metadata = GISDocument._path_to_comm(str(self.path) if self.path else None)
+        if isinstance(path, Path):
+            path = str(path)
 
         ydoc = Doc()
 
         super().__init__(
-            comm_metadata=dict(ymodel_name="@jupytergis:widget", **comm_metadata),
+            comm_metadata={
+                "ymodel_name": "@jupytergis:widget",
+                **self._make_comm(path=path),
+            },
             ydoc=ydoc,
         )
 
@@ -109,23 +108,29 @@ class GISDocument(CommWidget):
         """
         return self._layerTree.to_py()
 
-    def save_as(self, path: str | Path) -> None:
-        """Save the document at a new path."""
-        if isinstance(path, str):
-            path = Path(path)
+    def sidecar(
+        self,
+        *,
+        title: str = "JupyterGIS sidecar",
+        anchor: Literal[
+            "split-right",
+            "split-left",
+            "split-top",
+            "split-bottom",
+            "tab-before",
+            "tab-after",
+            "right",
+        ] = "split-right",
+    ):
+        """Open the document in a new sidecar panel.
 
-        if path.name.lower().endswith(".qgz"):
-            _export_to_qgis(path)
-            self.path = path
-            return
+        :param anchor: Where to position the new sidecar panel.
+        """
+        sidecar = Sidecar(title=title, anchor=anchor)
+        with sidecar:
+            display(self)
 
-        if not path.name.lower().endswith(".jgis"):
-            path = Path(str(path) + ".jGIS")
-
-        path.write_text(json.dumps(self.to_py()))
-        self.path = path
-
-    def _export_to_qgis(self, path: str | Path) -> bool:
+    def export_to_qgis(self, path: str | Path) -> bool:
         # Lazy import, jupytergis_qgis of qgis may not be installed
         from jupytergis_qgis.qgis_loader import export_project_to_qgis
 
@@ -137,6 +142,59 @@ class GISDocument(CommWidget):
         del virtual_file["metadata"]
 
         return export_project_to_qgis(path, virtual_file)
+
+    def add_layer(
+        self,
+        data: Any,
+        *,
+        name: str,
+        attribution: Optional[str] = None,
+        opacity: float = 1,
+    ) -> str:
+        """Add a layer to the document, autodetecting its type.
+
+        This method currently supports only GeoDataFrames and GeoJSON files.
+
+        :param data: A data object. Valid data objects include geopandas GeoDataFrames and paths to GeoJSON files.
+        :param name: The name that will be used for the layer.
+        :param attribution: The attribution.
+        :param opacity: The opacity, between 0 and 1.
+
+        :return: A layer ID string.
+
+        :raises FileNotFoundError: Received a file path that doesn't exist.
+        :raises NotImplementedError: Received an input value that isn't supported yet.
+        :raises TypeError: Received an object type that isn't supported.
+        :raises ValueError: Received an input value that isn't supported.
+        """
+        if isinstance(data, str):
+            if re.match(r"^(http|https)://", data) is not None:
+                raise NotImplementedError("URLs not yet supported.")
+            else:
+                data = Path(data)
+
+        if isinstance(data, Path):
+            if not data.exists():
+                raise FileNotFoundError(f"File not found: {data}")
+
+            ext = data.suffix.lower()
+
+            if ext in [".geojson", ".json"]:
+                return self.add_geojson_layer(path=data, name=name)
+            elif ext in [".tif", ".tiff"]:
+                raise NotImplementedError("GeoTIFFs not yet supported.")
+            else:
+                raise ValueError(f"Unsupported file type: {data}")
+
+        try:
+            from geopandas import GeoDataFrame
+
+            if isinstance(data, GeoDataFrame):
+                return self.add_geojson_layer(data=data.to_geo_dict(), name=name)
+        except ImportError:
+            pass
+
+        raise TypeError(f"Unsupported input type: {type(data)}")
 
     def add_raster_layer(
         self,
@@ -741,7 +799,7 @@ class GISDocument(CommWidget):
         self._sources[_id] = obj_dict
         return _id
 
-    def _add_layer(self, new_object: "JGISObject"):
+    def _add_layer(self, new_object: "JGISObject") -> str:
         _id = str(uuid4())
         obj_dict = json.loads(new_object.json())
         self._layers[_id] = obj_dict
@@ -749,13 +807,11 @@ class GISDocument(CommWidget):
         return _id
 
     @classmethod
-    def _path_to_comm(cls, filePath: Optional[str]) -> Dict:
-        path = None
+    def _make_comm(cls, *, path: Optional[str]) -> Dict:
         format = None
         contentType = None
 
-        if filePath is not None:
-            path = filePath
+        if path is not None:
             file_name = Path(path).name
             try:
                 ext = file_name.split(".")[1].lower()
@@ -773,8 +829,12 @@ class GISDocument(CommWidget):
                 contentType = "QGS"
             else:
                 raise ValueError("File extension is not supported!")
+
         return dict(
-            path=path, format=format, contentType=contentType, create_ydoc=path is None
+            path=path,
+            format=format,
+            contentType=contentType,
+            create_ydoc=path is None,
         )
 
     def to_py(self) -> dict:
