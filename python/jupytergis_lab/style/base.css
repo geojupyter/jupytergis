@@ -419,6 +419,9 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 }
 
 /* Support output views, created with "Create new view for cell output" context menu */
+.jp-LinkedOutputView .jp-OutputArea-child:only-child {
+  height: 100%;
+}
 .jp-LinkedOutputView .jupytergis-notebook-widget {
   height: 100%;
 }
