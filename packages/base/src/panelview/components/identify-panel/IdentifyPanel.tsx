@@ -19,6 +19,7 @@ export class IdentifyPanel extends Panel {
     this.id = 'jupytergis::identifyPanel';
     this.title.caption = 'Identify';
     this.title.label = 'Identify';
+    this.addClass('jgis-scrollable');
 
     this.addWidget(
       ReactWidget.create(
