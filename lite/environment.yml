@@ -13,7 +13,7 @@ dependencies:
   - pydantic>=2,<3
   - pip:
       - yjs-widgets>=0.4,<0.5
-      - my-jupyter-shared-drive
+      - my-jupyter-shared-drive<0.2.0
       - ../jupytergis_lab-0.0.1-py3-none-any.whl
       - ../jupytergis_core-0.0.1-py3-none-any.whl
       - ../jupytergis_lite-0.0.1-py3-none-any.whl

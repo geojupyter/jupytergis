@@ -95,6 +95,7 @@
 }
 
 .jGIS-sidepanel-widget {
+  overflow: auto;
   height: 100%;
 }
 
@@ -249,10 +250,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   box-shadow: var(--jp-elevation-z6);
   z-index: 40;
   max-height: 400px;
-  overflow: auto;
-}
-
-.jGIS-Annotations {
   overflow: auto;
 }
 
@@ -420,6 +417,12 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   height: 600px;
   width: 100%;
 }
+
+/* Support output views, created with "Create new view for cell output" context menu */
+.jp-LinkedOutputView .jupytergis-notebook-widget {
+  height: 100%;
+}
+
 .jupytergis-notebook-widget > div {
   height: 100%;
   width: 100%;
@@ -737,6 +740,11 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 
 .jgis-identify-grid-body:last-of-type strong:last-of-type {
   padding-bottom: 8px;
+}
+
+.jgis-scrollable {
+  overflow: auto;
+  height: 100%;
 }
 
 /* Style the file path text */

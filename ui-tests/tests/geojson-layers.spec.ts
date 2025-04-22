@@ -50,9 +50,7 @@ test.describe('#geoJSONLayer', () => {
     const panel = await openGIS(page, tmpPath, FILENAME);
     const main = panel?.locator('.jGIS-Mainview');
 
-    await page
-      .locator('div:nth-child(9) > .jp-ToolbarButtonComponent > .control')
-      .click();
+    await page.getByTestId('new-entry-button').click();
     await page.getByText('Add Vector Layer').hover();
     await page
       .locator('#jp-gis-toolbar-vector-menu')

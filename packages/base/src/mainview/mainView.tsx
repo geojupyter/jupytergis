@@ -26,6 +26,7 @@ import {
   IVectorTileLayer,
   IVectorTileSource,
   IWebGlLayer,
+  JgisCoordinates,
   JupyterGISModel
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -136,6 +137,10 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
+    this._model.geolocationChanged.connect(
+      this._handleGeolocationChanged,
+      this
+    );
 
     this.state = {
       id: this._mainViewModel.id,
@@ -438,7 +443,8 @@ export class MainView extends React.Component<IProps, IStates> {
           zoom: this._Map.getView().getZoom() ?? 0,
           label: 'New annotation',
           contents: [],
-          parent: this._Map.getViewport().id
+          parent: this._Map.getViewport().id,
+          open: true
         });
       },
       label: 'Add annotation',
@@ -1368,7 +1374,7 @@ export class MainView extends React.Component<IProps, IStates> {
         return;
       }
 
-      const clientPointers = this.state.clientPointers;
+      const clientPointers = { ...this.state.clientPointers };
       let currentClientPointer = clientPointers[clientId];
 
       if (pointer) {
@@ -1380,23 +1386,27 @@ export class MainView extends React.Component<IProps, IStates> {
         const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
 
         if (!currentClientPointer) {
-          currentClientPointer = clientPointers[clientId] = {
+          currentClientPointer = {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
             coordinates: { x: pixel[0], y: pixel[1] },
             lonLat: { longitude: lonLat[0], latitude: lonLat[1] }
           };
+        } else {
+          currentClientPointer = {
+            ...currentClientPointer,
+            coordinates: { x: pixel[0], y: pixel[1] },
+            lonLat: { longitude: lonLat[0], latitude: lonLat[1] }
+          };
         }
 
-        currentClientPointer.coordinates.x = pixel[0];
-        currentClientPointer.coordinates.y = pixel[1];
         clientPointers[clientId] = currentClientPointer;
       } else {
         delete clientPointers[clientId];
       }
 
-      this.setState(old => ({ ...old, clientPointers: clientPointers }));
+      this.setState(old => ({ ...old, clientPointers }));
     });
 
     // Temporal controller bit
@@ -1835,6 +1845,21 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
+  private _handleGeolocationChanged(
+    sender: any,
+    newPosition: JgisCoordinates
+  ): void {
+    const view = this._Map.getView();
+    const zoom = view.getZoom();
+    if (zoom) {
+      this._moveToPosition(newPosition, zoom);
+    } else {
+      throw new Error(
+        'Could not move to geolocation, because current zoom is not defined.'
+      );
+    }
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -1869,7 +1894,6 @@ export class MainView extends React.Component<IProps, IStates> {
                 <AnnotationFloater
                   itemId={key}
                   annotationModel={this._model.annotationModel}
-                  open={false}
                 />
               </div>
             )
@@ -1884,7 +1908,8 @@ export class MainView extends React.Component<IProps, IStates> {
             />
           )}
           <div
-            className="jGIS-Mainview"
+            className="jGIS-Mainview data-jgis-keybinding"
+            tabIndex={-2}
             style={{
               border: this.state.remoteUser
                 ? `solid 3px ${this.state.remoteUser.color}`

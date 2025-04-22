@@ -12,6 +12,11 @@
     "dissolveField": {
       "type": "string",
       "description": "The field based on which geometries will be dissolved."
+    },
+    "embedOutputLayer": {
+      "type": "boolean",
+      "title": "Embed output dissolved layer in file",
+      "default": true
     }
   }
 }
