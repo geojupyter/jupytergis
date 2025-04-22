@@ -145,6 +145,14 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.highlightFeatureOnMap = this.highlightFeatureOnMap.bind(this);
     this._model.flyToGeometry = this.flyToGeometry.bind(this);
 
+    // Watch isIdentifying and clear the highlight when Identify Tool is turned off
+    this._model.sharedModel.awareness.on('change', () => {
+      const isIdentifying = this._model.isIdentifying;
+      if (!isIdentifying && this._highlightLayer) {
+        this._highlightLayer.getSource()?.clear();
+      }
+    });
+
     this.state = {
       id: this._mainViewModel.id,
       lightTheme: isLightTheme(),
