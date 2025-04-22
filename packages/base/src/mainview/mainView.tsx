@@ -26,6 +26,7 @@ import {
   IVectorTileLayer,
   IVectorTileSource,
   IWebGlLayer,
+  JgisCoordinates,
   JupyterGISModel
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -136,6 +137,10 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
+    this._model.geolocationChanged.connect(
+      this._handleGeolocationChanged,
+      this
+    );
 
     this.state = {
       id: this._mainViewModel.id,
@@ -438,7 +443,8 @@ export class MainView extends React.Component<IProps, IStates> {
           zoom: this._Map.getView().getZoom() ?? 0,
           label: 'New annotation',
           contents: [],
-          parent: this._Map.getViewport().id
+          parent: this._Map.getViewport().id,
+          open: true
         });
       },
       label: 'Add annotation',
@@ -1839,6 +1845,21 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
+  private _handleGeolocationChanged(
+    sender: any,
+    newPosition: JgisCoordinates
+  ): void {
+    const view = this._Map.getView();
+    const zoom = view.getZoom();
+    if (zoom) {
+      this._moveToPosition(newPosition, zoom);
+    } else {
+      throw new Error(
+        'Could not move to geolocation, because current zoom is not defined.'
+      );
+    }
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -1873,7 +1894,6 @@ export class MainView extends React.Component<IProps, IStates> {
                 <AnnotationFloater
                   itemId={key}
                   annotationModel={this._model.annotationModel}
-                  open={false}
                 />
               </div>
             )

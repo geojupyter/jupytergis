@@ -20,6 +20,9 @@ export namespace CommandIDs {
   export const identify = 'jupytergis:identify';
   export const temporalController = 'jupytergis:temporalController';
 
+  // geolocation
+  export const getGeolocation = 'jupytergis:getGeolocation';
+
   // Layers and sources creation commands
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 
