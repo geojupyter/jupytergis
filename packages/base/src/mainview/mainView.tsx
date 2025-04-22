@@ -1747,12 +1747,18 @@ export class MainView extends React.Component<IProps, IStates> {
     duration = 1000
   ) {
     const view = this._Map.getView();
+    const isAnimate = typeof view.animate === 'function';
 
-    view.animate({
-      center: [center.x, center.y],
-      zoom,
-      duration
-    });
+    if (isAnimate) {
+      view.animate({
+        center: [center.x, center.y],
+        zoom,
+        duration
+      });
+    } else {
+      view.setZoom(zoom);
+      view.setCenter([center.x, center.y]);
+    }
   }
 
   private _onPointerMove(e: MouseEvent) {
