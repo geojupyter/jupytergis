@@ -1748,13 +1748,11 @@ export class MainView extends React.Component<IProps, IStates> {
   ) {
     const view = this._Map.getView();
 
-    view.animate(
-      {
-        center: [center.x, center.y],
-        zoom,
-        duration
-      }
-    );
+    view.animate({
+      center: [center.x, center.y],
+      zoom,
+      duration
+    });
   }
 
   private _onPointerMove(e: MouseEvent) {

@@ -54,7 +54,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
       );
     });
 
-    return <div className='jgis-scrollable'>{annotations}</div>;
+    return <div className="jgis-scrollable">{annotations}</div>;
   }
 
   private _annotationModel: IAnnotationModel;
