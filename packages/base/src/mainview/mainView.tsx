@@ -1754,7 +1754,7 @@ export class MainView extends React.Component<IProps, IStates> {
       view.animate({ center: [center.x, center.y], duration });
     } else {
       view.setZoom(zoom);
-      view.setCenter([center.x, center.y]);
+      view.animate({center: [center.x, center.y], duration});
     }
   }
 
