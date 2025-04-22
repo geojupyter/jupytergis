@@ -1747,9 +1747,9 @@ export class MainView extends React.Component<IProps, IStates> {
     duration = 1000
   ) {
     const view = this._Map.getView();
-    const isAnimate = typeof view.animate === 'function';
 
-    if (isAnimate) {
+    // Zoom needs to be set before changing center
+    if (!view.animate === undefined) {
       view.animate({ zoom, duration });
       view.animate({ center: [center.x, center.y], duration });
     } else {
