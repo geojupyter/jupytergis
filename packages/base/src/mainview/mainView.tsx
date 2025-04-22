@@ -1284,7 +1284,6 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   };
 
-
   highlightFeatureOnMap = (feature: any) => {
     console.log('highlightFeatureOnMap', feature);
 
@@ -1308,7 +1307,7 @@ export class MainView extends React.Component<IProps, IStates> {
     if (!this._highlightLayer) {
       this._highlightLayer = new VectorLayer({
         source: new VectorSource(),
-        style: (feature) => {
+        style: feature => {
           const geomType = feature.getGeometry()?.getType();
           switch (geomType) {
             case 'Point':
