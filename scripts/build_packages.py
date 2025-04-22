@@ -20,6 +20,7 @@ def build_packages():
         "jupytergis_core",
         "jupytergis_lab",
         "jupytergis_qgis",
+        "jupytergis_server",
         "jupytergis_lite",
     ]
 

@@ -77,6 +77,7 @@ jobs:
             python/jupytergis_core/dist/jupytergis*
             python/jupytergis_lab/dist/jupytergis*
             python/jupytergis_qgis/dist/jupytergis*
+            python/jupytergis_server/dist/jupytergis*
             python/jupytergis_lite/dist/jupytergis*
           if-no-files-found: error
 
@@ -133,7 +134,7 @@ jobs:
           sudo rm -rf $(which node)
           sudo rm -rf $(which node)
 
-          cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
+          cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl ./jupytergis_server/dist/jupytergis*.whl .
           python -m pip install jupytergis*.whl "jupyterlab>=4.3,<5"
 
           jupyter labextension list
@@ -174,7 +175,7 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
+          cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl ./jupytergis_server/dist/jupytergis*.whl .
           python -m pip install jupytergis*.whl "jupyter-collaboration>=3,<4" "jupyterlab>=4.3,<5"
 
       - name: Install dependencies
