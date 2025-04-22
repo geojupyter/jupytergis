@@ -236,7 +236,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   margin-left: 1px;
   margin-top: 1px;
   padding: 1em;
-  color: #fff;
+  color: #000;
   background: var(--jp-layout-color1);
   border-radius: 0.5em;
   font-size: 12px;
