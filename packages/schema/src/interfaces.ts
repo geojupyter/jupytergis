@@ -177,6 +177,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
   updateLayerSignal: ISignal<IJupyterGISModel, string>;
   geolocationChanged: Signal<IJupyterGISModel, JgisCoordinates>;
+  flyToGeometry?: (geometry: any) => void;
+  highlightFeatureOnMap?: (feature: any) => void;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;

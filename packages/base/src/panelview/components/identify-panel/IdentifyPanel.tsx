@@ -137,12 +137,23 @@ const IdentifyPanelComponent = ({
     };
   }, [jgisModel]);
 
-  const toggleFeatureVisibility = (index: number) => {
-    console.log('visibleFeatures', visibleFeatures);
+  const flyToGeometry = (geometry: any) => {
+    jgisModel?.flyToGeometry?.(geometry);
+  };
+
+  const highlightFeatureOnMap = (feature: any) => {
+    const geometry = feature.geometry || feature._geometry;
+    jgisModel?.highlightFeatureOnMap?.(feature);
+    flyToGeometry(geometry);
+  };
+
+  const toggleFeatureVisibility = (index: number, feature: any) => {
     setVisibleFeatures(prev => ({
       ...prev,
       [index]: !prev[index]
     }));
+
+    highlightFeatureOnMap(feature);
   };
 
   return (
@@ -159,7 +170,7 @@ const IdentifyPanelComponent = ({
           <div key={featureIndex} className="jgis-identify-grid-item">
             <div
               className="jgis-identify-grid-item-header"
-              onClick={() => toggleFeatureVisibility(featureIndex)}
+              onClick={() => toggleFeatureVisibility(featureIndex, feature)}
             >
               <LabIcon.resolveReact
                 icon={caretDownIcon}
