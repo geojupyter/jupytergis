@@ -37,7 +37,7 @@ Once the document is opened/created, you can start creating GIS layers.
 ## `explore`
 
 ```{eval-rst}
-.. autofuncion:: jupytergis.explore
+.. autofunction:: jupytergis.explore
 ```
 
 ## `GISDocument`
