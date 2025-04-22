@@ -193,7 +193,6 @@ class GISDocument(CommWidget):
         async with self._tile_server_lock:
             if self._tile_server_started.is_set():
                 self._tile_server_shutdown.set()
-            
 
     async def add_tiler_layer(
         self,

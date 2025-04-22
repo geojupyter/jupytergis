@@ -13,15 +13,9 @@ def _load_jupyter_server_extension(serverapp):
     web_app.add_handlers(host_pattern, [(route_pattern, JupyterGISHandler)])
 
 
-
-
 def _jupyter_server_extension_paths():
     """
     Returns a list of dictionaries with metadata describing
     where to find the `_load_jupyter_server_extension` function.
     """
-    return [
-        {
-            "module": "jupytergis_server"
-        }
-    ]
+    return [{"module": "jupytergis_server"}]

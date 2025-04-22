@@ -3,8 +3,8 @@ import httpx
 import tornado
 from jupyter_server.base.handlers import JupyterHandler
 
-class JupyterGISHandler(JupyterHandler):
 
+class JupyterGISHandler(JupyterHandler):
     @tornado.web.authenticated
     async def get(self, path):
         params = {key: val[0].decode() for key, val in self.request.arguments.items()}
