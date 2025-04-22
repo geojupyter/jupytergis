@@ -1750,11 +1750,10 @@ export class MainView extends React.Component<IProps, IStates> {
     const isAnimate = typeof view.animate === 'function';
 
     if (isAnimate) {
-      view.animate({
-        zoom,
-        center: [center.x, center.y],
-        duration
-      });
+      view.animate(
+        { zoom, duration: duration / 2 },
+        { center: [center.x, center.y], duration: duration / 2 }
+      );
     } else {
       view.setZoom(zoom);
       view.setCenter([center.x, center.y]);
