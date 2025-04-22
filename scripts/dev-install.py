@@ -17,6 +17,7 @@ def install_dev():
     python_packages = [
         "jupytergis_core",
         "jupytergis_lab",
+        "jupytergis_server",
         "jupytergis_qgis",
     ]
 

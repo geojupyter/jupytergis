@@ -21,6 +21,7 @@ classifiers = [
 dependencies = [
   "jupytergis_core==0.4.4",
   "jupytergis_lab==0.4.4",
+  "jupytergis_server==0.4.4",
   "jupytergis_qgis==0.4.4",
   "jupyter-collaboration>=3,<4",
   "jupyter-docprovider>=1,<2",

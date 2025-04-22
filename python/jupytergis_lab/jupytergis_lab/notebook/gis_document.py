@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from asyncio import Event, Lock, Task, create_task
 from functools import partial
 from pathlib import Path
@@ -10,7 +9,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from urllib.parse import urlencode
 from uuid import uuid4
 
-from pycrdt import Array, Doc, Map
+from pycrdt import Array, Map
 from pydantic import BaseModel
 from ypywidgets.comm import CommWidget
 
@@ -81,6 +80,7 @@ class GISDocument(CommWidget):
 
         self._tile_server_task: Task | None = None
         self._tile_server_started = Event()
+        self._tile_server_shutdown = Event()
         self._tile_server_lock = Lock()
 
         if path is None:
@@ -108,9 +108,15 @@ class GISDocument(CommWidget):
         config = Config()
         async with create_task_group() as tg:
             binds = await tg.start(
-                partial(serve, self._tile_server_app, config, mode="asgi")
+                partial(
+                    serve,
+                    self._tile_server_app,
+                    config,
+                    shutdown_trigger=self._tile_server_shutdown.wait,
+                    mode="asgi",
+                )
             )
-            self._tile_server_bind = binds[0]
+            self._tile_server_url = binds[0]
             host, _port = binds[0][len("http://") :].split(":")
             port = int(_port)
             while True:
@@ -177,6 +183,18 @@ class GISDocument(CommWidget):
 
         return export_project_to_qgis(path, virtual_file)
 
+    async def start_tile_server(self):
+        async with self._tile_server_lock:
+            if not self._tile_server_started.is_set():
+                self._tile_server_task = create_task(self._start_tile_server())
+                await self._tile_server_started.wait()
+
+    async def stop_tile_server(self):
+        async with self._tile_server_lock:
+            if self._tile_server_started.is_set():
+                self._tile_server_shutdown.set()
+            
+
     async def add_tiler_layer(
         self,
         path: str,
@@ -187,13 +205,11 @@ class GISDocument(CommWidget):
         name: str = "Tiler Layer",
         opacity: float = 1,
     ):
-        if not self._tile_server_started.is_set():
-            async with self._tile_server_lock:
-                self._tile_server_task = create_task(self._start_tile_server())
-                await self._tile_server_started.wait()
+        await self.start_tile_server()
 
         _url = f"file://{Path(path).absolute()}"
         params = {
+            "server_url": self._tile_server_url,
             "url": _url,
             "scale": str(scale),
             "colormap_name": colormap_name,
@@ -203,7 +219,7 @@ class GISDocument(CommWidget):
             params["rescale"] = f"{rescale[0]},{rescale[1]}"
         source_id = str(uuid4())
         url = (
-            f"{self._tile_server_bind}/{source_id}/tiles/WebMercatorQuad/"
+            f"/jupytergis/{source_id}/tiles/WebMercatorQuad/"
             + "{z}/{x}/{y}.png?"
             + urlencode(params)
         )
