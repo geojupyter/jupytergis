@@ -52,10 +52,10 @@ def explore(
 
     :param data: A GeoDataFrame or path to a GeoJSON file.
 
-    :raises FileNotFoundException: User passed a file that isn't present.
-    :raises NotImplementedError: User passed an input value that isn't supported yet.
-    :raises TypeError: User passed an object type that isn't supported.
-    :raises ValueError: User passed an object value that isn't supported.
+    :raises FileNotFoundError: Received a file path that doesn't exist.
+    :raises NotImplementedError: Received an input value that isn't supported yet.
+    :raises TypeError: Received an object type that isn't supported.
+    :raises ValueError: Received an input value that isn't supported.
     """
     doc = GISDocument()
 
