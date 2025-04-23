@@ -1702,7 +1702,7 @@ export class MainView extends React.Component<IProps, IStates> {
     // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
-      this._moveToPosition(annotation.position, annotation.zoom);
+      this._flyToPosition(annotation.position, annotation.zoom);
       return;
     }
 
@@ -1748,14 +1748,23 @@ export class MainView extends React.Component<IProps, IStates> {
   ) {
     const view = this._Map.getView();
 
+    view.setZoom(zoom);
+    view.setCenter([center.x, center.y]);
     // Zoom needs to be set before changing center
     if (!view.animate === undefined) {
       view.animate({ zoom, duration });
       view.animate({ center: [center.x, center.y], duration });
-    } else {
-      view.setZoom(zoom);
-      view.setCenter([center.x, center.y]);
     }
+  }
+
+  private _flyToPosition(
+    center: { x: number; y: number },
+    zoom: number,
+    duration = 1000
+  ) {
+    const view = this._Map.getView();
+    view.animate({ zoom, duration });
+    view.animate({ center: [center.x, center.y], duration });
   }
 
   private _onPointerMove(e: MouseEvent) {
@@ -1852,7 +1861,7 @@ export class MainView extends React.Component<IProps, IStates> {
     const view = this._Map.getView();
     const zoom = view.getZoom();
     if (zoom) {
-      this._moveToPosition(newPosition, zoom);
+      this._flyToPosition(newPosition, zoom);
     } else {
       throw new Error(
         'Could not move to geolocation, because current zoom is not defined.'
