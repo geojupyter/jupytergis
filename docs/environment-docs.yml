@@ -25,4 +25,3 @@ dependencies:
       # See: https://github.com/geojupyter/jupytergis/issues/585
       - ../python/jupytergis_core
       - ../python/jupytergis_lab
-      - ../python/jupytergis
