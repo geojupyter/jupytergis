@@ -773,3 +773,9 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 .jgis-highlight-button:hover {
   color: var(--jp-brand-color1);
 }
+
+.jgis-highlight-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
