@@ -766,4 +766,10 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.jgis-highlight-button:hover {
+  color: var(--jp-brand-color1);
 }
