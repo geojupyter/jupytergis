@@ -236,7 +236,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   margin-left: 1px;
   margin-top: 1px;
   padding: 1em;
-  color: #fff;
+  color: var(--jp-ui-font-color0);
   background: var(--jp-layout-color1);
   border-radius: 0.5em;
   font-size: 12px;
@@ -699,6 +699,9 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 
 .jgis-identify-grid-item-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   grid-column: span 2;
   font-weight: bold;
   font-size: var(--jp-ui-font-size1);
@@ -759,4 +762,20 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   align-items: center;
   margin-bottom: 16px;
   gap: 10px;
+}
+
+.jgis-highlight-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.jgis-highlight-button:hover {
+  color: var(--jp-brand-color1);
 }
