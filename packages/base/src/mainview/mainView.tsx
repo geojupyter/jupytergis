@@ -142,6 +142,20 @@ export class MainView extends React.Component<IProps, IStates> {
       this
     );
 
+    this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
+    this._model.highlightFeatureSignal.connect(
+      this.highlightFeatureOnMap,
+      this
+    );
+
+    // Watch isIdentifying and clear the highlight when Identify Tool is turned off
+    this._model.sharedModel.awareness.on('change', () => {
+      const isIdentifying = this._model.isIdentifying;
+      if (!isIdentifying && this._highlightLayer) {
+        this._highlightLayer.getSource()?.clear();
+      }
+    });
+
     this.state = {
       id: this._mainViewModel.id,
       lightTheme: isLightTheme(),
@@ -1265,6 +1279,95 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   };
 
+  private flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
+    if (!geometry || typeof geometry.getExtent !== 'function') {
+      console.warn('Invalid geometry for flyToGeometry:', geometry);
+      return;
+    }
+
+    const view = this._Map.getView();
+    const extent = geometry.getExtent();
+
+    view.fit(extent, {
+      padding: [50, 50, 50, 50],
+      duration: 1000,
+      maxZoom: 16
+    });
+  }
+
+  private highlightFeatureOnMap(sender: IJupyterGISModel, feature: any): void {
+    console.log('highlightFeatureOnMap', feature);
+
+    const geometry = feature._geometry || feature.geometry;
+    if (!geometry) {
+      console.warn('No geometry found on feature:', feature);
+      return;
+    }
+
+    const isOlGeometry = typeof geometry.getCoordinates === 'function';
+
+    const olFeature = new Feature({
+      geometry: isOlGeometry
+        ? geometry
+        : new GeoJSON().readGeometry(geometry, {
+            featureProjection: this._Map.getView().getProjection()
+          }),
+      ...feature
+    });
+
+    if (!this._highlightLayer) {
+      this._highlightLayer = new VectorLayer({
+        source: new VectorSource(),
+        style: feature => {
+          const geomType = feature.getGeometry()?.getType();
+          switch (geomType) {
+            case 'Point':
+            case 'MultiPoint':
+              return new Style({
+                image: new Circle({
+                  radius: 6,
+                  fill: new Fill({ color: 'rgba(255, 255, 0, 0.8)' }),
+                  stroke: new Stroke({ color: '#ff0', width: 2 })
+                })
+              });
+            case 'LineString':
+            case 'MultiLineString':
+              return new Style({
+                stroke: new Stroke({
+                  color: 'rgba(255, 255, 0, 0.8)',
+                  width: 3
+                })
+              });
+            case 'Polygon':
+            case 'MultiPolygon':
+              return new Style({
+                stroke: new Stroke({
+                  color: '#f00',
+                  width: 2
+                }),
+                fill: new Fill({
+                  color: 'rgba(255, 255, 0, 0.8)'
+                })
+              });
+            default:
+              return new Style({
+                stroke: new Stroke({
+                  color: '#000',
+                  width: 2
+                })
+              });
+          }
+        },
+        zIndex: 999
+      });
+      this._Map.addLayer(this._highlightLayer);
+    }
+
+    const source = this._highlightLayer.getSource();
+    source?.clear();
+    source?.addFeature(olFeature);
+  }
+
   /**
    * Wait for all layers to be loaded.
    */
@@ -1953,4 +2056,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
+  private _highlightLayer: VectorLayer<VectorSource>;
 }
