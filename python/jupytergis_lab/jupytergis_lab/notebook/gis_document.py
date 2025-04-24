@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import re
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
@@ -142,59 +141,6 @@ class GISDocument(CommWidget):
         del virtual_file["metadata"]
 
         return export_project_to_qgis(path, virtual_file)
-
-    def add_layer(
-        self,
-        data: Any,
-        *,
-        name: str,
-        attribution: Optional[str] = None,
-        opacity: float = 1,
-    ) -> str:
-        """Add a layer to the document, autodetecting its type.
-
-        This method currently supports only GeoDataFrames and GeoJSON files.
-
-        :param data: A data object. Valid data objects include geopandas GeoDataFrames and paths to GeoJSON files.
-        :param name: The name that will be used for the layer.
-        :param attribution: The attribution.
-        :param opacity: The opacity, between 0 and 1.
-
-        :return: A layer ID string.
-
-        :raises FileNotFoundError: Received a file path that doesn't exist.
-        :raises NotImplementedError: Received an input value that isn't supported yet.
-        :raises TypeError: Received an object type that isn't supported.
-        :raises ValueError: Received an input value that isn't supported.
-        """
-        if isinstance(data, str):
-            if re.match(r"^(http|https)://", data) is not None:
-                raise NotImplementedError("URLs not yet supported.")
-            else:
-                data = Path(data)
-
-        if isinstance(data, Path):
-            if not data.exists():
-                raise FileNotFoundError(f"File not found: {data}")
-
-            ext = data.suffix.lower()
-
-            if ext in [".geojson", ".json"]:
-                return self.add_geojson_layer(path=data, name=name)
-            elif ext in [".tif", ".tiff"]:
-                raise NotImplementedError("GeoTIFFs not yet supported.")
-            else:
-                raise ValueError(f"Unsupported file type: {data}")
-
-        try:
-            from geopandas import GeoDataFrame
-
-            if isinstance(data, GeoDataFrame):
-                return self.add_geojson_layer(data=data.to_geo_dict(), name=name)
-        except ImportError:
-            pass
-
-        raise TypeError(f"Unsupported input type: {type(data)}")
 
     def add_raster_layer(
         self,
