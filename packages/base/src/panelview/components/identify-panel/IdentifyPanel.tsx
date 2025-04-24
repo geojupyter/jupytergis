@@ -140,14 +140,11 @@ const IdentifyPanelComponent = ({
     };
   }, [jgisModel]);
 
-  const flyToGeometry = (geometry: any) => {
-    jgisModel?.flyToGeometry?.(geometry);
-  };
-
   const highlightFeatureOnMap = (feature: any) => {
+    jgisModel?.highlightFeatureSignal?.emit(feature);
+
     const geometry = feature.geometry || feature._geometry;
-    jgisModel?.highlightFeatureOnMap?.(feature);
-    flyToGeometry(geometry);
+    jgisModel?.flyToGeometrySignal?.emit(geometry);
   };
 
   const toggleFeatureVisibility = (index: number) => {

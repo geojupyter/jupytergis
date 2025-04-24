@@ -142,8 +142,11 @@ export class MainView extends React.Component<IProps, IStates> {
       this
     );
 
-    this._model.highlightFeatureOnMap = this.highlightFeatureOnMap.bind(this);
-    this._model.flyToGeometry = this.flyToGeometry.bind(this);
+    this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
+    this._model.highlightFeatureSignal.connect(
+      this.highlightFeatureOnMap,
+      this
+    );
 
     // Watch isIdentifying and clear the highlight when Identify Tool is turned off
     this._model.sharedModel.awareness.on('change', () => {
@@ -1276,7 +1279,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   };
 
-  flyToGeometry = (geometry: any) => {
+  private flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
     if (!geometry || typeof geometry.getExtent !== 'function') {
       console.warn('Invalid geometry for flyToGeometry:', geometry);
       return;
@@ -1290,9 +1293,9 @@ export class MainView extends React.Component<IProps, IStates> {
       duration: 1000,
       maxZoom: 16
     });
-  };
+  }
 
-  highlightFeatureOnMap = (feature: any) => {
+  private highlightFeatureOnMap(sender: IJupyterGISModel, feature: any): void {
     console.log('highlightFeatureOnMap', feature);
 
     const geometry = feature._geometry || feature.geometry;
@@ -1363,7 +1366,7 @@ export class MainView extends React.Component<IProps, IStates> {
     const source = this._highlightLayer.getSource();
     source?.clear();
     source?.addFeature(olFeature);
-  };
+  }
 
   /**
    * Wait for all layers to be loaded.
