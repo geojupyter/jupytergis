@@ -174,6 +174,7 @@ const IdentifyPanelComponent = ({
                     ([key, value]) =>
                       typeof value !== 'object' || value === null
                   )
+                  .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
                   .map(([key, value]) => (
                     <div key={key} className="jgis-identify-grid-body">
                       <strong>{key}:</strong>
