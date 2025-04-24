@@ -1295,9 +1295,14 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
-  private highlightFeatureOnMap(sender: IJupyterGISModel, featureOrGeometry: any): void {
+  private highlightFeatureOnMap(
+    sender: IJupyterGISModel,
+    featureOrGeometry: any
+  ): void {
     const geometry =
-      featureOrGeometry?.geometry || featureOrGeometry?._geometry || featureOrGeometry;
+      featureOrGeometry?.geometry ||
+      featureOrGeometry?._geometry ||
+      featureOrGeometry;
 
     if (!geometry) {
       console.warn('No geometry found in feature:', featureOrGeometry);
@@ -1932,7 +1937,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
         // trigger highlight via signal
         this._model.highlightFeatureSignal.emit(point);
-
 
         break;
       }
