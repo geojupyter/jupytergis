@@ -419,6 +419,12 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 }
 
 /* Support output views, created with "Create new view for cell output" context menu */
+.jp-LinkedOutputView .jp-OutputArea-child:only-child {
+  /* NOTE: This will eventually be supported directly in JupyterLab
+   * (https://github.com/jupyterlab/jupyterlab/pull/17487), but we should keep
+   * it around for a while for backwards compatibility. */
+  height: 100%;
+}
 .jp-LinkedOutputView .jupytergis-notebook-widget {
   height: 100%;
 }
@@ -772,4 +778,10 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 
 .jgis-highlight-button:hover {
   color: var(--jp-brand-color1);
+}
+
+.jgis-highlight-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: auto;
 }

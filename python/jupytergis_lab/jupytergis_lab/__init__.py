@@ -9,6 +9,7 @@ except ImportError:
     __version__ = "dev"
 
 from .notebook import GISDocument  # noqa
+from .notebook.explore import explore
 
 
 def _jupyter_labextension_paths():

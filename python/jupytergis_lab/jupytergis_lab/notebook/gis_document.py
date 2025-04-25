@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
 
-from pycrdt import Array, Doc, Map
+from pycrdt import Array, Map
 from pydantic import BaseModel
+from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
 
 from .objects import (
@@ -43,10 +43,8 @@ class GISDocument(CommWidget):
     """
     Create a new GISDocument object.
 
-    :param path: the path to the file that you would like to open. If not provided, a new empty document will be created.
+    :param path: the path to the file that you would like to open. If not provided, a new ephemeral widget will be created.
     """
-
-    path: Optional[Path]
 
     def __init__(
         self,
@@ -59,18 +57,14 @@ class GISDocument(CommWidget):
         pitch: Optional[float] = None,
         projection: Optional[str] = None,
     ):
-        if isinstance(path, str):
-            path = Path(path)
-
-        self.path = path
-
-        comm_metadata = GISDocument._path_to_comm(str(self.path) if self.path else None)
-
-        ydoc = Doc()
+        if isinstance(path, Path):
+            path = str(path)
 
         super().__init__(
-            comm_metadata=dict(ymodel_name="@jupytergis:widget", **comm_metadata),
-            ydoc=ydoc,
+            comm_metadata={
+                "ymodel_name": "@jupytergis:widget",
+                **self._make_comm(path=path),
+            }
         )
 
         self.ydoc["layers"] = self._layers = Map()
@@ -109,23 +103,29 @@ class GISDocument(CommWidget):
         """
         return self._layerTree.to_py()
 
-    def save_as(self, path: str | Path) -> None:
-        """Save the document at a new path."""
-        if isinstance(path, str):
-            path = Path(path)
+    def sidecar(
+        self,
+        *,
+        title: str = "JupyterGIS sidecar",
+        anchor: Literal[
+            "split-right",
+            "split-left",
+            "split-top",
+            "split-bottom",
+            "tab-before",
+            "tab-after",
+            "right",
+        ] = "split-right",
+    ):
+        """Open the document in a new sidecar panel.
 
-        if path.name.lower().endswith(".qgz"):
-            _export_to_qgis(path)
-            self.path = path
-            return
+        :param anchor: Where to position the new sidecar panel.
+        """
+        sidecar = Sidecar(title=title, anchor=anchor)
+        with sidecar:
+            display(self)
 
-        if not path.name.lower().endswith(".jgis"):
-            path = Path(str(path) + ".jGIS")
-
-        path.write_text(json.dumps(self.to_py()))
-        self.path = path
-
-    def _export_to_qgis(self, path: str | Path) -> bool:
+    def export_to_qgis(self, path: str | Path) -> bool:
         # Lazy import, jupytergis_qgis of qgis may not be installed
         from jupytergis_qgis.qgis_loader import export_project_to_qgis
 
@@ -735,13 +735,13 @@ class GISDocument(CommWidget):
         layer["filters"]["appliedFilters"] = []
         self._layers[layer_id] = layer
 
-    def _add_source(self, new_object: "JGISObject"):
-        _id = str(uuid4())
+    def _add_source(self, new_object: "JGISObject", id: str | None = None) -> str:
+        _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._sources[_id] = obj_dict
         return _id
 
-    def _add_layer(self, new_object: "JGISObject"):
+    def _add_layer(self, new_object: "JGISObject") -> str:
         _id = str(uuid4())
         obj_dict = json.loads(new_object.json())
         self._layers[_id] = obj_dict
@@ -749,13 +749,11 @@ class GISDocument(CommWidget):
         return _id
 
     @classmethod
-    def _path_to_comm(cls, filePath: Optional[str]) -> Dict:
-        path = None
+    def _make_comm(cls, *, path: Optional[str]) -> Dict:
         format = None
         contentType = None
 
-        if filePath is not None:
-            path = filePath
+        if path is not None:
             file_name = Path(path).name
             try:
                 ext = file_name.split(".")[1].lower()
@@ -773,8 +771,12 @@ class GISDocument(CommWidget):
                 contentType = "QGS"
             else:
                 raise ValueError("File extension is not supported!")
+
         return dict(
-            path=path, format=format, contentType=contentType, create_ydoc=path is None
+            path=path,
+            format=format,
+            contentType=contentType,
+            create_ydoc=path is None,
         )
 
     def to_py(self) -> dict:

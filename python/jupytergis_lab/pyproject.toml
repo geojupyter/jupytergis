@@ -30,6 +30,7 @@ dependencies = [
   "comm>=0.1.2,<0.2.0",
   "pydantic>=2,<3",
   "jupytergis_core>=0.1.0,<1",
+  "sidecar>=0.7.0",
 ]
 dynamic = ["version", "description", "authors", "urls", "keywords"]
 license = {file = "LICENSE"}

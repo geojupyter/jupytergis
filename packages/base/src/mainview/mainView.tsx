@@ -85,7 +85,7 @@ import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
-import { Geometry } from 'ol/geom';
+import { Geometry, Point } from 'ol/geom';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -1295,24 +1295,31 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
-  private highlightFeatureOnMap(sender: IJupyterGISModel, feature: any): void {
-    console.log('highlightFeatureOnMap', feature);
+  private highlightFeatureOnMap(
+    sender: IJupyterGISModel,
+    featureOrGeometry: any
+  ): void {
+    const geometry =
+      featureOrGeometry?.geometry ||
+      featureOrGeometry?._geometry ||
+      featureOrGeometry;
 
-    const geometry = feature._geometry || feature.geometry;
     if (!geometry) {
-      console.warn('No geometry found on feature:', feature);
+      console.warn('No geometry found in feature:', featureOrGeometry);
       return;
     }
 
     const isOlGeometry = typeof geometry.getCoordinates === 'function';
 
+    const parsedGeometry = isOlGeometry
+      ? geometry
+      : new GeoJSON().readGeometry(geometry, {
+          featureProjection: this._Map.getView().getProjection()
+        });
+
     const olFeature = new Feature({
-      geometry: isOlGeometry
-        ? geometry
-        : new GeoJSON().readGeometry(geometry, {
-            featureProjection: this._Map.getView().getProjection()
-          }),
-      ...feature
+      geometry: parsedGeometry,
+      ...(geometry !== featureOrGeometry ? featureOrGeometry : {})
     });
 
     if (!this._highlightLayer) {
@@ -1924,6 +1931,12 @@ export class MainView extends React.Component<IProps, IStates> {
           [bandValues],
           this._mainViewModel.id
         );
+
+        const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+        const point = new Point(coordinate);
+
+        // trigger highlight via signal
+        this._model.highlightFeatureSignal.emit(point);
 
         break;
       }
