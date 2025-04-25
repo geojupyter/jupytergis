@@ -1,9 +1,11 @@
 import json
 from typing import Any, Callable
 from functools import partial
+from packaging.version import Version
 
 from pycrdt import Array, Map
 from jupyter_ydoc.ybasedoc import YBaseDoc
+from .schema import SCHEMA_VERSION
 
 
 class YJGIS(YBaseDoc):
@@ -16,7 +18,7 @@ class YJGIS(YBaseDoc):
         self._ydoc["metadata"] = self._ymetadata = Map()
 
     def version(self) -> str:
-        return "0.1.0"
+        return SCHEMA_VERSION
 
     def get(self) -> str:
         """
@@ -31,6 +33,7 @@ class YJGIS(YBaseDoc):
         layers_tree = self._ylayerTree.to_py()
         return json.dumps(
             dict(
+                schemaVersion=SCHEMA_VERSION,
                 layers=layers,
                 sources=sources,
                 options=options,
@@ -48,6 +51,15 @@ class YJGIS(YBaseDoc):
         :type value: Any
         """
         valueDict = json.loads(value)
+
+        # Assuming file version 0.5.0 if the version is not specified
+        file_version = (
+            Version(valueDict["schemaVersion"])
+            if "schemaVersion" in valueDict
+            else Version("0.5.0")
+        )
+        if file_version > Version(SCHEMA_VERSION):
+            raise ValueError(f"Cannot load file version {file_version}")
 
         with self._ydoc.transaction():
             self._ylayers.clear()

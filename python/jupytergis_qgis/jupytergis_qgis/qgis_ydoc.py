@@ -6,6 +6,7 @@ from functools import partial
 
 from pycrdt import Array, Map
 from jupyter_ydoc.ybasedoc import YBaseDoc
+from .schema import SCHEMA_VERSION
 
 
 def reversed_tree(root):
@@ -46,7 +47,7 @@ class YQGISBase(YBaseDoc):
         return self._ymetadata
 
     def version(self) -> str:
-        return "0.1.0"
+        return SCHEMA_VERSION
 
     def get(self):
         virtual_file = {
