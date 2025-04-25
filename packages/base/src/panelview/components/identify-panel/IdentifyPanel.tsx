@@ -176,16 +176,31 @@ const IdentifyPanelComponent = ({
                 <span>Feature {featureIndex + 1}</span>
               </span>
 
-              <button
-                className="jgis-highlight-button"
-                onClick={e => {
-                  e.stopPropagation();
-                  highlightFeatureOnMap(feature);
-                }}
-                title="Highlight feature on map"
-              >
-                <FontAwesomeIcon icon={faMagnifyingGlass} />
-              </button>
+              {(() => {
+                const isRasterFeature =
+                  !feature.geometry &&
+                  !feature._geometry &&
+                  typeof feature?.x !== 'number' &&
+                  typeof feature?.y !== 'number';
+
+                return (
+                  <button
+                    className="jgis-highlight-button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      highlightFeatureOnMap(feature);
+                    }}
+                    title={
+                      isRasterFeature
+                        ? 'Highlight not available for raster features'
+                        : 'Highlight feature on map'
+                    }
+                    disabled={isRasterFeature}
+                  >
+                    <FontAwesomeIcon icon={faMagnifyingGlass} />
+                  </button>
+                );
+              })()}
             </div>
             {visibleFeatures[featureIndex] && (
               <>
