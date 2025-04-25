@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
 
-from pycrdt import Array, Doc, Map
+from pycrdt import Array, Map
 from pydantic import BaseModel
 from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
@@ -61,14 +60,11 @@ class GISDocument(CommWidget):
         if isinstance(path, Path):
             path = str(path)
 
-        ydoc = Doc()
-
         super().__init__(
             comm_metadata={
                 "ymodel_name": "@jupytergis:widget",
                 **self._make_comm(path=path),
-            },
-            ydoc=ydoc,
+            }
         )
 
         self.ydoc["layers"] = self._layers = Map()
@@ -739,8 +735,8 @@ class GISDocument(CommWidget):
         layer["filters"]["appliedFilters"] = []
         self._layers[layer_id] = layer
 
-    def _add_source(self, new_object: "JGISObject"):
-        _id = str(uuid4())
+    def _add_source(self, new_object: "JGISObject", id: str | None = None) -> str:
+        _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._sources[_id] = obj_dict
         return _id
