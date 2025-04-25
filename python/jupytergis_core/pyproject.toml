@@ -37,8 +37,11 @@ source = "nodejs"
 fields = ["description", "authors", "urls"]
 
 [tool.hatch.build.targets.sdist]
-artifacts = ["jupytergis_core/labextension"]
+artifacts = ["jupytergis_core/labextension", "/jupytergis_core/schema/**/*.py", "/jupytergis_core/schema/**/**/*.py"]
 exclude = [".github", "binder", "node_modules"]
+
+[tool.hatch.build.targets.wheel]
+artifacts = ["/jupytercad_core/schema/**/*.py"]
 
 [tool.hatch.build.targets.wheel.shared-data]
 "jupytergis_core/labextension" = "share/jupyter/labextensions/@jupytergis/jupytergis-core"
@@ -53,6 +56,7 @@ dependencies = ["hatch-jupyter-builder>=0.5"]
 ensured-targets = [
   "jupytergis_core/labextension/static/style.js",
   "jupytergis_core/labextension/package.json",
+  "jupytergis_core/schema/interfaces/project/jgis.py",
 ]
 skip-if-exists = ["jupytergis_core/labextension/static/style.js"]
 

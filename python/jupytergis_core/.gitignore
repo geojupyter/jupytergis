@@ -1,2 +1,3 @@
 jupytergis_core/labextension
 jupytergis_core/_version.py
+jupytergis_core/schema/interfaces
