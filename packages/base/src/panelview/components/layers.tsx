@@ -171,6 +171,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
     model?.sharedModel.layersChanged.connect(updateLayers);
     model?.sharedModel.layerTreeChanged.connect(updateLayers);
 
+    updateLayers();
     return () => {
       model?.sharedModel.layersChanged.disconnect(updateLayers);
       model?.sharedModel.layerTreeChanged.disconnect(updateLayers);

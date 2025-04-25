@@ -34,7 +34,13 @@ doc
 
 Once the document is opened/created, you can start creating GIS layers.
 
-## `GISDocument` API Reference
+## `explore`
+
+```{eval-rst}
+.. autofunction:: jupytergis_lab.explore
+```
+
+## `GISDocument`
 
 ```{eval-rst}
 .. autoclass:: jupytergis_lab.GISDocument
