@@ -31,7 +31,6 @@ test.describe('#annotations', () => {
       }
     });
     await page.getByText('Add annotation').click();
-    await page.locator('.jGIS-Annotation-Handler').click();
     await page
       .getByLabel('annotation-test.jGIS')
       .getByPlaceholder('Ctrl+Enter to submit')

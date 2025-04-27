@@ -10,6 +10,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { IControlPanelModel } from '../../../types';
 import { User } from '@jupyterlab/services';
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+
 export class IdentifyPanel extends Panel {
   constructor(options: IdentifyPanel.IOptions) {
     super();
@@ -19,6 +22,7 @@ export class IdentifyPanel extends Panel {
     this.id = 'jupytergis::identifyPanel';
     this.title.caption = 'Identify';
     this.title.label = 'Identify';
+    this.addClass('jgis-scrollable');
 
     this.addWidget(
       ReactWidget.create(
@@ -136,8 +140,14 @@ const IdentifyPanelComponent = ({
     };
   }, [jgisModel]);
 
+  const highlightFeatureOnMap = (feature: any) => {
+    jgisModel?.highlightFeatureSignal?.emit(feature);
+
+    const geometry = feature.geometry || feature._geometry;
+    jgisModel?.flyToGeometrySignal?.emit(geometry);
+  };
+
   const toggleFeatureVisibility = (index: number) => {
-    console.log('visibleFeatures', visibleFeatures);
     setVisibleFeatures(prev => ({
       ...prev,
       [index]: !prev[index]
@@ -156,16 +166,41 @@ const IdentifyPanelComponent = ({
       {features &&
         Object.values(features).map((feature, featureIndex) => (
           <div key={featureIndex} className="jgis-identify-grid-item">
-            <div
-              className="jgis-identify-grid-item-header"
-              onClick={() => toggleFeatureVisibility(featureIndex)}
-            >
-              <LabIcon.resolveReact
-                icon={caretDownIcon}
-                className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
-                tag={'span'}
-              />
-              <span>Feature {featureIndex + 1}:</span>
+            <div className="jgis-identify-grid-item-header">
+              <span onClick={() => toggleFeatureVisibility(featureIndex)}>
+                <LabIcon.resolveReact
+                  icon={caretDownIcon}
+                  className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
+                  tag={'span'}
+                />
+                <span>Feature {featureIndex + 1}</span>
+              </span>
+
+              {(() => {
+                const isRasterFeature =
+                  !feature.geometry &&
+                  !feature._geometry &&
+                  typeof feature?.x !== 'number' &&
+                  typeof feature?.y !== 'number';
+
+                return (
+                  <button
+                    className="jgis-highlight-button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      highlightFeatureOnMap(feature);
+                    }}
+                    title={
+                      isRasterFeature
+                        ? 'Highlight not available for raster features'
+                        : 'Highlight feature on map'
+                    }
+                    disabled={isRasterFeature}
+                  >
+                    <FontAwesomeIcon icon={faMagnifyingGlass} />
+                  </button>
+                );
+              })()}
             </div>
             {visibleFeatures[featureIndex] && (
               <>
@@ -174,6 +209,7 @@ const IdentifyPanelComponent = ({
                     ([key, value]) =>
                       typeof value !== 'object' || value === null
                   )
+                  .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
                   .map(([key, value]) => (
                     <div key={key} className="jgis-identify-grid-body">
                       <strong>{key}:</strong>

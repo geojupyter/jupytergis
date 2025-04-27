@@ -26,6 +26,7 @@ import {
   IVectorTileLayer,
   IVectorTileSource,
   IWebGlLayer,
+  JgisCoordinates,
   JupyterGISModel
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -84,7 +85,7 @@ import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
-import { Geometry } from 'ol/geom';
+import { Geometry, Point } from 'ol/geom';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -136,6 +137,24 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
+    this._model.geolocationChanged.connect(
+      this._handleGeolocationChanged,
+      this
+    );
+
+    this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
+    this._model.highlightFeatureSignal.connect(
+      this.highlightFeatureOnMap,
+      this
+    );
+
+    // Watch isIdentifying and clear the highlight when Identify Tool is turned off
+    this._model.sharedModel.awareness.on('change', () => {
+      const isIdentifying = this._model.isIdentifying;
+      if (!isIdentifying && this._highlightLayer) {
+        this._highlightLayer.getSource()?.clear();
+      }
+    });
 
     this.state = {
       id: this._mainViewModel.id,
@@ -160,7 +179,13 @@ export class MainView extends React.Component<IProps, IStates> {
 
   async componentDidMount(): Promise<void> {
     window.addEventListener('resize', this._handleWindowResize);
-    await this.generateScene();
+    const options = this._model.getOptions();
+    const center =
+      options.longitude !== undefined && options.latitude !== undefined
+        ? fromLonLat([options.longitude!, options.latitude!])
+        : [0, 0];
+    const zoom = options.zoom !== undefined ? options.zoom! : 1;
+    await this.generateScene(center, zoom);
     this.addContextMenu();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
@@ -192,14 +217,14 @@ export class MainView extends React.Component<IProps, IStates> {
     this._mainViewModel.dispose();
   }
 
-  async generateScene(): Promise<void> {
+  async generateScene(center: number[], zoom: number): Promise<void> {
     if (this.divRef.current) {
       this._Map = new OlMap({
         target: this.divRef.current,
         layers: [],
         view: new View({
-          center: [0, 0],
-          zoom: 1
+          center,
+          zoom
         }),
         controls: [new ScaleLine()]
       });
@@ -438,7 +463,8 @@ export class MainView extends React.Component<IProps, IStates> {
           zoom: this._Map.getView().getZoom() ?? 0,
           label: 'New annotation',
           contents: [],
-          parent: this._Map.getViewport().id
+          parent: this._Map.getViewport().id,
+          open: true
         });
       },
       label: 'Add annotation',
@@ -1259,6 +1285,102 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   };
 
+  private flyToGeometry(sender: IJupyterGISModel, geometry: any): void {
+    if (!geometry || typeof geometry.getExtent !== 'function') {
+      console.warn('Invalid geometry for flyToGeometry:', geometry);
+      return;
+    }
+
+    const view = this._Map.getView();
+    const extent = geometry.getExtent();
+
+    view.fit(extent, {
+      padding: [50, 50, 50, 50],
+      duration: 1000,
+      maxZoom: 16
+    });
+  }
+
+  private highlightFeatureOnMap(
+    sender: IJupyterGISModel,
+    featureOrGeometry: any
+  ): void {
+    const geometry =
+      featureOrGeometry?.geometry ||
+      featureOrGeometry?._geometry ||
+      featureOrGeometry;
+
+    if (!geometry) {
+      console.warn('No geometry found in feature:', featureOrGeometry);
+      return;
+    }
+
+    const isOlGeometry = typeof geometry.getCoordinates === 'function';
+
+    const parsedGeometry = isOlGeometry
+      ? geometry
+      : new GeoJSON().readGeometry(geometry, {
+          featureProjection: this._Map.getView().getProjection()
+        });
+
+    const olFeature = new Feature({
+      geometry: parsedGeometry,
+      ...(geometry !== featureOrGeometry ? featureOrGeometry : {})
+    });
+
+    if (!this._highlightLayer) {
+      this._highlightLayer = new VectorLayer({
+        source: new VectorSource(),
+        style: feature => {
+          const geomType = feature.getGeometry()?.getType();
+          switch (geomType) {
+            case 'Point':
+            case 'MultiPoint':
+              return new Style({
+                image: new Circle({
+                  radius: 6,
+                  fill: new Fill({ color: 'rgba(255, 255, 0, 0.8)' }),
+                  stroke: new Stroke({ color: '#ff0', width: 2 })
+                })
+              });
+            case 'LineString':
+            case 'MultiLineString':
+              return new Style({
+                stroke: new Stroke({
+                  color: 'rgba(255, 255, 0, 0.8)',
+                  width: 3
+                })
+              });
+            case 'Polygon':
+            case 'MultiPolygon':
+              return new Style({
+                stroke: new Stroke({
+                  color: '#f00',
+                  width: 2
+                }),
+                fill: new Fill({
+                  color: 'rgba(255, 255, 0, 0.8)'
+                })
+              });
+            default:
+              return new Style({
+                stroke: new Stroke({
+                  color: '#000',
+                  width: 2
+                })
+              });
+          }
+        },
+        zIndex: 999
+      });
+      this._Map.addLayer(this._highlightLayer);
+    }
+
+    const source = this._highlightLayer.getSource();
+    source?.clear();
+    source?.addFeature(olFeature);
+  }
+
   /**
    * Wait for all layers to be loaded.
    */
@@ -1696,7 +1818,7 @@ export class MainView extends React.Component<IProps, IStates> {
     // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
-      this._moveToPosition(annotation.position, annotation.zoom);
+      this._flyToPosition(annotation.position, annotation.zoom);
       return;
     }
 
@@ -1742,14 +1864,23 @@ export class MainView extends React.Component<IProps, IStates> {
   ) {
     const view = this._Map.getView();
 
+    view.setZoom(zoom);
+    view.setCenter([center.x, center.y]);
     // Zoom needs to be set before changing center
     if (!view.animate === undefined) {
       view.animate({ zoom, duration });
       view.animate({ center: [center.x, center.y], duration });
-    } else {
-      view.setZoom(zoom);
-      view.setCenter([center.x, center.y]);
     }
+  }
+
+  private _flyToPosition(
+    center: { x: number; y: number },
+    zoom: number,
+    duration = 1000
+  ) {
+    const view = this._Map.getView();
+    view.animate({ zoom, duration });
+    view.animate({ center: [center.x, center.y], duration });
   }
 
   private _onPointerMove(e: MouseEvent) {
@@ -1807,6 +1938,12 @@ export class MainView extends React.Component<IProps, IStates> {
           this._mainViewModel.id
         );
 
+        const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+        const point = new Point(coordinate);
+
+        // trigger highlight via signal
+        this._model.highlightFeatureSignal.emit(point);
+
         break;
       }
     }
@@ -1837,6 +1974,21 @@ export class MainView extends React.Component<IProps, IStates> {
       const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
       feature.set(`${selectedFeature}ms`, parsedTime);
     });
+  }
+
+  private _handleGeolocationChanged(
+    sender: any,
+    newPosition: JgisCoordinates
+  ): void {
+    const view = this._Map.getView();
+    const zoom = view.getZoom();
+    if (zoom) {
+      this._flyToPosition(newPosition, zoom);
+    } else {
+      throw new Error(
+        'Could not move to geolocation, because current zoom is not defined.'
+      );
+    }
   }
 
   private _handleThemeChange = (): void => {
@@ -1873,7 +2025,6 @@ export class MainView extends React.Component<IProps, IStates> {
                 <AnnotationFloater
                   itemId={key}
                   annotationModel={this._model.annotationModel}
-                  open={false}
                 />
               </div>
             )
@@ -1933,4 +2084,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
+  private _highlightLayer: VectorLayer<VectorSource>;
 }

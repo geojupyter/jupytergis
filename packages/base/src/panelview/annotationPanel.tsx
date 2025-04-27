@@ -54,7 +54,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
       );
     });
 
-    return <div>{annotations}</div>;
+    return <div className="jgis-scrollable">{annotations}</div>;
   }
 
   private _annotationModel: IAnnotationModel;
@@ -66,7 +66,7 @@ export class Annotations extends PanelWithToolbar {
     super({});
 
     this.title.label = 'Annotations';
-    this.addClass('jGIS-Annotations');
+    this.addClass('jgis-scrollable');
 
     this._annotationModel = options.annotationModel;
     this._rightPanelModel = options.rightPanelModel;

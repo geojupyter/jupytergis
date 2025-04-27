@@ -1,5 +1,13 @@
 import { LabIcon, redoIcon, undoIcon } from '@jupyterlab/ui-components';
-import { geoJSONIcon, moundIcon, rasterIcon } from './icons';
+import {
+  bookOpenIcon,
+  clockIcon,
+  geoJSONIcon,
+  infoIcon,
+  moundIcon,
+  rasterIcon,
+  vectorSquareIcon
+} from './icons';
 
 /**
  * The command IDs.
@@ -11,6 +19,9 @@ export namespace CommandIDs {
   export const symbology = 'jupytergis:symbology';
   export const identify = 'jupytergis:identify';
   export const temporalController = 'jupytergis:temporalController';
+
+  // geolocation
+  export const getGeolocation = 'jupytergis:getGeolocation';
 
   // Layers and sources creation commands
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
@@ -95,9 +106,9 @@ const iconObject = {
 
   [CommandIDs.redo]: { icon: redoIcon },
   [CommandIDs.undo]: { icon: undoIcon },
-  [CommandIDs.openLayerBrowser]: { iconClass: 'fa fa-book-open' },
+  [CommandIDs.openLayerBrowser]: { icon: bookOpenIcon },
   [CommandIDs.newRasterEntry]: { icon: rasterIcon },
-  [CommandIDs.newVectorTileEntry]: { iconClass: 'fa fa-vector-square' },
+  [CommandIDs.newVectorTileEntry]: { icon: vectorSquareIcon },
   [CommandIDs.newGeoJSONEntry]: { icon: geoJSONIcon },
   [CommandIDs.newHillshadeEntry]: { icon: moundIcon },
   [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
@@ -105,8 +116,8 @@ const iconObject = {
   [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
   [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
-  [CommandIDs.identify]: { iconClass: 'fa fa-info' },
-  [CommandIDs.temporalController]: { iconClass: 'fa fa-clock' }
+  [CommandIDs.identify]: { icon: infoIcon },
+  [CommandIDs.temporalController]: { icon: clockIcon }
 };
 
 /**

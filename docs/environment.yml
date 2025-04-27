@@ -11,9 +11,10 @@ dependencies:
   - ypywidgets>=0.9.6,<0.10.0
   - comm>=0.1.2,<0.2.0
   - pydantic>=2,<3
+  - sidecar
   - pip:
       - yjs-widgets>=0.4,<0.5
-      - my-jupyter-shared-drive
+      - my-jupyter-shared-drive<0.2.0
       - ../python/jupytergis_lab
       - ../python/jupytergis_core
       - ../python/jupytergis_lite

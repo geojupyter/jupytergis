@@ -19,9 +19,9 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "jupytergis_core==0.4.4",
-  "jupytergis_lab==0.4.4",
-  "my-jupyter-shared-drive",
+  "jupytergis_core==0.4.5",
+  "jupytergis_lab==0.4.5",
+  "my-jupyter-shared-drive<0.2.0",
 ]
 dynamic = ["version"]
 license = {file = "LICENSE"}

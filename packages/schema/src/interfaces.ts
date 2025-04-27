@@ -156,6 +156,7 @@ export interface IJupyterGISDocChange extends DocumentChange {
 export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isDisposed: boolean;
   sharedModel: IJupyterGISDoc;
+  geolocation: JgisCoordinates;
   localState: IJupyterGISClientState | null;
   annotationModel?: IAnnotationModel;
 
@@ -175,6 +176,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   zoomToPositionSignal: ISignal<IJupyterGISModel, string>;
   addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
   updateLayerSignal: ISignal<IJupyterGISModel, string>;
+  geolocationChanged: Signal<IJupyterGISModel, JgisCoordinates>;
+  flyToGeometrySignal: Signal<IJupyterGISModel, any>;
+  highlightFeatureSignal: Signal<IJupyterGISModel, any>;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;
@@ -325,6 +329,8 @@ export interface IAnnotationModel {
 
   addAnnotation(key: string, value: IAnnotation): void;
 
+  updateAnnotation(id: string, updates: Partial<IAnnotation>): void;
+
   removeAnnotation(key: string): void;
 
   addContent(id: string, value: string): void;
@@ -341,4 +347,5 @@ export interface IAnnotation {
   zoom: number;
   contents: IAnnotationContent[];
   parent: string;
+  open: boolean;
 }

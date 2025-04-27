@@ -3,16 +3,12 @@ import { faWindowMinimize } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Annotation, { IAnnotationProps } from './Annotation';
 
-interface IAnnotationFloaterProps extends IAnnotationProps {
-  open: boolean;
-}
-
 const AnnotationFloater = ({
   itemId,
-  annotationModel: model,
-  open
-}: IAnnotationFloaterProps) => {
-  const [isOpen, setIsOpen] = useState(open);
+  annotationModel: model
+}: IAnnotationProps) => {
+  const annotation = model.getAnnotation(itemId);
+  const [isOpen, setIsOpen] = useState(annotation?.open);
 
   // Function that either
   // - opens the annotation if `open`
@@ -20,14 +16,17 @@ const AnnotationFloater = ({
   // - closes the annotation if `!open` and the annotation is not empty
   const setOpenOrDelete = (open: boolean) => {
     if (open) {
+      model.updateAnnotation(itemId, { open: true });
       return setIsOpen(true);
     }
 
-    if (!model.getAnnotation(itemId)?.contents.length) {
-      return model.removeAnnotation(itemId);
+    const current = model.getAnnotation(itemId);
+    if (!current?.contents.length) {
+      model.removeAnnotation(itemId);
+    } else {
+      model.updateAnnotation(itemId, { open: false });
+      setIsOpen(false);
     }
-
-    setIsOpen(false);
   };
 
   return (
