@@ -73,21 +73,20 @@ class GISDocument(CommWidget):
         self.ydoc["layerTree"] = self._layerTree = Array()
         self.ydoc["metadata"] = self._metadata = Map()
 
-        if path is None:
-            if latitude is not None:
-                self._options["latitude"] = latitude
-            if longitude is not None:
-                self._options["longitude"] = longitude
-            if extent is not None:
-                self._options["extent"] = extent
-            if zoom is not None:
-                self._options["zoom"] = zoom
-            if bearing is not None:
-                self._options["bearing"] = bearing
-            if pitch is not None:
-                self._options["pitch"] = pitch
-            if projection is not None:
-                self._options["projection"] = projection
+        if latitude is not None:
+            self._options["latitude"] = latitude
+        if longitude is not None:
+            self._options["longitude"] = longitude
+        if extent is not None:
+            self._options["extent"] = extent
+        if zoom is not None:
+            self._options["zoom"] = zoom
+        if bearing is not None:
+            self._options["bearing"] = bearing
+        if pitch is not None:
+            self._options["pitch"] = pitch
+        if projection is not None:
+            self._options["projection"] = projection
 
     @property
     def layers(self) -> Dict:
