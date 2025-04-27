@@ -45,7 +45,6 @@ const CollaboratorPointers = ({ clients }: ICollaboratorPointersProps) => {
             >
               <FontAwesomeIcon
                 icon={faArrowPointer}
-                size="lg"
                 className="jGIS-Remote-Pointer-Icon"
               />
             </div>
