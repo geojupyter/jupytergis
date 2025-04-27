@@ -373,6 +373,11 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   z-index: 20;
 }
 
+.jGIS-Remote-Pointer-Icon {
+  filter: drop-shadow(-1px 0px white) drop-shadow(1px 0px white)
+    drop-shadow(0px -1px white) drop-shadow(0px 1px white)
+    drop-shadow(0px 0px 1px black);
+}
 .jGIS-Remote-Pointer-Icon:hover {
   scale: 1.3;
 }
