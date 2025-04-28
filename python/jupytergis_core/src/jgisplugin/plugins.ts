@@ -37,7 +37,7 @@ const FACTORY = 'JupyterGIS .jgis Viewer';
 const CONTENT_TYPE = 'jgis';
 const PALETTE_CATEGORY = 'JupyterGIS';
 const MODEL_NAME = 'jupytergis-jgismodel';
-const SETTINGS_ID = 'jupytergis_core:jupytergis-settings';
+const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
 const activate = async (
   app: JupyterFrontEnd,
