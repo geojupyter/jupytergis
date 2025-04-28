@@ -251,6 +251,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     return JupyterGISModel.worker;
   }
 
+  readonly flyToGeometrySignal = new Signal<this, any>(this);
+  readonly highlightFeatureSignal = new Signal<this, any>(this);
+
   getContent(): IJGISContent {
     return {
       sources: this.sharedModel.sources,
