@@ -31,8 +31,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import {
   CommandIDs,
   logoIcon,
-  logoMiniIcon,
-  initSettings
+  logoMiniIcon
 } from '@jupytergis/base';
 import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
@@ -68,7 +67,6 @@ const activate = async (
     const newSettings = setting.composite as any;
     console.log('JupyterGIS Settings updated:', newSettings);
   });
-  await initSettings(settingRegistry);
 
   const widgetFactory = new JupyterGISDocumentWidgetFactory({
     name: FACTORY,
@@ -99,7 +97,7 @@ const activate = async (
   app.docRegistry.addWidgetFactory(mimeDocumentFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
-  const modelFactory = new JupyterGISModelFactory({ annotationModel });
+  const modelFactory = new JupyterGISModelFactory({ annotationModel, settingRegistry });
   app.docRegistry.addModelFactory(modelFactory);
 
   // register the filetype

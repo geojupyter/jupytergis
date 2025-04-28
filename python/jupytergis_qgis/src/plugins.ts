@@ -29,6 +29,7 @@ import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Widget } from '@lumino/widgets';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import {
   JupyterGISDocumentWidget,
@@ -78,6 +79,7 @@ const activate = async (
   rendermime: IRenderMimeRegistry,
   consoleTracker: IConsoleTracker,
   annotationModel: IAnnotationModel,
+  settingRegistry: ISettingRegistry,
   commandPalette: ICommandPalette | null
 ): Promise<void> => {
   const fcCheck = await requestAPI<{ installed: boolean }>(
@@ -133,8 +135,8 @@ const activate = async (
   app.docRegistry.addWidgetFactory(QGZWidgetFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
-  app.docRegistry.addModelFactory(new QGSModelFactory({ annotationModel }));
-  app.docRegistry.addModelFactory(new QGZModelFactory({ annotationModel }));
+  app.docRegistry.addModelFactory(new QGSModelFactory({ annotationModel, settingRegistry }));
+  app.docRegistry.addModelFactory(new QGZModelFactory({ annotationModel, settingRegistry }));
   // register the filetype
   app.docRegistry.addFileType({
     name: 'QGS',
@@ -311,7 +313,8 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
     IEditorServices,
     IRenderMimeRegistry,
     IConsoleTracker,
-    IAnnotationToken
+    IAnnotationToken,
+    ISettingRegistry
   ],
   optional: [ICommandPalette],
   autoStart: true,

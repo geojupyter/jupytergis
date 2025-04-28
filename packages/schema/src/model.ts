@@ -33,6 +33,7 @@ import {
   Pointer
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: JupyterGISModel.IOptions) {
@@ -766,6 +767,7 @@ export namespace JupyterGISModel {
   export interface IOptions
     extends DocumentRegistry.IModelOptions<IJupyterGISDoc> {
     annotationModel?: IAnnotationModel;
+    settingRegistry: ISettingRegistry;
   }
 }
 

@@ -12,4 +12,3 @@ export * from './tools';
 export * from './types';
 export * from './widget';
 export * from './annotations';
-export * from './settings';
