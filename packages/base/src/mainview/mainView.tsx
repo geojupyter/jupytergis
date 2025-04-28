@@ -156,6 +156,12 @@ export class MainView extends React.Component<IProps, IStates> {
       }
     });
 
+    this._model.removeLayerSignal.connect((model, sourceId) => {
+      if (!(this._model.getLayersBySource(sourceId).length ?? true)) {
+        this._model.sharedModel.removeSource(sourceId);
+      }
+    }, this);
+
     this.state = {
       id: this._mainViewModel.id,
       lightTheme: isLightTheme(),
