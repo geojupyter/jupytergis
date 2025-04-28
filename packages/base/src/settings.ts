@@ -12,12 +12,15 @@ const settingsState = {
 /**
  * Initialize settings from the JupyterLab setting registry.
  */
-export const initSettings = async (settingRegistry: ISettingRegistry): Promise<void> => {
+export const initSettings = async (
+  settingRegistry: ISettingRegistry
+): Promise<void> => {
   const setting = await settingRegistry.load(SETTINGS_ID);
 
   const userSettings = setting.user ?? {};
 
-  settingsState.proxyUrl = (userSettings as any).proxyUrl ?? settingsState.proxyUrl;
+  settingsState.proxyUrl =
+    (userSettings as any).proxyUrl ?? settingsState.proxyUrl;
 };
 
 /**
