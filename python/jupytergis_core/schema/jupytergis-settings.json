@@ -7,7 +7,7 @@
       "type": "string",
       "title": "Proxy URL",
       "description": "The proxy URL to use for external requests.",
-      "default": "https://corsproxy.io/"
+      "default": "https://corsproxy.io"
     }
   }
 }

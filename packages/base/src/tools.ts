@@ -8,6 +8,7 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import * as d3Color from 'd3-color';
 import shp from 'shpjs';
 import { getGdal } from './gdal';
+import { getSettings } from './settings';
 
 import {
   IDict,
@@ -412,10 +413,11 @@ const fetchWithProxies = async <T>(
   url: string,
   parseResponse: (response: Response) => Promise<T>
 ): Promise<T | null> => {
+  const externalProxyUrl = getSettings().proxyUrl;
   const proxyUrls = [
     url, // Direct fetch
     `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
-    `https://corsproxy.io/?url=${encodeURIComponent(url)}` // External proxy
+    `${externalProxyUrl}/?url=${encodeURIComponent(url)}` // External proxy
   ];
 
   for (const proxyUrl of proxyUrls) {

@@ -28,7 +28,7 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
-import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
+import { CommandIDs, logoIcon, logoMiniIcon, initSettings } from '@jupytergis/base';
 import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
 import { MimeDocumentFactory } from '@jupyterlab/docregistry';
@@ -61,8 +61,9 @@ const activate = async (
   const setting = await settingRegistry.load(SETTINGS_ID);
   setting.changed.connect(() => {
     const newSettings = setting.composite as any;
-    console.log('Settings updated:', newSettings);
+    console.log('JupyterGIS Settings updated:', newSettings);
   });
+  await initSettings(settingRegistry);
 
   const widgetFactory = new JupyterGISDocumentWidgetFactory({
     name: FACTORY,
