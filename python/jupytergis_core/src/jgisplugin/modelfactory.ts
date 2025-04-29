@@ -89,6 +89,7 @@ export class JupyterGISModelFactory
       annotationModel: this._annotationModel,
       settingRegistry: this._settingRegistry
     });
+    model.initSettings();
     return model;
   }
 

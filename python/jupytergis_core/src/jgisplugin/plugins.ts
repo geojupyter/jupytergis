@@ -41,7 +41,6 @@ const FACTORY = 'JupyterGIS .jgis Viewer';
 const CONTENT_TYPE = 'jgis';
 const PALETTE_CATEGORY = 'JupyterGIS';
 const MODEL_NAME = 'jupytergis-jgismodel';
-const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
 const activate = async (
   app: JupyterFrontEnd,
@@ -62,11 +61,6 @@ const activate = async (
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
   }
-  const setting = await settingRegistry.load(SETTINGS_ID);
-  setting.changed.connect(() => {
-    const newSettings = setting.composite as any;
-    console.log('JupyterGIS Settings updated:', newSettings);
-  });
 
   const widgetFactory = new JupyterGISDocumentWidgetFactory({
     name: FACTORY,

@@ -410,12 +410,16 @@ export const getFromIndexedDB = async (key: string) => {
 
 const fetchWithProxies = async <T>(
   url: string,
+  model: IJupyterGISModel,
   parseResponse: (response: Response) => Promise<T>
 ): Promise<T | null> => {
+
+  const settings = await model.getSettings();
+
   const proxyUrls = [
     url, // Direct fetch
     `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
-    `https://corsproxy.io/?url=${encodeURIComponent(url)}` // External proxy
+    `${settings.proxyUrl}/?url=${encodeURIComponent(url)}` // External proxy
   ];
 
   for (const proxyUrl of proxyUrls) {
@@ -444,6 +448,7 @@ const fetchWithProxies = async <T>(
  */
 export const loadGeoTiff = async (
   sourceInfo: { url?: string | undefined },
+  model: IJupyterGISModel,
   file?: Contents.IModel | null
 ) => {
   if (!sourceInfo?.url) {
@@ -468,7 +473,7 @@ export const loadGeoTiff = async (
   let fileBlob: Blob | null = null;
 
   if (!file) {
-    fileBlob = await fetchWithProxies(url, async response => response.blob());
+    fileBlob = await fetchWithProxies(url, model, async response => response.blob());
     if (!fileBlob) {
       showErrorMessage('Network error', `Failed to fetch ${url}`);
       throw new Error(`Failed to fetch ${url}`);
@@ -535,7 +540,7 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
-        const geojson = await fetchWithProxies(filepath, async response => {
+        const geojson = await fetchWithProxies(filepath, model, async response => {
           const arrayBuffer = await response.arrayBuffer();
           return shp(arrayBuffer);
         });
@@ -555,7 +560,7 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
-        const geojson = await fetchWithProxies(filepath, async response =>
+        const geojson = await fetchWithProxies(filepath, model, async response =>
           response.json()
         );
 
@@ -627,7 +632,7 @@ export const loadFile = async (fileInfo: {
 
       case 'GeoTiffSource': {
         if (typeof file.content === 'string') {
-          const tiff = loadGeoTiff({ url: filepath }, file);
+          const tiff = loadGeoTiff({ url: filepath }, model, file);
           return tiff;
         } else {
           throw new Error('Invalid file format for tiff content.');
