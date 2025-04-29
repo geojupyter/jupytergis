@@ -9,7 +9,8 @@ import {
   IJGISExternalCommandRegistryToken,
   IJupyterGISDocTracker,
   IJupyterGISWidget,
-  JupyterGISDoc
+  JupyterGISDoc,
+  SCHEMA_VERSION
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -155,7 +156,7 @@ const activate = (
         format: 'text',
         size: undefined,
         content:
-          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": [],\n\t"metadata": {}\n}'
+          `{\n\t"schemaVersion": "${SCHEMA_VERSION}",\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": [],\n\t"metadata": {}\n}`
       });
 
       // Open the newly created file with the 'Editor'
