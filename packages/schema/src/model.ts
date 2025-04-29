@@ -35,7 +35,6 @@ import {
 import jgisSchema from './schema/project/jgis.json';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
-
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
 export class JupyterGISModel implements IJupyterGISModel {
@@ -56,7 +55,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
   }
-
 
   /**
    * Initialize custom settings for JupyterLab.

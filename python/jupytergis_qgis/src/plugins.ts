@@ -135,8 +135,12 @@ const activate = async (
   app.docRegistry.addWidgetFactory(QGZWidgetFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
-  app.docRegistry.addModelFactory(new QGSModelFactory({ annotationModel, settingRegistry }));
-  app.docRegistry.addModelFactory(new QGZModelFactory({ annotationModel, settingRegistry }));
+  app.docRegistry.addModelFactory(
+    new QGSModelFactory({ annotationModel, settingRegistry })
+  );
+  app.docRegistry.addModelFactory(
+    new QGZModelFactory({ annotationModel, settingRegistry })
+  );
   // register the filetype
   app.docRegistry.addFileType({
     name: 'QGS',

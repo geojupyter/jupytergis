@@ -28,11 +28,7 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
-import {
-  CommandIDs,
-  logoIcon,
-  logoMiniIcon
-} from '@jupytergis/base';
+import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
 import { MimeDocumentFactory } from '@jupyterlab/docregistry';
@@ -91,7 +87,10 @@ const activate = async (
   app.docRegistry.addWidgetFactory(mimeDocumentFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
-  const modelFactory = new JupyterGISModelFactory({ annotationModel, settingRegistry });
+  const modelFactory = new JupyterGISModelFactory({
+    annotationModel,
+    settingRegistry
+  });
   app.docRegistry.addModelFactory(modelFactory);
 
   // register the filetype
