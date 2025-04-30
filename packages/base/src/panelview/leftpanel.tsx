@@ -10,7 +10,6 @@ import { Message } from '@lumino/messaging';
 import { MouseEvent as ReactMouseEvent } from 'react';
 import { IControlPanelModel } from '../types';
 import { LayersPanel } from './components/layers';
-// import { SourcesPanel } from './components/sources';
 import { ControlPanelHeader } from './header';
 import { FilterPanel } from './components/filter-panel/Filter';
 import { CommandRegistry } from '@lumino/commands';
