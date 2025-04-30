@@ -20,3 +20,5 @@ from .interfaces.processing.buffer import IBuffer  # noqa
 
 from .interfaces.export.exportGeojson import IExportGeoJSON  # noqa
 from .interfaces.export.exportGeotiff import IExportGeoTIFF  # noqa
+
+SCHEMA_VERSION = IJGISContent.model_fields["schemaVersion"].default  # noqa
