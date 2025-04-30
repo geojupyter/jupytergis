@@ -32,4 +32,4 @@ export * from './doc';
 export * from './interfaces';
 export * from './model';
 export * from './token';
-export * from './index';
+export { SCHEMA_VERSION } from './_interface/version';
