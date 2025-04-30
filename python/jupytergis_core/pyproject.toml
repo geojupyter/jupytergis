@@ -37,7 +37,7 @@ source = "nodejs"
 fields = ["description", "authors", "urls"]
 
 [tool.hatch.build.targets.sdist]
-artifacts = ["jupytergis_core/labextension", "/jupytergis_core/schema/**/*.py", "/jupytergis_core/schema/**/**/*.py"]
+artifacts = ["jupytergis_core/labextension", "/jupytergis_core/schema/**/*.py"]
 exclude = [".github", "binder", "node_modules"]
 
 [tool.hatch.build.targets.wheel]
