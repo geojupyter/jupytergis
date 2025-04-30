@@ -2,18 +2,12 @@
   "type": "object",
   "description": "VectorLayer",
   "title": "IVectorLayer",
-  "required": ["source", "type"],
+  "required": ["source"],
   "additionalProperties": false,
   "properties": {
     "source": {
       "type": "string",
       "description": "The id of the source"
-    },
-    "type": {
-      "type": "string",
-      "enum": ["circle", "fill", "line"],
-      "default": "line",
-      "description": "The type of vector layer"
     },
     "color": {
       "type": "object",
