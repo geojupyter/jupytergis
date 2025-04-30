@@ -253,7 +253,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   readonly flyToGeometrySignal = new Signal<this, any>(this);
   readonly highlightFeatureSignal = new Signal<this, any>(this);
-  readonly removeLayerSignal = new Signal<this, string>(this);
+  // readonly removeLayerSignal = new Signal<this, string>(this);
 
   getContent(): IJGISContent {
     return {
@@ -396,7 +396,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
-    this.removeLayerSignal.emit(source_id);
+    this.sharedModel.removeSource(source_id);
   }
 
   setOptions(value: IJGISOptions) {
