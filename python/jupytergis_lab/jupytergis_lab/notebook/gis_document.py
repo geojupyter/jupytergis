@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
 
-from jupytergis_core.schema import (
+from jupytergis_core import (
     IGeoJSONSource,
     IGeoTiffSource,
     IHeatmapLayer,
