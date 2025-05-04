@@ -126,15 +126,15 @@ const Graduated = ({
     const newStyle = { ...layer.parameters.color };
 
     if (selectedMethodRef.current === 'color') {
-        newStyle['fill-color'] = colorExpr;
+      newStyle['fill-color'] = colorExpr;
 
-        newStyle['stroke-color'] = colorExpr;
+      newStyle['stroke-color'] = colorExpr;
 
-        newStyle['circle-fill-color'] = colorExpr;
+      newStyle['circle-fill-color'] = colorExpr;
     }
 
     if (selectedMethodRef.current === 'radius') {
-        newStyle['circle-radius'] = colorExpr;
+      newStyle['circle-radius'] = colorExpr;
     }
 
     const symbologyState = {
