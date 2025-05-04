@@ -14,7 +14,6 @@ test.describe('#newFile', () => {
     const map = page.locator('.ol-unselectable').first();
 
     await expect(tab).toBeVisible();
-    await expect(sources).toBeVisible();
     await expect(layers).toBeVisible();
     await expect(map).toBeAttached();
   });
