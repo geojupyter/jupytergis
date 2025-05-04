@@ -78,51 +78,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       completionProviderManager
     );
 
-    // SOURCES context menu
-    const newSourceSubMenu = new Menu({ commands: app.commands });
-    newSourceSubMenu.title.label = translator
-      .load('jupyterlab')
-      .__('Add Source');
-    newSourceSubMenu.id = 'jp-gis-contextmenu-addSource';
-
-    app.contextMenu.addItem({
-      type: 'submenu',
-      selector: '.jp-gis-sourcePanel',
-      rank: 3,
-      submenu: newSourceSubMenu
-    });
-
-    newSourceSubMenu.addItem({
-      command: CommandIDs.newRasterSource,
-      args: { from: 'contextMenu' }
-    });
-
-    newSourceSubMenu.addItem({
-      command: CommandIDs.newVectorSource,
-      args: { from: 'contextMenu' }
-    });
-
-    newSourceSubMenu.addItem({
-      command: CommandIDs.newGeoJSONSource,
-      args: { from: 'contextMenu' }
-    });
-
-    newSourceSubMenu.addItem({
-      command: CommandIDs.newRasterDemSource,
-      args: { from: 'contextMenu' }
-    });
-
-    newSourceSubMenu.addItem({
-      command: CommandIDs.newImageSource,
-      args: { from: 'contextMenu' }
-    });
-
-    app.contextMenu.addItem({
-      type: 'separator',
-      selector: '.jp-gis-sourcePanel',
-      rank: 2
-    });
-
     app.contextMenu.addItem({
       selector: '.jp-gis-source.jp-gis-sourceUnused',
       rank: 1,

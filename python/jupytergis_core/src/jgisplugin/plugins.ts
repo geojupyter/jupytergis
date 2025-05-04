@@ -209,27 +209,6 @@ const activate = (
       category: 'JupyterGIS'
     });
 
-    // Source only
-    palette.addItem({
-      command: CommandIDs.newRasterSource,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newRasterDemSource,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newVectorSource,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newGeoJSONSource,
-      category: 'JupyterGIS'
-    });
-
     // Layers only
     palette.addItem({
       command: CommandIDs.newRasterLayer,
