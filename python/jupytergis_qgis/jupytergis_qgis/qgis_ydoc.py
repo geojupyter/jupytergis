@@ -6,7 +6,7 @@ from functools import partial
 
 from pycrdt import Array, Map
 from jupyter_ydoc.ybasedoc import YBaseDoc
-from jupytergis_core import SCHEMA_VERSION
+from jupytergis_core.schema import SCHEMA_VERSION
 
 
 def reversed_tree(root):
