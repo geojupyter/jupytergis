@@ -39,16 +39,6 @@ export namespace CommandIDs {
   export const buffer = 'jupytergis:buffer';
   export const dissolve = 'jupytergis:dissolve';
 
-  // Sources only commands
-  export const newRasterSource = 'jupytergis:newRasterSource';
-  export const newRasterDemSource = 'jupytergis:newRasterDemSource';
-  export const newVectorSource = 'jupytergis:newVectorSource';
-  export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
-  export const newImageSource = 'jupytergis:imageSource';
-  export const newVideoSource = 'jupytergis:videoSource';
-  export const newShapefileSource = 'jupytergis:shapefileSource';
-  export const newGeoTiffSource = 'jupytergis:newGeoTiffSource';
-
   // Layers only commands
   export const newRasterLayer = 'jupytergis:newRasterLayer';
   export const newVectorLayer = 'jupytergis:newVectorLayer';

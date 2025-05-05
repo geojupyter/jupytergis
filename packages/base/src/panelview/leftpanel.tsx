@@ -10,7 +10,6 @@ import { Message } from '@lumino/messaging';
 import { MouseEvent as ReactMouseEvent } from 'react';
 import { IControlPanelModel } from '../types';
 import { LayersPanel } from './components/layers';
-import { SourcesPanel } from './components/sources';
 import { ControlPanelHeader } from './header';
 import { FilterPanel } from './components/filter-panel/Filter';
 import { CommandRegistry } from '@lumino/commands';
@@ -48,14 +47,6 @@ export class LeftPanelWidget extends SidePanel {
 
     const header = new ControlPanelHeader();
     this.header.addWidget(header);
-
-    const sourcesPanel = new SourcesPanel({
-      model: this._model,
-      onSelect: this._onSelect
-    });
-    sourcesPanel.title.caption = 'Sources';
-    sourcesPanel.title.label = 'Sources';
-    this.addWidget(sourcesPanel);
 
     const layerTree = new LayersPanel({
       model: this._model,
