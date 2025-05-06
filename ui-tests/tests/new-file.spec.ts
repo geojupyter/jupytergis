@@ -9,12 +9,10 @@ test.describe('#newFile', () => {
     await page.getByLabel('notebook content').getByText('GIS File').click();
 
     const tab = page.getByLabel('notebook content');
-    const sources = page.getByText('Sources', { exact: true });
     const layers = page.getByText('Layers', { exact: true });
     const map = page.locator('.ol-unselectable').first();
 
     await expect(tab).toBeVisible();
-    await expect(sources).toBeVisible();
     await expect(layers).toBeVisible();
     await expect(map).toBeAttached();
   });

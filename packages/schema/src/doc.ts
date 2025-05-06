@@ -1,6 +1,7 @@
 import { Delta, MapChange, YDocument } from '@jupyter/ydoc';
 import { JSONExt, JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
+import { SCHEMA_VERSION } from './_interface/version';
 import * as Y from 'yjs';
 
 import {
@@ -97,7 +98,7 @@ export class JupyterGISDoc
   }
 
   get version(): string {
-    return '0.1.0';
+    return SCHEMA_VERSION;
   }
 
   get layers(): IJGISLayers {
