@@ -183,7 +183,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   contentsManager: Contents.IManager | undefined;
   filePath: string;
 
-  getSettings(): any;
+  getSettings(): IJupyterGISSettings;
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
@@ -349,4 +349,8 @@ export interface IAnnotation {
   contents: IAnnotationContent[];
   parent: string;
   open: boolean;
+}
+
+export interface IJupyterGISSettings {
+  proxyUrl: string;
 }

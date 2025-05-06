@@ -30,7 +30,8 @@ import {
   IUserData,
   IViewPortState,
   JgisCoordinates,
-  Pointer
+  Pointer,
+  IJupyterGISSettings
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
@@ -71,7 +72,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
-  getSettings(): any {
+  getSettings(): IJupyterGISSettings {
     return this._settings;
   }
 
@@ -749,7 +750,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly annotationModel?: IAnnotationModel;
   readonly settingRegistry?: ISettingRegistry;
 
-  private _settings: any = {};
+  private _settings: IJupyterGISSettings;
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
   private _contentsManager?: Contents.IManager;
