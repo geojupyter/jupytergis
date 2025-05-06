@@ -1,0 +1,34 @@
+name: "🐞 Bug"
+description: "Any behavior that is unexpected or differs from the documentation."
+labels:
+  - "bug"
+body:
+  ## Excluded for now; we're not really seeing a ton of duplicate issue
+  ## reports, and I'd love to make reporting as approachable as possible.
+  # - type: "checkboxes"
+  #   attributes:
+  #     label: "Is there an existing issue for this?"
+  #     description: |
+  #       Please [:mag: search for existing issues](https://github.com/geojupyter/jupytergis/issues?q=sort%3Aupdated-desc%20is%3Aissue)
+  #       to see if this has already been reported.
+  #     options:
+  #       - label: "I've searched existing issues"
+  #         required: true
+
+  - type: "input"
+    attributes:
+      label: "JupyterGIS version"
+      description: |
+        In which version of JupyterGIS does this issue occur?
+        You can find this information on the status bar at the bottom of the JupyterGIS window.
+      validations:
+        required: false
+
+  - type: "textarea"
+    attributes:
+      label: "Description"
+      description: |
+        Please describe the issue clearly.
+        For best results, include a reproducible example or a screenshot/video of the issue.
+    validations:
+      required: true

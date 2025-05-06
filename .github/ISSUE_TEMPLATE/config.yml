@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: "🌟 Community support"
+    url: "https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter"
+    about: "Explore our open Zulip chat to ask questions, share insights, and connect with other JupyterGIS users."
