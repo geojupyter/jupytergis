@@ -158,6 +158,10 @@ export class JupyterGISPanel extends SplitPanel {
     return this._consoleView?.consolePanel;
   }
 
+  get consoleOpened(): boolean {
+    return this._consoleOpened;
+  }
+
   executeConsole() {
     if (this._consoleView) {
       this._consoleView.execute();

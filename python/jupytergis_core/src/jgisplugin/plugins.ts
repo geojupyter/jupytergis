@@ -9,7 +9,8 @@ import {
   IJGISExternalCommandRegistryToken,
   IJupyterGISDocTracker,
   IJupyterGISWidget,
-  JupyterGISDoc
+  JupyterGISDoc,
+  SCHEMA_VERSION
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -154,8 +155,7 @@ const activate = (
         ...model,
         format: 'text',
         size: undefined,
-        content:
-          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": [],\n\t"metadata": {}\n}'
+        content: `{\n\t"schemaVersion": "${SCHEMA_VERSION}",\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": [],\n\t"metadata": {}\n}`
       });
 
       // Open the newly created file with the 'Editor'
@@ -206,27 +206,6 @@ const activate = (
 
     palette.addItem({
       command: CommandIDs.newHillshadeEntry,
-      category: 'JupyterGIS'
-    });
-
-    // Source only
-    palette.addItem({
-      command: CommandIDs.newRasterSource,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newRasterDemSource,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newVectorSource,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newGeoJSONSource,
       category: 'JupyterGIS'
     });
 
