@@ -1,7 +1,7 @@
-name: "🐞 Bug"
-description: "Any behavior that is unexpected or differs from the documentation."
+name: '🐞 Bug'
+description: 'Any behavior that is unexpected or differs from the documentation.'
 labels:
-  - "bug"
+  - 'bug'
 body:
   ## Excluded for now; we're not really seeing a ton of duplicate issue
   ## reports, and I'd love to make reporting as approachable as possible.
@@ -15,18 +15,18 @@ body:
   #       - label: "I've searched existing issues"
   #         required: true
 
-  - type: "input"
+  - type: 'input'
     attributes:
-      label: "JupyterGIS version"
+      label: 'JupyterGIS version'
       description: |
         In which version of JupyterGIS does this issue occur?
         You can find this information on the status bar at the bottom of the JupyterGIS window.
       validations:
         required: false
 
-  - type: "textarea"
+  - type: 'textarea'
     attributes:
-      label: "Description"
+      label: 'Description'
       description: |
         Please describe the issue clearly.
         For best results, include a reproducible example or a screenshot/video of the issue.

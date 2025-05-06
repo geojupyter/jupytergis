@@ -1,7 +1,7 @@
-name: "📃 Documentation"
-description: "Anything that could be improved about our documentation."
+name: '📃 Documentation'
+description: 'Anything that could be improved about our documentation.'
 labels:
-  - "documentation"
+  - 'documentation'
 body:
   ## Excluded for now; we're not really seeing a ton of duplicate issue
   ## reports, and I'd love to make reporting as approachable as possible.
@@ -15,9 +15,9 @@ body:
   #       - label: "I've searched existing issues"
   #         required: true
 
-  - type: "textarea"
+  - type: 'textarea'
     attributes:
-      label: "Description"
+      label: 'Description'
       description: |
         Please describe the issue clearly.
         If you're reporting an issue with an existing page, please link to it.

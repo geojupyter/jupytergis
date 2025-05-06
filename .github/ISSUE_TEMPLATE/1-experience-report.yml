@@ -1,11 +1,11 @@
-name: "🧪 Experience report"
-description: "Share your experience using JupyterGIS; anything goes."
+name: '🧪 Experience report'
+description: 'Share your experience using JupyterGIS; anything goes.'
 labels:
-  - "experience report"
+  - 'experience report'
 body:
-  - type: "textarea"
+  - type: 'textarea'
     attributes:
-      label: "Description"
+      label: 'Description'
       description: |
         Please describe your experience clearly.
         We'd love to hear where you experienced friction, unintuitive behavior, or joy when using JupyterGIS.
