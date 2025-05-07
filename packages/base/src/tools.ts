@@ -413,10 +413,20 @@ const fetchWithProxies = async <T>(
   model: IJupyterGISModel,
   parseResponse: (response: Response) => Promise<T>
 ): Promise<T | null> => {
-  const settings = await model.getSettings();
+  let settings: any = null;
+
+  try {
+    settings = await model.getSettings();
+  } catch (e) {
+    console.warn('Failed to get settings from model. Falling back.', e);
+  }
+
+  if (!settings || typeof settings !== 'object') {
+    settings = {};
+  }
 
   if (!settings.proxyUrl) {
-    settings.proxyUrl = 'https://corsproxy.io';  // Temporary Fallback since settings are not loading on Jupyterlite
+    settings.proxyUrl = 'https://corsproxy.io'; // Temporary fallback for JupyterLite
   }
 
   const proxyUrls = [
