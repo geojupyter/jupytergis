@@ -77,15 +77,6 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('openLayerBrowser', openLayersBrowserButton);
       openLayersBrowserButton.node.dataset.testid = 'open-layers-browser';
 
-      const geolocationButton = new CommandToolbarButton({
-        id: CommandIDs.getGeolocation,
-        commands: options.commands,
-        label: ''
-      });
-      this.addItem('Geolocation', geolocationButton);
-
-      geolocationButton.node.dataset.testid = 'geolocation-button';
-
       // vector sub menu
       const vectorSubMenu = new Menu({ commands: options.commands });
 
@@ -159,6 +150,14 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('New', NewEntryButton);
 
       this.addItem('separator2', new Separator());
+
+      const geolocationButton = new CommandToolbarButton({
+        id: CommandIDs.getGeolocation,
+        commands: options.commands,
+        label: ''
+      });
+      this.addItem('Geolocation', geolocationButton);
+      geolocationButton.node.dataset.testid = 'geolocation-button';
 
       const identifyButton = new CommandToolbarButton({
         id: CommandIDs.identify,
