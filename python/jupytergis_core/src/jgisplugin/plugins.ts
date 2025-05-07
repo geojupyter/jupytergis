@@ -209,22 +209,6 @@ const activate = (
       category: 'JupyterGIS'
     });
 
-    // Layers only
-    palette.addItem({
-      command: CommandIDs.newRasterLayer,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newVectorLayer,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newHillshadeLayer,
-      category: 'JupyterGIS'
-    });
-
     // Layer and group actions
     palette.addItem({
       command: CommandIDs.moveLayerToNewGroup,
