@@ -177,29 +177,17 @@ jobs:
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
           python -m pip install jupytergis*.whl "jupyter-collaboration>=3,<4" "jupyterlab>=4.3,<5"
 
-      - name: Install dependencies
+      - name: Install
         shell: bash -l {0}
         working-directory: ui-tests
-        env:
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-        run: jlpm install
-
-      - name: Set up browser cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ github.workspace }}/pw-browsers
-          key: ${{ runner.os }}-${{ hashFiles('ui-tests/yarn.lock') }}
-
-      - name: Install browser
-        shell: bash -l {0}
-        run: npx playwright install chromium
-        working-directory: ui-tests
+        run: |
+          jlpm install
+          yarn playwright install chromium
 
       - name: Execute integration tests
         shell: bash -l {0}
         working-directory: ui-tests
-        run: npx playwright test --retries=2
+        run: jlpm run test
 
       - name: Upload Playwright Test report
         id: upload-galata-artifact

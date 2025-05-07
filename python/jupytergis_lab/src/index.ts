@@ -6,6 +6,8 @@ import {
   RightPanelWidget,
   addCommands,
   createDefaultLayerRegistry,
+  rasterSubMenu,
+  vectorSubMenu,
   logoMiniIcon
 } from '@jupytergis/base';
 import {
@@ -201,36 +203,20 @@ const plugin: JupyterFrontEndPlugin<void> = {
     newLayerSubMenu.title.label = translator.load('jupyterlab').__('Add Layer');
     newLayerSubMenu.id = 'jp-gis-contextmenu-addLayer';
 
+    newLayerSubMenu.addItem({
+      type: 'submenu',
+      submenu: rasterSubMenu(app.commands)
+    });
+    newLayerSubMenu.addItem({
+      type: 'submenu',
+      submenu: vectorSubMenu(app.commands)
+    });
+
     app.contextMenu.addItem({
       type: 'submenu',
       selector: '.jp-gis-layerPanel',
       rank: 3,
       submenu: newLayerSubMenu
-    });
-
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newRasterLayer,
-      args: { from: 'contextMenu' }
-    });
-
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newVectorLayer,
-      args: { from: 'contextMenu' }
-    });
-
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newHillshadeLayer,
-      args: { from: 'contextMenu' }
-    });
-
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newImageLayer,
-      args: { from: 'contextMenu' }
-    });
-
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newHeatmapLayer,
-      args: { from: 'contextMenu' }
     });
 
     if (mainMenu) {
