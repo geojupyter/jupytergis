@@ -25,7 +25,7 @@ This will bump the packages as follows:
 - `0.1.0` -> `0.1.1`
 
 This is often **not** what we want.
-To bump to another version, you can specify the Python version directly.
+To bump to another version, you can specify the desired version directly.
 For example:
 
 - `0.1.0b8`
