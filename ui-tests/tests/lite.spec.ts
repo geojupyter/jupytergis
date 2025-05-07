@@ -91,7 +91,7 @@ test.describe('UI Test', () => {
       }
     );
 
-    await page.waitForTimeout(20000);
+    await page.waitForTimeout(10000);
 
     expect(await jgisWidget.screenshot()).toMatchSnapshot({
       name: 'Render-notebook.png',
