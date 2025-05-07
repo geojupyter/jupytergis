@@ -421,11 +421,12 @@ const fetchWithProxies = async <T>(
     console.warn('Failed to get settings from model. Falling back.', e);
   }
 
-const proxyUrl = settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
+  const proxyUrl = settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
+
   const proxyUrls = [
     url, // Direct fetch
     `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
-    `${settings.proxyUrl}/?url=${encodeURIComponent(url)}` // External proxy
+    `${proxyUrl}/?url=${encodeURIComponent(url)}` // External proxy
   ];
 
   for (const proxyUrl of proxyUrls) {
