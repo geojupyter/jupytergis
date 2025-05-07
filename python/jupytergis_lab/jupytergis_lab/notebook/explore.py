@@ -16,21 +16,21 @@ BasemapChoice = Literal["light", "dark", "topo"]
 _basemaps: dict[BasemapChoice, list[Basemap]] = {
     "light": [
         Basemap(
-            name="ArcGIS dark basemap",
+            name="ArcGIS light basemap",
             url="https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.pbf",
         ),
         Basemap(
-            name="ArcGIS dark basemap reference",
+            name="ArcGIS light basemap reference",
             url="https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}.pbf",
         ),
     ],
     "dark": [
         Basemap(
-            name="ArcGIS light basemap",
+            name="ArcGIS dark basemap",
             url="https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}.pbf",
         ),
         Basemap(
-            name="ArcGIS light basemap reference",
+            name="ArcGIS dark basemap reference",
             url="https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}.pbf",
         ),
     ],
