@@ -421,7 +421,8 @@ const fetchWithProxies = async <T>(
     console.warn('Failed to get settings from model. Falling back.', e);
   }
 
-  const proxyUrl = settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
+  const proxyUrl =
+    settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
 
   const proxyUrls = [
     url, // Direct fetch
