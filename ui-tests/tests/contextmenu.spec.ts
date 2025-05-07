@@ -84,19 +84,23 @@ test.describe('context menu', () => {
       button: 'right'
     });
     await page.getByText('Add Layer').hover();
-    await page.getByText('Raster', { exact: true }).click();
-    await page.locator('select#root_source').selectOption('1');
+    await page.getByText('Add Raster Layer', { exact: true }).hover();
+    await page.getByText('New Raster Tile Layer', { exact: true }).click();
+
+    await page.locator('input#root_url').type('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.pbf');
+
     await page.getByRole('dialog').getByRole('button', { name: 'Ok' }).click();
 
-    expect(page.getByText('Custom Raster Layer')).toBeVisible();
+    const layerTitle = 'Custom Raster Tile Layer';
+    expect(page.getByText(layerTitle)).toBeVisible();
 
-    await page.getByText('Custom Raster Layer').click({
+    await page.getByText(layerTitle).click({
       button: 'right'
     });
 
     await page.getByRole('menu').getByText('Remove Layer').click();
 
-    expect(page.getByText('Custom Raster Layer')).not.toBeVisible();
+    expect(page.getByText(layerTitle)).not.toBeVisible();
   });
 
   test('clicking remove group should remove the group from the tree', async ({
