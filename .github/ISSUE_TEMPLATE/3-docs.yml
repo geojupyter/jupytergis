@@ -1,0 +1,25 @@
+name: '📃 Documentation'
+description: 'Anything that could be improved about our documentation.'
+labels:
+  - 'documentation'
+body:
+  ## Excluded for now; we're not really seeing a ton of duplicate issue
+  ## reports, and I'd love to make reporting as approachable as possible.
+  # - type: "checkboxes"
+  #   attributes:
+  #     label: "Is there an existing issue for this?"
+  #     description: |
+  #       Please [:mag: search for existing issues](https://github.com/geojupyter/jupytergis/issues?q=sort%3Aupdated-desc%20is%3Aissue)
+  #       to see if this has already been reported.
+  #     options:
+  #       - label: "I've searched existing issues"
+  #         required: true
+
+  - type: 'textarea'
+    attributes:
+      label: 'Description'
+      description: |
+        Please describe the issue clearly.
+        If you're reporting an issue with an existing page, please link to it.
+    validations:
+      required: true
