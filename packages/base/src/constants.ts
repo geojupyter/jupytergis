@@ -29,6 +29,7 @@ export namespace CommandIDs {
   // Layer and source
   export const newRasterEntry = 'jupytergis:newRasterEntry';
   export const newVectorTileEntry = 'jupytergis:newVectorTileEntry';
+  export const newShapefileLayer = 'jupytergis:newShapefileLayer';
   export const newGeoJSONEntry = 'jupytergis:newGeoJSONEntry';
   export const newHillshadeEntry = 'jupytergis:newHillshadeEntry';
   export const newImageEntry = 'jupytergis:newImageEntry';
@@ -38,16 +39,6 @@ export namespace CommandIDs {
   // Processing commands
   export const buffer = 'jupytergis:buffer';
   export const dissolve = 'jupytergis:dissolve';
-
-  // Layers only commands
-  export const newRasterLayer = 'jupytergis:newRasterLayer';
-  export const newVectorLayer = 'jupytergis:newVectorLayer';
-  export const newHillshadeLayer = 'jupytergis:newHillshadeLayer';
-  export const newImageLayer = 'jupytergis:newImageLayer';
-  export const newVideoLayer = 'jupytergis:newVideoLayer';
-  export const newShapefileLayer = 'jupytergis:newShapefileLayer';
-  export const newWebGlTileLayer = 'jupytergis:newWebGlTileLayer';
-  export const newHeatmapLayer = 'jupytergis:newHeatmapLayer';
 
   // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';
