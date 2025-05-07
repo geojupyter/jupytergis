@@ -27,7 +27,7 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
   });
 
   return subMenu;
-}
+};
 
 export const rasterSubMenu = (commands: CommandRegistry) => {
   const subMenu = new Menu({ commands });
@@ -57,4 +57,4 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
   });
 
   return subMenu;
-}
+};

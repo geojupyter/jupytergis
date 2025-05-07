@@ -8,7 +8,7 @@ import {
   createDefaultLayerRegistry,
   rasterSubMenu,
   vectorSubMenu,
-  logoMiniIcon,
+  logoMiniIcon
 } from '@jupytergis/base';
 import {
   IAnnotationModel,
@@ -203,8 +203,14 @@ const plugin: JupyterFrontEndPlugin<void> = {
     newLayerSubMenu.title.label = translator.load('jupyterlab').__('Add Layer');
     newLayerSubMenu.id = 'jp-gis-contextmenu-addLayer';
 
-    newLayerSubMenu.addItem({type: 'submenu', submenu: rasterSubMenu(app.commands)});
-    newLayerSubMenu.addItem({type: 'submenu', submenu: vectorSubMenu(app.commands)});
+    newLayerSubMenu.addItem({
+      type: 'submenu',
+      submenu: rasterSubMenu(app.commands)
+    });
+    newLayerSubMenu.addItem({
+      type: 'submenu',
+      submenu: vectorSubMenu(app.commands)
+    });
 
     app.contextMenu.addItem({
       type: 'submenu',

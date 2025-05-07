@@ -81,8 +81,14 @@ export class ToolbarWidget extends ReactiveToolbar {
       const NewSubMenu = new MenuSvg({ commands: options.commands });
       NewSubMenu.title.label = 'Add Layer';
 
-      NewSubMenu.addItem({ type: 'submenu', submenu: rasterSubMenu(options.commands) });
-      NewSubMenu.addItem({ type: 'submenu', submenu: vectorSubMenu(options.commands) });
+      NewSubMenu.addItem({
+        type: 'submenu',
+        submenu: rasterSubMenu(options.commands)
+      });
+      NewSubMenu.addItem({
+        type: 'submenu',
+        submenu: vectorSubMenu(options.commands)
+      });
 
       const NewEntryButton = new ToolbarButton({
         icon: addIcon,
