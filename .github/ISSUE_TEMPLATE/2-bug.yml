@@ -21,8 +21,8 @@ body:
       description: |
         In which version of JupyterGIS does this issue occur?
         You can find this information on the status bar at the bottom of the JupyterGIS window.
-      validations:
-        required: false
+    validations:
+      required: false
 
   - type: 'textarea'
     attributes:
