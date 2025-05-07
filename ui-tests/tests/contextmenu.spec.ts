@@ -87,7 +87,11 @@ test.describe('context menu', () => {
     await page.getByText('Add Raster Layer', { exact: true }).hover();
     await page.getByText('New Raster Tile Layer', { exact: true }).click();
 
-    await page.locator('input#root_url').type('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.pbf');
+    await page
+      .locator('input#root_url')
+      .type(
+        'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.pbf'
+      );
 
     await page.getByRole('dialog').getByRole('button', { name: 'Ok' }).click();
 
