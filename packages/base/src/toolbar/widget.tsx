@@ -11,11 +11,12 @@ import {
   undoIcon
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
-import { Menu, Widget } from '@lumino/widgets';
+import { Widget } from '@lumino/widgets';
 
 import * as React from 'react';
 import { CommandIDs } from '../constants';
-import { rasterIcon, terminalToolbarIcon } from '../icons';
+import { terminalToolbarIcon } from '../icons';
+import { rasterSubMenu, vectorSubMenu } from '../menus';
 import { UsersItem } from './usertoolbaritem';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
@@ -77,60 +78,11 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('openLayerBrowser', openLayersBrowserButton);
       openLayersBrowserButton.node.dataset.testid = 'open-layers-browser';
 
-      // vector sub menu
-      const vectorSubMenu = new Menu({ commands: options.commands });
-
-      vectorSubMenu.title.label = 'Add Vector Layer';
-      vectorSubMenu.title.iconClass = 'fa fa-vector-square';
-      vectorSubMenu.id = 'jp-gis-toolbar-vector-menu';
-
-      vectorSubMenu.addItem({
-        type: 'command',
-        command: CommandIDs.newVectorTileEntry
-      });
-
-      vectorSubMenu.addItem({
-        type: 'command',
-        command: CommandIDs.newGeoJSONEntry
-      });
-
-      vectorSubMenu.addItem({
-        type: 'command',
-        command: CommandIDs.newShapefileLayer
-      });
-
-      //raster submenu
-      const rasterSubMenu = new Menu({ commands: options.commands });
-
-      rasterSubMenu.title.label = 'Add Raster Layer';
-      rasterSubMenu.title.icon = rasterIcon;
-      rasterSubMenu.id = 'jp-gis-toolbar-raster-menu';
-
-      rasterSubMenu.addItem({
-        type: 'command',
-        command: CommandIDs.newRasterEntry
-      });
-
-      rasterSubMenu.addItem({
-        type: 'command',
-        command: CommandIDs.newHillshadeEntry
-      });
-
-      rasterSubMenu.addItem({
-        type: 'command',
-        command: CommandIDs.newImageEntry
-      });
-
-      rasterSubMenu.addItem({
-        type: 'command',
-        command: CommandIDs.newGeoTiffEntry
-      });
-
       const NewSubMenu = new MenuSvg({ commands: options.commands });
       NewSubMenu.title.label = 'Add Layer';
 
-      NewSubMenu.addItem({ type: 'submenu', submenu: rasterSubMenu });
-      NewSubMenu.addItem({ type: 'submenu', submenu: vectorSubMenu });
+      NewSubMenu.addItem({ type: 'submenu', submenu: rasterSubMenu(options.commands) });
+      NewSubMenu.addItem({ type: 'submenu', submenu: vectorSubMenu(options.commands) });
 
       const NewEntryButton = new ToolbarButton({
         icon: addIcon,
