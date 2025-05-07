@@ -5,6 +5,7 @@ import {
 } from '@jupytergis/schema';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 /**
  * A Model factory to create new instances of JupyterGISModel.
@@ -86,18 +87,21 @@ export class JupyterGISModelFactoryBase
     const model = new JupyterGISModel({
       sharedModel: options.sharedModel,
       languagePreference: options.languagePreference,
-      annotationModel: this._annotationModel
+      annotationModel: this._annotationModel,
+      settingRegistry: this._settingRegistry
     });
     return model;
   }
 
   private _annotationModel: IAnnotationModel;
+  private _settingRegistry: ISettingRegistry;
   private _disposed = false;
 }
 
 export namespace JupyterGISModelFactoryBase {
   export interface IOptions {
     annotationModel: IAnnotationModel;
+    settingRegistry: ISettingRegistry;
   }
 }
 

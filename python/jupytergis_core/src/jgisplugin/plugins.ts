@@ -27,6 +27,7 @@ import { PageConfig } from '@jupyterlab/coreutils';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import { JupyterGISDocumentWidgetFactory } from '../factory';
@@ -37,8 +38,9 @@ const FACTORY = 'JupyterGIS .jgis Viewer';
 const CONTENT_TYPE = 'jgis';
 const PALETTE_CATEGORY = 'JupyterGIS';
 const MODEL_NAME = 'jupytergis-jgismodel';
+const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
-const activate = (
+const activate = async (
   app: JupyterFrontEnd,
   tracker: WidgetTracker<IJupyterGISWidget>,
   themeManager: IThemeManager,
@@ -49,12 +51,22 @@ const activate = (
   rendermime: IRenderMimeRegistry,
   consoleTracker: IConsoleTracker,
   annotationModel: IAnnotationModel,
+  settingRegistry: ISettingRegistry,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
   drive: ICollaborativeDrive | null
-): void => {
+): Promise<void> => {
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
+  }
+
+  let settings: ISettingRegistry.ISettings | null = null;
+
+  try {
+    settings = await settingRegistry.load(SETTINGS_ID);
+    console.log(`Loaded settings for ${SETTINGS_ID}`, settings);
+  } catch (error) {
+    console.warn(`Failed to load settings for ${SETTINGS_ID}`, error);
   }
 
   const widgetFactory = new JupyterGISDocumentWidgetFactory({
@@ -86,7 +98,10 @@ const activate = (
   app.docRegistry.addWidgetFactory(mimeDocumentFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
-  const modelFactory = new JupyterGISModelFactory({ annotationModel });
+  const modelFactory = new JupyterGISModelFactory({
+    annotationModel,
+    settingRegistry
+  });
   app.docRegistry.addModelFactory(modelFactory);
 
   // register the filetype
@@ -233,7 +248,8 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IEditorServices,
     IRenderMimeRegistry,
     IConsoleTracker,
-    IAnnotationToken
+    IAnnotationToken,
+    ISettingRegistry
   ],
   optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
   autoStart: true,
