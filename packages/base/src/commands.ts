@@ -278,7 +278,7 @@ export function addCommands(
    * Source and layers
    */
   commands.addCommand(CommandIDs.newRasterEntry, {
-    label: trans.__('New Raster Layer'),
+    label: trans.__('New Raster Tile Layer'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -287,14 +287,14 @@ export function addCommands(
     execute: Private.createEntry({
       tracker,
       formSchemaRegistry,
-      title: 'Create Raster Layer',
+      title: 'Create Raster Tile Layer',
       createLayer: true,
       createSource: true,
       sourceData: {
         minZoom: 0,
         maxZoom: 24
       },
-      layerData: { name: 'Custom Raster Layer' },
+      layerData: { name: 'Custom Raster Tile Layer' },
       sourceType: 'RasterSource',
       layerType: 'RasterLayer'
     }),

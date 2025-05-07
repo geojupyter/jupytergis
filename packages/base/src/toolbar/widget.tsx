@@ -77,21 +77,6 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('openLayerBrowser', openLayersBrowserButton);
       openLayersBrowserButton.node.dataset.testid = 'open-layers-browser';
 
-      const newRasterEntryButton = new CommandToolbarButton({
-        id: CommandIDs.newRasterEntry,
-        label: '',
-        commands: options.commands
-      });
-      this.addItem('newRasterEntry', newRasterEntryButton);
-
-      const newVectorTileEntryButton = new CommandToolbarButton({
-        id: CommandIDs.newVectorTileEntry,
-        label: '',
-        commands: options.commands
-      });
-      this.addItem('newVectorTileEntry', newVectorTileEntryButton);
-      newRasterEntryButton.node.dataset.testid = 'new-raster-entry-button';
-
       const geolocationButton = new CommandToolbarButton({
         id: CommandIDs.getGeolocation,
         commands: options.commands,
@@ -110,6 +95,11 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       vectorSubMenu.addItem({
         type: 'command',
+        command: CommandIDs.newVectorTileEntry
+      });
+
+      vectorSubMenu.addItem({
+        type: 'command',
         command: CommandIDs.newGeoJSONEntry
       });
 
@@ -124,6 +114,11 @@ export class ToolbarWidget extends ReactiveToolbar {
       rasterSubMenu.title.label = 'Add Raster Layer';
       rasterSubMenu.title.icon = rasterIcon;
       rasterSubMenu.id = 'jp-gis-toolbar-raster-menu';
+
+      rasterSubMenu.addItem({
+        type: 'command',
+        command: CommandIDs.newRasterEntry
+      });
 
       rasterSubMenu.addItem({
         type: 'command',
