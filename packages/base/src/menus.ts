@@ -23,7 +23,7 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newShapefileLayer
+    command: CommandIDs.newShapefileEntry
   });
 
   return subMenu;

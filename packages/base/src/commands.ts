@@ -508,7 +508,7 @@ export function addCommands(
     ...icons.get(CommandIDs.newGeoTiffEntry)
   });
 
-  commands.addCommand(CommandIDs.newShapefileLayer, {
+  commands.addCommand(CommandIDs.newShapefileEntry, {
     label: trans.__('New Shapefile Layer'),
     isEnabled: () => {
       return tracker.currentWidget
@@ -526,7 +526,7 @@ export function addCommands(
       sourceType: 'ShapefileSource',
       layerType: 'VectorLayer'
     }),
-    ...icons.get(CommandIDs.newShapefileLayer)
+    ...icons.get(CommandIDs.newShapefileEntry)
   });
 
   /**

@@ -29,7 +29,7 @@ export namespace CommandIDs {
   // Layer and source
   export const newRasterEntry = 'jupytergis:newRasterEntry';
   export const newVectorTileEntry = 'jupytergis:newVectorTileEntry';
-  export const newShapefileLayer = 'jupytergis:newShapefileLayer';
+  export const newShapefileEntry = 'jupytergis:newShapefileEntry';
   export const newGeoJSONEntry = 'jupytergis:newGeoJSONEntry';
   export const newHillshadeEntry = 'jupytergis:newHillshadeEntry';
   export const newImageEntry = 'jupytergis:newImageEntry';
@@ -94,7 +94,7 @@ const iconObject = {
   [CommandIDs.newHillshadeEntry]: { icon: moundIcon },
   [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
-  [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
+  [CommandIDs.newShapefileEntry]: { iconClass: 'fa fa-file' },
   [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
   [CommandIDs.identify]: { icon: infoIcon },
