@@ -42,6 +42,22 @@ You can also specify a version part, e.g.:
 - `major`
   - Would bump `0.3.0` -> `1.0.0`
 
+## Conda Forge release
+
+After the PyPI release, a Conda Forge bot will automatically open a PR on
+[our feedstock repo](https://github.com/conda-forge/jupytergis-packages-feedstock).
+
+If this is taking too long, you may trigger it manually by opening an issue with the
+title `@conda-forge-admin, please update version`.
+
+If you need maintainer access to handle releases, you may request access by opening an
+issue with the title `@conda-forge-admin, please add user @my-username`.
+
+If the dependencies of JupyterGIS have changed, the Conda Forge recipe must also be
+manually updated -- the bot will not do this for you, but it will likely warn you in a
+comment that it must be done.
+Please update `recipe/meta.yaml` to reflect those changes.
+
 ## Release assets
 
 JupyterGIS is published to:
