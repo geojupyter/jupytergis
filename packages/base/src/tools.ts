@@ -421,14 +421,7 @@ const fetchWithProxies = async <T>(
     console.warn('Failed to get settings from model. Falling back.', e);
   }
 
-  if (!settings || typeof settings !== 'object') {
-    settings = {};
-  }
-
-  if (!settings.proxyUrl) {
-    settings.proxyUrl = 'https://corsproxy.io'; // Temporary fallback for JupyterLite
-  }
-
+const proxyUrl = settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
   const proxyUrls = [
     url, // Direct fetch
     `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
