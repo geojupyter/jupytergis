@@ -415,6 +415,10 @@ const fetchWithProxies = async <T>(
 ): Promise<T | null> => {
   const settings = await model.getSettings();
 
+  if (!settings.proxyUrl) {
+    settings.proxyUrl = 'https://corsproxy.io';  // Temporary Fallback since settings are not loading on Jupyterlite
+  }
+
   const proxyUrls = [
     url, // Direct fetch
     `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
