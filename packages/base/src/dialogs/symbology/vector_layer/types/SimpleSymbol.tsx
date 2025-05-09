@@ -86,10 +86,7 @@ const SimpleSymbol = ({
     const styleExpr: FlatStyle = {};
 
     const prefix = layer.parameters.type === 'circle' ? 'circle-' : '';
-
-    if (layer.parameters.type === 'circle') {
-      styleExpr['circle-radius'] = styleRef.current?.radius;
-    }
+    styleExpr['circle-radius'] = styleRef.current?.radius;
 
     styleExpr[`${prefix}fill-color`] = styleRef.current?.fillColor;
     styleExpr[`${prefix}stroke-color`] = styleRef.current?.strokeColor;
