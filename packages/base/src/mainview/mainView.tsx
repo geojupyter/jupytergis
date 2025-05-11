@@ -1778,7 +1778,17 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       if (data && (val.action === 'add' || val.action === 'update')) {
-        const jsonData = data as IAnnotation;
+        let jsonData: IAnnotation;
+        if (typeof data === 'string') {
+          try {
+            jsonData = JSON.parse(data);
+          } catch (e) {
+            console.warn(`Failed to parse annotation data for ${key}:`, e);
+            return;
+          }
+        } else {
+          jsonData = data as IAnnotation;
+        }
         jsonData['open'] = open;
         newState[key] = jsonData;
       } else if (val.action === 'delete') {
