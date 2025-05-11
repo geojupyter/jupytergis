@@ -4,6 +4,11 @@ const $RefParser = require("@apidevtools/json-schema-ref-parser");
 const schemaPath = path.join(__dirname, "src/schema");
 const allSchema = {};
 
+// Add: extract version and write version files
+const version = JSON.parse(fs.readFileSync(path.join(schemaPath, "project/jgis.json"))).properties.schemaVersion.default;
+fs.writeFileSync(path.join(__dirname, "src/_interface/version.d.ts"), `export declare const SCHEMA_VERSION = '${version}';\n`);
+fs.writeFileSync(path.join(__dirname, "src/_interface/version.js"), `export const SCHEMA_VERSION = '${version}';\n`);
+
 function getSchemaFiles(dir) {
   let results = [];
   const list = fs.readdirSync(dir);

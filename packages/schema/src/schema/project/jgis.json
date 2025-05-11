@@ -4,6 +4,10 @@
   "required": ["layers", "sources"],
   "additionalProperties": false,
   "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "default": "0.5.0"
+    },
     "layers": {
       "$ref": "#/definitions/jGISLayers"
     },

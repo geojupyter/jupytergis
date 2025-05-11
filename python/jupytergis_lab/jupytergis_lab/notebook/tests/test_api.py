@@ -44,14 +44,3 @@ class TestLayerManipulation(TestDocument):
     def test_remove_nonexistent_layer_raises(self):
         with pytest.raises(KeyError):
             self.doc.remove_layer("foo")
-
-
-def test_save_as(tmp_path):
-    os.chdir(tmp_path)
-
-    doc = GISDocument()
-    assert not list(tmp_path.iterdir())
-
-    fn = "test.jgis"
-    doc.save_as(fn)
-    assert (tmp_path / fn).is_file()

@@ -278,7 +278,7 @@ export function addCommands(
    * Source and layers
    */
   commands.addCommand(CommandIDs.newRasterEntry, {
-    label: trans.__('New Raster Layer'),
+    label: trans.__('New Raster Tile Layer'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -287,14 +287,14 @@ export function addCommands(
     execute: Private.createEntry({
       tracker,
       formSchemaRegistry,
-      title: 'Create Raster Layer',
+      title: 'Create Raster Tile Layer',
       createLayer: true,
       createSource: true,
       sourceData: {
         minZoom: 0,
         maxZoom: 24
       },
-      layerData: { name: 'Custom Raster Layer' },
+      layerData: { name: 'Custom Raster Tile Layer' },
       sourceType: 'RasterSource',
       layerType: 'RasterLayer'
     }),
@@ -484,28 +484,6 @@ export function addCommands(
     ...icons.get(CommandIDs.newVideoEntry)
   });
 
-  commands.addCommand(CommandIDs.newShapefileSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Shapefile')
-        : trans.__('Add Shapefile Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Shapefile Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Shapefile Source' },
-      sourceType: 'ShapefileSource'
-    }),
-    ...icons.get(CommandIDs.newShapefileSource)
-  });
-
   commands.addCommand(CommandIDs.newGeoTiffEntry, {
     label: trans.__('New GeoTiff layer'),
     isEnabled: () => {
@@ -530,268 +508,7 @@ export function addCommands(
     ...icons.get(CommandIDs.newGeoTiffEntry)
   });
 
-  /**
-   * SOURCES only commands.
-   */
-  commands.addCommand(CommandIDs.newRasterSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Raster')
-        : trans.__('New Raster Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Raster Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Raster Source', minZoom: 0, maxZoom: 24 },
-      sourceType: 'RasterSource'
-    }),
-    ...icons.get(CommandIDs.newRasterSource)
-  });
-
-  commands.addCommand(CommandIDs.newRasterDemSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Raster DEM')
-        : trans.__('New Raster DEM Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Raster Dem Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Raster DEM Source' },
-      sourceType: 'RasterDemSource'
-    }),
-    ...icons.get(CommandIDs.newRasterDemSource)
-  });
-
-  commands.addCommand(CommandIDs.newVectorSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Vector')
-        : trans.__('New Vector Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Vector Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Vector Source', minZoom: 0, maxZoom: 24 },
-      sourceType: 'VectorTileSource'
-    }),
-    ...icons.get(CommandIDs.newVectorSource)
-  });
-
-  commands.addCommand(CommandIDs.newGeoJSONSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('GeoJSON')
-        : trans.__('Add GeoJSON data from file'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create GeoJson Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom GeoJSON Source' },
-      sourceType: 'GeoJSONSource'
-    }),
-    ...icons.get(CommandIDs.newGeoJSONSource)
-  });
-
-  commands.addCommand(CommandIDs.newImageSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Image')
-        : trans.__('Add Image Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Image Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Image Source' },
-      sourceType: 'ImageSource'
-    }),
-    ...icons.get(CommandIDs.newImageSource)
-  });
-
-  commands.addCommand(CommandIDs.newVideoSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Video')
-        : trans.__('Add Video Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Video Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Video Source' },
-      sourceType: 'VideoSource'
-    }),
-    ...icons.get(CommandIDs.newVideoSource)
-  });
-
-  // Layers only
-  commands.addCommand(CommandIDs.newRasterLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Raster')
-        : trans.__('Add Raster layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Raster Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: {
-        name: 'Custom Raster Layer'
-      },
-      sourceType: 'RasterSource',
-      layerType: 'RasterLayer'
-    }),
-    ...icons.get(CommandIDs.newVectorLayer)
-  });
-
-  commands.addCommand(CommandIDs.newVectorLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Vector')
-        : trans.__('Add New Vector layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Vector Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: {
-        name: 'Custom Vector Layer'
-      },
-      sourceType: 'VectorTileSource',
-      layerType: 'VectorTileLayer'
-    }),
-    ...icons.get(CommandIDs.newVectorLayer)
-  });
-
-  commands.addCommand(CommandIDs.newHillshadeLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Hillshade')
-        : trans.__('Add Hillshade layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Hillshade Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: {
-        name: 'Custom Hillshade Layer'
-      },
-      sourceType: 'RasterDemSource',
-      layerType: 'HillshadeLayer'
-    }),
-    ...icons.get(CommandIDs.newHillshadeLayer)
-  });
-
-  commands.addCommand(CommandIDs.newImageLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Image')
-        : trans.__('Add Image layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Image Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: {
-        name: 'Custom Image Layer'
-      },
-      sourceType: 'ImageSource',
-      layerType: 'RasterLayer'
-    }),
-    ...icons.get(CommandIDs.newImageLayer)
-  });
-
-  commands.addCommand(CommandIDs.newVideoLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Video')
-        : trans.__('Add Video layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Video Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: {
-        name: 'Custom Video Layer'
-      },
-      sourceType: 'VideoSource',
-      layerType: 'RasterLayer'
-    }),
-    ...icons.get(CommandIDs.newVideoLayer)
-  });
-
-  commands.addCommand(CommandIDs.newShapefileLayer, {
+  commands.addCommand(CommandIDs.newShapefileEntry, {
     label: trans.__('New Shapefile Layer'),
     isEnabled: () => {
       return tracker.currentWidget
@@ -809,30 +526,7 @@ export function addCommands(
       sourceType: 'ShapefileSource',
       layerType: 'VectorLayer'
     }),
-    ...icons.get(CommandIDs.newShapefileLayer)
-  });
-
-  commands.addCommand(CommandIDs.newHeatmapLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Heatmap')
-        : trans.__('Add HeatmapLayer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Heatmap Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: { name: 'Custom Heatmap Layer' },
-      sourceType: 'GeoJSONSource',
-      layerType: 'HeatmapLayer'
-    }),
-    ...icons.get(CommandIDs.newHeatmapLayer)
+    ...icons.get(CommandIDs.newShapefileEntry)
   });
 
   /**
@@ -1005,7 +699,17 @@ export function addCommands(
         ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
-    execute: async () => await Private.toggleConsole(tracker)
+    isToggled: () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        return tracker.currentWidget?.content.consoleOpened === true;
+      } else {
+        return false;
+      }
+    },
+    execute: async () => {
+      await Private.toggleConsole(tracker);
+      commands.notifyCommandChanged(CommandIDs.toggleConsole);
+    }
   });
   commands.addCommand(CommandIDs.executeConsole, {
     label: trans.__('Execute console'),

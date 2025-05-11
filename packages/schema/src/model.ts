@@ -30,13 +30,17 @@ import {
   IUserData,
   IViewPortState,
   JgisCoordinates,
-  Pointer
+  Pointer,
+  IJupyterGISSettings
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
+
+const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: JupyterGISModel.IOptions) {
-    const { annotationModel, sharedModel } = options;
+    const { annotationModel, sharedModel, settingRegistry } = options;
 
     if (sharedModel) {
       this._sharedModel = sharedModel;
@@ -50,6 +54,26 @@ export class JupyterGISModel implements IJupyterGISModel {
       this
     );
     this.annotationModel = annotationModel;
+    this.settingRegistry = settingRegistry;
+  }
+
+  /**
+   * Initialize custom settings for JupyterLab.
+   */
+  async initSettings(): Promise<void> {
+    if (this.settingRegistry) {
+      const setting = await this.settingRegistry.load(SETTINGS_ID);
+      this._settings = setting.composite as any;
+
+      setting.changed.connect(() => {
+        this._settings = setting.composite as any;
+        console.log('JupyterGIS Settings updated:', this._settings);
+      });
+    }
+  }
+
+  getSettings(): IJupyterGISSettings {
+    return this._settings;
   }
 
   private _onSharedModelChanged = (sender: any, changes: any): void => {
@@ -251,6 +275,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     return JupyterGISModel.worker;
   }
 
+  readonly flyToGeometrySignal = new Signal<this, any>(this);
+  readonly highlightFeatureSignal = new Signal<this, any>(this);
+
   getContent(): IJGISContent {
     return {
       sources: this.sharedModel.sources,
@@ -387,8 +414,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   removeLayer(layer_id: string) {
+    const layer = this._sharedModel.getLayer(layer_id);
+    const source_id = layer?.parameters?.source;
+
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
+    this.sharedModel.removeSource(source_id);
   }
 
   setOptions(value: IJGISOptions) {
@@ -717,7 +748,9 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
   readonly annotationModel?: IAnnotationModel;
+  readonly settingRegistry?: ISettingRegistry;
 
+  private _settings: IJupyterGISSettings;
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
   private _contentsManager?: Contents.IManager;
@@ -763,6 +796,7 @@ export namespace JupyterGISModel {
   export interface IOptions
     extends DocumentRegistry.IModelOptions<IJupyterGISDoc> {
     annotationModel?: IAnnotationModel;
+    settingRegistry?: ISettingRegistry;
   }
 }
 
