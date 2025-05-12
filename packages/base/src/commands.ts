@@ -33,7 +33,7 @@ import {
 } from './processing';
 import { fromLonLat } from 'ol/proj';
 import { Coordinate } from 'ol/coordinate';
-import { targetWithCenterIcon } from './icons';
+import { pencilSolidIcon, targetWithCenterIcon } from './icons';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -876,6 +876,33 @@ export function addCommands(
       navigator.geolocation.getCurrentPosition(success, error, options);
     },
     icon: targetWithCenterIcon
+  });
+
+  commands.addCommand(CommandIDs.newDrawVectorLayer, {
+    label: trans.__('Create New Draw Vector Layer'),
+    isToggled: () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        const model = tracker.currentWidget?.content.currentViewModel
+          .jGISModel as IJupyterGISModel;
+        return model.isDrawVectorLayerEnabled;
+      } else {
+        return false;
+      }
+    },
+    execute: async () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        const model = tracker.currentWidget?.content.currentViewModel
+          .jGISModel as IJupyterGISModel;
+        if (model.isDrawVectorLayerEnabled === true) {
+          model.isDrawVectorLayerEnabled = false;
+        } else {
+          model.isDrawVectorLayerEnabled = true;
+        }
+        model.updateIsDrawVectorLayerEnabled();
+        commands.notifyCommandChanged(CommandIDs.newDrawVectorLayer);
+      }
+    },
+    icon: pencilSolidIcon
   });
 
   loadKeybindings(commands, keybindings);
