@@ -97,7 +97,6 @@ interface IStates {
   loading: boolean;
   lightTheme: boolean;
   remoteUser?: User.IIdentity | null;
-  firstLoad: boolean;
   annotations: IDict<IAnnotation>;
   clientPointers: IDict<ClientPointer>;
   viewProjection: { code: string; units: string };
@@ -160,7 +159,6 @@ export class MainView extends React.Component<IProps, IStates> {
       id: this._mainViewModel.id,
       lightTheme: isLightTheme(),
       loading: true,
-      firstLoad: true,
       annotations: {},
       clientPointers: {},
       viewProjection: { code: '', units: '' },
@@ -1792,7 +1790,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
     });
 
-    this.setState(old => ({ ...old, annotations: newState, firstLoad: false }));
+    this.setState(old => ({ ...old, annotations: newState}));
   };
 
   private _computeAnnotationPosition(annotation: IAnnotation) {
