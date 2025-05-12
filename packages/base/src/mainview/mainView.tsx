@@ -1799,7 +1799,6 @@ export class MainView extends React.Component<IProps, IStates> {
     this.setState(old => ({ ...old, annotations: newState, firstLoad: false }));
   };
 
-
   private _computeAnnotationPosition(annotation: IAnnotation) {
     const { x, y } = annotation.position;
     const pixels = this._Map.getPixelFromCoordinate([x, y]);
