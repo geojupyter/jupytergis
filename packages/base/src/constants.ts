@@ -43,6 +43,17 @@ export namespace CommandIDs {
   export const centroids = 'jupytergis:centroids';
   export const boundingBoxes = 'jupytergis:boundingBoxes';
 
+  // Layers only commands
+  export const newRasterLayer = 'jupytergis:newRasterLayer';
+  export const newVectorLayer = 'jupytergis:newVectorLayer';
+  export const newHillshadeLayer = 'jupytergis:newHillshadeLayer';
+  export const newImageLayer = 'jupytergis:newImageLayer';
+  export const newVideoLayer = 'jupytergis:newVideoLayer';
+  export const newShapefileLayer = 'jupytergis:newShapefileLayer';
+  export const newWebGlTileLayer = 'jupytergis:newWebGlTileLayer';
+  export const newHeatmapLayer = 'jupytergis:newHeatmapLayer';
+  export const newDrawVectorLayer = 'jupytergis:newDrawVectorLayer';
+
   // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';
   export const removeLayer = 'jupytergis:removeLayer';
