@@ -1790,7 +1790,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
     });
 
-    this.setState(old => ({ ...old, annotations: newState}));
+    this.setState(old => ({ ...old, annotations: newState }));
   };
 
   private _computeAnnotationPosition(annotation: IAnnotation) {
