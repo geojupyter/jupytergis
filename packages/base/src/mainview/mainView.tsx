@@ -1774,7 +1774,7 @@ export class MainView extends React.Component<IProps, IStates> {
       const data = this._model.sharedModel.getMetadata(key);
       let open = true;
       if (this.state.firstLoad) {
-        open = false;
+        open = true;
       }
 
       if (data && (val.action === 'add' || val.action === 'update')) {
@@ -1798,6 +1798,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this.setState(old => ({ ...old, annotations: newState, firstLoad: false }));
   };
+
 
   private _computeAnnotationPosition(annotation: IAnnotation) {
     const { x, y } = annotation.position;

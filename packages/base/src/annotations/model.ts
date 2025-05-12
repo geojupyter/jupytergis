@@ -68,10 +68,7 @@ export class AnnotationModel implements IAnnotationModel {
       return;
     }
 
-    this._model?.sharedModel.setMetadata(
-      id,
-      JSON.stringify({ ...existing, ...updates })
-    );
+    this._model?.sharedModel.setMetadata(id, { ...existing, ...updates });
 
     this._updateSignal.emit(null);
   }
