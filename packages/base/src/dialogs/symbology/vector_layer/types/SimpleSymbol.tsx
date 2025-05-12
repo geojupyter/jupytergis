@@ -38,23 +38,19 @@ const SimpleSymbol = ({
       return;
     }
 
-    setUseCircleStuff(layer.parameters.type === 'circle');
+    // Removed use of type
+    setUseCircleStuff(true); // or remove entirely if unnecessary
 
-    // Mimicking QGIS here,
-    // Read values from file if we chose them using the single symbol thing
-    // but if we're switching to simple symbol, use defaults
     const initStyle = async () => {
       if (!layer.parameters) {
         return;
       }
+
       const renderType = layer.parameters?.symbologyState.renderType;
 
       if (renderType === 'Single Symbol') {
-        // Read from current color or use defaults
-        const parsedStyle = parseColor(
-          layer.parameters.type,
-          layer.parameters.color
-        );
+        // Parse with fallback logic inside
+        const parsedStyle = parseColor(layer.parameters.color);
 
         if (parsedStyle) {
           setStyle(parsedStyle);
@@ -85,14 +81,19 @@ const SimpleSymbol = ({
 
     const styleExpr: FlatStyle = {};
 
-    const prefix = layer.parameters.type === 'circle' ? 'circle-' : '';
     styleExpr['circle-radius'] = styleRef.current?.radius;
 
-    styleExpr[`${prefix}fill-color`] = styleRef.current?.fillColor;
-    styleExpr[`${prefix}stroke-color`] = styleRef.current?.strokeColor;
-    styleExpr[`${prefix}stroke-width`] = styleRef.current?.strokeWidth;
-    styleExpr[`${prefix}stroke-line-join`] = styleRef.current?.joinStyle;
-    styleExpr[`${prefix}stroke-line-cap`] = styleRef.current?.capStyle;
+    styleExpr['circle-fill-color'] = styleRef.current?.fillColor;
+    styleExpr['circle-stroke-color'] = styleRef.current?.strokeColor;
+    styleExpr['circle-stroke-width'] = styleRef.current?.strokeWidth;
+    styleExpr['circle-stroke-line-join'] = styleRef.current?.joinStyle;
+    styleExpr['circle-stroke-line-cap'] = styleRef.current?.capStyle;
+
+    styleExpr['fill-color'] = styleRef.current?.fillColor;
+    styleExpr['stroke-color'] = styleRef.current?.strokeColor;
+    styleExpr['stroke-width'] = styleRef.current?.strokeWidth;
+    styleExpr['stroke-line-join'] = styleRef.current?.joinStyle;
+    styleExpr['stroke-line-cap'] = styleRef.current?.capStyle;
 
     const symbologyState = {
       renderType: 'Single Symbol'
