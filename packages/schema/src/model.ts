@@ -55,6 +55,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this,
     );
     this.annotationModel = annotationModel;
+    this.isDrawVectorLayerEnabled = false;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
   }
@@ -739,6 +740,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.updateLayerSignal.emit(JSON.stringify({ layerId, layer }));
   };
 
+  updateIsDrawVectorLayerEnabled() {
+    this.drawVectorLayerChanged.emit(this.isDrawVectorLayerEnabled);
+    console.log('Signal emitted');
+  }
+
   get geolocation(): JgisCoordinates {
     return this._geolocation;
   }
@@ -792,6 +798,9 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
+
+  public isDrawVectorLayerEnabled: boolean;
+  public drawVectorLayerChanged = new Signal<this, boolean>(this);
 }
 
 export namespace JupyterGISModel {

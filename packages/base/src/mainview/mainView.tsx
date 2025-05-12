@@ -87,6 +87,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import { VectorLayerDropdown } from './VectorLayerDropdown';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -106,6 +107,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
+  isDrawVectorLayerEnabled: boolean;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -141,6 +143,10 @@ export class MainView extends React.Component<IProps, IStates> {
       this._handleGeolocationChanged,
       this,
     );
+    this._model.drawVectorLayerChanged.connect(
+      this._handleDrawVectorLayerChanged,
+      this
+    );
 
     this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
     this._model.highlightFeatureSignal.connect(
@@ -168,6 +174,7 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
+      isDrawVectorLayerEnabled: false
     };
 
     this._sources = [];
@@ -1997,6 +2004,12 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
+  private _handleDrawVectorLayerChanged() {
+    const isDrawVectorLayerEnabled = this._model.isDrawVectorLayerEnabled;
+    console.log('isDrawVectorLayerEnabled:', isDrawVectorLayerEnabled);
+    this.setState(old => ({ ...old, isDrawVectorLayerEnabled }));
+  }
+
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
 
@@ -2036,6 +2049,27 @@ export class MainView extends React.Component<IProps, IStates> {
             )
           );
         })}
+
+        {this.state.isDrawVectorLayerEnabled && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '20px',
+              right: '0',
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '8px',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              color: 'white',
+              borderRadius: '4px',
+              fontSize: '12px',
+              gap: '8px',
+              zIndex: '9999'
+            }}
+          >
+            <VectorLayerDropdown />{' '}
+          </div>
+        )}
 
         <div className="jGIS-Mainview-Container">
           {this.state.displayTemporalController && (

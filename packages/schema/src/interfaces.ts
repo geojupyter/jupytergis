@@ -179,6 +179,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   geolocationChanged: Signal<IJupyterGISModel, JgisCoordinates>;
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
+  drawVectorLayerChanged: Signal<IJupyterGISModel, boolean>;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;
@@ -234,6 +235,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   triggerLayerUpdate(layerId: string, layer: IJGISLayer): void;
 
   disposed: ISignal<any, void>;
+  isDrawVectorLayerEnabled: boolean;
+  updateIsDrawVectorLayerEnabled(): void;
 }
 
 export interface IUserData {
