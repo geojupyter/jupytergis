@@ -12,7 +12,6 @@ const SimpleSymbol = ({
 }: ISymbologyDialogProps) => {
   const styleRef = useRef<IParsedStyle>();
 
-  const [useCircleStuff, setUseCircleStuff] = useState(false);
   const [style, setStyle] = useState<IParsedStyle>({
     fillColor: '#3399CC',
     joinStyle: 'round',
@@ -37,9 +36,6 @@ const SimpleSymbol = ({
     if (!layer.parameters) {
       return;
     }
-
-    // Removed use of type
-    setUseCircleStuff(true); // or remove entirely if unnecessary
 
     const initStyle = async () => {
       if (!layer.parameters) {
@@ -79,21 +75,19 @@ const SimpleSymbol = ({
       return;
     }
 
-    const styleExpr: FlatStyle = {};
-
-    styleExpr['circle-radius'] = styleRef.current?.radius;
-
-    styleExpr['circle-fill-color'] = styleRef.current?.fillColor;
-    styleExpr['circle-stroke-color'] = styleRef.current?.strokeColor;
-    styleExpr['circle-stroke-width'] = styleRef.current?.strokeWidth;
-    styleExpr['circle-stroke-line-join'] = styleRef.current?.joinStyle;
-    styleExpr['circle-stroke-line-cap'] = styleRef.current?.capStyle;
-
-    styleExpr['fill-color'] = styleRef.current?.fillColor;
-    styleExpr['stroke-color'] = styleRef.current?.strokeColor;
-    styleExpr['stroke-width'] = styleRef.current?.strokeWidth;
-    styleExpr['stroke-line-join'] = styleRef.current?.joinStyle;
-    styleExpr['stroke-line-cap'] = styleRef.current?.capStyle;
+    const styleExpr: FlatStyle = {
+      'circle-radius': styleRef.current?.radius,
+      'circle-fill-color': styleRef.current?.fillColor,
+      'circle-stroke-color': styleRef.current?.strokeColor,
+      'circle-stroke-width': styleRef.current?.strokeWidth,
+      'circle-stroke-line-join': styleRef.current?.joinStyle,
+      'circle-stroke-line-cap': styleRef.current?.capStyle,
+      'fill-color': styleRef.current?.fillColor,
+      'stroke-color': styleRef.current?.strokeColor,
+      'stroke-width': styleRef.current?.strokeWidth,
+      'stroke-line-join': styleRef.current?.joinStyle,
+      'stroke-line-cap': styleRef.current?.capStyle
+    };
 
     const symbologyState = {
       renderType: 'Single Symbol'
@@ -109,22 +103,20 @@ const SimpleSymbol = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
-      {useCircleStuff ? (
-        <div className="jp-gis-symbology-row">
-          <label htmlFor={'vector-value-select'}>Radius:</label>
-          <input
-            type="number"
-            value={style.radius}
-            className="jp-mod-styled"
-            onChange={event =>
-              setStyle(prevState => ({
-                ...prevState,
-                radius: +event.target.value
-              }))
-            }
-          />
-        </div>
-      ) : null}
+      <div className="jp-gis-symbology-row">
+        <label htmlFor={'vector-value-select'}>Radius:</label>
+        <input
+          type="number"
+          value={style.radius}
+          className="jp-mod-styled"
+          onChange={event =>
+            setStyle(prevState => ({
+              ...prevState,
+              radius: +event.target.value
+            }))
+          }
+        />
+      </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Fill Color:</label>
         <input
@@ -179,48 +171,38 @@ const SimpleSymbol = ({
               }))
             }
             className="jp-mod-styled"
+            value={style.joinStyle}
           >
             {joinStyleOptions.map((method, index) => (
-              <option
-                key={index}
-                value={method}
-                selected={method === style.joinStyle}
-                className="jp-mod-styled"
-              >
+              <option key={index} value={method} className="jp-mod-styled">
                 {method}
               </option>
             ))}
           </select>
         </div>
       </div>
-      {useCircleStuff ? (
-        <div className="jp-gis-symbology-row">
-          <label htmlFor={'vector-cap-select'}>Cap Style:</label>
-          <div className="jp-select-wrapper">
-            <select
-              name={'vector-cap-select'}
-              onChange={event =>
-                setStyle(prevState => ({
-                  ...prevState,
-                  capStyle: event.target.value
-                }))
-              }
-              className="jp-mod-styled"
-            >
-              {capStyleOptions.map((cap, index) => (
-                <option
-                  key={index}
-                  value={cap}
-                  selected={cap === style.capStyle}
-                  className="jp-mod-styled"
-                >
-                  {cap}
-                </option>
-              ))}
-            </select>
-          </div>
+      <div className="jp-gis-symbology-row">
+        <label htmlFor={'vector-cap-select'}>Cap Style:</label>
+        <div className="jp-select-wrapper">
+          <select
+            name={'vector-cap-select'}
+            onChange={event =>
+              setStyle(prevState => ({
+                ...prevState,
+                capStyle: event.target.value
+              }))
+            }
+            className="jp-mod-styled"
+            value={style.capStyle}
+          >
+            {capStyleOptions.map((cap, index) => (
+              <option key={index} value={cap} className="jp-mod-styled">
+                {cap}
+              </option>
+            ))}
+          </select>
         </div>
-      ) : null}
+      </div>
     </div>
   );
 };

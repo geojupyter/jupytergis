@@ -317,7 +317,6 @@ export function parseColor(style: any): IParsedStyle | undefined {
       style['circle-stroke-line-cap'] ?? style['stroke-line-cap'] ?? 'round'
   };
 
-
   return parsedStyle;
 }
 
