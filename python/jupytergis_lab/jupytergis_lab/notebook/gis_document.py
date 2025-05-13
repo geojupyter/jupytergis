@@ -185,7 +185,6 @@ class GISDocument(CommWidget):
         attribution: str = "",
         min_zoom: int = 0,
         max_zoom: int = 24,
-        type: Literal["circle", "fill", "line"] = "line",
         color_expr=None,
         opacity: float = 1,
         logical_op: str | None = None,
@@ -225,7 +224,6 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "type": type,
                 "opacity": opacity,
                 "color": color_expr,
                 "opacity": opacity,
