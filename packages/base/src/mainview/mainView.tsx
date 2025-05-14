@@ -148,7 +148,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
     this._model.drawVectorLayerChanged.connect(
-      this._handleDrawVectorLayerChanged,
+      this._updateIsDrawVectorLayerEnabled,
       this
     );
 
@@ -2009,9 +2009,8 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
-  private _handleDrawVectorLayerChanged() {
+  private _updateIsDrawVectorLayerEnabled() {
     const isDrawVectorLayerEnabled = this._model.isDrawVectorLayerEnabled;
-    console.log('isDrawVectorLayerEnabled:', isDrawVectorLayerEnabled);
     this.setState(old => ({ ...old, isDrawVectorLayerEnabled }));
   }
 
