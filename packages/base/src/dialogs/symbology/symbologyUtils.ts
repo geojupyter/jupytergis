@@ -59,7 +59,7 @@ export namespace VectorUtils {
     }
 
     return valueColorPairs;
-};
+  };
 
   export const buildRadiusInfo = (layer: IJGISLayer) => {
     if (!layer.parameters?.color) {
