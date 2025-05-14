@@ -85,7 +85,6 @@ const Graduated = ({
     updateStopRowsBasedOnMethod();
   }, [selectedMethod]);
 
-
   useEffect(() => {
     selectedValueRef.current = selectedValue;
     selectedMethodRef.current = selectedMethod;
@@ -114,9 +113,10 @@ const Graduated = ({
     setSelectedMethod(method);
   }, [featureProperties]);
 
-
   const updateStopRowsBasedOnMethod = () => {
-    if (!layer) {return;}
+    if (!layer) {
+      return;
+    }
 
     let stopOutputPairs: IStopRow[] = [];
 
