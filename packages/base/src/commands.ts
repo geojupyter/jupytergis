@@ -17,23 +17,23 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { Coordinate } from 'ol/coordinate';
+import { fromLonLat } from 'ol/proj';
 import { CommandIDs, icons } from './constants';
+import { LayerBrowserWidget } from './dialogs/layerBrowserWidget';
 import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
-import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
-import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
-import keybindings from './keybindings.json';
-import { JupyterGISTracker } from './types';
-import { JupyterGISDocumentWidget } from './widget';
-import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
+import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
+import { targetWithCenterIcon } from './icons';
+import keybindings from './keybindings.json';
 import {
   getSingleSelectedLayer,
-  selectedLayerIsOfType,
-  processSelectedLayer
+  processSelectedLayer,
+  selectedLayerIsOfType
 } from './processing';
-import { fromLonLat } from 'ol/proj';
-import { Coordinate } from 'ol/coordinate';
-import { targetWithCenterIcon } from './icons';
+import { downloadFile, getGeoJSONDataFromLayerSource } from './tools';
+import { JupyterGISTracker } from './types';
+import { JupyterGISDocumentWidget } from './widget';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -267,6 +267,21 @@ export function addCommands(
         : false;
     },
     execute: Private.createLayerBrowser(
+      tracker,
+      layerBrowserRegistry,
+      formSchemaRegistry
+    ),
+    ...icons.get(CommandIDs.openLayerBrowser)
+  });
+
+  commands.addCommand(CommandIDs.openStacBrowser, {
+    label: trans.__('Open STAC Browser'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createStacBrowser(
       tracker,
       layerBrowserRegistry,
       formSchemaRegistry
@@ -882,6 +897,7 @@ export function addCommands(
 }
 
 namespace Private {
+  //? TODO: Combine these two?
   export function createLayerBrowser(
     tracker: JupyterGISTracker,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
@@ -895,6 +911,29 @@ namespace Private {
       }
 
       const dialog = new LayerBrowserWidget({
+        type: 'og',
+        model: current.model,
+        registry: layerBrowserRegistry.getRegistryLayers(),
+        formSchemaRegistry
+      });
+      await dialog.launch();
+    };
+  }
+
+  export function createStacBrowser(
+    tracker: JupyterGISTracker,
+    layerBrowserRegistry: IJGISLayerBrowserRegistry,
+    formSchemaRegistry: IJGISFormSchemaRegistry
+  ) {
+    return async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        return;
+      }
+
+      const dialog = new LayerBrowserWidget({
+        type: 'stac',
         model: current.model,
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry
