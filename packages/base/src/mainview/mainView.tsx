@@ -42,7 +42,7 @@ import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
-import { DragAndDrop, Select } from 'ol/interaction';
+import { DragAndDrop, Interaction, Select } from 'ol/interaction';
 import {
   Heatmap as HeatmapLayer,
   Image as ImageLayer,
@@ -87,7 +87,10 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import { VectorLayerDropdown } from './VectorLayerDropdown';
+import Draw from 'ol/interaction/Draw.js';
+import { Type } from 'ol/geom/Geometry';
+
+const drawGeometries = ['Point', 'LineString', 'Polygon', 'Circle'];
 
 interface IProps {
   viewModel: MainViewModel;
@@ -108,6 +111,7 @@ interface IStates {
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
   isDrawVectorLayerEnabled: boolean;
+  drawGeometryType: string | undefined;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -174,7 +178,8 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
-      isDrawVectorLayerEnabled: false
+      isDrawVectorLayerEnabled: false,
+      drawGeometryType: ''
     };
 
     this._sources = [];
@@ -2022,6 +2027,30 @@ export class MainView extends React.Component<IProps, IStates> {
     // TODO SOMETHING
   };
 
+  private _handleDrawGeometryTypeChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const drawGeometryType = event.target.value;
+    if (this._currentDrawInteraction) {
+      this._removeCurrentDrawInteraction();
+    }
+    const source = new VectorSource();
+    const draw = new Draw({
+      source: source,
+      type: drawGeometryType as Type // Type being a geometry type here
+    });
+    this._Map.addInteraction(draw);
+    this._currentDrawInteraction = draw;
+    this.setState(old => ({
+      ...old,
+      drawGeometryType
+    }));
+  };
+
+  private _removeCurrentDrawInteraction = () => {
+    this._Map.removeInteraction(this._currentDrawInteraction);
+  };
+
   render(): JSX.Element {
     return (
       <>
@@ -2067,7 +2096,23 @@ export class MainView extends React.Component<IProps, IStates> {
               zIndex: '9999'
             }}
           >
-            <VectorLayerDropdown />{' '}
+            <div className="geometry-type-selector-container">
+              <select
+                className="geometry-type-selector"
+                id="geometry-type-selector"
+                value={this.state.drawGeometryType}
+                onChange={this._handleDrawGeometryTypeChange}
+              >
+                <option value="" selected hidden>
+                  Geometry type
+                </option>
+                {drawGeometries.map(geometryType => (
+                  <option key={geometryType} value={geometryType}>
+                    {geometryType}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
 
@@ -2125,4 +2170,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
+  private _currentDrawInteraction: Interaction;
 }
