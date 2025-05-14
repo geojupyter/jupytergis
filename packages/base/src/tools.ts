@@ -300,41 +300,22 @@ export interface IParsedStyle {
   radius?: number;
 }
 
-export function parseColor(type: string, style: any) {
-  if (!type || !style) {
+export function parseColor(style: any): IParsedStyle | undefined {
+  if (!style) {
     return;
   }
 
-  const type2 = type === 'circle' ? 'circle' : 'default';
-
-  const shapeStyles: any = {
-    circle: {
-      radius: style['circle-radius'] ?? 5,
-      fillColor: style['circle-fill-color'] ?? '#3399CC',
-      strokeColor: style['circle-stroke-color'] ?? '#3399CC',
-      strokeWidth: style['circle-stroke-width'] ?? 1.25,
-      joinStyle: style['circle-stroke-line-join'] ?? 'round',
-      capStyle: style['circle-stroke-line-cap'] ?? 'round'
-    },
-    default: {
-      fillColor: style['fill-color'] ?? '[255, 255, 255, 0.4]',
-      strokeColor: style['stroke-color'] ?? '#3399CC',
-      strokeWidth: style['stroke-width'] ?? 1.25,
-      capStyle: style['stroke-line-cap'] ?? 'round',
-      joinStyle: style['stroke-line-join'] ?? 'round'
-    }
+  const parsedStyle: IParsedStyle = {
+    radius: style['circle-radius'] ?? 5,
+    fillColor: style['circle-fill-color'] ?? style['fill-color'] ?? '#3399CC',
+    strokeColor:
+      style['circle-stroke-color'] ?? style['stroke-color'] ?? '#3399CC',
+    strokeWidth: style['circle-stroke-width'] ?? style['stroke-width'] ?? 1.25,
+    joinStyle:
+      style['circle-stroke-line-join'] ?? style['stroke-line-join'] ?? 'round',
+    capStyle:
+      style['circle-stroke-line-cap'] ?? style['stroke-line-cap'] ?? 'round'
   };
-
-  const parsedStyle: IParsedStyle = shapeStyles[type2];
-
-  Object.assign(parsedStyle, {
-    radius: parsedStyle.radius,
-    fillColor: parsedStyle.fillColor,
-    strokeColor: parsedStyle.strokeColor,
-    strokeWidth: parsedStyle.strokeWidth,
-    joinStyle: parsedStyle.joinStyle,
-    capStyle: parsedStyle.capStyle
-  });
 
   return parsedStyle;
 }

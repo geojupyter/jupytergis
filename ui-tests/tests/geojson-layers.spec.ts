@@ -64,9 +64,6 @@ test.describe('#geoJSONLayer', () => {
     await fileInput.fill('france_regions.json');
     await fileInput.blur();
 
-    const typeInput = dialog.locator('select#root_type');
-    typeInput.selectOption('line');
-
     await dialog.getByText('Ok', { exact: true }).first().click();
 
     await expect(dialog).not.toBeAttached();
