@@ -18,6 +18,7 @@ export namespace VectorUtils {
 
     const keys = ['fill-color', 'circle-fill-color'];
     const valueColorPairs: IStopRow[] = [];
+    const seenPairs = new Set<string>();
 
     for (const key of keys) {
       if (!color[key]) {
@@ -31,19 +32,27 @@ export namespace VectorUtils {
           // Third is input value that stop values are compared with
           // Fourth and on is value:color pairs
           for (let i = 3; i < color[key].length; i += 2) {
-            valueColorPairs.push({
-              stop: color[key][i],
-              output: color[key][i + 1]
-            });
+            const pairKey = `${color[key][i]}-${color[key][i + 1]}`;
+            if (!seenPairs.has(pairKey)) {
+              valueColorPairs.push({
+                stop: color[key][i],
+                output: color[key][i + 1]
+              });
+              seenPairs.add(pairKey);
+            }
           }
           break;
 
         case 'case':
           for (let i = 1; i < color[key].length - 1; i += 2) {
-            valueColorPairs.push({
-              stop: color[key][i][2],
-              output: color[key][i + 1]
-            });
+            const pairKey = `${color[key][i][2]}-${color[key][i + 1]}`;
+            if (!seenPairs.has(pairKey)) {
+              valueColorPairs.push({
+                stop: color[key][i][2],
+                output: color[key][i + 1]
+              });
+              seenPairs.add(pairKey);
+            }
           }
           break;
       }
