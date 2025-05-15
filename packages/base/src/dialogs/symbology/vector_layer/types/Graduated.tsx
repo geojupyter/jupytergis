@@ -66,6 +66,7 @@ const Graduated = ({
     if (method === 'radius') {
       stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
     }
+    updateStopRowsBasedOnMethod();
 
     setStopRows(stopOutputPairs);
 
@@ -79,6 +80,10 @@ const Graduated = ({
       });
     };
   }, []);
+
+  useEffect(() => {
+    updateStopRowsBasedOnMethod();
+  }, [selectedMethod]);
 
   useEffect(() => {
     selectedValueRef.current = selectedValue;
@@ -107,6 +112,24 @@ const Graduated = ({
     setSelectedValue(value);
     setSelectedMethod(method);
   }, [featureProperties]);
+
+  const updateStopRowsBasedOnMethod = () => {
+    if (!layer) {
+      return;
+    }
+
+    let stopOutputPairs: IStopRow[] = [];
+
+    if (selectedMethod === 'color') {
+      stopOutputPairs = VectorUtils.buildColorInfo(layer);
+    }
+
+    if (selectedMethod === 'radius') {
+      stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
+    }
+
+    setStopRows(stopOutputPairs);
+  };
 
   const handleOk = () => {
     if (!layer.parameters) {
