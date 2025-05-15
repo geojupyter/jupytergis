@@ -278,7 +278,7 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          pip install /jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl ./jupytergis_lite/dist/jupytergis*.whl ./jupytergis/dist/jupytergis*.whl
+          pip install ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl ./jupytergis_lite/dist/jupytergis*.whl ./jupytergis/dist/jupytergis*.whl
 
       - name: Build JupyterLite
         shell: bash -l {0}
