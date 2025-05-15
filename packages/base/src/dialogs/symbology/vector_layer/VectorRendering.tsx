@@ -35,8 +35,11 @@ const VectorRendering = ({
     }
     setSelectedRenderType(renderType);
 
-    const options = ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap'];
-    setRenderTypeOptions(options);
+    const options: Record<string, string[]> = {
+      VectorLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap'],
+      VectorTileLayer: ['Single Symbol']
+    };
+    setRenderTypeOptions(options[layer.type]);
   }, []);
 
   useEffect(() => {

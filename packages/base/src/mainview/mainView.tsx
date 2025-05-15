@@ -876,7 +876,8 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
-          source: this._sources[layerParameters.source]
+          source: this._sources[layerParameters.source],
+          style: this.vectorLayerStyleRuleBuilder(layer)
         });
 
         break;
