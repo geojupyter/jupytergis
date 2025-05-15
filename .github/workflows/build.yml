@@ -250,23 +250,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download extension package
-        uses: actions/download-artifact@v4
-        with:
-          name: extension-artifacts
-
       - name: debug
         run: ls
-
-      - name: Download the extension artifacts
-        shell: bash -l {0}
-        run: |
-          set -eux
-          cp ./jupytergis_core/dist/jupytergis*.whl jupytergis_core-0.0.1-py3-none-any.whl
-          cp ./jupytergis_lab/dist/jupytergis*.whl jupytergis_lab-0.0.1-py3-none-any.whl
-          cp ./jupytergis_qgis/dist/jupytergis*.whl jupytergis_qgis-0.0.1-py3-none-any.whl
-          cp ./jupytergis_lite/dist/jupytergis*.whl jupytergis_lite-0.0.1-py3-none-any.whl
-          cp ./jupytergis/dist/jupytergis*.whl jupytergis-0.0.1-py3-none-any.whl
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -279,6 +264,17 @@ jobs:
             jupyterlite-core
             jupyterlite-xeus
             jupyter_server
+
+      - name: Download extension package
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-artifacts
+
+      - name: Install the extension artifacts
+        shell: bash -l {0}
+        run: |
+          set -eux
+          pip install /jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl ./jupytergis_lite/dist/jupytergis*.whl ./jupytergis/dist/jupytergis*.whl
 
       - name: Build JupyterLite
         shell: bash -l {0}
