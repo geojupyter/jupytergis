@@ -141,3 +141,6 @@ untitled*
 
 # GeoJSON schema
 packages/schema/src/schema/geojson.json
+
+# Local example files
+examples/local_examples/*
