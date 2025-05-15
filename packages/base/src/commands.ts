@@ -173,6 +173,8 @@ export function addCommands(
     },
     isEnabled: () => {
       const selectedLayer = getSingleSelectedLayer(tracker);
+      console.log('In Identify, selected Type:', selectedLayer?.type);
+
       if (!selectedLayer) {
         return false;
       }
@@ -881,13 +883,29 @@ export function addCommands(
   commands.addCommand(CommandIDs.newDrawVectorLayer, {
     label: trans.__('Create New Draw Vector Layer'),
     isToggled: () => {
-      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+      const canDrawVectorLayer = ['VectorLayer'].includes(selectedLayer.type);
+
+      if (
+        tracker.currentWidget instanceof JupyterGISDocumentWidget &&
+        canDrawVectorLayer
+      ) {
         const model = tracker.currentWidget?.content.currentViewModel
           .jGISModel as IJupyterGISModel;
         return model.isDrawVectorLayerEnabled;
       } else {
         return false;
       }
+    },
+    isEnabled: () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+      return ['VectorLayer'].includes(selectedLayer.type);
     },
     execute: async () => {
       if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
