@@ -2067,7 +2067,9 @@ export class MainView extends React.Component<IProps, IStates> {
         ...old,
         drawGeometryType
       }));
-    } else {return;}
+    } else {
+      return;
+    }
   };
 
   private _removeCurrentDrawInteraction = () => {
