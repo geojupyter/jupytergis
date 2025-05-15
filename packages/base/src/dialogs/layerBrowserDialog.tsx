@@ -1,19 +1,18 @@
-import { faCheck, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IJGISFormSchemaRegistry,
-  IJGISLayer,
   IJGISLayerDocChange,
-  IJGISSource,
   IJupyterGISModel,
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
-import { PromiseDelegate, UUID } from '@lumino/coreutils';
+import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 
 import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
+import LayerGrid from './browsers/components/LayerGrid';
 import { CreationFormWrapper } from './layerCreationFormDialog';
 
 interface ILayerBrowserDialogProps {
@@ -96,27 +95,27 @@ export const LayerBrowserComponent = ({
    * Add tile layer and source to model
    * @param tile Tile to add
    */
-  const handleTileClick = (tile: IRasterLayerGalleryEntry) => {
-    const sourceId = UUID.uuid4();
+  // const handleTileClick = (tile: IRasterLayerGalleryEntry) => {
+  //   const sourceId = UUID.uuid4();
 
-    const sourceModel: IJGISSource = {
-      type: 'RasterSource',
-      name: tile.name,
-      parameters: tile.source
-    };
+  //   const sourceModel: IJGISSource = {
+  //     type: 'RasterSource',
+  //     name: tile.name,
+  //     parameters: tile.source
+  //   };
 
-    const layerModel: IJGISLayer = {
-      type: 'RasterLayer',
-      parameters: {
-        source: sourceId
-      },
-      visible: true,
-      name: tile.name + ' Layer'
-    };
+  //   const layerModel: IJGISLayer = {
+  //     type: 'RasterLayer',
+  //     parameters: {
+  //       source: sourceId
+  //     },
+  //     visible: true,
+  //     name: tile.name + ' Layer'
+  //   };
 
-    model.sharedModel.addSource(sourceId, sourceModel);
-    model.addLayer(UUID.uuid4(), layerModel);
-  };
+  //   model.sharedModel.addSource(sourceId, sourceModel);
+  //   model.addLayer(UUID.uuid4(), layerModel);
+  // };
 
   if (creatingCustomRaster) {
     // Disconnect any previous handler
@@ -202,40 +201,11 @@ export const LayerBrowserComponent = ({
             </p>
           </div>
         </div>
-        {filteredGallery.map(tile => (
-          <div
-            className="jGIS-layer-browser-tile"
-            onClick={() => handleTileClick(tile)}
-          >
-            <div className="jGIS-layer-browser-tile-img-container">
-              <img className="jGIS-layer-browser-img" src={tile.thumbnail} />
-              {activeLayers.indexOf(tile.name) === -1 ? (
-                <div className="jGIS-layer-browser-icon">
-                  <FontAwesomeIcon style={{ height: 20 }} icon={faPlus} />
-                </div>
-              ) : (
-                <div className="jGIS-layer-browser-icon jGIS-layer-browser-added">
-                  <FontAwesomeIcon style={{ height: 20 }} icon={faCheck} />
-                  <p className="jGIS-layer-browser-text-general">Added!</p>
-                </div>
-              )}
-            </div>
-            <div className="jGIS-layer-browser-text-container">
-              <div className="jGIS-layer-browser-text-info">
-                <h3 className="jGIS-layer-browser-text-header jGIS-layer-browser-text-general">
-                  {tile.name}
-                </h3>
-                {/* <p className="jGIS-layer-browser-text-general jGIS-layer-browser-text-description">
-                  {tile.description}
-                  placeholder
-                </p> */}
-              </div>
-              <p className="jGIS-layer-browser-text-general jGIS-layer-browser-text-source">
-                {tile.source.attribution}
-              </p>
-            </div>
-          </div>
-        ))}
+        <LayerGrid
+          layers={filteredGallery}
+          activeLayers={activeLayers}
+          model={model}
+        />
       </div>
     </div>
   );
