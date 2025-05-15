@@ -279,7 +279,7 @@ jobs:
           cp ./jupytergis_qgis/dist/jupytergis*.whl jupytergis_qgis-0.0.1-py3-none-any.whl
           cp ./jupytergis_lite/dist/jupytergis*.whl jupytergis_lite-0.0.1-py3-none-any.whl
           cp ./jupytergis/dist/jupytergis*.whl jupytergis-0.0.1-py3-none-any.whl
-          pip install ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl ./jupytergis_lite/dist/jupytergis*.whl ./jupytergis/dist/jupytergis*.whl
+          pip install ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_lite/dist/jupytergis*.whl ./jupytergis/dist/jupytergis*.whl
 
       - name: Build JupyterLite
         shell: bash -l {0}
