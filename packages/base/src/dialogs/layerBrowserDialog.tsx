@@ -1,6 +1,7 @@
 import { faCheck, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
+  IDict,
   IJGISFormSchemaRegistry,
   IJGISLayer,
   IJGISLayerDocChange,
@@ -13,8 +14,8 @@ import { PromiseDelegate, UUID } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 
-import { CreationFormWrapper } from './layerCreationFormDialog';
 import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
+import { CreationFormWrapper } from './layerCreationFormDialog';
 
 interface ILayerBrowserDialogProps {
   model: IJupyterGISModel;
@@ -240,3 +241,54 @@ export const LayerBrowserComponent = ({
     </div>
   );
 };
+
+export interface ILayerBrowserOptions {
+  model: IJupyterGISModel;
+  registry: IRasterLayerGalleryEntry[];
+  formSchemaRegistry: IJGISFormSchemaRegistry;
+}
+
+export class LayerBrowserWidget extends Dialog<boolean> {
+  constructor(options: ILayerBrowserOptions) {
+    let cancelCallback: (() => void) | undefined = undefined;
+    cancelCallback = () => {
+      this.resolve(0);
+    };
+
+    const okSignalPromise = new PromiseDelegate<
+      Signal<Dialog<IDict>, number>
+    >();
+
+    const body = (
+      <LayerBrowserComponent
+        model={options.model}
+        registry={options.registry}
+        formSchemaRegistry={options.formSchemaRegistry}
+        okSignalPromise={okSignalPromise}
+        cancel={cancelCallback}
+      />
+    );
+
+    super({ body, buttons: [Dialog.cancelButton(), Dialog.okButton()] });
+
+    this.id = 'jupytergis::layerBrowser';
+
+    this.okSignal = new Signal(this);
+    okSignalPromise.resolve(this.okSignal);
+
+    // Override default dialog style
+    this.addClass('jGIS-layerbrowser-FormDialog');
+  }
+
+  resolve(index?: number): void {
+    if (index === 0) {
+      super.resolve(index);
+    }
+
+    if (index === 1) {
+      this.okSignal.emit(1);
+    }
+  }
+
+  private okSignal: Signal<Dialog<any>, number>;
+}

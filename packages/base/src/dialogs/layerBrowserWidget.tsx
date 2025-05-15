@@ -9,7 +9,7 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React from 'react';
 import { LayerBrowserComponent } from './layerBrowserDialog';
-import StacBrowser from './StacBrowser';
+import StacBrowser from './browsers/StacBrowser';
 
 export interface ILayerBrowserOptions {
   type: 'og' | 'stac';
