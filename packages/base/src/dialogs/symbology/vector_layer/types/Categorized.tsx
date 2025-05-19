@@ -132,7 +132,9 @@ const Categorized = ({
 
     layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = newStyle;
-    layer.type = 'VectorLayer';
+    if (layer.type === 'HeatmapLayer') {
+      layer.type = 'VectorLayer';
+    }
 
     model.sharedModel.updateLayer(layerId, layer);
     cancel();

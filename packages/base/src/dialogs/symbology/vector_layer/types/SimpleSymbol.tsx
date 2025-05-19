@@ -95,6 +95,9 @@ const SimpleSymbol = ({
 
     layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = styleExpr;
+    if (layer.type === 'HeatmapLayer') {
+      layer.type = 'VectorLayer';
+    }
 
     model.sharedModel.updateLayer(layerId, layer);
     cancel();
