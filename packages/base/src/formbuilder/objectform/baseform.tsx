@@ -282,7 +282,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       const extraErrors = Object.keys(this.state.extraErrors).length > 0;
       this.props.formErrorSignal.emit(extraErrors);
     }
-    if (!this.props.formErrorSignal) {
+    if (this.props.formContext === 'update') {
       this.syncData(this.currentFormData);
     }
   }
