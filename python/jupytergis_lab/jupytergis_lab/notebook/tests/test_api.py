@@ -7,6 +7,7 @@ from jupytergis_lab import GISDocument
 TEST_TIF = "https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif"
 TEST_GPKG = "https://raw.githubusercontent.com/ngageoint/GeoPackage/master/docs/examples/java/example.gpkg"
 
+
 class TestDocument:
     def setup_method(self):
         self.doc = GISDocument()
@@ -36,6 +37,7 @@ class TestGeoPackageLayer(TestDocument):
 
         gpkg_layer = self.doc.add_geopackage_layer(TEST_GPKG, color_expr=color)
         assert self.doc.layers[gpkg_layer]["parameters"]["color"] == color
+
 
 class TestLayerManipulation(TestDocument):
     def test_add_and_remove_layer_and_source(self):

@@ -571,7 +571,7 @@ class GISDocument(CommWidget):
         source = {
             "type": SourceType.GeoPackageSource,
             "name": f"{name} Source",
-            "parameters": {'path':path},
+            "parameters": {"path": path},
         }
 
         source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
@@ -882,7 +882,7 @@ class JGISSource(BaseModel):
         IVideoSource,
         IGeoTiffSource,
         IRasterDemSource,
-        IGeoPackageSource
+        IGeoPackageSource,
     ]
     _parent = Optional[GISDocument]
 

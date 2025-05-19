@@ -4,7 +4,6 @@ import {
   clockIcon,
   geoJSONIcon,
   geoPackageIcon,
-
   infoIcon,
   moundIcon,
   rasterIcon,
