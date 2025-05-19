@@ -174,8 +174,6 @@ export function addCommands(
     },
     isEnabled: () => {
       const selectedLayer = getSingleSelectedLayer(tracker);
-      console.log('In Identify, selected Type:', selectedLayer?.type);
-
       if (!selectedLayer) {
         return false;
       }
@@ -947,6 +945,7 @@ export function addCommands(
       if (!selectedLayer) {
         return false;
       }
+
       const canDrawVectorLayer = ['VectorLayer'].includes(selectedLayer.type);
 
       if (
@@ -955,6 +954,12 @@ export function addCommands(
       ) {
         const model = tracker.currentWidget?.content.currentViewModel
           .jGISModel as IJupyterGISModel;
+        const parameters = selectedLayer.parameters;
+        if (parameters) {
+          const selectedvectorLayerSourceId = parameters?.source;
+          model.selectedVectorLayerSourceId = selectedvectorLayerSourceId;
+        }
+
         return model.isDrawVectorLayerEnabled;
       } else {
         return false;
