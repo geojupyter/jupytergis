@@ -159,6 +159,8 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       }
 
       if (k === 'opacity') {
+        const syncData = this.syncData.bind(this);
+
         uiSchema[k] = {
           'ui:field': (props: any) => {
             const [inputValue, setInputValue] = React.useState(
@@ -175,6 +177,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                 const sliderValue = parseFloat(target._value); // Slider value is in 0–10 range
                 const normalizedValue = sliderValue / 10; // Normalize to 0.1–1 range
                 props.onChange(normalizedValue);
+                syncData({ ...props.formData, opacity: normalizedValue });
               }
             };
 
@@ -191,6 +194,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                 parsedValue <= 1
               ) {
                 props.onChange(parsedValue);
+                syncData({ ...props.formData, opacity: parsedValue });
               }
             };
 
