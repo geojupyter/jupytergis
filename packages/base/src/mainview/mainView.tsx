@@ -2053,21 +2053,17 @@ export class MainView extends React.Component<IProps, IStates> {
       } else {
         source = new VectorSource();
       }
-      const vectorLayer = new VectorLayer({
-        source: source
-        /*style: {
+      const modify = new Modify({ source: source });
+      this._Map.addInteraction(modify);
+      const draw = new Draw({
+        source: source,
+        style: {
           'fill-color': 'rgba(255, 255, 255, 0.2)',
           'stroke-color': '#ffcc33',
           'stroke-width': 2,
           'circle-radius': 7,
           'circle-fill-color': '#ffcc33'
-        }*/
-      });
-      this._Map.addLayer(vectorLayer);
-      const modify = new Modify({ source: source });
-      this._Map.addInteraction(modify);
-      const draw = new Draw({
-        source: source,
+        },
         type: drawGeometryType as Type // Type being a geometry type here
       });
       const snap = new Snap({ source: source });
