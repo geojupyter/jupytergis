@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/base",
-  "version": "0.4.5",
+  "version": "0.5.0",
   "description": "A JupyterLab extension for 3D modelling.",
   "keywords": [
     "jupyter",
@@ -43,7 +43,7 @@
     "@fortawesome/react-fontawesome": "latest",
     "@jupyter/react-components": "^0.16.6",
     "@jupyter/ydoc": "^2.0.0 || ^3.0.0",
-    "@jupytergis/schema": "^0.4.5",
+    "@jupytergis/schema": "^0.5.0",
     "@jupyterlab/application": "^4.3.0",
     "@jupyterlab/apputils": "^4.3.0",
     "@jupyterlab/completer": "^4.3.0",

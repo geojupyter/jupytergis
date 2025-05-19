@@ -116,18 +116,11 @@ const Categorized = ({
     colorExpr.push([0, 0, 0, 0.0]);
 
     const newStyle = { ...layer.parameters.color };
+    newStyle['fill-color'] = colorExpr;
 
-    if (layer.parameters.type === 'fill') {
-      newStyle['fill-color'] = colorExpr;
-    }
+    newStyle['stroke-color'] = colorExpr;
 
-    if (layer.parameters.type === 'line') {
-      newStyle['stroke-color'] = colorExpr;
-    }
-
-    if (layer.parameters.type === 'circle') {
-      newStyle['circle-fill-color'] = colorExpr;
-    }
+    newStyle['circle-fill-color'] = colorExpr;
 
     const symbologyState = {
       renderType: 'Categorized',
@@ -139,7 +132,9 @@ const Categorized = ({
 
     layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = newStyle;
-    layer.type = 'VectorLayer';
+    if (layer.type === 'HeatmapLayer') {
+      layer.type = 'VectorLayer';
+    }
 
     model.sharedModel.updateLayer(layerId, layer);
     cancel();

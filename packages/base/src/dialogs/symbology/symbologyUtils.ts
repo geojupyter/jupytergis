@@ -16,39 +16,46 @@ export namespace VectorUtils {
       return [];
     }
 
-    const prefix = layer.parameters.type === 'circle' ? 'circle-' : '';
-
-    if (!color[`${prefix}fill-color`]) {
-      return [];
-    }
-
+    const keys = ['fill-color', 'circle-fill-color'];
     const valueColorPairs: IStopRow[] = [];
+    const seenPairs = new Set<string>();
 
-    // So if it's not a string then it's an array and we parse
-    // Color[0] is the operator used for the color expression
-    switch (color[`${prefix}fill-color`][0]) {
-      case 'interpolate':
-        // First element is interpolate for linear selection
-        // Second element is type of interpolation (ie linear)
-        // Third is input value that stop values are compared with
-        // Fourth and on is value:color pairs
-        for (let i = 3; i < color[`${prefix}fill-color`].length; i += 2) {
-          const obj: IStopRow = {
-            stop: color[`${prefix}fill-color`][i],
-            output: color[`${prefix}fill-color`][i + 1]
-          };
-          valueColorPairs.push(obj);
-        }
-        break;
-      case 'case':
-        for (let i = 1; i < color[`${prefix}fill-color`].length - 1; i += 2) {
-          const obj: IStopRow = {
-            stop: color[`${prefix}fill-color`][i][2],
-            output: color[`${prefix}fill-color`][i + 1]
-          };
-          valueColorPairs.push(obj);
-        }
-        break;
+    for (const key of keys) {
+      if (!color[key]) {
+        continue;
+      }
+
+      switch (color[key][0]) {
+        case 'interpolate':
+          // First element is interpolate for linear selection
+          // Second element is type of interpolation (ie linear)
+          // Third is input value that stop values are compared with
+          // Fourth and on is value:color pairs
+          for (let i = 3; i < color[key].length; i += 2) {
+            const pairKey = `${color[key][i]}-${color[key][i + 1]}`;
+            if (!seenPairs.has(pairKey)) {
+              valueColorPairs.push({
+                stop: color[key][i],
+                output: color[key][i + 1]
+              });
+              seenPairs.add(pairKey);
+            }
+          }
+          break;
+
+        case 'case':
+          for (let i = 1; i < color[key].length - 1; i += 2) {
+            const pairKey = `${color[key][i][2]}-${color[key][i + 1]}`;
+            if (!seenPairs.has(pairKey)) {
+              valueColorPairs.push({
+                stop: color[key][i][2],
+                output: color[key][i + 1]
+              });
+              seenPairs.add(pairKey);
+            }
+          }
+          break;
+      }
     }
 
     return valueColorPairs;

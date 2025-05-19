@@ -301,41 +301,22 @@ export interface IParsedStyle {
   radius?: number;
 }
 
-export function parseColor(type: string, style: any) {
-  if (!type || !style) {
+export function parseColor(style: any): IParsedStyle | undefined {
+  if (!style) {
     return;
   }
 
-  const type2 = type === 'circle' ? 'circle' : 'default';
-
-  const shapeStyles: any = {
-    circle: {
-      radius: style['circle-radius'] ?? 5,
-      fillColor: style['circle-fill-color'] ?? '#3399CC',
-      strokeColor: style['circle-stroke-color'] ?? '#3399CC',
-      strokeWidth: style['circle-stroke-width'] ?? 1.25,
-      joinStyle: style['circle-stroke-line-join'] ?? 'round',
-      capStyle: style['circle-stroke-line-cap'] ?? 'round'
-    },
-    default: {
-      fillColor: style['fill-color'] ?? '[255, 255, 255, 0.4]',
-      strokeColor: style['stroke-color'] ?? '#3399CC',
-      strokeWidth: style['stroke-width'] ?? 1.25,
-      capStyle: style['stroke-line-cap'] ?? 'round',
-      joinStyle: style['stroke-line-join'] ?? 'round'
-    }
+  const parsedStyle: IParsedStyle = {
+    radius: style['circle-radius'] ?? 5,
+    fillColor: style['circle-fill-color'] ?? style['fill-color'] ?? '#3399CC',
+    strokeColor:
+      style['circle-stroke-color'] ?? style['stroke-color'] ?? '#3399CC',
+    strokeWidth: style['circle-stroke-width'] ?? style['stroke-width'] ?? 1.25,
+    joinStyle:
+      style['circle-stroke-line-join'] ?? style['stroke-line-join'] ?? 'round',
+    capStyle:
+      style['circle-stroke-line-cap'] ?? style['stroke-line-cap'] ?? 'round'
   };
-
-  const parsedStyle: IParsedStyle = shapeStyles[type2];
-
-  Object.assign(parsedStyle, {
-    radius: parsedStyle.radius,
-    fillColor: parsedStyle.fillColor,
-    strokeColor: parsedStyle.strokeColor,
-    strokeWidth: parsedStyle.strokeWidth,
-    joinStyle: parsedStyle.joinStyle,
-    capStyle: parsedStyle.capStyle
-  });
 
   return parsedStyle;
 }
@@ -411,12 +392,24 @@ export const getFromIndexedDB = async (key: string) => {
 
 const fetchWithProxies = async <T>(
   url: string,
+  model: IJupyterGISModel,
   parseResponse: (response: Response) => Promise<T>
 ): Promise<T | null> => {
+  let settings: any = null;
+
+  try {
+    settings = await model.getSettings();
+  } catch (e) {
+    console.warn('Failed to get settings from model. Falling back.', e);
+  }
+
+  const proxyUrl =
+    settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
+
   const proxyUrls = [
     url, // Direct fetch
     `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
-    `https://corsproxy.io/?url=${encodeURIComponent(url)}` // External proxy
+    `${proxyUrl}/?url=${encodeURIComponent(url)}` // External proxy
   ];
 
   for (const proxyUrl of proxyUrls) {
@@ -445,6 +438,7 @@ const fetchWithProxies = async <T>(
  */
 export const loadGeoTiff = async (
   sourceInfo: { url?: string | undefined },
+  model: IJupyterGISModel,
   file?: Contents.IModel | null
 ) => {
   if (!sourceInfo?.url) {
@@ -469,7 +463,9 @@ export const loadGeoTiff = async (
   let fileBlob: Blob | null = null;
 
   if (!file) {
-    fileBlob = await fetchWithProxies(url, async response => response.blob());
+    fileBlob = await fetchWithProxies(url, model, async response =>
+      response.blob()
+    );
     if (!fileBlob) {
       showErrorMessage('Network error', `Failed to fetch ${url}`);
       throw new Error(`Failed to fetch ${url}`);
@@ -561,10 +557,14 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
-        const geojson = await fetchWithProxies(filepath, async response => {
-          const arrayBuffer = await response.arrayBuffer();
-          return shp(arrayBuffer);
-        });
+        const geojson = await fetchWithProxies(
+          filepath,
+          model,
+          async response => {
+            const arrayBuffer = await response.arrayBuffer();
+            return shp(arrayBuffer);
+          }
+        );
 
         if (geojson) {
           await saveToIndexedDB(filepath, geojson);
@@ -581,8 +581,10 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
-        const geojson = await fetchWithProxies(filepath, async response =>
-          response.json()
+        const geojson = await fetchWithProxies(
+          filepath,
+          model,
+          async response => response.json()
         );
 
         if (geojson) {
@@ -673,7 +675,7 @@ export const loadFile = async (fileInfo: {
 
       case 'GeoTiffSource': {
         if (typeof file.content === 'string') {
-          const tiff = loadGeoTiff({ url: filepath }, file);
+          const tiff = loadGeoTiff({ url: filepath }, model, file);
           return tiff;
         } else {
           throw new Error('Invalid file format for tiff content.');

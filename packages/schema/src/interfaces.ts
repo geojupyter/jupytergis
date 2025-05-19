@@ -129,8 +129,8 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getOption(key: keyof IJGISOptions): IDict | undefined;
   setOption(key: keyof IJGISOptions, value: IDict): void;
 
-  getMetadata(key: string): string | undefined;
-  setMetadata(key: string, value: string): void;
+  getMetadata(key: string): string | IAnnotation | undefined;
+  setMetadata(key: string, value: string | IAnnotation): void;
   removeMetadata(key: string): void;
 
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
@@ -183,6 +183,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   contentsManager: Contents.IManager | undefined;
   filePath: string;
 
+  getSettings(): IJupyterGISSettings;
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
@@ -348,4 +349,8 @@ export interface IAnnotation {
   contents: IAnnotationContent[];
   parent: string;
   open: boolean;
+}
+
+export interface IJupyterGISSettings {
+  proxyUrl: string;
 }

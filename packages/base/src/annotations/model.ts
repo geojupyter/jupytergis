@@ -44,7 +44,7 @@ export class AnnotationModel implements IAnnotationModel {
   getAnnotation(id: string): IAnnotation | undefined {
     const rawData = this._model?.sharedModel.getMetadata(id);
     if (rawData) {
-      return JSON.parse(rawData) as IAnnotation;
+      return rawData as IAnnotation;
     }
   }
 
@@ -59,10 +59,7 @@ export class AnnotationModel implements IAnnotationModel {
   }
 
   addAnnotation(key: string, value: IAnnotation): void {
-    this._model?.sharedModel.setMetadata(
-      `annotation_${key}`,
-      JSON.stringify(value)
-    );
+    this._model?.sharedModel.setMetadata(`annotation_${key}`, value);
   }
 
   updateAnnotation(id: string, updates: Partial<IAnnotation>): void {
@@ -71,10 +68,7 @@ export class AnnotationModel implements IAnnotationModel {
       return;
     }
 
-    this._model?.sharedModel.setMetadata(
-      id,
-      JSON.stringify({ ...existing, ...updates })
-    );
+    this._model?.sharedModel.setMetadata(id, { ...existing, ...updates });
 
     this._updateSignal.emit(null);
   }
@@ -95,7 +89,7 @@ export class AnnotationModel implements IAnnotationModel {
         contents: [...currentAnnotation.contents, newContent]
       };
 
-      this._model?.sharedModel.setMetadata(id, JSON.stringify(newAnnotation));
+      this._model?.sharedModel.setMetadata(id, newAnnotation);
     }
   }
 

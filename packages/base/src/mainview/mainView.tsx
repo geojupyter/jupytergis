@@ -98,7 +98,6 @@ interface IStates {
   loading: boolean;
   lightTheme: boolean;
   remoteUser?: User.IIdentity | null;
-  firstLoad: boolean;
   annotations: IDict<IAnnotation>;
   clientPointers: IDict<ClientPointer>;
   viewProjection: { code: string; units: string };
@@ -161,7 +160,6 @@ export class MainView extends React.Component<IProps, IStates> {
       id: this._mainViewModel.id,
       lightTheme: isLightTheme(),
       loading: true,
-      firstLoad: true,
       annotations: {},
       clientPointers: {},
       viewProjection: { code: '', units: '' },
@@ -900,7 +898,8 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
-          source: this._sources[layerParameters.source]
+          source: this._sources[layerParameters.source],
+          style: this.vectorLayerStyleRuleBuilder(layer)
         });
 
         break;
@@ -1794,21 +1793,27 @@ export class MainView extends React.Component<IProps, IStates> {
         return;
       }
       const data = this._model.sharedModel.getMetadata(key);
-      let open = true;
-      if (this.state.firstLoad) {
-        open = false;
-      }
 
       if (data && (val.action === 'add' || val.action === 'update')) {
-        const jsonData = JSON.parse(data);
-        jsonData['open'] = open;
+        let jsonData: IAnnotation;
+        if (typeof data === 'string') {
+          try {
+            jsonData = JSON.parse(data);
+          } catch (e) {
+            console.warn(`Failed to parse annotation data for ${key}:`, e);
+            return;
+          }
+        } else {
+          jsonData = data as IAnnotation;
+        }
+
         newState[key] = jsonData;
       } else if (val.action === 'delete') {
         delete newState[key];
       }
     });
 
-    this.setState(old => ({ ...old, annotations: newState, firstLoad: false }));
+    this.setState(old => ({ ...old, annotations: newState }));
   };
 
   private _computeAnnotationPosition(annotation: IAnnotation) {

@@ -66,6 +66,7 @@ const Graduated = ({
     if (method === 'radius') {
       stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
     }
+    updateStopRowsBasedOnMethod();
 
     setStopRows(stopOutputPairs);
 
@@ -79,6 +80,10 @@ const Graduated = ({
       });
     };
   }, []);
+
+  useEffect(() => {
+    updateStopRowsBasedOnMethod();
+  }, [selectedMethod]);
 
   useEffect(() => {
     selectedValueRef.current = selectedValue;
@@ -108,6 +113,24 @@ const Graduated = ({
     setSelectedMethod(method);
   }, [featureProperties]);
 
+  const updateStopRowsBasedOnMethod = () => {
+    if (!layer) {
+      return;
+    }
+
+    let stopOutputPairs: IStopRow[] = [];
+
+    if (selectedMethod === 'color') {
+      stopOutputPairs = VectorUtils.buildColorInfo(layer);
+    }
+
+    if (selectedMethod === 'radius') {
+      stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
+    }
+
+    setStopRows(stopOutputPairs);
+  };
+
   const handleOk = () => {
     if (!layer.parameters) {
       return;
@@ -126,23 +149,15 @@ const Graduated = ({
     const newStyle = { ...layer.parameters.color };
 
     if (selectedMethodRef.current === 'color') {
-      if (layer.parameters.type === 'fill') {
-        newStyle['fill-color'] = colorExpr;
-      }
+      newStyle['fill-color'] = colorExpr;
 
-      if (layer.parameters.type === 'line') {
-        newStyle['stroke-color'] = colorExpr;
-      }
+      newStyle['stroke-color'] = colorExpr;
 
-      if (layer.parameters.type === 'circle') {
-        newStyle['circle-fill-color'] = colorExpr;
-      }
+      newStyle['circle-fill-color'] = colorExpr;
     }
 
     if (selectedMethodRef.current === 'radius') {
-      if (layer.parameters.type === 'circle') {
-        newStyle['circle-radius'] = colorExpr;
-      }
+      newStyle['circle-radius'] = colorExpr;
     }
 
     const symbologyState = {
@@ -156,7 +171,9 @@ const Graduated = ({
 
     layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = newStyle;
-    layer.type = 'VectorLayer';
+    if (layer.type === 'HeatmapLayer') {
+      layer.type = 'VectorLayer';
+    }
 
     model.sharedModel.updateLayer(layerId, layer);
     cancel();
