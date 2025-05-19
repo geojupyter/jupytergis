@@ -159,8 +159,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       }
 
       if (k === 'opacity') {
-        const syncData = this.syncData.bind(this);
-
         uiSchema[k] = {
           'ui:field': (props: any) => {
             const [inputValue, setInputValue] = React.useState(
@@ -177,7 +175,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                 const sliderValue = parseFloat(target._value); // Slider value is in 0–10 range
                 const normalizedValue = sliderValue / 10; // Normalize to 0.1–1 range
                 props.onChange(normalizedValue);
-                syncData({ ...props.formData, opacity: normalizedValue });
               }
             };
 
@@ -194,7 +191,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                 parsedValue <= 1
               ) {
                 props.onChange(parsedValue);
-                syncData({ ...props.formData, opacity: parsedValue });
               }
             };
 
@@ -286,6 +282,9 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       const extraErrors = Object.keys(this.state.extraErrors).length > 0;
       this.props.formErrorSignal.emit(extraErrors);
     }
+    if (!this.props.formErrorSignal) {
+      this.syncData(this.currentFormData);
+    }
   }
 
   protected onFormBlur(id: string, value: any) {
@@ -353,17 +352,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
               extraErrors={this.state.extraErrors}
             />
           </div>
-
-          {!this.props.ok && (
-            <div className="jGIS-property-buttons">
-              <button
-                className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-                onClick={() => submitRef.current?.click()}
-              >
-                <div className="jp-Dialog-buttonLabel">Ok</div>
-              </button>
-            </div>
-          )}
         </div>
       );
     }
