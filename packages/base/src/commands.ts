@@ -834,6 +834,26 @@ export function addCommands(
     }),
     ...icons.get(CommandIDs.newHeatmapLayer)
   });
+  commands.addCommand(CommandIDs.newGeoPackageEntry, {
+    label: trans.__('New GeoPackage Layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoPackage Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { name: 'Custom GeoPackage Source' },
+      layerData: { name: 'Custom GeoPackage Layer' },
+      sourceType: 'GeoPackageSource',
+      layerType: 'VectorLayer'
+    }),
+    ...icons.get(CommandIDs.newGeoPackageEntry)
+  });
 
   /**
    * LAYERS and LAYER GROUP actions.

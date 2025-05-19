@@ -118,6 +118,11 @@ export class ToolbarWidget extends ReactiveToolbar {
         command: CommandIDs.newShapefileLayer
       });
 
+      vectorSubMenu.addItem({
+        type: 'command',
+        command: CommandIDs.newGeoPackageEntry
+      });
+
       //raster submenu
       const rasterSubMenu = new Menu({ commands: options.commands });
 

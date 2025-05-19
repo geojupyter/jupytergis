@@ -1,6 +1,7 @@
 export * from './_interface/project/jgis';
 
 // Sources
+export * from './_interface/project/sources/geoPackageSource';
 export * from './_interface/project/sources/geoTiffSource';
 export * from './_interface/geojsonsource';
 export * from './_interface/project/sources/imageSource';

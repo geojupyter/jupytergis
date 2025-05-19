@@ -13,6 +13,7 @@ from ypywidgets.comm import CommWidget
 
 from .objects import (
     IGeoJSONSource,
+    IGeoPackageSource,
     IGeoTiffSource,
     IHeatmapLayer,
     IHillshadeLayer,
@@ -542,6 +543,59 @@ class GISDocument(CommWidget):
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
+    def add_geopackage_layer(
+        self,
+        path: str,
+        name: str = "GeoPackage Layer",
+        type: "circle" | "fill" | "line" = "line",
+        opacity: float = 1,
+        logical_op: str | None = None,
+        feature: str | None = None,
+        operator: str | None = None,
+        value: Union[str, int, float] | None = None,
+        color_expr=None,
+    ):
+        """
+        Add a GeoPackage Layer to the document
+        :param path: The path to the GeoPackage file to embed into the jGIS file.
+        :param name: The name that will be used for the object in the document.
+        :param type: The type of the vector layer to create.
+        :param opacity: The opacity, between 0 and 1.
+        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param feature: The feature to be filtered on
+        :param operator: The operator used to compare the feature and value
+        :param value: The value to be filtered on
+        :param color_expr: The style expression used to style the layer
+        """
+
+        source = {
+            "type": SourceType.GeoPackageSource,
+            "name": f"{name} Source",
+            "parameters": {'path':path},
+        }
+
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.VectorLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {
+                "source": source_id,
+                "type": type,
+                "opacity": opacity,
+                "color": color_expr,
+            },
+            "filters": {
+                "appliedFilters": [
+                    {"feature": feature, "operator": operator, "value": value}
+                ],
+                "logicalOp": logical_op,
+            },
+        }
+
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
     def remove_layer(self, layer_id: str):
         """
         Remove a layer from the GIS document.
@@ -828,6 +882,7 @@ class JGISSource(BaseModel):
         IVideoSource,
         IGeoTiffSource,
         IRasterDemSource,
+        IGeoPackageSource
     ]
     _parent = Optional[GISDocument]
 
@@ -915,3 +970,4 @@ OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)
 OBJECT_FACTORY.register_factory(SourceType.VideoSource, IVideoSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoTiffSource, IGeoTiffSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterDemSource, IRasterDemSource)
+OBJECT_FACTORY.register_factory(SourceType.GeoPackageSource, IGeoPackageSource)

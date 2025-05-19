@@ -19,6 +19,7 @@ import {
   SourceType
 } from '@jupytergis/schema';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
+import { GeoPackageAPI } from '@ngageoint/geopackage';
 
 export const debounce = (
   func: CallableFunction,
@@ -494,6 +495,31 @@ export const loadGeoTiff = async (
 };
 
 /**
+ * Read a GeoPackage file
+ *
+ * @param file The GeoPackage file content as an ArrayBuffer
+ *
+ * @returns A promise that resolves to a GeoJSON FeatureCollection
+ *
+ */
+const loadGeoPackageFile = async (file: ArrayBuffer) => {
+  const bytes = new Uint8Array(file);
+  const gpkg = await GeoPackageAPI.open(bytes);
+
+  const tables = gpkg.getFeatureTables();
+  const features: GeoJSON.Feature[] = [];
+  for (const tableName of tables) {
+    const dao = gpkg.getFeatureDao(tableName);
+    const bbox = dao.getBoundingBox();
+    const iter = gpkg.queryForGeoJSONFeaturesInTable(tableName, bbox);
+    for (const feat of iter) {
+      features.push(feat);
+    }
+  }
+  return { type: 'FeatureCollection', features };
+};
+
+/**
  * Generalized file reader for different source types.
  *
  * @param fileInfo - Object containing the file path and source type.
@@ -568,6 +594,26 @@ export const loadFile = async (fileInfo: {
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
+      case 'GeoPackageSource': {
+        const cached = await getFromIndexedDB(filepath);
+        if (cached) {
+          return cached.file;
+        }
+
+        const geojson = await fetchWithProxies(filepath, async response => {
+          const arrayBuffer = await response.arrayBuffer();
+          return await loadGeoPackageFile(arrayBuffer);
+        });
+
+        if (geojson) {
+          await saveToIndexedDB(filepath, geojson);
+          return geojson;
+        }
+
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
+      }
+
       default: {
         throw new Error(`Unsupported URL handling for source type: ${type}`);
       }
@@ -631,6 +677,15 @@ export const loadFile = async (fileInfo: {
           return tiff;
         } else {
           throw new Error('Invalid file format for tiff content.');
+        }
+      }
+
+      case 'GeoPackageSource': {
+        if (typeof file.content === 'string') {
+          const arrayBuffer = await stringToArrayBuffer(file.content);
+          return await loadGeoPackageFile(arrayBuffer);
+        } else {
+          throw new Error('Invalid file format for GeoPackage content.');
         }
       }
 

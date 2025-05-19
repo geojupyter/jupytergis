@@ -15,6 +15,7 @@ from ._schema.project.sources.videoSource import IVideoSource  # noqa
 from ._schema.project.sources.imageSource import IImageSource  # noqa
 from ._schema.project.sources.geoTiffSource import IGeoTiffSource  # noqa
 from ._schema.project.sources.rasterDemSource import IRasterDemSource  # noqa
+from ._schema.project.sources.geoPackageSource import IGeoPackageSource  # noqa
 
 from ._schema.processing.buffer import IBuffer  # noqa
 

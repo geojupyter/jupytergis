@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "description": "GeoPackageSource",
+  "title": "IGeoPackageSource",
+  "required": ["path"],
+  "additionalProperties": false,
+  "properties": {
+    "path": {
+      "type": "string",
+      "description": "The path to the GeoPackage source"
+    },
+    "attribution": {
+      "type": "string",
+      "readOnly": true,
+      "description": "The attribution for the GeoPackage source.",
+      "default": ""
+    },
+    "projection": {
+      "type": "string",
+      "description": "The projection information for the GeoPackage data (optional).",
+      "default": "EPSG:4326"
+    }
+  }
+}
