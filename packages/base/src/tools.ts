@@ -602,10 +602,14 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
-        const geojson = await fetchWithProxies(filepath, async response => {
-          const arrayBuffer = await response.arrayBuffer();
-          return await loadGeoPackageFile(arrayBuffer);
-        });
+        const geojson = await fetchWithProxies(
+          filepath,
+          model,
+          async response => {
+            const arrayBuffer = await response.arrayBuffer();
+            return await loadGeoPackageFile(arrayBuffer);
+          }
+        );
 
         if (geojson) {
           await saveToIndexedDB(filepath, geojson);
