@@ -2039,19 +2039,31 @@ export class MainView extends React.Component<IProps, IStates> {
       if (this._currentDrawInteraction) {
         this._removeCurrentDrawInteraction();
       }
-      const source = new VectorSource();
+
+      const layers = this._Map.getLayers().getArray();
+      const matchingLayer = layers.find(layer => {
+        const layerSource = layer.get('source');
+        return (
+          layerSource.get('id') === this._model.selectedVectorLayerSourceId
+        );
+      });
+      let source;
+      if (matchingLayer) {
+        source = matchingLayer.get('source');
+      } else {
+        source = new VectorSource();
+      }
       const vectorLayer = new VectorLayer({
-        source: source,
-        style: {
+        source: source
+        /*style: {
           'fill-color': 'rgba(255, 255, 255, 0.2)',
           'stroke-color': '#ffcc33',
           'stroke-width': 2,
           'circle-radius': 7,
           'circle-fill-color': '#ffcc33'
-        }
+        }*/
       });
       this._Map.addLayer(vectorLayer);
-      console.log('vector layer:', vectorLayer.getSource()?.getFeatures());
       const modify = new Modify({ source: source });
       this._Map.addInteraction(modify);
       const draw = new Draw({
