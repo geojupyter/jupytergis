@@ -886,7 +886,7 @@ export function addCommands(
         return false;
       }
 
-      const canDrawVectorLayer = ['VectorLayer'].includes(selectedLayer.type);
+      const canDrawVectorLayer = selectedSource.type === 'GeoJSONSource' && selectedSource.data;
 
       if (
         tracker.currentWidget instanceof JupyterGISDocumentWidget &&
