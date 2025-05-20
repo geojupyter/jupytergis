@@ -1,9 +1,11 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISLayerBrowserRegistry,
   IJGISLayerGroup,
   IJGISLayerItem,
+  IJGISSource,
   IJupyterGISModel,
   JgisCoordinates,
   LayerType,
@@ -881,31 +883,56 @@ export function addCommands(
   commands.addCommand(CommandIDs.newDrawVectorLayer, {
     label: trans.__('Create New Draw Vector Layer'),
     isToggled: () => {
-      const selectedLayer = getSingleSelectedLayer(tracker);
-      if (!selectedLayer) {
-        return false;
-      }
       if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
         const model = tracker.currentWidget?.content.currentViewModel
           .jGISModel as IJupyterGISModel;
-        const parameters = selectedLayer.parameters;
-        if (parameters) {
+        let selectedLayer = getSingleSelectedLayer(tracker);
+        if (!selectedLayer) {
+          const emptySource: IJGISSource = {
+            name: 'Editable GeoJSON Layer Source',
+            type: 'GeoJSONSource',
+            parameters: {
+              data: {
+                type: 'FeatureCollection',
+                features: []
+              }
+            }
+          };
+          const emptyLayer: IJGISLayer = {
+            name: 'Editable GeoJSON Layer',
+            type: 'VectorLayer',
+            visible: true,
+            parameters: {
+              source: emptySource
+            }
+          };
+
+          selectedLayer = emptyLayer;
+          model.addLayer('id', emptyLayer);
+          model.sharedModel.updateLayer('id', emptyLayer);
+          if (
+            emptySource?.type === 'GeoJSONSource' &&
+            emptySource?.parameters?.data
+          ) {
+            return true;
+          } else {
+            return;
+            false;
+          }
+        } else {
           const selectedSource = model.getSource(
             selectedLayer.parameters?.source
           );
-          const canDrawVectorLayer =
+          if (
             selectedSource?.type === 'GeoJSONSource' &&
-            selectedSource?.parameters?.data;
-          if (canDrawVectorLayer) {
-            const selectedvectorLayerSourceId = parameters.source;
-            model.selectedVectorLayerSourceId = selectedvectorLayerSourceId;
+            selectedSource?.parameters?.data
+          ) {
+            return true;
+          } else {
+            return false;
           }
         }
-
-        return model.isDrawVectorLayerEnabled;
-      } else {
-        return false;
-      }
+      } else {return false;}
     },
     isEnabled: () => {
       const selectedLayer = getSingleSelectedLayer(tracker);
