@@ -800,7 +800,6 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   public isDrawVectorLayerEnabled: boolean;
   public drawVectorLayerChanged = new Signal<this, boolean>(this);
-  public selectedVectorLayerSourceId = '';
 }
 
 export namespace JupyterGISModel {
