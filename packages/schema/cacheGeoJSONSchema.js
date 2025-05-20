@@ -3,7 +3,7 @@ const https = require('https');
 const path = require('path');
 
 const schemaUrl = 'https://geojson.org/schema/GeoJSON.json';
-const cacheDir = path.resolve(__dirname, './src/schema');
+const cacheDir = path.resolve(__dirname, './src/schema/project/sources');
 const schemaFile = path.join(cacheDir, 'geojson.json');
 
 if (!fs.existsSync(cacheDir)) {
