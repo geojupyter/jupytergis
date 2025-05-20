@@ -125,6 +125,9 @@ dmypy.json
 **/ui-tests/test-results/
 **/ui-tests/playwright-report/
 
+# tests_results
+**/test-results/
+
 examples/Untitled*.ipynb
 # Hatchling
 jupytergis/_version.py
