@@ -941,34 +941,32 @@ export function addCommands(
   commands.addCommand(CommandIDs.newDrawVectorLayer, {
     label: trans.__('Create New Draw Vector Layer'),
     isToggled: () => {
-      const selectedLayer = getSingleSelectedLayer(tracker);
-      if (!selectedLayer) {
-        return false;
-      }
       if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
         const model = tracker.currentWidget?.content.currentViewModel
           .jGISModel as IJupyterGISModel;
-        const parameters = selectedLayer.parameters;
-        if (parameters) {
+        const selectedLayer = getSingleSelectedLayer(tracker);
+        if (!selectedLayer) {
+          return false;
+        } else {
           const selectedSource = model.getSource(
             selectedLayer.parameters?.source
           );
-          const canDrawVectorLayer =
+          if (
             selectedSource?.type === 'GeoJSONSource' &&
-            selectedSource?.parameters?.data;
-          if (canDrawVectorLayer) {
-            const selectedvectorLayerSourceId = parameters.source;
-            model.selectedVectorLayerSourceId = selectedvectorLayerSourceId;
+            selectedSource?.parameters?.data
+          ) {
+            return model.isDrawVectorLayerEnabled === true;
+          } else {
+            return false;
           }
         }
-
-        return model.isDrawVectorLayerEnabled;
       } else {
         return false;
       }
     },
     isEnabled: () => {
       const selectedLayer = getSingleSelectedLayer(tracker);
+
       if (!selectedLayer) {
         return false;
       }
@@ -978,6 +976,7 @@ export function addCommands(
       if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
         const model = tracker.currentWidget?.content.currentViewModel
           .jGISModel as IJupyterGISModel;
+
         if (model.isDrawVectorLayerEnabled === true) {
           model.isDrawVectorLayerEnabled = false;
         } else {

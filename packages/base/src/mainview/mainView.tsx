@@ -87,6 +87,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import BaseLayer from 'ol/layer/Base';
 import Draw from 'ol/interaction/Draw.js';
 import Modify from 'ol/interaction/Modify.js';
 import Snap from 'ol/interaction/Snap.js';
@@ -2035,28 +2036,29 @@ export class MainView extends React.Component<IProps, IStates> {
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const drawGeometryType = event.target.value;
+
     if (this._model.isDrawVectorLayerEnabled) {
       if (this._currentDrawInteraction) {
         this._removeCurrentDrawInteraction();
       }
+      const localState = this._model?.sharedModel.awareness.getLocalState();
+      const localStateLayer = localState?.selected?.value;
+      const localStateLayerID = Object.keys(localStateLayer)[0];
+      const jGISLayer = this._model.getLayer(localStateLayerID);
+      let jGISLayerSource = this._model.getSource(
+        jGISLayer?.parameters?.source
+      );
 
-      const layers = this._Map.getLayers().getArray();
-      const matchingLayer = layers.find(layer => {
-        const layerSource = layer.get('source');
-        return (
-          layerSource.get('id') === this._model.selectedVectorLayerSourceId
-        );
-      });
-      let source;
-      if (matchingLayer) {
-        source = matchingLayer.get('source');
-      } else {
-        source = new VectorSource();
-      }
-      const modify = new Modify({ source: source });
+      const layerSource: VectorSource | undefined = this._Map
+        .getLayers()
+        .getArray()
+        .find((layer: BaseLayer) => layer.get('id') === localStateLayerID)
+        ?.get('source');
+
+      const modify = new Modify({ source: layerSource });
       this._Map.addInteraction(modify);
       const draw = new Draw({
-        source: source,
+        source: layerSource,
         style: {
           'fill-color': 'rgba(255, 255, 255, 0.2)',
           'stroke-color': '#ffcc33',
@@ -2066,7 +2068,7 @@ export class MainView extends React.Component<IProps, IStates> {
         },
         type: drawGeometryType as Type // Type being a geometry type here
       });
-      const snap = new Snap({ source: source });
+      const snap = new Snap({ source: layerSource });
 
       this._Map.addInteraction(draw);
       this._Map.addInteraction(snap);
@@ -2075,6 +2077,27 @@ export class MainView extends React.Component<IProps, IStates> {
         ...old,
         drawGeometryType
       }));
+
+      draw.on('drawend', event => {
+        if (jGISLayerSource) {
+          const updatedData = {
+            type: 'FeatureCollection',
+            features: layerSource?.getFeatures()
+          };
+          const updatedJGISLayerSource: IJGISSource = {
+            name: jGISLayerSource.name,
+            type: jGISLayerSource.type,
+            parameters: {
+              data: updatedData
+            }
+          };
+          jGISLayerSource = updatedJGISLayerSource;
+          this._model.sharedModel.updateSource(
+            localStateLayerID,
+            updatedJGISLayerSource
+          );
+        }
+      });
     } else {
       return;
     }
