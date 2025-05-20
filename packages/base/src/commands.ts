@@ -945,19 +945,21 @@ export function addCommands(
       if (!selectedLayer) {
         return false;
       }
-
-      const canDrawVectorLayer = selectedSource.type === 'GeoJSONSource' && selectedSource.data;
-
-      if (
-        tracker.currentWidget instanceof JupyterGISDocumentWidget &&
-        canDrawVectorLayer
-      ) {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
         const model = tracker.currentWidget?.content.currentViewModel
           .jGISModel as IJupyterGISModel;
         const parameters = selectedLayer.parameters;
         if (parameters) {
-          const selectedvectorLayerSourceId = parameters?.source;
-          model.selectedVectorLayerSourceId = selectedvectorLayerSourceId;
+          const selectedSource = model.getSource(
+            selectedLayer.parameters?.source
+          );
+          const canDrawVectorLayer =
+            selectedSource?.type === 'GeoJSONSource' &&
+            selectedSource?.parameters?.data;
+          if (canDrawVectorLayer) {
+            const selectedvectorLayerSourceId = parameters.source;
+            model.selectedVectorLayerSourceId = selectedvectorLayerSourceId;
+          }
         }
 
         return model.isDrawVectorLayerEnabled;
