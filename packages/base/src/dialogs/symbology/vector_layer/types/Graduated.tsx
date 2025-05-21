@@ -14,7 +14,6 @@ import ValueSelect from '../components/ValueSelect';
 
 const Graduated = ({
   model,
-  state,
   okSignalPromise,
   cancel,
   layerId
@@ -28,14 +27,23 @@ const Graduated = ({
   ];
 
   const selectedValueRef = useRef<string>();
-  const selectedMethodRef = useRef<string>();
-  const stopRowsRef = useRef<IStopRow[]>();
+  const selectedMethodRef = useRef<Record<string, boolean>>({ color: true });
+  const stopRowsColorRef = useRef<IStopRow[]>();
+  const stopRowsRadiusRef = useRef<IStopRow[]>();
+
   const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
   const [selectedValue, setSelectedValue] = useState('');
-  const [selectedMethod, setSelectedMethod] = useState('color');
-  const [stopRows, setStopRows] = useState<IStopRow[]>([]);
-  const [methodOptions, setMethodOptions] = useState<string[]>(['color']);
+  const [enabledMethods, setEnabledMethods] = useState<Record<string, boolean>>(
+    {
+      color: true,
+      radius: false
+    }
+  );
+
+  const [stopRowsColor, setStopRowsColor] = useState<IStopRow[]>([]);
+  const [stopRowsRadius, setStopRowsRadius] = useState<IStopRow[]>([]);
+
   const [features, setFeatures] = useState<Record<string, Set<number>>>({});
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampOptions | undefined
@@ -54,21 +62,30 @@ const Graduated = ({
     model: model
   });
 
+  const toggleMethod = (method: keyof typeof enabledMethods) => {
+    setEnabledMethods(prev => ({
+      ...prev,
+      [method]: !prev[method]
+    }));
+  };
+
   useEffect(() => {
-    let stopOutputPairs: IStopRow[] = [];
     const layerParams = layer.parameters as IVectorLayer;
-    const method = layerParams.symbologyState?.method ?? 'color';
+    const methodObj = layerParams.symbologyState?.method ?? {
+      color: true,
+      radius: false
+    };
+    setEnabledMethods(methodObj);
 
-    if (method === 'color') {
-      stopOutputPairs = VectorUtils.buildColorInfo(layer);
+    if (methodObj.color) {
+      const colorStops = VectorUtils.buildColorInfo(layer);
+      setStopRowsColor(colorStops);
     }
 
-    if (method === 'radius') {
-      stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
+    if (methodObj.radius) {
+      const radiusStops = VectorUtils.buildRadiusInfo(layer);
+      setStopRowsRadius(radiusStops);
     }
-    updateStopRowsBasedOnMethod();
-
-    setStopRows(stopOutputPairs);
 
     okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk, this);
@@ -83,52 +100,58 @@ const Graduated = ({
 
   useEffect(() => {
     updateStopRowsBasedOnMethod();
-  }, [selectedMethod]);
+  }, [enabledMethods]);
 
   useEffect(() => {
     selectedValueRef.current = selectedValue;
-    selectedMethodRef.current = selectedMethod;
-    stopRowsRef.current = stopRows;
+    selectedMethodRef.current = enabledMethods;
+    stopRowsColorRef.current = stopRowsColor;
+    stopRowsRadiusRef.current = stopRowsRadius;
     colorRampOptionsRef.current = colorRampOptions;
-  }, [selectedValue, selectedMethod, stopRows, colorRampOptions]);
+  }, [
+    selectedValue,
+    enabledMethods,
+    stopRowsColor,
+    stopRowsRadius,
+    colorRampOptions
+  ]);
 
   useEffect(() => {
-    // Set up method options
-    if (layer?.parameters?.type === 'circle') {
-      const options = ['color', 'radius'];
-      setMethodOptions(options);
-    }
-
-    // We only want number values here
     const numericFeatures = getNumericFeatureAttributes(featureProperties);
-
     setFeatures(numericFeatures);
 
     const layerParams = layer.parameters as IVectorLayer;
     const value =
       layerParams.symbologyState?.value ?? Object.keys(numericFeatures)[0];
-    const method = layerParams.symbologyState?.method ?? 'color';
+    const method: Record<string, boolean> = layerParams.symbologyState
+      ?.method ?? { color: true, radius: false };
 
     setSelectedValue(value);
-    setSelectedMethod(method);
+    setEnabledMethods(method);
+
+    if (method.color) {
+      setStopRowsColor(VectorUtils.buildColorInfo(layer));
+    }
+
+    if (method.radius) {
+      setStopRowsRadius(VectorUtils.buildRadiusInfo(layer));
+    }
   }, [featureProperties]);
 
   const updateStopRowsBasedOnMethod = () => {
-    if (!layer) {
+    if (!layer || !enabledMethods) {
       return;
     }
 
-    let stopOutputPairs: IStopRow[] = [];
-
-    if (selectedMethod === 'color') {
-      stopOutputPairs = VectorUtils.buildColorInfo(layer);
+    if (enabledMethods.color) {
+      const colorStops = VectorUtils.buildColorInfo(layer);
+      setStopRowsColor(colorStops);
     }
 
-    if (selectedMethod === 'radius') {
-      stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
+    if (enabledMethods.radius) {
+      const radiusStops = VectorUtils.buildRadiusInfo(layer);
+      setStopRowsRadius(radiusStops);
     }
-
-    setStopRows(stopOutputPairs);
   };
 
   const handleOk = () => {
@@ -136,28 +159,38 @@ const Graduated = ({
       return;
     }
 
-    const colorExpr: ExpressionValue[] = [];
-    colorExpr.push('interpolate');
-    colorExpr.push(['linear']);
-    colorExpr.push(['get', selectedValueRef.current]);
-
-    stopRowsRef.current?.map(stop => {
-      colorExpr.push(stop.stop);
-      colorExpr.push(stop.output);
-    });
-
     const newStyle = { ...layer.parameters.color };
 
-    if (selectedMethodRef.current === 'color') {
+    if (selectedMethodRef.current.color) {
+      const colorExpr: ExpressionValue[] = [
+        'interpolate',
+        ['linear'],
+        ['get', selectedValueRef.current]
+      ];
+
+      stopRowsColorRef.current?.forEach(stop => {
+        colorExpr.push(stop.stop);
+        colorExpr.push(stop.output);
+      });
+
       newStyle['fill-color'] = colorExpr;
-
       newStyle['stroke-color'] = colorExpr;
-
       newStyle['circle-fill-color'] = colorExpr;
     }
 
-    if (selectedMethodRef.current === 'radius') {
-      newStyle['circle-radius'] = colorExpr;
+    if (selectedMethodRef.current.radius) {
+      const radiusExpr: ExpressionValue[] = [
+        'interpolate',
+        ['linear'],
+        ['get', selectedValueRef.current]
+      ];
+
+      stopRowsRadiusRef.current?.forEach(stop => {
+        radiusExpr.push(stop.stop);
+        radiusExpr.push(stop.output);
+      });
+
+      newStyle['circle-radius'] = radiusExpr;
     }
 
     const symbologyState = {
@@ -230,20 +263,23 @@ const Graduated = ({
         return;
     }
 
-    let stopOutputPairs = [];
-    if (selectedMethod === 'radius') {
+    // Generate stop-output pairs for the enabled methods
+    if (enabledMethods.radius) {
+      const radiusStops = [];
       for (let i = 0; i < +numberOfShades; i++) {
-        stopOutputPairs.push({ stop: stops[i], output: stops[i] });
+        radiusStops.push({ stop: stops[i], output: stops[i] });
       }
-    } else {
-      stopOutputPairs = Utils.getValueColorPairs(
+      setStopRowsRadius(radiusStops);
+    }
+
+    if (enabledMethods.color) {
+      const colorStops = Utils.getValueColorPairs(
         stops,
         selectedRamp,
         +numberOfShades
       );
+      setStopRowsColor(colorStops);
     }
-
-    setStopRows(stopOutputPairs);
   };
 
   return (
@@ -254,23 +290,22 @@ const Graduated = ({
         setSelectedValue={setSelectedValue}
       />
       <div className="jp-gis-symbology-row">
-        <label htmlFor={'vector-method-select'}>Method:</label>
-        <select
-          name={'vector-method-select'}
-          onChange={event => setSelectedMethod(event.target.value)}
-          className="jp-mod-styled"
-        >
-          {methodOptions.map((method, index) => (
-            <option
-              key={index}
-              value={method}
-              selected={method === selectedMethod}
-              className="jp-mod-styled"
-            >
-              {method}
-            </option>
-          ))}
-        </select>
+        <label>
+          <input
+            type="checkbox"
+            checked={enabledMethods.color}
+            onChange={() => toggleMethod('color')}
+          />
+          Color
+        </label>
+        <label style={{ marginLeft: '1rem' }}>
+          <input
+            type="checkbox"
+            checked={enabledMethods.radius}
+            onChange={() => toggleMethod('radius')}
+          />
+          Radius
+        </label>
       </div>
       <ColorRamp
         layerParams={layer.parameters}
@@ -278,11 +313,22 @@ const Graduated = ({
         classifyFunc={buildColorInfoFromClassification}
         showModeRow={true}
       />
-      <StopContainer
-        selectedMethod={selectedMethod}
-        stopRows={stopRows}
-        setStopRows={setStopRows}
-      />
+      <div style={{ display: 'flex', gap: '2rem' }}>
+        {enabledMethods.color && (
+          <StopContainer
+            selectedMethod="color"
+            stopRows={stopRowsColor}
+            setStopRows={setStopRowsColor}
+          />
+        )}
+        {enabledMethods.radius && (
+          <StopContainer
+            selectedMethod="radius"
+            stopRows={stopRowsRadius}
+            setStopRows={setStopRowsRadius}
+          />
+        )}
+      </div>
     </div>
   );
 };
