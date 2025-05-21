@@ -279,7 +279,7 @@ class GISDocument(CommWidget):
             if path.startswith("http://") or path.startswith("https://"):
                 response = requests.get(path)
                 response.raise_for_status()
-                parameters["data"] = response.json()
+                parameters["path"] = path
             else:
                 with open(path, "r") as fobj:
                     parameters["data"] = json.load(fobj)
