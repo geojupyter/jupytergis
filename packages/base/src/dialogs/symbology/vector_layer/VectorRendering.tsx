@@ -6,7 +6,10 @@ import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
 import { useGetProperties } from '../hooks/useGetProperties';
-import { getColorCodeFeatureAttributes, getNumericFeatureAttributes } from '../../../tools';
+import {
+  getColorCodeFeatureAttributes,
+  getNumericFeatureAttributes
+} from '../../../tools';
 
 const VectorRendering = ({
   model,
@@ -43,15 +46,17 @@ const VectorRendering = ({
     }
     setSelectedRenderType(renderType);
 
-    let vectorLayerOptions = [
-      'Single Symbol',
-      'Heatmap'
-    ]
-    if (getColorCodeFeatureAttributes(featureProperties)) {
-      vectorLayerOptions.push('Canonical')
+    const vectorLayerOptions = ['Single Symbol', 'Heatmap'];
+
+    if (
+      Object.keys(getColorCodeFeatureAttributes(featureProperties)).length > 0
+    ) {
+      vectorLayerOptions.push('Canonical');
     }
-    if (getNumericFeatureAttributes(featureProperties)) {
-      vectorLayerOptions.push('Graduated', 'Categorized')
+    if (
+      Object.keys(getNumericFeatureAttributes(featureProperties)).length > 0
+    ) {
+      vectorLayerOptions.push('Graduated', 'Categorized');
     }
 
     const options: Record<string, string[]> = {
@@ -60,7 +65,7 @@ const VectorRendering = ({
       HeatmapLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap']
     };
     setRenderTypeOptions(options[layer.type]);
-  }, []);
+  }, [featureProperties]);
 
   useEffect(() => {
     switch (selectedRenderType) {
