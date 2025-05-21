@@ -12,9 +12,11 @@ class ProxyHandler(APIHandler):
         url = self.get_argument("url")
         print(f"Proxy request received for: {url}")
         try:
-            response = requests.get(url)
+            # TODO: cnes ssl is invalid, this is a workaround
+            response = requests.get(url, verify=False)
             response.raise_for_status()
 
+            print("bet")
             self.set_header("Access-Control-Allow-Origin", "*")
             self.set_header(
                 "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"
@@ -26,8 +28,10 @@ class ProxyHandler(APIHandler):
 
             self.set_header("Content-Type", response.headers["Content-Type"])
 
-            self.finish(response.content)
+            print("response", response.content)
+            self.finish("response")
         except requests.exceptions.RequestException as e:
+            print("here")
             self.set_status(500)
             self.finish(str(e))
 
