@@ -855,6 +855,24 @@ export const stringToArrayBuffer = async (
   return await base64Response.arrayBuffer();
 };
 
+const getFeatureAttributes = <T>(
+  featureProperties: Record<string, Set<any>>,
+  predicate: (key: string, value: any) => boolean = (key: string, value) => true,
+): Record<string, Set<T>> => {
+  const filteredRecord: Record<string, Set<T>> = {};
+
+  for (const [key, set] of Object.entries(featureProperties)) {
+    const firstValue = set.values().next().value;
+    const isValid = predicate(key, firstValue);
+
+    if (isValid) {
+      filteredRecord[key] = set;
+    }
+  }
+
+  return filteredRecord;
+}
+
 /**
  * Get attributes of the feature which are numeric.
  *
@@ -863,27 +881,14 @@ export const stringToArrayBuffer = async (
  */
 export const getNumericFeatureAttributes = (
   featureProperties: Record<string, Set<any>>
-) => {
-  // We only want number values here
-  const filteredRecord: Record<string, Set<number>> = {};
-
-  for (const [key, set] of Object.entries(featureProperties)) {
-    const firstValue = set.values().next().value;
-
-    // Check if the first value is a string that cannot be parsed as a number
-    const isInvalidString =
-      typeof firstValue === 'string' && isNaN(Number(firstValue));
-
-    if (!isInvalidString) {
-      filteredRecord[key] = set;
+): Record<string, Set<number>> => {
+  return getFeatureAttributes<number>(
+    featureProperties,
+    (_: string, value) => {
+      return !(typeof value === 'string' && isNaN(Number(value)));
     }
-  }
-
-  return filteredRecord;
+  );
 };
-
-// TODO: Extract the outer logic of the getSomthingFeatureAttributes functions
-// to a generic function which accepts a tester function as an arg.
 
 /**
  * Get attributes of the feature which look like hex color codes.
@@ -894,22 +899,13 @@ export const getNumericFeatureAttributes = (
 export const getColorCodeFeatureAttributes = (
   featureProperties: Record<string, Set<any>>
 ): Record<string, Set<string>> => {
-  const filteredRecord: Record<string, Set<string>> = {};
-
-  for (const [key, set] of Object.entries(featureProperties)) {
-    const firstValue = set.values().next().value;
-
-    // Check if the first value is a string that can be parsed as a hex color code
-    const regex = new RegExp('^#[0-9a-f]{6}$')
-    const isHexCode =
-      typeof firstValue === 'string' && regex.test(firstValue)
-
-    if (isHexCode) {
-      filteredRecord[key] = set;
+  return getFeatureAttributes<string>(
+    featureProperties,
+    (_, value) => {
+      const regex = new RegExp('^#[0-9a-f]{6}$');
+      return (typeof value === 'string' && regex.test(value));
     }
-  }
-
-  return filteredRecord;
+  );
 };
 
 export function downloadFile(
