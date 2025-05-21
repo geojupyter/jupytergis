@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ISymbologyDialogProps } from '../symbologyDialog';
+import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
 import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
@@ -36,7 +37,7 @@ const VectorRendering = ({
     setSelectedRenderType(renderType);
 
     const options: Record<string, string[]> = {
-      VectorLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap'],
+      VectorLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Canonical', 'Heatmap'],
       VectorTileLayer: ['Single Symbol'],
       HeatmapLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap']
     };
@@ -70,6 +71,17 @@ const VectorRendering = ({
       case 'Categorized':
         RenderComponent = (
           <Categorized
+            model={model}
+            state={state}
+            okSignalPromise={okSignalPromise}
+            cancel={cancel}
+            layerId={layerId}
+          />
+        );
+        break;
+      case 'Canonical':
+        RenderComponent = (
+          <Canonical
             model={model}
             state={state}
             okSignalPromise={okSignalPromise}

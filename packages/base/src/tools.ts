@@ -855,6 +855,12 @@ export const stringToArrayBuffer = async (
   return await base64Response.arrayBuffer();
 };
 
+/**
+ * Get attributes of the feature which are numeric.
+ *
+ * @param featureProperties - Attributes of a feature.
+ * @returns - Attributes which are numeric.
+ */
 export const getNumericFeatureAttributes = (
   featureProperties: Record<string, Set<any>>
 ) => {
@@ -873,6 +879,36 @@ export const getNumericFeatureAttributes = (
     }
   }
 
+  return filteredRecord;
+};
+
+// TODO: Extract the outer logic of the getSomthingFeatureAttributes functions
+// to a generic function which accepts a tester function as an arg.
+
+/**
+ * Get attributes of the feature which look like hex color codes.
+ *
+ * @param featureProperties - Attributes of a feature.
+ * @returns - Attributes which look like hex color codes.
+ */
+export const getColorCodeFeatureAttributes = (
+  featureProperties: Record<string, Set<any>>
+): Record<string, Set<string>> => {
+  const filteredRecord: Record<string, Set<string>> = {};
+
+  for (const [key, set] of Object.entries(featureProperties)) {
+    const firstValue = set.values().next().value;
+
+    // Check if the first value is a string that can be parsed as a hex color code
+    const regex = new RegExp('^#[0-9a-f]{6}$')
+    const isHexCode =
+      typeof firstValue === 'string' && regex.test(firstValue)
+
+    if (isHexCode) {
+      filteredRecord[key] = set;
+    }
+  }
+  
   return filteredRecord;
 };
 
