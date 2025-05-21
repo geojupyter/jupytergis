@@ -272,15 +272,14 @@ class GISDocument(CommWidget):
         parameters = {}
 
         if path is not None:
-            # We cannot put the path to the file in the model
-            # We don't know where the kernel runs/live
-            # The front-end would have no way of finding the file reliably
-            # TODO Support urls to JSON files, in that case, don't embed the data
             if path.startswith("http://") or path.startswith("https://"):
                 response = requests.get(path)
                 response.raise_for_status()
                 parameters["path"] = path
             else:
+                # We cannot put the path to the file in the model
+                # We don't know where the kernel runs/live
+                # The front-end would have no way of finding the file reliably
                 with open(path, "r") as fobj:
                     parameters["data"] = json.load(fobj)
 
