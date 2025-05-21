@@ -106,3 +106,12 @@ export interface IStacItem {
   >;
   collection: string;
 }
+
+export interface IStacSearchResult {
+  context: { returned: number; limit: number; matched: number };
+  features: IStacItem[];
+  link: IStacLink[];
+  stac_extensions: string[];
+  stac_version: string;
+  type: 'FeatureCollection';
+}
