@@ -925,6 +925,7 @@ __metadata:
     eslint-plugin-prettier: ^5.0.1
     lerna: ^8.1.9
     npm-run-all: ^4.1.5
+    ol-stac: ^1.0.0-rc.10
     prettier: ^3.0.0
     rimraf: ^3.0.2
     typescript: ^5
@@ -2082,6 +2083,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@multiformats/base-x@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@multiformats/base-x@npm:4.0.1"
+  checksum: ecbf84bdd7613fd795e4a41f20f3e8cc7df8bbee84690b7feed383d45a638ed228a80ff6f5c930373cbf24539f64857b66023ee3c1e914f6bac9995c76414a87
+  languageName: node
+  linkType: hard
+
 "@naisutech/react-tree@npm:^3.0.1":
   version: 3.1.0
   resolution: "@naisutech/react-tree@npm:3.1.0"
@@ -2577,6 +2585,32 @@ __metadata:
   version: 0.2.7
   resolution: "@pkgr/core@npm:0.2.7"
   checksum: b16959878940f3d3016b79a4b2c23fd518aaec6b47295baa3154fbcf6574fee644c51023bb69069fa3ea9cdcaca40432818f54695f11acc0ae326cf56676e4d1
+  languageName: node
+  linkType: hard
+
+"@radiantearth/stac-migrate@npm:^2.0.1":
+  version: 2.0.2
+  resolution: "@radiantearth/stac-migrate@npm:2.0.2"
+  dependencies:
+    compare-versions: ^3.6.0
+    multihashes: ^3.1.2
+    yargs: ^17.6.2
+  bin:
+    stac-migrate: bin/cli.js
+  checksum: 136d11a1bf305fe7d86da8c5e4d37dd4c78906052df5f9477f495cbb586c0890a4266316eed06117d080229fd4c3aab9b5537f701b5d1886215f83167026561d
+  languageName: node
+  linkType: hard
+
+"@radiantearth/stac-migrate@npm:^2.0.1":
+  version: 2.0.2
+  resolution: "@radiantearth/stac-migrate@npm:2.0.2"
+  dependencies:
+    compare-versions: ^3.6.0
+    multihashes: ^3.1.2
+    yargs: ^17.6.2
+  bin:
+    stac-migrate: bin/cli.js
+  checksum: 136d11a1bf305fe7d86da8c5e4d37dd4c78906052df5f9477f495cbb586c0890a4266316eed06117d080229fd4c3aab9b5537f701b5d1886215f83167026561d
   languageName: node
   linkType: hard
 
@@ -3343,6 +3377,13 @@ __metadata:
   bin:
     js-yaml: bin/js-yaml.js
   checksum: fc53174afc1373c834ba56108e625bf5c98f430fb0a52d3da8e868156e21c2f6a7cd5e649d126db84bba6280bbc82d4f314457846aaf2107022d043100256dd7
+  languageName: node
+  linkType: hard
+
+"@zxing/text-encoding@npm:0.9.0":
+  version: 0.9.0
+  resolution: "@zxing/text-encoding@npm:0.9.0"
+  checksum: c23b12aee7639382e4949961304a1294776afaffa40f579e09ffecd0e5e68cf26ef3edd75009de46da8a536e571448755ca68b3e2ea707d53793c0edb2e2c34a
   languageName: node
   linkType: hard
 
@@ -4257,6 +4298,13 @@ __metadata:
     array-ify: ^1.0.0
     dot-prop: ^5.1.0
   checksum: fb71d70632baa1e93283cf9d80f30ac97f003aabee026e0b4426c9716678079ef5fea7519b84d012cbed938c476493866a38a79760564a9e21ae9433e40e6f0d
+  languageName: node
+  linkType: hard
+
+"compare-versions@npm:^3.6.0":
+  version: 3.6.0
+  resolution: "compare-versions@npm:3.6.0"
+  checksum: 7492a50cdaa2c27f5254eee7c4b38856e1c164991bab3d98d7fd067fe4b570d47123ecb92523b78338be86aa221668fd3868bfe8caa5587dc3ebbe1a03d52b5d
   languageName: node
   linkType: hard
 
@@ -8036,6 +8084,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"multibase@npm:^3.1.0":
+  version: 3.1.2
+  resolution: "multibase@npm:3.1.2"
+  dependencies:
+    "@multiformats/base-x": ^4.0.1
+    web-encoding: ^1.0.6
+  checksum: 90d820626f3921980ae1c15ca7d079433f8e6b3ed365684b0a1e5160d72f6349e59d551112065d9dc1c939e551b399cd94a036748e040e0e35fbad1e671a0579
+  languageName: node
+  linkType: hard
+
+"multiformats@npm:^9.4.2":
+  version: 9.9.0
+  resolution: "multiformats@npm:9.9.0"
+  checksum: d3e8c1be400c09a014f557ea02251a2710dbc9fca5aa32cc702ff29f636c5471e17979f30bdcb0a9cbb556f162a8591dc2e1219c24fc21394a56115b820bb84e
+  languageName: node
+  linkType: hard
+
+"multihashes@npm:^3.1.2":
+  version: 3.1.2
+  resolution: "multihashes@npm:3.1.2"
+  dependencies:
+    multibase: ^3.1.0
+    uint8arrays: ^2.0.5
+    varint: ^6.0.0
+  checksum: b6a52555580d190b63bd4133b75e0ddeb84b9318c5b54c5943c69fd26843223aedaea4311d25f470d7c6335fd47eca14f66350ca703d2cde29cffaea976f424a
+  languageName: node
+  linkType: hard
+
 "multimatch@npm:5.0.0":
   version: 5.0.0
   resolution: "multimatch@npm:5.0.0"
@@ -8513,6 +8589,29 @@ __metadata:
   peerDependencies:
     ol: ">=9.0.0"
   checksum: 5ba9eaeaf4ebe463eb2b6b3caf9929e9be398a80bde409fe9efb01767e2008874b5605a997d2f3d6222e739d85efd5f6ca455447be5426159dcea74be9fea59e
+  languageName: node
+  linkType: hard
+
+"ol-pmtiles@npm:~0.2.0":
+  version: 0.2.0
+  resolution: "ol-pmtiles@npm:0.2.0"
+  dependencies:
+    pmtiles: ^2.10.0
+  peerDependencies:
+    ol: ">=7.3.0"
+  checksum: ea62268d6ef918ccdff56bcf96438cbe15acbf7caa33592399dcbbd8f329f53335e2a18e3610331265a39f02de881768c4ceb4bd7581ab005f908c2eeadad0f1
+  languageName: node
+  linkType: hard
+
+"ol-stac@npm:^1.0.0-rc.10":
+  version: 1.0.0-rc.10
+  resolution: "ol-stac@npm:1.0.0-rc.10"
+  dependencies:
+    ol-pmtiles: ~0.2.0
+    stac-js: ~0.1.4
+  peerDependencies:
+    ol: "*"
+  checksum: d9e41db57ea91bf2d5111f2b5d9de57fcc2c988402dd888dde79debfffaa16db9c75496e51962d6bfe04c7013a00aff7ace597b950ad1a794567312bcbb55474
   languageName: node
   linkType: hard
 
@@ -9021,6 +9120,15 @@ __metadata:
   dependencies:
     find-up: ^4.0.0
   checksum: 9863e3f35132bf99ae1636d31ff1e1e3501251d480336edb1c211133c8d58906bed80f154a1d723652df1fda91e01c7442c2eeaf9dc83157c7ae89087e43c8d6
+  languageName: node
+  linkType: hard
+
+"pmtiles@npm:^2.10.0":
+  version: 2.11.0
+  resolution: "pmtiles@npm:2.11.0"
+  dependencies:
+    fflate: ^0.8.0
+  checksum: 5f3f39605a963c3aa79e02a83b4080a0f9a60f19dde2bcce23daef00dc30cbd8bdbde0b66f4cf93a960d9341f37779c97400f9b97d6cfd79b0671f5ba4f92700
   languageName: node
   linkType: hard
 
@@ -10236,13 +10344,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stop-iteration-iterator@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "stop-iteration-iterator@npm:1.1.0"
+"stac-js@npm:~0.1.4":
+  version: 0.1.4
+  resolution: "stac-js@npm:0.1.4"
   dependencies:
-    es-errors: ^1.3.0
-    internal-slot: ^1.1.0
-  checksum: be944489d8829fb3bdec1a1cc4a2142c6b6eb317305eeace1ece978d286d6997778afa1ae8cb3bd70e2b274b9aa8c69f93febb1e15b94b1359b11058f9d3c3a1
+    "@radiantearth/stac-migrate": ^2.0.1
+    urijs: ^1.19.11
+  checksum: f4adc0aa4fd9b894a999264db2e5cf93c461495f24c026004e7fa27af8cbd88ae5a7beeaea24003fb73558c5ed3a301ea3ae1f95abb0698e2603fa8ee528b29b
   languageName: node
   linkType: hard
 
@@ -10959,6 +11067,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uint8arrays@npm:^2.0.5":
+  version: 2.1.10
+  resolution: "uint8arrays@npm:2.1.10"
+  dependencies:
+    multiformats: ^9.4.2
+  checksum: 63ceb5fecc09de69641531c847e0b435d15a73587e40d4db23ed9b8a1ebbe839ae39fe81a15ea6079cdf642fcf2583983f9a5d32726edc4bc5e87634f34e3bd5
+  languageName: node
+  linkType: hard
+
 "unbox-primitive@npm:^1.1.0":
   version: 1.1.0
   resolution: "unbox-primitive@npm:1.1.0"
@@ -11047,6 +11164,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"urijs@npm:^1.19.11":
+  version: 1.19.11
+  resolution: "urijs@npm:1.19.11"
+  checksum: f9b95004560754d30fd7dbee44b47414d662dc9863f1cf5632a7c7983648df11d23c0be73b9b4f9554463b61d5b0a520b70df9e1ee963ebb4af02e6da2cc80f3
+  languageName: node
+  linkType: hard
+
 "url-parse@npm:~1.5.4":
   version: 1.5.10
   resolution: "url-parse@npm:1.5.10"
@@ -11064,7 +11188,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"util@npm:^0.12.5":
+"util@npm:^0.12.3, util@npm:^0.12.5":
   version: 0.12.5
   resolution: "util@npm:0.12.5"
   dependencies:
@@ -11161,6 +11285,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"varint@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "varint@npm:6.0.0"
+  checksum: 7684113c9d497c01e40396e50169c502eb2176203219b96e1c5ac965a3e15b4892bd22b7e48d87148e10fffe638130516b6dbeedd0efde2b2d0395aa1772eea7
+  languageName: node
+  linkType: hard
+
 "vscode-jsonrpc@npm:8.2.0":
   version: 8.2.0
   resolution: "vscode-jsonrpc@npm:8.2.0"
@@ -11238,6 +11369,19 @@ __metadata:
   dependencies:
     defaults: ^1.0.3
   checksum: 814e9d1ddcc9798f7377ffa448a5a3892232b9275ebb30a41b529607691c0491de47cba426e917a4d08ded3ee7e9ba2f3fe32e62ee3cd9c7d3bafb7754bd553c
+  languageName: node
+  linkType: hard
+
+"web-encoding@npm:^1.0.6":
+  version: 1.1.5
+  resolution: "web-encoding@npm:1.1.5"
+  dependencies:
+    "@zxing/text-encoding": 0.9.0
+    util: ^0.12.3
+  dependenciesMeta:
+    "@zxing/text-encoding":
+      optional: true
+  checksum: 2234a2b122f41006ce07859b3c0bf2e18f46144fda2907d5db0b571b76aa5c26977c646100ad9c00d2f8a4f6f2b848bc02147845d8c447ab365ec4eff376338d
   languageName: node
   linkType: hard
 

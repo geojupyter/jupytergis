@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
-import { IStacSearchResult } from './types';
+import { IStacItem, IStacSearchResult } from './types';
 
 // Map collection names to the fetch body for the query
 const collections = {
@@ -29,7 +31,7 @@ const collections = {
 //   }>;
 // }
 
-const url = 'https://geodes-portal.cnes.fr/api/stac/collections';
+// const url = 'https://geodes-portal.cnes.fr/api/stac/collections';
 
 // async function fetchWithCorsProxy(): Promise<any> {
 //   const proxyUrl = 'https://corsproxy.io';
@@ -59,34 +61,44 @@ const url = 'https://geodes-portal.cnes.fr/api/stac/collections';
 //   return rj.json();
 // }
 
-interface IFd {
+// ? Do we even want this? Could just save the whole return instead
+interface IFeatureData {
   id: string;
   title: string;
   image: string;
 }
 
-const StacBrowser = () => {
+interface IStacBrowserDialogProps {
+  model: IJupyterGISModel;
+  // registry: IRasterLayerGalleryEntry[];
+  // formSchemaRegistry: IJGISFormSchemaRegistry;
+  // okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
+  // cancel: () => void;
+}
+
+const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] =
     useState<HTMLElement | null>();
   const handleSearchInput = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value.toLowerCase());
   };
-  const [displayInfo, setDisplayInfo] = useState<IFd[]>();
+  const [displayInfo, setDisplayInfo] = useState<IStacItem[]>();
 
+  const fetchBody = {
+    limit: 12,
+    query: {
+      dataset: {
+        in: ['PEPS_S2_L1C'] // Sentinel 2
+      }
+    }
+  };
   useEffect(() => {
     console.log('selectedCategory', selectedCategory);
 
     switch (selectedCategory?.innerText) {
       case 'Sentinel 1':
-        plainFetchWithOptions({
-          limit: 12,
-          query: {
-            dataset: {
-              in: ['PEPS_S2_L1C'] // Sentinel 2
-            }
-          }
-        });
+        mockProxyFetch(fetchBody);
         break;
       default:
         console.log('switch default');
@@ -94,28 +106,85 @@ const StacBrowser = () => {
     }
   }, [selectedCategory]);
 
-  // ! LOOK HERE DUMBASS
-  async function plainFetch() {
-    const response = await fetch(url);
-    // console.log('plain response', response);
-    const rj = await response.json();
-    console.log('rj', rj);
-    console.log('type', typeof rj.collections); // its an object
+  // async function plainFetch() {
+  //   // const response = await fetch(url);
+  //   // // console.log('plain response', response);
+  //   // const rj = await response.json();
+  //   // console.log('rj', rj);
+  //   // console.log('type', typeof rj.collections); // its an object
+
+  //   // try {
+  //   //   const zero = rj.collections[0];
+
+  //   //   console.log('zero', zero);
+  //   //   console.log('rj', rj);
+  //   // } catch (error) {
+  //   //   console.log('error array', error);
+  //   // }
+
+  //   // return rj;
+
+  //   const sdsd = await fetchWithProxies(url, async response => response, null);
+
+  //   console.log('sdsd', sdsd?.json());
+  // }
+
+  const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
+  async function mockProxyFetch(options: { [key: string]: any }) {
+    const searchParams = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(options)
+    };
+
+    const proxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(apiUrl)}`;
 
     try {
-      const zero = rj.collections[0];
+      const response = await fetch(proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(searchParams)
+      });
 
-      console.log('zero', zero);
-      console.log('rj', rj);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = (await response.json()) as IStacSearchResult;
+      console.log('data', data);
+
+      const dd = data.features.map(feature => {
+        const fd: IFeatureData = { id: '', title: '', image: '' };
+
+        // each feature has assets
+        for (const key in feature.assets) {
+          // Assets have the preview jpeg
+          const element = feature.assets[key];
+          if (element.type === 'image/jpeg') {
+            fd.image = element.href;
+          }
+        }
+
+        fd.id = feature.id;
+        fd.title = feature.collection;
+
+        return fd;
+      });
+
+      console.log('data', data);
+      console.log('dd', dd);
+
+      setDisplayInfo(data.features);
     } catch (error) {
-      console.log('error array', error);
+      console.error('Error fetching data:', error);
     }
-
-    return rj;
   }
 
-  async function plainFetchWithOptions(options: { [key: string]: any }) {
-    const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
+  const backupFetch = async (options: { [key: string]: any }) => {
     const searchParams = {
       method: 'POST',
       headers: {
@@ -138,31 +207,56 @@ const StacBrowser = () => {
       }
 
       const data = (await response.json()) as IStacSearchResult;
+
+      // const dd = data.features.map(feature => {
+      //   const fd: IFeatureData = { id: '', title: '', image: '' };
+
+      //   // each feature has assets
+      //   for (const key in feature.assets) {
+      //     // Assets have the preview jpeg
+      //     const element = feature.assets[key];
+      //     if (element.type === 'image/jpeg') {
+      //       fd.image = element.href;
+      //     }
+      //   }
+
+      //   fd.id = feature.id;
+      //   fd.title = feature.collection;
+
+      //   return fd;
+      // });
+
       console.log('data', data);
 
-      const dd = data.features.map(feature => {
-        const fd: IFd = { id: '', title: '', image: '' };
-
-        // each feature has assets
-        for (const key in feature.assets) {
-          // Assets have the preview jpeg
-          const element = feature.assets[key];
-          if (element.type === 'image/jpeg') {
-            fd.image = element.href;
-          }
-        }
-
-        fd.id = feature.id;
-        fd.title = feature.collection;
-
-        return fd;
-      });
-
-      setDisplayInfo(dd);
+      setDisplayInfo(data.features);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  }
+  };
+
+  const handleClick = async () => {
+    if (!displayInfo) {
+      return;
+    }
+
+    const layerId = UUID.uuid4();
+    console.log('layerId', layerId);
+
+    const newLayer = displayInfo[1];
+    let boop;
+
+    console.log('newLayer', newLayer);
+    const layerModel: IJGISLayer = {
+      type: 'StacLayer',
+      parameters: {
+        data: newLayer
+      },
+      visible: true,
+      name: 'STAC Layer'
+    };
+
+    model.addLayer(layerId, layerModel);
+  };
 
   //? lol this sucks?
   const handleCategoryClick = (event: MouseEvent<HTMLSpanElement>) => {
@@ -182,7 +276,6 @@ const StacBrowser = () => {
         <div className="jGIS-layer-browser-header">
           <h2 className="jGIS-layer-browser-header-text">STAC Browser</h2>
           <div className="jGIS-layer-browser-header-search-container">
-            {' '}
             <input
               type="text"
               placeholder="Search..."
@@ -192,6 +285,7 @@ const StacBrowser = () => {
             />
           </div>
         </div>
+        <button onClick={() => backupFetch(fetchBody)}>sdsd</button>
         <div className="jGIS-layer-browser-categories">
           {Object.entries(collections).map(([key, value]) => (
             <span
@@ -204,18 +298,18 @@ const StacBrowser = () => {
         </div>
       </div>
       <div className="jGIS-layer-browser-grid">
-        {/* <button onClick={plainFetch}>plain</button>
-        <button onClick={plainFetchWithOptions}>options</button> */}
-
         {displayInfo?.map(collection => (
-          <div className="jGIS-layer-browser-tile">
+          <div className="jGIS-layer-browser-tile" onClick={handleClick}>
             <div className="jGIS-layer-browser-tile-img-container">
-              <img className="jGIS-layer-browser-img" src={collection.image} />
+              <img
+                className="jGIS-layer-browser-img"
+                src={Object.values(collection.assets).at(-1)?.href}
+              />
             </div>
             <div className="jGIS-layer-browser-text-container">
               <div className="jGIS-layer-browser-text-info">
                 <h3 className="jGIS-layer-browser-text-header jGIS-layer-browser-text-general">
-                  {collection.title}
+                  {Object.values(collection.assets).at(-1)?.title}
                 </h3>
               </div>
             </div>
