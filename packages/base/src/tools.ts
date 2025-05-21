@@ -908,7 +908,7 @@ export const getColorCodeFeatureAttributes = (
       filteredRecord[key] = set;
     }
   }
-  
+
   return filteredRecord;
 };
 

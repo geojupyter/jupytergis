@@ -43,7 +43,7 @@ const Canonical = ({
   }, [selectedValue]);
 
   useEffect(() => {
-    // Filter for hex color code attributes 
+    // Filter for hex color code attributes
     const hexAttributes = getColorCodeFeatureAttributes(featureProperties);
 
     setAttributes(hexAttributes);
