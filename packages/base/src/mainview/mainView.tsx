@@ -22,6 +22,7 @@ import {
   IRasterLayer,
   IRasterSource,
   IShapefileSource,
+  IStacLayer,
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
@@ -38,11 +39,13 @@ import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
+import StacLayer from 'ol-stac';
 import Feature, { FeatureLike } from 'ol/Feature';
 import { ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { GeoJSON, MVT } from 'ol/format';
+import { Geometry, Point } from 'ol/geom';
 import { DragAndDrop, Select } from 'ol/interaction';
 import {
   Heatmap as HeatmapLayer,
@@ -52,6 +55,7 @@ import {
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer
 } from 'ol/layer';
+import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
 import {
   fromLonLat,
@@ -85,7 +89,6 @@ import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
-import { Geometry, Point } from 'ol/geom';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -826,18 +829,18 @@ export class MainView extends React.Component<IProps, IStates> {
   private async _buildMapLayer(
     id: string,
     layer: IJGISLayer
-  ): Promise<Layer | undefined> {
+  ): Promise<Layer | LayerGroup | undefined> {
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getLayerSource(sourceId);
-    if (!source) {
-      return;
-    }
+    if (source) {
+      // return;
+      // TODO I CHANGED THIS A LOT DOUBLE CHECK
+      this.setState(old => ({ ...old, loadingLayer: true }));
+      this._loadingLayers.add(id);
 
-    this.setState(old => ({ ...old, loadingLayer: true }));
-    this._loadingLayers.add(id);
-
-    if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source);
+      if (!this._sources[sourceId]) {
+        await this.addSource(sourceId, source);
+      }
     }
 
     this._loadingLayers.add(id);
@@ -932,6 +935,27 @@ export class MainView extends React.Component<IProps, IStates> {
         });
         break;
       }
+      case 'StacLayer': {
+        layerParameters = layer.parameters as IStacLayer;
+
+        console.log('layerParameters.data', layerParameters.data);
+
+        const p = typeof Object.entries(layerParameters.data.assets);
+
+        console.log('p', p);
+        newMapLayer = new StacLayer({
+          displayPreview: true,
+          data: layerParameters.data,
+          opacity: 1,
+          visible: true,
+          assets: Object.entries(layerParameters.data.assets),
+          extent: layerParameters.data.bbox
+        });
+
+        console.log('newMapLayer', newMapLayer);
+
+        break;
+      }
     }
 
     await this._waitForSourceReady(newMapLayer);
@@ -940,9 +964,12 @@ export class MainView extends React.Component<IProps, IStates> {
     newMapLayer.set('id', id);
 
     // we need to keep track of which source has which layers
-    this._sourceToLayerMap.set(layerParameters.source, id);
+    // this._sourceToLayerMap.set(layerParameters.source, id);
 
-    this.addProjection(newMapLayer);
+    if (!(layer.type === 'StacLayer')) {
+      //@ts-expect-error wip
+      this.addProjection(newMapLayer);
+    }
 
     this._loadingLayers.delete(id);
 
@@ -1219,6 +1246,9 @@ export class MainView extends React.Component<IProps, IStates> {
 
         break;
       }
+      case 'StacLayer':
+        console.log('stac layer update');
+        break;
     }
   }
 
@@ -1401,7 +1431,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * Wait for a layers source state to be 'ready'
    * @param layer The Layer to check
    */
-  private _waitForSourceReady(layer: Layer) {
+  private _waitForSourceReady(layer: Layer | LayerGroup) {
     return new Promise<void>((resolve, reject) => {
       const checkState = () => {
         const state = layer.getSourceState();
@@ -1698,9 +1728,10 @@ export class MainView extends React.Component<IProps, IStates> {
       const mapLayer = this.getLayer(id);
       const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
 
-      if (!mapLayer) {
-        return;
-      }
+      // ! this is where i stopped on the 21st
+      // if (!mapLayer) {
+      //   return;
+      // }
 
       if (layerTree.includes(id)) {
         this.updateLayer(id, newLayer, mapLayer, oldLayer);

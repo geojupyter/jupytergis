@@ -2,9 +2,9 @@ import Protobuf from 'pbf';
 
 import { VectorTile } from '@mapbox/vector-tile';
 
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
-import { showErrorMessage } from '@jupyterlab/apputils';
 import * as d3Color from 'd3-color';
 import shp from 'shpjs';
 import { getGdal } from './gdal';
@@ -389,17 +389,19 @@ export const getFromIndexedDB = async (key: string) => {
   });
 };
 
-const fetchWithProxies = async <T>(
+export const fetchWithProxies = async <T>(
   url: string,
-  model: IJupyterGISModel,
-  parseResponse: (response: Response) => Promise<T>
+  parseResponse: (response: Response) => Promise<T>,
+  model: IJupyterGISModel | null
 ): Promise<T | null> => {
   let settings: any = null;
 
-  try {
-    settings = await model.getSettings();
-  } catch (e) {
-    console.warn('Failed to get settings from model. Falling back.', e);
+  if (model) {
+    try {
+      settings = model.getSettings();
+    } catch (e) {
+      console.warn('Failed to get settings from model. Falling back.', e);
+    }
   }
 
   const proxyUrl =
@@ -420,6 +422,7 @@ const fetchWithProxies = async <T>(
         );
         continue;
       }
+      console.log('response', response);
       return await parseResponse(response);
     } catch (error) {
       console.warn(`Error fetching from ${proxyUrl}:`, error);
@@ -462,8 +465,10 @@ export const loadGeoTiff = async (
   let fileBlob: Blob | null = null;
 
   if (!file) {
-    fileBlob = await fetchWithProxies(url, model, async response =>
-      response.blob()
+    fileBlob = await fetchWithProxies(
+      url,
+      async response => response.blob(),
+      model
     );
     if (!fileBlob) {
       showErrorMessage('Network error', `Failed to fetch ${url}`);
@@ -533,11 +538,12 @@ export const loadFile = async (fileInfo: {
 
         const geojson = await fetchWithProxies(
           filepath,
-          model,
+
           async response => {
             const arrayBuffer = await response.arrayBuffer();
             return shp(arrayBuffer);
-          }
+          },
+          model
         );
 
         if (geojson) {
@@ -557,8 +563,9 @@ export const loadFile = async (fileInfo: {
 
         const geojson = await fetchWithProxies(
           filepath,
-          model,
-          async response => response.json()
+
+          async response => response.json(),
+          model
         );
 
         if (geojson) {
