@@ -289,31 +289,36 @@ const Graduated = ({
         selectedValue={selectedValue}
         setSelectedValue={setSelectedValue}
       />
-      <div className="jp-gis-symbology-row">
+
+      <div className="jp-gis-symbology-checkboxes">
         <label>
           <input
             type="checkbox"
             checked={enabledMethods.color}
             onChange={() => toggleMethod('color')}
+            className="jp-gis-checkbox"
           />
           Color
         </label>
-        <label style={{ marginLeft: '1rem' }}>
+        <label>
           <input
             type="checkbox"
             checked={enabledMethods.radius}
             onChange={() => toggleMethod('radius')}
+            className="jp-gis-checkbox"
           />
           Radius
         </label>
       </div>
+
       <ColorRamp
         layerParams={layer.parameters}
         modeOptions={modeOptions}
         classifyFunc={buildColorInfoFromClassification}
         showModeRow={true}
       />
-      <div style={{ display: 'flex', gap: '2rem' }}>
+
+      <div className="jp-gis-stop-container-wrapper">
         {enabledMethods.color && (
           <StopContainer
             selectedMethod="color"
