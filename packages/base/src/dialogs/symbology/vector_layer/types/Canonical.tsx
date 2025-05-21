@@ -65,14 +65,14 @@ const Canonical = ({
     }
 
     const colorExpr: ExpressionValue[] = ['get', selectedValue];
-    const newStyle = {...layer.parameters.color};
+    const newStyle = { ...layer.parameters.color };
     newStyle['fill-color'] = colorExpr;
     newStyle['stroke-color'] = colorExpr;
     newStyle['circle-fill-color'] = colorExpr;
 
     const symbologyState = {
       renderType: 'Canonical',
-      value: selectedValueRef.current,
+      value: selectedValueRef.current
     };
 
     layer.parameters.symbologyState = symbologyState;

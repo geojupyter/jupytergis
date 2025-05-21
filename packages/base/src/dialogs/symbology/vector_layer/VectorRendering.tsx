@@ -37,7 +37,13 @@ const VectorRendering = ({
     setSelectedRenderType(renderType);
 
     const options: Record<string, string[]> = {
-      VectorLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Canonical', 'Heatmap'],
+      VectorLayer: [
+        'Single Symbol',
+        'Graduated',
+        'Categorized',
+        'Canonical',
+        'Heatmap'
+      ],
       VectorTileLayer: ['Single Symbol'],
       HeatmapLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap']
     };

@@ -857,7 +857,7 @@ export const stringToArrayBuffer = async (
 
 const getFeatureAttributes = <T>(
   featureProperties: Record<string, Set<any>>,
-  predicate: (key: string, value: any) => boolean = (key: string, value) => true,
+  predicate: (key: string, value: any) => boolean = (key: string, value) => true
 ): Record<string, Set<T>> => {
   const filteredRecord: Record<string, Set<T>> = {};
 
@@ -871,7 +871,7 @@ const getFeatureAttributes = <T>(
   }
 
   return filteredRecord;
-}
+};
 
 /**
  * Get attributes of the feature which are numeric.
@@ -882,12 +882,9 @@ const getFeatureAttributes = <T>(
 export const getNumericFeatureAttributes = (
   featureProperties: Record<string, Set<any>>
 ): Record<string, Set<number>> => {
-  return getFeatureAttributes<number>(
-    featureProperties,
-    (_: string, value) => {
-      return !(typeof value === 'string' && isNaN(Number(value)));
-    }
-  );
+  return getFeatureAttributes<number>(featureProperties, (_: string, value) => {
+    return !(typeof value === 'string' && isNaN(Number(value)));
+  });
 };
 
 /**
@@ -899,13 +896,10 @@ export const getNumericFeatureAttributes = (
 export const getColorCodeFeatureAttributes = (
   featureProperties: Record<string, Set<any>>
 ): Record<string, Set<string>> => {
-  return getFeatureAttributes<string>(
-    featureProperties,
-    (_, value) => {
-      const regex = new RegExp('^#[0-9a-f]{6}$');
-      return (typeof value === 'string' && regex.test(value));
-    }
-  );
+  return getFeatureAttributes<string>(featureProperties, (_, value) => {
+    const regex = new RegExp('^#[0-9a-f]{6}$');
+    return typeof value === 'string' && regex.test(value);
+  });
 };
 
 export function downloadFile(
