@@ -155,7 +155,7 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
       }
 
       const data = (await response.json()) as IStacSearchResult;
-      console.log('data', data);
+      console.log('sb data', data);
 
       const dd = data.features.map(feature => {
         const fd: IFeatureData = { id: '', title: '', image: '' };
@@ -175,8 +175,7 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
         return fd;
       });
 
-      console.log('data', data);
-      console.log('dd', dd);
+      console.log('sb data', data);
 
       setDisplayInfo(data.features);
     } catch (error) {
@@ -234,7 +233,7 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
     }
   };
 
-  const handleClick = async () => {
+  const handleClick = async (id: string) => {
     if (!displayInfo) {
       return;
     }
@@ -242,14 +241,13 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
     const layerId = UUID.uuid4();
     console.log('layerId', layerId);
 
-    const newLayer = displayInfo[1];
-    let boop;
+    const stacData = displayInfo.find(item => item.id === id);
 
-    console.log('newLayer', newLayer);
+    console.log('newLayer', stacData);
     const layerModel: IJGISLayer = {
       type: 'StacLayer',
       parameters: {
-        data: newLayer
+        data: stacData
       },
       visible: true,
       name: 'STAC Layer'
@@ -299,7 +297,10 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
       </div>
       <div className="jGIS-layer-browser-grid">
         {displayInfo?.map(collection => (
-          <div className="jGIS-layer-browser-tile" onClick={handleClick}>
+          <div
+            className="jGIS-layer-browser-tile"
+            onClick={() => handleClick(collection.id)}
+          >
             <div className="jGIS-layer-browser-tile-img-container">
               <img
                 className="jGIS-layer-browser-img"
