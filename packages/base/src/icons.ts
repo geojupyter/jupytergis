@@ -23,6 +23,7 @@ import terminalToolbarSvgStr from '../style/icons/terminal_toolbar.svg';
 import geolocationSvgStr from '../style/icons/geolocation.svg';
 import targetWithoutCenterSvgStr from '../style/icons/target_without_center.svg';
 import targetWithCenterSvgStr from '../style/icons/target_with_center.svg';
+import geoPackageSvgStr from '../style/icons/geopackage.svg';
 
 export const logoIcon = new LabIcon({
   name: 'jupytergis::logo',
@@ -107,4 +108,9 @@ export const targetWithoutCenterIcon = new LabIcon({
 export const targetWithCenterIcon = new LabIcon({
   name: 'jupytergis::targetWithoutCenter',
   svgstr: targetWithoutCenterSvgStr
+});
+
+export const geoPackageIcon = new LabIcon({
+  name: 'jupytergis::geoPackage',
+  svgstr: geoPackageSvgStr
 });

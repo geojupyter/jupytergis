@@ -25,6 +25,11 @@ import { JupyterGISExternalCommandRegistry } from './externalcommand';
 import { JupyterGISLayerBrowserRegistry } from './layerBrowserRegistry';
 import { JupyterGISFormSchemaRegistry } from './schemaregistry';
 
+import { SqljsAdapter } from '@ngageoint/geopackage';
+import wasmURL from 'rtree-sql.js/dist/sql-wasm.wasm';
+
+SqljsAdapter.setSqljsWasmLocateFile(() => wasmURL);
+
 const NAME_SPACE = 'jupytergis';
 
 export const trackerPlugin: JupyterFrontEndPlugin<IJupyterGISTracker> = {
