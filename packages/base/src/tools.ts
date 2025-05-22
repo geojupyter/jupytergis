@@ -855,25 +855,51 @@ export const stringToArrayBuffer = async (
   return await base64Response.arrayBuffer();
 };
 
-export const getNumericFeatureAttributes = (
-  featureProperties: Record<string, Set<any>>
-) => {
-  // We only want number values here
-  const filteredRecord: Record<string, Set<number>> = {};
+const getFeatureAttributes = <T>(
+  featureProperties: Record<string, Set<any>>,
+  predicate: (key: string, value: any) => boolean = (key: string, value) => true
+): Record<string, Set<T>> => {
+  const filteredRecord: Record<string, Set<T>> = {};
 
   for (const [key, set] of Object.entries(featureProperties)) {
     const firstValue = set.values().next().value;
+    const isValid = predicate(key, firstValue);
 
-    // Check if the first value is a string that cannot be parsed as a number
-    const isInvalidString =
-      typeof firstValue === 'string' && isNaN(Number(firstValue));
-
-    if (!isInvalidString) {
+    if (isValid) {
       filteredRecord[key] = set;
     }
   }
 
   return filteredRecord;
+};
+
+/**
+ * Get attributes of the feature which are numeric.
+ *
+ * @param featureProperties - Attributes of a feature.
+ * @returns - Attributes which are numeric.
+ */
+export const getNumericFeatureAttributes = (
+  featureProperties: Record<string, Set<any>>
+): Record<string, Set<number>> => {
+  return getFeatureAttributes<number>(featureProperties, (_: string, value) => {
+    return !(typeof value === 'string' && isNaN(Number(value)));
+  });
+};
+
+/**
+ * Get attributes of the feature which look like hex color codes.
+ *
+ * @param featureProperties - Attributes of a feature.
+ * @returns - Attributes which look like hex color codes.
+ */
+export const getColorCodeFeatureAttributes = (
+  featureProperties: Record<string, Set<any>>
+): Record<string, Set<string>> => {
+  return getFeatureAttributes<string>(featureProperties, (_, value) => {
+    const regex = new RegExp('^#[0-9a-f]{6}$');
+    return typeof value === 'string' && regex.test(value);
+  });
 };
 
 export function downloadFile(

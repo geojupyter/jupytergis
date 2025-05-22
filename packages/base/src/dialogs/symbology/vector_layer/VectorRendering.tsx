@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { ISymbologyDialogProps } from '../symbologyDialog';
+import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
 import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
+import { useGetProperties } from '../hooks/useGetProperties';
+import {
+  getColorCodeFeatureAttributes,
+  getNumericFeatureAttributes
+} from '../../../tools';
 
 const VectorRendering = ({
   model,
@@ -28,6 +34,11 @@ const VectorRendering = ({
     return;
   }
 
+  const { featureProperties } = useGetProperties({
+    layerId,
+    model: model
+  });
+
   useEffect(() => {
     let renderType = layer.parameters?.symbologyState?.renderType;
     if (!renderType) {
@@ -35,13 +46,26 @@ const VectorRendering = ({
     }
     setSelectedRenderType(renderType);
 
+    const vectorLayerOptions = ['Single Symbol', 'Heatmap'];
+
+    if (
+      Object.keys(getColorCodeFeatureAttributes(featureProperties)).length > 0
+    ) {
+      vectorLayerOptions.push('Canonical');
+    }
+    if (
+      Object.keys(getNumericFeatureAttributes(featureProperties)).length > 0
+    ) {
+      vectorLayerOptions.push('Graduated', 'Categorized');
+    }
+
     const options: Record<string, string[]> = {
-      VectorLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap'],
+      VectorLayer: vectorLayerOptions,
       VectorTileLayer: ['Single Symbol'],
       HeatmapLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap']
     };
     setRenderTypeOptions(options[layer.type]);
-  }, []);
+  }, [featureProperties]);
 
   useEffect(() => {
     switch (selectedRenderType) {
@@ -70,6 +94,17 @@ const VectorRendering = ({
       case 'Categorized':
         RenderComponent = (
           <Categorized
+            model={model}
+            state={state}
+            okSignalPromise={okSignalPromise}
+            cancel={cancel}
+            layerId={layerId}
+          />
+        );
+        break;
+      case 'Canonical':
+        RenderComponent = (
+          <Canonical
             model={model}
             state={state}
             okSignalPromise={okSignalPromise}
