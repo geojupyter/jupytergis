@@ -93,6 +93,7 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
       }
     }
   };
+
   useEffect(() => {
     console.log('selectedCategory', selectedCategory);
 
@@ -130,24 +131,59 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
   // }
 
   const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
-  async function mockProxyFetch(options: { [key: string]: any }) {
-    const searchParams = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(options)
+
+  const getXsrfToken = () => {
+    const cookiePair = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('_xsrf='));
+    return cookiePair ? cookiePair.split('=')[1] : null;
+  };
+
+  async function mockProxyFetch(options1: { [key: string]: any }) {
+    // In browser console (for client-side JS)
+    const xsrfToken = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
+
+    const xsrfToken1 = document.cookie.replace(
+      /(?:(?:^|.*;\s*)_xsrf\s*=\s*([^;]*).*$)|^.*$/,
+      '$1'
+    );
+
+    console.log('xsrfToken', xsrfToken);
+    console.log('xsrfToken1', xsrfToken1);
+    console.log('xsrf2', getXsrfToken());
+
+    const options = {
+      // _xsrf: xsrfToken,
+      limit: 12,
+      query: {
+        dataset: {
+          in: ['PEPS_S2_L1C'] // Sentinel 2
+        }
+      }
     };
 
+    // const searchParams = {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'X-XSRFToken': xsrfToken
+    //   },
+    //   body: JSON.stringify(options)
+    // };
+
     const proxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(apiUrl)}`;
+    console.log('proxyUrl', proxyUrl);
 
     try {
       const response = await fetch(proxyUrl, {
         method: 'POST',
+        //@ts-expect-error wip
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-XSRFToken': xsrfToken,
+          credentials: 'include'
         },
-        body: JSON.stringify(searchParams)
+        body: JSON.stringify(options)
       });
 
       if (!response.ok) {
@@ -183,55 +219,55 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
     }
   }
 
-  const backupFetch = async (options: { [key: string]: any }) => {
-    const searchParams = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(options)
-    };
+  // const backupFetch = async (options: { [key: string]: any }) => {
+  //   const searchParams = {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json'
+  //     },
+  //     body: JSON.stringify(options)
+  //   };
 
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(searchParams)
-      });
+  //   try {
+  //     const response = await fetch(apiUrl, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify(searchParams)
+  //     });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
 
-      const data = (await response.json()) as IStacSearchResult;
+  //     const data = (await response.json()) as IStacSearchResult;
 
-      // const dd = data.features.map(feature => {
-      //   const fd: IFeatureData = { id: '', title: '', image: '' };
+  //     // const dd = data.features.map(feature => {
+  //     //   const fd: IFeatureData = { id: '', title: '', image: '' };
 
-      //   // each feature has assets
-      //   for (const key in feature.assets) {
-      //     // Assets have the preview jpeg
-      //     const element = feature.assets[key];
-      //     if (element.type === 'image/jpeg') {
-      //       fd.image = element.href;
-      //     }
-      //   }
+  //     //   // each feature has assets
+  //     //   for (const key in feature.assets) {
+  //     //     // Assets have the preview jpeg
+  //     //     const element = feature.assets[key];
+  //     //     if (element.type === 'image/jpeg') {
+  //     //       fd.image = element.href;
+  //     //     }
+  //     //   }
 
-      //   fd.id = feature.id;
-      //   fd.title = feature.collection;
+  //     //   fd.id = feature.id;
+  //     //   fd.title = feature.collection;
 
-      //   return fd;
-      // });
+  //     //   return fd;
+  //     // });
 
-      console.log('data', data);
+  //     console.log('data', data);
 
-      setDisplayInfo(data.features);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
+  //     setDisplayInfo(data.features);
+  //   } catch (error) {
+  //     console.error('Error fetching data:', error);
+  //   }
+  // };
 
   const handleClick = async (id: string) => {
     if (!displayInfo) {
@@ -283,7 +319,7 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
             />
           </div>
         </div>
-        <button onClick={() => backupFetch(fetchBody)}>sdsd</button>
+
         <div className="jGIS-layer-browser-categories">
           {Object.entries(collections).map(([key, value]) => (
             <span
