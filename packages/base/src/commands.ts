@@ -1,9 +1,11 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISLayerBrowserRegistry,
   IJGISLayerGroup,
   IJGISLayerItem,
+  IJGISSource,
   IJupyterGISModel,
   JgisCoordinates,
   LayerType,
@@ -33,7 +35,7 @@ import {
 } from './processing';
 import { fromLonLat } from 'ol/proj';
 import { Coordinate } from 'ol/coordinate';
-import { targetWithCenterIcon } from './icons';
+import { pencilSolidIcon, targetWithCenterIcon } from './icons';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -876,6 +878,83 @@ export function addCommands(
       navigator.geolocation.getCurrentPosition(success, error, options);
     },
     icon: targetWithCenterIcon
+  });
+
+  commands.addCommand(CommandIDs.newDrawVectorLayer, {
+    label: trans.__('Create New Draw Vector Layer'),
+    isToggled: () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        const model = tracker.currentWidget?.content.currentViewModel
+          .jGISModel as IJupyterGISModel;
+        let selectedLayer = getSingleSelectedLayer(tracker);
+        if (!selectedLayer) {
+          const emptySource: IJGISSource = {
+            name: 'Editable GeoJSON Layer Source',
+            type: 'GeoJSONSource',
+            parameters: {
+              data: {
+                type: 'FeatureCollection',
+                features: []
+              }
+            }
+          };
+          const emptyLayer: IJGISLayer = {
+            name: 'Editable GeoJSON Layer',
+            type: 'VectorLayer',
+            visible: true,
+            parameters: {
+              source: emptySource
+            }
+          };
+
+          selectedLayer = emptyLayer;
+          model.addLayer('id', emptyLayer);
+          model.sharedModel.updateLayer('id', emptyLayer);
+          if (
+            emptySource?.type === 'GeoJSONSource' &&
+            emptySource?.parameters?.data
+          ) {
+            return true;
+          } else {
+            return;
+            false;
+          }
+        } else {
+          const selectedSource = model.getSource(
+            selectedLayer.parameters?.source
+          );
+          if (
+            selectedSource?.type === 'GeoJSONSource' &&
+            selectedSource?.parameters?.data
+          ) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      } else {return false;}
+    },
+    isEnabled: () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+      return ['VectorLayer'].includes(selectedLayer.type);
+    },
+    execute: async () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        const model = tracker.currentWidget?.content.currentViewModel
+          .jGISModel as IJupyterGISModel;
+        if (model.isDrawVectorLayerEnabled === true) {
+          model.isDrawVectorLayerEnabled = false;
+        } else {
+          model.isDrawVectorLayerEnabled = true;
+        }
+        model.updateIsDrawVectorLayerEnabled();
+        commands.notifyCommandChanged(CommandIDs.newDrawVectorLayer);
+      }
+    },
+    icon: pencilSolidIcon
   });
 
   loadKeybindings(commands, keybindings);
