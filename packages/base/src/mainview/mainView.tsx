@@ -847,7 +847,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._loadingLayers.add(id);
 
-    let newMapLayer;
+    let newMapLayer: any;
     let layerParameters;
 
     // TODO: OpenLayers provides a bunch of sources for specific tile
@@ -941,11 +941,16 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'StacLayer': {
         layerParameters = layer.parameters as IStacLayer;
 
-        console.log('layerParameters.data', layerParameters.data);
+        console.log('mv data', layerParameters.data);
 
-        const p = typeof Object.entries(layerParameters.data.assets);
+        const entries = Object.entries(layerParameters.data.assets);
+        console.log('entries', entries);
 
-        console.log('p', p);
+        const keys = Object.keys(layerParameters.data.assets);
+        console.log('keys', keys);
+
+        console.log('mv assets', layerParameters.data.assets);
+
         newMapLayer = new StacLayer({
           displayPreview: true,
           data: layerParameters.data,
@@ -953,9 +958,15 @@ export class MainView extends React.Component<IProps, IStates> {
           visible: true,
           assets: Object.entries(layerParameters.data.assets),
           extent: layerParameters.data.bbox,
+          assets: Object.keys(layerParameters.data.assets),
+          extent: layerParameters.data.bbox,
         });
 
-        console.log('newMapLayer', newMapLayer);
+        console.log('mv newMapLayer', newMapLayer);
+
+        newMapLayer.on('sourceready', () => {
+          this._Map.getView().fit(newMapLayer.getExtent());
+        });
 
         break;
       }
@@ -970,7 +981,6 @@ export class MainView extends React.Component<IProps, IStates> {
     // this._sourceToLayerMap.set(layerParameters.source, id);
 
     if (!(layer.type === 'StacLayer')) {
-      //@ts-expect-error wip
       this.addProjection(newMapLayer);
     }
 
