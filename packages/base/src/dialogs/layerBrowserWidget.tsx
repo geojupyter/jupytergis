@@ -8,8 +8,8 @@ import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React from 'react';
+import StacBrowser from '../stacBrowser/StacBrowser';
 import { LayerBrowserComponent } from './layerBrowserDialog';
-import StacBrowser from './browsers/StacBrowser';
 
 export interface ILayerBrowserOptions {
   type: 'og' | 'stac';
