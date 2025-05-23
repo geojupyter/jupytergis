@@ -22,6 +22,7 @@ const Graduated = ({
   okSignalPromise,
   cancel,
   layerId,
+  selectableAttributes
 }: ISymbologyDialogProps) => {
   const modeOptions = [
     'quantile',
@@ -250,45 +251,53 @@ const Graduated = ({
     setStopRows(stopOutputPairs);
   };
 
-  return (
-    <div className="jp-gis-layer-symbology-container">
-      <ValueSelect
-        featureProperties={features}
-        selectedValue={selectedValue}
-        setSelectedValue={setSelectedValue}
-      />
-      <div className="jp-gis-symbology-row">
-        <label htmlFor={'vector-method-select'}>Method:</label>
-        <select
-          name={'vector-method-select'}
-          onChange={event => setSelectedMethod(event.target.value)}
-          className="jp-mod-styled"
-        >
-          {methodOptions.map((method, index) => (
-            <option
-              key={index}
-              value={method}
-              selected={method === selectedMethod}
-              className="jp-mod-styled"
-            >
-              {method}
-            </option>
-          ))}
-        </select>
+  if (selectableAttributes?.length === 0) {
+    return (
+      <div className="jp-gis-layer-symbology-container">
+        This symbology type is not available; no attributes contain a hex color code.
       </div>
-      <ColorRamp
-        layerParams={layer.parameters}
-        modeOptions={modeOptions}
-        classifyFunc={buildColorInfoFromClassification}
-        showModeRow={true}
-      />
-      <StopContainer
-        selectedMethod={selectedMethod}
-        stopRows={stopRows}
-        setStopRows={setStopRows}
-      />
-    </div>
-  );
+    );
+  } else {
+    return (
+      <div className="jp-gis-layer-symbology-container">
+        <ValueSelect
+          featureProperties={features}
+          selectedValue={selectedValue}
+          setSelectedValue={setSelectedValue}
+        />
+        <div className="jp-gis-symbology-row">
+          <label htmlFor={'vector-method-select'}>Method:</label>
+          <select
+            name={'vector-method-select'}
+            onChange={event => setSelectedMethod(event.target.value)}
+            className="jp-mod-styled"
+          >
+            {methodOptions.map((method, index) => (
+              <option
+                key={index}
+                value={method}
+                selected={method === selectedMethod}
+                className="jp-mod-styled"
+              >
+                {method}
+              </option>
+            ))}
+          </select>
+        </div>
+        <ColorRamp
+          layerParams={layer.parameters}
+          modeOptions={modeOptions}
+          classifyFunc={buildColorInfoFromClassification}
+          showModeRow={true}
+        />
+        <StopContainer
+          selectedMethod={selectedMethod}
+          stopRows={stopRows}
+          setStopRows={setStopRows}
+        />
+      </div>
+    );
+  }
 };
 
 export default Graduated;
