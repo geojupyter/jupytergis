@@ -2,7 +2,8 @@
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import { IStacItem, IStacSearchResult } from './types';
+import StacGridView from './components/StacGridView';
+import { IStacItem, IStacSearchResult } from './types/types';
 
 // Map collection names to the fetch body for the query
 const collections = {
@@ -171,65 +172,15 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
   };
 
   return (
-    <div className="jGIS-layer-browser-container">
-      <div className="jGIS-layer-browser-header-container">
-        <div className="jGIS-layer-browser-header">
-          <h2 className="jGIS-layer-browser-header-text">STAC Browser</h2>
-          <div className="jGIS-layer-browser-header-search-container">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={handleSearchInput}
-              className="jGIS-layer-browser-header-search"
-            />
-          </div>
-        </div>
-
-        <div className="jGIS-layer-browser-categories">
-          {Object.keys(datasetsMap).map(key => (
-            <span
-              className={`jGIS-layer-browser-category ${
-                selectedCategory === key
-                  ? 'jGIS-layer-browser-category-selected'
-                  : ''
-              }`}
-              onClick={() => handleCategoryClick(key)}
-            >
-              {key}
-            </span>
-          ))}
-        </div>
-      </div>
-      <div className="jGIS-layer-browser-grid">
-        {displayInfo?.map(collection => (
-          <div
-            className="jGIS-layer-browser-tile"
-            onClick={() => handleTileClick(collection.id)}
-          >
-            <div className="jGIS-layer-browser-tile-img-container">
-              <img
-                className="jGIS-layer-browser-img"
-                src={Object.values(collection.assets).at(-1)?.href}
-              />
-            </div>
-            <div className="jGIS-layer-browser-text-container">
-              <div className="jGIS-layer-browser-text-info">
-                <h3 className="jGIS-layer-browser-text-header jGIS-layer-browser-text-general">
-                  {Object.values(collection.assets).at(-1)?.title}
-                </h3>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* <LayerGrid
-          layers={filteredGallery}
-          activeLayers={activeLayers}
-          model={model}
-        /> */}
-      </div>
-    </div>
+    <StacGridView
+      datasetsMap={datasetsMap}
+      displayInfo={displayInfo}
+      handleCategoryClick={handleCategoryClick}
+      handleSearchInput={handleSearchInput}
+      handleTileClick={handleTileClick}
+      searchTerm={searchTerm}
+      selectedCategory={selectedCategory}
+    />
   );
 };
 export default StacBrowser;
