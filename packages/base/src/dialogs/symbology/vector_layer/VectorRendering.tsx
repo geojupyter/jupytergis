@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { ISymbologyDialogProps } from '../symbologyDialog';
 import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
@@ -10,18 +10,43 @@ import {
   getColorCodeFeatureAttributes,
   getNumericFeatureAttributes
 } from '../../../tools';
+import { LayerType } from '@jupytergis/schema';
 
-type RenderType = 'Single Symbol' | 'Canonical' | 'Graduated' | 'Heatmap';
+// type RenderType = 'Single Symbol' | 'Canonical' | 'Graduated' | 'Categorized' | 'Heatmap';
 interface RenderTypeProps {
-  component: React.Component;
+  component: any;
   attributeChecker?: Function;
   supportedLayerTypes: string[];
 }
+// TODO: Why this doesn't work???? >:(
+// interface RenderTypes {
+//   [key in RenderType]: RenderTypeProps;
+// }
+interface RenderTypes {
+  ['Single Symbol']: RenderTypeProps;
+  ['Canonical']: RenderTypeProps;
+  ['Graduated']: RenderTypeProps;
+  ['Categorized']: RenderTypeProps;
+  ['Heatmap']: RenderTypeProps;
+}
+type RenderType = keyof RenderTypes;
+
 interface SelectableRenderTypeProps extends RenderTypeProps {
-  supportedAttributes?: string[];
+  selectableAttributes?: string[];
+  layerTypeSupported: boolean;
+}
+// interface SelectableRenderTypes {
+//   [key in RenderTypes]: SelectableRenderTypeProps;
+// }
+interface SelectableRenderTypes {
+  ['Single Symbol']: SelectableRenderTypeProps;
+  ['Canonical']: SelectableRenderTypeProps;
+  ['Graduated']: SelectableRenderTypeProps;
+  ['Categorized']: SelectableRenderTypeProps;
+  ['Heatmap']: SelectableRenderTypeProps;
 }
 
-const RENDER_TYPE_OPTIONS: {RenderType: RenderTypeProps} = {
+const RENDER_TYPE_OPTIONS: RenderTypes = {
   'Single Symbol': {
     component: SimpleSymbol,
     supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer']
@@ -48,35 +73,23 @@ const RENDER_TYPE_OPTIONS: {RenderType: RenderTypeProps} = {
 } as const;
 
 const getSelectableRenderTypes =
-  (featureProperties: Never): {RenderType: SelectableRenderTypeProps} => {
-    let out: {RenderType: SelectableRenderTypeProps} = {};
+  (featureProperties: Record<string, Set<any>>, layerType: LayerType): SelectableRenderTypes => {
+    return Object.fromEntries((Object.keys(RENDER_TYPE_OPTIONS) as RenderType[]).map(
+      (renderType) => {
+        const renderTypeProps = RENDER_TYPE_OPTIONS[renderType];
+        const layerTypeSupported = renderTypeProps.supportedLayerTypes.includes(layerType);
 
-    for (var [renderType, renderTypeProps] of Object.entries(RENDER_TYPE_OPTIONS)) {
-      if (!('attributeChecker' in renderTypeProps)) {
+        return [renderType, {
+          ...renderTypeProps,
+          ...(renderTypeProps.attributeChecker
+            ? renderTypeProps.attributeChecker(featureProperties)
+            : {}
+          ),
+          layerTypeSupported
+        }];
       }
-    }
-
+    )) as SelectableRenderTypes;
   };
-
-const validRenderTypesAndAttributes = (featureProperties): [RenderType, undefined | string[]] => {
-  // check type
-  const foo: Never = featureProperties;
-
-  let out = []
-  for (var [renderType, renderTypeProps] of Object.entries(RENDER_TYPE_OPTIONS)) {
-    if (!('attributeChecker' in renderTypeProps)) {
-      out.push([renderType, undefined]);
-    } else {
-      let attrs = Object.keys(renderTypeProps.attributeChecker(featureProperties));
-      if (attrs.length === 0) {
-        continue;
-      }
-      out.push([renderType, attrs]);
-    }
-  }
-
-  return out;
-}
 
 const VectorRendering = ({
   model,
@@ -85,10 +98,7 @@ const VectorRendering = ({
   cancel,
   layerId
 }: ISymbologyDialogProps) => {
-  const [selectedRenderType, setSelectedRenderType] = useState('');
-  const [componentToRender, setComponentToRender] = useState<any>(null);
-  const [renderTypeOptions, setRenderTypeOptions] =
-    useState<RenderType[]>(['Single Symbol']);
+  const [selectedRenderType, setSelectedRenderType] = useState<RenderType>('Single Symbol');
 
   if (!layerId) {
     return;
@@ -103,7 +113,8 @@ const VectorRendering = ({
     model: model
   });
 
-  const selectableRenderTypes = getSelectableRenderTypes(featureProperties);
+  const selectableRenderTypes = getSelectableRenderTypes(featureProperties, layer.type);
+  const selectedRenderTypeEnriched = selectableRenderTypes[selectedRenderType];
 
   return (
     <>
@@ -114,23 +125,32 @@ const VectorRendering = ({
           id="render-type-select"
           value={selectedRenderType}
           onChange={event => {
-            setSelectedRenderType(event.target.value);
+            setSelectedRenderType(event.target.value as RenderType);
           }}
         >
-          {renderTypeOptions.map((func, funcIndex) => (
-            <option key={func} value={func}>
-              {func}
-            </option>
-          ))}
+          {
+            Object.entries(selectableRenderTypes)
+              .filter(
+                ([renderType, renderTypeProps]) => renderTypeProps.layerTypeSupported
+              ).map(
+                ([renderType, renderTypeProps]) => (
+                  <option key={renderType} value={renderType}>
+                    {renderType}
+                  </option>
+                )
+              )
+          }
         </select>
       </div>
-      <selectableRenderTypes.component
+      <selectedRenderTypeEnriched.component
         model={model}
         state={state}
         okSignalPromise={okSignalPromise}
         cancel={cancel}
         layerId={layerId}
-        ( selectableRenderTypes.selectableAttributes ? {selectableAttributes: selectableRenderTypes.selectableAttributes} : {} )
+        {...(selectedRenderTypeEnriched.selectableAttributes
+        ? {selectableAttributes: selectedRenderTypeEnriched.selectableAttributes}
+        : {} )}
       />
     </>
   );
