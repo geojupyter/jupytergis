@@ -9,7 +9,7 @@ import {
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
-import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 
 import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
 import LayerGrid from './browsers/components/LayerGrid';
@@ -32,14 +32,19 @@ export const LayerBrowserComponent = ({
 }: ILayerBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] =
-    useState<HTMLElement | null>();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [creatingCustomRaster, setCreatingCustomRaster] = useState(false);
 
   const [galleryWithCategory, setGalleryWithCategory] =
     useState<IRasterLayerGalleryEntry[]>(registry);
 
-  const providers = [...new Set(registry.map(item => item.source.provider))];
+  const providers = [
+    ...new Set(
+      registry
+        .map(item => item.source.provider)
+        .filter(provider => provider !== undefined)
+    )
+  ];
 
   const filteredGallery = galleryWithCategory.filter(item =>
     item.name.toLowerCase().includes(searchTerm)
@@ -69,22 +74,16 @@ export const LayerBrowserComponent = ({
     setSearchTerm(event.target.value.toLowerCase());
   };
 
-  const handleCategoryClick = (event: MouseEvent<HTMLSpanElement>) => {
-    const categoryTab = event.target as HTMLElement;
-    const sameAsOld = categoryTab.innerText === selectedCategory?.innerText;
-
-    categoryTab.classList.toggle('jGIS-layer-browser-category-selected');
-    selectedCategory?.classList.remove('jGIS-layer-browser-category-selected');
+  const handleCategoryClick = (category: string) => {
+    const sameAsOld = category === selectedCategory;
 
     const filteredGallery = sameAsOld
       ? registry
-      : registry.filter(item =>
-          item.source.provider?.includes(categoryTab.innerText)
-        );
+      : registry.filter(item => item.source.provider?.includes(category));
 
     setGalleryWithCategory(filteredGallery);
     setSearchTerm('');
-    setSelectedCategory(sameAsOld ? null : categoryTab);
+    setSelectedCategory(sameAsOld ? null : category);
   };
 
   const handleCustomTileClick = () => {
@@ -171,8 +170,12 @@ export const LayerBrowserComponent = ({
         <div className="jGIS-layer-browser-categories">
           {providers.map(provider => (
             <span
-              className="jGIS-layer-browser-category"
-              onClick={handleCategoryClick}
+              className={`jGIS-layer-browser-category ${
+                selectedCategory === provider
+                  ? 'jGIS-layer-browser-category-selected'
+                  : ''
+              }`}
+              onClick={() => handleCategoryClick(provider)}
             >
               {provider}
             </span>

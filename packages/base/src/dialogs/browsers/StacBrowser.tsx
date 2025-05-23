@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import { IStacItem, IStacSearchResult } from './types';
 
 // Map collection names to the fetch body for the query
@@ -75,30 +75,6 @@ const datasetsMap: { [key: string]: string[] } = {
     'POSTEL_VEGETATION_NDVI'
   ]
 };
-// interface IStacRequest {
-//   page: number;
-//   query: {
-//     keywords: {
-//       contains: string;
-//     };
-//   };
-// }
-
-// interface IStacResponse {
-//   // Define your response type here based on the API documentation
-//   features: Array<{
-//     id: string;
-//     properties: Record<string, unknown>;
-//     // ... other fields
-//   }>;
-// }
-
-// ? Do we even want this? Could just save the whole return instead
-interface IFeatureData {
-  id: string;
-  title: string;
-  image: string;
-}
 
 interface IStacBrowserDialogProps {
   model: IJupyterGISModel;
@@ -108,14 +84,12 @@ interface IStacBrowserDialogProps {
   // cancel: () => void;
 }
 
+const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
+
 const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] =
-    useState<HTMLElement | null>();
-  const handleSearchInput = (event: ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value.toLowerCase());
-  };
   const [displayInfo, setDisplayInfo] = useState<IStacItem[]>();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('selectedCategory', selectedCategory);
@@ -128,7 +102,7 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
       limit: 12,
       query: {
         dataset: {
-          in: datasetsMap[selectedCategory.innerText]
+          in: datasetsMap[selectedCategory]
         }
       }
     };
@@ -136,21 +110,13 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
     mockProxyFetch(body);
   }, [selectedCategory]);
 
-  const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
+  const handleSearchInput = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value.toLowerCase());
+  };
 
-  async function mockProxyFetch(options1: { [key: string]: any }) {
+  async function mockProxyFetch(options: { [key: string]: any }) {
     // Needed for POST
     const xsrfToken = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-
-    // TODO: Build this from filter selections
-    const options = {
-      limit: 12,
-      query: {
-        dataset: {
-          in: ['PEPS_S2_L1C'] // Sentinel 2
-        }
-      }
-    };
 
     const proxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(apiUrl)}`;
 
@@ -199,16 +165,9 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
     model.addLayer(layerId, layerModel);
   };
 
-  //? lol this sucks? Can probably just save the text and use a document query to get the actual element
-  const handleCategoryClick = (event: MouseEvent<HTMLSpanElement>) => {
-    const categoryTab = event.target as HTMLElement;
-    const sameAsOld = categoryTab.innerText === selectedCategory?.innerText;
-
-    categoryTab.classList.toggle('jGIS-layer-browser-category-selected');
-    selectedCategory?.classList.remove('jGIS-layer-browser-category-selected');
-
+  const handleCategoryClick = (category: string) => {
     setSearchTerm('');
-    setSelectedCategory(sameAsOld ? null : categoryTab);
+    setSelectedCategory(prev => (prev === category ? null : category));
   };
 
   return (
@@ -230,8 +189,12 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
         <div className="jGIS-layer-browser-categories">
           {Object.keys(datasetsMap).map(key => (
             <span
-              className="jGIS-layer-browser-category"
-              onClick={handleCategoryClick}
+              className={`jGIS-layer-browser-category ${
+                selectedCategory === key
+                  ? 'jGIS-layer-browser-category-selected'
+                  : ''
+              }`}
+              onClick={() => handleCategoryClick(key)}
             >
               {key}
             </span>
