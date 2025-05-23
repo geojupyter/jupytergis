@@ -31,36 +31,6 @@ const collections = {
 //   }>;
 // }
 
-// const url = 'https://geodes-portal.cnes.fr/api/stac/collections';
-
-// async function fetchWithCorsProxy(): Promise<any> {
-//   const proxyUrl = 'https://corsproxy.io';
-//   const magicUrl = `${proxyUrl}/?url=${encodeURIComponent(url)}`;
-
-//   console.log('magicUrl', magicUrl);
-//   const response = await fetch(magicUrl);
-
-//   const rj = await response;
-
-//   console.log('cors response', rj);
-
-//   return rj.json();
-// }
-
-// async function fetchWithLolProxy(): Promise<any> {
-//   const proxyUrl = 'https://api.cors.lol';
-//   const magicUrl = `${proxyUrl}/?url=${encodeURIComponent(url)}`;
-
-//   console.log('magicUrl', magicUrl);
-//   const response = await fetch(magicUrl);
-
-//   const rj = await response;
-
-//   console.log('lol response', rj);
-
-//   return rj.json();
-// }
-
 // ? Do we even want this? Could just save the whole return instead
 interface IFeatureData {
   id: string;
@@ -107,53 +77,14 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
     }
   }, [selectedCategory]);
 
-  // async function plainFetch() {
-  //   // const response = await fetch(url);
-  //   // // console.log('plain response', response);
-  //   // const rj = await response.json();
-  //   // console.log('rj', rj);
-  //   // console.log('type', typeof rj.collections); // its an object
-
-  //   // try {
-  //   //   const zero = rj.collections[0];
-
-  //   //   console.log('zero', zero);
-  //   //   console.log('rj', rj);
-  //   // } catch (error) {
-  //   //   console.log('error array', error);
-  //   // }
-
-  //   // return rj;
-
-  //   const sdsd = await fetchWithProxies(url, async response => response, null);
-
-  //   console.log('sdsd', sdsd?.json());
-  // }
-
   const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
 
-  const getXsrfToken = () => {
-    const cookiePair = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('_xsrf='));
-    return cookiePair ? cookiePair.split('=')[1] : null;
-  };
-
   async function mockProxyFetch(options1: { [key: string]: any }) {
-    // In browser console (for client-side JS)
+    // Needed for POST
     const xsrfToken = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
 
-    const xsrfToken1 = document.cookie.replace(
-      /(?:(?:^|.*;\s*)_xsrf\s*=\s*([^;]*).*$)|^.*$/,
-      '$1'
-    );
-
-    console.log('xsrfToken', xsrfToken);
-    console.log('xsrfToken1', xsrfToken1);
-    console.log('xsrf2', getXsrfToken());
-
+    // TODO: Build this from filter selections
     const options = {
-      // _xsrf: xsrfToken,
       limit: 12,
       query: {
         dataset: {
@@ -162,22 +93,12 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
       }
     };
 
-    // const searchParams = {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'X-XSRFToken': xsrfToken
-    //   },
-    //   body: JSON.stringify(options)
-    // };
-
     const proxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(apiUrl)}`;
-    console.log('proxyUrl', proxyUrl);
 
     try {
       const response = await fetch(proxyUrl, {
         method: 'POST',
-        //@ts-expect-error wip
+        //@ts-expect-error Jupyter requires X-XSRFToken header
         headers: {
           'Content-Type': 'application/json',
           'X-XSRFToken': xsrfToken,
@@ -191,27 +112,6 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
       }
 
       const data = (await response.json()) as IStacSearchResult;
-      console.log('sb data', data);
-
-      const dd = data.features.map(feature => {
-        const fd: IFeatureData = { id: '', title: '', image: '' };
-
-        // each feature has assets
-        for (const key in feature.assets) {
-          // Assets have the preview jpeg
-          const element = feature.assets[key];
-          if (element.type === 'image/jpeg') {
-            fd.image = element.href;
-          }
-        }
-
-        fd.id = feature.id;
-        fd.title = feature.collection;
-
-        return fd;
-      });
-
-      console.log('sb data', data);
 
       setDisplayInfo(data.features);
     } catch (error) {
@@ -219,67 +119,15 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
     }
   }
 
-  // const backupFetch = async (options: { [key: string]: any }) => {
-  //   const searchParams = {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json'
-  //     },
-  //     body: JSON.stringify(options)
-  //   };
-
-  //   try {
-  //     const response = await fetch(apiUrl, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify(searchParams)
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! status: ${response.status}`);
-  //     }
-
-  //     const data = (await response.json()) as IStacSearchResult;
-
-  //     // const dd = data.features.map(feature => {
-  //     //   const fd: IFeatureData = { id: '', title: '', image: '' };
-
-  //     //   // each feature has assets
-  //     //   for (const key in feature.assets) {
-  //     //     // Assets have the preview jpeg
-  //     //     const element = feature.assets[key];
-  //     //     if (element.type === 'image/jpeg') {
-  //     //       fd.image = element.href;
-  //     //     }
-  //     //   }
-
-  //     //   fd.id = feature.id;
-  //     //   fd.title = feature.collection;
-
-  //     //   return fd;
-  //     // });
-
-  //     console.log('data', data);
-
-  //     setDisplayInfo(data.features);
-  //   } catch (error) {
-  //     console.error('Error fetching data:', error);
-  //   }
-  // };
-
   const handleClick = async (id: string) => {
     if (!displayInfo) {
       return;
     }
 
     const layerId = UUID.uuid4();
-    console.log('layerId', layerId);
 
     const stacData = displayInfo.find(item => item.id === id);
 
-    console.log('newLayer', stacData);
     const layerModel: IJGISLayer = {
       type: 'StacLayer',
       parameters: {
@@ -292,7 +140,7 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
     model.addLayer(layerId, layerModel);
   };
 
-  //? lol this sucks?
+  //? lol this sucks? Can probably just save the text and use a document query to get the actual element
   const handleCategoryClick = (event: MouseEvent<HTMLSpanElement>) => {
     const categoryTab = event.target as HTMLElement;
     const sameAsOld = categoryTab.innerText === selectedCategory?.innerText;
