@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import { IStacItem } from '../types/types';
 
-interface IStacGridView {
+export interface IStacGridView {
   searchTerm: string;
   handleSearchInput: (event: ChangeEvent<HTMLInputElement>) => void;
   datasetsMap: { [key: string]: string[] };
