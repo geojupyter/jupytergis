@@ -35,6 +35,7 @@ export namespace CommandIDs {
   export const newImageEntry = 'jupytergis:newImageEntry';
   export const newVideoEntry = 'jupytergis:newVideoEntry';
   export const newGeoTiffEntry = 'jupytergis:newGeoTiffEntry';
+  export const newGeoParquetEntry = 'jupytergis:newGeoParquetEntry';
 
   // Processing commands
   export const buffer = 'jupytergis:buffer';
@@ -96,6 +97,7 @@ const iconObject = {
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
   [CommandIDs.newShapefileEntry]: { iconClass: 'fa fa-file' },
   [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
+  [CommandIDs.newGeoParquetEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon }

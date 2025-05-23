@@ -25,6 +25,7 @@ import {
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
+  IGeoParquetSource,
   IWebGlLayer,
   JgisCoordinates,
   JupyterGISModel
@@ -695,7 +696,29 @@ export class MainView extends React.Component<IProps, IStates> {
 
         break;
       }
+
+      case 'GeoParquetSource':
+        const parameters = source.parameters as IGeoParquetSource;
+
+        const geojson = await loadFile({
+          filepath: parameters.path,
+          type: 'GeoParquetSource',
+          model: this._model
+        });
+
+        const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
+
+        const format = new GeoJSON();
+
+        newSource = new VectorSource({
+          features: format.readFeatures(geojsonData, {
+            dataProjection: parameters.projection,
+            featureProjection: this._Map.getView().getProjection()
+          })
+        });
+        break;
     }
+
 
     newSource.set('id', id);
     // _sources is a list of OpenLayers sources

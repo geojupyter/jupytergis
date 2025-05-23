@@ -71,5 +71,8 @@
     "rimraf": "^3.0.2",
     "typescript": "^5",
     "webpack": "^5.76.3"
+  },
+  "dependencies": {
+    "geoparquet": "^0.3.0"
   }
 }

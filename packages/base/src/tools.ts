@@ -570,6 +570,32 @@ export const loadFile = async (fileInfo: {
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
+      case 'GeoParquetSource': {
+
+        console.log('GeoParquetSource');
+
+        const cached = await getFromIndexedDB(filepath);
+        if (cached) {
+          console.log('cached');
+          return cached.file;
+        }
+
+        const { asyncBufferFromUrl, toGeoJson } = await import('geoparquet')
+
+        const file = await asyncBufferFromUrl({ url: filepath })
+        const geojson = await toGeoJson({ file })
+
+        if (geojson) {
+          await saveToIndexedDB(filepath, geojson);
+          console.log(geojson);
+          return geojson;
+        }
+
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
+      }
+
+
       default: {
         throw new Error(`Unsupported URL handling for source type: ${type}`);
       }
