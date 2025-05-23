@@ -11,6 +11,73 @@ import {
   getNumericFeatureAttributes
 } from '../../../tools';
 
+type RenderType = 'Single Symbol' | 'Canonical' | 'Graduated' | 'Heatmap';
+interface RenderTypeProps {
+  component: React.Component;
+  attributeChecker?: Function;
+  supportedLayerTypes: string[];
+}
+interface SelectableRenderTypeProps extends RenderTypeProps {
+  supportedAttributes?: string[];
+}
+
+const RENDER_TYPE_OPTIONS: {RenderType: RenderTypeProps} = {
+  'Single Symbol': {
+    component: SimpleSymbol,
+    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer']
+  },
+  'Canonical': {
+    component: Canonical,
+    attributeChecker: getColorCodeFeatureAttributes,
+    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer']
+  },
+  'Graduated': {
+    component: Graduated,
+    attributeChecker: getNumericFeatureAttributes,
+    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer']
+  },
+  'Categorized': {
+    component: Categorized,
+    attributeChecker: getNumericFeatureAttributes,
+    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer']
+  },
+  'Heatmap': {
+    component: Heatmap,
+    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer']
+  }
+} as const;
+
+const getSelectableRenderTypes =
+  (featureProperties: Never): {RenderType: SelectableRenderTypeProps} => {
+    let out: {RenderType: SelectableRenderTypeProps} = {};
+
+    for (var [renderType, renderTypeProps] of Object.entries(RENDER_TYPE_OPTIONS)) {
+      if (!('attributeChecker' in renderTypeProps)) {
+      }
+    }
+
+  };
+
+const validRenderTypesAndAttributes = (featureProperties): [RenderType, undefined | string[]] => {
+  // check type
+  const foo: Never = featureProperties;
+
+  let out = []
+  for (var [renderType, renderTypeProps] of Object.entries(RENDER_TYPE_OPTIONS)) {
+    if (!('attributeChecker' in renderTypeProps)) {
+      out.push([renderType, undefined]);
+    } else {
+      let attrs = Object.keys(renderTypeProps.attributeChecker(featureProperties));
+      if (attrs.length === 0) {
+        continue;
+      }
+      out.push([renderType, attrs]);
+    }
+  }
+
+  return out;
+}
+
 const VectorRendering = ({
   model,
   state,
@@ -20,11 +87,8 @@ const VectorRendering = ({
 }: ISymbologyDialogProps) => {
   const [selectedRenderType, setSelectedRenderType] = useState('');
   const [componentToRender, setComponentToRender] = useState<any>(null);
-  const [renderTypeOptions, setRenderTypeOptions] = useState<string[]>([
-    'Single Symbol'
-  ]);
-
-  let RenderComponent;
+  const [renderTypeOptions, setRenderTypeOptions] =
+    useState<RenderType[]>(['Single Symbol']);
 
   if (!layerId) {
     return;
@@ -39,96 +103,7 @@ const VectorRendering = ({
     model: model
   });
 
-  useEffect(() => {
-    let renderType = layer.parameters?.symbologyState?.renderType;
-    if (!renderType) {
-      renderType = layer.type === 'HeatmapLayer' ? 'Heatmap' : 'Single Symbol';
-    }
-    setSelectedRenderType(renderType);
-
-    const vectorLayerOptions = ['Single Symbol', 'Heatmap'];
-
-    if (
-      Object.keys(getColorCodeFeatureAttributes(featureProperties)).length > 0
-    ) {
-      vectorLayerOptions.push('Canonical');
-    }
-    if (
-      Object.keys(getNumericFeatureAttributes(featureProperties)).length > 0
-    ) {
-      vectorLayerOptions.push('Graduated', 'Categorized');
-    }
-
-    const options: Record<string, string[]> = {
-      VectorLayer: vectorLayerOptions,
-      VectorTileLayer: ['Single Symbol'],
-      HeatmapLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap']
-    };
-    setRenderTypeOptions(options[layer.type]);
-  }, [featureProperties]);
-
-  useEffect(() => {
-    switch (selectedRenderType) {
-      case 'Single Symbol':
-        RenderComponent = (
-          <SimpleSymbol
-            model={model}
-            state={state}
-            okSignalPromise={okSignalPromise}
-            cancel={cancel}
-            layerId={layerId}
-          />
-        );
-        break;
-      case 'Graduated':
-        RenderComponent = (
-          <Graduated
-            model={model}
-            state={state}
-            okSignalPromise={okSignalPromise}
-            cancel={cancel}
-            layerId={layerId}
-          />
-        );
-        break;
-      case 'Categorized':
-        RenderComponent = (
-          <Categorized
-            model={model}
-            state={state}
-            okSignalPromise={okSignalPromise}
-            cancel={cancel}
-            layerId={layerId}
-          />
-        );
-        break;
-      case 'Canonical':
-        RenderComponent = (
-          <Canonical
-            model={model}
-            state={state}
-            okSignalPromise={okSignalPromise}
-            cancel={cancel}
-            layerId={layerId}
-          />
-        );
-        break;
-      case 'Heatmap':
-        RenderComponent = (
-          <Heatmap
-            model={model}
-            state={state}
-            okSignalPromise={okSignalPromise}
-            cancel={cancel}
-            layerId={layerId}
-          />
-        );
-        break;
-      default:
-        RenderComponent = <div>Select a render type</div>;
-    }
-    setComponentToRender(RenderComponent);
-  }, [selectedRenderType]);
+  const selectableRenderTypes = getSelectableRenderTypes(featureProperties);
 
   return (
     <>
@@ -149,7 +124,14 @@ const VectorRendering = ({
           ))}
         </select>
       </div>
-      {componentToRender}
+      <selectableRenderTypes.component
+        model={model}
+        state={state}
+        okSignalPromise={okSignalPromise}
+        cancel={cancel}
+        layerId={layerId}
+        ( selectableRenderTypes.selectableAttributes ? {selectableAttributes: selectableRenderTypes.selectableAttributes} : {} )
+      />
     </>
   );
 };
