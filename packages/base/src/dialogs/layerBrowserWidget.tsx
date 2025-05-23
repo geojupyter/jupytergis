@@ -44,7 +44,7 @@ export class LayerBrowserWidget extends Dialog<boolean> {
     }
 
     if (options.type === 'stac') {
-      body = <StacBrowser model={options.model} />;
+      body = <StacBrowser model={options.model} display="grid" />;
     }
 
     super({ body, buttons: [Dialog.cancelButton(), Dialog.okButton()] });

@@ -1,18 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import StacGridView from './components/StacGridView';
+import StacGridView, { IStacGridView } from './components/StacGridView';
 import { IStacItem, IStacSearchResult } from './types/types';
-
-// Map collection names to the fetch body for the query
-const collections = {
-  'Sentinel 1': {
-    dataset: {
-      in: ['PEPS_S2_L1C']
-    }
-  }
-};
 
 const datasetsMap: { [key: string]: string[] } = {
   'Sentinel 1': ['PEPS_S1_L1', 'PEPS_S1_L2'],
@@ -79,6 +69,7 @@ const datasetsMap: { [key: string]: string[] } = {
 
 interface IStacBrowserDialogProps {
   model: IJupyterGISModel;
+  display: 'side' | 'grid';
   // registry: IRasterLayerGalleryEntry[];
   // formSchemaRegistry: IJGISFormSchemaRegistry;
   // okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
@@ -87,7 +78,7 @@ interface IStacBrowserDialogProps {
 
 const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
 
-const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
+const StacBrowser = ({ model, display }: IStacBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [displayInfo, setDisplayInfo] = useState<IStacItem[]>();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -171,8 +162,15 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
     setSelectedCategory(prev => (prev === category ? null : category));
   };
 
+  const displayComponents = {
+    grid: (props: IStacGridView) => <StacGridView {...props} />,
+    side: (props: IStacGridView) => <StacGridView {...props} />
+  };
+
+  const DisplayComponent = displayComponents[display];
+
   return (
-    <StacGridView
+    <DisplayComponent
       datasetsMap={datasetsMap}
       displayInfo={displayInfo}
       handleCategoryClick={handleCategoryClick}
