@@ -13,6 +13,68 @@ const collections = {
   }
 };
 
+const datasetsMap: { [key: string]: string[] } = {
+  'Sentinel 1': ['PEPS_S1_L1', 'PEPS_S1_L2'],
+  'Sentinel 2': [
+    'PEPS_S2_L1C',
+    'MUSCATE_SENTINEL2_SENTINEL2_L2A',
+    'MUSCATE_Snow_SENTINEL2_L2B-SNOW',
+    'MUSCATE_WaterQual_SENTINEL2_L2B-WATER',
+    'MUSCATE_SENTINEL2_SENTINEL2_L3A'
+  ],
+  Venus: [
+    'MUSCATE_VENUS_VM1_L1C',
+    'MUSCATE_VENUSVM05_VM5_L1C',
+    'MUSCATE_VENUS_VM1_L2A',
+    'MUSCATE_VENUSVM05_VM5_L2A',
+    'MUSCATE_VENUS_VM1_L3A',
+    'MUSCATE_VENUSVM05_VM5_L3A'
+  ],
+  Spot: [
+    'MUSCATE_SPOTWORLDHERITAGE_SPOT1_L1C',
+    'MUSCATE_SPOTWORLDHERITAGE_SPOT2_L1C',
+    'MUSCATE_SPOTWORLDHERITAGE_SPOT3_L1C',
+    'TAKE5_SPOT4_L1C',
+    'MUSCATE_SPOTWORLDHERITAGE_SPOT4_L1C',
+    'TAKE5_SPOT4_L2A',
+    'TAKE5_SPOT5_L2A',
+    'TAKE5_SPOT5_L1C',
+    'MUSCATE_SPOTWORLDHERITAGE_SPOT5_L1C',
+    'MUSCATE_Spirit_SPOT5_L1A',
+    'SWH_SPOT123_L1',
+    'SWH_SPOT4_L1',
+    'SWH_SPOT5_L1'
+  ],
+  Landsat: [
+    'MUSCATE_Landsat57_LANDSAT5_N2A',
+    'MUSCATE_Landsat57_LANDSAT7_N2A',
+    'MUSCATE_LANDSAT_LANDSAT8_L2A',
+    'MUSCATE_Snow_LANDSAT8_L2B-SNOW'
+  ],
+  OSO: ['MUSCATE_OSO_RASTER_L3B-OSO', 'MUSCATE_OSO_VECTOR_L3B-OSO'],
+  Postel: [
+    'POSTEL_VEGETATION_LAI',
+    'POSTEL_VEGETATION_FCOVER',
+    'POSTEL_VEGETATION_FAPAR',
+    'POSTEL_VEGETATION_NDVI',
+    'POSTEL_VEGETATION_SURFACEREFLECTANCE',
+    'POSTEL_RADIATION_BRDF',
+    'POSTEL_RADIATION_DLR',
+    'POSTEL_RADIATION_SURFACEREFLECTANCE',
+    'POSTEL_RADIATION_SURFACEALBEDO',
+    'POSTEL_WATER_SOILMOISTURE',
+    'POSTEL_WATER_SWI',
+    'POSTEL_WATER_SURFWET',
+    'POSTEL_WATER_PRECIP',
+    'POSTEL_LANDCOVER_GLOBCOVER'
+  ],
+  'GEOV2 AVHRR': [
+    'POSTEL_VEGETATION_LAI',
+    'POSTEL_VEGETATION_FCOVER',
+    'POSTEL_VEGETATION_FAPAR',
+    'POSTEL_VEGETATION_NDVI'
+  ]
+};
 // interface IStacRequest {
 //   page: number;
 //   query: {
@@ -55,26 +117,23 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
   };
   const [displayInfo, setDisplayInfo] = useState<IStacItem[]>();
 
-  const fetchBody = {
-    limit: 12,
-    query: {
-      dataset: {
-        in: ['PEPS_S2_L1C'] // Sentinel 2
-      }
-    }
-  };
-
   useEffect(() => {
     console.log('selectedCategory', selectedCategory);
 
-    switch (selectedCategory?.innerText) {
-      case 'Sentinel 1':
-        mockProxyFetch(fetchBody);
-        break;
-      default:
-        console.log('switch default');
-        break;
+    if (!selectedCategory) {
+      return;
     }
+
+    const body = {
+      limit: 12,
+      query: {
+        dataset: {
+          in: datasetsMap[selectedCategory.innerText]
+        }
+      }
+    };
+
+    mockProxyFetch(body);
   }, [selectedCategory]);
 
   const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
@@ -119,7 +178,7 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
     }
   }
 
-  const handleClick = async (id: string) => {
+  const handleTileClick = async (id: string) => {
     if (!displayInfo) {
       return;
     }
@@ -169,7 +228,7 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
         </div>
 
         <div className="jGIS-layer-browser-categories">
-          {Object.entries(collections).map(([key, value]) => (
+          {Object.keys(datasetsMap).map(key => (
             <span
               className="jGIS-layer-browser-category"
               onClick={handleCategoryClick}
@@ -183,7 +242,7 @@ const StacBrowser = ({ model }: IStacBrowserDialogProps) => {
         {displayInfo?.map(collection => (
           <div
             className="jGIS-layer-browser-tile"
-            onClick={() => handleClick(collection.id)}
+            onClick={() => handleTileClick(collection.id)}
           >
             <div className="jGIS-layer-browser-tile-img-container">
               <img
