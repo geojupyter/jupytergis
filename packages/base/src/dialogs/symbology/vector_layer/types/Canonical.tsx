@@ -13,6 +13,7 @@ const Canonical = ({
   okSignalPromise,
   cancel,
   layerId,
+  selectableAttributes
 }: ISymbologyDialogProps) => {
   const selectedValueRef = useRef<string>();
 
@@ -86,15 +87,24 @@ const Canonical = ({
     cancel();
   };
 
-  return (
-    <div className="jp-gis-layer-symbology-container">
-      <ValueSelect
-        featureProperties={attributes}
-        selectedValue={selectedValue}
-        setSelectedValue={setSelectedValue}
-      />
-    </div>
-  );
+  debugger;
+  if (selectableAttributes?.length === 0) {
+    return (
+      <div className="jp-gis-layer-symbology-container">
+        This symbology type is not available; no attributes contain a hex color code.
+      </div>
+    );
+  } else {
+    return (
+      <div className="jp-gis-layer-symbology-container">
+        <ValueSelect
+          featureProperties={attributes}
+          selectedValue={selectedValue}
+          setSelectedValue={setSelectedValue}
+        />
+      </div>
+    );
+  }
 };
 
 export default Canonical;
