@@ -282,6 +282,9 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       const extraErrors = Object.keys(this.state.extraErrors).length > 0;
       this.props.formErrorSignal.emit(extraErrors);
     }
+    if (this.props.formContext === 'update') {
+      this.syncData(this.currentFormData);
+    }
   }
 
   protected onFormBlur(id: string, value: any) {
@@ -349,17 +352,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
               extraErrors={this.state.extraErrors}
             />
           </div>
-
-          {!this.props.ok && (
-            <div className="jGIS-property-buttons">
-              <button
-                className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-                onClick={() => submitRef.current?.click()}
-              >
-                <div className="jp-Dialog-buttonLabel">Ok</div>
-              </button>
-            </div>
-          )}
         </div>
       );
     }
