@@ -15,7 +15,8 @@ const Categorized = ({
   state,
   okSignalPromise,
   cancel,
-  layerId
+  layerId,
+  selectableAttributes
 }: ISymbologyDialogProps) => {
   const selectedValueRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
@@ -140,27 +141,36 @@ const Categorized = ({
     cancel();
   };
 
-  return (
-    <div className="jp-gis-layer-symbology-container">
-      <ValueSelect
-        featureProperties={features}
-        selectedValue={selectedValue}
-        setSelectedValue={setSelectedValue}
-      />
+  if (selectableAttributes?.length === 0) {
+    return (
+      <div className="jp-gis-layer-symbology-container">
+        This symbology type is not available; no attributes contain a hex color
+        code.
+      </div>
+    );
+  } else {
+    return (
+      <div className="jp-gis-layer-symbology-container">
+        <ValueSelect
+          featureProperties={features}
+          selectedValue={selectedValue}
+          setSelectedValue={setSelectedValue}
+        />
 
-      <ColorRamp
-        layerParams={layer.parameters}
-        modeOptions={[]}
-        classifyFunc={buildColorInfoFromClassification}
-        showModeRow={false}
-      />
-      <StopContainer
-        selectedMethod={''}
-        stopRows={stopRows}
-        setStopRows={setStopRows}
-      />
-    </div>
-  );
+        <ColorRamp
+          layerParams={layer.parameters}
+          modeOptions={[]}
+          classifyFunc={buildColorInfoFromClassification}
+          showModeRow={false}
+        />
+        <StopContainer
+          selectedMethod={''}
+          stopRows={stopRows}
+          setStopRows={setStopRows}
+        />
+      </div>
+    );
+  }
 };
 
 export default Categorized;
