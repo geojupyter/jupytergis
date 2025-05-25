@@ -818,3 +818,24 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 .jp-gis-stop-container-wrapper > *:only-child {
   flex: 1 1 100%;
 }
+
+.jp-gis-symbology-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.jp-gis-tab {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background-color: #f3f3f3;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.jp-gis-tab.active {
+  background-color: #007acc;
+  color: white;
+  border-color: #007acc;
+}

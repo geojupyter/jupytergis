@@ -170,7 +170,7 @@ const SimpleSymbol = ({
             ))}
           </select>
         </div>
-        </div>
+      </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-cap-select'}>Cap Style:</label>
         <div className="jp-select-wrapper">
@@ -203,9 +203,7 @@ const SimpleSymbol = ({
         type="number"
         value={style.radius}
         className="jp-mod-styled"
-        onChange={e =>
-          setStyle(prev => ({ ...prev, radius: +e.target.value }))
-        }
+        onChange={e => setStyle(prev => ({ ...prev, radius: +e.target.value }))}
       />
     </div>
   );

@@ -40,6 +40,13 @@ const Graduated = ({
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampOptions | undefined
   >();
+  const [manualStyle, setManualStyle] = useState({
+    fillColor: '#3399CC',
+    strokeColor: '#3399CC',
+    strokeWidth: 1.25,
+    radius: 5
+  });
+  const manualStyleRef = useRef(manualStyle);
 
   if (!layerId) {
     return;
@@ -80,6 +87,30 @@ const Graduated = ({
       });
     };
   }, []);
+
+  useEffect(() => {
+    if (layer?.parameters?.color) {
+      setManualStyle({
+        fillColor:
+          layer.parameters.color['fill-color'] ||
+          layer.parameters.color['circle-fill-color'] ||
+          '#3399CC',
+        strokeColor:
+          layer.parameters.color['stroke-color'] ||
+          layer.parameters.color['circle-stroke-color'] ||
+          '#3399CC',
+        strokeWidth:
+          layer.parameters.color['stroke-width'] ||
+          layer.parameters.color['circle-stroke-width'] ||
+          1.25,
+        radius: layer.parameters.color['circle-radius'] || 5
+      });
+    }
+  }, [layerId]);
+
+  useEffect(() => {
+    manualStyleRef.current = manualStyle;
+  }, [manualStyle]);
 
   useEffect(() => {
     updateStopRowsBasedOnMethod();
@@ -136,40 +167,67 @@ const Graduated = ({
       return;
     }
 
-    const colorExpr: ExpressionValue[] = [];
-    colorExpr.push('interpolate');
-    colorExpr.push(['linear']);
-    colorExpr.push(['get', selectedValueRef.current]);
-
-    stopRowsRef.current?.map(stop => {
-      colorExpr.push(stop.stop);
-      colorExpr.push(stop.output);
-    });
-
     const newStyle = { ...layer.parameters.color };
 
-    if (selectedMethodRef.current === 'color') {
-      newStyle['fill-color'] = colorExpr;
+    if (stopRowsRef.current && stopRowsRef.current.length > 0) {
+      // If classification applied
+      const colorExpr: ExpressionValue[] = [];
+      colorExpr.push('interpolate');
+      colorExpr.push(['linear']);
+      colorExpr.push(['get', selectedValueRef.current]);
 
-      newStyle['stroke-color'] = colorExpr;
+      stopRowsRef.current.map(stop => {
+        colorExpr.push(stop.stop);
+        colorExpr.push(stop.output);
+      });
 
-      newStyle['circle-fill-color'] = colorExpr;
+      if (selectedMethodRef.current === 'color') {
+        newStyle['fill-color'] = colorExpr;
+        newStyle['stroke-color'] = colorExpr;
+        newStyle['circle-fill-color'] = colorExpr;
+      }
+
+      if (selectedMethodRef.current === 'radius') {
+        newStyle['circle-radius'] = colorExpr;
+      }
+
+      const symbologyState = {
+        renderType: 'Graduated',
+        value: selectedValueRef.current,
+        method: selectedMethodRef.current,
+        colorRamp: colorRampOptionsRef.current?.selectedRamp,
+        nClasses: colorRampOptionsRef.current?.numberOfShades,
+        mode: colorRampOptionsRef.current?.selectedMode
+      };
+
+      layer.parameters.symbologyState = symbologyState;
+    } else {
+      // No classification applied
+      if (selectedMethodRef.current === 'color') {
+        newStyle['fill-color'] = manualStyleRef.current.fillColor;
+        newStyle['stroke-color'] = manualStyleRef.current.strokeColor;
+        newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
+        newStyle['circle-fill-color'] = manualStyleRef.current.fillColor;
+        newStyle['stroke-width'] = manualStyleRef.current.strokeWidth;
+        newStyle['circle-stroke-width'] = manualStyleRef.current.strokeWidth;
+      }
+
+      if (selectedMethodRef.current === 'radius') {
+        newStyle['circle-radius'] = manualStyleRef.current.radius;
+      }
+
+      const symbologyState = {
+        renderType: 'Graduated',
+        value: selectedValueRef.current,
+        method: selectedMethodRef.current,
+        colorRamp: undefined,
+        nClasses: undefined,
+        mode: undefined
+      };
+
+      layer.parameters.symbologyState = symbologyState;
     }
 
-    if (selectedMethodRef.current === 'radius') {
-      newStyle['circle-radius'] = colorExpr;
-    }
-
-    const symbologyState = {
-      renderType: 'Graduated',
-      value: selectedValueRef.current,
-      method: selectedMethodRef.current,
-      colorRamp: colorRampOptionsRef.current?.selectedRamp,
-      nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode
-    };
-
-    layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = newStyle;
     if (layer.type === 'HeatmapLayer') {
       layer.type = 'VectorLayer';
@@ -246,6 +304,49 @@ const Graduated = ({
     setStopRows(stopOutputPairs);
   };
 
+  const handleReset = (method: string) => {
+    if (!layer?.parameters) {
+      return;
+    }
+
+    const newStyle = { ...layer.parameters.color };
+
+    if (method === 'color') {
+      delete newStyle['fill-color'];
+      delete newStyle['stroke-color'];
+      delete newStyle['circle-fill-color'];
+
+      // Only reset color classification
+      if (layer.parameters.symbologyState) {
+        layer.parameters.symbologyState.colorRamp = undefined;
+        layer.parameters.symbologyState.nClasses = undefined;
+        layer.parameters.symbologyState.mode = undefined;
+      }
+    }
+
+    if (method === 'radius') {
+      delete newStyle['circle-radius'];
+      // You could optionally reset radius-specific symbologyState values if needed
+    }
+
+    layer.parameters.color = newStyle;
+
+    // Clear stop rows only for this method
+    setStopRows(prev => {
+      if (selectedMethod === method) {
+        return [];
+      }
+      return prev;
+    });
+
+    // Optional: clear colorRampOptions if color was reset
+    if (method === 'color') {
+      setColorRampOptions(undefined);
+    }
+
+    model.sharedModel.updateLayer(layerId, layer);
+  };
+
   return (
     <div className="jp-gis-layer-symbology-container">
       <ValueSelect
@@ -253,24 +354,79 @@ const Graduated = ({
         selectedValue={selectedValue}
         setSelectedValue={setSelectedValue}
       />
-      <div className="jp-gis-symbology-row">
-        <label htmlFor={'vector-method-select'}>Method:</label>
-        <select
-          name={'vector-method-select'}
-          onChange={event => setSelectedMethod(event.target.value)}
-          className="jp-mod-styled"
-        >
-          {methodOptions.map((method, index) => (
-            <option
-              key={index}
-              value={method}
-              selected={method === selectedMethod}
+      <div className="jp-gis-symbology-tabs">
+        {methodOptions.map(method => (
+          <button
+            key={method}
+            className={`jp-gis-tab ${selectedMethod === method ? 'active' : ''}`}
+            onClick={() => setSelectedMethod(method)}
+          >
+            {method.charAt(0).toUpperCase() + method.slice(1)}
+          </button>
+        ))}
+      </div>
+      <div className="jp-gis-layer-symbology-container">
+        {selectedMethod === 'color' && (
+          <>
+            <div className="jp-gis-symbology-row">
+              <label>Fill Color:</label>
+              <input
+                type="color"
+                className="jp-mod-styled"
+                value={manualStyle.fillColor}
+                onChange={e => {
+                  handleReset('color');
+                  setManualStyle({ ...manualStyle, fillColor: e.target.value });
+                }}
+              />
+            </div>
+            <div className="jp-gis-symbology-row">
+              <label>Stroke Color:</label>
+              <input
+                type="color"
+                className="jp-mod-styled"
+                value={manualStyle.strokeColor}
+                onChange={e => {
+                  handleReset('color');
+                  setManualStyle({
+                    ...manualStyle,
+                    strokeColor: e.target.value
+                  });
+                }}
+              />
+            </div>
+            <div className="jp-gis-symbology-row">
+              <label>Stroke Width:</label>
+              <input
+                type="number"
+                className="jp-mod-styled"
+                value={manualStyle.strokeWidth}
+                onChange={e => {
+                  handleReset('color');
+                  setManualStyle({
+                    ...manualStyle,
+                    strokeWidth: +e.target.value
+                  });
+                }}
+              />
+            </div>
+          </>
+        )}
+
+        {selectedMethod === 'radius' && (
+          <div className="jp-gis-symbology-row">
+            <label>Circle Radius:</label>
+            <input
+              type="number"
               className="jp-mod-styled"
-            >
-              {method}
-            </option>
-          ))}
-        </select>
+              value={manualStyle.radius}
+              onChange={e => {
+                handleReset('radius');
+                setManualStyle({ ...manualStyle, radius: +e.target.value });
+              }}
+            />
+          </div>
+        )}
       </div>
       <ColorRamp
         layerParams={layer.parameters}
