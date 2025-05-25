@@ -34,16 +34,8 @@
           "type": "string"
         },
         "method": {
-          "type": "object",
-          "properties": {
-            "color": { "type": "boolean", "default": true },
-            "radius": { "type": "boolean", "default": false }
-          },
-          "additionalProperties": false,
-          "default": {
-            "color": true,
-            "radius": false
-          }
+          "type": "string",
+          "enum": ["color", "radius"]
         },
         "colorRamp": {
           "type": "string",
