@@ -21,6 +21,8 @@ const SimpleSymbol = ({
     radius: 5
   });
 
+  const [activeTab, setActiveTab] = useState<'color' | 'radius'>('color');
+
   const joinStyleOptions = ['bevel', 'round', 'miter'];
   const capStyleOptions = ['butt', 'round', 'square'];
 
@@ -103,22 +105,8 @@ const SimpleSymbol = ({
     cancel();
   };
 
-  return (
+  const renderColorTab = () => (
     <div className="jp-gis-layer-symbology-container">
-      <div className="jp-gis-symbology-row">
-        <label htmlFor={'vector-value-select'}>Radius:</label>
-        <input
-          type="number"
-          value={style.radius}
-          className="jp-mod-styled"
-          onChange={event =>
-            setStyle(prevState => ({
-              ...prevState,
-              radius: +event.target.value
-            }))
-          }
-        />
-      </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Fill Color:</label>
         <input
@@ -182,7 +170,7 @@ const SimpleSymbol = ({
             ))}
           </select>
         </div>
-      </div>
+        </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-cap-select'}>Cap Style:</label>
         <div className="jp-select-wrapper">
@@ -204,6 +192,43 @@ const SimpleSymbol = ({
             ))}
           </select>
         </div>
+      </div>
+    </div>
+  );
+
+  const renderRadiusTab = () => (
+    <div className="jp-gis-symbology-row">
+      <label>Radius:</label>
+      <input
+        type="number"
+        value={style.radius}
+        className="jp-mod-styled"
+        onChange={e =>
+          setStyle(prev => ({ ...prev, radius: +e.target.value }))
+        }
+      />
+    </div>
+  );
+
+  return (
+    <div className="jp-gis-layer-symbology-container">
+      <div className="jp-gis-symbology-tabs">
+        <button
+          className={`jp-gis-tab ${activeTab === 'color' ? 'active' : ''}`}
+          onClick={() => setActiveTab('color')}
+        >
+          Color
+        </button>
+        <button
+          className={`jp-gis-tab ${activeTab === 'radius' ? 'active' : ''}`}
+          onClick={() => setActiveTab('radius')}
+        >
+          Radius
+        </button>
+      </div>
+
+      <div className="jp-gis-symbology-tab-content">
+        {activeTab === 'color' ? renderColorTab() : renderRadiusTab()}
       </div>
     </div>
   );
