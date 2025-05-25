@@ -958,6 +958,8 @@ export async function getGeoJSONDataFromLayerSource(
  * safety reasons, which means we need to use type assertions to have typed
  * code when using it.
  */
-export const objectEntries =
-  Object.entries as <T extends Record<PropertyKey, unknown>>(obj: T) =>
-    Array<{ [K in keyof T]: [K, T[K]] }[keyof T]>;
+export const objectEntries = Object.entries as <
+  T extends Record<PropertyKey, unknown>
+>(
+  obj: T
+) => Array<{ [K in keyof T]: [K, T[K]] }[keyof T]>;

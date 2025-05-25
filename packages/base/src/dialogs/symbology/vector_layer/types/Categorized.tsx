@@ -16,7 +16,7 @@ const Categorized = ({
   okSignalPromise,
   cancel,
   layerId,
-  selectableAttributes,
+  selectableAttributes
 }: ISymbologyDialogProps) => {
   const selectedValueRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
@@ -144,7 +144,8 @@ const Categorized = ({
   if (selectableAttributes?.length === 0) {
     return (
       <div className="jp-gis-layer-symbology-container">
-        This symbology type is not available; no attributes contain a hex color code.
+        This symbology type is not available; no attributes contain a hex color
+        code.
       </div>
     );
   } else {
