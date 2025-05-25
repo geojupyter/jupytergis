@@ -8,45 +8,30 @@ import SimpleSymbol from './types/SimpleSymbol';
 import { useGetProperties } from '../hooks/useGetProperties';
 import {
   getColorCodeFeatureAttributes,
-  getNumericFeatureAttributes
+  getNumericFeatureAttributes,
+  objectEntries
 } from '../../../tools';
 import { LayerType } from '@jupytergis/schema';
 
-// type RenderType = 'Single Symbol' | 'Canonical' | 'Graduated' | 'Categorized' | 'Heatmap';
+type RenderType = 'Single Symbol' | 'Canonical' | 'Graduated' | 'Categorized' | 'Heatmap';
 interface RenderTypeProps {
   component: any;
   attributeChecker?: Function;
   supportedLayerTypes: string[];
 }
-// TODO: Why this doesn't work???? >:(
-// interface RenderTypes {
-//   [key in RenderType]: RenderTypeProps;
-// }
-interface RenderTypes {
-  ['Single Symbol']: RenderTypeProps;
-  ['Canonical']: RenderTypeProps;
-  ['Graduated']: RenderTypeProps;
-  ['Categorized']: RenderTypeProps;
-  ['Heatmap']: RenderTypeProps;
+type RenderTypeOptions = {
+  [key: string]: RenderTypeProps
 }
-type RenderType = keyof RenderTypes;
 
 interface SelectableRenderTypeProps extends RenderTypeProps {
   selectableAttributes?: string[];
   layerTypeSupported: boolean;
 }
-// interface SelectableRenderTypes {
-//   [key in RenderTypes]: SelectableRenderTypeProps;
-// }
-interface SelectableRenderTypes {
-  ['Single Symbol']: SelectableRenderTypeProps;
-  ['Canonical']: SelectableRenderTypeProps;
-  ['Graduated']: SelectableRenderTypeProps;
-  ['Categorized']: SelectableRenderTypeProps;
-  ['Heatmap']: SelectableRenderTypeProps;
+type SelectableRenderTypes = {
+  [key: string]: SelectableRenderTypeProps
 }
 
-const RENDER_TYPE_OPTIONS: RenderTypes = {
+const RENDER_TYPE_OPTIONS: RenderTypeOptions = {
   'Single Symbol': {
     component: SimpleSymbol,
     supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer']
@@ -74,9 +59,8 @@ const RENDER_TYPE_OPTIONS: RenderTypes = {
 
 const getSelectableRenderTypes =
   (featureProperties: Record<string, Set<any>>, layerType: LayerType): SelectableRenderTypes => {
-    return Object.fromEntries((Object.keys(RENDER_TYPE_OPTIONS) as RenderType[]).map(
-      (renderType) => {
-        const renderTypeProps = RENDER_TYPE_OPTIONS[renderType];
+    return Object.fromEntries(objectEntries(RENDER_TYPE_OPTIONS).map(
+      ([renderType, renderTypeProps]) => {
         const layerTypeSupported = renderTypeProps.supportedLayerTypes.includes(layerType);
 
         return [renderType, {
@@ -88,7 +72,7 @@ const getSelectableRenderTypes =
           layerTypeSupported
         }];
       }
-    )) as SelectableRenderTypes;
+    ));
   };
 
 const VectorRendering = ({
@@ -129,7 +113,7 @@ const VectorRendering = ({
           }}
         >
           {
-            Object.entries(selectableRenderTypes)
+            objectEntries(selectableRenderTypes)
               .filter(
                 ([renderType, renderTypeProps]) => renderTypeProps.layerTypeSupported
               ).map(
