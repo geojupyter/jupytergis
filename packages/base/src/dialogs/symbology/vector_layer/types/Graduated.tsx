@@ -326,12 +326,10 @@ const Graduated = ({
 
     if (method === 'radius') {
       delete newStyle['circle-radius'];
-      // You could optionally reset radius-specific symbologyState values if needed
     }
 
     layer.parameters.color = newStyle;
 
-    // Clear stop rows only for this method
     setStopRows(prev => {
       if (selectedMethod === method) {
         return [];
@@ -339,7 +337,6 @@ const Graduated = ({
       return prev;
     });
 
-    // Optional: clear colorRampOptions if color was reset
     if (method === 'color') {
       setColorRampOptions(undefined);
     }
