@@ -167,7 +167,6 @@ const Categorized = ({
 
       layer.parameters.symbologyState = symbologyState;
     } else {
-
       newStyle['fill-color'] = manualStyleRef.current.fillColor;
       newStyle['stroke-color'] = manualStyleRef.current.strokeColor;
       newStyle['circle-fill-color'] = manualStyleRef.current.fillColor;
@@ -242,11 +241,11 @@ const Categorized = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
-        <ValueSelect
-          featureProperties={features}
-          selectedValue={selectedValue}
-          setSelectedValue={setSelectedValue}
-        />
+      <ValueSelect
+        featureProperties={features}
+        selectedValue={selectedValue}
+        setSelectedValue={setSelectedValue}
+      />
       <div className="jp-gis-symbology-tabs">
         <button
           className={`jp-gis-tab ${activeTab === 'color' ? 'active' : ''}`}
@@ -263,7 +262,6 @@ const Categorized = ({
       </div>
 
       <div className="jp-gis-layer-symbology-container">
-
         {/* Inputs depending on active tab */}
         {activeTab === 'color' && (
           <>
