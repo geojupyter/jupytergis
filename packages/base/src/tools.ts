@@ -8,6 +8,8 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import * as d3Color from 'd3-color';
 import shp from 'shpjs';
 import { getGdal } from './gdal';
+import { compressors } from 'hyparquet-compressors'
+
 
 import {
   IDict,
@@ -571,12 +573,8 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoParquetSource': {
-
-        console.log('GeoParquetSource');
-
         const cached = await getFromIndexedDB(filepath);
         if (cached) {
-          console.log('cached');
           return cached.file;
         }
 
@@ -587,7 +585,6 @@ export const loadFile = async (fileInfo: {
 
         if (geojson) {
           await saveToIndexedDB(filepath, geojson);
-          console.log(geojson);
           return geojson;
         }
 
@@ -659,6 +656,19 @@ export const loadFile = async (fileInfo: {
           return tiff;
         } else {
           throw new Error('Invalid file format for tiff content.');
+        }
+      }
+
+      case 'GeoParquetSource': {
+        if (typeof file.content === 'string') {
+          const { toGeoJson } = await import('geoparquet')
+
+          const arrayBuffer = await stringToArrayBuffer(file.content as string);
+
+          return await toGeoJson({ file: arrayBuffer , compressors});
+
+        } else {
+          throw new Error('Invalid file format for GeoParquet content.');
         }
       }
 
