@@ -13,7 +13,7 @@ interface ISelectedBands {
   alpha: number;
 }
 
-type rgbEnum = 'red' | 'green' | 'blue' | 'alpha';
+type rgbEnum = keyof ISelectedBands;
 
 const MultibandColor = ({
   model,
