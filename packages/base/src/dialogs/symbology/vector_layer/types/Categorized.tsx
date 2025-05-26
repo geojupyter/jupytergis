@@ -10,13 +10,19 @@ import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import { Utils, VectorUtils } from '../../symbologyUtils';
 import ValueSelect from '../components/ValueSelect';
 
+interface ICategorizedProps extends ISymbologyDialogProps {
+  activeTab: 'color' | 'radius';
+  setActiveTab: (tab: 'color' | 'radius') => void;
+}
+
 const Categorized = ({
   model,
   state,
   okSignalPromise,
   cancel,
-  layerId
-}: ISymbologyDialogProps) => {
+  layerId,
+  activeTab
+}: ICategorizedProps) => {
   const selectedValueRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
   const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
@@ -27,7 +33,6 @@ const Categorized = ({
     ReadonlyJSONObject | undefined
   >();
   const [features, setFeatures] = useState<Record<string, Set<number>>>({});
-  const [activeTab, setActiveTab] = useState<'color' | 'radius'>('color');
   const [manualStyle, setManualStyle] = useState({
     fillColor: '#3399CC',
     strokeColor: '#3399CC',
@@ -224,14 +229,7 @@ const Categorized = ({
 
     layer.parameters.color = newStyle;
 
-    // Reset stopRows only if active tab matches the method being reset
-    setStopRows(prev => {
-      if (activeTab === method) {
-        return [];
-      }
-      return prev;
-    });
-
+    setStopRows(prev => (activeTab === method ? [] : prev));
     if (method === 'color') {
       setColorRampOptions(undefined);
     }
@@ -246,20 +244,6 @@ const Categorized = ({
         selectedValue={selectedValue}
         setSelectedValue={setSelectedValue}
       />
-      <div className="jp-gis-symbology-tabs">
-        <button
-          className={`jp-gis-tab ${activeTab === 'color' ? 'active' : ''}`}
-          onClick={() => setActiveTab('color')}
-        >
-          Color
-        </button>
-        <button
-          className={`jp-gis-tab ${activeTab === 'radius' ? 'active' : ''}`}
-          onClick={() => setActiveTab('radius')}
-        >
-          Radius
-        </button>
-      </div>
 
       <div className="jp-gis-layer-symbology-container">
         {/* Inputs depending on active tab */}
@@ -322,7 +306,10 @@ const Categorized = ({
               value={manualStyle.radius}
               onChange={e => {
                 handleReset('radius');
-                setManualStyle(prev => ({ ...prev, radius: +e.target.value }));
+                setManualStyle(prev => ({
+                  ...prev,
+                  radius: +e.target.value
+                }));
               }}
             />
           </div>

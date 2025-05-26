@@ -3,13 +3,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import { IParsedStyle, parseColor } from '../../../../tools';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 
+interface ISimpleSymbolProps extends ISymbologyDialogProps {
+  activeTab: 'color' | 'radius';
+  setActiveTab: (tab: 'color' | 'radius') => void;
+}
+
 const SimpleSymbol = ({
   model,
   state,
   okSignalPromise,
   cancel,
-  layerId
-}: ISymbologyDialogProps) => {
+  layerId,
+  activeTab
+}: ISimpleSymbolProps) => {
   const styleRef = useRef<IParsedStyle>();
 
   const [style, setStyle] = useState<IParsedStyle>({
@@ -20,8 +26,6 @@ const SimpleSymbol = ({
     strokeWidth: 1.25,
     radius: 5
   });
-
-  const [activeTab, setActiveTab] = useState<'color' | 'radius'>('color');
 
   const joinStyleOptions = ['bevel', 'round', 'miter'];
   const capStyleOptions = ['butt', 'round', 'square'];
@@ -106,7 +110,7 @@ const SimpleSymbol = ({
   };
 
   const renderColorTab = () => (
-    <div className="jp-gis-layer-symbology-container">
+    <>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Fill Color:</label>
         <input
@@ -193,7 +197,7 @@ const SimpleSymbol = ({
           </select>
         </div>
       </div>
-    </div>
+    </>
   );
 
   const renderRadiusTab = () => (
@@ -210,24 +214,7 @@ const SimpleSymbol = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
-      <div className="jp-gis-symbology-tabs">
-        <button
-          className={`jp-gis-tab ${activeTab === 'color' ? 'active' : ''}`}
-          onClick={() => setActiveTab('color')}
-        >
-          Color
-        </button>
-        <button
-          className={`jp-gis-tab ${activeTab === 'radius' ? 'active' : ''}`}
-          onClick={() => setActiveTab('radius')}
-        >
-          Radius
-        </button>
-      </div>
-
-      <div className="jp-gis-symbology-tab-content">
-        {activeTab === 'color' ? renderColorTab() : renderRadiusTab()}
-      </div>
+      {activeTab === 'color' ? renderColorTab() : renderRadiusTab()}
     </div>
   );
 };

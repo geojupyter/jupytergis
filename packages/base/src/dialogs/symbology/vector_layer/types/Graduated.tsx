@@ -12,13 +12,20 @@ import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import { Utils, VectorUtils } from '../../symbologyUtils';
 import ValueSelect from '../components/ValueSelect';
 
-const Graduated = ({
+interface IGraduatedProps extends ISymbologyDialogProps {
+  selectedMethod: 'color' | 'radius';
+  setSelectedMethod: (tab: 'color' | 'radius') => void;
+}
+
+const Graduated: React.FC<IGraduatedProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
-  layerId
-}: ISymbologyDialogProps) => {
+  layerId,
+  selectedMethod,
+  setSelectedMethod
+}) => {
   const modeOptions = [
     'quantile',
     'equal interval',
@@ -33,9 +40,7 @@ const Graduated = ({
   const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
   const [selectedValue, setSelectedValue] = useState('');
-  const [selectedMethod, setSelectedMethod] = useState('color');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
-  const [methodOptions, setMethodOptions] = useState<string[]>(['color']);
   const [features, setFeatures] = useState<Record<string, Set<number>>>({});
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampOptions | undefined
@@ -63,14 +68,12 @@ const Graduated = ({
 
   useEffect(() => {
     let stopOutputPairs: IStopRow[] = [];
-    const layerParams = layer.parameters as IVectorLayer;
-    const method = layerParams.symbologyState?.method ?? 'color';
 
-    if (method === 'color') {
+    if (selectedMethod === 'color') {
       stopOutputPairs = VectorUtils.buildColorInfo(layer);
     }
 
-    if (method === 'radius') {
+    if (selectedMethod === 'radius') {
       stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
     }
     updateStopRowsBasedOnMethod();
@@ -124,12 +127,6 @@ const Graduated = ({
   }, [selectedValue, selectedMethod, stopRows, colorRampOptions]);
 
   useEffect(() => {
-    // Set up method options
-    if (layer?.parameters?.type === 'circle') {
-      const options = ['color', 'radius'];
-      setMethodOptions(options);
-    }
-
     // We only want number values here
     const numericFeatures = getNumericFeatureAttributes(featureProperties);
 
@@ -138,10 +135,9 @@ const Graduated = ({
     const layerParams = layer.parameters as IVectorLayer;
     const value =
       layerParams.symbologyState?.value ?? Object.keys(numericFeatures)[0];
-    const method = layerParams.symbologyState?.method ?? 'color';
 
     setSelectedValue(value);
-    setSelectedMethod(method);
+    setSelectedMethod(selectedMethod);
   }, [featureProperties]);
 
   const updateStopRowsBasedOnMethod = () => {
@@ -351,17 +347,6 @@ const Graduated = ({
         selectedValue={selectedValue}
         setSelectedValue={setSelectedValue}
       />
-      <div className="jp-gis-symbology-tabs">
-        {methodOptions.map(method => (
-          <button
-            key={method}
-            className={`jp-gis-tab ${selectedMethod === method ? 'active' : ''}`}
-            onClick={() => setSelectedMethod(method)}
-          >
-            {method.charAt(0).toUpperCase() + method.slice(1)}
-          </button>
-        ))}
-      </div>
       <div className="jp-gis-layer-symbology-container">
         {selectedMethod === 'color' && (
           <>

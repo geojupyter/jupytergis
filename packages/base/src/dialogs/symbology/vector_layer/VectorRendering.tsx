@@ -17,6 +17,7 @@ const VectorRendering = ({
   const [renderTypeOptions, setRenderTypeOptions] = useState<string[]>([
     'Single Symbol'
   ]);
+  const [activeTab, setActiveTab] = useState<'color' | 'radius'>('color');
 
   let RenderComponent;
 
@@ -53,6 +54,8 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
           />
         );
         break;
@@ -64,6 +67,8 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
+            selectedMethod={activeTab}
+            setSelectedMethod={setActiveTab}
           />
         );
         break;
@@ -75,6 +80,8 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
           />
         );
         break;
@@ -93,10 +100,25 @@ const VectorRendering = ({
         RenderComponent = <div>Select a render type</div>;
     }
     setComponentToRender(RenderComponent);
-  }, [selectedRenderType]);
+  }, [selectedRenderType, activeTab]);
 
   return (
     <>
+      {['Single Symbol', 'Graduated', 'Categorized'].includes(
+        selectedRenderType
+      ) && (
+        <div className="jp-gis-symbology-tabs">
+          {['color', 'radius'].map(tab => (
+            <button
+              key={tab}
+              className={`jp-gis-tab ${activeTab === tab ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab as 'color' | 'radius')}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="jp-gis-symbology-row">
         <label htmlFor="render-type-select">Render Type:</label>
         <select
@@ -114,6 +136,7 @@ const VectorRendering = ({
           ))}
         </select>
       </div>
+
       {componentToRender}
     </>
   );
