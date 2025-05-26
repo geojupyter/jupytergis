@@ -73,6 +73,7 @@
     "webpack": "^5.76.3"
   },
   "dependencies": {
-    "geoparquet": "^0.3.0"
+    "geoparquet": "^0.3.0",
+    "hyparquet-compressors": "^1.1.1"
   }
 }

@@ -897,6 +897,7 @@ __metadata:
     eslint-config-prettier: ^8.8.0
     eslint-plugin-prettier: ^5.0.1
     geoparquet: ^0.3.0
+    hyparquet-compressors: ^1.1.1
     lerna: ^8.1.9
     npm-run-all: ^4.1.5
     prettier: ^3.0.0
@@ -5656,6 +5657,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fzstd@npm:0.1.1":
+  version: 0.1.1
+  resolution: "fzstd@npm:0.1.1"
+  checksum: a06cc21096bbec787d99c4b1b9998fd6883c2e4e6550633956738992d6e49f94f027962c2d1a5f8d18f3b27ad630bb7d6b51dd3121dded8f9c8c854ff553a79a
+  languageName: node
+  linkType: hard
+
 "gdal3.js@npm:^2.8.1":
   version: 2.8.1
   resolution: "gdal3.js@npm:2.8.1"
@@ -6206,10 +6214,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hyparquet-compressors@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "hyparquet-compressors@npm:1.1.1"
+  dependencies:
+    fzstd: 0.1.1
+    hysnappy: 1.0.0
+  checksum: fae5a61c885ca76212c7361c172441801942c1f6d11a197e1d41aa70e6441035002168e73ec676a6b1fa21dceddb0c3de103981d2f7b8f7254ca7a9ae70777d3
+  languageName: node
+  linkType: hard
+
 "hyparquet@npm:1.7.0":
   version: 1.7.0
   resolution: "hyparquet@npm:1.7.0"
   checksum: f8a36c4a465a9a649d2b37cad36c81be3ecebaa08cd84803f4ad25fa2c0db8422ad34ad1ca8ed09bd2ef4c24f3438f4848aedebf6e8c5ed631c11a7e7256c14f
+  languageName: node
+  linkType: hard
+
+"hysnappy@npm:1.0.0":
+  version: 1.0.0
+  resolution: "hysnappy@npm:1.0.0"
+  checksum: 45c1e53278063262d0572612eaa53e860ac87519665d92d0be9084dc16fd471f56c92fa65d72e4fa656cd6e956e00b8a38e95585aa73dc86c98afbca4d0b2d27
   languageName: node
   linkType: hard
 
@@ -11032,9 +11057,9 @@ __metadata:
   linkType: hard
 
 "webpack-sources@npm:^3.2.3":
-  version: 3.2.3
-  resolution: "webpack-sources@npm:3.2.3"
-  checksum: 989e401b9fe3536529e2a99dac8c1bdc50e3a0a2c8669cbafad31271eadd994bc9405f88a3039cd2e29db5e6d9d0926ceb7a1a4e7409ece021fe79c37d9c4607
+  version: 3.3.0
+  resolution: "webpack-sources@npm:3.3.0"
+  checksum: 3098025872b445f39ab873241303c111a11e832b88ef124d9988593af47f245db4e9a485c449cd63ec14ab2562139b009d15c255599eb9837b67d182519031ff
   languageName: node
   linkType: hard
 
