@@ -1,15 +1,5 @@
-import React, { ChangeEvent } from 'react';
-import { IStacItem } from '../types/types';
-
-export interface IStacGridView {
-  searchTerm: string;
-  handleSearchInput: (event: ChangeEvent<HTMLInputElement>) => void;
-  datasetsMap: { [key: string]: string[] };
-  selectedCategory: string | null;
-  handleCategoryClick: (category: string) => void;
-  handleTileClick: (id: string) => void;
-  displayInfo?: IStacItem[];
-}
+import React from 'react';
+import { IStacViewProps } from '../types/types';
 
 const StacGridView = ({
   datasetsMap,
@@ -19,7 +9,7 @@ const StacGridView = ({
   handleTileClick,
   searchTerm,
   selectedCategory
-}: IStacGridView) => {
+}: IStacViewProps) => {
   return (
     <div className="jGIS-layer-browser-container">
       <div className="jGIS-layer-browser-header-container">

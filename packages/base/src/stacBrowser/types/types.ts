@@ -1,3 +1,5 @@
+import { ChangeEvent } from 'react';
+
 export interface IStacCollection {
   // Core fields
   type: 'Collection';
@@ -114,4 +116,14 @@ export interface IStacSearchResult {
   stac_extensions: string[];
   stac_version: string;
   type: 'FeatureCollection';
+}
+
+export interface IStacViewProps {
+  searchTerm: string;
+  handleSearchInput: (event: ChangeEvent<HTMLInputElement>) => void;
+  datasetsMap: { [key: string]: string[] };
+  selectedCategory: string | null;
+  handleCategoryClick: (category: string) => void;
+  handleTileClick: (id: string) => void;
+  displayInfo?: IStacItem[];
 }

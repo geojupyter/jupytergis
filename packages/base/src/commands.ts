@@ -969,6 +969,7 @@ namespace Private {
 
       const dialog = new LayerBrowserWidget({
         type: 'og',
+        tracker,
         model: current.model,
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry
@@ -992,6 +993,7 @@ namespace Private {
       const dialog = new LayerBrowserWidget({
         type: 'stac',
         model: current.model,
+        tracker: tracker,
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry
       });
