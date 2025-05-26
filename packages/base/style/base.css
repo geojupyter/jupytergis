@@ -12,6 +12,8 @@
 @import url('./temporalSlider.css');
 @import url('./stacBrowser.css');
 @import url('ol/ol.css');
+@import url('./shared/button.css');
+@import url('./shared/toggle.css');
 
 .jGIS-Toolbar-GroupName {
   font-size: var(--jp-ui-font-size0);

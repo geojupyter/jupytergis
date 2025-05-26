@@ -3,3 +3,12 @@
   flex-direction: column;
   gap: 2px;
 }
+
+.jgis-stac-browser-collection {
+  flex-wrap: wrap;
+}
+
+.jgis-stac-browser-collection-item {
+  border-radius: 1rem !important;
+  cursor: pointer;
+}

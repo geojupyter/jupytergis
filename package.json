@@ -74,6 +74,9 @@
     "webpack": "^5.76.3"
   },
   "dependencies": {
+    "@radix-ui/react-toggle-group": "^1.1.10",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "ol-stac": "^1.0.0-rc.10"
   }
 }
