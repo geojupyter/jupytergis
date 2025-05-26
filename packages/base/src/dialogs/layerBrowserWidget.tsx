@@ -2,6 +2,7 @@ import {
   IDict,
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
+  IJupyterGISTracker,
   IRasterLayerGalleryEntry
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
@@ -13,6 +14,7 @@ import { LayerBrowserComponent } from './layerBrowserDialog';
 
 export interface ILayerBrowserOptions {
   type: 'og' | 'stac';
+  tracker: IJupyterGISTracker;
   model: IJupyterGISModel;
   registry: IRasterLayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -44,7 +46,13 @@ export class LayerBrowserWidget extends Dialog<boolean> {
     }
 
     if (options.type === 'stac') {
-      body = <StacBrowser model={options.model} display="grid" />;
+      body = (
+        <StacBrowser
+          model={options.model}
+          tracker={options.tracker}
+          display="grid"
+        />
+      );
     }
 
     super({ body, buttons: [Dialog.cancelButton(), Dialog.okButton()] });

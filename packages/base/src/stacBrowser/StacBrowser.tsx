@@ -1,8 +1,13 @@
-import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IJGISLayer,
+  IJupyterGISModel,
+  IJupyterGISTracker
+} from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import StacGridView, { IStacGridView } from './components/StacGridView';
-import { IStacItem, IStacSearchResult } from './types/types';
+import StacGridView from './components/StacGridView';
+import StacPanelView from './components/StacPanelView';
+import { IStacItem, IStacSearchResult, IStacViewProps } from './types/types';
 
 const datasetsMap: { [key: string]: string[] } = {
   'Sentinel 1': ['PEPS_S1_L1', 'PEPS_S1_L2'],
@@ -70,6 +75,8 @@ const datasetsMap: { [key: string]: string[] } = {
 interface IStacBrowserDialogProps {
   model: IJupyterGISModel;
   display: 'side' | 'grid';
+  tracker: IJupyterGISTracker;
+
   // registry: IRasterLayerGalleryEntry[];
   // formSchemaRegistry: IJGISFormSchemaRegistry;
   // okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
@@ -78,10 +85,32 @@ interface IStacBrowserDialogProps {
 
 const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
 
-const StacBrowser = ({ model, display }: IStacBrowserDialogProps) => {
+const StacBrowser = ({ model, display, tracker }: IStacBrowserDialogProps) => {
+  const [widgetId, setWidgetId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [displayInfo, setDisplayInfo] = useState<IStacItem[]>();
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [displayInfo, setDisplayInfo] = useState<IStacItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  // Reset state values when current widget changes
+  useEffect(() => {
+    const handleCurrentChanged = () => {
+      if (tracker.currentWidget?.id === widgetId) {
+        return;
+      }
+
+      if (tracker.currentWidget) {
+        setWidgetId(tracker.currentWidget.id);
+      }
+      setSearchTerm('');
+      setDisplayInfo([]);
+      setSelectedCategory('');
+    };
+    tracker.currentChanged.connect(handleCurrentChanged);
+
+    return () => {
+      tracker.currentChanged.disconnect(handleCurrentChanged);
+    };
+  }, []);
 
   useEffect(() => {
     console.log('selectedCategory', selectedCategory);
@@ -159,12 +188,12 @@ const StacBrowser = ({ model, display }: IStacBrowserDialogProps) => {
 
   const handleCategoryClick = (category: string) => {
     setSearchTerm('');
-    setSelectedCategory(prev => (prev === category ? null : category));
+    setSelectedCategory(prev => (prev === category ? '' : category));
   };
 
   const displayComponents = {
-    grid: (props: IStacGridView) => <StacGridView {...props} />,
-    side: (props: IStacGridView) => <StacGridView {...props} />
+    grid: (props: IStacViewProps) => <StacGridView {...props} />,
+    side: (props: IStacViewProps) => <StacPanelView {...props} />
   };
 
   const DisplayComponent = displayComponents[display];
