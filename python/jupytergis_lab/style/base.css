@@ -807,21 +807,29 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 
 .jp-gis-symbology-tabs {
   display: flex;
-  gap: 8px;
-  margin: 8px 0;
+  border-bottom: 1px solid #ccc;
+  margin: 12px 0;
 }
 
 .jp-gis-tab {
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  background-color: #f3f3f3;
+  flex: 1;
+  text-align: center;
+  padding: 10px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
   cursor: pointer;
-  border-radius: 4px;
-  font-size: 14px;
+  font-size: var(--jp-ui-font-size2);
+  color: var(--jp-ui-font-color1);
+  background-color: var(--jp-layout-color1);
+}
+
+.jp-gis-tab:not(.active):hover {
+  background-color: var(--jp-layout-color2);
 }
 
 .jp-gis-tab.active {
-  background-color: #007acc;
-  color: white;
-  border-color: #007acc;
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-brand-color1);
+  border-bottom: 2px solid var(--jp-brand-color1);
+  font-weight: 500;
 }
