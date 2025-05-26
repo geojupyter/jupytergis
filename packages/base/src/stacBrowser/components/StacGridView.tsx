@@ -1,5 +1,5 @@
 import React from 'react';
-import { IStacViewProps } from '../types/types';
+import { IStacViewProps } from '../StacBrowser';
 
 const StacGridView = ({
   datasetsMap,

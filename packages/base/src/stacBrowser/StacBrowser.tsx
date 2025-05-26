@@ -7,7 +7,7 @@ import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import StacGridView from './components/StacGridView';
 import StacPanelView from './components/StacPanelView';
-import { IStacItem, IStacSearchResult, IStacViewProps } from './types/types';
+import { IStacItem, IStacSearchResult } from './types/types';
 
 const datasetsMap: { [key: string]: string[] } = {
   'Sentinel 1': ['PEPS_S1_L1', 'PEPS_S1_L2'],
@@ -81,6 +81,17 @@ interface IStacBrowserDialogProps {
   // formSchemaRegistry: IJGISFormSchemaRegistry;
   // okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
   // cancel: () => void;
+}
+
+// ? Does this make more sense here or in types?
+export interface IStacViewProps {
+  searchTerm: string;
+  handleSearchInput: (event: ChangeEvent<HTMLInputElement>) => void;
+  datasetsMap: { [key: string]: string[] };
+  selectedCategory: string | null;
+  handleCategoryClick: (category: string) => void;
+  handleTileClick: (id: string) => void;
+  displayInfo?: IStacItem[];
 }
 
 const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
