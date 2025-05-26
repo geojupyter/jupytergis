@@ -2,6 +2,7 @@ import { MapChange } from '@jupyter/ydoc';
 import {
   IAnnotation,
   IDict,
+  IGeoPackageSource,
   IGeoTiffSource,
   IHeatmapLayer,
   IHillshadeLayer,
@@ -693,6 +694,27 @@ export class MainView extends React.Component<IProps, IStates> {
           wrapX: sourceParameters.wrapX
         });
 
+        break;
+      }
+      case 'GeoPackageSource': {
+        const parameters = source.parameters as IGeoPackageSource;
+
+        const geojson = await loadFile({
+          filepath: parameters.path,
+          type: 'GeoPackageSource',
+          model: this._model
+        });
+
+        const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
+
+        const format = new GeoJSON();
+
+        newSource = new VectorSource({
+          features: format.readFeatures(geojsonData, {
+            dataProjection: parameters.projection,
+            featureProjection: this._Map.getView().getProjection()
+          })
+        });
         break;
       }
     }

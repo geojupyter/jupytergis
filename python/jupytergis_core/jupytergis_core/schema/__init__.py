@@ -15,6 +15,7 @@ from .interfaces.project.sources.videoSource import IVideoSource  # noqa
 from .interfaces.project.sources.imageSource import IImageSource  # noqa
 from .interfaces.project.sources.geoTiffSource import IGeoTiffSource  # noqa
 from .interfaces.project.sources.rasterDemSource import IRasterDemSource  # noqa
+from .interfaces.project.sources.geoPackageSource import IGeoPackageSource  # noqa
 
 from .interfaces.processing.buffer import IBuffer  # noqa
 
