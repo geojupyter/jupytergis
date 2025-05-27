@@ -99,11 +99,11 @@ const MultibandColor = ({
       colorExpr.push(bandValue !== 0 ? ['band', bandValue] : 0);
     });
 
-    // Push alpha if selected, else default to 255
+    // Push alpha if selected, else default to 0
     if (selectedBandsRef.current.alpha) {
       colorExpr.push(['band', selectedBandsRef.current.alpha]);
     } else {
-      colorExpr.push(255); // full opacity fallback
+      colorExpr.push(['band', numOfBandsRef.current + 1]);
     }
 
     const symbologyState = {
