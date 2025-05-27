@@ -1,9 +1,11 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISLayerBrowserRegistry,
   IJGISLayerGroup,
   IJGISLayerItem,
+  IJGISSource,
   IJupyterGISModel,
   JgisCoordinates,
   LayerType,
@@ -16,10 +18,9 @@ import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject, UUID} from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
-
 import { CommandIDs, icons } from './constants';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
@@ -941,8 +942,11 @@ export function addCommands(
   commands.addCommand(CommandIDs.newDrawVectorLayer, {
     label: trans.__('Create New Draw Vector Layer'),
     isToggled: () => {
-      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
-        const model = tracker.currentWidget?.content.currentViewModel
+      const current = tracker.currentWidget;
+      if (!current || !(current instanceof JupyterGISDocumentWidget)) {
+        return false;
+      } else {
+        const model = current.content.currentViewModel
           .jGISModel as IJupyterGISModel;
         const selectedLayer = getSingleSelectedLayer(tracker);
         if (!selectedLayer) {
@@ -955,33 +959,53 @@ export function addCommands(
             selectedSource?.type === 'GeoJSONSource' &&
             selectedSource?.parameters?.data
           ) {
-            return model.isDrawVectorLayerEnabled === true;
+            return model.isDrawVectorLayerEnabled;
           } else {
+            /* The source of this layer is not a GeoJSONSource with embedded data*/
+            model.isDrawVectorLayerEnabled = false;
+            model.updateIsDrawVectorLayerEnabled();
             return false;
           }
         }
-      } else {
-        return false;
       }
-    },
-    isEnabled: () => {
-      const selectedLayer = getSingleSelectedLayer(tracker);
-
-      if (!selectedLayer) {
-        return false;
-      }
-      return ['VectorLayer'].includes(selectedLayer.type);
     },
     execute: async () => {
       if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
         const model = tracker.currentWidget?.content.currentViewModel
           .jGISModel as IJupyterGISModel;
+        const localState = model?.sharedModel.awareness.getLocalState();
+        if (localState && localState['selected'] === undefined) {
+          const emptySourceID = UUID.uuid4();
+          const emptyLayerID = UUID.uuid4();
+          const emptyLayer: IJGISLayer = {
+            name: 'Editable GeoJSON Layer',
+            type: 'VectorLayer',
+            visible: true,
+            parameters: {
+              source: emptySourceID
+            }
+          };
+          const emptySource: IJGISSource = {
+            name: 'Editable GeoJSON Layer Source',
+            type: 'GeoJSONSource',
+            parameters: {
+              data: {
+                type: 'FeatureCollection',
+                features: []
+              }
+            }
+          };
+          model.sharedModel.addSource(emptySourceID, emptySource);
+          model.addLayer(emptyLayerID, emptyLayer);
+          localState['selected'] = emptyLayer;
+        }
 
         if (model.isDrawVectorLayerEnabled === true) {
           model.isDrawVectorLayerEnabled = false;
         } else {
           model.isDrawVectorLayerEnabled = true;
         }
+
         model.updateIsDrawVectorLayerEnabled();
         commands.notifyCommandChanged(CommandIDs.newDrawVectorLayer);
       }
