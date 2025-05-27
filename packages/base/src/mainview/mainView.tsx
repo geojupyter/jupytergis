@@ -2046,9 +2046,8 @@ export class MainView extends React.Component<IProps, IStates> {
       const localStateLayer = localState?.selected?.value;
       const localStateLayerID = Object.keys(localStateLayer)[0];
       const jGISLayer = this._model.getLayer(localStateLayerID);
-      let jGISLayerSource = this._model.getSource(
-        jGISLayer?.parameters?.source
-      );
+      const localStateSourceID = jGISLayer?.parameters?.source;
+      let jGISLayerSource = this._model.getSource(localStateSourceID);
 
       const layerSource: VectorSource | undefined = this._Map
         .getLayers()
@@ -2079,22 +2078,28 @@ export class MainView extends React.Component<IProps, IStates> {
         drawGeometryType
       }));
 
-      draw.on('drawend', event => {
+      const geojsonWriter = new GeoJSON({
+        featureProjection: this._Map.getView().getProjection()
+      });
+
+      layerSource?.on('change', () => {
         if (jGISLayerSource) {
           const updatedData = {
             type: 'FeatureCollection',
-            features: layerSource?.getFeatures()
+            features: layerSource
+              ?.getFeatures()
+              .map(feature => geojsonWriter.writeFeatureObject(feature))
           };
           const updatedJGISLayerSource: IJGISSource = {
             name: jGISLayerSource.name,
             type: jGISLayerSource.type,
             parameters: {
               data: updatedData
-            }
+            } 
           };
           jGISLayerSource = updatedJGISLayerSource;
           this._model.sharedModel.updateSource(
-            localStateLayerID,
+            localStateSourceID,
             updatedJGISLayerSource
           );
         }
