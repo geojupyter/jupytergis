@@ -134,7 +134,7 @@ const MultibandColor = ({
               index={selectedBands.red - 1}
               bandRow={bandRows[selectedBands.red - 1]}
               bandRows={bandRows}
-              setSelectedBand={val => updateBand('red', val > 0 ? val + 1 : 0)}
+              setSelectedBand={val => updateBand('red', val >= 0 ? val + 1 : 0)}
               setBandRows={setBandRows}
               isMultibandColor={true}
             />
@@ -145,7 +145,7 @@ const MultibandColor = ({
               bandRow={bandRows[selectedBands.green - 1]}
               bandRows={bandRows}
               setSelectedBand={val =>
-                updateBand('green', val > 0 ? val + 1 : 0)
+                updateBand('green', val >= 0 ? val + 1 : 0)
               }
               setBandRows={setBandRows}
               isMultibandColor={true}
@@ -156,7 +156,7 @@ const MultibandColor = ({
               index={selectedBands.blue - 1}
               bandRow={bandRows[selectedBands.blue - 1]}
               bandRows={bandRows}
-              setSelectedBand={val => updateBand('blue', val > 0 ? val + 1 : 0)}
+              setSelectedBand={val => updateBand('blue', val >= 0 ? val + 1 : 0)}
               setBandRows={setBandRows}
               isMultibandColor={true}
             />
@@ -167,7 +167,7 @@ const MultibandColor = ({
               bandRow={bandRows[selectedBands.alpha - 1]}
               bandRows={bandRows}
               setSelectedBand={val =>
-                updateBand('alpha', val > 0 ? val + 1 : 0)
+                updateBand('alpha', val >= 0 ? val + 1 : 0)
               }
               setBandRows={setBandRows}
               isMultibandColor={true}
