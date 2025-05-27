@@ -2013,7 +2013,8 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _updateIsDrawVectorLayerEnabled() {
-    const isDrawVectorLayerEnabled = this._model.isDrawVectorLayerEnabled;
+    const isDrawVectorLayerEnabled: boolean =
+      this._model.isDrawVectorLayerEnabled;
     this.setState(old => ({ ...old, isDrawVectorLayerEnabled }));
     if (isDrawVectorLayerEnabled === false && this._currentDrawInteraction) {
       this._removeCurrentDrawInteraction();
