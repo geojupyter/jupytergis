@@ -2094,7 +2094,7 @@ export class MainView extends React.Component<IProps, IStates> {
             type: jGISLayerSource.type,
             parameters: {
               data: updatedData
-            } 
+            }
           };
           jGISLayerSource = updatedJGISLayerSource;
           this._model.sharedModel.updateSource(
