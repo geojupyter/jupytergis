@@ -29,7 +29,7 @@ type RenderTypeOptions = {
 };
 
 interface SelectableRenderTypeProps extends RenderTypeProps {
-  selectableAttributes?: string[];
+  selectableAttributesAndValues?: Record<string, Set<any>>;
   layerTypeSupported: boolean;
 }
 type SelectableRenderTypes = {
@@ -76,7 +76,7 @@ const getSelectableRenderTypes = (
         {
           ...renderTypeProps,
           ...(renderTypeProps.attributeChecker
-            ? renderTypeProps.attributeChecker(featureProperties)
+            ? {selectableAttributesAndValues: renderTypeProps.attributeChecker(featureProperties)}
             : {}),
           layerTypeSupported
         }
@@ -144,10 +144,10 @@ const VectorRendering = ({
         okSignalPromise={okSignalPromise}
         cancel={cancel}
         layerId={layerId}
-        {...(selectedRenderTypeEnriched.selectableAttributes
+        {...(selectedRenderTypeEnriched.selectableAttributesAndValues
           ? {
-              selectableAttributes:
-                selectedRenderTypeEnriched.selectableAttributes
+              selectableAttributesAndValues:
+                selectedRenderTypeEnriched.selectableAttributesAndValues
             }
           : {})}
       />
