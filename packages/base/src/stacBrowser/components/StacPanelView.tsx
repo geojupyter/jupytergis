@@ -1,9 +1,9 @@
 import React from 'react';
-import StacCollections from './StacCollections';
 import { IStacViewProps } from '../StacBrowser';
+import StacSections from './StacSection';
 
 const StacPanelView = ({
-  datasetsMap,
+  datasets,
   displayInfo,
   handleCategoryClick,
   handleSearchInput,
@@ -16,7 +16,7 @@ const StacPanelView = ({
       <div>save/load filter</div>
       <div>date time picker</div>
       <div>where</div>
-      <StacCollections datasetsMap={datasetsMap} />
+      <StacSections header="Collection" data={datasets} />
       <div>platform</div>
       <div>data/ product</div>
       <div>cloud cover</div>

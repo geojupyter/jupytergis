@@ -1,4 +1,5 @@
 import {
+  IDict,
   IJGISLayer,
   IJupyterGISModel,
   IJupyterGISTracker
@@ -7,9 +8,10 @@ import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import StacGridView from './components/StacGridView';
 import StacPanelView from './components/StacPanelView';
-import { IStacItem, IStacSearchResult } from './types/types';
+import { IStacItem, IStacSearchResult, ProductData } from './types/types';
 
-const datasetsMap: { [key: string]: string[] } = {
+// Map display names to query strings
+const datasets: IDict<string[]> = {
   'Sentinel 1': ['PEPS_S1_L1', 'PEPS_S1_L2'],
   'Sentinel 2': [
     'PEPS_S2_L1C',
@@ -87,7 +89,9 @@ interface IStacBrowserDialogProps {
 export interface IStacViewProps {
   searchTerm: string;
   handleSearchInput: (event: ChangeEvent<HTMLInputElement>) => void;
-  datasetsMap: { [key: string]: string[] };
+  datasets: IDict<string[]>;
+  platforms: IDict<string[]>;
+  products: IDict<ProductData>;
   selectedCategory: string | null;
   handleCategoryClick: (category: string) => void;
   handleTileClick: (id: string) => void;
@@ -134,7 +138,7 @@ const StacBrowser = ({ model, display, tracker }: IStacBrowserDialogProps) => {
       limit: 12,
       query: {
         dataset: {
-          in: datasetsMap[selectedCategory]
+          in: datasets[selectedCategory]
         }
       }
     };
@@ -211,7 +215,7 @@ const StacBrowser = ({ model, display, tracker }: IStacBrowserDialogProps) => {
 
   return (
     <DisplayComponent
-      datasetsMap={datasetsMap}
+      datasets={datasets}
       displayInfo={displayInfo}
       handleCategoryClick={handleCategoryClick}
       handleSearchInput={handleSearchInput}

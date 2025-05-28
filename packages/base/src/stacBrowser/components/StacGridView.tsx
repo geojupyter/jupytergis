@@ -2,7 +2,7 @@ import React from 'react';
 import { IStacViewProps } from '../StacBrowser';
 
 const StacGridView = ({
-  datasetsMap,
+  datasets,
   displayInfo,
   handleCategoryClick,
   handleSearchInput,
@@ -27,7 +27,7 @@ const StacGridView = ({
         </div>
 
         <div className="jGIS-layer-browser-categories">
-          {Object.keys(datasetsMap).map(key => (
+          {Object.keys(datasets).map(key => (
             <span
               className={`jGIS-layer-browser-category ${
                 selectedCategory === key
