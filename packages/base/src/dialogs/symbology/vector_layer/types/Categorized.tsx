@@ -2,11 +2,9 @@ import { IVectorLayer } from '@jupytergis/schema';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { getNumericFeatureAttributes } from '../../../../tools';
 import ColorRamp from '../../components/color_ramp/ColorRamp';
 import StopContainer from '../../components/color_stops/StopContainer';
-import { useGetProperties } from '../../hooks/useGetProperties';
-import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
+import { IStopRow, ISymbologyDialogWithAttributesProps } from '../../symbologyDialog';
 import { Utils, VectorUtils } from '../../symbologyUtils';
 import ValueSelect from '../components/ValueSelect';
 
@@ -16,18 +14,17 @@ const Categorized = ({
   okSignalPromise,
   cancel,
   layerId,
-  selectableAttributes
-}: ISymbologyDialogProps) => {
+  selectableAttributesAndValues
+}: ISymbologyDialogWithAttributesProps) => {
   const selectedValueRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
   const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
 
-  const [selectedValue, setSelectedValue] = useState('');
+  const [selectedAttribute, setSelectedAttribute] = useState('');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [colorRampOptions, setColorRampOptions] = useState<
     ReadonlyJSONObject | undefined
   >();
-  const [features, setFeatures] = useState<Record<string, Set<number>>>({});
 
   if (!layerId) {
     return;
@@ -36,11 +33,6 @@ const Categorized = ({
   if (!layer?.parameters) {
     return;
   }
-  const { featureProperties } = useGetProperties({
-    layerId,
-    model: model
-  });
-
   useEffect(() => {
     const valueColorPairs = VectorUtils.buildColorInfo(layer);
 
@@ -58,23 +50,18 @@ const Categorized = ({
   }, []);
 
   useEffect(() => {
-    // We only want number values here
-    const numericFeatures = getNumericFeatureAttributes(featureProperties);
-
-    setFeatures(numericFeatures);
-
     const layerParams = layer.parameters as IVectorLayer;
     const value =
-      layerParams.symbologyState?.value ?? Object.keys(numericFeatures)[0];
+      layerParams.symbologyState?.value ?? Object.keys(selectableAttributesAndValues)[0];
 
-    setSelectedValue(value);
-  }, [featureProperties]);
+    setSelectedAttribute(value);
+  }, [selectableAttributesAndValues]);
 
   useEffect(() => {
-    selectedValueRef.current = selectedValue;
+    selectedValueRef.current = selectedAttribute;
     stopRowsRef.current = stopRows;
     colorRampOptionsRef.current = colorRampOptions;
-  }, [selectedValue, stopRows, colorRampOptions]);
+  }, [selectedAttribute, stopRows, colorRampOptions]);
 
   const buildColorInfoFromClassification = (
     selectedMode: string,
@@ -89,7 +76,7 @@ const Categorized = ({
       selectedMode: ''
     });
 
-    const stops = Array.from(features[selectedValue]).sort((a, b) => a - b);
+    const stops = Array.from(selectableAttributesAndValues[selectedAttribute]).sort((a, b) => a - b);
 
     const valueColorPairs = Utils.getValueColorPairs(
       stops,
@@ -141,7 +128,7 @@ const Categorized = ({
     cancel();
   };
 
-  if (selectableAttributes?.length === 0) {
+  if (Object.keys(selectableAttributesAndValues).length === 0) {
     return (
       <div className="jp-gis-layer-symbology-container">
         This symbology type is not available; no attributes contain a hex color
@@ -152,9 +139,9 @@ const Categorized = ({
     return (
       <div className="jp-gis-layer-symbology-container">
         <ValueSelect
-          featureProperties={features}
-          selectedValue={selectedValue}
-          setSelectedValue={setSelectedValue}
+          featureProperties={selectableAttributesAndValues}
+          selectedValue={selectedAttribute}
+          setSelectedValue={setSelectedAttribute}
         />
 
         <ColorRamp
