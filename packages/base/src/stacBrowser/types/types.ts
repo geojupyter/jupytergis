@@ -1,5 +1,3 @@
-import { ChangeEvent } from 'react';
-
 export interface IStacCollection {
   // Core fields
   type: 'Collection';
@@ -109,6 +107,7 @@ export interface IStacItem {
   collection: string;
 }
 
+// ? IStacItemCollection???
 export interface IStacSearchResult {
   context: { returned: number; limit: number; matched: number };
   features: IStacItem[];
