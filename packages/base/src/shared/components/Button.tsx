@@ -2,6 +2,7 @@ import { VariantProps, cva } from 'class-variance-authority';
 import * as React from 'react';
 import { cn } from './utils';
 
+// TODO: finish tailwind -> css
 const buttonVariants = cva('jgis-button-shared', {
   variants: {
     variant: {
