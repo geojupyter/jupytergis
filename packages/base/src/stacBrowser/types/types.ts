@@ -117,3 +117,9 @@ export interface IStacSearchResult {
   stac_version: string;
   type: 'FeatureCollection';
 }
+
+export type ProductData = {
+  collections: string[];
+  'processing:level': string[];
+  'product:type': string[];
+};
