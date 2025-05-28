@@ -79,7 +79,7 @@ const BandRow = ({
             {isMultibandColor ? (
               <option
                 key={'unset'}
-                value={0}
+                value={-1}
                 selected={!bandRow}
                 className="jp-mod-styled"
               >
