@@ -14,10 +14,7 @@ const StacPanelView = ({
   selectedCategory
 }: IStacViewProps) => {
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
-
-  const handleToggleGroupValueChange = (val: string[]) => {
-    setSelectedCollections(val);
-  };
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
 
   useEffect(() => {
     console.log('selectedCollections', selectedCollections);
@@ -32,12 +29,19 @@ const StacPanelView = ({
         header="Collection"
         data={datasets}
         selectedCollections={selectedCollections}
-        handleToggleGroupValueChange={handleToggleGroupValueChange}
+        handleToggleGroupValueChange={(val: string[]) => {
+          setSelectedCollections(val);
+        }}
+        selectedPlatforms={selectedPlatforms}
       />
       <StacSections
         header="Platform"
         data={platforms}
         selectedCollections={selectedCollections}
+        handleToggleGroupValueChange={(val: string[]) => {
+          setSelectedPlatforms(val);
+        }}
+        selectedPlatforms={selectedPlatforms}
       />
       <div>data/ product</div>
       <div>cloud cover</div>

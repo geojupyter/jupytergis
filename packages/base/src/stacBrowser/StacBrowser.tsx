@@ -8,10 +8,10 @@ import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import StacGridView from './components/StacGridView';
 import StacPanelView from './components/StacPanelView';
-import { IStacItem, IStacSearchResult, ProductData } from './types/types';
+import { IStacItem, ProductData } from './types/types';
 
 // Map display names to query strings
-const datasets: IDict<string[]> = {
+export const datasets: IDict<string[]> = {
   'Sentinel 1': ['PEPS_S1_L1', 'PEPS_S1_L2'],
   'Sentinel 2': [
     'PEPS_S2_L1C',
@@ -90,23 +90,6 @@ const platforms: IDict<string[]> = {
   ],
   Landsat: ['LANDSAT5', 'LANDSAT7', 'LANDSAT8']
 };
-
-// const platforms: IDict<string[]> = {
-//   'Sentinel 1': ['S1A', 'S1B'],
-//   'Sentinel 2': ['S2A', 'S2B', 'S2X'],
-//   Venus: ['VM1', 'VM5'],
-//   Spot: [
-//     'SPOT1',
-//     'SPOT2',
-//     'SPOT3',
-//     'SPOT4',
-//     'SPOT5',
-//     'SPOT4_TAKE5',
-//     'SPOT5_TAKE5'
-//   ],
-//   Landsat: ['LANDSAT5', 'LANDSAT7', 'LANDSAT8'],
-//   OSO: ['L3B-OSO']
-// };
 
 // Map processing:level to product:type for queries and the datasets they apply to
 // so the keys here are what gets displayed in the UI - start there
@@ -213,58 +196,58 @@ const StacBrowser = ({ model, display, tracker }: IStacBrowserDialogProps) => {
     };
   }, []);
 
-  useEffect(() => {
-    console.log('selectedCategory', selectedCategory);
+  // useEffect(() => {
+  //   console.log('selectedCategory', selectedCategory);
 
-    if (!selectedCategory) {
-      return;
-    }
+  //   if (!selectedCategory) {
+  //     return;
+  //   }
 
-    const body = {
-      limit: 12,
-      query: {
-        dataset: {
-          in: datasets[selectedCategory]
-        }
-      }
-    };
+  // const body = {
+  //   limit: 12,
+  //   query: {
+  //     dataset: {
+  //       in: datasets[selectedCategory]
+  //     }
+  //   }
+  // };
 
-    mockProxyFetch(body);
-  }, [selectedCategory]);
+  //   mockProxyFetch(body);
+  // }, [selectedCategory]);
 
   const handleSearchInput = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value.toLowerCase());
   };
 
-  async function mockProxyFetch(options: { [key: string]: any }) {
-    // Needed for POST
-    const xsrfToken = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
+  // async function mockProxyFetch(options: { [key: string]: any }) {
+  //   // Needed for POST
+  //   const xsrfToken = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
 
-    const proxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(apiUrl)}`;
+  //   const proxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(apiUrl)}`;
 
-    try {
-      const response = await fetch(proxyUrl, {
-        method: 'POST',
-        //@ts-expect-error Jupyter requires X-XSRFToken header
-        headers: {
-          'Content-Type': 'application/json',
-          'X-XSRFToken': xsrfToken,
-          credentials: 'include'
-        },
-        body: JSON.stringify(options)
-      });
+  //   try {
+  //     const response = await fetch(proxyUrl, {
+  //       method: 'POST',
+  //       //@ts-expect-error Jupyter requires X-XSRFToken header
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'X-XSRFToken': xsrfToken,
+  //         credentials: 'include'
+  //       },
+  //       body: JSON.stringify(options)
+  //     });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
 
-      const data = (await response.json()) as IStacSearchResult;
+  //     const data = (await response.json()) as IStacSearchResult;
 
-      setDisplayInfo(data.features);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  }
+  //     setDisplayInfo(data.features);
+  //   } catch (error) {
+  //     console.error('Error fetching data:', error);
+  //   }
+  // }
 
   const handleTileClick = async (id: string) => {
     if (!displayInfo) {
