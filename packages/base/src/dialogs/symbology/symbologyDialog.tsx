@@ -15,6 +15,10 @@ export interface ISymbologyDialogProps {
   layerId?: string;
 }
 
+export interface ISymbologyDialogWithAttributesProps extends ISymbologyDialogProps {
+  selectableAttributesAndValues: Record<string, Set<any>>;
+}
+
 export interface ISymbologyWidgetOptions {
   model: IJupyterGISModel;
   state: IStateDB;
