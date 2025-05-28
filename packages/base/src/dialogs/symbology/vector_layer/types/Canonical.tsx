@@ -1,9 +1,7 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { getColorCodeFeatureAttributes } from '../../../../tools';
-import { useGetProperties } from '../../hooks/useGetProperties';
-import { ISymbologyDialogProps } from '../../symbologyDialog';
+import { ISymbologyDialogWithAttributesProps } from '../../symbologyDialog';
 import ValueSelect from '../components/ValueSelect';
 
 const Canonical = ({
@@ -12,12 +10,10 @@ const Canonical = ({
   okSignalPromise,
   cancel,
   layerId,
-  selectableAttributes
-}: ISymbologyDialogProps) => {
+  selectableAttributesAndValues
+}: ISymbologyDialogWithAttributesProps) => {
   const selectedValueRef = useRef<string>();
-
   const [selectedValue, setSelectedValue] = useState('');
-  const [attributes, setAttributes] = useState<Record<string, Set<string>>>({});
 
   if (!layerId) {
     return;
@@ -26,10 +22,6 @@ const Canonical = ({
   if (!layer?.parameters) {
     return;
   }
-  const { featureProperties } = useGetProperties({
-    layerId,
-    model: model
-  });
 
   useEffect(() => {
     okSignalPromise.promise.then(okSignal => {
@@ -44,17 +36,12 @@ const Canonical = ({
   }, [selectedValue]);
 
   useEffect(() => {
-    // Filter for hex color code attributes
-    const hexAttributes = getColorCodeFeatureAttributes(featureProperties);
-
-    setAttributes(hexAttributes);
-
     const layerParams = layer.parameters as IVectorLayer;
     const value =
-      layerParams.symbologyState?.value ?? Object.keys(hexAttributes)[0];
+      layerParams.symbologyState?.value ?? Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedValue(value);
-  }, [featureProperties]);
+  }, [selectableAttributesAndValues]);
 
   useEffect(() => {
     selectedValueRef.current = selectedValue;
@@ -87,7 +74,7 @@ const Canonical = ({
   };
 
   debugger;
-  if (selectableAttributes?.length === 0) {
+  if (Object.keys(selectableAttributesAndValues)?.length === 0) {
     return (
       <div className="jp-gis-layer-symbology-container">
         This symbology type is not available; no attributes contain a hex color
@@ -98,7 +85,7 @@ const Canonical = ({
     return (
       <div className="jp-gis-layer-symbology-container">
         <ValueSelect
-          featureProperties={attributes}
+          featureProperties={selectableAttributesAndValues}
           selectedValue={selectedValue}
           setSelectedValue={setSelectedValue}
         />
