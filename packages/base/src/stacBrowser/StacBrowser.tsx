@@ -88,9 +88,25 @@ const platforms: IDict<string[]> = {
     'SPOT4_TAKE5',
     'SPOT5_TAKE5'
   ],
-  Landsat: ['LANDSAT5', 'LANDSAT7', 'LANDSAT8'],
-  OSO: ['L3B-OSO']
+  Landsat: ['LANDSAT5', 'LANDSAT7', 'LANDSAT8']
 };
+
+// const platforms: IDict<string[]> = {
+//   'Sentinel 1': ['S1A', 'S1B'],
+//   'Sentinel 2': ['S2A', 'S2B', 'S2X'],
+//   Venus: ['VM1', 'VM5'],
+//   Spot: [
+//     'SPOT1',
+//     'SPOT2',
+//     'SPOT3',
+//     'SPOT4',
+//     'SPOT5',
+//     'SPOT4_TAKE5',
+//     'SPOT5_TAKE5'
+//   ],
+//   Landsat: ['LANDSAT5', 'LANDSAT7', 'LANDSAT8'],
+//   OSO: ['L3B-OSO']
+// };
 
 // Map processing:level to product:type for queries and the datasets they apply to
 // so the keys here are what gets displayed in the UI - start there
