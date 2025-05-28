@@ -3,13 +3,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import { IParsedStyle, parseColor } from '../../../../tools';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
 
+interface ISimpleSymbolProps extends ISymbologyDialogProps {
+  activeTab: 'color' | 'radius';
+  setActiveTab: (tab: 'color' | 'radius') => void;
+}
+
 const SimpleSymbol = ({
   model,
   state,
   okSignalPromise,
   cancel,
-  layerId
-}: ISymbologyDialogProps) => {
+  layerId,
+  activeTab
+}: ISimpleSymbolProps) => {
   const styleRef = useRef<IParsedStyle>();
 
   const [style, setStyle] = useState<IParsedStyle>({
@@ -103,22 +109,8 @@ const SimpleSymbol = ({
     cancel();
   };
 
-  return (
-    <div className="jp-gis-layer-symbology-container">
-      <div className="jp-gis-symbology-row">
-        <label htmlFor={'vector-value-select'}>Radius:</label>
-        <input
-          type="number"
-          value={style.radius}
-          className="jp-mod-styled"
-          onChange={event =>
-            setStyle(prevState => ({
-              ...prevState,
-              radius: +event.target.value
-            }))
-          }
-        />
-      </div>
+  const renderColorTab = () => (
+    <>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Fill Color:</label>
         <input
@@ -205,6 +197,24 @@ const SimpleSymbol = ({
           </select>
         </div>
       </div>
+    </>
+  );
+
+  const renderRadiusTab = () => (
+    <div className="jp-gis-symbology-row">
+      <label>Radius:</label>
+      <input
+        type="number"
+        value={style.radius}
+        className="jp-mod-styled"
+        onChange={e => setStyle(prev => ({ ...prev, radius: +e.target.value }))}
+      />
+    </div>
+  );
+
+  return (
+    <div className="jp-gis-layer-symbology-container">
+      {activeTab === 'color' ? renderColorTab() : renderRadiusTab()}
     </div>
   );
 };
