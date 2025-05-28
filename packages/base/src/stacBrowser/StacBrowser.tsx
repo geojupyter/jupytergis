@@ -74,6 +74,76 @@ const datasets: IDict<string[]> = {
   ]
 };
 
+// map collection names to available platforms
+const platforms: IDict<string[]> = {
+  'Sentinel 1': ['S1A', 'S1B'],
+  'Sentinel 2': ['S2A', 'S2B', 'S2X'],
+  Venus: ['VM1', 'VM5'],
+  Spot: [
+    'SPOT1',
+    'SPOT2',
+    'SPOT3',
+    'SPOT4',
+    'SPOT5',
+    'SPOT4_TAKE5',
+    'SPOT5_TAKE5'
+  ],
+  Landsat: ['LANDSAT5', 'LANDSAT7', 'LANDSAT8'],
+  OSO: ['L3B-OSO']
+};
+
+// Map processing:level to product:type for queries and the datasets they apply to
+// so the keys here are what gets displayed in the UI - start there
+const products: IDict<ProductData> = {
+  // ! Sent 1
+  SLC: {
+    collections: ['Sentinel 1'],
+    'processing:level': ['L1'],
+    'product:type': ['SLC']
+  },
+  GRD: {
+    collections: ['Sentinel 1'],
+    'processing:level': ['L1'],
+    'product:type': ['GRD']
+  },
+  OCN: {
+    collections: ['Sentinel 1'],
+    'processing:level': ['L2'],
+    'product:type': ['OCN']
+  },
+  // ! Sent 2
+  S2A: {
+    collections: ['Sentinel 2'],
+    'processing:level': ['L1C'],
+    'product:type': ['REFLECTANCE', 'REFLECTANCETOA', 'S2MSI1C']
+  },
+  L1C: {
+    collections: ['Sentinel 2'],
+    'processing:level': ['L1C'],
+    'product:type': ['REFLECTANCE', 'REFLECTANCETOA', 'S2MSI1C']
+  },
+  L2A: {
+    collections: ['Sentinel 2'],
+    'processing:level': ['L2A'],
+    'product:type': ['REFLECTANCE']
+  },
+  'L2B SNOW': {
+    collections: ['Sentinel 2'],
+    'processing:level': ['L2B-SNOW'],
+    'product:type': ['SNOW_MASK']
+  },
+  'L2B WATER': {
+    collections: ['Sentinel 2'],
+    'processing:level': ['L2B-WATER'],
+    'product:type': ['REFLECTANCE']
+  },
+  L3A: {
+    collections: ['Sentinel 2'],
+    'processing:level': ['L3A'],
+    'product:type': ['REFLECTANCE']
+  }
+};
+
 interface IStacBrowserDialogProps {
   model: IJupyterGISModel;
   display: 'side' | 'grid';
@@ -216,6 +286,8 @@ const StacBrowser = ({ model, display, tracker }: IStacBrowserDialogProps) => {
   return (
     <DisplayComponent
       datasets={datasets}
+      platforms={platforms}
+      products={products}
       displayInfo={displayInfo}
       handleCategoryClick={handleCategoryClick}
       handleSearchInput={handleSearchInput}
