@@ -1,4 +1,5 @@
-import { IDict } from '@jupytergis/schema';
+import { IDict, IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 import React, { useEffect, useMemo } from 'react';
 import {
   ToggleGroup,
@@ -13,6 +14,7 @@ interface IStacCollectionsProps {
   selectedCollections: string[];
   selectedPlatforms: string[];
   handleToggleGroupValueChange: (val: string[]) => void;
+  model: IJupyterGISModel;
 }
 
 const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
@@ -22,7 +24,8 @@ const StacSections = ({
   data,
   selectedCollections,
   selectedPlatforms,
-  handleToggleGroupValueChange
+  handleToggleGroupValueChange,
+  model
 }: IStacCollectionsProps) => {
   // ! Starts here
 
@@ -72,6 +75,20 @@ const StacSections = ({
       const result = await fetchWithProxy(body); // this result is ItemCollection
       // ^?
       console.log('result', result);
+
+      // ! MAKEH DAH LAYAH
+      const layerId = UUID.uuid4();
+
+      const layerModel: IJGISLayer = {
+        type: 'StacLayer',
+        parameters: {
+          data: result
+        },
+        visible: true,
+        name: 'STAC Layer'
+      };
+
+      model.addLayer(layerId, layerModel);
     };
 
     fetchInEffect();

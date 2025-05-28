@@ -165,6 +165,7 @@ export interface IStacViewProps {
   handleCategoryClick: (category: string) => void;
   handleTileClick: (id: string) => void;
   displayInfo?: IStacItem[];
+  model: IJupyterGISModel;
 }
 
 const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
@@ -293,6 +294,7 @@ const StacBrowser = ({ model, display, tracker }: IStacBrowserDialogProps) => {
       handleTileClick={handleTileClick}
       searchTerm={searchTerm}
       selectedCategory={selectedCategory}
+      model={model}
     />
   );
 };

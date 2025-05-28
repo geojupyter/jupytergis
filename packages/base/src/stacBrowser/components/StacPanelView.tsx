@@ -5,6 +5,7 @@ import StacSections from './StacSection';
 const StacPanelView = ({
   datasets,
   platforms,
+  model,
   products,
   displayInfo,
   handleCategoryClick,
@@ -33,6 +34,7 @@ const StacPanelView = ({
           setSelectedCollections(val);
         }}
         selectedPlatforms={selectedPlatforms}
+        model={model}
       />
       <StacSections
         header="Platform"
@@ -42,6 +44,7 @@ const StacPanelView = ({
           setSelectedPlatforms(val);
         }}
         selectedPlatforms={selectedPlatforms}
+        model={model}
       />
       <div>data/ product</div>
       <div>cloud cover</div>
