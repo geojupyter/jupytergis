@@ -107,7 +107,7 @@ const activate = async (
     widget.title.icon = logoMiniIcon;
     widget.context.pathChanged.connect(() => {
       tracker.save(widget);
-    }); 
+    });
     themeManager.themeChanged.connect((_, changes) =>
       widget.model.themeChanged.emit(changes)
     );

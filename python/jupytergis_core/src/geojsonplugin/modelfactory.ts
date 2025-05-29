@@ -36,7 +36,7 @@ class JupyterGISGeoJSONModel extends JupyterGISModel {
 export class JupyterGISGeoJSONModelFactory
   implements DocumentRegistry.IModelFactory<JupyterGISGeoJSONModel>
 {
-  constructor(options: { 
+  constructor(options: {
     settingRegistry?: ISettingRegistry;
     annotationModel?: IAnnotationModel;
   }) {
