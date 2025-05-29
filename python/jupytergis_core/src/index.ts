@@ -6,6 +6,7 @@ import {
   trackerPlugin,
   annotationPlugin
 } from './plugin';
+import geojsonPlugin from './geojsonplugin/plugins';
 
 export * from './factory';
 export default [
@@ -14,5 +15,6 @@ export default [
   formSchemaRegistryPlugin,
   externalCommandRegistryPlugin,
   layerBrowserRegistryPlugin,
-  annotationPlugin
+  annotationPlugin,
+  geojsonPlugin
 ];
