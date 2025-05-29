@@ -134,7 +134,7 @@ jobs:
           sudo rm -rf $(which node)
 
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl "jupyterlab>=4.3,<5"
+          python -m pip install jupytergis*.whl "jupyterlab==4.4.2"
 
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
@@ -175,7 +175,7 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl "jupyter-collaboration>=3,<4" "jupyterlab>=4.3,<5"
+          python -m pip install jupytergis*.whl "jupyter-collaboration>=3,<4" "jupyterlab==4.4.2"
 
       - name: Install
         shell: bash -l {0}

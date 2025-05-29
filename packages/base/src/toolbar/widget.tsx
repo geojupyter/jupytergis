@@ -17,7 +17,7 @@ import * as React from 'react';
 import { CommandIDs } from '../constants';
 import { terminalToolbarIcon } from '../icons';
 import { rasterSubMenu, vectorSubMenu } from '../menus';
-import { UsersItem } from './usertoolbaritem';
+import { UsersItem } from '@jupyter/collaboration';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
 export const TOOLBAR_GROUPNAME_CLASS = 'jGIS-Toolbar-GroupName';
