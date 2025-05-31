@@ -1,5 +1,13 @@
 import { LabIcon, redoIcon, undoIcon } from '@jupyterlab/ui-components';
-import { geoJSONIcon, moundIcon, rasterIcon } from './icons';
+import {
+  bookOpenIcon,
+  clockIcon,
+  geoJSONIcon,
+  infoIcon,
+  moundIcon,
+  rasterIcon,
+  vectorSquareIcon
+} from './icons';
 
 /**
  * The command IDs.
@@ -10,6 +18,10 @@ export namespace CommandIDs {
   export const undo = 'jupytergis:undo';
   export const symbology = 'jupytergis:symbology';
   export const identify = 'jupytergis:identify';
+  export const temporalController = 'jupytergis:temporalController';
+
+  // geolocation
+  export const getGeolocation = 'jupytergis:getGeolocation';
 
   // Layers and sources creation commands
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
@@ -17,31 +29,16 @@ export namespace CommandIDs {
   // Layer and source
   export const newRasterEntry = 'jupytergis:newRasterEntry';
   export const newVectorTileEntry = 'jupytergis:newVectorTileEntry';
+  export const newShapefileEntry = 'jupytergis:newShapefileEntry';
   export const newGeoJSONEntry = 'jupytergis:newGeoJSONEntry';
   export const newHillshadeEntry = 'jupytergis:newHillshadeEntry';
   export const newImageEntry = 'jupytergis:newImageEntry';
   export const newVideoEntry = 'jupytergis:newVideoEntry';
   export const newGeoTiffEntry = 'jupytergis:newGeoTiffEntry';
 
-  // Sources only commands
-  export const newRasterSource = 'jupytergis:newRasterSource';
-  export const newRasterDemSource = 'jupytergis:newRasterDemSource';
-  export const newVectorSource = 'jupytergis:newVectorSource';
-  export const newGeoJSONSource = 'jupytergis:newGeoJSONSource';
-  export const newImageSource = 'jupytergis:imageSource';
-  export const newVideoSource = 'jupytergis:videoSource';
-  export const newShapefileSource = 'jupytergis:shapefileSource';
-  export const newGeoTiffSource = 'jupytergis:newGeoTiffSource';
-
-  // Layers only commands
-  export const newRasterLayer = 'jupytergis:newRasterLayer';
-  export const newVectorLayer = 'jupytergis:newVectorLayer';
-  export const newHillshadeLayer = 'jupytergis:newHillshadeLayer';
-  export const newImageLayer = 'jupytergis:newImageLayer';
-  export const newVideoLayer = 'jupytergis:newVideoLayer';
-  export const newShapefileLayer = 'jupytergis:newShapefileLayer';
-  export const newWebGlTileLayer = 'jupytergis:newWebGlTileLayer';
-  export const newHeatmapLayer = 'jupytergis:newHeatmapLayer';
+  // Processing commands
+  export const buffer = 'jupytergis:buffer';
+  export const dissolve = 'jupytergis:dissolve';
 
   // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';
@@ -65,6 +62,7 @@ export namespace CommandIDs {
   // Map Commands
   export const addAnnotation = 'jupytergis:addAnnotation';
   export const zoomToLayer = 'jupytergis:zoomToLayer';
+  export const downloadGeoJSON = 'jupytergis:downloadGeoJSON';
 }
 
 interface IRegisteredIcon {
@@ -89,17 +87,18 @@ const iconObject = {
 
   [CommandIDs.redo]: { icon: redoIcon },
   [CommandIDs.undo]: { icon: undoIcon },
-  [CommandIDs.openLayerBrowser]: { iconClass: 'fa fa-book-open' },
+  [CommandIDs.openLayerBrowser]: { icon: bookOpenIcon },
   [CommandIDs.newRasterEntry]: { icon: rasterIcon },
-  [CommandIDs.newVectorTileEntry]: { iconClass: 'fa fa-vector-square' },
+  [CommandIDs.newVectorTileEntry]: { icon: vectorSquareIcon },
   [CommandIDs.newGeoJSONEntry]: { icon: geoJSONIcon },
   [CommandIDs.newHillshadeEntry]: { icon: moundIcon },
   [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
-  [CommandIDs.newShapefileLayer]: { iconClass: 'fa fa-file' },
+  [CommandIDs.newShapefileEntry]: { iconClass: 'fa fa-file' },
   [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
-  [CommandIDs.identify]: { iconClass: 'fa fa-info' }
+  [CommandIDs.identify]: { icon: infoIcon },
+  [CommandIDs.temporalController]: { icon: clockIcon }
 };
 
 /**

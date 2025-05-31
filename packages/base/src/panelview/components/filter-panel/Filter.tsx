@@ -66,7 +66,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
   );
 
   props.model?.documentChanged.connect((_, widget) => {
-    setModel(widget?.context.model);
+    setModel(widget?.model);
   });
 
   // Reset state values when current widget changes

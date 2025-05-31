@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "description": "ExportGeoTIFFSchema",
+  "title": "IExportGeoTIFF",
+  "required": ["exportFileName", "resolutionX", "resolutionY"],
+  "additionalProperties": false,
+  "properties": {
+    "exportFileName": {
+      "type": "string",
+      "title": "GeoTiFF File Name",
+      "default": "exported_layer",
+      "description": "The name of the exported GeoTIFF file."
+    },
+    "resolutionX": {
+      "type": "number",
+      "title": "Resolution (Width)",
+      "default": 1200,
+      "minimum": 1,
+      "maximum": 10000,
+      "description": "The width resolution for the raster export."
+    },
+    "resolutionY": {
+      "type": "number",
+      "title": "Resolution (Height)",
+      "default": 1200,
+      "minimum": 1,
+      "maximum": 10000,
+      "description": "The height resolution for the raster export."
+    }
+  }
+}

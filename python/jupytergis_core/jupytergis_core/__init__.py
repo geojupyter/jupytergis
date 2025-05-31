@@ -6,10 +6,11 @@ except ImportError:
     # the package from a stable release or in editable mode: https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs
     import warnings
 
-    warnings.warn("Importing 'jupytergis_core' outside a proper installation.")
+    warnings.warn(
+        "Importing 'jupytergis_core' outside a proper installation.",
+        stacklevel=2,
+    )
     __version__ = "dev"
-
-from .handler import setup_handlers
 
 
 def _jupyter_labextension_paths():
@@ -28,6 +29,8 @@ def _load_jupyter_server_extension(server_app):
     server_app: jupyterlab.labapp.LabApp
         JupyterLab application instance
     """
+    from .handler import setup_handlers
+
     setup_handlers(server_app.web_app)
     name = "jupytergis_core"
     print(f"Registered {name} server extension")

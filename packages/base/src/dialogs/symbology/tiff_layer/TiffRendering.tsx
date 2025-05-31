@@ -4,7 +4,7 @@ import SingleBandPseudoColor from './types/SingleBandPseudoColor';
 import MultibandColor from './types/MultibandColor';
 
 const TiffRendering = ({
-  context,
+  model,
   state,
   okSignalPromise,
   cancel,
@@ -20,7 +20,7 @@ const TiffRendering = ({
     return;
   }
   useEffect(() => {
-    const layer = context.model.getLayer(layerId);
+    const layer = model.getLayer(layerId);
     const renderType = layer?.parameters?.symbologyState?.renderType;
     setSelectedRenderType(renderType ?? 'Singleband Pseudocolor');
   }, []);
@@ -34,7 +34,7 @@ const TiffRendering = ({
       case 'Singleband Pseudocolor':
         RenderComponent = (
           <SingleBandPseudoColor
-            context={context}
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}
@@ -45,7 +45,7 @@ const TiffRendering = ({
       case 'Multiband Color':
         RenderComponent = (
           <MultibandColor
-            context={context}
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}

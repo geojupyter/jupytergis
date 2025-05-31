@@ -1,0 +1,13 @@
+{
+  "title": "JupyterGIS Settings",
+  "description": "Settings for the JupyterGIS extension.",
+  "type": "object",
+  "properties": {
+    "proxyUrl": {
+      "type": "string",
+      "title": "Proxy URL",
+      "description": "The proxy URL to use for external requests.",
+      "default": "https://corsproxy.io"
+    }
+  }
+}

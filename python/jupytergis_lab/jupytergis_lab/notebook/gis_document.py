@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
+import requests
 
-from pycrdt import Array, Doc, Map
+from pycrdt import Array, Map
 from pydantic import BaseModel
+from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
 
-from .objects import (
+from jupytergis_core.schema import (
     IGeoJSONSource,
     IGeoTiffSource,
     IHeatmapLayer,
@@ -29,7 +30,6 @@ from .objects import (
     LayerType,
     SourceType,
 )
-from .utils import normalize_path
 
 logger = logging.getLogger(__file__)
 
@@ -44,8 +44,7 @@ class GISDocument(CommWidget):
     """
     Create a new GISDocument object.
 
-    :param path: the path to the file that you would like to open.
-    If not provided, a new empty document will be created.
+    :param path: the path to the file that you would like to open. If not provided, a new ephemeral widget will be created.
     """
 
     def __init__(
@@ -62,18 +61,11 @@ class GISDocument(CommWidget):
         if isinstance(path, Path):
             path = str(path)
 
-        comm_metadata = GISDocument._path_to_comm(path)
-
-        # Create an empty project file if it does not exist
-        if comm_metadata["path"] and not os.path.isfile(comm_metadata["path"]):
-            with open(comm_metadata["path"], "w") as fd:
-                fd.write("{}")
-
-        ydoc = Doc()
-
         super().__init__(
-            comm_metadata=dict(ymodel_name="@jupytergis:widget", **comm_metadata),
-            ydoc=ydoc,
+            comm_metadata={
+                "ymodel_name": "@jupytergis:widget",
+                **self._make_comm(path=path),
+            }
         )
 
         self.ydoc["layers"] = self._layers = Map()
@@ -82,21 +74,20 @@ class GISDocument(CommWidget):
         self.ydoc["layerTree"] = self._layerTree = Array()
         self.ydoc["metadata"] = self._metadata = Map()
 
-        if path is None:
-            if latitude is not None:
-                self._options["latitude"] = latitude
-            if longitude is not None:
-                self._options["longitude"] = longitude
-            if extent is not None:
-                self._options["extent"] = extent
-            if zoom is not None:
-                self._options["zoom"] = zoom
-            if bearing is not None:
-                self._options["bearing"] = bearing
-            if pitch is not None:
-                self._options["pitch"] = pitch
-            if projection is not None:
-                self._options["projection"] = projection
+        if latitude is not None:
+            self._options["latitude"] = latitude
+        if longitude is not None:
+            self._options["longitude"] = longitude
+        if extent is not None:
+            self._options["extent"] = extent
+        if zoom is not None:
+            self._options["zoom"] = zoom
+        if bearing is not None:
+            self._options["bearing"] = bearing
+        if pitch is not None:
+            self._options["pitch"] = pitch
+        if projection is not None:
+            self._options["projection"] = projection
 
     @property
     def layers(self) -> Dict:
@@ -112,6 +103,28 @@ class GISDocument(CommWidget):
         """
         return self._layerTree.to_py()
 
+    def sidecar(
+        self,
+        *,
+        title: str = "JupyterGIS sidecar",
+        anchor: Literal[
+            "split-right",
+            "split-left",
+            "split-top",
+            "split-bottom",
+            "tab-before",
+            "tab-after",
+            "right",
+        ] = "split-right",
+    ):
+        """Open the document in a new sidecar panel.
+
+        :param anchor: Where to position the new sidecar panel.
+        """
+        sidecar = Sidecar(title=title, anchor=anchor)
+        with sidecar:
+            display(self)
+
     def export_to_qgis(self, path: str | Path) -> bool:
         # Lazy import, jupytergis_qgis of qgis may not be installed
         from jupytergis_qgis.qgis_loader import export_project_to_qgis
@@ -119,12 +132,10 @@ class GISDocument(CommWidget):
         if isinstance(path, Path):
             path = str(path)
 
-        virtual_file = {
-            "layers": self._layers.to_py(),
-            "sources": self._sources.to_py(),
-            "layerTree": reversed_tree(self._layerTree.to_py()),
-            "options": self._options.to_py(),
-        }
+        virtual_file = self.to_py()
+        virtual_file["layerTree"] = reversed_tree(virtual_file["layerTree"])
+        del virtual_file["metadata"]
+
         return export_project_to_qgis(path, virtual_file)
 
     def add_raster_layer(
@@ -175,7 +186,6 @@ class GISDocument(CommWidget):
         attribution: str = "",
         min_zoom: int = 0,
         max_zoom: int = 24,
-        type: Literal["circle", "fill", "line"] = "line",
         color_expr=None,
         opacity: float = 1,
         logical_op: str | None = None,
@@ -215,7 +225,6 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "type": type,
                 "opacity": opacity,
                 "color": color_expr,
                 "opacity": opacity,
@@ -235,22 +244,19 @@ class GISDocument(CommWidget):
         path: str | Path | None = None,
         data: Dict | None = None,
         name: str = "GeoJSON Layer",
-        type: "circle" | "fill" | "line" = "line",
         opacity: float = 1,
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, number, float] | None = None,
+        value: Union[str, int, float] | None = None,
         color_expr=None,
     ):
         """
         Add a GeoJSON Layer to the document.
 
         :param name: The name that will be used for the object in the document.
-        :param path: The path to the JSON file to embed into the jGIS file.
+        :param path: The path to the JSON file or URL to embed into the jGIS file.
         :param data: The raw GeoJSON data to embed into the jGIS file.
-        :param type: The type of the vector layer to create.
-        :param color: The color to apply to features.
         :param opacity: The opacity, between 0 and 1.
         :param color_expr: The style expression used to style the layer, defaults to None
         """
@@ -263,16 +269,22 @@ class GISDocument(CommWidget):
         if path is not None and data is not None:
             raise ValueError("Cannot set GeoJSON layer data and path at the same time")
 
+        parameters = {}
+
         if path is not None:
-            # We cannot put the path to the file in the model
-            # We don't know where the kernel runs/live
-            # The front-end would have no way of finding the file reliably
-            # TODO Support urls to JSON files, in that case, don't embed the data
-            with open(path, "r") as fobj:
-                parameters = {"data": json.loads(fobj.read())}
+            if path.startswith("http://") or path.startswith("https://"):
+                response = requests.get(path)
+                response.raise_for_status()
+                parameters["path"] = path
+            else:
+                # We cannot put the path to the file in the model
+                # We don't know where the kernel runs/live
+                # The front-end would have no way of finding the file reliably
+                with open(path, "r") as fobj:
+                    parameters["data"] = json.load(fobj)
 
         if data is not None:
-            parameters = {"data": data}
+            parameters["data"] = data
 
         source = {
             "type": SourceType.GeoJSONSource,
@@ -288,7 +300,6 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "type": type,
                 "color": color_expr,
                 "opacity": opacity,
             },
@@ -384,9 +395,9 @@ class GISDocument(CommWidget):
 
     def add_video_layer(
         self,
-        urls: [],
+        urls: List,
         name: str = "Image Layer",
-        coordinates: [] = [],
+        coordinates: Optional[List] = None,
         opacity: float = 1,
     ):
         """
@@ -397,6 +408,8 @@ class GISDocument(CommWidget):
         :param coordinates: Corners of video specified in longitude, latitude pairs.
         :param opacity: The opacity, between 0 and 1.
         """
+        if coordinates is None:
+            coordinates = []
 
         if urls is None or coordinates is None:
             raise ValueError("URLs and Coordinates are required")
@@ -433,14 +446,14 @@ class GISDocument(CommWidget):
         """
         Add a tiff layer
 
-        :param str url: URL of the tif
-        :param int min: Minimum pixel value to be displayed, defaults to letting the map display set the value
-        :param int max: Maximum pixel value to be displayed, defaults to letting the map display set the value
-        :param str name: The name that will be used for the object in the document, defaults to "Tiff Layer"
-        :param bool normalize: Select whether to normalize values between 0..1, if false than min/max have no effect, defaults to True
-        :param bool wrapX: Render tiles beyond the tile grid extent, defaults to False
-        :param float opacity: The opacity, between 0 and 1, defaults to 1.0
-        :param _type_ color_expr: The style expression used to style the layer, defaults to None
+        :param url: URL of the tif
+        :param min: Minimum pixel value to be displayed, defaults to letting the map display set the value
+        :param max: Maximum pixel value to be displayed, defaults to letting the map display set the value
+        :param name: The name that will be used for the object in the document, defaults to "Tiff Layer"
+        :param normalize: Select whether to normalize values between 0..1, if false than min/max have no effect, defaults to True
+        :param wrapX: Render tiles beyond the tile grid extent, defaults to False
+        :param opacity: The opacity, between 0 and 1, defaults to 1.0
+        :param color_expr: The style expression used to style the layer, defaults to None
         """
 
         source = {
@@ -471,7 +484,7 @@ class GISDocument(CommWidget):
         self,
         url: str,
         name: str = "Hillshade Layer",
-        urlParameters: Dict = {},
+        urlParameters: Optional[Dict] = None,
         attribution: str = "",
     ):
         """
@@ -481,6 +494,8 @@ class GISDocument(CommWidget):
         :param str name: The name that will be used for the object in the document, defaults to "Hillshade Layer"
         :param attribution: The attribution.
         """
+        if urlParameters is None:
+            urlParameters = {}
 
         source = {
             "type": SourceType.RasterDemSource,
@@ -504,14 +519,14 @@ class GISDocument(CommWidget):
 
     def add_heatmap_layer(
         self,
-        feature: string,
+        feature: str,
         path: str | Path | None = None,
         data: Dict | None = None,
         name: str = "Heatmap Layer",
         opacity: float = 1,
-        blur: number = 15,
-        radius: number = 8,
-        gradient: List[str] = ["#00f", "#0ff", "#0f0", "#ff0", "#f00"],
+        blur: int = 15,
+        radius: int = 8,
+        gradient: Optional[List[str]] = None,
     ):
         """
         Add a Heatmap Layer to the document.
@@ -545,6 +560,9 @@ class GISDocument(CommWidget):
         if data is not None:
             parameters = {"data": data}
 
+        if gradient is None:
+            gradient = ["#00f", "#0ff", "#0f0", "#ff0", "#f00"]
+
         source = {
             "type": SourceType.GeoJSONSource,
             "name": f"{name} Source",
@@ -569,6 +587,36 @@ class GISDocument(CommWidget):
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
+    def remove_layer(self, layer_id: str):
+        """
+        Remove a layer from the GIS document.
+
+        :param layer_id: The ID of the layer to remove.
+        :raises KeyError: If the layer does not exist.
+        """
+
+        layer = self._layers.get(layer_id)
+
+        if layer is None:
+            raise KeyError(f"No layer found with ID: {layer_id}")
+
+        del self._layers[layer_id]
+        self._remove_source_if_orphaned(layer["parameters"]["source"])
+
+    def _remove_source_if_orphaned(self, source_id: str):
+        source = self._sources.get(source_id)
+
+        if source is None:
+            raise KeyError(f"No source found with ID: {source_id}")
+
+        source_is_orphan = not any(
+            layer["parameters"]["source"] == source_id
+            for layer in self._layers.values()
+        )
+
+        if source_is_orphan:
+            del self._sources[source_id]
 
     def create_color_expr(
         self,
@@ -629,16 +677,16 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, number, float],
+        value: Union[str, int, float],
     ):
         """
         Add a filter to a layer
 
-        :param str layer_id: The ID of the layer to filter
-        :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param str feature: The feature to be filtered on
-        :param str operator: The operator used to compare the feature and value
-        :param Union[str, number, float] value: The value to be filtered on
+        :param layer_id: The ID of the layer to filter
+        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param feature: The feature to be filtered on
+        :param operator: The operator used to compare the feature and value
+        :param value: The value to be filtered on
         """
         layer = self._layers.get(layer_id)
 
@@ -675,16 +723,16 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, number, float],
+        value: Union[str, int, float],
     ):
         """
         Update a filter applied to a layer
 
-        :param str layer_id: The ID of the layer to filter
-        :param str logical_op: The logical combination to apply to filters. Must be "any" or "all"
-        :param str feature: The feature to update the value for
-        :param str operator: The operator used to compare the feature and value
-        :param Union[str, number, float] value: The new value to be filtered on
+        :param layer_id: The ID of the layer to filter
+        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param feature: The feature to update the value for
+        :param operator: The operator used to compare the feature and value
+        :param value: The new value to be filtered on
         """
         layer = self._layers.get(layer_id)
 
@@ -732,13 +780,13 @@ class GISDocument(CommWidget):
         layer["filters"]["appliedFilters"] = []
         self._layers[layer_id] = layer
 
-    def _add_source(self, new_object: "JGISObject"):
-        _id = str(uuid4())
+    def _add_source(self, new_object: "JGISObject", id: str | None = None) -> str:
+        _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._sources[_id] = obj_dict
         return _id
 
-    def _add_layer(self, new_object: "JGISObject"):
+    def _add_layer(self, new_object: "JGISObject") -> str:
         _id = str(uuid4())
         obj_dict = json.loads(new_object.json())
         self._layers[_id] = obj_dict
@@ -746,18 +794,17 @@ class GISDocument(CommWidget):
         return _id
 
     @classmethod
-    def _path_to_comm(cls, filePath: Optional[str]) -> Dict:
-        path = None
+    def _make_comm(cls, *, path: Optional[str]) -> Dict:
         format = None
         contentType = None
 
-        if filePath is not None:
-            path = normalize_path(filePath)
+        if path is not None:
             file_name = Path(path).name
             try:
                 ext = file_name.split(".")[1].lower()
-            except Exception:
-                raise ValueError("Can not detect file extension!")
+            except Exception as e:
+                raise ValueError("Can not detect file extension!") from e
+
             if ext == "jgis":
                 format = "text"
                 contentType = "jgis"
@@ -769,9 +816,23 @@ class GISDocument(CommWidget):
                 contentType = "QGS"
             else:
                 raise ValueError("File extension is not supported!")
+
         return dict(
-            path=path, format=format, contentType=contentType, createydoc=path is None
+            path=path,
+            format=format,
+            contentType=contentType,
+            create_ydoc=path is None,
         )
+
+    def to_py(self) -> dict:
+        """Get the document structure as a Python dictionary."""
+        return {
+            "layers": self._layers.to_py(),
+            "sources": self._sources.to_py(),
+            "layerTree": self._layerTree.to_py(),
+            "options": self._options.to_py(),
+            "metadata": self._metadata.to_py(),
+        }
 
 
 class JGISLayer(BaseModel):

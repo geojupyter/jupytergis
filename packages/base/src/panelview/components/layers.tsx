@@ -32,7 +32,7 @@ const LAYER_ITEM_CLASS = 'jp-gis-layerItem';
 const LAYER_CLASS = 'jp-gis-layer';
 const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
-const LAYER_TEXT_CLASS = 'jp-gis-layerText';
+const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
 
 /**
  * The layers panel widget.
@@ -171,6 +171,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
     model?.sharedModel.layersChanged.connect(updateLayers);
     model?.sharedModel.layerTreeChanged.connect(updateLayers);
 
+    updateLayers();
     return () => {
       model?.sharedModel.layersChanged.disconnect(updateLayers);
       model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
@@ -181,8 +182,8 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
    * Update the model when it changes.
    */
   props.model?.documentChanged.connect((_, widget) => {
-    setModel(widget?.context.model);
-    setLayerTree(widget?.context.model?.getLayerTree() || []);
+    setModel(widget?.model);
+    setLayerTree(widget?.model?.getLayerTree() || []);
   });
 
   return (
@@ -300,7 +301,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
           className={`${LAYER_GROUP_COLLAPSER_CLASS}${open ? ' jp-mod-expanded' : ''}`}
           tag={'span'}
         />
-        <span id={id} className={LAYER_TEXT_CLASS}>
+        <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
           {name}
         </span>
       </div>
@@ -416,27 +417,29 @@ function LayerComponent(props: ILayerProps): JSX.Element {
         onClick={setSelection}
         onContextMenu={setSelection}
       >
+        <Button
+          title={layer.visible ? 'Hide layer' : 'Show layer'}
+          onClick={toggleVisibility}
+          minimal
+        >
+          <LabIcon.resolveReact
+            icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
+            className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-gis-mod-hidden'}`}
+            tag="span"
+          />
+        </Button>
+
         {icons.has(layer.type) && (
           <LabIcon.resolveReact
             {...icons.get(layer.type)}
             className={LAYER_ICON_CLASS}
           />
         )}
-        <span id={id} className={LAYER_TEXT_CLASS}>
+
+        <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
           {name}
         </span>
       </div>
-      <Button
-        title={layer.visible ? 'Hide layer' : 'Show layer'}
-        onClick={toggleVisibility}
-        minimal
-      >
-        <LabIcon.resolveReact
-          icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
-          className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-gis-mod-hidden'}`}
-          tag="span"
-        />
-      </Button>
     </div>
   );
 }

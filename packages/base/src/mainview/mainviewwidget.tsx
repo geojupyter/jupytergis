@@ -7,8 +7,6 @@ import { MainViewModel } from './mainviewmodel';
 export class JupyterGISMainViewPanel extends ReactWidget {
   /**
    * Construct a `JupyterGISPanel`.
-   *
-   * @param context - The documents context.
    */
   constructor(options: { mainViewModel: MainViewModel }) {
     super();

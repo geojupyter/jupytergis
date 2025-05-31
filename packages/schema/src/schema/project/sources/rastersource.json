@@ -1,0 +1,71 @@
+{
+  "type": "object",
+  "description": "RasterSource",
+  "title": "IRasterSource",
+  "required": ["url", "maxZoom", "minZoom"],
+  "additionalProperties": false,
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "The url to the tile provider"
+    },
+    "minZoom": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "readOnly": true,
+      "description": "The minimum zoom level for the raster source",
+      "default": 0
+    },
+    "maxZoom": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "readOnly": true,
+      "description": "The maximum zoom level for the raster source",
+      "default": 24
+    },
+    "attribution": {
+      "type": "string",
+      "readOnly": true,
+      "description": "The attribution for the raster source",
+      "default": ""
+    },
+    "htmlAttribution": {
+      "type": "string",
+      "readOnly": true,
+      "description": "The html attribution for the raster source",
+      "default": ""
+    },
+    "provider": {
+      "type": "string",
+      "readOnly": true,
+      "description": "The map provider",
+      "default": ""
+    },
+    "bounds": {
+      "type": "array",
+      "readOnly": true,
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "default": [],
+      "description": "The bounds of the source"
+    },
+    "urlParameters": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {}
+    },
+    "interpolate": {
+      "type": "boolean",
+      "description": "Interpolate between grid cells when overzooming?",
+      "default": false
+    }
+  }
+}

@@ -5,26 +5,38 @@ import {
   IJGISLayerGroup,
   IJGISLayerItem,
   IJupyterGISModel,
+  JgisCoordinates,
   LayerType,
   SelectionType,
   SourceType
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { WidgetTracker, showErrorMessage } from '@jupyterlab/apputils';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { CommandIDs, icons } from './constants';
-import { CreationFormDialog } from './dialogs/formdialog';
+import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
 import keybindings from './keybindings.json';
-import { JupyterGISWidget } from './widget';
+import { JupyterGISTracker } from './types';
+import { JupyterGISDocumentWidget } from './widget';
+import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
+import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
+import {
+  getSingleSelectedLayer,
+  selectedLayerIsOfType,
+  processSelectedLayer
+} from './processing';
+import { fromLonLat } from 'ol/proj';
+import { Coordinate } from 'ol/coordinate';
+import { targetWithCenterIcon } from './icons';
 
 interface ICreateEntry {
-  tracker: WidgetTracker<JupyterGISWidget>;
+  tracker: JupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   title: string;
   createLayer: boolean;
@@ -50,7 +62,7 @@ function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
  */
 export function addCommands(
   app: JupyterFrontEnd,
-  tracker: WidgetTracker<JupyterGISWidget>,
+  tracker: JupyterGISTracker,
   translator: ITranslator,
   formSchemaRegistry: IJGISFormSchemaRegistry,
   layerBrowserRegistry: IJGISLayerBrowserRegistry,
@@ -63,7 +75,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
     isEnabled: () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       const localState = model?.sharedModel.awareness.getLocalState();
 
       if (!model || !localState || !localState['selected']?.value) {
@@ -102,14 +114,14 @@ export function addCommands(
     label: trans.__('Redo'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: () => {
       const current = tracker.currentWidget;
 
       if (current) {
-        return current.context.model.sharedModel.redo();
+        return current.model.sharedModel.redo();
       }
     },
     ...icons.get(CommandIDs.redo)?.icon
@@ -119,14 +131,14 @@ export function addCommands(
     label: trans.__('Undo'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: () => {
       const current = tracker.currentWidget;
 
       if (current) {
-        return current.context.model.sharedModel.undo();
+        return current.model.sharedModel.undo();
       }
     },
     ...icons.get(CommandIDs.undo)
@@ -135,12 +147,38 @@ export function addCommands(
   commands.addCommand(CommandIDs.identify, {
     label: trans.__('Identify'),
     isToggled: () => {
-      return tracker.currentWidget?.context.model.isIdentifying || false;
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+      const canIdentify = [
+        'VectorLayer',
+        'ShapefileLayer',
+        'WebGlLayer'
+      ].includes(selectedLayer.type);
+      const isIdentifying = current.model.isIdentifying;
+
+      if (isIdentifying && !canIdentify) {
+        current.model.isIdentifying = false;
+        current.node.classList.remove('jGIS-identify-tool');
+        return false;
+      }
+
+      return isIdentifying;
     },
     isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return false;
+      }
+      return ['VectorLayer', 'ShapefileLayer', 'WebGlLayer'].includes(
+        selectedLayer.type
+      );
     },
     execute: args => {
       const current = tracker.currentWidget;
@@ -155,7 +193,7 @@ export function addCommands(
       if (luminoEvent) {
         const keysPressed = luminoEvent.keys as string[] | undefined;
         if (keysPressed?.includes('Escape')) {
-          current.context.model.isIdentifying = false;
+          current.model.isIdentifying = false;
           current.node.classList.remove('jGIS-identify-tool');
           commands.notifyCommandChanged(CommandIDs.identify);
           return;
@@ -163,10 +201,59 @@ export function addCommands(
       }
 
       current.node.classList.toggle('jGIS-identify-tool');
-      current.context.model.toggleIdentify();
+      current.model.toggleIdentify();
       commands.notifyCommandChanged(CommandIDs.identify);
     },
     ...icons.get(CommandIDs.identify)
+  });
+
+  commands.addCommand(CommandIDs.temporalController, {
+    label: trans.__('Temporal Controller'),
+    isToggled: () => {
+      return tracker.currentWidget?.model.isTemporalControllerActive || false;
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return false;
+      }
+
+      const selectedLayers = model.localState?.selected?.value;
+      if (!selectedLayers) {
+        return false;
+      }
+
+      const layerId = Object.keys(selectedLayers)[0];
+      const layerType = model.getLayer(layerId)?.type;
+      if (!layerType) {
+        return false;
+      }
+
+      // Selection should only be one vector or heatmap layer
+      const isSelectionValid =
+        Object.keys(selectedLayers).length === 1 &&
+        !model.getSource(layerId) &&
+        ['VectorLayer', 'HeatmapLayer'].includes(layerType);
+
+      if (!isSelectionValid && model.isTemporalControllerActive) {
+        model.toggleTemporalController();
+        commands.notifyCommandChanged(CommandIDs.temporalController);
+
+        return false;
+      }
+
+      return true;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      current.model.toggleTemporalController();
+      commands.notifyCommandChanged(CommandIDs.temporalController);
+    },
+    ...icons.get(CommandIDs.temporalController)
   });
 
   /**
@@ -176,7 +263,7 @@ export function addCommands(
     label: trans.__('Open Layer Browser'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createLayerBrowser(
@@ -191,23 +278,23 @@ export function addCommands(
    * Source and layers
    */
   commands.addCommand(CommandIDs.newRasterEntry, {
-    label: trans.__('New Raster Layer'),
+    label: trans.__('New Raster Tile Layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
       tracker,
       formSchemaRegistry,
-      title: 'Create Raster Layer',
+      title: 'Create Raster Tile Layer',
       createLayer: true,
       createSource: true,
       sourceData: {
         minZoom: 0,
         maxZoom: 24
       },
-      layerData: { name: 'Custom Raster Layer' },
+      layerData: { name: 'Custom Raster Tile Layer' },
       sourceType: 'RasterSource',
       layerType: 'RasterLayer'
     }),
@@ -218,7 +305,7 @@ export function addCommands(
     label: trans.__('New Vector Tile Layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -235,11 +322,70 @@ export function addCommands(
     ...icons.get(CommandIDs.newVectorTileEntry)
   });
 
+  commands.addCommand(CommandIDs.buffer, {
+    label: trans.__('Buffer'),
+    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
+    execute: async () => {
+      await processSelectedLayer(
+        tracker,
+        formSchemaRegistry,
+        'Buffer',
+        {
+          sqlQueryFn: (layerName, bufferDistance) => `
+          SELECT ST_Union(ST_Buffer(geometry, ${bufferDistance})) AS geometry, *
+          FROM "${layerName}"
+        `,
+          gdalFunction: 'ogr2ogr',
+          options: (sqlQuery: string) => [
+            '-f',
+            'GeoJSON',
+            '-dialect',
+            'SQLITE',
+            '-sql',
+            sqlQuery,
+            'output.geojson'
+          ]
+        },
+        app
+      );
+    }
+  });
+
+  commands.addCommand(CommandIDs.dissolve, {
+    label: trans.__('Dissolve'),
+    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
+    execute: async () => {
+      await processSelectedLayer(
+        tracker,
+        formSchemaRegistry,
+        'Dissolve',
+        {
+          sqlQueryFn: (layerName, dissolveField) => `
+          SELECT ST_Union(geometry) AS geometry, ${dissolveField}
+          FROM "${layerName}"
+          GROUP BY ${dissolveField}
+        `,
+          gdalFunction: 'ogr2ogr',
+          options: (sqlQuery: string) => [
+            '-f',
+            'GeoJSON',
+            '-dialect',
+            'SQLITE',
+            '-sql',
+            sqlQuery,
+            'output.geojson'
+          ]
+        },
+        app
+      );
+    }
+  });
+
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -259,7 +405,7 @@ export function addCommands(
     label: trans.__('New Hillshade layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -279,7 +425,7 @@ export function addCommands(
     label: trans.__('New Image layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -309,7 +455,7 @@ export function addCommands(
     label: trans.__('New Video layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -338,33 +484,11 @@ export function addCommands(
     ...icons.get(CommandIDs.newVideoEntry)
   });
 
-  commands.addCommand(CommandIDs.newShapefileSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Shapefile')
-        : trans.__('Add Shapefile Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Shapefile Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Shapefile Source' },
-      sourceType: 'ShapefileSource'
-    }),
-    ...icons.get(CommandIDs.newShapefileSource)
-  });
-
   commands.addCommand(CommandIDs.newGeoTiffEntry, {
     label: trans.__('New GeoTiff layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -384,272 +508,11 @@ export function addCommands(
     ...icons.get(CommandIDs.newGeoTiffEntry)
   });
 
-  /**
-   * SOURCES only commands.
-   */
-  commands.addCommand(CommandIDs.newRasterSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Raster')
-        : trans.__('New Raster Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Raster Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Raster Source', minZoom: 0, maxZoom: 24 },
-      sourceType: 'RasterSource'
-    }),
-    ...icons.get(CommandIDs.newRasterSource)
-  });
-
-  commands.addCommand(CommandIDs.newRasterDemSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Raster DEM')
-        : trans.__('New Raster DEM Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Raster Dem Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Raster DEM Source' },
-      sourceType: 'RasterDemSource'
-    }),
-    ...icons.get(CommandIDs.newRasterDemSource)
-  });
-
-  commands.addCommand(CommandIDs.newVectorSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Vector')
-        : trans.__('New Vector Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Vector Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Vector Source', minZoom: 0, maxZoom: 24 },
-      sourceType: 'VectorTileSource'
-    }),
-    ...icons.get(CommandIDs.newVectorSource)
-  });
-
-  commands.addCommand(CommandIDs.newGeoJSONSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('GeoJSON')
-        : trans.__('Add GeoJSON data from file'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create GeoJson Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom GeoJSON Source' },
-      sourceType: 'GeoJSONSource'
-    }),
-    ...icons.get(CommandIDs.newGeoJSONSource)
-  });
-
-  commands.addCommand(CommandIDs.newImageSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Image')
-        : trans.__('Add Image Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Image Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Image Source' },
-      sourceType: 'ImageSource'
-    }),
-    ...icons.get(CommandIDs.newImageSource)
-  });
-
-  commands.addCommand(CommandIDs.newVideoSource, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Video')
-        : trans.__('Add Video Source'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Video Source',
-      createLayer: false,
-      createSource: true,
-      sourceData: { name: 'Custom Video Source' },
-      sourceType: 'VideoSource'
-    }),
-    ...icons.get(CommandIDs.newVideoSource)
-  });
-
-  // Layers only
-  commands.addCommand(CommandIDs.newRasterLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Raster')
-        : trans.__('Add Raster layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Raster Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: {
-        name: 'Custom Raster Layer'
-      },
-      sourceType: 'RasterSource',
-      layerType: 'RasterLayer'
-    }),
-    ...icons.get(CommandIDs.newVectorLayer)
-  });
-
-  commands.addCommand(CommandIDs.newVectorLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Vector')
-        : trans.__('Add New Vector layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Vector Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: {
-        name: 'Custom Vector Layer'
-      },
-      sourceType: 'VectorTileSource',
-      layerType: 'VectorTileLayer'
-    }),
-    ...icons.get(CommandIDs.newVectorLayer)
-  });
-
-  commands.addCommand(CommandIDs.newHillshadeLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Hillshade')
-        : trans.__('Add Hillshade layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Hillshade Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: {
-        name: 'Custom Hillshade Layer'
-      },
-      sourceType: 'RasterDemSource',
-      layerType: 'HillshadeLayer'
-    }),
-    ...icons.get(CommandIDs.newHillshadeLayer)
-  });
-
-  commands.addCommand(CommandIDs.newImageLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Image')
-        : trans.__('Add Image layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Image Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: {
-        name: 'Custom Image Layer'
-      },
-      sourceType: 'ImageSource',
-      layerType: 'RasterLayer'
-    }),
-    ...icons.get(CommandIDs.newImageLayer)
-  });
-
-  commands.addCommand(CommandIDs.newVideoLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Video')
-        : trans.__('Add Video layer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Video Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: {
-        name: 'Custom Video Layer'
-      },
-      sourceType: 'VideoSource',
-      layerType: 'RasterLayer'
-    }),
-    ...icons.get(CommandIDs.newVideoLayer)
-  });
-
-  commands.addCommand(CommandIDs.newShapefileLayer, {
+  commands.addCommand(CommandIDs.newShapefileEntry, {
     label: trans.__('New Shapefile Layer'),
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: Private.createEntry({
@@ -663,30 +526,7 @@ export function addCommands(
       sourceType: 'ShapefileSource',
       layerType: 'VectorLayer'
     }),
-    ...icons.get(CommandIDs.newShapefileLayer)
-  });
-
-  commands.addCommand(CommandIDs.newHeatmapLayer, {
-    label: args =>
-      args.from === 'contextMenu'
-        ? trans.__('Heatmap')
-        : trans.__('Add HeatmapLayer'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Heatmap Layer',
-      createLayer: true,
-      createSource: false,
-      layerData: { name: 'Custom Heatmap Layer' },
-      sourceType: 'GeoJSONSource',
-      layerType: 'HeatmapLayer'
-    }),
-    ...icons.get(CommandIDs.newHeatmapLayer)
+    ...icons.get(CommandIDs.newShapefileEntry)
   });
 
   /**
@@ -695,7 +535,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.renameLayer, {
     label: trans.__('Rename Layer'),
     execute: async () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       await Private.renameSelectedItem(model, 'layer', (layerId, newName) => {
         const layer = model?.getLayer(layerId);
         if (layer) {
@@ -709,7 +549,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.removeLayer, {
     label: trans.__('Remove Layer'),
     execute: () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       Private.removeSelectedItems(model, 'layer', selection => {
         model?.removeLayer(selection);
       });
@@ -719,7 +559,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.renameGroup, {
     label: trans.__('Rename Group'),
     execute: async () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       await Private.renameSelectedItem(model, 'group', (groupName, newName) => {
         model?.renameLayerGroup(groupName, newName);
       });
@@ -729,7 +569,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.removeGroup, {
     label: trans.__('Remove Group'),
     execute: async () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       Private.removeSelectedItems(model, 'group', selection => {
         model?.removeLayerGroup(selection);
       });
@@ -740,7 +580,7 @@ export function addCommands(
     label: args =>
       args['label'] ? (args['label'] as string) : trans.__('Move to Root'),
     execute: args => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       const groupName = args['label'] as string;
 
       const selectedLayers = model?.localState?.selected?.value;
@@ -756,7 +596,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.moveLayerToNewGroup, {
     label: trans.__('Move Selected Layers to New Group'),
     execute: async () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       const selectedLayers = model?.localState?.selected?.value;
 
       if (!selectedLayers) {
@@ -822,7 +662,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.renameSource, {
     label: trans.__('Rename Source'),
     execute: async () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       await Private.renameSelectedItem(model, 'source', (sourceId, newName) => {
         const source = model?.getSource(sourceId);
         if (source) {
@@ -836,7 +676,7 @@ export function addCommands(
   commands.addCommand(CommandIDs.removeSource, {
     label: trans.__('Remove Source'),
     execute: () => {
-      const model = tracker.currentWidget?.context.model;
+      const model = tracker.currentWidget?.model;
       Private.removeSelectedItems(model, 'source', selection => {
         if (!(model?.getLayersBySource(selection).length ?? true)) {
           model?.sharedModel.removeSource(selection);
@@ -853,27 +693,40 @@ export function addCommands(
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
-    execute: async () => await Private.toggleConsole(tracker)
+    isToggled: () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        return tracker.currentWidget?.content.consoleOpened === true;
+      } else {
+        return false;
+      }
+    },
+    execute: async () => {
+      await Private.toggleConsole(tracker);
+      commands.notifyCommandChanged(CommandIDs.toggleConsole);
+    }
   });
   commands.addCommand(CommandIDs.executeConsole, {
     label: trans.__('Execute console'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: () => Private.executeConsole(tracker)
   });
   commands.addCommand(CommandIDs.removeConsole, {
     label: trans.__('Remove console'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
-        ? tracker.currentWidget.context.model.sharedModel.editable
+        ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
     execute: () => Private.removeConsole(tracker)
@@ -881,9 +734,14 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.invokeCompleter, {
     label: trans.__('Display the completion helper.'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     execute: () => {
       const currentWidget = tracker.currentWidget;
-      if (!currentWidget || !completionProviderManager) {
+      if (
+        !currentWidget ||
+        !completionProviderManager ||
+        !(currentWidget instanceof JupyterGISDocumentWidget)
+      ) {
         return;
       }
       const id = currentWidget.content.consolePanel?.id;
@@ -895,9 +753,14 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.selectCompleter, {
     label: trans.__('Select the completion suggestion.'),
+    isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     execute: () => {
       const currentWidget = tracker.currentWidget;
-      if (!currentWidget || !completionProviderManager) {
+      if (
+        !currentWidget ||
+        !completionProviderManager ||
+        !(currentWidget instanceof JupyterGISDocumentWidget)
+      ) {
         return;
       }
       const id = currentWidget.content.consolePanel?.id;
@@ -915,7 +778,7 @@ export function addCommands(
         return;
       }
       console.log('zooming');
-      const model = tracker.currentWidget.context.model;
+      const model = tracker.currentWidget.model;
       const selectedItems = model.localState?.selected.value;
 
       if (!selectedItems) {
@@ -927,12 +790,100 @@ export function addCommands(
     }
   });
 
+  commands.addCommand(CommandIDs.downloadGeoJSON, {
+    label: trans.__('Download as GeoJSON'),
+    isEnabled: () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      return selectedLayer
+        ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
+        : false;
+    },
+    execute: async () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        return;
+      }
+      const model = tracker.currentWidget?.model as IJupyterGISModel;
+      const sources = model.sharedModel.sources ?? {};
+
+      const exportSchema = {
+        ...(formSchemaRegistry.getSchemas().get('ExportGeoJSONSchema') as IDict)
+      };
+
+      const formValues = await new Promise<IDict>(resolve => {
+        const dialog = new ProcessingFormDialog({
+          title: 'Download GeoJSON',
+          schema: exportSchema,
+          model,
+          sourceData: { exportFormat: 'GeoJSON' },
+          formContext: 'create',
+          processingType: 'Export',
+          syncData: (props: IDict) => {
+            resolve(props);
+            dialog.dispose();
+          }
+        });
+
+        dialog.launch();
+      });
+
+      if (!formValues || !selectedLayer.parameters) {
+        return;
+      }
+
+      const exportFileName = formValues.exportFileName;
+      const sourceId = selectedLayer.parameters.source;
+      const source = sources[sourceId];
+
+      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
+      if (!geojsonString) {
+        return;
+      }
+
+      downloadFile(
+        geojsonString,
+        `${exportFileName}.geojson`,
+        'application/geo+json'
+      );
+    }
+  });
+
+  commands.addCommand(CommandIDs.getGeolocation, {
+    label: trans.__('Center on Geolocation'),
+    execute: async () => {
+      const viewModel = tracker.currentWidget?.model;
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+      };
+      const success = (pos: any) => {
+        const location: Coordinate = fromLonLat([
+          pos.coords.longitude,
+          pos.coords.latitude
+        ]);
+        const Jgislocation: JgisCoordinates = {
+          x: location[0],
+          y: location[1]
+        };
+        if (viewModel) {
+          viewModel.geolocationChanged.emit(Jgislocation);
+        }
+      };
+      const error = (err: any) => {
+        console.warn(`ERROR(${err.code}): ${err.message}`);
+      };
+      navigator.geolocation.getCurrentPosition(success, error, options);
+    },
+    icon: targetWithCenterIcon
+  });
+
   loadKeybindings(commands, keybindings);
 }
 
 namespace Private {
   export function createLayerBrowser(
-    tracker: WidgetTracker<JupyterGISWidget>,
+    tracker: JupyterGISTracker,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
     formSchemaRegistry: IJGISFormSchemaRegistry
   ) {
@@ -944,7 +895,7 @@ namespace Private {
       }
 
       const dialog = new LayerBrowserWidget({
-        context: current.context,
+        model: current.model,
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry
       });
@@ -953,7 +904,7 @@ namespace Private {
   }
 
   export function createSymbologyDialog(
-    tracker: WidgetTracker<JupyterGISWidget>,
+    tracker: JupyterGISTracker,
     state: IStateDB
   ) {
     return async () => {
@@ -964,7 +915,7 @@ namespace Private {
       }
 
       const dialog = new SymbologyWidget({
-        context: current.context,
+        model: current.model,
         state
       });
       await dialog.launch();
@@ -989,8 +940,8 @@ namespace Private {
         return;
       }
 
-      const dialog = new CreationFormDialog({
-        context: current.context,
+      const dialog = new LayerCreationFormDialog({
+        model: current.model,
         title,
         createLayer,
         createSource,
@@ -1112,43 +1063,32 @@ namespace Private {
     }
   }
 
-  export function executeConsole(
-    tracker: WidgetTracker<JupyterGISWidget>
-  ): void {
+  export function executeConsole(tracker: JupyterGISTracker): void {
     const current = tracker.currentWidget;
-
-    if (!current) {
+    if (!current || !(current instanceof JupyterGISDocumentWidget)) {
       return;
     }
     current.content.executeConsole();
   }
 
-  export function removeConsole(
-    tracker: WidgetTracker<JupyterGISWidget>
-  ): void {
+  export function removeConsole(tracker: JupyterGISTracker): void {
     const current = tracker.currentWidget;
 
-    if (!current) {
+    if (!current || !(current instanceof JupyterGISDocumentWidget)) {
       return;
     }
     current.content.removeConsole();
   }
 
   export async function toggleConsole(
-    tracker: WidgetTracker<JupyterGISWidget>
+    tracker: JupyterGISTracker
   ): Promise<void> {
     const current = tracker.currentWidget;
 
-    if (!current) {
+    if (!current || !(current instanceof JupyterGISDocumentWidget)) {
       return;
     }
-    const currentPath = current.context.path.split(':');
-    let realPath = '';
-    if (currentPath.length > 1) {
-      realPath = currentPath[1];
-    } else {
-      realPath = currentPath[0];
-    }
-    await current.content.toggleConsole(realPath);
+
+    await current.content.toggleConsole(current.model.filePath);
   }
 }

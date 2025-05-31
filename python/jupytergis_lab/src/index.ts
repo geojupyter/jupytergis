@@ -2,11 +2,12 @@ import {
   CommandIDs,
   ControlPanelModel,
   GlobalStateDbManager,
-  JupyterGISWidget,
   LeftPanelWidget,
   RightPanelWidget,
   addCommands,
   createDefaultLayerRegistry,
+  rasterSubMenu,
+  vectorSubMenu,
   logoMiniIcon
 } from '@jupytergis/base';
 import {
@@ -18,7 +19,8 @@ import {
   IJGISLayerBrowserRegistryToken,
   IJGISLayerItem,
   IJupyterGISDocTracker,
-  IJupyterGISTracker
+  IJupyterGISTracker,
+  IJupyterGISWidget
 } from '@jupytergis/schema';
 import {
   ILayoutRestorer,
@@ -47,7 +49,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   optional: [IMainMenu, ITranslator, ICompletionProviderManager],
   activate: (
     app: JupyterFrontEnd,
-    tracker: WidgetTracker<JupyterGISWidget>,
+    tracker: WidgetTracker<IJupyterGISWidget>,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
     state: IStateDB,
@@ -77,53 +79,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       state,
       completionProviderManager
     );
-
-    app.shell.addClass('data-jgis-keybinding');
-
-    // SOURCES context menu
-    const newSourceSubMenu = new Menu({ commands: app.commands });
-    newSourceSubMenu.title.label = translator
-      .load('jupyterlab')
-      .__('Add Source');
-    newSourceSubMenu.id = 'jp-gis-contextmenu-addSource';
-
-    app.contextMenu.addItem({
-      type: 'submenu',
-      selector: '.jp-gis-sourcePanel',
-      rank: 3,
-      submenu: newSourceSubMenu
-    });
-
-    newSourceSubMenu.addItem({
-      command: CommandIDs.newRasterSource,
-      args: { from: 'contextMenu' }
-    });
-
-    newSourceSubMenu.addItem({
-      command: CommandIDs.newVectorSource,
-      args: { from: 'contextMenu' }
-    });
-
-    newSourceSubMenu.addItem({
-      command: CommandIDs.newGeoJSONSource,
-      args: { from: 'contextMenu' }
-    });
-
-    newSourceSubMenu.addItem({
-      command: CommandIDs.newRasterDemSource,
-      args: { from: 'contextMenu' }
-    });
-
-    newSourceSubMenu.addItem({
-      command: CommandIDs.newImageSource,
-      args: { from: 'contextMenu' }
-    });
-
-    app.contextMenu.addItem({
-      type: 'separator',
-      selector: '.jp-gis-sourcePanel',
-      rank: 2
-    });
 
     app.contextMenu.addItem({
       selector: '.jp-gis-source.jp-gis-sourceUnused',
@@ -169,6 +124,45 @@ const plugin: JupyterFrontEndPlugin<void> = {
       rank: 2
     });
 
+    // Create the Download submenu
+    const downloadSubmenu = new Menu({ commands: app.commands });
+    downloadSubmenu.title.label = translator.load('jupyterlab').__('Download');
+    downloadSubmenu.id = 'jp-gis-contextmenu-download';
+
+    downloadSubmenu.addItem({
+      command: CommandIDs.downloadGeoJSON
+    });
+
+    // Add the Download submenu to the context menu
+    app.contextMenu.addItem({
+      type: 'submenu',
+      selector: '.jp-gis-layerItem',
+      rank: 2,
+      submenu: downloadSubmenu
+    });
+
+    // Create the Processing submenu
+    const processingSubmenu = new Menu({ commands: app.commands });
+    processingSubmenu.title.label = translator
+      .load('jupyterlab')
+      .__('Processing');
+    processingSubmenu.id = 'jp-gis-contextmenu-processing';
+
+    processingSubmenu.addItem({
+      command: CommandIDs.buffer
+    });
+
+    processingSubmenu.addItem({
+      command: CommandIDs.dissolve
+    });
+
+    app.contextMenu.addItem({
+      type: 'submenu',
+      selector: '.jp-gis-layerItem',
+      rank: 2,
+      submenu: processingSubmenu
+    });
+
     const moveLayerSubmenu = new Menu({ commands: app.commands });
     moveLayerSubmenu.title.label = translator
       .load('jupyterlab')
@@ -209,36 +203,20 @@ const plugin: JupyterFrontEndPlugin<void> = {
     newLayerSubMenu.title.label = translator.load('jupyterlab').__('Add Layer');
     newLayerSubMenu.id = 'jp-gis-contextmenu-addLayer';
 
+    newLayerSubMenu.addItem({
+      type: 'submenu',
+      submenu: rasterSubMenu(app.commands)
+    });
+    newLayerSubMenu.addItem({
+      type: 'submenu',
+      submenu: vectorSubMenu(app.commands)
+    });
+
     app.contextMenu.addItem({
       type: 'submenu',
       selector: '.jp-gis-layerPanel',
       rank: 3,
       submenu: newLayerSubMenu
-    });
-
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newRasterLayer,
-      args: { from: 'contextMenu' }
-    });
-
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newVectorLayer,
-      args: { from: 'contextMenu' }
-    });
-
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newHillshadeLayer,
-      args: { from: 'contextMenu' }
-    });
-
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newImageLayer,
-      args: { from: 'contextMenu' }
-    });
-
-    newLayerSubMenu.addItem({
-      command: CommandIDs.newHeatmapLayer,
-      args: { from: 'contextMenu' }
     });
 
     if (mainMenu) {
@@ -270,7 +248,8 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     const leftControlPanel = new LeftPanelWidget({
       model: controlModel,
       tracker,
-      state
+      state,
+      commands: app.commands
     });
     leftControlPanel.id = 'jupytergis::leftControlPanel';
     leftControlPanel.title.caption = 'JupyterGIS Control Panel';
@@ -315,13 +294,13 @@ function populateMenus(mainMenu: IMainMenu, isEnabled: () => boolean): void {
  */
 function buildGroupsMenu(
   contextMenu: ContextMenu,
-  tracker: WidgetTracker<JupyterGISWidget>
+  tracker: WidgetTracker<IJupyterGISWidget>
 ) {
-  if (!tracker.currentWidget?.context.model) {
+  if (!tracker.currentWidget?.model) {
     return;
   }
 
-  const model = tracker.currentWidget?.context.model;
+  const model = tracker.currentWidget?.model;
 
   const submenu =
     contextMenu.menu.items.find(

@@ -50,9 +50,7 @@ test.describe('#geoJSONLayer', () => {
     const panel = await openGIS(page, tmpPath, FILENAME);
     const main = panel?.locator('.jGIS-Mainview');
 
-    await page
-      .locator('div:nth-child(9) > .jp-ToolbarButtonComponent > .control')
-      .click();
+    await page.getByTestId('new-entry-button').click();
     await page.getByText('Add Vector Layer').hover();
     await page
       .locator('#jp-gis-toolbar-vector-menu')
@@ -65,9 +63,6 @@ test.describe('#geoJSONLayer', () => {
     const fileInput = dialog.locator('input#root_path');
     await fileInput.fill('france_regions.json');
     await fileInput.blur();
-
-    const typeInput = dialog.locator('select#root_type');
-    typeInput.selectOption('line');
 
     await dialog.getByText('Ok', { exact: true }).first().click();
 

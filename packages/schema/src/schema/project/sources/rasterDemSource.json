@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "description": "RasterDemSource",
+  "title": "IRasterDemSource",
+  "required": ["url"],
+  "additionalProperties": false,
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "The url to the tile provider"
+    },
+    "attribution": {
+      "type": "string",
+      "description": "The attribution for the raster-dem source"
+    },
+    "urlParameters": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "interpolate": {
+      "type": "boolean",
+      "description": "Interpolate between grid cells when overzooming?",
+      "default": false
+    }
+  }
+}

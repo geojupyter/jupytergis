@@ -39,7 +39,7 @@ const testCellOutputs = async (
       onAfterCellRun: async (cellIndex: number) => {
         await page.waitForTimeout(5000);
 
-        const cell = await page.notebook.getCellOutput(cellIndex);
+        const cell = await page.notebook.getCellOutputLocator(cellIndex);
         if (cell) {
           results.push(await cell.screenshot());
           numCellImages++;

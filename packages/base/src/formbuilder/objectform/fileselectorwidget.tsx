@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FileDialog } from '@jupyterlab/filebrowser';
 import { Dialog } from '@jupyterlab/apputils';
-import { CreationFormDialog } from '../../dialogs/formdialog';
+import { LayerCreationFormDialog } from '../../dialogs/layerCreationFormDialog';
 import { PathExt } from '@jupyterlab/coreutils';
 
 export const FileSelectorWidget = (props: any) => {
@@ -53,7 +53,7 @@ export const FileSelectorWidget = (props: any) => {
         const selectedFilePath = output.value[0].path;
 
         const relativePath = PathExt.relative(
-          formOptions.filePath,
+          PathExt.dirname(formOptions.filePath),
           selectedFilePath
         );
 
@@ -81,14 +81,14 @@ export const FileSelectorWidget = (props: any) => {
             };
           }
 
-          const formDialog = new CreationFormDialog({
+          const formDialog = new LayerCreationFormDialog({
             ...formOptions.dialogOptions
           });
           await formDialog.launch();
         }
       } else {
         if (dialogElement) {
-          const formDialog = new CreationFormDialog({
+          const formDialog = new LayerCreationFormDialog({
             ...formOptions.dialogOptions
           });
           await formDialog.launch();

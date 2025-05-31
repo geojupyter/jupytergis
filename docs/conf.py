@@ -26,7 +26,6 @@ myst_enable_extensions = [
     "colon_fence",
 ]
 
-source_suffix = ".rst"
 master_doc = "index"
 project = "JupyterGIS"
 copyright = "2024, The JupyterGIS Development Team"
@@ -40,6 +39,7 @@ jupyterlite_contents = [
     "../examples/*.gif",
     "../examples/*.geojson",
     "../examples/*.tif",
+    "../examples/*.ipynb",
 ]
 jupyterlite_dir = "."
 jupyterlite_config = "jupyter_lite_config.json"

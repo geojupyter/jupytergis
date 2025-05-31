@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { ISymbologyDialogProps } from '../symbologyDialog';
+import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
 import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
+import { useGetProperties } from '../hooks/useGetProperties';
+import {
+  getColorCodeFeatureAttributes,
+  getNumericFeatureAttributes
+} from '../../../tools';
 
 const VectorRendering = ({
-  context,
+  model,
   state,
   okSignalPromise,
   cancel,
@@ -23,10 +29,15 @@ const VectorRendering = ({
   if (!layerId) {
     return;
   }
-  const layer = context.model.getLayer(layerId);
+  const layer = model.getLayer(layerId);
   if (!layer?.parameters) {
     return;
   }
+
+  const { featureProperties } = useGetProperties({
+    layerId,
+    model: model
+  });
 
   useEffect(() => {
     let renderType = layer.parameters?.symbologyState?.renderType;
@@ -35,16 +46,33 @@ const VectorRendering = ({
     }
     setSelectedRenderType(renderType);
 
-    const options = ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap'];
-    setRenderTypeOptions(options);
-  }, []);
+    const vectorLayerOptions = ['Single Symbol', 'Heatmap'];
+
+    if (
+      Object.keys(getColorCodeFeatureAttributes(featureProperties)).length > 0
+    ) {
+      vectorLayerOptions.push('Canonical');
+    }
+    if (
+      Object.keys(getNumericFeatureAttributes(featureProperties)).length > 0
+    ) {
+      vectorLayerOptions.push('Graduated', 'Categorized');
+    }
+
+    const options: Record<string, string[]> = {
+      VectorLayer: vectorLayerOptions,
+      VectorTileLayer: ['Single Symbol'],
+      HeatmapLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap']
+    };
+    setRenderTypeOptions(options[layer.type]);
+  }, [featureProperties]);
 
   useEffect(() => {
     switch (selectedRenderType) {
       case 'Single Symbol':
         RenderComponent = (
           <SimpleSymbol
-            context={context}
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}
@@ -55,7 +83,7 @@ const VectorRendering = ({
       case 'Graduated':
         RenderComponent = (
           <Graduated
-            context={context}
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}
@@ -66,7 +94,18 @@ const VectorRendering = ({
       case 'Categorized':
         RenderComponent = (
           <Categorized
-            context={context}
+            model={model}
+            state={state}
+            okSignalPromise={okSignalPromise}
+            cancel={cancel}
+            layerId={layerId}
+          />
+        );
+        break;
+      case 'Canonical':
+        RenderComponent = (
+          <Canonical
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}
@@ -77,7 +116,7 @@ const VectorRendering = ({
       case 'Heatmap':
         RenderComponent = (
           <Heatmap
-            context={context}
+            model={model}
             state={state}
             okSignalPromise={okSignalPromise}
             cancel={cancel}

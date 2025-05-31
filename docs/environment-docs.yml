@@ -4,11 +4,10 @@ channels:
   - nodefaults
 dependencies:
   - python=3.12
-  - pip # Needed to install jupytergis wheels in RTD build
 
   # Build docs & JupyterLite
-  - jupyterlite-core>=0.4.0,<0.6.0
-  - jupyterlite-xeus>=2,<3
+  - jupyterlite-core
+  - jupyterlite-xeus>=3.1.3,<4
   - jupyterlite-sphinx
   - sphinx
   - sphinx-tabs
@@ -16,9 +15,13 @@ dependencies:
   - sphinx-autodoc-typehints
   - sphinx-exercise
   - sphinx-togglebutton
-
+  - myst-parser
   - xeus-python # TODO: Do we need this?
 
-  # Install myst-parser via pip
+  - pip
   - pip:
-      - myst-parser<4.0.0
+      # Install JupyterGIS so we can autodoc.
+      # IMPORTANT: You must do `jlpm build` at the root of the repo before this can work.
+      # See: https://github.com/geojupyter/jupytergis/issues/585
+      - ../python/jupytergis_core
+      - ../python/jupytergis_lab

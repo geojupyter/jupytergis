@@ -27,7 +27,7 @@ repos:
 
   # Autoformat: Python code
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.6
+    rev: v0.11.4
     hooks:
       - id: ruff
         args: ['--fix']
@@ -37,4 +37,4 @@ repos:
     rev: v6.2.4
     hooks:
       - id: rstcheck
-        args: ['--ignore-directives=tabs,toctree,autoclass,cssclass,include', '--report-level=warning']
+        args: ['--ignore-directives=jupyterlite,tabs,toctree,autoclass,cssclass,include', '--report-level=warning']

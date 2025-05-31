@@ -1,6 +1,6 @@
-import { IDict, IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
+import { fromUrl, fromBlob } from 'geotiff';
 import { loadFile } from '../../../tools';
 
 export interface IBandHistogram {
@@ -12,45 +12,14 @@ export interface IBandHistogram {
 
 export interface IBandRow {
   band: number;
-  colorInterpretation: string;
+  colorInterpretation?: string;
   stats: {
     minimum: number;
     maximum: number;
-    mean: number;
-    stdDev: number;
   };
-  metadata: IDict;
-  histogram: IBandHistogram;
 }
 
-interface ITifBandData {
-  band: number;
-  colorInterpretation: string;
-  minimum: number;
-  maximum: number;
-  mean: number;
-  stdDev: number;
-  metadata: object;
-  histogram: any;
-}
-
-const preloadGeoTiffFile = async (
-  sourceInfo: {
-    url?: string | undefined;
-  },
-  model: IJupyterGISModel
-): Promise<{ file: Blob; metadata: any; sourceUrl: string }> => {
-  return await loadFile({
-    filepath: sourceInfo.url ?? '',
-    type: 'GeoTiffSource',
-    model: model
-  });
-};
-
-const useGetBandInfo = (
-  context: DocumentRegistry.IContext<IJupyterGISModel>,
-  layer: IJGISLayer
-) => {
+const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
   const [bandRows, setBandRows] = useState<IBandRow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +30,7 @@ const useGetBandInfo = (
 
     try {
       const bandsArr: IBandRow[] = [];
-      const source = context.model.getSource(layer?.parameters?.source);
+      const source = model.getSource(layer?.parameters?.source);
       const sourceInfo = source?.parameters?.urls[0];
 
       if (!sourceInfo?.url) {
@@ -70,29 +39,44 @@ const useGetBandInfo = (
         return;
       }
 
-      const preloadedFile = await preloadGeoTiffFile(sourceInfo, context.model);
-      const { file, metadata, sourceUrl } = { ...preloadedFile };
-
-      if (file && metadata && sourceUrl === sourceInfo.url) {
-        metadata['bands'].forEach((bandData: ITifBandData) => {
-          bandsArr.push({
-            band: bandData.band,
-            colorInterpretation: bandData.colorInterpretation,
-            stats: {
-              minimum: sourceInfo.min ?? bandData.minimum,
-              maximum: sourceInfo.max ?? bandData.maximum,
-              mean: bandData.mean,
-              stdDev: bandData.stdDev
-            },
-            metadata: bandData.metadata,
-            histogram: bandData.histogram
-          });
+      let tiff;
+      if (
+        sourceInfo.url.startsWith('http') ||
+        sourceInfo.url.startsWith('https')
+      ) {
+        // Handle remote GeoTIFF file
+        tiff = await fromUrl(sourceInfo.url);
+      } else {
+        // Handle local GeoTIFF file
+        const preloadedFile = await loadFile({
+          filepath: sourceInfo.url,
+          type: 'GeoTiffSource',
+          model
         });
 
-        setBandRows(bandsArr);
-      } else {
-        setError('Failed to preload the file or metadata mismatch.');
+        if (!preloadedFile.file) {
+          setError('Failed to load local file.');
+          setLoading(false);
+          return;
+        }
+
+        tiff = await fromBlob(preloadedFile.file);
       }
+
+      const image = await tiff.getImage();
+      const numberOfBands = image.getSamplesPerPixel();
+
+      for (let i = 0; i < numberOfBands; i++) {
+        bandsArr.push({
+          band: i,
+          stats: {
+            minimum: sourceInfo.min ?? 0,
+            maximum: sourceInfo.max ?? 100
+          }
+        });
+      }
+
+      setBandRows(bandsArr);
     } catch (err: any) {
       setError(`Error fetching band info: ${err.message}`);
     } finally {

@@ -1,10 +1,10 @@
 import { MapChange } from '@jupyter/ydoc';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { Contents } from '@jupyterlab/services';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
-
 import {
   IJGISContent,
   IJGISLayer,
@@ -15,12 +15,11 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources
-} from './_interface/jgis';
+} from './_interface/project/jgis';
 import { JupyterGISDoc } from './doc';
 import {
-  IViewPortState,
-  Pointer,
   IAnnotationModel,
+  IDict,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -29,14 +28,19 @@ import {
   IJupyterGISModel,
   ISelection,
   IUserData,
-  IDict
+  IViewPortState,
+  JgisCoordinates,
+  Pointer,
+  IJupyterGISSettings
 } from './interfaces';
-import jgisSchema from './schema/jgis.json';
-import { Contents } from '@jupyterlab/services';
+import jgisSchema from './schema/project/jgis.json';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
+
+const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: JupyterGISModel.IOptions) {
-    const { annotationModel, sharedModel } = options;
+    const { annotationModel, sharedModel, settingRegistry } = options;
 
     if (sharedModel) {
       this._sharedModel = sharedModel;
@@ -50,6 +54,26 @@ export class JupyterGISModel implements IJupyterGISModel {
       this
     );
     this.annotationModel = annotationModel;
+    this.settingRegistry = settingRegistry;
+  }
+
+  /**
+   * Initialize custom settings for JupyterLab.
+   */
+  async initSettings(): Promise<void> {
+    if (this.settingRegistry) {
+      const setting = await this.settingRegistry.load(SETTINGS_ID);
+      this._settings = setting.composite as any;
+
+      setting.changed.connect(() => {
+        this._settings = setting.composite as any;
+        console.log('JupyterGIS Settings updated:', this._settings);
+      });
+    }
+  }
+
+  getSettings(): IJupyterGISSettings {
+    return this._settings;
   }
 
   private _onSharedModelChanged = (sender: any, changes: any): void => {
@@ -166,6 +190,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._isIdentifying;
   }
 
+  set isTemporalControllerActive(isActive: boolean) {
+    this._isTemporalControllerActive = isActive;
+  }
+
+  get isTemporalControllerActive(): boolean {
+    return this._isTemporalControllerActive;
+  }
+
   centerOnPosition(id: string) {
     this._zoomToPositionSignal.emit(id);
   }
@@ -242,6 +274,9 @@ export class JupyterGISModel implements IJupyterGISModel {
   getWorker(): Worker {
     return JupyterGISModel.worker;
   }
+
+  readonly flyToGeometrySignal = new Signal<this, any>(this);
+  readonly highlightFeatureSignal = new Signal<this, any>(this);
 
   getContent(): IJGISContent {
     return {
@@ -379,8 +414,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   removeLayer(layer_id: string) {
+    const layer = this._sharedModel.getLayer(layer_id);
+    const source_id = layer?.parameters?.source;
+
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
+    this.sharedModel.removeSource(source_id);
   }
 
   setOptions(value: IJGISOptions) {
@@ -620,6 +659,15 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._isIdentifying = !this._isIdentifying;
   }
 
+  toggleTemporalController() {
+    this._isTemporalControllerActive = !this._isTemporalControllerActive;
+
+    this.sharedModel.awareness.setLocalStateField(
+      'isTemporalControllerActive',
+      this._isTemporalControllerActive
+    );
+  }
+
   private _getLayerTreeInfo(groupName: string):
     | {
         mainGroup: IJGISLayerGroup;
@@ -668,10 +716,41 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   };
 
+  addFeatureAsMs = (id: string, selectedFeature: string) => {
+    this.addFeatureAsMsSignal.emit(JSON.stringify({ id, selectedFeature }));
+  };
+
+  get addFeatureAsMsSignal() {
+    return this._addFeatureAsMsSignal;
+  }
+
+  get updateLayerSignal() {
+    return this._updateLayerSignal;
+  }
+
+  triggerLayerUpdate = (layerId: string, layer: IJGISLayer) => {
+    this.updateLayerSignal.emit(JSON.stringify({ layerId, layer }));
+  };
+
+  get geolocation(): JgisCoordinates {
+    return this._geolocation;
+  }
+
+  set geolocation(geolocation: JgisCoordinates) {
+    this._geolocation = geolocation;
+    this.geolocationChanged.emit(this.geolocation);
+  }
+
+  get geolocationChanged() {
+    return this._geolocationChanged;
+  }
+
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
   readonly annotationModel?: IAnnotationModel;
+  readonly settingRegistry?: ISettingRegistry;
 
+  private _settings: IJupyterGISSettings;
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
   private _contentsManager?: Contents.IManager;
@@ -693,9 +772,17 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
+  private _addFeatureAsMsSignal = new Signal<this, string>(this);
+
+  private _updateLayerSignal = new Signal<this, string>(this);
+
   private _isIdentifying = false;
+  private _isTemporalControllerActive = false;
 
   static worker: Worker;
+
+  private _geolocation: JgisCoordinates;
+  private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
 }
 
 export namespace JupyterGISModel {
@@ -709,6 +796,7 @@ export namespace JupyterGISModel {
   export interface IOptions
     extends DocumentRegistry.IModelOptions<IJupyterGISDoc> {
     annotationModel?: IAnnotationModel;
+    settingRegistry?: ISettingRegistry;
   }
 }
 

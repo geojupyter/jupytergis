@@ -14,7 +14,11 @@ def install_dev():
     build_js = "jlpm build"
 
     python_package_prefix = "python"
-    python_packages = ["jupytergis_core", "jupytergis_lab", "jupytergis_qgis"]
+    python_packages = [
+        "jupytergis_core",
+        "jupytergis_lab",
+        "jupytergis_qgis",
+    ]
 
     execute(install_build_deps)
     execute(install_js_deps)
@@ -30,6 +34,8 @@ def install_dev():
         execute(
             f"jupyter labextension develop {python_package_prefix}/{py_package} --overwrite"
         )
+
+    execute(f"pip install -e {python_package_prefix}/jupytergis")
 
 
 if __name__ == "__main__":

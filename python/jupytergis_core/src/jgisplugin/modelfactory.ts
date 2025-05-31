@@ -5,6 +5,7 @@ import {
 } from '@jupytergis/schema';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 /**
  * A Model factory to create new instances of JupyterGISModel.
@@ -14,12 +15,12 @@ export class JupyterGISModelFactory
 {
   constructor(options: JupyterGISModelFactory.IOptions) {
     this._annotationModel = options.annotationModel;
+    this._settingRegistry = options.settingRegistry;
   }
   /**
    * Whether the model is collaborative or not.
    */
-  readonly collaborative =
-    document.querySelectorAll('[data-jupyter-lite-root]')[0] === undefined;
+  readonly collaborative = true;
 
   /**
    * The name of the model.
@@ -85,17 +86,21 @@ export class JupyterGISModelFactory
     const model = new JupyterGISModel({
       sharedModel: options.sharedModel,
       languagePreference: options.languagePreference,
-      annotationModel: this._annotationModel
+      annotationModel: this._annotationModel,
+      settingRegistry: this._settingRegistry
     });
+    model.initSettings();
     return model;
   }
 
   private _annotationModel: IAnnotationModel;
+  private _settingRegistry: ISettingRegistry;
   private _disposed = false;
 }
 
 export namespace JupyterGISModelFactory {
   export interface IOptions {
     annotationModel: IAnnotationModel;
+    settingRegistry: ISettingRegistry;
   }
 }

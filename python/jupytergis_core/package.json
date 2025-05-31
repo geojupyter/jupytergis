@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/jupytergis-core",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "JupyterGIS core extension",
   "keywords": [
     "jupyter",
@@ -15,7 +15,8 @@
   "author": "JupyterGIS contributors",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
-    "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+    "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
+    "schema/**/*.{json,js,ts}"
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -53,8 +54,8 @@
   },
   "dependencies": {
     "@jupyter/collaborative-drive": "^3.0.0",
-    "@jupytergis/base": "^0.3.0",
-    "@jupytergis/schema": "^0.3.0",
+    "@jupytergis/base": "^0.5.0",
+    "@jupytergis/schema": "^0.5.0",
     "@jupyterlab/application": "^4.3.0",
     "@jupyterlab/apputils": "^4.3.0",
     "@jupyterlab/docregistry": "^4.3.0",
@@ -91,6 +92,7 @@
     "access": "public"
   },
   "jupyterlab": {
+    "schemaDir": "schema",
     "discovery": {
       "server": {
         "managers": [

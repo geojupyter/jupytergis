@@ -18,7 +18,7 @@ import BandRow from '../components/BandRow';
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
 const SingleBandPseudoColor = ({
-  context,
+  model,
   okSignalPromise,
   cancel,
   layerId
@@ -26,7 +26,7 @@ const SingleBandPseudoColor = ({
   if (!layerId) {
     return;
   }
-  const layer = context.model.getLayer(layerId);
+  const layer = model.getLayer(layerId);
   if (!layer?.parameters) {
     return;
   }
@@ -36,7 +36,7 @@ const SingleBandPseudoColor = ({
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-  const { bandRows, setBandRows, loading } = useGetBandInfo(context, layer);
+  const { bandRows, setBandRows, loading } = useGetBandInfo(model, layer);
 
   const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
@@ -158,7 +158,7 @@ const SingleBandPseudoColor = ({
       return;
     }
     const sourceId = layer.parameters?.source;
-    const source = context.model.getSource(sourceId);
+    const source = model.getSource(sourceId);
 
     if (!source || !source.parameters) {
       return;
@@ -172,7 +172,7 @@ const SingleBandPseudoColor = ({
 
     source.parameters.urls[0] = sourceInfo;
 
-    context.model.sharedModel.updateSource(sourceId, source);
+    model.sharedModel.updateSource(sourceId, source);
 
     // Update layer
     if (!layer.parameters) {
@@ -254,7 +254,7 @@ const SingleBandPseudoColor = ({
     layer.parameters.color = colorExpr;
     layer.type = 'WebGlLayer';
 
-    context.model.sharedModel.updateLayer(layerId, layer);
+    model.sharedModel.updateLayer(layerId, layer);
     cancel();
   };
 
@@ -291,7 +291,7 @@ const SingleBandPseudoColor = ({
     let stops: number[] = [];
 
     const currentBand = bandRows[selectedBand - 1];
-    const source = context.model.getSource(layer?.parameters?.source);
+    const source = model.getSource(layer?.parameters?.source);
     const sourceInfo = source?.parameters?.urls[0];
     const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
 

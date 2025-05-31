@@ -1,6 +1,11 @@
-import { IJupyterGISDoc, JupyterGISModel } from '@jupytergis/schema';
+import {
+  IJupyterGISDoc,
+  JupyterGISModel,
+  IAnnotationModel
+} from '@jupytergis/schema';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 /**
  * A Model factory to create new instances of JupyterGISModel.
@@ -8,6 +13,10 @@ import { Contents } from '@jupyterlab/services';
 export class JupyterGISModelFactoryBase
   implements DocumentRegistry.IModelFactory<JupyterGISModel>
 {
+  constructor(options: JupyterGISModelFactoryBase.IOptions) {
+    this._annotationModel = options.annotationModel;
+  }
+
   /**
    * Whether the model is collaborative or not.
    */
@@ -77,12 +86,23 @@ export class JupyterGISModelFactoryBase
   ): JupyterGISModel {
     const model = new JupyterGISModel({
       sharedModel: options.sharedModel,
-      languagePreference: options.languagePreference
+      languagePreference: options.languagePreference,
+      annotationModel: this._annotationModel,
+      settingRegistry: this._settingRegistry
     });
     return model;
   }
 
+  private _annotationModel: IAnnotationModel;
+  private _settingRegistry: ISettingRegistry;
   private _disposed = false;
+}
+
+export namespace JupyterGISModelFactoryBase {
+  export interface IOptions {
+    annotationModel: IAnnotationModel;
+    settingRegistry: ISettingRegistry;
+  }
 }
 
 export class QGZModelFactory extends JupyterGISModelFactoryBase {

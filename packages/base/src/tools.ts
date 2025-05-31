@@ -4,8 +4,10 @@ import { VectorTile } from '@mapbox/vector-tile';
 
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import * as d3Color from 'd3-color';
 import shp from 'shpjs';
+import { getGdal } from './gdal';
 
 import {
   IDict,
@@ -13,10 +15,10 @@ import {
   IJGISOptions,
   IJGISSource,
   IJupyterGISModel,
-  IRasterLayerGalleryEntry
+  IRasterLayerGalleryEntry,
+  SourceType
 } from '@jupytergis/schema';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
-import { getGdal } from './gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -298,41 +300,22 @@ export interface IParsedStyle {
   radius?: number;
 }
 
-export function parseColor(type: string, style: any) {
-  if (!type || !style) {
+export function parseColor(style: any): IParsedStyle | undefined {
+  if (!style) {
     return;
   }
 
-  const type2 = type === 'circle' ? 'circle' : 'default';
-
-  const shapeStyles: any = {
-    circle: {
-      radius: style['circle-radius'] ?? 5,
-      fillColor: style['circle-fill-color'] ?? '#3399CC',
-      strokeColor: style['circle-stroke-color'] ?? '#3399CC',
-      strokeWidth: style['circle-stroke-width'] ?? 1.25,
-      joinStyle: style['circle-stroke-line-join'] ?? 'round',
-      capStyle: style['circle-stroke-line-cap'] ?? 'round'
-    },
-    default: {
-      fillColor: style['fill-color'] ?? '[255, 255, 255, 0.4]',
-      strokeColor: style['stroke-color'] ?? '#3399CC',
-      strokeWidth: style['stroke-width'] ?? 1.25,
-      capStyle: style['stroke-line-cap'] ?? 'round',
-      joinStyle: style['stroke-line-join'] ?? 'round'
-    }
+  const parsedStyle: IParsedStyle = {
+    radius: style['circle-radius'] ?? 5,
+    fillColor: style['circle-fill-color'] ?? style['fill-color'] ?? '#3399CC',
+    strokeColor:
+      style['circle-stroke-color'] ?? style['stroke-color'] ?? '#3399CC',
+    strokeWidth: style['circle-stroke-width'] ?? style['stroke-width'] ?? 1.25,
+    joinStyle:
+      style['circle-stroke-line-join'] ?? style['stroke-line-join'] ?? 'round',
+    capStyle:
+      style['circle-stroke-line-cap'] ?? style['stroke-line-cap'] ?? 'round'
   };
-
-  const parsedStyle: IParsedStyle = shapeStyles[type2];
-
-  Object.assign(parsedStyle, {
-    radius: parsedStyle.radius,
-    fillColor: parsedStyle.fillColor,
-    strokeColor: parsedStyle.strokeColor,
-    strokeWidth: parsedStyle.strokeWidth,
-    joinStyle: parsedStyle.joinStyle,
-    capStyle: parsedStyle.capStyle
-  });
 
   return parsedStyle;
 }
@@ -406,6 +389,46 @@ export const getFromIndexedDB = async (key: string) => {
   });
 };
 
+const fetchWithProxies = async <T>(
+  url: string,
+  model: IJupyterGISModel,
+  parseResponse: (response: Response) => Promise<T>
+): Promise<T | null> => {
+  let settings: any = null;
+
+  try {
+    settings = await model.getSettings();
+  } catch (e) {
+    console.warn('Failed to get settings from model. Falling back.', e);
+  }
+
+  const proxyUrl =
+    settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
+
+  const proxyUrls = [
+    url, // Direct fetch
+    `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
+    `${proxyUrl}/?url=${encodeURIComponent(url)}` // External proxy
+  ];
+
+  for (const proxyUrl of proxyUrls) {
+    try {
+      const response = await fetch(proxyUrl);
+      if (!response.ok) {
+        console.warn(
+          `Failed to fetch from ${proxyUrl}: ${response.statusText}`
+        );
+        continue;
+      }
+      return await parseResponse(response);
+    } catch (error) {
+      console.warn(`Error fetching from ${proxyUrl}:`, error);
+    }
+  }
+
+  return null;
+};
+
 /**
  * Load a GeoTIFF file from IndexedDB database cache or fetch it .
  *
@@ -413,56 +436,56 @@ export const getFromIndexedDB = async (key: string) => {
  * @returns A promise that resolves to the file as a Blob, or undefined .
  */
 export const loadGeoTiff = async (
-  sourceInfo: {
-    url?: string | undefined;
-  },
+  sourceInfo: { url?: string | undefined },
+  model: IJupyterGISModel,
   file?: Contents.IModel | null
 ) => {
   if (!sourceInfo?.url) {
     return null;
   }
 
-  const mimeType = getMimeType(sourceInfo.url);
+  const url = sourceInfo.url;
+  const mimeType = getMimeType(url);
   if (!mimeType || !mimeType.startsWith('image/tiff')) {
     throw new Error('Invalid file type. Expected GeoTIFF (image/tiff).');
   }
 
-  const cachedData = await getFromIndexedDB(sourceInfo.url);
+  const cachedData = await getFromIndexedDB(url);
   if (cachedData) {
     return {
       file: cachedData.file,
       metadata: cachedData.metadata,
-      sourceUrl: sourceInfo.url
+      sourceUrl: url
     };
   }
 
-  let fileBlob: Blob;
+  let fileBlob: Blob | null = null;
+
   if (!file) {
-    const response = await fetch(
-      `/jupytergis_core/proxy?url=${sourceInfo.url}`
+    fileBlob = await fetchWithProxies(url, model, async response =>
+      response.blob()
     );
-    if (!response.ok) {
-      throw new Error(`Failed to fetch file. Status: ${response.status}`);
+    if (!fileBlob) {
+      showErrorMessage('Network error', `Failed to fetch ${url}`);
+      throw new Error(`Failed to fetch ${url}`);
     }
-    fileBlob = await response.blob();
   } else {
     fileBlob = await base64ToBlob(file.content, mimeType);
   }
 
   const geotiff = new File([fileBlob], 'loaded.tif');
-
   const Gdal = await getGdal();
   const result = await Gdal.open(geotiff);
   const tifDataset = result.datasets[0];
   const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
   Gdal.close(tifDataset);
 
-  await saveToIndexedDB(sourceInfo.url, fileBlob, metadata);
+  await saveToIndexedDB(url, fileBlob, metadata);
 
   return {
     file: fileBlob,
     metadata,
-    sourceUrl: sourceInfo.url
+    sourceUrl: url
   };
 };
 
@@ -508,18 +531,22 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
-        try {
-          const response = await fetch(
-            `/jupytergis_core/proxy?url=${filepath}`
-          );
-          const arrayBuffer = await response.arrayBuffer();
-          const geojson = await shp(arrayBuffer);
+        const geojson = await fetchWithProxies(
+          filepath,
+          model,
+          async response => {
+            const arrayBuffer = await response.arrayBuffer();
+            return shp(arrayBuffer);
+          }
+        );
+
+        if (geojson) {
           await saveToIndexedDB(filepath, geojson);
           return geojson;
-        } catch (error) {
-          console.error('Error loading remote shapefile:', error);
-          throw error;
         }
+
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
       }
 
       case 'GeoJSONSource': {
@@ -528,30 +555,19 @@ export const loadFile = async (fileInfo: {
           return cached.file;
         }
 
-        try {
-          const response = await fetch(
-            `/jupytergis_core/proxy?url=${filepath}`
-          );
-          if (!response.ok) {
-            throw new Error(`Failed to fetch GeoJSON from URL: ${filepath}`);
-          }
-          const geojson = await response.json();
+        const geojson = await fetchWithProxies(
+          filepath,
+          model,
+          async response => response.json()
+        );
+
+        if (geojson) {
           await saveToIndexedDB(filepath, geojson);
           return geojson;
-        } catch (error) {
-          console.error('Error loading remote GeoJSON:', error);
-          throw error;
         }
-      }
 
-      case 'GeoTiffSource': {
-        try {
-          const tiff = loadGeoTiff({ url: filepath });
-          return tiff;
-        } catch (error) {
-          console.error('Error loading remote GeoTIFF:', error);
-          throw error;
-        }
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
       }
 
       default: {
@@ -613,7 +629,7 @@ export const loadFile = async (fileInfo: {
 
       case 'GeoTiffSource': {
         if (typeof file.content === 'string') {
-          const tiff = loadGeoTiff({ url: filepath }, file);
+          const tiff = loadGeoTiff({ url: filepath }, model, file);
           return tiff;
         } else {
           throw new Error('Invalid file format for tiff content.');
@@ -838,3 +854,99 @@ export const stringToArrayBuffer = async (
   );
   return await base64Response.arrayBuffer();
 };
+
+const getFeatureAttributes = <T>(
+  featureProperties: Record<string, Set<any>>,
+  predicate: (key: string, value: any) => boolean = (key: string, value) => true
+): Record<string, Set<T>> => {
+  const filteredRecord: Record<string, Set<T>> = {};
+
+  for (const [key, set] of Object.entries(featureProperties)) {
+    const firstValue = set.values().next().value;
+    const isValid = predicate(key, firstValue);
+
+    if (isValid) {
+      filteredRecord[key] = set;
+    }
+  }
+
+  return filteredRecord;
+};
+
+/**
+ * Get attributes of the feature which are numeric.
+ *
+ * @param featureProperties - Attributes of a feature.
+ * @returns - Attributes which are numeric.
+ */
+export const getNumericFeatureAttributes = (
+  featureProperties: Record<string, Set<any>>
+): Record<string, Set<number>> => {
+  return getFeatureAttributes<number>(featureProperties, (_: string, value) => {
+    return !(typeof value === 'string' && isNaN(Number(value)));
+  });
+};
+
+/**
+ * Get attributes of the feature which look like hex color codes.
+ *
+ * @param featureProperties - Attributes of a feature.
+ * @returns - Attributes which look like hex color codes.
+ */
+export const getColorCodeFeatureAttributes = (
+  featureProperties: Record<string, Set<any>>
+): Record<string, Set<string>> => {
+  return getFeatureAttributes<string>(featureProperties, (_, value) => {
+    const regex = new RegExp('^#[0-9a-f]{6}$');
+    return typeof value === 'string' && regex.test(value);
+  });
+};
+
+export function downloadFile(
+  content: BlobPart,
+  fileName: string,
+  mimeType: string
+) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const downloadLink = document.createElement('a');
+  downloadLink.href = url;
+  downloadLink.download = fileName;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
+export async function getGeoJSONDataFromLayerSource(
+  source: IJGISSource,
+  model: IJupyterGISModel
+): Promise<string | null> {
+  const vectorSourceTypes: SourceType[] = ['GeoJSONSource', 'ShapefileSource'];
+
+  if (!vectorSourceTypes.includes(source.type as SourceType)) {
+    console.error(
+      `Invalid source type '${source.type}'. Expected one of: ${vectorSourceTypes.join(', ')}`
+    );
+    return null;
+  }
+
+  if (!source.parameters) {
+    console.error('Source parameters are missing.');
+    return null;
+  }
+
+  if (source.parameters.path) {
+    const fileContent = await loadFile({
+      filepath: source.parameters.path,
+      type: source.type,
+      model
+    });
+    return typeof fileContent === 'object'
+      ? JSON.stringify(fileContent)
+      : fileContent;
+  } else if (source.parameters.data) {
+    return JSON.stringify(source.parameters.data);
+  }
+  console.error("Source is missing both 'path' and 'data' parameters.");
+  return null;
+}

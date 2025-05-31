@@ -1,5 +1,3 @@
-import { DocumentRegistry } from '@jupyterlab/docregistry';
-
 import {
   IDict,
   IJGISFormSchemaRegistry,
@@ -60,7 +58,7 @@ export interface ICreationFormProps {
   cancel?: () => void;
 
   formSchemaRegistry: IJGISFormSchemaRegistry;
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  model: IJupyterGISModel;
 
   /**
    * A signal emitting when the form changed, with a boolean whether there are some
@@ -82,8 +80,8 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
   constructor(props: ICreationFormProps) {
     super(props);
 
-    this.filePath = props.context.path;
-    this.jGISModel = props.context.model;
+    this.filePath = props.model.filePath;
+    this.jGISModel = props.model;
   }
 
   render() {
@@ -202,7 +200,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
             <SourceForm
               formContext="create"
               model={this.jGISModel}
-              filePath={`${this.filePath}::panel`}
+              filePath={this.filePath}
               schema={sourceSchema}
               sourceData={this.props.sourceData}
               syncData={(properties: { [key: string]: any }) => {
@@ -224,7 +222,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               formContext="create"
               sourceType={this.props.sourceType}
               model={this.jGISModel}
-              filePath={`${this.filePath}::panel`}
+              filePath={this.filePath}
               schema={layerSchema}
               sourceData={layerData}
               syncData={(properties: { [key: string]: any }) => {

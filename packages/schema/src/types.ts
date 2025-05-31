@@ -1,26 +1,35 @@
-export * from './_interface/jgis';
+export * from './_interface/project/jgis';
 
 // Sources
-export * from './_interface/geoTiffSource';
+export * from './_interface/project/sources/geoTiffSource';
 export * from './_interface/geojsonsource';
-export * from './_interface/imageSource';
-export * from './_interface/rasterDemSource';
-export * from './_interface/rastersource';
-export * from './_interface/shapefileSource';
-export * from './_interface/vectortilesource';
-export * from './_interface/videoSource';
+export * from './_interface/project/sources/imageSource';
+export * from './_interface/project/sources/rasterDemSource';
+export * from './_interface/project/sources/rastersource';
+export * from './_interface/project/sources/shapefileSource';
+export * from './_interface/project/sources/vectortilesource';
+export * from './_interface/project/sources/videoSource';
 
 // Layers
-export * from './_interface/hillshadeLayer';
-export * from './_interface/rasterlayer';
-export * from './_interface/vectorlayer';
-export * from './_interface/vectorTileLayer';
-export * from './_interface/webGlLayer';
-export * from './_interface/imageLayer';
-export * from './_interface/heatmapLayer';
+export * from './_interface/project/layers/hillshadeLayer';
+export * from './_interface/project/layers/rasterlayer';
+export * from './_interface/project/layers/vectorlayer';
+export * from './_interface/project/layers/vectorTileLayer';
+export * from './_interface/project/layers/webGlLayer';
+export * from './_interface/project/layers/imageLayer';
+export * from './_interface/project/layers/heatmapLayer';
+
+// Processing
+export * from './_interface/processing/buffer';
+export * from './_interface/processing/dissolve';
+
+// exportLayer
+export * from './_interface/export/exportGeojson';
+export * from './_interface/export/exportGeotiff';
 
 // Other
 export * from './doc';
 export * from './interfaces';
 export * from './model';
 export * from './token';
+export * from './index';

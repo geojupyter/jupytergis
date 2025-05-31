@@ -12,7 +12,6 @@ import { v4 as uuid } from 'uuid';
 
 import { IControlPanelModel } from '../types';
 import { EditForm } from '../formbuilder/editform';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
 
 export class ObjectProperties extends PanelWithToolbar {
   constructor(params: ObjectProperties.IOptions) {
@@ -31,7 +30,7 @@ export class ObjectProperties extends PanelWithToolbar {
 }
 
 interface IStates {
-  context: DocumentRegistry.IContext<IJupyterGISModel> | undefined;
+  model: IJupyterGISModel | undefined;
   selectedObject?: string;
   clientId: number | null; // ID of the yjs client
   id: string; // ID of the component, it is used to identify which component
@@ -48,7 +47,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
     this.state = {
-      context: props.tracker.currentWidget?.context,
+      model: props.tracker.currentWidget?.model,
       clientId: null,
       id: uuid()
     };
@@ -64,24 +63,22 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         this.props.cpModel.disconnect(this._sharedJGISModelChanged);
         this.props.cpModel.disconnect(this._onClientSharedStateChanged);
 
-        changed.context.model.sharedLayersChanged.connect(
+        changed.model.sharedLayersChanged.connect(this._sharedJGISModelChanged);
+        changed.model.sharedSourcesChanged.connect(
           this._sharedJGISModelChanged
         );
-        changed.context.model.sharedSourcesChanged.connect(
-          this._sharedJGISModelChanged
-        );
-        changed.context.model.clientStateChanged.connect(
+        changed.model.clientStateChanged.connect(
           this._onClientSharedStateChanged
         );
         this.setState(old => ({
           ...old,
-          context: changed.context,
-          filePath: changed.context.localPath,
-          clientId: changed.context.model.getClientId()
+          model: changed.model,
+          filePath: changed.model.filePath,
+          clientId: changed.model.getClientId()
         }));
       } else {
         this.setState({
-          context: undefined,
+          model: undefined,
           selectedObject: undefined
         });
       }
@@ -133,18 +130,18 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   render(): React.ReactNode {
     const selectedObject = this.state.selectedObject;
 
-    if (!selectedObject || !this.state.context) {
+    if (!selectedObject || !this.state.model) {
       return <div></div>;
     }
 
     let layerId: string | undefined = undefined;
     let sourceId: string | undefined = undefined;
-    const layer = this.state.context.model.getLayer(selectedObject);
+    const layer = this.state.model.getLayer(selectedObject);
     if (layer) {
       layerId = selectedObject;
       sourceId = layer.parameters?.source;
     } else {
-      const source = this.state.context.model.getSource(selectedObject);
+      const source = this.state.model.getSource(selectedObject);
 
       if (source) {
         sourceId = selectedObject;
@@ -156,7 +153,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         layer={layerId}
         source={sourceId}
         formSchemaRegistry={this.props.formSchemaRegistry}
-        context={this.state.context}
+        model={this.state.model}
       />
     );
   }

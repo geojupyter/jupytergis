@@ -1,18 +1,19 @@
+import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
+import { getNumericFeatureAttributes } from '../../../../tools';
 import { VectorClassifications } from '../../classificationModes';
-import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import ColorRamp, {
   ColorRampOptions
 } from '../../components/color_ramp/ColorRamp';
-import ValueSelect from '../components/ValueSelect';
 import StopContainer from '../../components/color_stops/StopContainer';
 import { useGetProperties } from '../../hooks/useGetProperties';
+import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import { Utils, VectorUtils } from '../../symbologyUtils';
-import { IVectorLayer } from '@jupytergis/schema';
+import ValueSelect from '../components/ValueSelect';
 
 const Graduated = ({
-  context,
+  model,
   state,
   okSignalPromise,
   cancel,
@@ -35,7 +36,7 @@ const Graduated = ({
   const [selectedMethod, setSelectedMethod] = useState('color');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [methodOptions, setMethodOptions] = useState<string[]>(['color']);
-
+  const [features, setFeatures] = useState<Record<string, Set<number>>>({});
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampOptions | undefined
   >();
@@ -43,14 +44,14 @@ const Graduated = ({
   if (!layerId) {
     return;
   }
-  const layer = context.model.getLayer(layerId);
+  const layer = model.getLayer(layerId);
   if (!layer?.parameters) {
     return;
   }
 
-  const { featureProps } = useGetProperties({
+  const { featureProperties } = useGetProperties({
     layerId,
-    model: context.model
+    model: model
   });
 
   useEffect(() => {
@@ -65,6 +66,7 @@ const Graduated = ({
     if (method === 'radius') {
       stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
     }
+    updateStopRowsBasedOnMethod();
 
     setStopRows(stopOutputPairs);
 
@@ -80,6 +82,10 @@ const Graduated = ({
   }, []);
 
   useEffect(() => {
+    updateStopRowsBasedOnMethod();
+  }, [selectedMethod]);
+
+  useEffect(() => {
     selectedValueRef.current = selectedValue;
     selectedMethodRef.current = selectedMethod;
     stopRowsRef.current = stopRows;
@@ -87,23 +93,42 @@ const Graduated = ({
   }, [selectedValue, selectedMethod, stopRows, colorRampOptions]);
 
   useEffect(() => {
-    populateOptions();
-  }, [featureProps]);
-
-  const populateOptions = async () => {
     // Set up method options
     if (layer?.parameters?.type === 'circle') {
       const options = ['color', 'radius'];
       setMethodOptions(options);
     }
 
+    // We only want number values here
+    const numericFeatures = getNumericFeatureAttributes(featureProperties);
+
+    setFeatures(numericFeatures);
+
     const layerParams = layer.parameters as IVectorLayer;
     const value =
-      layerParams.symbologyState?.value ?? Object.keys(featureProps)[0];
+      layerParams.symbologyState?.value ?? Object.keys(numericFeatures)[0];
     const method = layerParams.symbologyState?.method ?? 'color';
 
     setSelectedValue(value);
     setSelectedMethod(method);
+  }, [featureProperties]);
+
+  const updateStopRowsBasedOnMethod = () => {
+    if (!layer) {
+      return;
+    }
+
+    let stopOutputPairs: IStopRow[] = [];
+
+    if (selectedMethod === 'color') {
+      stopOutputPairs = VectorUtils.buildColorInfo(layer);
+    }
+
+    if (selectedMethod === 'radius') {
+      stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
+    }
+
+    setStopRows(stopOutputPairs);
   };
 
   const handleOk = () => {
@@ -124,23 +149,15 @@ const Graduated = ({
     const newStyle = { ...layer.parameters.color };
 
     if (selectedMethodRef.current === 'color') {
-      if (layer.parameters.type === 'fill') {
-        newStyle['fill-color'] = colorExpr;
-      }
+      newStyle['fill-color'] = colorExpr;
 
-      if (layer.parameters.type === 'line') {
-        newStyle['stroke-color'] = colorExpr;
-      }
+      newStyle['stroke-color'] = colorExpr;
 
-      if (layer.parameters.type === 'circle') {
-        newStyle['circle-fill-color'] = colorExpr;
-      }
+      newStyle['circle-fill-color'] = colorExpr;
     }
 
     if (selectedMethodRef.current === 'radius') {
-      if (layer.parameters.type === 'circle') {
-        newStyle['circle-radius'] = colorExpr;
-      }
+      newStyle['circle-radius'] = colorExpr;
     }
 
     const symbologyState = {
@@ -154,9 +171,11 @@ const Graduated = ({
 
     layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = newStyle;
-    layer.type = 'VectorLayer';
+    if (layer.type === 'HeatmapLayer') {
+      layer.type = 'VectorLayer';
+    }
 
-    context.model.sharedModel.updateLayer(layerId, layer);
+    model.sharedModel.updateLayer(layerId, layer);
     cancel();
   };
 
@@ -173,7 +192,7 @@ const Graduated = ({
 
     let stops;
 
-    const values = Array.from(featureProps[selectedValue]);
+    const values = Array.from(features[selectedValue]);
 
     switch (selectedMode) {
       case 'quantile':
@@ -230,7 +249,7 @@ const Graduated = ({
   return (
     <div className="jp-gis-layer-symbology-container">
       <ValueSelect
-        featureProperties={featureProps}
+        featureProperties={features}
         selectedValue={selectedValue}
         setSelectedValue={setSelectedValue}
       />

@@ -35,5 +35,6 @@ module.exports = {
     curly: ["error", "all"],
     eqeqeq: "error",
     "prefer-arrow-callback": "error",
+    "no-duplicate-imports": "error",
   },
 };

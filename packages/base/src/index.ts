@@ -1,7 +1,7 @@
 export * from './classificationModes';
 export * from './commands';
 export * from './constants';
-export * from './dialogs/formdialog';
+export * from './dialogs/layerCreationFormDialog';
 export * from './formbuilder/objectform/baseform';
 export * from './icons';
 export * from './mainview';
@@ -12,3 +12,4 @@ export * from './tools';
 export * from './types';
 export * from './widget';
 export * from './annotations';
+export * from './menus';

@@ -1,25 +1,40 @@
-import { JSONValue } from '@lumino/coreutils';
-import { ISignal, Signal } from '@lumino/signaling';
-import { SplitPanel } from '@lumino/widgets';
-
+import {
+  IJupyterGISDocumentWidget,
+  IJupyterGISModel,
+  IJupyterGISOutputWidget
+} from '@jupytergis/schema';
+import { MainAreaWidget } from '@jupyterlab/apputils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
+import { JSONValue } from '@lumino/coreutils';
+import { ISignal, Signal } from '@lumino/signaling';
+import { SplitPanel, Widget } from '@lumino/widgets';
 
-import { IJupyterGISModel, IJupyterGISWidget } from '@jupytergis/schema';
-
+import { CommandRegistry } from '@lumino/commands';
+import { MessageLoop } from '@lumino/messaging';
+import { ConsoleView } from './console';
 import { JupyterGISMainViewPanel } from './mainview';
 import { MainViewModel } from './mainview/mainviewmodel';
-import { ConsoleView } from './console';
 
-export class JupyterGISWidget
+const CELL_OUTPUT_WIDGET_CLASS = 'jgis-cell-output-widget';
+
+export type JupyterGISWidget =
+  | JupyterGISDocumentWidget
+  | JupyterGISOutputWidget;
+
+export class JupyterGISDocumentWidget
   extends DocumentWidget<JupyterGISPanel, IJupyterGISModel>
-  implements IJupyterGISWidget
+  implements IJupyterGISDocumentWidget
 {
   constructor(
     options: DocumentWidget.IOptions<JupyterGISPanel, IJupyterGISModel>
   ) {
     super(options);
+  }
+
+  get model(): IJupyterGISModel {
+    return this.context.model;
   }
 
   /**
@@ -35,21 +50,69 @@ export class JupyterGISWidget
   };
 }
 
+/**
+ * A main area widget designed to be used as Notebook cell output widget, to ease the
+ * integration of toolbar and tracking.
+ */
+export class JupyterGISOutputWidget
+  extends MainAreaWidget<JupyterGISPanel>
+  implements IJupyterGISOutputWidget
+{
+  constructor(options: JupyterGISOutputWidget.IOptions) {
+    super(options);
+    this.addClass(CELL_OUTPUT_WIDGET_CLASS);
+    this.model = options.model;
+
+    this.resizeObserver = new ResizeObserver(() => {
+      // Send a resize message to the widget, to update the child size.
+      MessageLoop.sendMessage(this, Widget.ResizeMessage.UnknownSize);
+    });
+    this.resizeObserver.observe(this.node);
+
+    this.model.disposed.connect(() => this.dispose());
+  }
+
+  /**
+   * Dispose of the resources held by the widget.
+   */
+  dispose(): void {
+    if (!this.isDisposed) {
+      this.resizeObserver.disconnect();
+      this.content.dispose();
+      super.dispose();
+    }
+  }
+
+  readonly model: IJupyterGISModel;
+  readonly resizeObserver: ResizeObserver;
+}
+
+export namespace JupyterGISOutputWidget {
+  export interface IOptions extends MainAreaWidget.IOptions<JupyterGISPanel> {
+    model: IJupyterGISModel;
+  }
+}
+
 export class JupyterGISPanel extends SplitPanel {
   constructor(options: JupyterGISPanel.IOptions) {
     super({ orientation: 'vertical', spacing: 0 });
-    const { model, consoleTracker, ...consoleOption } = options;
-    this._initModel({ model });
+    const { model, consoleTracker, commandRegistry, ...consoleOption } =
+      options;
+    this._initModel({ model, commandRegistry });
     this._initView();
-    this._consoleOption = consoleOption;
+    this._consoleOption = { commandRegistry, ...consoleOption };
     this._consoleTracker = consoleTracker;
   }
 
-  _initModel(options: { model: IJupyterGISModel }) {
+  _initModel(options: {
+    model: IJupyterGISModel;
+    commandRegistry: CommandRegistry;
+  }) {
     this._view = new ObservableMap<JSONValue>();
     this._mainViewModel = new MainViewModel({
       jGISModel: options.model,
-      viewSetting: this._view
+      viewSetting: this._view,
+      commands: options.commandRegistry
     });
   }
 
@@ -93,6 +156,10 @@ export class JupyterGISPanel extends SplitPanel {
 
   get consolePanel(): ConsolePanel | undefined {
     return this._consoleView?.consolePanel;
+  }
+
+  get consoleOpened(): boolean {
+    return this._consoleOpened;
   }
 
   executeConsole() {
@@ -140,12 +207,12 @@ export class JupyterGISPanel extends SplitPanel {
 
         (this._consoleTracker.widgetAdded as any).emit(consolePanel);
         await consolePanel.sessionContext.ready;
-        await consolePanel.console.inject(
-          `from jupytergis_lab import GISDocument\ndoc = GISDocument("${jgisPath}")`
-        );
         this.addWidget(this._consoleView);
         this.setRelativeSizes([2, 1]);
         this._consoleOpened = true;
+        await consolePanel.console.inject(
+          `from jupytergis import GISDocument\ndoc = GISDocument("${jgisPath}")`
+        );
         consolePanel.console.sessionContext.kernelChanged.connect((_, arg) => {
           if (!arg.newValue) {
             this.removeConsole();
@@ -178,6 +245,7 @@ export class JupyterGISPanel extends SplitPanel {
 export namespace JupyterGISPanel {
   export interface IOptions extends Partial<ConsoleView.IOptions> {
     model: IJupyterGISModel;
+    commandRegistry: CommandRegistry;
     consoleTracker?: IConsoleTracker;
   }
 }

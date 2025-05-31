@@ -15,6 +15,11 @@
     "selector": ".data-jgis-keybinding"
   },
   {
+    "command": "jupytergis:identify",
+    "keys": ["Accel I"],
+    "selector": ".data-jgis-keybinding"
+  },
+  {
     "command": "jupytergis:removeSource",
     "keys": ["Delete"],
     "selector": ".data-jgis-keybinding .jp-gis-source.jp-gis-sourceUnused"

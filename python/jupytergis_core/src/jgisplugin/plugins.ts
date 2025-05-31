@@ -9,7 +9,8 @@ import {
   IJGISExternalCommandRegistryToken,
   IJupyterGISDocTracker,
   IJupyterGISWidget,
-  JupyterGISDoc
+  JupyterGISDoc,
+  SCHEMA_VERSION
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -26,9 +27,10 @@ import { PageConfig } from '@jupyterlab/coreutils';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
-import { JupyterGISWidgetFactory } from '../factory';
+import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
 import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 
@@ -36,8 +38,9 @@ const FACTORY = 'JupyterGIS .jgis Viewer';
 const CONTENT_TYPE = 'jgis';
 const PALETTE_CATEGORY = 'JupyterGIS';
 const MODEL_NAME = 'jupytergis-jgismodel';
+const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
-const activate = (
+const activate = async (
   app: JupyterFrontEnd,
   tracker: WidgetTracker<IJupyterGISWidget>,
   themeManager: IThemeManager,
@@ -48,15 +51,25 @@ const activate = (
   rendermime: IRenderMimeRegistry,
   consoleTracker: IConsoleTracker,
   annotationModel: IAnnotationModel,
+  settingRegistry: ISettingRegistry,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
   drive: ICollaborativeDrive | null
-): void => {
+): Promise<void> => {
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
   }
 
-  const widgetFactory = new JupyterGISWidgetFactory({
+  let settings: ISettingRegistry.ISettings | null = null;
+
+  try {
+    settings = await settingRegistry.load(SETTINGS_ID);
+    console.log(`Loaded settings for ${SETTINGS_ID}`, settings);
+  } catch (error) {
+    console.warn(`Failed to load settings for ${SETTINGS_ID}`, error);
+  }
+
+  const widgetFactory = new JupyterGISDocumentWidgetFactory({
     name: FACTORY,
     modelName: MODEL_NAME,
     fileTypes: [CONTENT_TYPE],
@@ -85,7 +98,10 @@ const activate = (
   app.docRegistry.addWidgetFactory(mimeDocumentFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
-  const modelFactory = new JupyterGISModelFactory({ annotationModel });
+  const modelFactory = new JupyterGISModelFactory({
+    annotationModel,
+    settingRegistry
+  });
   app.docRegistry.addModelFactory(modelFactory);
 
   // register the filetype
@@ -115,7 +131,7 @@ const activate = (
       tracker.save(widget);
     });
     themeManager.themeChanged.connect((_, changes) =>
-      widget.context.model.themeChanged.emit(changes)
+      widget.model.themeChanged.emit(changes)
     );
     app.shell.activateById('jupytergis::leftControlPanel');
     app.shell.activateById('jupytergis::rightControlPanel');
@@ -154,8 +170,7 @@ const activate = (
         ...model,
         format: 'text',
         size: undefined,
-        content:
-          '{\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": [],\n\t"metadata": {}\n}'
+        content: `{\n\t"schemaVersion": "${SCHEMA_VERSION}",\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": [],\n\t"metadata": {}\n}`
       });
 
       // Open the newly created file with the 'Editor'
@@ -209,46 +224,14 @@ const activate = (
       category: 'JupyterGIS'
     });
 
-    // Source only
-    palette.addItem({
-      command: CommandIDs.newRasterSource,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newRasterDemSource,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newVectorSource,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newGeoJSONSource,
-      category: 'JupyterGIS'
-    });
-
-    // Layers only
-    palette.addItem({
-      command: CommandIDs.newRasterLayer,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newVectorLayer,
-      category: 'JupyterGIS'
-    });
-
-    palette.addItem({
-      command: CommandIDs.newHillshadeLayer,
-      category: 'JupyterGIS'
-    });
-
     // Layer and group actions
     palette.addItem({
       command: CommandIDs.moveLayerToNewGroup,
+      category: 'JupyterGIS'
+    });
+
+    palette.addItem({
+      command: CommandIDs.buffer,
       category: 'JupyterGIS'
     });
   }
@@ -265,7 +248,8 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IEditorServices,
     IRenderMimeRegistry,
     IConsoleTracker,
-    IAnnotationToken
+    IAnnotationToken,
+    ISettingRegistry
   ],
   optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
   autoStart: true,

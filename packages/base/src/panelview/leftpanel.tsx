@@ -10,9 +10,10 @@ import { Message } from '@lumino/messaging';
 import { MouseEvent as ReactMouseEvent } from 'react';
 import { IControlPanelModel } from '../types';
 import { LayersPanel } from './components/layers';
-import { SourcesPanel } from './components/sources';
 import { ControlPanelHeader } from './header';
 import { FilterPanel } from './components/filter-panel/Filter';
+import { CommandRegistry } from '@lumino/commands';
+import { CommandIDs } from '../constants';
 
 /**
  * Options of the left panel widget.
@@ -37,20 +38,15 @@ export class LeftPanelWidget extends SidePanel {
   constructor(options: LeftPanelWidget.IOptions) {
     super();
     this.addClass('jGIS-sidepanel-widget');
+    this.addClass('data-jgis-keybinding');
+    this.node.tabIndex = 0;
 
     this._model = options.model;
     this._state = options.state;
+    this._commands = options.commands;
 
     const header = new ControlPanelHeader();
     this.header.addWidget(header);
-
-    const sourcesPanel = new SourcesPanel({
-      model: this._model,
-      onSelect: this._onSelect
-    });
-    sourcesPanel.title.caption = 'Sources';
-    sourcesPanel.title.label = 'Sources';
-    this.addWidget(sourcesPanel);
 
     const layerTree = new LayersPanel({
       model: this._model,
@@ -72,7 +68,7 @@ export class LeftPanelWidget extends SidePanel {
 
     options.tracker.currentChanged.connect((_, changed) => {
       if (changed) {
-        header.title.label = changed.context.localPath;
+        header.title.label = changed.model.filePath;
       } else {
         header.title.label = '-';
       }
@@ -178,6 +174,8 @@ export class LeftPanelWidget extends SidePanel {
       this._lastSelectedNodeId = nodeId;
 
       jGISModel.syncSelected(updatedSelectedValue, this.id);
+
+      this._notifyCommands();
     }
   };
 
@@ -191,11 +189,19 @@ export class LeftPanelWidget extends SidePanel {
       this._lastSelectedNodeId = nodeId;
     }
     this._model?.jGISModel?.syncSelected(selection, this.id);
+    this._notifyCommands();
+  }
+
+  private _notifyCommands() {
+    // Notify commands that need updating
+    this._commands.notifyCommandChanged(CommandIDs.identify);
+    this._commands.notifyCommandChanged(CommandIDs.temporalController);
   }
 
   private _lastSelectedNodeId: string;
   private _model: IControlPanelModel;
   private _state: IStateDB;
+  private _commands: CommandRegistry;
 }
 
 export namespace LeftPanelWidget {
@@ -203,6 +209,7 @@ export namespace LeftPanelWidget {
     model: IControlPanelModel;
     tracker: IJupyterGISTracker;
     state: IStateDB;
+    commands: CommandRegistry;
   }
 
   export interface IProps {

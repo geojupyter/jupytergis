@@ -5,7 +5,7 @@ import {
   StateChange,
   YDocument
 } from '@jupyter/ydoc';
-import { IWidgetTracker } from '@jupyterlab/apputils';
+import { IWidgetTracker, MainAreaWidget } from '@jupyterlab/apputils';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
@@ -25,8 +25,8 @@ import {
   IJGISSource,
   IJGISSources,
   SourceType
-} from './_interface/jgis';
-import { IRasterSource } from './_interface/rastersource';
+} from './_interface/project/jgis';
+import { IRasterSource } from './_interface/project/sources/rastersource';
 export { IGeoJSONSource } from './_interface/geojsonsource';
 
 export type JgisCoordinates = { x: number; y: number };
@@ -72,12 +72,18 @@ export interface ISelection {
 
 export interface IJupyterGISClientState {
   selected: { value?: { [key: string]: ISelection }; emitter?: string | null };
+  selectedPropField?: {
+    id: string | null;
+    value: any;
+    parentType: 'panel' | 'dialog';
+  };
   viewportState: { value?: IViewPortState; emitter?: string | null };
   pointer: { value?: Pointer; emitter?: string | null };
   identifiedFeatures: { value?: any; emitter?: string | null };
   user: User.IIdentity;
   remoteUser?: number;
   toolbarForm?: IDict;
+  isTemporalControllerActive: boolean;
 }
 
 export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
@@ -123,8 +129,8 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   getOption(key: keyof IJGISOptions): IDict | undefined;
   setOption(key: keyof IJGISOptions, value: IDict): void;
 
-  getMetadata(key: string): string | undefined;
-  setMetadata(key: string, value: string): void;
+  getMetadata(key: string): string | IAnnotation | undefined;
+  setMetadata(key: string, value: string | IAnnotation): void;
   removeMetadata(key: string): void;
 
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
@@ -150,6 +156,7 @@ export interface IJupyterGISDocChange extends DocumentChange {
 export interface IJupyterGISModel extends DocumentRegistry.IModel {
   isDisposed: boolean;
   sharedModel: IJupyterGISDoc;
+  geolocation: JgisCoordinates;
   localState: IJupyterGISClientState | null;
   annotationModel?: IAnnotationModel;
 
@@ -167,10 +174,16 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   sharedSourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
   sharedMetadataChanged: ISignal<IJupyterGISModel, MapChange>;
   zoomToPositionSignal: ISignal<IJupyterGISModel, string>;
+  addFeatureAsMsSignal: ISignal<IJupyterGISModel, string>;
+  updateLayerSignal: ISignal<IJupyterGISModel, string>;
+  geolocationChanged: Signal<IJupyterGISModel, JgisCoordinates>;
+  flyToGeometrySignal: Signal<IJupyterGISModel, any>;
+  highlightFeatureSignal: Signal<IJupyterGISModel, any>;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;
 
+  getSettings(): IJupyterGISSettings;
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
@@ -213,6 +226,11 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   toggleIdentify(): void;
   isIdentifying: boolean;
 
+  isTemporalControllerActive: boolean;
+  toggleTemporalController(): void;
+  addFeatureAsMs(id: string, selectedFeature: string): void;
+  triggerLayerUpdate(layerId: string, layer: IJGISLayer): void;
+
   disposed: ISignal<any, void>;
 }
 
@@ -221,7 +239,18 @@ export interface IUserData {
   userData: User.IIdentity;
 }
 
-export type IJupyterGISWidget = IDocumentWidget<SplitPanel, IJupyterGISModel>;
+export interface IJupyterGISDocumentWidget
+  extends IDocumentWidget<SplitPanel, IJupyterGISModel> {
+  readonly model: IJupyterGISModel;
+}
+
+export interface IJupyterGISOutputWidget extends MainAreaWidget {
+  model: IJupyterGISModel;
+}
+
+export type IJupyterGISWidget =
+  | IJupyterGISDocumentWidget
+  | IJupyterGISOutputWidget;
 
 export type IJupyterGISTracker = IWidgetTracker<IJupyterGISWidget>;
 
@@ -290,8 +319,8 @@ export interface IAnnotationModel {
   updateSignal: ISignal<this, null>;
   user: User.IIdentity | undefined;
 
-  context: DocumentRegistry.IContext<IJupyterGISModel> | undefined;
-  contextChanged: ISignal<this, void>;
+  model: IJupyterGISModel | undefined;
+  modelChanged: ISignal<this, void>;
 
   update(): void;
 
@@ -300,6 +329,8 @@ export interface IAnnotationModel {
   getAnnotationIds(): string[];
 
   addAnnotation(key: string, value: IAnnotation): void;
+
+  updateAnnotation(id: string, updates: Partial<IAnnotation>): void;
 
   removeAnnotation(key: string): void;
 
@@ -317,4 +348,9 @@ export interface IAnnotation {
   zoom: number;
   contents: IAnnotationContent[];
   parent: string;
+  open: boolean;
+}
+
+export interface IJupyterGISSettings {
+  proxyUrl: string;
 }

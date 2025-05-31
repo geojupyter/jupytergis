@@ -11,15 +11,14 @@ import {
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
+import { Signal } from '@lumino/signaling';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 
 import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
-import { CreationFormWrapper } from './formdialog';
-import { Signal } from '@lumino/signaling';
+import { CreationFormWrapper } from './layerCreationFormDialog';
 
 interface ILayerBrowserDialogProps {
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  model: IJupyterGISModel;
   registry: IRasterLayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
   okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
@@ -27,7 +26,7 @@ interface ILayerBrowserDialogProps {
 }
 
 export const LayerBrowserComponent = ({
-  context,
+  model,
   registry,
   formSchemaRegistry,
   okSignalPromise,
@@ -49,10 +48,10 @@ export const LayerBrowserComponent = ({
   );
 
   useEffect(() => {
-    context.model.sharedModel.layersChanged.connect(handleLayerChange);
+    model.sharedModel.layersChanged.connect(handleLayerChange);
 
     return () => {
-      context.model.sharedModel.layersChanged.disconnect(handleLayerChange);
+      model.sharedModel.layersChanged.disconnect(handleLayerChange);
     };
   }, []);
 
@@ -62,7 +61,7 @@ export const LayerBrowserComponent = ({
   const handleLayerChange = (_: any, change: IJGISLayerDocChange) => {
     // The split is to get rid of the 'Layer' part of the name to match the names in the gallery
     setActiveLayers(
-      Object.values(context.model.sharedModel.layers).map(
+      Object.values(model.sharedModel.layers).map(
         layer => layer.name.split(' ')[0]
       )
     );
@@ -116,8 +115,8 @@ export const LayerBrowserComponent = ({
       name: tile.name + ' Layer'
     };
 
-    context.model.sharedModel.addSource(sourceId, sourceModel);
-    context.model.addLayer(UUID.uuid4(), layerModel);
+    model.sharedModel.addSource(sourceId, sourceModel);
+    model.addLayer(UUID.uuid4(), layerModel);
   };
 
   if (creatingCustomRaster) {
@@ -129,7 +128,7 @@ export const LayerBrowserComponent = ({
     return (
       <div className="jGIS-customlayer-form">
         <CreationFormWrapper
-          context={context}
+          model={model}
           formSchemaRegistry={formSchemaRegistry}
           createLayer={true}
           createSource={true}
@@ -244,7 +243,7 @@ export const LayerBrowserComponent = ({
 };
 
 export interface ILayerBrowserOptions {
-  context: DocumentRegistry.IContext<IJupyterGISModel>;
+  model: IJupyterGISModel;
   registry: IRasterLayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
 }
@@ -262,7 +261,7 @@ export class LayerBrowserWidget extends Dialog<boolean> {
 
     const body = (
       <LayerBrowserComponent
-        context={options.context}
+        model={options.model}
         registry={options.registry}
         formSchemaRegistry={options.formSchemaRegistry}
         okSignalPromise={okSignalPromise}

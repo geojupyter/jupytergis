@@ -95,6 +95,7 @@
 }
 
 .jGIS-sidepanel-widget {
+  overflow: auto;
   height: 100%;
 }
 
@@ -212,10 +213,16 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   border: solid 1.5px red;
 }
 
+.jGIS-Mainview-Container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .jGIS-Mainview {
   width: 100%;
-  height: calc(100% - 16px);
   box-sizing: border-box;
+  flex: 1;
 }
 
 .jGIS-Popup-Wrapper {
@@ -229,7 +236,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   margin-left: 1px;
   margin-top: 1px;
   padding: 1em;
-  color: #fff;
+  color: var(--jp-ui-font-color0);
   background: var(--jp-layout-color1);
   border-radius: 0.5em;
   font-size: 12px;
@@ -243,10 +250,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   box-shadow: var(--jp-elevation-z6);
   z-index: 40;
   max-height: 400px;
-  overflow: auto;
-}
-
-.jGIS-Annotations {
   overflow: auto;
 }
 
@@ -370,6 +373,11 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   z-index: 20;
 }
 
+.jGIS-Remote-Pointer-Icon {
+  filter: drop-shadow(-1px 0px white) drop-shadow(1px 0px white)
+    drop-shadow(0px -1px white) drop-shadow(0px 1px white)
+    drop-shadow(0px 0px 1px black);
+}
 .jGIS-Remote-Pointer-Icon:hover {
   scale: 1.3;
 }
@@ -414,6 +422,18 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   height: 600px;
   width: 100%;
 }
+
+/* Support output views, created with "Create new view for cell output" context menu */
+.jp-LinkedOutputView .jp-OutputArea-child:only-child {
+  /* NOTE: This will eventually be supported directly in JupyterLab
+   * (https://github.com/jupyterlab/jupyterlab/pull/17487), but we should keep
+   * it around for a while for backwards compatibility. */
+  height: 100%;
+}
+.jp-LinkedOutputView .jupytergis-notebook-widget {
+  height: 100%;
+}
+
 .jupytergis-notebook-widget > div {
   height: 100%;
   width: 100%;
@@ -684,6 +704,9 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 
 .jgis-identify-grid-item-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   grid-column: span 2;
   font-weight: bold;
   font-size: var(--jp-ui-font-size1);
@@ -733,10 +756,37 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   padding-bottom: 8px;
 }
 
+.jgis-scrollable {
+  overflow: auto;
+  height: 100%;
+}
+
 /* Style the file path text */
 .file-container {
   display: flex;
   align-items: center;
   margin-bottom: 16px;
   gap: 10px;
+}
+
+.jgis-highlight-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.jgis-highlight-button:hover {
+  color: var(--jp-brand-color1);
+}
+
+.jgis-highlight-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: auto;
 }

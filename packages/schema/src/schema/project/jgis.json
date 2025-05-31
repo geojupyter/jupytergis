@@ -1,0 +1,251 @@
+{
+  "type": "object",
+  "title": "IJGISContent",
+  "required": ["layers", "sources"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "default": "0.5.0"
+    },
+    "layers": {
+      "$ref": "#/definitions/jGISLayers"
+    },
+    "sources": {
+      "$ref": "#/definitions/jGISSources"
+    },
+    "layerTree": {
+      "$ref": "#/definitions/jGISLayerTree"
+    },
+    "options": {
+      "$ref": "#/definitions/jGISOptions"
+    },
+    "metadata": {
+      "type": "object",
+      "patternProperties": {
+        "^.*$": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "definitions": {
+    "layerType": {
+      "type": "string",
+      "enum": [
+        "RasterLayer",
+        "VectorLayer",
+        "VectorTileLayer",
+        "HillshadeLayer",
+        "WebGlLayer",
+        "ImageLayer",
+        "HeatmapLayer"
+      ]
+    },
+    "sourceType": {
+      "type": "string",
+      "enum": [
+        "RasterSource",
+        "VectorTileSource",
+        "GeoJSONSource",
+        "RasterDemSource",
+        "VideoSource",
+        "ImageSource",
+        "ShapefileSource",
+        "GeoTiffSource"
+      ]
+    },
+    "jGISLayer": {
+      "title": "IJGISLayer",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type", "visible"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/layerType"
+        },
+        "visible": {
+          "type": "boolean",
+          "default": true
+        },
+        "parameters": {
+          "type": "object"
+        },
+        "filters": {
+          "$ref": "#/definitions/jGISFilter"
+        }
+      }
+    },
+    "jGISSource": {
+      "title": "IJGISSource",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/sourceType"
+        },
+        "parameters": {
+          "type": "object"
+        }
+      }
+    },
+    "jGISLayerGroup": {
+      "title": "IJGISLayerGroup",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "layers"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "layers": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/definitions/jGISLayerItem"
+          }
+        },
+        "visible": {
+          "type": "boolean",
+          "default": true
+        },
+        "parameters": {
+          "type": "object"
+        }
+      }
+    },
+    "jGISLayerItem": {
+      "title": "IJGISLayerItem",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/jGISLayerGroup"
+        }
+      ]
+    },
+    "jGISLayers": {
+      "title": "IJGISLayers",
+      "type": "object",
+      "default": {},
+      "additionalProperties": {
+        "$ref": "#/definitions/jGISLayer"
+      }
+    },
+    "jGISSources": {
+      "title": "IJGISSources",
+      "type": "object",
+      "default": {},
+      "additionalProperties": {
+        "$ref": "#/definitions/jGISSource"
+      }
+    },
+    "jGISLayerTree": {
+      "title": "IJGISLayerTree",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/definitions/jGISLayerItem"
+      }
+    },
+    "jGISOptions": {
+      "title": "IJGISOptions",
+      "type": "object",
+      "default": {},
+      "required": [],
+      "additionalProperties": false,
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "default": 0
+        },
+        "longitude": {
+          "type": "number",
+          "default": 0
+        },
+        "zoom": {
+          "type": "number",
+          "default": 0
+        },
+        "bearing": {
+          "type": "number",
+          "default": 0
+        },
+        "pitch": {
+          "type": "number",
+          "default": 0
+        },
+        "extent": {
+          "type": "array",
+          "default": null,
+          "items": {
+            "type": "number"
+          }
+        },
+        "projection": {
+          "type": "string",
+          "default": "EPSG:3857"
+        },
+        "useExtent": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "jGISFilterItem": {
+      "title": "IJGISFilterItem",
+      "type": "object",
+      "default": {},
+      "required": ["operator", "feature", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "operator": {
+          "type": "string",
+          "enum": ["==", "!=", ">", "<", ">=", "<=", "between"],
+          "default": "=="
+        },
+        "feature": {
+          "type": "string",
+          "default": ""
+        },
+        "value": {
+          "type": ["string", "number"]
+        },
+        "betweenMin": {
+          "type": ["number"]
+        },
+        "betweenMax": {
+          "type": ["number"]
+        }
+      }
+    },
+    "jGISFilter": {
+      "title": "IJGISFilter",
+      "type": "object",
+      "required": ["logicalOp", "appliedFilters"],
+      "additionalProperties": false,
+      "properties": {
+        "logicalOp": {
+          "type": "string",
+          "default": "all"
+        },
+        "appliedFilters": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/definitions/jGISFilterItem"
+          }
+        }
+      }
+    }
+  }
+}
