@@ -89,7 +89,7 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import BaseLayer from 'ol/layer/Base';
 import Draw from 'ol/interaction/Draw.js';
-import Modify from 'ol/interaction/Modify.js';
+//import Modify from 'ol/interaction/Modify.js';
 import Snap from 'ol/interaction/Snap.js';
 import { Type } from 'ol/geom/Geometry';
 
@@ -2037,73 +2037,99 @@ export class MainView extends React.Component<IProps, IStates> {
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const drawGeometryType = event.target.value;
-
+    //let layerSource: IJGISSource | undefined;
     if (this._model.isDrawVectorLayerEnabled) {
       if (this._currentDrawInteraction) {
         this._removeCurrentDrawInteraction();
       }
       const localState = this._model?.sharedModel.awareness.getLocalState();
-      const localStateLayer = localState?.selected?.value;
-      const localStateLayerID = Object.keys(localStateLayer)[0];
-      const jGISLayer = this._model.getLayer(localStateLayerID);
-      const localStateSourceID = jGISLayer?.parameters?.source;
-      let jGISLayerSource = this._model.getSource(localStateSourceID);
+      const layers = this._model.getLayers();
+      const layersArray = Object.values(layers);
+      const localStateSelectedLayers = localState?.selected?.value;
 
-      const layerSource: VectorSource | undefined = this._Map
-        .getLayers()
-        .getArray()
-        .find((layer: BaseLayer) => layer.get('id') === localStateLayerID)
-        ?.get('source');
+      /** case with no vector layer and no selected one */
+      if (!localStateSelectedLayers) {
+        layersArray.forEach(layer => {
+          if (layer.type === 'VectorLayer') {
+            const source = this._model.getSource(layer.parameters?.source);
+            if (source?.type === 'GeoJSONSource' && source.parameters?.data) {
+              console.warn(
+                'There is already a Vector Layer with a geoGSON source.'
+              );
+              this._model.isDrawVectorLayerEnabled = false;
+              return;
+            }
+          }
+        });
+        this._model.createEmptyVectorLayerWithGeoJSONSource();
+      } else {
+        /** case with selected vector layer: add new feature to the already existing geoJSONSource
+         */
+        const localStateSelectedLayerID = Object.keys(
+          localStateSelectedLayers
+        )[0];
+        const jGISLayer = this._model.getLayer(localStateSelectedLayerID);
+        const localStateSourceID = jGISLayer?.parameters?.source;
+        let jGISLayerSource = this._model.getSource(localStateSourceID);
 
-      const modify = new Modify({ source: layerSource });
-      this._Map.addInteraction(modify);
-      const draw = new Draw({
-        source: layerSource,
-        style: {
-          'fill-color': 'rgba(255, 255, 255, 0.2)',
-          'stroke-color': '#ffcc33',
-          'stroke-width': 2,
-          'circle-radius': 7,
-          'circle-fill-color': '#ffcc33'
-        },
-        type: drawGeometryType as Type // Type being a geometry type here
-      });
-      const snap = new Snap({ source: layerSource });
+        const layerSource: VectorSource | undefined = this._Map
+          .getLayers()
+          .getArray()
+          .find(
+            (layer: BaseLayer) => layer.get('id') === localStateSelectedLayerID
+          )
+          ?.get('source');
 
-      this._Map.addInteraction(draw);
-      this._Map.addInteraction(snap);
-      this._currentDrawInteraction = draw;
-      this.setState(old => ({
-        ...old,
-        drawGeometryType
-      }));
+        //const modify = new Modify({ source: layerSource });
+        //this._Map.addInteraction(modify);
+        const draw = new Draw({
+          source: layerSource,
+          style: {
+            'fill-color': 'rgba(255, 255, 255, 0.2)',
+            'stroke-color': '#ffcc33',
+            'stroke-width': 2,
+            'circle-radius': 7,
+            'circle-fill-color': '#ffcc33'
+          },
+          type: drawGeometryType as Type // Type being a geometry type here
+        });
+        const snap = new Snap({ source: layerSource });
 
-      const geojsonWriter = new GeoJSON({
-        featureProjection: this._Map.getView().getProjection()
-      });
+        this._Map.addInteraction(draw);
+        this._Map.addInteraction(snap);
+        this._currentDrawInteraction = draw;
+        this.setState(old => ({
+          ...old,
+          drawGeometryType
+        }));
 
-      layerSource?.on('change', () => {
-        if (jGISLayerSource) {
-          const updatedData = {
-            type: 'FeatureCollection',
-            features: layerSource
-              ?.getFeatures()
-              .map(feature => geojsonWriter.writeFeatureObject(feature))
-          };
-          const updatedJGISLayerSource: IJGISSource = {
-            name: jGISLayerSource.name,
-            type: jGISLayerSource.type,
-            parameters: {
-              data: updatedData
-            } 
-          };
-          jGISLayerSource = updatedJGISLayerSource;
-          this._model.sharedModel.updateSource(
-            localStateSourceID,
-            updatedJGISLayerSource
-          );
-        }
-      });
+        const geojsonWriter = new GeoJSON({
+          featureProjection: this._Map.getView().getProjection()
+        });
+
+        layerSource?.on('change', () => {
+          if (jGISLayerSource) {
+            const updatedData = {
+              type: 'FeatureCollection',
+              features: layerSource
+                ?.getFeatures()
+                .map(feature => geojsonWriter.writeFeatureObject(feature))
+            };
+            const updatedJGISLayerSource: IJGISSource = {
+              name: jGISLayerSource.name,
+              type: jGISLayerSource.type,
+              parameters: {
+                data: updatedData
+              }
+            };
+            jGISLayerSource = updatedJGISLayerSource;
+            this._model.sharedModel.updateSource(
+              localStateSourceID,
+              updatedJGISLayerSource
+            );
+          }
+        });
+      }
     } else {
       return;
     }
