@@ -5,6 +5,7 @@ import pytest
 from jupytergis_lab import GISDocument
 
 TEST_TIF = "https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif"
+TEST_GEOPARQUET = "https://raw.githubusercontent.com/opengeospatial/geoparquet/main/examples/example.parquet"
 
 
 class TestDocument:
@@ -28,6 +29,15 @@ class TestTiffLayer(TestDocument):
 
         tif_layer = self.doc.add_tiff_layer(url=TEST_TIF, color_expr=color)
         assert self.doc.layers[tif_layer]["parameters"]["color"] == color
+
+
+class TestGeoParquetLayer(TestDocument):
+    def test_sourcelayer(self):
+        color = {"fill-color": "#00FF00", "stroke-color": "#FF0000"}
+        geoparquet_layer = self.doc.add_geoparquet_layer(
+            TEST_GEOPARQUET, color_expr=color
+        )
+        assert self.doc.layers[geoparquet_layer]["parameters"]["color"] == color
 
 
 class TestLayerManipulation(TestDocument):

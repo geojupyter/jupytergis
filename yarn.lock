@@ -919,6 +919,8 @@ __metadata:
     eslint: ^8.36.0
     eslint-config-prettier: ^8.8.0
     eslint-plugin-prettier: ^5.0.1
+    geoparquet: ^0.3.0
+    hyparquet-compressors: ^1.1.1
     lerna: ^8.1.9
     npm-run-all: ^4.1.5
     prettier: ^3.0.0
@@ -5678,6 +5680,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fzstd@npm:0.1.1":
+  version: 0.1.1
+  resolution: "fzstd@npm:0.1.1"
+  checksum: a06cc21096bbec787d99c4b1b9998fd6883c2e4e6550633956738992d6e49f94f027962c2d1a5f8d18f3b27ad630bb7d6b51dd3121dded8f9c8c854ff553a79a
+  languageName: node
+  linkType: hard
+
 "gdal3.js@npm:^2.8.1":
   version: 2.8.1
   resolution: "gdal3.js@npm:2.8.1"
@@ -5699,6 +5708,15 @@ __metadata:
   version: 4.0.2
   resolution: "geojson-vt@npm:4.0.2"
   checksum: 7de5cc7a574154c908c848cb21f92daa34293cc46cd87baf6de7461554886f5b59683f7be4422339ff2d2bbedad57b88143d03f045c4859dd416e0cf502a4463
+  languageName: node
+  linkType: hard
+
+"geoparquet@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "geoparquet@npm:0.3.0"
+  dependencies:
+    hyparquet: 1.7.0
+  checksum: 7109a758a9c6aab02834fcecb0271a9d00ac3f2567366679bba7d3ad22dbc8893ba8bb97741854a027d43ba0b08b98cc7771db324a4164b21a07ecf6c0783700
   languageName: node
   linkType: hard
 
@@ -6216,6 +6234,30 @@ __metadata:
   version: 2.1.0
   resolution: "human-signals@npm:2.1.0"
   checksum: b87fd89fce72391625271454e70f67fe405277415b48bcc0117ca73d31fa23a4241787afdc8d67f5a116cf37258c052f59ea82daffa72364d61351423848e3b8
+  languageName: node
+  linkType: hard
+
+"hyparquet-compressors@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "hyparquet-compressors@npm:1.1.1"
+  dependencies:
+    fzstd: 0.1.1
+    hysnappy: 1.0.0
+  checksum: fae5a61c885ca76212c7361c172441801942c1f6d11a197e1d41aa70e6441035002168e73ec676a6b1fa21dceddb0c3de103981d2f7b8f7254ca7a9ae70777d3
+  languageName: node
+  linkType: hard
+
+"hyparquet@npm:1.7.0":
+  version: 1.7.0
+  resolution: "hyparquet@npm:1.7.0"
+  checksum: f8a36c4a465a9a649d2b37cad36c81be3ecebaa08cd84803f4ad25fa2c0db8422ad34ad1ca8ed09bd2ef4c24f3438f4848aedebf6e8c5ed631c11a7e7256c14f
+  languageName: node
+  linkType: hard
+
+"hysnappy@npm:1.0.0":
+  version: 1.0.0
+  resolution: "hysnappy@npm:1.0.0"
+  checksum: 45c1e53278063262d0572612eaa53e860ac87519665d92d0be9084dc16fd471f56c92fa65d72e4fa656cd6e956e00b8a38e95585aa73dc86c98afbca4d0b2d27
   languageName: node
   linkType: hard
 

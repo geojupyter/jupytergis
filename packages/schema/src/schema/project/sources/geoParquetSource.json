@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "description": "GeoParquetSource",
+  "title": "IGeoParquetSource",
+  "required": ["path"],
+  "additionalProperties": false,
+  "properties": {
+    "path": {
+      "type": "string",
+      "description": "The path to the GeoParquet source"
+    },
+    "attribution": {
+      "type": "string",
+      "readOnly": true,
+      "description": "The attribution for the GeoParquet source.",
+      "default": ""
+    },
+    "projection": {
+      "type": "string",
+      "description": "The projection information for the GeoParquet data (optional).",
+      "default": "EPSG:4326"
+    }
+  }
+}
