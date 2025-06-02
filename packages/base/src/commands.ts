@@ -952,7 +952,6 @@ namespace Private {
       }
 
       const dialog = new LayerBrowserWidget({
-        type: 'og',
         tracker,
         model: current.model,
         registry: layerBrowserRegistry.getRegistryLayers(),

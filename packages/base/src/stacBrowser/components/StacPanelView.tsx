@@ -21,7 +21,6 @@ const StacPanelView = ({
   displayInfo,
   handleCategoryClick,
   handleSearchInput,
-
   searchTerm,
   selectedCategory
 }: IStacViewProps) => {
@@ -46,6 +45,7 @@ const StacPanelView = ({
       .flatMap(([_, values]) => values);
 
     // Build query
+    // TODO: Move out of fetch
     const fetchInEffect = async () => {
       const body: IStacQueryBody = {
         // TODO: All the hardcoded stuff
@@ -81,20 +81,6 @@ const StacPanelView = ({
       // TODO: Don't call this on render.
       const result = await fetchWithProxy(body); // this result is ItemCollection
       console.log('result', result);
-
-      // ! MAKEH DAH LAYAH
-      // const layerId = UUID.uuid4();
-
-      // const layerModel: IJGISLayer = {
-      //   type: 'StacLayer',
-      //   parameters: {
-      //     data: result
-      //   },
-      //   visible: true,
-      //   name: 'STAC Layer'
-      // };
-
-      // model.addLayer(layerId, layerModel);
     };
 
     // TODO: Do this better. Really don't use an effect
