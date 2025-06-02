@@ -1,12 +1,12 @@
 import { IDict, IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ToggleGroup,
   ToggleGroupItem
 } from '../../shared/components/ToggleGroup';
 import { datasets } from '../StacBrowser';
-import { IStacSearchResult } from '../types/types';
+import { IStacQueryBody, IStacSearchResult } from '../types/types';
 
 interface IStacCollectionsProps {
   header: string;
@@ -28,6 +28,7 @@ const StacSections = ({
   model
 }: IStacCollectionsProps) => {
   // ! Starts here
+  const [isFirstRender, setIsFirstRender] = useState(false);
 
   useEffect(() => {
     // Geodes behavior => query on every selection
@@ -43,7 +44,7 @@ const StacSections = ({
 
     // Build query
     const fetchInEffect = async () => {
-      const body = {
+      const body: IStacQueryBody = {
         bbox: [-180, -65.76350697055292, 180, 65.76350697055292],
         limit: 12,
         page: 1,
@@ -57,9 +58,10 @@ const StacSections = ({
           latest: {
             eq: true
           },
-          platform: {
-            in: selectedPlatforms
-          }
+          // Only include platforms in query if there's a selection
+          ...(selectedPlatforms.length > 0 && {
+            platform: { in: selectedPlatforms }
+          })
         },
         sortBy: [
           {
@@ -73,7 +75,6 @@ const StacSections = ({
 
       // TODO: Don't call this on render.
       const result = await fetchWithProxy(body); // this result is ItemCollection
-      // ^?
       console.log('result', result);
 
       // ! MAKEH DAH LAYAH
@@ -91,10 +92,17 @@ const StacSections = ({
       model.addLayer(layerId, layerModel);
     };
 
-    fetchInEffect();
+    // TODO: Do this better. Really don't use an effect
+    if (!isFirstRender) {
+      fetchInEffect();
+    }
+
+    if (isFirstRender) {
+      setIsFirstRender(false);
+    }
   }, [selectedCollections, selectedPlatforms]);
 
-  async function fetchWithProxy(options: { [key: string]: any }) {
+  async function fetchWithProxy(options: IStacQueryBody) {
     // Needed for POST
     const xsrfToken = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
 

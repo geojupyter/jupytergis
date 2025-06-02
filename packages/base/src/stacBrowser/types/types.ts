@@ -122,3 +122,30 @@ export type ProductData = {
   'processing:level': string[];
   'product:type': string[];
 };
+
+export interface IStacQueryBody {
+  bbox: [number, number, number, number];
+  limit: number;
+  page: number;
+  query: {
+    dataset: {
+      in: string[];
+    };
+    end_datetime: {
+      //TODO: Better typing for date string here?
+      gte: string;
+    };
+    latest: {
+      eq: true;
+    };
+    platform?: {
+      in: string[];
+    };
+  };
+  sortBy: [
+    {
+      direction: 'desc';
+      field: 'start_datetime';
+    }
+  ];
+}
