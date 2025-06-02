@@ -62,6 +62,8 @@ export interface IStacAsset {
   roles?: string[];
 }
 
+// TODO: Remove stuff not in base stac item?
+// TODO: Type stac extensions??? (seems like a future thing)
 export interface IStacItem {
   type: 'Feature';
   stac_version: string;
@@ -86,6 +88,8 @@ export interface IStacItem {
     constellation: string;
     mission: string;
     gsd: number;
+    // Allow additional optional properties
+    [key: string]: any;
   };
   links: {
     rel: string;

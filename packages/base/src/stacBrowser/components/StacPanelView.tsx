@@ -1,8 +1,14 @@
 import { IJGISLayer } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import React, { useEffect, useState } from 'react';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from '../../shared/components/Tabs';
 import { IStacViewProps } from '../StacBrowser';
-import { IStacQueryBody, IStacSearchResult } from '../types/types';
+import { IStacItem, IStacQueryBody, IStacSearchResult } from '../types/types';
 import StacSections from './StacSection';
 
 const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
@@ -15,12 +21,13 @@ const StacPanelView = ({
   displayInfo,
   handleCategoryClick,
   handleSearchInput,
-  handleTileClick,
+
   searchTerm,
   selectedCategory
 }: IStacViewProps) => {
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [results, setResults] = useState<IStacItem[]>([]);
 
   useEffect(() => {
     console.log('selectedCollections', selectedCollections);
@@ -34,19 +41,15 @@ const StacPanelView = ({
 
   useEffect(() => {
     // Geodes behavior => query on every selection
-    console.log('sc', selectedCollections);
-
-    console.log('sp', selectedPlatforms);
-
     const selectedDatasets = Object.entries(datasets)
       .filter(([key]) => selectedCollections.includes(key))
       .flatMap(([_, values]) => values);
 
-    console.log('selectedDatasets', selectedDatasets);
-
     // Build query
     const fetchInEffect = async () => {
       const body: IStacQueryBody = {
+        // TODO: All the hardcoded stuff
+        // TODO: get this from model
         bbox: [-180, -65.76350697055292, 180, 65.76350697055292],
         limit: 12,
         page: 1,
@@ -80,18 +83,18 @@ const StacPanelView = ({
       console.log('result', result);
 
       // ! MAKEH DAH LAYAH
-      const layerId = UUID.uuid4();
+      // const layerId = UUID.uuid4();
 
-      const layerModel: IJGISLayer = {
-        type: 'StacLayer',
-        parameters: {
-          data: result
-        },
-        visible: true,
-        name: 'STAC Layer'
-      };
+      // const layerModel: IJGISLayer = {
+      //   type: 'StacLayer',
+      //   parameters: {
+      //     data: result
+      //   },
+      //   visible: true,
+      //   name: 'STAC Layer'
+      // };
 
-      model.addLayer(layerId, layerModel);
+      // model.addLayer(layerId, layerModel);
     };
 
     // TODO: Do this better. Really don't use an effect
@@ -128,40 +131,82 @@ const StacPanelView = ({
 
       const data = (await response.json()) as IStacSearchResult;
 
+      setResults(data.features);
       return data;
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   }
 
+  const handleTileClick = async (id: string) => {
+    console.log('id', id);
+    if (!results) {
+      return;
+    }
+
+    const layerId = UUID.uuid4();
+
+    const stacData = results.find(item => item.id === id);
+
+    console.log('stacData', stacData);
+    const layerModel: IJGISLayer = {
+      type: 'StacLayer',
+      parameters: {
+        data: stacData
+      },
+      visible: true,
+      name: 'STAC Layer'
+    };
+
+    model ? model.addLayer(layerId, layerModel) : console.log('no model');
+  };
+
   return (
-    <div className="jgis-stac-browser-main">
-      <div>save/load filter</div>
-      <div>date time picker</div>
-      <div>where</div>
-      <StacSections
-        header="Collection"
-        data={datasets}
-        selectedCollections={selectedCollections}
-        handleToggleGroupValueChange={(val: string[]) => {
-          setSelectedCollections(val);
-        }}
-        selectedPlatforms={selectedPlatforms}
-        model={model}
-      />
-      <StacSections
-        header="Platform"
-        data={platforms}
-        selectedCollections={selectedCollections}
-        handleToggleGroupValueChange={(val: string[]) => {
-          setSelectedPlatforms(val);
-        }}
-        selectedPlatforms={selectedPlatforms}
-        model={model}
-      />
-      <div>data/ product</div>
-      <div>cloud cover</div>
-    </div>
+    <Tabs defaultValue="filters" className="jgis-stac-browser-main">
+      <TabsList>
+        <TabsTrigger value="filters">Filters</TabsTrigger>
+        <TabsTrigger value="results">{`Results (${results.length})`}</TabsTrigger>
+      </TabsList>
+      <TabsContent value="filters">
+        <div>
+          <div>save/load filter</div>
+          <div>date time picker</div>
+          <div>where</div>
+          <StacSections
+            header="Collection"
+            data={datasets}
+            selectedCollections={selectedCollections}
+            handleToggleGroupValueChange={(val: string[]) => {
+              setSelectedCollections(val);
+            }}
+            selectedPlatforms={selectedPlatforms}
+            model={model}
+          />
+          <StacSections
+            header="Platform"
+            data={platforms}
+            selectedCollections={selectedCollections}
+            handleToggleGroupValueChange={(val: string[]) => {
+              setSelectedPlatforms(val);
+            }}
+            selectedPlatforms={selectedPlatforms}
+            model={model}
+          />
+          <div>data/ product</div>
+          <div>cloud cover</div>
+        </div>
+      </TabsContent>
+      <TabsContent value="results">
+        <div>Results</div>
+        <div>
+          {results.map(result => (
+            <div onClick={() => handleTileClick(result.id)}>
+              ID: {result.id}
+            </div>
+          ))}
+        </div>
+      </TabsContent>
+    </Tabs>
   );
 };
 
