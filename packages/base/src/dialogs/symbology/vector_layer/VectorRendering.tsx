@@ -55,7 +55,6 @@ const VectorRendering = ({
             cancel={cancel}
             layerId={layerId}
             activeTab={activeTab}
-            setActiveTab={setActiveTab}
           />
         );
         break;
@@ -67,8 +66,7 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
-            selectedMethod={activeTab}
-            setSelectedMethod={setActiveTab}
+            activeTab={activeTab}
           />
         );
         break;
@@ -81,7 +79,6 @@ const VectorRendering = ({
             cancel={cancel}
             layerId={layerId}
             activeTab={activeTab}
-            setActiveTab={setActiveTab}
           />
         );
         break;

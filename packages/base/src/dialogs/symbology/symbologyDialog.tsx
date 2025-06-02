@@ -13,6 +13,7 @@ export interface ISymbologyDialogProps {
   okSignalPromise: PromiseDelegate<Signal<SymbologyWidget, null>>;
   cancel: () => void;
   layerId?: string;
+  activeTab?: 'color' | 'radius';
 }
 
 export interface ISymbologyWidgetOptions {

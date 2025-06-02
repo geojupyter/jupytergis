@@ -10,10 +10,6 @@ import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import { Utils, VectorUtils } from '../../symbologyUtils';
 import ValueSelect from '../components/ValueSelect';
 
-interface ICategorizedProps extends ISymbologyDialogProps {
-  activeTab: 'color' | 'radius';
-  setActiveTab: (tab: 'color' | 'radius') => void;
-}
 
 const Categorized = ({
   model,
@@ -22,7 +18,7 @@ const Categorized = ({
   cancel,
   layerId,
   activeTab
-}: ICategorizedProps) => {
+}: ISymbologyDialogProps) => {
   const selectedValueRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
   const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();

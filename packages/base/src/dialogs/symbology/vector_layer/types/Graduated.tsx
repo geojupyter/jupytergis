@@ -12,19 +12,13 @@ import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import { Utils, VectorUtils } from '../../symbologyUtils';
 import ValueSelect from '../components/ValueSelect';
 
-interface IGraduatedProps extends ISymbologyDialogProps {
-  selectedMethod: 'color' | 'radius';
-  setSelectedMethod: (tab: 'color' | 'radius') => void;
-}
-
-const Graduated: React.FC<IGraduatedProps> = ({
+const Graduated: React.FC<ISymbologyDialogProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
   layerId,
-  selectedMethod,
-  setSelectedMethod
+  activeTab
 }) => {
   const modeOptions = [
     'quantile',
@@ -35,7 +29,7 @@ const Graduated: React.FC<IGraduatedProps> = ({
   ];
 
   const selectedValueRef = useRef<string>();
-  const selectedMethodRef = useRef<string>();
+  const activeTabRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
   const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
@@ -69,11 +63,11 @@ const Graduated: React.FC<IGraduatedProps> = ({
   useEffect(() => {
     let stopOutputPairs: IStopRow[] = [];
 
-    if (selectedMethod === 'color') {
+    if (activeTab === 'color') {
       stopOutputPairs = VectorUtils.buildColorInfo(layer);
     }
 
-    if (selectedMethod === 'radius') {
+    if (activeTab === 'radius') {
       stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
     }
     updateStopRowsBasedOnMethod();
@@ -117,14 +111,14 @@ const Graduated: React.FC<IGraduatedProps> = ({
 
   useEffect(() => {
     updateStopRowsBasedOnMethod();
-  }, [selectedMethod]);
+  }, [activeTab]);
 
   useEffect(() => {
     selectedValueRef.current = selectedValue;
-    selectedMethodRef.current = selectedMethod;
+    activeTabRef.current = activeTab;
     stopRowsRef.current = stopRows;
     colorRampOptionsRef.current = colorRampOptions;
-  }, [selectedValue, selectedMethod, stopRows, colorRampOptions]);
+  }, [selectedValue, activeTab, stopRows, colorRampOptions]);
 
   useEffect(() => {
     // We only want number values here
@@ -137,7 +131,6 @@ const Graduated: React.FC<IGraduatedProps> = ({
       layerParams.symbologyState?.value ?? Object.keys(numericFeatures)[0];
 
     setSelectedValue(value);
-    setSelectedMethod(selectedMethod);
   }, [featureProperties]);
 
   const updateStopRowsBasedOnMethod = () => {
@@ -147,11 +140,11 @@ const Graduated: React.FC<IGraduatedProps> = ({
 
     let stopOutputPairs: IStopRow[] = [];
 
-    if (selectedMethod === 'color') {
+    if (activeTab === 'color') {
       stopOutputPairs = VectorUtils.buildColorInfo(layer);
     }
 
-    if (selectedMethod === 'radius') {
+    if (activeTab === 'radius') {
       stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
     }
 
@@ -177,20 +170,20 @@ const Graduated: React.FC<IGraduatedProps> = ({
         colorExpr.push(stop.output);
       });
 
-      if (selectedMethodRef.current === 'color') {
+      if (activeTabRef.current === 'color') {
         newStyle['fill-color'] = colorExpr;
         newStyle['stroke-color'] = colorExpr;
         newStyle['circle-fill-color'] = colorExpr;
       }
 
-      if (selectedMethodRef.current === 'radius') {
+      if (activeTabRef.current === 'radius') {
         newStyle['circle-radius'] = colorExpr;
       }
 
       const symbologyState = {
         renderType: 'Graduated',
         value: selectedValueRef.current,
-        method: selectedMethodRef.current,
+        method: activeTabRef.current,
         colorRamp: colorRampOptionsRef.current?.selectedRamp,
         nClasses: colorRampOptionsRef.current?.numberOfShades,
         mode: colorRampOptionsRef.current?.selectedMode
@@ -199,7 +192,7 @@ const Graduated: React.FC<IGraduatedProps> = ({
       layer.parameters.symbologyState = symbologyState;
     } else {
       // No classification applied
-      if (selectedMethodRef.current === 'color') {
+      if (activeTabRef.current === 'color') {
         newStyle['fill-color'] = manualStyleRef.current.fillColor;
         newStyle['stroke-color'] = manualStyleRef.current.strokeColor;
         newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
@@ -208,14 +201,14 @@ const Graduated: React.FC<IGraduatedProps> = ({
         newStyle['circle-stroke-width'] = manualStyleRef.current.strokeWidth;
       }
 
-      if (selectedMethodRef.current === 'radius') {
+      if (activeTabRef.current === 'radius') {
         newStyle['circle-radius'] = manualStyleRef.current.radius;
       }
 
       const symbologyState = {
         renderType: 'Graduated',
         value: selectedValueRef.current,
-        method: selectedMethodRef.current,
+        method: activeTabRef.current,
         colorRamp: undefined,
         nClasses: undefined,
         mode: undefined
@@ -285,7 +278,7 @@ const Graduated: React.FC<IGraduatedProps> = ({
     }
 
     let stopOutputPairs = [];
-    if (selectedMethod === 'radius') {
+    if (activeTab === 'radius') {
       for (let i = 0; i < +numberOfShades; i++) {
         stopOutputPairs.push({ stop: stops[i], output: stops[i] });
       }
@@ -327,7 +320,7 @@ const Graduated: React.FC<IGraduatedProps> = ({
     layer.parameters.color = newStyle;
 
     setStopRows(prev => {
-      if (selectedMethod === method) {
+      if (activeTab === method) {
         return [];
       }
       return prev;
@@ -348,7 +341,7 @@ const Graduated: React.FC<IGraduatedProps> = ({
         setSelectedValue={setSelectedValue}
       />
       <div className="jp-gis-layer-symbology-container">
-        {selectedMethod === 'color' && (
+        {activeTab === 'color' && (
           <>
             <div className="jp-gis-symbology-row">
               <label>Fill Color:</label>
@@ -395,7 +388,7 @@ const Graduated: React.FC<IGraduatedProps> = ({
           </>
         )}
 
-        {selectedMethod === 'radius' && (
+        {activeTab === 'radius' && (
           <div className="jp-gis-symbology-row">
             <label>Circle Radius:</label>
             <input
@@ -417,7 +410,7 @@ const Graduated: React.FC<IGraduatedProps> = ({
         showModeRow={true}
       />
       <StopContainer
-        selectedMethod={selectedMethod}
+        selectedMethod={activeTab || 'color'}
         stopRows={stopRows}
         setStopRows={setStopRows}
       />

@@ -5,7 +5,6 @@ import { ISymbologyDialogProps } from '../../symbologyDialog';
 
 interface ISimpleSymbolProps extends ISymbologyDialogProps {
   activeTab: 'color' | 'radius';
-  setActiveTab: (tab: 'color' | 'radius') => void;
 }
 
 const SimpleSymbol = ({
