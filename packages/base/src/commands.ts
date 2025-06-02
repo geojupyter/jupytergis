@@ -274,21 +274,6 @@ export function addCommands(
     ...icons.get(CommandIDs.openLayerBrowser)
   });
 
-  commands.addCommand(CommandIDs.openStacBrowser, {
-    label: trans.__('Open STAC Browser'),
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createStacBrowser(
-      tracker,
-      layerBrowserRegistry,
-      formSchemaRegistry
-    ),
-    ...icons.get(CommandIDs.openLayerBrowser)
-  });
-
   /**
    * Source and layers
    */
@@ -954,7 +939,6 @@ export function addCommands(
 }
 
 namespace Private {
-  //? TODO: Combine these two?
   export function createLayerBrowser(
     tracker: JupyterGISTracker,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
@@ -971,29 +955,6 @@ namespace Private {
         type: 'og',
         tracker,
         model: current.model,
-        registry: layerBrowserRegistry.getRegistryLayers(),
-        formSchemaRegistry
-      });
-      await dialog.launch();
-    };
-  }
-
-  export function createStacBrowser(
-    tracker: JupyterGISTracker,
-    layerBrowserRegistry: IJGISLayerBrowserRegistry,
-    formSchemaRegistry: IJGISFormSchemaRegistry
-  ) {
-    return async () => {
-      const current = tracker.currentWidget;
-
-      if (!current) {
-        return;
-      }
-
-      const dialog = new LayerBrowserWidget({
-        type: 'stac',
-        model: current.model,
-        tracker: tracker,
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry
       });

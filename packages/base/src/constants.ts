@@ -26,7 +26,6 @@ export namespace CommandIDs {
 
   // Layers and sources creation commands
   export const openLayerBrowser = 'jupytergis:openLayerBrowser';
-  export const openStacBrowser = 'jupytergis:openStacBrowser';
 
   // Layer and source
   export const newRasterEntry = 'jupytergis:newRasterEntry';
