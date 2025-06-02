@@ -697,7 +697,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
 
-      case 'GeoParquetSource':
+      case 'GeoParquetSource': {
         const parameters = source.parameters as IGeoParquetSource;
 
         const geojson = await loadFile({
@@ -717,8 +717,8 @@ export class MainView extends React.Component<IProps, IStates> {
           })
         });
         break;
+      }
     }
-
 
     newSource.set('id', id);
     // _sources is a list of OpenLayers sources
