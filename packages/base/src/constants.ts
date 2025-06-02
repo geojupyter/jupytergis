@@ -66,6 +66,9 @@ export namespace CommandIDs {
   export const renameSource = 'jupytergis:renameSource';
   export const removeSource = 'jupytergis:removeSource';
 
+  // Add draw features to a geoGSON source
+  export const addNewDrawFeatures = 'jupytergis:addNewDrawFeatures';
+
   // Console commands
   export const toggleConsole = 'jupytergis:toggleConsole';
   export const invokeCompleter = 'jupytergis:invokeConsoleCompleter';
