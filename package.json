@@ -74,6 +74,7 @@
     "webpack": "^5.76.3"
   },
   "dependencies": {
+    "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toggle-group": "^1.1.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
