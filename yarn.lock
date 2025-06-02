@@ -915,6 +915,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-root@workspace:."
   dependencies:
+    "@radix-ui/react-slot": ^1.2.3
     "@radix-ui/react-tabs": ^1.1.12
     "@radix-ui/react-toggle-group": ^1.1.10
     "@types/webpack-env": ^1.18.5
@@ -2767,7 +2768,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-slot@npm:1.2.3":
+"@radix-ui/react-slot@npm:1.2.3, @radix-ui/react-slot@npm:^1.2.3":
   version: 1.2.3
   resolution: "@radix-ui/react-slot@npm:1.2.3"
   dependencies:

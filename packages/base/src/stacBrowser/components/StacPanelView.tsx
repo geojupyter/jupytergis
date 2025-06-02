@@ -1,6 +1,7 @@
 import { IJGISLayer } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import React, { useEffect, useState } from 'react';
+import { Button } from '../../shared/components/Button';
 import {
   Tabs,
   TabsContent,
@@ -143,8 +144,19 @@ const StacPanelView = ({
     model ? model.addLayer(layerId, layerModel) : console.log('no model');
   };
 
+  // TODO: ??? idk this won't work for most (?) things
+  const formatResult = (item: IStacItem): string => {
+    // Find the first asset with a 'data' role
+    const dataAsset = Object.values(item.assets).find(val =>
+      val.roles?.includes('data')
+    );
+
+    // Return title without extension if found, otherwise item.id
+    return dataAsset ? dataAsset.title.split('.')[0] : item.id;
+  };
+
   if (!model) {
-    return <div>Loading model</div>;
+    return;
   }
 
   return (
@@ -182,12 +194,48 @@ const StacPanelView = ({
       </TabsContent>
       <TabsContent value="results">
         <div>Results</div>
-        <div>
+        <div className="jgis-stac-browser-results-list">
           {results.map(result => (
-            <div onClick={() => handleTileClick(result.id)}>
-              ID: {result.id}
-            </div>
+            <Button
+              className="jgis-stac-browser-results-item"
+              onClick={() => handleTileClick(result.id)}
+            >
+              {formatResult(result)}
+            </Button>
           ))}
+        </div>
+        <div className="jgis-stac-browser-results-list">
+          {results.map(result => (
+            <Button
+              variant={'ghost'}
+              className="jgis-stac-browser-results-item"
+              onClick={() => handleTileClick(result.id)}
+            >
+              {formatResult(result)}
+            </Button>
+          ))}
+        </div>
+        <div className="jgis-stac-browser-results-list">
+          {results.map(result => (
+            <Button
+              variant={'outline'}
+              className="jgis-stac-browser-results-item"
+              onClick={() => handleTileClick(result.id)}
+            >
+              {formatResult(result)}
+            </Button>
+          ))}
+          <div className="jgis-stac-browser-results-list">
+            {results.map(result => (
+              <Button
+                variant={'secondary'}
+                className="jgis-stac-browser-results-item"
+                onClick={() => handleTileClick(result.id)}
+              >
+                {formatResult(result)}
+              </Button>
+            ))}
+          </div>
         </div>
       </TabsContent>
     </Tabs>

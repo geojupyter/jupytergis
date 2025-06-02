@@ -12,3 +12,17 @@
   border-radius: 1rem !important;
   cursor: pointer;
 }
+
+.jgis-stac-browser-results-item {
+  border-radius: 1rem !important;
+  cursor: pointer;
+  white-space: normal !important;
+  height: auto !important;
+}
+
+.jgis-stac-browser-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  word-break: break-word;
+}

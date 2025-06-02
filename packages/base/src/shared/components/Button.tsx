@@ -1,40 +1,20 @@
-import { VariantProps, cva } from 'class-variance-authority';
+import { Slot } from '@radix-ui/react-slot';
 import * as React from 'react';
-import { cn } from './utils';
 
-// TODO: finish tailwind -> css
-const buttonVariants = cva('jgis-button-shared', {
-  variants: {
-    variant: {
-      default: 'jgis-button-variant-default',
-      destructive: 'jgis-button-variant-destructive',
-      outline: 'jgis-button-variant-outline',
-      secondary: 'jgis-button-variant-secondary',
-      ghost: 'hover:bg-accent hover:text-accent-foreground',
-      link: 'underline-offset-4 hover:underline text-primary',
-      bubble: 'jgis-button-variant-bubble'
-    },
-    size: {
-      default: 'jgis-button-size-default',
-      sm: 'jgis-button-size-sm',
-      lg: 'h-11 px-8 rounded-md'
-    }
-  },
-  defaultVariants: {
-    variant: 'default',
-    size: 'default'
-  }
-});
-
-export interface IButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
+  variant?: 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'icon';
+  size?: 'sm' | 'lg' | 'icon';
+}
 
 const Button = React.forwardRef<HTMLButtonElement, IButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  ({ variant, className, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button';
     return (
-      <button
-        className={cn(buttonVariants({ variant, size, className }))}
+      <Comp
+        data-size={size}
+        data-variant={variant}
+        className={`Button ${className ? className : ''}`}
         ref={ref}
         {...props}
       />
@@ -43,4 +23,5 @@ const Button = React.forwardRef<HTMLButtonElement, IButtonProps>(
 );
 Button.displayName = 'Button';
 
-export { Button, buttonVariants };
+export { Button };
+export type { IButtonProps as ButtonProps };
