@@ -10,7 +10,6 @@ import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import { Utils, VectorUtils } from '../../symbologyUtils';
 import ValueSelect from '../components/ValueSelect';
 
-
 const Categorized = ({
   model,
   state,
