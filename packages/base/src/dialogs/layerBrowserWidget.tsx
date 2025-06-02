@@ -9,7 +9,6 @@ import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React from 'react';
-import StacBrowser from '../stacBrowser/StacBrowser';
 import { LayerBrowserComponent } from './layerBrowserDialog';
 
 export interface ILayerBrowserOptions {
@@ -45,15 +44,15 @@ export class LayerBrowserWidget extends Dialog<boolean> {
       );
     }
 
-    if (options.type === 'stac') {
-      body = (
-        <StacBrowser
-          model={options.model}
-          tracker={options.tracker}
-          display="grid"
-        />
-      );
-    }
+    // if (options.type === 'stac') {
+    //   body = (
+    //     <StacBrowser
+    //       model={options.model}
+    //       tracker={options.tracker}
+    //       display="grid"
+    //     />
+    //   );
+    // }
 
     super({ body, buttons: [Dialog.cancelButton(), Dialog.okButton()] });
 
