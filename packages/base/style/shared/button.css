@@ -25,9 +25,21 @@
 }
 
 .jgis-button-variant-default {
+  background-color: rgb(var(--jp-layout-color1)); /* Solid primary background */
+  color: var(--jp-ui-font-color1); /* Text color */
+
+  &:hover {
+    background-color: rgba(var(--jp-layout-color1), 0.9);
+  }
 }
 
 .jgis-button-variant-destructive {
+  background-color: rgb(var(--destructive));
+  color: var(--destructive-foreground);
+
+  &:hover {
+    background-color: rgba(var(--destructive), 0.9);
+  }
 }
 
 .jgis-button-variant-outline {
@@ -45,6 +57,12 @@
 }
 
 .jgis-button-variant-secondary {
+  background-color: rgb(var(--secondary));
+  color: var(--secondary-foreground);
+
+  &:hover {
+    background-color: rgba(var(--secondary), 0.8);
+  }
 }
 
 .jgis-button-variant-ghost {
