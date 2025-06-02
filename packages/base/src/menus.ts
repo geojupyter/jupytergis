@@ -31,7 +31,6 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
     command: CommandIDs.newGeoParquetEntry
   });
 
-
   return subMenu;
 };
 
