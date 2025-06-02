@@ -6,6 +6,7 @@ import {
 } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, useEffect, useState } from 'react';
+import { IControlPanelModel } from '../types';
 import StacGridView from './components/StacGridView';
 import StacPanelView from './components/StacPanelView';
 import { IStacItem, ProductData } from './types/types';
@@ -144,7 +145,7 @@ const products: IDict<ProductData> = {
 };
 
 interface IStacBrowserDialogProps {
-  model: IJupyterGISModel;
+  controlPanelModel: IControlPanelModel;
   display: 'side' | 'grid';
   tracker: IJupyterGISTracker;
 
@@ -165,16 +166,27 @@ export interface IStacViewProps {
   handleCategoryClick: (category: string) => void;
   handleTileClick: (id: string) => void;
   displayInfo?: IStacItem[];
-  model: IJupyterGISModel;
+  model?: IJupyterGISModel;
 }
 
 const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
 
-const StacBrowser = ({ model, display, tracker }: IStacBrowserDialogProps) => {
+const StacBrowser = ({
+  controlPanelModel,
+  display,
+  tracker
+}: IStacBrowserDialogProps) => {
   const [widgetId, setWidgetId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [displayInfo, setDisplayInfo] = useState<IStacItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
+    controlPanelModel?.jGISModel
+  );
+
+  controlPanelModel?.documentChanged.connect((_, widget) => {
+    setJgisModel(widget?.model);
+  });
 
   // Reset state values when current widget changes
   useEffect(() => {
@@ -197,58 +209,9 @@ const StacBrowser = ({ model, display, tracker }: IStacBrowserDialogProps) => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   console.log('selectedCategory', selectedCategory);
-
-  //   if (!selectedCategory) {
-  //     return;
-  //   }
-
-  // const body = {
-  //   limit: 12,
-  //   query: {
-  //     dataset: {
-  //       in: datasets[selectedCategory]
-  //     }
-  //   }
-  // };
-
-  //   mockProxyFetch(body);
-  // }, [selectedCategory]);
-
   const handleSearchInput = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value.toLowerCase());
   };
-
-  // async function mockProxyFetch(options: { [key: string]: any }) {
-  //   // Needed for POST
-  //   const xsrfToken = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-
-  //   const proxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(apiUrl)}`;
-
-  //   try {
-  //     const response = await fetch(proxyUrl, {
-  //       method: 'POST',
-  //       //@ts-expect-error Jupyter requires X-XSRFToken header
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'X-XSRFToken': xsrfToken,
-  //         credentials: 'include'
-  //       },
-  //       body: JSON.stringify(options)
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! status: ${response.status}`);
-  //     }
-
-  //     const data = (await response.json()) as IStacSearchResult;
-
-  //     setDisplayInfo(data.features);
-  //   } catch (error) {
-  //     console.error('Error fetching data:', error);
-  //   }
-  // }
 
   const handleTileClick = async (id: string) => {
     if (!displayInfo) {
@@ -268,7 +231,9 @@ const StacBrowser = ({ model, display, tracker }: IStacBrowserDialogProps) => {
       name: 'STAC Layer'
     };
 
-    model.addLayer(layerId, layerModel);
+    jgisModel
+      ? jgisModel.addLayer(layerId, layerModel)
+      : console.log('no model');
   };
 
   const handleCategoryClick = (category: string) => {
@@ -294,7 +259,7 @@ const StacBrowser = ({ model, display, tracker }: IStacBrowserDialogProps) => {
       handleTileClick={handleTileClick}
       searchTerm={searchTerm}
       selectedCategory={selectedCategory}
-      model={model}
+      model={jgisModel}
     />
   );
 };

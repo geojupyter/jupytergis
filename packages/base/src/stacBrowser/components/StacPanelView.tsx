@@ -21,6 +21,10 @@ const StacPanelView = ({
     console.log('selectedCollections', selectedCollections);
   }, [selectedCollections]);
 
+  if (!model) {
+    return <div>Loading model</div>;
+  }
+
   return (
     <div className="jgis-stac-browser-main">
       <div>save/load filter</div>

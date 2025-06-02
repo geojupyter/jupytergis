@@ -2,8 +2,8 @@ import { IJupyterGISTracker } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React from 'react';
-import StacBrowser from './StacBrowser';
 import { IControlPanelModel } from '../types';
+import StacBrowser from './StacBrowser';
 
 export class StacPanel extends Panel {
   constructor(options: StacPanel.IOptions) {
@@ -19,7 +19,7 @@ export class StacPanel extends Panel {
     this.addWidget(
       ReactWidget.create(
         <StacBrowser
-          model={this._model.jGISModel!}
+          controlPanelModel={this._model}
           tracker={this._tracker}
           display="side"
         ></StacBrowser>
