@@ -78,14 +78,6 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('openLayerBrowser', openLayersBrowserButton);
       openLayersBrowserButton.node.dataset.testid = 'open-layers-browser';
 
-      const stacBrowserButton = new CommandToolbarButton({
-        id: CommandIDs.openStacBrowser,
-        label: '',
-        commands: options.commands
-      });
-      this.addItem('openStacBrowser', stacBrowserButton);
-      stacBrowserButton.node.dataset.testid = 'stac-browser';
-
       const NewSubMenu = new MenuSvg({ commands: options.commands });
       NewSubMenu.title.label = 'Add Layer';
 

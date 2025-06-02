@@ -5,7 +5,6 @@ import {
 } from '@jupytergis/schema';
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { IControlPanelModel } from '../types';
-import StacGridView from './components/StacGridView';
 import StacPanelView from './components/StacPanelView';
 import { IStacItem, ProductData } from './types/types';
 
@@ -167,8 +166,6 @@ export interface IStacViewProps {
   model?: IJupyterGISModel;
 }
 
-const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
-
 const StacBrowser = ({
   controlPanelModel,
   display,
@@ -216,15 +213,8 @@ const StacBrowser = ({
     setSelectedCategory(prev => (prev === category ? '' : category));
   };
 
-  const displayComponents = {
-    grid: (props: IStacViewProps) => <StacGridView {...props} />,
-    side: (props: IStacViewProps) => <StacPanelView {...props} />
-  };
-
-  const DisplayComponent = displayComponents[display];
-
   return (
-    <DisplayComponent
+    <StacPanelView
       datasets={datasets}
       platforms={platforms}
       products={products}

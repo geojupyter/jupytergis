@@ -12,7 +12,6 @@ import React from 'react';
 import { LayerBrowserComponent } from './layerBrowserDialog';
 
 export interface ILayerBrowserOptions {
-  type: 'og' | 'stac';
   tracker: IJupyterGISTracker;
   model: IJupyterGISModel;
   registry: IRasterLayerGalleryEntry[];
@@ -30,29 +29,15 @@ export class LayerBrowserWidget extends Dialog<boolean> {
       Signal<Dialog<IDict>, number>
     >();
 
-    let body;
-
-    if (options.type === 'og') {
-      body = (
-        <LayerBrowserComponent
-          model={options.model}
-          registry={options.registry}
-          formSchemaRegistry={options.formSchemaRegistry}
-          okSignalPromise={okSignalPromise}
-          cancel={cancelCallback}
-        />
-      );
-    }
-
-    // if (options.type === 'stac') {
-    //   body = (
-    //     <StacBrowser
-    //       model={options.model}
-    //       tracker={options.tracker}
-    //       display="grid"
-    //     />
-    //   );
-    // }
+    const body = (
+      <LayerBrowserComponent
+        model={options.model}
+        registry={options.registry}
+        formSchemaRegistry={options.formSchemaRegistry}
+        okSignalPromise={okSignalPromise}
+        cancel={cancelCallback}
+      />
+    );
 
     super({ body, buttons: [Dialog.cancelButton(), Dialog.okButton()] });
 
