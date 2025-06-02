@@ -10,7 +10,7 @@ import { getGdal } from './gdal';
 import { JupyterGISTracker } from './types';
 import { UUID } from '@lumino/coreutils';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
-import { getGeoJSONDataFromLayerSource } from './tools';
+import { getGeoJSONDataFromLayerSource } from '@/src/tools';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 
 /**

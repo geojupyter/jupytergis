@@ -806,6 +806,7 @@ __metadata:
     styled-components: ^5.3.6
     three: ^0.135.0
     three-mesh-bvh: ^0.5.17
+    tsconfig-paths-webpack-plugin: ^4.2.0
     typescript: ^5
     uuid: ^11.0.3
   languageName: unknown
@@ -4871,7 +4872,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"enhanced-resolve@npm:^5.0.0, enhanced-resolve@npm:^5.17.1":
+"enhanced-resolve@npm:^5.0.0, enhanced-resolve@npm:^5.17.1, enhanced-resolve@npm:^5.7.0":
   version: 5.18.1
   resolution: "enhanced-resolve@npm:5.18.1"
   dependencies:
@@ -10474,6 +10475,18 @@ __metadata:
     typescript: "*"
     webpack: ^5.0.0
   checksum: f4c117042e25434e733c4b70873adaa9a79b14c2b3d8e5db53bbfd42060289f8a3eb97cfff64c83123b735d954f0eaa0f60f093afb0682cd2d1d7fa17f81e223
+  languageName: node
+  linkType: hard
+
+"tsconfig-paths-webpack-plugin@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "tsconfig-paths-webpack-plugin@npm:4.2.0"
+  dependencies:
+    chalk: ^4.1.0
+    enhanced-resolve: ^5.7.0
+    tapable: ^2.2.1
+    tsconfig-paths: ^4.1.2
+  checksum: b35e4da5fb4ee438267125f369220102a061824c1dd568cd84e9db2368b72581ec7b88db1a5fda180bba65ff7b7597b18561a24f1db9c9a85fdc803bea122aa6
   languageName: node
   linkType: hard
 

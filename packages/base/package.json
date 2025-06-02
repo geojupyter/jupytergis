@@ -15,6 +15,9 @@
   "author": {
     "name": "JupyterGIS contributors"
   },
+  "jupyterlab": {
+    "webpackConfig": "./webpack.config.js"
+  },
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,data,wasm}",
     "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
@@ -95,6 +98,7 @@
     "@types/shpjs": "^3.4.7",
     "@types/uuid": "^10.0.0",
     "rimraf": "^3.0.2",
+    "tsconfig-paths-webpack-plugin": "^4.2.0",
     "typescript": "^5"
   },
   "sideEffects": [
