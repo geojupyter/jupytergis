@@ -6,7 +6,7 @@ const StacGridView = ({
   displayInfo,
   handleCategoryClick,
   handleSearchInput,
-  handleTileClick,
+  // handleTileClick,
   searchTerm,
   selectedCategory
 }: IStacViewProps) => {
@@ -45,7 +45,7 @@ const StacGridView = ({
         {displayInfo?.map(collection => (
           <div
             className="jGIS-layer-browser-tile"
-            onClick={() => handleTileClick(collection.id)}
+            // onClick={() => handleTileClick(collection.id)}
           >
             <div className="jGIS-layer-browser-tile-img-container">
               <img

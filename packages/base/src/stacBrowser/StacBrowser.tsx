@@ -1,10 +1,8 @@
 import {
   IDict,
-  IJGISLayer,
   IJupyterGISModel,
   IJupyterGISTracker
 } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { IControlPanelModel } from '../types';
 import StacGridView from './components/StacGridView';
@@ -164,7 +162,7 @@ export interface IStacViewProps {
   products: IDict<ProductData>;
   selectedCategory: string | null;
   handleCategoryClick: (category: string) => void;
-  handleTileClick: (id: string) => void;
+  // handleTileClick: (id: string) => void;
   displayInfo?: IStacItem[];
   model?: IJupyterGISModel;
 }
@@ -213,29 +211,6 @@ const StacBrowser = ({
     setSearchTerm(event.target.value.toLowerCase());
   };
 
-  const handleTileClick = async (id: string) => {
-    if (!displayInfo) {
-      return;
-    }
-
-    const layerId = UUID.uuid4();
-
-    const stacData = displayInfo.find(item => item.id === id);
-
-    const layerModel: IJGISLayer = {
-      type: 'StacLayer',
-      parameters: {
-        data: stacData
-      },
-      visible: true,
-      name: 'STAC Layer'
-    };
-
-    jgisModel
-      ? jgisModel.addLayer(layerId, layerModel)
-      : console.log('no model');
-  };
-
   const handleCategoryClick = (category: string) => {
     setSearchTerm('');
     setSelectedCategory(prev => (prev === category ? '' : category));
@@ -256,7 +231,6 @@ const StacBrowser = ({
       displayInfo={displayInfo}
       handleCategoryClick={handleCategoryClick}
       handleSearchInput={handleSearchInput}
-      handleTileClick={handleTileClick}
       searchTerm={searchTerm}
       selectedCategory={selectedCategory}
       model={jgisModel}
