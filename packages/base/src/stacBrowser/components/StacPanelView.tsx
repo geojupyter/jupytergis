@@ -32,10 +32,6 @@ const StacPanelView = ({
     console.log('selectedCollections', selectedCollections);
   }, [selectedCollections]);
 
-  if (!model) {
-    return <div>Loading model</div>;
-  }
-
   const [isFirstRender, setIsFirstRender] = useState(false);
 
   useEffect(() => {
@@ -147,6 +143,10 @@ const StacPanelView = ({
     model ? model.addLayer(layerId, layerModel) : console.log('no model');
   };
 
+  if (!model) {
+    return <div>Loading model</div>;
+  }
+
   return (
     <Tabs defaultValue="filters" className="jgis-stac-browser-main">
       <TabsList>
@@ -154,33 +154,31 @@ const StacPanelView = ({
         <TabsTrigger value="results">{`Results (${results.length})`}</TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
-        <div>
-          <div>save/load filter</div>
-          <div>date time picker</div>
-          <div>where</div>
-          <StacSections
-            header="Collection"
-            data={datasets}
-            selectedCollections={selectedCollections}
-            handleToggleGroupValueChange={(val: string[]) => {
-              setSelectedCollections(val);
-            }}
-            selectedPlatforms={selectedPlatforms}
-            model={model}
-          />
-          <StacSections
-            header="Platform"
-            data={platforms}
-            selectedCollections={selectedCollections}
-            handleToggleGroupValueChange={(val: string[]) => {
-              setSelectedPlatforms(val);
-            }}
-            selectedPlatforms={selectedPlatforms}
-            model={model}
-          />
-          <div>data/ product</div>
-          <div>cloud cover</div>
-        </div>
+        <div>save/load filter</div>
+        <div>date time picker</div>
+        <div>where</div>
+        <StacSections
+          header="Collection"
+          data={datasets}
+          selectedCollections={selectedCollections}
+          handleToggleGroupValueChange={(val: string[]) => {
+            setSelectedCollections(val);
+          }}
+          selectedPlatforms={selectedPlatforms}
+          model={model}
+        />
+        <StacSections
+          header="Platform"
+          data={platforms}
+          selectedCollections={selectedCollections}
+          handleToggleGroupValueChange={(val: string[]) => {
+            setSelectedPlatforms(val);
+          }}
+          selectedPlatforms={selectedPlatforms}
+          model={model}
+        />
+        <div>data/ product</div>
+        <div>cloud cover</div>
       </TabsContent>
       <TabsContent value="results">
         <div>Results</div>
