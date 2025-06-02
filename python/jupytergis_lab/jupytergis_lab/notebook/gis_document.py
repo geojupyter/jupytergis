@@ -11,6 +11,7 @@ from pycrdt import Array, Map
 from pydantic import BaseModel
 from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
+import os
 
 from jupytergis_core.schema import (
     IGeoJSONSource,
@@ -327,7 +328,7 @@ class GISDocument(CommWidget):
         **kwargs,
     ) -> None:
         """
-        Adds a vector layer to the map.
+        Adds a vector layer to the map, intelligently handling GeoJSON vs vector formats.
 
         Args:
             path (Optional[Union[str, Path]]): The path to the vector file.
@@ -344,18 +345,30 @@ class GISDocument(CommWidget):
         Returns:
             None
         """
-        geojson = vector_to_geojson(path, **kwargs)
-        self.add_geojson_layer(
-            data=geojson,
-            name=name,
-            type=type,
-            opacity=opacity,
-            logical_op=logical_op,
-            feature=feature,
-            operator=operator,
-            value=value,
-            color_expr=color_expr,
-        )
+
+        if path and _looks_like_geojson(path):
+            self.add_geojson_layer(
+                path=str(path),
+                name=name,
+                opacity=opacity,
+                logical_op=logical_op,
+                feature=feature,
+                operator=operator,
+                value=value,
+                color_expr=color_expr,
+            )
+        else:
+            geojson = vector_to_geojson(path, **kwargs)
+            self.add_geojson_layer(
+                data=geojson,
+                name=name,
+                opacity=opacity,
+                logical_op=logical_op,
+                feature=feature,
+                operator=operator,
+                value=value,
+                color_expr=color_expr,
+            )
 
     def add_image_layer(
         self,
@@ -944,6 +957,42 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         return None
 
 
+def _looks_like_geojson(path: Union[str, Path]) -> bool:
+    """
+    Tries to determine whether the file or URL is a GeoJSON.
+    - For URLs, looks at file extension or Content-Type.
+    - For local files, tries to load and parse the content.
+    """
+    path_str = str(path).lower()
+
+    if path_str.startswith("http://") or path_str.startswith("https://"):
+        if path_str.endswith(".geojson") or path_str.endswith(".json"):
+            return True
+
+        try:
+            head = requests.head(path, timeout=5)
+            content_type = head.headers.get("Content-Type", "")
+            return (
+                "application/geo+json" in content_type
+                or "application/json" in content_type
+            )
+        except requests.RequestException:
+            return False
+
+    elif os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return isinstance(data, dict) and data.get("type") in {
+                    "FeatureCollection",
+                    "Feature",
+                }
+        except Exception:
+            return False
+
+    return False
+
+
 def vector_to_geojson(
     filepath,
     out_geojson=None,
@@ -987,10 +1036,10 @@ def vector_to_geojson(
 
     try:
         import geopandas as gpd
-    except ImportError:
+    except ImportError as err:
         raise ImportError(
             "geopandas is required for this function. Please install it using `pip install geopandas`."
-        )
+        ) from err
 
     if not filepath.startswith("http"):
         filepath = os.path.abspath(filepath)
@@ -1000,10 +1049,10 @@ def vector_to_geojson(
     if ext == ".kml":
         try:
             import fiona
-        except ImportError:
+        except ImportError as err:
             raise ImportError(
                 "fiona is required for this function. Please install it using `pip install fiona`."
-            )
+            ) from err
 
         fiona.drvsupport.supported_drivers["KML"] = "rw"
         df = gpd.read_file(
