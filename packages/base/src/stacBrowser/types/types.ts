@@ -121,11 +121,31 @@ export interface IStacSearchResult {
   type: 'FeatureCollection';
 }
 
-export type ProductData = {
+// export type ProductData = {
+//   collections: string[];
+//   'processing:level': string[];
+//   'product:type': string[];
+// };
+
+export type ProductCode = string;
+export type CollectionName =
+  | 'Sentinel 1'
+  | 'Sentinel 2'
+  | 'Venus'
+  | 'Spot'
+  | 'Landsat'
+  | 'OSO'
+  | 'Postel'
+  | 'GEOV2 AVHRR'; // Add other collections as needed
+
+export interface IProductData {
   collections: string[];
-  'processing:level': string[];
   'product:type': string[];
-};
+  'processing:level'?: string[];
+  instrument?: string;
+}
+
+export type ProductRegistry = Record<ProductCode, IProductData>;
 
 export interface IStacQueryBody {
   bbox: [number, number, number, number];
