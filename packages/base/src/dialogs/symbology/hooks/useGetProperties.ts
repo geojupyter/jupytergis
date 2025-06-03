@@ -2,7 +2,7 @@
 
 import { GeoJSONFeature1, IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
-import { loadFile } from '../../../tools';
+import { loadFile } from '@/src/tools';
 
 interface IUseGetPropertiesProps {
   layerId?: string;

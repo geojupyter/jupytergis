@@ -1,8 +1,8 @@
 import { PanelWithToolbar, ReactWidget } from '@jupyterlab/ui-components';
 import React, { Component } from 'react';
 import { IAnnotationModel } from '@jupytergis/schema';
-import Annotation from '../annotations/components/Annotation';
-import { IControlPanelModel } from '../types';
+import Annotation from '@/src/annotations/components/Annotation';
+import { IControlPanelModel } from '@/src/types';
 
 interface IAnnotationPanelProps {
   annotationModel: IAnnotationModel;

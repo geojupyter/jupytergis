@@ -3,7 +3,7 @@ import { Ajv, ValidateFunction } from 'ajv';
 import * as geojson from '@jupytergis/schema/src/schema/geojson.json';
 
 import { PathBasedSourcePropertiesForm } from './pathbasedsource';
-import { loadFile } from '../../../tools';
+import { loadFile } from '@/src/tools';
 import { ISourceFormProps } from './sourceform';
 
 /**

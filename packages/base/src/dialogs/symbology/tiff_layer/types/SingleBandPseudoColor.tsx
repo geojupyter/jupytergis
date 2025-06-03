@@ -3,17 +3,17 @@ import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { Spinner } from '../../../../mainview/spinner';
-import { GlobalStateDbManager } from '../../../../store';
-import { GeoTiffClassifications } from '../../classificationModes';
+import { Spinner } from '@/src/mainview/spinner';
+import { GlobalStateDbManager } from '@/src/store';
+import { GeoTiffClassifications } from '@/src/dialogs/symbology/classificationModes';
 import ColorRamp, {
   ColorRampOptions
-} from '../../components/color_ramp/ColorRamp';
-import StopRow from '../../components/color_stops/StopRow';
-import useGetBandInfo, { IBandRow } from '../../hooks/useGetBandInfo';
-import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
-import { Utils } from '../../symbologyUtils';
-import BandRow from '../components/BandRow';
+} from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import StopRow from '@/src/dialogs/symbology/components/color_stops/StopRow';
+import useGetBandInfo, { IBandRow } from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+import { IStopRow, ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
+import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 

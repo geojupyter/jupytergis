@@ -3,7 +3,7 @@ import { ServiceManager } from '@jupyterlab/services';
 import { BoxPanel, Widget } from '@lumino/widgets';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
-import { debounce } from '../tools';
+import { debounce } from '@/src/tools';
 import {
   closeIcon,
   CommandToolbarButton,

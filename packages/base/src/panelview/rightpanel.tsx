@@ -7,7 +7,7 @@ import {
 } from '@jupytergis/schema';
 import { SidePanel } from '@jupyterlab/ui-components';
 
-import { IControlPanelModel } from '../types';
+import { IControlPanelModel } from '@/src/types';
 import { ControlPanelHeader } from './header';
 import { ObjectProperties } from './objectproperties';
 import { Annotations } from './annotationPanel';

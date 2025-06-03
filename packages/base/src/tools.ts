@@ -7,7 +7,7 @@ import { Contents, ServerConnection } from '@jupyterlab/services';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import * as d3Color from 'd3-color';
 import shp from 'shpjs';
-import { getGdal } from './gdal';
+import { getGdal } from '@/src/gdal';
 
 import {
   IDict,
@@ -18,7 +18,7 @@ import {
   IRasterLayerGalleryEntry,
   SourceType
 } from '@jupytergis/schema';
-import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
+import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
 
 export const debounce = (
   func: CallableFunction,

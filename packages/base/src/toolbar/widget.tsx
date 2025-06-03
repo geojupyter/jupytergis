@@ -14,9 +14,9 @@ import { CommandRegistry } from '@lumino/commands';
 import { Widget } from '@lumino/widgets';
 
 import * as React from 'react';
-import { CommandIDs } from '../constants';
-import { terminalToolbarIcon } from '../icons';
-import { rasterSubMenu, vectorSubMenu } from '../menus';
+import { CommandIDs } from '@/src/constants';
+import { terminalToolbarIcon } from '@/src/icons';
+import { rasterSubMenu, vectorSubMenu } from '@/src/menus';
 import { UsersItem } from '@jupyter/collaboration';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';

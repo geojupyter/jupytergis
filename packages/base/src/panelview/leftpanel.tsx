@@ -8,12 +8,12 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { SidePanel } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { MouseEvent as ReactMouseEvent } from 'react';
-import { IControlPanelModel } from '../types';
+import { IControlPanelModel } from '@/src/types';
 import { LayersPanel } from './components/layers';
 import { ControlPanelHeader } from './header';
 import { FilterPanel } from './components/filter-panel/Filter';
 import { CommandRegistry } from '@lumino/commands';
-import { CommandIDs } from '../constants';
+import { CommandIDs } from '@/src/constants';
 
 /**
  * Options of the left panel widget.
