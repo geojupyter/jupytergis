@@ -109,7 +109,7 @@ export const productsByCollection: Record<CollectionName, ProductCode[]> = {
 };
 
 // Map processing:level to product:type for queries and the datasets they apply to
-const products: ProductRegistry = {
+export const products: ProductRegistry = {
   SLC: {
     collections: ['Sentinel 1'],
     'processing:level': ['L1'],
