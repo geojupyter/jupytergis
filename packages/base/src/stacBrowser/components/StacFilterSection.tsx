@@ -14,7 +14,7 @@ interface IStacCollectionsProps {
   model: IJupyterGISModel;
 }
 
-const StacSections = ({
+const StacFilterSection = ({
   header,
   data,
   selectedCollections,
@@ -39,7 +39,7 @@ const StacSections = ({
         return Object.entries(data).map(([key, val]) => (
           <ToggleGroupItem
             key={key}
-            className="jgis-stac-browser-collection-item"
+            className="jgis-stac-browser-section-item"
             value={key}
           >
             {key}
@@ -54,7 +54,7 @@ const StacSections = ({
             values.map(val => (
               <ToggleGroupItem
                 key={`${key}-${val}`}
-                className="jgis-stac-browser-collection-item"
+                className="jgis-stac-browser-section-item"
                 value={val}
               >
                 {val}
@@ -86,4 +86,4 @@ const StacSections = ({
   );
 };
 
-export default StacSections;
+export default StacFilterSection;

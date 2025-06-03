@@ -8,7 +8,7 @@
   flex-wrap: wrap;
 }
 
-.jgis-stac-browser-collection-item {
+.jgis-stac-browser-section-item {
   border-radius: 1rem !important;
   cursor: pointer;
 }

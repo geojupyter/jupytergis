@@ -11,7 +11,7 @@ import {
 import { IStacViewProps } from '../StacBrowser';
 import { IStacItem, IStacQueryBody, IStacSearchResult } from '../types/types';
 import ProductSection from './ProductSection';
-import StacSections from './StacSection';
+import StacFilterSection from './StacFilterSection';
 
 const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
 
@@ -28,7 +28,7 @@ const StacPanelView = ({
 }: IStacViewProps) => {
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [selectedproducts, setSelectedProducts] = useState<string[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [results, setResults] = useState<IStacItem[]>([]);
 
   useEffect(() => {
@@ -171,7 +171,7 @@ const StacPanelView = ({
         <div>save/load filter</div>
         <div>date time picker</div>
         <div>where</div>
-        <StacSections
+        <StacFilterSection
           header="Collection"
           data={datasets}
           selectedCollections={selectedCollections}
@@ -182,7 +182,7 @@ const StacPanelView = ({
           selectedPlatforms={selectedPlatforms}
           model={model}
         />
-        <StacSections
+        <StacFilterSection
           header="Platform"
           data={platforms}
           selectedCollections={selectedCollections}
@@ -201,7 +201,7 @@ const StacPanelView = ({
             console.log('products', val);
             setSelectedProducts(val);
           }}
-          selectedProducts={selectedproducts}
+          selectedProducts={selectedProducts}
           model={model}
         />
         <div>data/ product</div>

@@ -96,7 +96,7 @@ const platforms: IDict<string[]> = {
   // OSO, Postel, and GEOV2 don't have platforms
 };
 
-// 2. Organize by collection first
+// map collection names to available product codes
 export const productsByCollection: Record<CollectionName, ProductCode[]> = {
   'Sentinel 1': ['SLC', 'GRD', 'OCN'],
   'Sentinel 2': ['L1C', 'L2A', 'L2B SNOW', 'L2B WATER', 'L3A'],
@@ -109,7 +109,6 @@ export const productsByCollection: Record<CollectionName, ProductCode[]> = {
 };
 
 // Map processing:level to product:type for queries and the datasets they apply to
-// so the keys here are what gets displayed in the UI - start there
 const products: ProductRegistry = {
   SLC: {
     collections: ['Sentinel 1'],
