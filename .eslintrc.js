@@ -37,17 +37,16 @@ module.exports = {
     "import/order": [
       1,
       {
-        groups: [
+        "groups": [
           "external",
           "builtin",
-          "internal",
-          "sibling",
-          "parent",
-          "index"
+          ["internal", "sibling", "parent", "index"]
         ],
-        pathGroups: [
-          {pattern: "@/*", group: "internal"}
-        ]
+        "distinctGroup": false,
+        "pathGroups": [
+          {pattern: "@/**", group: "internal", position: "before"}
+        ],
+        "newlines-between": "always"
       }
     ],
     "prefer-arrow-callback": "error",
