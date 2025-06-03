@@ -9,7 +9,13 @@ import {
   TabsTrigger
 } from '../../shared/components/Tabs';
 import { IStacViewProps } from '../StacBrowser';
-import { IStacItem, IStacQueryBody, IStacSearchResult } from '../types/types';
+import {
+  IStacItem,
+  IStacQueryBody,
+  IStacSearchResult,
+  IProductData
+} from '../types/types';
+import ProductSection from './ProductSection';
 import StacSections from './StacSection';
 
 const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
@@ -27,6 +33,7 @@ const StacPanelView = ({
 }: IStacViewProps) => {
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [selectedproducts, setSelectedProducts] = useState<IProductData[]>([]);
   const [results, setResults] = useState<IStacItem[]>([]);
 
   useEffect(() => {
@@ -189,6 +196,16 @@ const StacPanelView = ({
           selectedPlatforms={selectedPlatforms}
           model={model}
         />
+        <ProductSection
+          header="Data / Product"
+          data={products}
+          selectedCollections={selectedCollections}
+          handleToggleGroupValueChange={() => {
+            console.log('shut up');
+          }}
+          selectedPlatforms={selectedPlatforms}
+          model={model}
+        />
         <div>data/ product</div>
         <div>cloud cover</div>
       </TabsContent>
@@ -203,39 +220,6 @@ const StacPanelView = ({
               {formatResult(result)}
             </Button>
           ))}
-        </div>
-        <div className="jgis-stac-browser-results-list">
-          {results.map(result => (
-            <Button
-              variant={'ghost'}
-              className="jgis-stac-browser-results-item"
-              onClick={() => handleTileClick(result.id)}
-            >
-              {formatResult(result)}
-            </Button>
-          ))}
-        </div>
-        <div className="jgis-stac-browser-results-list">
-          {results.map(result => (
-            <Button
-              variant={'outline'}
-              className="jgis-stac-browser-results-item"
-              onClick={() => handleTileClick(result.id)}
-            >
-              {formatResult(result)}
-            </Button>
-          ))}
-          <div className="jgis-stac-browser-results-list">
-            {results.map(result => (
-              <Button
-                variant={'secondary'}
-                className="jgis-stac-browser-results-item"
-                onClick={() => handleTileClick(result.id)}
-              >
-                {formatResult(result)}
-              </Button>
-            ))}
-          </div>
         </div>
       </TabsContent>
     </Tabs>

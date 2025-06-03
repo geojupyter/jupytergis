@@ -6,7 +6,13 @@ import {
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { IControlPanelModel } from '../types';
 import StacPanelView from './components/StacPanelView';
-import { IStacItem, ProductData } from './types/types';
+import {
+  CollectionName,
+  IProductData,
+  IStacItem,
+  ProductCode,
+  ProductRegistry
+} from './types/types';
 
 // Map display names to query strings
 export const datasets: IDict<string[]> = {
@@ -87,12 +93,24 @@ const platforms: IDict<string[]> = {
     'SPOT5_TAKE5'
   ],
   Landsat: ['LANDSAT5', 'LANDSAT7', 'LANDSAT8']
+  // OSO, Postel, and GEOV2 don't have platforms
+};
+
+// 2. Organize by collection first
+export const productsByCollection: Record<CollectionName, ProductCode[]> = {
+  'Sentinel 1': ['SLC', 'GRD', 'OCN'],
+  'Sentinel 2': ['S2A', 'L1C', 'L2A', 'L2B SNOW', 'L2B WATER', 'L3A'],
+  Venus: ['L1C', 'L2A', 'L3A'],
+  Spot: ['L1C', 'L1A', 'L2A'],
+  Landsat: ['L2A', 'L2B SNOW', 'N2A'],
+  OSO: ['L3B-OSO'],
+  Postel: ['Vegetation', 'Radiation', 'Water', 'LandCover'],
+  'GEOV2 AVHRR': ['Vegetation']
 };
 
 // Map processing:level to product:type for queries and the datasets they apply to
 // so the keys here are what gets displayed in the UI - start there
-const products: IDict<ProductData> = {
-  // ! Sent 1
+const products: ProductRegistry = {
   SLC: {
     collections: ['Sentinel 1'],
     'processing:level': ['L1'],
@@ -108,24 +126,32 @@ const products: IDict<ProductData> = {
     'processing:level': ['L2'],
     'product:type': ['OCN']
   },
-  // ! Sent 2
-  S2A: {
-    collections: ['Sentinel 2'],
+  L1C: {
+    collections: ['Sentinel 2', 'Venus', 'Spot'],
     'processing:level': ['L1C'],
     'product:type': ['REFLECTANCE', 'REFLECTANCETOA', 'S2MSI1C']
   },
-  L1C: {
-    collections: ['Sentinel 2'],
-    'processing:level': ['L1C'],
-    'product:type': ['REFLECTANCE', 'REFLECTANCETOA', 'S2MSI1C']
+  L1A: {
+    collections: ['Spot'],
+    'processing:level': ['L1A'],
+    'product:type': [
+      'DEM',
+      'REFLECTANCETOA',
+      'DEM9V20',
+      'DEMS9V20',
+      'DEMS09V20',
+      'DEMSV20',
+      'DEPS9V20',
+      'SPOTDEM'
+    ]
   },
   L2A: {
-    collections: ['Sentinel 2'],
+    collections: ['Sentinel 2', 'Venus', 'Spot', 'Landsat'],
     'processing:level': ['L2A'],
     'product:type': ['REFLECTANCE']
   },
   'L2B SNOW': {
-    collections: ['Sentinel 2'],
+    collections: ['Sentinel 2', 'Landsat'],
     'processing:level': ['L2B-SNOW'],
     'product:type': ['SNOW_MASK']
   },
@@ -135,9 +161,36 @@ const products: IDict<ProductData> = {
     'product:type': ['REFLECTANCE']
   },
   L3A: {
-    collections: ['Sentinel 2'],
+    collections: ['Sentinel 2', 'Venus'],
     'processing:level': ['L3A'],
     'product:type': ['REFLECTANCE']
+  },
+  N2A: {
+    collections: ['Landsat'],
+    'processing:level': ['N2A'],
+    'product:type': ['REFLECTANCE']
+  },
+  'L3B-OSO': {
+    collections: ['OSO'],
+    'processing:level': ['L3B-OSO'],
+    'product:type': ['REFLECTANCE']
+  },
+  // TODO: GEOV2 AVHRR has extra attribute
+  Vegetation: {
+    collections: ['Postel', 'GEOV2 AVHRR'],
+    'product:type': ['Vegetation']
+  },
+  Radiation: {
+    collections: ['Postel'],
+    'product:type': ['Radiation']
+  },
+  Water: {
+    collections: ['Postel'],
+    'product:type': ['Water']
+  },
+  LandCover: {
+    collections: ['Postel'],
+    'product:type': ['LandCover']
   }
 };
 
@@ -158,12 +211,28 @@ export interface IStacViewProps {
   handleSearchInput: (event: ChangeEvent<HTMLInputElement>) => void;
   datasets: IDict<string[]>;
   platforms: IDict<string[]>;
-  products: IDict<ProductData>;
+  products: IDict<IProductData>;
   selectedCategory: string | null;
   handleCategoryClick: (category: string) => void;
   // handleTileClick: (id: string) => void;
   displayInfo?: IStacItem[];
   model?: IJupyterGISModel;
+}
+
+export function getProductsForCollection(
+  collection: CollectionName
+): IProductData[] {
+  return productsByCollection[collection].map(code => products[code]);
+}
+
+export function getProductCodesForCollection(
+  collection: CollectionName
+): ProductCode[] {
+  return [...productsByCollection[collection]]; // Return copy
+}
+
+export function getAllCollections(): CollectionName[] {
+  return Object.keys(productsByCollection) as CollectionName[];
 }
 
 const StacBrowser = ({

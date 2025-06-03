@@ -1,4 +1,4 @@
-import { IDict, IJupyterGISModel } from '@jupytergis/schema';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useMemo } from 'react';
 import {
   ToggleGroup,
@@ -7,7 +7,7 @@ import {
 
 interface IStacCollectionsProps {
   header: string;
-  data: IDict<string[]>;
+  data: Record<string, string[]>;
   selectedCollections: string[];
   selectedPlatforms: string[];
   handleToggleGroupValueChange: (val: string[]) => void;
@@ -24,32 +24,49 @@ const StacSections = ({
 }: IStacCollectionsProps) => {
   // ! Starts here
 
+  // TODO: This sucks lol
   const items = useMemo(() => {
-    if (header === 'Collection') {
-      return Object.entries(data).map(([key, val]) => (
-        <ToggleGroupItem
-          key={key}
-          className="jgis-stac-browser-collection-item"
-          value={key}
-        >
-          {key}
-        </ToggleGroupItem>
-      ));
-    } else if (header === 'Platform') {
-      return Object.entries(data)
-        .filter(([key]) => selectedCollections.includes(key))
-        .flatMap(([key, values]) =>
-          values.map(val => (
-            <ToggleGroupItem
-              key={`${key}-${val}`}
-              className="jgis-stac-browser-collection-item"
-              value={val}
-            >
-              {val}
-            </ToggleGroupItem>
-          ))
-        );
+    // TODO: Leaving this here for now
+    function isStringArrayRecord(
+      data: Record<string, string[]>
+    ): data is Record<string, string[]> {
+      const firstKey = Object.keys(data)[0];
+      return Array.isArray(data[firstKey]);
     }
+
+    if (isStringArrayRecord(data)) {
+      if (header === 'Collection') {
+        return Object.entries(data).map(([key, val]) => (
+          <ToggleGroupItem
+            key={key}
+            className="jgis-stac-browser-collection-item"
+            value={key}
+          >
+            {key}
+          </ToggleGroupItem>
+        ));
+      }
+
+      if (header === 'Platform') {
+        return Object.entries(data)
+          .filter(([key]) => selectedCollections.includes(key))
+          .flatMap(([key, values]) =>
+            values.map(val => (
+              <ToggleGroupItem
+                key={`${key}-${val}`}
+                className="jgis-stac-browser-collection-item"
+                value={val}
+              >
+                {val}
+              </ToggleGroupItem>
+            ))
+          );
+      }
+    } else {
+      console.log('shouldnt happen');
+      //data is ProductData now. this is so dumb
+    }
+
     return null;
   }, [header, data, selectedCollections]);
 
