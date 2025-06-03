@@ -9,6 +9,7 @@ import { useGetProperties } from '../../hooks/useGetProperties';
 import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
 import { Utils, VectorUtils } from '../../symbologyUtils';
 import ValueSelect from '../components/ValueSelect';
+import { activeTab } from '../../../../types';
 
 const Categorized = ({
   model,
@@ -197,7 +198,7 @@ const Categorized = ({
     cancel();
   };
 
-  const handleReset = (method: 'color' | 'radius') => {
+  const handleReset = (method: activeTab) => {
     if (!layer?.parameters) {
       return;
     }
