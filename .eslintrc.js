@@ -37,6 +37,7 @@ module.exports = {
     "import/order": [
       1,
       {
+        "alphabetize": {"order": "asc"},
         "groups": [
           "external",
           "builtin",
