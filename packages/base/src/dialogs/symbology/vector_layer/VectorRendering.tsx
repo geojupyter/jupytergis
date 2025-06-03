@@ -105,11 +105,11 @@ const VectorRendering = ({
         selectedRenderType
       ) && (
         <div className="jp-gis-symbology-tabs">
-          {['color', 'radius'].map(tab => (
+          {(['color', 'radius'] as const).map(tab => (
             <button
               key={tab}
               className={`jp-gis-tab ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab as 'color' | 'radius')}
+              onClick={() => setActiveTab(tab}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>

@@ -161,9 +161,11 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
     if (stopRowsRef.current && stopRowsRef.current.length > 0) {
       // If classification applied
       const colorExpr: ExpressionValue[] = [];
-      colorExpr.push('interpolate');
-      colorExpr.push(['linear']);
-      colorExpr.push(['get', selectedValueRef.current]);
+      colorExpr.push(
+        'interpolate',
+        ['linear'],
+        ['get', selectedValueRef.current]
+      );
 
       stopRowsRef.current.map(stop => {
         colorExpr.push(stop.stop);
