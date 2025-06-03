@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
+import requests
 
 from pycrdt import Array, Map
 from pydantic import BaseModel
@@ -254,7 +255,7 @@ class GISDocument(CommWidget):
         Add a GeoJSON Layer to the document.
 
         :param name: The name that will be used for the object in the document.
-        :param path: The path to the JSON file to embed into the jGIS file.
+        :param path: The path to the JSON file or URL to embed into the jGIS file.
         :param data: The raw GeoJSON data to embed into the jGIS file.
         :param opacity: The opacity, between 0 and 1.
         :param color_expr: The style expression used to style the layer, defaults to None
@@ -268,16 +269,22 @@ class GISDocument(CommWidget):
         if path is not None and data is not None:
             raise ValueError("Cannot set GeoJSON layer data and path at the same time")
 
+        parameters = {}
+
         if path is not None:
-            # We cannot put the path to the file in the model
-            # We don't know where the kernel runs/live
-            # The front-end would have no way of finding the file reliably
-            # TODO Support urls to JSON files, in that case, don't embed the data
-            with open(path, "r") as fobj:
-                parameters = {"data": json.loads(fobj.read())}
+            if path.startswith("http://") or path.startswith("https://"):
+                response = requests.get(path)
+                response.raise_for_status()
+                parameters["path"] = path
+            else:
+                # We cannot put the path to the file in the model
+                # We don't know where the kernel runs/live
+                # The front-end would have no way of finding the file reliably
+                with open(path, "r") as fobj:
+                    parameters["data"] = json.load(fobj)
 
         if data is not None:
-            parameters = {"data": data}
+            parameters["data"] = data
 
         source = {
             "type": SourceType.GeoJSONSource,

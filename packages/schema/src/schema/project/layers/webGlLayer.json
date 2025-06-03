@@ -68,6 +68,9 @@
         "blueBand": {
           "type": "number"
         },
+        "alphaBand": {
+          "type": "number"
+        },
         "interpolation": {
           "type": "string",
           "enum": ["discrete", "linear", "exact"]
