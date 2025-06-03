@@ -4,6 +4,7 @@ import Categorized from './types/Categorized';
 import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
+import { activeTab } from '../../../types';
 
 const VectorRendering = ({
   model,
@@ -17,7 +18,7 @@ const VectorRendering = ({
   const [renderTypeOptions, setRenderTypeOptions] = useState<string[]>([
     'Single Symbol'
   ]);
-  const [activeTab, setActiveTab] = useState<'color' | 'radius'>('color');
+  const [activeTab, setActiveTab] = useState<activeTab>('color');
 
   let RenderComponent;
 
@@ -109,7 +110,7 @@ const VectorRendering = ({
             <button
               key={tab}
               className={`jp-gis-tab ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab}
+              onClick={() => setActiveTab(tab as activeTab)}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>

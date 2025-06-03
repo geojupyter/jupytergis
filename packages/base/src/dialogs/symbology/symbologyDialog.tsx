@@ -6,6 +6,7 @@ import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
 import TiffRendering from './tiff_layer/TiffRendering';
 import VectorRendering from './vector_layer/VectorRendering';
+import { activeTab } from '../../types';
 
 export interface ISymbologyDialogProps {
   model: IJupyterGISModel;
@@ -13,7 +14,7 @@ export interface ISymbologyDialogProps {
   okSignalPromise: PromiseDelegate<Signal<SymbologyWidget, null>>;
   cancel: () => void;
   layerId?: string;
-  activeTab?: 'color' | 'radius';
+  activeTab?: activeTab;
 }
 
 export interface ISymbologyWidgetOptions {

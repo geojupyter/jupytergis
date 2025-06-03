@@ -2,9 +2,10 @@ import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useRef, useState } from 'react';
 import { IParsedStyle, parseColor } from '../../../../tools';
 import { ISymbologyDialogProps } from '../../symbologyDialog';
+import { activeTab } from '../../../../types';
 
 interface ISimpleSymbolProps extends ISymbologyDialogProps {
-  activeTab: 'color' | 'radius';
+  activeTab: activeTab;
 }
 
 const SimpleSymbol = ({
