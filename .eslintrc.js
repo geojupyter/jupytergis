@@ -35,7 +35,7 @@ module.exports = {
     "curly": ["error", "all"],
     "eqeqeq": "error",
     "import/order": [
-      1,
+      "error",
       {
         "alphabetize": {"order": "asc"},
         "groups": [
