@@ -10,8 +10,13 @@ import ColorRamp, {
   ColorRampOptions
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopRow from '@/src/dialogs/symbology/components/color_stops/StopRow';
-import useGetBandInfo, { IBandRow } from '@/src/dialogs/symbology/hooks/useGetBandInfo';
-import { IStopRow, ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import useGetBandInfo, {
+  IBandRow
+} from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+import {
+  IStopRow,
+  ISymbologyDialogProps
+} from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 

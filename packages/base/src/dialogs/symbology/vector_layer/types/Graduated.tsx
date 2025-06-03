@@ -8,7 +8,10 @@ import ColorRamp, {
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
-import { IStopRow, ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import {
+  IStopRow,
+  ISymbologyDialogProps
+} from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 
