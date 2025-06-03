@@ -99,7 +99,7 @@ const platforms: IDict<string[]> = {
 // 2. Organize by collection first
 export const productsByCollection: Record<CollectionName, ProductCode[]> = {
   'Sentinel 1': ['SLC', 'GRD', 'OCN'],
-  'Sentinel 2': ['S2A', 'L1C', 'L2A', 'L2B SNOW', 'L2B WATER', 'L3A'],
+  'Sentinel 2': ['L1C', 'L2A', 'L2B SNOW', 'L2B WATER', 'L3A'],
   Venus: ['L1C', 'L2A', 'L3A'],
   Spot: ['L1C', 'L1A', 'L2A'],
   Landsat: ['L2A', 'L2B SNOW', 'N2A'],

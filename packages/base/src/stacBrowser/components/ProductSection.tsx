@@ -11,8 +11,8 @@ interface IStacCollectionsProps {
   header: string;
   data: Record<string, IProductData>;
   selectedCollections: string[];
-  selectedPlatforms: string[];
-  handleToggleGroupValueChange: (val: IProductData[]) => void;
+  selectedProducts: string[];
+  handleToggleGroupValueChange: (val: string[]) => void;
   model: IJupyterGISModel;
 }
 
@@ -20,7 +20,7 @@ const ProductSection = ({
   header,
   data,
   selectedCollections,
-  selectedPlatforms,
+  selectedProducts,
   handleToggleGroupValueChange,
   model
 }: IStacCollectionsProps) => {
@@ -51,7 +51,7 @@ const ProductSection = ({
         variant={'outline'}
         size={'sm'}
         className="jgis-stac-browser-collection"
-        onValueChange={val => console.log('val', val)}
+        onValueChange={val => console.log('product val', val)}
         // onValueChange={handleToggleGroupValueChange}
       >
         {items}
