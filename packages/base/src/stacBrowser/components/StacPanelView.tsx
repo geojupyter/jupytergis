@@ -9,12 +9,7 @@ import {
   TabsTrigger
 } from '../../shared/components/Tabs';
 import { IStacViewProps } from '../StacBrowser';
-import {
-  IStacItem,
-  IStacQueryBody,
-  IStacSearchResult,
-  IProductData
-} from '../types/types';
+import { IStacItem, IStacQueryBody, IStacSearchResult } from '../types/types';
 import ProductSection from './ProductSection';
 import StacSections from './StacSection';
 
@@ -33,7 +28,7 @@ const StacPanelView = ({
 }: IStacViewProps) => {
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [selectedproducts, setSelectedProducts] = useState<IProductData[]>([]);
+  const [selectedproducts, setSelectedProducts] = useState<string[]>([]);
   const [results, setResults] = useState<IStacItem[]>([]);
 
   useEffect(() => {
@@ -181,6 +176,7 @@ const StacPanelView = ({
           data={datasets}
           selectedCollections={selectedCollections}
           handleToggleGroupValueChange={(val: string[]) => {
+            console.log('collections', val);
             setSelectedCollections(val);
           }}
           selectedPlatforms={selectedPlatforms}
@@ -191,6 +187,7 @@ const StacPanelView = ({
           data={platforms}
           selectedCollections={selectedCollections}
           handleToggleGroupValueChange={(val: string[]) => {
+            console.log('plaforms', val);
             setSelectedPlatforms(val);
           }}
           selectedPlatforms={selectedPlatforms}
@@ -200,10 +197,11 @@ const StacPanelView = ({
           header="Data / Product"
           data={products}
           selectedCollections={selectedCollections}
-          handleToggleGroupValueChange={() => {
-            console.log('shut up');
+          handleToggleGroupValueChange={(val: string[]) => {
+            console.log('products', val);
+            setSelectedProducts(val);
           }}
-          selectedPlatforms={selectedPlatforms}
+          selectedProducts={selectedproducts}
           model={model}
         />
         <div>data/ product</div>
