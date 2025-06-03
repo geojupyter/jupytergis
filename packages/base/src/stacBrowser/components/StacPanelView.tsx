@@ -43,11 +43,33 @@ const StacPanelView = ({
       .filter(([key]) => selectedCollections.includes(key))
       .flatMap(([_, values]) => values);
 
+    const processingLevel: string[] = [];
+    const productType: string[] = [];
+
+    selectedProducts.forEach(productCode => {
+      productType.push(...products[productCode]['product:type']);
+
+      // No processing:level for some collections
+      if (products[productCode]['processing:level']) {
+        processingLevel.push(...products[productCode]['processing:level']);
+      }
+    });
+
+    console.log('selectedProducts', selectedProducts);
+
+    console.log('selectedProducts.flat()', selectedProducts.flat());
+
+    console.log('processingLevel', processingLevel);
+    console.log('processingLevel.flat()', processingLevel.flat());
+    console.log('productType', productType);
+    console.log('productType.flat()', productType.flat());
     // Build query
     // TODO: Move out of fetch
     const fetchInEffect = async () => {
+      // so i have the list of keys, now i need to look em up
+
+      // TODO: All the hardcoded stuff
       const body: IStacQueryBody = {
-        // TODO: All the hardcoded stuff
         // TODO: get this from model
         bbox: [-180, -65.76350697055292, 180, 65.76350697055292],
         limit: 12,
@@ -62,9 +84,15 @@ const StacPanelView = ({
           latest: {
             eq: true
           },
-          // Only include platforms in query if there's a selection
+          // Only include following attrs in query if there's a selection
           ...(selectedPlatforms.length > 0 && {
             platform: { in: selectedPlatforms }
+          }),
+          ...(processingLevel.length > 0 && {
+            'processing:level': { in: processingLevel }
+          }),
+          ...(productType.length > 0 && {
+            'product:type': { in: productType }
           })
         },
         sortBy: [
@@ -90,7 +118,7 @@ const StacPanelView = ({
     if (isFirstRender) {
       setIsFirstRender(false);
     }
-  }, [selectedCollections, selectedPlatforms]);
+  }, [selectedCollections, selectedPlatforms, selectedProducts]);
 
   async function fetchWithProxy(options: IStacQueryBody) {
     // Needed for POST
@@ -204,7 +232,6 @@ const StacPanelView = ({
           selectedProducts={selectedProducts}
           model={model}
         />
-        <div>data/ product</div>
         <div>cloud cover</div>
       </TabsContent>
       <TabsContent value="results">
