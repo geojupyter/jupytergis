@@ -7,7 +7,7 @@ import {
 import { getProductCodesForCollection } from '../StacBrowser';
 import { CollectionName, IProductData } from '../types/types';
 
-interface IStacCollectionsProps {
+interface IStacSectionProps {
   header: string;
   data: Record<string, IProductData>;
   selectedCollections: string[];
@@ -23,7 +23,7 @@ const ProductSection = ({
   selectedProducts,
   handleToggleGroupValueChange,
   model
-}: IStacCollectionsProps) => {
+}: IStacSectionProps) => {
   // ! Starts here
   const items = useMemo(() => {
     const productCodesForCollections = selectedCollections
@@ -35,7 +35,7 @@ const ProductSection = ({
     return productCodesForCollections.map(val => (
       <ToggleGroupItem
         key={`${val}`}
-        className="jgis-stac-browser-collection-item"
+        className="jgis-stac-browser-section-item"
         value={val}
       >
         {val}
@@ -51,8 +51,7 @@ const ProductSection = ({
         variant={'outline'}
         size={'sm'}
         className="jgis-stac-browser-collection"
-        onValueChange={val => console.log('product val', val)}
-        // onValueChange={handleToggleGroupValueChange}
+        onValueChange={handleToggleGroupValueChange}
       >
         {items}
       </ToggleGroup>
