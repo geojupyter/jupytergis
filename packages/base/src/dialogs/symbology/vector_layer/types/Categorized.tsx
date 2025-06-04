@@ -18,7 +18,7 @@ const Categorized = ({
   okSignalPromise,
   cancel,
   layerId,
-  selectableAttributesAndValues
+  selectableAttributesAndValues,
 }: ISymbologyDialogWithAttributesProps) => {
   const selectedValueRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
@@ -57,7 +57,8 @@ const Categorized = ({
   useEffect(() => {
     const layerParams = layer.parameters as IVectorLayer;
     const value =
-      layerParams.symbologyState?.value ?? Object.keys(selectableAttributesAndValues)[0];
+      layerParams.symbologyState?.value ??
+      Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedAttribute(value);
   }, [selectableAttributesAndValues]);
@@ -81,7 +82,9 @@ const Categorized = ({
       selectedMode: '',
     });
 
-    const stops = Array.from(selectableAttributesAndValues[selectedAttribute]).sort((a, b) => a - b);
+    const stops = Array.from(
+      selectableAttributesAndValues[selectedAttribute],
+    ).sort((a, b) => a - b);
 
     const valueColorPairs = Utils.getValueColorPairs(
       stops,

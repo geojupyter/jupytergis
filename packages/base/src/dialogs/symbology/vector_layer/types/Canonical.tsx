@@ -2,8 +2,8 @@ import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { ISymbologyDialogWithAttributesProps } from '../../symbologyDialog';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import { ISymbologyDialogWithAttributesProps } from '../../symbologyDialog';
 
 const Canonical = ({
   model,
@@ -11,7 +11,7 @@ const Canonical = ({
   okSignalPromise,
   cancel,
   layerId,
-  selectableAttributesAndValues
+  selectableAttributesAndValues,
 }: ISymbologyDialogWithAttributesProps) => {
   const selectedValueRef = useRef<string>();
   const [selectedValue, setSelectedValue] = useState('');
@@ -39,7 +39,8 @@ const Canonical = ({
   useEffect(() => {
     const layerParams = layer.parameters as IVectorLayer;
     const value =
-      layerParams.symbologyState?.value ?? Object.keys(selectableAttributesAndValues)[0];
+      layerParams.symbologyState?.value ??
+      Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedValue(value);
   }, [selectableAttributesAndValues]);
