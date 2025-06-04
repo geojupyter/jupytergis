@@ -1,13 +1,22 @@
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
+import { format, startOfYesterday } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Button } from '../../shared/components/Button';
+import Calendar from '../../shared/components/Calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '../../shared/components/Popover';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger
 } from '../../shared/components/Tabs';
+import { cn } from '../../shared/components/utils';
 import { IStacViewProps } from '../StacBrowser';
 import { IStacItem, IStacQueryBody, IStacSearchResult } from '../types/types';
 import ProductSection from './ProductSection';
@@ -33,11 +42,8 @@ const StacPanelView = ({
   const [currentBBox, setCurrentBBox] = useState<
     [number, number, number, number]
   >([0, 0, 0, 0]);
-
-  useEffect(() => {
-    console.log('selectedCollections', selectedCollections);
-  }, [selectedCollections]);
-
+  const [startTime, setStartTime] = useState<Date>();
+  const [endTime, setEndTime] = useState<Date>();
   const [isFirstRender, setIsFirstRender] = useState(false);
 
   useEffect(() => {
@@ -73,16 +79,10 @@ const StacPanelView = ({
     });
 
     // Build query
-    // TODO: Move out of fetch
+    // TODO: Move out of effect
     const fetchInEffect = async () => {
-      // so i have the list of keys, now i need to look em up
-      const now = new Date().toISOString();
-      console.log('Date.now()', Date.now());
-      console.log('now', now);
-
       // TODO: All the hardcoded stuff
       const body: IStacQueryBody = {
-        // TODO: get this from model
         bbox: currentBBox,
         limit: 12,
         page: 1,
@@ -90,8 +90,13 @@ const StacPanelView = ({
           dataset: {
             in: selectedDatasets
           },
+          ...(startTime && {
+            start_datetime: { lte: startTime.toISOString() }
+          }),
           end_datetime: {
-            gte: '2025-05-27T09:21:00.000Z'
+            gte: endTime
+              ? endTime.toISOString()
+              : startOfYesterday().toISOString()
           },
           latest: {
             eq: true
@@ -163,8 +168,7 @@ const StacPanelView = ({
     }
   }
 
-  const handleTileClick = async (id: string) => {
-    console.log('id', id);
+  const handleResultClick = async (id: string) => {
     if (!results) {
       return;
     }
@@ -209,7 +213,53 @@ const StacPanelView = ({
       </TabsList>
       <TabsContent value="filters">
         <div>save/load filter</div>
-        <div>date time picker</div>
+        {/* Date Picker */}
+        <div className="jgis-stac-browser-date-picker">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={'outline'}
+                className={cn(
+                  'w-[280px] justify-start text-left font-normal',
+                  !startTime && 'text-muted-foreground'
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {startTime ? format(startTime, 'PPP') : <span>Start Date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={startTime}
+                onSelect={setStartTime}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={'outline'}
+                className={cn(
+                  'w-[280px] justify-start text-left font-normal',
+                  !endTime && 'text-muted-foreground'
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {endTime ? format(endTime, 'PPP') : <span>End Date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={endTime}
+                onSelect={setEndTime}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
         <div>where</div>
         <StacFilterSection
           header="Collection"
@@ -252,7 +302,7 @@ const StacPanelView = ({
           {results.map(result => (
             <Button
               className="jgis-stac-browser-results-item"
-              onClick={() => handleTileClick(result.id)}
+              onClick={() => handleResultClick(result.id)}
             >
               {formatResult(result)}
             </Button>
