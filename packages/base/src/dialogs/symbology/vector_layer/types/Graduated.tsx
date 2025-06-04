@@ -33,7 +33,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
   ];
 
   const selectedValueRef = useRef<string>();
-  const SymbologyTabRef = useRef<string>();
+  const symbologyTabRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
   const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
@@ -119,7 +119,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
 
   useEffect(() => {
     selectedValueRef.current = selectedValue;
-    SymbologyTabRef.current = symbologyTab;
+    symbologyTabRef.current = symbologyTab;
     stopRowsRef.current = stopRows;
     colorRampOptionsRef.current = colorRampOptions;
   }, [selectedValue, symbologyTab, stopRows, colorRampOptions]);
@@ -176,20 +176,20 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
         colorExpr.push(stop.output);
       });
 
-      if (SymbologyTabRef.current === 'color') {
+      if (symbologyTabRef.current === 'color') {
         newStyle['fill-color'] = colorExpr;
         newStyle['stroke-color'] = colorExpr;
         newStyle['circle-fill-color'] = colorExpr;
       }
 
-      if (SymbologyTabRef.current === 'radius') {
+      if (symbologyTabRef.current === 'radius') {
         newStyle['circle-radius'] = colorExpr;
       }
 
       const symbologyState = {
         renderType: 'Graduated',
         value: selectedValueRef.current,
-        method: SymbologyTabRef.current,
+        method: symbologyTabRef.current,
         colorRamp: colorRampOptionsRef.current?.selectedRamp,
         nClasses: colorRampOptionsRef.current?.numberOfShades,
         mode: colorRampOptionsRef.current?.selectedMode,
@@ -198,7 +198,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
       layer.parameters.symbologyState = symbologyState;
     } else {
       // No classification applied
-      if (SymbologyTabRef.current === 'color') {
+      if (symbologyTabRef.current === 'color') {
         newStyle['fill-color'] = manualStyleRef.current.fillColor;
         newStyle['stroke-color'] = manualStyleRef.current.strokeColor;
         newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
@@ -207,14 +207,14 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
         newStyle['circle-stroke-width'] = manualStyleRef.current.strokeWidth;
       }
 
-      if (SymbologyTabRef.current === 'radius') {
+      if (symbologyTabRef.current === 'radius') {
         newStyle['circle-radius'] = manualStyleRef.current.radius;
       }
 
       const symbologyState = {
         renderType: 'Graduated',
         value: selectedValueRef.current,
-        method: SymbologyTabRef.current,
+        method: symbologyTabRef.current,
         colorRamp: undefined,
         nClasses: undefined,
         mode: undefined,
