@@ -6,12 +6,12 @@ import {
   getColorCodeFeatureAttributes,
   getNumericFeatureAttributes,
 } from '@/src/tools';
+import { SymbologyTab } from '@/src/types';
 import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
 import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
-import { SymbologyTab } from '../../../types';
 
 const VectorRendering = ({
   model,

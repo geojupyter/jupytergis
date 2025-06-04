@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import { IParsedStyle, parseColor } from '@/src/tools';
-import { SymbologyTab } from '../../../../types';
+import { SymbologyTab } from '@/src/types';
 
 interface ISimpleSymbolProps extends ISymbologyDialogProps {
   SymbologyTab: SymbologyTab;

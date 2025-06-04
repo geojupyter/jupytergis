@@ -5,9 +5,9 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
 
+import { SymbologyTab } from '@/src/types';
 import TiffRendering from './tiff_layer/TiffRendering';
 import VectorRendering from './vector_layer/VectorRendering';
-import { SymbologyTab } from '../../types';
 
 export interface ISymbologyDialogProps {
   model: IJupyterGISModel;

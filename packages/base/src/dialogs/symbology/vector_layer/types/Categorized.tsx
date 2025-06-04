@@ -13,7 +13,7 @@ import {
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { getNumericFeatureAttributes } from '@/src/tools';
-import { SymbologyTab } from '../../../../types';
+import { SymbologyTab } from '@/src/types';
 
 const Categorized = ({
   model,
