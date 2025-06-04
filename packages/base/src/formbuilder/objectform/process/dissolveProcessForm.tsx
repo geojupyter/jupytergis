@@ -1,10 +1,11 @@
+import { IDict, IJupyterGISModel, IGeoJSONSource } from '@jupytergis/schema';
+import { IChangeEvent } from '@rjsf/core';
+
 import {
   BaseForm,
   IBaseFormProps,
   IBaseFormStates
 } from '@/src/formbuilder/objectform/baseform'; // Ensure BaseForm imports states
-import { IDict, IJupyterGISModel, IGeoJSONSource } from '@jupytergis/schema';
-import { IChangeEvent } from '@rjsf/core';
 import { loadFile } from '@/src/tools';
 
 interface IDissolveFormOptions extends IBaseFormProps {

@@ -1,7 +1,7 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { getNumericFeatureAttributes } from '@/src/tools';
+
 import { VectorClassifications } from '@/src/dialogs/symbology/classificationModes';
 import ColorRamp, {
   ColorRampOptions
@@ -14,6 +14,7 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import { getNumericFeatureAttributes } from '@/src/tools';
 
 const Graduated = ({
   model,

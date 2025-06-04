@@ -19,13 +19,14 @@ import React, {
   useEffect,
   useState
 } from 'react';
+
 import { icons } from '@/src/constants';
 import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
-import { IControlPanelModel } from '@/src/types';
 import {
   ILayerPanelOptions,
   ILeftPanelClickHandlerParams
 } from '@/src/panelview/leftpanel';
+import { IControlPanelModel } from '@/src/types';
 
 const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';

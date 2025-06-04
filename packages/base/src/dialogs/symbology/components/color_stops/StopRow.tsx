@@ -2,6 +2,7 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef } from 'react';
+
 import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
 
 const StopRow = ({

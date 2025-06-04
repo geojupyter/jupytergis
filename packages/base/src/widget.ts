@@ -7,12 +7,12 @@ import { MainAreaWidget } from '@jupyterlab/apputils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
+import { CommandRegistry } from '@lumino/commands';
 import { JSONValue } from '@lumino/coreutils';
+import { MessageLoop } from '@lumino/messaging';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel, Widget } from '@lumino/widgets';
 
-import { CommandRegistry } from '@lumino/commands';
-import { MessageLoop } from '@lumino/messaging';
 import { ConsoleView } from './console';
 import { JupyterGISMainViewPanel } from './mainview';
 import { MainViewModel } from './mainview/mainviewmodel';

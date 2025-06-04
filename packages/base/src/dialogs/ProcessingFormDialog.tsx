@@ -1,13 +1,14 @@
 import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
+import { PromiseDelegate } from '@lumino/coreutils';
+import { Signal } from '@lumino/signaling';
 import * as React from 'react';
+
 import {
   BaseForm,
   IBaseFormProps
 } from '@/src/formbuilder/objectform/baseform';
 import { DissolveForm } from '@/src/formbuilder/objectform/process';
-import { Signal } from '@lumino/signaling';
-import { PromiseDelegate } from '@lumino/coreutils';
 
 export interface IProcessingFormDialogOptions extends IBaseFormProps {
   formContext: 'update' | 'create';

@@ -1,5 +1,6 @@
-import React from 'react';
 import { Button } from '@jupyterlab/ui-components';
+import React from 'react';
+
 import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
 import StopRow from './StopRow';
 

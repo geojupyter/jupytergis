@@ -2,6 +2,7 @@ import {
   ICollaborativeDrive,
   SharedDocumentFactory
 } from '@jupyter/collaborative-drive';
+import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import {
   IAnnotationModel,
   IAnnotationToken,
@@ -24,15 +25,14 @@ import {
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { PageConfig } from '@jupyterlab/coreutils';
+import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
-import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
-import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 
 const FACTORY = 'JupyterGIS .jgis Viewer';
 const CONTENT_TYPE = 'jgis';

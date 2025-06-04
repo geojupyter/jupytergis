@@ -1,7 +1,8 @@
 import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useRef, useState } from 'react';
-import { IParsedStyle, parseColor } from '@/src/tools';
+
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import { IParsedStyle, parseColor } from '@/src/tools';
 
 const SimpleSymbol = ({
   model,

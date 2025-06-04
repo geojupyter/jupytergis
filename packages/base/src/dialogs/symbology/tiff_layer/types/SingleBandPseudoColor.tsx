@@ -3,8 +3,7 @@ import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { Spinner } from '@/src/mainview/spinner';
-import { GlobalStateDbManager } from '@/src/store';
+
 import { GeoTiffClassifications } from '@/src/dialogs/symbology/classificationModes';
 import ColorRamp, {
   ColorRampOptions
@@ -19,6 +18,8 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
+import { Spinner } from '@/src/mainview/spinner';
+import { GlobalStateDbManager } from '@/src/store';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 

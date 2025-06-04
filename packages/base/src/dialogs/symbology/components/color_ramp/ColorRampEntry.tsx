@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+
 import { IColorMap } from './CanvasSelectComponent';
 
 interface IColorRampEntryProps {

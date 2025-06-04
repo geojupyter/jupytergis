@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
+
+import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import {
+  getColorCodeFeatureAttributes,
+  getNumericFeatureAttributes
+} from '@/src/tools';
 import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
 import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
-import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
-import {
-  getColorCodeFeatureAttributes,
-  getNumericFeatureAttributes
-} from '@/src/tools';
 
 const VectorRendering = ({
   model,

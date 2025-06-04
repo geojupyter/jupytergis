@@ -33,6 +33,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { ContextMenu, Menu } from '@lumino/widgets';
+
 import { notebookRendererPlugin } from './notebookrenderer';
 
 const NAME_SPACE = 'jupytergis';

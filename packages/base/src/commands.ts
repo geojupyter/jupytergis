@@ -17,23 +17,24 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { Coordinate } from 'ol/coordinate';
+import { fromLonLat } from 'ol/proj';
+
 import { CommandIDs, icons } from './constants';
-import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
-import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
-import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
-import keybindings from './keybindings.json';
-import { JupyterGISTracker } from './types';
-import { JupyterGISDocumentWidget } from './widget';
-import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
+import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
+import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
+import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
+import { targetWithCenterIcon } from './icons';
+import keybindings from './keybindings.json';
 import {
   getSingleSelectedLayer,
   selectedLayerIsOfType,
   processSelectedLayer
 } from './processing';
-import { fromLonLat } from 'ol/proj';
-import { Coordinate } from 'ol/coordinate';
-import { targetWithCenterIcon } from './icons';
+import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
+import { JupyterGISTracker } from './types';
+import { JupyterGISDocumentWidget } from './widget';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
