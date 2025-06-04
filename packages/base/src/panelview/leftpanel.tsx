@@ -197,7 +197,6 @@ export class LeftPanelWidget extends SidePanel {
     // Notify commands that need updating
     this._commands.notifyCommandChanged(CommandIDs.identify);
     this._commands.notifyCommandChanged(CommandIDs.temporalController);
-    this._commands.notifyCommandChanged(CommandIDs.newDrawVectorLayer);
   }
 
   private _lastSelectedNodeId: string;

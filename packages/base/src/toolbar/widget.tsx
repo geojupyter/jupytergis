@@ -117,14 +117,6 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('Geolocation', geolocationButton);
       geolocationButton.node.dataset.testid = 'geolocation-button';
 
-      const drawVectoreLayerButton = new CommandToolbarButton({
-        id: CommandIDs.newDrawVectorLayer,
-        commands: options.commands,
-        label: ''
-      });
-      this.addItem('DrawVector', drawVectoreLayerButton);
-      drawVectoreLayerButton.node.dataset.testid = 'draw-vector-layer-button';
-
       const identifyButton = new CommandToolbarButton({
         id: CommandIDs.identify,
         label: '',
