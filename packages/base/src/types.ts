@@ -22,7 +22,7 @@ export interface IControlPanelModel {
   sharedModel: IJupyterGISDoc | undefined;
 }
 
-export type activeTab = 'color' | 'radius';
+export type SymbologyTab = 'color' | 'radius';
 
 /**
  * Add jupytergisMaps object to the global variables.

@@ -2,10 +2,10 @@ import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useRef, useState } from 'react';
 import { IParsedStyle, parseColor } from '@/src/tools';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
-import { activeTab } from '../../../../types';
+import { SymbologyTab } from '../../../../types';
 
 interface ISimpleSymbolProps extends ISymbologyDialogProps {
-  activeTab: activeTab;
+  SymbologyTab: SymbologyTab;
 }
 
 const SimpleSymbol = ({
@@ -14,7 +14,7 @@ const SimpleSymbol = ({
   okSignalPromise,
   cancel,
   layerId,
-  activeTab
+  SymbologyTab
 }: ISimpleSymbolProps) => {
   const styleRef = useRef<IParsedStyle>();
 
@@ -214,7 +214,7 @@ const SimpleSymbol = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
-      {activeTab === 'color' ? renderColorTab() : renderRadiusTab()}
+      {SymbologyTab === 'color' ? renderColorTab() : renderRadiusTab()}
     </div>
   );
 };

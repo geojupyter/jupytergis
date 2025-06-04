@@ -21,7 +21,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
   okSignalPromise,
   cancel,
   layerId,
-  activeTab
+  SymbologyTab
 }) => {
   const modeOptions = [
     'quantile',
@@ -32,7 +32,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
   ];
 
   const selectedValueRef = useRef<string>();
-  const activeTabRef = useRef<string>();
+  const SymbologyTabRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
   const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
@@ -66,11 +66,11 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
   useEffect(() => {
     let stopOutputPairs: IStopRow[] = [];
 
-    if (activeTab === 'color') {
+    if (SymbologyTab === 'color') {
       stopOutputPairs = VectorUtils.buildColorInfo(layer);
     }
 
-    if (activeTab === 'radius') {
+    if (SymbologyTab === 'radius') {
       stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
     }
     updateStopRowsBasedOnMethod();
@@ -114,14 +114,14 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
 
   useEffect(() => {
     updateStopRowsBasedOnMethod();
-  }, [activeTab]);
+  }, [SymbologyTab]);
 
   useEffect(() => {
     selectedValueRef.current = selectedValue;
-    activeTabRef.current = activeTab;
+    SymbologyTabRef.current = SymbologyTab;
     stopRowsRef.current = stopRows;
     colorRampOptionsRef.current = colorRampOptions;
-  }, [selectedValue, activeTab, stopRows, colorRampOptions]);
+  }, [selectedValue, SymbologyTab, stopRows, colorRampOptions]);
 
   useEffect(() => {
     // We only want number values here
@@ -143,11 +143,11 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
 
     let stopOutputPairs: IStopRow[] = [];
 
-    if (activeTab === 'color') {
+    if (SymbologyTab === 'color') {
       stopOutputPairs = VectorUtils.buildColorInfo(layer);
     }
 
-    if (activeTab === 'radius') {
+    if (SymbologyTab === 'radius') {
       stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
     }
 
@@ -175,20 +175,20 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
         colorExpr.push(stop.output);
       });
 
-      if (activeTabRef.current === 'color') {
+      if (SymbologyTabRef.current === 'color') {
         newStyle['fill-color'] = colorExpr;
         newStyle['stroke-color'] = colorExpr;
         newStyle['circle-fill-color'] = colorExpr;
       }
 
-      if (activeTabRef.current === 'radius') {
+      if (SymbologyTabRef.current === 'radius') {
         newStyle['circle-radius'] = colorExpr;
       }
 
       const symbologyState = {
         renderType: 'Graduated',
         value: selectedValueRef.current,
-        method: activeTabRef.current,
+        method: SymbologyTabRef.current,
         colorRamp: colorRampOptionsRef.current?.selectedRamp,
         nClasses: colorRampOptionsRef.current?.numberOfShades,
         mode: colorRampOptionsRef.current?.selectedMode
@@ -197,7 +197,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
       layer.parameters.symbologyState = symbologyState;
     } else {
       // No classification applied
-      if (activeTabRef.current === 'color') {
+      if (SymbologyTabRef.current === 'color') {
         newStyle['fill-color'] = manualStyleRef.current.fillColor;
         newStyle['stroke-color'] = manualStyleRef.current.strokeColor;
         newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
@@ -206,14 +206,14 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
         newStyle['circle-stroke-width'] = manualStyleRef.current.strokeWidth;
       }
 
-      if (activeTabRef.current === 'radius') {
+      if (SymbologyTabRef.current === 'radius') {
         newStyle['circle-radius'] = manualStyleRef.current.radius;
       }
 
       const symbologyState = {
         renderType: 'Graduated',
         value: selectedValueRef.current,
-        method: activeTabRef.current,
+        method: SymbologyTabRef.current,
         colorRamp: undefined,
         nClasses: undefined,
         mode: undefined
@@ -283,7 +283,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
     }
 
     let stopOutputPairs = [];
-    if (activeTab === 'radius') {
+    if (SymbologyTab === 'radius') {
       for (let i = 0; i < +numberOfShades; i++) {
         stopOutputPairs.push({ stop: stops[i], output: stops[i] });
       }
@@ -325,7 +325,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
     layer.parameters.color = newStyle;
 
     setStopRows(prev => {
-      if (activeTab === method) {
+      if (SymbologyTab === method) {
         return [];
       }
       return prev;
@@ -346,7 +346,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
         setSelectedValue={setSelectedValue}
       />
       <div className="jp-gis-layer-symbology-container">
-        {activeTab === 'color' && (
+        {SymbologyTab === 'color' && (
           <>
             <div className="jp-gis-symbology-row">
               <label>Fill Color:</label>
@@ -393,7 +393,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
           </>
         )}
 
-        {activeTab === 'radius' && (
+        {SymbologyTab === 'radius' && (
           <div className="jp-gis-symbology-row">
             <label>Circle Radius:</label>
             <input
@@ -415,7 +415,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
         showModeRow={true}
       />
       <StopContainer
-        selectedMethod={activeTab || 'color'}
+        selectedMethod={SymbologyTab || 'color'}
         stopRows={stopRows}
         setStopRows={setStopRows}
       />

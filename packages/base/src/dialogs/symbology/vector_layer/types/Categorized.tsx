@@ -12,7 +12,7 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { activeTab } from '../../../../types';
+import { SymbologyTab } from '../../../../types';
 
 const Categorized = ({
   model,
@@ -20,7 +20,7 @@ const Categorized = ({
   okSignalPromise,
   cancel,
   layerId,
-  activeTab
+  SymbologyTab
 }: ISymbologyDialogProps) => {
   const selectedValueRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
@@ -151,7 +151,7 @@ const Categorized = ({
         expr.push(stop.output);
       });
 
-      if (activeTab === 'color') {
+      if (SymbologyTab === 'color') {
         expr.push([0, 0, 0, 0.0]); // fallback color
 
         newStyle['fill-color'] = expr;
@@ -166,7 +166,7 @@ const Categorized = ({
         colorRamp: colorRampOptionsRef.current?.selectedRamp,
         nClasses: colorRampOptionsRef.current?.numberOfShades,
         mode: colorRampOptionsRef.current?.selectedMode,
-        activeTab
+        SymbologyTab
       };
 
       layer.parameters.symbologyState = symbologyState;
@@ -185,7 +185,7 @@ const Categorized = ({
         colorRamp: undefined,
         nClasses: undefined,
         mode: undefined,
-        activeTab
+        SymbologyTab
       };
 
       layer.parameters.symbologyState = symbologyState;
@@ -201,7 +201,7 @@ const Categorized = ({
     cancel();
   };
 
-  const handleReset = (method: activeTab) => {
+  const handleReset = (method: SymbologyTab) => {
     if (!layer?.parameters) {
       return;
     }
@@ -228,7 +228,7 @@ const Categorized = ({
 
     layer.parameters.color = newStyle;
 
-    setStopRows(prev => (activeTab === method ? [] : prev));
+    setStopRows(prev => (SymbologyTab === method ? [] : prev));
     if (method === 'color') {
       setColorRampOptions(undefined);
     }
@@ -246,7 +246,7 @@ const Categorized = ({
 
       <div className="jp-gis-layer-symbology-container">
         {/* Inputs depending on active tab */}
-        {activeTab === 'color' && (
+        {SymbologyTab === 'color' && (
           <>
             <div className="jp-gis-symbology-row">
               <label>Fill Color:</label>
@@ -296,7 +296,7 @@ const Categorized = ({
           </>
         )}
 
-        {activeTab === 'radius' && (
+        {SymbologyTab === 'radius' && (
           <div className="jp-gis-symbology-row">
             <label>Circle Radius:</label>
             <input

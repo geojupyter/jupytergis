@@ -5,7 +5,7 @@ import Categorized from './types/Categorized';
 import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
-import { activeTab } from '../../../types';
+import { SymbologyTab } from '../../../types';
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import {
   getColorCodeFeatureAttributes,
@@ -24,7 +24,7 @@ const VectorRendering = ({
   const [renderTypeOptions, setRenderTypeOptions] = useState<string[]>([
     'Single Symbol'
   ]);
-  const [activeTab, setActiveTab] = useState<activeTab>('color');
+  const [SymbologyTab, setSymbologyTab] = useState<SymbologyTab>('color');
 
   let RenderComponent;
 
@@ -79,7 +79,7 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
-            activeTab={activeTab}
+            SymbologyTab={SymbologyTab}
           />
         );
         break;
@@ -91,7 +91,7 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
-            activeTab={activeTab}
+            SymbologyTab={SymbologyTab}
           />
         );
         break;
@@ -103,7 +103,7 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
-            activeTab={activeTab}
+            SymbologyTab={SymbologyTab}
           />
         );
         break;
@@ -133,7 +133,7 @@ const VectorRendering = ({
         RenderComponent = <div>Select a render type</div>;
     }
     setComponentToRender(RenderComponent);
-  }, [selectedRenderType, activeTab]);
+  }, [selectedRenderType, SymbologyTab]);
 
   return (
     <>
@@ -144,8 +144,8 @@ const VectorRendering = ({
           {(['color', 'radius'] as const).map(tab => (
             <button
               key={tab}
-              className={`jp-gis-tab ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab as activeTab)}
+              className={`jp-gis-tab ${SymbologyTab === tab ? 'active' : ''}`}
+              onClick={() => setSymbologyTab(tab as SymbologyTab)}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
