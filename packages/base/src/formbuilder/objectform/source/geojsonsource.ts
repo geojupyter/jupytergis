@@ -40,7 +40,7 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
     const extraErrors: IDict = this.state.extraErrors;
 
     let error = '';
-    let valid = false;
+    let valid = true;
     if (path) {
       try {
         const geoJSONData = await loadFile({
@@ -55,28 +55,6 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
       } catch (e) {
         error = `"${path}" is not a valid GeoJSON file: ${e}`;
       }
-    } else {
-      //error = 'Path is required';
-      const layers = this.props.model.getLayers();
-      const layersArray = Object.values(layers);
-      valid = true;
-
-      layersArray.forEach(layer => {
-        if (layer.type === 'VectorLayer') {
-          const source = this.props.model.getSource(layer.parameters?.source);
-          if (source?.type === 'GeoJSONSource' && source.parameters?.data) {
-            error =
-              'There is already a Vector Layer with a geoGSON source.'
-
-            this.props.model.isDrawVectorLayerEnabled = false;
-            return;
-          } else {
-            console.log('No vector layer with geoJSON source with embedded date')
-            this.props.model.isDrawVectorLayerEnabled = true;
-            this.props.model.createEmptyVectorLayerWithGeoJSONSource();
-          }
-        }
-      })
     }
 
     if (!valid) {
