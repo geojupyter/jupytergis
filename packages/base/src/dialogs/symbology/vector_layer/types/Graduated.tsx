@@ -22,7 +22,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
   okSignalPromise,
   cancel,
   layerId,
-  SymbologyTab
+  SymbologyTab,
 }) => {
   const modeOptions = [
     'quantile',
@@ -47,7 +47,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
     fillColor: '#3399CC',
     strokeColor: '#3399CC',
     strokeWidth: 1.25,
-    radius: 5
+    radius: 5,
   });
   const manualStyleRef = useRef(manualStyle);
 
@@ -104,7 +104,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
           layer.parameters.color['stroke-width'] ||
           layer.parameters.color['circle-stroke-width'] ||
           1.25,
-        radius: layer.parameters.color['circle-radius'] || 5
+        radius: layer.parameters.color['circle-radius'] || 5,
       });
     }
   }, [layerId]);
@@ -168,7 +168,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
       colorExpr.push(
         'interpolate',
         ['linear'],
-        ['get', selectedValueRef.current]
+        ['get', selectedValueRef.current],
       );
 
       stopRowsRef.current.map(stop => {
@@ -192,7 +192,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
         method: SymbologyTabRef.current,
         colorRamp: colorRampOptionsRef.current?.selectedRamp,
         nClasses: colorRampOptionsRef.current?.numberOfShades,
-        mode: colorRampOptionsRef.current?.selectedMode
+        mode: colorRampOptionsRef.current?.selectedMode,
       };
 
       layer.parameters.symbologyState = symbologyState;
@@ -217,7 +217,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
         method: SymbologyTabRef.current,
         colorRamp: undefined,
         nClasses: undefined,
-        mode: undefined
+        mode: undefined,
       };
 
       layer.parameters.symbologyState = symbologyState;
@@ -371,7 +371,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
                   handleReset('color');
                   setManualStyle({
                     ...manualStyle,
-                    strokeColor: e.target.value
+                    strokeColor: e.target.value,
                   });
                 }}
               />
@@ -386,7 +386,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
                   handleReset('color');
                   setManualStyle({
                     ...manualStyle,
-                    strokeWidth: +e.target.value
+                    strokeWidth: +e.target.value,
                   });
                 }}
               />

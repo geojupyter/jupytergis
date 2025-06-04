@@ -12,8 +12,8 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { SymbologyTab } from '../../../../types';
 import { getNumericFeatureAttributes } from '@/src/tools';
+import { SymbologyTab } from '../../../../types';
 
 const Categorized = ({
   model,
@@ -21,7 +21,7 @@ const Categorized = ({
   okSignalPromise,
   cancel,
   layerId,
-  SymbologyTab
+  SymbologyTab,
 }: ISymbologyDialogProps) => {
   const selectedValueRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
@@ -37,7 +37,7 @@ const Categorized = ({
     fillColor: '#3399CC',
     strokeColor: '#3399CC',
     strokeWidth: 1.25,
-    radius: 5
+    radius: 5,
   });
   const manualStyleRef = useRef(manualStyle);
 
@@ -84,7 +84,7 @@ const Categorized = ({
           layer.parameters.color['stroke-width'] ||
           layer.parameters.color['circle-stroke-width'] ||
           1.25,
-        radius: layer.parameters.color['circle-radius'] || 5
+        radius: layer.parameters.color['circle-radius'] || 5,
       });
     }
   }, [layerId]);
@@ -167,7 +167,7 @@ const Categorized = ({
         colorRamp: colorRampOptionsRef.current?.selectedRamp,
         nClasses: colorRampOptionsRef.current?.numberOfShades,
         mode: colorRampOptionsRef.current?.selectedMode,
-        SymbologyTab
+        SymbologyTab,
       };
 
       layer.parameters.symbologyState = symbologyState;
@@ -186,7 +186,7 @@ const Categorized = ({
         colorRamp: undefined,
         nClasses: undefined,
         mode: undefined,
-        SymbologyTab
+        SymbologyTab,
       };
 
       layer.parameters.symbologyState = symbologyState;
@@ -259,7 +259,7 @@ const Categorized = ({
                   handleReset('color');
                   setManualStyle(prev => ({
                     ...prev,
-                    fillColor: e.target.value
+                    fillColor: e.target.value,
                   }));
                 }}
               />
@@ -274,7 +274,7 @@ const Categorized = ({
                   handleReset('color');
                   setManualStyle(prev => ({
                     ...prev,
-                    strokeColor: e.target.value
+                    strokeColor: e.target.value,
                   }));
                 }}
               />
@@ -289,7 +289,7 @@ const Categorized = ({
                   handleReset('color');
                   setManualStyle(prev => ({
                     ...prev,
-                    strokeWidth: +e.target.value
+                    strokeWidth: +e.target.value,
                   }));
                 }}
               />
@@ -308,7 +308,7 @@ const Categorized = ({
                 handleReset('radius');
                 setManualStyle(prev => ({
                   ...prev,
-                  radius: +e.target.value
+                  radius: +e.target.value,
                 }));
               }}
             />

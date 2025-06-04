@@ -2,8 +2,8 @@ import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
-import { SymbologyTab } from '../../../../types';
 import { IParsedStyle, parseColor } from '@/src/tools';
+import { SymbologyTab } from '../../../../types';
 
 interface ISimpleSymbolProps extends ISymbologyDialogProps {
   SymbologyTab: SymbologyTab;
@@ -15,7 +15,7 @@ const SimpleSymbol = ({
   okSignalPromise,
   cancel,
   layerId,
-  SymbologyTab
+  SymbologyTab,
 }: ISimpleSymbolProps) => {
   const styleRef = useRef<IParsedStyle>();
 

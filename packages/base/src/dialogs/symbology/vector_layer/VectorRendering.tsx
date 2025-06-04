@@ -139,7 +139,7 @@ const VectorRendering = ({
   return (
     <>
       {['Single Symbol', 'Graduated', 'Categorized'].includes(
-        selectedRenderType
+        selectedRenderType,
       ) && (
         <div className="jp-gis-symbology-tabs">
           {(['color', 'radius'] as const).map(tab => (
