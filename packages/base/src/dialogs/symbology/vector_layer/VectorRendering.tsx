@@ -12,11 +12,6 @@ import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
 import { SymbologyTab } from '../../../types';
-import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
-import {
-  getColorCodeFeatureAttributes,
-  getNumericFeatureAttributes
-} from '@/src/tools';
 
 const VectorRendering = ({
   model,
