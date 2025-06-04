@@ -87,6 +87,7 @@ const Heatmap = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
+      <p>Represent features based on their density using a heatmap.</p>
       <div className="jp-gis-symbology-row jp-gis-heatmap">
         <label htmlFor="color-ramp-select">Color Ramp:</label>
         <CanvasSelectComponent

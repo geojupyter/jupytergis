@@ -106,6 +106,7 @@ const SimpleSymbol = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
+      <p>Color all features the same way.</p>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Radius:</label>
         <input

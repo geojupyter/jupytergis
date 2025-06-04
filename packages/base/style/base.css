@@ -12,6 +12,11 @@
 @import url('./temporalSlider.css');
 @import url('ol/ol.css');
 
+.errors {
+  color: var(--jp-warn-color0);
+  font-weight: bold;
+}
+
 .jGIS-Toolbar-GroupName {
   font-size: var(--jp-ui-font-size0);
   padding-left: 3px;
