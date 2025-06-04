@@ -115,7 +115,7 @@ export interface IStacItem {
 export interface IStacSearchResult {
   context: { returned: number; limit: number; matched: number };
   features: IStacItem[];
-  link: IStacLink[];
+  links: IStacLink[];
   stac_extensions: string[];
   stac_version: string;
   type: 'FeatureCollection';
@@ -149,8 +149,8 @@ export type ProductRegistry = Record<ProductCode, IProductData>;
 
 export interface IStacQueryBody {
   bbox: [number, number, number, number];
-  limit: number;
-  page: number;
+  limit?: number;
+  page?: number;
   query: {
     dataset: {
       in: string[];
@@ -172,4 +172,9 @@ export interface IStacQueryBody {
       field: 'start_datetime';
     }
   ];
+}
+
+export interface IResultsLinks {
+  prev: string;
+  next: string;
 }
