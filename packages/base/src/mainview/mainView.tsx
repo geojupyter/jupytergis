@@ -323,6 +323,14 @@ export class MainView extends React.Component<IProps, IStates> {
           ...updatedOptions
         });
 
+        this.setState(old => ({
+          viewProjection: {
+            ...old.viewProjection,
+            code: projection.getCode(),
+            units: projection.getUnits()
+          }
+        }));
+
         // Calculate scale
         if (resolution) {
           // DPI and inches per meter values taken from OpenLayers
@@ -1572,6 +1580,9 @@ export class MainView extends React.Component<IProps, IStates> {
       }
     }
 
+    view.setRotation(bearing || 0);
+    this._Map.setView(view);
+
     // Use the extent only if explicitly requested (QGIS files).
     if (useExtent && extent) {
       view.fit(extent);
@@ -1589,10 +1600,6 @@ export class MainView extends React.Component<IProps, IStates> {
         this._model.setOptions(options);
       }
     }
-
-    view.setRotation(bearing || 0);
-
-    this._Map.setView(view);
   }
 
   private _onViewChanged(
