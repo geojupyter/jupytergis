@@ -12,7 +12,7 @@ const StopRow = ({
   stopRows,
   setStopRows,
   deleteRow,
-  useNumber
+  useNumber,
 }: {
   index: number;
   value: number;
@@ -56,7 +56,7 @@ const StopRow = ({
       parseInt(result[1], 16),
       parseInt(result[2], 16),
       parseInt(result[3], 16),
-      1 // TODO: Make alpha customizable?
+      1, // TODO: Make alpha customizable?
     ];
 
     return rgbValues;

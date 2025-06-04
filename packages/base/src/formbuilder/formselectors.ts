@@ -5,18 +5,18 @@ import {
   HillshadeLayerPropertiesForm,
   LayerPropertiesForm,
   VectorLayerPropertiesForm,
-  WebGlLayerPropertiesForm
+  WebGlLayerPropertiesForm,
 } from './objectform/layer';
 import {
   GeoJSONSourcePropertiesForm,
   GeoTiffSourcePropertiesForm,
   PathBasedSourcePropertiesForm,
   TileSourcePropertiesForm,
-  SourcePropertiesForm
+  SourcePropertiesForm,
 } from './objectform/source';
 
 export function getLayerTypeForm(
-  layerType: LayerType
+  layerType: LayerType,
 ): typeof LayerPropertiesForm {
   let LayerForm = LayerPropertiesForm;
 
@@ -40,7 +40,7 @@ export function getLayerTypeForm(
 }
 
 export function getSourceTypeForm(
-  sourceType: SourceType
+  sourceType: SourceType,
 ): typeof SourcePropertiesForm {
   let SourceForm = SourcePropertiesForm;
   switch (sourceType) {

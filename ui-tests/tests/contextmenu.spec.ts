@@ -7,7 +7,7 @@ test.describe('context menu', () => {
     await content.deleteDirectory('/testDir');
     await content.uploadDirectory(
       path.resolve(__dirname, './gis-files'),
-      '/testDir'
+      '/testDir',
     );
   });
   test.beforeEach(async ({ page }) => {
@@ -77,11 +77,11 @@ test.describe('context menu', () => {
   });
 
   test('clicking remove layer should remove the layer from the tree', async ({
-    page
+    page,
   }) => {
     // Create new layer first
     await page.getByLabel('Layers', { exact: true }).click({
-      button: 'right'
+      button: 'right',
     });
     await page.getByText('Add Layer').hover();
     await page.getByText('Add Raster Layer', { exact: true }).hover();
@@ -90,7 +90,7 @@ test.describe('context menu', () => {
     await page
       .locator('input#root_url')
       .type(
-        'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.pbf'
+        'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.pbf',
       );
 
     await page.getByRole('dialog').getByRole('button', { name: 'Ok' }).click();
@@ -99,7 +99,7 @@ test.describe('context menu', () => {
     expect(page.getByText(layerTitle)).toBeVisible();
 
     await page.getByText(layerTitle).click({
-      button: 'right'
+      button: 'right',
     });
 
     await page.getByRole('menu').getByText('Remove Layer').click();
@@ -108,7 +108,7 @@ test.describe('context menu', () => {
   });
 
   test('clicking remove group should remove the group from the tree', async ({
-    page
+    page,
   }) => {
     const firstItem = page
       .getByLabel('Layers', { exact: true })

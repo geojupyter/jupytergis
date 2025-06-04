@@ -52,7 +52,7 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
         const preloadedFile = await loadFile({
           filepath: sourceInfo.url,
           type: 'GeoTiffSource',
-          model
+          model,
         });
 
         if (!preloadedFile.file) {
@@ -72,8 +72,8 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
           band: i,
           stats: {
             minimum: sourceInfo.min ?? 0,
-            maximum: sourceInfo.max ?? 100
-          }
+            maximum: sourceInfo.max ?? 100,
+          },
         });
       }
 

@@ -7,7 +7,7 @@ test.describe('#export', () => {
     await content.deleteDirectory('/testDir');
     await content.uploadDirectory(
       path.resolve(__dirname, './gis-files'),
-      '/testDir'
+      '/testDir',
     );
   });
 
@@ -35,7 +35,7 @@ test.describe('#export', () => {
     await dialog.locator('.jp-mod-reject').click();
     await page.filebrowser.refresh();
     expect(
-      await page.filebrowser.contents.fileExists('testDir/france-hiking.qgz')
+      await page.filebrowser.contents.fileExists('testDir/france-hiking.qgz'),
     ).toBeFalsy();
   });
 
@@ -48,7 +48,7 @@ test.describe('#export', () => {
     await dialog.locator('.jp-mod-accept').click();
     await page.filebrowser.refresh();
     expect(
-      await page.filebrowser.contents.fileExists('testDir/france-hiking.qgz')
+      await page.filebrowser.contents.fileExists('testDir/france-hiking.qgz'),
     ).toBeTruthy();
   });
 
@@ -63,7 +63,7 @@ test.describe('#export', () => {
     await dialog.locator('.jp-mod-accept').click();
     await page.filebrowser.refresh();
     expect(
-      await page.filebrowser.contents.fileExists(`testDir/${filename}.qgz`)
+      await page.filebrowser.contents.fileExists(`testDir/${filename}.qgz`),
     ).toBeTruthy();
   });
 });

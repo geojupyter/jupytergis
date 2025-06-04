@@ -4,7 +4,7 @@ import { IChangeEvent } from '@rjsf/core';
 
 import {
   BaseForm,
-  IBaseFormProps
+  IBaseFormProps,
 } from '@/src/formbuilder/objectform/baseform';
 
 export interface ISourceFormProps extends IBaseFormProps {

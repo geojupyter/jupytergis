@@ -22,7 +22,7 @@ export class GeoTiffSourcePropertiesForm extends SourcePropertiesForm {
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,
-    uiSchema: IDict
+    uiSchema: IDict,
   ) {
     super.processSchema(data, schema, uiSchema);
     if (!schema.properties || !data) {
@@ -42,10 +42,10 @@ export class GeoTiffSourcePropertiesForm extends SourcePropertiesForm {
             'ui:widget': FileSelectorWidget,
             'ui:options': {
               docManager,
-              formOptions: this.props
-            }
-          }
-        }
+              formOptions: this.props,
+            },
+          },
+        },
       };
     }
 
@@ -100,27 +100,27 @@ export class GeoTiffSourcePropertiesForm extends SourcePropertiesForm {
           if (!mimeType || !mimeType.startsWith('image/tiff')) {
             valid = false;
             errors.push(
-              `"${url}" is not a valid ${this.props.sourceType} file.`
+              `"${url}" is not a valid ${this.props.sourceType} file.`,
             );
           }
         } else {
           if (!url || typeof url !== 'string' || url.trim() === '') {
             valid = false;
             errors.push(
-              `URL at index ${i} is required and must be a valid string.`
+              `URL at index ${i} is required and must be a valid string.`,
             );
           }
 
           if (min === undefined || typeof min !== 'number') {
             errors.push(
-              `Min value at index ${i} is required and must be a number.`
+              `Min value at index ${i} is required and must be a number.`,
             );
             valid = false;
           }
 
           if (max === undefined || typeof max !== 'number') {
             errors.push(
-              `Max value at index ${i} is required and must be a number.`
+              `Max value at index ${i} is required and must be a number.`,
             );
             valid = false;
           }
@@ -143,12 +143,12 @@ export class GeoTiffSourcePropertiesForm extends SourcePropertiesForm {
     if (!valid) {
       this.setState(old => ({
         ...old,
-        extraErrors: { ...extraErrors, urls: { __errors: errors } }
+        extraErrors: { ...extraErrors, urls: { __errors: errors } },
       }));
     } else {
       this.setState(old => ({
         ...old,
-        extraErrors: { ...extraErrors, urls: { __errors: [] } }
+        extraErrors: { ...extraErrors, urls: { __errors: [] } },
       }));
     }
 

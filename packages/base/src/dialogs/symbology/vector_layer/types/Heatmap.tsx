@@ -9,7 +9,7 @@ const Heatmap = ({
   state,
   okSignalPromise,
   cancel,
-  layerId
+  layerId,
 }: ISymbologyDialogProps) => {
   if (!layerId) {
     return;
@@ -21,12 +21,12 @@ const Heatmap = ({
   const [selectedRamp, setSelectedRamp] = useState('');
   const [heatmapOptions, setHetamapOptions] = useState({
     radius: 8,
-    blur: 15
+    blur: 15,
   });
   const selectedRampRef = useRef('cool');
   const heatmapOptionsRef = useRef({
     radius: 8,
-    blur: 15
+    blur: 15,
   });
 
   useEffect(() => {
@@ -66,12 +66,12 @@ const Heatmap = ({
     const colorMap = colormap({
       colormap: selectedRampRef.current,
       nshades: 9,
-      format: 'hex'
+      format: 'hex',
     });
 
     const symbologyState = {
       renderType: 'Heatmap',
-      colorRamp: selectedRampRef.current
+      colorRamp: selectedRampRef.current,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -103,7 +103,7 @@ const Heatmap = ({
           onChange={event =>
             setHetamapOptions(prevState => ({
               ...prevState,
-              radius: +event.target.value
+              radius: +event.target.value,
             }))
           }
         />
@@ -117,7 +117,7 @@ const Heatmap = ({
           onChange={event =>
             setHetamapOptions(prevState => ({
               ...prevState,
-              blur: +event.target.value
+              blur: +event.target.value,
             }))
           }
         />

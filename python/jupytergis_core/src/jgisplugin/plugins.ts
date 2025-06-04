@@ -1,6 +1,6 @@
 import {
   ICollaborativeDrive,
-  SharedDocumentFactory
+  SharedDocumentFactory,
 } from '@jupyter/collaborative-drive';
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import {
@@ -11,16 +11,16 @@ import {
   IJupyterGISDocTracker,
   IJupyterGISWidget,
   JupyterGISDoc,
-  SCHEMA_VERSION
+  SCHEMA_VERSION,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import {
   ICommandPalette,
   IThemeManager,
-  WidgetTracker
+  WidgetTracker,
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
@@ -54,7 +54,7 @@ const activate = async (
   settingRegistry: ISettingRegistry,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
-  drive: ICollaborativeDrive | null
+  drive: ICollaborativeDrive | null,
 ): Promise<void> => {
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
@@ -81,7 +81,7 @@ const activate = async (
     contentFactory,
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
-    consoleTracker
+    consoleTracker,
   });
 
   // Registering the widget factory
@@ -93,14 +93,14 @@ const activate = async (
     modelName: MODEL_NAME,
     name: 'JSON Editor',
     primaryFileType: app.docRegistry.getFileType('json'),
-    fileTypes: [CONTENT_TYPE]
+    fileTypes: [CONTENT_TYPE],
   });
   app.docRegistry.addWidgetFactory(mimeDocumentFactory);
 
   // Creating and registering the model factory for our custom DocumentModel
   const modelFactory = new JupyterGISModelFactory({
     annotationModel,
-    settingRegistry
+    settingRegistry,
   });
   app.docRegistry.addModelFactory(modelFactory);
 
@@ -112,7 +112,7 @@ const activate = async (
     extensions: ['.jgis', '.JGIS'],
     fileFormat: 'text',
     contentType: CONTENT_TYPE,
-    icon: logoMiniIcon
+    icon: logoMiniIcon,
   });
 
   const jGISSharedModelFactory: SharedDocumentFactory = () => {
@@ -121,7 +121,7 @@ const activate = async (
   if (drive) {
     drive.sharedModelFactory.registerDocumentFactory(
       CONTENT_TYPE,
-      jGISSharedModelFactory
+      jGISSharedModelFactory,
     );
   }
 
@@ -131,7 +131,7 @@ const activate = async (
       tracker.save(widget);
     });
     themeManager.themeChanged.connect((_, changes) =>
-      widget.model.themeChanged.emit(changes)
+      widget.model.themeChanged.emit(changes),
     );
     app.shell.activateById('jupytergis::leftControlPanel');
     app.shell.activateById('jupytergis::rightControlPanel');
@@ -163,22 +163,22 @@ const activate = async (
       let model = await app.serviceManager.contents.newUntitled({
         path: cwd,
         type: 'file',
-        ext: '.jGIS'
+        ext: '.jGIS',
       });
 
       model = await app.serviceManager.contents.save(model.path, {
         ...model,
         format: 'text',
         size: undefined,
-        content: `{\n\t"schemaVersion": "${SCHEMA_VERSION}",\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": [],\n\t"metadata": {}\n}`
+        content: `{\n\t"schemaVersion": "${SCHEMA_VERSION}",\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": [],\n\t"metadata": {}\n}`,
       });
 
       // Open the newly created file with the 'Editor'
       return app.commands.execute('docmanager:open', {
         path: model.path,
-        factory: FACTORY
+        factory: FACTORY,
       });
-    }
+    },
   });
 
   // Add the command to the launcher
@@ -186,7 +186,7 @@ const activate = async (
     launcher.add({
       command: CommandIDs.createNew,
       category: 'Other',
-      rank: 1
+      rank: 1,
     });
   }
 
@@ -195,44 +195,44 @@ const activate = async (
     palette.addItem({
       command: CommandIDs.createNew,
       args: { isPalette: true },
-      category: PALETTE_CATEGORY
+      category: PALETTE_CATEGORY,
     });
 
     palette.addItem({
       command: CommandIDs.openLayerBrowser,
-      category: 'JupyterGIS'
+      category: 'JupyterGIS',
     });
 
     // Layers and Sources
     palette.addItem({
       command: CommandIDs.newRasterEntry,
-      category: 'JupyterGIS'
+      category: 'JupyterGIS',
     });
 
     palette.addItem({
       command: CommandIDs.newVectorTileEntry,
-      category: 'JupyterGIS'
+      category: 'JupyterGIS',
     });
 
     palette.addItem({
       command: CommandIDs.newGeoJSONEntry,
-      category: 'JupyterGIS'
+      category: 'JupyterGIS',
     });
 
     palette.addItem({
       command: CommandIDs.newHillshadeEntry,
-      category: 'JupyterGIS'
+      category: 'JupyterGIS',
     });
 
     // Layer and group actions
     palette.addItem({
       command: CommandIDs.moveLayerToNewGroup,
-      category: 'JupyterGIS'
+      category: 'JupyterGIS',
     });
 
     palette.addItem({
       command: CommandIDs.buffer,
-      category: 'JupyterGIS'
+      category: 'JupyterGIS',
     });
   }
 };
@@ -249,11 +249,11 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IRenderMimeRegistry,
     IConsoleTracker,
     IAnnotationToken,
-    ISettingRegistry
+    ISettingRegistry,
   ],
   optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
   autoStart: true,
-  activate
+  activate,
 };
 
 export default jGISPlugin;

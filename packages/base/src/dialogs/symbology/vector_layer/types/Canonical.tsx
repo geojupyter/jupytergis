@@ -12,7 +12,7 @@ const Canonical = ({
   state,
   okSignalPromise,
   cancel,
-  layerId
+  layerId,
 }: ISymbologyDialogProps) => {
   const selectedValueRef = useRef<string>();
 
@@ -28,7 +28,7 @@ const Canonical = ({
   }
   const { featureProperties } = useGetProperties({
     layerId,
-    model: model
+    model: model,
   });
 
   useEffect(() => {
@@ -73,7 +73,7 @@ const Canonical = ({
 
     const symbologyState = {
       renderType: 'Canonical',
-      value: selectedValueRef.current
+      value: selectedValueRef.current,
     };
 
     layer.parameters.symbologyState = symbologyState;

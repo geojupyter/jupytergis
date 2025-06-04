@@ -2,7 +2,7 @@ import {
   IJupyterGISTracker,
   ISelection,
   JupyterGISDoc,
-  SelectionType
+  SelectionType,
 } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { SidePanel } from '@jupyterlab/ui-components';
@@ -52,7 +52,7 @@ export class LeftPanelWidget extends SidePanel {
     const layerTree = new LayersPanel({
       model: this._model,
       state: this._state,
-      onSelect: this._onSelect
+      onSelect: this._onSelect,
     });
     layerTree.title.caption = 'Layer tree';
     layerTree.title.label = 'Layers';
@@ -60,7 +60,7 @@ export class LeftPanelWidget extends SidePanel {
 
     const filterPanel = new FilterPanel({
       model: this._model,
-      tracker: options.tracker
+      tracker: options.tracker,
     });
 
     filterPanel.title.caption = 'Filters';
@@ -121,7 +121,7 @@ export class LeftPanelWidget extends SidePanel {
     type,
     item,
     nodeId,
-    event
+    event,
   }: ILeftPanelClickHandlerParams) => {
     if (!this._model || !nodeId) {
       return;
@@ -158,7 +158,7 @@ export class LeftPanelWidget extends SidePanel {
     if (nodeId) {
       // Check if new selection is the same type as previous selections
       const isSelectedSameType = Object.values(selectedValue).some(
-        selection => selection.type === type
+        selection => selection.type === type,
       );
 
       if (!isSelectedSameType) {
@@ -170,7 +170,7 @@ export class LeftPanelWidget extends SidePanel {
       // If types are the same add the selection
       const updatedSelectedValue = {
         ...selectedValue,
-        [item]: { type, selectedNodeId: nodeId }
+        [item]: { type, selectedNodeId: nodeId },
       };
       this._lastSelectedNodeId = nodeId;
 
@@ -185,7 +185,7 @@ export class LeftPanelWidget extends SidePanel {
     if (item && nodeId) {
       selection[item] = {
         type,
-        selectedNodeId: nodeId
+        selectedNodeId: nodeId,
       };
       this._lastSelectedNodeId = nodeId;
     }

@@ -9,7 +9,7 @@ import {
   ToolbarButton,
   addIcon,
   redoIcon,
-  undoIcon
+  undoIcon,
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { Widget } from '@lumino/widgets';
@@ -43,7 +43,7 @@ export class ToolbarWidget extends ReactiveToolbar {
         id: CommandIDs.undo,
         label: '',
         icon: undoIcon,
-        commands: options.commands
+        commands: options.commands,
       });
 
       this.addItem('undo', undoButton);
@@ -53,7 +53,7 @@ export class ToolbarWidget extends ReactiveToolbar {
         id: CommandIDs.redo,
         label: '',
         icon: redoIcon,
-        commands: options.commands
+        commands: options.commands,
       });
       this.addItem('redo', redoButton);
 
@@ -63,7 +63,7 @@ export class ToolbarWidget extends ReactiveToolbar {
         id: CommandIDs.toggleConsole,
         commands: options.commands,
         label: '',
-        icon: terminalToolbarIcon
+        icon: terminalToolbarIcon,
       });
       this.addItem('Toggle console', toggleConsoleButton);
       toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
@@ -73,7 +73,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       const openLayersBrowserButton = new CommandToolbarButton({
         id: CommandIDs.openLayerBrowser,
         label: '',
-        commands: options.commands
+        commands: options.commands,
       });
       this.addItem('openLayerBrowser', openLayersBrowserButton);
       openLayersBrowserButton.node.dataset.testid = 'open-layers-browser';
@@ -83,11 +83,11 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       NewSubMenu.addItem({
         type: 'submenu',
-        submenu: rasterSubMenu(options.commands)
+        submenu: rasterSubMenu(options.commands),
       });
       NewSubMenu.addItem({
         type: 'submenu',
-        submenu: vectorSubMenu(options.commands)
+        submenu: vectorSubMenu(options.commands),
       });
 
       const NewEntryButton = new ToolbarButton({
@@ -101,7 +101,7 @@ export class ToolbarWidget extends ReactiveToolbar {
           const bbox = NewEntryButton.node.getBoundingClientRect();
 
           NewSubMenu.open(bbox.x, bbox.bottom);
-        }
+        },
       });
       NewEntryButton.node.dataset.testid = 'new-entry-button';
 
@@ -112,7 +112,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       const geolocationButton = new CommandToolbarButton({
         id: CommandIDs.getGeolocation,
         commands: options.commands,
-        label: ''
+        label: '',
       });
       this.addItem('Geolocation', geolocationButton);
       geolocationButton.node.dataset.testid = 'geolocation-button';
@@ -120,7 +120,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       const identifyButton = new CommandToolbarButton({
         id: CommandIDs.identify,
         label: '',
-        commands: options.commands
+        commands: options.commands,
       });
 
       this.addItem('identify', identifyButton);
@@ -129,7 +129,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       const temporalControllerButton = new CommandToolbarButton({
         id: CommandIDs.temporalController,
         label: '',
-        commands: options.commands
+        commands: options.commands,
       });
       this.addItem('temporalController', temporalControllerButton);
       temporalControllerButton.node.dataset.testid =
@@ -140,7 +140,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       // Users
       this.addItem(
         'users',
-        ReactWidget.create(<UsersItem model={options.model} />)
+        ReactWidget.create(<UsersItem model={options.model} />),
       );
     }
   }

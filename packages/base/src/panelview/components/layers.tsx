@@ -2,7 +2,7 @@ import {
   IJGISLayerGroup,
   IJGISLayerTree,
   IJupyterGISClientState,
-  IJupyterGISModel
+  IJupyterGISModel,
 } from '@jupytergis/schema';
 import { DOMUtils } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -10,21 +10,21 @@ import {
   Button,
   LabIcon,
   ReactWidget,
-  caretDownIcon
+  caretDownIcon,
 } from '@jupyterlab/ui-components';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { Panel } from '@lumino/widgets';
 import React, {
   MouseEvent as ReactMouseEvent,
   useEffect,
-  useState
+  useState,
 } from 'react';
 
 import { icons } from '@/src/constants';
 import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
 import {
   ILayerPanelOptions,
-  ILeftPanelClickHandlerParams
+  ILeftPanelClickHandlerParams,
 } from '@/src/panelview/leftpanel';
 import { IControlPanelModel } from '@/src/types';
 
@@ -57,8 +57,8 @@ export class LayersPanel extends Panel {
           model={this._model}
           onSelect={this._onSelect}
           state={this._state}
-        ></LayersBodyComponent>
-      )
+        ></LayersBodyComponent>,
+      ),
     );
     this.node.ondragover = this._onDragOver;
     this.node.ondrop = this._onDrop;
@@ -120,7 +120,7 @@ export class LayersPanel extends Panel {
     model?.moveItemRelatedTo(
       draggedId,
       dragOverId,
-      dragOverPosition === 'above'
+      dragOverPosition === 'above',
     );
   };
 
@@ -129,7 +129,7 @@ export class LayersPanel extends Panel {
   private _onSelect: ({
     type,
     item,
-    nodeId
+    nodeId,
   }: ILeftPanelClickHandlerParams) => void;
 }
 
@@ -147,10 +147,10 @@ interface IBodyProps {
  */
 function LayersBodyComponent(props: IBodyProps): JSX.Element {
   const [model, setModel] = useState<IJupyterGISModel | undefined>(
-    props.model?.jGISModel
+    props.model?.jGISModel,
   );
   const [layerTree, setLayerTree] = useState<IJGISLayerTree>(
-    model?.getLayerTree() || []
+    model?.getLayerTree() || [],
   );
 
   /**
@@ -160,7 +160,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
     type,
     item,
     nodeId,
-    event
+    event,
   }: ILeftPanelClickHandlerParams) => {
     props.onSelect({ type, item, nodeId, event });
   };
@@ -211,7 +211,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
               onClick={onItemClick}
               state={props.state}
             />
-          )
+          ),
         )}
     </div>
   );
@@ -243,7 +243,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
   const layers = group?.layers ?? [];
   const [selected, setSelected] = useState<boolean>(
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
-    isSelected(group.name, gisModel)
+    isSelected(group.name, gisModel),
   );
 
   useEffect(() => {
@@ -253,7 +253,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
 
       setOpen(
         ((groupState as ReadonlyPartialJSONObject)?.expanded as boolean) ??
-          false
+          false,
       );
     };
 
@@ -330,7 +330,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
                   onClick={onClick}
                   state={props.state}
                 />
-              )
+              ),
             )}
         </div>
       )}
@@ -368,7 +368,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
   const [id, setId] = useState('');
   const [selected, setSelected] = useState<boolean>(
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
-    isSelected(layerId, gisModel)
+    isSelected(layerId, gisModel),
   );
   const name = layer.name;
 
@@ -382,7 +382,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
   useEffect(() => {
     const onClientSharedStateChanged = (
       sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>
+      clients: Map<number, IJupyterGISClientState>,
     ) => {
       // TODO Support follow mode and remoteUser state
       setSelected(isSelected(layerId, gisModel));
@@ -461,7 +461,7 @@ namespace Private {
   export const dragInfo: IDragInfo = {
     draggedElement: null,
     dragOverElement: null,
-    dragOverPosition: null
+    dragOverPosition: null,
   };
 
   export const onDragStart = (e: React.DragEvent) => {
@@ -474,7 +474,7 @@ namespace Private {
     const { clientY } = e;
 
     let target = (e.target as HTMLElement).closest(
-      `.${LAYER_GROUP_HEADER_CLASS}, .${LAYER_ITEM_CLASS}`
+      `.${LAYER_GROUP_HEADER_CLASS}, .${LAYER_ITEM_CLASS}`,
     ) as HTMLDivElement;
 
     if (!target) {
