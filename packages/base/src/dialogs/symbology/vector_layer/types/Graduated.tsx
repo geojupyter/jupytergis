@@ -10,13 +10,13 @@ import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopCo
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import {
   IStopRow,
-  ISymbologyDialogProps,
+  ISymbologyTabbedDialogProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { getNumericFeatureAttributes } from '@/src/tools';
 
-const Graduated: React.FC<ISymbologyDialogProps> = ({
+const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
   model,
   state,
   okSignalPromise,

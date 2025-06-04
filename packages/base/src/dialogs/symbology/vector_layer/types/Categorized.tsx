@@ -8,7 +8,7 @@ import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopCo
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import {
   IStopRow,
-  ISymbologyDialogProps,
+  ISymbologyTabbedDialogProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
@@ -22,7 +22,7 @@ const Categorized = ({
   cancel,
   layerId,
   symbologyTab,
-}: ISymbologyDialogProps) => {
+}: ISymbologyTabbedDialogProps) => {
   const selectedValueRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
   const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
