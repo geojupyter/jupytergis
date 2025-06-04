@@ -22,7 +22,7 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,
-    uiSchema: IDict
+    uiSchema: IDict,
   ) {
     if (data?.path !== '') {
       this.removeFormEntry('data', data, schema, uiSchema);
@@ -46,7 +46,7 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
         const geoJSONData = await loadFile({
           filepath: path,
           type: this.props.sourceType,
-          model: this.props.model
+          model: this.props.model,
         });
         valid = this._validate(geoJSONData);
         if (!valid) {
@@ -61,7 +61,7 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
 
     if (!valid) {
       extraErrors.path = {
-        __errors: [error]
+        __errors: [error],
       };
       this._validate.errors?.reverse().forEach(error => {
         extraErrors.path.__errors.push(error.message);
@@ -71,7 +71,7 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
     } else {
       this.setState(old => ({
         ...old,
-        extraErrors: { ...extraErrors, path: { __errors: [] } }
+        extraErrors: { ...extraErrors, path: { __errors: [] } },
       }));
     }
 

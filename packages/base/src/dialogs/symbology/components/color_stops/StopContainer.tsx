@@ -13,15 +13,15 @@ interface IStopContainerProps {
 const StopContainer = ({
   selectedMethod,
   stopRows,
-  setStopRows
+  setStopRows,
 }: IStopContainerProps) => {
   const addStopRow = () => {
     setStopRows([
       {
         stop: 0,
-        output: [0, 0, 0, 1]
+        output: [0, 0, 0, 1],
       },
-      ...stopRows
+      ...stopRows,
     ]);
   };
 

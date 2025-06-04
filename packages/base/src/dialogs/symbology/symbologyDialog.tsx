@@ -30,7 +30,7 @@ const SymbologyDialog = ({
   model,
   state,
   okSignalPromise,
-  cancel
+  cancel,
 }: ISymbologyDialogProps) => {
   const [selectedLayer, setSelectedLayer] = useState<string | null>(null);
   const [componentToRender, setComponentToRender] = useState<any>(null);

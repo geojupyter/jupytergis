@@ -31,11 +31,11 @@ export const FileSelectorWidget = (props: any) => {
   const handleBrowseServerFiles = async () => {
     try {
       const dialogElement = document.querySelector(
-        'dialog[aria-modal="true"]'
+        'dialog[aria-modal="true"]',
       ) as HTMLDialogElement;
       if (dialogElement) {
         const dialogInstance = Dialog.tracker.find(
-          dialog => dialog.node === dialogElement
+          dialog => dialog.node === dialogElement,
         );
 
         if (dialogInstance) {
@@ -47,7 +47,7 @@ export const FileSelectorWidget = (props: any) => {
 
       const output = await FileDialog.getOpenFiles({
         title: `Select ${formOptions.sourceType.split('Source')[0]} File`,
-        manager: docManager
+        manager: docManager,
       });
 
       if (output.value && output.value.length > 0) {
@@ -55,7 +55,7 @@ export const FileSelectorWidget = (props: any) => {
 
         const relativePath = PathExt.relative(
           PathExt.dirname(formOptions.filePath),
-          selectedFilePath
+          selectedFilePath,
         );
 
         setServerFilePath(relativePath);
@@ -70,27 +70,27 @@ export const FileSelectorWidget = (props: any) => {
                 (urlObject: any) => {
                   return {
                     ...urlObject,
-                    url: relativePath
+                    url: relativePath,
                   };
-                }
-              )
+                },
+              ),
             };
           } else {
             formOptions.dialogOptions.sourceData = {
               ...formOptions.sourceData,
-              path: relativePath
+              path: relativePath,
             };
           }
 
           const formDialog = new LayerCreationFormDialog({
-            ...formOptions.dialogOptions
+            ...formOptions.dialogOptions,
           });
           await formDialog.launch();
         }
       } else {
         if (dialogElement) {
           const formDialog = new LayerCreationFormDialog({
-            ...formOptions.dialogOptions
+            ...formOptions.dialogOptions,
           });
           await formDialog.launch();
         }

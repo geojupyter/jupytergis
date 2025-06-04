@@ -3,7 +3,7 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
   IJupyterGISTracker,
-  JupyterGISDoc
+  JupyterGISDoc,
 } from '@jupytergis/schema';
 import { SidePanel } from '@jupyterlab/ui-components';
 
@@ -28,20 +28,20 @@ export class RightPanelWidget extends SidePanel {
     const properties = new ObjectProperties({
       controlPanelModel: this._model,
       formSchemaRegistry: options.formSchemaRegistry,
-      tracker: options.tracker
+      tracker: options.tracker,
     });
 
     this.addWidget(properties);
 
     const annotations = new Annotations({
       rightPanelModel: this._model,
-      annotationModel: this._annotationModel
+      annotationModel: this._annotationModel,
     });
     this.addWidget(annotations);
 
     const identifyPanel = new IdentifyPanel({
       model: this._model,
-      tracker: options.tracker
+      tracker: options.tracker,
     });
     identifyPanel.title.caption = 'Identify';
     identifyPanel.title.label = 'Identify';

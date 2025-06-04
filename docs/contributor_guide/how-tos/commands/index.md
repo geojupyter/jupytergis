@@ -24,7 +24,7 @@ is a behavior that can be triggered from a menu in the JupyterGIS UI.
   ```typescript
   const iconObject = {
     // ...
-    [CommandIDs.myNewCommand]: { iconClass: 'fas fa-question' }
+    [CommandIDs.myNewCommand]: { iconClass: 'fas fa-question' },
     // ...
   };
   ```
@@ -46,7 +46,7 @@ is a behavior that can be triggered from a menu in the JupyterGIS UI.
       execute: (): void => {
         // ...
       },
-      ...icons.get(CommandIDs.myNewCommand)
+      ...icons.get(CommandIDs.myNewCommand),
     });
 
     // ...
@@ -80,8 +80,8 @@ is a behavior that can be triggered from a menu in the JupyterGIS UI.
           new CommandToolbarButton({
             id: CommandIDs.myNewCommand,
             label: '',
-            commands: options.commands
-          })
+            commands: options.commands,
+          }),
         );
 
         // ...

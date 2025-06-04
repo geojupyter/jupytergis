@@ -3,7 +3,7 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   IJupyterGISTracker,
-  IJupyterGISWidget
+  IJupyterGISWidget,
 } from '@jupytergis/schema';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { ISignal } from '@lumino/signaling';

@@ -6,15 +6,15 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { GeoTiffClassifications } from '@/src/dialogs/symbology/classificationModes';
 import ColorRamp, {
-  ColorRampOptions
+  ColorRampOptions,
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopRow from '@/src/dialogs/symbology/components/color_stops/StopRow';
 import useGetBandInfo, {
-  IBandRow
+  IBandRow,
 } from '@/src/dialogs/symbology/hooks/useGetBandInfo';
 import {
   IStopRow,
-  ISymbologyDialogProps
+  ISymbologyDialogProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
@@ -27,7 +27,7 @@ const SingleBandPseudoColor = ({
   model,
   okSignalPromise,
   cancel,
-  layerId
+  layerId,
 }: ISymbologyDialogProps) => {
   if (!layerId) {
     return;
@@ -87,7 +87,7 @@ const SingleBandPseudoColor = ({
 
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
-      `jupytergis:${layerId}`
+      `jupytergis:${layerId}`,
     )) as ReadonlyJSONObject;
 
     setLayerState(layerState);
@@ -129,7 +129,7 @@ const SingleBandPseudoColor = ({
         for (let i = 5; i < color.length; i += 2) {
           const obj: IStopRow = {
             stop: scaleValue(color[i], isQuantile),
-            output: color[i + 1]
+            output: color[i + 1],
           };
           valueColorPairs.push(obj);
         }
@@ -146,7 +146,7 @@ const SingleBandPseudoColor = ({
         for (let i = 3; i < color.length - 1; i += 2) {
           const obj: IStopRow = {
             stop: scaleValue(color[i][2], isQuantile),
-            output: color[i + 1]
+            output: color[i + 1],
           };
           valueColorPairs.push(obj);
         }
@@ -216,7 +216,7 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '<=',
             ['band', selectedBand],
-            unscaleValue(stop.stop, isQuantile)
+            unscaleValue(stop.stop, isQuantile),
           ]);
           colorExpr.push(stop.output);
         });
@@ -236,7 +236,7 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '==',
             ['band', selectedBand],
-            unscaleValue(stop.stop, isQuantile)
+            unscaleValue(stop.stop, isQuantile),
           ]);
           colorExpr.push(stop.output);
         });
@@ -253,7 +253,7 @@ const SingleBandPseudoColor = ({
       interpolation: selectedFunctionRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode
+      mode: colorRampOptionsRef.current?.selectedMode,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -268,9 +268,9 @@ const SingleBandPseudoColor = ({
     setStopRows([
       {
         stop: 0,
-        output: [0, 0, 0, 1]
+        output: [0, 0, 0, 1],
       },
-      ...stopRows
+      ...stopRows,
     ]);
   };
 
@@ -285,13 +285,13 @@ const SingleBandPseudoColor = ({
     selectedMode: string,
     numberOfShades: string,
     selectedRamp: string,
-    setIsLoading: (isLoading: boolean) => void
+    setIsLoading: (isLoading: boolean) => void,
   ) => {
     // Update layer state with selected options
     setColorRampOptions({
       selectedRamp,
       numberOfShades,
-      selectedMode
+      selectedMode,
     });
 
     let stops: number[] = [];
@@ -308,7 +308,7 @@ const SingleBandPseudoColor = ({
           nClasses,
           selectedBand,
           sourceInfo.url,
-          selectedFunction
+          selectedFunction,
         );
         break;
       case 'continuous':
@@ -316,7 +316,7 @@ const SingleBandPseudoColor = ({
           nClasses,
           currentBand.stats.minimum,
           currentBand.stats.maximum,
-          selectedFunction
+          selectedFunction,
         );
         break;
       case 'equal interval':
@@ -324,7 +324,7 @@ const SingleBandPseudoColor = ({
           nClasses,
           currentBand.stats.minimum,
           currentBand.stats.maximum,
-          selectedFunction
+          selectedFunction,
         );
         break;
       default:
@@ -336,7 +336,7 @@ const SingleBandPseudoColor = ({
     const valueColorPairs = Utils.getValueColorPairs(
       stops,
       selectedRamp,
-      nClasses
+      nClasses,
     );
 
     setStopRows(valueColorPairs);

@@ -2,7 +2,7 @@ import {
   IJupyterLabPageFixture,
   expect,
   galata,
-  test
+  test,
 } from '@jupyterlab/galata';
 import { Locator } from '@playwright/test';
 import path from 'path';
@@ -16,8 +16,8 @@ const TEST_REGISTRY = {
       html_attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       attribution: '(C) OpenStreetMap contributors',
-      name: 'OpenStreetMap.Mapnik'
-    }
+      name: 'OpenStreetMap.Mapnik',
+    },
   },
   Strava: {
     All: {
@@ -28,7 +28,7 @@ const TEST_REGISTRY = {
         'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
       html_attribution:
         'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      name: 'Strava.All'
+      name: 'Strava.All',
     },
     Ride: {
       thumbnailPath: 'rasterlayer_gallery/Strava-Ride.png',
@@ -38,7 +38,7 @@ const TEST_REGISTRY = {
         'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
       html_attribution:
         'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      name: 'Strava.Ride'
+      name: 'Strava.Ride',
     },
     Run: {
       thumbnailPath: 'rasterlayer_gallery/Strava-Run.png',
@@ -48,7 +48,7 @@ const TEST_REGISTRY = {
         'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
       html_attribution:
         'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      name: 'Strava.Run'
+      name: 'Strava.Run',
     },
     Water: {
       thumbnailPath: 'rasterlayer_gallery/Strava-Water.png',
@@ -58,7 +58,7 @@ const TEST_REGISTRY = {
         'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
       html_attribution:
         'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      name: 'Strava.Water'
+      name: 'Strava.Water',
     },
     Winter: {
       thumbnailPath: 'rasterlayer_gallery/Strava-Winter.png',
@@ -68,13 +68,13 @@ const TEST_REGISTRY = {
         'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
       html_attribution:
         'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      name: 'Strava.Winter'
-    }
-  }
+      name: 'Strava.Winter',
+    },
+  },
 };
 
 async function openLayerBrowser(
-  page: IJupyterLabPageFixture
+  page: IJupyterLabPageFixture,
 ): Promise<Locator> {
   const layerBrowser = page.locator('#jupytergis\\:\\:layerBrowser');
 
@@ -89,7 +89,7 @@ async function getGridTiles(page: IJupyterLabPageFixture): Promise<Locator> {
   const layerBrowser = await openLayerBrowser(page);
 
   const gridTiles = layerBrowser.locator(
-    '.jGIS-layer-browser-container .jGIS-layer-browser-grid .jGIS-layer-browser-tile'
+    '.jGIS-layer-browser-container .jGIS-layer-browser-grid .jGIS-layer-browser-tile',
   );
 
   return gridTiles;
@@ -101,7 +101,7 @@ test.describe('#layerBrowser', () => {
     await content.deleteDirectory('/testDir');
     await content.uploadDirectory(
       path.resolve(__dirname, './gis-files'),
-      '/testDir'
+      '/testDir',
     );
   });
 
@@ -127,7 +127,7 @@ test.describe('#layerBrowser', () => {
     const layerBrowser = await openLayerBrowser(page);
 
     const gridTiles = layerBrowser.locator(
-      '.jGIS-layer-browser-container .jGIS-layer-browser-grid .jGIS-layer-browser-tile'
+      '.jGIS-layer-browser-container .jGIS-layer-browser-grid .jGIS-layer-browser-tile',
     );
     const numberOfTiles = await gridTiles.count();
 
@@ -148,7 +148,7 @@ test.describe('#layerBrowser', () => {
   });
 
   test('clicking category filter twice should clear filter', async ({
-    page
+    page,
   }) => {
     const gridTiles = await getGridTiles(page);
     const numberOfTiles = await gridTiles.count();

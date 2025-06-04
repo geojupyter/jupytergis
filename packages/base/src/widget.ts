@@ -1,7 +1,7 @@
 import {
   IJupyterGISDocumentWidget,
   IJupyterGISModel,
-  IJupyterGISOutputWidget
+  IJupyterGISOutputWidget,
 } from '@jupytergis/schema';
 import { MainAreaWidget } from '@jupyterlab/apputils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
@@ -28,7 +28,7 @@ export class JupyterGISDocumentWidget
   implements IJupyterGISDocumentWidget
 {
   constructor(
-    options: DocumentWidget.IOptions<JupyterGISPanel, IJupyterGISModel>
+    options: DocumentWidget.IOptions<JupyterGISPanel, IJupyterGISModel>,
   ) {
     super(options);
   }
@@ -112,13 +112,13 @@ export class JupyterGISPanel extends SplitPanel {
     this._mainViewModel = new MainViewModel({
       jGISModel: options.model,
       viewSetting: this._view,
-      commands: options.commandRegistry
+      commands: options.commandRegistry,
     });
   }
 
   _initView() {
     this._jupyterGISMainViewPanel = new JupyterGISMainViewPanel({
-      mainViewModel: this._mainViewModel
+      mainViewModel: this._mainViewModel,
     });
     this.addWidget(this._jupyterGISMainViewPanel);
     SplitPanel.setStretch(this._jupyterGISMainViewPanel, 1);
@@ -186,7 +186,7 @@ export class JupyterGISPanel extends SplitPanel {
         manager,
         mimeTypeService,
         rendermime,
-        commandRegistry
+        commandRegistry,
       } = this._consoleOption;
       if (
         contentFactory &&
@@ -201,7 +201,7 @@ export class JupyterGISPanel extends SplitPanel {
           manager,
           mimeTypeService,
           rendermime,
-          commandRegistry
+          commandRegistry,
         });
         const { consolePanel } = this._consoleView;
 
@@ -211,7 +211,7 @@ export class JupyterGISPanel extends SplitPanel {
         this.setRelativeSizes([2, 1]);
         this._consoleOpened = true;
         await consolePanel.console.inject(
-          `from jupytergis import GISDocument\ndoc = GISDocument("${jgisPath}")`
+          `from jupytergis import GISDocument\ndoc = GISDocument("${jgisPath}")`,
         );
         consolePanel.console.sessionContext.kernelChanged.connect((_, arg) => {
           if (!arg.newValue) {

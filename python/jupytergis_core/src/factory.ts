@@ -2,12 +2,12 @@ import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
 import {
   JupyterGISPanel,
   JupyterGISDocumentWidget,
-  ToolbarWidget
+  ToolbarWidget,
 } from '@jupytergis/base';
 import {
   JupyterGISModel,
   IJupyterGISTracker,
-  IJGISExternalCommandRegistry
+  IJGISExternalCommandRegistry,
 } from '@jupytergis/schema';
 import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
@@ -49,7 +49,7 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
    * @returns The widget
    */
   protected createNewWidget(
-    context: DocumentRegistry.IContext<JupyterGISModel>
+    context: DocumentRegistry.IContext<JupyterGISModel>,
   ): JupyterGISDocumentWidget {
     if (this._backendCheck) {
       const checked = this._backendCheck();
@@ -69,12 +69,12 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       mimeTypeService: this.options.mimeTypeService,
       rendermime: this.options.rendermime,
       consoleTracker: this.options.consoleTracker,
-      commandRegistry: this.options.commands
+      commandRegistry: this.options.commands,
     });
     const toolbar = new ToolbarWidget({
       commands: this._commands,
       model,
-      externalCommands: this._externalCommandRegistry.getCommands()
+      externalCommands: this._externalCommandRegistry.getCommands(),
     });
     return new JupyterGISDocumentWidget({ context, content, toolbar });
   }

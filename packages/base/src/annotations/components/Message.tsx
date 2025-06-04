@@ -28,13 +28,13 @@ export const Message = (props: IProps): JSX.Element => {
     <div
       className="jGIS-Annotation-Message"
       style={{
-        flexFlow: self ? 'row' : 'row-reverse'
+        flexFlow: self ? 'row' : 'row-reverse',
       }}
     >
       <div
         className="jGIS-Annotation-User-Icon"
         style={{
-          backgroundColor: color
+          backgroundColor: color,
         }}
         title={author}
       >

@@ -9,7 +9,7 @@ const TiffRendering = ({
   state,
   okSignalPromise,
   cancel,
-  layerId
+  layerId,
 }: ISymbologyDialogProps) => {
   const renderTypes = ['Singleband Pseudocolor', 'Multiband Color'];
   const [selectedRenderType, setSelectedRenderType] = useState<string>();

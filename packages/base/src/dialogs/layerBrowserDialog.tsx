@@ -7,7 +7,7 @@ import {
   IJGISLayerDocChange,
   IJGISSource,
   IJupyterGISModel,
-  IRasterLayerGalleryEntry
+  IRasterLayerGalleryEntry,
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
@@ -30,7 +30,7 @@ export const LayerBrowserComponent = ({
   registry,
   formSchemaRegistry,
   okSignalPromise,
-  cancel
+  cancel,
 }: ILayerBrowserDialogProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
@@ -44,7 +44,7 @@ export const LayerBrowserComponent = ({
   const providers = [...new Set(registry.map(item => item.source.provider))];
 
   const filteredGallery = galleryWithCategory.filter(item =>
-    item.name.toLowerCase().includes(searchTerm)
+    item.name.toLowerCase().includes(searchTerm),
   );
 
   useEffect(() => {
@@ -62,8 +62,8 @@ export const LayerBrowserComponent = ({
     // The split is to get rid of the 'Layer' part of the name to match the names in the gallery
     setActiveLayers(
       Object.values(model.sharedModel.layers).map(
-        layer => layer.name.split(' ')[0]
-      )
+        layer => layer.name.split(' ')[0],
+      ),
     );
   };
 
@@ -81,7 +81,7 @@ export const LayerBrowserComponent = ({
     const filteredGallery = sameAsOld
       ? registry
       : registry.filter(item =>
-          item.source.provider?.includes(categoryTab.innerText)
+          item.source.provider?.includes(categoryTab.innerText),
         );
 
     setGalleryWithCategory(filteredGallery);
@@ -103,16 +103,16 @@ export const LayerBrowserComponent = ({
     const sourceModel: IJGISSource = {
       type: 'RasterSource',
       name: tile.name,
-      parameters: tile.source
+      parameters: tile.source,
     };
 
     const layerModel: IJGISLayer = {
       type: 'RasterLayer',
       parameters: {
-        source: sourceId
+        source: sourceId,
       },
       visible: true,
-      name: tile.name + ' Layer'
+      name: tile.name + ' Layer',
     };
 
     model.sharedModel.addSource(sourceId, sourceModel);
@@ -135,13 +135,13 @@ export const LayerBrowserComponent = ({
           layerType={'RasterLayer'}
           sourceType={'RasterSource'}
           layerData={{
-            name: 'Custom Raster'
+            name: 'Custom Raster',
           }}
           sourceData={{
             url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             maxZoom: 24,
             minZoom: 0,
-            attribution: '(C) OpenStreetMap contributors'
+            attribution: '(C) OpenStreetMap contributors',
           }}
           okSignalPromise={okSignalPromise}
           cancel={cancel}

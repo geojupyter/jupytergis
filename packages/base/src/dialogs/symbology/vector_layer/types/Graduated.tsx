@@ -4,13 +4,13 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { VectorClassifications } from '@/src/dialogs/symbology/classificationModes';
 import ColorRamp, {
-  ColorRampOptions
+  ColorRampOptions,
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import {
   IStopRow,
-  ISymbologyDialogProps
+  ISymbologyDialogProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
@@ -21,14 +21,14 @@ const Graduated = ({
   state,
   okSignalPromise,
   cancel,
-  layerId
+  layerId,
 }: ISymbologyDialogProps) => {
   const modeOptions = [
     'quantile',
     'equal interval',
     'jenks',
     'pretty',
-    'logarithmic'
+    'logarithmic',
   ];
 
   const selectedValueRef = useRef<string>();
@@ -55,7 +55,7 @@ const Graduated = ({
 
   const { featureProperties } = useGetProperties({
     layerId,
-    model: model
+    model: model,
   });
 
   useEffect(() => {
@@ -170,7 +170,7 @@ const Graduated = ({
       method: selectedMethodRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode
+      mode: colorRampOptionsRef.current?.selectedMode,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -186,12 +186,12 @@ const Graduated = ({
   const buildColorInfoFromClassification = (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string
+    selectedRamp: string,
   ) => {
     setColorRampOptions({
       selectedRamp,
       numberOfShades,
-      selectedMode
+      selectedMode,
     });
 
     let stops;
@@ -202,31 +202,31 @@ const Graduated = ({
       case 'quantile':
         stops = VectorClassifications.calculateQuantileBreaks(
           values,
-          +numberOfShades
+          +numberOfShades,
         );
         break;
       case 'equal interval':
         stops = VectorClassifications.calculateEqualIntervalBreaks(
           values,
-          +numberOfShades
+          +numberOfShades,
         );
         break;
       case 'jenks':
         stops = VectorClassifications.calculateJenksBreaks(
           values,
-          +numberOfShades
+          +numberOfShades,
         );
         break;
       case 'pretty':
         stops = VectorClassifications.calculatePrettyBreaks(
           values,
-          +numberOfShades
+          +numberOfShades,
         );
         break;
       case 'logarithmic':
         stops = VectorClassifications.calculateLogarithmicBreaks(
           values,
-          +numberOfShades
+          +numberOfShades,
         );
         break;
       default:
@@ -243,7 +243,7 @@ const Graduated = ({
       stopOutputPairs = Utils.getValueColorPairs(
         stops,
         selectedRamp,
-        +numberOfShades
+        +numberOfShades,
       );
     }
 

@@ -4,7 +4,7 @@ import { IChangeEvent } from '@rjsf/core';
 
 import {
   BaseForm,
-  IBaseFormProps
+  IBaseFormProps,
 } from '@/src/formbuilder/objectform/baseform';
 
 export interface ILayerProps extends IBaseFormProps {
@@ -38,7 +38,7 @@ export class LayerPropertiesForm extends BaseForm {
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,
-    uiSchema: IDict
+    uiSchema: IDict,
   ): void {
     super.processSchema(data, schema, uiSchema);
 
@@ -48,7 +48,7 @@ export class LayerPropertiesForm extends BaseForm {
 
     // Replace the source text box by a dropdown menu
     const availableSources = this.props.model.getSourcesByType(
-      this.props.sourceType
+      this.props.sourceType,
     );
 
     schema.properties.source.enumNames = Object.values(availableSources);

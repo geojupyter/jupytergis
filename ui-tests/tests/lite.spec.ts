@@ -11,7 +11,7 @@ test.describe('UI Test', () => {
     test.beforeEach(async ({ page }) => {
       const unrelatedErrors = [
         // This error is related to plotly dependency, installed with qgis.
-        "@jupyter-widgets/base doesn't exist in shared scope default"
+        "@jupyter-widgets/base doesn't exist in shared scope default",
       ];
       page.setViewportSize({ width: 1920, height: 1080 });
       page.on('console', message => {
@@ -33,13 +33,13 @@ test.describe('UI Test', () => {
 
     for (const file of fileList) {
       test(`Should be able to render ${file} without error`, async ({
-        browser
+        browser,
       }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
 
         await page.goto(`lab/index.html?path=${file}`, {
-          waitUntil: 'domcontentloaded'
+          waitUntil: 'domcontentloaded',
         });
 
         await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
@@ -49,7 +49,7 @@ test.describe('UI Test', () => {
         }
 
         const main = await page.waitForSelector('.jp-MainAreaWidget', {
-          state: 'visible'
+          state: 'visible',
         });
 
         await page.waitForTimeout(10000);
@@ -58,7 +58,7 @@ test.describe('UI Test', () => {
         if (main) {
           expect(await main.screenshot()).toMatchSnapshot({
             name: `Render-${file}.png`,
-            maxDiffPixelRatio: 0.01
+            maxDiffPixelRatio: 0.01,
           });
         }
       });
@@ -69,11 +69,11 @@ test.describe('UI Test', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     await page.goto('lab/index.html?path=jgis.ipynb', {
-      waitUntil: 'domcontentloaded'
+      waitUntil: 'domcontentloaded',
     });
 
     const Notebook = await page.waitForSelector('.jp-Notebook', {
-      state: 'visible'
+      state: 'visible',
     });
     await Notebook.click();
 
@@ -87,15 +87,15 @@ test.describe('UI Test', () => {
     const jgisWidget = await page.waitForSelector(
       '.jupytergis-notebook-widget',
       {
-        state: 'visible'
-      }
+        state: 'visible',
+      },
     );
 
     await page.waitForTimeout(10000);
 
     expect(await jgisWidget.screenshot()).toMatchSnapshot({
       name: 'Render-notebook.png',
-      maxDiffPixelRatio: 0.01
+      maxDiffPixelRatio: 0.01,
     });
   });
 });

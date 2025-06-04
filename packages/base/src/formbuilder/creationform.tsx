@@ -5,7 +5,7 @@ import {
   IJGISSource,
   IJupyterGISModel,
   LayerType,
-  SourceType
+  SourceType,
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
@@ -95,7 +95,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
       }
 
       layerSchema = deepCopy(
-        this.props.formSchemaRegistry.getSchemas().get(this.props.layerType)
+        this.props.formSchemaRegistry.getSchemas().get(this.props.layerType),
       );
 
       if (!layerSchema) {
@@ -111,17 +111,17 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
       layerSchema['required'] = ['name', ...layerSchema['required']];
       layerSchema['properties'] = {
         name: { type: 'string', description: 'The name of the layer' },
-        ...layerSchema['properties']
+        ...layerSchema['properties'],
       };
     }
 
     let sourceSchema: IDict | undefined = undefined;
     const SourceForm = getSourceTypeForm(
-      this.props.sourceType || 'RasterSource'
+      this.props.sourceType || 'RasterSource',
     );
     if (this.props.sourceType) {
       sourceSchema = deepCopy(
-        this.props.formSchemaRegistry.getSchemas().get(this.props.sourceType)
+        this.props.formSchemaRegistry.getSchemas().get(this.props.sourceType),
       );
 
       if (!sourceSchema) {
@@ -133,7 +133,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
         sourceSchema['required'] = ['name', ...sourceSchema['required']];
         sourceSchema['properties'] = {
           name: { type: 'string', description: 'The name of the source' },
-          ...sourceSchema['properties']
+          ...sourceSchema['properties'],
         };
       }
     }
@@ -164,7 +164,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
         const sourceModel: IJGISSource = {
           type: this.props.sourceType || 'RasterSource',
           name: actualName,
-          parameters: sourceData
+          parameters: sourceData,
         };
 
         this.jGISModel.sharedModel.addSource(sourceId, sourceModel);
@@ -184,7 +184,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
           type: this.props.layerType || 'RasterLayer',
           parameters: layerData,
           visible: true,
-          name: actualName
+          name: actualName,
         };
 
         this.jGISModel.addLayer(UUID.uuid4(), layerModel);
