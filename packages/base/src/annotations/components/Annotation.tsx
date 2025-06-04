@@ -8,8 +8,9 @@ import { IAnnotationModel, IJupyterGISModel } from '@jupytergis/schema';
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useMemo, useState } from 'react';
-import { Message } from './Message';
+
 import { IControlPanelModel } from '@/src/types';
+import { Message } from './Message';
 
 export interface IAnnotationProps {
   itemId: string;

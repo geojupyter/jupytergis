@@ -1,10 +1,11 @@
-import { Button } from '@jupyterlab/ui-components';
-import React, { useEffect, useState } from 'react';
-import CanvasSelectComponent from './CanvasSelectComponent';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import ModeSelectRow from './ModeSelectRow';
 import { IDict } from '@jupytergis/schema';
+import { Button } from '@jupyterlab/ui-components';
+import React, { useEffect, useState } from 'react';
+
+import CanvasSelectComponent from './CanvasSelectComponent';
+import ModeSelectRow from './ModeSelectRow';
 
 interface IColorRampProps {
   modeOptions: string[];

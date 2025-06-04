@@ -1,6 +1,7 @@
 // Adapted from https://github.com/qgis/QGIS/blob/master/src/core/classification/
 
 import { Pool, fromUrl, TypedArray } from 'geotiff';
+
 import { InterpolationType } from './tiff_layer/types/SingleBandPseudoColor';
 
 export namespace VectorClassifications {

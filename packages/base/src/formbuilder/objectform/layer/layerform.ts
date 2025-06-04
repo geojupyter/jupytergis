@@ -1,10 +1,11 @@
 import { IDict, SourceType } from '@jupytergis/schema';
+import { Signal } from '@lumino/signaling';
+import { IChangeEvent } from '@rjsf/core';
+
 import {
   BaseForm,
   IBaseFormProps
 } from '@/src/formbuilder/objectform/baseform';
-import { Signal } from '@lumino/signaling';
-import { IChangeEvent } from '@rjsf/core';
 
 export interface ILayerProps extends IBaseFormProps {
   /**

@@ -6,14 +6,15 @@ import {
 } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { SidePanel } from '@jupyterlab/ui-components';
+import { CommandRegistry } from '@lumino/commands';
 import { Message } from '@lumino/messaging';
 import { MouseEvent as ReactMouseEvent } from 'react';
+
+import { CommandIDs } from '@/src/constants';
 import { IControlPanelModel } from '@/src/types';
+import { FilterPanel } from './components/filter-panel/Filter';
 import { LayersPanel } from './components/layers';
 import { ControlPanelHeader } from './header';
-import { FilterPanel } from './components/filter-panel/Filter';
-import { CommandRegistry } from '@lumino/commands';
-import { CommandIDs } from '@/src/constants';
 
 /**
  * Options of the left panel widget.

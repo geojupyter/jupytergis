@@ -1,9 +1,7 @@
-import { ConsolePanel } from '@jupyterlab/console';
-import { ServiceManager } from '@jupyterlab/services';
-import { BoxPanel, Widget } from '@lumino/widgets';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
-import { debounce } from '@/src/tools';
+import { ConsolePanel } from '@jupyterlab/console';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { ServiceManager } from '@jupyterlab/services';
 import {
   closeIcon,
   CommandToolbarButton,
@@ -11,6 +9,9 @@ import {
   Toolbar
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
+import { BoxPanel, Widget } from '@lumino/widgets';
+
+import { debounce } from '@/src/tools';
 
 export class ConsoleView extends BoxPanel {
   constructor(options: ConsoleView.IOptions) {

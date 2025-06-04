@@ -3,6 +3,13 @@ import {
   SharedDocumentFactory
 } from '@jupyter/collaborative-drive';
 import {
+  JupyterGISDocumentWidget,
+  logoMiniIcon,
+  logoMiniIconQGZ,
+  requestAPI
+} from '@jupytergis/base';
+import { JupyterGISDocumentWidgetFactory } from '@jupytergis/jupytergis-core';
+import {
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
   JupyterGISDoc,
@@ -28,16 +35,9 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { Widget } from '@lumino/widgets';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { Widget } from '@lumino/widgets';
 
-import {
-  JupyterGISDocumentWidget,
-  logoMiniIcon,
-  logoMiniIconQGZ,
-  requestAPI
-} from '@jupytergis/base';
-import { JupyterGISDocumentWidgetFactory } from '@jupytergis/jupytergis-core';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
 
 /**

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
+
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
-import SingleBandPseudoColor from './types/SingleBandPseudoColor';
 import MultibandColor from './types/MultibandColor';
+import SingleBandPseudoColor from './types/SingleBandPseudoColor';
 
 const TiffRendering = ({
   model,

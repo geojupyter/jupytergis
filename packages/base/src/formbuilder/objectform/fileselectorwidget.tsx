@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FileDialog } from '@jupyterlab/filebrowser';
 import { Dialog } from '@jupyterlab/apputils';
-import { LayerCreationFormDialog } from '@/src/dialogs/layerCreationFormDialog';
 import { PathExt } from '@jupyterlab/coreutils';
+import { FileDialog } from '@jupyterlab/filebrowser';
+import React, { useState, useEffect, useRef } from 'react';
+
+import { LayerCreationFormDialog } from '@/src/dialogs/layerCreationFormDialog';
 
 export const FileSelectorWidget = (props: any) => {
   const { options } = props;

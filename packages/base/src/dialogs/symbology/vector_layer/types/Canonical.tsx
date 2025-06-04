@@ -1,10 +1,11 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { getColorCodeFeatureAttributes } from '@/src/tools';
+
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import { getColorCodeFeatureAttributes } from '@/src/tools';
 
 const Canonical = ({
   model,

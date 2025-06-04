@@ -1,6 +1,7 @@
 import { IJGISLayer } from '@jupytergis/schema';
-import { IStopRow } from './symbologyDialog';
 import colormap from 'colormap';
+
+import { IStopRow } from './symbologyDialog';
 
 export namespace VectorUtils {
   export const buildColorInfo = (layer: IJGISLayer) => {
