@@ -74,25 +74,31 @@ const Canonical = ({
     cancel();
   };
 
-  debugger;
-  if (Object.keys(selectableAttributesAndValues)?.length === 0) {
-    return (
-      <div className="jp-gis-layer-symbology-container">
-        This symbology type is not available; no attributes contain a hex color
-        code.
-      </div>
-    );
-  } else {
-    return (
-      <div className="jp-gis-layer-symbology-container">
+  const body = (() => {
+    if (Object.keys(selectableAttributesAndValues)?.length === 0) {
+      return (
+        <p className="errors">
+          This symbology type is not available; no attributes contain a hex
+          color code.
+        </p>
+      );
+    } else {
+      return (
         <ValueSelect
           featureProperties={selectableAttributesAndValues}
           selectedValue={selectedValue}
           setSelectedValue={setSelectedValue}
         />
-      </div>
-    );
-  }
+      );
+    }
+  })();
+
+  return (
+    <div className="jp-gis-layer-symbology-container">
+      <p>Color features based on an attribute containing a hex color code.</p>
+      {body}
+    </div>
+  );
 };
 
 export default Canonical;

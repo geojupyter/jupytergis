@@ -133,36 +133,45 @@ const Categorized = ({
     cancel();
   };
 
-  if (Object.keys(selectableAttributesAndValues).length === 0) {
-    return (
-      <div className="jp-gis-layer-symbology-container">
-        This symbology type is not available; no attributes contain a hex color
-        code.
-      </div>
-    );
-  } else {
-    return (
-      <div className="jp-gis-layer-symbology-container">
-        <ValueSelect
-          featureProperties={selectableAttributesAndValues}
-          selectedValue={selectedAttribute}
-          setSelectedValue={setSelectedAttribute}
-        />
+  const body = (() => {
+    if (Object.keys(selectableAttributesAndValues).length === 0) {
+      return (
+        <p className="errors">
+          This symbology type is not available; no attributes contain numeric
+          values.
+        </p>
+      );
+    } else {
+      return (
+        <>
+          <ValueSelect
+            featureProperties={selectableAttributesAndValues}
+            selectedValue={selectedAttribute}
+            setSelectedValue={setSelectedAttribute}
+          />
 
-        <ColorRamp
-          layerParams={layer.parameters}
-          modeOptions={[]}
-          classifyFunc={buildColorInfoFromClassification}
-          showModeRow={false}
-        />
-        <StopContainer
-          selectedMethod={''}
-          stopRows={stopRows}
-          setStopRows={setStopRows}
-        />
-      </div>
-    );
-  }
+          <ColorRamp
+            layerParams={layer.parameters}
+            modeOptions={[]}
+            classifyFunc={buildColorInfoFromClassification}
+            showModeRow={false}
+          />
+          <StopContainer
+            selectedMethod={''}
+            stopRows={stopRows}
+            setStopRows={setStopRows}
+          />
+        </>
+      );
+    }
+  })();
+
+  return (
+    <div className="jp-gis-layer-symbology-container">
+      <p>Color features based on an attribute containing unique values.</p>
+      {body}
+    </div>
+  );
 };
 
 export default Categorized;

@@ -238,54 +238,63 @@ const Graduated = ({
     setStopRows(stopOutputPairs);
   };
 
-  if (Object.keys(selectableAttributesAndValues)?.length === 0) {
-    return (
-      <div className="jp-gis-layer-symbology-container">
-        This symbology type is not available; no attributes contain a hex color
-        code.
-      </div>
-    );
-  } else {
-    return (
-      <div className="jp-gis-layer-symbology-container">
-        <ValueSelect
-          featureProperties={selectableAttributesAndValues}
-          selectedValue={selectedValue}
-          setSelectedValue={setSelectedValue}
-        />
-        <div className="jp-gis-symbology-row">
-          <label htmlFor={'vector-method-select'}>Method:</label>
-          <select
-            name={'vector-method-select'}
-            onChange={event => setSelectedMethod(event.target.value)}
-            className="jp-mod-styled"
-          >
-            {methodOptions.map((method, index) => (
-              <option
-                key={index}
-                value={method}
-                selected={method === selectedMethod}
-                className="jp-mod-styled"
-              >
-                {method}
-              </option>
-            ))}
-          </select>
-        </div>
-        <ColorRamp
-          layerParams={layer.parameters}
-          modeOptions={modeOptions}
-          classifyFunc={buildColorInfoFromClassification}
-          showModeRow={true}
-        />
-        <StopContainer
-          selectedMethod={selectedMethod}
-          stopRows={stopRows}
-          setStopRows={setStopRows}
-        />
-      </div>
-    );
-  }
+  const body = (() => {
+    if (Object.keys(selectableAttributesAndValues)?.length === 0) {
+      return (
+        <p className="errors">
+          This symbology type is not available; no attributes contain numeric
+          values.
+        </p>
+      );
+    } else {
+      return (
+        <>
+          <ValueSelect
+            featureProperties={selectableAttributesAndValues}
+            selectedValue={selectedValue}
+            setSelectedValue={setSelectedValue}
+          />
+          <div className="jp-gis-symbology-row">
+            <label htmlFor={'vector-method-select'}>Method:</label>
+            <select
+              name={'vector-method-select'}
+              onChange={event => setSelectedMethod(event.target.value)}
+              className="jp-mod-styled"
+            >
+              {methodOptions.map((method, index) => (
+                <option
+                  key={index}
+                  value={method}
+                  selected={method === selectedMethod}
+                  className="jp-mod-styled"
+                >
+                  {method}
+                </option>
+              ))}
+            </select>
+          </div>
+          <ColorRamp
+            layerParams={layer.parameters}
+            modeOptions={modeOptions}
+            classifyFunc={buildColorInfoFromClassification}
+            showModeRow={true}
+          />
+          <StopContainer
+            selectedMethod={selectedMethod}
+            stopRows={stopRows}
+            setStopRows={setStopRows}
+          />
+        </>
+      );
+    }
+  })();
+
+  return (
+    <div className="jp-gis-layer-symbology-container">
+      <p>Color features based on an attribute containing scalar values.</p>
+      {body}
+    </div>
+  );
 };
 
 export default Graduated;
