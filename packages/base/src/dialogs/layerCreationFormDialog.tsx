@@ -2,7 +2,7 @@ import { IDict } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
 
-import { CreationForm, ICreationFormProps } from '../formbuilder';
+import { CreationForm, ICreationFormProps } from '@/src/formbuilder';
 import { Signal } from '@lumino/signaling';
 import { PromiseDelegate } from '@lumino/coreutils';
 

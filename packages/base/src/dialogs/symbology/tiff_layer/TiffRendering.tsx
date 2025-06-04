@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ISymbologyDialogProps } from '../symbologyDialog';
+import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import SingleBandPseudoColor from './types/SingleBandPseudoColor';
 import MultibandColor from './types/MultibandColor';
 
