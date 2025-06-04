@@ -1,17 +1,17 @@
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IDict,
   IJupyterGISClientState,
   IJupyterGISModel,
   IJupyterGISTracker
 } from '@jupytergis/schema';
+import { User } from '@jupyterlab/services';
 import { LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { useEffect, useRef, useState } from 'react';
-import { IControlPanelModel } from '@/src/types';
-import { User } from '@jupyterlab/services';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { IControlPanelModel } from '@/src/types';
 
 export class IdentifyPanel extends Panel {
   constructor(options: IdentifyPanel.IOptions) {

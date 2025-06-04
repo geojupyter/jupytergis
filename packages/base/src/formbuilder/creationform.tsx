@@ -7,13 +7,12 @@ import {
   LayerType,
   SourceType
 } from '@jupytergis/schema';
-
-import { deepCopy } from '@/src/tools';
-
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import * as React from 'react';
+
+import { deepCopy } from '@/src/tools';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 
 export interface ICreationFormProps {

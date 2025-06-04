@@ -1,3 +1,4 @@
+import { UsersItem } from '@jupyter/collaboration';
 import { IJGISExternalCommand, JupyterGISModel } from '@jupytergis/schema';
 import { CommandToolbarButton } from '@jupyterlab/apputils';
 import {
@@ -12,12 +13,11 @@ import {
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { Widget } from '@lumino/widgets';
-
 import * as React from 'react';
+
 import { CommandIDs } from '@/src/constants';
 import { terminalToolbarIcon } from '@/src/icons';
 import { rasterSubMenu, vectorSubMenu } from '@/src/menus';
-import { UsersItem } from '@jupyter/collaboration';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
 export const TOOLBAR_GROUPNAME_CLASS = 'jGIS-Toolbar-GroupName';

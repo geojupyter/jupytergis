@@ -1,8 +1,9 @@
 import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useRef, useState } from 'react';
-import { IParsedStyle, parseColor } from '@/src/tools';
+
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import { SymbologyTab } from '../../../../types';
+import { IParsedStyle, parseColor } from '@/src/tools';
 
 interface ISimpleSymbolProps extends ISymbologyDialogProps {
   SymbologyTab: SymbologyTab;

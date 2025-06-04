@@ -1,21 +1,20 @@
-import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
-import {
-  JupyterGISModel,
-  IJupyterGISTracker,
-  IJGISExternalCommandRegistry
-} from '@jupytergis/schema';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
-import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
-import { CommandRegistry } from '@lumino/commands';
-
 import {
   JupyterGISPanel,
   JupyterGISDocumentWidget,
   ToolbarWidget
 } from '@jupytergis/base';
+import {
+  JupyterGISModel,
+  IJupyterGISTracker,
+  IJGISExternalCommandRegistry
+} from '@jupytergis/schema';
+import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
+import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
+import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Contents, ServiceManager } from '@jupyterlab/services';
+import { CommandRegistry } from '@lumino/commands';
 
 interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   tracker: IJupyterGISTracker;

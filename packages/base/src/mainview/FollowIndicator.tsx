@@ -1,5 +1,5 @@
-import React from 'react';
 import { User } from '@jupyterlab/services';
+import React from 'react';
 
 interface IFollowIndicatorProps {
   remoteUser: User.IIdentity | null | undefined;

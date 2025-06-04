@@ -17,9 +17,9 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
+import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ITranslator } from '@jupyterlab/translation';
-import { IDocumentManager } from '@jupyterlab/docmanager';
 
 import { JupyterGISExternalCommandRegistry } from './externalcommand';
 import { JupyterGISLayerBrowserRegistry } from './layerBrowserRegistry';

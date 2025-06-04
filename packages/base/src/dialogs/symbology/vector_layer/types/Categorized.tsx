@@ -2,7 +2,7 @@ import { IVectorLayer } from '@jupytergis/schema';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { getNumericFeatureAttributes } from '@/src/tools';
+
 import ColorRamp from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
@@ -13,6 +13,7 @@ import {
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { SymbologyTab } from '../../../../types';
+import { getNumericFeatureAttributes } from '@/src/tools';
 
 const Categorized = ({
   model,

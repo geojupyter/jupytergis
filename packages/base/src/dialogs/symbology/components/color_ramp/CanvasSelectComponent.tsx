@@ -1,6 +1,7 @@
 import { Button } from '@jupyterlab/ui-components';
 import colormap from 'colormap';
 import React, { useEffect, useRef, useState } from 'react';
+
 import ColorRampEntry from './ColorRampEntry';
 
 export interface IColorMap {

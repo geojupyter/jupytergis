@@ -6,12 +6,13 @@ import {
   IJGISFormSchemaRegistry,
   LayerType
 } from '@jupytergis/schema';
-import { getGdal } from './gdal';
-import { JupyterGISTracker } from './types';
-import { UUID } from '@lumino/coreutils';
-import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
-import { getGeoJSONDataFromLayerSource } from './tools';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import { UUID } from '@lumino/coreutils';
+
+import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
+import { getGdal } from './gdal';
+import { getGeoJSONDataFromLayerSource } from './tools';
+import { JupyterGISTracker } from './types';
 
 /**
  * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.

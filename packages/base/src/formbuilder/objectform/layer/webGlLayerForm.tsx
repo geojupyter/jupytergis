@@ -1,4 +1,5 @@
 import { IDict } from '@jupytergis/schema';
+
 import { LayerPropertiesForm } from './layerform';
 
 /**

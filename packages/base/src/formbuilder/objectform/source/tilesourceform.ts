@@ -1,4 +1,5 @@
 import { IDict } from '@jupytergis/schema';
+
 import { SourcePropertiesForm } from './sourceform';
 
 export class TileSourcePropertiesForm extends SourcePropertiesForm {

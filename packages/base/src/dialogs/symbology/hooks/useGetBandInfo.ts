@@ -1,6 +1,7 @@
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import { useEffect, useState } from 'react';
 import { fromUrl, fromBlob } from 'geotiff';
+import { useEffect, useState } from 'react';
+
 import { loadFile } from '@/src/tools';
 
 export interface IBandHistogram {

@@ -1,4 +1,5 @@
 import { LabIcon, redoIcon, undoIcon } from '@jupyterlab/ui-components';
+
 import {
   bookOpenIcon,
   clockIcon,

@@ -4,6 +4,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
+
 import TiffRendering from './tiff_layer/TiffRendering';
 import VectorRendering from './vector_layer/VectorRendering';
 import { SymbologyTab } from '../../types';

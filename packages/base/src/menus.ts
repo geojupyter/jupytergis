@@ -1,5 +1,5 @@
-import { Menu } from '@lumino/widgets';
 import { CommandRegistry } from '@lumino/commands';
+import { Menu } from '@lumino/widgets';
 
 import { CommandIDs } from './constants';
 import { rasterIcon } from './icons';
