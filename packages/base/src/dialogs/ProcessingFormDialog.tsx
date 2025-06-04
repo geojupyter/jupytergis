@@ -6,7 +6,7 @@ import * as React from 'react';
 
 import {
   BaseForm,
-  IBaseFormProps
+  IBaseFormProps,
 } from '@/src/formbuilder/objectform/baseform';
 import { DissolveForm } from '@/src/formbuilder/objectform/process';
 
@@ -19,7 +19,7 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
   syncSelectedPropField?: (
     id: string | null,
     value: any,
-    parentType: 'dialog' | 'panel'
+    parentType: 'dialog' | 'panel',
   ) => void;
   model: IJupyterGISModel;
   processingType: 'Buffer' | 'Dissolve' | 'Export';
@@ -42,7 +42,7 @@ const ProcessingFormWrapper = (props: IProcessingFormWrapperProps) => {
 
   Promise.all([
     props.okSignalPromise.promise,
-    props.formErrorSignalPromise?.promise
+    props.formErrorSignalPromise?.promise,
   ]).then(([ok, formChanged]) => {
     okSignal.current = ok;
     formErrorSignal.current = formChanged;
@@ -85,17 +85,17 @@ export class ProcessingFormDialog extends Dialog<IDict> {
     const layers = options.model.sharedModel.layers ?? {};
     const layerOptions = Object.keys(layers).map(layerId => ({
       value: layerId,
-      label: layers[layerId].name
+      label: layers[layerId].name,
     }));
 
     // Modify schema to include layer options and layer name field
     if (options.schema) {
       if (options.schema.properties?.inputLayer) {
         options.schema.properties.inputLayer.enum = layerOptions.map(
-          option => option.value
+          option => option.value,
         );
         options.schema.properties.inputLayer.enumNames = layerOptions.map(
-          option => option.label
+          option => option.label,
         );
       }
 
@@ -103,7 +103,7 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       if (!options.schema.properties?.outputLayerName) {
         options.schema.properties.outputLayerName = {
           type: 'string',
-          title: 'outputLayerName'
+          title: 'outputLayerName',
           // default: ''
         };
       }
@@ -147,7 +147,7 @@ export class ProcessingFormDialog extends Dialog<IDict> {
     super({
       title: options.title,
       body,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
     });
 
     this.okSignal = new Signal(this);

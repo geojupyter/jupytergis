@@ -1,7 +1,7 @@
 import {
   faTrash,
   faPaperPlane,
-  faArrowsToDot
+  faArrowsToDot,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IAnnotationModel, IJupyterGISModel } from '@jupytergis/schema';
@@ -23,11 +23,11 @@ const Annotation = ({
   itemId,
   annotationModel,
   rightPanelModel,
-  children
+  children,
 }: IAnnotationProps) => {
   const [messageContent, setMessageContent] = useState('');
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
-    rightPanelModel?.jGISModel
+    rightPanelModel?.jGISModel,
   );
 
   const annotation = annotationModel.getAnnotation(itemId);
@@ -55,7 +55,7 @@ const Annotation = ({
     const result = await showDialog({
       title: 'Delete Annotation',
       body: 'Are you sure you want to delete this annotation?',
-      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Delete' })]
+      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Delete' })],
     });
 
     if (result.button.accept) {

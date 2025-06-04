@@ -7,7 +7,7 @@ import {
   infoIcon,
   moundIcon,
   rasterIcon,
-  vectorSquareIcon
+  vectorSquareIcon,
 } from './icons';
 
 /**
@@ -99,12 +99,12 @@ const iconObject = {
   [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
   [CommandIDs.identify]: { icon: infoIcon },
-  [CommandIDs.temporalController]: { icon: clockIcon }
+  [CommandIDs.temporalController]: { icon: clockIcon },
 };
 
 /**
  * The registered icons
  */
 export const icons = new Map<string, IRegisteredIcon>(
-  Object.entries(iconObject)
+  Object.entries(iconObject),
 );

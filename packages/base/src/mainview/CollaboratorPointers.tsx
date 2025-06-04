@@ -1,6 +1,6 @@
 import {
   faArrowPointer,
-  faWindowMinimize
+  faWindowMinimize,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict, JgisCoordinates } from '@jupytergis/schema';
@@ -29,7 +29,7 @@ const CollaboratorPointers = ({ clients }: ICollaboratorPointersProps) => {
             className="jGIS-Popup-Wrapper"
             style={{
               left: `${client.coordinates.x}px`,
-              top: `${client.coordinates.y}px`
+              top: `${client.coordinates.y}px`,
             }}
           >
             <div
@@ -37,7 +37,7 @@ const CollaboratorPointers = ({ clients }: ICollaboratorPointersProps) => {
               className="jGIS-Remote-Pointer"
               style={{
                 color: client.color,
-                cursor: 'pointer'
+                cursor: 'pointer',
               }}
               onClick={() => {
                 setIsOpen(!isOpen);
@@ -51,7 +51,7 @@ const CollaboratorPointers = ({ clients }: ICollaboratorPointersProps) => {
             <div
               style={{
                 visibility: isOpen ? 'visible' : 'hidden',
-                background: client.color
+                background: client.color,
               }}
               className="jGIS-Remote-Pointer-Popup jGIS-Floating-Pointer-Popup"
             >

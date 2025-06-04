@@ -37,7 +37,7 @@ export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
 
   Promise.all([
     props.okSignalPromise.promise,
-    props.formErrorSignalPromise?.promise
+    props.formErrorSignalPromise?.promise,
   ]).then(([ok, formChanged]) => {
     okSignal.current = ok;
     formErrorSignal.current = formChanged;
@@ -102,7 +102,7 @@ export class LayerCreationFormDialog extends Dialog<IDict> {
     super({
       title: options.title,
       body,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
     });
 
     this.okSignal = new Signal(this);

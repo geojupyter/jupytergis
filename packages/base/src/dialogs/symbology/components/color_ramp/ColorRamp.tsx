@@ -14,7 +14,7 @@ interface IColorRampProps {
     selectedMode: string,
     numberOfShades: string,
     selectedRamp: string,
-    setIsLoading: (isLoading: boolean) => void
+    setIsLoading: (isLoading: boolean) => void,
   ) => void;
   showModeRow: boolean;
 }
@@ -29,7 +29,7 @@ const ColorRamp = ({
   layerParams,
   modeOptions,
   classifyFunc,
-  showModeRow
+  showModeRow,
 }: IColorRampProps) => {
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
@@ -81,7 +81,7 @@ const ColorRamp = ({
               selectedMode,
               numberOfShades,
               selectedRamp,
-              setIsLoading
+              setIsLoading,
             )
           }
         >

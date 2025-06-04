@@ -29,7 +29,7 @@ const BandRow = ({
   bandRows,
   setSelectedBand,
   setBandRows,
-  isMultibandColor
+  isMultibandColor,
 }: IBandRowProps) => {
   const [minValue, setMinValue] = useState(bandRow?.stats.minimum);
   const [maxValue, setMaxValue] = useState(bandRow?.stats.maximum);
@@ -96,7 +96,7 @@ const BandRow = ({
             style={{
               display: 'flex',
               justifyContent: 'space-between',
-              width: '50%'
+              width: '50%',
             }}
           >
             <label htmlFor="band-min" style={{ alignSelf: 'center' }}>
@@ -115,7 +115,7 @@ const BandRow = ({
               display: 'flex',
               justifyContent: 'space-between',
               width: '50%',
-              paddingRight: '2px'
+              paddingRight: '2px',
             }}
           >
             <label htmlFor="band-max" style={{ alignSelf: 'center' }}>

@@ -11,7 +11,7 @@ const ModeSelectRow = ({
   setNumberOfShades,
   selectedMode,
   setSelectedMode,
-  modeOptions
+  modeOptions,
 }: IModeSelectRowProps) => {
   return (
     <div className="jp-gis-symbology-row">

@@ -3,7 +3,7 @@ import {
   DocumentChange,
   MapChange,
   StateChange,
-  YDocument
+  YDocument,
 } from '@jupyter/ydoc';
 import { IWidgetTracker, MainAreaWidget } from '@jupyterlab/apputils';
 import { IChangedArgs } from '@jupyterlab/coreutils';
@@ -24,7 +24,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources,
-  SourceType
+  SourceType,
 } from './_interface/project/jgis';
 import { IRasterSource } from './_interface/project/sources/rastersource';
 export { IGeoJSONSource } from './_interface/geojsonsource';
@@ -106,7 +106,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
     id: string,
     value: IJGISLayer,
     groupName?: string,
-    position?: number
+    position?: number,
   ): void;
 
   updateLayer(id: string, value: IJGISLayer): void;
@@ -122,7 +122,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
 
   updateObjectParameters(
     id: string,
-    value: IJGISLayer['parameters'] | IJGISSource['parameters']
+    value: IJGISLayer['parameters'] | IJGISSource['parameters'],
   ): void;
   getObject(id: string): IJGISLayer | IJGISSource | undefined;
 
@@ -196,7 +196,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     id: string,
     layer: IJGISLayer,
     groupName?: string,
-    position?: number
+    position?: number,
   ): void;
   removeLayer(id: string): void;
   getOptions(): IJGISOptions;
@@ -208,7 +208,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   moveItemRelatedTo(item: string, relativeItem: string, after: boolean): void;
   addNewLayerGroup(
     selected: { [key: string]: ISelection },
-    group: IJGISLayerGroup
+    group: IJGISLayerGroup,
   ): void;
 
   syncViewport(viewport?: IViewPortState, emitter?: string): void;

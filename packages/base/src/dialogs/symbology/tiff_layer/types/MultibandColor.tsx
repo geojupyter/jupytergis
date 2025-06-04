@@ -20,7 +20,7 @@ const MultibandColor = ({
   model,
   okSignalPromise,
   cancel,
-  layerId
+  layerId,
 }: ISymbologyDialogProps) => {
   if (!layerId) {
     return;
@@ -36,7 +36,7 @@ const MultibandColor = ({
     red: 1,
     green: 2,
     blue: 3,
-    alpha: 4
+    alpha: 4,
   });
 
   const numOfBandsRef = useRef(0);
@@ -44,7 +44,7 @@ const MultibandColor = ({
     red: selectedBands.red,
     green: selectedBands.green,
     blue: selectedBands.blue,
-    alpha: selectedBands.alpha
+    alpha: selectedBands.alpha,
   });
 
   useEffect(() => {
@@ -82,7 +82,7 @@ const MultibandColor = ({
   const updateBand = (color: rgbEnum, value: number) => {
     setSelectedBands(prevBands => ({
       ...prevBands,
-      [color]: value
+      [color]: value,
     }));
   };
 
@@ -112,7 +112,7 @@ const MultibandColor = ({
       redBand: selectedBandsRef.current.red,
       greenBand: selectedBandsRef.current.green,
       blueBand: selectedBandsRef.current.blue,
-      alphaBand: selectedBandsRef.current.alpha
+      alphaBand: selectedBandsRef.current.alpha,
     };
 
     layer.parameters.symbologyState = symbologyState;

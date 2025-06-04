@@ -1,6 +1,6 @@
 import {
   IJGISLayerBrowserRegistry,
-  IRasterLayerGalleryEntry
+  IRasterLayerGalleryEntry,
 } from '@jupytergis/schema';
 
 /**

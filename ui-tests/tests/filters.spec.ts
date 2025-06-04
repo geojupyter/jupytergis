@@ -8,7 +8,7 @@ test.describe('#filters', () => {
     await content.deleteDirectory('/testDir');
     await content.uploadDirectory(
       path.resolve(__dirname, './gis-files'),
-      '/testDir'
+      '/testDir',
     );
   });
   test.beforeEach(async ({ page }) => {
@@ -42,7 +42,7 @@ test.describe('#filters', () => {
 
     expect(await main.screenshot()).toMatchSnapshot({
       name: 'two-filter.png',
-      maxDiffPixelRatio: 0.01
+      maxDiffPixelRatio: 0.01,
     });
 
     // Remove filter
@@ -50,7 +50,7 @@ test.describe('#filters', () => {
 
     expect(await main.screenshot()).toMatchSnapshot({
       name: 'one-filter.png',
-      maxDiffPixelRatio: 0.01
+      maxDiffPixelRatio: 0.01,
     });
 
     // Clear filters
@@ -58,7 +58,7 @@ test.describe('#filters', () => {
 
     expect(await main.screenshot()).toMatchSnapshot({
       name: 'no-filter.png',
-      maxDiffPixelRatio: 0.01
+      maxDiffPixelRatio: 0.01,
     });
   });
 });

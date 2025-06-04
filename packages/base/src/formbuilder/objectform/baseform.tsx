@@ -76,7 +76,7 @@ const WrappedFormComponent = (props: any): JSX.Element => {
       {...rest}
       validator={validatorAjv8}
       fields={{
-        ...fields
+        ...fields,
       }}
     />
   );
@@ -93,13 +93,13 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
     this.currentFormData = deepCopy(this.props.sourceData);
     this.state = {
       schema: props.schema,
-      extraErrors: {}
+      extraErrors: {},
     };
   }
 
   componentDidUpdate(
     prevProps: IBaseFormProps,
-    prevState: IBaseFormStates
+    prevState: IBaseFormStates,
   ): void {
     if (prevProps.sourceData !== this.props.sourceData) {
       this.currentFormData = deepCopy(this.props.sourceData);
@@ -119,7 +119,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,
-    uiSchema: IDict
+    uiSchema: IDict,
   ): void {
     if (!schema['properties']) {
       return;
@@ -134,9 +134,9 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
           'ui:options': {
             orderable: false,
             removable: false,
-            addable: false
+            addable: false,
           },
-          ...uiSchema[k]
+          ...uiSchema[k],
         };
 
         if (v['items']['type'] === 'array') {
@@ -145,12 +145,12 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
               'ui:options': {
                 orderable: false,
                 removable: false,
-                addable: false
+                addable: false,
               },
-              ...uiSchema[k]['items']
+              ...uiSchema[k]['items'],
             },
 
-            ...uiSchema[k]
+            ...uiSchema[k],
           };
         }
       }
@@ -163,7 +163,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
         uiSchema[k] = {
           'ui:field': (props: any) => {
             const [inputValue, setInputValue] = React.useState(
-              props.formData.toFixed(1)
+              props.formData.toFixed(1),
             );
 
             React.useEffect(() => {
@@ -180,7 +180,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
             };
 
             const handleInputChange = (
-              event: React.ChangeEvent<HTMLInputElement>
+              event: React.ChangeEvent<HTMLInputElement>,
             ) => {
               const value = event.target.value;
               setInputValue(value);
@@ -219,12 +219,12 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                     border: '1px solid #ccc',
                     borderRadius: '4px',
                     padding: '4px',
-                    marginBottom: '5px'
+                    marginBottom: '5px',
                   }}
                 />
               </div>
             );
-          }
+          },
         };
       }
 
@@ -252,7 +252,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
     entry: string,
     data: IDict<any> | undefined,
     schema: IDict,
-    uiSchema: IDict
+    uiSchema: IDict,
   ) {
     if (data) {
       delete data[entry];
@@ -308,8 +308,8 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       const uiSchema = {
         additionalProperties: {
           'ui:label': false,
-          classNames: 'jGIS-hidden-field'
-        }
+          classNames: 'jGIS-hidden-field',
+        },
       };
       this.processSchema(formData, schema, uiSchema);
 
