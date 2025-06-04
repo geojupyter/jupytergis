@@ -1,7 +1,7 @@
 import {
   IAnnotationModel,
   IJupyterGISDoc,
-  JupyterGISModel
+  JupyterGISModel,
 } from '@jupytergis/schema';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
@@ -81,13 +81,13 @@ export class JupyterGISModelFactory
    * @returns The model
    */
   createNew(
-    options: DocumentRegistry.IModelOptions<IJupyterGISDoc>
+    options: DocumentRegistry.IModelOptions<IJupyterGISDoc>,
   ): JupyterGISModel {
     const model = new JupyterGISModel({
       sharedModel: options.sharedModel,
       languagePreference: options.languagePreference,
       annotationModel: this._annotationModel,
-      settingRegistry: this._settingRegistry
+      settingRegistry: this._settingRegistry,
     });
     model.initSettings();
     return model;

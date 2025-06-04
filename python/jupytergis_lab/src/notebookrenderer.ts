@@ -3,18 +3,18 @@ import {
   JupyterGISOutputWidget,
   JupyterGISPanel,
   JupyterGISTracker,
-  ToolbarWidget
+  ToolbarWidget,
 } from '@jupytergis/base';
 import {
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
   IJupyterGISDoc,
   IJupyterGISDocTracker,
-  JupyterGISModel
+  JupyterGISModel,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { ConsolePanel } from '@jupyterlab/console';
@@ -29,7 +29,7 @@ import {
   IJupyterYWidget,
   IJupyterYWidgetManager,
   JupyterYDoc,
-  JupyterYModel
+  JupyterYModel,
 } from 'yjs-widgets';
 
 export interface ICommMetadata {
@@ -87,13 +87,13 @@ export class YJupyterGISLuminoWidget extends Panel {
       toolbar = new ToolbarWidget({
         commands,
         model,
-        externalCommands: externalCommands?.getCommands() || []
+        externalCommands: externalCommands?.getCommands() || [],
       });
     }
     this._jgisWidget = new JupyterGISOutputWidget({
       model,
       content,
-      toolbar
+      toolbar,
     });
     this.addWidget(this._jgisWidget);
     tracker?.add(this._jgisWidget);
@@ -116,14 +116,14 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     IJGISExternalCommandRegistryToken,
     IJupyterGISDocTracker,
     IJupyterYWidgetManager,
-    ICollaborativeDrive
+    ICollaborativeDrive,
   ],
   activate: (
     app: JupyterFrontEnd,
     externalCommandRegistry?: IJGISExternalCommandRegistry,
     jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
-    drive?: ICollaborativeDrive
+    drive?: ICollaborativeDrive,
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -140,10 +140,10 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         if (!drive) {
           showErrorMessage(
             'Error using the JupyterGIS Python API',
-            'You cannot use the JupyterGIS Python API without a collaborative drive. You need to install a package providing collaboration features (e.g. jupyter-collaboration).'
+            'You cannot use the JupyterGIS Python API without a collaborative drive. You need to install a package providing collaboration features (e.g. jupyter-collaboration).',
           );
           throw new Error(
-            'Failed to create the YDoc without a collaborative drive'
+            'Failed to create the YDoc without a collaborative drive',
           );
         }
 
@@ -167,14 +167,14 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           } catch (e) {
             await app.serviceManager.contents.save(localPath, {
               content: btoa('{}'),
-              format: 'base64'
+              format: 'base64',
             });
           }
         } else {
           // If the user did not provide a path, do not create
           localPath = PathExt.join(
             PathExt.dirname(currentWidgetPath),
-            'unsaved_project'
+            'unsaved_project',
           );
         }
 
@@ -182,10 +182,10 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           path: localPath,
           format: fileFormat,
           contentType,
-          collaborative: true
+          collaborative: true,
         })!;
         this.jupyterGISModel = new JupyterGISModel({
-          sharedModel: sharedModel as IJupyterGISDoc
+          sharedModel: sharedModel as IJupyterGISDoc,
         });
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
@@ -204,7 +204,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           commands: app.commands,
           model: yModel.jupyterGISModel,
           externalCommands: externalCommandRegistry,
-          tracker: jgisTracker
+          tracker: jgisTracker,
         });
         this._jgisWidget = widget.jgisWidget;
 
@@ -226,7 +226,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     yWidgetManager.registerWidget(
       '@jupytergis:widget',
       YJupyterGISModelFactory,
-      YJupyterGISWidget
+      YJupyterGISWidget,
     );
-  }
+  },
 };

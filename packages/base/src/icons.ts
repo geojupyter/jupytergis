@@ -27,85 +27,85 @@ import visibilitySvgStr from '../style/icons/visibility.svg';
 
 export const logoIcon = new LabIcon({
   name: 'jupytergis::logo',
-  svgstr: logoSvgStr
+  svgstr: logoSvgStr,
 });
 
 export const logoMiniIcon = new LabIcon({
   name: 'jupytergis::logoMini',
-  svgstr: logoMiniSvgStr
+  svgstr: logoMiniSvgStr,
 });
 
 export const logoMiniAlternativeIcon = new LabIcon({
   name: 'jupytergis::logoMiniAlternative',
-  svgstr: logoMiniAlternativeSvgStr
+  svgstr: logoMiniAlternativeSvgStr,
 });
 
 export const rasterIcon = new LabIcon({
   name: 'jupytergis::raster',
-  svgstr: rasterSvgStr
+  svgstr: rasterSvgStr,
 });
 
 export const visibilityIcon = new LabIcon({
   name: 'jupytergis::visibility',
-  svgstr: visibilitySvgStr
+  svgstr: visibilitySvgStr,
 });
 
 export const nonVisibilityIcon = new LabIcon({
   name: 'jupytergis::nonVisibility',
-  svgstr: nonVisibilitySvgStr
+  svgstr: nonVisibilitySvgStr,
 });
 
 export const geoJSONIcon = new LabIcon({
   name: 'jupytergis::geoJSON',
-  svgstr: geoJsonSvgStr
+  svgstr: geoJsonSvgStr,
 });
 
 export const moundIcon = new LabIcon({
   name: 'jupytergis::mound',
-  svgstr: moundSvgStr
+  svgstr: moundSvgStr,
 });
 
 export const logoMiniIconQGZ = new LabIcon({
   name: 'jupytergis::logoQGZ',
-  svgstr: logoMiniQGZ
+  svgstr: logoMiniQGZ,
 });
 
 export const bookOpenIcon = new LabIcon({
   name: 'jupytergis::bookOpen',
-  svgstr: bookOpenSvgStr
+  svgstr: bookOpenSvgStr,
 });
 
 export const vectorSquareIcon = new LabIcon({
   name: 'jupytergis::vectorSquare',
-  svgstr: vectorSquareSvgStr
+  svgstr: vectorSquareSvgStr,
 });
 
 export const infoIcon = new LabIcon({
   name: 'jupytergis::info',
-  svgstr: infoSvgStr
+  svgstr: infoSvgStr,
 });
 
 export const clockIcon = new LabIcon({
   name: 'jupytergis::clock',
-  svgstr: clockSvgStr
+  svgstr: clockSvgStr,
 });
 
 export const terminalToolbarIcon = new LabIcon({
   name: 'jupytergis::terminalToolbar',
-  svgstr: terminalToolbarSvgStr
+  svgstr: terminalToolbarSvgStr,
 });
 
 export const geolocationIcon = new LabIcon({
   name: 'jupytergis::geolocation',
-  svgstr: geolocationSvgStr
+  svgstr: geolocationSvgStr,
 });
 
 export const targetWithoutCenterIcon = new LabIcon({
   name: 'jupytergis::targetWithCenter',
-  svgstr: targetWithCenterSvgStr
+  svgstr: targetWithCenterSvgStr,
 });
 
 export const targetWithCenterIcon = new LabIcon({
   name: 'jupytergis::targetWithoutCenter',
-  svgstr: targetWithoutCenterSvgStr
+  svgstr: targetWithoutCenterSvgStr,
 });

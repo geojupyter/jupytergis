@@ -18,7 +18,7 @@ interface IUseGetPropertiesResult {
 
 export const useGetProperties = ({
   layerId,
-  model
+  model,
 }: IUseGetPropertiesProps): IUseGetPropertiesResult => {
   const [featureProperties, setFeatureProperties] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -40,7 +40,7 @@ export const useGetProperties = ({
       const data = await loadFile({
         filepath: source.parameters?.path,
         type: 'GeoJSONSource',
-        model: model
+        model: model,
       });
 
       if (!data) {

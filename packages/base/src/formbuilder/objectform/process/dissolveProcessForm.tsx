@@ -4,7 +4,7 @@ import { IChangeEvent } from '@rjsf/core';
 import {
   BaseForm,
   IBaseFormProps,
-  IBaseFormStates
+  IBaseFormStates,
 } from '@/src/formbuilder/objectform/baseform'; // Ensure BaseForm imports states
 import { loadFile } from '@/src/tools';
 
@@ -27,7 +27,7 @@ export class DissolveForm extends BaseForm {
 
     // Ensure initial state matches IBaseFormStates
     this.state = {
-      schema: options.schema ?? {} // Ensure schema is never undefined
+      schema: options.schema ?? {}, // Ensure schema is never undefined
     };
 
     this.onFormChange = this.handleFormChange.bind(this);
@@ -55,7 +55,7 @@ export class DissolveForm extends BaseForm {
       const jsonData = await loadFile({
         filepath: sourceData.path,
         type: 'GeoJSONSource',
-        model: this.model
+        model: this.model,
       });
 
       if (!jsonData?.features?.length) {
@@ -86,14 +86,14 @@ export class DissolveForm extends BaseForm {
             ...prevState.schema?.properties,
             dissolveField: {
               ...prevState.schema?.properties?.dissolveField,
-              enum: [...this.features]
-            }
-          }
-        }
+              enum: [...this.features],
+            },
+          },
+        },
       }),
       () => {
         this.forceUpdate();
-      }
+      },
     );
   }
 }

@@ -5,7 +5,7 @@ import {
   IJGISSource,
   IJupyterGISModel,
   IRasterLayerGalleryEntry,
-  SourceType
+  SourceType,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
@@ -20,7 +20,7 @@ import { getGdal } from '@/src/gdal';
 
 export const debounce = (
   func: CallableFunction,
-  timeout = 100
+  timeout = 100,
 ): CallableFunction => {
   let timeoutId: number;
   return (...args: any[]) => {
@@ -33,7 +33,7 @@ export const debounce = (
 
 export function throttle<T extends (...args: any[]) => void>(
   callback: T,
-  delay = 100
+  delay = 100,
 ): T {
   let last: number;
   let timer: any;
@@ -54,7 +54,7 @@ export function throttle<T extends (...args: any[]) => void>(
 
 export function getElementFromProperty(
   filePath?: string | null,
-  prop?: string | null
+  prop?: string | null,
 ): HTMLElement | undefined | null {
   if (!filePath || !prop) {
     return;
@@ -92,7 +92,7 @@ export function getCSSVariableColor(name: string): string {
  */
 export async function requestAPI<T>(
   endPoint = '',
-  init: RequestInit = {}
+  init: RequestInit = {},
 ): Promise<T> {
   // Make request to Jupyter API
   const settings = ServerConnection.makeSettings();
@@ -139,7 +139,7 @@ export function deepCopy<T = IDict<any>>(value: T): T {
  * @param layerBrowserRegistry Registry to add layers to
  */
 export function createDefaultLayerRegistry(
-  layerBrowserRegistry: IJGISLayerBrowserRegistry
+  layerBrowserRegistry: IJGISLayerBrowserRegistry,
 ): void {
   const RASTER_THUMBNAILS: { [key: string]: string } = {};
 
@@ -156,7 +156,7 @@ export function createDefaultLayerRegistry(
   const context = require.context(
     '../rasterlayer_gallery',
     false,
-    /\.(png|jpe?g|gif|svg)$/
+    /\.(png|jpe?g|gif|svg)$/,
   );
   importAll(context);
 
@@ -171,7 +171,7 @@ export function createDefaultLayerRegistry(
         const tile = convertToRegistryEntry(
           xyzprovider[mapName]['name'],
           xyzprovider[mapName],
-          entry
+          entry,
         );
 
         layerBrowserRegistry.addRegistryLayer(tile);
@@ -191,7 +191,7 @@ export function createDefaultLayerRegistry(
   function convertToRegistryEntry(
     entry: string,
     xyzprovider: { [x: string]: any },
-    provider?: string | undefined
+    provider?: string | undefined,
   ): IRasterLayerGalleryEntry {
     const urlParameters: any = {};
     if (xyzprovider.time) {
@@ -216,8 +216,8 @@ export function createDefaultLayerRegistry(
         maxZoom: xyzprovider['max_zoom'] || 24,
         attribution: xyzprovider['attribution'] || '',
         provider: provider ?? entry,
-        urlParameters
-      }
+        urlParameters,
+      },
     };
   }
 }
@@ -229,7 +229,7 @@ function getTileCoordinates(latDeg: number, lonDeg: number, zoom: number) {
   const n = 1 << zoom;
   const xTile = Math.floor(((lonDeg + 180.0) / 360.0) * n);
   const yTile = Math.floor(
-    (n * (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI)) / 2
+    (n * (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI)) / 2,
   );
 
   // Check if either xTile or yTile is NaN
@@ -243,7 +243,7 @@ function getTileCoordinates(latDeg: number, lonDeg: number, zoom: number) {
 export async function getLayerTileInfo(
   tileUrl: string,
   mapOptions: Pick<IJGISOptions, 'latitude' | 'longitude' | 'extent' | 'zoom'>,
-  urlParameters?: IDict<string>
+  urlParameters?: IDict<string>,
 ): Promise<VectorTile> {
   // If it's tilejson, fetch the json to access the pbf url
   if (tileUrl.includes('.json')) {
@@ -312,7 +312,7 @@ export function parseColor(style: any): IParsedStyle | undefined {
     joinStyle:
       style['circle-stroke-line-join'] ?? style['stroke-line-join'] ?? 'round',
     capStyle:
-      style['circle-stroke-line-cap'] ?? style['stroke-line-cap'] ?? 'round'
+      style['circle-stroke-line-cap'] ?? style['stroke-line-cap'] ?? 'round',
   };
 
   return parsedStyle;
@@ -350,7 +350,7 @@ export const openDatabase = () => {
 export const saveToIndexedDB = async (
   key: string,
   file: any,
-  metadata?: any | undefined
+  metadata?: any | undefined,
 ) => {
   const db = await openDatabase();
   return new Promise<void>((resolve, reject) => {
@@ -390,7 +390,7 @@ export const getFromIndexedDB = async (key: string) => {
 const fetchWithProxies = async <T>(
   url: string,
   model: IJupyterGISModel,
-  parseResponse: (response: Response) => Promise<T>
+  parseResponse: (response: Response) => Promise<T>,
 ): Promise<T | null> => {
   let settings: any = null;
 
@@ -406,7 +406,7 @@ const fetchWithProxies = async <T>(
   const proxyUrls = [
     url, // Direct fetch
     `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
-    `${proxyUrl}/?url=${encodeURIComponent(url)}` // External proxy
+    `${proxyUrl}/?url=${encodeURIComponent(url)}`, // External proxy
   ];
 
   for (const proxyUrl of proxyUrls) {
@@ -414,7 +414,7 @@ const fetchWithProxies = async <T>(
       const response = await fetch(proxyUrl);
       if (!response.ok) {
         console.warn(
-          `Failed to fetch from ${proxyUrl}: ${response.statusText}`
+          `Failed to fetch from ${proxyUrl}: ${response.statusText}`,
         );
         continue;
       }
@@ -436,7 +436,7 @@ const fetchWithProxies = async <T>(
 export const loadGeoTiff = async (
   sourceInfo: { url?: string | undefined },
   model: IJupyterGISModel,
-  file?: Contents.IModel | null
+  file?: Contents.IModel | null,
 ) => {
   if (!sourceInfo?.url) {
     return null;
@@ -453,7 +453,7 @@ export const loadGeoTiff = async (
     return {
       file: cachedData.file,
       metadata: cachedData.metadata,
-      sourceUrl: url
+      sourceUrl: url,
     };
   }
 
@@ -461,7 +461,7 @@ export const loadGeoTiff = async (
 
   if (!file) {
     fileBlob = await fetchWithProxies(url, model, async response =>
-      response.blob()
+      response.blob(),
     );
     if (!fileBlob) {
       showErrorMessage('Network error', `Failed to fetch ${url}`);
@@ -483,7 +483,7 @@ export const loadGeoTiff = async (
   return {
     file: fileBlob,
     metadata,
-    sourceUrl: url
+    sourceUrl: url,
   };
 };
 
@@ -535,7 +535,7 @@ export const loadFile = async (fileInfo: {
           async response => {
             const arrayBuffer = await response.arrayBuffer();
             return shp(arrayBuffer);
-          }
+          },
         );
 
         if (geojson) {
@@ -556,7 +556,7 @@ export const loadFile = async (fileInfo: {
         const geojson = await fetchWithProxies(
           filepath,
           model,
-          async response => response.json()
+          async response => response.json(),
         );
 
         if (geojson) {
@@ -580,12 +580,12 @@ export const loadFile = async (fileInfo: {
 
   const absolutePath = PathExt.resolve(
     PathExt.dirname(model.filePath),
-    filepath
+    filepath,
   );
 
   try {
     const file = await model.contentsManager.get(absolutePath, {
-      content: true
+      content: true,
     });
 
     if (!file.content) {
@@ -668,7 +668,7 @@ const validateImage = async (blob: Blob): Promise<void> => {
  */
 export const base64ToBlob = async (
   base64: string,
-  mimeType: string
+  mimeType: string,
 ): Promise<Blob> => {
   const response = await fetch(`data:${mimeType};base64,${base64}`);
   return await response.blob();
@@ -816,7 +816,7 @@ export const MIME_TYPES: { [ext: string]: string } = {
   '.xul': 'text/xul',
   '.xwd': 'image/x-xwindowdump',
   '.zip': 'application/zip',
-  '.ipynb': 'application/json'
+  '.ipynb': 'application/json',
 };
 
 /**
@@ -833,7 +833,7 @@ export const getMimeType = (filename: string): string => {
   }
 
   console.warn(
-    `Unknown file extension: ${extension}, defaulting to 'application/octet-stream'.`
+    `Unknown file extension: ${extension}, defaulting to 'application/octet-stream'.`,
   );
   return 'application/octet-stream';
 };
@@ -845,17 +845,18 @@ export const getMimeType = (filename: string): string => {
  * @returns An ArrayBuffer.
  */
 export const stringToArrayBuffer = async (
-  content: string
+  content: string,
 ): Promise<ArrayBuffer> => {
   const base64Response = await fetch(
-    `data:application/octet-stream;base64,${content}`
+    `data:application/octet-stream;base64,${content}`,
   );
   return await base64Response.arrayBuffer();
 };
 
 const getFeatureAttributes = <T>(
   featureProperties: Record<string, Set<any>>,
-  predicate: (key: string, value: any) => boolean = (key: string, value) => true
+  predicate: (key: string, value: any) => boolean = (key: string, value) =>
+    true,
 ): Record<string, Set<T>> => {
   const filteredRecord: Record<string, Set<T>> = {};
 
@@ -878,7 +879,7 @@ const getFeatureAttributes = <T>(
  * @returns - Attributes which are numeric.
  */
 export const getNumericFeatureAttributes = (
-  featureProperties: Record<string, Set<any>>
+  featureProperties: Record<string, Set<any>>,
 ): Record<string, Set<number>> => {
   return getFeatureAttributes<number>(featureProperties, (_: string, value) => {
     return !(typeof value === 'string' && isNaN(Number(value)));
@@ -892,7 +893,7 @@ export const getNumericFeatureAttributes = (
  * @returns - Attributes which look like hex color codes.
  */
 export const getColorCodeFeatureAttributes = (
-  featureProperties: Record<string, Set<any>>
+  featureProperties: Record<string, Set<any>>,
 ): Record<string, Set<string>> => {
   return getFeatureAttributes<string>(featureProperties, (_, value) => {
     const regex = new RegExp('^#[0-9a-f]{6}$');
@@ -903,7 +904,7 @@ export const getColorCodeFeatureAttributes = (
 export function downloadFile(
   content: BlobPart,
   fileName: string,
-  mimeType: string
+  mimeType: string,
 ) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
@@ -917,13 +918,13 @@ export function downloadFile(
 
 export async function getGeoJSONDataFromLayerSource(
   source: IJGISSource,
-  model: IJupyterGISModel
+  model: IJupyterGISModel,
 ): Promise<string | null> {
   const vectorSourceTypes: SourceType[] = ['GeoJSONSource', 'ShapefileSource'];
 
   if (!vectorSourceTypes.includes(source.type as SourceType)) {
     console.error(
-      `Invalid source type '${source.type}'. Expected one of: ${vectorSourceTypes.join(', ')}`
+      `Invalid source type '${source.type}'. Expected one of: ${vectorSourceTypes.join(', ')}`,
     );
     return null;
   }
@@ -937,7 +938,7 @@ export async function getGeoJSONDataFromLayerSource(
     const fileContent = await loadFile({
       filepath: source.parameters.path,
       type: source.type,
-      model
+      model,
     });
     return typeof fileContent === 'object'
       ? JSON.stringify(fileContent)

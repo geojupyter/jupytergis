@@ -4,7 +4,7 @@ import {
   formSchemaRegistryPlugin,
   layerBrowserRegistryPlugin,
   trackerPlugin,
-  annotationPlugin
+  annotationPlugin,
 } from './plugin';
 
 export * from './factory';
@@ -14,5 +14,5 @@ export default [
   formSchemaRegistryPlugin,
   externalCommandRegistryPlugin,
   layerBrowserRegistryPlugin,
-  annotationPlugin
+  annotationPlugin,
 ];

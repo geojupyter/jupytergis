@@ -6,7 +6,7 @@ import Annotation, { IAnnotationProps } from './Annotation';
 
 const AnnotationFloater = ({
   itemId,
-  annotationModel: model
+  annotationModel: model,
 }: IAnnotationProps) => {
   const annotation = model.getAnnotation(itemId);
   const [isOpen, setIsOpen] = useState(annotation?.open);

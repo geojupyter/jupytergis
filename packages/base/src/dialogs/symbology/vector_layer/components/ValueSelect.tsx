@@ -9,7 +9,7 @@ interface IValueSelectProps {
 const ValueSelect = ({
   featureProperties,
   selectedValue,
-  setSelectedValue
+  setSelectedValue,
 }: IValueSelectProps) => {
   return (
     <div className="jp-gis-symbology-row">

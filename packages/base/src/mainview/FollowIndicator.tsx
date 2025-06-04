@@ -12,7 +12,7 @@ export function FollowIndicator({ remoteUser }: IFollowIndicatorProps) {
         position: 'absolute',
         top: 1,
         right: 3,
-        background: remoteUser.color
+        background: remoteUser.color,
       }}
     >
       {`Following ${remoteUser.display_name}`}

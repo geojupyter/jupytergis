@@ -8,7 +8,7 @@ import {
   JgisCoordinates,
   LayerType,
   SelectionType,
-  SourceType
+  SourceType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -30,7 +30,7 @@ import keybindings from './keybindings.json';
 import {
   getSingleSelectedLayer,
   selectedLayerIsOfType,
-  processSelectedLayer
+  processSelectedLayer,
 } from './processing';
 import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { JupyterGISTracker } from './types';
@@ -53,7 +53,7 @@ function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
     commands.addKeyBinding({
       command: binding.command,
       keys: binding.keys,
-      selector: binding.selector
+      selector: binding.selector,
     });
   });
 }
@@ -68,7 +68,7 @@ export function addCommands(
   formSchemaRegistry: IJGISFormSchemaRegistry,
   layerBrowserRegistry: IJGISLayerBrowserRegistry,
   state: IStateDB,
-  completionProviderManager: ICompletionProviderManager | undefined
+  completionProviderManager: ICompletionProviderManager | undefined,
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
@@ -101,14 +101,14 @@ export function addCommands(
         'VectorLayer',
         'VectorTileLayer',
         'WebGlLayer',
-        'HeatmapLayer'
+        'HeatmapLayer',
       ].includes(layer.type);
 
       return isValidLayer;
     },
     execute: Private.createSymbologyDialog(tracker, state),
 
-    ...icons.get(CommandIDs.symbology)
+    ...icons.get(CommandIDs.symbology),
   });
 
   commands.addCommand(CommandIDs.redo, {
@@ -125,7 +125,7 @@ export function addCommands(
         return current.model.sharedModel.redo();
       }
     },
-    ...icons.get(CommandIDs.redo)?.icon
+    ...icons.get(CommandIDs.redo)?.icon,
   });
 
   commands.addCommand(CommandIDs.undo, {
@@ -142,7 +142,7 @@ export function addCommands(
         return current.model.sharedModel.undo();
       }
     },
-    ...icons.get(CommandIDs.undo)
+    ...icons.get(CommandIDs.undo),
   });
 
   commands.addCommand(CommandIDs.identify, {
@@ -160,7 +160,7 @@ export function addCommands(
       const canIdentify = [
         'VectorLayer',
         'ShapefileLayer',
-        'WebGlLayer'
+        'WebGlLayer',
       ].includes(selectedLayer.type);
       const isIdentifying = current.model.isIdentifying;
 
@@ -178,7 +178,7 @@ export function addCommands(
         return false;
       }
       return ['VectorLayer', 'ShapefileLayer', 'WebGlLayer'].includes(
-        selectedLayer.type
+        selectedLayer.type,
       );
     },
     execute: args => {
@@ -205,7 +205,7 @@ export function addCommands(
       current.model.toggleIdentify();
       commands.notifyCommandChanged(CommandIDs.identify);
     },
-    ...icons.get(CommandIDs.identify)
+    ...icons.get(CommandIDs.identify),
   });
 
   commands.addCommand(CommandIDs.temporalController, {
@@ -254,7 +254,7 @@ export function addCommands(
       current.model.toggleTemporalController();
       commands.notifyCommandChanged(CommandIDs.temporalController);
     },
-    ...icons.get(CommandIDs.temporalController)
+    ...icons.get(CommandIDs.temporalController),
   });
 
   /**
@@ -270,9 +270,9 @@ export function addCommands(
     execute: Private.createLayerBrowser(
       tracker,
       layerBrowserRegistry,
-      formSchemaRegistry
+      formSchemaRegistry,
     ),
-    ...icons.get(CommandIDs.openLayerBrowser)
+    ...icons.get(CommandIDs.openLayerBrowser),
   });
 
   /**
@@ -293,13 +293,13 @@ export function addCommands(
       createSource: true,
       sourceData: {
         minZoom: 0,
-        maxZoom: 24
+        maxZoom: 24,
       },
       layerData: { name: 'Custom Raster Tile Layer' },
       sourceType: 'RasterSource',
-      layerType: 'RasterLayer'
+      layerType: 'RasterLayer',
     }),
-    ...icons.get(CommandIDs.newRasterEntry)
+    ...icons.get(CommandIDs.newRasterEntry),
   });
 
   commands.addCommand(CommandIDs.newVectorTileEntry, {
@@ -318,9 +318,9 @@ export function addCommands(
       sourceData: { minZoom: 0, maxZoom: 24 },
       layerData: { name: 'Custom Vector Tile Layer' },
       sourceType: 'VectorTileSource',
-      layerType: 'VectorTileLayer'
+      layerType: 'VectorTileLayer',
     }),
-    ...icons.get(CommandIDs.newVectorTileEntry)
+    ...icons.get(CommandIDs.newVectorTileEntry),
   });
 
   commands.addCommand(CommandIDs.buffer, {
@@ -344,12 +344,12 @@ export function addCommands(
             'SQLITE',
             '-sql',
             sqlQuery,
-            'output.geojson'
-          ]
+            'output.geojson',
+          ],
         },
-        app
+        app,
       );
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.dissolve, {
@@ -374,12 +374,12 @@ export function addCommands(
             'SQLITE',
             '-sql',
             sqlQuery,
-            'output.geojson'
-          ]
+            'output.geojson',
+          ],
         },
-        app
+        app,
       );
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
@@ -397,9 +397,9 @@ export function addCommands(
       createSource: true,
       layerData: { name: 'Custom GeoJSON Layer' },
       sourceType: 'GeoJSONSource',
-      layerType: 'VectorLayer'
+      layerType: 'VectorLayer',
     }),
-    ...icons.get(CommandIDs.newGeoJSONEntry)
+    ...icons.get(CommandIDs.newGeoJSONEntry),
   });
 
   commands.addCommand(CommandIDs.newHillshadeEntry, {
@@ -417,9 +417,9 @@ export function addCommands(
       createSource: true,
       layerData: { name: 'Custom Hillshade Layer' },
       sourceType: 'RasterDemSource',
-      layerType: 'HillshadeLayer'
+      layerType: 'HillshadeLayer',
     }),
-    ...icons.get(CommandIDs.newHillshadeEntry)
+    ...icons.get(CommandIDs.newHillshadeEntry),
   });
 
   commands.addCommand(CommandIDs.newImageEntry, {
@@ -442,14 +442,14 @@ export function addCommands(
           [-80.425, 46.437],
           [-71.516, 46.437],
           [-71.516, 37.936],
-          [-80.425, 37.936]
-        ]
+          [-80.425, 37.936],
+        ],
       },
       layerData: { name: 'Custom Image Layer' },
       sourceType: 'ImageSource',
-      layerType: 'ImageLayer'
+      layerType: 'ImageLayer',
     }),
-    ...icons.get(CommandIDs.newImageEntry)
+    ...icons.get(CommandIDs.newImageEntry),
   });
 
   commands.addCommand(CommandIDs.newVideoEntry, {
@@ -469,20 +469,20 @@ export function addCommands(
         name: 'Custom Video Source',
         urls: [
           'https://static-assets.mapbox.com/mapbox-gl-js/drone.mp4',
-          'https://static-assets.mapbox.com/mapbox-gl-js/drone.webm'
+          'https://static-assets.mapbox.com/mapbox-gl-js/drone.webm',
         ],
         coordinates: [
           [-122.51596391201019, 37.56238816766053],
           [-122.51467645168304, 37.56410183312965],
           [-122.51309394836426, 37.563391708549425],
-          [-122.51423120498657, 37.56161849366671]
-        ]
+          [-122.51423120498657, 37.56161849366671],
+        ],
       },
       layerData: { name: 'Custom Video Layer' },
       sourceType: 'VideoSource',
-      layerType: 'RasterLayer'
+      layerType: 'RasterLayer',
     }),
-    ...icons.get(CommandIDs.newVideoEntry)
+    ...icons.get(CommandIDs.newVideoEntry),
   });
 
   commands.addCommand(CommandIDs.newGeoTiffEntry, {
@@ -500,13 +500,13 @@ export function addCommands(
       createSource: true,
       sourceData: {
         name: 'Custom GeoTiff Source',
-        urls: [{}]
+        urls: [{}],
       },
       layerData: { name: 'Custom GeoTiff Layer' },
       sourceType: 'GeoTiffSource',
-      layerType: 'WebGlLayer'
+      layerType: 'WebGlLayer',
     }),
-    ...icons.get(CommandIDs.newGeoTiffEntry)
+    ...icons.get(CommandIDs.newGeoTiffEntry),
   });
 
   commands.addCommand(CommandIDs.newShapefileEntry, {
@@ -525,9 +525,9 @@ export function addCommands(
       sourceData: { name: 'Custom Shapefile Source' },
       layerData: { name: 'Custom Shapefile Layer' },
       sourceType: 'ShapefileSource',
-      layerType: 'VectorLayer'
+      layerType: 'VectorLayer',
     }),
-    ...icons.get(CommandIDs.newShapefileEntry)
+    ...icons.get(CommandIDs.newShapefileEntry),
   });
 
   /**
@@ -544,7 +544,7 @@ export function addCommands(
           model?.sharedModel.updateLayer(layerId, layer);
         }
       });
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.removeLayer, {
@@ -554,7 +554,7 @@ export function addCommands(
       Private.removeSelectedItems(model, 'layer', selection => {
         model?.removeLayer(selection);
       });
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.renameGroup, {
@@ -564,7 +564,7 @@ export function addCommands(
       await Private.renameSelectedItem(model, 'group', (groupName, newName) => {
         model?.renameLayerGroup(groupName, newName);
       });
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.removeGroup, {
@@ -574,7 +574,7 @@ export function addCommands(
       Private.removeSelectedItems(model, 'group', selection => {
         model?.removeLayerGroup(selection);
       });
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.moveLayersToGroup, {
@@ -591,7 +591,7 @@ export function addCommands(
       }
 
       model.moveItemsToGroup(Object.keys(selectedLayers), groupName);
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.moveLayerToNewGroup, {
@@ -650,11 +650,11 @@ export function addCommands(
 
       const newLayerGroup: IJGISLayerGroup = {
         name: newName,
-        layers: layers
+        layers: layers,
       };
 
       model.addNewLayerGroup(selectedLayers, newLayerGroup);
-    }
+    },
   });
 
   /**
@@ -671,7 +671,7 @@ export function addCommands(
           model?.sharedModel.updateSource(sourceId, source);
         }
       });
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.removeSource, {
@@ -684,11 +684,11 @@ export function addCommands(
         } else {
           showErrorMessage(
             'Remove source error',
-            'The source is used by a layer.'
+            'The source is used by a layer.',
           );
         }
       });
-    }
+    },
   });
 
   // Console commands
@@ -710,7 +710,7 @@ export function addCommands(
     execute: async () => {
       await Private.toggleConsole(tracker);
       commands.notifyCommandChanged(CommandIDs.toggleConsole);
-    }
+    },
   });
   commands.addCommand(CommandIDs.executeConsole, {
     label: trans.__('Execute console'),
@@ -720,7 +720,7 @@ export function addCommands(
         ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
-    execute: () => Private.executeConsole(tracker)
+    execute: () => Private.executeConsole(tracker),
   });
   commands.addCommand(CommandIDs.removeConsole, {
     label: trans.__('Remove console'),
@@ -730,7 +730,7 @@ export function addCommands(
         ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
-    execute: () => Private.removeConsole(tracker)
+    execute: () => Private.removeConsole(tracker),
   });
 
   commands.addCommand(CommandIDs.invokeCompleter, {
@@ -749,7 +749,7 @@ export function addCommands(
       if (id) {
         return completionProviderManager.invoke(id);
       }
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.selectCompleter, {
@@ -768,7 +768,7 @@ export function addCommands(
       if (id) {
         return completionProviderManager.select(id);
       }
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.zoomToLayer, {
@@ -788,7 +788,7 @@ export function addCommands(
 
       const layerId = Object.keys(selectedItems)[0];
       model.centerOnPosition(layerId);
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.downloadGeoJSON, {
@@ -808,7 +808,9 @@ export function addCommands(
       const sources = model.sharedModel.sources ?? {};
 
       const exportSchema = {
-        ...(formSchemaRegistry.getSchemas().get('ExportGeoJSONSchema') as IDict)
+        ...(formSchemaRegistry
+          .getSchemas()
+          .get('ExportGeoJSONSchema') as IDict),
       };
 
       const formValues = await new Promise<IDict>(resolve => {
@@ -822,7 +824,7 @@ export function addCommands(
           syncData: (props: IDict) => {
             resolve(props);
             dialog.dispose();
-          }
+          },
         });
 
         dialog.launch();
@@ -844,9 +846,9 @@ export function addCommands(
       downloadFile(
         geojsonString,
         `${exportFileName}.geojson`,
-        'application/geo+json'
+        'application/geo+json',
       );
-    }
+    },
   });
 
   commands.addCommand(CommandIDs.getGeolocation, {
@@ -856,16 +858,16 @@ export function addCommands(
       const options = {
         enableHighAccuracy: true,
         timeout: 5000,
-        maximumAge: 0
+        maximumAge: 0,
       };
       const success = (pos: any) => {
         const location: Coordinate = fromLonLat([
           pos.coords.longitude,
-          pos.coords.latitude
+          pos.coords.latitude,
         ]);
         const Jgislocation: JgisCoordinates = {
           x: location[0],
-          y: location[1]
+          y: location[1],
         };
         if (viewModel) {
           viewModel.geolocationChanged.emit(Jgislocation);
@@ -876,7 +878,7 @@ export function addCommands(
       };
       navigator.geolocation.getCurrentPosition(success, error, options);
     },
-    icon: targetWithCenterIcon
+    icon: targetWithCenterIcon,
   });
 
   loadKeybindings(commands, keybindings);
@@ -886,7 +888,7 @@ namespace Private {
   export function createLayerBrowser(
     tracker: JupyterGISTracker,
     layerBrowserRegistry: IJGISLayerBrowserRegistry,
-    formSchemaRegistry: IJGISFormSchemaRegistry
+    formSchemaRegistry: IJGISFormSchemaRegistry,
   ) {
     return async () => {
       const current = tracker.currentWidget;
@@ -898,7 +900,7 @@ namespace Private {
       const dialog = new LayerBrowserWidget({
         model: current.model,
         registry: layerBrowserRegistry.getRegistryLayers(),
-        formSchemaRegistry
+        formSchemaRegistry,
       });
       await dialog.launch();
     };
@@ -906,7 +908,7 @@ namespace Private {
 
   export function createSymbologyDialog(
     tracker: JupyterGISTracker,
-    state: IStateDB
+    state: IStateDB,
   ) {
     return async () => {
       const current = tracker.currentWidget;
@@ -917,7 +919,7 @@ namespace Private {
 
       const dialog = new SymbologyWidget({
         model: current.model,
-        state
+        state,
       });
       await dialog.launch();
     };
@@ -932,7 +934,7 @@ namespace Private {
     sourceData,
     layerData,
     sourceType,
-    layerType
+    layerType,
   }: ICreateEntry) {
     return async () => {
       const current = tracker.currentWidget;
@@ -950,7 +952,7 @@ namespace Private {
         sourceType,
         layerData,
         layerType,
-        formSchemaRegistry
+        formSchemaRegistry,
       });
       await dialog.launch();
     };
@@ -959,7 +961,7 @@ namespace Private {
   export async function getUserInputForRename(
     text: HTMLElement,
     input: HTMLInputElement,
-    original: string
+    original: string,
   ): Promise<string> {
     const parent = text.parentElement as HTMLElement;
     parent.replaceChild(input, text);
@@ -992,7 +994,7 @@ namespace Private {
   export function removeSelectedItems(
     model: IJupyterGISModel | undefined,
     itemTypeToRemove: SelectionType,
-    removeFunction: (id: string) => void
+    removeFunction: (id: string) => void,
   ) {
     const selected = model?.localState?.selected?.value;
 
@@ -1011,7 +1013,7 @@ namespace Private {
   export async function renameSelectedItem(
     model: IJupyterGISModel | undefined,
     itemType: SelectionType,
-    callback: (itemId: string, newName: string) => void
+    callback: (itemId: string, newName: string) => void,
   ) {
     const selectedItems = model?.localState?.selected.value;
 
@@ -1051,7 +1053,7 @@ namespace Private {
     const newName = await Private.getUserInputForRename(
       node,
       edit,
-      originalName
+      originalName,
     );
 
     if (!newName) {
@@ -1082,7 +1084,7 @@ namespace Private {
   }
 
   export async function toggleConsole(
-    tracker: JupyterGISTracker
+    tracker: JupyterGISTracker,
   ): Promise<void> {
     const current = tracker.currentWidget;
 

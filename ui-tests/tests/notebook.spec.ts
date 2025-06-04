@@ -7,7 +7,7 @@ const FILENAME = 'eq.json';
 const testCellOutputs = async (
   page: IJupyterLabPageFixture,
   tmpPath: string,
-  theme: 'JupyterLab Light' | 'JupyterLab Dark'
+  theme: 'JupyterLab Light' | 'JupyterLab Dark',
 ) => {
   const paths = klaw(path.resolve(__dirname, './notebooks'), { nodir: true });
   const notebooks = paths.map(item => path.basename(item.path));
@@ -30,7 +30,7 @@ const testCellOutputs = async (
     const getCaptureImageName = (
       contextPrefix: string,
       notebook: string,
-      id: number
+      id: number,
     ): string => {
       return `${contextPrefix}-${notebook}-cell-${id}.png`;
     };
@@ -44,12 +44,12 @@ const testCellOutputs = async (
           results.push(await cell.screenshot());
           numCellImages++;
         }
-      }
+      },
     });
 
     for (let c = 0; c < numCellImages; ++c) {
       expect(results[c]).toMatchSnapshot(
-        getCaptureImageName(contextPrefix, notebook, c)
+        getCaptureImageName(contextPrefix, notebook, c),
       );
     }
 
@@ -65,25 +65,25 @@ test.describe('Notebook API Visual Regression', () => {
 
     await page.contents.uploadDirectory(
       path.resolve(__dirname, './notebooks'),
-      tmpPath
+      tmpPath,
     );
     await page.contents.uploadFile(
       path.resolve(__dirname, `./gis-files/${FILENAME}`),
-      `/${tmpPath}/${FILENAME}`
+      `/${tmpPath}/${FILENAME}`,
     );
     await page.filebrowser.openDirectory(tmpPath);
   });
 
   test('Light theme: Cell outputs should be correct', async ({
     page,
-    tmpPath
+    tmpPath,
   }) => {
     await testCellOutputs(page, tmpPath, 'JupyterLab Light');
   });
 
   test('Dark theme: Cell outputs should be correct', async ({
     page,
-    tmpPath
+    tmpPath,
   }) => {
     await testCellOutputs(page, tmpPath, 'JupyterLab Dark');
   });

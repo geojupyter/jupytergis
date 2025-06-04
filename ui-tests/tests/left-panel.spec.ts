@@ -2,7 +2,7 @@ import {
   IJupyterLabPageFixture,
   expect,
   galata,
-  test
+  test,
 } from '@jupyterlab/galata';
 import { Locator } from '@playwright/test';
 import path from 'path';
@@ -29,7 +29,7 @@ async function openLayerTree(page: IJupyterLabPageFixture): Promise<Locator> {
 }
 
 async function getOpenLayerIds(
-  page: IJupyterLabPageFixture
+  page: IJupyterLabPageFixture,
 ): Promise<string[]> {
   return await page.evaluate(() => {
     const olMap = Object.values(window.jupytergisMaps)[0];
@@ -41,7 +41,7 @@ async function getOpenLayerIds(
 }
 
 async function getOpenLayerVisibility(
-  page: IJupyterLabPageFixture
+  page: IJupyterLabPageFixture,
 ): Promise<boolean[]> {
   return await page.evaluate(() => {
     const olMap = Object.values(window.jupytergisMaps)[0];
@@ -80,7 +80,7 @@ test.describe('#layerPanel', () => {
       await content.deleteDirectory('/testDir');
       await content.uploadDirectory(
         path.resolve(__dirname, './gis-files'),
-        '/testDir'
+        '/testDir',
       );
     });
     test.beforeEach(async ({ page }) => {
@@ -105,18 +105,18 @@ test.describe('#layerPanel', () => {
     test('raster layer should have icons', async ({ page }) => {
       const layerTree = await openLayerTree(page);
       const layerIcons = layerTree.locator(
-        '.jp-gis-layer .jp-gis-layerIcon svg'
+        '.jp-gis-layer .jp-gis-layerIcon svg',
       );
       const visToggleIcon = layerIcons.nth(0);
       const rasterIcon = layerIcons.nth(1);
 
       await expect(visToggleIcon).toHaveAttribute(
         'data-icon',
-        'jupytergis::visibility'
+        'jupytergis::visibility',
       );
       await expect(rasterIcon).toHaveAttribute(
         'data-icon',
-        'jupytergis::raster'
+        'jupytergis::raster',
       );
     });
 
@@ -177,7 +177,7 @@ test.describe('#layerPanel', () => {
 
       // Wait for the map to be loaded;
       await page.waitForCondition(
-        async () => (await getOpenLayerIds(page)).length === 3
+        async () => (await getOpenLayerIds(page)).length === 3,
       );
 
       // Wait for the map to be displayed.
@@ -230,7 +230,7 @@ test.describe('#layerPanel', () => {
 
       await page.mouse.move(
         firstItemBox!.x + 10,
-        firstItemBox!.y + firstItemBox!.height - 10
+        firstItemBox!.y + firstItemBox!.height - 10,
       );
       // We need to force hover
       await layerItems
@@ -242,7 +242,7 @@ test.describe('#layerPanel', () => {
     });
 
     test('should move the top raster layer using drag and drop', async ({
-      page
+      page,
     }) => {
       const layerTree = await openLayerTree(page);
       const layers = layerTree.locator('.jp-gis-layer');
@@ -250,7 +250,7 @@ test.describe('#layerPanel', () => {
 
       // Wait for the map to be loaded;
       await page.waitForCondition(
-        async () => (await getOpenLayerIds(page)).length === 3
+        async () => (await getOpenLayerIds(page)).length === 3,
       );
 
       const layerIds = await getOpenLayerIds(page);
@@ -265,7 +265,7 @@ test.describe('#layerPanel', () => {
       await page.mouse.down();
       await page.mouse.move(
         lowLayerBox!.x + 10,
-        lowLayerBox!.y + lowLayerBox!.height + 10
+        lowLayerBox!.y + lowLayerBox!.height + 10,
       );
       await page.mouse.up();
 

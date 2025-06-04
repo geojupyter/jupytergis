@@ -6,7 +6,7 @@ import {
   closeIcon,
   CommandToolbarButton,
   expandIcon,
-  Toolbar
+  Toolbar,
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { BoxPanel, Widget } from '@lumino/widgets';
@@ -24,7 +24,7 @@ export class ConsoleView extends BoxPanel {
       contentFactory,
       mimeTypeService,
       rendermime: clonedRendermime,
-      kernelPreference: { name: 'python3', shutdownOnDispose: true }
+      kernelPreference: { name: 'python3', shutdownOnDispose: true },
     });
     this._consolePanel.console.node.dataset.jpInteractionMode = 'notebook';
     this.addWidget(this._consolePanel);
@@ -38,8 +38,8 @@ export class ConsoleView extends BoxPanel {
         label: '',
         icon: expandIcon,
         id: 'jupytergis:toggleConsole',
-        commands: options.commandRegistry
-      })
+        commands: options.commandRegistry,
+      }),
     );
     this._consolePanel.toolbar.addItem(
       'close',
@@ -47,8 +47,8 @@ export class ConsoleView extends BoxPanel {
         label: '',
         icon: closeIcon,
         id: 'jupytergis:removeConsole',
-        commands: options.commandRegistry
-      })
+        commands: options.commandRegistry,
+      }),
     );
   }
 

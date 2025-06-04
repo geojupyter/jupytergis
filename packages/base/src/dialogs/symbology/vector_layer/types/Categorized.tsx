@@ -8,7 +8,7 @@ import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopCo
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import {
   IStopRow,
-  ISymbologyDialogProps
+  ISymbologyDialogProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
@@ -50,7 +50,7 @@ const Categorized = ({
   }
   const { featureProperties } = useGetProperties({
     layerId,
-    model: model
+    model: model,
   });
 
   useEffect(() => {
@@ -116,13 +116,13 @@ const Categorized = ({
     selectedMode: string,
     numberOfShades: string,
     selectedRamp: string,
-    setIsLoading: (isLoading: boolean) => void
+    setIsLoading: (isLoading: boolean) => void,
   ) => {
     setColorRampOptions({
       selectedFunction: '',
       selectedRamp,
       numberOfShades: '',
-      selectedMode: ''
+      selectedMode: '',
     });
 
     const stops = Array.from(features[selectedValue]).sort((a, b) => a - b);
@@ -130,7 +130,7 @@ const Categorized = ({
     const valueColorPairs = Utils.getValueColorPairs(
       stops,
       selectedRamp,
-      stops.length
+      stops.length,
     );
 
     setStopRows(valueColorPairs);

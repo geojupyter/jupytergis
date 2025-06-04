@@ -1,7 +1,7 @@
 import {
   faGlobe,
   faLocationDot,
-  faRuler
+  faRuler,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
@@ -20,7 +20,7 @@ const StatusBar = ({
   jgisModel,
   loading,
   projection,
-  scale
+  scale,
 }: IStatusBarProps) => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
 

@@ -4,13 +4,13 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { VectorClassifications } from '@/src/dialogs/symbology/classificationModes';
 import ColorRamp, {
-  ColorRampOptions
+  ColorRampOptions,
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import {
   IStopRow,
-  ISymbologyDialogProps
+  ISymbologyDialogProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
@@ -29,7 +29,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
     'equal interval',
     'jenks',
     'pretty',
-    'logarithmic'
+    'logarithmic',
   ];
 
   const selectedValueRef = useRef<string>();
@@ -61,7 +61,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
 
   const { featureProperties } = useGetProperties({
     layerId,
-    model: model
+    model: model,
   });
 
   useEffect(() => {
@@ -235,12 +235,12 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
   const buildColorInfoFromClassification = (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string
+    selectedRamp: string,
   ) => {
     setColorRampOptions({
       selectedRamp,
       numberOfShades,
-      selectedMode
+      selectedMode,
     });
 
     let stops;
@@ -251,31 +251,31 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
       case 'quantile':
         stops = VectorClassifications.calculateQuantileBreaks(
           values,
-          +numberOfShades
+          +numberOfShades,
         );
         break;
       case 'equal interval':
         stops = VectorClassifications.calculateEqualIntervalBreaks(
           values,
-          +numberOfShades
+          +numberOfShades,
         );
         break;
       case 'jenks':
         stops = VectorClassifications.calculateJenksBreaks(
           values,
-          +numberOfShades
+          +numberOfShades,
         );
         break;
       case 'pretty':
         stops = VectorClassifications.calculatePrettyBreaks(
           values,
-          +numberOfShades
+          +numberOfShades,
         );
         break;
       case 'logarithmic':
         stops = VectorClassifications.calculateLogarithmicBreaks(
           values,
-          +numberOfShades
+          +numberOfShades,
         );
         break;
       default:
@@ -292,7 +292,7 @@ const Graduated: React.FC<ISymbologyDialogProps> = ({
       stopOutputPairs = Utils.getValueColorPairs(
         stops,
         selectedRamp,
-        +numberOfShades
+        +numberOfShades,
       );
     }
 

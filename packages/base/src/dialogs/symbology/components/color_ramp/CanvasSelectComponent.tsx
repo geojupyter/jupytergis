@@ -16,7 +16,7 @@ interface ICanvasSelectComponentProps {
 
 const CanvasSelectComponent = ({
   selectedRamp,
-  setSelected
+  setSelected,
 }: ICanvasSelectComponentProps) => {
   const colorRampNames = [
     'jet',
@@ -60,7 +60,7 @@ const CanvasSelectComponent = ({
     'temperature',
     'turbidity',
     'velocity-blue',
-    'velocity-green'
+    'velocity-green',
     // 'cubehelix' 16 steps min
   ];
 
@@ -75,7 +75,7 @@ const CanvasSelectComponent = ({
       const colorRamp = colormap({
         colormap: name,
         nshades: 255,
-        format: 'rgbaString'
+        format: 'rgbaString',
       });
       const colorMap = { name: name, colors: colorRamp };
       colorMapList.push(colorMap);

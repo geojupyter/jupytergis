@@ -4,7 +4,7 @@ import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import {
   getColorCodeFeatureAttributes,
-  getNumericFeatureAttributes
+  getNumericFeatureAttributes,
 } from '@/src/tools';
 import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
@@ -18,12 +18,12 @@ const VectorRendering = ({
   state,
   okSignalPromise,
   cancel,
-  layerId
+  layerId,
 }: ISymbologyDialogProps) => {
   const [selectedRenderType, setSelectedRenderType] = useState('');
   const [componentToRender, setComponentToRender] = useState<any>(null);
   const [renderTypeOptions, setRenderTypeOptions] = useState<string[]>([
-    'Single Symbol'
+    'Single Symbol',
   ]);
   const [SymbologyTab, setSymbologyTab] = useState<SymbologyTab>('color');
 
@@ -39,7 +39,7 @@ const VectorRendering = ({
 
   const { featureProperties } = useGetProperties({
     layerId,
-    model: model
+    model: model,
   });
 
   useEffect(() => {
@@ -65,7 +65,7 @@ const VectorRendering = ({
     const options: Record<string, string[]> = {
       VectorLayer: vectorLayerOptions,
       VectorTileLayer: ['Single Symbol'],
-      HeatmapLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap']
+      HeatmapLayer: ['Single Symbol', 'Graduated', 'Categorized', 'Heatmap'],
     };
     setRenderTypeOptions(options[layer.type]);
   }, [featureProperties]);

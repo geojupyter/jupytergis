@@ -25,7 +25,7 @@ const SimpleSymbol = ({
     strokeColor: '#3399CC',
     capStyle: 'round',
     strokeWidth: 1.25,
-    radius: 5
+    radius: 5,
   });
 
   const joinStyleOptions = ['bevel', 'round', 'miter'];
@@ -93,11 +93,11 @@ const SimpleSymbol = ({
       'stroke-color': styleRef.current?.strokeColor,
       'stroke-width': styleRef.current?.strokeWidth,
       'stroke-line-join': styleRef.current?.joinStyle,
-      'stroke-line-cap': styleRef.current?.capStyle
+      'stroke-line-cap': styleRef.current?.capStyle,
     };
 
     const symbologyState = {
-      renderType: 'Single Symbol'
+      renderType: 'Single Symbol',
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -121,7 +121,7 @@ const SimpleSymbol = ({
           onChange={event =>
             setStyle(prevState => ({
               ...prevState,
-              fillColor: event.target.value
+              fillColor: event.target.value,
             }))
           }
         />
@@ -135,7 +135,7 @@ const SimpleSymbol = ({
           onChange={event =>
             setStyle(prevState => ({
               ...prevState,
-              strokeColor: event.target.value
+              strokeColor: event.target.value,
             }))
           }
         />
@@ -149,7 +149,7 @@ const SimpleSymbol = ({
           onChange={event =>
             setStyle(prevState => ({
               ...prevState,
-              strokeWidth: +event.target.value
+              strokeWidth: +event.target.value,
             }))
           }
         />
@@ -162,7 +162,7 @@ const SimpleSymbol = ({
             onChange={event =>
               setStyle(prevState => ({
                 ...prevState,
-                joinStyle: event.target.value
+                joinStyle: event.target.value,
               }))
             }
             className="jp-mod-styled"
@@ -184,7 +184,7 @@ const SimpleSymbol = ({
             onChange={event =>
               setStyle(prevState => ({
                 ...prevState,
-                capStyle: event.target.value
+                capStyle: event.target.value,
               }))
             }
             className="jp-mod-styled"
