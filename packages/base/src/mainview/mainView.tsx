@@ -152,6 +152,10 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
 
+    this._model.updateResolutionSignal.connect(() => {
+      console.log('[sig] connected');
+    });
+
     // Watch isIdentifying and clear the highlight when Identify Tool is turned off
     this._model.sharedModel.awareness.on('change', () => {
       const isIdentifying = this._model.isIdentifying;
@@ -274,6 +278,16 @@ export class MainView extends React.Component<IProps, IStates> {
 
       const view = this._Map.getView();
 
+      // need to convert to 4326 I think
+      view.on('change:resolution', () => {
+        const currentExtent = view.calculateExtent(this._Map.getSize());
+        const extentIn4326 = this.getViewBbox();
+        console.log('[sig] extentIn4326', extentIn4326);
+        this._model.updateResolutionSignal.emit(extentIn4326);
+
+        console.log('[sig] View changed:', currentExtent);
+      });
+
       // TODO: Note for the future, will need to update listeners if view changes
       view.on(
         'change:center',
@@ -374,6 +388,20 @@ export class MainView extends React.Component<IProps, IStates> {
       }));
     }
   }
+
+  getViewBbox = (targetProjection = 'EPSG:4326') => {
+    const view = this._Map.getView();
+    const extent = view.calculateExtent(this._Map.getSize());
+
+    if (view.getProjection().getCode() === targetProjection) {
+      return extent;
+    }
+
+    return transformExtent(extent, view.getProjection(), targetProjection);
+  };
+
+  // Usage:
+  // bbox = getViewBbox(map); // WGS84 by default
 
   createSelectInteraction = () => {
     const pointStyle = new Style({
@@ -941,15 +969,7 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'StacLayer': {
         layerParameters = layer.parameters as IStacLayer;
 
-        console.log('mv data', layerParameters.data);
-
-        const entries = Object.entries(layerParameters.data.assets);
-        console.log('entries', entries);
-
-        const keys = Object.keys(layerParameters.data.assets);
-        console.log('keys', keys);
-
-        console.log('mv assets', layerParameters.data.assets);
+        console.log('layerParameters', layerParameters);
 
         newMapLayer = new StacLayer({
           displayPreview: true,
@@ -961,8 +981,6 @@ export class MainView extends React.Component<IProps, IStates> {
           assets: Object.keys(layerParameters.data.assets),
           extent: layerParameters.data.bbox,
         });
-
-        console.log('mv newMapLayer', newMapLayer);
 
         newMapLayer.on('sourceready', () => {
           this._Map.getView().fit(newMapLayer.getExtent());

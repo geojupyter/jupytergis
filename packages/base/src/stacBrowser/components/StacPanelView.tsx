@@ -1,4 +1,4 @@
-import { IJGISLayer } from '@jupytergis/schema';
+import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import React, { useEffect, useState } from 'react';
 import { Button } from '../../shared/components/Button';
@@ -30,12 +30,29 @@ const StacPanelView = ({
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [results, setResults] = useState<IStacItem[]>([]);
+  const [currentBBox, setCurrentBBox] = useState<
+    [number, number, number, number]
+  >([0, 0, 0, 0]);
 
   useEffect(() => {
     console.log('selectedCollections', selectedCollections);
   }, [selectedCollections]);
 
   const [isFirstRender, setIsFirstRender] = useState(false);
+
+  useEffect(() => {
+    const listenToModel = (
+      sender: IJupyterGISModel,
+      bBoxIn4326: [number, number, number, number]
+    ) => {
+      setCurrentBBox(bBoxIn4326);
+    };
+    model?.updateResolutionSignal.connect(listenToModel);
+
+    return () => {
+      model?.updateResolutionSignal.disconnect(listenToModel);
+    };
+  }, [model]);
 
   useEffect(() => {
     // Geodes behavior => query on every selection
@@ -55,23 +72,18 @@ const StacPanelView = ({
       }
     });
 
-    console.log('selectedProducts', selectedProducts);
-
-    console.log('selectedProducts.flat()', selectedProducts.flat());
-
-    console.log('processingLevel', processingLevel);
-    console.log('processingLevel.flat()', processingLevel.flat());
-    console.log('productType', productType);
-    console.log('productType.flat()', productType.flat());
     // Build query
     // TODO: Move out of fetch
     const fetchInEffect = async () => {
       // so i have the list of keys, now i need to look em up
+      const now = new Date().toISOString();
+      console.log('Date.now()', Date.now());
+      console.log('now', now);
 
       // TODO: All the hardcoded stuff
       const body: IStacQueryBody = {
         // TODO: get this from model
-        bbox: [-180, -65.76350697055292, 180, 65.76350697055292],
+        bbox: currentBBox,
         limit: 12,
         page: 1,
         query: {
