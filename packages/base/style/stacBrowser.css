@@ -26,3 +26,8 @@
   gap: 1rem;
   word-break: break-word;
 }
+
+.jgis-stac-browser-date-picker {
+  display: flex;
+  justify-content: center;
+}
