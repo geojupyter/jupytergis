@@ -15,7 +15,7 @@ export interface ISymbologyDialogProps {
   okSignalPromise: PromiseDelegate<Signal<SymbologyWidget, null>>;
   cancel: () => void;
   layerId?: string;
-  SymbologyTab?: SymbologyTab;
+  symbologyTab?: SymbologyTab;
 }
 
 export interface ISymbologyWidgetOptions {

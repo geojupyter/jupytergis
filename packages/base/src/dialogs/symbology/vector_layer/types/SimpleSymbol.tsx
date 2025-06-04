@@ -6,7 +6,7 @@ import { IParsedStyle, parseColor } from '@/src/tools';
 import { SymbologyTab } from '@/src/types';
 
 interface ISimpleSymbolProps extends ISymbologyDialogProps {
-  SymbologyTab: SymbologyTab;
+  symbologyTab: SymbologyTab;
 }
 
 const SimpleSymbol = ({
@@ -15,7 +15,7 @@ const SimpleSymbol = ({
   okSignalPromise,
   cancel,
   layerId,
-  SymbologyTab,
+  symbologyTab,
 }: ISimpleSymbolProps) => {
   const styleRef = useRef<IParsedStyle>();
 
@@ -215,7 +215,7 @@ const SimpleSymbol = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
-      {SymbologyTab === 'color' ? renderColorTab() : renderRadiusTab()}
+      {symbologyTab === 'color' ? renderColorTab() : renderRadiusTab()}
     </div>
   );
 };

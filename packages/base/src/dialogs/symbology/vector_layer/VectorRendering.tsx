@@ -25,7 +25,7 @@ const VectorRendering = ({
   const [renderTypeOptions, setRenderTypeOptions] = useState<string[]>([
     'Single Symbol',
   ]);
-  const [SymbologyTab, setSymbologyTab] = useState<SymbologyTab>('color');
+  const [symbologyTab, setSymbologyTab] = useState<SymbologyTab>('color');
 
   let RenderComponent;
 
@@ -80,7 +80,7 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
-            SymbologyTab={SymbologyTab}
+            symbologyTab={symbologyTab}
           />
         );
         break;
@@ -92,7 +92,7 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
-            SymbologyTab={SymbologyTab}
+            symbologyTab={symbologyTab}
           />
         );
         break;
@@ -104,7 +104,7 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
-            SymbologyTab={SymbologyTab}
+            symbologyTab={symbologyTab}
           />
         );
         break;
@@ -134,7 +134,7 @@ const VectorRendering = ({
         RenderComponent = <div>Select a render type</div>;
     }
     setComponentToRender(RenderComponent);
-  }, [selectedRenderType, SymbologyTab]);
+  }, [selectedRenderType, symbologyTab]);
 
   return (
     <>
@@ -145,7 +145,7 @@ const VectorRendering = ({
           {(['color', 'radius'] as const).map(tab => (
             <button
               key={tab}
-              className={`jp-gis-tab ${SymbologyTab === tab ? 'active' : ''}`}
+              className={`jp-gis-tab ${symbologyTab === tab ? 'active' : ''}`}
               onClick={() => setSymbologyTab(tab as SymbologyTab)}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}

@@ -21,7 +21,7 @@ const Categorized = ({
   okSignalPromise,
   cancel,
   layerId,
-  SymbologyTab,
+  symbologyTab,
 }: ISymbologyDialogProps) => {
   const selectedValueRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
@@ -152,7 +152,7 @@ const Categorized = ({
         expr.push(stop.output);
       });
 
-      if (SymbologyTab === 'color') {
+      if (symbologyTab === 'color') {
         expr.push([0, 0, 0, 0.0]); // fallback color
 
         newStyle['fill-color'] = expr;
@@ -167,7 +167,7 @@ const Categorized = ({
         colorRamp: colorRampOptionsRef.current?.selectedRamp,
         nClasses: colorRampOptionsRef.current?.numberOfShades,
         mode: colorRampOptionsRef.current?.selectedMode,
-        SymbologyTab,
+        symbologyTab,
       };
 
       layer.parameters.symbologyState = symbologyState;
@@ -186,7 +186,7 @@ const Categorized = ({
         colorRamp: undefined,
         nClasses: undefined,
         mode: undefined,
-        SymbologyTab,
+        symbologyTab,
       };
 
       layer.parameters.symbologyState = symbologyState;
@@ -229,7 +229,7 @@ const Categorized = ({
 
     layer.parameters.color = newStyle;
 
-    setStopRows(prev => (SymbologyTab === method ? [] : prev));
+    setStopRows(prev => (symbologyTab === method ? [] : prev));
     if (method === 'color') {
       setColorRampOptions(undefined);
     }
@@ -247,7 +247,7 @@ const Categorized = ({
 
       <div className="jp-gis-layer-symbology-container">
         {/* Inputs depending on active tab */}
-        {SymbologyTab === 'color' && (
+        {symbologyTab === 'color' && (
           <>
             <div className="jp-gis-symbology-row">
               <label>Fill Color:</label>
@@ -297,7 +297,7 @@ const Categorized = ({
           </>
         )}
 
-        {SymbologyTab === 'radius' && (
+        {symbologyTab === 'radius' && (
           <div className="jp-gis-symbology-row">
             <label>Circle Radius:</label>
             <input
