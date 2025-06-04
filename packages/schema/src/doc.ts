@@ -1,7 +1,6 @@
 import { Delta, MapChange, YDocument } from '@jupyter/ydoc';
 import { JSONExt, JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
-import { SCHEMA_VERSION } from './_interface/version';
 import * as Y from 'yjs';
 
 import {
@@ -13,6 +12,7 @@ import {
   IJGISSource,
   IJGISSources
 } from './_interface/project/jgis';
+import { SCHEMA_VERSION } from './_interface/version';
 import {
   IDict,
   IJGISLayerDocChange,

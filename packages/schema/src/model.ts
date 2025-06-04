@@ -2,9 +2,11 @@ import { MapChange } from '@jupyter/ydoc';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
+
 import {
   IJGISContent,
   IJGISLayer,
@@ -34,7 +36,6 @@ import {
   IJupyterGISSettings
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 

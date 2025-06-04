@@ -1,14 +1,3 @@
-import Protobuf from 'pbf';
-
-import { VectorTile } from '@mapbox/vector-tile';
-
-import { PathExt, URLExt } from '@jupyterlab/coreutils';
-import { Contents, ServerConnection } from '@jupyterlab/services';
-import { showErrorMessage } from '@jupyterlab/apputils';
-import * as d3Color from 'd3-color';
-import shp from 'shpjs';
-import { getGdal } from '@/src/gdal';
-
 import {
   IDict,
   IJGISLayerBrowserRegistry,
@@ -18,7 +7,16 @@ import {
   IRasterLayerGalleryEntry,
   SourceType
 } from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
+import { PathExt, URLExt } from '@jupyterlab/coreutils';
+import { Contents, ServerConnection } from '@jupyterlab/services';
+import { VectorTile } from '@mapbox/vector-tile';
+import * as d3Color from 'd3-color';
+import Protobuf from 'pbf';
+import shp from 'shpjs';
+
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
+import { getGdal } from '@/src/gdal';
 
 export const debounce = (
   func: CallableFunction,

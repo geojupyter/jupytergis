@@ -6,23 +6,24 @@
 // This file is based on iconimports.ts in @jupyterlab/ui-components, but is manually generated.
 
 import { LabIcon } from '@jupyterlab/ui-components';
+
+import bookOpenSvgStr from '../style/icons/book_open.svg';
+import clockSvgStr from '../style/icons/clock-solid.svg';
+import geoJsonSvgStr from '../style/icons/geojson.svg';
+import geolocationSvgStr from '../style/icons/geolocation.svg';
+import infoSvgStr from '../style/icons/info-solid.svg';
 import logoSvgStr from '../style/icons/logo.svg';
 import logoMiniSvgStr from '../style/icons/logo_mini.svg';
 import logoMiniAlternativeSvgStr from '../style/icons/logo_mini_alternative.svg';
-import rasterSvgStr from '../style/icons/raster.svg';
-import visibilitySvgStr from '../style/icons/visibility.svg';
-import nonVisibilitySvgStr from '../style/icons/nonvisibility.svg';
-import geoJsonSvgStr from '../style/icons/geojson.svg';
-import moundSvgStr from '../style/icons/mound.svg';
 import logoMiniQGZ from '../style/icons/logo_mini_qgz.svg';
-import bookOpenSvgStr from '../style/icons/book_open.svg';
-import vectorSquareSvgStr from '../style/icons/vector_square.svg';
-import infoSvgStr from '../style/icons/info-solid.svg';
-import clockSvgStr from '../style/icons/clock-solid.svg';
-import terminalToolbarSvgStr from '../style/icons/terminal_toolbar.svg';
-import geolocationSvgStr from '../style/icons/geolocation.svg';
-import targetWithoutCenterSvgStr from '../style/icons/target_without_center.svg';
+import moundSvgStr from '../style/icons/mound.svg';
+import nonVisibilitySvgStr from '../style/icons/nonvisibility.svg';
+import rasterSvgStr from '../style/icons/raster.svg';
 import targetWithCenterSvgStr from '../style/icons/target_with_center.svg';
+import targetWithoutCenterSvgStr from '../style/icons/target_without_center.svg';
+import terminalToolbarSvgStr from '../style/icons/terminal_toolbar.svg';
+import vectorSquareSvgStr from '../style/icons/vector_square.svg';
+import visibilitySvgStr from '../style/icons/visibility.svg';
 
 export const logoIcon = new LabIcon({
   name: 'jupytergis::logo',

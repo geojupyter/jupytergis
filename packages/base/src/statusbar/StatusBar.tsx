@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
 import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
+
 import { version } from '@/package.json';
 
 interface IStatusBarProps {

@@ -1,5 +1,6 @@
 import { IDict, IVectorLayer } from '@jupytergis/schema';
 import { IChangeEvent } from '@rjsf/core';
+
 import { ILayerProps, LayerPropertiesForm } from './layerform';
 
 /**

@@ -8,10 +8,10 @@ import {
 import { SidePanel } from '@jupyterlab/ui-components';
 
 import { IControlPanelModel } from '@/src/types';
-import { ControlPanelHeader } from './header';
-import { ObjectProperties } from './objectproperties';
 import { Annotations } from './annotationPanel';
 import IdentifyPanel from './components/identify-panel/IdentifyPanel';
+import { ControlPanelHeader } from './header';
+import { ObjectProperties } from './objectproperties';
 
 export class RightPanelWidget extends SidePanel {
   constructor(options: RightPanelWidget.IOptions) {

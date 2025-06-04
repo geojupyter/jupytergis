@@ -9,7 +9,7 @@ module.exports = {
     project: "tsconfig.eslint.json",
     sourceType: "module",
   },
-  plugins: ["@typescript-eslint"],
+  plugins: ["@typescript-eslint", "import"],
   rules: {
     "@typescript-eslint/naming-convention": [
       "error",
@@ -32,8 +32,24 @@ module.exports = {
       "single",
       { avoidEscape: true, allowTemplateLiterals: false },
     ],
-    curly: ["error", "all"],
-    eqeqeq: "error",
+    "curly": ["error", "all"],
+    "eqeqeq": "error",
+    "import/order": [
+      "error",
+      {
+        "alphabetize": {"order": "asc"},
+        "groups": [
+          "external",
+          "builtin",
+          ["internal", "sibling", "parent", "index"]
+        ],
+        "distinctGroup": false,
+        "pathGroups": [
+          {pattern: "@/**", group: "internal", position: "before"}
+        ],
+        "newlines-between": "always"
+      }
+    ],
     "prefer-arrow-callback": "error",
     "no-duplicate-imports": "error",
   },

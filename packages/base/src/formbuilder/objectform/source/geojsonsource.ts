@@ -1,9 +1,9 @@
 import { IDict } from '@jupytergis/schema';
-import { Ajv, ValidateFunction } from 'ajv';
 import * as geojson from '@jupytergis/schema/src/schema/geojson.json';
+import { Ajv, ValidateFunction } from 'ajv';
 
-import { PathBasedSourcePropertiesForm } from './pathbasedsource';
 import { loadFile } from '@/src/tools';
+import { PathBasedSourcePropertiesForm } from './pathbasedsource';
 import { ISourceFormProps } from './sourceform';
 
 /**

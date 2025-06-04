@@ -36,13 +36,12 @@ import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
-//@ts-expect-error no types for ol-pmtiles
-import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import Feature, { FeatureLike } from 'ol/Feature';
 import { ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { GeoJSON, MVT } from 'ol/format';
+import { Geometry, Point } from 'ol/geom';
 import { DragAndDrop, Select } from 'ol/interaction';
 import {
   Heatmap as HeatmapLayer,
@@ -59,8 +58,8 @@ import {
   toLonLat,
   transformExtent
 } from 'ol/proj';
-import { get as getProjection } from 'ol/proj.js';
 import { register } from 'ol/proj/proj4.js';
+import { get as getProjection } from 'ol/proj.js';
 import RenderFeature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -73,9 +72,12 @@ import Static from 'ol/source/ImageStatic';
 import TileSource from 'ol/source/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
+//@ts-expect-error no types for ol-pmtiles
+import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
+
 import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
 import StatusBar from '@/src/statusbar/StatusBar';
@@ -85,7 +87,6 @@ import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { Spinner } from './spinner';
-import { Geometry, Point } from 'ol/geom';
 
 interface IProps {
   viewModel: MainViewModel;
