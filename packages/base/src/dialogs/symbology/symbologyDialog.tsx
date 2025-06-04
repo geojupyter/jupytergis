@@ -14,7 +14,10 @@ export interface ISymbologyDialogProps {
   okSignalPromise: PromiseDelegate<Signal<SymbologyWidget, null>>;
   cancel: () => void;
   layerId?: string;
-  selectableAttributes?: string[];
+}
+
+export interface ISymbologyDialogWithAttributesProps extends ISymbologyDialogProps {
+  selectableAttributesAndValues: Record<string, Set<any>>;
 }
 
 export interface ISymbologyWidgetOptions {
