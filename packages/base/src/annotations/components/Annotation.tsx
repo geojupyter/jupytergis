@@ -9,7 +9,7 @@ import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useMemo, useState } from 'react';
 import { Message } from './Message';
-import { IControlPanelModel } from '../../types';
+import { IControlPanelModel } from '@/src/types';
 
 export interface IAnnotationProps {
   itemId: string;

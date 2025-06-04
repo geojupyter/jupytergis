@@ -1,8 +1,11 @@
 import { IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import * as React from 'react';
-import { BaseForm, IBaseFormProps } from '../formbuilder/objectform/baseform';
-import { DissolveForm } from '../formbuilder/objectform/process';
+import {
+  BaseForm,
+  IBaseFormProps
+} from '@/src/formbuilder/objectform/baseform';
+import { DissolveForm } from '@/src/formbuilder/objectform/process';
 import { Signal } from '@lumino/signaling';
 import { PromiseDelegate } from '@lumino/coreutils';
 

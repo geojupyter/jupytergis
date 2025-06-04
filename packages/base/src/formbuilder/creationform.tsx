@@ -8,7 +8,7 @@ import {
   SourceType
 } from '@jupytergis/schema';
 
-import { deepCopy } from '../tools';
+import { deepCopy } from '@/src/tools';
 
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';

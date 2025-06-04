@@ -7,7 +7,7 @@ import {
 import { LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { useEffect, useRef, useState } from 'react';
-import { IControlPanelModel } from '../../../types';
+import { IControlPanelModel } from '@/src/types';
 import { User } from '@jupyterlab/services';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

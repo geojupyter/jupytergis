@@ -10,8 +10,8 @@ import { Panel } from '@lumino/widgets';
 import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { IControlPanelModel } from '../types';
-import { EditForm } from '../formbuilder/editform';
+import { IControlPanelModel } from '@/src/types';
+import { EditForm } from '@/src/formbuilder/editform';
 
 export class ObjectProperties extends PanelWithToolbar {
   constructor(params: ObjectProperties.IOptions) {

@@ -2,9 +2,9 @@ import { IDict } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
-import { getMimeType } from '../../../tools';
+import { getMimeType } from '@/src/tools';
 import { ISourceFormProps, SourcePropertiesForm } from './sourceform';
-import { FileSelectorWidget } from '../fileselectorwidget';
+import { FileSelectorWidget } from '@/src/formbuilder/objectform/fileselectorwidget';
 
 /**
  * The form to modify a GeoTiff source.

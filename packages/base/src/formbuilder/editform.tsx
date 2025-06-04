@@ -7,7 +7,7 @@ import {
 import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
-import { deepCopy } from '../tools';
+import { deepCopy } from '@/src/tools';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 import { LayerPropertiesForm } from './objectform/layer';
 import { SourcePropertiesForm } from './objectform/source';
