@@ -9,8 +9,8 @@ import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import { cloneDeep } from 'lodash';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
-import { debounce, loadFile } from '../../../tools';
-import { IControlPanelModel } from '../../../types';
+import { debounce, loadFile } from '@/src/tools';
+import { IControlPanelModel } from '@/src/types';
 import FilterRow from './FilterRow';
 
 /**

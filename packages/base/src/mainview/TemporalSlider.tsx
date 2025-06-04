@@ -19,7 +19,7 @@ import {
   minutesInMonth
 } from 'date-fns/constants';
 import React, { useEffect, useRef, useState } from 'react';
-import { useGetProperties } from '../dialogs/symbology/hooks/useGetProperties';
+import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 
 interface ITemporalSliderProps {
   model: IJupyterGISModel;

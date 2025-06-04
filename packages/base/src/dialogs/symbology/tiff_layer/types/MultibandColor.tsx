@@ -1,10 +1,10 @@
 import { IWebGlLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { Spinner } from '../../../../mainview/spinner';
-import useGetBandInfo from '../../hooks/useGetBandInfo';
-import { ISymbologyDialogProps } from '../../symbologyDialog';
-import BandRow from '../components/BandRow';
+import { Spinner } from '@/src/mainview/spinner';
+import useGetBandInfo from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 
 interface ISelectedBands {
   red: number;
