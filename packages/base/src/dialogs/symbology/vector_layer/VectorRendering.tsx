@@ -1,17 +1,18 @@
+import { LayerType } from '@jupytergis/schema';
 import React, { useState } from 'react';
+
+import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import {
+  getColorCodeFeatureAttributes,
+  getNumericFeatureAttributes,
+  objectEntries,
+} from '@/src/tools';
 import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
 import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
-import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
-import {
-  getColorCodeFeatureAttributes,
-  getNumericFeatureAttributes,
-  objectEntries
-} from '@/src/tools';
-import { LayerType } from '@jupytergis/schema';
 
 type RenderType =
   | 'Single Symbol'
@@ -19,52 +20,52 @@ type RenderType =
   | 'Graduated'
   | 'Categorized'
   | 'Heatmap';
-interface RenderTypeProps {
+interface IRenderTypeProps {
   component: any;
-  attributeChecker?: Function;
+  attributeChecker?: (...args: any[]) => any;
   supportedLayerTypes: string[];
 }
 type RenderTypeOptions = {
-  [key: string]: RenderTypeProps;
+  [key: string]: IRenderTypeProps;
 };
 
-interface SelectableRenderTypeProps extends RenderTypeProps {
+interface ISelectableRenderTypeProps extends IRenderTypeProps {
   selectableAttributesAndValues?: Record<string, Set<any>>;
   layerTypeSupported: boolean;
 }
 type SelectableRenderTypes = {
-  [key: string]: SelectableRenderTypeProps;
+  [key: string]: ISelectableRenderTypeProps;
 };
 
 const RENDER_TYPE_OPTIONS: RenderTypeOptions = {
   'Single Symbol': {
     component: SimpleSymbol,
-    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer']
+    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer'],
   },
   Canonical: {
     component: Canonical,
     attributeChecker: getColorCodeFeatureAttributes,
-    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer']
+    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
   },
   Graduated: {
     component: Graduated,
     attributeChecker: getNumericFeatureAttributes,
-    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer']
+    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
   },
   Categorized: {
     component: Categorized,
     attributeChecker: getNumericFeatureAttributes,
-    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer']
+    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
   },
   Heatmap: {
     component: Heatmap,
-    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer']
-  }
+    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
+  },
 } as const;
 
 const getSelectableRenderTypes = (
   featureProperties: Record<string, Set<any>>,
-  layerType: LayerType
+  layerType: LayerType,
 ): SelectableRenderTypes => {
   return Object.fromEntries(
     objectEntries(RENDER_TYPE_OPTIONS).map(([renderType, renderTypeProps]) => {
@@ -76,12 +77,15 @@ const getSelectableRenderTypes = (
         {
           ...renderTypeProps,
           ...(renderTypeProps.attributeChecker
-            ? {selectableAttributesAndValues: renderTypeProps.attributeChecker(featureProperties)}
+            ? {
+                selectableAttributesAndValues:
+                  renderTypeProps.attributeChecker(featureProperties),
+              }
             : {}),
-          layerTypeSupported
-        }
+          layerTypeSupported,
+        },
       ];
-    })
+    }),
   );
 };
 
@@ -110,7 +114,7 @@ const VectorRendering = ({
 
   const selectableRenderTypes = getSelectableRenderTypes(
     featureProperties,
-    layer.type
+    layer.type,
   );
   const selectedRenderTypeEnriched = selectableRenderTypes[selectedRenderType];
 
@@ -129,7 +133,7 @@ const VectorRendering = ({
           {objectEntries(selectableRenderTypes)
             .filter(
               ([renderType, renderTypeProps]) =>
-                renderTypeProps.layerTypeSupported
+                renderTypeProps.layerTypeSupported,
             )
             .map(([renderType, renderTypeProps]) => (
               <option key={renderType} value={renderType}>
@@ -147,7 +151,7 @@ const VectorRendering = ({
         {...(selectedRenderTypeEnriched.selectableAttributesAndValues
           ? {
               selectableAttributesAndValues:
-                selectedRenderTypeEnriched.selectableAttributesAndValues
+                selectedRenderTypeEnriched.selectableAttributesAndValues,
             }
           : {})}
       />

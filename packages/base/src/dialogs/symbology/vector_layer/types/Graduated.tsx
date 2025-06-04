@@ -20,7 +20,7 @@ const Graduated = ({
   okSignalPromise,
   cancel,
   layerId,
-  selectableAttributesAndValues
+  selectableAttributesAndValues,
 }: ISymbologyDialogWithAttributesProps) => {
   const modeOptions = [
     'quantile',
@@ -98,7 +98,8 @@ const Graduated = ({
 
     const layerParams = layer.parameters as IVectorLayer;
     const value =
-      layerParams.symbologyState?.value ?? Object.keys(selectableAttributesAndValues)[0];
+      layerParams.symbologyState?.value ??
+      Object.keys(selectableAttributesAndValues)[0];
     const method = layerParams.symbologyState?.method ?? 'color';
 
     setSelectedValue(value);
