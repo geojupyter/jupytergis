@@ -978,54 +978,6 @@ export function addCommands(
     icon: pencilSolidIcon
   });
 
-  commands.addCommand(CommandIDs.newDrawVectorLayer, {
-    label: trans.__('Create New Draw Vector Layer'),
-    isToggled: () => {
-      const current = tracker.currentWidget;
-      if (!current || !(current instanceof JupyterGISDocumentWidget)) {
-        return false;
-      } else {
-        const model = current.content.currentViewModel
-          .jGISModel as IJupyterGISModel;
-        return model.isDrawVectorLayerEnabled;
-      }
-    },
-    execute: async () => {
-      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
-        const model = tracker.currentWidget?.content.currentViewModel
-          .jGISModel as IJupyterGISModel;
-        const layers = model.getLayers();
-        const layersArray = Object.values(layers);
-
-        layersArray.forEach(layer => {
-          if (layer.type === 'VectorLayer') {
-            const source = model.getSource(layer.parameters?.source);
-            if (source?.type === 'GeoJSONSource' && source.parameters?.data) {
-              console.warn(
-                'There is already a Vector Layer with a geoGSON source.'
-              );
-              model.isDrawVectorLayerEnabled = false;
-              return;
-            } else {
-              model.isDrawVectorLayerEnabled = true;
-              model.createEmptyVectorLayerWithGeoJSONSource();
-            }
-          }
-        });
-
-        if (model.isDrawVectorLayerEnabled === true) {
-          model.isDrawVectorLayerEnabled = false;
-        } else {
-          model.isDrawVectorLayerEnabled = true;
-        }
-
-        model.updateIsDrawVectorLayerEnabled();
-        commands.notifyCommandChanged(CommandIDs.newDrawVectorLayer);
-      }
-    },
-    icon: pencilSolidIcon
-  });
-
   loadKeybindings(commands, keybindings);
 }
 

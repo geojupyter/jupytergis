@@ -66,6 +66,12 @@ export class PathBasedSourcePropertiesForm extends SourcePropertiesForm {
       showErrorMessage('Invalid file', this.state.extraErrors.path.__errors[0]);
       return;
     }
+    if (!e.formData.path) {
+      e.formData.data = {
+        type: 'FeatureCollection',
+        features: []
+      };
+    }
     super.onFormSubmit(e);
   }
 

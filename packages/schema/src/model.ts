@@ -3,7 +3,7 @@ import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { PartialJSONObject, UUID } from '@lumino/coreutils';
+import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 
@@ -756,31 +756,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   get geolocationChanged() {
     return this._geolocationChanged;
   }
-
-  createEmptyVectorLayerWithGeoJSONSource = () => {
-    const emptySourceID = UUID.uuid4();
-    const emptyLayerID = UUID.uuid4();
-    const emptyLayer: IJGISLayer = {
-      name: 'Editable GeoJSON Layer',
-      type: 'VectorLayer',
-      visible: true,
-      parameters: {
-        source: emptySourceID
-      }
-    };
-    const emptySource: IJGISSource = {
-      name: 'Editable GeoJSON Layer Source',
-      type: 'GeoJSONSource',
-      parameters: {
-        data: {
-          type: 'FeatureCollection',
-          features: []
-        }
-      }
-    };
-    this.sharedModel.addSource(emptySourceID, emptySource);
-    this.addLayer(emptyLayerID, emptyLayer);
-  };
 
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
