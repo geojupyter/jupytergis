@@ -56,6 +56,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     );
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
+    this._pathChanged = new Signal<JupyterGISModel, string>(this);
   }
 
   /**
@@ -101,6 +102,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get stateChanged(): ISignal<this, IChangedArgs<any, any, string>> {
     return this._stateChanged;
+  }
+
+  get pathChanged(): ISignal<IJupyterGISModel, string> {
+    return this._pathChanged;
   }
 
   get themeChanged(): Signal<
@@ -316,6 +321,7 @@ export class JupyterGISModel implements IJupyterGISModel {
    */
   set filePath(path: string) {
     this._filePath = path;
+    this._pathChanged.emit(path);
   }
 
   getLayers(): IJGISLayers {
@@ -761,6 +767,8 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _userChanged = new Signal<this, IUserData[]>(this);
   private _usersMap?: Map<number, any>;
+
+  private _pathChanged: Signal<IJupyterGISModel, string>;
 
   private _disposed = new Signal<this, void>(this);
   private _contentChanged = new Signal<this, void>(this);
