@@ -111,7 +111,8 @@ export interface IStacItem {
   collection: string;
 }
 
-// ? IStacItemCollection???
+// ? IStacItemCollection with context extension
+// TODO: add conext spec fields https://github.com/stac-api-extensions/context?tab=readme-ov-file
 export interface IStacSearchResult {
   context: { returned: number; limit: number; matched: number };
   features: IStacItem[];
