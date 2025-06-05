@@ -12,6 +12,10 @@
   display: flex;
   width: 100%;
   justify-content: center;
+  list-style-type: none;
+  gap: 0.25rem;
+  padding-left: unset;
+  align-items: center;
 }
 
 .PaginationLink {
@@ -28,13 +32,13 @@
   outline: none;
   background-color: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
-  border: 0.0375rem solid hsl(var(--border) / 0.8);
+  border: 0.0375rem solid hsl(var(--jp-border-color0) / 0.8);
   transition: background-color 0.2s ease;
-  height: 2.5rem;
+  /* height: 2.5rem;
   padding-left: 1rem;
-  padding-right: 1rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
+  padding-right: 1rem; */
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
 }
 
 .PaginationLink:hover {
@@ -67,16 +71,18 @@
 }
 
 .PaginationLink[data-variant='outline'] {
-  border: 1px solid hsl(var(--border));
-  background-color: hsl(var(--background));
+  border: 1px solid var(--jp-border-color0);
+  background-color: var(----jp-layout-color2);
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
 }
 
 .PaginationLink[data-variant='outline']:hover {
-  background-color: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
+  /* background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground)); */
+  background-color: purple;
+  color: peru;
 }
 
 .PaginationLink[data-variant='secondary'] {
@@ -124,18 +130,22 @@
 }
 
 .PaginationLink[data-size='icon'] {
-  height: 2.5rem;
-  width: 2.5rem;
+  /* height: 2.5rem; */
+  width: 1.5rem;
 }
 
 .PaginationPrevious {
   gap: 0.25rem;
   padding-left: 0.625rem;
+  display: flex;
+  cursor: pointer;
 }
 
 .PaginationNext {
   gap: 0.25rem;
   padding-right: 0.625rem;
+  display: flex;
+  cursor: pointer;
 }
 
 .PaginationEllipsis {
