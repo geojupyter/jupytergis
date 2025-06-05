@@ -8,7 +8,6 @@ import Calendar from '../../shared/components/Calendar';
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -27,12 +26,7 @@ import {
 } from '../../shared/components/Tabs';
 import { cn } from '../../shared/components/utils';
 import { IStacViewProps } from '../StacBrowser';
-import {
-  IResultsLinks,
-  IStacItem,
-  IStacQueryBody,
-  IStacSearchResult
-} from '../types/types';
+import { IStacItem, IStacQueryBody, IStacSearchResult } from '../types/types';
 import ProductSection from './ProductSection';
 import StacFilterSection from './StacFilterSection';
 
@@ -59,7 +53,10 @@ const StacPanelView = ({
   const [startTime, setStartTime] = useState<Date>();
   const [endTime, setEndTime] = useState<Date>();
   const [isFirstRender, setIsFirstRender] = useState(false);
-  const [resultLinks, setResultLinks] = useState<IResultsLinks>();
+  // const [resultLinks, setResultLinks] = useState<IResultsLinks>();
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [queryBody, setQueryBody] = useState<IStacQueryBody>();
 
   useEffect(() => {
     const listenToModel = (
@@ -99,7 +96,7 @@ const StacPanelView = ({
       const body: IStacQueryBody = {
         bbox: currentBBox,
         limit: 12,
-        page: 5,
+        page: currentPage,
         query: {
           latest: {
             eq: true
@@ -134,6 +131,7 @@ const StacPanelView = ({
         ]
       };
 
+      setQueryBody(body);
       console.log('body', body);
 
       // TODO: Don't call this on render.
@@ -143,21 +141,10 @@ const StacPanelView = ({
         return;
       }
 
-      const links = result['links'];
-      let next;
-      let prev;
-
-      links.forEach(link => {
-        if (link.rel === 'next') {
-          next = link.href;
-        }
-
-        if (link.rel === 'prev') {
-          prev = link.href;
-        }
-      });
-      // update links for pagination
-      setResultLinks({ next: next ?? '', prev: prev ?? '' });
+      // determine number of pages needed to display results
+      const pages = result.context.matched / result.context.limit;
+      console.log('[pag] pages', pages);
+      setTotalPages(Math.ceil(pages));
 
       console.log('result', result);
     };
@@ -171,6 +158,10 @@ const StacPanelView = ({
       setIsFirstRender(false);
     }
   }, [selectedCollections, selectedPlatforms, selectedProducts]);
+
+  useEffect(() => {
+    console.log('currentPage', currentPage);
+  }, [currentPage]);
 
   async function fetchWithProxy(options: IStacQueryBody) {
     // Needed for POST
@@ -237,10 +228,63 @@ const StacPanelView = ({
   };
 
   // need to fetch the saved link and update results and update link
-  const handlePaginationClick = (url: string | undefined) => {
+
+  // ! What we boutta do: take page number as param and redfo query wioth it
+  const handlePaginationClick = async (page: number) => {
+    if (!queryBody) {
+      // This should never be the first query
+      return;
+    }
     //fetch new link - want to redo query with new page number
-    // update results
-    //update resultLinks
+
+    const body = { ...queryBody, page };
+
+    console.log('new body', body);
+
+    // results gets set in fetchWithProxy
+    const result = await fetchWithProxy(body); // this result is ItemCollection
+    if (!result) {
+      console.log('no result');
+      return;
+    }
+
+    // determine number of pages needed to display results
+    const pages = result.context.matched / result.context.limit;
+    setTotalPages(pages);
+
+    console.log('result', result);
+  };
+
+  // Show 2 pages on either side of the active page
+  const getVisiblePageNumbers = () => {
+    if (totalPages <= 5) {
+      // Show all pages if there are 5 or fewer
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    // Start with current page in the middle (ideally)
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    // Adjust if we're near the start
+    if (currentPage <= 3) {
+      startPage = 1;
+      endPage = 5;
+    }
+
+    // Adjust if we're near the end
+    if (currentPage >= totalPages - 2) {
+      startPage = totalPages - 4;
+      endPage = totalPages;
+    }
+
+    // Generate the page numbers
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
   };
 
   if (!model) {
@@ -278,7 +322,6 @@ const StacPanelView = ({
                 initialFocus
               />
             </PopoverContent>
-            the
           </Popover>
           <Popover>
             <PopoverTrigger asChild>
@@ -344,18 +387,27 @@ const StacPanelView = ({
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                onClick={() => handlePaginationClick(resultLinks?.prev)}
+                // should be hgandle pageinat click
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
               />
             </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">1</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
+            {getVisiblePageNumbers().map(page => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  isActive={page === currentPage}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
             <PaginationItem>
               <PaginationNext
-                onClick={() => handlePaginationClick(resultLinks?.next)}
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                }
+                disabled={currentPage === totalPages}
               />
             </PaginationItem>
           </PaginationContent>
