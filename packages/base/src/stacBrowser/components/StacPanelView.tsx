@@ -57,6 +57,7 @@ const StacPanelView = ({
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [queryBody, setQueryBody] = useState<IStacQueryBody>();
+  const [totalResults, setTotalResults] = useState(0);
 
   useEffect(() => {
     const listenToModel = (
@@ -145,6 +146,7 @@ const StacPanelView = ({
       const pages = result.context.matched / result.context.limit;
       console.log('[pag] pages', pages);
       setTotalPages(Math.ceil(pages));
+      setTotalResults(result.context.matched);
 
       console.log('result', result);
     };
@@ -248,13 +250,12 @@ const StacPanelView = ({
       return;
     }
 
-    // determine number of pages needed to display results
-    const pages = result.context.matched / result.context.limit;
-    setTotalPages(pages);
+    setCurrentPage(page);
 
-    console.log('result', result);
+    console.log('result pg', result);
   };
 
+  // TODO: Does this need an array just for the iterator??
   // Show 2 pages on either side of the active page
   const getVisiblePageNumbers = () => {
     if (totalPages <= 5) {
@@ -388,16 +389,15 @@ const StacPanelView = ({
             <PaginationItem>
               <PaginationPrevious
                 // should be hgandle pageinat click
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                onClick={() =>
+                  handlePaginationClick(Math.max(1, currentPage - 1))
+                }
                 disabled={currentPage === 1}
               />
             </PaginationItem>
             {getVisiblePageNumbers().map(page => (
               <PaginationItem key={page}>
-                <PaginationLink
-                  isActive={page === currentPage}
-                  onClick={() => setCurrentPage(page)}
-                >
+                <PaginationLink isActive={page === currentPage}>
                   {page}
                 </PaginationLink>
               </PaginationItem>
@@ -405,7 +405,7 @@ const StacPanelView = ({
             <PaginationItem>
               <PaginationNext
                 onClick={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  handlePaginationClick(Math.min(totalPages, currentPage + 1))
                 }
                 disabled={currentPage === totalPages}
               />
