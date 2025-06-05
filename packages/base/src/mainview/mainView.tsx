@@ -152,10 +152,6 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
 
-    this._model.updateResolutionSignal.connect(() => {
-      console.log('[sig] connected');
-    });
-
     // Watch isIdentifying and clear the highlight when Identify Tool is turned off
     this._model.sharedModel.awareness.on('change', () => {
       const isIdentifying = this._model.isIdentifying;
@@ -279,13 +275,11 @@ export class MainView extends React.Component<IProps, IStates> {
       const view = this._Map.getView();
 
       // need to convert to 4326 I think
+      // TODO: debounce this
       view.on('change:resolution', () => {
         const currentExtent = view.calculateExtent(this._Map.getSize());
         const extentIn4326 = this.getViewBbox();
-        console.log('[sig] extentIn4326', extentIn4326);
         this._model.updateResolutionSignal.emit(extentIn4326);
-
-        console.log('[sig] View changed:', currentExtent);
       });
 
       // TODO: Note for the future, will need to update listeners if view changes
