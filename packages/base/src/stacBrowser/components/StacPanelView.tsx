@@ -8,6 +8,7 @@ import Calendar from '../../shared/components/Calendar';
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -233,59 +234,62 @@ const StacPanelView = ({
 
   // ! What we boutta do: take page number as param and redfo query wioth it
   const handlePaginationClick = async (page: number) => {
+    // This should never be the first query
     if (!queryBody) {
-      // This should never be the first query
       return;
     }
-    //fetch new link - want to redo query with new page number
 
+    // Set this first so UI doesn't feel laggy
+    setCurrentPage(page);
+
+    //want to redo query with new page number
     const body = { ...queryBody, page };
 
     console.log('new body', body);
 
     // results gets set in fetchWithProxy
-    const result = await fetchWithProxy(body); // this result is ItemCollection
+    const result = await fetchWithProxy(body);
+
     if (!result) {
       console.log('no result');
       return;
     }
-
-    setCurrentPage(page);
 
     console.log('result pg', result);
   };
 
   // TODO: Does this need an array just for the iterator??
   // Show 2 pages on either side of the active page
-  const getVisiblePageNumbers = () => {
+  const getPageItems = () => {
+    // Case 1: Less than 5 pages - show all
     if (totalPages <= 5) {
-      // Show all pages if there are 5 or fewer
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
-    // Start with current page in the middle (ideally)
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, currentPage + 2);
-
-    // Adjust if we're near the start
+    // Case 2: Near the beginning (first 3 pages)
     if (currentPage <= 3) {
-      startPage = 1;
-      endPage = 5;
+      return [1, 2, 3, 4, 5];
     }
 
-    // Adjust if we're near the end
+    // Case 3: Near the end (last 3 pages)
     if (currentPage >= totalPages - 2) {
-      startPage = totalPages - 4;
-      endPage = totalPages;
+      return [
+        totalPages - 4,
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages
+      ];
     }
 
-    // Generate the page numbers
-    const pages = [];
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return pages;
+    // Case 4: Middle pages - show current page with neighbors and ellipsis
+    return [
+      currentPage - 2,
+      currentPage - 1,
+      currentPage,
+      'ellipsis',
+      totalPages
+    ];
   };
 
   if (!model) {
@@ -353,7 +357,6 @@ const StacPanelView = ({
           data={datasets}
           selectedCollections={selectedCollections}
           handleToggleGroupValueChange={(val: string[]) => {
-            console.log('collections', val);
             setSelectedCollections(val);
           }}
           selectedPlatforms={selectedPlatforms}
@@ -364,7 +367,6 @@ const StacPanelView = ({
           data={platforms}
           selectedCollections={selectedCollections}
           handleToggleGroupValueChange={(val: string[]) => {
-            console.log('plaforms', val);
             setSelectedPlatforms(val);
           }}
           selectedPlatforms={selectedPlatforms}
@@ -375,7 +377,6 @@ const StacPanelView = ({
           data={products}
           selectedCollections={selectedCollections}
           handleToggleGroupValueChange={(val: string[]) => {
-            console.log('products', val);
             setSelectedProducts(val);
           }}
           selectedProducts={selectedProducts}
@@ -395,13 +396,27 @@ const StacPanelView = ({
                 disabled={currentPage === 1}
               />
             </PaginationItem>
-            {getVisiblePageNumbers().map(page => (
-              <PaginationItem key={page}>
-                <PaginationLink isActive={page === currentPage}>
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
+            {getPageItems().map((item, index) => {
+              if (item === 'ellipsis') {
+                return (
+                  <PaginationItem key="ellipsis">
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                );
+              }
+
+              return (
+                <PaginationItem key={item}>
+                  <PaginationLink
+                    isActive={item === currentPage}
+                    onClick={() => handlePaginationClick(item as number)}
+                  >
+                    {item}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            })}
+
             <PaginationItem>
               <PaginationNext
                 onClick={() =>
