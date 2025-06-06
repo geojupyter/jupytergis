@@ -19,11 +19,13 @@ import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
+
 import { CommandIDs, icons } from './constants';
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
+import { pencilSolidIcon, targetWithCenterIcon } from './icons';
 import keybindings from './keybindings.json';
 import {
   getSingleSelectedLayer,
@@ -33,7 +35,6 @@ import {
 import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
 import { JupyterGISTracker } from './types';
 import { JupyterGISDocumentWidget } from './widget';
-import { pencilSolidIcon, targetWithCenterIcon } from './icons';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -948,7 +949,7 @@ export function addCommands(
           return false;
         } else {
           const selectedSource = model.getSource(
-            selectedLayer.parameters?.source
+            selectedLayer.parameters?.source,
           );
           if (
             selectedSource?.type === 'GeoJSONSource' &&
@@ -975,7 +976,7 @@ export function addCommands(
         commands.notifyCommandChanged(CommandIDs.addNewDrawFeatures);
       }
     },
-    icon: pencilSolidIcon
+    icon: pencilSolidIcon,
   });
 
   loadKeybindings(commands, keybindings);
