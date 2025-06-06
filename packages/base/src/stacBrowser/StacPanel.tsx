@@ -21,7 +21,6 @@ export class StacPanel extends Panel {
         <StacBrowser
           controlPanelModel={this._model}
           tracker={this._tracker}
-          display="side"
         ></StacBrowser>
       )
     );

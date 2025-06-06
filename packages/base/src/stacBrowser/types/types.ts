@@ -1,3 +1,5 @@
+import { IJupyterGISModel } from '@jupytergis/schema';
+
 export interface IStacCollection {
   // Core fields
   type: 'Collection';
@@ -175,7 +177,9 @@ export interface IStacQueryBody {
   ];
 }
 
-export interface IResultsLinks {
-  prev: string;
-  next: string;
+export interface IStacViewProps {
+  datasets: Record<string, string[]>;
+  platforms: Record<string, string[]>;
+  products: Record<string, IProductData>;
+  model?: IJupyterGISModel;
 }
