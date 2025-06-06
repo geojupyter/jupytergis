@@ -128,13 +128,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.contextMenu.addItem({
       command: CommandIDs.zoomToLayer,
       selector: '.jp-gis-layerItem',
-      rank: 2
+      rank: 2,
     });
 
     app.contextMenu.addItem({
       command: CommandIDs.addNewDrawFeatures,
       selector: '.jp-gis-layerItem',
-      rank: 2
+      rank: 2,
     });
 
     // Create the Download submenu

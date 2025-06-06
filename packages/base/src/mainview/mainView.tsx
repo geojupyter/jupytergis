@@ -42,7 +42,9 @@ import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
+import { Type } from 'ol/geom/Geometry';
 import { DragAndDrop, Interaction, Select } from 'ol/interaction';
+import Draw from 'ol/interaction/Draw.js';
 import {
   Heatmap as HeatmapLayer,
   Image as ImageLayer,
@@ -51,6 +53,7 @@ import {
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer,
 } from 'ol/layer';
+import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
 import {
   fromLonLat,
@@ -87,13 +90,10 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import BaseLayer from 'ol/layer/Base';
-import Draw from 'ol/interaction/Draw.js';
 //import Modify from 'ol/interaction/Modify.js';
 //import Snap from 'ol/interaction/Snap.js';
-import { Type } from 'ol/geom/Geometry';
 
-const drawGeometries = ['Point', 'LineString', 'Polygon', 'Circle'];
+const drawGeometries = ['Point', 'LineString', 'Polygon'];
 
 interface IProps {
   viewModel: MainViewModel;
@@ -152,7 +152,7 @@ export class MainView extends React.Component<IProps, IStates> {
     );
     this._model.drawVectorLayerChanged.connect(
       this._updateIsDrawVectorLayerEnabled,
-      this
+      this,
     );
 
     this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
@@ -182,7 +182,7 @@ export class MainView extends React.Component<IProps, IStates> {
       displayTemporalController: false,
       filterStates: {},
       isDrawVectorLayerEnabled: false,
-      drawGeometryType: ''
+      drawGeometryType: '',
     };
 
     this._sources = [];
@@ -2034,7 +2034,7 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _handleDrawGeometryTypeChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const drawGeometryType = event.target.value;
     //let layerSource: IJGISSource | undefined;
@@ -2048,7 +2048,7 @@ export class MainView extends React.Component<IProps, IStates> {
       /** add new feature to the already existing geoJSONSource
        */
       const localStateSelectedLayerID = Object.keys(
-        localStateSelectedLayers
+        localStateSelectedLayers,
       )[0];
       const jGISLayer = this._model.getLayer(localStateSelectedLayerID);
       const localStateSourceID = jGISLayer?.parameters?.source;
@@ -2058,7 +2058,7 @@ export class MainView extends React.Component<IProps, IStates> {
         .getLayers()
         .getArray()
         .find(
-          (layer: BaseLayer) => layer.get('id') === localStateSelectedLayerID
+          (layer: BaseLayer) => layer.get('id') === localStateSelectedLayerID,
         )
         ?.get('source');
 
@@ -2071,9 +2071,9 @@ export class MainView extends React.Component<IProps, IStates> {
           'stroke-color': '#ffcc33',
           'stroke-width': 2,
           'circle-radius': 7,
-          'circle-fill-color': '#ffcc33'
+          'circle-fill-color': '#ffcc33',
         },
-        type: drawGeometryType as Type // Type being a geometry type here,
+        type: drawGeometryType as Type, // Type being a geometry type here,
       });
       //const snap = new Snap({ source: layerSource });
 
@@ -2082,37 +2082,34 @@ export class MainView extends React.Component<IProps, IStates> {
       this._currentDrawInteraction = draw;
       this.setState(old => ({
         ...old,
-        drawGeometryType
+        drawGeometryType,
       }));
 
       const geojsonWriter = new GeoJSON({
-        featureProjection: this._Map.getView().getProjection()
+        featureProjection: this._Map.getView().getProjection(),
       });
 
       layerSource?.on('change', () => {
         if (jGISLayerSource) {
-          const features = layerSource?.getFeatures().map(feature => {
-            const geometry = feature.getGeometry();
-            console.log(geometry?.getProperties());
-            geojsonWriter.writeFeatureObject(feature);
-            console.log(feature.getGeometry());
-          });
+          const features = layerSource
+            ?.getFeatures()
+            .map(feature => geojsonWriter.writeFeatureObject(feature));
 
           const updatedData = {
             type: 'FeatureCollection',
-            features: features
+            features: features,
           };
           const updatedJGISLayerSource: IJGISSource = {
             name: jGISLayerSource.name,
             type: jGISLayerSource.type,
             parameters: {
-              data: updatedData
-            }
+              data: updatedData,
+            },
           };
           jGISLayerSource = updatedJGISLayerSource;
           this._model.sharedModel.updateSource(
             localStateSourceID,
-            updatedJGISLayerSource
+            updatedJGISLayerSource,
           );
         }
       });
@@ -2167,7 +2164,7 @@ export class MainView extends React.Component<IProps, IStates> {
               borderRadius: '4px',
               fontSize: '12px',
               gap: '8px',
-              zIndex: '9999'
+              zIndex: '9999',
             }}
           >
             <div className="geometry-type-selector-container">
