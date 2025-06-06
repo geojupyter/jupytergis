@@ -4,6 +4,8 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { ISubmitEvent } from '@rjsf/core';
 import { Ajv, ValidateFunction } from 'ajv';
 
+import path from 'path';
+
 import { loadFile } from '@/src/tools';
 import { PathBasedSourcePropertiesForm } from './pathbasedsource';
 import { ISourceFormProps } from './sourceform';
@@ -29,6 +31,33 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
     if (data?.path !== '') {
       this.removeFormEntry('data', data, schema, uiSchema);
     }
+
+    this.removeFormEntry('data', path, schema, uiSchema);
+    /*const originalSchema = schema;
+    const updatedSchema = {
+      ...originalSchema,
+      properties: {
+        ...originalSchema.properties,
+        path: {
+          ...originalSchema.properties.path,
+          description:
+            this.currentFormData?.formContext === 'create'
+              ? 'The local path to a GeoJSON file. (If no path/url is provided, an empty GeoJSON is created.)'
+              : originalSchema.properties.path.description
+        }
+      }
+    };*/
+    console.log('schema:', schema);
+    const originalSchema = schema;
+    const updatedSchema = {
+      ...originalSchema,
+    };
+    updatedSchema.properties = {
+      ...originalSchema.properties,
+      path: { type: 'string', description: 'test' },
+    };
+    schema = updatedSchema;
+    console.log(schema);
     super.processSchema(data, schema, uiSchema);
   }
 
