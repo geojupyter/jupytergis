@@ -183,6 +183,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   contentsManager: Contents.IManager | undefined;
   filePath: string;
 
+  pathChanged: ISignal<IJupyterGISModel, string>;
+
   getSettings(): IJupyterGISSettings;
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;

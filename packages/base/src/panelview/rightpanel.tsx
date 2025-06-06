@@ -48,6 +48,10 @@ export class RightPanelWidget extends SidePanel {
     identifyPanel.addClass('jgis-scrollable');
     this.addWidget(identifyPanel);
 
+    this._handleFileChange = () => {
+      header.title.label = this._currentModel?.filePath || '-';
+    };
+
     this._model.documentChanged.connect((_, changed) => {
       if (changed) {
         if (changed.model.sharedModel.editable) {
@@ -64,8 +68,12 @@ export class RightPanelWidget extends SidePanel {
 
     options.tracker.currentChanged.connect(async (_, changed) => {
       if (changed) {
+        if (this._currentModel) {
+          this._currentModel.pathChanged.disconnect(this._handleFileChange);
+        }
         this._currentModel = changed.model;
         header.title.label = this._currentModel.filePath;
+        this._currentModel.pathChanged.connect(this._handleFileChange);
         this._annotationModel.model =
           options.tracker.currentWidget?.model || undefined;
         // await changed.context.ready;
@@ -82,6 +90,7 @@ export class RightPanelWidget extends SidePanel {
   }
 
   private _currentModel: IJupyterGISModel | null;
+  private _handleFileChange: () => void;
   private _model: IControlPanelModel;
   private _annotationModel: IAnnotationModel;
 }
