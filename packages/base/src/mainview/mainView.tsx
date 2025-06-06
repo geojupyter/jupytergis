@@ -968,10 +968,8 @@ export class MainView extends React.Component<IProps, IStates> {
         newMapLayer = new StacLayer({
           displayPreview: true,
           data: layerParameters.data,
-          opacity: 1,
-          visible: true,
-          assets: Object.entries(layerParameters.data.assets),
-          extent: layerParameters.data.bbox,
+          opacity: layerParameters.opacity,
+          visible: layer.visible,
           assets: Object.keys(layerParameters.data.assets),
           extent: layerParameters.data.bbox,
         });
