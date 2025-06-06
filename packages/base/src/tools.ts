@@ -392,7 +392,8 @@ export const getFromIndexedDB = async (key: string) => {
 export const fetchWithProxies = async <T>(
   url: string,
   parseResponse: (response: Response) => Promise<T>,
-  model: IJupyterGISModel | null
+  model: IJupyterGISModel | null,
+  options?: RequestInit
 ): Promise<T | null> => {
   let settings: any = null;
 
@@ -415,7 +416,7 @@ export const fetchWithProxies = async <T>(
 
   for (const proxyUrl of proxyUrls) {
     try {
-      const response = await fetch(proxyUrl);
+      const response = await fetch(proxyUrl, options);
       if (!response.ok) {
         console.warn(
           `Failed to fetch from ${proxyUrl}: ${response.statusText}`
