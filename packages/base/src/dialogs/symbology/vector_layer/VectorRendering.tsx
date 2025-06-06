@@ -1,5 +1,5 @@
-import { LayerType } from '@jupytergis/schema';
-import React, { useState } from 'react';
+import { LayerType, IJGISLayer } from '@jupytergis/schema';
+import React, { useEffect, useState } from 'react';
 
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
@@ -89,6 +89,20 @@ const getSelectableRenderTypes = (
   );
 };
 
+const useLayerRenderType = (
+  layer: IJGISLayer,
+  setSelectedRenderType: React.Dispatch<
+    React.SetStateAction<RenderType | undefined>
+  >,
+) =>
+  useEffect(() => {
+    let renderType = layer.parameters?.symbologyState?.renderType;
+    if (!renderType) {
+      renderType = layer.type === 'HeatmapLayer' ? 'Heatmap' : 'Single Symbol';
+    }
+    setSelectedRenderType(renderType);
+  }, []);
+
 const VectorRendering = ({
   model,
   state,
@@ -96,8 +110,9 @@ const VectorRendering = ({
   cancel,
   layerId,
 }: ISymbologyDialogProps) => {
-  const [selectedRenderType, setSelectedRenderType] =
-    useState<RenderType>('Single Symbol');
+  const [selectedRenderType, setSelectedRenderType] = useState<
+    RenderType | undefined
+  >();
 
   if (!layerId) {
     return;
@@ -112,11 +127,16 @@ const VectorRendering = ({
     model: model,
   });
 
+  useLayerRenderType(layer, setSelectedRenderType);
+  if (selectedRenderType === undefined) {
+    return;
+  }
+
   const selectableRenderTypes = getSelectableRenderTypes(
     featureProperties,
     layer.type,
   );
-  const selectedRenderTypeEnriched = selectableRenderTypes[selectedRenderType];
+  const selectedRenderTypeProps = selectableRenderTypes[selectedRenderType];
 
   return (
     <>
@@ -142,16 +162,16 @@ const VectorRendering = ({
             ))}
         </select>
       </div>
-      <selectedRenderTypeEnriched.component
+      <selectedRenderTypeProps.component
         model={model}
         state={state}
         okSignalPromise={okSignalPromise}
         cancel={cancel}
         layerId={layerId}
-        {...(selectedRenderTypeEnriched.selectableAttributesAndValues
+        {...(selectedRenderTypeProps.selectableAttributesAndValues
           ? {
               selectableAttributesAndValues:
-                selectedRenderTypeEnriched.selectableAttributesAndValues,
+                selectedRenderTypeProps.selectableAttributesAndValues,
             }
           : {})}
       />
