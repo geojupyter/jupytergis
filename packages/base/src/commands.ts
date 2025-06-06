@@ -381,6 +381,34 @@ export function addCommands(
       );
     },
   });
+  commands.addCommand(CommandIDs.centroids, {
+    label: trans.__('Centroids'),
+    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
+    execute: async () => {
+      await processSelectedLayer(
+        tracker,
+        formSchemaRegistry,
+        'Centroids',
+        {
+          sqlQueryFn: (layerName, _) => `
+	  SELECT ST_Centroid(geometry) AS geometry, *
+	  FROM "${layerName}"
+        `,
+          gdalFunction: 'ogr2ogr',
+          options: (sqlQuery: string) => [
+            '-f',
+            'GeoJSON',
+            '-dialect',
+            'SQLITE',
+            '-sql',
+            sqlQuery,
+            'output.geojson',
+          ],
+        },
+        app,
+      );
+    },
+  });
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),
