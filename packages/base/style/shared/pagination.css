@@ -11,7 +11,7 @@
   margin-right: auto;
   display: flex;
   width: 100%;
-  justify-content: center;
+  justify-content: space-evenly;
   list-style-type: none;
   gap: 0.25rem;
   padding-left: unset;
@@ -78,15 +78,16 @@
 
 .PaginationLink[data-variant='outline'] {
   border: 1px solid var(--jp-accent-color0);
-  background-color: var(----jp-layout-color2);
+  background-color: var(--jp-layout-color2);
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
 }
 
+.PaginationLink[data-variant='ghost']:hover,
 .PaginationLink[data-variant='outline']:hover {
   background-color: var(--jp-accent-color0);
-  color: var(--jp-ui-font-color0);
+  color: var(--jp-ui-inverse-font-color0);
   /* background-color: color-mix(
     in srgb,
     var(--jp-accent-color0),
@@ -109,8 +110,9 @@
   );
 }
 
+/* .PaginationLink[data-variant='ghost']:hover */
 .PaginationLink[data-variant='ghost'] {
-  background-color: var(--jp-accent-color0);
+  background-color: var(--jp-layout-color0);
   color: var(--jp-ui-font-color0);
 }
 
@@ -155,6 +157,8 @@
   display: flex;
   cursor: pointer;
   margin-right: 0.5rem;
+  color: var(--jp-ui-font-color0);
+  background-color: var(--jp-layout-color1);
 }
 
 .PaginationNext {
@@ -163,6 +167,8 @@
   display: flex;
   cursor: pointer;
   margin-left: 0.5rem;
+  color: var(--jp-ui-font-color0);
+  background-color: var(--jp-layout-color1);
 }
 
 .PaginationEllipsis {

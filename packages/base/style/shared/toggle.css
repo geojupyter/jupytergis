@@ -46,7 +46,7 @@
 }
 
 .ToggleOutline {
-  border: 1px solid var(--jp-border-color0);
+  border: 1px solid var(--jp-accent-color0);
   background-color: transparent;
   transition:
     background-color 0.3s,
@@ -56,7 +56,7 @@
 
 .ToggleOutline:hover {
   background-color: var(--jp-accent-color0);
-  color: var(--jp-ui-font-color0);
+  color: var(--jp-ui-inverse-font-color0);
 }
 
 .ToggleDefaultSize {

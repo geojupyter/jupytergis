@@ -8,9 +8,9 @@
   font-weight: 600;
   outline: none;
   background-color: var(--jp-layout-color0);
-  color: white;
+  color: var(--jp-ui-font-color0);
   border: 0.0375rem solid
-    color-mix(in srgb, var(--jp-border-color0), transparent 20%);
+    color-mix(in srgb, var(--jp-accent-color0), transparent 20%);
   transition: background-color 0.2s ease;
   height: 2.5rem;
   padding-left: 1rem;
@@ -47,13 +47,13 @@
 }
 
 .Button[data-variant='destructive'] {
-  background-color: var(--destructive);
-  color: var(--destructive-foreground);
+  background-color: var(--jp-error-color0);
+  color: var(--jp-ui-font-color0);
   transition: background-color 0.2s ease;
 }
 
 .Button[data-variant='destructive']:hover {
-  background-color: color-mix(in srgb, var(--destructive), transparent 10%);
+  background-color: color-mix(in srgb, var(--jp-error-color0), transparent 10%);
 }
 
 .Button[data-variant='outline'] {
