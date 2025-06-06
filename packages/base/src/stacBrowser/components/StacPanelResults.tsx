@@ -59,7 +59,7 @@ const StacPanelResults = ({
   return (
     <div className="jgis-stac-browser-filters-panel">
       <Pagination>
-        <PaginationContent>
+        <PaginationContent style={{ marginTop: 0 }}>
           <PaginationItem>
             <PaginationPrevious
               onClick={() =>
@@ -101,7 +101,6 @@ const StacPanelResults = ({
           </PaginationItem>
         </PaginationContent>
       </Pagination>
-      <div>Results</div>
       <div className="jgis-stac-browser-results-list">
         {results.map(result => (
           <Button
