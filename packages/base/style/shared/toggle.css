@@ -16,14 +16,18 @@
 }
 
 .Toggle:hover {
-  background-color: var(--jp-ui-font-color0) / 0.1;
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color0),
+    transparent 90%
+  );
   color: var(--jp-ui-inverse-font-color0);
 }
 
 .Toggle:focus-visible {
   box-shadow:
-    0 0 0 2px var(--jp-border-color0),
-    0 0 0 4px var(--jp-border-color0);
+    0 0 0 2px var(--jp-accent-color0),
+    0 0 0 4px var(--jp-accent-color0);
 }
 
 .Toggle:disabled {
