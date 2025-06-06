@@ -234,6 +234,16 @@ const activate = async (
       command: CommandIDs.buffer,
       category: 'JupyterGIS',
     });
+
+    palette.addItem({
+      command: CommandIDs.dissolve,
+      category: 'JupyterGIS',
+    });
+
+    palette.addItem({
+      command: CommandIDs.centroids,
+      category: 'JupyterGIS',
+    });
   }
 };
 
