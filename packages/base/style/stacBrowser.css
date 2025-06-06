@@ -6,6 +6,7 @@
 
 .jgis-stac-browser-collection {
   flex-wrap: wrap;
+  margin-top: 0.5rem;
 }
 
 .jgis-stac-browser-section-item {
@@ -29,5 +30,11 @@
 
 .jgis-stac-browser-date-picker {
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
+}
+
+.jgis-stac-browser-filters-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
