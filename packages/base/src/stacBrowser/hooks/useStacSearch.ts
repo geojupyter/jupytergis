@@ -14,6 +14,13 @@ const API_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
 const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
 const PROXY_URL = `/jupytergis_core/proxy?url=${encodeURIComponent(API_URL)}`;
 
+// Storage keys for persisting state
+const STORAGE_KEYS = {
+  collections: 'jgis-stac-selected-collections',
+  platforms: 'jgis-stac-selected-platforms',
+  products: 'jgis-stac-selected-products'
+};
+
 interface IUseStacSearchProps {
   datasets: Record<string, string[]>;
   platforms: Record<string, string[]>;
@@ -52,9 +59,46 @@ function useStacSearch({
   products,
   model
 }: IUseStacSearchProps): IUseStacSearchReturn {
-  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  // Initialize state from localStorage or empty arrays
+  const [selectedCollections, setSelectedCollections] = useState<string[]>(
+    () => {
+      const stored = localStorage.getItem(STORAGE_KEYS.collections);
+      return stored ? JSON.parse(stored) : [];
+    }
+  );
+
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(() => {
+    const stored = localStorage.getItem(STORAGE_KEYS.platforms);
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  const [selectedProducts, setSelectedProducts] = useState<string[]>(() => {
+    const stored = localStorage.getItem(STORAGE_KEYS.products);
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  // Persist state changes to localStorage
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEYS.collections,
+      JSON.stringify(selectedCollections)
+    );
+  }, [selectedCollections]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEYS.platforms,
+      JSON.stringify(selectedPlatforms)
+    );
+  }, [selectedPlatforms]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEYS.products,
+      JSON.stringify(selectedProducts)
+    );
+  }, [selectedProducts]);
+
   const [results, setResults] = useState<IStacItem[]>([]);
   const [currentBBox, setCurrentBBox] = useState<
     [number, number, number, number]

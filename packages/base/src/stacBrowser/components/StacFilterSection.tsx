@@ -24,51 +24,48 @@ const StacFilterSection = ({
 }: IStacCollectionsProps) => {
   // ! Starts here
 
-  // TODO: This sucks lol
   const items = useMemo(() => {
-    // TODO: Leaving this here for now
-    function isStringArrayRecord(
-      data: Record<string, string[]>
-    ): data is Record<string, string[]> {
-      const firstKey = Object.keys(data)[0];
-      return Array.isArray(data[firstKey]);
+    if (header === 'Collection') {
+      return Object.entries(data).map(([key, val]) => (
+        <ToggleGroupItem
+          key={key}
+          className="jgis-stac-browser-section-item"
+          value={key}
+        >
+          {key}
+        </ToggleGroupItem>
+      ));
     }
 
-    if (isStringArrayRecord(data)) {
-      if (header === 'Collection') {
-        return Object.entries(data).map(([key, val]) => (
-          <ToggleGroupItem
-            key={key}
-            className="jgis-stac-browser-section-item"
-            value={key}
-          >
-            {key}
-          </ToggleGroupItem>
-        ));
-      }
-
-      if (header === 'Platform') {
-        return Object.entries(data)
-          .filter(([key]) => selectedCollections.includes(key))
-          .flatMap(([key, values]) =>
-            values.map(val => (
-              <ToggleGroupItem
-                key={`${key}-${val}`}
-                className="jgis-stac-browser-section-item"
-                value={val}
-              >
-                {val}
-              </ToggleGroupItem>
-            ))
-          );
-      }
-    } else {
-      console.log('shouldnt happen');
-      //data is ProductData now. this is so dumb
+    if (header === 'Platform') {
+      return Object.entries(data)
+        .filter(([key]) => selectedCollections.includes(key))
+        .flatMap(([key, values]) =>
+          values.map(val => (
+            <ToggleGroupItem
+              key={`${key}-${val}`}
+              className="jgis-stac-browser-section-item"
+              value={val}
+            >
+              {val}
+            </ToggleGroupItem>
+          ))
+        );
     }
 
     return null;
-  }, [header, data, selectedCollections]);
+  }, [header, data, selectedCollections, selectedPlatforms]);
+
+  // Get the current selected values based on the header
+  const currentSelectedValues = useMemo(() => {
+    if (header === 'Collection') {
+      return selectedCollections;
+    }
+    if (header === 'Platform') {
+      return selectedPlatforms;
+    }
+    return [];
+  }, [header, selectedCollections, selectedPlatforms]);
 
   return (
     <div>
@@ -78,6 +75,7 @@ const StacFilterSection = ({
         variant={'outline'}
         size={'sm'}
         className="jgis-stac-browser-collection"
+        value={currentSelectedValues}
         onValueChange={handleToggleGroupValueChange}
       >
         {items}
