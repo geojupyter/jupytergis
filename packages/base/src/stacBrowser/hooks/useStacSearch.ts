@@ -2,6 +2,7 @@ import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { startOfYesterday } from 'date-fns';
 import { useEffect, useState } from 'react';
+import { fetchWithProxies } from '../../tools';
 import {
   IProductData,
   IStacItem,
@@ -10,6 +11,8 @@ import {
 } from '../types/types';
 
 const API_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
+const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
+const PROXY_URL = `/jupytergis_core/proxy?url=${encodeURIComponent(API_URL)}`;
 
 interface IUseStacSearchProps {
   datasets: Record<string, string[]>;
@@ -124,7 +127,7 @@ function useStacSearch({
       };
 
       setQueryBody(body);
-      const result = await fetchWithProxy(body);
+      const result = await prepareFetch(body);
 
       if (!result) {
         return;
@@ -146,32 +149,36 @@ function useStacSearch({
 
   /**
    * Fetches STAC search results using a proxy
-   * @param options - Query options for the STAC search
+   * @param body - Query options for the STAC search
    * @returns Promise resolving to search results or undefined if error
    */
-  const fetchWithProxy = async (
-    options: IStacQueryBody
+  const prepareFetch = async (
+    body: IStacQueryBody
   ): Promise<IStacSearchResult | undefined> => {
-    const xsrfToken = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-    const proxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(API_URL)}`;
-
     try {
-      const response = await fetch(proxyUrl, {
+      const options = {
         method: 'POST',
-        //@ts-expect-error Jupyter requires X-XSRFToken header
         headers: {
           'Content-Type': 'application/json',
-          'X-XSRFToken': xsrfToken,
+          'X-XSRFToken': XSRF_TOKEN,
           credentials: 'include'
         },
-        body: JSON.stringify(options)
-      });
+        body: JSON.stringify(body)
+      };
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const data = (await fetchWithProxies(
+        PROXY_URL,
+        async response => await response.json(),
+        model ?? null,
+        //@ts-expect-error Jupyter requires X-XSRFToken header
+        options
+      )) as IStacSearchResult;
+
+      if (!data) {
+        console.log('No Results found');
+        return;
       }
 
-      const data = (await response.json()) as IStacSearchResult;
       setResults(data.features);
       return data;
     } catch (error) {
@@ -218,7 +225,7 @@ function useStacSearch({
 
     setCurrentPage(page);
     const body = { ...queryBody, page };
-    await fetchWithProxy(body);
+    await prepareFetch(body);
   };
 
   /**

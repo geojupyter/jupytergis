@@ -394,6 +394,7 @@ export const fetchWithProxies = async <T>(
   url: string,
   model: IJupyterGISModel,
   parseResponse: (response: Response) => Promise<T>,
+  model: IJupyterGISModel | null,
 ): Promise<T | null> => {
   let settings: any = null;
 
@@ -416,7 +417,7 @@ export const fetchWithProxies = async <T>(
 
   for (const proxyUrl of proxyUrls) {
     try {
-      const response = await fetch(proxyUrl);
+      const response = await fetch(proxyUrl, options);
       if (!response.ok) {
         console.warn(
           `Failed to fetch from ${proxyUrl}: ${response.statusText}`,

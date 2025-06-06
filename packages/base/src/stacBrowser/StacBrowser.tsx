@@ -236,7 +236,6 @@ export function getAllCollections(): CollectionName[] {
 
 const StacBrowser = ({
   controlPanelModel,
-  display,
   tracker
 }: IStacBrowserDialogProps) => {
   const [widgetId, setWidgetId] = useState('');
