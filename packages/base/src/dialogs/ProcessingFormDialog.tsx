@@ -22,7 +22,7 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
     parentType: 'dialog' | 'panel',
   ) => void;
   model: IJupyterGISModel;
-  processingType: 'Buffer' | 'Dissolve' | 'Export';
+  processingType: 'Buffer' | 'Dissolve' | 'Export' | 'Reproject';
 }
 
 /**
@@ -56,6 +56,7 @@ const ProcessingFormWrapper = (props: IProcessingFormWrapperProps) => {
       break;
     case 'Buffer':
     case 'Export':
+    case 'Reproject':
     default:
       FormComponent = BaseForm;
   }
