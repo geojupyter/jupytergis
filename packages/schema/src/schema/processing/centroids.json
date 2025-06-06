@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "description": "Centroids",
+  "title": "ICentroids",
+  "required": ["inputLayer"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The input layer for buffering."
+    }
+  }
+}
