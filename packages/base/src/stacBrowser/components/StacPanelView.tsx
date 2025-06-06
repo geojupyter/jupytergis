@@ -10,8 +10,6 @@ import { IStacViewProps } from '../StacBrowser';
 import StacPanelFilters from './StacPanelFilters';
 import StacPanelResults from './StacPanelResults';
 
-const apiUrl = 'https://geodes-portal.cnes.fr/api/stac/search';
-
 const StacPanelView = ({
   datasets,
   platforms,
@@ -50,10 +48,15 @@ const StacPanelView = ({
   return (
     <Tabs defaultValue="filters" className="jgis-stac-browser-main">
       <TabsList>
-        <TabsTrigger value="filters">Filters</TabsTrigger>
-        <TabsTrigger value="results">{`Results (${totalResults})`}</TabsTrigger>
+        <TabsTrigger className="jGIS-layer-browser-category" value="filters">
+          Filters
+        </TabsTrigger>
+        <TabsTrigger
+          className="jGIS-layer-browser-category"
+          value="results"
+        >{`Results (${totalResults})`}</TabsTrigger>
       </TabsList>
-      <TabsContent value="filters">
+      <TabsContent style={{ marginTop: 0 }} value="filters">
         <StacPanelFilters
           datasets={datasets}
           platforms={platforms}
@@ -71,7 +74,7 @@ const StacPanelView = ({
           model={model}
         />
       </TabsContent>
-      <TabsContent value="results">
+      <TabsContent style={{ marginTop: 0 }} value="results">
         <StacPanelResults
           results={results}
           currentPage={currentPage}
