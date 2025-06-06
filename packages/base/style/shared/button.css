@@ -7,9 +7,10 @@
   font-size: 0.875rem;
   font-weight: 600;
   outline: none;
-  background-color: hsl(var(--jp-layout-color0));
+  background-color: var(--jp-layout-color0);
   color: white;
-  border: 0.0375rem solid hsl(var(--jp-border-color0) / 0.8);
+  border: 0.0375rem solid
+    color-mix(in srgb, var(--jp-border-color0), transparent 20%);
   transition: background-color 0.2s ease;
   height: 2.5rem;
   padding-left: 1rem;
@@ -21,13 +22,18 @@
 
 .Button:hover {
   cursor: pointer;
-  background-color: hsl(var(--jp-layout-color2) / 0.8);
+  background-color: color-mix(
+    in srgb,
+    var(--jp-layout-color2),
+    transparent 20%
+  );
   transition: background-color 0.2s ease;
 }
 
 .Button:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px hsl(var(--jp-ui-font-color0) / 0.5);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--jp-ui-font-color0), transparent 50%);
 }
 
 .Button:disabled {
@@ -41,19 +47,19 @@
 }
 
 .Button[data-variant='destructive'] {
-  background-color: hsl(var(--destructive));
-  color: hsl(var(--destructive-foreground));
+  background-color: var(--destructive);
+  color: var(--destructive-foreground);
   transition: background-color 0.2s ease;
 }
 
 .Button[data-variant='destructive']:hover {
-  background-color: hsl(var(--destructive) / 0.9);
+  background-color: color-mix(in srgb, var(--destructive), transparent 10%);
 }
 
 .Button[data-variant='outline'] {
-  border: 1px solid hsl(var(--jp-border-color0));
-  background-color: hsl(var(--jp-layout-color0));
-  color: hsl(var(--jp-ui-font-color0));
+  border: 1px solid var(--jp-border-color0);
+  background-color: var(--jp-layout-color0);
+  color: var(--jp-ui-font-color0);
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
@@ -61,34 +67,46 @@
 
 .Button[data-variant='outline']:hover {
   cursor: pointer;
-  background-color: hsl(var(--jp-ui-font-color0) / 0.05);
-  color: hsl(var(--jp-ui-font-color2));
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color0),
+    transparent 95%
+  );
+  color: var(--jp-ui-font-color2);
 }
 
 .Button[data-variant='secondary'] {
-  background-color: hsl(var(--jp-layout-color2));
-  color: hsl(var(--jp-ui-font-color2));
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color2);
   transition: background-color 0.2s ease;
 }
 
 .Button[data-variant='secondary']:hover {
-  background-color: hsl(var(--jp-layout-color2) / 0.9);
+  background-color: color-mix(
+    in srgb,
+    var(--jp-layout-color2),
+    transparent 10%
+  );
 }
 
 .Button[data-variant='ghost'] {
   background-color: transparent;
   border: 1px solid transparent;
-  color: hsl(var(--jp-ui-font-color0));
+  color: var(--jp-ui-font-color0);
   display: flex;
   align-items: center;
 }
 
 .Button[data-variant='ghost']:hover {
-  background-color: hsl(var(--jp-ui-font-color0) / 0.1);
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color0),
+    transparent 90%
+  );
 }
 
 .Button[data-variant='link'] {
-  color: hsl(var(--jp-ui-font-color0));
+  color: var(--jp-ui-font-color0);
   background-color: transparent;
   text-decoration: none;
   transition: text-decoration 0.2s ease;
@@ -99,14 +117,14 @@
 }
 
 .Button[data-variant='link']:hover {
-  color: hsl(var(--jp-layout-color0));
-  text-decoration-color: hsl(var(--jp-ui-font-color0));
+  color: var(--jp-layout-color0);
+  text-decoration-color: var(--jp-ui-font-color0);
 }
 
 .Button[data-variant='icon'] {
-  background-color: hsl(var(--jp-ui-font-color0));
+  background-color: var(--jp-ui-font-color0);
   border: none;
-  color: hsl(var(--jp-layout-color0));
+  color: var(--jp-layout-color0);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,7 +135,11 @@
 }
 
 .Button[data-variant='icon']:hover {
-  background-color: hsl(var(--jp-accent-color0) / 0.8);
+  background-color: color-mix(
+    in srgb,
+    var(--jp-accent-color0),
+    transparent 20%
+  );
 }
 
 /* sizing */

@@ -30,24 +30,30 @@
   transition-duration: 0.2s;
   transition-timing-function: ease;
   outline: none;
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  border: 0.0375rem solid hsl(var(--jp-border-color0) / 0.8);
+  background-color: var(--jp-layout-color0);
+  color: var(--jp-ui-font-color0);
+  border: 0.0375rem solid
+    color-mix(in srgb, var(--jp-border-color0), transparent 80%);
   transition: background-color 0.2s ease;
   /* height: 2.5rem;
   padding-left: 1rem;
   padding-right: 1rem; */
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
+  padding: 0.25rem;
+  /* padding-bottom: 0.25rem; */
 }
 
 .PaginationLink:hover {
-  background-color: hsl(var(--primary), 0.9);
+  background-color: color-mix(
+    in srgb,
+    var(--jp-layout-color0),
+    transparent 90%
+  );
 }
 
 .PaginationLink:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px hsl(var(--background) / 0.5);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--jp-layout-color2), transparent 50%);
 }
 
 .PaginationLink:disabled {
@@ -61,17 +67,17 @@
 }
 
 .PaginationLink[data-variant='destructive'] {
-  background-color: hsl(var(--destructive));
-  color: hsl(var(--destructive-foreground));
+  background-color: var(--jp-error-color0);
+  color: var(--jp-ui-font-color0);
   transition: background-color 0.2s ease;
 }
 
 .PaginationLink[data-variant='destructive']:hover {
-  background-color: hsl(var(--destructive), 0.9);
+  background-color: color-mix(in srgb, var(--jp-error-color0), transparent 90%);
 }
 
 .PaginationLink[data-variant='outline'] {
-  border: 1px solid var(--jp-border-color0);
+  border: 1px solid var(--jp-accent-color0);
   background-color: var(----jp-layout-color2);
   transition:
     background-color 0.2s ease,
@@ -79,29 +85,37 @@
 }
 
 .PaginationLink[data-variant='outline']:hover {
-  /* background-color: hsl(var(--accent));
-  color: hsl(var(--accent-foreground)); */
-  background-color: purple;
-  color: peru;
+  background-color: var(--jp-accent-color0);
+  color: var(--jp-ui-font-color0);
+  /* background-color: color-mix(
+    in srgb,
+    var(--jp-accent-color0),
+    transparent 80%
+  );
+  color: color-mix(in srgb, var(--jp-ui-inverse-font-color0), transparent 80%); */
 }
 
 .PaginationLink[data-variant='secondary'] {
-  background-color: hsl(var(--secondary));
-  color: hsl(var(--secondary-foreground));
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color2);
   transition: background-color 0.2s ease;
 }
 
 .PaginationLink[data-variant='secondary']:hover {
-  background-color: hsl(var(--secondary) / 0.8);
+  background-color: color-mix(
+    in srgb,
+    var(--jp-layout-color0),
+    transparent 80%
+  );
 }
 
 .PaginationLink[data-variant='ghost'] {
-  background-color: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
+  background-color: var(--jp-accent-color0);
+  color: var(--jp-ui-font-color0);
 }
 
 .PaginationLink[data-variant='link'] {
-  color: hsl(var(--primary));
+  color: var(--jp-ui-font-color0);
   text-decoration: underline;
   text-underline-offset: 0.25rem;
   transition: text-decoration 0.2s ease;
@@ -110,8 +124,9 @@
 }
 
 .PaginationLink[data-variant='link']:hover {
-  color: hsl(var(--primary) / 0.8);
-  text-decoration-color: hsl(var(--primary));
+  /* color: hsl(var(--jp-ui-font-color0) / 0.8); */
+  color: color-mix(in srgb, var(--jp-ui-font-color0), transparent 80%);
+  text-decoration-color: var(--jp-ui-font-color0);
 }
 
 /* sizing */
@@ -139,6 +154,7 @@
   padding-left: 0.625rem;
   display: flex;
   cursor: pointer;
+  margin-right: 0.5rem;
 }
 
 .PaginationNext {
@@ -146,6 +162,7 @@
   padding-right: 0.625rem;
   display: flex;
   cursor: pointer;
+  margin-left: 0.5rem;
 }
 
 .PaginationEllipsis {
