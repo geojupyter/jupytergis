@@ -26,7 +26,8 @@ class YJGIS(YBaseDoc):
         :return: Document's content.
         :rtype: Any
         """
-        layers = self._ylayers.to_py()
+        # don't save transient layers to disk
+        layers = {key: val for key, val in self._ylayers.to_py().items() if not val["transient"]}
         sources = self._ysources.to_py()
         options = self._yoptions.to_py()
         meta = self._ymetadata.to_py()

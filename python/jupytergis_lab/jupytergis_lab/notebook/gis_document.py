@@ -94,7 +94,7 @@ class GISDocument(CommWidget):
         """
         Get the layer list
         """
-        return self._layers.to_py()
+        return {key: val for key, val in self._layers.to_py().items() if not val["transient"]}
 
     @property
     def layer_tree(self) -> List[str | Dict]:
@@ -144,6 +144,7 @@ class GISDocument(CommWidget):
         name: str = "Raster Layer",
         attribution: str = "",
         opacity: float = 1,
+        transient: bool = False,
     ):
         """
         Add a Raster Layer to the document.
@@ -174,6 +175,7 @@ class GISDocument(CommWidget):
             "type": LayerType.RasterLayer,
             "name": name,
             "visible": True,
+            "transient": transient,
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
@@ -783,7 +785,7 @@ class GISDocument(CommWidget):
     def to_py(self) -> dict:
         """Get the document structure as a Python dictionary."""
         return {
-            "layers": self._layers.to_py(),
+            "layers": {key: val for key, val in self._layers.to_py().items() if not val["transient"]},
             "sources": self._sources.to_py(),
             "layerTree": self._layerTree.to_py(),
             "options": self._options.to_py(),
@@ -861,7 +863,8 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
     ) -> Optional[JGISLayer]:
         object_type = data.get("type", None)
         name: str = data.get("name", None)
-        visible: str = data.get("visible", True)
+        visible: bool = data.get("visible", True)
+        transient: bool = data.get("transient", False)
         filters = data.get("filters", None)
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
@@ -874,6 +877,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
                 parent=parent,
                 name=name,
                 visible=visible,
+                transient=transient,
                 type=object_type,
                 parameters=obj_params,
                 filters=filters,
