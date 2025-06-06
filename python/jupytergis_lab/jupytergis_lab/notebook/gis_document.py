@@ -94,7 +94,11 @@ class GISDocument(CommWidget):
         """
         Get the layer list
         """
-        return {key: val for key, val in self._layers.to_py().items() if not val["transient"]}
+        return {
+            key: val
+            for key, val in self._layers.to_py().items()
+            if not val["transient"]
+        }
 
     @property
     def layer_tree(self) -> List[str | Dict]:
@@ -785,7 +789,11 @@ class GISDocument(CommWidget):
     def to_py(self) -> dict:
         """Get the document structure as a Python dictionary."""
         return {
-            "layers": {key: val for key, val in self._layers.to_py().items() if not val["transient"]},
+            "layers": {
+                key: val
+                for key, val in self._layers.to_py().items()
+                if not val["transient"]
+            },
             "sources": self._sources.to_py(),
             "layerTree": self._layerTree.to_py(),
             "options": self._options.to_py(),
