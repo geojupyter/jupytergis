@@ -51,6 +51,7 @@ const ProductSection = ({
         variant={'outline'}
         size={'sm'}
         className="jgis-stac-browser-collection"
+        value={selectedProducts}
         onValueChange={handleToggleGroupValueChange}
       >
         {items}
