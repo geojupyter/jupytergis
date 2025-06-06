@@ -6,7 +6,7 @@ import {
   TabsTrigger
 } from '../../shared/components/Tabs';
 import useStacSearch from '../hooks/useStacSearch';
-import { IStacViewProps } from '../StacBrowser';
+import { IStacViewProps } from '../types/types';
 import StacPanelFilters from './StacPanelFilters';
 import StacPanelResults from './StacPanelResults';
 
@@ -14,12 +14,7 @@ const StacPanelView = ({
   datasets,
   platforms,
   model,
-  products,
-  displayInfo,
-  handleCategoryClick,
-  handleSearchInput,
-  searchTerm,
-  selectedCategory
+  products
 }: IStacViewProps) => {
   const {
     selectedCollections,

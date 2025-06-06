@@ -1,18 +1,13 @@
 import {
   IDict,
   IJupyterGISModel,
-  IJupyterGISTracker
+  IJupyterGISTracker,
+  IJupyterGISWidget
 } from '@jupytergis/schema';
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IControlPanelModel } from '../types';
 import StacPanelView from './components/StacPanelView';
-import {
-  CollectionName,
-  IProductData,
-  IStacItem,
-  ProductCode,
-  ProductRegistry
-} from './types/types';
+import { CollectionName, ProductCode, ProductRegistry } from './types/types';
 
 // Map display names to query strings
 export const datasets: IDict<string[]> = {
@@ -195,33 +190,7 @@ export const products: ProductRegistry = {
 
 interface IStacBrowserDialogProps {
   controlPanelModel: IControlPanelModel;
-  display: 'side' | 'grid';
   tracker: IJupyterGISTracker;
-
-  // registry: IRasterLayerGalleryEntry[];
-  // formSchemaRegistry: IJGISFormSchemaRegistry;
-  // okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
-  // cancel: () => void;
-}
-
-// ? Does this make more sense here or in types?
-export interface IStacViewProps {
-  searchTerm: string;
-  handleSearchInput: (event: ChangeEvent<HTMLInputElement>) => void;
-  datasets: IDict<string[]>;
-  platforms: IDict<string[]>;
-  products: IDict<IProductData>;
-  selectedCategory: string | null;
-  handleCategoryClick: (category: string) => void;
-  // handleTileClick: (id: string) => void;
-  displayInfo?: IStacItem[];
-  model?: IJupyterGISModel;
-}
-
-export function getProductsForCollection(
-  collection: CollectionName
-): IProductData[] {
-  return productsByCollection[collection].map(code => products[code]);
 }
 
 export function getProductCodesForCollection(
@@ -230,66 +199,31 @@ export function getProductCodesForCollection(
   return [...productsByCollection[collection]]; // Return copy
 }
 
-export function getAllCollections(): CollectionName[] {
-  return Object.keys(productsByCollection) as CollectionName[];
-}
-
-const StacBrowser = ({
-  controlPanelModel,
-  tracker
-}: IStacBrowserDialogProps) => {
-  const [widgetId, setWidgetId] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [displayInfo, setDisplayInfo] = useState<IStacItem[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+const StacBrowser = ({ controlPanelModel }: IStacBrowserDialogProps) => {
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
     controlPanelModel?.jGISModel
   );
 
-  controlPanelModel?.documentChanged.connect((_, widget) => {
-    setJgisModel(widget?.model);
-  });
-
-  // Reset state values when current widget changes
   useEffect(() => {
-    const handleCurrentChanged = () => {
-      if (tracker.currentWidget?.id === widgetId) {
-        return;
-      }
-
-      if (tracker.currentWidget) {
-        setWidgetId(tracker.currentWidget.id);
-      }
-      setSearchTerm('');
-      setDisplayInfo([]);
-      setSelectedCategory('');
+    const handleCurrentChanged = (
+      _: IJupyterGISTracker,
+      widget: IJupyterGISWidget | null
+    ) => {
+      setJgisModel(widget?.model);
     };
-    tracker.currentChanged.connect(handleCurrentChanged);
+
+    controlPanelModel.documentChanged.connect(handleCurrentChanged);
 
     return () => {
-      tracker.currentChanged.disconnect(handleCurrentChanged);
+      controlPanelModel.documentChanged.disconnect(handleCurrentChanged);
     };
-  }, []);
-
-  const handleSearchInput = (event: ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value.toLowerCase());
-  };
-
-  const handleCategoryClick = (category: string) => {
-    setSearchTerm('');
-    setSelectedCategory(prev => (prev === category ? '' : category));
-  };
+  }, [controlPanelModel]);
 
   return (
     <StacPanelView
       datasets={datasets}
       platforms={platforms}
       products={products}
-      displayInfo={displayInfo}
-      handleCategoryClick={handleCategoryClick}
-      handleSearchInput={handleSearchInput}
-      searchTerm={searchTerm}
-      selectedCategory={selectedCategory}
       model={jgisModel}
     />
   );
