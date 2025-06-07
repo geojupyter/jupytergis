@@ -22,7 +22,7 @@ export interface IControlPanelModel {
   sharedModel: IJupyterGISDoc | undefined;
 }
 
-export type VectorRenderType = 
+export type VectorRenderType =
   | 'Single Symbol'
   | 'Canonical'
   | 'Graduated'
