@@ -5,6 +5,7 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
 
+import { SymbologyTab } from '@/src/types';
 import TiffRendering from './tiff_layer/TiffRendering';
 import VectorRendering from './vector_layer/VectorRendering';
 
@@ -14,6 +15,10 @@ export interface ISymbologyDialogProps {
   okSignalPromise: PromiseDelegate<Signal<SymbologyWidget, null>>;
   cancel: () => void;
   layerId?: string;
+}
+
+export interface ISymbologyTabbedDialogProps extends ISymbologyDialogProps {
+  symbologyTab: SymbologyTab;
 }
 
 export interface ISymbologyWidgetOptions {
