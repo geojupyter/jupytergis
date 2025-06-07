@@ -22,6 +22,13 @@ export interface IControlPanelModel {
   sharedModel: IJupyterGISDoc | undefined;
 }
 
+export type VectorRenderType =
+  | 'Single Symbol'
+  | 'Canonical'
+  | 'Graduated'
+  | 'Categorized'
+  | 'Heatmap';
+
 /**
  * Add jupytergisMaps object to the global variables.
  */

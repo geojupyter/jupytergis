@@ -8,25 +8,20 @@ import {
   getNumericFeatureAttributes,
   objectEntries,
 } from '@/src/tools';
+import { VectorRenderType } from '@/src/types';
 import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
 import Graduated from './types/Graduated';
 import Heatmap from './types/Heatmap';
 import SimpleSymbol from './types/SimpleSymbol';
 
-type RenderType =
-  | 'Single Symbol'
-  | 'Canonical'
-  | 'Graduated'
-  | 'Categorized'
-  | 'Heatmap';
 interface IRenderTypeProps {
   component: any;
   attributeChecker?: (...args: any[]) => any;
   supportedLayerTypes: string[];
 }
 type RenderTypeOptions = {
-  [key: string]: IRenderTypeProps;
+  [key in VectorRenderType]: IRenderTypeProps;
 };
 
 interface ISelectableRenderTypeProps extends IRenderTypeProps {
@@ -34,7 +29,7 @@ interface ISelectableRenderTypeProps extends IRenderTypeProps {
   layerTypeSupported: boolean;
 }
 type SelectableRenderTypes = {
-  [key: string]: ISelectableRenderTypeProps;
+  [key in VectorRenderType]: ISelectableRenderTypeProps;
 };
 
 const RENDER_TYPE_OPTIONS: RenderTypeOptions = {
@@ -67,32 +62,29 @@ const getSelectableRenderTypes = (
   featureProperties: Record<string, Set<any>>,
   layerType: LayerType,
 ): SelectableRenderTypes => {
-  return Object.fromEntries(
-    objectEntries(RENDER_TYPE_OPTIONS).map(([renderType, renderTypeProps]) => {
-      const layerTypeSupported =
-        renderTypeProps.supportedLayerTypes.includes(layerType);
-
-      return [
-        renderType,
-        {
-          ...renderTypeProps,
-          ...(renderTypeProps.attributeChecker
-            ? {
-                selectableAttributesAndValues:
-                  renderTypeProps.attributeChecker(featureProperties),
-              }
-            : {}),
-          layerTypeSupported,
-        },
-      ];
-    }),
+  const entries = objectEntries(RENDER_TYPE_OPTIONS).map(
+    ([renderType, renderTypeProps]) => [
+      renderType,
+      {
+        ...renderTypeProps,
+        ...(renderTypeProps.attributeChecker
+          ? {
+              selectableAttributesAndValues:
+                renderTypeProps.attributeChecker(featureProperties),
+            }
+          : {}),
+        layerTypeSupported:
+          renderTypeProps.supportedLayerTypes.includes(layerType),
+      },
+    ],
   );
+  return Object.fromEntries(entries);
 };
 
 const useLayerRenderType = (
   layer: IJGISLayer,
   setSelectedRenderType: React.Dispatch<
-    React.SetStateAction<RenderType | undefined>
+    React.SetStateAction<VectorRenderType | undefined>
   >,
 ) =>
   useEffect(() => {
@@ -111,7 +103,7 @@ const VectorRendering = ({
   layerId,
 }: ISymbologyDialogProps) => {
   const [selectedRenderType, setSelectedRenderType] = useState<
-    RenderType | undefined
+    VectorRenderType | undefined
   >();
 
   if (!layerId) {
@@ -154,7 +146,7 @@ const VectorRendering = ({
             className="jp-mod-styled"
             value={selectedRenderType}
             onChange={event => {
-              setSelectedRenderType(event.target.value as RenderType);
+              setSelectedRenderType(event.target.value as VectorRenderType);
             }}
           >
             {objectEntries(selectableRenderTypes)
