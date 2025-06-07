@@ -7,14 +7,12 @@ import ColorRamp, {
   ColorRampOptions,
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
-import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import {
   IStopRow,
-  ISymbologyDialogProps,
+  ISymbologyDialogWithAttributesProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { getNumericFeatureAttributes } from '@/src/tools';
 
 const Graduated = ({
   model,
@@ -22,7 +20,8 @@ const Graduated = ({
   okSignalPromise,
   cancel,
   layerId,
-}: ISymbologyDialogProps) => {
+  selectableAttributesAndValues,
+}: ISymbologyDialogWithAttributesProps) => {
   const modeOptions = [
     'quantile',
     'equal interval',
@@ -40,7 +39,6 @@ const Graduated = ({
   const [selectedMethod, setSelectedMethod] = useState('color');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [methodOptions, setMethodOptions] = useState<string[]>(['color']);
-  const [features, setFeatures] = useState<Record<string, Set<number>>>({});
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampOptions | undefined
   >();
@@ -52,11 +50,6 @@ const Graduated = ({
   if (!layer?.parameters) {
     return;
   }
-
-  const { featureProperties } = useGetProperties({
-    layerId,
-    model: model,
-  });
 
   useEffect(() => {
     let stopOutputPairs: IStopRow[] = [];
@@ -103,19 +96,15 @@ const Graduated = ({
       setMethodOptions(options);
     }
 
-    // We only want number values here
-    const numericFeatures = getNumericFeatureAttributes(featureProperties);
-
-    setFeatures(numericFeatures);
-
     const layerParams = layer.parameters as IVectorLayer;
     const value =
-      layerParams.symbologyState?.value ?? Object.keys(numericFeatures)[0];
+      layerParams.symbologyState?.value ??
+      Object.keys(selectableAttributesAndValues)[0];
     const method = layerParams.symbologyState?.method ?? 'color';
 
     setSelectedValue(value);
     setSelectedMethod(method);
-  }, [featureProperties]);
+  }, [selectableAttributesAndValues]);
 
   const updateStopRowsBasedOnMethod = () => {
     if (!layer) {
@@ -196,7 +185,7 @@ const Graduated = ({
 
     let stops;
 
-    const values = Array.from(features[selectedValue]);
+    const values = Array.from(selectableAttributesAndValues[selectedValue]);
 
     switch (selectedMode) {
       case 'quantile':
@@ -250,43 +239,61 @@ const Graduated = ({
     setStopRows(stopOutputPairs);
   };
 
-  return (
-    <div className="jp-gis-layer-symbology-container">
-      <ValueSelect
-        featureProperties={features}
-        selectedValue={selectedValue}
-        setSelectedValue={setSelectedValue}
-      />
-      <div className="jp-gis-symbology-row">
-        <label htmlFor={'vector-method-select'}>Method:</label>
-        <select
-          name={'vector-method-select'}
-          onChange={event => setSelectedMethod(event.target.value)}
-          className="jp-mod-styled"
-        >
-          {methodOptions.map((method, index) => (
-            <option
-              key={index}
-              value={method}
-              selected={method === selectedMethod}
+  const body = (() => {
+    if (Object.keys(selectableAttributesAndValues)?.length === 0) {
+      return (
+        <p className="errors">
+          This symbology type is not available; no attributes contain numeric
+          values.
+        </p>
+      );
+    } else {
+      return (
+        <>
+          <ValueSelect
+            featureProperties={selectableAttributesAndValues}
+            selectedValue={selectedValue}
+            setSelectedValue={setSelectedValue}
+          />
+          <div className="jp-gis-symbology-row">
+            <label htmlFor={'vector-method-select'}>Method:</label>
+            <select
+              name={'vector-method-select'}
+              onChange={event => setSelectedMethod(event.target.value)}
               className="jp-mod-styled"
             >
-              {method}
-            </option>
-          ))}
-        </select>
-      </div>
-      <ColorRamp
-        layerParams={layer.parameters}
-        modeOptions={modeOptions}
-        classifyFunc={buildColorInfoFromClassification}
-        showModeRow={true}
-      />
-      <StopContainer
-        selectedMethod={selectedMethod}
-        stopRows={stopRows}
-        setStopRows={setStopRows}
-      />
+              {methodOptions.map((method, index) => (
+                <option
+                  key={index}
+                  value={method}
+                  selected={method === selectedMethod}
+                  className="jp-mod-styled"
+                >
+                  {method}
+                </option>
+              ))}
+            </select>
+          </div>
+          <ColorRamp
+            layerParams={layer.parameters}
+            modeOptions={modeOptions}
+            classifyFunc={buildColorInfoFromClassification}
+            showModeRow={true}
+          />
+          <StopContainer
+            selectedMethod={selectedMethod}
+            stopRows={stopRows}
+            setStopRows={setStopRows}
+          />
+        </>
+      );
+    }
+  })();
+
+  return (
+    <div className="jp-gis-layer-symbology-container">
+      <p>Color features based on an attribute containing scalar values.</p>
+      {body}
     </div>
   );
 };
