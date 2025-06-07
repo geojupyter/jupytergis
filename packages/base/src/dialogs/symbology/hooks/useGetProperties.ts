@@ -20,7 +20,9 @@ export const useGetProperties = ({
   layerId,
   model,
 }: IUseGetPropertiesProps): IUseGetPropertiesResult => {
-  const [featureProperties, setFeatureProperties] = useState<Record<string, Set<any>>>({});
+  const [featureProperties, setFeatureProperties] = useState<
+    Record<string, Set<any>>
+  >({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | undefined>();
 
