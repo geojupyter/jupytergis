@@ -122,16 +122,21 @@ const VectorRendering = ({
     return;
   }
 
-  const { featureProperties } = useGetProperties({
+  const { featureProperties, isLoading: featuresLoading } = useGetProperties({
     layerId,
     model: model,
   });
 
   useLayerRenderType(layer, setSelectedRenderType);
-  if (selectedRenderType === undefined) {
-    return;
+
+  if (featuresLoading) {
+    return <p>Loading...</p>;
   }
 
+  if (selectedRenderType === undefined) {
+    // typeguard
+    return;
+  }
   const selectableRenderTypes = getSelectableRenderTypes(
     featureProperties,
     layer.type,
@@ -142,25 +147,28 @@ const VectorRendering = ({
     <>
       <div className="jp-gis-symbology-row">
         <label htmlFor="render-type-select">Render Type:</label>
-        <select
-          name="render-type-select"
-          id="render-type-select"
-          value={selectedRenderType}
-          onChange={event => {
-            setSelectedRenderType(event.target.value as RenderType);
-          }}
-        >
-          {objectEntries(selectableRenderTypes)
-            .filter(
-              ([renderType, renderTypeProps]) =>
-                renderTypeProps.layerTypeSupported,
-            )
-            .map(([renderType, renderTypeProps]) => (
-              <option key={renderType} value={renderType}>
-                {renderType}
-              </option>
-            ))}
-        </select>
+        <div className="jp-select-wrapper">
+          <select
+            name="render-type-select"
+            id="render-type-select"
+            className="jp-mod-styled"
+            value={selectedRenderType}
+            onChange={event => {
+              setSelectedRenderType(event.target.value as RenderType);
+            }}
+          >
+            {objectEntries(selectableRenderTypes)
+              .filter(
+                ([renderType, renderTypeProps]) =>
+                  renderTypeProps.layerTypeSupported,
+              )
+              .map(([renderType, renderTypeProps]) => (
+                <option key={renderType} value={renderType}>
+                  {renderType}
+                </option>
+              ))}
+          </select>
+        </div>
       </div>
       <selectedRenderTypeProps.component
         model={model}
