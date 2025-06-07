@@ -1,6 +1,10 @@
 import { IDict } from '@jupytergis/schema';
 import * as geojson from '@jupytergis/schema/src/schema/geojson.json';
+import { showErrorMessage } from '@jupyterlab/apputils';
+import { ISubmitEvent } from '@rjsf/core';
 import { Ajv, ValidateFunction } from 'ajv';
+
+import path from 'path';
 
 import { loadFile } from '@/src/tools';
 import { PathBasedSourcePropertiesForm } from './pathbasedsource';
@@ -28,6 +32,32 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
       this.removeFormEntry('data', data, schema, uiSchema);
     }
 
+    this.removeFormEntry('data', path, schema, uiSchema);
+    /*const originalSchema = schema;
+    const updatedSchema = {
+      ...originalSchema,
+      properties: {
+        ...originalSchema.properties,
+        path: {
+          ...originalSchema.properties.path,
+          description:
+            this.currentFormData?.formContext === 'create'
+              ? 'The local path to a GeoJSON file. (If no path/url is provided, an empty GeoJSON is created.)'
+              : originalSchema.properties.path.description
+        }
+      }
+    };*/
+    console.log('schema:', schema);
+    const originalSchema = schema;
+    const updatedSchema = {
+      ...originalSchema,
+    };
+    updatedSchema.properties = {
+      ...originalSchema.properties,
+      path: { type: 'string', description: 'test' },
+    };
+    schema = updatedSchema;
+    console.log(schema);
     super.processSchema(data, schema, uiSchema);
   }
 
@@ -40,7 +70,7 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
     const extraErrors: IDict = this.state.extraErrors;
 
     let error = '';
-    let valid = false;
+    let valid = true;
     if (path) {
       try {
         const geoJSONData = await loadFile({
@@ -55,8 +85,6 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
       } catch (e) {
         error = `"${path}" is not a valid GeoJSON file: ${e}`;
       }
-    } else {
-      error = 'Path is required';
     }
 
     if (!valid) {
@@ -78,5 +106,18 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
     if (this.props.formErrorSignal) {
       this.props.formErrorSignal.emit(!valid);
     }
+  }
+  protected onFormSubmit(e: ISubmitEvent<any>) {
+    if (this.state.extraErrors?.path?.__errors?.length >= 1) {
+      showErrorMessage('Invalid file', this.state.extraErrors.path.__errors[0]);
+      return;
+    }
+    if (!e.formData.path) {
+      e.formData.data = {
+        type: 'FeatureCollection',
+        features: [],
+      };
+    }
+    super.onFormSubmit(e);
   }
 }

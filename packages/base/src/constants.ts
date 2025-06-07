@@ -42,6 +42,16 @@ export namespace CommandIDs {
   export const dissolve = 'jupytergis:dissolve';
   export const centroids = 'jupytergis:centroids';
 
+  // Layers only commands
+  export const newRasterLayer = 'jupytergis:newRasterLayer';
+  export const newVectorLayer = 'jupytergis:newVectorLayer';
+  export const newHillshadeLayer = 'jupytergis:newHillshadeLayer';
+  export const newImageLayer = 'jupytergis:newImageLayer';
+  export const newVideoLayer = 'jupytergis:newVideoLayer';
+  export const newShapefileLayer = 'jupytergis:newShapefileLayer';
+  export const newWebGlTileLayer = 'jupytergis:newWebGlTileLayer';
+  export const newHeatmapLayer = 'jupytergis:newHeatmapLayer';
+
   // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';
   export const removeLayer = 'jupytergis:removeLayer';
@@ -53,6 +63,9 @@ export namespace CommandIDs {
   // Source actions
   export const renameSource = 'jupytergis:renameSource';
   export const removeSource = 'jupytergis:removeSource';
+
+  // Add draw features to a geoGSON source
+  export const addNewDrawFeatures = 'jupytergis:addNewDrawFeatures';
 
   // Console commands
   export const toggleConsole = 'jupytergis:toggleConsole';

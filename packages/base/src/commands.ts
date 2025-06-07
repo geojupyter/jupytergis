@@ -25,7 +25,7 @@ import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
 import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
 import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
-import { targetWithCenterIcon } from './icons';
+import { pencilSolidIcon, targetWithCenterIcon } from './icons';
 import keybindings from './keybindings.json';
 import {
   getSingleSelectedLayer,
@@ -907,6 +907,47 @@ export function addCommands(
       navigator.geolocation.getCurrentPosition(success, error, options);
     },
     icon: targetWithCenterIcon,
+  });
+
+  commands.addCommand(CommandIDs.addNewDrawFeatures, {
+    label: trans.__('Add New Draw Features'),
+    isEnabled: () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        const model = tracker.currentWidget?.content.currentViewModel
+          .jGISModel as IJupyterGISModel;
+        const selectedLayer = getSingleSelectedLayer(tracker);
+        if (!selectedLayer) {
+          return false;
+        } else {
+          const selectedSource = model.getSource(
+            selectedLayer.parameters?.source,
+          );
+          if (
+            selectedSource?.type === 'GeoJSONSource' &&
+            selectedSource?.parameters?.data
+          ) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      } else {
+        return false;
+      }
+    },
+    execute: async () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        const model = tracker.currentWidget?.content.currentViewModel
+          .jGISModel as IJupyterGISModel;
+
+        if (model.isDrawVectorLayerEnabled === false) {
+          model.isDrawVectorLayerEnabled = true;
+        }
+        model.updateIsDrawVectorLayerEnabled();
+        commands.notifyCommandChanged(CommandIDs.addNewDrawFeatures);
+      }
+    },
+    icon: pencilSolidIcon,
   });
 
   loadKeybindings(commands, keybindings);
