@@ -62,8 +62,8 @@ const getSelectableRenderTypes = (
   featureProperties: Record<string, Set<any>>,
   layerType: LayerType,
 ): SelectableRenderTypes => {
-  const entries = objectEntries(RENDER_TYPE_OPTIONS).map(([renderType, renderTypeProps]) =>
-    [
+  const entries = objectEntries(RENDER_TYPE_OPTIONS).map(
+    ([renderType, renderTypeProps]) => [
       renderType,
       {
         ...renderTypeProps,
@@ -73,9 +73,10 @@ const getSelectableRenderTypes = (
                 renderTypeProps.attributeChecker(featureProperties),
             }
           : {}),
-        layerTypeSupported: renderTypeProps.supportedLayerTypes.includes(layerType),
+        layerTypeSupported:
+          renderTypeProps.supportedLayerTypes.includes(layerType),
       },
-    ]
+    ],
   );
   return Object.fromEntries(entries);
 };
