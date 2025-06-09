@@ -382,7 +382,7 @@ export function addCommands(
     },
   });
   commands.addCommand(CommandIDs.centroids, {
-    label: trans.__('Extract Centroids'),
+    label: trans.__('Centroids'),
     isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
     execute: async () => {
       await processSelectedLayer(
@@ -411,7 +411,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.boundingBoxes, {
-    label: trans.__('Add Bounding Boxes'),
+    label: trans.__('Bounding Boxes'),
     isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
     execute: async () => {
       await processSelectedLayer(
