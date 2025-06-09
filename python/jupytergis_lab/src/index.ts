@@ -266,8 +266,8 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     rightControlPanel.title.icon = logoMiniIcon;
 
     if (restorer) {
-      restorer.add(leftControlPanel, NAME_SPACE);
-      restorer.add(rightControlPanel, NAME_SPACE);
+      restorer.add(leftControlPanel, `${NAME_SPACE}-left`);
+      restorer.add(rightControlPanel, `${NAME_SPACE}-right`);
     }
     app.shell.add(leftControlPanel, 'left', { rank: 2000 });
     app.shell.add(rightControlPanel, 'right', { rank: 2000 });
