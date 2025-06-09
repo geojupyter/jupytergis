@@ -34,22 +34,27 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
 
   const selectedValueRef = useRef<string>();
   const symbologyTabRef = useRef<string>();
-  const stopRowsRef = useRef<IStopRow[]>();
+  const colorStopRowsRef = useRef<IStopRow[]>([]);
+  const radiusStopRowsRef = useRef<IStopRow[]>([]);
   const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
   const [selectedValue, setSelectedValue] = useState('');
-  const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [features, setFeatures] = useState<Record<string, Set<number>>>({});
+  const [colorStopRows, setColorStopRows] = useState<IStopRow[]>([]);
+  const [radiusStopRows, setRadiusStopRows] = useState<IStopRow[]>([]);
   const [colorRampOptions, setColorRampOptions] = useState<
     ColorRampOptions | undefined
   >();
-  const [manualStyle, setManualStyle] = useState({
-    fillColor: '#3399CC',
+  const [colorManualStyle, setColorManualStyle] = useState({
     strokeColor: '#3399CC',
     strokeWidth: 1.25,
+  });
+  const [radiusManualStyle, setRadiusManualStyle] = useState({
     radius: 5,
   });
-  const manualStyleRef = useRef(manualStyle);
+
+  const colorManualStyleRef = useRef(colorManualStyle);
+  const radiusManualStyleRef = useRef(radiusManualStyle);
 
   if (!layerId) {
     return;
@@ -65,18 +70,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
   });
 
   useEffect(() => {
-    let stopOutputPairs: IStopRow[] = [];
-
-    if (symbologyTab === 'color') {
-      stopOutputPairs = VectorUtils.buildColorInfo(layer);
-    }
-
-    if (symbologyTab === 'radius') {
-      stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
-    }
-    updateStopRowsBasedOnMethod();
-
-    setStopRows(stopOutputPairs);
+    updateStopRowsBasedOnLayer();
 
     okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk, this);
@@ -91,11 +85,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
 
   useEffect(() => {
     if (layer?.parameters?.color) {
-      setManualStyle({
-        fillColor:
-          layer.parameters.color['fill-color'] ||
-          layer.parameters.color['circle-fill-color'] ||
-          '#3399CC',
+      setColorManualStyle({
         strokeColor:
           layer.parameters.color['stroke-color'] ||
           layer.parameters.color['circle-stroke-color'] ||
@@ -104,25 +94,31 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
           layer.parameters.color['stroke-width'] ||
           layer.parameters.color['circle-stroke-width'] ||
           1.25,
+      });
+      setRadiusManualStyle({
         radius: layer.parameters.color['circle-radius'] || 5,
       });
     }
   }, [layerId]);
 
   useEffect(() => {
-    manualStyleRef.current = manualStyle;
-  }, [manualStyle]);
-
-  useEffect(() => {
-    updateStopRowsBasedOnMethod();
-  }, [symbologyTab]);
-
-  useEffect(() => {
+    colorStopRowsRef.current = colorStopRows;
+    radiusStopRowsRef.current = radiusStopRows;
     selectedValueRef.current = selectedValue;
     symbologyTabRef.current = symbologyTab;
-    stopRowsRef.current = stopRows;
     colorRampOptionsRef.current = colorRampOptions;
-  }, [selectedValue, symbologyTab, stopRows, colorRampOptions]);
+  }, [
+    colorStopRows,
+    radiusStopRows,
+    selectedValue,
+    symbologyTab,
+    colorRampOptions,
+  ]);
+
+  useEffect(() => {
+    colorManualStyleRef.current = colorManualStyle;
+    radiusManualStyleRef.current = radiusManualStyle;
+  }, [colorManualStyle, radiusManualStyle]);
 
   useEffect(() => {
     // We only want number values here
@@ -137,22 +133,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
     setSelectedValue(value);
   }, [featureProperties]);
 
-  const updateStopRowsBasedOnMethod = () => {
+  const updateStopRowsBasedOnLayer = () => {
     if (!layer) {
       return;
     }
 
-    let stopOutputPairs: IStopRow[] = [];
-
-    if (symbologyTab === 'color') {
-      stopOutputPairs = VectorUtils.buildColorInfo(layer);
-    }
-
-    if (symbologyTab === 'radius') {
-      stopOutputPairs = VectorUtils.buildRadiusInfo(layer);
-    }
-
-    setStopRows(stopOutputPairs);
+    setColorStopRows(VectorUtils.buildColorInfo(layer));
+    setRadiusStopRows(VectorUtils.buildRadiusInfo(layer));
   };
 
   const handleOk = () => {
@@ -162,66 +149,55 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
 
     const newStyle = { ...layer.parameters.color };
 
-    if (stopRowsRef.current && stopRowsRef.current.length > 0) {
-      // If classification applied
-      const colorExpr: ExpressionValue[] = [];
-      colorExpr.push(
+    // Apply color symbology
+    if (colorStopRowsRef.current.length > 0) {
+      const colorExpr: ExpressionValue[] = [
         'interpolate',
         ['linear'],
         ['get', selectedValueRef.current],
-      );
-
-      stopRowsRef.current.map(stop => {
+      ];
+      colorStopRowsRef.current.forEach(stop => {
         colorExpr.push(stop.stop);
         colorExpr.push(stop.output);
       });
-
-      if (symbologyTabRef.current === 'color') {
-        newStyle['fill-color'] = colorExpr;
-        newStyle['stroke-color'] = colorExpr;
-        newStyle['circle-fill-color'] = colorExpr;
-      }
-
-      if (symbologyTabRef.current === 'radius') {
-        newStyle['circle-radius'] = colorExpr;
-      }
-
-      const symbologyState = {
-        renderType: 'Graduated',
-        value: selectedValueRef.current,
-        method: symbologyTabRef.current,
-        colorRamp: colorRampOptionsRef.current?.selectedRamp,
-        nClasses: colorRampOptionsRef.current?.numberOfShades,
-        mode: colorRampOptionsRef.current?.selectedMode,
-      };
-
-      layer.parameters.symbologyState = symbologyState;
+      newStyle['fill-color'] = colorExpr;
+      newStyle['circle-fill-color'] = colorExpr;
     } else {
-      // No classification applied
-      if (symbologyTabRef.current === 'color') {
-        newStyle['stroke-color'] = manualStyleRef.current.strokeColor;
-        newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
-        newStyle['stroke-width'] = manualStyleRef.current.strokeWidth;
-        newStyle['circle-stroke-width'] = manualStyleRef.current.strokeWidth;
-      }
+      newStyle['fill-color'] = undefined;
+      newStyle['circle-fill-color'] = undefined;
+    }
 
-      if (symbologyTabRef.current === 'radius') {
-        newStyle['circle-radius'] = manualStyleRef.current.radius;
-      }
+    newStyle['stroke-color'] = colorManualStyleRef.current.strokeColor;
+    newStyle['circle-stroke-color'] = colorManualStyleRef.current.strokeColor;
+    newStyle['stroke-width'] = colorManualStyleRef.current.strokeWidth;
+    newStyle['circle-stroke-width'] = colorManualStyleRef.current.strokeWidth;
 
-      const symbologyState = {
-        renderType: 'Graduated',
-        value: selectedValueRef.current,
-        method: symbologyTabRef.current,
-        colorRamp: undefined,
-        nClasses: undefined,
-        mode: undefined,
-      };
-
-      layer.parameters.symbologyState = symbologyState;
+    // Apply radius symbology
+    if (radiusStopRowsRef.current.length > 0) {
+      const radiusExpr: ExpressionValue[] = [
+        'interpolate',
+        ['linear'],
+        ['get', selectedValueRef.current],
+      ];
+      radiusStopRowsRef.current.forEach(stop => {
+        radiusExpr.push(stop.stop);
+        radiusExpr.push(stop.output);
+      });
+      newStyle['circle-radius'] = radiusExpr;
+    } else {
+      newStyle['circle-radius'] = radiusManualStyleRef.current.radius;
     }
 
     layer.parameters.color = newStyle;
+    layer.parameters.symbologyState = {
+      renderType: 'Graduated',
+      value: selectedValueRef.current,
+      method: symbologyTabRef.current,
+      colorRamp: colorRampOptionsRef.current?.selectedRamp,
+      nClasses: colorRampOptionsRef.current?.numberOfShades,
+      mode: colorRampOptionsRef.current?.selectedMode,
+    };
+
     if (layer.type === 'HeatmapLayer') {
       layer.type = 'VectorLayer';
     }
@@ -281,60 +257,16 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
         return;
     }
 
-    let stopOutputPairs = [];
+    const stopOutputPairs =
+      symbologyTab === 'radius'
+        ? stops.map(v => ({ stop: v, output: v }))
+        : Utils.getValueColorPairs(stops, selectedRamp, +numberOfShades);
+
     if (symbologyTab === 'radius') {
-      for (let i = 0; i < +numberOfShades; i++) {
-        stopOutputPairs.push({ stop: stops[i], output: stops[i] });
-      }
+      setRadiusStopRows(stopOutputPairs);
     } else {
-      stopOutputPairs = Utils.getValueColorPairs(
-        stops,
-        selectedRamp,
-        +numberOfShades,
-      );
+      setColorStopRows(stopOutputPairs);
     }
-
-    setStopRows(stopOutputPairs);
-  };
-
-  const handleReset = (method: string) => {
-    if (!layer?.parameters) {
-      return;
-    }
-
-    const newStyle = { ...layer.parameters.color };
-
-    if (method === 'color') {
-      delete newStyle['fill-color'];
-      delete newStyle['stroke-color'];
-      delete newStyle['circle-fill-color'];
-
-      // Only reset color classification
-      if (layer.parameters.symbologyState) {
-        layer.parameters.symbologyState.colorRamp = undefined;
-        layer.parameters.symbologyState.nClasses = undefined;
-        layer.parameters.symbologyState.mode = undefined;
-      }
-    }
-
-    if (method === 'radius') {
-      delete newStyle['circle-radius'];
-    }
-
-    layer.parameters.color = newStyle;
-
-    setStopRows(prev => {
-      if (symbologyTab === method) {
-        return [];
-      }
-      return prev;
-    });
-
-    if (method === 'color') {
-      setColorRampOptions(undefined);
-    }
-
-    model.sharedModel.updateLayer(layerId, layer);
   };
 
   return (
@@ -352,11 +284,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
               <input
                 type="color"
                 className="jp-mod-styled"
-                value={manualStyle.strokeColor}
+                value={colorManualStyle.strokeColor}
                 onChange={e => {
-                  handleReset('color');
-                  setManualStyle({
-                    ...manualStyle,
+                  setColorManualStyle({
+                    ...colorManualStyle,
                     strokeColor: e.target.value,
                   });
                 }}
@@ -367,11 +298,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
               <input
                 type="number"
                 className="jp-mod-styled"
-                value={manualStyle.strokeWidth}
+                value={colorManualStyle.strokeWidth}
                 onChange={e => {
-                  handleReset('color');
-                  setManualStyle({
-                    ...manualStyle,
+                  setColorManualStyle({
+                    ...colorManualStyle,
                     strokeWidth: +e.target.value,
                   });
                 }}
@@ -379,22 +309,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
             </div>
           </>
         )}
-
-        {symbologyTab === 'radius' && (
-          <div className="jp-gis-symbology-row">
-            <label>Circle Radius:</label>
-            <input
-              type="number"
-              className="jp-mod-styled"
-              value={manualStyle.radius}
-              onChange={e => {
-                handleReset('radius');
-                setManualStyle({ ...manualStyle, radius: +e.target.value });
-              }}
-            />
-          </div>
-        )}
       </div>
+
       <ColorRamp
         layerParams={layer.parameters}
         modeOptions={modeOptions}
@@ -404,8 +320,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
       />
       <StopContainer
         selectedMethod={symbologyTab || 'color'}
-        stopRows={stopRows}
-        setStopRows={setStopRows}
+        stopRows={symbologyTab === 'color' ? colorStopRows : radiusStopRows}
+        setStopRows={
+          symbologyTab === 'color' ? setColorStopRows : setRadiusStopRows
+        }
       />
     </div>
   );

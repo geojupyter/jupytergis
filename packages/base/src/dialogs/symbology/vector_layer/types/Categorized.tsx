@@ -13,7 +13,6 @@ import {
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { getNumericFeatureAttributes } from '@/src/tools';
-import { SymbologyTab } from '@/src/types';
 
 const Categorized = ({
   model,
@@ -34,7 +33,6 @@ const Categorized = ({
   >();
   const [features, setFeatures] = useState<Record<string, Set<number>>>({});
   const [manualStyle, setManualStyle] = useState({
-    fillColor: '#3399CC',
     strokeColor: '#3399CC',
     strokeWidth: 1.25,
     radius: 5,
@@ -71,15 +69,19 @@ const Categorized = ({
 
   useEffect(() => {
     if (layer?.parameters?.color) {
+      const strokeColor = layer.parameters.color['stroke-color'];
+      const circleStrokeColor = layer.parameters.color['circle-stroke-color'];
+
+      const isSimpleColor = (val: any) =>
+        typeof val === 'string' && /^#?[0-9A-Fa-f]{3,8}$/.test(val);
+
       setManualStyle({
-        fillColor:
-          layer.parameters.color['fill-color'] ||
-          layer.parameters.color['circle-fill-color'] ||
-          '#3399CC',
-        strokeColor:
-          layer.parameters.color['stroke-color'] ||
-          layer.parameters.color['circle-stroke-color'] ||
-          '#3399CC',
+        strokeColor: isSimpleColor(strokeColor)
+          ? strokeColor
+          : isSimpleColor(circleStrokeColor)
+            ? circleStrokeColor
+            : '#3399CC',
+
         strokeWidth:
           layer.parameters.color['stroke-width'] ||
           layer.parameters.color['circle-stroke-width'] ||
@@ -144,7 +146,7 @@ const Categorized = ({
     const newStyle = { ...layer.parameters.color };
 
     if (stopRowsRef.current && stopRowsRef.current.length > 0) {
-      // If classification applied
+      // Classification applied (for color)
       const expr: ExpressionValue[] = ['case'];
 
       stopRowsRef.current.forEach(stop => {
@@ -160,38 +162,23 @@ const Categorized = ({
         newStyle['stroke-color'] = expr;
         newStyle['circle-stroke-color'] = expr;
       }
-
-      const symbologyState = {
-        renderType: 'Categorized',
-        value: selectedValueRef.current,
-        colorRamp: colorRampOptionsRef.current?.selectedRamp,
-        nClasses: colorRampOptionsRef.current?.numberOfShades,
-        mode: colorRampOptionsRef.current?.selectedMode,
-        symbologyTab,
-      };
-
-      layer.parameters.symbologyState = symbologyState;
-    } else {
-      newStyle['fill-color'] = manualStyleRef.current.fillColor;
-      newStyle['stroke-color'] = manualStyleRef.current.strokeColor;
-      newStyle['circle-fill-color'] = manualStyleRef.current.fillColor;
-      newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
-      newStyle['stroke-width'] = manualStyleRef.current.strokeWidth;
-      newStyle['circle-stroke-width'] = manualStyleRef.current.strokeWidth;
-      newStyle['circle-radius'] = manualStyleRef.current.radius;
-
-      const symbologyState = {
-        renderType: 'Categorized',
-        value: selectedValueRef.current,
-        colorRamp: undefined,
-        nClasses: undefined,
-        mode: undefined,
-        symbologyTab,
-      };
-
-      layer.parameters.symbologyState = symbologyState;
     }
 
+    newStyle['stroke-width'] = manualStyleRef.current.strokeWidth;
+    newStyle['circle-stroke-width'] = manualStyleRef.current.strokeWidth;
+    newStyle['circle-radius'] = manualStyleRef.current.radius;
+    newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
+
+    const symbologyState = {
+      renderType: 'Categorized',
+      value: selectedValueRef.current,
+      colorRamp: colorRampOptionsRef.current?.selectedRamp,
+      nClasses: colorRampOptionsRef.current?.numberOfShades,
+      mode: colorRampOptionsRef.current?.selectedMode,
+      symbologyTab,
+    };
+
+    layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = newStyle;
 
     if (layer.type === 'HeatmapLayer') {
@@ -200,41 +187,6 @@ const Categorized = ({
 
     model.sharedModel.updateLayer(layerId, layer);
     cancel();
-  };
-
-  const handleReset = (method: SymbologyTab) => {
-    if (!layer?.parameters) {
-      return;
-    }
-
-    const newStyle = { ...layer.parameters.color };
-
-    if (method === 'color') {
-      delete newStyle['fill-color'];
-      delete newStyle['stroke-color'];
-      delete newStyle['circle-fill-color'];
-      delete newStyle['circle-stroke-color'];
-
-      // Reset color classification options
-      if (layer.parameters.symbologyState) {
-        layer.parameters.symbologyState.colorRamp = undefined;
-        layer.parameters.symbologyState.nClasses = undefined;
-        layer.parameters.symbologyState.mode = undefined;
-      }
-    }
-
-    if (method === 'radius') {
-      delete newStyle['circle-radius'];
-    }
-
-    layer.parameters.color = newStyle;
-
-    setStopRows(prev => (symbologyTab === method ? [] : prev));
-    if (method === 'color') {
-      setColorRampOptions(undefined);
-    }
-
-    model.sharedModel.updateLayer(layerId, layer);
   };
 
   return (
@@ -256,7 +208,6 @@ const Categorized = ({
                 className="jp-mod-styled"
                 value={manualStyle.strokeColor}
                 onChange={e => {
-                  handleReset('color');
                   setManualStyle(prev => ({
                     ...prev,
                     strokeColor: e.target.value,
@@ -271,7 +222,6 @@ const Categorized = ({
                 className="jp-mod-styled"
                 value={manualStyle.strokeWidth}
                 onChange={e => {
-                  handleReset('color');
                   setManualStyle(prev => ({
                     ...prev,
                     strokeWidth: +e.target.value,
@@ -290,7 +240,6 @@ const Categorized = ({
               className="jp-mod-styled"
               value={manualStyle.radius}
               onChange={e => {
-                handleReset('radius');
                 setManualStyle(prev => ({
                   ...prev,
                   radius: +e.target.value,
