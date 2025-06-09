@@ -164,12 +164,14 @@ const VectorRendering = ({
           }}
         >
           {renderTypeOptions
-          .filter(option => !(symbologyTab === 'radius' && option === 'Heatmap'))
-          .map(option => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
+            .filter(
+              option => !(symbologyTab === 'radius' && option === 'Heatmap'),
+            )
+            .map(option => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
         </select>
       </div>
 

@@ -31,7 +31,7 @@ const ColorRamp = ({
   modeOptions,
   classifyFunc,
   showModeRow,
-  showRampSelector
+  showRampSelector,
 }: IColorRampProps) => {
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
