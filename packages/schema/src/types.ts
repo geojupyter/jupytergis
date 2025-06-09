@@ -23,6 +23,7 @@ export * from './_interface/project/layers/heatmapLayer';
 export * from './_interface/processing/buffer';
 export * from './_interface/processing/dissolve';
 export * from './_interface/processing/centroids';
+export * from './_interface/processing/boundingBoxes';
 
 // exportLayer
 export * from './_interface/export/exportGeojson';

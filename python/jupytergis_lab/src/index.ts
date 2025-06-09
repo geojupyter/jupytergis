@@ -161,6 +161,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
       command: CommandIDs.centroids,
     });
 
+    processingSubmenu.addItem({
+      command: CommandIDs.boundingBoxes,
+    });
+
     app.contextMenu.addItem({
       type: 'submenu',
       selector: '.jp-gis-layerItem',
