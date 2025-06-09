@@ -199,10 +199,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
     } else {
       // No classification applied
       if (symbologyTabRef.current === 'color') {
-        newStyle['fill-color'] = manualStyleRef.current.fillColor;
         newStyle['stroke-color'] = manualStyleRef.current.strokeColor;
         newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
-        newStyle['circle-fill-color'] = manualStyleRef.current.fillColor;
         newStyle['stroke-width'] = manualStyleRef.current.strokeWidth;
         newStyle['circle-stroke-width'] = manualStyleRef.current.strokeWidth;
       }
@@ -350,18 +348,6 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
         {symbologyTab === 'color' && (
           <>
             <div className="jp-gis-symbology-row">
-              <label>Fill Color:</label>
-              <input
-                type="color"
-                className="jp-mod-styled"
-                value={manualStyle.fillColor}
-                onChange={e => {
-                  handleReset('color');
-                  setManualStyle({ ...manualStyle, fillColor: e.target.value });
-                }}
-              />
-            </div>
-            <div className="jp-gis-symbology-row">
               <label>Stroke Color:</label>
               <input
                 type="color"
@@ -414,6 +400,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
         modeOptions={modeOptions}
         classifyFunc={buildColorInfoFromClassification}
         showModeRow={true}
+        showRampSelector={symbologyTab === 'color'}
       />
       <StopContainer
         selectedMethod={symbologyTab || 'color'}

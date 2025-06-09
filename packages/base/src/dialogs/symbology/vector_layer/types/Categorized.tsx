@@ -250,21 +250,6 @@ const Categorized = ({
         {symbologyTab === 'color' && (
           <>
             <div className="jp-gis-symbology-row">
-              <label>Fill Color:</label>
-              <input
-                type="color"
-                className="jp-mod-styled"
-                value={manualStyle.fillColor}
-                onChange={e => {
-                  handleReset('color');
-                  setManualStyle(prev => ({
-                    ...prev,
-                    fillColor: e.target.value,
-                  }));
-                }}
-              />
-            </div>
-            <div className="jp-gis-symbology-row">
               <label>Stroke Color:</label>
               <input
                 type="color"
@@ -322,6 +307,7 @@ const Categorized = ({
           modeOptions={[]}
           classifyFunc={buildColorInfoFromClassification}
           showModeRow={false}
+          showRampSelector={symbologyTab === 'color'}
         />
         <StopContainer
           selectedMethod={''}
