@@ -1,0 +1,28 @@
+name: '🚀 Feature Request'
+description: 'New features you would like to see.'
+labels:
+  - 'enhancement'
+body:
+  - type: 'textarea'
+    attributes:
+      label: 'Use case'
+      description: |
+        Please describe for which use case this feature would help.
+    validations:
+      required: true
+
+  - type: 'textarea'
+    attributes:
+      label: 'Preferred solution'
+      description: |
+        Please describe your preferred solution if you have any.
+    validations:
+      required: false
+
+  - type: 'textarea'
+    attributes:
+      label: 'Alternative solutions'
+      description: |
+        Please describe alternative solutions if you have any.
+    validations:
+      required: false
