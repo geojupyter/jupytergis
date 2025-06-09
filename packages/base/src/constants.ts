@@ -40,6 +40,7 @@ export namespace CommandIDs {
   // Processing commands
   export const buffer = 'jupytergis:buffer';
   export const dissolve = 'jupytergis:dissolve';
+  export const centroids = 'jupytergis:centroids';
 
   // Layer and group actions
   export const renameLayer = 'jupytergis:renameLayer';

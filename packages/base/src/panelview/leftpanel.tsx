@@ -1,4 +1,5 @@
 import {
+  IJupyterGISModel,
   IJupyterGISTracker,
   ISelection,
   JupyterGISDoc,
@@ -67,11 +68,21 @@ export class LeftPanelWidget extends SidePanel {
     filterPanel.title.label = 'Filters';
     this.addWidget(filterPanel);
 
+    this._handleFileChange = () => {
+      header.title.label = this._currentModel?.filePath || '-';
+    };
+
     options.tracker.currentChanged.connect((_, changed) => {
       if (changed) {
+        if (this._currentModel) {
+          this._currentModel.pathChanged.disconnect(this._handleFileChange);
+        }
+        this._currentModel = changed.model;
         header.title.label = changed.model.filePath;
+        this._currentModel.pathChanged.connect(this._handleFileChange);
       } else {
         header.title.label = '-';
+        this._currentModel = null;
       }
     });
   }
@@ -199,6 +210,8 @@ export class LeftPanelWidget extends SidePanel {
     this._commands.notifyCommandChanged(CommandIDs.temporalController);
   }
 
+  private _handleFileChange: () => void;
+  private _currentModel: IJupyterGISModel | null;
   private _lastSelectedNodeId: string;
   private _model: IControlPanelModel;
   private _state: IStateDB;
