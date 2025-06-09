@@ -382,7 +382,7 @@ export function addCommands(
     },
   });
   commands.addCommand(CommandIDs.centroids, {
-    label: trans.__('Centroids'),
+    label: trans.__('Extract Centroids'),
     isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
     execute: async () => {
       await processSelectedLayer(
@@ -392,6 +392,35 @@ export function addCommands(
         {
           sqlQueryFn: (layerName, _) => `
 	  SELECT ST_Centroid(geometry) AS geometry, *
+	  FROM "${layerName}"
+        `,
+          gdalFunction: 'ogr2ogr',
+          options: (sqlQuery: string) => [
+            '-f',
+            'GeoJSON',
+            '-dialect',
+            'SQLITE',
+            '-sql',
+            sqlQuery,
+            'output.geojson',
+          ],
+        },
+        app,
+      );
+    },
+  });
+
+  commands.addCommand(CommandIDs.boundingBoxes, {
+    label: trans.__('Add Bounding Boxes'),
+    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
+    execute: async () => {
+      await processSelectedLayer(
+        tracker,
+        formSchemaRegistry,
+        'BoundingBoxes',
+        {
+          sqlQueryFn: (layerName, _) => `
+	  SELECT ST_Envelope(geometry) AS geometry, *
 	  FROM "${layerName}"
         `,
           gdalFunction: 'ogr2ogr',
