@@ -163,9 +163,11 @@ const VectorRendering = ({
             setSelectedRenderType(event.target.value);
           }}
         >
-          {renderTypeOptions.map((func, funcIndex) => (
-            <option key={func} value={func}>
-              {func}
+          {renderTypeOptions
+          .filter(option => !(symbologyTab === 'radius' && option === 'Heatmap'))
+          .map(option => (
+            <option key={option} value={option}>
+              {option}
             </option>
           ))}
         </select>
