@@ -91,7 +91,7 @@ export type GdalFunctions =
 export async function processSelectedLayer(
   tracker: JupyterGISTracker,
   formSchemaRegistry: IJGISFormSchemaRegistry,
-  processingType: 'Buffer' | 'Dissolve' | 'Centroids',
+  processingType: 'Buffer' | 'Dissolve' | 'Centroids' | 'BoundingBoxes',
   processingOptions: {
     sqlQueryFn: (layerName: string, param: any) => string;
     gdalFunction: GdalFunctions;
@@ -154,6 +154,9 @@ export async function processSelectedLayer(
     case 'Centroids':
       processParam = null;
       break;
+    case 'BoundingBoxes':
+      processParam = null;
+      break;
     default:
       console.error(`Unsupported processing type: ${processingType}`);
       return;
@@ -195,7 +198,7 @@ export async function executeSQLProcessing(
   gdalFunction: GdalFunctions,
   options: string[],
   layerNamePrefix: string,
-  processingType: 'Buffer' | 'Dissolve' | 'Centroids',
+  processingType: 'Buffer' | 'Dissolve' | 'Centroids' | 'BoundingBoxes',
   embedOutputLayer: boolean,
   tracker: JupyterGISTracker,
   app: JupyterFrontEnd,

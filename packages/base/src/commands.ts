@@ -410,6 +410,35 @@ export function addCommands(
     },
   });
 
+  commands.addCommand(CommandIDs.boundingBoxes, {
+    label: trans.__('Bounding Boxes'),
+    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
+    execute: async () => {
+      await processSelectedLayer(
+        tracker,
+        formSchemaRegistry,
+        'BoundingBoxes',
+        {
+          sqlQueryFn: (layerName, _) => `
+	  SELECT ST_Envelope(geometry) AS geometry, *
+	  FROM "${layerName}"
+        `,
+          gdalFunction: 'ogr2ogr',
+          options: (sqlQuery: string) => [
+            '-f',
+            'GeoJSON',
+            '-dialect',
+            'SQLITE',
+            '-sql',
+            sqlQuery,
+            'output.geojson',
+          ],
+        },
+        app,
+      );
+    },
+  });
+
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),
     isEnabled: () => {
