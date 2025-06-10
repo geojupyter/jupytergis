@@ -94,11 +94,7 @@ class GISDocument(CommWidget):
         """
         Get the layer list
         """
-        return {
-            key: val
-            for key, val in self._layers.to_py().items()
-            if not val["transient"]
-        }
+        return self._layers.to_py()
 
     @property
     def layer_tree(self) -> List[str | Dict]:
@@ -161,6 +157,7 @@ class GISDocument(CommWidget):
         source = {
             "type": SourceType.RasterSource,
             "name": f"{name} Source",
+            "transient": transient,
             "parameters": {
                 "url": url,
                 "minZoom": 0,
@@ -789,11 +786,7 @@ class GISDocument(CommWidget):
     def to_py(self) -> dict:
         """Get the document structure as a Python dictionary."""
         return {
-            "layers": {
-                key: val
-                for key, val in self._layers.to_py().items()
-                if not val["transient"]
-            },
+            "layers": self._layers.to_py(),
             "sources": self._sources.to_py(),
             "layerTree": self._layerTree.to_py(),
             "options": self._options.to_py(),
@@ -898,6 +891,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
     ) -> Optional[JGISSource]:
         object_type = data.get("type", None)
         name: str = data.get("name", None)
+        transient: bool = data.get("transient", False)
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
             args = {}
@@ -906,7 +900,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
                 args[field] = params.get(field, None)
             obj_params = Model(**args)
             return JGISSource(
-                parent=parent, name=name, type=object_type, parameters=obj_params
+                parent=parent, name=name, transient=transient, type=object_type, parameters=obj_params
             )
 
         return None
