@@ -27,21 +27,27 @@ class YJGIS(YBaseDoc):
         :rtype: Any
         """
         # don't save transient layers and sources to disk
-        transient_layers = [key for key, val in self._ylayers.to_py().items() if val["transient"]]
-        transient_sources = [key for key, val in self._ysources.to_py().items() if val["transient"]]
+        transient_layers = [
+            key for key, val in self._ylayers.to_py().items() if val["transient"]
+        ]
+        transient_sources = [
+            key for key, val in self._ysources.to_py().items() if val["transient"]
+        ]
         layers = {
             key: val
             for key, val in self._ylayers.to_py().items()
-            if not key in transient_layers
+            if key not in transient_layers
         }
         sources = {
             key: val
             for key, val in self._ysources.to_py().items()
-            if not key in transient_sources
+            if key not in transient_sources
         }
         options = self._yoptions.to_py()
         meta = self._ymetadata.to_py()
-        layers_tree = [idx for idx in self._ylayerTree.to_py() if idx not in transient_layers]
+        layers_tree = [
+            idx for idx in self._ylayerTree.to_py() if idx not in transient_layers
+        ]
         return json.dumps(
             dict(
                 schemaVersion=SCHEMA_VERSION,

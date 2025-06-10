@@ -900,7 +900,11 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
                 args[field] = params.get(field, None)
             obj_params = Model(**args)
             return JGISSource(
-                parent=parent, name=name, transient=transient, type=object_type, parameters=obj_params
+                parent=parent,
+                name=name,
+                transient=transient,
+                type=object_type,
+                parameters=obj_params,
             )
 
         return None
