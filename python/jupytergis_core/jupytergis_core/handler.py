@@ -34,11 +34,14 @@ def load_config() -> ProxyConfig:
         rate_limit_requests=int(os.environ.get("JGIS_RATE_LIMIT_REQUESTS", "100")),
         rate_limit_window=int(os.environ.get("JGIS_RATE_LIMIT_WINDOW", "60")),
         cors_origin=os.environ.get("JGIS_CORS_ORIGIN", "*"),
-        exempt_domains={
-            "https://geodes.cnes.fr",
-            "https://gdh-portal-prod.cnes.fr",
-            "https://geodes-portal.cnes.fr/api/stac/",
-        },
+        exempt_domains=os.environ.get(
+            "JGIS_EXEMPT_DOMAINS",
+            {
+                "https://geodes.cnes.fr",
+                "https://gdh-portal-prod.cnes.fr",
+                "https://geodes-portal.cnes.fr/api/stac/",
+            },
+        ),
     )
 
 
