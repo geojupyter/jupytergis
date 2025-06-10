@@ -310,7 +310,7 @@ def setup_handlers(web_app: Any) -> None:
     handlers = [(proxy_route, ProxyHandler)]
 
     # Add feature flags
-    if os.environ.get("JGIS_EXPOSE_MAPS", "false").lower() == "true":
+    if os.environ.get("JGIS_EXPOSE_MAPS", False):
         web_app.settings.setdefault("page_config_data", {})
         web_app.settings["page_config_data"]["jgis_expose_maps"] = True
 
