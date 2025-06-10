@@ -12,14 +12,14 @@ function Calendar({ showOutsideDays = true, ...props }: CalendarProps) {
       weekStartsOn={1}
       components={{
         IconLeft: ({ ...props }) => <ChevronLeft color="currentColor" />,
-        IconRight: ({ ...props }) => <ChevronRight color="currentColor" />
+        IconRight: ({ ...props }) => <ChevronRight color="currentColor" />,
       }}
       modifiersStyles={{
         selected: {
           backgroundColor: 'var(--jp-layout-color2)',
           color: 'var(--jp-ui-font-color0)',
-          borderRadius: '0.275rem'
-        }
+          borderRadius: '0.275rem',
+        },
       }}
       styles={{
         root: {
@@ -30,15 +30,15 @@ function Calendar({ showOutsideDays = true, ...props }: CalendarProps) {
           border: '1px solid var(--jp-border-color0)',
           borderRadius: 'var(--jp-border-radius)',
           padding: '0.5rem',
-          position: 'relative'
+          position: 'relative',
         },
         table: {
-          paddingTop: '1rem'
+          paddingTop: '1rem',
         },
         head_cell: {
-          color: 'var(--muted-foreground)',
+          color: 'var(--jp-ui-font-color0)',
           fontSize: '0.8rem',
-          fontWeight: 400
+          fontWeight: 400,
         },
         day: {
           backgroundColor: 'var(--jp-layout-color0)',
@@ -47,12 +47,12 @@ function Calendar({ showOutsideDays = true, ...props }: CalendarProps) {
           border: 'none',
           padding: '0.5rem',
           margin: 'auto',
-          fontSize: '0.8rem'
+          fontSize: '0.8rem',
         },
         caption: {
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
         },
         nav_button_previous: {
           color: 'var(--jp-ui-font-color0)',
@@ -64,7 +64,7 @@ function Calendar({ showOutsideDays = true, ...props }: CalendarProps) {
           borderRadius: 'var(--jp-border-radius)',
           padding: '0.175rem',
           width: 'max-content',
-          height: 'max-content'
+          height: 'max-content',
         },
         nav_button_next: {
           color: 'var(--jp-ui-font-color0)',
@@ -76,8 +76,8 @@ function Calendar({ showOutsideDays = true, ...props }: CalendarProps) {
           borderRadius: 'var(--jp-border-radius)',
           padding: '0.175rem',
           width: 'max-content',
-          height: 'max-content'
-        }
+          height: 'max-content',
+        },
       }}
       {...props}
     />
