@@ -938,7 +938,7 @@ export function addCommands(
     icon: targetWithCenterIcon,
   });
 
-  commands.addCommand(CommandIDs.addNewDrawFeatures, {
+  commands.addCommand(CommandIDs.toggleDrawFeatures, {
     label: trans.__('Edit Features'),
     isEnabled: () => {
       if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
@@ -973,7 +973,7 @@ export function addCommands(
           model.isDrawVectorLayerEnabled = true;
         }
         model.updateIsDrawVectorLayerEnabled();
-        commands.notifyCommandChanged(CommandIDs.addNewDrawFeatures);
+        commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
       }
     },
     icon: pencilSolidIcon,
