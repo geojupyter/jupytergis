@@ -29,10 +29,11 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
     if (data?.path !== '') {
       this.removeFormEntry('data', data, schema, uiSchema);
     }
-
-    (schema.properties.path.description =
-      'The local path to a GeoJSON file. (If no path/url is provided, an empty GeoJSON is created.)'),
-      super.processSchema(data, schema, uiSchema);
+    if (this.props.formContext === 'create') {
+      (schema.properties.path.description =
+        'The local path to a GeoJSON file. (If no path/url is provided, an empty GeoJSON is created.)'),
+        super.processSchema(data, schema, uiSchema);
+    }
   }
 
   /**

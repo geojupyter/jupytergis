@@ -132,7 +132,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     app.contextMenu.addItem({
-      command: CommandIDs.addNewDrawFeatures,
+      command: CommandIDs.toggleDrawFeatures,
       selector: '.jp-gis-layerItem',
       rank: 2,
     });
