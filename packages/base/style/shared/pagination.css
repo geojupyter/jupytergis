@@ -35,11 +35,7 @@
   border: 0.0375rem solid
     color-mix(in srgb, var(--jp-border-color0), transparent 80%);
   transition: background-color 0.2s ease;
-  /* height: 2.5rem;
-  padding-left: 1rem;
-  padding-right: 1rem; */
   padding: 0.25rem;
-  /* padding-bottom: 0.25rem; */
 }
 
 .PaginationLink:hover {
@@ -88,12 +84,6 @@
 .PaginationLink[data-variant='outline']:hover {
   background-color: var(--jp-accent-color0);
   color: var(--jp-ui-inverse-font-color0);
-  /* background-color: color-mix(
-    in srgb,
-    var(--jp-accent-color0),
-    transparent 80%
-  );
-  color: color-mix(in srgb, var(--jp-ui-inverse-font-color0), transparent 80%); */
 }
 
 .PaginationLink[data-variant='secondary'] {
@@ -110,7 +100,6 @@
   );
 }
 
-/* .PaginationLink[data-variant='ghost']:hover */
 .PaginationLink[data-variant='ghost'] {
   background-color: var(--jp-layout-color0);
   color: var(--jp-ui-font-color0);
@@ -126,12 +115,10 @@
 }
 
 .PaginationLink[data-variant='link']:hover {
-  /* color: hsl(var(--jp-ui-font-color0) / 0.8); */
   color: color-mix(in srgb, var(--jp-ui-font-color0), transparent 80%);
   text-decoration-color: var(--jp-ui-font-color0);
 }
 
-/* sizing */
 .PaginationLink[data-size='sm'] {
   height: 2.25rem;
   border-radius: 0.375rem;
