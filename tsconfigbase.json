@@ -10,7 +10,7 @@
     "moduleResolution": "node",
     "noEmitOnError": true,
     "noImplicitAny": true,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "preserveWatchOutput": true,
     "resolveJsonModule": true,
     "strict": true,
@@ -19,7 +19,6 @@
     "target": "es2017",
     "types": ["node", "webpack-env"],
     "skipLibCheck": true,
-    "lib": ["ES2019", "WebWorker", "DOM"],
-    "declarationMap": true
+    "lib": ["ES2019", "WebWorker", "DOM"]
   }
 }

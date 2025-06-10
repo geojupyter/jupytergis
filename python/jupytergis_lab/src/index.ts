@@ -276,7 +276,6 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     rightControlPanel.title.caption = 'JupyterGIS Control Panel';
     rightControlPanel.title.icon = logoMiniIcon;
 
-    console.log('log here');
     const stacControlPanel = new StacSidePanel({
       model: controlModel,
       tracker,
