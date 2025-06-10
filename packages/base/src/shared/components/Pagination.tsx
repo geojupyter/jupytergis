@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import * as React from 'react';
-import { ButtonProps } from './Button';
+import { Button, ButtonProps } from './Button';
 
 const Pagination = ({ ...props }: React.ComponentProps<'nav'>) => (
   <nav
@@ -29,14 +29,14 @@ PaginationItem.displayName = 'PaginationItem';
 type PaginationLinkProps = {
   isActive?: boolean;
 } & Pick<ButtonProps, 'size'> &
-  React.ComponentProps<'a'>;
+  React.ComponentProps<'button'>;
 
 const PaginationLink = ({
   isActive,
   size = 'icon',
   ...props
 }: PaginationLinkProps) => (
-  <a
+  <Button
     aria-current={isActive ? 'page' : undefined}
     data-variant={isActive ? 'outline' : 'ghost'}
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -59,10 +59,11 @@ const PaginationPrevious = ({
     <ChevronLeft
       style={{
         height: '1rem',
-        width: '1rem'
+        width: '1rem',
+        flexShrink: 0
       }}
     />
-    <span>Previous</span>
+    <span>Prev</span>
   </PaginationLink>
 );
 PaginationPrevious.displayName = 'PaginationPrevious';
@@ -79,7 +80,8 @@ const PaginationNext = ({
     <ChevronRight
       style={{
         height: '1rem',
-        width: '1rem'
+        width: '1rem',
+        flexShrink: 0
       }}
     />
   </PaginationLink>

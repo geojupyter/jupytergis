@@ -14,6 +14,7 @@
 @import url('./shared/button.css');
 @import url('./shared/toggle.css');
 @import url('./shared/tabs.css');
+@import url('./shared/pagination.css');
 
 .jGIS-Toolbar-GroupName {
   font-size: var(--jp-ui-font-size0);
