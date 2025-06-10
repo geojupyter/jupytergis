@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "description": "BoundingBoxes",
+  "title": "IBoundingBoxes",
+  "required": ["inputLayer"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The input layer for bounding boxes."
+    }
+  }
+}

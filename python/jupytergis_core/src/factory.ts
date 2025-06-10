@@ -59,6 +59,9 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
     }
     const { model } = context;
     model.filePath = context.localPath;
+    context.pathChanged.connect(() => {
+      model.filePath = context.localPath;
+    });
     if (this._contentsManager) {
       model.contentsManager = this._contentsManager;
     }
