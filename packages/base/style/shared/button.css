@@ -1,0 +1,68 @@
+.jgis-button-shared {
+  display: inline-flex; /* inline-flex */
+  align-items: center; /* items-center */
+  color: var(--jp-ui-font-color1);
+  justify-content: center; /* justify-center */
+  border-radius: var(--jp-border-radius); /* rounded-md */
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.25rem; /* (implied by text-sm) */
+  font-weight: 500; /* font-medium */
+  transition-property: color, background-color; /* transition-colors */
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+
+  /* Focus states */
+  &:focus-visible {
+    outline: none; /* focus-visible:outline-none */
+  }
+
+  /* Disabled states */
+  &:disabled,
+  &[disabled] {
+    opacity: 0.5; /* disabled:opacity-50 */
+    pointer-events: none; /* disabled:pointer-events-none */
+  }
+}
+
+.jgis-button-variant-default {
+}
+
+.jgis-button-variant-destructive {
+}
+
+.jgis-button-variant-outline {
+}
+
+.jgis-button-variant-bubble {
+  border: var(--jp-border-width) solid var(--jp-border-color0); /* border border-input */
+  border-radius: 1rem !important;
+  background-color: transparent;
+
+  &:hover {
+    background-color: var(--jp-layout-color1); /* hover:bg-accent */
+    color: var(--jp-accent-color0); /* hover:text-accent-foreground */
+  }
+}
+
+.jgis-button-variant-secondary {
+}
+
+.jgis-button-variant-ghost {
+}
+
+.jgis-button-variant-link {
+}
+
+.jgis-button-size-default {
+  height: 2.5rem; /* h-10 */
+  padding: 0.5rem 1rem; /* py-2 px-4 (top/bottom first) */
+}
+
+.jgis-button-size-sm {
+  height: 2.25rem;
+  border-radius: 0.375rem;
+  padding: 0 0.75rem;
+}
+
+.jgis-button-size-lg {
+}
