@@ -91,7 +91,9 @@
     "react-day-picker": "8.10.1",
     "shpjs": "^6.1.0",
     "styled-components": "^5.3.6",
-    "three": "^0.135.0"
+    "three": "^0.135.0",
+    "three-mesh-bvh": "^0.5.17",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.9",
