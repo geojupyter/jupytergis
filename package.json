@@ -72,17 +72,5 @@
     "rimraf": "^3.0.2",
     "typescript": "^5",
     "webpack": "^5.76.3"
-  },
-  "dependencies": {
-    "@radix-ui/react-popover": "^1.1.14",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-tabs": "^1.1.12",
-    "@radix-ui/react-toggle-group": "^1.1.10",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "date-fns": "^4.1.0",
-    "lucide-react": "^0.513.0",
-    "ol-stac": "^1.0.0-rc.10",
-    "react-day-picker": "8.10.1"
   }
 }
