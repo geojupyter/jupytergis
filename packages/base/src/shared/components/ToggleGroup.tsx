@@ -1,31 +1,32 @@
 import * as ToggleGroupPrimitive from '@radix-ui/react-toggle-group';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
+
 import { cn } from './utils';
 
 const toggleVariants = cva('Toggle', {
   variants: {
     variant: {
       default: 'ToggleDefault',
-      outline: 'ToggleOutline'
+      outline: 'ToggleOutline',
     },
     size: {
       default: 'ToggleDefaultSize',
       sm: 'ToggleSmallSize',
-      lg: 'ToggleLargeSize'
-    }
+      lg: 'ToggleLargeSize',
+    },
   },
   defaultVariants: {
     variant: 'default',
-    size: 'default'
-  }
+    size: 'default',
+  },
 });
 
 const ToggleGroupContext = React.createContext<
   VariantProps<typeof toggleVariants>
 >({
   size: 'default',
-  variant: 'default'
+  variant: 'default',
 });
 
 const ToggleGroup = React.forwardRef<
@@ -59,9 +60,9 @@ const ToggleGroupItem = React.forwardRef<
       className={cn(
         toggleVariants({
           variant: context.variant || variant,
-          size: context.size || size
+          size: context.size || size,
         }),
-        className
+        className,
       )}
       {...props}
     >

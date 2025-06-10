@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import * as React from 'react';
+
 import { Button, ButtonProps } from './Button';
 
 const Pagination = ({ ...props }: React.ComponentProps<'nav'>) => (
@@ -59,7 +60,7 @@ const PaginationPrevious = ({
       style={{
         height: '1rem',
         width: '1rem',
-        flexShrink: 0
+        flexShrink: 0,
       }}
     />
     <span>Prev</span>
@@ -80,7 +81,7 @@ const PaginationNext = ({
       style={{
         height: '1rem',
         width: '1rem',
-        flexShrink: 0
+        flexShrink: 0,
       }}
     />
   </PaginationLink>
@@ -92,7 +93,7 @@ const PaginationEllipsis = ({ ...props }: React.ComponentProps<'span'>) => (
     <MoreHorizontal
       style={{
         height: '1rem',
-        width: '1rem'
+        width: '1rem',
       }}
     />
     <span className="sr-only">More pages</span>
@@ -107,5 +108,5 @@ export {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious
+  PaginationPrevious,
 };
