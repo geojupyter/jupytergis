@@ -5,11 +5,10 @@ import { cn } from './utils';
 const buttonVariants = cva('jgis-button-shared', {
   variants: {
     variant: {
-      default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-      destructive:
-        'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+      default: 'jgis-button-variant-default',
+      destructive: 'jgis-button-variant-destructive',
       outline: 'jgis-button-variant-outline',
-      secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+      secondary: 'jgis-button-variant-secondary',
       ghost: 'hover:bg-accent hover:text-accent-foreground',
       link: 'underline-offset-4 hover:underline text-primary',
       bubble: 'jgis-button-variant-bubble'
