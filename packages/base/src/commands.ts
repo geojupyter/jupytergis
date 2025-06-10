@@ -939,7 +939,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.addNewDrawFeatures, {
-    label: trans.__('Add New Draw Features'),
+    label: trans.__('Edit Features'),
     isEnabled: () => {
       if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
         const model = tracker.currentWidget?.content.currentViewModel
