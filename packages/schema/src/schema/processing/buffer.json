@@ -19,5 +19,15 @@
       "title": "Embed output buffered layer in file",
       "default": true
     }
+  },
+  "processGenerationParams": {
+    "processName": "buffer",
+    "processLabel": "Buffer",
+    "processParams": ["bufferDistance"],
+    "processAdditionalsParams": {
+      "gdalFunction": "ogr2ogr",
+      "sql": "SELECT ST_Union(ST_Buffer(geometry, {bufferDistance})) AS geometry, * FROM \"{layerName}\""
+    },
+    "processType": "vector"
   }
 }
