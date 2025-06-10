@@ -39,7 +39,6 @@ const PaginationLink = ({
   <Button
     aria-current={isActive ? 'page' : undefined}
     data-variant={isActive ? 'outline' : 'ghost'}
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     data-size={size}
     className={'PaginationLink'}
     {...props}
