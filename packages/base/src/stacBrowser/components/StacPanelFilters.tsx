@@ -7,9 +7,8 @@ import Calendar from '../../shared/components/Calendar';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
+  PopoverTrigger,
 } from '../../shared/components/Popover';
-import { cn } from '../../shared/components/utils';
 import { IProductData } from '../types/types';
 import ProductSection from './ProductSection';
 import StacFilterSection from './StacFilterSection';
@@ -45,26 +44,19 @@ const StacPanelFilters = ({
   setStartTime,
   endTime,
   setEndTime,
-  model
+  model,
 }: IStacPanelFiltersProps) => {
   return (
     <div className="jgis-stac-browser-filters-panel">
-      {/* <div>save/load filter</div> */}
       <div className="jgis-stac-browser-date-picker">
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              variant={'outline'}
-              className={cn(
-                'w-[280px] justify-start text-left font-normal',
-                !startTime && 'text-muted-foreground'
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
+            <Button variant={'outline'}>
+              <CalendarIcon />
               {startTime ? format(startTime, 'PPP') : <span>Start Date</span>}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
+          <PopoverContent>
             <Calendar
               mode="single"
               selected={startTime}
@@ -75,18 +67,12 @@ const StacPanelFilters = ({
         </Popover>
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              variant={'outline'}
-              className={cn(
-                'w-[280px] justify-start text-left font-normal',
-                !endTime && 'text-muted-foreground'
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
+            <Button variant={'outline'}>
+              <CalendarIcon />
               {endTime ? format(endTime, 'PPP') : <span>End Date</span>}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
+          <PopoverContent>
             <Calendar
               mode="single"
               selected={endTime}
@@ -96,7 +82,6 @@ const StacPanelFilters = ({
           </PopoverContent>
         </Popover>
       </div>
-      {/* <div>where</div> */}
       <StacFilterSection
         header="Collection"
         data={datasets}
