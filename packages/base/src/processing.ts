@@ -11,6 +11,11 @@ import { UUID } from '@lumino/coreutils';
 
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 import { getGdal } from './gdal';
+import {
+  ProcessingList,
+  ProcessingType,
+} from './processing/_generated/processingType';
+import { processingFormToParam } from './processing/processingFormToParam';
 import { getGeoJSONDataFromLayerSource } from './tools';
 import { JupyterGISTracker } from './types';
 
@@ -91,7 +96,7 @@ export type GdalFunctions =
 export async function processSelectedLayer(
   tracker: JupyterGISTracker,
   formSchemaRegistry: IJGISFormSchemaRegistry,
-  processingType: 'Buffer' | 'Dissolve' | 'Centroids' | 'BoundingBoxes',
+  processingType: ProcessingType,
   processingOptions: {
     sqlQueryFn: (layerName: string, param: any) => string;
     gdalFunction: GdalFunctions;
@@ -143,24 +148,12 @@ export async function processSelectedLayer(
     return;
   }
 
-  let processParam: any;
-  switch (processingType) {
-    case 'Buffer':
-      processParam = formValues.bufferDistance;
-      break;
-    case 'Dissolve':
-      processParam = formValues.dissolveField;
-      break;
-    case 'Centroids':
-      processParam = null;
-      break;
-    case 'BoundingBoxes':
-      processParam = null;
-      break;
-    default:
-      console.error(`Unsupported processing type: ${processingType}`);
-      return;
+  if (!ProcessingList.includes(processingType)) {
+    console.error(`Unsupported processing type: ${processingType}`);
+    return;
   }
+
+  const processParam: any = processingFormToParam(formValues, processingType);
 
   const embedOutputLayer = formValues.embedOutputLayer;
 
@@ -198,7 +191,7 @@ export async function executeSQLProcessing(
   gdalFunction: GdalFunctions,
   options: string[],
   layerNamePrefix: string,
-  processingType: 'Buffer' | 'Dissolve' | 'Centroids' | 'BoundingBoxes',
+  processingType: ProcessingType,
   embedOutputLayer: boolean,
   tracker: JupyterGISTracker,
   app: JupyterFrontEnd,

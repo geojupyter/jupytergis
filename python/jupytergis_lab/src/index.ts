@@ -35,6 +35,7 @@ import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { ContextMenu, Menu } from '@lumino/widgets';
 
 import { notebookRendererPlugin } from './notebookrenderer';
+import { addProcessingToMenu } from './processing/processingSubMenu';
 
 const NAME_SPACE = 'jupytergis';
 
@@ -149,17 +150,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       .__('Processing');
     processingSubmenu.id = 'jp-gis-contextmenu-processing';
 
-    processingSubmenu.addItem({
-      command: CommandIDs.buffer,
-    });
-
-    processingSubmenu.addItem({
-      command: CommandIDs.dissolve,
-    });
-
-    processingSubmenu.addItem({
-      command: CommandIDs.centroids,
-    });
+    addProcessingToMenu(processingSubmenu);
 
     processingSubmenu.addItem({
       command: CommandIDs.boundingBoxes,

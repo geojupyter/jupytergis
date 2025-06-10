@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "description": "ConvexHull",
+  "title": "IConvexHull",
+  "required": ["inputLayer"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The input layer for Convex Hull."
+    }
+  },
+  "gen_name": "convexHull",
+  "gen_params": [],
+  "gen_label": "Convex Hull",
+  "gen_additionals": {
+    "sql": "SELECT ST_ConvexHull(geometry) AS geometry, * FROM \"{layerName}\"",
+    "gen_gdal": "ogr2ogr"
+  },
+  "gen_type": "vector"
+}

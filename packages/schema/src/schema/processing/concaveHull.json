@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "description": "ConcaveHull",
+  "title": "IConcaveHull",
+  "required": ["inputLayer", "pctconvex"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The input layer for Concave Hull."
+    },
+    "pctconvex": {
+      "type": "number",
+      "description": "Controls the concaveness of the computed hull, vary from 0 to 1, 0 corresponds to the maximum concavity."
+    },
+    "allowHoles": {
+      "type": "boolean",
+      "title": "Allow holes in the hull",
+      "default": false
+    }
+  },
+  "gen_name": "concaveHull",
+  "gen_params": ["pctconvex", "allowHoles"],
+  "gen_label": "Concave Hull",
+  "gen_additionals": {
+    "sql": "SELECT ST_ConcaveHull(geometry,{pctconvex},{allowHoles}) AS geometry, * FROM \"{layerName}\"",
+    "gen_gdal": "ogr2ogr"
+  },
+  "gen_type": "vector"
+}

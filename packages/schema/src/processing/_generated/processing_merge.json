@@ -1,0 +1,75 @@
+[
+  {
+    "description": "ConcaveHull",
+    "gen_name": "concaveHull",
+    "gen_params": [
+      "pctconvex",
+      "allowHoles"
+    ],
+    "gen_label": "Concave Hull",
+    "gen_type": "vector",
+    "gen_additionals": {
+      "sql": "SELECT ST_ConcaveHull(geometry,{pctconvex},{allowHoles}) AS geometry, * FROM \"{layerName}\"",
+      "gen_gdal": "ogr2ogr"
+    }
+  },
+  {
+    "description": "Centroids",
+    "gen_name": "centroids",
+    "gen_params": [],
+    "gen_label": "Centroids",
+    "gen_type": "vector",
+    "gen_additionals": {
+      "gen_gdal": "ogr2ogr",
+      "sql": "SELECT ST_Centroid(geometry) AS geometry, * FROM \"{layerName}\""
+    }
+  },
+  {
+    "description": "Buffer",
+    "gen_name": "buffer",
+    "gen_params": [
+      "bufferDistance"
+    ],
+    "gen_label": "Buffer",
+    "gen_type": "vector",
+    "gen_additionals": {
+      "gen_gdal": "ogr2ogr",
+      "sql": "SELECT ST_Union(ST_Buffer(geometry, {bufferDistance})) AS geometry, * FROM \"{layerName}\""
+    }
+  },
+  {
+    "description": "ConvexHull",
+    "gen_name": "convexHull",
+    "gen_params": [],
+    "gen_label": "Convex Hull",
+    "gen_type": "vector",
+    "gen_additionals": {
+      "sql": "SELECT ST_ConvexHull(geometry) AS geometry, * FROM \"{layerName}\"",
+      "gen_gdal": "ogr2ogr"
+    }
+  },
+  {
+    "description": "Dissolve",
+    "gen_name": "dissolve",
+    "gen_params": [
+      "dissolveField"
+    ],
+    "gen_label": "Dissolve",
+    "gen_type": "vector",
+    "gen_additionals": {
+      "gen_gdal": "ogr2ogr",
+      "sql": "SELECT ST_Union(geometry) AS geometry, {dissolveField} FROM \"{layerName}\" GROUP BY {dissolveField}"
+    }
+  },
+  {
+    "description": "BoundingBoxes",
+    "gen_name": "boundingBoxes",
+    "gen_params": [],
+    "gen_label": "Bounding Boxes",
+    "gen_type": "vector",
+    "gen_additionals": {
+      "sql": "SELECT ST_Envelope(geometry) AS geometry, * FROM \"{layerName}\"",
+      "gen_gdal": "ogr2ogr"
+    }
+  }
+]

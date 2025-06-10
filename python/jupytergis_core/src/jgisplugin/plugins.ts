@@ -33,6 +33,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
+import { addProcessingToPalette } from './processing/processingPalette';
 
 const FACTORY = 'JupyterGIS .jgis Viewer';
 const CONTENT_TYPE = 'jgis';
@@ -229,26 +230,7 @@ const activate = async (
       command: CommandIDs.moveLayerToNewGroup,
       category: 'JupyterGIS',
     });
-
-    palette.addItem({
-      command: CommandIDs.buffer,
-      category: 'JupyterGIS',
-    });
-
-    palette.addItem({
-      command: CommandIDs.dissolve,
-      category: 'JupyterGIS',
-    });
-
-    palette.addItem({
-      command: CommandIDs.centroids,
-      category: 'JupyterGIS',
-    });
-
-    palette.addItem({
-      command: CommandIDs.boundingBoxes,
-      category: 'JupyterGIS',
-    });
+    addProcessingToPalette(palette);
   }
 };
 
