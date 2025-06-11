@@ -178,13 +178,16 @@ export class MainView extends React.Component<IProps, IStates> {
 
   async componentDidMount(): Promise<void> {
     window.addEventListener('resize', this._handleWindowResize);
-    const options = this._model.getOptions();
+    const options = await this._waitForOptionsToLoad(200);
     const center =
       options.longitude !== undefined && options.latitude !== undefined
         ? fromLonLat([options.longitude!, options.latitude!])
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom! : 1;
     await this.generateScene(center, zoom);
+    if (this._Map){
+      this.updateOptions(options);
+    }
     this.addContextMenu();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
@@ -323,14 +326,6 @@ export class MainView extends React.Component<IProps, IStates> {
           ...currentOptions,
           ...updatedOptions,
         });
-
-        this.setState(old => ({
-          viewProjection: {
-            ...old.viewProjection,
-            code: projection.getCode(),
-            units: projection.getUnits()
-          }
-        }));
 
         // Calculate scale
         if (resolution) {
@@ -1432,6 +1427,48 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
+  private _waitForOptionsToLoad(timeout: number): Promise<IJGISOptions> {
+    return new Promise(resolve => {
+      let timerId: number;
+
+      const endWaiting = () => {
+        clearTimeout(timerId);
+        resolve(this._model.getOptions());
+      };
+
+      const handler = () => {
+        const options = this._model.getOptions();
+
+        // When widget is built for the second time, some extra options are added
+        // So we ignore some options when we check if options are loaded or not
+        const ignore = new Set(['extent', 'useExtent']);
+
+        const realKeys = Object.entries(options)
+          .filter(([k, v]) => {
+            if (ignore.has(k)) {
+              return false;
+            }
+            if (typeof v === 'string') {
+              return v.length > 0;
+            }
+            if (typeof v === 'number') {
+              return v !== 0;
+            }
+            return v != null;
+          })
+          .map(([k]) => k);
+
+        if (realKeys.length > 0) {
+          endWaiting();
+        }
+      };
+
+      timerId = window.setTimeout(endWaiting, timeout);
+      handler();
+    });
+  }
+
+
   /**
    * Remove a layer from the map.
    *
@@ -1550,6 +1587,9 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _onSharedOptionsChanged(): void {
+    if (!this._Map) {
+      return;
+    }
     if (!this._isPositionInitialized) {
       const options = this._model.getOptions();
       this.updateOptions(options);
@@ -1574,6 +1614,13 @@ export class MainView extends React.Component<IProps, IStates> {
     if (projection !== undefined && currentProjection !== projection) {
       const newProjection = getProjection(projection);
       if (newProjection) {
+        this.setState(old => ({
+          viewProjection: {
+            ...old.viewProjection,
+            code: newProjection.getCode(),
+            units: newProjection.getUnits()
+          }
+        }));
         view = new View({ projection: newProjection });
       } else {
         console.warn(`Invalid projection: ${projection}`);
