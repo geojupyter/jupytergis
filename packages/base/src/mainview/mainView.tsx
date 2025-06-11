@@ -37,9 +37,6 @@ import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
-//@ts-expect-error no types for ol-pmtiles
-import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
-import StacLayer from 'ol-stac';
 import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -63,8 +60,8 @@ import {
   toLonLat,
   transformExtent,
 } from 'ol/proj';
-import { get as getProjection } from 'ol/proj.js';
 import { register } from 'ol/proj/proj4.js';
+import { get as getProjection } from 'ol/proj.js';
 import RenderFeature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -78,6 +75,8 @@ import TileSource from 'ol/source/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
+import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
+import StacLayer from 'ol-stac';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
@@ -277,7 +276,6 @@ export class MainView extends React.Component<IProps, IStates> {
       // need to convert to 4326 I think
       // TODO: debounce this
       view.on('change:resolution', () => {
-        const currentExtent = view.calculateExtent(this._Map.getSize());
         const extentIn4326 = this.getViewBbox();
         this._model.updateResolutionSignal.emit(extentIn4326);
       });

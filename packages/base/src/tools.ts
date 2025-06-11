@@ -1,14 +1,3 @@
-import Protobuf from 'pbf';
-
-import { VectorTile } from '@mapbox/vector-tile';
-
-import { showErrorMessage } from '@jupyterlab/apputils';
-import { PathExt, URLExt } from '@jupyterlab/coreutils';
-import { Contents, ServerConnection } from '@jupyterlab/services';
-import * as d3Color from 'd3-color';
-import shp from 'shpjs';
-import { getGdal } from './gdal';
-
 import {
   IDict,
   IJGISLayerBrowserRegistry,
@@ -18,8 +7,16 @@ import {
   IRasterLayerGalleryEntry,
   SourceType,
 } from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
+import { PathExt, URLExt } from '@jupyterlab/coreutils';
+import { Contents, ServerConnection } from '@jupyterlab/services';
+import { VectorTile } from '@mapbox/vector-tile';
+import * as d3Color from 'd3-color';
+import Protobuf from 'pbf';
+import shp from 'shpjs';
 
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
+import { getGdal } from './gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -394,7 +391,7 @@ export const fetchWithProxies = async <T>(
   url: string,
   model: IJupyterGISModel,
   parseResponse: (response: Response) => Promise<T>,
-  model: IJupyterGISModel | null,
+  options?: RequestInit,
 ): Promise<T | null> => {
   let settings: any = null;
 
@@ -538,7 +535,7 @@ export const loadFile = async (fileInfo: {
 
         const geojson = await fetchWithProxies(
           filepath,
-
+          model,
           async response => {
             const arrayBuffer = await response.arrayBuffer();
             return shp(arrayBuffer);
