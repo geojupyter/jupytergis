@@ -22,6 +22,7 @@ import {
   IRasterLayer,
   IRasterSource,
   IShapefileSource,
+  IStacLayer,
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
@@ -36,6 +37,9 @@ import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
+//@ts-expect-error no types for ol-pmtiles
+import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
+import StacLayer from 'ol-stac';
 import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -51,6 +55,7 @@ import {
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer,
 } from 'ol/layer';
+import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
 import {
   fromLonLat,
@@ -58,8 +63,8 @@ import {
   toLonLat,
   transformExtent,
 } from 'ol/proj';
-import { register } from 'ol/proj/proj4.js';
 import { get as getProjection } from 'ol/proj.js';
+import { register } from 'ol/proj/proj4.js';
 import RenderFeature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -73,7 +78,6 @@ import TileSource from 'ol/source/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
-import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
@@ -302,6 +306,14 @@ export class MainView extends React.Component<IProps, IStates> {
 
       const view = this._Map.getView();
 
+      // need to convert to 4326 I think
+      // TODO: debounce this
+      view.on('change:resolution', () => {
+        const currentExtent = view.calculateExtent(this._Map.getSize());
+        const extentIn4326 = this.getViewBbox();
+        this._model.updateResolutionSignal.emit(extentIn4326);
+      });
+
       // TODO: Note for the future, will need to update listeners if view changes
       view.on(
         'change:center',
@@ -408,6 +420,20 @@ export class MainView extends React.Component<IProps, IStates> {
       }));
     }
   }
+
+  getViewBbox = (targetProjection = 'EPSG:4326') => {
+    const view = this._Map.getView();
+    const extent = view.calculateExtent(this._Map.getSize());
+
+    if (view.getProjection().getCode() === targetProjection) {
+      return extent;
+    }
+
+    return transformExtent(extent, view.getProjection(), targetProjection);
+  };
+
+  // Usage:
+  // bbox = getViewBbox(map); // WGS84 by default
 
   createSelectInteraction = () => {
     const pointStyle = new Style({
@@ -873,20 +899,20 @@ export class MainView extends React.Component<IProps, IStates> {
   ): Promise<Layer | undefined> {
     const sourceId = layer.parameters?.source;
     const source = this._model.sharedModel.getLayerSource(sourceId);
-    if (!source) {
-      return;
+    if (source) {
+      // return;
+      // TODO I CHANGED THIS A LOT DOUBLE CHECK
+      this.setState(old => ({ ...old, loadingLayer: true }));
+      this._loadingLayers.add(id);
+
+      if (!this._sources[sourceId]) {
+        await this.addSource(sourceId, source);
+      }
     }
 
-    this.setState(old => ({ ...old, loadingLayer: true }));
     this._loadingLayers.add(id);
 
-    if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source);
-    }
-
-    this._loadingLayers.add(id);
-
-    let newMapLayer;
+    let newMapLayer: any;
     let layerParameters;
 
     // TODO: OpenLayers provides a bunch of sources for specific tile
@@ -979,6 +1005,26 @@ export class MainView extends React.Component<IProps, IStates> {
         });
         break;
       }
+      case 'StacLayer': {
+        layerParameters = layer.parameters as IStacLayer;
+
+        console.log('layerParameters', layerParameters);
+
+        newMapLayer = new StacLayer({
+          displayPreview: true,
+          data: layerParameters.data,
+          opacity: layerParameters.opacity,
+          visible: layer.visible,
+          assets: Object.keys(layerParameters.data.assets),
+          extent: layerParameters.data.bbox,
+        });
+
+        newMapLayer.on('sourceready', () => {
+          this._Map.getView().fit(newMapLayer.getExtent());
+        });
+
+        break;
+      }
     }
 
     await this._waitForSourceReady(newMapLayer);
@@ -987,9 +1033,11 @@ export class MainView extends React.Component<IProps, IStates> {
     newMapLayer.set('id', id);
 
     // we need to keep track of which source has which layers
-    this._sourceToLayerMap.set(layerParameters.source, id);
+    // this._sourceToLayerMap.set(layerParameters.source, id);
 
-    this.addProjection(newMapLayer);
+    if (!(layer.type === 'StacLayer')) {
+      this.addProjection(newMapLayer);
+    }
 
     this._loadingLayers.delete(id);
 
@@ -1266,6 +1314,9 @@ export class MainView extends React.Component<IProps, IStates> {
 
         break;
       }
+      case 'StacLayer':
+        console.log('stac layer update');
+        break;
     }
   }
 
@@ -1456,7 +1507,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * Wait for a layers source state to be 'ready'
    * @param layer The Layer to check
    */
-  private _waitForSourceReady(layer: Layer) {
+  private _waitForSourceReady(layer: Layer | LayerGroup) {
     return new Promise<void>((resolve, reject) => {
       const checkState = () => {
         const state = layer.getSourceState();
@@ -1771,9 +1822,10 @@ export class MainView extends React.Component<IProps, IStates> {
       const mapLayer = this.getLayer(id);
       const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
 
-      if (!mapLayer) {
-        return;
-      }
+      // ! this is where i stopped on the 21st
+      // if (!mapLayer) {
+      //   return;
+      // }
 
       if (layerTree.includes(id)) {
         this.updateLayer(id, newLayer, mapLayer, oldLayer);

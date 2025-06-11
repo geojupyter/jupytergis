@@ -1,3 +1,14 @@
+import Protobuf from 'pbf';
+
+import { VectorTile } from '@mapbox/vector-tile';
+
+import { showErrorMessage } from '@jupyterlab/apputils';
+import { PathExt, URLExt } from '@jupyterlab/coreutils';
+import { Contents, ServerConnection } from '@jupyterlab/services';
+import * as d3Color from 'd3-color';
+import shp from 'shpjs';
+import { getGdal } from './gdal';
+
 import {
   IDict,
   IJGISLayerBrowserRegistry,
@@ -7,16 +18,8 @@ import {
   IRasterLayerGalleryEntry,
   SourceType,
 } from '@jupytergis/schema';
-import { showErrorMessage } from '@jupyterlab/apputils';
-import { PathExt, URLExt } from '@jupyterlab/coreutils';
-import { Contents, ServerConnection } from '@jupyterlab/services';
-import { VectorTile } from '@mapbox/vector-tile';
-import * as d3Color from 'd3-color';
-import Protobuf from 'pbf';
-import shp from 'shpjs';
 
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
-import { getGdal } from '@/src/gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -387,17 +390,20 @@ export const getFromIndexedDB = async (key: string) => {
   });
 };
 
-const fetchWithProxies = async <T>(
+export const fetchWithProxies = async <T>(
   url: string,
   model: IJupyterGISModel,
   parseResponse: (response: Response) => Promise<T>,
+  model: IJupyterGISModel | null,
 ): Promise<T | null> => {
   let settings: any = null;
 
-  try {
-    settings = await model.getSettings();
-  } catch (e) {
-    console.warn('Failed to get settings from model. Falling back.', e);
+  if (model) {
+    try {
+      settings = model.getSettings();
+    } catch (e) {
+      console.warn('Failed to get settings from model. Falling back.', e);
+    }
   }
 
   const proxyUrl =
@@ -411,13 +417,14 @@ const fetchWithProxies = async <T>(
 
   for (const proxyUrl of proxyUrls) {
     try {
-      const response = await fetch(proxyUrl);
+      const response = await fetch(proxyUrl, options);
       if (!response.ok) {
         console.warn(
           `Failed to fetch from ${proxyUrl}: ${response.statusText}`,
         );
         continue;
       }
+      console.log('response', response);
       return await parseResponse(response);
     } catch (error) {
       console.warn(`Error fetching from ${proxyUrl}:`, error);
@@ -531,7 +538,7 @@ export const loadFile = async (fileInfo: {
 
         const geojson = await fetchWithProxies(
           filepath,
-          model,
+
           async response => {
             const arrayBuffer = await response.arrayBuffer();
             return shp(arrayBuffer);
