@@ -23,41 +23,76 @@
     },
     "symbologyState": {
       "type": "object",
-      "description": "The state of the symbology panel options",
-      "required": ["renderType"],
+      "description": "The state of the layer's symbology options",
+      "required": [],
+      "additionalProperties": false,
       "properties": {
-        "renderType": {
-          "type": "string",
-          "enum": ["Single Symbol", "Graduated", "Categorized"]
+        "color": {
+          "type": "object",
+          "description": "The state of the layer's color symbology options",
+          "required": ["renderType"],
+          "properties": {
+            "renderType": {
+              "type": "string",
+              "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical", "Heatmap"]
+            },
+            "selectedAttribute": {
+              "type": "string",
+              "description": "The selected attribute for varying the color",
+            },
+            "colorRamp": {
+              "type": "string",
+              "default": "cool"
+            },
+            "nStops": {
+              "type": "string",
+              "default": "9"
+            },
+            "stopsDistributionMode": {
+              "type": "string",
+              "default": "equal interval",
+              "enum": [
+                "quantile",
+                "equal interval",
+                "jenks",
+                "pretty",
+                "logarithmic"
+              ]
+            }
+          }
         },
-        "value": {
-          "type": "string"
-        },
-        "method": {
-          "type": "string",
-          "enum": ["color", "radius"]
-        },
-        "colorRamp": {
-          "type": "string",
-          "default": "cool"
-        },
-        "nClasses": {
-          "type": "string",
-          "default": "9"
-        },
-        "mode": {
-          "type": "string",
-          "default": "equal interval",
-          "enum": [
-            "quantile",
-            "equal interval",
-            "jenks",
-            "pretty",
-            "logarithmic"
-          ]
+        "size": {
+          "type": "object",
+          "description": "The state of the layer's size symbology options (radius, line thickness etc.)",
+          "required": ["renderType"],
+          "properties": {
+            "renderType": {
+              "type": "string",
+              "enum": ["Single Symbol", "Graduated", "Canonical", "Categorized"]
+            },
+            "selectedAttribute": {
+              "type": "string",
+              "description": "The selected attribute for varying the size",
+            },
+            "nStops": {
+              "type": "string",
+              "default": "9"
+            },
+            "stopsDistributionMode": {
+              "type": "string",
+              "default": "equal interval",
+              "enum": [
+                "quantile",
+                "equal interval",
+                "jenks",
+                "pretty",
+                "logarithmic"
+              ]
+            }
+          },
+          "additionalProperties": false
         }
-      },
-      "additionalProperties": false
+      }
     }
   }
 }
