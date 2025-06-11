@@ -2,23 +2,24 @@ import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { startOfYesterday } from 'date-fns';
 import { useEffect, useState } from 'react';
+
 import { fetchWithProxies } from '../../tools';
 import {
   IProductData,
   IStacItem,
   IStacQueryBody,
-  IStacSearchResult
+  IStacSearchResult,
 } from '../types/types';
 
 const API_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
 const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-const PROXY_URL = `/jupytergis_core/proxy?url=${encodeURIComponent(API_URL)}`;
+// const PROXY_URL = `/jupytergis_core/proxy?url=${encodeURIComponent(API_URL)}`;
 
 // Storage keys for persisting state
 const STORAGE_KEYS = {
   collections: 'jgis-stac-selected-collections',
   platforms: 'jgis-stac-selected-platforms',
-  products: 'jgis-stac-selected-products'
+  products: 'jgis-stac-selected-products',
 };
 
 interface IUseStacSearchProps {
@@ -57,14 +58,14 @@ function useStacSearch({
   datasets,
   platforms,
   products,
-  model
+  model,
 }: IUseStacSearchProps): IUseStacSearchReturn {
   // Initialize state from localStorage or empty arrays
   const [selectedCollections, setSelectedCollections] = useState<string[]>(
     () => {
       const stored = localStorage.getItem(STORAGE_KEYS.collections);
       return stored ? JSON.parse(stored) : [];
-    }
+    },
   );
 
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(() => {
@@ -81,21 +82,21 @@ function useStacSearch({
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEYS.collections,
-      JSON.stringify(selectedCollections)
+      JSON.stringify(selectedCollections),
     );
   }, [selectedCollections]);
 
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEYS.platforms,
-      JSON.stringify(selectedPlatforms)
+      JSON.stringify(selectedPlatforms),
     );
   }, [selectedPlatforms]);
 
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEYS.products,
-      JSON.stringify(selectedProducts)
+      JSON.stringify(selectedProducts),
     );
   }, [selectedProducts]);
 
@@ -115,7 +116,7 @@ function useStacSearch({
   useEffect(() => {
     const listenToModel = (
       sender: IJupyterGISModel,
-      bBoxIn4326: [number, number, number, number]
+      bBoxIn4326: [number, number, number, number],
     ) => {
       setCurrentBBox(bBoxIn4326);
     };
@@ -154,20 +155,22 @@ function useStacSearch({
           end_datetime: {
             gte: endTime
               ? endTime.toISOString()
-              : startOfYesterday().toISOString()
+              : startOfYesterday().toISOString(),
           },
           ...(startTime && {
-            start_datetime: { lte: startTime.toISOString() }
+            start_datetime: { lte: startTime.toISOString() },
           }),
           ...(selectedPlatforms.length > 0 && {
-            platform: { in: selectedPlatforms }
+            platform: { in: selectedPlatforms },
           }),
           ...(processingLevel.length > 0 && {
-            'processing:level': { in: processingLevel }
+            'processing:level': { in: processingLevel },
           }),
-          ...(productType.length > 0 && { 'product:type': { in: productType } })
+          ...(productType.length > 0 && {
+            'product:type': { in: productType },
+          }),
         },
-        sortBy: [{ direction: 'desc', field: 'start_datetime' }]
+        sortBy: [{ direction: 'desc', field: 'start_datetime' }],
       };
 
       setQueryBody(body);
@@ -197,7 +200,7 @@ function useStacSearch({
    * @returns Promise resolving to search results or undefined if error
    */
   const prepareFetch = async (
-    body: IStacQueryBody
+    body: IStacQueryBody,
   ): Promise<IStacSearchResult | undefined> => {
     try {
       const options = {
@@ -205,17 +208,21 @@ function useStacSearch({
         headers: {
           'Content-Type': 'application/json',
           'X-XSRFToken': XSRF_TOKEN,
-          credentials: 'include'
+          credentials: 'include',
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       };
 
+      if (!model) {
+        return;
+      }
+
       const data = (await fetchWithProxies(
-        PROXY_URL,
+        API_URL,
+        model,
         async response => await response.json(),
-        model ?? null,
         //@ts-expect-error Jupyter requires X-XSRFToken header
-        options
+        options,
       )) as IStacSearchResult;
 
       if (!data) {
@@ -252,7 +259,7 @@ function useStacSearch({
       type: 'StacLayer',
       parameters: { data: stacData },
       visible: true,
-      name: 'STAC Layer'
+      name: 'STAC Layer',
     };
 
     model && model.addLayer(layerId, layerModel);
@@ -279,7 +286,7 @@ function useStacSearch({
    */
   const formatResult = (item: IStacItem): string => {
     const dataAsset = Object.values(item.assets).find(val =>
-      val.roles?.includes('data')
+      val.roles?.includes('data'),
     );
 
     return dataAsset ? dataAsset.title.split('.')[0] : item.id;
@@ -302,7 +309,7 @@ function useStacSearch({
     totalResults,
     handlePaginationClick,
     handleResultClick,
-    formatResult
+    formatResult,
   };
 }
 
