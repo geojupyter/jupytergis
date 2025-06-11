@@ -17,6 +17,7 @@ interface IColorRampProps {
     setIsLoading: (isLoading: boolean) => void,
   ) => void;
   showModeRow: boolean;
+  showRampSelector: boolean;
 }
 
 export type ColorRampOptions = {
@@ -30,6 +31,7 @@ const ColorRamp = ({
   modeOptions,
   classifyFunc,
   showModeRow,
+  showRampSelector,
 }: IColorRampProps) => {
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
@@ -38,7 +40,7 @@ const ColorRamp = ({
 
   useEffect(() => {
     populateOptions();
-  }, []);
+  }, [layerParams]);
 
   const populateOptions = async () => {
     let nClasses, singleBandMode, colorRamp;
@@ -55,13 +57,15 @@ const ColorRamp = ({
 
   return (
     <div className="jp-gis-color-ramp-container">
-      <div className="jp-gis-symbology-row">
-        <label htmlFor="color-ramp-select">Color Ramp:</label>
-        <CanvasSelectComponent
-          selectedRamp={selectedRamp}
-          setSelected={setSelectedRamp}
-        />
-      </div>
+      {showRampSelector && (
+        <div className="jp-gis-symbology-row">
+          <label htmlFor="color-ramp-select">Color Ramp:</label>
+          <CanvasSelectComponent
+            selectedRamp={selectedRamp}
+            setSelected={setSelectedRamp}
+          />
+        </div>
+      )}
       {showModeRow && (
         <ModeSelectRow
           modeOptions={modeOptions}

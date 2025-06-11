@@ -8,11 +8,12 @@ import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopCo
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import {
   IStopRow,
-  ISymbologyDialogProps,
+  ISymbologyTabbedDialogProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { getNumericFeatureAttributes } from '@/src/tools';
+import { SymbologyTab } from '@/src/types';
 
 const Categorized = ({
   model,
@@ -20,7 +21,8 @@ const Categorized = ({
   okSignalPromise,
   cancel,
   layerId,
-}: ISymbologyDialogProps) => {
+  symbologyTab,
+}: ISymbologyTabbedDialogProps) => {
   const selectedValueRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
   const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
@@ -31,6 +33,13 @@ const Categorized = ({
     ReadonlyJSONObject | undefined
   >();
   const [features, setFeatures] = useState<Record<string, Set<number>>>({});
+  const [manualStyle, setManualStyle] = useState({
+    fillColor: '#3399CC',
+    strokeColor: '#3399CC',
+    strokeWidth: 1.25,
+    radius: 5,
+  });
+  const manualStyleRef = useRef(manualStyle);
 
   if (!layerId) {
     return;
@@ -59,6 +68,42 @@ const Categorized = ({
       });
     };
   }, []);
+
+  useEffect(() => {
+    if (layer?.parameters?.color) {
+      const fillColor = layer.parameters.color['fill-color'];
+      const circleFillColor = layer.parameters.color['circle-fill-color'];
+      const strokeColor = layer.parameters.color['stroke-color'];
+      const circleStrokeColor = layer.parameters.color['circle-stroke-color'];
+
+      const isSimpleColor = (val: any) =>
+        typeof val === 'string' && /^#?[0-9A-Fa-f]{3,8}$/.test(val);
+
+      setManualStyle({
+        fillColor: isSimpleColor(fillColor)
+          ? fillColor
+          : isSimpleColor(circleFillColor)
+            ? circleFillColor
+            : '#3399CC',
+
+        strokeColor: isSimpleColor(strokeColor)
+          ? strokeColor
+          : isSimpleColor(circleStrokeColor)
+            ? circleStrokeColor
+            : '#3399CC',
+
+        strokeWidth:
+          layer.parameters.color['stroke-width'] ||
+          layer.parameters.color['circle-stroke-width'] ||
+          1.25,
+        radius: layer.parameters.color['circle-radius'] || 5,
+      });
+    }
+  }, [layerId]);
+
+  useEffect(() => {
+    manualStyleRef.current = manualStyle;
+  }, [manualStyle]);
 
   useEffect(() => {
     // We only want number values here
@@ -108,23 +153,34 @@ const Categorized = ({
       return;
     }
 
-    const colorExpr: ExpressionValue[] = [];
-    colorExpr.push('case');
-
-    stopRowsRef.current?.map(stop => {
-      colorExpr.push(['==', ['get', selectedValueRef.current], stop.stop]);
-      colorExpr.push(stop.output);
-    });
-
-    // fallback value
-    colorExpr.push([0, 0, 0, 0.0]);
-
     const newStyle = { ...layer.parameters.color };
-    newStyle['fill-color'] = colorExpr;
 
-    newStyle['stroke-color'] = colorExpr;
+    if (stopRowsRef.current && stopRowsRef.current.length > 0) {
+      // Classification applied (for color)
+      const expr: ExpressionValue[] = ['case'];
 
-    newStyle['circle-fill-color'] = colorExpr;
+      stopRowsRef.current.forEach(stop => {
+        expr.push(['==', ['get', selectedValueRef.current], stop.stop]);
+        expr.push(stop.output);
+      });
+
+      if (symbologyTab === 'color') {
+        expr.push([0, 0, 0, 0.0]); // fallback color
+
+        newStyle['fill-color'] = expr;
+        newStyle['circle-fill-color'] = expr;
+        newStyle['stroke-color'] = expr;
+        newStyle['circle-stroke-color'] = expr;
+      }
+    } else {
+      newStyle['fill-color'] = manualStyleRef.current.fillColor;
+      newStyle['circle-fill-color'] = manualStyleRef.current.fillColor;
+    }
+
+    newStyle['stroke-width'] = manualStyleRef.current.strokeWidth;
+    newStyle['circle-stroke-width'] = manualStyleRef.current.strokeWidth;
+    newStyle['circle-radius'] = manualStyleRef.current.radius;
+    newStyle['circle-stroke-color'] = manualStyleRef.current.strokeColor;
 
     const symbologyState = {
       renderType: 'Categorized',
@@ -132,16 +188,51 @@ const Categorized = ({
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
+      symbologyTab,
     };
 
     layer.parameters.symbologyState = symbologyState;
     layer.parameters.color = newStyle;
+
     if (layer.type === 'HeatmapLayer') {
       layer.type = 'VectorLayer';
     }
 
     model.sharedModel.updateLayer(layerId, layer);
     cancel();
+  };
+
+  const handleReset = (method: SymbologyTab) => {
+    if (!layer?.parameters) {
+      return;
+    }
+
+    const newStyle = { ...layer.parameters.color };
+
+    if (method === 'color') {
+      console.log('delecol');
+
+      delete newStyle['fill-color'];
+      delete newStyle['stroke-color'];
+      delete newStyle['circle-fill-color'];
+      delete newStyle['circle-stroke-color'];
+      setStopRows([]);
+
+      // Reset color classification options
+      if (layer.parameters.symbologyState) {
+        layer.parameters.symbologyState.colorRamp = undefined;
+        layer.parameters.symbologyState.nClasses = undefined;
+        layer.parameters.symbologyState.mode = undefined;
+      }
+    }
+
+    if (method === 'radius') {
+      delete newStyle['circle-radius'];
+    }
+
+    layer.parameters.color = newStyle;
+
+    model.sharedModel.updateLayer(layerId, layer);
   };
 
   return (
@@ -152,17 +243,88 @@ const Categorized = ({
         setSelectedValue={setSelectedValue}
       />
 
-      <ColorRamp
-        layerParams={layer.parameters}
-        modeOptions={[]}
-        classifyFunc={buildColorInfoFromClassification}
-        showModeRow={false}
-      />
-      <StopContainer
-        selectedMethod={''}
-        stopRows={stopRows}
-        setStopRows={setStopRows}
-      />
+      <div className="jp-gis-layer-symbology-container">
+        {/* Inputs depending on active tab */}
+        {symbologyTab === 'color' && (
+          <>
+            <div className="jp-gis-symbology-row">
+              <label>Fill Color:</label>
+              <input
+                type="color"
+                className="jp-mod-styled"
+                value={manualStyle.fillColor}
+                onChange={e => {
+                  handleReset('color');
+                  setManualStyle(prev => ({
+                    ...prev,
+                    fillColor: e.target.value,
+                  }));
+                }}
+              />
+            </div>
+            <div className="jp-gis-symbology-row">
+              <label>Stroke Color:</label>
+              <input
+                type="color"
+                className="jp-mod-styled"
+                value={manualStyle.strokeColor}
+                onChange={e => {
+                  setManualStyle(prev => ({
+                    ...prev,
+                    strokeColor: e.target.value,
+                  }));
+                }}
+              />
+            </div>
+            <div className="jp-gis-symbology-row">
+              <label>Stroke Width:</label>
+              <input
+                type="number"
+                className="jp-mod-styled"
+                value={manualStyle.strokeWidth}
+                onChange={e => {
+                  setManualStyle(prev => ({
+                    ...prev,
+                    strokeWidth: +e.target.value,
+                  }));
+                }}
+              />
+            </div>
+          </>
+        )}
+
+        {symbologyTab === 'radius' && (
+          <div className="jp-gis-symbology-row">
+            <label>Circle Radius:</label>
+            <input
+              type="number"
+              className="jp-mod-styled"
+              value={manualStyle.radius}
+              onChange={e => {
+                setManualStyle(prev => ({
+                  ...prev,
+                  radius: +e.target.value,
+                }));
+              }}
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="jp-gis-layer-symbology-container">
+        <ColorRamp
+          layerParams={layer.parameters}
+          modeOptions={[]}
+          classifyFunc={buildColorInfoFromClassification}
+          showModeRow={false}
+          showRampSelector={symbologyTab === 'color'}
+        />
+        <StopContainer
+          selectedMethod={''}
+          stopRows={stopRows}
+          setStopRows={setStopRows}
+        />
+      </div>
     </div>
   );
 };

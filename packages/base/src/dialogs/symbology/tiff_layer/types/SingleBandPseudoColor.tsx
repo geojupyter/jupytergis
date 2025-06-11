@@ -412,6 +412,7 @@ const SingleBandPseudoColor = ({
           modeOptions={modeOptions}
           classifyFunc={buildColorInfoFromClassification}
           showModeRow={true}
+          showRampSelector={true}
         />
       )}
       <div className="jp-gis-stop-container">
