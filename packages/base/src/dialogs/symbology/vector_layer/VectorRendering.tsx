@@ -6,6 +6,7 @@ import {
   getColorCodeFeatureAttributes,
   getNumericFeatureAttributes,
 } from '@/src/tools';
+import { SymbologyTab } from '@/src/types';
 import Canonical from './types/Canonical';
 import Categorized from './types/Categorized';
 import Graduated from './types/Graduated';
@@ -24,6 +25,7 @@ const VectorRendering = ({
   const [renderTypeOptions, setRenderTypeOptions] = useState<string[]>([
     'Single Symbol',
   ]);
+  const [symbologyTab, setSymbologyTab] = useState<SymbologyTab>('color');
 
   let RenderComponent;
 
@@ -78,6 +80,7 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
+            symbologyTab={symbologyTab}
           />
         );
         break;
@@ -89,6 +92,7 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
+            symbologyTab={symbologyTab}
           />
         );
         break;
@@ -100,6 +104,7 @@ const VectorRendering = ({
             okSignalPromise={okSignalPromise}
             cancel={cancel}
             layerId={layerId}
+            symbologyTab={symbologyTab}
           />
         );
         break;
@@ -129,10 +134,25 @@ const VectorRendering = ({
         RenderComponent = <div>Select a render type</div>;
     }
     setComponentToRender(RenderComponent);
-  }, [selectedRenderType]);
+  }, [selectedRenderType, symbologyTab]);
 
   return (
     <>
+      {['Single Symbol', 'Graduated', 'Categorized'].includes(
+        selectedRenderType,
+      ) && (
+        <div className="jp-gis-symbology-tabs">
+          {(['color', 'radius'] as const).map(tab => (
+            <button
+              key={tab}
+              className={`jp-gis-tab ${symbologyTab === tab ? 'active' : ''}`}
+              onClick={() => setSymbologyTab(tab as SymbologyTab)}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="jp-gis-symbology-row">
         <label htmlFor="render-type-select">Render Type:</label>
         <select
@@ -143,13 +163,18 @@ const VectorRendering = ({
             setSelectedRenderType(event.target.value);
           }}
         >
-          {renderTypeOptions.map((func, funcIndex) => (
-            <option key={func} value={func}>
-              {func}
-            </option>
-          ))}
+          {renderTypeOptions
+            .filter(
+              option => !(symbologyTab === 'radius' && option === 'Heatmap'),
+            )
+            .map(option => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
         </select>
       </div>
+
       {componentToRender}
     </>
   );
