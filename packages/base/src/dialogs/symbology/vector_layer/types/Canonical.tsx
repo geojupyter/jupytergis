@@ -94,7 +94,12 @@ const Canonical = ({
     }
   })();
 
-  return <div className="jp-gis-layer-symbology-container">{body}</div>;
+  return (
+    <div className="jp-gis-layer-symbology-container">
+      <p>Color features based on an attribute containing a hex color code.</p>
+      {body}
+    </div>
+  );
 };
 
 export default Canonical;

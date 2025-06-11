@@ -399,7 +399,12 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     }
   })();
 
-  return <div className="jp-gis-layer-symbology-container">{body}</div>;
+  return (
+    <div className="jp-gis-layer-symbology-container">
+      <p>Color features based on an attribute containing scalar values.</p>
+      {body}
+    </div>
+  );
 };
 
 export default Graduated;

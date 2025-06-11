@@ -210,6 +210,7 @@ const SimpleSymbol = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
+      <p>Color all features the same way.</p>
       {symbologyTab === 'color' ? renderColorTab() : renderRadiusTab()}
     </div>
   );

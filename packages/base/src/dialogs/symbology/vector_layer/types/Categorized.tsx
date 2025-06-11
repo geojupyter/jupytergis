@@ -332,7 +332,12 @@ const Categorized = ({
     }
   })();
 
-  return <div className="jp-gis-layer-symbology-container">{body}</div>;
+  return (
+    <div className="jp-gis-layer-symbology-container">
+      <p>Color features based on an attribute containing unique values.</p>
+      {body}
+    </div>
+  );
 };
 
 export default Categorized;
