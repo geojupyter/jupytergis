@@ -284,7 +284,6 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     app.shell.add(rightControlPanel, 'right', { rank: 2000 });
     app.shell.add(stacControlPanel, 'left', { rank: 2500 });
   },
-  }
 };
 
 /**
