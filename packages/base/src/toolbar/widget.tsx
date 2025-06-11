@@ -107,6 +107,15 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       this.addItem('New', NewEntryButton);
 
+      const toggleDrawFeaturesButton = new CommandToolbarButton({
+        id: CommandIDs.toggleDrawFeatures,
+        commands: options.commands,
+        label: '',
+      });
+      this.addItem('Toggle Draw Features', toggleDrawFeaturesButton);
+      toggleDrawFeaturesButton.node.dataset.testid =
+        'toggle-draw-features-button';
+
       this.addItem('separator2', new Separator());
 
       const geolocationButton = new CommandToolbarButton({
