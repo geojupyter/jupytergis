@@ -16,6 +16,11 @@
 @import url('./shared/tabs.css');
 @import url('./shared/pagination.css');
 
+.errors {
+  color: var(--jp-warn-color0);
+  font-weight: bold;
+}
+
 .jGIS-Toolbar-GroupName {
   font-size: var(--jp-ui-font-size0);
   padding-left: 3px;

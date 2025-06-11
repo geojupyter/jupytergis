@@ -5,14 +5,12 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import ColorRamp from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
-import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import {
   IStopRow,
-  ISymbologyTabbedDialogProps,
+  ISymbologyTabbedDialogWithAttributesProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { getNumericFeatureAttributes } from '@/src/tools';
 import { SymbologyTab } from '@/src/types';
 
 const Categorized = ({
@@ -22,17 +20,17 @@ const Categorized = ({
   cancel,
   layerId,
   symbologyTab,
-}: ISymbologyTabbedDialogProps) => {
-  const selectedValueRef = useRef<string>();
+  selectableAttributesAndValues,
+}: ISymbologyTabbedDialogWithAttributesProps) => {
+  const selectedAttributeRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
   const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
 
-  const [selectedValue, setSelectedValue] = useState('');
+  const [selectedAttribute, setSelectedAttribute] = useState('');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [colorRampOptions, setColorRampOptions] = useState<
     ReadonlyJSONObject | undefined
   >();
-  const [features, setFeatures] = useState<Record<string, Set<number>>>({});
   const [manualStyle, setManualStyle] = useState({
     fillColor: '#3399CC',
     strokeColor: '#3399CC',
@@ -48,10 +46,6 @@ const Categorized = ({
   if (!layer?.parameters) {
     return;
   }
-  const { featureProperties } = useGetProperties({
-    layerId,
-    model: model,
-  });
 
   useEffect(() => {
     const valueColorPairs = VectorUtils.buildColorInfo(layer);
@@ -107,22 +101,19 @@ const Categorized = ({
 
   useEffect(() => {
     // We only want number values here
-    const numericFeatures = getNumericFeatureAttributes(featureProperties);
-
-    setFeatures(numericFeatures);
-
     const layerParams = layer.parameters as IVectorLayer;
-    const value =
-      layerParams.symbologyState?.value ?? Object.keys(numericFeatures)[0];
+    const attribute =
+      layerParams.symbologyState?.value ??
+      Object.keys(selectableAttributesAndValues)[0];
 
-    setSelectedValue(value);
-  }, [featureProperties]);
+    setSelectedAttribute(attribute);
+  }, [selectableAttributesAndValues]);
 
   useEffect(() => {
-    selectedValueRef.current = selectedValue;
+    selectedAttributeRef.current = selectedAttribute;
     stopRowsRef.current = stopRows;
     colorRampOptionsRef.current = colorRampOptions;
-  }, [selectedValue, stopRows, colorRampOptions]);
+  }, [selectedAttribute, stopRows, colorRampOptions]);
 
   const buildColorInfoFromClassification = (
     selectedMode: string,
@@ -137,7 +128,9 @@ const Categorized = ({
       selectedMode: '',
     });
 
-    const stops = Array.from(features[selectedValue]).sort((a, b) => a - b);
+    const stops = Array.from(
+      selectableAttributesAndValues[selectedAttribute],
+    ).sort((a, b) => a - b);
 
     const valueColorPairs = Utils.getValueColorPairs(
       stops,
@@ -160,7 +153,7 @@ const Categorized = ({
       const expr: ExpressionValue[] = ['case'];
 
       stopRowsRef.current.forEach(stop => {
-        expr.push(['==', ['get', selectedValueRef.current], stop.stop]);
+        expr.push(['==', ['get', selectedAttributeRef.current], stop.stop]);
         expr.push(stop.output);
       });
 
@@ -184,7 +177,7 @@ const Categorized = ({
 
     const symbologyState = {
       renderType: 'Categorized',
-      value: selectedValueRef.current,
+      value: selectedAttributeRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
@@ -235,98 +228,111 @@ const Categorized = ({
     model.sharedModel.updateLayer(layerId, layer);
   };
 
-  return (
-    <div className="jp-gis-layer-symbology-container">
-      <ValueSelect
-        featureProperties={features}
-        selectedValue={selectedValue}
-        setSelectedValue={setSelectedValue}
-      />
+  const body = (() => {
+    if (Object.keys(selectableAttributesAndValues).length === 0) {
+      return (
+        <p className="errors">
+          This symbology type is not available; no attributes contain numeric
+          values.
+        </p>
+      );
+    } else {
+      return (
+        <>
+          <ValueSelect
+            featureProperties={selectableAttributesAndValues}
+            selectedValue={selectedAttribute}
+            setSelectedValue={setSelectedAttribute}
+          />
 
-      <div className="jp-gis-layer-symbology-container">
-        {/* Inputs depending on active tab */}
-        {symbologyTab === 'color' && (
-          <>
-            <div className="jp-gis-symbology-row">
-              <label>Fill Color:</label>
-              <input
-                type="color"
-                className="jp-mod-styled"
-                value={manualStyle.fillColor}
-                onChange={e => {
-                  handleReset('color');
-                  setManualStyle(prev => ({
-                    ...prev,
-                    fillColor: e.target.value,
-                  }));
-                }}
-              />
-            </div>
-            <div className="jp-gis-symbology-row">
-              <label>Stroke Color:</label>
-              <input
-                type="color"
-                className="jp-mod-styled"
-                value={manualStyle.strokeColor}
-                onChange={e => {
-                  setManualStyle(prev => ({
-                    ...prev,
-                    strokeColor: e.target.value,
-                  }));
-                }}
-              />
-            </div>
-            <div className="jp-gis-symbology-row">
-              <label>Stroke Width:</label>
-              <input
-                type="number"
-                className="jp-mod-styled"
-                value={manualStyle.strokeWidth}
-                onChange={e => {
-                  setManualStyle(prev => ({
-                    ...prev,
-                    strokeWidth: +e.target.value,
-                  }));
-                }}
-              />
-            </div>
-          </>
-        )}
+          <div className="jp-gis-layer-symbology-container">
+            {/* Inputs depending on active tab */}
+            {symbologyTab === 'color' && (
+              <>
+                <div className="jp-gis-symbology-row">
+                  <label>Fill Color:</label>
+                  <input
+                    type="color"
+                    className="jp-mod-styled"
+                    value={manualStyle.fillColor}
+                    onChange={e => {
+                      handleReset('color');
+                      setManualStyle(prev => ({
+                        ...prev,
+                        fillColor: e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
+                <div className="jp-gis-symbology-row">
+                  <label>Stroke Color:</label>
+                  <input
+                    type="color"
+                    className="jp-mod-styled"
+                    value={manualStyle.strokeColor}
+                    onChange={e => {
+                      setManualStyle(prev => ({
+                        ...prev,
+                        strokeColor: e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
+                <div className="jp-gis-symbology-row">
+                  <label>Stroke Width:</label>
+                  <input
+                    type="number"
+                    className="jp-mod-styled"
+                    value={manualStyle.strokeWidth}
+                    onChange={e => {
+                      setManualStyle(prev => ({
+                        ...prev,
+                        strokeWidth: +e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
+              </>
+            )}
 
-        {symbologyTab === 'radius' && (
-          <div className="jp-gis-symbology-row">
-            <label>Circle Radius:</label>
-            <input
-              type="number"
-              className="jp-mod-styled"
-              value={manualStyle.radius}
-              onChange={e => {
-                setManualStyle(prev => ({
-                  ...prev,
-                  radius: +e.target.value,
-                }));
-              }}
+            {symbologyTab === 'radius' && (
+              <div className="jp-gis-symbology-row">
+                <label>Circle Radius:</label>
+                <input
+                  type="number"
+                  className="jp-mod-styled"
+                  value={manualStyle.radius}
+                  onChange={e => {
+                    setManualStyle(prev => ({
+                      ...prev,
+                      radius: +e.target.value,
+                    }));
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="jp-gis-layer-symbology-container">
+            <ColorRamp
+              layerParams={layer.parameters}
+              modeOptions={[]}
+              classifyFunc={buildColorInfoFromClassification}
+              showModeRow={false}
+              showRampSelector={symbologyTab === 'color'}
+            />
+            <StopContainer
+              selectedMethod={''}
+              stopRows={stopRows}
+              setStopRows={setStopRows}
             />
           </div>
-        )}
-      </div>
+        </>
+      );
+    }
+  })();
 
-      <div className="jp-gis-layer-symbology-container">
-        <ColorRamp
-          layerParams={layer.parameters}
-          modeOptions={[]}
-          classifyFunc={buildColorInfoFromClassification}
-          showModeRow={false}
-          showRampSelector={symbologyTab === 'color'}
-        />
-        <StopContainer
-          selectedMethod={''}
-          stopRows={stopRows}
-          setStopRows={setStopRows}
-        />
-      </div>
-    </div>
-  );
+  return <div className="jp-gis-layer-symbology-container">{body}</div>;
 };
 
 export default Categorized;

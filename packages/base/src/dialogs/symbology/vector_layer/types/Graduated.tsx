@@ -7,22 +7,21 @@ import ColorRamp, {
   ColorRampOptions,
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
-import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 import {
   IStopRow,
-  ISymbologyTabbedDialogProps,
+  ISymbologyTabbedDialogWithAttributesProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { getNumericFeatureAttributes } from '@/src/tools';
 
-const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
+const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
   layerId,
   symbologyTab,
+  selectableAttributesAndValues,
 }) => {
   const modeOptions = [
     'quantile',
@@ -32,14 +31,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
     'logarithmic',
   ];
 
-  const selectedValueRef = useRef<string>();
+  const selectableAttributeRef = useRef<string>();
   const symbologyTabRef = useRef<string>();
   const colorStopRowsRef = useRef<IStopRow[]>([]);
   const radiusStopRowsRef = useRef<IStopRow[]>([]);
   const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
-  const [selectedValue, setSelectedValue] = useState('');
-  const [features, setFeatures] = useState<Record<string, Set<number>>>({});
+  const [selectedAttribute, setSelectedAttribute] = useState('');
   const [colorStopRows, setColorStopRows] = useState<IStopRow[]>([]);
   const [radiusStopRows, setRadiusStopRows] = useState<IStopRow[]>([]);
   const [colorRampOptions, setColorRampOptions] = useState<
@@ -64,11 +62,6 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
   if (!layer?.parameters) {
     return;
   }
-
-  const { featureProperties } = useGetProperties({
-    layerId,
-    model: model,
-  });
 
   useEffect(() => {
     updateStopRowsBasedOnLayer();
@@ -119,13 +112,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
   useEffect(() => {
     colorStopRowsRef.current = colorStopRows;
     radiusStopRowsRef.current = radiusStopRows;
-    selectedValueRef.current = selectedValue;
+    selectableAttributeRef.current = selectedAttribute;
     symbologyTabRef.current = symbologyTab;
     colorRampOptionsRef.current = colorRampOptions;
   }, [
     colorStopRows,
     radiusStopRows,
-    selectedValue,
+    selectedAttribute,
     symbologyTab,
     colorRampOptions,
   ]);
@@ -136,17 +129,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
   }, [colorManualStyle, radiusManualStyle]);
 
   useEffect(() => {
-    // We only want number values here
-    const numericFeatures = getNumericFeatureAttributes(featureProperties);
-
-    setFeatures(numericFeatures);
-
     const layerParams = layer.parameters as IVectorLayer;
-    const value =
-      layerParams.symbologyState?.value ?? Object.keys(numericFeatures)[0];
+    const attribute =
+      layerParams.symbologyState?.value ??
+      Object.keys(selectableAttributesAndValues)[0];
 
-    setSelectedValue(value);
-  }, [featureProperties]);
+    setSelectedAttribute(attribute);
+  }, [selectableAttributesAndValues]);
 
   const updateStopRowsBasedOnLayer = () => {
     if (!layer) {
@@ -169,7 +158,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
       const colorExpr: ExpressionValue[] = [
         'interpolate',
         ['linear'],
-        ['get', selectedValueRef.current],
+        ['get', selectableAttributeRef.current],
       ];
       colorStopRowsRef.current.forEach(stop => {
         colorExpr.push(stop.stop);
@@ -192,7 +181,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
       const radiusExpr: ExpressionValue[] = [
         'interpolate',
         ['linear'],
-        ['get', selectedValueRef.current],
+        ['get', selectableAttributeRef.current],
       ];
       radiusStopRowsRef.current.forEach(stop => {
         radiusExpr.push(stop.stop);
@@ -206,7 +195,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
     layer.parameters.color = newStyle;
     layer.parameters.symbologyState = {
       renderType: 'Graduated',
-      value: selectedValueRef.current,
+      value: selectableAttributeRef.current,
       method: symbologyTabRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
@@ -234,7 +223,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
 
     let stops;
 
-    const values = Array.from(features[selectedValue]);
+    const values = Array.from(selectableAttributesAndValues[selectedAttribute]);
 
     switch (selectedMode) {
       case 'quantile':
@@ -308,96 +297,109 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
     model.sharedModel.updateLayer(layerId, layer);
   };
 
-  return (
-    <div className="jp-gis-layer-symbology-container">
-      <ValueSelect
-        featureProperties={features}
-        selectedValue={selectedValue}
-        setSelectedValue={setSelectedValue}
-      />
-      <div className="jp-gis-layer-symbology-container">
-        {symbologyTab === 'color' && (
-          <>
-            <div className="jp-gis-symbology-row">
-              <label>Fill Color:</label>
-              <input
-                type="color"
-                className="jp-mod-styled"
-                value={colorManualStyle.fillColor}
-                onChange={e => {
-                  handleReset('color');
-                  setColorManualStyle({
-                    ...colorManualStyle,
-                    fillColor: e.target.value,
-                  });
-                }}
-              />
-            </div>
-            <div className="jp-gis-symbology-row">
-              <label>Stroke Color:</label>
-              <input
-                type="color"
-                className="jp-mod-styled"
-                value={colorManualStyle.strokeColor}
-                onChange={e => {
-                  setColorManualStyle({
-                    ...colorManualStyle,
-                    strokeColor: e.target.value,
-                  });
-                }}
-              />
-            </div>
-            <div className="jp-gis-symbology-row">
-              <label>Stroke Width:</label>
-              <input
-                type="number"
-                className="jp-mod-styled"
-                value={colorManualStyle.strokeWidth}
-                onChange={e => {
-                  setColorManualStyle({
-                    ...colorManualStyle,
-                    strokeWidth: +e.target.value,
-                  });
-                }}
-              />
-            </div>
-          </>
-        )}
-        {symbologyTab === 'radius' && (
-          <div className="jp-gis-symbology-row">
-            <label>Circle Radius:</label>
-            <input
-              type="number"
-              className="jp-mod-styled"
-              value={radiusManualStyle.radius}
-              onChange={e => {
-                handleReset('radius');
-                setRadiusManualStyle({
-                  ...radiusManualStyle,
-                  radius: +e.target.value,
-                });
-              }}
-            />
+  const body = (() => {
+    if (Object.keys(selectableAttributesAndValues)?.length === 0) {
+      return (
+        <p className="errors">
+          This symbology type is not available; no attributes contain numeric
+          values.
+        </p>
+      );
+    } else {
+      return (
+        <>
+          <ValueSelect
+            featureProperties={selectableAttributesAndValues}
+            selectedValue={selectedAttribute}
+            setSelectedValue={setSelectedAttribute}
+          />
+          <div className="jp-gis-layer-symbology-container">
+            {symbologyTab === 'color' && (
+              <>
+                <div className="jp-gis-symbology-row">
+                  <label>Fill Color:</label>
+                  <input
+                    type="color"
+                    className="jp-mod-styled"
+                    value={colorManualStyle.fillColor}
+                    onChange={e => {
+                      handleReset('color');
+                      setColorManualStyle({
+                        ...colorManualStyle,
+                        fillColor: e.target.value,
+                      });
+                    }}
+                  />
+                </div>
+                <div className="jp-gis-symbology-row">
+                  <label>Stroke Color:</label>
+                  <input
+                    type="color"
+                    className="jp-mod-styled"
+                    value={colorManualStyle.strokeColor}
+                    onChange={e => {
+                      setColorManualStyle({
+                        ...colorManualStyle,
+                        strokeColor: e.target.value,
+                      });
+                    }}
+                  />
+                </div>
+                <div className="jp-gis-symbology-row">
+                  <label>Stroke Width:</label>
+                  <input
+                    type="number"
+                    className="jp-mod-styled"
+                    value={colorManualStyle.strokeWidth}
+                    onChange={e => {
+                      setColorManualStyle({
+                        ...colorManualStyle,
+                        strokeWidth: +e.target.value,
+                      });
+                    }}
+                  />
+                </div>
+              </>
+            )}
+            {symbologyTab === 'radius' && (
+              <div className="jp-gis-symbology-row">
+                <label>Circle Radius:</label>
+                <input
+                  type="number"
+                  className="jp-mod-styled"
+                  value={radiusManualStyle.radius}
+                  onChange={e => {
+                    handleReset('radius');
+                    setRadiusManualStyle({
+                      ...radiusManualStyle,
+                      radius: +e.target.value,
+                    });
+                  }}
+                />
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      <ColorRamp
-        layerParams={layer.parameters}
-        modeOptions={modeOptions}
-        classifyFunc={buildColorInfoFromClassification}
-        showModeRow={true}
-        showRampSelector={symbologyTab === 'color'}
-      />
-      <StopContainer
-        selectedMethod={symbologyTab || 'color'}
-        stopRows={symbologyTab === 'color' ? colorStopRows : radiusStopRows}
-        setStopRows={
-          symbologyTab === 'color' ? setColorStopRows : setRadiusStopRows
-        }
-      />
-    </div>
-  );
+          <ColorRamp
+            layerParams={layer.parameters}
+            modeOptions={modeOptions}
+            classifyFunc={buildColorInfoFromClassification}
+            showModeRow={true}
+            showRampSelector={symbologyTab === 'color'}
+          />
+          <StopContainer
+            selectedMethod={symbologyTab || 'color'}
+            stopRows={symbologyTab === 'color' ? colorStopRows : radiusStopRows}
+            setStopRows={
+              symbologyTab === 'color' ? setColorStopRows : setRadiusStopRows
+            }
+          />
+        </>
+      );
+    }
+  })();
+
+  return <div className="jp-gis-layer-symbology-container">{body}</div>;
 };
 
 export default Graduated;
