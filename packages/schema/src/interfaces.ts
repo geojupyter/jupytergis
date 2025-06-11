@@ -236,6 +236,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   disposed: ISignal<any, void>;
   isDrawVectorLayerEnabled: boolean;
+  checkIfIsADrawVectorLayer(JGISlayer: IJGISLayer): boolean;
   updateIsDrawVectorLayerEnabled(): void;
 }
 

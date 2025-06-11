@@ -940,25 +940,36 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.toggleDrawFeatures, {
     label: trans.__('Edit Features'),
-    isEnabled: () => {
+    isToggled: () => {
       if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
         const model = tracker.currentWidget?.content.currentViewModel
           .jGISModel as IJupyterGISModel;
         const selectedLayer = getSingleSelectedLayer(tracker);
         if (!selectedLayer) {
           return false;
+        } else if (model.checkIfIsADrawVectorLayer(selectedLayer) === true) {
+          return model.isDrawVectorLayerEnabled;
         } else {
-          const selectedSource = model.getSource(
-            selectedLayer.parameters?.source,
-          );
-          if (
-            selectedSource?.type === 'GeoJSONSource' &&
-            selectedSource?.parameters?.data
-          ) {
-            return true;
-          } else {
-            return false;
-          }
+          model.isDrawVectorLayerEnabled === false;
+          return false;
+        }
+      } else {
+        return false;
+      }
+    },
+    isEnabled: () => {
+      if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        const model = tracker.currentWidget?.content.currentViewModel
+          .jGISModel as IJupyterGISModel;
+        const selectedLayer = getSingleSelectedLayer(tracker);
+
+        if (!selectedLayer) {
+          return false;
+        }
+        if (model.checkIfIsADrawVectorLayer(selectedLayer) === true) {
+          return true;
+        } else {
+          return false;
         }
       } else {
         return false;
@@ -966,16 +977,24 @@ export function addCommands(
     },
     execute: async () => {
       if (tracker.currentWidget instanceof JupyterGISDocumentWidget) {
+        const selectedLayer = getSingleSelectedLayer(tracker);
         const model = tracker.currentWidget?.content.currentViewModel
           .jGISModel as IJupyterGISModel;
-
-        if (model.isDrawVectorLayerEnabled === false) {
-          model.isDrawVectorLayerEnabled = true;
+        if (!selectedLayer) {
+          return false;
+        } else {
+          if (model.isDrawVectorLayerEnabled === false) {
+            model.isDrawVectorLayerEnabled = true;
+          } else {
+            model.isDrawVectorLayerEnabled = false;
+          }
         }
+
         model.updateIsDrawVectorLayerEnabled();
         commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
       }
     },
+
     icon: pencilSolidIcon,
   });
 

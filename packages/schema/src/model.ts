@@ -744,6 +744,18 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.drawVectorLayerChanged.emit(this.isDrawVectorLayerEnabled);
   }
 
+  checkIfIsADrawVectorLayer(layer: IJGISLayer): boolean {
+    const selectedSource = this.getSource(layer.parameters?.source);
+    if (
+      selectedSource?.type === 'GeoJSONSource' &&
+      selectedSource?.parameters?.data
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   get geolocation(): JgisCoordinates {
     return this._geolocation;
   }

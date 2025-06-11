@@ -45,6 +45,8 @@ import { Geometry, Point } from 'ol/geom';
 import { Type } from 'ol/geom/Geometry';
 import { DragAndDrop, Interaction, Select } from 'ol/interaction';
 import Draw from 'ol/interaction/Draw.js';
+import Modify from 'ol/interaction/Modify.js';
+import Snap from 'ol/interaction/Snap.js';
 import {
   Heatmap as HeatmapLayer,
   Image as ImageLayer,
@@ -1460,6 +1462,20 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
 
+    /* check if the currently selected layer is a drawVector layer 
+    and update isDrawVectorLayer to remove the display of the geometry selection overlay if required*/
+    const selectedLayers = localState?.selected?.value;
+    if (selectedLayers) {
+      const selectedLayerID = Object.keys(selectedLayers)[0];
+      const JGISLayer = this._model.getLayer(selectedLayerID);
+      if (JGISLayer) {
+        if (this._model.checkIfIsADrawVectorLayer(JGISLayer) === false) {
+          this._model.isDrawVectorLayerEnabled = false;
+          this._updateIsDrawVectorLayerEnabled();
+        }
+      }
+    }
+
     const remoteUser = localState.remoteUser;
     // If we are in following mode, we update our position and selection
     if (remoteUser) {
@@ -1704,6 +1720,15 @@ export class MainView extends React.Component<IProps, IStates> {
 
       if (!newLayer || Object.keys(newLayer).length === 0) {
         this.removeLayer(id);
+        if (
+          this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer) === true
+        ) {
+          this._model.isDrawVectorLayerEnabled = false;
+          this._updateIsDrawVectorLayerEnabled();
+          this._mainViewModel.commands.notifyCommandChanged(
+            CommandIDs.toggleDrawFeatures,
+          );
+        }
         return;
       }
 
@@ -2037,7 +2062,6 @@ export class MainView extends React.Component<IProps, IStates> {
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const drawGeometryType = event.target.value;
-    //let layerSource: IJGISSource | undefined;
     if (this._model.isDrawVectorLayerEnabled) {
       if (this._currentDrawInteraction) {
         this._removeCurrentDrawInteraction();
@@ -2062,8 +2086,8 @@ export class MainView extends React.Component<IProps, IStates> {
         )
         ?.get('source');
 
-      //const modify = new Modify({ source: layerSource });
-      //this._Map.addInteraction(modify);
+      const modify = new Modify({ source: layerSource });
+      this._Map.addInteraction(modify);
       const draw = new Draw({
         source: layerSource,
         style: {
@@ -2075,10 +2099,10 @@ export class MainView extends React.Component<IProps, IStates> {
         },
         type: drawGeometryType as Type, // Type being a geometry type here,
       });
-      //const snap = new Snap({ source: layerSource });
+      const snap = new Snap({ source: layerSource });
 
       this._Map.addInteraction(draw);
-      //this._Map.addInteraction(snap);
+      this._Map.addInteraction(snap);
       this._currentDrawInteraction = draw;
       this.setState(old => ({
         ...old,
