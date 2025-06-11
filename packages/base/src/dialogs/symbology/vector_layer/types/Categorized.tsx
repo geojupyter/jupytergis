@@ -13,6 +13,7 @@ import {
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { getNumericFeatureAttributes } from '@/src/tools';
+import { SymbologyTab } from '@/src/types';
 
 const Categorized = ({
   model,
@@ -33,6 +34,7 @@ const Categorized = ({
   >();
   const [features, setFeatures] = useState<Record<string, Set<number>>>({});
   const [manualStyle, setManualStyle] = useState({
+    fillColor: '#3399CC',
     strokeColor: '#3399CC',
     strokeWidth: 1.25,
     radius: 5,
@@ -69,6 +71,8 @@ const Categorized = ({
 
   useEffect(() => {
     if (layer?.parameters?.color) {
+      const fillColor = layer.parameters.color['fill-color'];
+      const circleFillColor = layer.parameters.color['circle-fill-color'];
       const strokeColor = layer.parameters.color['stroke-color'];
       const circleStrokeColor = layer.parameters.color['circle-stroke-color'];
 
@@ -76,6 +80,12 @@ const Categorized = ({
         typeof val === 'string' && /^#?[0-9A-Fa-f]{3,8}$/.test(val);
 
       setManualStyle({
+        fillColor: isSimpleColor(fillColor)
+          ? fillColor
+          : isSimpleColor(circleFillColor)
+            ? circleFillColor
+            : '#3399CC',
+
         strokeColor: isSimpleColor(strokeColor)
           ? strokeColor
           : isSimpleColor(circleStrokeColor)
@@ -162,6 +172,9 @@ const Categorized = ({
         newStyle['stroke-color'] = expr;
         newStyle['circle-stroke-color'] = expr;
       }
+    } else {
+      newStyle['fill-color'] = manualStyleRef.current.fillColor;
+      newStyle['circle-fill-color'] = manualStyleRef.current.fillColor;
     }
 
     newStyle['stroke-width'] = manualStyleRef.current.strokeWidth;
@@ -189,6 +202,39 @@ const Categorized = ({
     cancel();
   };
 
+  const handleReset = (method: SymbologyTab) => {
+    if (!layer?.parameters) {
+      return;
+    }
+
+    const newStyle = { ...layer.parameters.color };
+
+    if (method === 'color') {
+      console.log('delecol');
+
+      delete newStyle['fill-color'];
+      delete newStyle['stroke-color'];
+      delete newStyle['circle-fill-color'];
+      delete newStyle['circle-stroke-color'];
+      setStopRows([]);
+
+      // Reset color classification options
+      if (layer.parameters.symbologyState) {
+        layer.parameters.symbologyState.colorRamp = undefined;
+        layer.parameters.symbologyState.nClasses = undefined;
+        layer.parameters.symbologyState.mode = undefined;
+      }
+    }
+
+    if (method === 'radius') {
+      delete newStyle['circle-radius'];
+    }
+
+    layer.parameters.color = newStyle;
+
+    model.sharedModel.updateLayer(layerId, layer);
+  };
+
   return (
     <div className="jp-gis-layer-symbology-container">
       <ValueSelect
@@ -201,6 +247,21 @@ const Categorized = ({
         {/* Inputs depending on active tab */}
         {symbologyTab === 'color' && (
           <>
+            <div className="jp-gis-symbology-row">
+              <label>Fill Color:</label>
+              <input
+                type="color"
+                className="jp-mod-styled"
+                value={manualStyle.fillColor}
+                onChange={e => {
+                  handleReset('color');
+                  setManualStyle(prev => ({
+                    ...prev,
+                    fillColor: e.target.value,
+                  }));
+                }}
+              />
+            </div>
             <div className="jp-gis-symbology-row">
               <label>Stroke Color:</label>
               <input

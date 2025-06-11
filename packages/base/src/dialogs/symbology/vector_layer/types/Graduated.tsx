@@ -46,6 +46,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
     ColorRampOptions | undefined
   >();
   const [colorManualStyle, setColorManualStyle] = useState({
+    fillColor: '#3399CC',
     strokeColor: '#3399CC',
     strokeWidth: 1.25,
   });
@@ -85,11 +86,25 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
 
   useEffect(() => {
     if (layer?.parameters?.color) {
+      const fillColor = layer.parameters.color['fill-color'];
+      const circleFillColor = layer.parameters.color['circle-fill-color'];
+      const strokeColor = layer.parameters.color['stroke-color'];
+      const circleStrokeColor = layer.parameters.color['circle-stroke-color'];
+
+      const isSimpleColor = (val: any) =>
+        typeof val === 'string' && /^#?[0-9A-Fa-f]{3,8}$/.test(val);
+
       setColorManualStyle({
-        strokeColor:
-          layer.parameters.color['stroke-color'] ||
-          layer.parameters.color['circle-stroke-color'] ||
-          '#3399CC',
+        fillColor: isSimpleColor(fillColor)
+          ? fillColor
+          : isSimpleColor(circleFillColor)
+            ? circleFillColor
+            : '#3399CC',
+        strokeColor: isSimpleColor(strokeColor)
+          ? strokeColor
+          : isSimpleColor(circleStrokeColor)
+            ? circleStrokeColor
+            : '#3399CC',
         strokeWidth:
           layer.parameters.color['stroke-width'] ||
           layer.parameters.color['circle-stroke-width'] ||
@@ -269,6 +284,30 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
     }
   };
 
+  const handleReset = (method: string) => {
+    if (!layer?.parameters) {
+      return;
+    }
+
+    const newStyle = { ...layer.parameters.color };
+
+    if (method === 'color') {
+      delete newStyle['fill-color'];
+      delete newStyle['stroke-color'];
+      delete newStyle['circle-fill-color'];
+      setColorStopRows([]);
+      setColorRampOptions(undefined);
+    }
+
+    if (method === 'radius') {
+      delete newStyle['circle-radius'];
+      setRadiusStopRows([]);
+    }
+
+    layer.parameters.color = newStyle;
+    model.sharedModel.updateLayer(layerId, layer);
+  };
+
   return (
     <div className="jp-gis-layer-symbology-container">
       <ValueSelect
@@ -279,6 +318,21 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
       <div className="jp-gis-layer-symbology-container">
         {symbologyTab === 'color' && (
           <>
+            <div className="jp-gis-symbology-row">
+              <label>Fill Color:</label>
+              <input
+                type="color"
+                className="jp-mod-styled"
+                value={colorManualStyle.fillColor}
+                onChange={e => {
+                  handleReset('color');
+                  setColorManualStyle({
+                    ...colorManualStyle,
+                    fillColor: e.target.value,
+                  });
+                }}
+              />
+            </div>
             <div className="jp-gis-symbology-row">
               <label>Stroke Color:</label>
               <input
@@ -308,6 +362,23 @@ const Graduated: React.FC<ISymbologyTabbedDialogProps> = ({
               />
             </div>
           </>
+        )}
+        {symbologyTab === 'radius' && (
+          <div className="jp-gis-symbology-row">
+            <label>Circle Radius:</label>
+            <input
+              type="number"
+              className="jp-mod-styled"
+              value={radiusManualStyle.radius}
+              onChange={e => {
+                handleReset('radius');
+                setRadiusManualStyle({
+                  ...radiusManualStyle,
+                  radius: +e.target.value,
+                });
+              }}
+            />
+          </div>
         )}
       </div>
 
