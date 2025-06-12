@@ -37,7 +37,7 @@ import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
-import { ScaleLine } from 'ol/control';
+import { FullScreen, ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { GeoJSON, MVT } from 'ol/format';
@@ -225,7 +225,7 @@ export class MainView extends React.Component<IProps, IStates> {
           center,
           zoom,
         }),
-        controls: [new ScaleLine()],
+        controls: [new ScaleLine(), new FullScreen()],
       });
 
       // Add map interactions
