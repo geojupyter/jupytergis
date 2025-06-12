@@ -20,6 +20,8 @@ const STORAGE_KEYS = {
   collections: 'jgis-stac-selected-collections',
   platforms: 'jgis-stac-selected-platforms',
   products: 'jgis-stac-selected-products',
+  startTime: 'jgis-stac-start-time',
+  endTime: 'jgis-stac-end-time',
 };
 
 interface IUseStacSearchProps {
@@ -67,18 +69,32 @@ function useStacSearch({
       return stored ? JSON.parse(stored) : [];
     },
   );
-
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.platforms);
     return stored ? JSON.parse(stored) : [];
   });
-
   const [selectedProducts, setSelectedProducts] = useState<string[]>(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.products);
     return stored ? JSON.parse(stored) : [];
   });
+  const [startTime, setStartTime] = useState<Date | undefined>(() => {
+    const stored = localStorage.getItem(STORAGE_KEYS.startTime);
+    return stored ? new Date(stored) : undefined;
+  });
+  const [endTime, setEndTime] = useState<Date | undefined>(() => {
+    const stored = localStorage.getItem(STORAGE_KEYS.endTime);
+    return stored ? new Date(stored) : undefined;
+  });
+  const [results, setResults] = useState<IStacItem[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [currentBBox, setCurrentBBox] = useState<
+    [number, number, number, number]
+  >([-180, -90, 180, 90]);
 
   // Persist state changes to localStorage
+  // TODO: Switch to StateDB
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEYS.collections,
@@ -100,15 +116,21 @@ function useStacSearch({
     );
   }, [selectedProducts]);
 
-  const [results, setResults] = useState<IStacItem[]>([]);
-  const [currentBBox, setCurrentBBox] = useState<
-    [number, number, number, number]
-  >([-180, -90, 180, 90]);
-  const [startTime, setStartTime] = useState<Date>();
-  const [endTime, setEndTime] = useState<Date>();
-  const [totalPages, setTotalPages] = useState(1);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalResults, setTotalResults] = useState(0);
+  useEffect(() => {
+    if (startTime) {
+      localStorage.setItem(STORAGE_KEYS.startTime, startTime.toISOString());
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.startTime);
+    }
+  }, [startTime]);
+
+  useEffect(() => {
+    if (endTime) {
+      localStorage.setItem(STORAGE_KEYS.endTime, endTime.toISOString());
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.endTime);
+    }
+  }, [endTime]);
 
   // Listen for model updates to get current bounding box
   useEffect(() => {
@@ -216,6 +238,7 @@ function useStacSearch({
   };
 
   // Handle search when filters change
+  // ? Should we hit the api on a map move? That seems like too much
   useEffect(() => {
     setCurrentPage(1);
     model && fetchResults(1);
@@ -225,7 +248,6 @@ function useStacSearch({
     selectedProducts,
     startTime,
     endTime,
-    currentBBox,
     model,
   ]);
 
