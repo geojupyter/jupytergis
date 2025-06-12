@@ -1,6 +1,6 @@
 import { LabIcon, redoIcon, undoIcon } from '@jupyterlab/ui-components';
 
-import * as RestCommandIDs from './CommandIDs';
+import * as BaseCommandIDs from './CommandIDs';
 import {
   bookOpenIcon,
   clockIcon,
@@ -10,15 +10,15 @@ import {
   rasterIcon,
   vectorSquareIcon,
 } from './icons';
-import * as _ProcessingCommand from './processing/_generated/processingConstants';
+import * as ProcessingCommandIDs from './processing/_generated/processingConstants';
 
 /**
  * The command IDs.
  */
 
 export const CommandIDs = {
-  ...RestCommandIDs,
-  ..._ProcessingCommand,
+  ...BaseCommandIDs,
+  ...ProcessingCommandIDs,
 };
 
 interface IRegisteredIcon {

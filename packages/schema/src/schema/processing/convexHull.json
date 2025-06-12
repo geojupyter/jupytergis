@@ -10,12 +10,14 @@
       "description": "The input layer for Convex Hull."
     }
   },
-  "gen_name": "convexHull",
-  "gen_params": [],
-  "gen_label": "Convex Hull",
-  "gen_additionals": {
-    "sql": "SELECT ST_ConvexHull(geometry) AS geometry, * FROM \"{layerName}\"",
-    "gen_gdal": "ogr2ogr"
-  },
-  "gen_type": "vector"
+  "processGenerationParams": {
+    "processName": "convexHull",
+    "processParams": [],
+    "processLabel": "Convex Hull",
+    "processAdditionalsParams": {
+      "sql": "SELECT ST_ConvexHull(geometry) AS geometry, * FROM \"{layerName}\"",
+      "gdalFunction": "ogr2ogr"
+    },
+    "processType": "vector"
+  }
 }

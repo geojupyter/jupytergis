@@ -12,14 +12,20 @@ for filename in filenames:
     with open(filename, "r") as f:
         e = json.loads(f.read())
         keep = [
-            "description",
-            "gen_name",
-            "gen_params",
-            "gen_label",
-            "gen_type",
-            "gen_additionals",
+            "processName",
+            "processParams",
+            "processLabel",
+            "processType",
+            "processAdditionalsParams",
         ]
-        params.append({x: e[x] for x in keep})
+
+        toAdd = {}
+        toAdd["description"] = e["description"]
+
+        for x in keep:
+            toAdd[x] = e["processGenerationParams"][x]
+
+        params.append(toAdd)
 
 
 def addBanner(f):
@@ -27,7 +33,11 @@ def addBanner(f):
 
 
 def generateJsonMerge():
-    output = f"packages/schema/src/processing/_generated/processing_merge.json"
+    directory = "packages/schema/src/processing/_generated"
+
+    os.makedirs(directory, exist_ok=True)
+
+    output = f"{directory}/processing_merge.json"
 
     with open(output, "w+") as f:
         json.dump(params, f, indent=2)
@@ -35,16 +45,26 @@ def generateJsonMerge():
 
 
 def exportSchema():
-    curFileName = "packages/schema/src/processing/_generated/exportProcessingSchema.ts"
+    directory = "packages/schema/src/processing/_generated"
+
+    os.makedirs(directory, exist_ok=True)
+
+    curFileName = f"{directory}/exportProcessingSchema.ts"
+
     with open(curFileName, "w+") as f:
         addBanner(f)
         for param in params:
-            gen_name = param["gen_name"]
-            f.write(f"export * from '../../_interface/processing/{gen_name}';\n")
+            processName = param["processName"]
+            f.write(f"export * from '../../_interface/processing/{processName}';\n")
 
 
 def defineProcessingType():
-    curFileName = "packages/base/src/processing/_generated/processingType.ts"
+    directory = "packages/base/src/processing/_generated"
+
+    os.makedirs(directory, exist_ok=True)
+
+    curFileName = f"{directory}/processingType.ts"
+
     with open(curFileName, "w+") as f:
         addBanner(f)
 
@@ -66,13 +86,18 @@ def defineProcessingType():
 
 
 def addConstant():
+    directory = "packages/base/src/processing/_generated"
+
+    os.makedirs(directory, exist_ok=True)
+
     curFileName = "packages/base/src/processing/_generated/processingConstants.ts"
+
     with open(curFileName, "w+") as f:
         addBanner(f)
         for i in range(len(params)):
             param = params[i]
-            gen_name = param["gen_name"]
-            f.write(f"export const {gen_name} = 'jupytergis:{gen_name}';\n")
+            processName = param["processName"]
+            f.write(f"export const {processName} = 'jupytergis:{processName}';\n")
             if i + 1 == len(params):
                 continue
 

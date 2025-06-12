@@ -20,12 +20,14 @@
       "default": true
     }
   },
-  "gen_name": "buffer",
-  "gen_label": "Buffer",
-  "gen_params": ["bufferDistance"],
-  "gen_additionals": {
-    "gen_gdal": "ogr2ogr",
-    "sql": "SELECT ST_Union(ST_Buffer(geometry, {bufferDistance})) AS geometry, * FROM \"{layerName}\""
-  },
-  "gen_type": "vector"
+  "processGenerationParams": {
+    "processName": "buffer",
+    "processLabel": "Buffer",
+    "processParams": ["bufferDistance"],
+    "processAdditionalsParams": {
+      "gdalFunction": "ogr2ogr",
+      "sql": "SELECT ST_Union(ST_Buffer(geometry, {bufferDistance})) AS geometry, * FROM \"{layerName}\""
+    },
+    "processType": "vector"
+  }
 }

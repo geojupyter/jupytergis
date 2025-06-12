@@ -10,12 +10,14 @@
       "description": "The input layer for bounding boxes."
     }
   },
-  "gen_name": "boundingBoxes",
-  "gen_params": [],
-  "gen_label": "Bounding Boxes",
-  "gen_additionals": {
-    "sql": "SELECT ST_Envelope(geometry) AS geometry, * FROM \"{layerName}\"",
-    "gen_gdal": "ogr2ogr"
-  },
-  "gen_type": "vector"
+  "processGenerationParams": {
+    "processName": "boundingBoxes",
+    "processParams": [],
+    "processLabel": "Bounding Boxes",
+    "processAdditionalsParams": {
+      "sql": "SELECT ST_Envelope(geometry) AS geometry, * FROM \"{layerName}\"",
+      "gdalFunction": "ogr2ogr"
+    },
+    "processType": "vector"
+  }
 }

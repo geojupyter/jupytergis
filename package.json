@@ -31,10 +31,11 @@
     "python/jupytergis_qgis"
   ],
   "scripts": {
-    "build": "lerna run build",
-    "build:prod": "lerna run build:prod --skip-nx-cache",
-    "build:test": "lerna run build:test",
-    "build:dev": "lerna run build:dev",
+    "build": "jlpm run build:processing && lerna run build",
+    "build:prod": "jlpm run build:processing && lerna run build:prod --skip-nx-cache",
+    "build:processing": "python scripts/process.py",
+    "build:test": "jlpm run build:processing && lerna run build:test",
+    "build:dev": "jlpm run build:processing && lerna run build:dev",
     "bump:js:version": "lerna version --no-push --force-publish --no-git-tag-version --yes",
     "clean": "lerna run clean",
     "clean:all": "lerna run clean:all",

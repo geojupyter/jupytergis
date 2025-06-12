@@ -10,12 +10,14 @@
       "description": "The input layer for centroids."
     }
   },
-  "gen_name": "centroids",
-  "gen_params": [],
-  "gen_label": "Centroids",
-  "gen_additionals": {
-    "gen_gdal": "ogr2ogr",
-    "sql": "SELECT ST_Centroid(geometry) AS geometry, * FROM \"{layerName}\""
-  },
-  "gen_type": "vector"
+  "processGenerationParams": {
+    "processName": "centroids",
+    "processParams": [],
+    "processLabel": "Centroids",
+    "processAdditionalsParams": {
+      "gdalFunction": "ogr2ogr",
+      "sql": "SELECT ST_Centroid(geometry) AS geometry, * FROM \"{layerName}\""
+    },
+    "processType": "vector"
+  }
 }

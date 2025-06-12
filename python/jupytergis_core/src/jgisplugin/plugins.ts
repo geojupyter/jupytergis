@@ -12,6 +12,7 @@ import {
   IJupyterGISWidget,
   JupyterGISDoc,
   SCHEMA_VERSION,
+  ProcessingMerge,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -33,7 +34,6 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
-import { addProcessingToPalette } from './processing/processingPalette';
 
 const FACTORY = 'JupyterGIS .jgis Viewer';
 const CONTENT_TYPE = 'jgis';
@@ -230,7 +230,13 @@ const activate = async (
       command: CommandIDs.moveLayerToNewGroup,
       category: 'JupyterGIS',
     });
-    addProcessingToPalette(palette);
+
+    for (const processingElement of ProcessingMerge) {
+      palette.addItem({
+        command: processingElement.processName,
+        category: 'JupyterGIS',
+      });
+    }
   }
 };
 

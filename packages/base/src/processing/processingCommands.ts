@@ -21,8 +21,6 @@ export function replaceInSql(
 
   let out = helper('layerName', sql, layerName);
 
-  console.log(keyToVal);
-
   for (const [key, value] of Object.entries(keyToVal)) {
     out = helper(key, out, value);
   }
@@ -38,9 +36,9 @@ export function addProcessingCommands(
   formSchemaRegistry: IJGISFormSchemaRegistry,
 ) {
   for (const processingElement of ProcessingMerge) {
-    if (processingElement.gen_type === GEN_TYPE.vector) {
-      commands.addCommand(processingElement.gen_name, {
-        label: trans.__(processingElement.gen_label),
+    if (processingElement.processType === GEN_TYPE.vector) {
+      commands.addCommand(processingElement.processName, {
+        label: trans.__(processingElement.processLabel),
         isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
         execute: async () => {
           await processSelectedLayer(
@@ -50,11 +48,12 @@ export function addProcessingCommands(
             {
               sqlQueryFn: (layerName, keyToVal) =>
                 replaceInSql(
-                  processingElement.gen_additionals.sql,
+                  processingElement.processAdditionalsParams.sql,
                   keyToVal,
                   layerName,
                 ),
-              gdalFunction: processingElement.gen_additionals.gen_gdal,
+              gdalFunction:
+                processingElement.processAdditionalsParams.gdalFunction,
               options: (sqlQuery: string) => [
                 '-f',
                 'GeoJSON',

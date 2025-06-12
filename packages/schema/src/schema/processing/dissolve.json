@@ -19,12 +19,14 @@
       "default": true
     }
   },
-  "gen_name": "dissolve",
-  "gen_params": ["dissolveField"],
-  "gen_label": "Dissolve",
-  "gen_additionals": {
-    "gen_gdal": "ogr2ogr",
-    "sql": "SELECT ST_Union(geometry) AS geometry, {dissolveField} FROM \"{layerName}\" GROUP BY {dissolveField}"
-  },
-  "gen_type": "vector"
+  "processGenerationParams": {
+    "processName": "dissolve",
+    "processParams": ["dissolveField"],
+    "processLabel": "Dissolve",
+    "processAdditionalsParams": {
+      "gdalFunction": "ogr2ogr",
+      "sql": "SELECT ST_Union(geometry) AS geometry, {dissolveField} FROM \"{layerName}\" GROUP BY {dissolveField}"
+    },
+    "processType": "vector"
+  }
 }

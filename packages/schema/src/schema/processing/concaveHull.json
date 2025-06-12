@@ -19,12 +19,14 @@
       "default": false
     }
   },
-  "gen_name": "concaveHull",
-  "gen_params": ["pctconvex", "allowHoles"],
-  "gen_label": "Concave Hull",
-  "gen_additionals": {
-    "sql": "SELECT ST_ConcaveHull(geometry,{pctconvex},{allowHoles}) AS geometry, * FROM \"{layerName}\"",
-    "gen_gdal": "ogr2ogr"
-  },
-  "gen_type": "vector"
+  "processGenerationParams": {
+    "processName": "concaveHull",
+    "processParams": ["pctconvex", "allowHoles"],
+    "processLabel": "Concave Hull",
+    "processAdditionalsParams": {
+      "sql": "SELECT ST_ConcaveHull(geometry,{pctconvex},{allowHoles}) AS geometry, * FROM \"{layerName}\"",
+      "gdalFunction": "ogr2ogr"
+    },
+    "processType": "vector"
+  }
 }

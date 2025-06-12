@@ -21,6 +21,7 @@ import {
   IJupyterGISDocTracker,
   IJupyterGISTracker,
   IJupyterGISWidget,
+  ProcessingMerge,
 } from '@jupytergis/schema';
 import {
   ILayoutRestorer,
@@ -35,7 +36,6 @@ import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { ContextMenu, Menu } from '@lumino/widgets';
 
 import { notebookRendererPlugin } from './notebookrenderer';
-import { addProcessingToMenu } from './processing/processingSubMenu';
 
 const NAME_SPACE = 'jupytergis';
 
@@ -150,7 +150,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
       .__('Processing');
     processingSubmenu.id = 'jp-gis-contextmenu-processing';
 
-    addProcessingToMenu(processingSubmenu);
+    for (const processingElement of ProcessingMerge) {
+      processingSubmenu.addItem({
+        command: processingElement.processName,
+      });
+    }
 
     processingSubmenu.addItem({
       command: CommandIDs.boundingBoxes,
