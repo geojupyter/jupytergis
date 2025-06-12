@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { Button } from '../../shared/components/Button';
 import {
   Pagination,
@@ -7,7 +8,7 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious
+  PaginationPrevious,
 } from '../../shared/components/Pagination';
 import { IStacItem } from '../types/types';
 
@@ -22,7 +23,7 @@ interface IStacPanelResultsProps {
 
 function getPageItems(
   currentPage: number,
-  totalPages: number
+  totalPages: number,
 ): (number | 'ellipsis')[] {
   if (totalPages <= 5) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -36,7 +37,7 @@ function getPageItems(
       totalPages - 3,
       totalPages - 2,
       totalPages - 1,
-      totalPages
+      totalPages,
     ];
   }
   return [
@@ -44,7 +45,7 @@ function getPageItems(
     currentPage - 1,
     currentPage,
     'ellipsis',
-    totalPages
+    totalPages,
   ];
 }
 
@@ -54,7 +55,7 @@ const StacPanelResults = ({
   totalPages,
   handlePaginationClick,
   handleResultClick,
-  formatResult
+  formatResult,
 }: IStacPanelResultsProps) => {
   return (
     <div className="jgis-stac-browser-filters-panel">

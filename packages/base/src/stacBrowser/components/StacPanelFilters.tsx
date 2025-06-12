@@ -2,6 +2,9 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import React from 'react';
+
+import ProductSection from './ProductSection';
+import StacFilterSection from './StacFilterSection';
 import { Button } from '../../shared/components/Button';
 import Calendar from '../../shared/components/Calendar';
 import {
@@ -10,8 +13,6 @@ import {
   PopoverTrigger,
 } from '../../shared/components/Popover';
 import { IProductData } from '../types/types';
-import ProductSection from './ProductSection';
-import StacFilterSection from './StacFilterSection';
 
 interface IStacPanelFiltersProps {
   datasets: Record<string, string[]>;
