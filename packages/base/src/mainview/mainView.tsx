@@ -42,11 +42,10 @@ import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
-import { Type } from 'ol/geom/Geometry';
 import { DragAndDrop, Interaction, Select } from 'ol/interaction';
 import Draw from 'ol/interaction/Draw.js';
-import Modify from 'ol/interaction/Modify.js';
-import Snap from 'ol/interaction/Snap.js';
+//import Modify from 'ol/interaction/Modify.js';
+//import Snap from 'ol/interaction/Snap.js';
 import {
   Heatmap as HeatmapLayer,
   Image as ImageLayer,
@@ -94,6 +93,7 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 //import Modify from 'ol/interaction/Modify.js';
 //import Snap from 'ol/interaction/Snap.js';
+import { Type } from 'ol/geom/Geometry';
 
 const drawGeometries = ['Point', 'LineString', 'Polygon'];
 
@@ -116,7 +116,7 @@ interface IStates {
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
   isDrawVectorLayerEnabled: boolean;
-  drawGeometryType: string | undefined;
+  drawGeometryLabel: string | undefined;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -184,7 +184,7 @@ export class MainView extends React.Component<IProps, IStates> {
       displayTemporalController: false,
       filterStates: {},
       isDrawVectorLayerEnabled: false,
-      drawGeometryType: '',
+      drawGeometryLabel: '',
     };
 
     this._sources = [];
@@ -385,6 +385,43 @@ export class MainView extends React.Component<IProps, IStates> {
           units: view.getProjection().getUnits(),
         },
       }));
+
+      /* Snap and Modify interactions */
+      //this._snap = new Snap();
+      //this._modify = new Modify({});
+      //this._Map.addInteraction(this._snap);
+      //this._Map.addInteraction(this._modify);
+
+      /* Draw interactions */
+      this._draw = new Draw({
+        style: {
+          'fill-color': 'rgba(255, 255, 255, 0.2)',
+          'stroke-color': '#ffcc33',
+          'stroke-width': 2,
+          'circle-radius': 7,
+          'circle-fill-color': '#ffcc33',
+        },
+        type: 'Point',
+      });
+      this._Map.addInteraction(this._draw);
+
+      const drawGeometryLabel = 'Point'
+      this.setState(old => ({
+        ...old,
+        drawGeometryLabel
+      }));
+      this._draw.setActive(false);
+      //this._modify.setActive(false);
+      //this._snap.setActive(false);
+    }
+    /* Listen to the change in selected layer and get the new source */
+    this._model.sharedModel.awareness.on('change', this._getDrawSourceFromSelectedLayer)
+
+    if (this._currentDrawSourceID) {
+      const layerSource = this._getVectorSourceFromSourceID(this._currentDrawSourceID)
+      if (layerSource) {
+        this._updateDrawSource(layerSource) /*add new features to the JGIS Document in geoJSON format */
+      }
     }
   }
 
@@ -1337,8 +1374,8 @@ export class MainView extends React.Component<IProps, IStates> {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
-          featureProjection: this._Map.getView().getProjection(),
-        });
+        featureProjection: this._Map.getView().getProjection(),
+      });
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
@@ -2041,8 +2078,8 @@ export class MainView extends React.Component<IProps, IStates> {
     const isDrawVectorLayerEnabled: boolean =
       this._model.isDrawVectorLayerEnabled;
     this.setState(old => ({ ...old, isDrawVectorLayerEnabled }));
-    if (isDrawVectorLayerEnabled === false && this._currentDrawInteraction) {
-      this._removeCurrentDrawInteraction();
+    if (isDrawVectorLayerEnabled === false && this._draw) {
+      this._removeDrawInteraction();
     }
   }
 
@@ -2058,92 +2095,94 @@ export class MainView extends React.Component<IProps, IStates> {
     // TODO SOMETHING
   };
 
+  private _getGeometryType(label: string): Type {
+    switch (label) {
+      case 'Point':
+        return "Point";
+      case 'LineString':
+        return "LineString";
+      case 'Polygon':
+        return "Polygon";
+      default:
+        return "Point";
+    }
+  }
+
+  private _getVectorSourceFromSourceID = (sourceID: string): VectorSource | undefined => {
+    /* get the OL vectorSource corresponding to the JGIS currentDrawSourceID */
+    const layerSource: VectorSource | undefined = this._Map
+      .getLayers()
+      .getArray()
+      .find(
+        (layer: BaseLayer) => layer.get('id') === sourceID
+      )
+      ?.get('source');
+    return layerSource
+  }
+
   private _handleDrawGeometryTypeChange = (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
-    const drawGeometryType = event.target.value;
-    if (this._model.isDrawVectorLayerEnabled) {
-      if (this._currentDrawInteraction) {
-        this._removeCurrentDrawInteraction();
-      }
-      const localState = this._model?.sharedModel.awareness.getLocalState();
-      const localStateSelectedLayers = localState?.selected?.value;
+    const drawGeometryLabel = event.target.value;
+    const drawGeometryType = this._getGeometryType(drawGeometryLabel)
+    if (this._draw) {
+      this._Map.removeInteraction(this._draw);
 
-      /** add new feature to the already existing geoJSONSource
-       */
-      const localStateSelectedLayerID = Object.keys(
-        localStateSelectedLayers,
-      )[0];
-      const jGISLayer = this._model.getLayer(localStateSelectedLayerID);
-      const localStateSourceID = jGISLayer?.parameters?.source;
-      let jGISLayerSource = this._model.getSource(localStateSourceID);
-
-      const layerSource: VectorSource | undefined = this._Map
-        .getLayers()
-        .getArray()
-        .find(
-          (layer: BaseLayer) => layer.get('id') === localStateSelectedLayerID,
-        )
-        ?.get('source');
-
-      const modify = new Modify({ source: layerSource });
-      this._Map.addInteraction(modify);
-      const draw = new Draw({
-        source: layerSource,
-        style: {
-          'fill-color': 'rgba(255, 255, 255, 0.2)',
-          'stroke-color': '#ffcc33',
-          'stroke-width': 2,
-          'circle-radius': 7,
-          'circle-fill-color': '#ffcc33',
-        },
-        type: drawGeometryType as Type, // Type being a geometry type here,
+      this._draw = new Draw({
+        source: this._getVectorSourceFromSourceID(this._currentDrawSourceID),
+        type: drawGeometryType,  // e.g., 'Point', 'LineString', etc.
       });
-      const snap = new Snap({ source: layerSource });
-
-      this._Map.addInteraction(draw);
-      this._Map.addInteraction(snap);
-      this._currentDrawInteraction = draw;
-      this.setState(old => ({
-        ...old,
-        drawGeometryType,
-      }));
-
-      const geojsonWriter = new GeoJSON({
-        featureProjection: this._Map.getView().getProjection(),
-      });
-
-      layerSource?.on('change', () => {
-        if (jGISLayerSource) {
-          const features = layerSource
-            ?.getFeatures()
-            .map(feature => geojsonWriter.writeFeatureObject(feature));
-
-          const updatedData = {
-            type: 'FeatureCollection',
-            features: features,
-          };
-          const updatedJGISLayerSource: IJGISSource = {
-            name: jGISLayerSource.name,
-            type: jGISLayerSource.type,
-            parameters: {
-              data: updatedData,
-            },
-          };
-          jGISLayerSource = updatedJGISLayerSource;
-          this._model.sharedModel.updateSource(
-            localStateSourceID,
-            updatedJGISLayerSource,
-          );
-        }
-      });
-    } else {
-      return;
+      this._Map.addInteraction(this._draw)
     }
+
+    this.setState(old => ({
+      ...old,
+      drawGeometryLabel,
+    }));
   };
 
-  private _removeCurrentDrawInteraction = () => {
-    this._Map.removeInteraction(this._currentDrawInteraction);
+  _getDrawSourceFromSelectedLayer = () => {
+    const localStateSelectedLayers = this._model?.sharedModel.awareness.getLocalState()?.selected?.value;
+    const selectedLayerID = Object.keys(
+      localStateSelectedLayers,
+    )[0];
+    console.log('selectedLayerID:', selectedLayerID)
+    const jGISLayer = this._model.getLayer(selectedLayerID);
+    this._currentDrawSourceID = jGISLayer?.parameters?.source;
+    const IJGISSource = this._model.getSource(this._currentDrawSourceID)
+    if (IJGISSource) {
+      this._currentDrawSource = IJGISSource;
+    }
+  }
+
+  _updateDrawSource = (layerSource: VectorSource) => {
+    const geojsonWriter = new GeoJSON({
+      featureProjection: this._Map.getView().getProjection(),
+    });
+    const features = layerSource
+      ?.getFeatures()
+      .map(feature => geojsonWriter.writeFeatureObject(feature));
+
+    const updatedData = {
+      type: 'FeatureCollection',
+      features: features,
+    };
+    const updatedJGISLayerSource: IJGISSource = {
+      name: this._currentDrawSource.name,
+      type: this._currentDrawSource.type,
+      parameters: {
+        data: updatedData,
+      },
+    };
+    this._currentDrawSource = updatedJGISLayerSource;
+    this._model.sharedModel.updateSource(
+      this._currentDrawSourceID,
+      updatedJGISLayerSource,
+    );
+
+  }
+  private _removeDrawInteraction = () => {
+    this._Map.removeInteraction(this._draw);
   };
 
   render(): JSX.Element {
@@ -2195,7 +2234,7 @@ export class MainView extends React.Component<IProps, IStates> {
               <select
                 className="geometry-type-selector"
                 id="geometry-type-selector"
-                value={this.state.drawGeometryType}
+                value={this.state.drawGeometryLabel}
                 onChange={this._handleDrawGeometryTypeChange}
               >
                 <option value="" selected hidden>
@@ -2265,5 +2304,9 @@ export class MainView extends React.Component<IProps, IStates> {
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
-  private _currentDrawInteraction: Interaction;
+  private _draw: Interaction;
+  //private _snap: Interaction;
+  //private _modify: Interaction;
+  private _currentDrawSource: IJGISSource;
+  private _currentDrawSourceID: string;
 }
