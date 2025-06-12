@@ -184,7 +184,7 @@ export class MainView extends React.Component<IProps, IStates> {
         ? fromLonLat([options.longitude!, options.latitude!])
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom! : 1;
-    await this.generateScene(center, zoom);
+    await this.generateMap(center, zoom);
     this.addContextMenu();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
@@ -216,7 +216,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._mainViewModel.dispose();
   }
 
-  async generateScene(center: number[], zoom: number): Promise<void> {
+  async generateMap(center: number[], zoom: number): Promise<void> {
     if (this.divRef.current) {
       this._Map = new OlMap({
         target: this.divRef.current,
