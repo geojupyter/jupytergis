@@ -153,12 +153,12 @@ function useStacSearch({
           latest: { eq: true },
           dataset: { in: selectedDatasets },
           end_datetime: {
-            gte: endTime
-              ? endTime.toISOString()
+            gte: startTime
+              ? startTime.toISOString()
               : startOfYesterday().toISOString(),
           },
-          ...(startTime && {
-            start_datetime: { lte: startTime.toISOString() },
+          ...(endTime && {
+            start_datetime: { lte: endTime.toISOString() },
           }),
           ...(selectedPlatforms.length > 0 && {
             platform: { in: selectedPlatforms },
