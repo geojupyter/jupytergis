@@ -17,9 +17,17 @@ export interface ISymbologyDialogProps {
   layerId?: string;
 }
 
+export interface ISymbologyDialogWithAttributesProps
+  extends ISymbologyDialogProps {
+  selectableAttributesAndValues: Record<string, Set<any>>;
+}
+
 export interface ISymbologyTabbedDialogProps extends ISymbologyDialogProps {
   symbologyTab: SymbologyTab;
 }
+
+export type ISymbologyTabbedDialogWithAttributesProps =
+  ISymbologyDialogWithAttributesProps & ISymbologyTabbedDialogProps;
 
 export interface ISymbologyWidgetOptions {
   model: IJupyterGISModel;

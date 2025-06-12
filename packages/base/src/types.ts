@@ -24,6 +24,13 @@ export interface IControlPanelModel {
 
 export type SymbologyTab = 'color' | 'radius';
 
+export type VectorRenderType =
+  | 'Single Symbol'
+  | 'Canonical'
+  | 'Graduated'
+  | 'Categorized'
+  | 'Heatmap';
+
 /**
  * Add jupytergisMaps object to the global variables.
  */

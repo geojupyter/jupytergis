@@ -586,10 +586,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   display: none;
 }
 
-.jGIS-property-panel .rjsf .errors {
-  color: var(--jp-warn-color0);
-}
-
 .jGIS-property-panel .rjsf .errors ul,
 .jGIS-property-panel .rjsf .validationErrors ul,
 .jGIS-property-panel .rjsf .validationErrors li,
