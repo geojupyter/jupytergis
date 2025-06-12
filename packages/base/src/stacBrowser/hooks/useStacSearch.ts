@@ -103,14 +103,12 @@ function useStacSearch({
   const [results, setResults] = useState<IStacItem[]>([]);
   const [currentBBox, setCurrentBBox] = useState<
     [number, number, number, number]
-  >([0, 0, 0, 0]);
+  >([-180, -90, 180, 90]);
   const [startTime, setStartTime] = useState<Date>();
   const [endTime, setEndTime] = useState<Date>();
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
-  const [queryBody, setQueryBody] = useState<IStacQueryBody>();
   const [totalResults, setTotalResults] = useState(0);
-  const [isFirstRender, setIsFirstRender] = useState(false);
 
   // Listen for model updates to get current bounding box
   useEffect(() => {
@@ -123,13 +121,15 @@ function useStacSearch({
 
     model?.updateResolutionSignal.connect(listenToModel);
 
+    // If there's existing search params when the model loads, do a query
+    // model && Object.keys(datasets).length && fetchResults();
+
     return () => {
       model?.updateResolutionSignal.disconnect(listenToModel);
     };
   }, [model]);
 
-  // Handle search when filters change
-  useEffect(() => {
+  const fetchResults = async (page = 1) => {
     const selectedDatasets = Object.entries(datasets)
       .filter(([key]) => selectedCollections.includes(key))
       .flatMap(([_, values]) => values);
@@ -144,64 +144,34 @@ function useStacSearch({
       }
     });
 
-    const fetchInEffect = async () => {
-      const body: IStacQueryBody = {
-        bbox: currentBBox,
-        limit: 12,
-        page: currentPage,
-        query: {
-          latest: { eq: true },
-          dataset: { in: selectedDatasets },
-          end_datetime: {
-            gte: startTime
-              ? startTime.toISOString()
-              : startOfYesterday().toISOString(),
-          },
-          ...(endTime && {
-            start_datetime: { lte: endTime.toISOString() },
-          }),
-          ...(selectedPlatforms.length > 0 && {
-            platform: { in: selectedPlatforms },
-          }),
-          ...(processingLevel.length > 0 && {
-            'processing:level': { in: processingLevel },
-          }),
-          ...(productType.length > 0 && {
-            'product:type': { in: productType },
-          }),
+    const body: IStacQueryBody = {
+      bbox: currentBBox,
+      limit: 12,
+      page,
+      query: {
+        latest: { eq: true },
+        dataset: { in: selectedDatasets },
+        end_datetime: {
+          gte: startTime
+            ? startTime.toISOString()
+            : startOfYesterday().toISOString(),
         },
-        sortBy: [{ direction: 'desc', field: 'start_datetime' }],
-      };
-
-      setQueryBody(body);
-      const result = await prepareFetch(body);
-
-      if (!result) {
-        return;
-      }
-
-      const pages = result.context.matched / result.context.limit;
-      setTotalPages(Math.ceil(pages));
-      setTotalResults(result.context.matched);
+        ...(endTime && {
+          start_datetime: { lte: endTime.toISOString() },
+        }),
+        ...(selectedPlatforms.length > 0 && {
+          platform: { in: selectedPlatforms },
+        }),
+        ...(processingLevel.length > 0 && {
+          'processing:level': { in: processingLevel },
+        }),
+        ...(productType.length > 0 && {
+          'product:type': { in: productType },
+        }),
+      },
+      sortBy: [{ direction: 'desc', field: 'start_datetime' }],
     };
 
-    if (!isFirstRender) {
-      fetchInEffect();
-    }
-
-    if (isFirstRender) {
-      setIsFirstRender(false);
-    }
-  }, [selectedCollections, selectedPlatforms, selectedProducts]);
-
-  /**
-   * Fetches STAC search results using a proxy
-   * @param body - Query options for the STAC search
-   * @returns Promise resolving to search results or undefined if error
-   */
-  const prepareFetch = async (
-    body: IStacQueryBody,
-  ): Promise<IStacSearchResult | undefined> => {
     try {
       const options = {
         method: 'POST',
@@ -227,16 +197,37 @@ function useStacSearch({
 
       if (!data) {
         console.log('No Results found');
+        setResults([]);
+        setTotalPages(1);
+        setTotalResults(0);
         return;
       }
 
       setResults(data.features);
-      return data;
+      const pages = data.context.matched / data.context.limit;
+      setTotalPages(Math.ceil(pages));
+      setTotalResults(data.context.matched);
     } catch (error) {
       console.error('Error fetching data:', error);
-      return undefined;
+      setResults([]);
+      setTotalPages(1);
+      setTotalResults(0);
     }
   };
+
+  // Handle search when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+    model && fetchResults(1);
+  }, [
+    selectedCollections,
+    selectedPlatforms,
+    selectedProducts,
+    startTime,
+    endTime,
+    currentBBox,
+    model,
+  ]);
 
   /**
    * Handles clicking on a result item
@@ -270,13 +261,8 @@ function useStacSearch({
    * @param page - Page number to navigate to
    */
   const handlePaginationClick = async (page: number): Promise<void> => {
-    if (!queryBody) {
-      return;
-    }
-
     setCurrentPage(page);
-    const body = { ...queryBody, page };
-    await prepareFetch(body);
+    model && fetchResults(page);
   };
 
   /**
