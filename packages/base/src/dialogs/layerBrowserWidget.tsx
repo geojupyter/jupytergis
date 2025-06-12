@@ -3,12 +3,13 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
   IJupyterGISTracker,
-  IRasterLayerGalleryEntry
+  IRasterLayerGalleryEntry,
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React from 'react';
+
 import { LayerBrowserComponent } from './layerBrowserDialog';
 
 export interface ILayerBrowserOptions {

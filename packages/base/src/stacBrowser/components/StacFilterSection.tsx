@@ -1,8 +1,9 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useMemo } from 'react';
+
 import {
   ToggleGroup,
-  ToggleGroupItem
+  ToggleGroupItem,
 } from '../../shared/components/ToggleGroup';
 
 interface IStacCollectionsProps {
@@ -20,7 +21,7 @@ const StacFilterSection = ({
   selectedCollections,
   selectedPlatforms,
   handleToggleGroupValueChange,
-  model
+  model,
 }: IStacCollectionsProps) => {
   // ! Starts here
 
@@ -49,7 +50,7 @@ const StacFilterSection = ({
             >
               {val}
             </ToggleGroupItem>
-          ))
+          )),
         );
     }
 

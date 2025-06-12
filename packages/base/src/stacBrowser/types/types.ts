@@ -124,12 +124,6 @@ export interface IStacSearchResult {
   type: 'FeatureCollection';
 }
 
-// export type ProductData = {
-//   collections: string[];
-//   'processing:level': string[];
-//   'product:type': string[];
-// };
-
 export type ProductCode = string;
 export type CollectionName =
   | 'Sentinel 1'
@@ -173,7 +167,7 @@ export interface IStacQueryBody {
     {
       direction: 'desc';
       field: 'start_datetime';
-    }
+    },
   ];
 }
 
