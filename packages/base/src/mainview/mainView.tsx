@@ -91,6 +91,15 @@ import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 
+type OlLayerTypes =
+  | TileLayer
+  | VectorLayer
+  | VectorTileLayer
+  | WebGlTileLayer
+  | WebGlTileLayer
+  | HeatmapLayer
+  | StacLayer
+  | ImageLayer<any>;
 interface IProps {
   viewModel: MainViewModel;
 }
@@ -273,8 +282,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       const view = this._Map.getView();
 
-      // need to convert to 4326 I think
-      // TODO: debounce this
+      // TODO: Debounce?
       view.on('change:resolution', () => {
         const extentIn4326 = this.getViewBbox();
         this._model.updateResolutionSignal.emit(extentIn4326);
@@ -851,24 +859,28 @@ export class MainView extends React.Component<IProps, IStates> {
   private async _buildMapLayer(
     id: string,
     layer: IJGISLayer,
-  ): Promise<Layer | undefined> {
-    const sourceId = layer.parameters?.source;
-    const source = this._model.sharedModel.getLayerSource(sourceId);
-    if (source) {
-      // return;
-      // TODO I CHANGED THIS A LOT DOUBLE CHECK
-      this.setState(old => ({ ...old, loadingLayer: true }));
-      this._loadingLayers.add(id);
+  ): Promise<Layer | StacLayer | undefined> {
+    this.setState(old => ({ ...old, loadingLayer: true }));
+    this._loadingLayers.add(id);
 
+    let newMapLayer: OlLayerTypes;
+    let layerParameters;
+    let sourceId: string | undefined;
+    let source: IJGISSource | undefined;
+
+    if (layer.type !== 'StacLayer') {
+      sourceId = layer.parameters?.source;
+      if (!sourceId) {
+        return;
+      }
+      source = this._model.sharedModel.getLayerSource(sourceId);
+      if (!source) {
+        return;
+      }
       if (!this._sources[sourceId]) {
         await this.addSource(sourceId, source);
       }
     }
-
-    this._loadingLayers.add(id);
-
-    let newMapLayer: any;
-    let layerParameters;
 
     // TODO: OpenLayers provides a bunch of sources for specific tile
     // providers, so maybe set up some way to use those
@@ -956,12 +968,11 @@ export class MainView extends React.Component<IProps, IStates> {
           radius: layerParameters.radius ?? 8,
           gradient: layerParameters.color,
         });
+
         break;
       }
       case 'StacLayer': {
         layerParameters = layer.parameters as IStacLayer;
-
-        console.log('layerParameters', layerParameters);
 
         newMapLayer = new StacLayer({
           displayPreview: true,
@@ -972,28 +983,34 @@ export class MainView extends React.Component<IProps, IStates> {
           extent: layerParameters.data.bbox,
         });
 
-        newMapLayer.on('sourceready', () => {
-          this._Map.getView().fit(newMapLayer.getExtent());
+        // ? TODO: unsure about this
+        newMapLayer.addEventListener('sourceready', () => {
+          const extent = newMapLayer.getExtent();
+          if (extent) {
+            this._Map.getView().fit(extent);
+          }
         });
 
         break;
       }
     }
 
-    await this._waitForSourceReady(newMapLayer);
-
     // OpenLayers doesn't have name/id field so add it
     newMapLayer.set('id', id);
 
-    // we need to keep track of which source has which layers
-    // this._sourceToLayerMap.set(layerParameters.source, id);
+    // STAC layers don't have source
+    if (newMapLayer instanceof Layer) {
+      // we need to keep track of which source has which layers
+      // Only set sourceToLayerMap if 'source' exists on layerParameters
+      if ('source' in layerParameters) {
+        this._sourceToLayerMap.set(layerParameters.source, id);
+      }
 
-    if (!(layer.type === 'StacLayer')) {
       this.addProjection(newMapLayer);
+      await this._waitForSourceReady(newMapLayer);
     }
 
     this._loadingLayers.delete(id);
-
     return newMapLayer;
   }
 
@@ -1748,11 +1765,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
       const mapLayer = this.getLayer(id);
       const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
-
-      // ! this is where i stopped on the 21st
-      // if (!mapLayer) {
-      //   return;
-      // }
 
       if (layerTree.includes(id)) {
         this.updateLayer(id, newLayer, mapLayer, oldLayer);
