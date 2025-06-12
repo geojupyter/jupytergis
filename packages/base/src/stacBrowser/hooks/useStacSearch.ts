@@ -49,6 +49,7 @@ interface IUseStacSearchReturn {
   handlePaginationClick: (page: number) => Promise<void>;
   handleResultClick: (id: string) => Promise<void>;
   formatResult: (item: IStacItem) => string;
+  isLoading: boolean;
 }
 
 /**
@@ -92,6 +93,7 @@ function useStacSearch({
   const [currentBBox, setCurrentBBox] = useState<
     [number, number, number, number]
   >([-180, -90, 180, 90]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Persist state changes to localStorage
   // TODO: Switch to StateDB
@@ -195,6 +197,7 @@ function useStacSearch({
     };
 
     try {
+      setIsLoading(true);
       const options = {
         method: 'POST',
         headers: {
@@ -234,6 +237,8 @@ function useStacSearch({
       setResults([]);
       setTotalPages(1);
       setTotalResults(0);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -318,6 +323,7 @@ function useStacSearch({
     handlePaginationClick,
     handleResultClick,
     formatResult,
+    isLoading,
   };
 }
 

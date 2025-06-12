@@ -19,6 +19,7 @@ interface IStacPanelResultsProps {
   handlePaginationClick: (page: number) => void;
   handleResultClick: (id: string) => void;
   formatResult: (item: IStacItem) => string;
+  isLoading: boolean;
 }
 
 function getPageItems(
@@ -56,6 +57,7 @@ const StacPanelResults = ({
   handlePaginationClick,
   handleResultClick,
   formatResult,
+  isLoading,
 }: IStacPanelResultsProps) => {
   return (
     <div className="jgis-stac-browser-filters-panel">
@@ -103,15 +105,20 @@ const StacPanelResults = ({
         </PaginationContent>
       </Pagination>
       <div className="jgis-stac-browser-results-list">
-        {results.map(result => (
-          <Button
-            key={result.id}
-            className="jgis-stac-browser-results-item"
-            onClick={() => handleResultClick(result.id)}
-          >
-            {formatResult(result)}
-          </Button>
-        ))}
+        {isLoading ? (
+          // TODO: Fancy spinner
+          <div>Loading results...</div>
+        ) : (
+          results.map(result => (
+            <Button
+              key={result.id}
+              className="jgis-stac-browser-results-item"
+              onClick={() => handleResultClick(result.id)}
+            >
+              {formatResult(result)}
+            </Button>
+          ))
+        )}
       </div>
     </div>
   );
