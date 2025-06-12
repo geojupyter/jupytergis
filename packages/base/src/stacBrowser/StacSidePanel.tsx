@@ -1,5 +1,6 @@
 import { IJupyterGISTracker } from '@jupytergis/schema';
 import { SidePanel } from '@jupyterlab/ui-components';
+
 import { IControlPanelModel } from '../types';
 import StacPanel from './StacPanel';
 
@@ -22,7 +23,7 @@ export class StacSidePanel extends SidePanel {
 
     const stac = new StacPanel({
       model: this._model,
-      tracker: this._tracker
+      tracker: this._tracker,
     });
 
     this.addWidget(stac);

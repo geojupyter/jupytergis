@@ -1,20 +1,21 @@
 import React from 'react';
+
+import StacPanelFilters from './StacPanelFilters';
+import StacPanelResults from './StacPanelResults';
 import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger
+  TabsTrigger,
 } from '../../shared/components/Tabs';
 import useStacSearch from '../hooks/useStacSearch';
 import { IStacViewProps } from '../types/types';
-import StacPanelFilters from './StacPanelFilters';
-import StacPanelResults from './StacPanelResults';
 
 const StacPanelView = ({
   datasets,
   platforms,
   model,
-  products
+  products,
 }: IStacViewProps) => {
   const {
     selectedCollections,
@@ -33,7 +34,7 @@ const StacPanelView = ({
     totalResults,
     handlePaginationClick,
     handleResultClick,
-    formatResult
+    formatResult,
   } = useStacSearch({ datasets, platforms, products, model });
 
   if (!model) {

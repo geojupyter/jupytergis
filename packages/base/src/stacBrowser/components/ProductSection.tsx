@@ -1,8 +1,9 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useMemo } from 'react';
+
 import {
   ToggleGroup,
-  ToggleGroupItem
+  ToggleGroupItem,
 } from '../../shared/components/ToggleGroup';
 import { getProductCodesForCollection } from '../StacBrowser';
 import { CollectionName, IProductData } from '../types/types';
@@ -22,13 +23,13 @@ const ProductSection = ({
   selectedCollections,
   selectedProducts,
   handleToggleGroupValueChange,
-  model
+  model,
 }: IStacSectionProps) => {
   // ! Starts here
   const items = useMemo(() => {
     const productCodesForCollections = selectedCollections
       .map(collection =>
-        getProductCodesForCollection(collection as CollectionName)
+        getProductCodesForCollection(collection as CollectionName),
       )
       .flat();
 

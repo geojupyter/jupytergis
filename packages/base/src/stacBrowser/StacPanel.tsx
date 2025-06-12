@@ -2,6 +2,7 @@ import { IJupyterGISTracker } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React from 'react';
+
 import { IControlPanelModel } from '../types';
 import StacBrowser from './StacBrowser';
 
@@ -21,8 +22,8 @@ export class StacPanel extends Panel {
         <StacBrowser
           controlPanelModel={this._model}
           tracker={this._tracker}
-        ></StacBrowser>
-      )
+        ></StacBrowser>,
+      ),
     );
   }
 
