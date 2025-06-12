@@ -35,6 +35,7 @@ const StacPanelView = ({
     handlePaginationClick,
     handleResultClick,
     formatResult,
+    isLoading,
   } = useStacSearch({ datasets, platforms, products, model });
 
   if (!model) {
@@ -78,6 +79,7 @@ const StacPanelView = ({
           handlePaginationClick={handlePaginationClick}
           handleResultClick={handleResultClick}
           formatResult={formatResult}
+          isLoading={isLoading}
         />
       </TabsContent>
     </Tabs>
