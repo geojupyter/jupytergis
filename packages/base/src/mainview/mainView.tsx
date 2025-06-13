@@ -80,13 +80,13 @@ import * as React from 'react';
 
 import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
+import { LoadingOverlay } from '@/src/shared/components/loading';
 import StatusBar from '@/src/statusbar/StatusBar';
 import { isLightTheme, loadFile, throttle } from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import { LoadingOverlay } from '@/src/shared/components/loading';
 
 interface IProps {
   viewModel: MainViewModel;
