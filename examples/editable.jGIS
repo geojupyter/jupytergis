@@ -1,9 +1,7 @@
 {
   "layerTree": [
     "8de7c2c0-6024-4716-b542-031a89fb87f9",
-    "3e21d680-406f-4099-bd9e-3a4edb9a2c8b",
-    "5ff49984-5480-4cd4-aabd-3a43186350ba",
-    "f44d7a8c-2d45-484b-89e3-e59edea8f988"
+    "3e21d680-406f-4099-bd9e-3a4edb9a2c8b"
   ],
   "layers": {
     "3e21d680-406f-4099-bd9e-3a4edb9a2c8b": {
@@ -11,7 +9,7 @@
         "appliedFilters": [],
         "logicalOp": "all"
       },
-      "name": "Custom GeoJSON Layer",
+      "name": "Editable GeoJSON Layer",
       "parameters": {
         "color": {
           "circle-fill-color": "#f66151",
@@ -31,15 +29,6 @@
       "type": "VectorLayer",
       "visible": true
     },
-    "5ff49984-5480-4cd4-aabd-3a43186350ba": {
-      "name": "Editable GeoJSON Layer 1",
-      "parameters": {
-        "opacity": 1.0,
-        "source": "e5b8b9db-22b3-4439-8db3-59da882636ac"
-      },
-      "type": "VectorLayer",
-      "visible": true
-    },
     "8de7c2c0-6024-4716-b542-031a89fb87f9": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
@@ -47,48 +36,53 @@
       },
       "type": "RasterLayer",
       "visible": true
-    },
-    "f44d7a8c-2d45-484b-89e3-e59edea8f988": {
-      "name": "Editable GeoJSON Layer 2",
-      "parameters": {
-        "opacity": 1.0,
-        "source": "210844ec-68e3-49d5-afd3-bc9bd872c695"
-      },
-      "type": "VectorLayer",
-      "visible": true
     }
   },
   "metadata": {},
   "options": {
     "bearing": 0.0,
     "extent": [
-      -16434055.989266738,
-      -3411504.4661820857,
-      -2212097.8396098875,
-      14828095.240483545
+      -14181614.437015302,
+      -5303433.533961326,
+      -2473763.273952904,
+      13774201.834902454
     ],
-    "latitude": 45.54854082519543,
-    "longitude": -83.75062487261803,
+    "latitude": 35.52446437432016,
+    "longitude": -74.80890180273175,
     "pitch": 0.0,
     "projection": "EPSG:3857",
     "zoom": 2.6670105136699993
   },
   "schemaVersion": "0.5.0",
   "sources": {
-    "210844ec-68e3-49d5-afd3-bc9bd872c695": {
-      "name": "Editable GeoJSON Layer 2 Source",
+    "348d85fa-3a71-447f-8a64-e283ec47cc7c": {
+      "name": "Editable GeoJSON Layer Source",
       "parameters": {
         "data": {
-          "features": [],
+          "features": [
+            {
+              "geometry": {
+                "coordinates": [
+                  102.0,
+                  0.5
+                ],
+                "type": "Point"
+              },
+              "type": "Feature"
+            },
+            {
+              "geometry": {
+                "coordinates": [
+                  102.0,
+                  0.5
+                ],
+                "type": "Point"
+              },
+              "type": "Feature"
+            }
+          ],
           "type": "FeatureCollection"
         }
-      },
-      "type": "GeoJSONSource"
-    },
-    "348d85fa-3a71-447f-8a64-e283ec47cc7c": {
-      "name": "Custom GeoJSON Layer Source",
-      "parameters": {
-        "path": "eq.json"
       },
       "type": "GeoJSONSource"
     },
@@ -103,16 +97,6 @@
         "urlParameters": {}
       },
       "type": "RasterSource"
-    },
-    "e5b8b9db-22b3-4439-8db3-59da882636ac": {
-      "name": "Custom GeoJSON Layer Source",
-      "parameters": {
-        "data": {
-          "features": [],
-          "type": "FeatureCollection"
-        }
-      },
-      "type": "GeoJSONSource"
     }
   }
 }

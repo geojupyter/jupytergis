@@ -205,9 +205,12 @@ export class LeftPanelWidget extends SidePanel {
   }
 
   private _notifyCommands() {
-    // Notify commands that need updating
-    this._commands.notifyCommandChanged(CommandIDs.identify);
-    this._commands.notifyCommandChanged(CommandIDs.temporalController);
+    // Notify updating
+    Object.values(CommandIDs).forEach(id => {
+      if (this._commands.hasCommand(id)) {
+        this._commands.notifyCommandChanged(id);
+      }
+    });
   }
 
   private _handleFileChange: () => void;
