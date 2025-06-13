@@ -16,7 +16,7 @@ import Protobuf from 'pbf';
 import shp from 'shpjs';
 
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
-import { getGdal } from '@/src/gdal';
+import { getGdal } from './gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -387,17 +387,20 @@ export const getFromIndexedDB = async (key: string) => {
   });
 };
 
-const fetchWithProxies = async <T>(
+export const fetchWithProxies = async <T>(
   url: string,
   model: IJupyterGISModel,
   parseResponse: (response: Response) => Promise<T>,
+  options?: RequestInit,
 ): Promise<T | null> => {
   let settings: any = null;
 
-  try {
-    settings = await model.getSettings();
-  } catch (e) {
-    console.warn('Failed to get settings from model. Falling back.', e);
+  if (model) {
+    try {
+      settings = model.getSettings();
+    } catch (e) {
+      console.warn('Failed to get settings from model. Falling back.', e);
+    }
   }
 
   const proxyUrl =
@@ -411,13 +414,14 @@ const fetchWithProxies = async <T>(
 
   for (const proxyUrl of proxyUrls) {
     try {
-      const response = await fetch(proxyUrl);
+      const response = await fetch(proxyUrl, options);
       if (!response.ok) {
         console.warn(
           `Failed to fetch from ${proxyUrl}: ${response.statusText}`,
         );
         continue;
       }
+      console.log('response', response);
       return await parseResponse(response);
     } catch (error) {
       console.warn(`Error fetching from ${proxyUrl}:`, error);
