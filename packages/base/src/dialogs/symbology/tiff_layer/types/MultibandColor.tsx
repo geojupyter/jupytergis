@@ -126,57 +126,52 @@ const MultibandColor = ({
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
-        {loading ? (
-          <LoadingOverlay loading={loading} />
-        ) : (
-          <>
-            <BandRow
-              label="Red Band"
-              index={selectedBands.red - 1}
-              bandRow={bandRows[selectedBands.red - 1]}
-              bandRows={bandRows}
-              setSelectedBand={val => updateBand('red', val >= 0 ? val + 1 : 0)}
-              setBandRows={setBandRows}
-              isMultibandColor={true}
-            />
+        <LoadingOverlay loading={loading} />
+        <BandRow
+          label="Red Band"
+          index={selectedBands.red - 1}
+          bandRow={bandRows[selectedBands.red - 1]}
+          bandRows={bandRows}
+          setSelectedBand={val => updateBand('red', val >= 0 ? val + 1 : 0)}
+          setBandRows={setBandRows}
+          isMultibandColor={true}
+        />
 
-            <BandRow
-              label="Green Band"
-              index={selectedBands.green - 1}
-              bandRow={bandRows[selectedBands.green - 1]}
-              bandRows={bandRows}
-              setSelectedBand={val =>
-                updateBand('green', val >= 0 ? val + 1 : 0)
-              }
-              setBandRows={setBandRows}
-              isMultibandColor={true}
-            />
+        <BandRow
+          label="Green Band"
+          index={selectedBands.green - 1}
+          bandRow={bandRows[selectedBands.green - 1]}
+          bandRows={bandRows}
+          setSelectedBand={val =>
+            updateBand('green', val >= 0 ? val + 1 : 0)
+          }
+          setBandRows={setBandRows}
+          isMultibandColor={true}
+        />
 
-            <BandRow
-              label="Blue Band"
-              index={selectedBands.blue - 1}
-              bandRow={bandRows[selectedBands.blue - 1]}
-              bandRows={bandRows}
-              setSelectedBand={val =>
-                updateBand('blue', val >= 0 ? val + 1 : 0)
-              }
-              setBandRows={setBandRows}
-              isMultibandColor={true}
-            />
+        <BandRow
+          label="Blue Band"
+          index={selectedBands.blue - 1}
+          bandRow={bandRows[selectedBands.blue - 1]}
+          bandRows={bandRows}
+          setSelectedBand={val =>
+            updateBand('blue', val >= 0 ? val + 1 : 0)
+          }
+          setBandRows={setBandRows}
+          isMultibandColor={true}
+        />
 
-            <BandRow
-              label="Alpha Band"
-              index={selectedBands.alpha - 1}
-              bandRow={bandRows[selectedBands.alpha - 1]}
-              bandRows={bandRows}
-              setSelectedBand={val =>
-                updateBand('alpha', val >= 0 ? val + 1 : 0)
-              }
-              setBandRows={setBandRows}
-              isMultibandColor={true}
-            />
-          </>
-        )}
+        <BandRow
+          label="Alpha Band"
+          index={selectedBands.alpha - 1}
+          bandRow={bandRows[selectedBands.alpha - 1]}
+          bandRows={bandRows}
+          setSelectedBand={val =>
+            updateBand('alpha', val >= 0 ? val + 1 : 0)
+          }
+          setBandRows={setBandRows}
+          isMultibandColor={true}
+        />
       </div>
     </div>
   );
