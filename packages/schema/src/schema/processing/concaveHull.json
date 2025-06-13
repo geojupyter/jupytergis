@@ -12,9 +12,9 @@
     "pctconvex": {
       "type": "number",
       "description": "Controls the concaveness of the computed hull, vary from 0 to 1, 0 corresponds to the maximum concavity.",
-      "multipleOf":0.1,
-      "minimum" : 0,
-      "maximum" : 1,
+      "multipleOf": 0.1,
+      "minimum": 0,
+      "maximum": 1,
       "default": 0.5
     },
     "allowHoles": {
