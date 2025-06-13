@@ -1,3 +1,7 @@
+/* This file is not an exhaustive list of commands.
+ *
+ * See the documentation for more details.
+ */
 export const createNew = 'jupytergis:create-new-jGIS-file';
 export const redo = 'jupytergis:redo';
 export const undo = 'jupytergis:undo';

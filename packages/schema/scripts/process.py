@@ -65,7 +65,7 @@ def defineProcessingType():
 
         f.write(";\n")
 
-        f.write("export const ProcessingList = [\n")
+        f.write("export const processingList = [\n")
 
         for param in params:
             description = param["description"]

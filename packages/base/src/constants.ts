@@ -1,7 +1,7 @@
 import { IDict, ProcessingCommandIDs } from '@jupytergis/schema';
 import { LabIcon, redoIcon, undoIcon } from '@jupyterlab/ui-components';
 
-import * as BaseCommandIDs from './CommandIDs';
+import * as BaseCommandIDs from './commands/BaseCommandIDs';
 import {
   bookOpenIcon,
   clockIcon,

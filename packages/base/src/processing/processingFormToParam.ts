@@ -1,6 +1,6 @@
 import {
   ProcessingType,
-  ProcessingList,
+  processingList,
   ProcessingMerge,
   IDict,
 } from '@jupytergis/schema';
@@ -9,7 +9,7 @@ export function processingFormToParam(
   formValues: IDict,
   processingType: ProcessingType,
 ) {
-  if (!ProcessingList.includes(processingType)) {
+  if (!processingList.includes(processingType)) {
     console.error(`Unsupported processing type: ${processingType}`);
     return;
   }

@@ -20,18 +20,18 @@ import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
-import { CommandIDs, icons } from './constants';
-import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
-import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
-import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
-import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
-import { targetWithCenterIcon } from './icons';
-import keybindings from './keybindings.json';
-import { getSingleSelectedLayer } from './processing';
-import { addProcessingCommands } from './processing/processingCommands';
-import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
-import { JupyterGISTracker } from './types';
-import { JupyterGISDocumentWidget } from './widget';
+import { CommandIDs, icons } from '../constants';
+import { ProcessingFormDialog } from '../dialogs/ProcessingFormDialog';
+import { LayerBrowserWidget } from '../dialogs/layerBrowserDialog';
+import { LayerCreationFormDialog } from '../dialogs/layerCreationFormDialog';
+import { SymbologyWidget } from '../dialogs/symbology/symbologyDialog';
+import { targetWithCenterIcon } from '../icons';
+import keybindings from '../keybindings.json';
+import { getSingleSelectedLayer } from '../processing/index';
+import { addProcessingCommands } from '../processing/processingCommands';
+import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
+import { JupyterGISTracker } from '../types';
+import { JupyterGISDocumentWidget } from '../widget';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;

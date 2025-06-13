@@ -5,17 +5,17 @@ import {
   IJupyterGISModel,
   IJGISFormSchemaRegistry,
   LayerType,
-  ProcessingList,
+  processingList,
   ProcessingType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { UUID } from '@lumino/coreutils';
 
-import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
-import { getGdal } from './gdal';
-import { processingFormToParam } from './processing/processingFormToParam';
-import { getGeoJSONDataFromLayerSource } from './tools';
-import { JupyterGISTracker } from './types';
+import { ProcessingFormDialog } from '../dialogs/ProcessingFormDialog';
+import { getGdal } from '../gdal';
+import { processingFormToParam } from './processingFormToParam';
+import { getGeoJSONDataFromLayerSource } from '../tools';
+import { JupyterGISTracker } from '../types';
 
 /**
  * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
@@ -146,7 +146,7 @@ export async function processSelectedLayer(
     return;
   }
 
-  if (!ProcessingList.includes(processingType)) {
+  if (!processingList.includes(processingType)) {
     console.error(`Unsupported processing type: ${processingType}`);
     return;
   }

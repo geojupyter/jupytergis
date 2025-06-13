@@ -8,7 +8,7 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CommandRegistry } from '@lumino/commands';
 
-import { selectedLayerIsOfType, processSelectedLayer } from '../processing';
+import { selectedLayerIsOfType, processSelectedLayer } from './index';
 import { JupyterGISTracker } from '../types';
 
 export function replaceInSql(
@@ -16,13 +16,25 @@ export function replaceInSql(
   keyToVal: IDict<string>,
   layerName: string,
 ) {
-  const helper = (key: string, s: string, value: string): string =>
-    s.replace(RegExp(`{${key}}`, 'g'), value);
+  const replaceTemplateString = (args: {
+    variableName: string;
+    template: string;
+    value: string;
+  }): string =>
+    args.template.replace(RegExp(`{${args.variableName}}`, 'g'), args.value);
 
-  let out = helper('layerName', sql, layerName);
+  let out = replaceTemplateString({
+    variableName: 'layerName',
+    template: sql,
+    value: layerName,
+  });
 
   for (const [key, value] of Object.entries(keyToVal)) {
-    out = helper(key, out, value);
+    out = replaceTemplateString({
+      variableName: key,
+      template: out,
+      value: value,
+    });
   }
 
   return out;
