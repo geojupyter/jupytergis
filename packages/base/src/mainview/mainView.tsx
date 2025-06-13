@@ -1498,7 +1498,7 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
 
-    /* check if the currently selected layer is a drawVector layer 
+    /* check if the currently selected layer is a drawVector layer
     and update isDrawVectorLayer to remove the display of the geometry selection overlay if required*/
     const selectedLayers = localState?.selected?.value;
     if (!selectedLayers) {
