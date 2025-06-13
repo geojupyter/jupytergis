@@ -128,13 +128,6 @@ select option {
   margin: auto;
 }
 
-.jp-gis-loading-spinner {
-  animation: spin 4s linear infinite;
-  font-size: 1.5rem;
-  padding: 1rem 0;
-  margin: auto;
-}
-
 .jp-gis-band-info-loading-container > span {
   font-size: 1rem;
 }

@@ -86,7 +86,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import { Spinner } from './spinner';
+import { LoadingOverlay } from '@/src/shared/components/loading';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -2053,7 +2053,7 @@ export class MainView extends React.Component<IProps, IStates> {
                 : 'unset',
             }}
           >
-            <Spinner loading={this.state.loading} />
+            <LoadingOverlay loading={this.state.loading} />
             <FollowIndicator remoteUser={this.state.remoteUser} />
             <CollaboratorPointers clients={this.state.clientPointers} />
 
