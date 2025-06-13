@@ -1,4 +1,4 @@
-import { IDict, IJupyterGISModel } from '@jupytergis/schema';
+import { ProcessingType, IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
@@ -9,7 +9,6 @@ import {
   IBaseFormProps,
 } from '@/src/formbuilder/objectform/baseform';
 import { DissolveForm } from '@/src/formbuilder/objectform/process';
-import { ProcessingType } from '../processing/_generated/processingType';
 
 export interface IProcessingFormDialogOptions extends IBaseFormProps {
   formContext: 'update' | 'create';

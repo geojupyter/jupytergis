@@ -1,8 +1,7 @@
-#!/bin/python3
 import os
 import json
 
-processing_dir = "packages/schema/src/schema/processing"
+processing_dir = "src/schema/processing"
 
 filenames = [file for file in os.listdir(processing_dir) if file.endswith(".json")]
 
@@ -27,16 +26,14 @@ for filename in filenames:
 
         params.append(toAdd)
 
+directory = "src/processing/_generated"
+
 
 def addBanner(f):
     f.write("//Generated automatically please don't modify directly\n")
 
 
 def generateJsonMerge():
-    directory = "packages/schema/src/processing/_generated"
-
-    os.makedirs(directory, exist_ok=True)
-
     output = f"{directory}/processing_merge.json"
 
     with open(output, "w+") as f:
@@ -45,10 +42,6 @@ def generateJsonMerge():
 
 
 def exportSchema():
-    directory = "packages/schema/src/processing/_generated"
-
-    os.makedirs(directory, exist_ok=True)
-
     curFileName = f"{directory}/exportProcessingSchema.ts"
 
     with open(curFileName, "w+") as f:
@@ -59,10 +52,6 @@ def exportSchema():
 
 
 def defineProcessingType():
-    directory = "packages/base/src/processing/_generated"
-
-    os.makedirs(directory, exist_ok=True)
-
     curFileName = f"{directory}/processingType.ts"
 
     with open(curFileName, "w+") as f:
@@ -85,24 +74,7 @@ def defineProcessingType():
         f.write("];\n")
 
 
-def addConstant():
-    directory = "packages/base/src/processing/_generated"
-
-    os.makedirs(directory, exist_ok=True)
-
-    curFileName = "packages/base/src/processing/_generated/processingConstants.ts"
-
-    with open(curFileName, "w+") as f:
-        addBanner(f)
-        for i in range(len(params)):
-            param = params[i]
-            processName = param["processName"]
-            f.write(f"export const {processName} = 'jupytergis:{processName}';\n")
-            if i + 1 == len(params):
-                continue
-
-
+os.makedirs(directory, exist_ok=True)
 generateJsonMerge()
 exportSchema()
 defineProcessingType()
-addConstant()

@@ -1,3 +1,4 @@
+import { IDict, ProcessingCommandIDs } from '@jupytergis/schema';
 import { LabIcon, redoIcon, undoIcon } from '@jupyterlab/ui-components';
 
 import * as BaseCommandIDs from './CommandIDs';
@@ -10,13 +11,12 @@ import {
   rasterIcon,
   vectorSquareIcon,
 } from './icons';
-import * as ProcessingCommandIDs from './processing/_generated/processingConstants';
 
 /**
  * The command IDs.
  */
 
-export const CommandIDs = {
+export const CommandIDs: IDict = {
   ...BaseCommandIDs,
   ...ProcessingCommandIDs,
 };

@@ -1,3 +1,4 @@
+import { IDict } from '../interfaces';
 import _ProcessingMerge from './_generated/processing_merge.json';
 
 type ProcessingElement = {
@@ -13,3 +14,9 @@ export const GEN_TYPE = {
 };
 
 export const ProcessingMerge = _ProcessingMerge as ProcessingElement[];
+
+export const ProcessingCommandIDs: IDict = {};
+
+for (const e of ProcessingMerge) {
+  ProcessingCommandIDs[e.processName] = 'jupytergis:{e.processName}';
+}

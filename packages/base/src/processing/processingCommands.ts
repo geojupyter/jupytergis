@@ -3,13 +3,13 @@ import {
   IJGISFormSchemaRegistry,
   ProcessingMerge,
   GEN_TYPE,
+  ProcessingType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CommandRegistry } from '@lumino/commands';
 
 import { selectedLayerIsOfType, processSelectedLayer } from '../processing';
 import { JupyterGISTracker } from '../types';
-import { ProcessingType } from './_generated/processingType';
 
 export function replaceInSql(
   sql: string,

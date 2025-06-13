@@ -144,8 +144,5 @@ packages/schema/src/schema/geojson.json
 
 # Automatically generated file for processing
 
-packages/base/src/processing/_generated/processingConstants.ts
+packages/schema/src/processing/_generated/*
 
-packages/schema/src/processing/_generated/exportProcessingSchema.ts
-
-packages/schema/src/processing/_generated/processing_merge.json

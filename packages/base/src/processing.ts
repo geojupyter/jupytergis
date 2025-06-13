@@ -5,16 +5,14 @@ import {
   IJupyterGISModel,
   IJGISFormSchemaRegistry,
   LayerType,
+  ProcessingList,
+  ProcessingType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { UUID } from '@lumino/coreutils';
 
 import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
 import { getGdal } from './gdal';
-import {
-  ProcessingList,
-  ProcessingType,
-} from './processing/_generated/processingType';
 import { processingFormToParam } from './processing/processingFormToParam';
 import { getGeoJSONDataFromLayerSource } from './tools';
 import { JupyterGISTracker } from './types';

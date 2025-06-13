@@ -1,6 +1,9 @@
-import { ProcessingMerge, IDict } from '@jupytergis/schema';
-
-import { ProcessingType, ProcessingList } from './_generated/processingType';
+import {
+  ProcessingType,
+  ProcessingList,
+  ProcessingMerge,
+  IDict,
+} from '@jupytergis/schema';
 
 export function processingFormToParam(
   formValues: IDict,

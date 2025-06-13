@@ -26,7 +26,8 @@
   },
   "scripts": {
     "build": "jlpm build:schema && jlpm build:lib",
-    "build:schema": "node ./cacheGeoJSONSchema.js && jlpm build:schema:js && jlpm build:schema:py",
+    "build:schema": "jlpm run build:processing && node ./cacheGeoJSONSchema.js && jlpm build:schema:js && jlpm build:schema:py",
+    "build:processing": "python scripts/process.py",
     "build:schema:js": "json2ts -i src/schema -o src/_interface --no-unknownAny --unreachableDefinitions --cwd ./src/schema && cd src/schema && node ../../schema.js",
     "build:schema:py": "datamodel-codegen --input ./src/schema --output ../../python/jupytergis_core/jupytergis_core/schema/interfaces --output-model-type pydantic_v2.BaseModel --input-file-type jsonschema",
     "build:prod": "jlpm run clean && jlpm build:schema && jlpm run build:lib",
