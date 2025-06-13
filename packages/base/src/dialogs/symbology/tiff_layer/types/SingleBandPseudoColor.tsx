@@ -18,7 +18,7 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
-import { Spinner } from '@/src/mainview/spinner';
+import { LoadingOverlay } from '@/src/shared/components/loading';
 import { GlobalStateDbManager } from '@/src/store';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
@@ -368,7 +368,7 @@ const SingleBandPseudoColor = ({
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
         {loading ? (
-          <Spinner loading={loading} />
+          <LoadingOverlay loading={loading} />
         ) : (
           <BandRow
             label="Band"

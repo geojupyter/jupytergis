@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import useGetBandInfo from '@/src/dialogs/symbology/hooks/useGetBandInfo';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
-import { Spinner } from '@/src/mainview/spinner';
+import { LoadingOverlay } from '@/src/shared/components/loading';
 
 interface ISelectedBands {
   red: number;
@@ -127,7 +127,7 @@ const MultibandColor = ({
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
         {loading ? (
-          <Spinner loading={loading} />
+          <LoadingOverlay loading={loading} />
         ) : (
           <>
             <BandRow
