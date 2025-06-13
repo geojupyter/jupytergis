@@ -6,6 +6,6 @@ export { SCHEMA_VERSION } from './_interface/version';
 export {
   ProcessingMerge,
   ProcessingCommandIDs,
-  GEN_TYPE,
+  ProcessingLogicType,
 } from './processing/ProcessingMerge';
 export * from './processing/_generated/processingType';

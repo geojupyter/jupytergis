@@ -9,7 +9,7 @@ type ProcessingElement = {
   processType: string;
   processAdditionalsParams: any;
 };
-export const GEN_TYPE = {
+export const ProcessingLogicType = {
   vector: 'vector',
 };
 
@@ -18,5 +18,5 @@ export const ProcessingMerge = _ProcessingMerge as ProcessingElement[];
 export const ProcessingCommandIDs: IDict = {};
 
 for (const e of ProcessingMerge) {
-  ProcessingCommandIDs[e.processName] = 'jupytergis:{e.processName}';
+  ProcessingCommandIDs[e.processName] = `jupytergis:${e.processName}`;
 }

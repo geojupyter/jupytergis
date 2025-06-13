@@ -2,7 +2,7 @@ import {
   IDict,
   IJGISFormSchemaRegistry,
   ProcessingMerge,
-  GEN_TYPE,
+  ProcessingLogicType,
   ProcessingType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -36,7 +36,7 @@ export function addProcessingCommands(
   formSchemaRegistry: IJGISFormSchemaRegistry,
 ) {
   for (const processingElement of ProcessingMerge) {
-    if (processingElement.processType === GEN_TYPE.vector) {
+    if (processingElement.processType === ProcessingLogicType.vector) {
       commands.addCommand(processingElement.processName, {
         label: trans.__(processingElement.processLabel),
         isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
