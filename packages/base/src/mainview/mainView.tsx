@@ -80,13 +80,13 @@ import * as React from 'react';
 
 import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
+import { LoadingOverlay } from '@/src/shared/components/loading';
 import StatusBar from '@/src/statusbar/StatusBar';
 import { isLightTheme, loadFile, throttle } from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import { Spinner } from './spinner';
 
 interface IProps {
   viewModel: MainViewModel;
@@ -2053,7 +2053,7 @@ export class MainView extends React.Component<IProps, IStates> {
                 : 'unset',
             }}
           >
-            <Spinner loading={this.state.loading} />
+            <LoadingOverlay loading={this.state.loading} />
             <FollowIndicator remoteUser={this.state.remoteUser} />
             <CollaboratorPointers clients={this.state.clientPointers} />
 
