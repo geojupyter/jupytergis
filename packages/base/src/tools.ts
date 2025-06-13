@@ -8,6 +8,7 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import * as d3Color from 'd3-color';
 import shp from 'shpjs';
 import { getGdal } from './gdal';
+import loadGpkg from 'ol-load-geopackage';
 
 import {
   IDict,
@@ -19,7 +20,7 @@ import {
   SourceType
 } from '@jupytergis/schema';
 import RASTER_LAYER_GALLERY from '../rasterlayer_gallery/raster_layer_gallery.json';
-import { GeoPackageAPI } from '@ngageoint/geopackage';
+import { Source } from 'ol/source';
 
 export const debounce = (
   func: CallableFunction,
@@ -490,30 +491,37 @@ export const loadGeoTiff = async (
   };
 };
 
-/**
- * Read a GeoPackage file
- *
- * @param file The GeoPackage file content as an ArrayBuffer
- *
- * @returns A promise that resolves to a GeoJSON FeatureCollection
- *
- */
-const loadGeoPackageFile = async (file: ArrayBuffer) => {
-  const bytes = new Uint8Array(file);
-  const gpkg = await GeoPackageAPI.open(bytes);
+type TableMap = Record<string, { source: Source; sld?: string }>;
+const cache = new Map<string, Promise<TableMap>>();
 
-  const tables = gpkg.getFeatureTables();
-  const features: GeoJSON.Feature[] = [];
-  for (const tableName of tables) {
-    const dao = gpkg.getFeatureDao(tableName);
-    const bbox = dao.getBoundingBox();
-    const iter = gpkg.queryForGeoJSONFeaturesInTable(tableName, bbox);
-    for (const feat of iter) {
-      features.push(feat);
-    }
+export function loadGeoPackageFile(
+  filepath: string,
+  projection: string
+): Promise<TableMap> {
+  if (!cache.has(filepath)) {
+    cache.set(
+      filepath,
+      (async () => {
+        const [tables, slds] = await loadGpkg(filepath, projection);
+        const tableMap: TableMap = {};
+        for (const name of Object.keys(tables)) {
+          tableMap[name] = {
+            source: tables[name] as Source,
+            sld: slds[name]
+          };
+        }
+        return tableMap;
+      })()
+    );
   }
-  return { type: 'FeatureCollection', features };
-};
+  return cache.get(filepath)!;
+}
+
+export interface IGpkgLayer {
+  name: string;
+  source: Source;
+  sld?: string;
+}
 
 /**
  * Generalized file reader for different source types.
@@ -597,27 +605,11 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoPackageSource': {
-        const cached = await getFromIndexedDB(filepath);
-        if (cached) {
-          return cached.file;
+        const projection = model.sharedModel.options.projection;
+        if (!projection) {
+          throw new Error(`Projection is not specified for ${filepath}`);
         }
-
-        const geojson = await fetchWithProxies(
-          filepath,
-          model,
-          async response => {
-            const arrayBuffer = await response.arrayBuffer();
-            return await loadGeoPackageFile(arrayBuffer);
-          }
-        );
-
-        if (geojson) {
-          await saveToIndexedDB(filepath, geojson);
-          return geojson;
-        }
-
-        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
-        throw new Error(`Failed to fetch ${filepath}`);
+        return loadGeoPackageFile(filepath, projection);
       }
 
       default: {
@@ -687,12 +679,8 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoPackageSource': {
-        if (typeof file.content === 'string') {
-          const arrayBuffer = await stringToArrayBuffer(file.content);
-          return await loadGeoPackageFile(arrayBuffer);
-        } else {
-          throw new Error('Invalid file format for GeoPackage content.');
-        }
+        //TODO: currently used library function (loadGpkg from 'ol-load-geopackage') takes URL as argument
+        throw new Error('Please provide URL of the source.');
       }
 
       default: {

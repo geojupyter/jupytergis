@@ -43,6 +43,8 @@
     "install:extension": "jlpm build",
     "lint": "jlpm stylelint && jlpm prettier && jlpm eslint",
     "lint:check": "jlpm stylelint:check && jlpm prettier:check && jlpm eslint:check",
+    "prebuild:labextension": "cp ../../node_modules/sql.js/dist/sql-wasm.wasm static/",
+    "prebuild:build:labextension:dev": "cp ../../node_modules/sql.js/dist/sql-wasm.wasm static/",
     "prettier": "jlpm prettier:base --write",
     "prettier:base": "prettier \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
     "prettier:check": "jlpm prettier:base --check",

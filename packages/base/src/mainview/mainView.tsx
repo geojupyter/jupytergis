@@ -2,7 +2,6 @@ import { MapChange } from '@jupyter/ydoc';
 import {
   IAnnotation,
   IDict,
-  IGeoPackageSource,
   IGeoTiffSource,
   IHeatmapLayer,
   IHillshadeLayer,
@@ -80,7 +79,7 @@ import * as React from 'react';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import StatusBar from '../statusbar/StatusBar';
-import { isLightTheme, loadFile, throttle } from '../tools';
+import { loadGeoPackageFile, isLightTheme, loadFile, throttle } from '../tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
@@ -697,24 +696,25 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'GeoPackageSource': {
-        const parameters = source.parameters as IGeoPackageSource;
+        const parameters = source.parameters;
 
-        const geojson = await loadFile({
-          filepath: parameters.path,
-          type: 'GeoPackageSource',
-          model: this._model
-        });
+        if (!parameters) {
+          throw new Error('GeoPackageSource has no parameters');
+        }
 
-        const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
+        if (parameters.vectorSource) {
+          //TODO: parameters.vectorSource is always undefined
+          newSource = parameters.vectorSource;
+          break;
+        }
 
-        const format = new GeoJSON();
+        const projection = this._Map.getView().getProjection().getCode();
+        const tableMap = await loadGeoPackageFile(parameters.path, projection);
+        const table = tableMap[parameters.table];
 
-        newSource = new VectorSource({
-          features: format.readFeatures(geojsonData, {
-            dataProjection: parameters.projection,
-            featureProjection: this._Map.getView().getProjection()
-          })
-        });
+        const vectorSource = table.source;
+        parameters.vectorSource = vectorSource;
+        newSource = vectorSource;
         break;
       }
     }
@@ -805,6 +805,10 @@ export class MainView extends React.Component<IProps, IStates> {
     ) {
       const layerId = layerIds[targetLayerPosition];
       const layer = this._model.sharedModel.getLayer(layerId);
+
+      if (this._loadingLayers.has(layerId)) {
+        continue;
+      }
 
       if (!layer) {
         console.warn(

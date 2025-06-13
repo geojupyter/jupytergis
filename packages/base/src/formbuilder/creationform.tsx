@@ -8,7 +8,7 @@ import {
   SourceType
 } from '@jupytergis/schema';
 
-import { deepCopy } from '../tools';
+import { deepCopy, loadGeoPackageFile } from '../tools';
 
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
@@ -153,6 +153,46 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
 
     // Perform the layer/source creation
     Promise.all(creationPromises).then(async () => {
+      // We add multiple tables from GeoPackage file as different sources and layers
+      if (this.props.sourceType === 'GeoPackageSource') {
+        const source = await sourceCreationPromise?.promise;
+
+        if (!source) {
+          console.error(`Cannot find source for ${this.props.sourceType}`);
+          return;
+        }
+
+        const tableMap = await loadGeoPackageFile(
+          source.path,
+          source.projection
+        );
+
+        for (const tableName of Object.keys(tableMap)) {
+          const childId = `${sourceId}/${tableName}`;
+
+          if (this.props.createSource) {
+            const sourceModel: IJGISSource = {
+              type: this.props.sourceType || 'GeoPackageSource',
+              name: `${source.name} ${tableName} Source`,
+              parameters: {
+                path: source.path,
+                table: tableName
+              }
+            };
+            this.props.model.sharedModel.addSource(childId, sourceModel);
+          }
+          if (this.props.createLayer) {
+            const layerModel: IJGISLayer = {
+              type: this.props.layerType || 'VectorLayer',
+              parameters: { source: childId },
+              visible: true,
+              name: `${source.name} ${tableName} Layer`
+            };
+            this.jGISModel.addLayer(UUID.uuid4(), layerModel);
+          }
+        }
+        return;
+      }
       if (this.props.createSource) {
         let actualName = '';
         const { name, ...sourceData } =
