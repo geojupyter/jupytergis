@@ -12,6 +12,7 @@ import {
   IJupyterGISWidget,
   JupyterGISDoc,
   SCHEMA_VERSION,
+  ProcessingMerge,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -230,25 +231,12 @@ const activate = async (
       category: 'JupyterGIS',
     });
 
-    palette.addItem({
-      command: CommandIDs.buffer,
-      category: 'JupyterGIS',
-    });
-
-    palette.addItem({
-      command: CommandIDs.dissolve,
-      category: 'JupyterGIS',
-    });
-
-    palette.addItem({
-      command: CommandIDs.centroids,
-      category: 'JupyterGIS',
-    });
-
-    palette.addItem({
-      command: CommandIDs.boundingBoxes,
-      category: 'JupyterGIS',
-    });
+    for (const processingElement of ProcessingMerge) {
+      palette.addItem({
+        command: processingElement.processName,
+        category: 'JupyterGIS',
+      });
+    }
   }
 };
 

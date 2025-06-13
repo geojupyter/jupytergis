@@ -1,5 +1,5 @@
 export * from './classificationModes';
-export * from './commands';
+export * from './commands/commands';
 export * from './constants';
 export * from './dialogs/layerCreationFormDialog';
 export * from './formbuilder/objectform/baseform';

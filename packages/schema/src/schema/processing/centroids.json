@@ -9,5 +9,15 @@
       "type": "string",
       "description": "The input layer for centroids."
     }
+  },
+  "processGenerationParams": {
+    "processName": "centroids",
+    "processParams": [],
+    "processLabel": "Centroids",
+    "processAdditionalsParams": {
+      "gdalFunction": "ogr2ogr",
+      "sql": "SELECT ST_Centroid(geometry) AS geometry, * FROM \"{layerName}\""
+    },
+    "processType": "vector"
   }
 }

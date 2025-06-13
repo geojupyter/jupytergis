@@ -20,5 +20,7 @@
     "types": ["node", "webpack-env"],
     "skipLibCheck": true,
     "lib": ["ES2019", "WebWorker", "DOM"]
-  }
+  },
+  "esModuleInterop": true,
+  "resolveJsonModule": true
 }

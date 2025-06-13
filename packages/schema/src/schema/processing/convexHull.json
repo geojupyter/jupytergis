@@ -1,21 +1,21 @@
 {
   "type": "object",
-  "description": "BoundingBoxes",
-  "title": "IBoundingBoxes",
+  "description": "ConvexHull",
+  "title": "IConvexHull",
   "required": ["inputLayer"],
   "additionalProperties": false,
   "properties": {
     "inputLayer": {
       "type": "string",
-      "description": "The input layer for bounding boxes."
+      "description": "The input layer for Convex Hull."
     }
   },
   "processGenerationParams": {
-    "processName": "boundingBoxes",
+    "processName": "convexHull",
     "processParams": [],
-    "processLabel": "Bounding Boxes",
+    "processLabel": "Convex Hull",
     "processAdditionalsParams": {
-      "sql": "SELECT ST_Envelope(geometry) AS geometry, * FROM \"{layerName}\"",
+      "sql": "SELECT ST_ConvexHull(geometry) AS geometry, * FROM \"{layerName}\"",
       "gdalFunction": "ogr2ogr"
     },
     "processType": "vector"
