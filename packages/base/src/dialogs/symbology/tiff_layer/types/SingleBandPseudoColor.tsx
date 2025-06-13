@@ -367,19 +367,16 @@ const SingleBandPseudoColor = ({
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
-        {loading ? (
-          <LoadingOverlay loading={loading} />
-        ) : (
-          <BandRow
-            label="Band"
-            // Band numbers are 1 indexed
-            index={selectedBand - 1}
-            bandRow={bandRows[selectedBand - 1]}
-            bandRows={bandRows}
-            setSelectedBand={setSelectedBand}
-            setBandRows={setBandRows}
-          />
-        )}
+        <LoadingOverlay loading={loading} />
+        <BandRow
+          label="Band"
+          // Band numbers are 1 indexed
+          index={selectedBand - 1}
+          bandRow={bandRows[selectedBand - 1]}
+          bandRows={bandRows}
+          setSelectedBand={setSelectedBand}
+          setBandRows={setBandRows}
+        />
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor="function-select">Interpolation:</label>
