@@ -45,7 +45,6 @@ const StacPanelFilters = ({
   setStartTime,
   endTime,
   setEndTime,
-  model,
 }: IStacPanelFiltersProps) => {
   return (
     <div className="jgis-stac-browser-filters-panel">
@@ -87,25 +86,22 @@ const StacPanelFilters = ({
         header="Collection"
         data={datasets}
         selectedCollections={selectedCollections}
-        handleToggleGroupValueChange={setSelectedCollections}
         selectedPlatforms={selectedPlatforms}
-        model={model}
+        handleToggleGroupValueChange={setSelectedCollections}
       />
       <StacFilterSection
         header="Platform"
         data={platforms}
         selectedCollections={selectedCollections}
-        handleToggleGroupValueChange={setSelectedPlatforms}
         selectedPlatforms={selectedPlatforms}
-        model={model}
+        handleToggleGroupValueChange={setSelectedPlatforms}
       />
       <ProductSection
         header="Data / Product"
         data={products}
         selectedCollections={selectedCollections}
-        handleToggleGroupValueChange={setSelectedProducts}
         selectedProducts={selectedProducts}
-        model={model}
+        handleToggleGroupValueChange={setSelectedProducts}
       />
       {/* <div>cloud cover</div> */}
     </div>
