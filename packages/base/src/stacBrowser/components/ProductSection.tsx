@@ -1,4 +1,3 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useMemo } from 'react';
 
 import {
@@ -14,7 +13,6 @@ interface IStacSectionProps {
   selectedCollections: string[];
   selectedProducts: string[];
   handleToggleGroupValueChange: (val: string[]) => void;
-  model: IJupyterGISModel;
 }
 
 const ProductSection = ({
@@ -23,9 +21,7 @@ const ProductSection = ({
   selectedCollections,
   selectedProducts,
   handleToggleGroupValueChange,
-  model,
 }: IStacSectionProps) => {
-  // ! Starts here
   const items = useMemo(() => {
     const productCodesForCollections = selectedCollections
       .map(collection =>

@@ -1,4 +1,3 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useMemo } from 'react';
 
 import {
@@ -6,13 +5,12 @@ import {
   ToggleGroupItem,
 } from '../../shared/components/ToggleGroup';
 
-interface IStacCollectionsProps {
+interface IStacFilterSectionProps {
   header: string;
   data: Record<string, string[]>;
   selectedCollections: string[];
   selectedPlatforms: string[];
   handleToggleGroupValueChange: (val: string[]) => void;
-  model: IJupyterGISModel;
 }
 
 const StacFilterSection = ({
@@ -21,10 +19,7 @@ const StacFilterSection = ({
   selectedCollections,
   selectedPlatforms,
   handleToggleGroupValueChange,
-  model,
-}: IStacCollectionsProps) => {
-  // ! Starts here
-
+}: IStacFilterSectionProps) => {
   const items = useMemo(() => {
     if (header === 'Collection') {
       return Object.entries(data).map(([key, val]) => (
