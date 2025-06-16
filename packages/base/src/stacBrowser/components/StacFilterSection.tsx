@@ -76,6 +76,49 @@ const StacFilterSection = ({
       >
         {items}
       </ToggleGroup>
+      {/* <DropdownMenu modal={false}>
+        <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+        <DropdownMenuContent side="right">
+          {/* <DropdownMenuLabel>Sentinel 2</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>Profile</DropdownMenuItem>
+          <DropdownMenuItem>Billing</DropdownMenuItem>
+          <DropdownMenuItem>Team</DropdownMenuItem>
+          <DropdownMenuItem>Subscription</DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Collections</DropdownMenuLabel>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Sentinel 1</DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem>PEPS_S1_L1</DropdownMenuItem>
+                  <DropdownMenuItem>PEPS_S1_L2</DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Sentinel 2</DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem>PEPS_S2_L1C</DropdownMenuItem>
+                  <DropdownMenuItem>
+                    MUSCATE_SENTINEL2_SENTINEL2_L2A
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    MUSCATE_Snow_SENTINEL2_L2B-SNOW
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    MUSCATE_WaterQual_SENTINEL2_L2B-WATER
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    MUSCATE_SENTINEL2_SENTINEL2_L3A
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu> */}
     </div>
   );
 };
