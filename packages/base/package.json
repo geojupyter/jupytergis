@@ -64,6 +64,7 @@
     "@lumino/widgets": "^2.0.0",
     "@mapbox/vector-tile": "^2.0.3",
     "@naisutech/react-tree": "^3.0.1",
+    "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-popover": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.12",
