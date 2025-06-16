@@ -26,6 +26,8 @@
   flex-direction: column;
   gap: 1rem;
   word-break: break-word;
+  padding: 0.25rem;
+  margin-right: 0.5rem;
 }
 
 .jgis-stac-browser-date-picker {
