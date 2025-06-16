@@ -4,7 +4,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '../../shared/components/ToggleGroup';
-import { getProductCodesForCollection } from '../StacBrowser';
+import { getProductCodesForCollection } from '../constants';
 import { CollectionName, IProductData } from '../types/types';
 
 interface IStacSectionProps {
