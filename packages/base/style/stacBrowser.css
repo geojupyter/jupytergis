@@ -31,6 +31,8 @@
 .jgis-stac-browser-date-picker {
   display: flex;
   justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .jgis-stac-browser-filters-panel {
