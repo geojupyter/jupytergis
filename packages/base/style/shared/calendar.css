@@ -1,0 +1,286 @@
+.jgis-calendar-container {
+    padding: 0.75rem;
+    background-color: var(--jp-layout-color2);
+    border: 1px solid var(--jp-accent-color0);
+    border-radius: var(--jp-border-radius);
+}
+
+.jgis-calendar-months {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: center;
+}
+
+@media (min-width: 640px) {
+    .jgis-calendar-months {
+        flex-direction: row;
+    }
+}
+
+.jgis-calendar-month {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.jgis-calendar-month-caption {
+    display: flex;
+    justify-content: center;
+    padding-top: 0.25rem;
+    position: relative;
+    align-items: center;
+}
+
+.jgis-calendar-caption-label {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+}
+
+.jgis-calendar-nav {
+    gap: 0.25rem;
+    display: flex;
+    align-items: center;
+}
+
+.jgis-calendar-button-previous {
+    height: 1.75rem;
+    width: 1.75rem;
+    background-color: transparent;
+    padding: 0;
+    opacity: 0.5;
+    position: absolute;
+    left: 1.25rem;
+    top: 1.25rem;
+    border: 1px solid transparent;
+    /* color: var(--jp-ui-font-color0); */
+    /* background: transparent; */
+    /* border: 0.5px solid var(--jp-border-color0); */
+    /* position: absolute; */
+    /* top: 0.5rem; */
+    /* left: 0.5rem; */
+    /* border-radius: var(--jp-border-radius); */
+    /* padding: 0.175rem; */
+    /* width: max-content; */
+    /* height: max-content; */
+}
+
+.jgis-calendar-button-previous:hover {
+    opacity: 1;
+}
+
+.jgis-calendar-button-next {
+    height: 1.75rem;
+    width: 1.75rem;
+    background-color: transparent;
+    padding: 0;
+    opacity: 0.5;
+    position: absolute;
+    right: 1.25rem;
+    top: 1.25rem;
+    border: 1px solid transparent;
+}
+
+.jgis-calendar-button-next:hover {
+    opacity: 1;
+}
+
+.jgis-calendar-month-grid {
+    width: 100%;
+    border-collapse: collapse;
+    gap: 0.25rem;
+}
+
+.jgis-calendar-weekdays {
+    display: flex;
+}
+
+.jgis-calendar-weekday {
+    color: var(--jp-ui-font-color2);
+    border-radius: 0.375rem;
+    width: 2.25rem;
+    font-weight: 400;
+    font-size: 0.8rem;
+}
+
+.jgis-calendar-week {
+    display: flex;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.jgis-calendar-day {
+    height: 2.25rem;
+    width: 2.25rem;
+    text-align: center;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    padding: 0;
+    position: relative;
+    border-radius: 0.25rem;
+}
+
+.jgis-calendar-day-button {
+    height: 2.25rem;
+    width: 2.25rem;
+    padding: 0;
+    font-weight: 400;
+    opacity: 1;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    color: inherit;
+}
+
+.jgis-calendar-day-button.selected {
+    border-radius: 0.375rem 0.375rem 0.375rem 0.375rem;
+}
+
+.jgis-calendar-day-button.range-end {
+    border-radius: 0 0.375rem 0.375rem 0;
+}
+
+.jgis-calendar-day-button.range-middle {
+    border-radius: 0;
+}
+
+.jgis-calendar-day-selected {
+    background-color: var(--jp-accent-color1);
+    color: var(--jp-ui-inverse-font-color0);
+}
+
+.jgis-calendar-day-selected:hover {
+    background-color: var(--jp-layout-color1);
+    color: var(--jp-ui-font-color0);
+}
+
+.jgis-calendar-day-selected:focus {
+    background-color: var(--jp-layout-color1);
+    color: var(--jp-ui-font-color0);
+}
+
+.jgis-calendar-day-today {
+    background-color: var(--jp-accent-color0);
+    color: var(--jp-ui-font-color0);
+}
+
+.jgis-calendar-day-outside {
+    color: var(--jp-ui-font-color2);
+    opacity: 0.5;
+}
+
+.jgis-calendar-day-outside.selected {
+    background-color: var(--jp-accent-color0);
+    color: var(--jp-ui-font-color2);
+    opacity: 0.3;
+}
+
+.jgis-calendar-day-disabled {
+    color: var(--jp-ui-font-color2);
+    opacity: 0.5;
+}
+
+.jgis-calendar-day-range-middle {
+    background-color: var(--jp-accent-color0);
+    color: var(--jp-ui-font-color0);
+}
+
+.jgis-calendar-hidden {
+    visibility: hidden;
+}
+
+.jgis-select-trigger-focus {
+    display: flex;
+    background-color: var(--jp-accent-color0);
+    color: var(--jp-ui-inverse-font-color0);
+    width: fit-content;
+    gap: 0.25rem;
+    border: none;
+    /* padding: 0; */
+    align-items: center;
+    justify-content: center;
+}
+
+.jgis-time-period-select-trigger {
+    background-color: var(--jp-accent-color0);
+    color: var(--jp-ui-font-color0);
+    width: 65px;
+}
+
+.jgis-time-picker-input {
+    width: 48px;
+    text-align: center;
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-feature-settings: 'tnum';
+    caret-color: transparent;
+}
+
+.jgis-time-picker-input::-webkit-inner-spin-button {
+    appearance: none;
+}
+
+.jgis-time-picker-input:focus {
+    background-color: var(--jp-accent-color0);
+    color: var(--jp-ui-font-color0);
+}
+
+.jgis-time-picker-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.jgis-time-picker-label {
+    cursor: pointer;
+}
+
+.jgis-time-picker-clock-icon {
+    margin-right: 0.5rem;
+    height: 1rem;
+    width: 1rem;
+}
+
+.jgis-date-time-picker-button {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+    font-weight: 400;
+}
+
+.jgis-date-time-picker-button-muted {
+    color: var(--jp-ui-font-color2);
+}
+
+.jgis-date-time-picker-calendar-icon {
+    margin-right: 0.5rem;
+    height: 1rem;
+    width: 1rem;
+}
+
+.jgis-date-time-picker-popover-content {
+    width: auto;
+    padding: 0;
+}
+
+.jgis-date-time-picker-time-section {
+    border-top: 1px solid var(--jp-border-color0);
+    padding: 0.75rem;
+}
+
+.jgis-time-period-selector-container {
+    display: grid;
+    gap: 0.25rem;
+    text-align: center;
+}
+
+.jgis-time-period-select-container {
+    display: flex;
+    height: 2.5rem;
+    /* h-10 corresponds to 40px, or 2.5rem */
+    align-items: center;
+}

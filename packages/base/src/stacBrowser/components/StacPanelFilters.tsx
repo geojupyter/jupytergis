@@ -3,10 +3,10 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 
+import { Calendar } from '@/src/shared/components/Calendar';
 import ProductSection from './ProductSection';
 import StacFilterSection from './StacFilterSection';
 import { Button } from '../../shared/components/Button';
-import Calendar from '../../shared/components/Calendar';
 import {
   Popover,
   PopoverContent,
@@ -61,7 +61,7 @@ const StacPanelFilters = ({
               mode="single"
               selected={startTime}
               onSelect={setStartTime}
-              initialFocus
+              autoFocus
             />
           </PopoverContent>
         </Popover>
@@ -77,7 +77,7 @@ const StacPanelFilters = ({
               mode="single"
               selected={endTime}
               onSelect={setEndTime}
-              initialFocus
+              autoFocus
             />
           </PopoverContent>
         </Popover>

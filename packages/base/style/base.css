@@ -16,6 +16,7 @@
 @import url('./shared/toggle.css');
 @import url('./shared/tabs.css');
 @import url('./shared/pagination.css');
+@import url('./shared/calendar.css');
 
 .errors {
   color: var(--jp-warn-color0);

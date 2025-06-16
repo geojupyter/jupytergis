@@ -88,7 +88,7 @@
     "proj4": "^2.19.3",
     "proj4-list": "^1.0.4",
     "react": "^18.0.1",
-    "react-day-picker": "8.10.1",
+    "react-day-picker": "^9.7.0",
     "shpjs": "^6.1.0",
     "styled-components": "^5.3.6",
     "three": "^0.135.0",
