@@ -120,10 +120,10 @@ function Calendar({
   );
   const _weekClassName = cn('jgis-calendar-week', props.weekClassName);
   const _dayClassName = cn('jgis-calendar-day', props.dayClassName);
-  //   const _dayButtonClassName = cn(
-  //     'jgis-calendar-day-button',
-  //     props.dayButtonClassName,
-  //   );
+  const _dayButtonClassName = cn(
+    'jgis-calendar-day-button',
+    props.dayButtonClassName,
+  );
   const _rangeStartClassName = cn(
     'jgis-calendar-day-button range-start',
     props.rangeStartClassName,
@@ -140,7 +140,7 @@ function Calendar({
     'jgis-calendar-day-selected',
     props.selectedClassName,
   );
-  const _todayClassName = cn('jgis-calendar-day-today', props.todayClassName);
+  // const _todayClassName = cn('jgis-calendar-day-today', props.todayClassName);
   const _outsideClassName = cn(
     'jgis-calendar-day-outside',
     props.outsideClassName,
@@ -172,12 +172,12 @@ function Calendar({
         month_grid: _monthGridClassName,
         week: _weekClassName,
         day: _dayClassName,
-        // day_button: _dayButtonClassName,
+        day_button: _dayButtonClassName,
         range_start: _rangeStartClassName,
         range_middle: _rangeMiddleClassName,
         range_end: _rangeEndClassName,
         selected: _selectedClassName,
-        today: _todayClassName,
+        // today: _todayClassName,
         outside: _outsideClassName,
         disabled: _disabledClassName,
         hidden: _hiddenClassName,
