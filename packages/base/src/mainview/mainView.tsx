@@ -43,10 +43,11 @@ import { singleClick } from 'ol/events/condition';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
 import { Type } from 'ol/geom/Geometry';
-import { DragAndDrop, Interaction, Select } from 'ol/interaction';
-import Draw from 'ol/interaction/Draw.js';
-import Modify from 'ol/interaction/Modify.js';
-import Snap from 'ol/interaction/Snap.js';
+import DragAndDrop from 'ol/interaction/DragAndDrop';
+import Draw from 'ol/interaction/Draw';
+import Modify from 'ol/interaction/Modify';
+import Select from 'ol/interaction/Select';
+import Snap from 'ol/interaction/Snap';
 import {
   Heatmap as HeatmapLayer,
   Image as ImageLayer,
@@ -95,7 +96,6 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 //import Modify from 'ol/interaction/Modify.js';
 //import Snap from 'ol/interaction/Snap.js';
-
 
 const drawGeometries = ['Point', 'LineString', 'Polygon'];
 
@@ -250,7 +250,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._model.sharedModel.awareness.off(
       'change',
-      this._onAwarenessChangeHandler,
+      this._onSelectedLayerChangeHandler,
     );
     this._mainViewModel.dispose();
   }
@@ -408,22 +408,25 @@ export class MainView extends React.Component<IProps, IStates> {
         },
       }));
 
+      /* generate select, modify and snap interactions for features of layers already added to the Map */
+      this._select = new Select();
+      this._modify = new Modify({
+        features: this._select.getFeatures(),
+      });
+
+      this._Map.addInteraction(this._select);
+      this._Map.addInteraction(this._modify);
+
+      this._select.setActive(true);
+      this._modify.setActive(true);
+
+      /* Track changes of selected layers 
+      Get the vector source of the selected layer
+      Edit the vector layer*/
       this._model.sharedModel.awareness.on(
         'change',
-        this._onAwarenessChangeHandler,
+        this._onSelectedLayerChangeHandler,
       );
-
-      /* Snap and Modify interactions */
-      //this._snap = new Snap();
-      //this._modify = new Modify({});
-      //this._Map.addInteraction(this._snap);
-      //this._Map.addInteraction(this._modify);
-
-      const drawGeometryLabel = 'Select';
-      this.setState(old => ({
-        ...old,
-        drawGeometryLabel,
-      }));
     }
   }
 
@@ -2112,12 +2115,12 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _handleDrawGeometryTypeChange = (
-    /* handle with the change of geometry and instantiate new draw interaction accordingly*/
+    /* handle with the change of geometry and instantiate new draw interaction and other ones accordingly*/
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const drawGeometryLabel = event.target.value;
     this._currentDrawGeometry = drawGeometryLabel as Type;
-    this._updateDrawInteraction();
+    this._updateInteractions();
     this._updateDrawSource();
     this.setState(old => ({
       ...old,
@@ -2146,31 +2149,32 @@ export class MainView extends React.Component<IProps, IStates> {
     const geojsonWriter = new GeoJSON({
       featureProjection: this._Map.getView().getProjection(),
     });
+    if (this._currentVectorSource) {
+      const features = this._currentVectorSource
+        ?.getFeatures()
+        .map(feature => geojsonWriter.writeFeatureObject(feature));
 
-    const features = this._currentVectorSource
-      ?.getFeatures()
-      .map(feature => geojsonWriter.writeFeatureObject(feature));
-
-    const updatedData = {
-      type: 'FeatureCollection',
-      features: features,
-    };
-
-    if (this._currentDrawSource) {
-      const updatedJGISLayerSource: IJGISSource = {
-        name: this._currentDrawSource.name,
-        type: this._currentDrawSource.type,
-        parameters: {
-          data: updatedData,
-        },
+      const updatedData = {
+        type: 'FeatureCollection',
+        features: features,
       };
 
-      this._currentDrawSource = updatedJGISLayerSource;
-      if (this._currentDrawSourceID) {
-        this._model.sharedModel.updateSource(
-          this._currentDrawSourceID,
-          updatedJGISLayerSource,
-        );
+      if (this._currentDrawSource) {
+        const updatedJGISLayerSource: IJGISSource = {
+          name: this._currentDrawSource.name,
+          type: this._currentDrawSource.type,
+          parameters: {
+            data: updatedData,
+          },
+        };
+
+        this._currentDrawSource = updatedJGISLayerSource;
+        if (this._currentDrawSourceID) {
+          this._model.sharedModel.updateSource(
+            this._currentDrawSourceID,
+            updatedJGISLayerSource,
+          );
+        }
       }
     }
   };
@@ -2181,39 +2185,39 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   };
 
-  _updateDrawInteraction = () => {
+  _updateInteractions = () => {
     if (this._draw) {
       this._removeDrawInteraction();
+    }
+    if (this._select) {
+      this._removeSelectInteraction();
+    }
+    if (this._modify) {
+      this._removeModifyInteraction();
+    }
+    if (this._snap) {
+      this._removeSnapInteraction();
     }
     this._draw = new Draw({
       style: drawInteractionStyle,
       type: this._currentDrawGeometry,
       source: this._currentVectorSource,
     });
-    this._draw.setActive(true);
-    this._Map.addInteraction(this._draw);
-  };
-
-  _updateModifyInteraction = () => {
-    if (this._modify) {
-      this._removeModifyInteraction();
-    }
+    this._select = new Select();
     this._modify = new Modify({
-      source: this._currentVectorSource,
+      features: this._select.getFeatures(),
     });
-    this._modify.setActive(true);
-    this._Map.addInteraction(this._modify);
-  };
-
-  _updateSnapInteraction = () => {
-    if (this._snap) {
-      this._removeSnapInteraction();
-    }
     this._snap = new Snap({
       source: this._currentVectorSource,
     });
-    this._snap.setActive(true);
+    this._Map.addInteraction(this._draw);
+    this._Map.addInteraction(this._select);
+    this._Map.addInteraction(this._modify);
     this._Map.addInteraction(this._snap);
+    this._draw.setActive(true);
+    this._select.setActive(false);
+    this._modify.setActive(false);
+    this._snap.setActive(true);
   };
 
   _editVectorLayer = () => {
@@ -2223,23 +2227,29 @@ export class MainView extends React.Component<IProps, IStates> {
         this._currentDrawLayerID,
       );
       if (this._currentVectorSource && this._currentDrawGeometry) {
-        this._updateDrawInteraction(); /* remove previous draw interactions and instantiate a new one */
-        this._updateSnapInteraction();
-        this._updateModifyInteraction();
+        this._updateInteractions(); /* remove previous interactions and instantiate new ones */
         this._updateDrawSource(); /*add new features, update source and get changes reported to the JGIS Document in geoJSON format */
       }
     }
   };
 
   private _removeDrawInteraction = () => {
+    this._draw.setActive(false);
     this._Map.removeInteraction(this._draw);
   };
 
+  private _removeSelectInteraction = () => {
+    this._select.setActive(false);
+    this._Map.removeInteraction(this._select);
+  };
+
   private _removeSnapInteraction = () => {
+    this._snap.setActive(false);
     this._Map.removeInteraction(this._snap);
   };
 
   private _removeModifyInteraction = () => {
+    this._modify.setActive(false);
     this._Map.removeInteraction(this._modify);
   };
 
@@ -2247,27 +2257,15 @@ export class MainView extends React.Component<IProps, IStates> {
     this._onVectorSourceChange();
   };
 
-  private _onAwarenessChangeHandler = () => {
+  private _onSelectedLayerChangeHandler = () => {
     const selectedLayers =
       this._model.sharedModel.awareness.getLocalState()?.selected?.value;
     const selectedLayerId = selectedLayers
       ? Object.keys(selectedLayers)[0]
-      : null;
-
+      : undefined;
     if (selectedLayerId && selectedLayerId !== this._previousDrawLayerID) {
       this._previousDrawLayerID = selectedLayerId;
       this._currentDrawLayerID = selectedLayerId;
-
-      this._currentVectorSource =
-        this._getVectorSourceFromLayerID(selectedLayerId);
-
-      if (this._currentVectorSource) {
-        this._currentVectorSource.on(
-          'change',
-          this._onVectorSourceChangeHandler,
-        );
-      }
-
       this._editVectorLayer();
     }
   };
@@ -2391,9 +2389,10 @@ export class MainView extends React.Component<IProps, IStates> {
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
-  private _draw: Interaction;
-  private _snap: Interaction;
-  private _modify: Interaction;
+  private _draw: Draw;
+  private _snap: Snap;
+  private _modify: Modify;
+  private _select: Select;
   private _currentDrawLayerID: string | undefined;
   private _previousDrawLayerID: string | undefined;
   private _currentDrawSource: IJGISSource | undefined;
