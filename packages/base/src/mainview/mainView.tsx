@@ -90,6 +90,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import MetaDataViewer from '../stacBrowser/components/MetaDataViewer';
 
 type OlLayerTypes =
   | TileLayer
@@ -118,6 +119,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
+  metadata: Record<string, any>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -209,6 +211,7 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
+      metadata: {},
     };
 
     this._sources = [];
@@ -907,7 +910,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._loadingLayers.add(id);
 
     let newMapLayer: OlLayerTypes;
-    let layerParameters;
+    let layerParameters: any;
     let sourceId: string | undefined;
     let source: IJGISSource | undefined;
 
@@ -1027,6 +1030,11 @@ export class MainView extends React.Component<IProps, IStates> {
           assets: Object.keys(layerParameters.data.assets),
           extent: layerParameters.data.bbox,
         });
+
+        this.setState(old => ({
+          ...old,
+          metadata: layerParameters.data.properties,
+        }));
 
         // ? TODO: unsure about this
         newMapLayer.addEventListener('sourceready', () => {
@@ -2195,6 +2203,7 @@ export class MainView extends React.Component<IProps, IStates> {
             <LoadingOverlay loading={this.state.loading} />
             <FollowIndicator remoteUser={this.state.remoteUser} />
             <CollaboratorPointers clients={this.state.clientPointers} />
+            <MetaDataViewer metadata={this.state.metadata} />
 
             <div
               ref={this.divRef}
