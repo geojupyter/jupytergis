@@ -7,13 +7,7 @@ import React, { useEffect, useState } from 'react';
 
 import { IControlPanelModel } from '../types';
 import StacPanelView from './components/StacPanelView';
-import {
-  groupDatasetsByCollection,
-  datasets,
-  groupPlatformsByCollection,
-  platforms,
-  productsByCollection,
-} from './constants';
+import { datasets, platforms, productsByCollection } from './constants';
 
 interface IStacBrowserDialogProps {
   controlPanelModel: IControlPanelModel;
@@ -42,8 +36,8 @@ const StacBrowser = ({ controlPanelModel }: IStacBrowserDialogProps) => {
 
   return (
     <StacPanelView
-      datasets={groupDatasetsByCollection(datasets)}
-      platforms={groupPlatformsByCollection(platforms)}
+      datasets={datasets}
+      platforms={platforms}
       products={productsByCollection}
       model={jgisModel}
     />

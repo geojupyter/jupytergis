@@ -4,12 +4,12 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '../../shared/components/ToggleGroup';
-import { productsByCollection } from '../constants';
+import { ProductsType } from '../constants';
 import { CollectionName } from '../types/types';
 
 interface IStacSectionProps {
   header: string;
-  data: typeof productsByCollection;
+  data: ProductsType;
   selectedCollections: string[];
   selectedProducts: string[];
   handleToggleGroupValueChange: (val: string[]) => void;
