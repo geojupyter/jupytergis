@@ -61,7 +61,7 @@
 }
 
 .DropdownMenuSubContent[data-state="open"] {
-    background-color: color-mix(in srgb, var(--jp-layout-color2), transparent 90%);
+    background-color: var(--jp-layout-color2);
 }
 
 .DropdownMenuContent {
