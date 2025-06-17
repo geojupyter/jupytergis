@@ -6,7 +6,6 @@ JupyterGIS is a JupyterLab extension (based on the structure defined by
 Its architecture is based on QuantStack's
 [JupyterCAD](https://github.com/jupytercad/JupyterCAD) architecture.
 
-
 ## JupyterLab
 
 ### About Lumino and JupyterLab
@@ -18,11 +17,9 @@ The [Lumino](https://lumino.readthedocs.io/en/latest/api/index.html) library is 
 framework used to control the UI - i.e., tracks what changes in the UI and how it should
 react to that change.
 
-
 ## JupyterGIS components and structure
 
 JupyterGIS is a monorepo containing TypeScript and Python packages.
-
 
 ### TypeScript packages
 
@@ -31,7 +28,6 @@ TypeScript packages live in the `packages/` directory.
 If you change anything about TypeScript packages, you'll need to rebuild with `jlpm run
 build`.
 
-
 ### `@jupytergis/base`
 
 This package contains everything that controls the map using
@@ -39,18 +35,17 @@ This package contains everything that controls the map using
 It is a UI library, collection of tools - but it does not do anything by itself.
 We use this package to make the JupyterLab extension.
 
-* Defines the map view. See `packages/base/src/mainview`.
-* Generates the layer gallery. See
+- Defines the map view. See `packages/base/src/mainview`.
+- Generates the layer gallery. See
   `packages/base/rasterlayer_gallery_generator.py`.
-* Defines "commands" that appear in various GUI menus and the command pallette
+- Defines "commands" that appear in various GUI menus and the command pallette
   (`CTRL+SHIFT+C`).
   See `packages/base/src/commands/`.
-  * Defines the toolbar and associated commands.
+  - Defines the toolbar and associated commands.
     See `packages/base/src/toolbar/widget.tsx`.
-* Generates forms from the schema package.
+- Generates forms from the schema package.
   See `packages/base/src/formbuilder/`.
-* Contains all logic related to adding layers and reading data.
-
+- Contains all logic related to adding layers and reading data.
 
 ### `@jupytergis/schema`
 
@@ -65,36 +60,33 @@ and
 [`datamodel-code-generator`](https://docs.pydantic.dev/latest/integrations/datamodel_code_generator/)
 for Python.
 
-* Forms: Generated from e.g. `schema/src/schema/project/layers/vectorlayer.json`
-* Project file / shared model: `schema/src/schema/project/jgis.json`
-
+- Forms: Generated from e.g. `schema/src/schema/project/layers/vectorlayer.json`
+- Project file / shared model: `schema/src/schema/project/jgis.json`
 
 ### Python packages
 
 Python packages live in the `python/` directory.
 These Python packages may include some TypeScript as well.
 
-* `jupytergis`: A metapackage including `jupytergis_core`, `jupytergis_lab`,
+- `jupytergis`: A metapackage including `jupytergis_core`, `jupytergis_lab`,
   `jupytergis_qgis`, `jupyter-collaboration`, and `jupyterlab`.
-* `jupytergis_lite`: A metapackage including `jupytergis_core` and `jupytergis_lab`.
+- `jupytergis_lite`: A metapackage including `jupytergis_core` and `jupytergis_lab`.
   For deployment and testing of JupyterGIS in JupyterLite.
-* `jupytergis_core`: Gets the UI to do things - e.g., load / create JupyterGIS files,
+- `jupytergis_core`: Gets the UI to do things - e.g., load / create JupyterGIS files,
   and work with them.
   Also includes a server endpoint for saving the created `.jgis` files to disk (not used
   in JupyterLite).
-* `jupytergis_lab`: Contains everything needed for JupyterGIS to work within a notebook,
+- `jupytergis_lab`: Contains everything needed for JupyterGIS to work within a notebook,
   **the Python API**, the notebook renderer (the part that displays the JupyterGIS
   session in the notebook).
   **Might be worth considering renaming this folder? Current name doesn't reflect what
   it does**.
-* `jupytergis_qgis`: Enables importing and exporting QGIS project files.
+- `jupytergis_qgis`: Enables importing and exporting QGIS project files.
   Requires a server component, and currently is not used in JupyterLite.
-
 
 ### "Model"
 
 Structure is defined in schema `packages/schema/src/schema/project/jgis.json`.
-
 
 #### Shared model
 
@@ -108,11 +100,9 @@ You can view the shared model in many contexts by writing
 `console.log(model.sharedModel)` in a TypeScript file!
 :::
 
-
 ### Commands
 
 Many new features are a matter of defining a new command.
-
 
 ### Forms
 
@@ -135,14 +125,12 @@ Each of these classes accepts the relevant schema as a property in order to
 generate the form on-the-fly. The correct form class is selected in
 `formselector.ts`.
 
-
 ### Map view
 
 JupyterGIS uses [OpenLayers](https://openlayers.org/doc/) as a rendering engine.
 
 The action happens in the `@jupytergis/base` package, at
 `packages/base/src/mainview/mainView.tsx`.
-
 
 #### Swappable rendering engine?
 
