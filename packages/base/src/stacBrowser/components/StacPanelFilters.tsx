@@ -4,7 +4,6 @@ import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 
 import { Calendar } from '@/src/shared/components/Calendar';
-import ProductSection from './ProductSection';
 import StacFilterSection from './StacFilterSection';
 import { Button } from '../../shared/components/Button';
 import {
@@ -96,7 +95,7 @@ const StacPanelFilters = ({
         selectedPlatforms={selectedPlatforms}
         handleToggleGroupValueChange={setSelectedPlatforms}
       />
-      <ProductSection
+      <StacFilterSection
         header="Data / Product"
         data={products}
         selectedCollections={selectedCollections}

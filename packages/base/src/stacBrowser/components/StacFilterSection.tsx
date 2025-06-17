@@ -4,13 +4,15 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '../../shared/components/ToggleGroup';
-import { DatasetsType, PlatformsType } from '../constants';
+import { DatasetsType, PlatformsType, ProductsType } from '../constants';
+import { CollectionName } from '../types/types';
 
 interface IStacFilterSectionProps {
   header: string;
-  data: DatasetsType | PlatformsType;
+  data: DatasetsType | PlatformsType | ProductsType;
   selectedCollections: string[];
-  selectedPlatforms: string[];
+  selectedPlatforms?: string[];
+  selectedProducts?: string[];
   handleToggleGroupValueChange: (val: string[]) => void;
 }
 
@@ -18,7 +20,8 @@ const StacFilterSection = ({
   header,
   data,
   selectedCollections,
-  selectedPlatforms,
+  selectedPlatforms = [],
+  selectedProducts = [],
   handleToggleGroupValueChange,
 }: IStacFilterSectionProps) => {
   const items = useMemo(() => {
@@ -48,8 +51,27 @@ const StacFilterSection = ({
           )),
         );
     }
+    if (header === 'Data / Product') {
+      const productsData = data as ProductsType;
+      const productCodesForCollections = selectedCollections
+        .map(collection =>
+          (productsData[collection as CollectionName] || []).map(
+            product => product.productCode,
+          ),
+        )
+        .flat();
+      return productCodesForCollections.map(val => (
+        <ToggleGroupItem
+          key={`${val}`}
+          className="jgis-stac-browser-section-item"
+          value={val}
+        >
+          {val}
+        </ToggleGroupItem>
+      ));
+    }
     return null;
-  }, [header, data, selectedCollections, selectedPlatforms]);
+  }, [header, data, selectedCollections, selectedPlatforms, selectedProducts]);
 
   // Get the current selected values based on the header
   const currentSelectedValues = useMemo(() => {
@@ -59,8 +81,11 @@ const StacFilterSection = ({
     if (header === 'Platform') {
       return selectedPlatforms;
     }
+    if (header === 'Data / Product') {
+      return selectedProducts;
+    }
     return [];
-  }, [header, selectedCollections, selectedPlatforms]);
+  }, [header, selectedCollections, selectedPlatforms, selectedProducts]);
 
   return (
     <div>
