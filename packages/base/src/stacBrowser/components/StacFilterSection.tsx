@@ -17,6 +17,7 @@ import {
   DatasetsType,
   platforms,
   PlatformsType,
+  products,
   ProductsType,
 } from '../constants';
 
@@ -24,7 +25,7 @@ interface IStacFilterSectionProps {
   header: string;
   data: DatasetsType | PlatformsType | ProductsType;
   selectedCollections: string[];
-  selectedData: string[];
+  selectedData: string[]; // Datasets, Platforms, Products
   handleCheckedChange: (dataset: string, collection: string) => void;
 }
 
@@ -35,10 +36,6 @@ const StacFilterSection = ({
   selectedData = [],
   handleCheckedChange,
 }: IStacFilterSectionProps) => {
-  useEffect(() => {
-    console.log('data in filter section', data);
-  }, [data]);
-
   const items = useMemo(() => {
     if (header === 'Collection') {
       return (
@@ -76,17 +73,12 @@ const StacFilterSection = ({
     }
 
     if (header === 'Platform') {
-      const pforms = selectedCollections.flatMap(collection => {
-        const platformEntries = platforms[collection as keyof typeof platforms];
-        return platformEntries ? platformEntries : [];
-      });
-
       return (
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger>{header}</DropdownMenuTrigger>
           <DropdownMenuContent side="right">
             {selectedCollections.map(collection => (
-              <DropdownMenuGroup>
+              <DropdownMenuGroup key={collection}>
                 <DropdownMenuLabel>{collection}</DropdownMenuLabel>
                 {platforms[collection as keyof typeof platforms].map(
                   platform => (
@@ -107,20 +99,39 @@ const StacFilterSection = ({
         </DropdownMenu>
       );
     }
-  }, [header, data, selectedCollections, handleCheckedChange]);
 
-  // Get the current selected values based on the header
-  const currentSelectedValues = useMemo(() => {
-    if (header === 'Collection') {
-      return selectedCollections;
+    if (header === 'Data / Product') {
+      return (
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger>{header}</DropdownMenuTrigger>
+          <DropdownMenuContent side="right">
+            {selectedCollections.map(collection => (
+              <DropdownMenuGroup key={collection}>
+                <DropdownMenuLabel>{collection}</DropdownMenuLabel>
+                {products
+                  .filter(product => product.collections.includes(collection))
+                  .map(product => (
+                    <DropdownMenuCheckboxItem
+                      key={product.productCode}
+                      checked={selectedData.includes(product.productCode)}
+                      onCheckedChange={() => {
+                        handleCheckedChange(product.productCode, collection);
+                      }}
+                    >
+                      {product.productCode}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+              </DropdownMenuGroup>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
     }
-    return [];
-  }, [header, selectedCollections]);
+  }, [header, data, selectedCollections, handleCheckedChange]);
 
   return (
     <div>
       <span style={{ fontWeight: 'bold' }}>{header}</span>
-
       {items}
     </div>
   );
