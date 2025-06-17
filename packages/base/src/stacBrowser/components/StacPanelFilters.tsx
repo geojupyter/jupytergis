@@ -52,6 +52,22 @@ const StacPanelFilters = ({
     filterSetters.datasets(Array.from(updatedDatasets));
   };
 
+  const handlePlatformSelection = (platform: string) => {
+    const { platforms } = filterState;
+
+    const updatedPlatforms = new Set(platforms);
+    console.log('updatedPlatforms', updatedPlatforms);
+    updatedPlatforms.add(platform);
+    filterSetters.platforms(Array.from(updatedPlatforms));
+  };
+
+  const handleProductSelection = (product: string) => {
+    const { products } = filterState;
+    const updatedProducts = new Set(products);
+    updatedProducts.add(product);
+    filterSetters.products(Array.from(updatedProducts));
+  };
+
   useEffect(() => {
     console.log('filterState in filters', filterState);
   }, [filterState]);
@@ -99,24 +115,21 @@ const StacPanelFilters = ({
         selectedData={filterState.datasets}
         handleCheckedChange={handleDatasetSelection}
       />
-      {/* <StacFilterSection
+      <StacFilterSection
         header="Platform"
         data={platforms}
         selectedCollections={filterState.collections}
         selectedData={filterState.platforms}
-        handleCheckedChange={data =>
-          filterSetters.platforms(data.selectedDatasets)
-        }
+        handleCheckedChange={handlePlatformSelection}
       />
+
       <StacFilterSection
         header="Data / Product"
         data={products}
         selectedCollections={filterState.collections}
         selectedData={filterState.products}
-        handleCheckedChange={data =>
-          filterSetters.products(data.selectedDatasets)
-        }
-      /> */}
+        handleCheckedChange={handleProductSelection}
+      />
       {/* <div>cloud cover</div> */}
     </div>
   );
