@@ -4,10 +4,8 @@ import {
   GlobalStateDbManager,
   LeftPanelWidget,
   RightPanelWidget,
-  StacSidePanel,
   addCommands,
   createDefaultLayerRegistry,
-  logoMiniAlternativeIcon,
   logoMiniIcon,
   rasterSubMenu,
   vectorSubMenu,
@@ -267,22 +265,12 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     rightControlPanel.title.caption = 'JupyterGIS Control Panel';
     rightControlPanel.title.icon = logoMiniIcon;
 
-    const stacControlPanel = new StacSidePanel({
-      model: controlModel,
-      tracker,
-    });
-    stacControlPanel.id = 'jupytergis::StacControlPanel';
-    stacControlPanel.title.caption = 'STAC Browser';
-    stacControlPanel.title.icon = logoMiniAlternativeIcon;
-
     if (restorer) {
       restorer.add(leftControlPanel, `${NAME_SPACE}-left`);
       restorer.add(rightControlPanel, `${NAME_SPACE}-right`);
-      restorer.add(stacControlPanel, `${NAME_SPACE}-left`);
     }
     app.shell.add(leftControlPanel, 'left', { rank: 2000 });
     app.shell.add(rightControlPanel, 'right', { rank: 2000 });
-    app.shell.add(stacControlPanel, 'left', { rank: 2500 });
   },
 };
 
