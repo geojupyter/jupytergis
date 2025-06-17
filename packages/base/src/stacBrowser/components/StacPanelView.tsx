@@ -18,12 +18,8 @@ const StacPanelView = ({
   products,
 }: IStacViewProps) => {
   const {
-    selectedCollections,
-    setSelectedCollections,
-    selectedPlatforms,
-    setSelectedPlatforms,
-    selectedProducts,
-    setSelectedProducts,
+    filterState,
+    filterSetters,
     results,
     startTime,
     setStartTime,
@@ -58,12 +54,8 @@ const StacPanelView = ({
           datasets={datasets}
           platforms={platforms}
           products={products}
-          selectedCollections={selectedCollections}
-          setSelectedCollections={setSelectedCollections}
-          selectedPlatforms={selectedPlatforms}
-          setSelectedPlatforms={setSelectedPlatforms}
-          selectedProducts={selectedProducts}
-          setSelectedProducts={setSelectedProducts}
+          filterState={filterState}
+          filterSetters={filterSetters}
           startTime={startTime}
           setStartTime={setStartTime}
           endTime={endTime}

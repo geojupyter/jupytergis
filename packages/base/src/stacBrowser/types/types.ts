@@ -179,3 +179,12 @@ export interface IStacViewProps {
   products: ProductsType;
   model?: IJupyterGISModel;
 }
+
+// Generic filter keys for STAC browser
+export type StacFilterKey = 'collections' | 'datasets' | 'platforms' | 'products';
+
+// Generic filter state object
+export type StacFilterState = Record<StacFilterKey, string[]>;
+
+// Generic filter setter object
+export type StacFilterSetters = Record<StacFilterKey, (val: string[]) => void>;

@@ -5,7 +5,13 @@ import { useEffect, useState } from 'react';
 
 import { fetchWithProxies } from '../../tools';
 import { DatasetsType, PlatformsType, ProductsType } from '../constants';
-import { IStacItem, IStacQueryBody, IStacSearchResult } from '../types/types';
+import {
+  IStacItem,
+  IStacQueryBody,
+  IStacSearchResult,
+  StacFilterState,
+  StacFilterSetters,
+} from '../types/types';
 
 const API_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
 const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
@@ -27,12 +33,8 @@ interface IUseStacSearchProps {
 }
 
 interface IUseStacSearchReturn {
-  selectedCollections: string[];
-  setSelectedCollections: (val: string[]) => void;
-  selectedPlatforms: string[];
-  setSelectedPlatforms: (val: string[]) => void;
-  selectedProducts: string[];
-  setSelectedProducts: (val: string[]) => void;
+  filterState: StacFilterState;
+  filterSetters: StacFilterSetters;
   results: IStacItem[];
   startTime: Date | undefined;
   setStartTime: (date: Date | undefined) => void;
@@ -58,21 +60,22 @@ function useStacSearch({
   products,
   model,
 }: IUseStacSearchProps): IUseStacSearchReturn {
-  // Initialize state from localStorage or empty arrays
-  const [selectedCollections, setSelectedCollections] = useState<string[]>(
-    () => {
-      const stored = localStorage.getItem(STORAGE_KEYS.collections);
-      return stored ? JSON.parse(stored) : [];
-    },
-  );
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(() => {
-    const stored = localStorage.getItem(STORAGE_KEYS.platforms);
-    return stored ? JSON.parse(stored) : [];
+  // Generic filter state
+  const [filterState, setFilterState] = useState<StacFilterState>({
+    collections: [],
+    datasets: [],
+    platforms: [],
+    products: [],
   });
-  const [selectedProducts, setSelectedProducts] = useState<string[]>(() => {
-    const stored = localStorage.getItem(STORAGE_KEYS.products);
-    return stored ? JSON.parse(stored) : [];
-  });
+
+  // Generic filter setters
+  const filterSetters: StacFilterSetters = {
+    collections: val => setFilterState(s => ({ ...s, collections: val })),
+    datasets: val => setFilterState(s => ({ ...s, datasets: val })),
+    platforms: val => setFilterState(s => ({ ...s, platforms: val })),
+    products: val => setFilterState(s => ({ ...s, products: val })),
+  };
+
   const [startTime, setStartTime] = useState<Date | undefined>(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.startTime);
     return stored ? new Date(stored) : undefined;
@@ -95,23 +98,23 @@ function useStacSearch({
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEYS.collections,
-      JSON.stringify(selectedCollections),
+      JSON.stringify(filterState.collections),
     );
-  }, [selectedCollections]);
+  }, [filterState.collections]);
 
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEYS.platforms,
-      JSON.stringify(selectedPlatforms),
+      JSON.stringify(filterState.platforms),
     );
-  }, [selectedPlatforms]);
+  }, [filterState.platforms]);
 
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEYS.products,
-      JSON.stringify(selectedProducts),
+      JSON.stringify(filterState.products),
     );
-  }, [selectedProducts]);
+  }, [filterState.products]);
 
   useEffect(() => {
     if (startTime) {
@@ -151,12 +154,15 @@ function useStacSearch({
   const fetchResults = async (page = 1) => {
     // Find datasets for selected collections
     const selectedDatasets = datasets
-      .filter(({ collection }) => selectedCollections.includes(collection))
+      .filter(({ collection }) => filterState.collections.includes(collection))
       .flatMap(({ datasets }) => datasets);
 
     const processingLevel: string[] = [];
     const productType: string[] = [];
 
+    console.log('selectedCollections', filterState.collections);
+    console.log('selectedProducts', filterState.products);
+    console.log('selectedPlatforms', filterState.platforms);
     // selectedProducts.forEach(productCode => {
     //   // Find the product in all selected collections
     //   selectedCollections.forEach(collection => {
@@ -189,8 +195,8 @@ function useStacSearch({
         ...(endTime && {
           start_datetime: { lte: endTime.toISOString() },
         }),
-        ...(selectedPlatforms.length > 0 && {
-          platform: { in: selectedPlatforms },
+        ...(filterState.platforms.length > 0 && {
+          platform: { in: filterState.platforms },
         }),
         ...(processingLevel.length > 0 && {
           'processing:level': { in: processingLevel },
@@ -254,9 +260,9 @@ function useStacSearch({
     setCurrentPage(1);
     model && fetchResults(1);
   }, [
-    selectedCollections,
-    selectedPlatforms,
-    selectedProducts,
+    filterState.collections,
+    filterState.platforms,
+    filterState.products,
     startTime,
     endTime,
     model,
@@ -312,12 +318,8 @@ function useStacSearch({
   };
 
   return {
-    selectedCollections,
-    setSelectedCollections,
-    selectedPlatforms,
-    setSelectedPlatforms,
-    selectedProducts,
-    setSelectedProducts,
+    filterState,
+    filterSetters,
     results,
     startTime,
     setStartTime,
