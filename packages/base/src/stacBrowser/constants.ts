@@ -84,172 +84,122 @@ export const datasets = [
 ];
 
 // map collection names to available platforms
-export const platforms = [
-  { collection: 'Sentinel 1', platforms: ['S1A', 'S1B'] },
-  { collection: 'Sentinel 2', platforms: ['S2A', 'S2B', 'S2X'] },
-  { collection: 'Venus', platforms: ['VM1', 'VM5'] },
-  {
-    collection: 'Spot',
-    platforms: [
-      'SPOT1',
-      'SPOT2',
-      'SPOT3',
-      'SPOT4',
-      'SPOT5',
-      'SPOT4_TAKE5',
-      'SPOT5_TAKE5',
-    ],
-  },
-  { collection: 'Landsat', platforms: ['LANDSAT5', 'LANDSAT7', 'LANDSAT8'] },
-  // OSO, Postel, and GEOV2 don't have platforms
-];
-
-// map collection names to available product codes
-export const productsByCollection = {
-  'Sentinel 1': [
-    { productCode: 'SLC', productType: ['SLC'], processingLevel: 'L1' },
-    { productCode: 'GRD', productType: ['GRD'], processingLevel: 'L1' },
-    { productCode: 'OCN', productType: ['OCN'], processingLevel: 'L2' },
-  ],
-  'Sentinel 2': [
-    {
-      productCode: 'L1C',
-      productType: ['REFLECTANCE', 'REFLECTANCETOA', 'S2MSI1C'],
-      processingLevel: 'L1C',
-    },
-    {
-      productCode: 'L2A',
-      productType: ['REFLECTANCE'],
-      processingLevel: 'L2A',
-    },
-    {
-      productCode: 'L2B SNOW',
-      productType: ['SNOW_MASK'],
-      processingLevel: 'L2B-SNOW',
-    },
-    {
-      productCode: 'L2B WATER',
-      productType: ['REFLECTANCE'],
-      processingLevel: 'L2B-WATER',
-    },
-    {
-      productCode: 'L3A',
-      productType: ['REFLECTANCE'],
-      processingLevel: 'L3A',
-    },
-  ],
-  Venus: [
-    {
-      productCode: 'L1C',
-      productType: ['REFLECTANCE', 'REFLECTANCETOA', 'S2MSI1C'],
-      processingLevel: 'L1C',
-    },
-    {
-      productCode: 'L2A',
-      productType: ['REFLECTANCE'],
-      processingLevel: 'L2A',
-    },
-    {
-      productCode: 'L3A',
-      productType: ['REFLECTANCE'],
-      processingLevel: 'L3A',
-    },
-  ],
+export const platforms = {
+  'Sentinel 1': ['S1A', 'S1B'],
+  'Sentinel 2': ['S2A', 'S2B', 'S2X'],
+  Venus: ['VM1', 'VM5'],
   Spot: [
-    {
-      productCode: 'L1C',
-      productType: ['REFLECTANCE', 'REFLECTANCETOA', 'S2MSI1C'],
-      processingLevel: 'L1C',
-    },
-    {
-      productCode: 'L1A',
-      productType: [
-        'DEM',
-        'REFLECTANCETOA',
-        'DEM9V20',
-        'DEMS9V20',
-        'DEMS09V20',
-        'DEMSV20',
-        'DEPS9V20',
-        'SPOTDEM',
-      ],
-      processingLevel: 'L1A',
-    },
-    {
-      productCode: 'L2A',
-      productType: ['REFLECTANCE'],
-      processingLevel: 'L2A',
-    },
+    'SPOT1',
+    'SPOT2',
+    'SPOT3',
+    'SPOT4',
+    'SPOT5',
+    'SPOT4_TAKE5',
+    'SPOT5_TAKE5',
   ],
-  Landsat: [
-    {
-      productCode: 'L2A',
-      productType: ['REFLECTANCE'],
-      processingLevel: 'L2A',
-    },
-    {
-      productCode: 'L2B SNOW',
-      productType: ['SNOW_MASK'],
-      processingLevel: 'L2B-SNOW',
-    },
-    {
-      productCode: 'N2A',
-      productType: ['REFLECTANCE'],
-      processingLevel: 'N2A',
-    },
-  ],
-  OSO: [
-    {
-      productCode: 'L3B-OSO',
-      productType: ['REFLECTANCE'],
-      processingLevel: 'L3B-OSO',
-    },
-  ],
-  Postel: [
-    { productCode: 'Vegetation', productType: ['Vegetation'] },
-    { productCode: 'Radiation', productType: ['Radiation'] },
-    { productCode: 'Water', productType: ['Water'] },
-    { productCode: 'LandCover', productType: ['LandCover'] },
-  ],
-  'GEOV2 AVHRR': [{ productCode: 'Vegetation', productType: ['Vegetation'] }],
+  Landsat: ['LANDSAT5', 'LANDSAT7', 'LANDSAT8'],
+  // OSO, Postel, and GEOV2 don't have platforms
 };
 
-// Utility to convert datasets array to Record<string, string[]>
-export function groupDatasetsByCollection(
-  arr: { collections: string[]; dataset: string }[],
-): Record<string, string[]> {
-  return arr.reduce(
-    (acc, { collections, dataset }) => {
-      collections.forEach(collection => {
-        if (!acc[collection]) {
-          acc[collection] = [];
-        }
-        acc[collection].push(dataset);
-      });
-      return acc;
-    },
-    {} as Record<string, string[]>,
-  );
-}
-
-// Utility to convert platforms array to Record<string, string[]>
-export function groupPlatformsByCollection(
-  arr: { collections: string[]; platform: string }[],
-): Record<string, string[]> {
-  return arr.reduce(
-    (acc, { collections, platform }) => {
-      collections.forEach(collection => {
-        if (!acc[collection]) {
-          acc[collection] = [];
-        }
-        acc[collection].push(platform);
-      });
-      return acc;
-    },
-    {} as Record<string, string[]>,
-  );
-}
+// Condensed products array with collections attribute
+export const products = [
+  {
+    productCode: 'SLC',
+    productType: ['SLC'],
+    processingLevel: 'L1',
+    collections: ['Sentinel 1'],
+  },
+  {
+    productCode: 'GRD',
+    productType: ['GRD'],
+    processingLevel: 'L1',
+    collections: ['Sentinel 1'],
+  },
+  {
+    productCode: 'OCN',
+    productType: ['OCN'],
+    processingLevel: 'L2',
+    collections: ['Sentinel 1'],
+  },
+  {
+    productCode: 'L1C',
+    productType: ['REFLECTANCE', 'REFLECTANCETOA', 'S2MSI1C'],
+    processingLevel: 'L1C',
+    collections: ['Sentinel 2', 'Venus', 'Spot'],
+  },
+  {
+    productCode: 'L2A',
+    productType: ['REFLECTANCE'],
+    processingLevel: 'L2A',
+    collections: ['Sentinel 2', 'Venus', 'Spot', 'Landsat'],
+  },
+  {
+    productCode: 'L2B SNOW',
+    productType: ['SNOW_MASK'],
+    processingLevel: 'L2B-SNOW',
+    collections: ['Sentinel 2', 'Landsat'],
+  },
+  {
+    productCode: 'L2B WATER',
+    productType: ['REFLECTANCE'],
+    processingLevel: 'L2B-WATER',
+    collections: ['Sentinel 2'],
+  },
+  {
+    productCode: 'L3A',
+    productType: ['REFLECTANCE'],
+    processingLevel: 'L3A',
+    collections: ['Sentinel 2', 'Venus'],
+  },
+  {
+    productCode: 'L1A',
+    productType: [
+      'DEM',
+      'REFLECTANCETOA',
+      'DEM9V20',
+      'DEMS9V20',
+      'DEMS09V20',
+      'DEMSV20',
+      'DEPS9V20',
+      'SPOTDEM',
+    ],
+    processingLevel: 'L1A',
+    collections: ['Spot'],
+  },
+  {
+    productCode: 'N2A',
+    productType: ['REFLECTANCE'],
+    processingLevel: 'N2A',
+    collections: ['Landsat'],
+  },
+  {
+    productCode: 'L3B-OSO',
+    productType: ['REFLECTANCE'],
+    processingLevel: 'L3B-OSO',
+    collections: ['OSO'],
+  },
+  {
+    productCode: 'Vegetation',
+    productType: ['Vegetation'],
+    collections: ['Postel', 'GEOV2 AVHRR'],
+  },
+  {
+    productCode: 'Radiation',
+    productType: ['Radiation'],
+    collections: ['Postel'],
+  },
+  {
+    productCode: 'Water',
+    productType: ['Water'],
+    collections: ['Postel'],
+  },
+  {
+    productCode: 'LandCover',
+    productType: ['LandCover'],
+    collections: ['Postel'],
+  },
+];
 
 export type DatasetsType = typeof datasets;
 export type PlatformsType = typeof platforms;
-export type ProductsType = typeof productsByCollection;
+export type ProductsType = typeof products;
