@@ -12,8 +12,7 @@ import {
   datasets,
   groupPlatformsByCollection,
   platforms,
-  groupProductsByCode,
-  products,
+  productsByCollection,
 } from './constants';
 
 interface IStacBrowserDialogProps {
@@ -45,7 +44,7 @@ const StacBrowser = ({ controlPanelModel }: IStacBrowserDialogProps) => {
     <StacPanelView
       datasets={groupDatasetsByCollection(datasets)}
       platforms={groupPlatformsByCollection(platforms)}
-      products={groupProductsByCode(products)}
+      products={productsByCollection}
       model={jgisModel}
     />
   );
