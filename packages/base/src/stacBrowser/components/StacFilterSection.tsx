@@ -15,6 +15,7 @@ import {
 import {
   datasets,
   DatasetsType,
+  platforms,
   PlatformsType,
   ProductsType,
 } from '../constants';
@@ -45,7 +46,7 @@ const StacFilterSection = ({
           <DropdownMenuTrigger>{header}</DropdownMenuTrigger>
           <DropdownMenuContent side="right">
             <DropdownMenuGroup>
-              <DropdownMenuLabel>{header}</DropdownMenuLabel>
+              {/* <DropdownMenuLabel>{header}</DropdownMenuLabel> */}
               {datasets.map(entry => (
                 <DropdownMenuSub key={entry.collection}>
                   <DropdownMenuSubTrigger>
@@ -74,7 +75,38 @@ const StacFilterSection = ({
       );
     }
 
-    return null;
+    if (header === 'Platform') {
+      const pforms = selectedCollections.flatMap(collection => {
+        const platformEntries = platforms[collection as keyof typeof platforms];
+        return platformEntries ? platformEntries : [];
+      });
+
+      return (
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger>{header}</DropdownMenuTrigger>
+          <DropdownMenuContent side="right">
+            {selectedCollections.map(collection => (
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>{collection}</DropdownMenuLabel>
+                {platforms[collection as keyof typeof platforms].map(
+                  platform => (
+                    <DropdownMenuCheckboxItem
+                      key={platform}
+                      checked={selectedData.includes(platform)}
+                      onCheckedChange={() => {
+                        handleCheckedChange(platform, '');
+                      }}
+                    >
+                      {platform}
+                    </DropdownMenuCheckboxItem>
+                  ),
+                )}
+              </DropdownMenuGroup>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
   }, [header, data, selectedCollections, handleCheckedChange]);
 
   // Get the current selected values based on the header
