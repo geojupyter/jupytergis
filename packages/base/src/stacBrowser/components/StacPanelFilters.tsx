@@ -1,7 +1,7 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { Calendar } from '@/src/shared/components/Calendar';
 import { Button } from '../../shared/components/Button';
@@ -56,21 +56,17 @@ const StacPanelFilters = ({
     const { platforms } = filterState;
 
     const updatedPlatforms = new Set(platforms);
-    console.log('updatedPlatforms', updatedPlatforms);
     updatedPlatforms.add(platform);
     filterSetters.platforms(Array.from(updatedPlatforms));
   };
 
   const handleProductSelection = (product: string) => {
     const { products } = filterState;
+
     const updatedProducts = new Set(products);
     updatedProducts.add(product);
     filterSetters.products(Array.from(updatedProducts));
   };
-
-  useEffect(() => {
-    console.log('filterState in filters', filterState);
-  }, [filterState]);
 
   return (
     <div className="jgis-stac-browser-filters-panel">
