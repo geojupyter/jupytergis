@@ -420,7 +420,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this._select.setActive(true);
       this._modify.setActive(true);
 
-      /* Track changes of selected layers 
+      /* Track changes of selected layers
       Get the vector source of the selected layer
       Edit the vector layer*/
       this._model.sharedModel.awareness.on(
@@ -1504,7 +1504,7 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
 
-    /* check if the currently selected layer is a drawVector layer 
+    /* check if the currently selected layer is a drawVector layer
     and update isDrawVectorLayer to remove the display of the geometry selection overlay if required*/
     const selectedLayers = localState?.selected?.value;
     if (!selectedLayers) {
