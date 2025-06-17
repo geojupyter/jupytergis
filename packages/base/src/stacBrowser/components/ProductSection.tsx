@@ -4,12 +4,12 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '../../shared/components/ToggleGroup';
-import { getProductCodesForCollection } from '../constants';
-import { CollectionName, IProductData } from '../types/types';
+import { productsByCollection } from '../constants';
+import { CollectionName } from '../types/types';
 
 interface IStacSectionProps {
   header: string;
-  data: Record<string, IProductData>;
+  data: typeof productsByCollection;
   selectedCollections: string[];
   selectedProducts: string[];
   handleToggleGroupValueChange: (val: string[]) => void;
@@ -25,7 +25,9 @@ const ProductSection = ({
   const items = useMemo(() => {
     const productCodesForCollections = selectedCollections
       .map(collection =>
-        getProductCodesForCollection(collection as CollectionName),
+        (data[collection as CollectionName] || []).map(
+          product => product.productCode,
+        ),
       )
       .flat();
 
@@ -38,7 +40,7 @@ const ProductSection = ({
         {val}
       </ToggleGroupItem>
     ));
-  }, [selectedCollections]);
+  }, [selectedCollections, data]);
 
   return (
     <div>
