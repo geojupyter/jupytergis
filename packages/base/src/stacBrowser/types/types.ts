@@ -1,5 +1,7 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 
+import { productsByCollection } from '../constants';
+
 export interface IStacCollection {
   // Core fields
   type: 'Collection';
@@ -172,8 +174,9 @@ export interface IStacQueryBody {
 }
 
 export interface IStacViewProps {
+  // These are passed as grouped arrays upstream, but converted to Record<string, string[]> for the hook
   datasets: Record<string, string[]>;
   platforms: Record<string, string[]>;
-  products: Record<string, IProductData>;
+  products: typeof productsByCollection;
   model?: IJupyterGISModel;
 }
