@@ -948,9 +948,9 @@ export function addCommands(
         if (!selectedLayer) {
           return false;
         } else if (model.checkIfIsADrawVectorLayer(selectedLayer) === true) {
-          return model.isDrawVectorLayerEnabled;
+          return model.editingVectorLayer;
         } else {
-          model.isDrawVectorLayerEnabled === false;
+          model.editingVectorLayer === false;
           return false;
         }
       } else {
@@ -983,14 +983,14 @@ export function addCommands(
         if (!selectedLayer) {
           return false;
         } else {
-          if (model.isDrawVectorLayerEnabled === false) {
-            model.isDrawVectorLayerEnabled = true;
+          if (model.editingVectorLayer === false) {
+            model.editingVectorLayer = true;
           } else {
-            model.isDrawVectorLayerEnabled = false;
+            model.editingVectorLayer = false;
           }
         }
 
-        model.updateIsDrawVectorLayerEnabled();
+        model.updateEditingVectorLayer();
         commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
       }
     },

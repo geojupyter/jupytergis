@@ -117,7 +117,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
-  isDrawVectorLayerEnabled: boolean;
+  editingVectorLayer: boolean;
   drawGeometryLabel: string | undefined;
 }
 
@@ -170,8 +170,8 @@ export class MainView extends React.Component<IProps, IStates> {
       this._handleGeolocationChanged,
       this,
     );
-    this._model.drawVectorLayerChanged.connect(
-      this._updateIsDrawVectorLayerEnabled,
+    this._model.editingVectorLayerChanged.connect(
+      this._updateEditingVectorLayer,
       this,
     );
 
@@ -201,7 +201,7 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
-      isDrawVectorLayerEnabled: false,
+      editingVectorLayer: false,
       drawGeometryLabel: '',
     };
 
@@ -250,7 +250,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._model.sharedModel.awareness.off(
       'change',
-      this._onSelectedLayerChangeHandler,
+      this._onSelectedLayerChange,
     );
     this._mainViewModel.dispose();
   }
@@ -408,24 +408,12 @@ export class MainView extends React.Component<IProps, IStates> {
         },
       }));
 
-      /* generate select, modify and snap interactions for features of layers already added to the Map */
-      this._select = new Select();
-      this._modify = new Modify({
-        features: this._select.getFeatures(),
-      });
-
-      this._Map.addInteraction(this._select);
-      this._Map.addInteraction(this._modify);
-
-      this._select.setActive(true);
-      this._modify.setActive(true);
-
       /* Track changes of selected layers
       Get the vector source of the selected layer
       Edit the vector layer*/
       this._model.sharedModel.awareness.on(
         'change',
-        this._onSelectedLayerChangeHandler,
+        this._onSelectedLayerChange,
       );
     }
   }
@@ -1515,8 +1503,8 @@ export class MainView extends React.Component<IProps, IStates> {
     const JGISLayer = this._model.getLayer(selectedLayerID);
     if (JGISLayer) {
       if (this._model.checkIfIsADrawVectorLayer(JGISLayer) === false) {
-        this._model.isDrawVectorLayerEnabled = false;
-        this._updateIsDrawVectorLayerEnabled();
+        this._model.editingVectorLayer = false;
+        this._updateEditingVectorLayer();
       }
     }
 
@@ -1767,8 +1755,8 @@ export class MainView extends React.Component<IProps, IStates> {
         if (
           this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer) === true
         ) {
-          this._model.isDrawVectorLayerEnabled = false;
-          this._updateIsDrawVectorLayerEnabled();
+          this._model.editingVectorLayer = false;
+          this._updateEditingVectorLayer();
           this._mainViewModel.commands.notifyCommandChanged(
             CommandIDs.toggleDrawFeatures,
           );
@@ -2093,11 +2081,10 @@ export class MainView extends React.Component<IProps, IStates> {
     // TODO SOMETHING
   };
 
-  private _updateIsDrawVectorLayerEnabled() {
-    const isDrawVectorLayerEnabled: boolean =
-      this._model.isDrawVectorLayerEnabled;
-    this.setState(old => ({ ...old, isDrawVectorLayerEnabled }));
-    if (isDrawVectorLayerEnabled === false && this._draw) {
+  private _updateEditingVectorLayer() {
+    const editingVectorLayer: boolean = this._model.editingVectorLayer;
+    this.setState(old => ({ ...old, editingVectorLayer }));
+    if (editingVectorLayer === false && this._draw) {
       this._removeDrawInteraction();
     }
   }
@@ -2181,7 +2168,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   _updateDrawSource = () => {
     if (this._currentVectorSource) {
-      this._currentVectorSource.on('change', this._onVectorSourceChangeHandler);
+      this._currentVectorSource.on('change', this._onVectorSourceChange);
     }
   };
 
@@ -2253,11 +2240,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._Map.removeInteraction(this._modify);
   };
 
-  private _onVectorSourceChangeHandler = () => {
-    this._onVectorSourceChange();
-  };
-
-  private _onSelectedLayerChangeHandler = () => {
+  private _onSelectedLayerChange = () => {
     const selectedLayers =
       this._model.sharedModel.awareness.getLocalState()?.selected?.value;
     const selectedLayerId = selectedLayers
@@ -2298,7 +2281,7 @@ export class MainView extends React.Component<IProps, IStates> {
           );
         })}
 
-        {this.state.isDrawVectorLayerEnabled && (
+        {this.state.editingVectorLayer && (
           <div
             style={{
               position: 'absolute',
@@ -2325,7 +2308,7 @@ export class MainView extends React.Component<IProps, IStates> {
                 <option value="Select Geometry" selected hidden>
                   Geometry type
                 </option>
-                {drawGeometries.map(geometryType => (
+                {DRAW_GEOMETRIES.map(geometryType => (
                   <option key={geometryType} value={geometryType}>
                     {geometryType}
                   </option>

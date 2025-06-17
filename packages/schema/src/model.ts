@@ -55,7 +55,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this,
     );
     this.annotationModel = annotationModel;
-    this.isDrawVectorLayerEnabled = false;
+    this._editingVectorLayer = false;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
   }
@@ -740,8 +740,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.updateLayerSignal.emit(JSON.stringify({ layerId, layer }));
   };
 
-  updateIsDrawVectorLayerEnabled() {
-    this.drawVectorLayerChanged.emit(this.isDrawVectorLayerEnabled);
+  updateEditingVectorLayer() {
+    this._editingVectorLayerChanged.emit(this._editingVectorLayer);
   }
 
   checkIfIsADrawVectorLayer(layer: IJGISLayer): boolean {
@@ -767,6 +767,19 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get geolocationChanged() {
     return this._geolocationChanged;
+  }
+
+  get editingVectorLayer(): boolean {
+    return this._editingVectorLayer;
+  }
+
+  set editingVectorLayer(editingVectorLayer: boolean) {
+    this._editingVectorLayer = editingVectorLayer;
+    this.editingVectorLayerChanged.emit(this.editingVectorLayer);
+  }
+
+  get editingVectorLayerChanged() {
+    return this._editingVectorLayerChanged;
   }
 
   readonly defaultKernelName: string = '';
@@ -810,8 +823,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
 
-  private editingVectorLayer: boolean;
-  private editingVectorLayerChanged = new Signal<this, boolean>(this);
+  private _editingVectorLayer: boolean;
+  private _editingVectorLayerChanged = new Signal<this, boolean>(this);
 }
 
 export namespace JupyterGISModel {
