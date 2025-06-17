@@ -4,16 +4,11 @@ import { startOfYesterday } from 'date-fns';
 import { useEffect, useState } from 'react';
 
 import { fetchWithProxies } from '../../tools';
-import {
-  IProductData,
-  IStacItem,
-  IStacQueryBody,
-  IStacSearchResult,
-} from '../types/types';
+import { DatasetsType, PlatformsType, ProductsType } from '../constants';
+import { IStacItem, IStacQueryBody, IStacSearchResult } from '../types/types';
 
 const API_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
 const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-// const PROXY_URL = `/jupytergis_core/proxy?url=${encodeURIComponent(API_URL)}`;
 
 // Storage keys for persisting state
 const STORAGE_KEYS = {
@@ -25,9 +20,9 @@ const STORAGE_KEYS = {
 };
 
 interface IUseStacSearchProps {
-  datasets: Record<string, string[]>;
-  platforms: Record<string, string[]>;
-  products: Record<string, IProductData>;
+  datasets: DatasetsType;
+  platforms: PlatformsType;
+  products: ProductsType;
   model: IJupyterGISModel | undefined;
 }
 
@@ -154,19 +149,30 @@ function useStacSearch({
   }, [model]);
 
   const fetchResults = async (page = 1) => {
-    const selectedDatasets = Object.entries(datasets)
-      .filter(([key]) => selectedCollections.includes(key))
-      .flatMap(([_, values]) => values);
+    // Find datasets for selected collections
+    const selectedDatasets = datasets
+      .filter(({ collection }) => selectedCollections.includes(collection))
+      .flatMap(({ datasets }) => datasets);
 
     const processingLevel: string[] = [];
     const productType: string[] = [];
 
-    selectedProducts.forEach(productCode => {
-      productType.push(...products[productCode]['product:type']);
-      if (products[productCode]['processing:level']) {
-        processingLevel.push(...products[productCode]['processing:level']);
-      }
-    });
+    // selectedProducts.forEach(productCode => {
+    //   // Find the product in all selected collections
+    //   selectedCollections.forEach(collection => {
+    //     const product = (products[collection as CollectionName] || []).find(
+    //       (p: any) => p.productCode === productCode,
+    //     );
+    //     if (product) {
+    //       if (product.productType) {
+    //         productType.push(...product.productType);
+    //       }
+    //       if ('processingLevel' in product && product.processingLevel) {
+    //         processingLevel.push(product.processingLevel);
+    //       }
+    //     }
+    //   });
+    // });
 
     const body: IStacQueryBody = {
       bbox: currentBBox,

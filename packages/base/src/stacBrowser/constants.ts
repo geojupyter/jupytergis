@@ -249,3 +249,7 @@ export function groupPlatformsByCollection(
     {} as Record<string, string[]>,
   );
 }
+
+export type DatasetsType = typeof datasets;
+export type PlatformsType = typeof platforms;
+export type ProductsType = typeof productsByCollection;

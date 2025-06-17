@@ -4,10 +4,11 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '../../shared/components/ToggleGroup';
+import { DatasetsType, PlatformsType } from '../constants';
 
 interface IStacFilterSectionProps {
   header: string;
-  data: Record<string, string[]>;
+  data: DatasetsType | PlatformsType;
   selectedCollections: string[];
   selectedPlatforms: string[];
   handleToggleGroupValueChange: (val: string[]) => void;
@@ -22,33 +23,31 @@ const StacFilterSection = ({
 }: IStacFilterSectionProps) => {
   const items = useMemo(() => {
     if (header === 'Collection') {
-      return Object.entries(data).map(([key, val]) => (
+      return (data as DatasetsType).map(({ collection }) => (
         <ToggleGroupItem
-          key={key}
+          key={collection}
           className="jgis-stac-browser-section-item"
-          value={key}
+          value={collection}
         >
-          {key}
+          {collection}
         </ToggleGroupItem>
       ));
     }
-
     if (header === 'Platform') {
-      return Object.entries(data)
-        .filter(([key]) => selectedCollections.includes(key))
-        .flatMap(([key, values]) =>
-          values.map(val => (
+      return (data as PlatformsType)
+        .filter(({ collection }) => selectedCollections.includes(collection))
+        .flatMap(({ collection, platforms }) =>
+          platforms.map(platform => (
             <ToggleGroupItem
-              key={`${key}-${val}`}
+              key={`${collection}-${platform}`}
               className="jgis-stac-browser-section-item"
-              value={val}
+              value={platform}
             >
-              {val}
+              {platform}
             </ToggleGroupItem>
           )),
         );
     }
-
     return null;
   }, [header, data, selectedCollections, selectedPlatforms]);
 

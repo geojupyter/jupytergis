@@ -12,12 +12,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '../../shared/components/Popover';
-import { IProductData } from '../types/types';
+import { DatasetsType, PlatformsType, ProductsType } from '../constants';
 
 interface IStacPanelFiltersProps {
-  datasets: Record<string, string[]>;
-  platforms: Record<string, string[]>;
-  products: Record<string, IProductData>;
+  datasets: DatasetsType;
+  platforms: PlatformsType;
+  products: ProductsType;
   selectedCollections: string[];
   setSelectedCollections: (val: string[]) => void;
   selectedPlatforms: string[];
