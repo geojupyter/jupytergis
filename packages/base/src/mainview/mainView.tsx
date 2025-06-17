@@ -97,7 +97,7 @@ import { MainViewModel } from './mainviewmodel';
 //import Modify from 'ol/interaction/Modify.js';
 //import Snap from 'ol/interaction/Snap.js';
 
-const drawGeometries = ['Point', 'LineString', 'Polygon'];
+const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
 
 interface IProps {
   viewModel: MainViewModel;

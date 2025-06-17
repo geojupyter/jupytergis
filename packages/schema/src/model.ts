@@ -810,8 +810,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
 
-  public isDrawVectorLayerEnabled: boolean;
-  public drawVectorLayerChanged = new Signal<this, boolean>(this);
+  private editingVectorLayer: boolean;
+  private editingVectorLayerChanged = new Signal<this, boolean>(this);
 }
 
 export namespace JupyterGISModel {
