@@ -4,7 +4,7 @@ import { startOfYesterday } from 'date-fns';
 import { useEffect, useState } from 'react';
 
 import { fetchWithProxies } from '../../tools';
-import { datasets } from '../constants';
+import { products } from '../constants';
 import {
   IStacItem,
   IStacQueryBody,
@@ -144,33 +144,21 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
   }, [model]);
 
   const fetchResults = async (page = 1) => {
-    // Find datasets for selected collections
-    const selectedDatasets = datasets
-      .filter(({ collection }) => filterState.collections.includes(collection))
-      .flatMap(({ datasets }) => datasets);
+    const processingLevel = new Set<string>();
+    const productType = new Set<string>();
 
-    const processingLevel: string[] = [];
-    const productType: string[] = [];
-
-    console.log('selectedCollections', filterState.collections);
-    console.log('selectedProducts', filterState.products);
-    console.log('selectedPlatforms', filterState.platforms);
-    // selectedProducts.forEach(productCode => {
-    //   // Find the product in all selected collections
-    //   selectedCollections.forEach(collection => {
-    //     const product = (products[collection as CollectionName] || []).find(
-    //       (p: any) => p.productCode === productCode,
-    //     );
-    //     if (product) {
-    //       if (product.productType) {
-    //         productType.push(...product.productType);
-    //       }
-    //       if ('processingLevel' in product && product.processingLevel) {
-    //         processingLevel.push(product.processingLevel);
-    //       }
-    //     }
-    //   });
-    // });
+    filterState.products.forEach(productCode => {
+      products
+        .filter(product => product.productCode === productCode)
+        .forEach(product => {
+          if (product.processingLevel) {
+            processingLevel.add(product.processingLevel);
+          }
+          if (product.productType) {
+            product.productType.forEach(type => productType.add(type));
+          }
+        });
+    });
 
     const body: IStacQueryBody = {
       bbox: currentBBox,
@@ -178,7 +166,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       page,
       query: {
         latest: { eq: true },
-        dataset: { in: selectedDatasets },
+        dataset: { in: filterState.datasets },
         end_datetime: {
           gte: startTime
             ? startTime.toISOString()
@@ -190,15 +178,17 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
         ...(filterState.platforms.length > 0 && {
           platform: { in: filterState.platforms },
         }),
-        ...(processingLevel.length > 0 && {
-          'processing:level': { in: processingLevel },
+        ...(processingLevel.size > 0 && {
+          'processing:level': { in: Array.from(processingLevel) },
         }),
-        ...(productType.length > 0 && {
-          'product:type': { in: productType },
+        ...(productType.size > 0 && {
+          'product:type': { in: Array.from(productType) },
         }),
       },
       sortBy: [{ direction: 'desc', field: 'start_datetime' }],
     };
+
+    console.log('body', body);
 
     try {
       setIsLoading(true);
