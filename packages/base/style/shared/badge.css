@@ -3,17 +3,20 @@
   align-items: center;
   border-radius: 9999px;
   border: 1px solid transparent;
-  padding: 2px 1.25rem;
+  padding: 2px 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
   outline: none;
-  color: var(--jp-ui-font-color1);
-  background-color: var(--jp-layout-color2);
+  color: var(--jp-ui-inverse-font-color1);
+  background-color: var(--jp-brand-color0);
   width: max-content;
+  word-break: break-word;
+  max-width: 200px;
+  text-align: center;
 }
 
 .Badge:hover {
-  background-color: color-mix(in srgb, var(--jp-layout-color2) 80%, transparent);
+  background-color: color-mix(in srgb, var(--jp-brand-color0) 80%, transparent);
 }
 
 .Badge[data-variant='secondary'] {
