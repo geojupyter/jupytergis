@@ -206,3 +206,9 @@
     letter-spacing: 0.15em;
     opacity: 0.6;
 }
+
+.DropdownMenuIcon {
+    margin-left: auto;
+    height: 1rem;
+    width: 1rem;
+}
