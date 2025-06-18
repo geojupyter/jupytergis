@@ -853,9 +853,11 @@ __metadata:
     shpjs: ^6.1.0
     styled-components: ^5.3.6
     three: ^0.135.0
+    three-mesh-bvh: ^0.5.17
     ts-patch: ^3.3.0
     typescript: ^5
     typescript-transform-paths: ^3.5.5
+    uuid: ^11.0.3
   languageName: unknown
   linkType: soft
 
@@ -11362,6 +11364,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"three-mesh-bvh@npm:^0.5.17":
+  version: 0.5.24
+  resolution: "three-mesh-bvh@npm:0.5.24"
+  peerDependencies:
+    three: ">= 0.123.0"
+  checksum: 5a5e356111756869cfd00870bca2d881d3019b55e71142b5eee544a2e6bcc3546a340b0defa29c3ebe7ed4cfe99e7ee6addd5671bb89852841107189c0f98157
+  languageName: node
+  linkType: hard
+
 "three@npm:^0.135.0":
   version: 0.135.0
   resolution: "three@npm:0.135.0"
@@ -11882,6 +11893,15 @@ __metadata:
   bin:
     uuid: dist/bin/uuid
   checksum: 4b81611ade2885d2313ddd8dc865d93d8dccc13ddf901745edca8f86d99bc46d7a330d678e7532e7ebf93ce616679fb19b2e3568873ac0c14c999032acb25869
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^11.0.3":
+  version: 11.1.0
+  resolution: "uuid@npm:11.1.0"
+  bin:
+    uuid: dist/esm/bin/uuid
+  checksum: 840f19758543c4631e58a29439e51b5b669d5f34b4dd2700b6a1d15c5708c7a6e0c3e2c8c4a2eae761a3a7caa7e9884d00c86c02622ba91137bd3deade6b4b4a
   languageName: node
   linkType: hard
 

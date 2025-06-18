@@ -596,9 +596,15 @@ export function addCommands(
       const model = tracker.currentWidget?.model;
       await Private.renameSelectedItem(model, 'layer', (layerId, newName) => {
         const layer = model?.getLayer(layerId);
+        const sourceId = layer?.parameters?.source;
+        const source = model?.getSource(sourceId);
         if (layer) {
           layer.name = newName;
           model?.sharedModel.updateLayer(layerId, layer);
+          if (source) {
+            source.name = layer.name + ' Source';
+            model?.sharedModel.updateSource(sourceId, source);
+          }
         }
       });
     },
