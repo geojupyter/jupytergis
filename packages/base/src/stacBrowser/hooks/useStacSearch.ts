@@ -54,18 +54,19 @@ interface IUseStacSearchReturn {
 function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
   // Generic filter state
   const [filterState, setFilterState] = useState<StacFilterState>({
-    collections: [],
-    datasets: [],
-    platforms: [],
-    products: [],
+    collections: new Set(),
+    datasets: new Set(),
+    platforms: new Set(),
+    products: new Set(),
   });
 
   // Generic filter setters
   const filterSetters: StacFilterSetters = {
-    collections: val => setFilterState(s => ({ ...s, collections: val })),
-    datasets: val => setFilterState(s => ({ ...s, datasets: val })),
-    platforms: val => setFilterState(s => ({ ...s, platforms: val })),
-    products: val => setFilterState(s => ({ ...s, products: val })),
+    collections: val =>
+      setFilterState(s => ({ ...s, collections: new Set(val) })),
+    datasets: val => setFilterState(s => ({ ...s, datasets: new Set(val) })),
+    platforms: val => setFilterState(s => ({ ...s, platforms: new Set(val) })),
+    products: val => setFilterState(s => ({ ...s, products: new Set(val) })),
   };
 
   const [startTime, setStartTime] = useState<Date | undefined>(() => {
@@ -90,21 +91,21 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEYS.collections,
-      JSON.stringify(filterState.collections),
+      JSON.stringify(Array.from(filterState.collections)),
     );
   }, [filterState.collections]);
 
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEYS.platforms,
-      JSON.stringify(filterState.platforms),
+      JSON.stringify(Array.from(filterState.platforms)),
     );
   }, [filterState.platforms]);
 
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEYS.products,
-      JSON.stringify(filterState.products),
+      JSON.stringify(Array.from(filterState.products)),
     );
   }, [filterState.products]);
 
@@ -166,7 +167,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       page,
       query: {
         latest: { eq: true },
-        dataset: { in: filterState.datasets },
+        dataset: { in: Array.from(filterState.datasets) },
         end_datetime: {
           gte: startTime
             ? startTime.toISOString()
@@ -175,8 +176,8 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
         ...(endTime && {
           start_datetime: { lte: endTime.toISOString() },
         }),
-        ...(filterState.platforms.length > 0 && {
-          platform: { in: filterState.platforms },
+        ...(filterState.platforms.size > 0 && {
+          platform: { in: Array.from(filterState.platforms) },
         }),
         ...(processingLevel.size > 0 && {
           'processing:level': { in: Array.from(processingLevel) },
