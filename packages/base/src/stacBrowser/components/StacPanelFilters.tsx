@@ -38,55 +38,37 @@ const StacPanelFilters = ({
   setEndTime,
 }: IStacPanelFiltersProps) => {
   const handleDatasetSelection = (dataset: string, collection: string) => {
-    const { collections, datasets } = filterState;
+    const collections = new Set(filterState.collections);
+    const datasets = new Set(filterState.datasets);
 
-    const updatedDatasets = new Set(datasets);
-    const updatedCollections = new Set(collections);
-
-    if (updatedDatasets.has(dataset)) {
-      updatedDatasets.delete(dataset);
+    if (datasets.has(dataset)) {
+      datasets.delete(dataset);
       // Remove the collection if no datasets remain for it
-      const datasetsForCollection = Array.from(updatedDatasets).filter(d => {
-        // Find all datasets for this collection
+      const datasetsForCollection = Array.from(datasets).filter(d => {
         return datasetsList.some(
           entry =>
             entry.collection === collection && entry.datasets.includes(d),
         );
       });
-
       if (datasetsForCollection.length === 0) {
-        updatedCollections.delete(collection);
+        collections.delete(collection);
       }
     } else {
-      updatedDatasets.add(dataset);
-      updatedCollections.add(collection);
+      datasets.add(dataset);
+      collections.add(collection);
     }
-    filterSetters.collections(Array.from(updatedCollections));
-    filterSetters.datasets(Array.from(updatedDatasets));
+    filterSetters.collections(collections);
+    filterSetters.datasets(datasets);
   };
 
-  const handlePlatformSelection = (platform: string) => {
-    const { platforms } = filterState;
-
-    const updatedPlatforms = new Set(platforms);
-    if (updatedPlatforms.has(platform)) {
-      updatedPlatforms.delete(platform);
+  const handleToggle = (key: 'platforms' | 'products', value: string) => {
+    const updated = new Set(filterState[key]);
+    if (updated.has(value)) {
+      updated.delete(value);
     } else {
-      updatedPlatforms.add(platform);
+      updated.add(value);
     }
-    filterSetters.platforms(Array.from(updatedPlatforms));
-  };
-
-  const handleProductSelection = (product: string) => {
-    const { products } = filterState;
-
-    const updatedProducts = new Set(products);
-    if (updatedProducts.has(product)) {
-      updatedProducts.delete(product);
-    } else {
-      updatedProducts.add(product);
-    }
-    filterSetters.products(Array.from(updatedProducts));
+    filterSetters[key](updated);
   };
 
   return (
@@ -128,24 +110,23 @@ const StacPanelFilters = ({
       <StacFilterSection
         header="Collection"
         data={datasetsList}
-        selectedCollections={filterState.collections}
-        selectedData={filterState.datasets}
+        selectedCollections={Array.from(filterState.collections)}
+        selectedData={Array.from(filterState.datasets)}
         handleCheckedChange={handleDatasetSelection}
       />
       <StacFilterSection
         header="Platform"
         data={platforms}
-        selectedCollections={filterState.collections}
-        selectedData={filterState.platforms}
-        handleCheckedChange={handlePlatformSelection}
+        selectedCollections={Array.from(filterState.collections)}
+        selectedData={Array.from(filterState.platforms)}
+        handleCheckedChange={platform => handleToggle('platforms', platform)}
       />
-
       <StacFilterSection
         header="Data / Product"
         data={products}
-        selectedCollections={filterState.collections}
-        selectedData={filterState.products}
-        handleCheckedChange={handleProductSelection}
+        selectedCollections={Array.from(filterState.collections)}
+        selectedData={Array.from(filterState.products)}
+        handleCheckedChange={product => handleToggle('products', product)}
       />
       {/* <div>cloud cover</div> */}
     </div>
