@@ -7,7 +7,6 @@ import React, { useEffect, useState } from 'react';
 
 import { IControlPanelModel } from '../types';
 import StacPanelView from './components/StacPanelView';
-import { datasets, platforms, products } from './constants';
 
 interface IStacBrowserDialogProps {
   controlPanelModel: IControlPanelModel;
@@ -34,13 +33,6 @@ const StacBrowser = ({ controlPanelModel }: IStacBrowserDialogProps) => {
     };
   }, [controlPanelModel]);
 
-  return (
-    <StacPanelView
-      datasets={datasets}
-      platforms={platforms}
-      products={products}
-      model={jgisModel}
-    />
-  );
+  return <StacPanelView model={jgisModel} />;
 };
 export default StacBrowser;

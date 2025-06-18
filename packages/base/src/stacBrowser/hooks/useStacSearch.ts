@@ -4,7 +4,7 @@ import { startOfYesterday } from 'date-fns';
 import { useEffect, useState } from 'react';
 
 import { fetchWithProxies } from '../../tools';
-import { DatasetsType, PlatformsType, ProductsType } from '../constants';
+import { datasets } from '../constants';
 import {
   IStacItem,
   IStacQueryBody,
@@ -26,9 +26,6 @@ const STORAGE_KEYS = {
 };
 
 interface IUseStacSearchProps {
-  datasets: DatasetsType;
-  platforms: PlatformsType;
-  products: ProductsType;
   model: IJupyterGISModel | undefined;
 }
 
@@ -54,12 +51,7 @@ interface IUseStacSearchReturn {
  * @param props - Configuration object containing datasets, platforms, products, and model
  * @returns Object containing state and handlers for STAC search
  */
-function useStacSearch({
-  datasets,
-  platforms,
-  products,
-  model,
-}: IUseStacSearchProps): IUseStacSearchReturn {
+function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
   // Generic filter state
   const [filterState, setFilterState] = useState<StacFilterState>({
     collections: [],
