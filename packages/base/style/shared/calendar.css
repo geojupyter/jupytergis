@@ -55,16 +55,6 @@
     left: 1.25rem;
     top: 1.25rem;
     border: 1px solid transparent;
-    /* color: var(--jp-ui-font-color0); */
-    /* background: transparent; */
-    /* border: 0.5px solid var(--jp-border-color0); */
-    /* position: absolute; */
-    /* top: 0.5rem; */
-    /* left: 0.5rem; */
-    /* border-radius: var(--jp-border-radius); */
-    /* padding: 0.175rem; */
-    /* width: max-content; */
-    /* height: max-content; */
 }
 
 .jgis-calendar-button-previous:hover {
@@ -198,7 +188,6 @@
     width: fit-content;
     gap: 0.25rem;
     border: none;
-    /* padding: 0; */
     align-items: center;
     justify-content: center;
 }
@@ -281,6 +270,5 @@
 .jgis-time-period-select-container {
     display: flex;
     height: 2.5rem;
-    /* h-10 corresponds to 40px, or 2.5rem */
     align-items: center;
 }
