@@ -3,15 +3,15 @@ import { UUID } from '@lumino/coreutils';
 import { startOfYesterday } from 'date-fns';
 import { useEffect, useState } from 'react';
 
-import { fetchWithProxies } from '../../tools';
-import { products } from '../constants';
+import { products } from '@/src/stacBrowser/constants';
 import {
   IStacItem,
   IStacQueryBody,
   IStacSearchResult,
   StacFilterState,
   StacFilterSetters,
-} from '../types/types';
+} from '@/src/stacBrowser/types/types';
+import { fetchWithProxies } from '@/src/tools';
 
 const API_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
 const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];

@@ -12,11 +12,11 @@ import { Message } from '@lumino/messaging';
 import { MouseEvent as ReactMouseEvent } from 'react';
 
 import { CommandIDs } from '@/src/constants';
+import StacPanel from '@/src/stacBrowser/StacPanel';
 import { IControlPanelModel } from '@/src/types';
 import { FilterPanel } from './components/filter-panel/Filter';
 import { LayersPanel } from './components/layers';
 import { ControlPanelHeader } from './header';
-import StacPanel from '../stacBrowser/StacPanel';
 
 /**
  * Options of the left panel widget.

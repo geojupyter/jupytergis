@@ -1,15 +1,15 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-import StacPanelFilters from './StacPanelFilters';
-import StacPanelResults from './StacPanelResults';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '../../shared/components/Tabs';
-import useStacSearch from '../hooks/useStacSearch';
+} from '@/src/shared/components/Tabs';
+import useStacSearch from '@/src/stacBrowser/hooks/useStacSearch';
+import StacPanelFilters from './StacPanelFilters';
+import StacPanelResults from './StacPanelResults';
 
 interface IStacViewProps {
   model?: IJupyterGISModel;
@@ -38,7 +38,7 @@ const StacPanelView = ({ model }: IStacViewProps) => {
 
   return (
     <Tabs defaultValue="filters" className="jgis-stac-browser-main">
-      <TabsList>
+      <TabsList style={{ borderRadius: 0 }}>
         <TabsTrigger className="jGIS-layer-browser-category" value="filters">
           Filters
         </TabsTrigger>
@@ -47,7 +47,7 @@ const StacPanelView = ({ model }: IStacViewProps) => {
           value="results"
         >{`Results (${totalResults})`}</TabsTrigger>
       </TabsList>
-      <TabsContent style={{ marginTop: 0 }} value="filters">
+      <TabsContent value="filters">
         <StacPanelFilters
           filterState={filterState}
           filterSetters={filterSetters}
@@ -57,7 +57,7 @@ const StacPanelView = ({ model }: IStacViewProps) => {
           setEndTime={setEndTime}
         />
       </TabsContent>
-      <TabsContent style={{ marginTop: 0 }} value="results">
+      <TabsContent value="results">
         <StacPanelResults
           results={results}
           currentPage={currentPage}

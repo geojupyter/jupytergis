@@ -21,7 +21,7 @@ import {
   PlatformsType,
   products,
   ProductsType,
-} from '../constants';
+} from '@/src/stacBrowser/constants';
 
 interface IStacFilterSectionProps {
   header: string;

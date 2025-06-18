@@ -5,12 +5,11 @@ import {
 } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
-import { IControlPanelModel } from '../types';
-import StacPanelView from './components/StacPanelView';
+import StacPanelView from '@/src/stacBrowser/components/StacPanelView';
+import { IControlPanelModel } from '@/src/types';
 
 interface IStacBrowserDialogProps {
   controlPanelModel: IControlPanelModel;
-  tracker: IJupyterGISTracker;
 }
 
 const StacBrowser = ({ controlPanelModel }: IStacBrowserDialogProps) => {
