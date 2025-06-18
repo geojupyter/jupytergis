@@ -1,44 +1,34 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 
 import { Calendar } from '@/src/shared/components/Calendar';
+import StacFilterSection from './StacFilterSection';
 import { Button } from '../../shared/components/Button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '../../shared/components/Popover';
-import { DatasetsType, PlatformsType, ProductsType } from '../constants';
-import StacFilterSection from './StacFilterSection';
+import { datasets, platforms, products } from '../constants';
 import { StacFilterState, StacFilterSetters } from '../types/types';
 
-export type Wig = { selectedDatasets: string[]; collection: string };
 interface IStacPanelFiltersProps {
-  datasets: DatasetsType;
-  platforms: PlatformsType;
-  products: ProductsType;
   filterState: StacFilterState;
   filterSetters: StacFilterSetters;
   startTime: Date | undefined;
   setStartTime: (date: Date | undefined) => void;
   endTime: Date | undefined;
   setEndTime: (date: Date | undefined) => void;
-  model: IJupyterGISModel;
 }
 
 const StacPanelFilters = ({
-  datasets,
-  platforms,
-  products,
   filterState,
   filterSetters,
   startTime,
   setStartTime,
   endTime,
   setEndTime,
-  model,
 }: IStacPanelFiltersProps) => {
   const handleDatasetSelection = (dataset: string, collection: string) => {
     const { collections, datasets } = filterState;
