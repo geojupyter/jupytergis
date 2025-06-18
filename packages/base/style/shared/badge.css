@@ -53,5 +53,9 @@
 }
 
 .Badge[data-variant='outline']:hover {
-  background-color: color-mix(in srgb, var(--jp-ui-font-color1) 10%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color1) 10%,
+    transparent
+  );
 }
