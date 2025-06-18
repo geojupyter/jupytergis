@@ -108,21 +108,21 @@ const StacPanelFilters = ({
         </Popover>
       </div>
       <StacFilterSection
-        header="Collection"
+        section="Collection"
         data={datasetsList}
         selectedCollections={Array.from(filterState.collections)}
         selectedData={Array.from(filterState.datasets)}
         handleCheckedChange={handleDatasetSelection}
       />
       <StacFilterSection
-        header="Platform"
+        section="Platform"
         data={platforms}
         selectedCollections={Array.from(filterState.collections)}
         selectedData={Array.from(filterState.platforms)}
         handleCheckedChange={platform => handleToggle('platforms', platform)}
       />
       <StacFilterSection
-        header="Data / Product"
+        section="Data / Product"
         data={products}
         selectedCollections={Array.from(filterState.collections)}
         selectedData={Array.from(filterState.products)}
