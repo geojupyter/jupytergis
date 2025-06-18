@@ -1,4 +1,3 @@
-// Datasets as array of objects with collections array
 export const datasets = [
   { collection: 'Sentinel 1', datasets: ['PEPS_S1_L1', 'PEPS_S1_L2'] },
   {
@@ -101,7 +100,6 @@ export const platforms = {
   // OSO, Postel, and GEOV2 don't have platforms
 };
 
-// Condensed products array with collections attribute
 export const products = [
   {
     productCode: 'SLC',

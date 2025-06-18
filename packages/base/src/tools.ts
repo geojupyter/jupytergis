@@ -16,7 +16,7 @@ import Protobuf from 'pbf';
 import shp from 'shpjs';
 
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
-import { getGdal } from './gdal';
+import { getGdal } from '@/src/gdal';
 
 export const debounce = (
   func: CallableFunction,

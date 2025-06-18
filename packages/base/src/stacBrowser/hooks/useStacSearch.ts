@@ -186,8 +186,6 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       sortBy: [{ direction: 'desc', field: 'start_datetime' }],
     };
 
-    console.log('body', body);
-
     try {
       setIsLoading(true);
       const options = {

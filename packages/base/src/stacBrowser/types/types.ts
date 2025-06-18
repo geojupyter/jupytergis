@@ -17,9 +17,6 @@ export interface IStacCollection {
   assets?: {
     [key: string]: IStacAsset;
   };
-
-  // Allow extension fields
-  //   [key: string]: any;
 }
 
 export interface IStacRange {
@@ -62,8 +59,6 @@ export interface IStacAsset {
   roles?: string[];
 }
 
-// TODO: Remove stuff not in base stac item?
-// TODO: Type stac extensions??? (seems like a future thing)
 export interface IStacItem {
   type: 'Feature';
   stac_version: string;
@@ -91,28 +86,11 @@ export interface IStacItem {
     // Allow additional optional properties
     [key: string]: any;
   };
-  links: {
-    rel: string;
-    href: string;
-    type: string;
-    title: string;
-  }[];
-  assets: Record<
-    string,
-    {
-      href: string;
-      title: string;
-      type?: string;
-      roles?: string[];
-      // Allow additional optional properties
-      [key: string]: any;
-    }
-  >;
+  links: IStacLink[];
+  assets: Record<string, IStacAsset>;
   collection: string;
 }
 
-// ? IStacItemCollection with context extension
-// TODO: add conext spec fields https://github.com/stac-api-extensions/context?tab=readme-ov-file
 export interface IStacSearchResult {
   context: { returned: number; limit: number; matched: number };
   features: IStacItem[];
@@ -121,26 +99,6 @@ export interface IStacSearchResult {
   stac_version: string;
   type: 'FeatureCollection';
 }
-
-export type ProductCode = string;
-export type CollectionName =
-  | 'Sentinel 1'
-  | 'Sentinel 2'
-  | 'Venus'
-  | 'Spot'
-  | 'Landsat'
-  | 'OSO'
-  | 'Postel'
-  | 'GEOV2 AVHRR'; // Add other collections as needed
-
-export interface IProductData {
-  collections: string[];
-  'product:type': string[];
-  'processing:level'?: string[];
-  instrument?: string;
-}
-
-export type ProductRegistry = Record<ProductCode, IProductData>;
 
 export interface IStacQueryBody {
   bbox: [number, number, number, number];
@@ -151,7 +109,6 @@ export interface IStacQueryBody {
       in: string[];
     };
     end_datetime: {
-      //TODO: Better typing for date string here?
       gte: string;
     };
     latest: {
@@ -169,7 +126,6 @@ export interface IStacQueryBody {
   ];
 }
 
-// Generic filter keys for STAC browser
 export type StacFilterKey =
   | 'collections'
   | 'datasets'

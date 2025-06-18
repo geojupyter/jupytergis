@@ -403,9 +403,6 @@ export class MainView extends React.Component<IProps, IStates> {
     return transformExtent(extent, view.getProjection(), targetProjection);
   };
 
-  // Usage:
-  // bbox = getViewBbox(map); // WGS84 by default
-
   createSelectInteraction = () => {
     const pointStyle = new Style({
       image: new Circle({
@@ -1296,7 +1293,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'StacLayer':
-        console.log('stac layer update');
+        mapLayer.setOpacity(layer.parameters?.opacity || 1);
         break;
     }
   }
