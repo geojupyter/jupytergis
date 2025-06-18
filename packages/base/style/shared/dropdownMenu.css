@@ -1,215 +1,240 @@
 @keyframes animate-in {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes animate-out {
-    from {
-        opacity: 1;
-        transform: scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: scale(0.95);
-    }
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 }
 
 .DropdownMenuSubTrigger {
-    display: flex;
-    cursor: default;
-    user-select: none;
-    align-items: center;
-    border-radius: 0.25rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-    padding-top: 0.375rem;
-    padding-bottom: 0.375rem;
-    font-size: 0.875rem;
-    outline: none;
+  display: flex;
+  cursor: default;
+  user-select: none;
+  align-items: center;
+  border-radius: 0.25rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
 }
 
 .DropdownMenuSubTrigger:focus {
-    background-color: color-mix(in srgb, var(--jp-ui-font-color0), transparent 90%);
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color0),
+    transparent 90%
+  );
 }
 
-.DropdownMenuSubTrigger[data-state="open"] {
-    background-color: color-mix(in srgb, var(--jp-ui-font-color0), transparent 90%);
+.DropdownMenuSubTrigger[data-state='open'] {
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color0),
+    transparent 90%
+  );
 }
 
 .DropdownMenuSubContent {
-    display: flex;
-    flex-direction: column;
-    cursor: default;
-    user-select: none;
-    align-items: flex-start;
-    justify-self: center;
-    border-radius: 0.25rem;
-    padding-right: 0.5rem;
-    font-size: 0.875rem;
-    outline: none;
-    border: 1px solid var(--jp-border-color0);
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+  user-select: none;
+  align-items: flex-start;
+  justify-self: center;
+  border-radius: 0.25rem;
+  padding-right: 0.5rem;
+  font-size: 0.875rem;
+  outline: none;
+  border: 1px solid var(--jp-border-color0);
 }
 
 .DropdownMenuSubContent:focus {
-    background-color: color-mix(in srgb, var(--jp-layout-color0), transparent 90%);
+  background-color: color-mix(
+    in srgb,
+    var(--jp-layout-color0),
+    transparent 90%
+  );
 }
 
-.DropdownMenuSubContent[data-state="open"] {
-    background-color: var(--jp-layout-color2);
+.DropdownMenuSubContent[data-state='open'] {
+  background-color: var(--jp-layout-color2);
 }
 
 .DropdownMenuContent {
-    z-index: 50;
-    min-width: 8rem;
-    overflow: hidden;
-    border-radius: 0.375rem;
-    border: 1px solid var(--jp-border-color0);
-    background-color: var(--jp-layout-color2);
-    padding: 0.25rem;
-    color: var(--jp-ui-font-color0);
-    box-shadow: 0 4px 6px color-mix(in srgb, var(--jp-layout-color0), transparent 50%);
+  z-index: 50;
+  min-width: 8rem;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border: 1px solid var(--jp-border-color0);
+  background-color: var(--jp-layout-color2);
+  padding: 0.25rem;
+  color: var(--jp-ui-font-color0);
+  box-shadow: 0 4px 6px
+    color-mix(in srgb, var(--jp-layout-color0), transparent 50%);
 }
 
-.DropdownMenuContent[data-state="open"] {
-    animation: animate-in 0.3s ease-in;
+.DropdownMenuContent[data-state='open'] {
+  animation: animate-in 0.3s ease-in;
 }
 
-.DropdownMenuContent[data-state="closed"] {
-    animation: animate-out 0.3s ease-out;
+.DropdownMenuContent[data-state='closed'] {
+  animation: animate-out 0.3s ease-out;
 }
 
 .DropdownMenuItem {
-    position: relative;
-    display: flex;
-    cursor: default;
-    user-select: none;
-    align-items: center;
-    border-radius: 0.25rem;
-    padding-right: 0.5rem;
-    padding-top: 0.375rem;
-    padding-bottom: 0.375rem;
-    font-size: 0.875rem;
-    outline: none;
-    transition-property: background-color, color;
-    transition-duration: 0.3s;
+  position: relative;
+  display: flex;
+  cursor: default;
+  user-select: none;
+  align-items: center;
+  border-radius: 0.25rem;
+  padding-right: 0.5rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition-property: background-color, color;
+  transition-duration: 0.3s;
 }
 
 .DropdownMenuItem:focus {
-    background-color: color-mix(in srgb, var(--jp-ui-font-color0), transparent 95%);
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color0),
+    transparent 95%
+  );
 }
 
-.DropdownMenuItem[data-disabled="true"] {
-    pointer-events: none;
-    opacity: 0.5;
+.DropdownMenuItem[data-disabled='true'] {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .DropdownMenuCheckboxItem {
-    position: relative;
-    display: flex;
-    cursor: default;
-    user-select: none;
-    align-items: center;
-    border-radius: 0.25rem;
-    padding-left: 1.75rem;
-    padding-right: 0.5rem;
-    padding-top: 0.375rem;
-    padding-bottom: 0.375rem;
-    font-size: 0.875rem;
-    outline: none;
-    gap: 1rem;
-    transition: background-color 0.3s, color 0.3s;
+  position: relative;
+  display: flex;
+  cursor: default;
+  user-select: none;
+  align-items: center;
+  border-radius: 0.25rem;
+  padding-left: 1.75rem;
+  padding-right: 0.5rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
+  gap: 1rem;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 }
 
 .DropdownMenuCheckboxItem:focus {
-    background-color: var(--jp-layout-color2);
-    color: var(--jp-accent-color0);
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-accent-color0);
 }
 
-.DropdownMenuCheckboxItem[data-disabled="true"] {
-    pointer-events: none;
-    opacity: 0.5;
+.DropdownMenuCheckboxItem[data-disabled='true'] {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .DropdownMenuCheckboxItemSpan {
-    position: absolute;
-    left: 0.5rem;
-    display: flex;
-    height: 0.875rem;
-    width: 0.875rem;
-    align-items: center;
-    justify-content: center;
+  position: absolute;
+  left: 0.5rem;
+  display: flex;
+  height: 0.875rem;
+  width: 0.875rem;
+  align-items: center;
+  justify-content: center;
 }
 
 .DropdownMenuRadioItem {
-    position: relative;
-    display: flex;
-    cursor: default;
-    user-select: none;
-    align-items: center;
-    border-radius: 0.25rem;
-    padding-left: 1rem;
-    padding-right: 0.5rem;
-    padding-top: 0.375rem;
-    padding-bottom: 0.375rem;
-    font-size: 0.875rem;
-    outline: none;
-    transition: background-color 0.3s, color 0.3s;
+  position: relative;
+  display: flex;
+  cursor: default;
+  user-select: none;
+  align-items: center;
+  border-radius: 0.25rem;
+  padding-left: 1rem;
+  padding-right: 0.5rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 }
 
 .DropdownMenuRadioItem:focus {
-    background-color: var(--jp-layout-color2);
-    color: var(--jp-accent-color0);
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-accent-color0);
 }
 
-.DropdownMenuRadioItem[data-disabled="true"] {
-    pointer-events: none;
-    opacity: 0.5;
+.DropdownMenuRadioItem[data-disabled='true'] {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .DropdownMenuRadioItemSpan {
-    position: absolute;
-    left: 0.5rem;
-    display: flex;
-    height: 0.875rem;
-    width: 0.875rem;
-    align-items: center;
-    justify-content: center;
+  position: absolute;
+  left: 0.5rem;
+  display: flex;
+  height: 0.875rem;
+  width: 0.875rem;
+  align-items: center;
+  justify-content: center;
 }
 
 .DropdownMenuLabel {
-    color: var(--jp-ui-font-color0);
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-    padding-top: 0.375rem;
-    padding-bottom: 0.375rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 0.5rem;
+  color: var(--jp-ui-font-color0);
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.5rem;
 }
 
 .DropdownMenuSeparator {
-    width: 100%;
-    height: 1px;
-    background-color: color-mix(in srgb, var(--jp-ui-font-color0), transparent 90%);
+  width: 100%;
+  height: 1px;
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color0),
+    transparent 90%
+  );
 }
 
 .DropdownMenuShortcut {
-    margin-left: auto;
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    opacity: 0.6;
+  margin-left: auto;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  opacity: 0.6;
 }
 
 .DropdownMenuIcon {
-    margin-left: auto;
-    height: 1rem;
-    width: 1rem;
+  margin-left: auto;
+  height: 1rem;
+  width: 1rem;
 }
