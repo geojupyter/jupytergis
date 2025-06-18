@@ -3,8 +3,8 @@ import { ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React from 'react';
 
-import { IControlPanelModel } from '../types';
-import StacBrowser from './StacBrowser';
+import StacBrowser from '@/src/stacBrowser/StacBrowser';
+import { IControlPanelModel } from '@/src/types';
 
 export class StacPanel extends Panel {
   constructor(options: StacPanel.IOptions) {
@@ -19,10 +19,7 @@ export class StacPanel extends Panel {
 
     this.addWidget(
       ReactWidget.create(
-        <StacBrowser
-          controlPanelModel={this._model}
-          tracker={this._tracker}
-        ></StacBrowser>,
+        <StacBrowser controlPanelModel={this._model}></StacBrowser>,
       ),
     );
   }
