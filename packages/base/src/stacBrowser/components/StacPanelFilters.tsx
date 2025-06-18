@@ -10,7 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '../../shared/components/Popover';
-import { datasets, platforms, products } from '../constants';
+import { datasets as datasetsList, platforms, products } from '../constants';
 import { StacFilterState, StacFilterSetters } from '../types/types';
 
 interface IStacPanelFiltersProps {
@@ -33,12 +33,28 @@ const StacPanelFilters = ({
   const handleDatasetSelection = (dataset: string, collection: string) => {
     const { collections, datasets } = filterState;
 
-    const updatedCollections = new Set(collections);
-    updatedCollections.add(collection);
-    filterSetters.collections(Array.from(updatedCollections));
-
     const updatedDatasets = new Set(datasets);
-    updatedDatasets.add(dataset);
+    const updatedCollections = new Set(collections);
+
+    if (updatedDatasets.has(dataset)) {
+      updatedDatasets.delete(dataset);
+      // Remove the collection if no datasets remain for it
+      const datasetsForCollection = Array.from(updatedDatasets).filter(d => {
+        // Find all datasets for this collection
+        return datasetsList.some(
+          entry =>
+            entry.collection === collection && entry.datasets.includes(d),
+        );
+      });
+
+      if (datasetsForCollection.length === 0) {
+        updatedCollections.delete(collection);
+      }
+    } else {
+      updatedDatasets.add(dataset);
+      updatedCollections.add(collection);
+    }
+    filterSetters.collections(Array.from(updatedCollections));
     filterSetters.datasets(Array.from(updatedDatasets));
   };
 
@@ -46,7 +62,11 @@ const StacPanelFilters = ({
     const { platforms } = filterState;
 
     const updatedPlatforms = new Set(platforms);
-    updatedPlatforms.add(platform);
+    if (updatedPlatforms.has(platform)) {
+      updatedPlatforms.delete(platform);
+    } else {
+      updatedPlatforms.add(platform);
+    }
     filterSetters.platforms(Array.from(updatedPlatforms));
   };
 
@@ -54,7 +74,11 @@ const StacPanelFilters = ({
     const { products } = filterState;
 
     const updatedProducts = new Set(products);
-    updatedProducts.add(product);
+    if (updatedProducts.has(product)) {
+      updatedProducts.delete(product);
+    } else {
+      updatedProducts.add(product);
+    }
     filterSetters.products(Array.from(updatedProducts));
   };
 
@@ -96,7 +120,7 @@ const StacPanelFilters = ({
       </div>
       <StacFilterSection
         header="Collection"
-        data={datasets}
+        data={datasetsList}
         selectedCollections={filterState.collections}
         selectedData={filterState.datasets}
         handleCheckedChange={handleDatasetSelection}
