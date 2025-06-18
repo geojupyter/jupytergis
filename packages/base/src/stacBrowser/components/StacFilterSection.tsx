@@ -15,34 +15,47 @@ import {
   DropdownMenuTrigger,
 } from '@/src/shared/components/DropdownMenu';
 import {
-  datasets,
   DatasetsType,
-  platforms,
   PlatformsType,
-  products,
   ProductsType,
 } from '@/src/stacBrowser/constants';
 
-interface IStacFilterSectionProps {
-  header: string;
-  data: DatasetsType | PlatformsType | ProductsType;
-  selectedCollections: string[];
-  selectedData: string[]; // Datasets, Platforms, Products
-  handleCheckedChange: (dataset: string, collection: string) => void;
-}
+// Discriminated union for props
+type StacFilterSectionProps =
+  | {
+      section: 'Collection';
+      data: DatasetsType;
+      selectedCollections: string[];
+      selectedData: string[]; // dataset names
+      handleCheckedChange: (dataset: string, collection: string) => void;
+    }
+  | {
+      section: 'Platform';
+      data: PlatformsType;
+      selectedCollections: string[];
+      selectedData: string[]; // platform names
+      handleCheckedChange: (platform: string, _collection: string) => void;
+    }
+  | {
+      section: 'Data / Product';
+      data: ProductsType;
+      selectedCollections: string[];
+      selectedData: string[]; // product codes
+      handleCheckedChange: (product: string, collection: string) => void;
+    };
 
 const StacFilterSection = ({
-  header,
+  section,
   data,
-  selectedCollections = [],
-  selectedData = [],
+  selectedCollections,
+  selectedData,
   handleCheckedChange,
-}: IStacFilterSectionProps) => {
+}: StacFilterSectionProps) => {
   const items = useMemo(() => {
-    if (header === 'Collection') {
+    if (section === 'Collection') {
       return (
         <DropdownMenuGroup>
-          {datasets.map(entry => (
+          {data.map(entry => (
             <DropdownMenuSub key={entry.collection}>
               <DropdownMenuSubTrigger>
                 {entry.collection}
@@ -71,13 +84,13 @@ const StacFilterSection = ({
       );
     }
 
-    if (header === 'Platform') {
+    if (section === 'Platform') {
       return (
         <>
           {selectedCollections.map(collection => (
             <DropdownMenuGroup key={collection}>
               <DropdownMenuLabel>{collection}</DropdownMenuLabel>
-              {platforms[collection as keyof typeof platforms].map(platform => (
+              {data[collection as keyof typeof data]?.map(platform => (
                 <DropdownMenuCheckboxItem
                   key={platform}
                   checked={selectedData.includes(platform)}
@@ -97,13 +110,13 @@ const StacFilterSection = ({
       );
     }
 
-    if (header === 'Data / Product') {
+    if (section === 'Data / Product') {
       return (
         <>
           {selectedCollections.map(collection => (
             <DropdownMenuGroup key={collection}>
               <DropdownMenuLabel>{collection}</DropdownMenuLabel>
-              {products
+              {data
                 .filter(product => product.collections.includes(collection))
                 .map(product => (
                   <DropdownMenuCheckboxItem
@@ -124,13 +137,13 @@ const StacFilterSection = ({
         </>
       );
     }
-  }, [header, data, selectedCollections, handleCheckedChange]);
+  }, [section, data, selectedCollections, selectedData, handleCheckedChange]);
 
   return (
     <div className="jgis-stac-filter-section-container">
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger className="jgis-stac-filter-trigger">
-          {header}
+          {section}
           <ChevronRight className="DropdownMenuIcon" />
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right">{items}</DropdownMenuContent>
