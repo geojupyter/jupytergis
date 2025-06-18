@@ -136,9 +136,6 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
 
     model?.updateResolutionSignal.connect(listenToModel);
 
-    // If there's existing search params when the model loads, do a query
-    // model && Object.keys(datasets).length && fetchResults();
-
     return () => {
       model?.updateResolutionSignal.disconnect(listenToModel);
     };
@@ -297,7 +294,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       val.roles?.includes('data'),
     );
 
-    return dataAsset ? dataAsset.title.split('.')[0] : item.id;
+    return dataAsset?.title ? dataAsset.title.split('.')[0] : item.id;
   };
 
   return {

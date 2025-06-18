@@ -10,7 +10,6 @@ export class StacPanel extends Panel {
   constructor(options: StacPanel.IOptions) {
     super();
     this._model = options.model;
-    this._tracker = options.tracker;
 
     this.id = 'jupytergis::stacPanel';
     this.title.caption = 'STAC';
@@ -25,7 +24,6 @@ export class StacPanel extends Panel {
   }
 
   private _model: IControlPanelModel | undefined;
-  private _tracker: IJupyterGISTracker;
 }
 
 export namespace StacPanel {
