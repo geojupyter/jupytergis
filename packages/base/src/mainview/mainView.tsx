@@ -2092,7 +2092,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _getVectorSourceFromLayerID = (
     layerID: string,
   ): VectorSource | undefined => {
-    /* get the OL vectorSource corresponding to the JGIS currentDrawLayerID */
+    /* get the OpenLayers VectorSource corresponding to the JGIS currentDrawLayerID */
     this._currentVectorSource = this._Map
       .getLayers()
       .getArray()
@@ -2123,8 +2123,8 @@ export class MainView extends React.Component<IProps, IStates> {
     }
     const selectedLayerID = Object.keys(selectedLayers)[0];
     this._currentDrawLayerID = selectedLayerID;
-    const jGISLayer = this._model.getLayer(selectedLayerID);
-    this._currentDrawSourceID = jGISLayer?.parameters?.source;
+    const JGISLayer = this._model.getLayer(selectedLayerID);
+    this._currentDrawSourceID = JGISLayer?.parameters?.source;
     if (this._currentDrawSourceID) {
       this._currentDrawSource = this._model.getSource(
         this._currentDrawSourceID,
@@ -2247,9 +2247,14 @@ export class MainView extends React.Component<IProps, IStates> {
       ? Object.keys(selectedLayers)[0]
       : undefined;
     if (selectedLayerId && selectedLayerId !== this._previousDrawLayerID) {
-      this._previousDrawLayerID = selectedLayerId;
-      this._currentDrawLayerID = selectedLayerId;
-      this._editVectorLayer();
+      const selectedLayer = this._model.getLayer(selectedLayerId);
+      if (selectedLayer) {
+        if (this._model.checkIfIsADrawVectorLayer(selectedLayer)) {
+          this._previousDrawLayerID = selectedLayerId;
+          this._currentDrawLayerID = selectedLayerId;
+          this._editVectorLayer();
+        }
+      }
     }
   };
 
