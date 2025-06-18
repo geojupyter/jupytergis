@@ -177,7 +177,10 @@ export type StacFilterKey =
   | 'products';
 
 // Generic filter state object
-export type StacFilterState = Record<StacFilterKey, string[]>;
+export type StacFilterState = Record<StacFilterKey, Set<string>>;
 
 // Generic filter setter object
-export type StacFilterSetters = Record<StacFilterKey, (val: string[]) => void>;
+export type StacFilterSetters = Record<
+  StacFilterKey,
+  (val: Set<string>) => void
+>;
