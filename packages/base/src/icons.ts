@@ -18,6 +18,7 @@ import logoMiniAlternativeSvgStr from '../style/icons/logo_mini_alternative.svg'
 import logoMiniQGZ from '../style/icons/logo_mini_qgz.svg';
 import moundSvgStr from '../style/icons/mound.svg';
 import nonVisibilitySvgStr from '../style/icons/nonvisibility.svg';
+import pencilSolidSvgStr from '../style/icons/pencil_solid.svg';
 import rasterSvgStr from '../style/icons/raster.svg';
 import targetWithCenterSvgStr from '../style/icons/target_with_center.svg';
 import targetWithoutCenterSvgStr from '../style/icons/target_without_center.svg';
@@ -108,4 +109,9 @@ export const targetWithoutCenterIcon = new LabIcon({
 export const targetWithCenterIcon = new LabIcon({
   name: 'jupytergis::targetWithoutCenter',
   svgstr: targetWithoutCenterSvgStr,
+});
+
+export const pencilSolidIcon = new LabIcon({
+  name: 'jupytergis::pencilSolid',
+  svgstr: pencilSolidSvgStr,
 });
