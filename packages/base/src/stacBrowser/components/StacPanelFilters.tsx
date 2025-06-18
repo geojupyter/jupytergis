@@ -2,16 +2,23 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 
+import { Button } from '@/src/shared/components/Button';
 import { Calendar } from '@/src/shared/components/Calendar';
-import StacFilterSection from './StacFilterSection';
-import { Button } from '../../shared/components/Button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '../../shared/components/Popover';
-import { datasets as datasetsList, platforms, products } from '../constants';
-import { StacFilterState, StacFilterSetters } from '../types/types';
+} from '@/src/shared/components/Popover';
+import StacFilterSection from '@/src/stacBrowser/components/StacFilterSection';
+import {
+  datasets as datasetsList,
+  platforms,
+  products,
+} from '@/src/stacBrowser/constants';
+import {
+  StacFilterState,
+  StacFilterSetters,
+} from '@/src/stacBrowser/types/types';
 
 interface IStacPanelFiltersProps {
   filterState: StacFilterState;

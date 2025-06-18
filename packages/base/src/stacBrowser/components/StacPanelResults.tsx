@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button } from '../../shared/components/Button';
+import { Button } from '@/src/shared/components/Button';
 import {
   Pagination,
   PaginationContent,
@@ -9,8 +9,8 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '../../shared/components/Pagination';
-import { IStacItem } from '../types/types';
+} from '@/src/shared/components/Pagination';
+import { IStacItem } from '@/src/stacBrowser/types/types';
 
 interface IStacPanelResultsProps {
   results: IStacItem[];
