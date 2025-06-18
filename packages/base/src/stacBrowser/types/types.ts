@@ -1,7 +1,3 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
-
-import { DatasetsType, PlatformsType, ProductsType } from '../constants';
-
 export interface IStacCollection {
   // Core fields
   type: 'Collection';
@@ -173,15 +169,12 @@ export interface IStacQueryBody {
   ];
 }
 
-export interface IStacViewProps {
-  datasets: DatasetsType;
-  platforms: PlatformsType;
-  products: ProductsType;
-  model?: IJupyterGISModel;
-}
-
 // Generic filter keys for STAC browser
-export type StacFilterKey = 'collections' | 'datasets' | 'platforms' | 'products';
+export type StacFilterKey =
+  | 'collections'
+  | 'datasets'
+  | 'platforms'
+  | 'products';
 
 // Generic filter state object
 export type StacFilterState = Record<StacFilterKey, string[]>;

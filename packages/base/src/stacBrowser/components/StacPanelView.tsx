@@ -1,3 +1,4 @@
+import { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
 import StacPanelFilters from './StacPanelFilters';
@@ -9,14 +10,11 @@ import {
   TabsTrigger,
 } from '../../shared/components/Tabs';
 import useStacSearch from '../hooks/useStacSearch';
-import { IStacViewProps } from '../types/types';
 
-const StacPanelView = ({
-  datasets,
-  platforms,
-  model,
-  products,
-}: IStacViewProps) => {
+interface IStacViewProps {
+  model?: IJupyterGISModel;
+}
+const StacPanelView = ({ model }: IStacViewProps) => {
   const {
     filterState,
     filterSetters,
@@ -32,7 +30,7 @@ const StacPanelView = ({
     handleResultClick,
     formatResult,
     isLoading,
-  } = useStacSearch({ datasets, platforms, products, model });
+  } = useStacSearch({ model });
 
   if (!model) {
     return null;
@@ -51,16 +49,12 @@ const StacPanelView = ({
       </TabsList>
       <TabsContent style={{ marginTop: 0 }} value="filters">
         <StacPanelFilters
-          datasets={datasets}
-          platforms={platforms}
-          products={products}
           filterState={filterState}
           filterSetters={filterSetters}
           startTime={startTime}
           setStartTime={setStartTime}
           endTime={endTime}
           setEndTime={setEndTime}
-          model={model}
         />
       </TabsContent>
       <TabsContent style={{ marginTop: 0 }} value="results">
