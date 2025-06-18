@@ -56,6 +56,9 @@ const StacFilterSection = ({
                       onCheckedChange={() => {
                         handleCheckedChange(dataset, entry.collection);
                       }}
+                      onSelect={e => {
+                        e.preventDefault();
+                      }}
                     >
                       {dataset}
                     </DropdownMenuCheckboxItem>
@@ -81,6 +84,9 @@ const StacFilterSection = ({
                   onCheckedChange={() => {
                     handleCheckedChange(platform, '');
                   }}
+                  onSelect={e => {
+                    e.preventDefault();
+                  }}
                 >
                   {platform}
                 </DropdownMenuCheckboxItem>
@@ -105,6 +111,9 @@ const StacFilterSection = ({
                     checked={selectedData.includes(product.productCode)}
                     onCheckedChange={() => {
                       handleCheckedChange(product.productCode, collection);
+                    }}
+                    onSelect={e => {
+                      e.preventDefault();
                     }}
                   >
                     {product.productCode}
