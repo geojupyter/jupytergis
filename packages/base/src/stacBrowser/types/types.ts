@@ -135,6 +135,9 @@ export type StacFilterKey =
 // Generic filter state object
 export type StacFilterState = Record<StacFilterKey, Set<string>>;
 
+// Filter state with string[] for saving in StateDB
+export type StacFilterStateStateDb = { [K in keyof StacFilterState]: string[] };
+
 // Generic filter setter object
 export type StacFilterSetters = Record<
   StacFilterKey,
