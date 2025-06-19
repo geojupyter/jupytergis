@@ -1,76 +1,73 @@
 {
-  "name": "@jupytergis/jupytergis-root",
-  "version": "0.6.2",
-  "private": true,
-  "homepage": "https://github.com/geojupyter/jupytergis",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/geojupyter/jupytergis.git"
-  },
-  "license": "BSD-3-Clause",
-  "description": "A JupyterLab extension for GIS.",
-  "keywords": [
-    "jupyter",
-    "jupyterlab",
-    "jupyterlab-extension"
-  ],
-  "bugs": {
-    "url": "https://github.com/geojupyter/jupytergis/issues"
-  },
-  "author": {
-    "name": "Jupytergis contributors"
-  },
-  "files": [
-    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
-    "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
-  ],
-  "workspaces": [
-    "packages/*",
-    "python/jupytergis_core",
-    "python/jupytergis_lab",
-    "python/jupytergis_qgis"
-  ],
-  "scripts": {
-    "build": "lerna run build",
-    "build:prod": "lerna run build:prod --skip-nx-cache",
-    "build:test": "lerna run build:test",
-    "build:dev": "lerna run build:dev",
-    "bump:js:version": "lerna version --no-push --force-publish --no-git-tag-version --yes",
-    "clean": "lerna run clean",
-    "clean:all": "lerna run clean:all",
-    "eslint": "eslint . --ext .ts,.tsx --cache --fix",
-    "eslint:check": "eslint . --ext .ts,.tsx",
-    "prettier": "prettier --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
-    "prettier:check": "prettier --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
-    "lint:check": "jlpm run prettier:check && jlpm run eslint:check",
-    "lint": "jlpm run prettier && jlpm run eslint",
-    "test": "lerna run test",
-    "dev": "python scripts/dev-install.py",
-    "build:packages": "python scripts/build_packages.py",
-    "watch:lib": "lerna run --stream watch",
-    "watch": "lerna watch -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
-    "build:lab": "lerna run"
-  },
-  "resolutions": {
-    "@jupyterlab/apputils": "^4.0.0",
-    "@lumino/coreutils": "^2.0.0",
-    "@jupyterlab/notebook": "^4.0.0",
-    "@jupyterlab/services": " ^7.0.0"
-  },
-  "devDependencies": {
-    "@types/webpack-env": "^1.18.5",
-    "@typescript-eslint/eslint-plugin": "5.55.0",
-    "@typescript-eslint/parser": "5.55.0",
-    "copy-webpack-plugin": "^10.0.0",
-    "eslint": "^8.36.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.0.1",
-    "lerna": "^8.1.9",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^3.0.0",
-    "rimraf": "^3.0.2",
-    "typescript": "^5",
-    "webpack": "^5.76.3"
-  }
+	"name": "@jupytergis/jupytergis-root",
+	"version": "0.6.2",
+	"private": true,
+	"homepage": "https://github.com/geojupyter/jupytergis",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/geojupyter/jupytergis.git"
+	},
+	"license": "BSD-3-Clause",
+	"description": "A JupyterLab extension for GIS.",
+	"keywords": ["jupyter", "jupyterlab", "jupyterlab-extension"],
+	"bugs": {
+		"url": "https://github.com/geojupyter/jupytergis/issues"
+	},
+	"author": {
+		"name": "Jupytergis contributors"
+	},
+	"files": [
+		"lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+		"style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+	],
+	"workspaces": [
+		"packages/*",
+		"python/jupytergis_core",
+		"python/jupytergis_lab",
+		"python/jupytergis_qgis"
+	],
+	"scripts": {
+		"build": "lerna run build",
+		"build:prod": "lerna run build:prod --skip-nx-cache",
+		"build:test": "lerna run build:test",
+		"build:dev": "lerna run build:dev",
+		"bump:js:version": "lerna version --no-push --force-publish --no-git-tag-version --yes",
+		"clean": "lerna run clean",
+		"clean:all": "lerna run clean:all",
+		"eslint": "eslint . --ext .ts,.tsx --cache --fix",
+		"eslint:check": "eslint . --ext .ts,.tsx",
+		"prettier": "prettier --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
+		"prettier:check": "prettier --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
+		"lint:check": "jlpm run prettier:check && jlpm run eslint:check",
+		"lint": "jlpm run prettier && jlpm run eslint",
+		"test": "lerna run test",
+		"dev": "python scripts/dev-install.py",
+		"build:packages": "python scripts/build_packages.py",
+		"watch:lib": "lerna run --stream watch",
+		"watch": "lerna watch -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
+		"build:lab": "lerna run"
+	},
+	"resolutions": {
+		"@jupyterlab/apputils": "^4.0.0",
+		"@lumino/coreutils": "^2.0.0",
+		"@jupyterlab/notebook": "^4.0.0",
+		"@jupyterlab/services": " ^7.0.0"
+	},
+	"devDependencies": {
+		"@types/webpack-env": "^1.18.5",
+		"@typescript-eslint/eslint-plugin": "5.55.0",
+		"@typescript-eslint/parser": "5.55.0",
+		"copy-webpack-plugin": "^10.0.0",
+		"eslint": "^8.36.0",
+		"eslint-config-prettier": "^8.8.0",
+		"eslint-plugin-import": "^2.31.0",
+		"eslint-plugin-prettier": "^5.0.1",
+		"lerna": "^8.1.9",
+		"npm-run-all": "^4.1.5",
+		"prettier": "^3.0.0",
+		"rimraf": "^3.0.2",
+		"typescript": "^5",
+		"webpack": "^5.76.3"
+	},
+	"dependencies": {}
 }

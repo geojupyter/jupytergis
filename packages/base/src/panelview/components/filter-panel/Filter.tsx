@@ -3,58 +3,20 @@ import {
   IDict,
   IJGISFilterItem,
   IJupyterGISModel,
-  IJupyterGISTracker,
 } from '@jupytergis/schema';
-import { Button, ReactWidget } from '@jupyterlab/ui-components';
-import { Panel } from '@lumino/widgets';
+import { Button } from '@jupyterlab/ui-components';
 import { cloneDeep } from 'lodash';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 
 import { debounce, loadFile } from '@/src/tools';
-import { IControlPanelModel } from '@/src/types';
 import FilterRow from './FilterRow';
 
-/**
- * The filters panel widget.
- */
-export class FilterPanel extends Panel {
-  constructor(options: FilterPanel.IOptions) {
-    super();
-    this._model = options.model;
-    this._tracker = options.tracker;
-
-    this.id = 'jupytergis::layerTree';
-    // this.addClass(LAYERS_PANEL_CLASS);
-
-    this.addWidget(
-      ReactWidget.create(
-        <FilterComponent
-          model={this._model}
-          tracker={this._tracker}
-        ></FilterComponent>,
-      ),
-    );
-  }
-
-  private _model: IControlPanelModel | undefined;
-  private _tracker: IJupyterGISTracker;
-}
-
-export namespace FilterPanel {
-  export interface IOptions {
-    model: IControlPanelModel;
-    tracker: IJupyterGISTracker;
-  }
-}
-
 interface IFilterComponentProps {
-  model: IControlPanelModel;
-  tracker: IJupyterGISTracker;
+  model: IJupyterGISModel;
 }
 
 const FilterComponent: React.FC<IFilterComponentProps> = props => {
   const featuresInLayerRef = useRef({});
-  const [widgetId, setWidgetId] = useState('');
   const [logicalOp, setLogicalOp] = useState('all');
   const [selectedLayer, setSelectedLayer] = useState('');
   const [shouldDisplay, setShouldDisplay] = useState(false);
@@ -62,42 +24,14 @@ const FilterComponent: React.FC<IFilterComponentProps> = props => {
   const [featuresInLayer, setFeaturesInLayer] = useState<
     Record<string, Set<string | number>>
   >({});
-  const [model, setModel] = useState<IJupyterGISModel | undefined>(
-    props.model.jGISModel,
-  );
-
-  props.model?.documentChanged.connect((_, widget) => {
-    setModel(widget?.model);
-  });
-
-  // Reset state values when current widget changes
-  useEffect(() => {
-    const handleCurrentChanged = () => {
-      if (props.tracker.currentWidget?.id === widgetId) {
-        return;
-      }
-
-      if (props.tracker.currentWidget) {
-        setWidgetId(props.tracker.currentWidget.id);
-      }
-      setFeaturesInLayer({});
-      setFilterRows([]);
-      setLogicalOp('all');
-      setSelectedLayer('');
-    };
-    props.tracker.currentChanged.connect(handleCurrentChanged);
-
-    return () => {
-      props.tracker.currentChanged.disconnect(handleCurrentChanged);
-    };
-  }, []);
+  const model = props.model;
 
   useEffect(() => {
     // Keep layer selected when widget changes
     if (model?.localState?.selected?.value) {
       setSelectedLayer(Object.keys(model?.localState?.selected?.value)[0]);
     }
-  }, [widgetId]);
+  }, []);
 
   useEffect(() => {
     const handleClientStateChanged = () => {
@@ -112,7 +46,7 @@ const FilterComponent: React.FC<IFilterComponentProps> = props => {
 
     const handleSharedOptionsChanged = (_: any, keys: any) => {
       // model changes when current widget changes, don't want this to run in that case
-      if (props.tracker.currentWidget?.id === widgetId && keys.has('zoom')) {
+      if (keys.has('zoom')) {
         if (!model?.localState?.selected?.value) {
           return;
         }
@@ -261,7 +195,10 @@ const FilterComponent: React.FC<IFilterComponentProps> = props => {
       return;
     }
 
-    layer.filters = { logicalOp: op ?? logicalOp, appliedFilters: filters };
+    layer.filters = {
+      logicalOp: op ?? logicalOp,
+      appliedFilters: filters,
+    };
     model?.sharedModel.updateLayer(selectedLayer, layer);
   };
 
@@ -293,7 +230,11 @@ const FilterComponent: React.FC<IFilterComponentProps> = props => {
             ))}
           </div>
           <div className="jp-gis-filter-button-container">
-            <div style={{ justifyContent: 'flex-start' }}>
+            <div
+              style={{
+                justifyContent: 'flex-start',
+              }}
+            >
               <Button
                 className="jp-Dialog-button jp-mod-accept jp-mod-styled"
                 onClick={addFilterRow}
@@ -315,6 +256,9 @@ const FilterComponent: React.FC<IFilterComponentProps> = props => {
             </Button>
           </div>
         </div>
+      )}
+      {!shouldDisplay && (
+        <div style={{ textAlign: 'center' }}>No layer selected</div>
       )}
     </>
   );

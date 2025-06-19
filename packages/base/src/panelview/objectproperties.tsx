@@ -2,87 +2,47 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISClientState,
   IJupyterGISModel,
-  IJupyterGISTracker,
 } from '@jupytergis/schema';
-import { ReactWidget } from '@jupyterlab/apputils';
-import { PanelWithToolbar } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { EditForm } from '@/src/formbuilder/editform';
-import { IControlPanelModel } from '@/src/types';
-
-export class ObjectProperties extends PanelWithToolbar {
-  constructor(params: ObjectProperties.IOptions) {
-    super(params);
-    this.title.label = 'Objects Properties';
-    const body = ReactWidget.create(
-      <ObjectPropertiesReact
-        cpModel={params.controlPanelModel}
-        tracker={params.tracker}
-        formSchemaRegistry={params.formSchemaRegistry}
-      />,
-    );
-    this.addWidget(body);
-    this.addClass('jGIS-sidebar-propertiespanel');
-  }
-}
 
 interface IStates {
   model: IJupyterGISModel | undefined;
-  selectedObject?: string;
   clientId: number | null; // ID of the yjs client
   id: string; // ID of the component, it is used to identify which component
-  //is the source of awareness updates.
+  selectedObject?: string;
+  setSelectedObject: any;
 }
 
 interface IProps {
-  cpModel: IControlPanelModel;
-  tracker: IJupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
+  model: IJupyterGISModel;
+  selectedObject: string | undefined;
+  setSelectedObject: any;
 }
 
-class ObjectPropertiesReact extends React.Component<IProps, IStates> {
+export class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
     this.state = {
-      model: props.tracker.currentWidget?.model,
-      clientId: null,
+      clientId: props.model.getClientId(),
       id: uuid(),
+      model: props.model,
+      selectedObject: props.selectedObject,
+      setSelectedObject: props.setSelectedObject,
     };
 
-    this.props.cpModel.jGISModel?.sharedLayersChanged.connect(
-      this._sharedJGISModelChanged,
+    this.props.model.clientStateChanged.connect(
+      this._onClientSharedStateChanged,
     );
-    this.props.cpModel.jGISModel?.sharedSourcesChanged.connect(
-      this._sharedJGISModelChanged,
-    );
-    this.props.cpModel.documentChanged.connect((_, changed) => {
-      if (changed) {
-        this.props.cpModel.disconnect(this._sharedJGISModelChanged);
-        this.props.cpModel.disconnect(this._onClientSharedStateChanged);
 
-        changed.model.sharedLayersChanged.connect(this._sharedJGISModelChanged);
-        changed.model.sharedSourcesChanged.connect(
-          this._sharedJGISModelChanged,
-        );
-        changed.model.clientStateChanged.connect(
-          this._onClientSharedStateChanged,
-        );
-        this.setState(old => ({
-          ...old,
-          model: changed.model,
-          filePath: changed.model.filePath,
-          clientId: changed.model.getClientId(),
-        }));
-      } else {
-        this.setState({
-          model: undefined,
-          selectedObject: undefined,
-        });
-      }
-    });
+    this.props.model?.sharedLayersChanged.connect(this._sharedJGISModelChanged);
+    this.props.model?.sharedSourcesChanged.connect(
+      this._sharedJGISModelChanged,
+    );
   }
 
   private _sharedJGISModelChanged = (): void => {
@@ -110,6 +70,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       const selectedObjectIds = Object.keys(selection || {});
       // Only show object properties if ONE object is selected
       if (selection === undefined || selectedObjectIds.length !== 1) {
+        this.state.setSelectedObject(undefined);
         this.setState(old => ({
           ...old,
           selectedObject: undefined,
@@ -119,6 +80,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
 
       const selectedObject = selectedObjectIds[0];
       if (selectedObject !== this.state.selectedObject) {
+        this.state.setSelectedObject(selectedObject);
         this.setState(old => ({
           ...old,
           selectedObject,
@@ -131,7 +93,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     const selectedObject = this.state.selectedObject;
 
     if (!selectedObject || !this.state.model) {
-      return <div></div>;
+      return <div style={{ textAlign: 'center' }}>No layer selected</div>;
     }
 
     let layerId: string | undefined = undefined;
@@ -164,8 +126,7 @@ export namespace ObjectProperties {
    * Instantiation options for `ObjectProperties`.
    */
   export interface IOptions extends Panel.IOptions {
-    controlPanelModel: IControlPanelModel;
+    model: IJupyterGISModel;
     formSchemaRegistry: IJGISFormSchemaRegistry;
-    tracker: IJupyterGISTracker;
   }
 }

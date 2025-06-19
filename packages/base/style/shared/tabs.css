@@ -3,12 +3,11 @@
   height: 2.5rem;
   align-items: center;
   justify-content: space-evenly;
-  border-radius: 0.375rem;
   background-color: var(--jp-layout-color2);
-  padding: 0.25rem;
   color: var(--jp-ui-font-color0);
   gap: 1rem;
   width: 100%;
+  font-size: 9px;
 }
 
 .jgis-tabs-trigger {

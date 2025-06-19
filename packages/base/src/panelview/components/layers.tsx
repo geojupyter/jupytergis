@@ -3,32 +3,25 @@ import {
   IJGISLayerTree,
   IJupyterGISClientState,
   IJupyterGISModel,
+  ISelection,
+  SelectionType,
 } from '@jupytergis/schema';
 import { DOMUtils } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
-import {
-  Button,
-  LabIcon,
-  ReactWidget,
-  caretDownIcon,
-} from '@jupyterlab/ui-components';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
-import { Panel } from '@lumino/widgets';
+import { Button, LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
+import { CommandRegistry } from '@lumino/commands';
+import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import React, {
   MouseEvent as ReactMouseEvent,
   useEffect,
   useState,
 } from 'react';
 
-import { icons } from '@/src/constants';
+import { CommandIDs, icons } from '@/src/constants';
 import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
-import {
-  ILayerPanelOptions,
-  ILeftPanelClickHandlerParams,
-} from '@/src/panelview/leftpanel';
-import { IControlPanelModel } from '@/src/types';
+import { ILeftPanelClickHandlerParams } from '@/src/panelview/leftpanel';
 
-const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
+// const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
 const LAYER_GROUP_HEADER_CLASS = 'jp-gis-layerGroupHeader';
 const LAYER_GROUP_COLLAPSER_CLASS = 'jp-gis-layerGroupCollapser';
@@ -39,119 +32,108 @@ const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
 const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
 
 /**
- * The layers panel widget.
- */
-export class LayersPanel extends Panel {
-  constructor(options: ILayerPanelOptions) {
-    super();
-    this._model = options.model;
-    this._onSelect = options.onSelect;
-    this._state = options.state;
-
-    this.id = 'jupytergis::layerTree';
-    this.addClass(LAYERS_PANEL_CLASS);
-
-    this.addWidget(
-      ReactWidget.create(
-        <LayersBodyComponent
-          model={this._model}
-          onSelect={this._onSelect}
-          state={this._state}
-        ></LayersBodyComponent>,
-      ),
-    );
-    this.node.ondragover = this._onDragOver;
-    this.node.ondrop = this._onDrop;
-  }
-
-  // This happens when dragging over empty space below the tree.
-  private _onDragOver = (e: DragEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    this.node.appendChild(Private.dragIndicator);
-    Private.dragInfo.dragOverElement = null;
-    Private.dragInfo.dragOverPosition = null;
-  };
-
-  private _onDrop = (e: DragEvent) => {
-    Private.dragIndicator.style.display = 'none';
-
-    if (this._model === undefined) {
-      return;
-    }
-    const { jGISModel: model } = this._model;
-
-    const { draggedElement, dragOverElement, dragOverPosition } =
-      Private.dragInfo;
-
-    if (dragOverElement === 'error') {
-      return;
-    }
-
-    if (!draggedElement) {
-      return;
-    }
-    const draggedId = draggedElement.dataset.id;
-    if (!draggedId) {
-      return;
-    }
-
-    // Element has been dropped in the empty zone below the tree.
-    if (dragOverElement === null) {
-      model?.moveItemsToGroup([draggedId], '', 0);
-      return;
-    }
-
-    const dragOverId = dragOverElement.dataset.id;
-    if (!dragOverId) {
-      return;
-    }
-
-    // Handle the special case where we want to drop the element on top of the first
-    // element of a group.
-    if (
-      dragOverElement.classList.contains(LAYER_GROUP_HEADER_CLASS) &&
-      dragOverPosition === 'below'
-    ) {
-      model?.moveItemsToGroup([draggedId], dragOverId);
-      return;
-    }
-
-    model?.moveItemRelatedTo(
-      draggedId,
-      dragOverId,
-      dragOverPosition === 'above',
-    );
-  };
-
-  private _model: IControlPanelModel | undefined;
-  private _state: IStateDB;
-  private _onSelect: ({
-    type,
-    item,
-    nodeId,
-  }: ILeftPanelClickHandlerParams) => void;
-}
-
-/**
  * Properties of the layers body component.
  */
 interface IBodyProps {
-  model: IControlPanelModel;
+  model: IJupyterGISModel;
+  commands: CommandRegistry;
   state: IStateDB;
-  onSelect: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
 }
 
 /**
  * The body component of the panel.
  */
-const LayersBodyComponent: React.FC<IBodyProps> = props => {
-  const [model, setModel] = useState<IJupyterGISModel | undefined>(
-    props.model?.jGISModel,
-  );
+export function LayersBodyComponent(props: IBodyProps): JSX.Element {
+  const model = props.model;
+  const id = UUID.uuid4();
+
   const [layerTree, setLayerTree] = useState<IJGISLayerTree>(
     model?.getLayerTree() || [],
   );
+
+  const notifyCommands = () => {
+    // Notify commands that need updating
+    props.commands.notifyCommandChanged(CommandIDs.identify);
+    props.commands.notifyCommandChanged(CommandIDs.temporalController);
+  };
+
+  const onSelect = ({
+    type,
+    item,
+    nodeId,
+    event,
+  }: ILeftPanelClickHandlerParams) => {
+    if (!props.model || !nodeId) {
+      return;
+    }
+
+    const selectedValue = props.model.localState?.selected?.value;
+    const node = document.getElementById(nodeId);
+
+    if (!node) {
+      return;
+    }
+
+    node.tabIndex = 0;
+    node.focus();
+
+    // Early return if no selection exists
+    if (!selectedValue) {
+      resetSelected(type, nodeId, item);
+      return;
+    }
+
+    // Don't want to reset selected if right clicking a selected item
+    if (!event.ctrlKey && event.button === 2 && item in selectedValue) {
+      return;
+    }
+
+    // Reset selection for normal left click
+    if (!event.ctrlKey) {
+      resetSelected(type, nodeId, item);
+      return;
+    }
+
+    if (nodeId) {
+      // Check if new selection is the same type as previous selections
+      const isSelectedSameType = Object.values(selectedValue).some(
+        selection => selection.type === type,
+      );
+
+      if (!isSelectedSameType) {
+        // Selecting a new type, so reset selected
+        resetSelected(type, nodeId, item);
+        return;
+      }
+
+      // If types are the same add the selection
+      const updatedSelectedValue = {
+        ...selectedValue,
+        [item]: { type, selectedNodeId: nodeId },
+      };
+
+      props.model.syncSelected(updatedSelectedValue, id);
+
+      notifyCommands();
+    }
+  };
+
+  const resetSelected = (
+    type: SelectionType,
+    nodeId?: string,
+    item?: string,
+  ) => {
+    const selection: { [key: string]: ISelection } = {};
+    if (item && nodeId) {
+      selection[item] = {
+        type,
+        selectedNodeId: nodeId,
+      };
+    }
+    props.model.syncSelected(selection, id);
+
+    notifyCommands();
+  };
 
   /**
    * Propagate the layer selection.
@@ -162,7 +144,7 @@ const LayersBodyComponent: React.FC<IBodyProps> = props => {
     nodeId,
     event,
   }: ILeftPanelClickHandlerParams) => {
-    props.onSelect({ type, item, nodeId, event });
+    onSelect({ type, item, nodeId, event });
   };
 
   /**
@@ -181,14 +163,6 @@ const LayersBodyComponent: React.FC<IBodyProps> = props => {
       model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
     };
   }, [model]);
-
-  /**
-   * Update the model when it changes.
-   */
-  props.model?.documentChanged.connect((_, widget) => {
-    setModel(widget?.model);
-    setLayerTree(widget?.model?.getLayerTree() || []);
-  });
 
   return (
     <div id="jp-gis-layer-tree">
@@ -215,7 +189,7 @@ const LayersBodyComponent: React.FC<IBodyProps> = props => {
         )}
     </div>
   );
-};
+}
 
 /**
  * Properties of the layer group component.
@@ -404,7 +378,12 @@ const LayerComponent: React.FC<ILayerProps> = props => {
 
   const setSelection = (event: ReactMouseEvent<HTMLElement>) => {
     const childId = event.currentTarget.children.namedItem(id)?.id;
-    onClick({ type: 'layer', item: layerId, nodeId: childId, event });
+    onClick({
+      type: 'layer',
+      item: layerId,
+      nodeId: childId,
+      event,
+    });
   };
 
   return (
