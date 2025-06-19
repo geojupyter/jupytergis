@@ -1,13 +1,12 @@
-import { IAnnotationModel } from '@jupytergis/schema';
+import { IAnnotationModel, IJupyterGISModel } from '@jupytergis/schema';
 import { PanelWithToolbar, ReactWidget } from '@jupyterlab/ui-components';
 import React, { Component } from 'react';
 
 import Annotation from '@/src/annotations/components/Annotation';
-import { IControlPanelModel } from '@/src/types';
 
 interface IAnnotationPanelProps {
   annotationModel: IAnnotationModel;
-  rightPanelModel: IControlPanelModel;
+  rightPanelModel: IJupyterGISModel;
 }
 
 export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
@@ -59,7 +58,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
   }
 
   private _annotationModel: IAnnotationModel;
-  private _rightPanelModel: IControlPanelModel;
+  private _rightPanelModel: IJupyterGISModel;
 }
 
 export class Annotations extends PanelWithToolbar {
@@ -84,12 +83,12 @@ export class Annotations extends PanelWithToolbar {
 
   private _widget: ReactWidget;
   private _annotationModel: IAnnotationModel;
-  private _rightPanelModel: IControlPanelModel;
+  private _rightPanelModel: IJupyterGISModel;
 }
 
 export namespace Annotations {
   export interface IOptions {
     annotationModel: IAnnotationModel;
-    rightPanelModel: IControlPanelModel;
+    rightPanelModel: IJupyterGISModel;
   }
 }

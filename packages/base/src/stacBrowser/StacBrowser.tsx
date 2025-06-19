@@ -1,37 +1,15 @@
-import {
-  IJupyterGISModel,
-  IJupyterGISTracker,
-  IJupyterGISWidget,
-} from '@jupytergis/schema';
-import React, { useEffect, useState } from 'react';
+import { IJupyterGISModel } from '@jupytergis/schema';
 
 import StacPanelView from '@/src/stacBrowser/components/StacPanelView';
-import { IControlPanelModel } from '@/src/types';
+import * as React from 'react';
 
 interface IStacBrowserDialogProps {
-  controlPanelModel: IControlPanelModel;
+	controlPanelModel: IJupyterGISModel;
 }
 
-const StacBrowser = ({ controlPanelModel }: IStacBrowserDialogProps) => {
-  const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
-    controlPanelModel?.jGISModel,
-  );
+const StacBrowser = ({ controlPanelModel: model }: IStacBrowserDialogProps) => {
+	const jgisModel = model;
 
-  useEffect(() => {
-    const handleCurrentChanged = (
-      _: IJupyterGISTracker,
-      widget: IJupyterGISWidget | null,
-    ) => {
-      setJgisModel(widget?.model);
-    };
-
-    controlPanelModel.documentChanged.connect(handleCurrentChanged);
-
-    return () => {
-      controlPanelModel.documentChanged.disconnect(handleCurrentChanged);
-    };
-  }, [controlPanelModel]);
-
-  return <StacPanelView model={jgisModel} />;
+	return <StacPanelView model={jgisModel} />;
 };
 export default StacBrowser;

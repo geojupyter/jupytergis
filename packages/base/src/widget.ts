@@ -96,10 +96,17 @@ export namespace JupyterGISOutputWidget {
 export class JupyterGISPanel extends SplitPanel {
   constructor(options: JupyterGISPanel.IOptions) {
     super({ orientation: 'vertical', spacing: 0 });
-    const { model, consoleTracker, commandRegistry, ...consoleOption } =
-      options;
+    const {
+      model,
+      consoleTracker,
+      commandRegistry,
+      leftControlPanel,
+      rightControlPanel,
+      ...consoleOption
+    } = options;
+
     this._initModel({ model, commandRegistry });
-    this._initView();
+    this._initView(leftControlPanel, rightControlPanel);
     this._consoleOption = { commandRegistry, ...consoleOption };
     this._consoleTracker = consoleTracker;
   }
@@ -116,10 +123,14 @@ export class JupyterGISPanel extends SplitPanel {
     });
   }
 
-  _initView() {
-    this._jupyterGISMainViewPanel = new JupyterGISMainViewPanel({
-      mainViewModel: this._mainViewModel,
-    });
+  _initView(leftControlPanel?: Widget, rightControlPanel?: Widget) {
+    this._jupyterGISMainViewPanel = new JupyterGISMainViewPanel(
+      {
+        mainViewModel: this._mainViewModel,
+      },
+      leftControlPanel,
+      rightControlPanel,
+    );
     this.addWidget(this._jupyterGISMainViewPanel);
     SplitPanel.setStretch(this._jupyterGISMainViewPanel, 1);
   }
@@ -247,5 +258,7 @@ export namespace JupyterGISPanel {
     model: IJupyterGISModel;
     commandRegistry: CommandRegistry;
     consoleTracker?: IConsoleTracker;
+    leftControlPanel?: Widget;
+    rightControlPanel?: Widget;
   }
 }
