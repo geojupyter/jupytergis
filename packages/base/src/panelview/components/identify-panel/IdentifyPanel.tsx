@@ -1,234 +1,281 @@
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  IDict,
-  IJupyterGISClientState,
-  IJupyterGISModel,
-  IJupyterGISTracker,
+	IDict,
+	IJupyterGISClientState,
+	IJupyterGISModel,
 } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
 import { LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { IControlPanelModel } from '@/src/types';
-
 export class IdentifyPanel extends Panel {
-  constructor(options: IdentifyPanel.IOptions) {
-    super();
-    this._model = options.model;
-    this._tracker = options.tracker;
+	constructor(options: IdentifyPanel.IOptions) {
+		super();
+		this._model = options.model;
 
-    this.id = 'jupytergis::identifyPanel';
-    this.title.caption = 'Identify';
-    this.title.label = 'Identify';
-    this.addClass('jgis-scrollable');
+		this.id = 'jupytergis::identifyPanel';
+		this.title.caption = 'Identify';
+		this.title.label = 'Identify';
+		this.addClass('jgis-scrollable');
 
-    this.addWidget(
-      ReactWidget.create(
-        <IdentifyPanelComponent
-          controlPanelModel={this._model}
-          tracker={this._tracker}
-        />,
-      ),
-    );
-  }
+		this.addWidget(
+			ReactWidget.create(
+				<IdentifyPanelComponent model={this._model} />,
+			),
+		);
+	}
 
-  private _model: IControlPanelModel | undefined;
-  private _tracker: IJupyterGISTracker;
+	private _model: IJupyterGISModel | undefined;
 }
 
 export namespace IdentifyPanel {
-  export interface IOptions {
-    model: IControlPanelModel;
-    tracker: IJupyterGISTracker;
-  }
+	export interface IOptions {
+		model: IJupyterGISModel;
+	}
 }
 
 interface IIdentifyComponentProps {
-  controlPanelModel: IControlPanelModel;
-  tracker: IJupyterGISTracker;
+	model: IJupyterGISModel;
 }
 
-const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
-  controlPanelModel,
-  tracker,
-}) => {
-  const [widgetId, setWidgetId] = useState('');
-  const [features, setFeatures] = useState<IDict<any>>();
-  const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
-    0: true,
-  });
-  const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
-  const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
-    controlPanelModel?.jGISModel,
-  );
+const IdentifyPanelComponent = ({ model: model }: IIdentifyComponentProps) => {
+	const [features, setFeatures] = useState<IDict<any>>();
+	const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
+		0: true,
+	});
+	const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(
+		null,
+	);
+	const jgisModel = model;
 
-  const featuresRef = useRef(features);
-  /**
-   * Update the model when it changes.
-   */
-  controlPanelModel?.documentChanged.connect((_, widget) => {
-    setJgisModel(widget?.model);
-  });
+	const featuresRef = useRef(features);
 
-  // Reset state values when current widget changes
-  useEffect(() => {
-    const handleCurrentChanged = () => {
-      if (tracker.currentWidget?.id === widgetId) {
-        return;
-      }
+	// Reset state values when current widget changes
 
-      if (tracker.currentWidget) {
-        setWidgetId(tracker.currentWidget.id);
-      }
-      setFeatures({});
-      setVisibleFeatures({ 0: true });
-    };
-    tracker.currentChanged.connect(handleCurrentChanged);
+	useEffect(() => {
+		featuresRef.current = features;
+	}, [features]);
 
-    return () => {
-      tracker.currentChanged.disconnect(handleCurrentChanged);
-    };
-  }, []);
+	useEffect(() => {
+		const handleClientStateChanged = (
+			sender: IJupyterGISModel,
+			clients: Map<number, IJupyterGISClientState>,
+		) => {
+			const remoteUserId = jgisModel?.localState?.remoteUser;
 
-  useEffect(() => {
-    featuresRef.current = features;
-  }, [features]);
+			// If following a collaborator
+			if (remoteUserId) {
+				const remoteState = clients.get(remoteUserId);
+				if (remoteState) {
+					if (
+						remoteState.user?.username !==
+						remoteUser?.username
+					) {
+						setRemoteUser(remoteState.user);
+					}
 
-  useEffect(() => {
-    const handleClientStateChanged = (
-      sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>,
-    ) => {
-      const remoteUserId = jgisModel?.localState?.remoteUser;
+					setFeatures(
+						remoteState.identifiedFeatures
+							?.value ?? {},
+					);
+				}
+				return;
+			}
 
-      // If following a collaborator
-      if (remoteUserId) {
-        const remoteState = clients.get(remoteUserId);
-        if (remoteState) {
-          if (remoteState.user?.username !== remoteUser?.username) {
-            setRemoteUser(remoteState.user);
-          }
+			// If not following a collaborator
+			const identifiedFeatures =
+				jgisModel?.localState?.identifiedFeatures
+					?.value;
 
-          setFeatures(remoteState.identifiedFeatures?.value ?? {});
-        }
-        return;
-      }
+			if (!identifiedFeatures) {
+				setFeatures({});
+				return;
+			}
 
-      // If not following a collaborator
-      const identifiedFeatures =
-        jgisModel?.localState?.identifiedFeatures?.value;
+			if (
+				jgisModel.isIdentifying &&
+				featuresRef.current !== identifiedFeatures
+			) {
+				setFeatures(identifiedFeatures);
+			}
+		};
 
-      if (!identifiedFeatures) {
-        setFeatures({});
-        return;
-      }
+		jgisModel?.clientStateChanged.connect(handleClientStateChanged);
 
-      if (
-        jgisModel.isIdentifying &&
-        featuresRef.current !== identifiedFeatures
-      ) {
-        setFeatures(identifiedFeatures);
-      }
-    };
+		return () => {
+			jgisModel?.clientStateChanged.disconnect(
+				handleClientStateChanged,
+			);
+		};
+	}, [jgisModel]);
 
-    jgisModel?.clientStateChanged.connect(handleClientStateChanged);
+	const highlightFeatureOnMap = (feature: any) => {
+		jgisModel?.highlightFeatureSignal?.emit(feature);
 
-    return () => {
-      jgisModel?.clientStateChanged.disconnect(handleClientStateChanged);
-    };
-  }, [jgisModel]);
+		const geometry = feature.geometry || feature._geometry;
+		jgisModel?.flyToGeometrySignal?.emit(geometry);
+	};
 
-  const highlightFeatureOnMap = (feature: any) => {
-    jgisModel?.highlightFeatureSignal?.emit(feature);
+	const toggleFeatureVisibility = (index: number) => {
+		setVisibleFeatures(prev => ({
+			...prev,
+			[index]: !prev[index],
+		}));
+	};
 
-    const geometry = feature.geometry || feature._geometry;
-    jgisModel?.flyToGeometrySignal?.emit(geometry);
-  };
+	return (
+		<div
+			className="jgis-identify-wrapper"
+			style={{
+				border: jgisModel?.localState?.remoteUser
+					? `solid 3px ${remoteUser?.color}`
+					: 'unset',
+			}}
+		>
+			{features &&
+				Object.values(features).map(
+					(feature, featureIndex) => (
+						<div
+							key={featureIndex}
+							className="jgis-identify-grid-item"
+						>
+							<div className="jgis-identify-grid-item-header">
+								<span
+									onClick={() =>
+										toggleFeatureVisibility(
+											featureIndex,
+										)
+									}
+								>
+									<LabIcon.resolveReact
+										icon={
+											caretDownIcon
+										}
+										className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
+										tag={
+											'span'
+										}
+									/>
+									<span>
+										Feature{' '}
+										{featureIndex +
+											1}
+									</span>
+								</span>
 
-  const toggleFeatureVisibility = (index: number) => {
-    setVisibleFeatures(prev => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  };
+								{(() => {
+									const isRasterFeature =
+										!feature.geometry &&
+										!feature._geometry &&
+										typeof feature?.x !==
+											'number' &&
+										typeof feature?.y !==
+											'number';
 
-  return (
-    <div
-      className="jgis-identify-wrapper"
-      style={{
-        border: jgisModel?.localState?.remoteUser
-          ? `solid 3px ${remoteUser?.color}`
-          : 'unset',
-      }}
-    >
-      {features &&
-        Object.values(features).map((feature, featureIndex) => (
-          <div key={featureIndex} className="jgis-identify-grid-item">
-            <div className="jgis-identify-grid-item-header">
-              <span onClick={() => toggleFeatureVisibility(featureIndex)}>
-                <LabIcon.resolveReact
-                  icon={caretDownIcon}
-                  className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
-                  tag={'span'}
-                />
-                <span>Feature {featureIndex + 1}</span>
-              </span>
+									return (
+										<button
+											className="jgis-highlight-button"
+											onClick={e => {
+												e.stopPropagation();
+												highlightFeatureOnMap(
+													feature,
+												);
+											}}
+											title={
+												isRasterFeature
+													? 'Highlight not available for raster features'
+													: 'Highlight feature on map'
+											}
+											disabled={
+												isRasterFeature
+											}
+										>
+											<FontAwesomeIcon
+												icon={
+													faMagnifyingGlass
+												}
+											/>
+										</button>
+									);
+								})()}
+							</div>
+							{visibleFeatures[
+								featureIndex
+							] && (
+								<>
+									{Object.entries(
+										feature,
+									)
+										.filter(
+											([
+												key,
+												value,
+											]) =>
+												typeof value !==
+													'object' ||
+												value ===
+													null,
+										)
+										.sort(
+											(
+												[
+													keyA,
+												],
+												[
+													keyB,
+												],
+											) =>
+												keyA.localeCompare(
+													keyB,
+												),
+										)
+										.map(
+											([
+												key,
+												value,
+											]) => (
+												<div
+													key={
+														key
+													}
+													className="jgis-identify-grid-body"
+												>
+													<strong>
+														{
+															key
+														}
 
-              {(() => {
-                const isRasterFeature =
-                  !feature.geometry &&
-                  !feature._geometry &&
-                  typeof feature?.x !== 'number' &&
-                  typeof feature?.y !== 'number';
-
-                return (
-                  <button
-                    className="jgis-highlight-button"
-                    onClick={e => {
-                      e.stopPropagation();
-                      highlightFeatureOnMap(feature);
-                    }}
-                    title={
-                      isRasterFeature
-                        ? 'Highlight not available for raster features'
-                        : 'Highlight feature on map'
-                    }
-                    disabled={isRasterFeature}
-                  >
-                    <FontAwesomeIcon icon={faMagnifyingGlass} />
-                  </button>
-                );
-              })()}
-            </div>
-            {visibleFeatures[featureIndex] && (
-              <>
-                {Object.entries(feature)
-                  .filter(
-                    ([key, value]) =>
-                      typeof value !== 'object' || value === null,
-                  )
-                  .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-                  .map(([key, value]) => (
-                    <div key={key} className="jgis-identify-grid-body">
-                      <strong>{key}:</strong>
-                      {typeof value === 'string' &&
-                      /<\/?[a-z][\s\S]*>/i.test(value) ? (
-                        <span
-                          dangerouslySetInnerHTML={{ __html: `${value}` }}
-                        />
-                      ) : (
-                        <span>{String(value)}</span>
-                      )}
-                    </div>
-                  ))}
-              </>
-            )}
-          </div>
-        ))}
-    </div>
-  );
+														:
+													</strong>
+													{typeof value ===
+														'string' &&
+													/<\/?[a-z][\s\S]*>/i.test(
+														value,
+													) ? (
+														<span
+															dangerouslySetInnerHTML={{
+																__html: `${value}`,
+															}}
+														/>
+													) : (
+														<span>
+															{String(
+																value,
+															)}
+														</span>
+													)}
+												</div>
+											),
+										)}
+								</>
+							)}
+						</div>
+					),
+				)}
+		</div>
+	);
 };
 
 export default IdentifyPanel;
