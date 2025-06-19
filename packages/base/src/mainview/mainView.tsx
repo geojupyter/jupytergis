@@ -90,7 +90,6 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import MetaDataViewer from '../stacBrowser/components/MetaDataViewer';
 
 type OlLayerTypes =
   | TileLayer
@@ -2200,7 +2199,6 @@ export class MainView extends React.Component<IProps, IStates> {
             <LoadingOverlay loading={this.state.loading} />
             <FollowIndicator remoteUser={this.state.remoteUser} />
             <CollaboratorPointers clients={this.state.clientPointers} />
-            <MetaDataViewer metadata={this.state.metadata} />
 
             <div
               ref={this.divRef}
