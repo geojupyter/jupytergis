@@ -11,20 +11,10 @@ import {
   IStacSearchResult,
   StacFilterState,
   StacFilterSetters,
+  StacFilterStateStateDb,
 } from '@/src/stacBrowser/types/types';
+import { GlobalStateDbManager } from '@/src/store';
 import { fetchWithProxies } from '@/src/tools';
-
-const API_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
-const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-
-// Storage keys for persisting state
-const STORAGE_KEYS = {
-  collections: 'jgis-stac-selected-collections',
-  platforms: 'jgis-stac-selected-platforms',
-  products: 'jgis-stac-selected-products',
-  startTime: 'jgis-stac-start-time',
-  endTime: 'jgis-stac-end-time',
-};
 
 interface IUseStacSearchProps {
   model: IJupyterGISModel | undefined;
@@ -47,6 +37,10 @@ interface IUseStacSearchReturn {
   isLoading: boolean;
 }
 
+const API_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
+const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
+const STAC_FILTERS_KEY = 'jupytergis:stac-filters';
+
 /**
  * Custom hook for managing STAC search functionality
  * @param props - Configuration object containing datasets, platforms, products, and model
@@ -54,8 +48,18 @@ interface IUseStacSearchReturn {
  */
 function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
   const isFirstRender = useIsFirstRender();
+  const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-  // Generic filter state
+  const [results, setResults] = useState<IStacItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [startTime, setStartTime] = useState<Date | undefined>(undefined);
+  const [endTime, setEndTime] = useState<Date | undefined>(undefined);
+  const [currentBBox, setCurrentBBox] = useState<
+    [number, number, number, number]
+  >([-180, -90, 180, 90]);
   const [filterState, setFilterState] = useState<StacFilterState>({
     collections: new Set(),
     datasets: new Set(),
@@ -63,7 +67,6 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
     products: new Set(),
   });
 
-  // Generic filter setters
   const filterSetters: StacFilterSetters = {
     collections: val =>
       setFilterState(s => ({ ...s, collections: new Set(val) })),
@@ -72,61 +75,45 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
     products: val => setFilterState(s => ({ ...s, products: new Set(val) })),
   };
 
-  const [startTime, setStartTime] = useState<Date | undefined>(() => {
-    const stored = localStorage.getItem(STORAGE_KEYS.startTime);
-    return stored ? new Date(stored) : undefined;
-  });
-  const [endTime, setEndTime] = useState<Date | undefined>(() => {
-    const stored = localStorage.getItem(STORAGE_KEYS.endTime);
-    return stored ? new Date(stored) : undefined;
-  });
-  const [results, setResults] = useState<IStacItem[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalResults, setTotalResults] = useState(0);
-  const [currentBBox, setCurrentBBox] = useState<
-    [number, number, number, number]
-  >([-180, -90, 180, 90]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Persist state changes to localStorage
-  // TODO: Switch to StateDB
+  // On mount, fetch filterState and times from StateDB (if present)
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.collections,
-      JSON.stringify(Array.from(filterState.collections)),
-    );
-  }, [filterState.collections]);
+    async function loadStacStateFromDb() {
+      const savedFilterState = (await stateDb?.fetch(
+        STAC_FILTERS_KEY,
+      )) as StacFilterStateStateDb;
 
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.platforms,
-      JSON.stringify(Array.from(filterState.platforms)),
-    );
-  }, [filterState.platforms]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.products,
-      JSON.stringify(Array.from(filterState.products)),
-    );
-  }, [filterState.products]);
-
-  useEffect(() => {
-    if (startTime) {
-      localStorage.setItem(STORAGE_KEYS.startTime, startTime.toISOString());
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.startTime);
+      setFilterState({
+        collections: new Set((savedFilterState?.collections as string[]) ?? []),
+        datasets: new Set((savedFilterState?.datasets as string[]) ?? []),
+        platforms: new Set((savedFilterState?.platforms as string[]) ?? []),
+        products: new Set((savedFilterState?.products as string[]) ?? []),
+      });
     }
-  }, [startTime]);
 
+    loadStacStateFromDb();
+  }, [stateDb]);
+
+  // Save filterState to StateDB on change
   useEffect(() => {
-    if (endTime) {
-      localStorage.setItem(STORAGE_KEYS.endTime, endTime.toISOString());
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.endTime);
+    async function saveStacFilterStateToDb() {
+      await stateDb?.save(STAC_FILTERS_KEY, {
+        collections: Array.from(filterState.collections),
+        datasets: Array.from(filterState.datasets),
+        platforms: Array.from(filterState.platforms),
+        products: Array.from(filterState.products),
+      });
     }
-  }, [endTime]);
+
+    saveStacFilterStateToDb();
+  }, [filterState, stateDb]);
+
+  // Handle search when filters change
+  useEffect(() => {
+    if (!isFirstRender) {
+      setCurrentPage(1);
+      model && fetchResults(1);
+    }
+  }, [filterState, startTime, endTime, model]);
 
   // Listen for model updates to get current bounding box
   useEffect(() => {
@@ -234,22 +221,6 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       setIsLoading(false);
     }
   };
-
-  // Handle search when filters change
-  // ? Should we hit the api on a map move? That seems like too much
-  useEffect(() => {
-    if (!isFirstRender) {
-      setCurrentPage(1);
-      model && fetchResults(1);
-    }
-  }, [
-    filterState.collections,
-    filterState.platforms,
-    filterState.products,
-    startTime,
-    endTime,
-    model,
-  ]);
 
   /**
    * Handles clicking on a result item
