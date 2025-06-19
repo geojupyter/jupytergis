@@ -3,6 +3,7 @@ import { UUID } from '@lumino/coreutils';
 import { startOfYesterday } from 'date-fns';
 import { useEffect, useState } from 'react';
 
+import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
 import { products } from '@/src/stacBrowser/constants';
 import {
   IStacItem,
@@ -52,6 +53,8 @@ interface IUseStacSearchReturn {
  * @returns Object containing state and handlers for STAC search
  */
 function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
+  const isFirstRender = useIsFirstRender();
+
   // Generic filter state
   const [filterState, setFilterState] = useState<StacFilterState>({
     collections: new Set(),
@@ -235,8 +238,10 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
   // Handle search when filters change
   // ? Should we hit the api on a map move? That seems like too much
   useEffect(() => {
-    setCurrentPage(1);
-    model && fetchResults(1);
+    if (!isFirstRender) {
+      setCurrentPage(1);
+      model && fetchResults(1);
+    }
   }, [
     filterState.collections,
     filterState.platforms,
