@@ -34,7 +34,7 @@ import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { ContextMenu } from '@lumino/widgets';
+import { ContextMenu, Widget } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine } from 'ol/control';
@@ -77,12 +77,14 @@ import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
+import { Rnd } from 'react-rnd';
 
 import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import StatusBar from '@/src/statusbar/StatusBar';
 import { isLightTheme, loadFile, throttle } from '@/src/tools';
+import Lumino from '../Lumino';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
@@ -90,6 +92,8 @@ import { MainViewModel } from './mainviewmodel';
 
 interface IProps {
   viewModel: MainViewModel;
+  leftPanel?: Widget;
+  rightPanel?: Widget;
 }
 
 interface IStates {
@@ -111,7 +115,8 @@ interface IStates {
 export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
-
+    this._leftPanel = props.leftPanel;
+    this._rightPanel = props.rightPanel;
     this._mainViewModel = this.props.viewModel;
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
 
@@ -173,7 +178,9 @@ export class MainView extends React.Component<IProps, IStates> {
     this._sources = [];
     this._loadingLayers = new Set();
     this._commands = new CommandRegistry();
-    this._contextMenu = new ContextMenu({ commands: this._commands });
+    this._contextMenu = new ContextMenu({
+      commands: this._commands,
+    });
   }
 
   async componentDidMount(): Promise<void> {
@@ -285,7 +292,13 @@ export class MainView extends React.Component<IProps, IStates> {
             return;
           }
           this._model.syncViewport(
-            { coordinates: { x: center[0], y: center[1] }, zoom },
+            {
+              coordinates: {
+                x: center[0],
+                y: center[1],
+              },
+              zoom,
+            },
             this._mainViewModel.id,
           );
         }),
@@ -458,7 +471,10 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         this._mainViewModel.addAnnotation({
-          position: { x: this._clickCoords[0], y: this._clickCoords[1] },
+          position: {
+            x: this._clickCoords[0],
+            y: this._clickCoords[1],
+          },
           zoom: this._Map.getView().getZoom() ?? 0,
           label: 'New annotation',
           contents: [],
@@ -538,7 +554,9 @@ export class MainView extends React.Component<IProps, IStates> {
             minZoom: sourceParameters.minZoom,
             maxZoom: sourceParameters.maxZoom,
             url: url,
-            format: new MVT({ featureClass: RenderFeature }),
+            format: new MVT({
+              featureClass: RenderFeature,
+            }),
           });
         } else {
           newSource = new PMTilesVectorSource({
@@ -916,7 +934,9 @@ export class MainView extends React.Component<IProps, IStates> {
         };
 
         if (layerParameters.color) {
-          layerOptions['style'] = { color: layerParameters.color };
+          layerOptions['style'] = {
+            color: layerParameters.color,
+          };
         }
 
         newMapLayer = new WebGlTileLayer(layerOptions);
@@ -1339,8 +1359,13 @@ export class MainView extends React.Component<IProps, IStates> {
               return new Style({
                 image: new Circle({
                   radius: 6,
-                  fill: new Fill({ color: 'rgba(255, 255, 0, 0.8)' }),
-                  stroke: new Stroke({ color: '#ff0', width: 2 }),
+                  fill: new Fill({
+                    color: 'rgba(255, 255, 0, 0.8)',
+                  }),
+                  stroke: new Stroke({
+                    color: '#ff0',
+                    width: 2,
+                  }),
                 }),
               });
             case 'LineString':
@@ -1388,7 +1413,10 @@ export class MainView extends React.Component<IProps, IStates> {
     return new Promise(resolve => {
       const checkReady = () => {
         if (this._loadingLayers.size === 0) {
-          this.setState(old => ({ ...old, loadingLayer: false }));
+          this.setState(old => ({
+            ...old,
+            loadingLayer: false,
+          }));
           resolve();
         } else {
           setTimeout(checkReady, 50);
@@ -1454,7 +1482,10 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       if (remoteState.user?.username !== this.state.remoteUser?.username) {
-        this.setState(old => ({ ...old, remoteUser: remoteState.user }));
+        this.setState(old => ({
+          ...old,
+          remoteUser: remoteState.user,
+        }));
       }
 
       const remoteViewport = remoteState.viewportState;
@@ -1468,7 +1499,10 @@ export class MainView extends React.Component<IProps, IStates> {
     } else {
       // If we are unfollowing a remote user, we reset our center and zoom to their previous values
       if (this.state.remoteUser !== null) {
-        this.setState(old => ({ ...old, remoteUser: null }));
+        this.setState(old => ({
+          ...old,
+          remoteUser: null,
+        }));
         const viewportState = localState.viewportState?.value;
 
         if (viewportState) {
@@ -1506,14 +1540,26 @@ export class MainView extends React.Component<IProps, IStates> {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
-            coordinates: { x: pixel[0], y: pixel[1] },
-            lonLat: { longitude: lonLat[0], latitude: lonLat[1] },
+            coordinates: {
+              x: pixel[0],
+              y: pixel[1],
+            },
+            lonLat: {
+              longitude: lonLat[0],
+              latitude: lonLat[1],
+            },
           };
         } else {
           currentClientPointer = {
             ...currentClientPointer,
-            coordinates: { x: pixel[0], y: pixel[1] },
-            lonLat: { longitude: lonLat[0], latitude: lonLat[1] },
+            coordinates: {
+              x: pixel[0],
+              y: pixel[1],
+            },
+            lonLat: {
+              longitude: lonLat[0],
+              latitude: lonLat[1],
+            },
           };
         }
 
@@ -1875,7 +1921,10 @@ export class MainView extends React.Component<IProps, IStates> {
     // Zoom needs to be set before changing center
     if (!view.animate === undefined) {
       view.animate({ zoom, duration });
-      view.animate({ center: [center.x, center.y], duration });
+      view.animate({
+        center: [center.x, center.y],
+        duration,
+      });
     }
   }
 
@@ -2072,6 +2121,37 @@ export class MainView extends React.Component<IProps, IStates> {
             scale={this.state.scale}
           />
         </div>
+        {this._leftPanel && (
+          <Rnd
+            default={{
+              x: 0,
+              y: 0,
+              width: 200,
+              height: 600,
+            }}
+            bounds="window"
+            minWidth={100}
+            minHeight={100}
+          >
+            <Lumino>{this._leftPanel}</Lumino>
+          </Rnd>
+        )}
+
+        {this._rightPanel && (
+          <Rnd
+            default={{
+              x: 400,
+              y: 0,
+              width: 200,
+              height: 600,
+            }}
+            bounds="window"
+            minWidth={100}
+            minHeight={100}
+          >
+            <Lumino>{this._rightPanel}</Lumino>
+          </Rnd>
+        )}
       </>
     );
   }
@@ -2091,4 +2171,6 @@ export class MainView extends React.Component<IProps, IStates> {
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
+  private _leftPanel?: Widget;
+  private _rightPanel?: Widget;
 }

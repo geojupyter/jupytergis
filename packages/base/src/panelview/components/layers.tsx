@@ -26,7 +26,6 @@ import {
   ILayerPanelOptions,
   ILeftPanelClickHandlerParams,
 } from '@/src/panelview/leftpanel';
-import { IControlPanelModel } from '@/src/types';
 
 const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
@@ -79,7 +78,7 @@ export class LayersPanel extends Panel {
     if (this._model === undefined) {
       return;
     }
-    const { jGISModel: model } = this._model;
+    const model = this._model;
 
     const { draggedElement, dragOverElement, dragOverPosition } =
       Private.dragInfo;
@@ -124,7 +123,7 @@ export class LayersPanel extends Panel {
     );
   };
 
-  private _model: IControlPanelModel | undefined;
+  private _model: IJupyterGISModel | undefined;
   private _state: IStateDB;
   private _onSelect: ({
     type,
@@ -137,7 +136,7 @@ export class LayersPanel extends Panel {
  * Properties of the layers body component.
  */
 interface IBodyProps {
-  model: IControlPanelModel;
+  model: IJupyterGISModel;
   state: IStateDB;
   onSelect: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
 }
@@ -146,9 +145,7 @@ interface IBodyProps {
  * The body component of the panel.
  */
 function LayersBodyComponent(props: IBodyProps): JSX.Element {
-  const [model, setModel] = useState<IJupyterGISModel | undefined>(
-    props.model?.jGISModel,
-  );
+  const model = props.model;
   const [layerTree, setLayerTree] = useState<IJGISLayerTree>(
     model?.getLayerTree() || [],
   );
@@ -181,14 +178,6 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
       model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
     };
   }, [model]);
-
-  /**
-   * Update the model when it changes.
-   */
-  props.model?.documentChanged.connect((_, widget) => {
-    setModel(widget?.model);
-    setLayerTree(widget?.model?.getLayerTree() || []);
-  });
 
   return (
     <div id="jp-gis-layer-tree">
@@ -404,7 +393,12 @@ function LayerComponent(props: ILayerProps): JSX.Element {
 
   const setSelection = (event: ReactMouseEvent<HTMLElement>) => {
     const childId = event.currentTarget.children.namedItem(id)?.id;
-    onClick({ type: 'layer', item: layerId, nodeId: childId, event });
+    onClick({
+      type: 'layer',
+      item: layerId,
+      nodeId: childId,
+      event,
+    });
   };
 
   return (

@@ -3,17 +3,22 @@ import {
   JupyterGISPanel,
   JupyterGISDocumentWidget,
   ToolbarWidget,
+  LeftPanelWidget,
+  RightPanelWidget,
 } from '@jupytergis/base';
 import {
   JupyterGISModel,
   IJupyterGISTracker,
   IJGISExternalCommandRegistry,
+  IJGISFormSchemaRegistry,
+  IAnnotationModel,
 } from '@jupytergis/schema';
 import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Contents, ServiceManager } from '@jupyterlab/services';
+import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 
 interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
@@ -27,6 +32,9 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   consoleTracker?: IConsoleTracker;
   backendCheck?: () => boolean;
   drive?: ICollaborativeDrive | null;
+  formSchemaRegistry: IJGISFormSchemaRegistry;
+  state: IStateDB;
+  annotationModel: IAnnotationModel;
 }
 
 export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
@@ -65,6 +73,19 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
     if (this._contentsManager) {
       model.contentsManager = this._contentsManager;
     }
+
+    const leftControlPanel = new LeftPanelWidget({
+      model: model,
+      state: this.options.state,
+      commands: this.options.commands,
+    });
+
+    const rightControlPanel = new RightPanelWidget({
+      model: model,
+      formSchemaRegistry: this.options.formSchemaRegistry,
+      annotationModel: this.options.annotationModel,
+    });
+
     const content = new JupyterGISPanel({
       model,
       manager: this.options.manager,
@@ -73,13 +94,19 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       rendermime: this.options.rendermime,
       consoleTracker: this.options.consoleTracker,
       commandRegistry: this.options.commands,
+      leftControlPanel: leftControlPanel,
+      rightControlPanel: rightControlPanel,
     });
     const toolbar = new ToolbarWidget({
       commands: this._commands,
       model,
       externalCommands: this._externalCommandRegistry.getCommands(),
     });
-    return new JupyterGISDocumentWidget({ context, content, toolbar });
+    return new JupyterGISDocumentWidget({
+      context,
+      content,
+      toolbar,
+    });
   }
 
   private _commands: CommandRegistry;
