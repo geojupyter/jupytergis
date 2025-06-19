@@ -1,0 +1,23 @@
+.jgis-metadata-viewer-container {
+  position: 'absolute';
+  top: '5px';
+  right: '5px';
+  width: '30%';
+  padding: '0 0.5rem';
+  overflow-y: 'auto';
+  background-color: 'var(--jp-layout-color0)';
+  word-break: 'break-word';
+  z-index: 40;
+  height: '95%';
+  border: '0.75rem solid transparent';
+  border-radius: 'var(--jp-border-radius)';
+}
+
+.jgis-metadata-viewer-container button {
+  position: 'absolute';
+  background: 'transparent';
+  border: 'none';
+  font-size: '1.2rem';
+  cursor: 'pointer';
+  right: '0.7rem';
+}
