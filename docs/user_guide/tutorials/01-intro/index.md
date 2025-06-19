@@ -48,7 +48,7 @@ The elements shown in the figure above are:
 4. Right Sidebar showing the property inspector (active in notebooks), the debugger, and GIS object properties, annotation and filters.
 5. The GIS object properties, annotations and filters of a selected GIS layer.
 6. The Jupyter toolbar menu which you will use with Jupyter Notebooks.
-7. The Log console (which you can you for debugging).
+7. The Log console (which you can use for debugging).
 
 ## Adding your first layers
 
