@@ -67,3 +67,9 @@
   flex-wrap: wrap;
   gap: 0.25rem;
 }
+
+
+.jgis-stac-datepicker-icon {
+  width: 1rem;
+  height: 1rem;
+}
