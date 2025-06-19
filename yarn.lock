@@ -835,6 +835,7 @@ __metadata:
     "@types/colormap": ^2.3.4
     "@types/d3-color": ^3.1.0
     "@types/node": ^18.15.11
+    "@types/proj4": ^2.5.6
     "@types/shpjs": ^3.4.7
     "@types/uuid": ^10.0.0
     ajv: ^8.14.0
@@ -3527,6 +3528,13 @@ __metadata:
   version: 2.7.3
   resolution: "@types/prettier@npm:2.7.3"
   checksum: 705384209cea6d1433ff6c187c80dcc0b95d99d5c5ce21a46a9a58060c527973506822e428789d842761e0280d25e3359300f017fbe77b9755bc772ab3dc2f83
+  languageName: node
+  linkType: hard
+
+"@types/proj4@npm:^2.5.6":
+  version: 2.5.6
+  resolution: "@types/proj4@npm:2.5.6"
+  checksum: 753159770445b0e2dd4a21b8b9c0236515e2ff22243393e21bb6510d50261fae1a8e9efac0d7666bdd647fb0ec43499bd7ca29fae485ea252e232df21c0726d3
   languageName: node
   linkType: hard
 
