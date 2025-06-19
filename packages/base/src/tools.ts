@@ -421,7 +421,6 @@ export const fetchWithProxies = async <T>(
         );
         continue;
       }
-      console.log('response', response);
       return await parseResponse(response);
     } catch (error) {
       console.warn(`Error fetching from ${proxyUrl}:`, error);
