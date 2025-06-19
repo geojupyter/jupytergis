@@ -1,9 +1,15 @@
+.jgis-panel-tab-content {
+  border-radius: 5px;
+  font-size: 10px;
+}
+
 .jgis-stac-panel-main {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   justify-content: center;
   align-items: center;
+  background-color: var(--jp-layout-color0);
 }
 
 .jgis-stac-browser-collection {

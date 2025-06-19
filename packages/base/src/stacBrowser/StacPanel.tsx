@@ -1,10 +1,9 @@
-import { IJupyterGISTracker } from '@jupytergis/schema';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React from 'react';
 
 import StacBrowser from '@/src/stacBrowser/StacBrowser';
-import { IControlPanelModel } from '@/src/types';
 
 export class StacPanel extends Panel {
   constructor(options: StacPanel.IOptions) {
@@ -23,13 +22,12 @@ export class StacPanel extends Panel {
     );
   }
 
-  private _model: IControlPanelModel | undefined;
+  private _model: IJupyterGISModel | undefined;
 }
 
 export namespace StacPanel {
   export interface IOptions {
-    model: IControlPanelModel;
-    tracker: IJupyterGISTracker;
+    model: IJupyterGISModel;
   }
 }
 

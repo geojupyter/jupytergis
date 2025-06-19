@@ -81,7 +81,10 @@ export class YJupyterGISLuminoWidget extends Panel {
    */
   private _buildWidget = (options: IOptions) => {
     const { commands, model, externalCommands, tracker } = options;
-    const content = new JupyterGISPanel({ model, commandRegistry: commands });
+    const content = new JupyterGISPanel({
+      model,
+      commandRegistry: commands,
+    });
     let toolbar: Toolbar | undefined = undefined;
     if (model.filePath) {
       toolbar = new ToolbarWidget({

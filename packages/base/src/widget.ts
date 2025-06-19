@@ -1,4 +1,6 @@
 import {
+  IAnnotationModel,
+  IJGISFormSchemaRegistry,
   IJupyterGISDocumentWidget,
   IJupyterGISModel,
   IJupyterGISOutputWidget,
@@ -7,6 +9,7 @@ import { MainAreaWidget } from '@jupyterlab/apputils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
+import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue } from '@lumino/coreutils';
 import { MessageLoop } from '@lumino/messaging';
@@ -96,10 +99,19 @@ export namespace JupyterGISOutputWidget {
 export class JupyterGISPanel extends SplitPanel {
   constructor(options: JupyterGISPanel.IOptions) {
     super({ orientation: 'vertical', spacing: 0 });
-    const { model, consoleTracker, commandRegistry, ...consoleOption } =
-      options;
+    const {
+      model,
+      consoleTracker,
+      state,
+      commandRegistry,
+      formSchemaRegistry,
+      annotationModel,
+      ...consoleOption
+    } = options;
+
+    this._state = state;
     this._initModel({ model, commandRegistry });
-    this._initView();
+    this._initView(formSchemaRegistry, annotationModel);
     this._consoleOption = { commandRegistry, ...consoleOption };
     this._consoleTracker = consoleTracker;
   }
@@ -116,9 +128,15 @@ export class JupyterGISPanel extends SplitPanel {
     });
   }
 
-  _initView() {
+  _initView(
+    formSchemaRegistry?: IJGISFormSchemaRegistry,
+    annotationModel?: IAnnotationModel,
+  ) {
     this._jupyterGISMainViewPanel = new JupyterGISMainViewPanel({
       mainViewModel: this._mainViewModel,
+      state: this._state,
+      formSchemaRegistry: formSchemaRegistry,
+      annotationModel: annotationModel,
     });
     this.addWidget(this._jupyterGISMainViewPanel);
     SplitPanel.setStretch(this._jupyterGISMainViewPanel, 1);
@@ -233,6 +251,7 @@ export class JupyterGISPanel extends SplitPanel {
     }, 250);
   }
 
+  private _state: IStateDB | undefined;
   private _mainViewModel: MainViewModel;
   private _view: ObservableMap<JSONValue>;
   private _jupyterGISMainViewPanel: JupyterGISMainViewPanel;
@@ -246,6 +265,9 @@ export namespace JupyterGISPanel {
   export interface IOptions extends Partial<ConsoleView.IOptions> {
     model: IJupyterGISModel;
     commandRegistry: CommandRegistry;
+    state?: IStateDB;
     consoleTracker?: IConsoleTracker;
+    formSchemaRegistry?: IJGISFormSchemaRegistry;
+    annotationModel?: IAnnotationModel;
   }
 }
