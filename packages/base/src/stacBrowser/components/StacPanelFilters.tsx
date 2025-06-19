@@ -76,8 +76,8 @@ const StacPanelFilters = ({
       <div className="jgis-stac-browser-date-picker">
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant={'outline'}>
-              <CalendarIcon />
+            <Button style={{ padding: '0 0.5rem' }} variant={'outline'}>
+              <CalendarIcon className="jgis-stac-datepicker-icon" />
               {startTime ? format(startTime, 'PPP') : <span>Start Date</span>}
             </Button>
           </PopoverTrigger>
@@ -92,8 +92,8 @@ const StacPanelFilters = ({
         </Popover>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant={'outline'}>
-              <CalendarIcon />
+            <Button style={{ padding: '0 0.5rem' }} variant={'outline'}>
+              <CalendarIcon className="jgis-stac-datepicker-icon" />
               {endTime ? format(endTime, 'PPP') : <span>End Date</span>}
             </Button>
           </PopoverTrigger>
