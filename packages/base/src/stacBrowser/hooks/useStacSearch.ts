@@ -111,9 +111,9 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
   useEffect(() => {
     if (!isFirstRender) {
       setCurrentPage(1);
-      model && fetchResults(1);
+      fetchResults(1);
     }
-  }, [filterState, startTime, endTime, model]);
+  }, [filterState, startTime, endTime]);
 
   // Listen for model updates to get current bounding box
   useEffect(() => {
