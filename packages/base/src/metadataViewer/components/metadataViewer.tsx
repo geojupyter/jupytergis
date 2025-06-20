@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 
 type IMetaDataViewerProps = {
   model: IJupyterGISModel;
-  // metadata: Record<string, any>;
 };
 
 const MetadataViewer = ({ model }: IMetaDataViewerProps) => {
@@ -15,35 +14,39 @@ const MetadataViewer = ({ model }: IMetaDataViewerProps) => {
     setIsVisible(true);
   }, [metadata]);
 
-  const _onClientSharedStateChanged = () => {
-    const localState = model.sharedModel.awareness.getLocalState();
-
-    if (!localState) {
-      return;
-    }
-
-    const selectedJgisLayerId = Object.keys(localState.selected.value)[0];
-
-    if (selectedJgisLayerId === currentJgisLayerId) {
-      return;
-    }
-
-    setCurrentJgisLayerId(selectedJgisLayerId);
-
-    const currentJgisLayer = model.getLayer(selectedJgisLayerId);
-
-    if (currentJgisLayer?.type === 'StacLayer') {
-      setMetadata(currentJgisLayer.parameters?.data.properties);
-    }
-  };
-
   useEffect(() => {
+    const _onClientSharedStateChanged = () => {
+      const localState = model.sharedModel.awareness.getLocalState();
+
+      if (!localState?.selected?.value) {
+        setCurrentJgisLayerId('');
+        return;
+      }
+
+      const selectedJgisLayerId = Object.keys(localState.selected.value)[0];
+      setCurrentJgisLayerId(selectedJgisLayerId);
+    };
+
     model.clientStateChanged.connect(_onClientSharedStateChanged);
 
     return () => {
       model.clientStateChanged.disconnect(_onClientSharedStateChanged);
     };
-  }, []);
+  }, [model]);
+
+  useEffect(() => {
+    if (!currentJgisLayerId) {
+      setMetadata({});
+      return;
+    }
+    const currentJgisLayer = model.getLayer(currentJgisLayerId);
+
+    if (currentJgisLayer?.type === 'StacLayer') {
+      setMetadata(currentJgisLayer.parameters?.data.properties);
+    } else {
+      setMetadata({});
+    }
+  }, [currentJgisLayerId, model]);
 
   const renderMetaData = (data: Record<string, any>) => {
     return (
