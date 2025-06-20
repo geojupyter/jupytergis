@@ -845,7 +845,7 @@ __metadata:
     ol-stac: ^1.0.0-rc.10
     pbf: ^4.0.1
     pmtiles: ^3.0.7
-    proj4: ^2.14.0
+    proj4: ^2.19.2
     proj4-list: ^1.0.4
     react: ^18.0.1
     react-day-picker: 8.10.1
@@ -853,9 +853,11 @@ __metadata:
     shpjs: ^6.1.0
     styled-components: ^5.3.6
     three: ^0.135.0
+    three-mesh-bvh: ^0.5.17
     ts-patch: ^3.3.0
     typescript: ^5
     typescript-transform-paths: ^3.5.5
+    uuid: ^11.0.3
   languageName: unknown
   linkType: soft
 
@@ -9893,7 +9895,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"proj4@npm:^2.1.4, proj4@npm:^2.14.0":
+"proj4@npm:^2.1.4":
   version: 2.17.0
   resolution: "proj4@npm:2.17.0"
   dependencies:
@@ -9901,6 +9903,18 @@ __metadata:
     mgrs: 1.0.0
     wkt-parser: ^1.5.1
   checksum: 99662c6d32469860ec0a6ea39ba0be5d074bd1a3eab8e01b367c18b1c5efcbce8d5705cea96726b6e40613d168d932230ded0793144ec5ac401e8790dce95283
+  languageName: node
+  linkType: hard
+
+"proj4@npm:^2.19.2":
+  version: 2.19.2
+  resolution: "proj4@npm:2.19.2"
+  dependencies:
+    mgrs: 1.0.0
+    wkt-parser: ^1.5.1
+  peerDependencies:
+    geotiff: "*"
+  checksum: 8fe2140effc408f77128831ce1601cdeb48f08d56cd2b10ee17edcb49ab1f4e96ebc9850fbe539a7348550c30c2ebb016bfe274ad446dae4b857c687e614be31
   languageName: node
   linkType: hard
 
@@ -11362,6 +11376,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"three-mesh-bvh@npm:^0.5.17":
+  version: 0.5.24
+  resolution: "three-mesh-bvh@npm:0.5.24"
+  peerDependencies:
+    three: ">= 0.123.0"
+  checksum: 5a5e356111756869cfd00870bca2d881d3019b55e71142b5eee544a2e6bcc3546a340b0defa29c3ebe7ed4cfe99e7ee6addd5671bb89852841107189c0f98157
+  languageName: node
+  linkType: hard
+
 "three@npm:^0.135.0":
   version: 0.135.0
   resolution: "three@npm:0.135.0"
@@ -11882,6 +11905,15 @@ __metadata:
   bin:
     uuid: dist/bin/uuid
   checksum: 4b81611ade2885d2313ddd8dc865d93d8dccc13ddf901745edca8f86d99bc46d7a330d678e7532e7ebf93ce616679fb19b2e3568873ac0c14c999032acb25869
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^11.0.3":
+  version: 11.1.0
+  resolution: "uuid@npm:11.1.0"
+  bin:
+    uuid: dist/esm/bin/uuid
+  checksum: 840f19758543c4631e58a29439e51b5b669d5f34b4dd2700b6a1d15c5708c7a6e0c3e2c8c4a2eae761a3a7caa7e9884d00c86c02622ba91137bd3deade6b4b4a
   languageName: node
   linkType: hard
 
