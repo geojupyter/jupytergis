@@ -1,23 +1,13 @@
 {
-  "type": "object",
-  "description": "ConvexHull",
-  "title": "IConvexHull",
-  "required": ["inputLayer"],
-  "additionalProperties": false,
-  "properties": {
-    "inputLayer": {
-      "type": "string",
-      "description": "The input layer for Convex Hull."
-    }
-  },
-  "processGenerationParams": {
-    "processName": "convexHull",
-    "processParams": [],
-    "processLabel": "Convex Hull",
-    "processAdditionalsParams": {
-      "sql": "SELECT ST_ConvexHull(geometry) AS geometry, * FROM \"{layerName}\"",
-      "gdalFunction": "ogr2ogr"
-    },
-    "processType": "vector"
-  }
+	"type": "object",
+	"description": "ConvexHull",
+	"title": "IConvexHull",
+	"required": ["inputLayer"],
+	"additionalProperties": false,
+	"properties": {
+		"inputLayer": {
+			"type": "string",
+			"description": "The input layer for Convex Hull."
+		}
+	}
 }

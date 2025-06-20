@@ -1,23 +1,13 @@
 {
-  "type": "object",
-  "description": "BoundingBoxes",
-  "title": "IBoundingBoxes",
-  "required": ["inputLayer"],
-  "additionalProperties": false,
-  "properties": {
-    "inputLayer": {
-      "type": "string",
-      "description": "The input layer for bounding boxes."
-    }
-  },
-  "processGenerationParams": {
-    "processName": "boundingBoxes",
-    "processParams": [],
-    "processLabel": "Bounding Boxes",
-    "processAdditionalsParams": {
-      "sql": "SELECT ST_Envelope(geometry) AS geometry, * FROM \"{layerName}\"",
-      "gdalFunction": "ogr2ogr"
-    },
-    "processType": "vector"
-  }
+	"type": "object",
+	"description": "BoundingBoxes",
+	"title": "IBoundingBoxes",
+	"required": ["inputLayer"],
+	"additionalProperties": false,
+	"properties": {
+		"inputLayer": {
+			"type": "string",
+			"description": "The input layer for bounding boxes."
+		}
+	}
 }

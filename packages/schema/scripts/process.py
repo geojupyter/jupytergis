@@ -1,8 +1,10 @@
 import os
 import json
 
-processing_dir = "src/schema/processing"
-filenames = []
+processingSchemaDir = "src/schema/processing"
+processingConfigDir = "src/processing/config"
+filenamesSchema = []
+filenamesProcessConfig = []
 params = []
 
 
@@ -28,7 +30,8 @@ def exportSchema():
         addBanner(f)
         for param in params:
             processName = param["processName"]
-            f.write(f"export * from '../../_interface/processing/{processName}';\n")
+            f.write(
+                f"export * from '../../_interface/processing/{processName}';\n")
 
 
 def defineProcessingType():
@@ -55,27 +58,31 @@ def defineProcessingType():
 
 
 if __name__ == "__main__":
-    filenames = [file for file in os.listdir(processing_dir) if file.endswith(".json")]
+    filenamesSchema = [file for file in os.listdir(
+        processingSchemaDir) if file.endswith(".json")]
+
     params = []
-    for filename in filenames:
-        filename = f"{processing_dir}/{filename}"
+    for filename in filenamesSchema:
+        filename = f"{processingSchemaDir}/{filename}"
         with open(filename, "r") as f:
             e = json.loads(f.read())
-            keep = [
-                "processName",
-                "processParams",
-                "processLabel",
-                "processType",
-                "processAdditionalsParams",
-            ]
 
             toAdd = {}
             toAdd["description"] = e["description"]
 
-            for x in keep:
-                toAdd[x] = e["processGenerationParams"][x]
-
             params.append(toAdd)
+
+    filenamesProcessConfig = [file for file in os.listdir(
+        processingConfigDir) if file.endswith(".json")]
+
+    cnt = 0
+    for filename in filenamesProcessConfig:
+        filename = f"{processingConfigDir}/{filename}"
+        with open(filename, "r") as f:
+            e = json.loads(f.read())
+            for x in e:
+                params[cnt][x] = e[x]
+        cnt += 1
 
     os.makedirs(directory, exist_ok=True)
     generateJsonMerge()

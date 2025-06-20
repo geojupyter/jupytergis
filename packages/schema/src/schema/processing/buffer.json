@@ -1,33 +1,23 @@
 {
-  "type": "object",
-  "description": "Buffer",
-  "title": "IBuffer",
-  "required": ["inputLayer", "bufferDistance"],
-  "additionalProperties": false,
-  "properties": {
-    "inputLayer": {
-      "type": "string",
-      "description": "The input layer for buffering."
-    },
-    "bufferDistance": {
-      "type": "number",
-      "default": 10,
-      "description": "The distance used for buffering the geometry (in projection units)."
-    },
-    "embedOutputLayer": {
-      "type": "boolean",
-      "title": "Embed output buffered layer in file",
-      "default": true
-    }
-  },
-  "processGenerationParams": {
-    "processName": "buffer",
-    "processLabel": "Buffer",
-    "processParams": ["bufferDistance"],
-    "processAdditionalsParams": {
-      "gdalFunction": "ogr2ogr",
-      "sql": "SELECT ST_Union(ST_Buffer(geometry, {bufferDistance})) AS geometry, * FROM \"{layerName}\""
-    },
-    "processType": "vector"
-  }
+	"type": "object",
+	"description": "Buffer",
+	"title": "IBuffer",
+	"required": ["inputLayer", "bufferDistance"],
+	"additionalProperties": false,
+	"properties": {
+		"inputLayer": {
+			"type": "string",
+			"description": "The input layer for buffering."
+		},
+		"bufferDistance": {
+			"type": "number",
+			"default": 10,
+			"description": "The distance used for buffering the geometry (in projection units)."
+		},
+		"embedOutputLayer": {
+			"type": "boolean",
+			"title": "Embed output buffered layer in file",
+			"default": true
+		}
+	}
 }

@@ -1,0 +1,10 @@
+{
+	"processName": "concaveHull",
+	"processParams": ["pctconvex", "allowHoles"],
+	"processLabel": "Concave Hull",
+	"processAdditionalsParams": {
+		"sql": "SELECT ST_ConcaveHull(geometry,{pctconvex},{allowHoles}) AS geometry, * FROM \"{layerName}\"",
+		"gdalFunction": "ogr2ogr"
+	},
+	"processType": "vector"
+}
