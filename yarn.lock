@@ -853,7 +853,7 @@ __metadata:
     ol-stac: ^1.0.0-rc.10
     pbf: ^4.0.1
     pmtiles: ^3.0.7
-    proj4: ~2.14.0
+    proj4: ^2.19.3
     proj4-list: ^1.0.4
     react: ^18.0.1
     react-day-picker: ^9.7.0
@@ -4624,9 +4624,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001718":
-  version: 1.0.30001723
-  resolution: "caniuse-lite@npm:1.0.30001723"
-  checksum: 0acd7f33f15cfc6cf81a5155bb288afb34ce63cddd90bbf1740243b3c6c1de813ad10b393650f1c15e47f13ff4da61a8d14b02fac8e47e7367aede3ef162a1c6
+  version: 1.0.30001724
+  resolution: "caniuse-lite@npm:1.0.30001724"
+  checksum: 3285f9c56898ffd9f5fce8f6cff9deb832c5897da8046474f8961a5848771cac293b80200c6311c8a97822dd25b8af699af35042a2033d5ec54017fe4dc6c5e3
   languageName: node
   linkType: hard
 
@@ -5608,9 +5608,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.160":
-  version: 1.5.170
-  resolution: "electron-to-chromium@npm:1.5.170"
-  checksum: 220700e1633f7bab4ded06445251fffd2bd5a08d2d40bbf6eb9cd0200f9978890f1c109cfa033a9c8c6675c8badc9d8bdb0d2f51315c9293f1c8e4b8272a3fbb
+  version: 1.5.171
+  resolution: "electron-to-chromium@npm:1.5.171"
+  checksum: 2fd04844c0a28295723246b915a41056c19fae53a779a8f138338e13bb42f24aeae55d724c38269ea5b4edc357ad7d043dee3a7897e52a9c75762b6bb679cc56
   languageName: node
   linkType: hard
 
@@ -5933,14 +5933,14 @@ __metadata:
   linkType: hard
 
 "eslint-module-utils@npm:^2.12.0":
-  version: 2.12.0
-  resolution: "eslint-module-utils@npm:2.12.0"
+  version: 2.12.1
+  resolution: "eslint-module-utils@npm:2.12.1"
   dependencies:
     debug: ^3.2.7
   peerDependenciesMeta:
     eslint:
       optional: true
-  checksum: be3ac52e0971c6f46daeb1a7e760e45c7c45f820c8cc211799f85f10f04ccbf7afc17039165d56cb2da7f7ca9cec2b3a777013cddf0b976784b37eb9efa24180
+  checksum: 2f074670d8c934687820a83140048776b28bbaf35fc37f35623f63cc9c438d496d11f0683b4feabb9a120435435d4a69604b1c6c567f118be2c9a0aba6760fc1
   languageName: node
   linkType: hard
 
@@ -8412,11 +8412,11 @@ __metadata:
   linkType: hard
 
 "markdown-to-jsx@npm:^7.4.1":
-  version: 7.7.7
-  resolution: "markdown-to-jsx@npm:7.7.7"
+  version: 7.7.8
+  resolution: "markdown-to-jsx@npm:7.7.8"
   peerDependencies:
     react: ">= 0.14.0"
-  checksum: c79ddf588b635b73c1a5798b41b42cd85992aaf476218e5a2cd8233731596b1a52e0a10a0b5fd401c90ba276babbc7da7e8934f7a35962ef0b134c6cb85a8f42
+  checksum: aacdb7806d0937d3240875416d1ce39d62c32b077723dca2ccdb629082b31bd64aaf4a31ba6c269d28c0dd71b134d80ca76c5b49926758d1ef86a408f5d16588
   languageName: node
   linkType: hard
 
@@ -9964,25 +9964,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"proj4@npm:^2.1.4":
-  version: 2.19.2
-  resolution: "proj4@npm:2.19.2"
+"proj4@npm:^2.1.4, proj4@npm:^2.19.3":
+  version: 2.19.3
+  resolution: "proj4@npm:2.19.3"
   dependencies:
     mgrs: 1.0.0
     wkt-parser: ^1.5.1
   peerDependencies:
     geotiff: "*"
-  checksum: 8fe2140effc408f77128831ce1601cdeb48f08d56cd2b10ee17edcb49ab1f4e96ebc9850fbe539a7348550c30c2ebb016bfe274ad446dae4b857c687e614be31
-  languageName: node
-  linkType: hard
-
-"proj4@npm:~2.14.0":
-  version: 2.14.0
-  resolution: "proj4@npm:2.14.0"
-  dependencies:
-    mgrs: 1.0.0
-    wkt-parser: ^1.3.3
-  checksum: 65c9e67658a89a152c002b5a512f25efeca3bf317c448868327ff16b77a8015c9315e4ce1a069e3a2dedd1acdd6c426f5e12d4a4fa7770f7f2c4ffb8675c3d1f
+  checksum: 59c9c18fd0dfc48f2b4b5e14e350cf3f366e70f39407bb3a7f27b4da922c4ae75222837f9d61227b0ed2722a8cbb6891027470748eec993e36d2f1d642f1bdf7
   languageName: node
   linkType: hard
 
@@ -12410,7 +12400,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wkt-parser@npm:^1.3.3, wkt-parser@npm:^1.5.1":
+"wkt-parser@npm:^1.5.1":
   version: 1.5.2
   resolution: "wkt-parser@npm:1.5.2"
   checksum: 0055b11008bf47c390ae7c517ee3e2aa093b0c1149c8039c2d86d3dd3d33908e3ead31839addfbcd3fa4abf035348fc192cfae985296848f8eb6644c810108c9
