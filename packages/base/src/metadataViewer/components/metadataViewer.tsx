@@ -11,10 +11,6 @@ const MetadataViewer = ({ model }: IMetaDataViewerProps) => {
   const [metadata, setMetadata] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    setIsVisible(true);
-  }, [metadata]);
-
-  useEffect(() => {
     const _onClientSharedStateChanged = () => {
       const localState = model.sharedModel.awareness.getLocalState();
 
@@ -43,8 +39,10 @@ const MetadataViewer = ({ model }: IMetaDataViewerProps) => {
 
     if (currentJgisLayer?.type === 'StacLayer') {
       setMetadata(currentJgisLayer.parameters?.data.properties);
+      setIsVisible(true);
     } else {
       setMetadata({});
+      setIsVisible(false);
     }
   }, [currentJgisLayerId, model]);
 
