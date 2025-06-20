@@ -983,11 +983,6 @@ export class MainView extends React.Component<IProps, IStates> {
           extent: layerParameters.data.bbox,
         });
 
-        this.setState(old => ({
-          ...old,
-          metadata: layerParameters.data.properties,
-        }));
-
         // ? TODO: unsure about this
         newMapLayer.addEventListener('sourceready', () => {
           const extent = newMapLayer.getExtent();
@@ -1017,6 +1012,25 @@ export class MainView extends React.Component<IProps, IStates> {
       this.addProjection(newMapLayer);
       await this._waitForSourceReady(newMapLayer);
     }
+
+    // ? TODO: select layer on creation. Dumb? Layer browser doesn't do this right
+    const selectedValue = this._model.localState?.selected?.value;
+
+    const nodeId = Array.from(document.querySelectorAll('span')).find(el =>
+      el.textContent?.includes(layer.name),
+    )?.id;
+
+    console.log('nodeId', nodeId);
+
+    if (nodeId) {
+      const updatedSelectedValue = {
+        ...selectedValue,
+        [id]: { type: 'layer' as const, selectedNodeId: nodeId },
+      };
+
+      this._model.syncSelected(updatedSelectedValue);
+    }
+    // end select layer
 
     this._loadingLayers.delete(id);
     return newMapLayer;
@@ -2126,7 +2140,7 @@ export class MainView extends React.Component<IProps, IStates> {
             <LoadingOverlay loading={this.state.loading} />
             <FollowIndicator remoteUser={this.state.remoteUser} />
             <CollaboratorPointers clients={this.state.clientPointers} />
-            <MetadataViewer metadata={this.state.metadata} />
+            <MetadataViewer model={this._model} />
 
             <div
               ref={this.divRef}
