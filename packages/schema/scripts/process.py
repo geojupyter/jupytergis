@@ -30,8 +30,7 @@ def exportSchema():
         addBanner(f)
         for param in params:
             processName = param["processName"]
-            f.write(
-                f"export * from '../../_interface/processing/{processName}';\n")
+            f.write(f"export * from '../../_interface/processing/{processName}';\n")
 
 
 def defineProcessingType():
@@ -58,8 +57,9 @@ def defineProcessingType():
 
 
 if __name__ == "__main__":
-    filenamesSchema = [file for file in os.listdir(
-        processingSchemaDir) if file.endswith(".json")]
+    filenamesSchema = [
+        file for file in os.listdir(processingSchemaDir) if file.endswith(".json")
+    ]
 
     params = []
     for filename in filenamesSchema:
@@ -72,8 +72,9 @@ if __name__ == "__main__":
 
             params.append(toAdd)
 
-    filenamesProcessConfig = [file for file in os.listdir(
-        processingConfigDir) if file.endswith(".json")]
+    filenamesProcessConfig = [
+        file for file in os.listdir(processingConfigDir) if file.endswith(".json")
+    ]
 
     cnt = 0
     for filename in filenamesProcessConfig:

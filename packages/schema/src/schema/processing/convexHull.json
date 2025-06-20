@@ -1,13 +1,13 @@
 {
-	"type": "object",
-	"description": "ConvexHull",
-	"title": "IConvexHull",
-	"required": ["inputLayer"],
-	"additionalProperties": false,
-	"properties": {
-		"inputLayer": {
-			"type": "string",
-			"description": "The input layer for Convex Hull."
-		}
-	}
+  "type": "object",
+  "description": "ConvexHull",
+  "title": "IConvexHull",
+  "required": ["inputLayer"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The input layer for Convex Hull."
+    }
+  }
 }

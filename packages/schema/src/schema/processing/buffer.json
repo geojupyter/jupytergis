@@ -1,23 +1,23 @@
 {
-	"type": "object",
-	"description": "Buffer",
-	"title": "IBuffer",
-	"required": ["inputLayer", "bufferDistance"],
-	"additionalProperties": false,
-	"properties": {
-		"inputLayer": {
-			"type": "string",
-			"description": "The input layer for buffering."
-		},
-		"bufferDistance": {
-			"type": "number",
-			"default": 10,
-			"description": "The distance used for buffering the geometry (in projection units)."
-		},
-		"embedOutputLayer": {
-			"type": "boolean",
-			"title": "Embed output buffered layer in file",
-			"default": true
-		}
-	}
+  "type": "object",
+  "description": "Buffer",
+  "title": "IBuffer",
+  "required": ["inputLayer", "bufferDistance"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The input layer for buffering."
+    },
+    "bufferDistance": {
+      "type": "number",
+      "default": 10,
+      "description": "The distance used for buffering the geometry (in projection units)."
+    },
+    "embedOutputLayer": {
+      "type": "boolean",
+      "title": "Embed output buffered layer in file",
+      "default": true
+    }
+  }
 }

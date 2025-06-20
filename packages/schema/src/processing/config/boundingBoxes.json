@@ -1,10 +1,10 @@
 {
-	"processName": "boundingBoxes",
-	"processParams": [],
-	"processLabel": "Bounding Boxes",
-	"processAdditionalsParams": {
-		"sql": "SELECT ST_Envelope(geometry) AS geometry, * FROM \"{layerName}\"",
-		"gdalFunction": "ogr2ogr"
-	},
-	"processType": "vector"
+  "processName": "boundingBoxes",
+  "processParams": [],
+  "processLabel": "Bounding Boxes",
+  "processAdditionalsParams": {
+    "sql": "SELECT ST_Envelope(geometry) AS geometry, * FROM \"{layerName}\"",
+    "gdalFunction": "ogr2ogr"
+  },
+  "processType": "vector"
 }

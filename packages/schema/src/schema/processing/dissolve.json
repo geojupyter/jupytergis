@@ -1,22 +1,22 @@
 {
-	"type": "object",
-	"description": "Dissolve",
-	"title": "IDissolve",
-	"required": ["inputLayer", "dissolveField"],
-	"additionalProperties": false,
-	"properties": {
-		"inputLayer": {
-			"type": "string",
-			"description": "The input layer for the dissolve operation."
-		},
-		"dissolveField": {
-			"type": "string",
-			"description": "The field based on which geometries will be dissolved."
-		},
-		"embedOutputLayer": {
-			"type": "boolean",
-			"title": "Embed output dissolved layer in file",
-			"default": true
-		}
-	}
+  "type": "object",
+  "description": "Dissolve",
+  "title": "IDissolve",
+  "required": ["inputLayer", "dissolveField"],
+  "additionalProperties": false,
+  "properties": {
+    "inputLayer": {
+      "type": "string",
+      "description": "The input layer for the dissolve operation."
+    },
+    "dissolveField": {
+      "type": "string",
+      "description": "The field based on which geometries will be dissolved."
+    },
+    "embedOutputLayer": {
+      "type": "boolean",
+      "title": "Embed output dissolved layer in file",
+      "default": true
+    }
+  }
 }
