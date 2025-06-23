@@ -243,7 +243,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       type: 'StacLayer',
       parameters: { data: stacData },
       visible: true,
-      name: 'STAC Layer',
+      name: stacData.properties.title ?? stacData.id,
     };
 
     model && model.addLayer(layerId, layerModel);
@@ -264,11 +264,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
    * @returns Formatted string representation of the item
    */
   const formatResult = (item: IStacItem): string => {
-    const dataAsset = Object.values(item.assets).find(val =>
-      val.roles?.includes('data'),
-    );
-
-    return dataAsset?.title ? dataAsset.title.split('.')[0] : item.id;
+    return item.properties.title ?? item.id;
   };
 
   return {
