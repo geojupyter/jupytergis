@@ -31,7 +31,8 @@ build`.
 ### `@jupytergis/base`
 
 This package contains everything that controls the map using
-[OpenLayers](https://openlayers.org/doc/), panels, buttons, dialogs.
+[OpenLayers](https://openlayers.org/doc/), panels, buttons, dialogs; all as
+[React](https://react.dev/) components.
 It is a UI library, collection of tools - but it does not do anything by itself.
 We use this package to make the JupyterLab extension.
 
