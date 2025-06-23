@@ -1220,16 +1220,6 @@ export class MainView extends React.Component<IProps, IStates> {
     mapLayer: Layer,
     oldLayer?: IDict,
   ): Promise<void> {
-    const sourceId = layer.parameters?.source;
-    const source = this._model.sharedModel.getLayerSource(sourceId);
-    if (!source) {
-      return;
-    }
-
-    if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source);
-    }
-
     mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
