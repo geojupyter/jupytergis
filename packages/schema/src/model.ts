@@ -55,6 +55,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this,
     );
     this.annotationModel = annotationModel;
+    this._editingVectorLayer = false;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
   }
@@ -739,6 +740,22 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.updateLayerSignal.emit(JSON.stringify({ layerId, layer }));
   };
 
+  updateEditingVectorLayer() {
+    this._editingVectorLayerChanged.emit(this._editingVectorLayer);
+  }
+
+  checkIfIsADrawVectorLayer(layer: IJGISLayer): boolean {
+    const selectedSource = this.getSource(layer.parameters?.source);
+    if (
+      selectedSource?.type === 'GeoJSONSource' &&
+      selectedSource?.parameters?.data
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   get geolocation(): JgisCoordinates {
     return this._geolocation;
   }
@@ -750,6 +767,19 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get geolocationChanged() {
     return this._geolocationChanged;
+  }
+
+  get editingVectorLayer(): boolean {
+    return this._editingVectorLayer;
+  }
+
+  set editingVectorLayer(editingVectorLayer: boolean) {
+    this._editingVectorLayer = editingVectorLayer;
+    this.editingVectorLayerChanged.emit(this.editingVectorLayer);
+  }
+
+  get editingVectorLayerChanged() {
+    return this._editingVectorLayerChanged;
   }
 
   readonly defaultKernelName: string = '';
@@ -792,6 +822,9 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
+
+  private _editingVectorLayer: boolean;
+  private _editingVectorLayerChanged = new Signal<this, boolean>(this);
 }
 
 export namespace JupyterGISModel {
