@@ -107,6 +107,8 @@ be used to generate commands.
 :class: important
 
 The processing type you use **must** be defined in
+`packages/schema/src/processing/ProcessingMerge.ts`
+and used in
 `packages/base/src/processing/processingCommands.ts`.
 
 If no existing types satisfy your needs, then you'll need to add a new case.
