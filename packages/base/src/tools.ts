@@ -387,6 +387,10 @@ export const getFromIndexedDB = async (key: string) => {
   });
 };
 
+export const isJupyterLite = () => {
+  return window.location.pathname.includes('/lite');
+};
+
 export const fetchWithProxies = async <T>(
   url: string,
   model: IJupyterGISModel,
@@ -406,27 +410,58 @@ export const fetchWithProxies = async <T>(
   const proxyUrl =
     settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
 
-  const proxyUrls = [
-    url, // Direct fetch
-    `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
-    `${proxyUrl}/?url=${encodeURIComponent(url)}`, // External proxy
-  ];
+  const isLocalhost =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1');
 
-  for (const proxyUrl of proxyUrls) {
+  // Direct fetch if on localhost
+  if (isLocalhost) {
     try {
-      const response = await fetch(proxyUrl, options);
+      const response = await fetch(url, options);
       if (!response.ok) {
-        console.warn(
-          `Failed to fetch from ${proxyUrl}: ${response.statusText}`,
-        );
-        continue;
+        console.warn(`Failed to fetch from ${url}: ${response.statusText}`);
+      } else {
+        return await parseResponse(response);
       }
-      return await parseResponse(response);
     } catch (error) {
-      console.warn(`Error fetching from ${proxyUrl}:`, error);
+      console.warn(`Error fetching from ${url}:`, error);
     }
+    return null;
   }
 
+  // If not on localhost and on JupyterLite, use external CORS proxy
+  if (isJupyterLite()) {
+    const corsProxyUrl = `${proxyUrl}/?url=${encodeURIComponent(url)}`;
+    try {
+      const response = await fetch(corsProxyUrl, options);
+      if (!response.ok) {
+        console.warn(
+          `Failed to fetch from ${corsProxyUrl}: ${response.statusText}`,
+        );
+      } else {
+        return await parseResponse(response);
+      }
+    } catch (error) {
+      console.warn(`Error fetching from ${corsProxyUrl}:`, error);
+    }
+    return null;
+  }
+
+  // If not on localhost and not on JupyterLite, use internal proxy
+  const internalProxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`;
+  try {
+    const response = await fetch(internalProxyUrl, options);
+    if (!response.ok) {
+      console.warn(
+        `Failed to fetch from ${internalProxyUrl}: ${response.statusText}`,
+      );
+    } else {
+      return await parseResponse(response);
+    }
+  } catch (error) {
+    console.warn(`Error fetching from ${internalProxyUrl}:`, error);
+  }
   return null;
 };
 
