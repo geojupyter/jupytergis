@@ -1,6 +1,5 @@
 import {
   IJupyterGISModel,
-  IJupyterGISTracker,
   ISelection,
   JupyterGISDoc,
   SelectionType,
@@ -12,7 +11,6 @@ import { Message } from '@lumino/messaging';
 import { MouseEvent as ReactMouseEvent } from 'react';
 
 import { CommandIDs } from '@/src/constants';
-import { IControlPanelModel } from '@/src/types';
 import { FilterPanel } from './components/filter-panel/Filter';
 import { LayersPanel } from './components/layers';
 import { ControlPanelHeader } from './header';
@@ -21,7 +19,7 @@ import { ControlPanelHeader } from './header';
  * Options of the left panel widget.
  */
 export interface ILeftPanelOptions {
-  model: IControlPanelModel;
+  model: IJupyterGISModel;
   onSelect: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
 }
 
@@ -61,30 +59,11 @@ export class LeftPanelWidget extends SidePanel {
 
     const filterPanel = new FilterPanel({
       model: this._model,
-      tracker: options.tracker,
     });
 
     filterPanel.title.caption = 'Filters';
     filterPanel.title.label = 'Filters';
     this.addWidget(filterPanel);
-
-    this._handleFileChange = () => {
-      header.title.label = this._currentModel?.filePath || '-';
-    };
-
-    options.tracker.currentChanged.connect((_, changed) => {
-      if (changed) {
-        if (this._currentModel) {
-          this._currentModel.pathChanged.disconnect(this._handleFileChange);
-        }
-        this._currentModel = changed.model;
-        header.title.label = changed.model.filePath;
-        this._currentModel.pathChanged.connect(this._handleFileChange);
-      } else {
-        header.title.label = '-';
-        this._currentModel = null;
-      }
-    });
   }
 
   dispose(): void {
@@ -138,7 +117,7 @@ export class LeftPanelWidget extends SidePanel {
       return;
     }
 
-    const { jGISModel } = this._model;
+    const jGISModel = this._model;
     const selectedValue = jGISModel?.localState?.selected?.value;
     const node = document.getElementById(nodeId);
 
@@ -200,7 +179,7 @@ export class LeftPanelWidget extends SidePanel {
       };
       this._lastSelectedNodeId = nodeId;
     }
-    this._model?.jGISModel?.syncSelected(selection, this.id);
+    this._model?.syncSelected(selection, this.id);
     this._notifyCommands();
   }
 
@@ -210,18 +189,15 @@ export class LeftPanelWidget extends SidePanel {
     this._commands.notifyCommandChanged(CommandIDs.temporalController);
   }
 
-  private _handleFileChange: () => void;
-  private _currentModel: IJupyterGISModel | null;
   private _lastSelectedNodeId: string;
-  private _model: IControlPanelModel;
+  private _model: IJupyterGISModel;
   private _state: IStateDB;
   private _commands: CommandRegistry;
 }
 
 export namespace LeftPanelWidget {
   export interface IOptions {
-    model: IControlPanelModel;
-    tracker: IJupyterGISTracker;
+    model: IJupyterGISModel;
     state: IStateDB;
     commands: CommandRegistry;
   }

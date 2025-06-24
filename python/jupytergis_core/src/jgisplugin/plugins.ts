@@ -12,6 +12,8 @@ import {
   IJupyterGISWidget,
   JupyterGISDoc,
   SCHEMA_VERSION,
+  IJGISFormSchemaRegistry,
+  IJGISFormSchemaRegistryToken,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -30,6 +32,7 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { IStateDB } from '@jupyterlab/statedb';
 
 import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
@@ -52,10 +55,13 @@ const activate = async (
   consoleTracker: IConsoleTracker,
   annotationModel: IAnnotationModel,
   settingRegistry: ISettingRegistry,
+  formSchemaRegistry: IJGISFormSchemaRegistry,
+  state: IStateDB,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
   drive: ICollaborativeDrive | null,
 ): Promise<void> => {
+  formSchemaRegistry && state;
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
   }
@@ -81,7 +87,10 @@ const activate = async (
     contentFactory,
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
+    formSchemaRegistry: formSchemaRegistry,
     consoleTracker,
+    state: state,
+    annotationModel: annotationModel,
   });
 
   // Registering the widget factory
@@ -265,6 +274,8 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IConsoleTracker,
     IAnnotationToken,
     ISettingRegistry,
+    IJGISFormSchemaRegistryToken,
+    IStateDB,
   ],
   optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
   autoStart: true,
