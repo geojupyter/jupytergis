@@ -1902,6 +1902,10 @@ export class MainView extends React.Component<IProps, IStates> {
       extent = tileGrid?.getExtent();
     }
 
+    if (layer instanceof StacLayer) {
+      extent = layer.getExtent();
+    }
+
     if (!extent) {
       console.warn('Layer has no extent.');
       return;
