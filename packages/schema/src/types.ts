@@ -23,8 +23,8 @@ export * from './_interface/project/layers/heatmapLayer';
 export * from './processing/_generated/exportProcessingSchema';
 
 // exportLayer
-export * from './_interface/export/exportGeojson';
-export * from './_interface/export/exportGeotiff';
+export * from './_interface/export/exportGeoJson';
+export * from './_interface/export/exportGeoTiff';
 
 // Other
 export * from './doc';
