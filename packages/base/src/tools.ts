@@ -388,7 +388,7 @@ export const getFromIndexedDB = async (key: string) => {
 };
 
 export const isJupyterLite = () => {
-  return window.location.pathname.includes('/lite');
+  return document.querySelectorAll('[data-jupyter-lite-root]')[0] !== undefined;
 };
 
 export const fetchWithProxies = async <T>(
