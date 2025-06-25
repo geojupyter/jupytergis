@@ -38,6 +38,7 @@
             },
             "selectedAttribute": {
               "type": "string",
+              "title": "Attribute",
               "description": "The selected attribute for varying the color",
             },
             "colorRamp": {
@@ -45,11 +46,13 @@
               "default": "cool"
             },
             "nStops": {
-              "type": "string",
-              "default": "9"
+              "type": "number",
+              "description": "The number of segments to use when mapping colors to data values",
+              "default": 9
             },
             "stopsDistributionMode": {
               "type": "string",
+              "description": "The method of distributing segments when mapping colors to data values",
               "default": "equal interval",
               "enum": [
                 "quantile",
@@ -58,6 +61,11 @@
                 "pretty",
                 "logarithmic"
               ]
+            },
+            "strokeColor": {
+              "type": "string",
+              "description": "The color of the stroke for the symbol",
+              "default": "#ffffff"
             }
           }
         },
@@ -75,11 +83,13 @@
               "description": "The selected attribute for varying the size",
             },
             "nStops": {
-              "type": "string",
-              "default": "9"
+              "type": "number",
+              "description": "The number of segments to use when mapping colors to data values",
+              "default": 9
             },
             "stopsDistributionMode": {
               "type": "string",
+              "description": "The method of distributing segments when mapping colors to data values",
               "default": "equal interval",
               "enum": [
                 "quantile",
@@ -88,6 +98,16 @@
                 "pretty",
                 "logarithmic"
               ]
+            },
+            "strokeThickness": {
+              "type": "number",
+              "description": "The thickness of the stroke in pixels",
+              "default": 1.25
+            },
+            "symbolRadius": {
+              "type": "number",
+              "description": "The radius of the symbols in pixels",
+              "default": 1
             }
           },
           "additionalProperties": false
