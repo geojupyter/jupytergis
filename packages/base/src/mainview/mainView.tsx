@@ -428,7 +428,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   updateCenter = () => {
     const extentIn4326 = this.getViewBbox();
-    this._model.updateResolutionSignal.emit(extentIn4326);
+    this._model.updateBboxSignal.emit(extentIn4326);
   };
 
   getViewBbox = (targetProjection = 'EPSG:4326') => {

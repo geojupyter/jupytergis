@@ -124,10 +124,10 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       setCurrentBBox(bBoxIn4326);
     };
 
-    model?.updateResolutionSignal.connect(listenToModel);
+    model?.updateBboxSignal.connect(listenToModel);
 
     return () => {
-      model?.updateResolutionSignal.disconnect(listenToModel);
+      model?.updateBboxSignal.disconnect(listenToModel);
     };
   }, [model]);
 
