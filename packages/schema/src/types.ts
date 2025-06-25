@@ -1,13 +1,13 @@
 export * from './_interface/project/jgis';
 
 // Sources
+export * from './_interface/geoJsonSource';
 export * from './_interface/project/sources/geoTiffSource';
-export * from './_interface/geojsonsource';
 export * from './_interface/project/sources/imageSource';
 export * from './_interface/project/sources/rasterDemSource';
-export * from './_interface/project/sources/rastersource';
+export * from './_interface/project/sources/rasterSource';
 export * from './_interface/project/sources/shapefileSource';
-export * from './_interface/project/sources/vectortilesource';
+export * from './_interface/project/sources/vectorTileSource';
 export * from './_interface/project/sources/videoSource';
 
 // Layers
