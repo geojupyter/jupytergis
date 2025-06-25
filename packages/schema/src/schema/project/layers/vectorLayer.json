@@ -21,7 +21,7 @@
       "minimum": 0,
       "maximum": 1
     },
-    "symbologyState": {
+    "symbology": {
       "type": "object",
       "description": "The state of the layer's symbology options",
       "required": [],
