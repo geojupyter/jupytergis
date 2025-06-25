@@ -85,7 +85,7 @@ import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import StatusBar from '@/src/statusbar/StatusBar';
-import { isLightTheme, loadFile, throttle } from '@/src/tools';
+import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
@@ -188,6 +188,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._loadingLayers = new Set();
     this._commands = new CommandRegistry();
     this._contextMenu = new ContextMenu({ commands: this._commands });
+    this._updateCenter = debounce(this.updateCenter, 100);
   }
 
   async componentDidMount(): Promise<void> {
@@ -284,11 +285,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       const view = this._Map.getView();
 
-      // TODO: Debounce?
-      view.on('change:resolution', () => {
-        const extentIn4326 = this.getViewBbox();
-        this._model.updateResolutionSignal.emit(extentIn4326);
-      });
+      view.on('change:center', () => this._updateCenter());
 
       // TODO: Note for the future, will need to update listeners if view changes
       view.on(
@@ -390,6 +387,11 @@ export class MainView extends React.Component<IProps, IStates> {
       }));
     }
   }
+
+  updateCenter = () => {
+    const extentIn4326 = this.getViewBbox();
+    this._model.updateResolutionSignal.emit(extentIn4326);
+  };
 
   getViewBbox = (targetProjection = 'EPSG:4326') => {
     const view = this._Map.getView();
@@ -2154,4 +2156,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
+  private _updateCenter: CallableFunction;
 }
