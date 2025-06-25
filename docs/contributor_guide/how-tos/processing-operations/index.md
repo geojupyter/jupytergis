@@ -13,13 +13,14 @@ for JupyterGIS.
 - Knowledge of geospatial processing operations, for example using
   [GDAL/OGR](https://gdal.org/en/stable/).
 - Ability to edit JSON and [JSONSchema](https://json-schema.org/).
+
 :::
 
 ## Overview
 
-* `packages/schema/src/schema/processing/`: In this directory, we need to create a
+- `packages/schema/src/schema/processing/`: In this directory, we need to create a
   file which defines the **UI form structure for each processing operation**.
-* `packages/schema/src/processing/config/`: In this directory, we need to create a
+- `packages/schema/src/processing/config/`: In this directory, we need to create a
   file which defines the **processing behavior for each processing operation**.
 
 ## Creating a schema
@@ -38,7 +39,6 @@ embedded in the project file.
 
 Always include a description for each property!
 :::
-
 
 ```json
 {
