@@ -1,0 +1,53 @@
+{
+    "type": "object",
+    "description": "The state of the layer's size symbology options (radius, line thickness etc.)",
+    "required": ["renderType"],
+    "additionalProperties": false,
+    "properties": {
+        "renderType": {
+            "type": "string",
+            "enum": ["Single Symbol", "Graduated", "Canonical", "Categorized"]
+        },
+        "selectedAttribute": {
+            "type": "string",
+            "description": "The selected attribute for varying the size"
+        },
+        "nStops": {
+            "type": "number",
+            "description": "The number of segments to use when mapping colors to data values",
+            "default": 9
+        },
+        "stopsDistributionMode": {
+            "type": "string",
+            "description": "The method of distributing segments when mapping colors to data values",
+            "default": "equal interval",
+            "enum": [
+                "quantile",
+                "equal interval",
+                "jenks",
+                "pretty",
+                "logarithmic"
+            ]
+        },
+        "stopsValues": {
+            "type": "object",
+            "description": "The mapping of input data values to size values",
+            "patternProperties": {
+                "^[0-9]+$": {
+                    "type": "number",
+                    "description": "The size value in pixels at the stop index, where the key is the index of the stop"
+                }
+            }
+        },
+        "strokeThickness": {
+            "type": "number",
+            "description": "The thickness of the stroke in pixels",
+            "default": 1.25
+        },
+        "symbolRadius": {
+            "type": "number",
+            "description": "The radius of the symbols in pixels",
+            "default": 1
+        }
+    }
+}
