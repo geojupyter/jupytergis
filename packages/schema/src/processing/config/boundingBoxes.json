@@ -1,0 +1,10 @@
+{
+  "name": "boundingBoxes",
+  "operationParams": [],
+  "label": "Bounding Boxes",
+  "operations": {
+    "sql": "SELECT ST_Envelope(geometry) AS geometry, * FROM \"{layerName}\"",
+    "gdalFunction": "ogr2ogr"
+  },
+  "type": "vector"
+}

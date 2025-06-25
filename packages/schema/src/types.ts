@@ -20,10 +20,7 @@ export * from './_interface/project/layers/imageLayer';
 export * from './_interface/project/layers/heatmapLayer';
 
 // Processing
-export * from './_interface/processing/buffer';
-export * from './_interface/processing/dissolve';
-export * from './_interface/processing/centroids';
-export * from './_interface/processing/boundingBoxes';
+export * from './processing/_generated/exportProcessingSchema';
 
 // exportLayer
 export * from './_interface/export/exportGeojson';

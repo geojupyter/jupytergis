@@ -1,0 +1,10 @@
+{
+  "name": "convexHull",
+  "operationParams": [],
+  "label": "Convex Hull",
+  "operations": {
+    "sql": "SELECT ST_ConvexHull(geometry) AS geometry, * FROM \"{layerName}\"",
+    "gdalFunction": "ogr2ogr"
+  },
+  "type": "vector"
+}

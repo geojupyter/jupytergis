@@ -1,0 +1,10 @@
+{
+  "name": "dissolve",
+  "operationParams": ["dissolveField"],
+  "label": "Dissolve",
+  "operations": {
+    "gdalFunction": "ogr2ogr",
+    "sql": "SELECT ST_Union(geometry) AS geometry, {dissolveField} FROM \"{layerName}\" GROUP BY {dissolveField}"
+  },
+  "type": "vector"
+}
