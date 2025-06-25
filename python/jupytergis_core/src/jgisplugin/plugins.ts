@@ -233,7 +233,7 @@ const activate = async (
 
     for (const processingElement of ProcessingMerge) {
       palette.addItem({
-        command: processingElement.processName,
+        command: processingElement.name,
         category: 'JupyterGIS',
       });
     }

@@ -1,10 +1,10 @@
 {
-  "processName": "convexHull",
-  "processParams": [],
-  "processLabel": "Convex Hull",
-  "processAdditionalsParams": {
+  "name": "convexHull",
+  "operationParams": [],
+  "label": "Convex Hull",
+  "operations": {
     "sql": "SELECT ST_ConvexHull(geometry) AS geometry, * FROM \"{layerName}\"",
     "gdalFunction": "ogr2ogr"
   },
-  "processType": "vector"
+  "type": "vector"
 }

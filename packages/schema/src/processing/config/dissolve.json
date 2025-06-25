@@ -1,10 +1,10 @@
 {
-  "processName": "dissolve",
-  "processParams": ["dissolveField"],
-  "processLabel": "Dissolve",
-  "processAdditionalsParams": {
+  "name": "dissolve",
+  "operationParams": ["dissolveField"],
+  "label": "Dissolve",
+  "operations": {
     "gdalFunction": "ogr2ogr",
     "sql": "SELECT ST_Union(geometry) AS geometry, {dissolveField} FROM \"{layerName}\" GROUP BY {dissolveField}"
   },
-  "processType": "vector"
+  "type": "vector"
 }

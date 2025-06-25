@@ -48,9 +48,9 @@ export function addProcessingCommands(
   formSchemaRegistry: IJGISFormSchemaRegistry,
 ) {
   for (const processingElement of ProcessingMerge) {
-    if (processingElement.processType === ProcessingLogicType.vector) {
-      commands.addCommand(processingElement.processName, {
-        label: trans.__(processingElement.processLabel),
+    if (processingElement.type === ProcessingLogicType.vector) {
+      commands.addCommand(processingElement.name, {
+        label: trans.__(processingElement.label),
         isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
         execute: async () => {
           await processSelectedLayer(
@@ -60,12 +60,11 @@ export function addProcessingCommands(
             {
               sqlQueryFn: (layerName, keyToVal) =>
                 replaceInSql(
-                  processingElement.processAdditionalsParams.sql,
+                  processingElement.operations.sql,
                   keyToVal,
                   layerName,
                 ),
-              gdalFunction:
-                processingElement.processAdditionalsParams.gdalFunction,
+              gdalFunction: processingElement.operations.gdalFunction,
               options: (sqlQuery: string) => [
                 '-f',
                 'GeoJSON',
@@ -80,6 +79,9 @@ export function addProcessingCommands(
           );
         },
       });
+    } else {
+      console.error('Unsupported process type');
+      return;
     }
   }
 }

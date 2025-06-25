@@ -29,7 +29,7 @@ def exportSchema():
     with open(curFileName, "w+") as f:
         addBanner(f)
         for param in params:
-            processName = param["processName"]
+            processName = param["name"]
             f.write(f"export * from '../../_interface/processing/{processName}';\n")
 
 
