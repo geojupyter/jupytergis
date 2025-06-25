@@ -4,6 +4,7 @@ import React from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import { Calendar } from '@/src/shared/components/Calendar';
+import Checkbox from '@/src/shared/components/Checkbox';
 import {
   Popover,
   PopoverContent,
@@ -27,6 +28,8 @@ interface IStacPanelFiltersProps {
   setStartTime: (date: Date | undefined) => void;
   endTime: Date | undefined;
   setEndTime: (date: Date | undefined) => void;
+  useWorldBBox: boolean;
+  setUseWorldBBox: (val: boolean) => void;
 }
 
 const StacPanelFilters = ({
@@ -36,6 +39,8 @@ const StacPanelFilters = ({
   setStartTime,
   endTime,
   setEndTime,
+  useWorldBBox,
+  setUseWorldBBox,
 }: IStacPanelFiltersProps) => {
   const handleDatasetSelection = (dataset: string, collection: string) => {
     const collections = new Set(filterState.collections);
@@ -73,6 +78,12 @@ const StacPanelFilters = ({
 
   return (
     <div className="jgis-stac-browser-filters-panel">
+      <div>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Checkbox checked={useWorldBBox} onCheckedChange={setUseWorldBBox} />
+          Use whole world as bounding box
+        </span>
+      </div>
       <div className="jgis-stac-browser-date-picker">
         <Popover>
           <PopoverTrigger asChild>

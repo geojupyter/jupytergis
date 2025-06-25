@@ -35,6 +35,8 @@ interface IUseStacSearchReturn {
   handleResultClick: (id: string) => Promise<void>;
   formatResult: (item: IStacItem) => string;
   isLoading: boolean;
+  useWorldBBox: boolean;
+  setUseWorldBBox: (val: boolean) => void;
 }
 
 const API_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
@@ -60,6 +62,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
   const [currentBBox, setCurrentBBox] = useState<
     [number, number, number, number]
   >([-180, -90, 180, 90]);
+  const [useWorldBBox, setUseWorldBBox] = useState(false);
   const [filterState, setFilterState] = useState<StacFilterState>({
     collections: new Set(),
     datasets: new Set(),
@@ -121,7 +124,11 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       sender: IJupyterGISModel,
       bBoxIn4326: [number, number, number, number],
     ) => {
-      setCurrentBBox(bBoxIn4326);
+      if (useWorldBBox) {
+        setCurrentBBox([-180, -90, 180, 90]);
+      } else {
+        setCurrentBBox(bBoxIn4326);
+      }
     };
 
     model?.updateBboxSignal.connect(listenToModel);
@@ -129,7 +136,11 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
     return () => {
       model?.updateBboxSignal.disconnect(listenToModel);
     };
-  }, [model]);
+  }, [model, useWorldBBox]);
+
+  useEffect(() => {
+    console.log('currentBBox', currentBBox);
+  }, [currentBBox]);
 
   const fetchResults = async (page = 1) => {
     const processingLevel = new Set<string>();
@@ -282,6 +293,8 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
     handleResultClick,
     formatResult,
     isLoading,
+    useWorldBBox,
+    setUseWorldBBox,
   };
 }
 
