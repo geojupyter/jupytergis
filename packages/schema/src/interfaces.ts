@@ -179,7 +179,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   geolocationChanged: Signal<IJupyterGISModel, JgisCoordinates>;
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
-  updateResolutionSignal: Signal<IJupyterGISModel, any>;
+  updateBboxSignal: Signal<IJupyterGISModel, any>;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;
