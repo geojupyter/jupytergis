@@ -1,4 +1,5 @@
 {
+  "$id": "https://schemas.jupytergis.local/project/jgis.json",
   "type": "object",
   "title": "IJGISContent",
   "required": ["layers", "sources"],
