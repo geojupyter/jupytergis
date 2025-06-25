@@ -9,13 +9,9 @@
       "type": "string",
       "description": "The id of the source"
     },
-    "color": {
-      "type": "object",
-      "description": "The color of the the object"
-    },
     "opacity": {
       "type": "number",
-      "description": "The opacity of the the object",
+      "description": "The opacity of the layer",
       "default": 1,
       "multipleOf": 0.1,
       "minimum": 0,
@@ -23,96 +19,7 @@
     },
     "symbology": {
       "type": "object",
-      "description": "The state of the layer's symbology options",
-      "required": [],
-      "additionalProperties": false,
-      "properties": {
-        "color": {
-          "type": "object",
-          "description": "The state of the layer's color symbology options",
-          "required": ["renderType"],
-          "properties": {
-            "renderType": {
-              "type": "string",
-              "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical", "Heatmap"]
-            },
-            "selectedAttribute": {
-              "type": "string",
-              "title": "Attribute",
-              "description": "The selected attribute for varying the color",
-            },
-            "colorRamp": {
-              "type": "string",
-              "default": "cool"
-            },
-            "nStops": {
-              "type": "number",
-              "description": "The number of segments to use when mapping colors to data values",
-              "default": 9
-            },
-            "stopsDistributionMode": {
-              "type": "string",
-              "description": "The method of distributing segments when mapping colors to data values",
-              "default": "equal interval",
-              "enum": [
-                "quantile",
-                "equal interval",
-                "jenks",
-                "pretty",
-                "logarithmic"
-              ]
-            },
-            "strokeColor": {
-              "type": "string",
-              "description": "The color of the stroke for the symbol",
-              "default": "#ffffff"
-            }
-          }
-        },
-        "size": {
-          "type": "object",
-          "description": "The state of the layer's size symbology options (radius, line thickness etc.)",
-          "required": ["renderType"],
-          "properties": {
-            "renderType": {
-              "type": "string",
-              "enum": ["Single Symbol", "Graduated", "Canonical", "Categorized"]
-            },
-            "selectedAttribute": {
-              "type": "string",
-              "description": "The selected attribute for varying the size",
-            },
-            "nStops": {
-              "type": "number",
-              "description": "The number of segments to use when mapping colors to data values",
-              "default": 9
-            },
-            "stopsDistributionMode": {
-              "type": "string",
-              "description": "The method of distributing segments when mapping colors to data values",
-              "default": "equal interval",
-              "enum": [
-                "quantile",
-                "equal interval",
-                "jenks",
-                "pretty",
-                "logarithmic"
-              ]
-            },
-            "strokeThickness": {
-              "type": "number",
-              "description": "The thickness of the stroke in pixels",
-              "default": 1.25
-            },
-            "symbolRadius": {
-              "type": "number",
-              "description": "The radius of the symbols in pixels",
-              "default": 1
-            }
-          },
-          "additionalProperties": false
-        }
-      }
+      "description": "The user inputs for symbology options"
     }
   }
 }
