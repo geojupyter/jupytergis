@@ -30,6 +30,8 @@ const StacPanelView = ({ model }: IStacViewProps) => {
     handleResultClick,
     formatResult,
     isLoading,
+    useWorldBBox,
+    setUseWorldBBox,
   } = useStacSearch({ model });
 
   if (!model) {
@@ -55,6 +57,8 @@ const StacPanelView = ({ model }: IStacViewProps) => {
           setStartTime={setStartTime}
           endTime={endTime}
           setEndTime={setEndTime}
+          useWorldBBox={useWorldBBox}
+          setUseWorldBBox={setUseWorldBBox}
         />
       </TabsContent>
       <TabsContent value="results">
