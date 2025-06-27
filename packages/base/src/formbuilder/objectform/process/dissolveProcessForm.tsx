@@ -86,7 +86,7 @@ export class DissolveForm extends BaseForm {
           properties: {
             ...prevState.schema?.properties,
             dissolveField: {
-              ...prevState.schema?.properties?.dissolveField as RJSFSchema,
+              ...(prevState.schema?.properties?.dissolveField as RJSFSchema),
               enum: [...this.features],
             },
           },
