@@ -30,7 +30,7 @@ function getPageItems(
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
   if (currentPage <= 3) {
-    return [1, 2, 3, 4, 5];
+    return [1, 2, 3, 'ellipsis', totalPages];
   }
   if (currentPage >= totalPages - 2) {
     return [
