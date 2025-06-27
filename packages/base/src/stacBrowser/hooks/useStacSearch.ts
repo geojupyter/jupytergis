@@ -116,7 +116,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       setCurrentPage(1);
       fetchResults(1);
     }
-  }, [filterState, startTime, endTime]);
+  }, [filterState, startTime, endTime, currentBBox]);
 
   // Listen for model updates to get current bounding box
   useEffect(() => {
@@ -137,10 +137,6 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       model?.updateBboxSignal.disconnect(listenToModel);
     };
   }, [model, useWorldBBox]);
-
-  useEffect(() => {
-    console.log('currentBBox', currentBBox);
-  }, [currentBBox]);
 
   const fetchResults = async (page = 1) => {
     const processingLevel = new Set<string>();
