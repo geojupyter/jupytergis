@@ -258,7 +258,9 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
     if (data) {
       delete data[entry];
     }
-    delete schema.properties![entry];
+    if (schema.properties) {
+      delete schema.properties[entry];
+    }
     delete uiSchema[entry];
     if (schema.required && schema.required.includes(entry)) {
       schema.required.splice(schema.required.indexOf(entry), 1);
