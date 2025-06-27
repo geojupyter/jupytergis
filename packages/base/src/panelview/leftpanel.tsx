@@ -12,6 +12,7 @@ import { Message } from '@lumino/messaging';
 import { MouseEvent as ReactMouseEvent } from 'react';
 
 import { CommandIDs } from '@/src/constants';
+import StacPanel from '@/src/stacBrowser/StacPanel';
 import { IControlPanelModel } from '@/src/types';
 import { FilterPanel } from './components/filter-panel/Filter';
 import { LayersPanel } from './components/layers';
@@ -55,9 +56,19 @@ export class LeftPanelWidget extends SidePanel {
       state: this._state,
       onSelect: this._onSelect,
     });
+
     layerTree.title.caption = 'Layer tree';
     layerTree.title.label = 'Layers';
     this.addWidget(layerTree);
+
+    const stacPanel = new StacPanel({
+      model: this._model,
+      tracker: options.tracker,
+    });
+
+    stacPanel.title.caption = 'STAC';
+    stacPanel.title.label = 'STAC';
+    this.addWidget(stacPanel);
 
     const filterPanel = new FilterPanel({
       model: this._model,

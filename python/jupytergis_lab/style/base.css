@@ -223,6 +223,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   width: 100%;
   box-sizing: border-box;
   flex: 1;
+  position: relative;
 }
 
 .jGIS-Popup-Wrapper {

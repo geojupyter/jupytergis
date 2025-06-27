@@ -22,6 +22,7 @@ import {
   IRasterLayer,
   IRasterSource,
   IShapefileSource,
+  IStacLayer,
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
@@ -51,6 +52,7 @@ import {
   VectorTile as VectorTileLayer,
   WebGLTile as WebGlTileLayer,
 } from 'ol/layer';
+import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
 import {
   fromLonLat,
@@ -74,6 +76,7 @@ import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
+import StacLayer from 'ol-stac';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
@@ -82,12 +85,21 @@ import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import StatusBar from '@/src/statusbar/StatusBar';
-import { isLightTheme, loadFile, throttle } from '@/src/tools';
+import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 
+type OlLayerTypes =
+  | TileLayer
+  | VectorLayer
+  | VectorTileLayer
+  | WebGlTileLayer
+  | WebGlTileLayer
+  | HeatmapLayer
+  | StacLayer
+  | ImageLayer<any>;
 interface IProps {
   viewModel: MainViewModel;
 }
@@ -106,6 +118,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
+  metadata: Record<string, any>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -168,12 +181,14 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
+      metadata: {},
     };
 
     this._sources = [];
     this._loadingLayers = new Set();
     this._commands = new CommandRegistry();
     this._contextMenu = new ContextMenu({ commands: this._commands });
+    this._updateCenter = debounce(this.updateCenter, 100);
   }
 
   async componentDidMount(): Promise<void> {
@@ -269,6 +284,8 @@ export class MainView extends React.Component<IProps, IStates> {
       this.createSelectInteraction();
 
       const view = this._Map.getView();
+
+      view.on('change:center', () => this._updateCenter());
 
       // TODO: Note for the future, will need to update listeners if view changes
       view.on(
@@ -370,6 +387,22 @@ export class MainView extends React.Component<IProps, IStates> {
       }));
     }
   }
+
+  updateCenter = () => {
+    const extentIn4326 = this.getViewBbox();
+    this._model.updateBboxSignal.emit(extentIn4326);
+  };
+
+  getViewBbox = (targetProjection = 'EPSG:4326') => {
+    const view = this._Map.getView();
+    const extent = view.calculateExtent(this._Map.getSize());
+
+    if (view.getProjection().getCode() === targetProjection) {
+      return extent;
+    }
+
+    return transformExtent(extent, view.getProjection(), targetProjection);
+  };
 
   createSelectInteraction = () => {
     const pointStyle = new Style({
@@ -827,24 +860,28 @@ export class MainView extends React.Component<IProps, IStates> {
   private async _buildMapLayer(
     id: string,
     layer: IJGISLayer,
-  ): Promise<Layer | undefined> {
-    const sourceId = layer.parameters?.source;
-    const source = this._model.sharedModel.getLayerSource(sourceId);
-    if (!source) {
-      return;
-    }
-
+  ): Promise<Layer | StacLayer | undefined> {
     this.setState(old => ({ ...old, loadingLayer: true }));
     this._loadingLayers.add(id);
 
-    if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source);
+    let newMapLayer: OlLayerTypes;
+    let layerParameters: any;
+    let sourceId: string | undefined;
+    let source: IJGISSource | undefined;
+
+    if (layer.type !== 'StacLayer') {
+      sourceId = layer.parameters?.source;
+      if (!sourceId) {
+        return;
+      }
+      source = this._model.sharedModel.getLayerSource(sourceId);
+      if (!source) {
+        return;
+      }
+      if (!this._sources[sourceId]) {
+        await this.addSource(sourceId, source);
+      }
     }
-
-    this._loadingLayers.add(id);
-
-    let newMapLayer;
-    let layerParameters;
 
     // TODO: OpenLayers provides a bunch of sources for specific tile
     // providers, so maybe set up some way to use those
@@ -932,22 +969,57 @@ export class MainView extends React.Component<IProps, IStates> {
           radius: layerParameters.radius ?? 8,
           gradient: layerParameters.color,
         });
+
+        break;
+      }
+      case 'StacLayer': {
+        layerParameters = layer.parameters as IStacLayer;
+
+        newMapLayer = new StacLayer({
+          displayPreview: true,
+          data: layerParameters.data,
+          opacity: layerParameters.opacity,
+          visible: layer.visible,
+          assets: Object.keys(layerParameters.data.assets),
+          extent: layerParameters.data.bbox,
+        });
+
+        this.setState(old => ({
+          ...old,
+          metadata: layerParameters.data.properties,
+        }));
+
+        // ? TODO: unsure about this
+        newMapLayer.addEventListener('sourceready', () => {
+          const extent = newMapLayer.getExtent();
+          if (extent) {
+            this._Map.getView().fit(extent, {
+              padding: [380, 380, 380, 380],
+              maxZoom: 6,
+            });
+          }
+        });
+
         break;
       }
     }
 
-    await this._waitForSourceReady(newMapLayer);
-
     // OpenLayers doesn't have name/id field so add it
     newMapLayer.set('id', id);
 
-    // we need to keep track of which source has which layers
-    this._sourceToLayerMap.set(layerParameters.source, id);
+    // STAC layers don't have source
+    if (newMapLayer instanceof Layer) {
+      // we need to keep track of which source has which layers
+      // Only set sourceToLayerMap if 'source' exists on layerParameters
+      if ('source' in layerParameters) {
+        this._sourceToLayerMap.set(layerParameters.source, id);
+      }
 
-    this.addProjection(newMapLayer);
+      this.addProjection(newMapLayer);
+      await this._waitForSourceReady(newMapLayer);
+    }
 
     this._loadingLayers.delete(id);
-
     return newMapLayer;
   }
 
@@ -1150,16 +1222,6 @@ export class MainView extends React.Component<IProps, IStates> {
     mapLayer: Layer,
     oldLayer?: IDict,
   ): Promise<void> {
-    const sourceId = layer.parameters?.source;
-    const source = this._model.sharedModel.getLayerSource(sourceId);
-    if (!source) {
-      return;
-    }
-
-    if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source);
-    }
-
     mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
@@ -1221,6 +1283,9 @@ export class MainView extends React.Component<IProps, IStates> {
 
         break;
       }
+      case 'StacLayer':
+        mapLayer.setOpacity(layer.parameters?.opacity || 1);
+        break;
     }
   }
 
@@ -1403,7 +1468,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * Wait for a layers source state to be 'ready'
    * @param layer The Layer to check
    */
-  private _waitForSourceReady(layer: Layer) {
+  private _waitForSourceReady(layer: Layer | LayerGroup) {
     return new Promise<void>((resolve, reject) => {
       const checkState = () => {
         const state = layer.getSourceState();
@@ -1700,10 +1765,6 @@ export class MainView extends React.Component<IProps, IStates> {
       const mapLayer = this.getLayer(id);
       const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
 
-      if (!mapLayer) {
-        return;
-      }
-
       if (layerTree.includes(id)) {
         this.updateLayer(id, newLayer, mapLayer, oldLayer);
       } else {
@@ -1841,6 +1902,10 @@ export class MainView extends React.Component<IProps, IStates> {
       // Tiled sources don't have getExtent() so we get it from the grid
       const tileGrid = source.getTileGrid();
       extent = tileGrid?.getExtent();
+    }
+
+    if (layer instanceof StacLayer) {
+      extent = layer.getExtent();
     }
 
     if (!extent) {
@@ -2091,4 +2156,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
+  private _updateCenter: CallableFunction;
 }

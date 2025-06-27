@@ -42,7 +42,7 @@ export class LayerPropertiesForm extends BaseForm {
   ): void {
     super.processSchema(data, schema, uiSchema);
 
-    if (!schema.properties.source) {
+    if (!schema.properties?.source) {
       return;
     }
 

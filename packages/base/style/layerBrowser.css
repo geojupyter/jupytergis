@@ -126,6 +126,16 @@
   font-weight: bold;
 }
 
+.jGIS-layer-browser-category.jGIS-layer-browser-category[data-state='active']::after {
+  width: 100%;
+  background-color: var(--jp-inverse-layout-color2);
+}
+
+.jGIS-layer-browser-category.jGIS-layer-browser-category[data-state='active'] {
+  opacity: 1;
+  font-weight: bold;
+}
+
 .jGIS-layer-browser-tile {
   display: flex;
   flex-direction: column;
