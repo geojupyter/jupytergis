@@ -1,5 +1,6 @@
 import { IDict, IJupyterGISModel, IGeoJSONSource } from '@jupytergis/schema';
 import { IChangeEvent } from '@rjsf/core';
+import { RJSFSchema } from '@rjsf/utils';
 
 import {
   BaseForm,
@@ -85,7 +86,7 @@ export class DissolveForm extends BaseForm {
           properties: {
             ...prevState.schema?.properties,
             dissolveField: {
-              ...prevState.schema?.properties?.dissolveField,
+              ...(prevState.schema?.properties?.dissolveField as RJSFSchema),
               enum: [...this.features],
             },
           },
