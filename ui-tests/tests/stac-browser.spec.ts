@@ -60,12 +60,13 @@ test.describe('#stac-browser', () => {
 
   test('Should be able to add a STAC layer', async ({ page }) => {
     await page.route(
-      'https://geodes-portal.cnes.fr/api/stac/search',
+      `*/**/jupytergis_core/proxy?url=${encodeURIComponent(
+        'https://geodes-portal.cnes.fr/api/stac/search',
+      )}`,
       async route => {
         await route.fulfill({ json: mockStacResponse });
       },
     );
-
     const main = page.locator('.jGIS-Mainview');
     await expect(main).toBeVisible();
 
