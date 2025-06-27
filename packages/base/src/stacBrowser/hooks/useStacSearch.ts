@@ -209,6 +209,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
         async response => await response.json(),
         //@ts-expect-error Jupyter requires X-XSRFToken header
         options,
+        'internal',
       )) as IStacSearchResult;
 
       if (!data) {

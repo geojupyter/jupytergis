@@ -16,7 +16,6 @@ import Protobuf from 'pbf';
 import shp from 'shpjs';
 
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
-import { getGdal } from '@/src/gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -391,11 +390,14 @@ export const isJupyterLite = () => {
   return document.querySelectorAll('[data-jupyter-lite-root]')[0] !== undefined;
 };
 
+type ProxyStrategy = 'direct' | 'internal' | 'external';
+
 export const fetchWithProxies = async <T>(
   url: string,
   model: IJupyterGISModel,
   parseResponse: (response: Response) => Promise<T>,
   options?: RequestInit,
+  strategy?: ProxyStrategy,
 ): Promise<T | null> => {
   let settings: any = null;
 
@@ -410,58 +412,32 @@ export const fetchWithProxies = async <T>(
   const proxyUrl =
     settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
 
-  const isLocalhost =
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1');
+  const strategies: Record<ProxyStrategy, (url: string) => string> = {
+    direct: url => url,
+    internal: url => `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`,
+    external: url => `${proxyUrl}/?url=${encodeURIComponent(url)}`,
+  };
 
-  // Direct fetch if on localhost
-  if (isLocalhost) {
-    try {
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        console.warn(`Failed to fetch from ${url}: ${response.statusText}`);
-      } else {
-        return await parseResponse(response);
-      }
-    } catch (error) {
-      console.warn(`Error fetching from ${url}:`, error);
-    }
-    return null;
-  }
+  const defaultOrder: ProxyStrategy[] = ['direct', 'internal', 'external'];
 
-  // If not on localhost and on JupyterLite, use external CORS proxy
-  if (isJupyterLite()) {
-    const corsProxyUrl = `${proxyUrl}/?url=${encodeURIComponent(url)}`;
+  const strategyOrder: ProxyStrategy[] = strategy ? [strategy] : defaultOrder;
+
+  for (const strat of strategyOrder) {
+    const proxyUrl = strategies[strat](url);
     try {
-      const response = await fetch(corsProxyUrl, options);
+      const response = await fetch(proxyUrl, options);
       if (!response.ok) {
         console.warn(
-          `Failed to fetch from ${corsProxyUrl}: ${response.statusText}`,
+          `Failed to fetch from ${proxyUrl}: ${response.statusText}`,
         );
-      } else {
-        return await parseResponse(response);
+        continue;
       }
+      return await parseResponse(response);
     } catch (error) {
-      console.warn(`Error fetching from ${corsProxyUrl}:`, error);
+      console.warn(`Error fetching from ${proxyUrl}:`, error);
     }
-    return null;
   }
 
-  // If not on localhost and not on JupyterLite, use internal proxy
-  const internalProxyUrl = `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`;
-  try {
-    const response = await fetch(internalProxyUrl, options);
-    if (!response.ok) {
-      console.warn(
-        `Failed to fetch from ${internalProxyUrl}: ${response.statusText}`,
-      );
-    } else {
-      return await parseResponse(response);
-    }
-  } catch (error) {
-    console.warn(`Error fetching from ${internalProxyUrl}:`, error);
-  }
   return null;
 };
 
@@ -508,21 +484,6 @@ export const loadGeoTiff = async (
   } else {
     fileBlob = await base64ToBlob(file.content, mimeType);
   }
-
-  const geotiff = new File([fileBlob], 'loaded.tif');
-  const Gdal = await getGdal();
-  const result = await Gdal.open(geotiff);
-  const tifDataset = result.datasets[0];
-  const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
-  Gdal.close(tifDataset);
-
-  await saveToIndexedDB(url, fileBlob, metadata);
-
-  return {
-    file: fileBlob,
-    metadata,
-    sourceUrl: url,
-  };
 };
 
 /**
