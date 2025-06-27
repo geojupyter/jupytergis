@@ -1,4 +1,5 @@
 {
+  "$id": "https://schemas.jupytergis.local/project/sources/geoTiffSource.json",
   "type": "object",
   "description": "GeoTiffSource",
   "title": "IGeoTiffSource",
