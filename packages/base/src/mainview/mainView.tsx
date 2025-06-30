@@ -1031,17 +1031,6 @@ export class MainView extends React.Component<IProps, IStates> {
           metadata: layerParameters.data.properties,
         }));
 
-        // ? TODO: unsure about this
-        newMapLayer.addEventListener('sourceready', () => {
-          const extent = newMapLayer.getExtent();
-          if (extent) {
-            this._Map.getView().fit(extent, {
-              padding: [380, 380, 380, 380],
-              maxZoom: 6,
-            });
-          }
-        });
-
         break;
       }
     }
