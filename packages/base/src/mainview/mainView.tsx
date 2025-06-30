@@ -117,7 +117,6 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
-  metadata: Record<string, any>;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -209,7 +208,6 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
-      metadata: {},
     };
 
     this._sources = [];
