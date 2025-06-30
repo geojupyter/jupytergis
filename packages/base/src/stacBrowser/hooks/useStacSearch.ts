@@ -112,7 +112,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
 
   // Handle search when filters change
   useEffect(() => {
-    if (model && !isFirstRender) {
+    if (model && !isFirstRender && filterState.datasets.size > 0) {
       setCurrentPage(1);
       fetchResults(1);
     }
