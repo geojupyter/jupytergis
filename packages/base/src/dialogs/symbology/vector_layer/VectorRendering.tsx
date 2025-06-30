@@ -101,13 +101,13 @@ const useLayerRenderType = (
     setSelectedRenderType(renderType);
   }, []);
 
-const VectorRendering = ({
+const VectorRendering: React.FC<ISymbologyDialogProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
   layerId,
-}: ISymbologyDialogProps) => {
+}) => {
   const [selectedRenderType, setSelectedRenderType] = useState<
     VectorRenderType | undefined
   >();

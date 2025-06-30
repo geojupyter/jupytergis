@@ -5,14 +5,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { ISymbologyDialogWithAttributesProps } from '../../symbologyDialog';
 
-const Canonical = ({
+const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
   layerId,
   selectableAttributesAndValues,
-}: ISymbologyDialogWithAttributesProps) => {
+}) => {
   const selectedValueRef = useRef<string>();
   const [selectedValue, setSelectedValue] = useState('');
 

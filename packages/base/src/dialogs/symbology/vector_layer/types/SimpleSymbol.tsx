@@ -4,14 +4,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ISymbologyTabbedDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import { IParsedStyle, parseColor } from '@/src/tools';
 
-const SimpleSymbol = ({
+const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
   layerId,
   symbologyTab,
-}: ISymbologyTabbedDialogProps) => {
+}) => {
   const styleRef = useRef<IParsedStyle>();
 
   const [style, setStyle] = useState<IParsedStyle>({
