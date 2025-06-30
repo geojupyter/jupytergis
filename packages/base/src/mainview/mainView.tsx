@@ -112,6 +112,35 @@ export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
 
+    // Enforce the map to take the full available width in the case of Jupyter Notebook viewer
+    const el = document.getElementById('main-panel');
+
+    if (el) {
+      const setWidthOneHundred = (selector: string) => {
+        (document.querySelector(selector) as HTMLElement).style.setProperty(
+          'width',
+          '100%',
+        );
+      };
+      //We need to observe the size to counteract
+      //What the default jupyter plugin will try
+      //To do dynamically with the width
+      const resizeObserver = new ResizeObserver(_ => {
+        el.style.setProperty('width', '100%');
+        el.style.setProperty('max-width', '100%');
+        el?.style.setProperty('left', '0px');
+
+        setWidthOneHundred('#main-panel jp-toolbar');
+        setWidthOneHundred('#main-panel .lm-SplitPanel ');
+
+        setWidthOneHundred(
+          '#main-panel   .lm-SplitPanel .lm-SplitPanel-child ',
+        );
+      });
+
+      resizeObserver.observe(el);
+    }
+
     this._mainViewModel = this.props.viewModel;
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
 
@@ -173,7 +202,9 @@ export class MainView extends React.Component<IProps, IStates> {
     this._sources = [];
     this._loadingLayers = new Set();
     this._commands = new CommandRegistry();
-    this._contextMenu = new ContextMenu({ commands: this._commands });
+    this._contextMenu = new ContextMenu({
+      commands: this._commands,
+    });
   }
 
   async componentDidMount(): Promise<void> {
@@ -184,6 +215,7 @@ export class MainView extends React.Component<IProps, IStates> {
         ? fromLonLat([options.longitude!, options.latitude!])
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom! : 1;
+
     await this.generateMap(center, zoom);
     this.addContextMenu();
     this._mainViewModel.initSignal();
@@ -285,7 +317,13 @@ export class MainView extends React.Component<IProps, IStates> {
             return;
           }
           this._model.syncViewport(
-            { coordinates: { x: center[0], y: center[1] }, zoom },
+            {
+              coordinates: {
+                x: center[0],
+                y: center[1],
+              },
+              zoom,
+            },
             this._mainViewModel.id,
           );
         }),
@@ -458,7 +496,10 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         this._mainViewModel.addAnnotation({
-          position: { x: this._clickCoords[0], y: this._clickCoords[1] },
+          position: {
+            x: this._clickCoords[0],
+            y: this._clickCoords[1],
+          },
           zoom: this._Map.getView().getZoom() ?? 0,
           label: 'New annotation',
           contents: [],
@@ -538,7 +579,9 @@ export class MainView extends React.Component<IProps, IStates> {
             minZoom: sourceParameters.minZoom,
             maxZoom: sourceParameters.maxZoom,
             url: url,
-            format: new MVT({ featureClass: RenderFeature }),
+            format: new MVT({
+              featureClass: RenderFeature,
+            }),
           });
         } else {
           newSource = new PMTilesVectorSource({
@@ -916,7 +959,9 @@ export class MainView extends React.Component<IProps, IStates> {
         };
 
         if (layerParameters.color) {
-          layerOptions['style'] = { color: layerParameters.color };
+          layerOptions['style'] = {
+            color: layerParameters.color,
+          };
         }
 
         newMapLayer = new WebGlTileLayer(layerOptions);
@@ -1339,8 +1384,13 @@ export class MainView extends React.Component<IProps, IStates> {
               return new Style({
                 image: new Circle({
                   radius: 6,
-                  fill: new Fill({ color: 'rgba(255, 255, 0, 0.8)' }),
-                  stroke: new Stroke({ color: '#ff0', width: 2 }),
+                  fill: new Fill({
+                    color: 'rgba(255, 255, 0, 0.8)',
+                  }),
+                  stroke: new Stroke({
+                    color: '#ff0',
+                    width: 2,
+                  }),
                 }),
               });
             case 'LineString':
@@ -1388,7 +1438,10 @@ export class MainView extends React.Component<IProps, IStates> {
     return new Promise(resolve => {
       const checkReady = () => {
         if (this._loadingLayers.size === 0) {
-          this.setState(old => ({ ...old, loadingLayer: false }));
+          this.setState(old => ({
+            ...old,
+            loadingLayer: false,
+          }));
           resolve();
         } else {
           setTimeout(checkReady, 50);
@@ -1454,7 +1507,10 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       if (remoteState.user?.username !== this.state.remoteUser?.username) {
-        this.setState(old => ({ ...old, remoteUser: remoteState.user }));
+        this.setState(old => ({
+          ...old,
+          remoteUser: remoteState.user,
+        }));
       }
 
       const remoteViewport = remoteState.viewportState;
@@ -1468,7 +1524,10 @@ export class MainView extends React.Component<IProps, IStates> {
     } else {
       // If we are unfollowing a remote user, we reset our center and zoom to their previous values
       if (this.state.remoteUser !== null) {
-        this.setState(old => ({ ...old, remoteUser: null }));
+        this.setState(old => ({
+          ...old,
+          remoteUser: null,
+        }));
         const viewportState = localState.viewportState?.value;
 
         if (viewportState) {
@@ -1506,14 +1565,26 @@ export class MainView extends React.Component<IProps, IStates> {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
-            coordinates: { x: pixel[0], y: pixel[1] },
-            lonLat: { longitude: lonLat[0], latitude: lonLat[1] },
+            coordinates: {
+              x: pixel[0],
+              y: pixel[1],
+            },
+            lonLat: {
+              longitude: lonLat[0],
+              latitude: lonLat[1],
+            },
           };
         } else {
           currentClientPointer = {
             ...currentClientPointer,
-            coordinates: { x: pixel[0], y: pixel[1] },
-            lonLat: { longitude: lonLat[0], latitude: lonLat[1] },
+            coordinates: {
+              x: pixel[0],
+              y: pixel[1],
+            },
+            lonLat: {
+              longitude: lonLat[0],
+              latitude: lonLat[1],
+            },
           };
         }
 
@@ -1875,7 +1946,10 @@ export class MainView extends React.Component<IProps, IStates> {
     // Zoom needs to be set before changing center
     if (!view.animate === undefined) {
       view.animate({ zoom, duration });
-      view.animate({ center: [center.x, center.y], duration });
+      view.animate({
+        center: [center.x, center.y],
+        duration,
+      });
     }
   }
 
