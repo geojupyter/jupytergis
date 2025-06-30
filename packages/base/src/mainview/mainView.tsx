@@ -112,6 +112,7 @@ export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
 
+    // Enforce the map to take the full available width in the case of Jupyter Notebook viewer
     const el = document.getElementById('main-panel');
 
     if (el) {
