@@ -6,8 +6,8 @@ const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
 >(({ ...props }, ref) => (
-  <CheckboxPrimitive.Root ref={ref} className={'Checkbox'} {...props}>
-    <CheckboxPrimitive.Indicator className={'CheckboxIndicator'}>
+  <CheckboxPrimitive.Root ref={ref} className={'jgis-checkbox'} {...props}>
+    <CheckboxPrimitive.Indicator className={'jgis-checkbox-indicator'}>
       <Check
         style={{
           height: '1rem',

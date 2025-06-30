@@ -1,4 +1,4 @@
-.Badge {
+.jgis-badge {
   display: inline-flex;
   align-items: center;
   border-radius: 9999px;
@@ -15,44 +15,44 @@
   text-align: center;
 }
 
-.Badge:hover {
+.jgis-badge:hover {
   background-color: color-mix(in srgb, var(--jp-brand-color0) 80%, transparent);
 }
 
-.Badge[data-variant='secondary'] {
+.jgis-badge[data-variant='secondary'] {
   border: 1px solid transparent;
   background-color: var(--jp-brand-color1);
   color: var(--jp-ui-inverse-font-color1);
   transition: background-color 0.3s ease;
 }
 
-.Badge[data-variant='secondary']:focus {
+.jgis-badge[data-variant='secondary']:focus {
   border-width: 2px;
   border-color: var(--jp-border-color0);
   box-shadow: 0 0 0 3px var(--jp-border-color0);
 }
 
-.Badge[data-variant='destructive'] {
+.jgis-badge[data-variant='destructive'] {
   border: 1px solid transparent;
   background-color: color-mix(in srgb, var(--jp-error-color1) 90%, transparent);
   color: var(--jp-ui-inverse-font-color1);
 }
 
-.Badge[data-variant='destructive']:hover {
+.jgis-badge[data-variant='destructive']:hover {
   background-color: color-mix(in srgb, var(--jp-error-color1) 80%, transparent);
 }
 
-.Badge[data-variant='destructive']:focus {
+.jgis-badge[data-variant='destructive']:focus {
   background-color: var(--jp-error-color1);
 }
 
-.Badge[data-variant='outline'] {
+.jgis-badge[data-variant='outline'] {
   color: var(--jp-ui-font-color1);
   background-color: transparent;
   border: 1px solid color-mix(in srgb, var(--jp-border-color1) 80%, transparent);
 }
 
-.Badge[data-variant='outline']:hover {
+.jgis-badge[data-variant='outline']:hover {
   background-color: color-mix(
     in srgb,
     var(--jp-ui-font-color1) 10%,

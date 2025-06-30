@@ -8,7 +8,7 @@ interface IBadgeProps extends React.HTMLAttributes<HTMLButtonElement> {
 function Badge({ variant, ...props }: IBadgeProps) {
   return (
     // @ts-expect-error lol
-    <div data-variant={variant} className={'Badge'} {...props} />
+    <div data-variant={variant} className={'jgis-badge'} {...props} />
   );
 }
 

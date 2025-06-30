@@ -1,4 +1,4 @@
-.Toggle {
+.jgis-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -15,7 +15,7 @@
   border: 1px solid transparent;
 }
 
-.Toggle:hover {
+.jgis-toggle:hover {
   background-color: color-mix(
     in srgb,
     var(--jp-ui-font-color0),
@@ -24,28 +24,28 @@
   color: var(--jp-ui-inverse-font-color0);
 }
 
-.Toggle:focus-visible {
+.jgis-toggle:focus-visible {
   box-shadow:
     0 0 0 2px var(--jp-accent-color0),
     0 0 0 4px var(--jp-accent-color0);
 }
 
-.Toggle:disabled {
+.jgis-toggle:disabled {
   pointer-events: none;
   opacity: 0.5;
 }
 
-.Toggle[data-state='on'] {
+.jgis-toggle[data-state='on'] {
   text-decoration: underline;
   text-underline-offset: 4px;
   color: var(--jp-accent-color0);
 }
 
-.ToggleDefault {
+.jgis-toggle-default {
   background-color: transparent;
 }
 
-.ToggleOutline {
+.jgis-toggle-outline {
   border: 1px solid var(--jp-accent-color0);
   background-color: transparent;
   transition:
@@ -54,30 +54,30 @@
   color: inherit;
 }
 
-.ToggleOutline:hover {
+.jgis-toggle-outline:hover {
   background-color: var(--jp-accent-color0);
   color: var(--jp-ui-inverse-font-color0);
 }
 
-.ToggleDefaultSize {
+.jgis-toggle-default-size {
   height: 2.5rem;
   padding-left: 0.75rem;
   padding-right: 0.75rem;
 }
 
-.ToggleSmallSize {
+.jgis-toggle-small-size {
   height: 2.25rem;
   padding-left: 0.625rem;
   padding-right: 0.625rem;
 }
 
-.ToggleLargeSize {
+.jgis-toggle-large-size {
   height: 2.25rem;
   padding-left: 0.625rem;
   padding-right: 0.625rem;
 }
 
-.ToggleGroupContext {
+.jgis-toggle-group-context {
   display: flex;
   align-items: center;
   justify-content: start;

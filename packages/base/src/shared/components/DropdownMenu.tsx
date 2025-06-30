@@ -22,14 +22,14 @@ const DropdownMenuSubTrigger = React.forwardRef<
 >(({ inset, children, ...props }, ref) => (
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
-    className={'DropdownMenuSubTrigger'}
+    className={'jgis-dropdown-menu-sub-trigger'}
     style={{
       paddingLeft: inset ? '2rem' : '0.5rem',
     }}
     {...props}
   >
     {children}
-    <ChevronRight className="DropdownMenuIcon" />
+    <ChevronRight className="jgis-dropdown-menu-icon" />
   </DropdownMenuPrimitive.SubTrigger>
 ));
 DropdownMenuSubTrigger.displayName =
@@ -41,7 +41,7 @@ const DropdownMenuSubContent = React.forwardRef<
 >(({ ...props }, ref) => (
   <DropdownMenuPrimitive.SubContent
     ref={ref}
-    className={'DropdownMenuSubContent'}
+    className={'jgis-dropdown-menu-sub-content'}
     {...props}
   />
 ));
@@ -56,7 +56,7 @@ const DropdownMenuContent = React.forwardRef<
     <DropdownMenuPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
-      className={'DropdownMenuContent'}
+      className={'jgis-dropdown-menu-content'}
       {...props}
     />
   </DropdownMenuPrimitive.Portal>
@@ -71,7 +71,7 @@ const DropdownMenuItem = React.forwardRef<
 >(({ inset, ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     ref={ref}
-    className={'DropdownMenuItem'}
+    className={'jgis-dropdown-menu-item'}
     style={{
       paddingLeft: inset ? '2rem' : '0.5rem',
     }}
@@ -86,11 +86,11 @@ const DropdownMenuCheckboxItem = React.forwardRef<
 >(({ children, checked, ...props }, ref) => (
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
-    className={'DropdownMenuCheckboxItem'}
+    className={'jgis-dropdown-menu-checkbox-item'}
     checked={checked}
     {...props}
   >
-    <span className={'DropdownMenuCheckboxItemSpan'}>
+    <span className={'jgis-dropdown-menu-checkbox-item-span'}>
       <DropdownMenuPrimitive.ItemIndicator>
         <Check
           style={{
@@ -112,10 +112,10 @@ const DropdownMenuRadioItem = React.forwardRef<
 >(({ children, ...props }, ref) => (
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
-    className={'DropdownMenuRadioItem'}
+    className={'jgis-dropdown-menu-radio-item'}
     {...props}
   >
-    <span className={'DropdownMenuRadioItemSpan'}>
+    <span className={'jgis-dropdown-menu-radio-item-span'}>
       <DropdownMenuPrimitive.ItemIndicator>
         <Circle
           color="currentColor"
@@ -139,7 +139,7 @@ const DropdownMenuLabel = React.forwardRef<
 >(({ inset, ...props }, ref) => (
   <DropdownMenuPrimitive.Label
     ref={ref}
-    className={'DropdownMenuLabel'}
+    className={'jgis-dropdown-menu-label'}
     style={{
       paddingLeft: inset ? '2rem' : '0.5rem',
     }}
@@ -154,7 +154,7 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={'DropdownMenuSeparator'}
+    className={'jgis-dropdown-menu-separator'}
     {...props}
   />
 ));
@@ -163,7 +163,7 @@ DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName;
 const DropdownMenuShortcut = ({
   ...props
 }: React.HTMLAttributes<HTMLSpanElement>) => {
-  return <span className={'DropdownMenuShortcut'} {...props} />;
+  return <span className={'jgis-dropdown-menu-shortcut'} {...props} />;
 };
 DropdownMenuShortcut.displayName = 'DropdownMenuShortcut';
 

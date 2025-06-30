@@ -23,7 +23,7 @@ const TabsList: React.FC<React.ComponentProps<typeof TabsPrimitive.List>> = ({
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn('TabsList', className)}
+      className={cn('jgis-tabs-list', className)}
       {...props}
     />
   );
@@ -35,7 +35,7 @@ const TabsTrigger: React.FC<
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
-      className={cn('TabsTrigger', className)}
+      className={cn('jgis-tabs-trigger', className)}
       {...props}
     />
   );
@@ -47,7 +47,7 @@ const TabsContent: React.FC<
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
-      className={cn('TabsContent', className)}
+      className={cn('jgis-tabs-content', className)}
       {...props}
     />
   );

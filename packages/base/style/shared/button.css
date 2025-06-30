@@ -1,4 +1,4 @@
-.Button {
+.jgis-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -21,7 +21,7 @@
   gap: 0.25rem;
 }
 
-.Button:hover {
+.jgis-button:hover {
   cursor: pointer;
   background-color: color-mix(
     in srgb,
@@ -31,33 +31,33 @@
   transition: background-color 0.2s ease;
 }
 
-.Button:focus-visible {
+.jgis-button:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px
     color-mix(in srgb, var(--jp-ui-font-color0), transparent 50%);
 }
 
-.Button:disabled {
+.jgis-button:disabled {
   pointer-events: none;
   opacity: 0.5;
 }
 
-.Button:disabled:focus-visible {
+.jgis-button:disabled:focus-visible {
   outline: none;
   box-shadow: none;
 }
 
-.Button[data-variant='destructive'] {
+.jgis-button[data-variant='destructive'] {
   background-color: var(--jp-error-color0);
   color: var(--jp-ui-font-color0);
   transition: background-color 0.2s ease;
 }
 
-.Button[data-variant='destructive']:hover {
+.jgis-button[data-variant='destructive']:hover {
   background-color: color-mix(in srgb, var(--jp-error-color0), transparent 10%);
 }
 
-.Button[data-variant='outline'] {
+.jgis-button[data-variant='outline'] {
   border: 1px solid var(--jp-border-color0);
   background-color: var(--jp-layout-color0);
   color: var(--jp-ui-font-color0);
@@ -66,7 +66,7 @@
     color 0.2s ease;
 }
 
-.Button[data-variant='outline']:hover {
+.jgis-button[data-variant='outline']:hover {
   cursor: pointer;
   background-color: color-mix(
     in srgb,
@@ -76,13 +76,13 @@
   color: var(--jp-ui-font-color2);
 }
 
-.Button[data-variant='secondary'] {
+.jgis-button[data-variant='secondary'] {
   background-color: var(--jp-layout-color2);
   color: var(--jp-ui-font-color2);
   transition: background-color 0.2s ease;
 }
 
-.Button[data-variant='secondary']:hover {
+.jgis-button[data-variant='secondary']:hover {
   background-color: color-mix(
     in srgb,
     var(--jp-layout-color2),
@@ -90,7 +90,7 @@
   );
 }
 
-.Button[data-variant='ghost'] {
+.jgis-button[data-variant='ghost'] {
   background-color: transparent;
   border: 1px solid transparent;
   color: var(--jp-ui-font-color0);
@@ -98,7 +98,7 @@
   align-items: center;
 }
 
-.Button[data-variant='ghost']:hover {
+.jgis-button[data-variant='ghost']:hover {
   background-color: color-mix(
     in srgb,
     var(--jp-ui-font-color0),
@@ -106,7 +106,7 @@
   );
 }
 
-.Button[data-variant='link'] {
+.jgis-button[data-variant='link'] {
   color: var(--jp-ui-font-color0);
   background-color: transparent;
   text-decoration: none;
@@ -117,12 +117,12 @@
   width: max-content;
 }
 
-.Button[data-variant='link']:hover {
+.jgis-button[data-variant='link']:hover {
   color: var(--jp-layout-color0);
   text-decoration-color: var(--jp-ui-font-color0);
 }
 
-.Button[data-variant='icon'] {
+.jgis-button[data-variant='icon'] {
   background-color: var(--jp-ui-font-color0);
   border: none;
   color: var(--jp-layout-color0);
@@ -135,7 +135,7 @@
   border-radius: 9999px;
 }
 
-.Button[data-variant='icon']:hover {
+.jgis-button[data-variant='icon']:hover {
   background-color: color-mix(
     in srgb,
     var(--jp-accent-color0),
@@ -144,21 +144,21 @@
 }
 
 /* sizing */
-.Button[data-size='sm'] {
+.jgis-button[data-size='sm'] {
   height: 2.25rem;
   border-radius: 0.375rem;
   padding-left: 0.75rem;
   padding-right: 0.75rem;
 }
 
-.Button[data-size='lg'] {
+.jgis-button[data-size='lg'] {
   height: 2.75rem;
   border-radius: 0.375rem;
   padding-left: 2rem;
   padding-right: 2rem;
 }
 
-.Button[data-size='icon'] {
+.jgis-button[data-size='icon'] {
   height: 2.5rem;
   width: 2.5rem;
 }
