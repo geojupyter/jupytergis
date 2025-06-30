@@ -56,12 +56,11 @@ import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
 import {
   fromLonLat,
-  get as getRegisteredProjection,
+  get as getProjection,
   toLonLat,
   transformExtent,
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
-import { get as getProjection } from 'ol/proj.js';
 import RenderFeature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -1077,7 +1076,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     const projectionCode = sourceProjection.getCode();
 
-    const isProjectionRegistered = getRegisteredProjection(projectionCode);
+    const isProjectionRegistered = getProjection(projectionCode);
     if (!isProjectionRegistered) {
       // Check if the projection exists in proj4list
       if (!proj4list[projectionCode]) {
