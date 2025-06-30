@@ -23,12 +23,12 @@ import { GlobalStateDbManager } from '@/src/store';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
-const SingleBandPseudoColor = ({
+const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
   cancel,
   layerId,
-}: ISymbologyDialogProps) => {
+}) => {
   if (!layerId) {
     return;
   }

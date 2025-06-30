@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import { Button, ButtonProps } from './Button';
 
-const Pagination = ({ ...props }: React.ComponentProps<'nav'>) => (
+const Pagination: React.FC<React.ComponentProps<'nav'>> = ({ ...props }) => (
   <nav
     role="navigation"
     aria-label="pagination"

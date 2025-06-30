@@ -34,7 +34,7 @@ export interface IProcessingFormWrapperProps
   formErrorSignalPromise?: PromiseDelegate<Signal<Dialog<any>, boolean>>;
 }
 
-const ProcessingFormWrapper = (props: IProcessingFormWrapperProps) => {
+const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = (props) => {
   const [ready, setReady] = React.useState<boolean>(false);
 
   const okSignal = React.useRef<Signal<Dialog<any>, number>>();

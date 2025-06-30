@@ -53,7 +53,7 @@ const stepMap = {
   year: millisecondsInDay * daysInYear,
 };
 
-const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
+const TemporalSlider: React.FC<ITemporalSliderProps> = ({ model, filterStates }) => {
   const [layerId, setLayerId] = useState('');
   const [selectedFeature, setSelectedFeature] = useState('');
   const [range, setRange] = useState({ start: 0, end: 1 }); // min/max of current range being displayed

@@ -16,12 +16,12 @@ interface ISelectedBands {
 
 type rgbEnum = keyof ISelectedBands;
 
-const MultibandColor = ({
+const MultibandColor: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
   cancel,
   layerId,
-}: ISymbologyDialogProps) => {
+}) => {
   if (!layerId) {
     return;
   }

@@ -5,15 +5,7 @@ import React, { useEffect, useRef } from 'react';
 
 import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
 
-const StopRow = ({
-  index,
-  value,
-  outputValue,
-  stopRows,
-  setStopRows,
-  deleteRow,
-  useNumber,
-}: {
+const StopRow: React.FC<{
   index: number;
   value: number;
   outputValue: number | number[];
@@ -21,6 +13,14 @@ const StopRow = ({
   setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
   useNumber?: boolean;
+}> = ({
+  index,
+  value,
+  outputValue,
+  stopRows,
+  setStopRows,
+  deleteRow,
+  useNumber,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 

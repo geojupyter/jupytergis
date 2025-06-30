@@ -10,11 +10,11 @@ interface IStopContainerProps {
   setStopRows: (stops: IStopRow[]) => void;
 }
 
-const StopContainer = ({
+const StopContainer: React.FC<IStopContainerProps> = ({
   selectedMethod,
   stopRows,
   setStopRows,
-}: IStopContainerProps) => {
+}) => {
   const addStopRow = () => {
     setStopRows([
       {
