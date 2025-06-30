@@ -9,13 +9,7 @@ const FilterRow: React.FC<{
   filterRows: any;
   setFilterRows: any;
   deleteRow: () => void;
-}> = ({
-  index,
-  features,
-  filterRows,
-  setFilterRows,
-  deleteRow,
-}) => {
+}> = ({ index, features, filterRows, setFilterRows, deleteRow }) => {
   const operators = ['==', '!=', '>', '<', '>=', '<='];
 
   const [sortedFeatures, setSortedFeatures] = useState<{ [key: string]: any }>(

@@ -8,7 +8,11 @@ interface IColorRampEntryProps {
   onClick: (item: any) => void;
 }
 
-const ColorRampEntry: React.FC<IColorRampEntryProps> = ({ index, colorMap, onClick }) => {
+const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
+  index,
+  colorMap,
+  onClick,
+}) => {
   const canvasHeight = 30;
 
   useEffect(() => {
