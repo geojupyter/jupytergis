@@ -4,6 +4,7 @@ import { Dialog } from '@jupyterlab/apputils';
 import { FormComponent } from '@jupyterlab/ui-components';
 import { Signal } from '@lumino/signaling';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
+import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import validatorAjv8 from '@rjsf/validator-ajv8';
 import * as React from 'react';
 
@@ -11,7 +12,7 @@ import { deepCopy } from '@/src/tools';
 import { IDict } from '@/src/types';
 
 export interface IBaseFormStates {
-  schema?: IDict;
+  schema?: RJSFSchema;
   extraErrors?: any;
 }
 
@@ -118,8 +119,8 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
 
   protected processSchema(
     data: IDict<any> | undefined,
-    schema: IDict,
-    uiSchema: IDict,
+    schema: RJSFSchema,
+    uiSchema: UiSchema,
   ): void {
     if (!schema['properties']) {
       return;
@@ -251,13 +252,15 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   protected removeFormEntry(
     entry: string,
     data: IDict<any> | undefined,
-    schema: IDict,
-    uiSchema: IDict,
+    schema: RJSFSchema,
+    uiSchema: UiSchema,
   ) {
     if (data) {
       delete data[entry];
     }
-    delete schema.properties[entry];
+    if (schema.properties) {
+      delete schema.properties[entry];
+    }
     delete uiSchema[entry];
     if (schema.required && schema.required.includes(entry)) {
       schema.required.splice(schema.required.indexOf(entry), 1);
