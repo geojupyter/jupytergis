@@ -25,13 +25,13 @@ interface ILayerBrowserDialogProps {
   cancel: () => void;
 }
 
-export const LayerBrowserComponent = ({
+export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   model,
   registry,
   formSchemaRegistry,
   okSignalPromise,
   cancel,
-}: ILayerBrowserDialogProps) => {
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] =

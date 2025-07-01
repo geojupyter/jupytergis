@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { LayerCreationFormDialog } from '@/src/dialogs/layerCreationFormDialog';
 
-export const FileSelectorWidget = (props: any) => {
+export const FileSelectorWidget: React.FC<any> = props => {
   const { options } = props;
   const { docManager, formOptions } = options;
 

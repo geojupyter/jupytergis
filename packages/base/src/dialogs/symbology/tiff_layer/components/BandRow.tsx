@@ -22,7 +22,7 @@ interface IBandRowProps {
  * @param setBandRows Function to update band rows in parent
  * @param isMultibandColor Used to hide min/max input and add 'Unset' option to drop down menu for MultiBand symbology
  */
-const BandRow = ({
+const BandRow: React.FC<IBandRowProps> = ({
   label,
   index,
   bandRow,
@@ -30,7 +30,7 @@ const BandRow = ({
   setSelectedBand,
   setBandRows,
   isMultibandColor,
-}: IBandRowProps) => {
+}) => {
   const [minValue, setMinValue] = useState(bandRow?.stats.minimum);
   const [maxValue, setMaxValue] = useState(bandRow?.stats.maximum);
 
