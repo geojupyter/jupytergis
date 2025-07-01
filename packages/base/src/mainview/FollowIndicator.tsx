@@ -5,7 +5,9 @@ interface IFollowIndicatorProps {
   remoteUser: User.IIdentity | null | undefined;
 }
 
-export function FollowIndicator({ remoteUser }: IFollowIndicatorProps) {
+export const FollowIndicator: React.FC<IFollowIndicatorProps> = ({
+  remoteUser,
+}) => {
   return remoteUser?.display_name ? (
     <div
       style={{
@@ -18,4 +20,4 @@ export function FollowIndicator({ remoteUser }: IFollowIndicatorProps) {
       {`Following ${remoteUser.display_name}`}
     </div>
   ) : null;
-}
+};
