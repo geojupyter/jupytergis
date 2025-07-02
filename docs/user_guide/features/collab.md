@@ -9,7 +9,6 @@ One of the standout features of JupyterGIS is its shared editing functionality, 
 If you are using a local installation, your JupyterLab instance is not available to the Internet by default, thus collaborators cannot join your session directly. Here are two techniques to facilitating collaboration in such instances.
 
 1. Hosting a local server using VSCode (Microsoft) or PyCharm (Jetbrains) enables real-time collaboration without exposing your server to the Internet.
-
    - To use VSCode's Live Share, you can follow the steps [here](https://learn.microsoft.com/en-us/visualstudio/liveshare/use/share-server-visual-studio-code#share-a-server).
    - To use PyCharm's Code With Me, first you can enable [Code With Me](https://www.jetbrains.com/help/pycharm/code-with-me.html), then set up [port forwarding](https://www.jetbrains.com/help/pycharm/code-with-me.html#port_forwarding).
 
