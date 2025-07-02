@@ -5,7 +5,10 @@ import 'react-day-picker/dist/style.css';
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
-function Calendar({ showOutsideDays = true, ...props }: CalendarProps) {
+const Calendar: React.FC<CalendarProps> = ({
+  showOutsideDays = true,
+  ...props
+}) => {
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -82,7 +85,7 @@ function Calendar({ showOutsideDays = true, ...props }: CalendarProps) {
       {...props}
     />
   );
-}
+};
 Calendar.displayName = 'Calendar';
 
 export default Calendar;

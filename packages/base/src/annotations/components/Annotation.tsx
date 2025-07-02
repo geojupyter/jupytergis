@@ -19,12 +19,12 @@ export interface IAnnotationProps {
   children?: JSX.Element[] | JSX.Element;
 }
 
-const Annotation = ({
+const Annotation: React.FC<IAnnotationProps> = ({
   itemId,
   annotationModel,
   rightPanelModel,
   children,
-}: IAnnotationProps) => {
+}) => {
   const [messageContent, setMessageContent] = useState('');
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
     rightPanelModel?.jGISModel,

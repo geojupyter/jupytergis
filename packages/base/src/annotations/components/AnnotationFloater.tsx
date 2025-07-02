@@ -4,10 +4,10 @@ import React, { useState } from 'react';
 
 import Annotation, { IAnnotationProps } from './Annotation';
 
-const AnnotationFloater = ({
+const AnnotationFloater: React.FC<IAnnotationProps> = ({
   itemId,
   annotationModel: model,
-}: IAnnotationProps) => {
+}) => {
   const annotation = model.getAnnotation(itemId);
   const [isOpen, setIsOpen] = useState(annotation?.open);
 

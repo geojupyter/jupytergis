@@ -13,7 +13,7 @@ import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { SymbologyTab } from '@/src/types';
 
-const Categorized = ({
+const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
   state,
   okSignalPromise,
@@ -21,7 +21,7 @@ const Categorized = ({
   layerId,
   symbologyTab,
   selectableAttributesAndValues,
-}: ISymbologyTabbedDialogWithAttributesProps) => {
+}) => {
   const selectedAttributeRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
   const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();

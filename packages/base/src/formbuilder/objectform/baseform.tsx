@@ -70,7 +70,7 @@ export interface IBaseFormProps {
   formErrorSignal?: Signal<Dialog<any>, boolean>;
 }
 
-const WrappedFormComponent = (props: any): JSX.Element => {
+const WrappedFormComponent: React.FC<any> = props => {
   const { fields, ...rest } = props;
   return (
     <FormComponent

@@ -145,7 +145,7 @@ interface IBodyProps {
 /**
  * The body component of the panel.
  */
-function LayersBodyComponent(props: IBodyProps): JSX.Element {
+const LayersBodyComponent: React.FC<IBodyProps> = props => {
   const [model, setModel] = useState<IJupyterGISModel | undefined>(
     props.model?.jGISModel,
   );
@@ -215,7 +215,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
         )}
     </div>
   );
-}
+};
 
 /**
  * Properties of the layer group component.
@@ -230,7 +230,7 @@ interface ILayerGroupProps {
 /**
  * The component to handle group of layers.
  */
-function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
+const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
   const { group, gisModel, onClick, state } = props;
 
   if (group === undefined) {
@@ -336,7 +336,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
       )}
     </div>
   );
-}
+};
 
 /**
  * Properties of the layer component.
@@ -358,7 +358,7 @@ function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
 /**
  * The component to display a single layer.
  */
-function LayerComponent(props: ILayerProps): JSX.Element {
+const LayerComponent: React.FC<ILayerProps> = props => {
   const { layerId, gisModel, onClick } = props;
   const layer = gisModel?.getLayer(layerId);
   if (layer === undefined) {
@@ -446,7 +446,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
       </div>
     </div>
   );
-}
+};
 
 namespace Private {
   export const dragIndicator = document.createElement('div');

@@ -16,12 +16,12 @@ interface IStatusBarProps {
   projection?: { code: string; units: string };
   scale: number;
 }
-const StatusBar = ({
+const StatusBar: React.FC<IStatusBarProps> = ({
   jgisModel,
   loading,
   projection,
   scale,
-}: IStatusBarProps) => {
+}) => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
 
   useEffect(() => {

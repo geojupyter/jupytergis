@@ -4,13 +4,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import CanvasSelectComponent from '@/src/dialogs/symbology/components/color_ramp/CanvasSelectComponent';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 
-const Heatmap = ({
+const Heatmap: React.FC<ISymbologyDialogProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
   layerId,
-}: ISymbologyDialogProps) => {
+}) => {
   if (!layerId) {
     return;
   }

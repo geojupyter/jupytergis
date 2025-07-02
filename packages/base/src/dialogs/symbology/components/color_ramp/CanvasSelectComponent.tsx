@@ -14,10 +14,10 @@ interface ICanvasSelectComponentProps {
   setSelected: (item: any) => void;
 }
 
-const CanvasSelectComponent = ({
+const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
   selectedRamp,
   setSelected,
-}: ICanvasSelectComponentProps) => {
+}) => {
   const colorRampNames = [
     'jet',
     // 'hsv', 11 steps min

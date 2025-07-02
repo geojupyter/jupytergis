@@ -25,13 +25,13 @@ export type ColorRampOptions = {
   selectedMode: string;
 };
 
-const ColorRamp = ({
+const ColorRamp: React.FC<IColorRampProps> = ({
   layerParams,
   modeOptions,
   classifyFunc,
   showModeRow,
   showRampSelector,
-}: IColorRampProps) => {
+}) => {
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
