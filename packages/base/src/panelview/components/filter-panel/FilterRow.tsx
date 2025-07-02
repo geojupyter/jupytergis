@@ -9,38 +9,38 @@ const FilterRow: React.FC<{
   filterRows: any;
   setFilterRows: any;
   deleteRow: () => void;
-}> = ({ index, features, filterRows, setFilterRows, deleteRow }) => {
+}> = props => {
   const operators = ['==', '!=', '>', '<', '>=', '<='];
 
   const [sortedFeatures, setSortedFeatures] = useState<{ [key: string]: any }>(
     {},
   );
   const [selectedFeature, setSelectedFeature] = useState(
-    filterRows[index].feature || Object.keys(features)[0],
+    props.filterRows[props.index].feature || Object.keys(props.features)[0],
   );
 
   // Ensure selected feature matches filter rows and proper values are displayed
   useEffect(() => {
-    setSelectedFeature(filterRows[index].feature);
-  }, [filterRows]);
+    setSelectedFeature(props.filterRows[props.index].feature);
+  }, [props.filterRows]);
 
   useEffect(() => {
-    const sortedKeys = Object.keys(features).sort();
+    const sortedKeys = Object.keys(props.features).sort();
     const sortedResult: { [key: string]: any } = {};
 
     for (const key of sortedKeys) {
       // Convert each Set to a sorted array
-      const sortedArray = Array.from(features[key]).sort();
+      const sortedArray = Array.from(props.features[key]).sort();
       sortedResult[key] = sortedArray;
     }
 
     setSortedFeatures(sortedResult);
-  }, [features]);
+  }, [props.features]);
 
   // Update the value when a new feature is selected
   useEffect(() => {
     const valueSelect = document.getElementById(
-      `jp-gis-value-select-${index}`,
+      `jp-gis-value-select-${props.index}`,
     ) as HTMLSelectElement;
 
     if (!valueSelect) {
@@ -52,26 +52,26 @@ const FilterRow: React.FC<{
   }, [selectedFeature]);
 
   const onValueChange = (value: string | number) => {
-    const newFilters = [...filterRows];
+    const newFilters = [...props.filterRows];
     const isNum = typeof sortedFeatures[selectedFeature][0] === 'number';
 
-    newFilters[index].value = isNum ? +value : value;
-    setFilterRows(newFilters);
+    newFilters[props.index].value = isNum ? +value : value;
+    props.setFilterRows(newFilters);
   };
 
   const handleKeyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newFilters = [...filterRows];
-    newFilters[index].feature = event.target.value;
+    const newFilters = [...props.filterRows];
+    newFilters[props.index].feature = event.target.value;
     setSelectedFeature(event.target.value);
-    setFilterRows(newFilters);
+    props.setFilterRows(newFilters);
   };
 
   const handleOperatorChange = (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
-    const newFilters = [...filterRows];
-    newFilters[index].operator = event.target.value;
-    setFilterRows(newFilters);
+    const newFilters = [...props.filterRows];
+    newFilters[props.index].operator = event.target.value;
+    props.setFilterRows(newFilters);
   };
 
   const handleValueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -81,7 +81,7 @@ const FilterRow: React.FC<{
   return (
     <div className="jp-gis-filter-row">
       <select
-        id={`jp-gis-feature-select-${index}`}
+        id={`jp-gis-feature-select-${props.index}`}
         className="jp-mod-styled rjsf"
         onChange={handleKeyChange}
       >
@@ -90,14 +90,14 @@ const FilterRow: React.FC<{
           <option
             key={featureIndex}
             value={feature}
-            selected={feature === filterRows[index].feature}
+            selected={feature === props.filterRows[props.index].feature}
           >
             {feature}
           </option>
         ))}
       </select>
       <select
-        id={`jp-gis-operator-select-${index}`}
+        id={`jp-gis-operator-select-${props.index}`}
         className="jp-mod-styled rjsf"
         onChange={handleOperatorChange}
       >
@@ -105,14 +105,14 @@ const FilterRow: React.FC<{
           <option
             key={operatorIndex}
             value={operator}
-            selected={operator === filterRows[index].operator}
+            selected={operator === props.filterRows[props.index].operator}
           >
             {operator}
           </option>
         ))}
       </select>
       <select
-        id={`jp-gis-value-select-${index}`}
+        id={`jp-gis-value-select-${props.index}`}
         className="jp-mod-styled rjsf"
         onChange={handleValueChange}
       >
@@ -122,17 +122,17 @@ const FilterRow: React.FC<{
             <option
               key={valueIndex}
               value={value}
-              selected={value === filterRows[index].value}
+              selected={value === props.filterRows[props.index].value}
             >
               {value}
             </option>
           ))}
       </select>
       <Button
-        id={`jp-gis-remove-filter-${index}`}
+        id={`jp-gis-remove-filter-${props.index}`}
         className="jp-Button jp-gis-filter-icon"
       >
-        <FontAwesomeIcon icon={faTrash} onClick={deleteRow} />
+        <FontAwesomeIcon icon={faTrash} onClick={props.deleteRow} />
       </Button>
     </div>
   );

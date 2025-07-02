@@ -19,16 +19,15 @@ interface IProps {
 }
 
 export const Message: React.FC<IProps> = props => {
-  const { self, message, user } = props;
-  const color = user?.color ?? 'black';
-  const author = user?.display_name ?? '';
-  const initials = user?.initials ?? '';
+  const color = props.user?.color ?? 'black';
+  const author = props.user?.display_name ?? '';
+  const initials = props.user?.initials ?? '';
 
   return (
     <div
       className="jGIS-Annotation-Message"
       style={{
-        flexFlow: self ? 'row' : 'row-reverse',
+        flexFlow: props.self ? 'row' : 'row-reverse',
       }}
     >
       <div
@@ -41,7 +40,7 @@ export const Message: React.FC<IProps> = props => {
         <span style={{ width: 24, textAlign: 'center' }}>{initials}</span>
       </div>
       <div className="jGIS-Annotation-Message-Content">
-        <p style={{ padding: 7, margin: 0 }}>{message}</p>
+        <p style={{ padding: 7, margin: 0 }}>{props.message}</p>
       </div>
     </div>
   );

@@ -16,17 +16,12 @@ interface IStatusBarProps {
   projection?: { code: string; units: string };
   scale: number;
 }
-const StatusBar: React.FC<IStatusBarProps> = ({
-  jgisModel,
-  loading,
-  projection,
-  scale,
-}) => {
+const StatusBar: React.FC<IStatusBarProps> = props => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleClientStateChanged = () => {
-      const pointer = jgisModel?.localState?.pointer?.value;
+      const pointer = props.jgisModel?.localState?.pointer?.value;
 
       if (!pointer) {
         return;
@@ -35,16 +30,16 @@ const StatusBar: React.FC<IStatusBarProps> = ({
       setCoords({ x: pointer?.coordinates.x, y: pointer?.coordinates.y });
     };
 
-    jgisModel.clientStateChanged.connect(handleClientStateChanged);
+    props.jgisModel.clientStateChanged.connect(handleClientStateChanged);
 
     return () => {
-      jgisModel.clientStateChanged.disconnect(handleClientStateChanged);
+      props.jgisModel.clientStateChanged.disconnect(handleClientStateChanged);
     };
-  }, [jgisModel]);
+  }, [props.jgisModel]);
 
   return (
     <div className="jgis-status-bar">
-      {loading && (
+      {props.loading && (
         <div style={{ width: '16%', padding: '0 6px' }}>
           <Progress height={14} />
         </div>
@@ -61,13 +56,13 @@ const StatusBar: React.FC<IStatusBarProps> = ({
       </div>
       <div className="jgis-status-bar-item">
         <FontAwesomeIcon icon={faRuler} />{' '}
-        <span>Scale: 1: {Math.trunc(scale)}</span>
+        <span>Scale: 1: {Math.trunc(props.scale)}</span>
       </div>
       <div className="jgis-status-bar-item">
         <FontAwesomeIcon icon={faGlobe} />{' '}
-        <span>{projection?.code ?? null}</span>
+        <span>{props.projection?.code ?? null}</span>
       </div>
-      <div className="jgis-status-bar-item">Units: {projection?.units}</div>
+      <div className="jgis-status-bar-item">Units: {props.projection?.units}</div>
     </div>
   );
 };

@@ -14,10 +14,7 @@ interface ICanvasSelectComponentProps {
   setSelected: (item: any) => void;
 }
 
-const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
-  selectedRamp,
-  setSelected,
-}) => {
+const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = props => {
   const colorRampNames = [
     'jet',
     // 'hsv', 11 steps min
@@ -86,16 +83,16 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
 
   useEffect(() => {
     if (colorMaps.length > 0) {
-      updateCanvas(selectedRamp);
+      updateCanvas(props.selectedRamp);
     }
-  }, [selectedRamp]);
+  }, [props.selectedRamp]);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
 
   const selectItem = (item: any) => {
-    setSelected(item);
+    props.setSelected(item);
     setIsOpen(false);
     updateCanvas(item);
   };

@@ -8,15 +8,11 @@ interface IColorRampEntryProps {
   onClick: (item: any) => void;
 }
 
-const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
-  index,
-  colorMap,
-  onClick,
-}) => {
+const ColorRampEntry: React.FC<IColorRampEntryProps> = props => {
   const canvasHeight = 30;
 
   useEffect(() => {
-    const canvas = document.getElementById(`cv-${index}`) as HTMLCanvasElement;
+    const canvas = document.getElementById(`cv-${props.index}`) as HTMLCanvasElement;
     if (!canvas) {
       return;
     }
@@ -29,7 +25,7 @@ const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
     for (let i = 0; i <= 255; i++) {
       ctx.beginPath();
 
-      const color = colorMap.colors[i];
+      const color = props.colorMap.colors[i];
       ctx.fillStyle = color;
 
       ctx.fillRect(i * 2, 0, 2, canvasHeight);
@@ -38,13 +34,13 @@ const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
 
   return (
     <div
-      key={colorMap.name}
-      onClick={() => onClick(colorMap.name)}
+      key={props.colorMap.name}
+      onClick={() => props.onClick(props.colorMap.name)}
       className="jp-gis-color-ramp-entry"
     >
-      <span className="jp-gis-color-label">{colorMap.name}</span>
+      <span className="jp-gis-color-label">{props.colorMap.name}</span>
       <canvas
-        id={`cv-${index}`}
+        id={`cv-${props.index}`}
         height={canvasHeight}
         className="jp-gis-color-canvas"
       ></canvas>

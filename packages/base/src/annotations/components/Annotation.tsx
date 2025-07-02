@@ -19,37 +19,32 @@ export interface IAnnotationProps {
   children?: JSX.Element[] | JSX.Element;
 }
 
-const Annotation: React.FC<IAnnotationProps> = ({
-  itemId,
-  annotationModel,
-  rightPanelModel,
-  children,
-}) => {
+const Annotation: React.FC<IAnnotationProps> = props => {
   const [messageContent, setMessageContent] = useState('');
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
-    rightPanelModel?.jGISModel,
+    props.rightPanelModel?.jGISModel,
   );
 
-  const annotation = annotationModel.getAnnotation(itemId);
+  const annotation = props.annotationModel.getAnnotation(props.itemId);
   const contents = useMemo(() => annotation?.contents ?? [], [annotation]);
 
   /**
    * Update the model when it changes.
    */
-  rightPanelModel?.documentChanged.connect((_, widget) => {
+  props.rightPanelModel?.documentChanged.connect((_, widget) => {
     setJgisModel(widget?.model);
   });
 
   const handleSubmit = () => {
-    annotationModel.addContent(itemId, messageContent);
+    props.annotationModel.addContent(props.itemId, messageContent);
     setMessageContent('');
   };
 
   const handleDelete = async () => {
     // If the annotation has no content
     // we remove it right away without prompting
-    if (!annotationModel.getAnnotation(itemId)?.contents.length) {
-      return annotationModel.removeAnnotation(itemId);
+    if (!props.annotationModel.getAnnotation(props.itemId)?.contents.length) {
+      return props.annotationModel.removeAnnotation(props.itemId);
     }
 
     const result = await showDialog({
@@ -59,24 +54,24 @@ const Annotation: React.FC<IAnnotationProps> = ({
     });
 
     if (result.button.accept) {
-      annotationModel.removeAnnotation(itemId);
+      props.annotationModel.removeAnnotation(props.itemId);
     }
   };
 
   const centerOnAnnotation = () => {
-    jgisModel?.centerOnPosition(itemId);
+    jgisModel?.centerOnPosition(props.itemId);
   };
 
   return (
     <div className="jGIS-Annotation">
-      {children}
+      {props.children}
       <div>
         {contents.map(content => {
           return (
             <Message
               user={content.user}
               message={content.value}
-              self={annotationModel.user?.username === content.user?.username}
+              self={props.annotationModel.user?.username === content.user?.username}
             />
           );
         })}
@@ -98,7 +93,7 @@ const Annotation: React.FC<IAnnotationProps> = ({
         <Button className="jp-mod-styled jp-mod-warn" onClick={handleDelete}>
           <FontAwesomeIcon icon={faTrash} />
         </Button>
-        {rightPanelModel && (
+        {props.rightPanelModel && (
           <Button
             className="jp-mod-styled jp-mod-accept"
             onClick={centerOnAnnotation}
