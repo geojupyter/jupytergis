@@ -16,7 +16,7 @@
   }
 }
 
-.PopoverContent {
+.jgis-popover-content {
   position: relative;
   width: 18rem;
   border-radius: 0.375rem;
@@ -28,26 +28,26 @@
   z-index: 50;
 }
 
-.PopoverContent[data-state='open'] {
+.jgis-popover-content[data-state='open'] {
   animation: enter 300ms;
 }
 
-.PopoverContent[data-state='closed'] {
+.jgis-popover-content[data-state='closed'] {
   animation: exit 300ms;
 }
 
-.PopoverContent[data-side='top'] {
+.jgis-popover-content[data-side='top'] {
   animation: enter 300ms;
 }
 
-.PopoverContent[data-side='right'] {
+.jgis-popover-content[data-side='right'] {
   animation: enter 300ms;
 }
 
-.PopoverContent[data-side='left'] {
+.jgis-popover-content[data-side='left'] {
   animation: enter 300ms;
 }
 
-.PopoverContent[data-side='bottom'] {
+.jgis-popover-content[data-side='bottom'] {
   animation: enter 300ms;
 }

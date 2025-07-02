@@ -1,4 +1,4 @@
-.TabsList {
+.jgis-tabs-list {
   display: inline-flex;
   height: 2.5rem;
   align-items: center;
@@ -11,7 +11,7 @@
   width: 100%;
 }
 
-.TabsTrigger {
+.jgis-tabs-trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -26,30 +26,30 @@
   background-color: transparent;
 }
 
-.TabsTrigger:focus-visible {
+.jgis-tabs-trigger:focus-visible {
   box-shadow:
     0 0 0 2px var(--jp-accent-color0),
     0 0 0 4px var(--jp-accent-color0);
 }
 
-.TabsTrigger:disabled {
+.jgis-tabs-trigger:disabled {
   pointer-events: none;
   opacity: 0.5;
 }
 
-.TabsTrigger[data-state='active'] {
+.jgis-tabs-trigger[data-state='active'] {
   background-color: var(--jp-layout-color2);
   color: var(--jp-ui-font-color0);
   box-shadow: 0 1px 2px
     color-mix(in srgb, var(--jp-layout-color0), transparent 90%);
 }
 
-.TabsContent {
-  margin-top: 0.5rem;
+.jgis-tabs-content {
   outline: none;
+  width: 100%;
 }
 
-.TabsContent:focus-visible {
+.jgis-tabs-content:focus-visible {
   outline: none;
   box-shadow:
     0 0 0 2px var(--jp-accent-color0),

@@ -24,7 +24,7 @@ const PopoverContent: React.FC<
         data-slot="popover-content"
         align={align}
         sideOffset={sideOffset}
-        className={cn('PopoverContent', className)}
+        className={cn('jgis-popover-content', className)}
         {...props}
       />
     </PopoverPrimitive.Portal>

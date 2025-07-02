@@ -6,9 +6,9 @@ import {
   RightPanelWidget,
   addCommands,
   createDefaultLayerRegistry,
+  logoMiniIcon,
   rasterSubMenu,
   vectorSubMenu,
-  logoMiniIcon,
 } from '@jupytergis/base';
 import {
   IAnnotationModel,

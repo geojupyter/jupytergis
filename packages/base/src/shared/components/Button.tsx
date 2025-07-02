@@ -14,7 +14,7 @@ const Button = React.forwardRef<HTMLButtonElement, IButtonProps>(
       <Comp
         data-size={size}
         data-variant={variant}
-        className={`Button ${className ? className : ''}`}
+        className={`jgis-button ${className ? className : ''}`}
         ref={ref}
         {...props}
       />
