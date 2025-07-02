@@ -16,21 +16,16 @@ interface ISelectedBands {
 
 type rgbEnum = keyof ISelectedBands;
 
-const MultibandColor: React.FC<ISymbologyDialogProps> = ({
-  model,
-  okSignalPromise,
-  cancel,
-  layerId,
-}) => {
-  if (!layerId) {
+const MultibandColor: React.FC<ISymbologyDialogProps> = props => {
+  if (!props.layerId) {
     return;
   }
-  const layer = model.getLayer(layerId);
+  const layer = props.model.getLayer(props.layerId);
   if (!layer?.parameters) {
     return;
   }
 
-  const { bandRows, setBandRows, loading } = useGetBandInfo(model, layer);
+  const { bandRows, setBandRows, loading } = useGetBandInfo(props.model, layer);
 
   const [selectedBands, setSelectedBands] = useState<ISelectedBands>({
     red: 1,
@@ -50,12 +45,12 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
   useEffect(() => {
     populateOptions();
 
-    okSignalPromise.promise.then(okSignal => {
+    props.okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk);
     });
 
     return () => {
-      okSignalPromise.promise.then(okSignal => {
+      props.okSignalPromise.promise.then(okSignal => {
         okSignal.disconnect(handleOk, this);
       });
     };
@@ -88,6 +83,9 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
 
   const handleOk = () => {
     // Update layer
+    if (!props.layerId) {
+      throw new Error('layerId is required for MultibandColor component');
+    }
     if (!layer.parameters) {
       return;
     }
@@ -119,8 +117,8 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
     layer.parameters.color = colorExpr;
     layer.type = 'WebGlLayer';
 
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+    props.model.sharedModel.updateLayer(props.layerId, layer);
+    props.cancel();
   };
 
   return (
