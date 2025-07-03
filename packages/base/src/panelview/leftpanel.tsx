@@ -1,8 +1,8 @@
 import {
-	IJupyterGISModel,
-	ISelection,
-	JupyterGISDoc,
-	SelectionType,
+  IJupyterGISModel,
+  ISelection,
+  JupyterGISDoc,
+  SelectionType,
 } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { SidePanel } from '@jupyterlab/ui-components';
@@ -20,210 +20,200 @@ import { ControlPanelHeader } from './header';
  * Options of the left panel widget.
  */
 export interface ILeftPanelOptions {
-	model: IJupyterGISModel;
-	onSelect: ({
-		type,
-		item,
-		nodeId,
-	}: ILeftPanelClickHandlerParams) => void;
+  model: IJupyterGISModel;
+  onSelect: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
 }
 
 export interface ILayerPanelOptions extends ILeftPanelOptions {
-	state: IStateDB;
+  state: IStateDB;
 }
 
 export interface ILeftPanelClickHandlerParams {
-	type: SelectionType;
-	item: string;
-	nodeId?: string;
-	event: ReactMouseEvent;
+  type: SelectionType;
+  item: string;
+  nodeId?: string;
+  event: ReactMouseEvent;
 }
 
 export class LeftPanelWidget extends SidePanel {
-	constructor(options: LeftPanelWidget.IOptions) {
-		super();
-		this.addClass('jGIS-sidepanel-widget');
-		this.addClass('data-jgis-keybinding');
-		this.node.tabIndex = 0;
+  constructor(options: LeftPanelWidget.IOptions) {
+    super();
+    this.addClass('jGIS-sidepanel-widget');
+    this.addClass('data-jgis-keybinding');
+    this.node.tabIndex = 0;
 
-		this._model = options.model;
-		this._state = options.state;
-		this._commands = options.commands;
+    this._model = options.model;
+    this._state = options.state;
+    this._commands = options.commands;
 
-		const header = new ControlPanelHeader();
-		this.header.addWidget(header);
+    const header = new ControlPanelHeader();
+    this.header.addWidget(header);
 
-		const layerTree = new LayersPanel({
-			model: this._model,
-			state: this._state,
-			onSelect: this._onSelect,
-		});
+    const layerTree = new LayersPanel({
+      model: this._model,
+      state: this._state,
+      onSelect: this._onSelect,
+    });
 
-		layerTree.title.caption = 'Layer tree';
-		layerTree.title.label = 'Layers';
-		this.addWidget(layerTree);
+    layerTree.title.caption = 'Layer tree';
+    layerTree.title.label = 'Layers';
+    this.addWidget(layerTree);
 
-		const stacPanel = new StacPanel({
-			model: this._model,
-		});
+    const stacPanel = new StacPanel({
+      model: this._model,
+    });
 
-		stacPanel.title.caption = 'STAC';
-		stacPanel.title.label = 'STAC';
-		this.addWidget(stacPanel);
+    stacPanel.title.caption = 'STAC';
+    stacPanel.title.label = 'STAC';
+    this.addWidget(stacPanel);
 
-		const filterPanel = new FilterPanel({
-			model: this._model,
-		});
+    const filterPanel = new FilterPanel({
+      model: this._model,
+    });
 
-		filterPanel.title.caption = 'Filters';
-		filterPanel.title.label = 'Filters';
-		this.addWidget(filterPanel);
-	}
+    filterPanel.title.caption = 'Filters';
+    filterPanel.title.label = 'Filters';
+    this.addWidget(filterPanel);
+  }
 
-	dispose(): void {
-		super.dispose();
-	}
+  dispose(): void {
+    super.dispose();
+  }
 
-	protected onAfterAttach(msg: Message): void {
-		super.onAfterAttach(msg);
-		const node = this.node;
-		node.addEventListener('mouseup', this);
-	}
+  protected onAfterAttach(msg: Message): void {
+    super.onAfterAttach(msg);
+    const node = this.node;
+    node.addEventListener('mouseup', this);
+  }
 
-	protected onBeforeDetach(msg: Message): void {
-		super.onBeforeDetach(msg);
-		const node = this.node;
-		node.removeEventListener('mouseup', this);
-	}
+  protected onBeforeDetach(msg: Message): void {
+    super.onBeforeDetach(msg);
+    const node = this.node;
+    node.removeEventListener('mouseup', this);
+  }
 
-	handleEvent(event: Event): void {
-		switch (event.type) {
-			case 'mouseup':
-				this._mouseUpEvent(event as MouseEvent);
-				break;
-			default:
-				break;
-		}
-	}
+  handleEvent(event: Event): void {
+    switch (event.type) {
+      case 'mouseup':
+        this._mouseUpEvent(event as MouseEvent);
+        break;
+      default:
+        break;
+    }
+  }
 
-	private _mouseUpEvent(event: MouseEvent): void {
-		// If we click on empty space in the layer panel, keep the focus on the last selected element
-		const node = document.getElementById(this._lastSelectedNodeId);
-		if (!node) {
-			return;
-		}
+  private _mouseUpEvent(event: MouseEvent): void {
+    // If we click on empty space in the layer panel, keep the focus on the last selected element
+    const node = document.getElementById(this._lastSelectedNodeId);
+    if (!node) {
+      return;
+    }
 
-		node.focus();
-	}
+    node.focus();
+  }
 
-	/**
-	 * Function to call when a layer is selected from a component of the panel.
-	 *
-	 * @param item - the selected layer or group.
-	 */
-	private _onSelect = ({
-		type,
-		item,
-		nodeId,
-		event,
-	}: ILeftPanelClickHandlerParams) => {
-		if (!this._model || !nodeId) {
-			return;
-		}
+  /**
+   * Function to call when a layer is selected from a component of the panel.
+   *
+   * @param item - the selected layer or group.
+   */
+  private _onSelect = ({
+    type,
+    item,
+    nodeId,
+    event,
+  }: ILeftPanelClickHandlerParams) => {
+    if (!this._model || !nodeId) {
+      return;
+    }
 
-		const jGISModel = this._model;
-		const selectedValue = jGISModel?.localState?.selected?.value;
-		const node = document.getElementById(nodeId);
+    const jGISModel = this._model;
+    const selectedValue = jGISModel?.localState?.selected?.value;
+    const node = document.getElementById(nodeId);
 
-		if (!node) {
-			return;
-		}
+    if (!node) {
+      return;
+    }
 
-		node.tabIndex = 0;
-		node.focus();
+    node.tabIndex = 0;
+    node.focus();
 
-		// Early return if no selection exists
-		if (!selectedValue) {
-			this.resetSelected(type, nodeId, item);
-			return;
-		}
+    // Early return if no selection exists
+    if (!selectedValue) {
+      this.resetSelected(type, nodeId, item);
+      return;
+    }
 
-		// Don't want to reset selected if right clicking a selected item
-		if (
-			!event.ctrlKey &&
-			event.button === 2 &&
-			item in selectedValue
-		) {
-			return;
-		}
+    // Don't want to reset selected if right clicking a selected item
+    if (!event.ctrlKey && event.button === 2 && item in selectedValue) {
+      return;
+    }
 
-		// Reset selection for normal left click
-		if (!event.ctrlKey) {
-			this.resetSelected(type, nodeId, item);
-			return;
-		}
+    // Reset selection for normal left click
+    if (!event.ctrlKey) {
+      this.resetSelected(type, nodeId, item);
+      return;
+    }
 
-		if (nodeId) {
-			// Check if new selection is the same type as previous selections
-			const isSelectedSameType = Object.values(
-				selectedValue,
-			).some(selection => selection.type === type);
+    if (nodeId) {
+      // Check if new selection is the same type as previous selections
+      const isSelectedSameType = Object.values(selectedValue).some(
+        selection => selection.type === type,
+      );
 
-			if (!isSelectedSameType) {
-				// Selecting a new type, so reset selected
-				this.resetSelected(type, nodeId, item);
-				return;
-			}
+      if (!isSelectedSameType) {
+        // Selecting a new type, so reset selected
+        this.resetSelected(type, nodeId, item);
+        return;
+      }
 
-			// If types are the same add the selection
-			const updatedSelectedValue = {
-				...selectedValue,
-				[item]: { type, selectedNodeId: nodeId },
-			};
-			this._lastSelectedNodeId = nodeId;
+      // If types are the same add the selection
+      const updatedSelectedValue = {
+        ...selectedValue,
+        [item]: { type, selectedNodeId: nodeId },
+      };
+      this._lastSelectedNodeId = nodeId;
 
-			jGISModel.syncSelected(updatedSelectedValue, this.id);
+      jGISModel.syncSelected(updatedSelectedValue, this.id);
 
-			this._notifyCommands();
-		}
-	};
+      this._notifyCommands();
+    }
+  };
 
-	resetSelected(type: SelectionType, nodeId?: string, item?: string) {
-		const selection: { [key: string]: ISelection } = {};
-		if (item && nodeId) {
-			selection[item] = {
-				type,
-				selectedNodeId: nodeId,
-			};
-			this._lastSelectedNodeId = nodeId;
-		}
-		this._model?.syncSelected(selection, this.id);
-		this._notifyCommands();
-	}
+  resetSelected(type: SelectionType, nodeId?: string, item?: string) {
+    const selection: { [key: string]: ISelection } = {};
+    if (item && nodeId) {
+      selection[item] = {
+        type,
+        selectedNodeId: nodeId,
+      };
+      this._lastSelectedNodeId = nodeId;
+    }
+    this._model?.syncSelected(selection, this.id);
+    this._notifyCommands();
+  }
 
-	private _notifyCommands() {
-		// Notify commands that need updating
-		this._commands.notifyCommandChanged(CommandIDs.identify);
-		this._commands.notifyCommandChanged(
-			CommandIDs.temporalController,
-		);
-	}
+  private _notifyCommands() {
+    // Notify commands that need updating
+    this._commands.notifyCommandChanged(CommandIDs.identify);
+    this._commands.notifyCommandChanged(CommandIDs.temporalController);
+  }
 
-	private _lastSelectedNodeId: string;
-	private _model: IJupyterGISModel;
-	private _state: IStateDB;
-	private _commands: CommandRegistry;
+  private _lastSelectedNodeId: string;
+  private _model: IJupyterGISModel;
+  private _state: IStateDB;
+  private _commands: CommandRegistry;
 }
 
 export namespace LeftPanelWidget {
-	export interface IOptions {
-		model: IJupyterGISModel;
-		state: IStateDB;
-		commands: CommandRegistry;
-	}
+  export interface IOptions {
+    model: IJupyterGISModel;
+    state: IStateDB;
+    commands: CommandRegistry;
+  }
 
-	export interface IProps {
-		filePath?: string;
-		sharedModel?: JupyterGISDoc;
-	}
+  export interface IProps {
+    filePath?: string;
+    sharedModel?: JupyterGISDoc;
+  }
 }
