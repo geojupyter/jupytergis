@@ -1,5 +1,4 @@
 {
-    "$id": "https://schemas.jupytergis.local/project/layers/symbology/geoTiffMultiBand.json",
     "type": "object",
     "description": "The state of the GeoTiff layer's multiband coloring symbology options",
     "required": [],

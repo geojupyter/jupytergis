@@ -1,5 +1,4 @@
 {
-    "$id": "https://schemas.jupytergis.local/project/layers/symbology/geoTiffSingleBand.json",
     "type": "object",
     "description": "The state of the GeoTiff layer's single band coloring symbology options",
     "required": [],

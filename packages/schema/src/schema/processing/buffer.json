@@ -1,5 +1,4 @@
 {
-  "$id": "https://schemas.jupytergis.local/processing/buffer.json",
   "type": "object",
   "description": "Buffer",
   "title": "IBuffer",

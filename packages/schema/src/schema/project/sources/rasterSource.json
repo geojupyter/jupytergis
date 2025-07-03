@@ -1,5 +1,4 @@
 {
-  "$id": "https://schemas.jupytergis.local/project/sources/rasterSource.json",
   "type": "object",
   "description": "RasterSource",
   "title": "IRasterSource",

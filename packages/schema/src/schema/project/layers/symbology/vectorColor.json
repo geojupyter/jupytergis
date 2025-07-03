@@ -1,5 +1,4 @@
 {
-    "$id": "https://schemas.jupytergis.local/project/layers/symbology/vectorColor.json",
     "type": "object",
     "description": "The state of the layer's color symbology options (fill color, stroke color etc.)",
     "required": ["renderType"],

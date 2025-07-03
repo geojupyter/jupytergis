@@ -1,5 +1,4 @@
 {
-  "$id": "https://schemas.jupytergis.local/processing/dissolve.json",
   "type": "object",
   "description": "Dissolve",
   "title": "IDissolve",

@@ -1,5 +1,4 @@
 {
-  "$id": "https://schemas.jupytergis.local/project/layers/heatmapLayer.json",
   "type": "object",
   "description": "VectorTileLayer",
   "title": "IVectorTileLayer",

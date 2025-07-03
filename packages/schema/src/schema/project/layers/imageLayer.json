@@ -1,5 +1,4 @@
 {
-  "$id": "https://schemas.jupytergis.local/project/layers/imageLayer.json",
   "type": "object",
   "description": "ImageLayer",
   "title": "IImageLayer",

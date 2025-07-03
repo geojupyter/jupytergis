@@ -1,5 +1,4 @@
 {
-  "$id": "https://schemas.jupytergis.local/project/layers/webGlLayer.json",
   "type": "object",
   "description": "WebGlLayer",
   "title": "IWebGlLayer",

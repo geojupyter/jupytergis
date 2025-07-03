@@ -1,5 +1,4 @@
 {
-  "$id": "https://schemas.jupytergis.local/processing/boundingBoxes.json",
   "type": "object",
   "description": "BoundingBoxes",
   "title": "IBoundingBoxes",

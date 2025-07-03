@@ -1,5 +1,4 @@
 {
-  "$id": "https://schemas.jupytergis.local/project/sources/shapefileSource.json",
   "type": "object",
   "description": "ShapefileSource",
   "title": "IShapefileSource",
