@@ -1,6 +1,7 @@
 {
-    "type": "object",
+    "title": "IVectorSize",
     "description": "The state of the layer's size symbology options (radius, line thickness etc.)",
+    "type": "object",
     "required": ["renderType"],
     "additionalProperties": false,
     "properties": {
