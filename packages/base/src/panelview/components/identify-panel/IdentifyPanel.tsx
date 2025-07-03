@@ -38,13 +38,13 @@ interface IIdentifyComponentProps {
   model: IJupyterGISModel;
 }
 
-const IdentifyPanelComponent = ({ model: model }: IIdentifyComponentProps) => {
+const IdentifyPanelComponent = (options: IIdentifyComponentProps) => {
   const [features, setFeatures] = useState<IDict<any>>();
   const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
     0: true,
   });
   const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
-  const jgisModel = model;
+  const jgisModel = options.model;
 
   const featuresRef = useRef(features);
 
