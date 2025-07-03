@@ -3,7 +3,6 @@ import {
   JupyterGISPanel,
   JupyterGISDocumentWidget,
   ToolbarWidget,
-  LeftPanelWidget,
   RightPanelWidget,
 } from '@jupytergis/base';
 import {
@@ -74,12 +73,6 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       model.contentsManager = this._contentsManager;
     }
 
-    const leftControlPanel = new LeftPanelWidget({
-      model: model,
-      state: this.options.state,
-      commands: this.options.commands,
-    });
-
     const rightControlPanel = new RightPanelWidget({
       model: model,
       formSchemaRegistry: this.options.formSchemaRegistry,
@@ -94,7 +87,7 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       rendermime: this.options.rendermime,
       consoleTracker: this.options.consoleTracker,
       commandRegistry: this.options.commands,
-      leftControlPanel: leftControlPanel,
+      state: this.options.state,
       rightControlPanel: rightControlPanel,
     });
     const toolbar = new ToolbarWidget({

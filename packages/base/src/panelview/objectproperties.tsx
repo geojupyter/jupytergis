@@ -1,4 +1,4 @@
-import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
+import { IJGISFormSchemaRegistry, IJupyterGISClientState, IJupyterGISModel } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/apputils';
 import { PanelWithToolbar } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
@@ -44,6 +44,9 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
       model: props.model,
     };
 
+    this.props.model.clientStateChanged.connect(
+      this._onClientSharedStateChanged,
+    );
     this.props.model?.sharedLayersChanged.connect(this._sharedJGISModelChanged);
     this.props.model?.sharedSourcesChanged.connect(
       this._sharedJGISModelChanged,
@@ -52,6 +55,44 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
 
   private _sharedJGISModelChanged = (): void => {
     this.forceUpdate();
+  };
+
+  private _onClientSharedStateChanged = (
+    sender: IJupyterGISModel,
+    clients: Map<number, IJupyterGISClientState>,
+  ): void => {
+    let newState: IJupyterGISClientState | undefined;
+    const clientId = this.state.clientId;
+
+    const localState = clientId ? clients.get(clientId) : null;
+    if (
+      localState &&
+      localState.selected?.emitter &&
+      localState.selected.emitter !== this.state.id &&
+      localState.selected?.value
+    ) {
+      newState = localState;
+    }
+    if (newState) {
+      const selection = newState.selected.value;
+      const selectedObjectIds = Object.keys(selection || {});
+      // Only show object properties if ONE object is selected
+      if (selection === undefined || selectedObjectIds.length !== 1) {
+        this.setState(old => ({
+          ...old,
+          selectedObject: undefined,
+        }));
+        return;
+      }
+
+      const selectedObject = selectedObjectIds[0];
+      if (selectedObject !== this.state.selectedObject) {
+        this.setState(old => ({
+          ...old,
+          selectedObject,
+        }));
+      }
+    }
   };
 
   render(): React.ReactNode {
