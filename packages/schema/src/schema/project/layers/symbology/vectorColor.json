@@ -1,6 +1,7 @@
 {
-    "type": "object",
+    "title": "IVectorColor",
     "description": "The state of the layer's color symbology options (fill color, stroke color etc.)",
+    "type": "object",
     "required": ["renderType"],
     "additionalProperties": false,
     "properties": {
