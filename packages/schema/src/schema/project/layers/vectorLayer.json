@@ -19,7 +19,16 @@
     },
     "symbology": {
       "type": "object",
-      "description": "The user inputs for symbology options"
+      "description": "The user inputs for symbology options",
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "$ref": "project/layers/symbology/vectorColor.json"
+        },
+        "size": {
+          "$ref": "project/layers/symbology/vectorSize.json"
+        }
+      }
     }
   }
 }

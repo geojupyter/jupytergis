@@ -10,7 +10,6 @@
         },
         "selectedAttribute": {
             "type": "string",
-            "title": "Attribute",
             "description": "The selected attribute for varying the color"
         },
         "colorRamp": {
