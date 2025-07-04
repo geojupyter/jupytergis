@@ -1,9 +1,4 @@
-import {
-  IJGISFormSchemaRegistry,
-  IJupyterGISClientState,
-  IJupyterGISModel,
-  IJupyterGISTracker,
-} from '@jupytergis/schema';
+import { IJGISFormSchemaRegistry, IJupyterGISClientState, IJupyterGISModel } from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/apputils';
 import { PanelWithToolbar } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
@@ -11,7 +6,6 @@ import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { EditForm } from '@/src/formbuilder/editform';
-import { IControlPanelModel } from '@/src/types';
 
 export class ObjectProperties extends PanelWithToolbar {
   constructor(params: ObjectProperties.IOptions) {
@@ -19,9 +13,8 @@ export class ObjectProperties extends PanelWithToolbar {
     this.title.label = 'Objects Properties';
     const body = ReactWidget.create(
       <ObjectPropertiesReact
-        cpModel={params.controlPanelModel}
-        tracker={params.tracker}
         formSchemaRegistry={params.formSchemaRegistry}
+        model={params.model}
       />,
     );
     this.addWidget(body);
@@ -38,51 +31,26 @@ interface IStates {
 }
 
 interface IProps {
-  cpModel: IControlPanelModel;
-  tracker: IJupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
+  model: IJupyterGISModel;
 }
 
 class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
     this.state = {
-      model: props.tracker.currentWidget?.model,
       clientId: null,
       id: uuid(),
+      model: props.model,
     };
 
-    this.props.cpModel.jGISModel?.sharedLayersChanged.connect(
+    this.props.model.clientStateChanged.connect(
+      this._onClientSharedStateChanged,
+    );
+    this.props.model?.sharedLayersChanged.connect(this._sharedJGISModelChanged);
+    this.props.model?.sharedSourcesChanged.connect(
       this._sharedJGISModelChanged,
     );
-    this.props.cpModel.jGISModel?.sharedSourcesChanged.connect(
-      this._sharedJGISModelChanged,
-    );
-    this.props.cpModel.documentChanged.connect((_, changed) => {
-      if (changed) {
-        this.props.cpModel.disconnect(this._sharedJGISModelChanged);
-        this.props.cpModel.disconnect(this._onClientSharedStateChanged);
-
-        changed.model.sharedLayersChanged.connect(this._sharedJGISModelChanged);
-        changed.model.sharedSourcesChanged.connect(
-          this._sharedJGISModelChanged,
-        );
-        changed.model.clientStateChanged.connect(
-          this._onClientSharedStateChanged,
-        );
-        this.setState(old => ({
-          ...old,
-          model: changed.model,
-          filePath: changed.model.filePath,
-          clientId: changed.model.getClientId(),
-        }));
-      } else {
-        this.setState({
-          model: undefined,
-          selectedObject: undefined,
-        });
-      }
-    });
   }
 
   private _sharedJGISModelChanged = (): void => {
@@ -164,8 +132,7 @@ export namespace ObjectProperties {
    * Instantiation options for `ObjectProperties`.
    */
   export interface IOptions extends Panel.IOptions {
-    controlPanelModel: IControlPanelModel;
+    model: IJupyterGISModel;
     formSchemaRegistry: IJGISFormSchemaRegistry;
-    tracker: IJupyterGISTracker;
   }
 }

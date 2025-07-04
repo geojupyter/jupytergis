@@ -2,12 +2,10 @@ import {
   IAnnotationModel,
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
-  IJupyterGISTracker,
   JupyterGISDoc,
 } from '@jupytergis/schema';
 import { SidePanel } from '@jupyterlab/ui-components';
 
-import { IControlPanelModel } from '@/src/types';
 import { Annotations } from './annotationPanel';
 import IdentifyPanel from './components/identify-panel/IdentifyPanel';
 import { ControlPanelHeader } from './header';
@@ -26,9 +24,8 @@ export class RightPanelWidget extends SidePanel {
     const header = new ControlPanelHeader();
     this.header.addWidget(header);
     const properties = new ObjectProperties({
-      controlPanelModel: this._model,
       formSchemaRegistry: options.formSchemaRegistry,
-      tracker: options.tracker,
+      model: options.model,
     });
 
     this.addWidget(properties);
@@ -41,66 +38,26 @@ export class RightPanelWidget extends SidePanel {
 
     const identifyPanel = new IdentifyPanel({
       model: this._model,
-      tracker: options.tracker,
     });
     identifyPanel.title.caption = 'Identify';
     identifyPanel.title.label = 'Identify';
     identifyPanel.addClass('jgis-scrollable');
     this.addWidget(identifyPanel);
-
-    this._handleFileChange = () => {
-      header.title.label = this._currentModel?.filePath || '-';
-    };
-
-    this._model.documentChanged.connect((_, changed) => {
-      if (changed) {
-        if (changed.model.sharedModel.editable) {
-          header.title.label = changed.model.filePath;
-          properties.show();
-        } else {
-          header.title.label = `${changed.model.filePath} - Read Only`;
-          properties.hide();
-        }
-      } else {
-        header.title.label = '-';
-      }
-    });
-
-    options.tracker.currentChanged.connect(async (_, changed) => {
-      if (changed) {
-        if (this._currentModel) {
-          this._currentModel.pathChanged.disconnect(this._handleFileChange);
-        }
-        this._currentModel = changed.model;
-        header.title.label = this._currentModel.filePath;
-        this._currentModel.pathChanged.connect(this._handleFileChange);
-        this._annotationModel.model =
-          options.tracker.currentWidget?.model || undefined;
-        // await changed.context.ready;
-      } else {
-        header.title.label = '-';
-        this._currentModel = null;
-        this._annotationModel.model = undefined;
-      }
-    });
   }
 
   dispose(): void {
     super.dispose();
   }
 
-  private _currentModel: IJupyterGISModel | null;
-  private _handleFileChange: () => void;
-  private _model: IControlPanelModel;
+  private _model: IJupyterGISModel;
   private _annotationModel: IAnnotationModel;
 }
 
 export namespace RightPanelWidget {
   export interface IOptions {
-    model: IControlPanelModel;
-    tracker: IJupyterGISTracker;
     formSchemaRegistry: IJGISFormSchemaRegistry;
     annotationModel: IAnnotationModel;
+    model: IJupyterGISModel;
   }
   export interface IProps {
     filePath?: string;
