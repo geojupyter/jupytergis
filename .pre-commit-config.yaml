@@ -18,6 +18,7 @@ repos:
       - id: check-added-large-files
         args: ['--maxkb=5000']
       - id: check-case-conflict
+      - id: check-json
       - id: check-toml
       - id: check-yaml
       - id: debug-statements
