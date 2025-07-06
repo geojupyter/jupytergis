@@ -239,13 +239,12 @@ const activate = async (
     }
   }
 
-
   // Inject “New JupyterGIS file” into the File Browser context menu
   app.contextMenu.addItem({
     command: CommandIDs.createNew,
     selector: '.jp-DirListing',
     rank: 55,
-    args: { label: 'New JupyterGIS file' }
+    args: { label: 'New JupyterGIS file' },
   });
 };
 
