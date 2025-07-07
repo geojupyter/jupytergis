@@ -6,7 +6,7 @@ test.describe('#newFile', () => {
   });
 
   test('New file should open with no errors', async ({ page }) => {
-    await page.getByLabel('notebook content').getByText('GIS File').click();
+    await page.getByLabel('notebook content').getByText('GIS Project').click();
 
     const tab = page.getByLabel('notebook content');
     const layers = page.getByText('Layers', { exact: true });
