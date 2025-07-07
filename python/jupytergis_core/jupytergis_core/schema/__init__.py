@@ -10,7 +10,7 @@ from .interfaces.project.layers.heatmapLayer import IHeatmapLayer  # noqa
 
 from .interfaces.project.sources.vectorTileSource import IVectorTileSource  # noqa
 from .interfaces.project.sources.rasterSource import IRasterSource  # noqa
-from .interfaces.geoJsonSource import IGeoJSONSource  # noqa
+from .interfaces.project.sources.geoJsonSource import IGeoJSONSource  # noqa
 from .interfaces.project.sources.videoSource import IVideoSource  # noqa
 from .interfaces.project.sources.imageSource import IImageSource  # noqa
 from .interfaces.project.sources.geoTiffSource import IGeoTiffSource  # noqa
