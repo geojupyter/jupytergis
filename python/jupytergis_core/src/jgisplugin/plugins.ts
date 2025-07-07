@@ -151,7 +151,7 @@ const activate = async (
   });
 
   app.commands.addCommand(CommandIDs.createNew, {
-    label: args => 'GIS File',
+    label: args => (args['label'] as string) ?? 'GIS Project',
     caption: 'Create a new JGIS Editor',
     icon: args => logoIcon,
     execute: async args => {
@@ -238,6 +238,14 @@ const activate = async (
       });
     }
   }
+
+  // Inject “New JupyterGIS file” into the File Browser context menu
+  app.contextMenu.addItem({
+    command: CommandIDs.createNew,
+    selector: '.jp-DirListing',
+    rank: 55,
+    args: { label: 'New JupyterGIS Project' },
+  });
 };
 
 const jGISPlugin: JupyterFrontEndPlugin<void> = {
