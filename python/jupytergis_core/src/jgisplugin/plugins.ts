@@ -151,7 +151,7 @@ const activate = async (
   });
 
   app.commands.addCommand(CommandIDs.createNew, {
-    label: args => (args['label'] as string) ?? 'GIS File',
+    label: args => (args['label'] as string) ?? 'GIS Project',
     caption: 'Create a new JGIS Editor',
     icon: args => logoIcon,
     execute: async args => {
@@ -244,7 +244,7 @@ const activate = async (
     command: CommandIDs.createNew,
     selector: '.jp-DirListing',
     rank: 55,
-    args: { label: 'New JupyterGIS file' },
+    args: { label: 'New JupyterGIS Project' },
   });
 };
 
