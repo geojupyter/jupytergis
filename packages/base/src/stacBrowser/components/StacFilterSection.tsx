@@ -139,10 +139,17 @@ const StacFilterSection = ({
     }
   }, [section, data, selectedCollections, selectedData, handleCheckedChange]);
 
+  const isTriggerDisabled =
+    (section === 'Platform' || section === 'Data / Product') &&
+    selectedCollections.length === 0;
+
   return (
     <div className="jgis-stac-filter-section-container">
       <DropdownMenu modal={false}>
-        <DropdownMenuTrigger className="jgis-stac-filter-trigger">
+        <DropdownMenuTrigger
+          className="jgis-stac-filter-trigger"
+          disabled={isTriggerDisabled}
+        >
           {section}
           <ChevronRight className="DropdownMenuIcon" />
         </DropdownMenuTrigger>
