@@ -1,4 +1,4 @@
-# Code quality
+# Check code quality
 
 ```{seealso}
 Complete [dev install](./development_setup) instructions before continuing.

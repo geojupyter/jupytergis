@@ -12,10 +12,5 @@ To chat with other contributors, please
 development_setup
 how-tos/index
 explanation/index
-testing
-code_quality
-releasing
-docs
 troubleshooting
-tutorial_writing_guide
 ```
