@@ -167,7 +167,6 @@ const StacFilterSection = ({
               size="icon-sm"
               className="jgis-stac-badge-icon"
               onClick={() => {
-                console.log('data', data);
                 handleCheckedChange(data, '');
               }}
             >
