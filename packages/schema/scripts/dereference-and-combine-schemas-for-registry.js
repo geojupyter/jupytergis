@@ -1,13 +1,10 @@
+/*
+ * Dereference all schemas and combine into a single file for building the
+ * schema registry (see `python/jupytergis_core/src/schemaregistry.ts`).
+ */
 const path = require("path");
 const fs = require("fs");
 const $RefParser = require("@apidevtools/json-schema-ref-parser");
-const schemaPath = path.join(__dirname, "src/schema");
-const allSchema = {};
-
-// Add: extract version and write version files
-const version = JSON.parse(fs.readFileSync(path.join(schemaPath, "project/jgis.json"))).properties.schemaVersion.default;
-fs.writeFileSync(path.join(__dirname, "src/_interface/version.d.ts"), `export declare const SCHEMA_VERSION = '${version}';\n`);
-fs.writeFileSync(path.join(__dirname, "src/_interface/version.js"), `export const SCHEMA_VERSION = '${version}';\n`);
 
 function getSchemaFiles(dir) {
   let results = [];
@@ -28,14 +25,12 @@ function getSchemaFiles(dir) {
   return results;
 }
 
-
-fs.cpSync(path.join(__dirname, "src/_interface"), "../../lib/_interface", {
-  recursive: true,
-});
-
-// Process all schema files
+// Dereference all schema files and combine into `forms.json`
+const packagePath = path.resolve(path.join(__dirname, "../"));
+const schemaPath = path.join(packagePath, "src/schema");
 const schemaFiles = getSchemaFiles(schemaPath);
 
+const allSchema = {};
 schemaFiles.forEach((file) => {
   const rawData = fs.readFileSync(file);
   const data = JSON.parse(rawData);
@@ -49,7 +44,7 @@ schemaFiles.forEach((file) => {
         allSchema[description] = props;
       }
       fs.writeFileSync(
-        "../../lib/_interface/forms.json",
+        path.join(packagePath, "lib/_interface/forms.json"),
         JSON.stringify(allSchema, null, 2),
       );
     }
