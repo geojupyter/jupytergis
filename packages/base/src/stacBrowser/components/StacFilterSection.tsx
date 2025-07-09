@@ -1,7 +1,10 @@
+import { faXmark } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ChevronRight } from 'lucide-react';
 import React, { useMemo } from 'react';
 
 import Badge from '@/src/shared/components/Badge';
+import { Button } from '@/src/shared/components/Button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -157,7 +160,19 @@ const StacFilterSection = ({
       </DropdownMenu>
       <div className="jgis-stac-filter-section-badges">
         {selectedData.map(data => (
-          <Badge key={data}>{data}</Badge>
+          <Badge key={data} className="jgis-stac-badge">
+            <span>{data}</span>
+            <Button
+              variant="icon"
+              size="icon-sm"
+              className="jgis-stac-badge-icon"
+              onClick={() => {
+                handleCheckedChange(data, '');
+              }}
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </Button>
+          </Badge>
         ))}
       </div>
     </div>
