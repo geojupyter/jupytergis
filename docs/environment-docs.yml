@@ -15,6 +15,7 @@ dependencies:
   - sphinx-autodoc-typehints
   - sphinx-exercise
   - sphinx-togglebutton
+  - sphinxcontrib-mermaid
   - myst-parser
   - xeus-python # TODO: Do we need this?
 

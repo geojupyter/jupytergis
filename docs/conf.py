@@ -19,6 +19,7 @@ extensions = [
     "sphinx_tabs.tabs",
     "sphinx_exercise",
     "sphinx_togglebutton",
+    "sphinxcontrib.mermaid",
     "myst_parser",
 ]
 
