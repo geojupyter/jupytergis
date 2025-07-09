@@ -9,9 +9,12 @@ Python and TypeScript packages.
 There are 3 code generation targets: the schema registry, TypeScript types, and Python
 types.
 
+You can run all code generation tasks with `jlpm run build:schema`, or run them
+individually using the commands in the diagram below.
+
 ```{mermaid}
 flowchart LR
-    package-manifest[package.json]
+    package-manifest[packages/schema/package.json]
     npm-script-schema-registry{{build:schema:registry}}
     npm-script-schema-js{{build:schema:js}}
     npm-script-schema-py{{build:schema:py}}
