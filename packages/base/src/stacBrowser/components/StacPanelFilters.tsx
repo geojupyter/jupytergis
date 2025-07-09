@@ -13,8 +13,8 @@ import {
 import StacFilterSection from '@/src/stacBrowser/components/StacFilterSection';
 import {
   datasets as datasetsList,
-  platforms,
-  products,
+  platforms as platformsList,
+  products as productsList,
 } from '@/src/stacBrowser/constants';
 import {
   StacFilterState,
@@ -57,6 +57,28 @@ const StacPanelFilters = ({
       });
       if (datasetsForCollection.length === 0) {
         collections.delete(collection);
+
+        const platforms = new Set(filterState.platforms);
+        const products = new Set(filterState.products);
+
+        // Remove platforms belonging to this collection
+        if (platformsList[collection as keyof typeof platformsList]) {
+          platformsList[collection as keyof typeof platformsList].forEach(
+            platform => {
+              platforms.delete(platform);
+            },
+          );
+        }
+
+        // Remove products belonging to this collection
+        productsList
+          .filter(product => product.collections.includes(collection))
+          .forEach(product => {
+            products.delete(product.productCode);
+          });
+
+        filterSetters.platforms(platforms);
+        filterSetters.products(products);
       }
     } else {
       datasets.add(dataset);
@@ -127,14 +149,14 @@ const StacPanelFilters = ({
       />
       <StacFilterSection
         section="Platform"
-        data={platforms}
+        data={platformsList}
         selectedCollections={Array.from(filterState.collections)}
         selectedData={Array.from(filterState.platforms)}
         handleCheckedChange={platform => handleToggle('platforms', platform)}
       />
       <StacFilterSection
         section="Data / Product"
-        data={products}
+        data={productsList}
         selectedCollections={Array.from(filterState.collections)}
         selectedData={Array.from(filterState.products)}
         handleCheckedChange={product => handleToggle('products', product)}
