@@ -8,24 +8,25 @@ Python and TypeScript packages.
 There are 3 code generation targets: the schema registry, TypeScript types, and Python
 types.
 
+Code generation tasks are defined in `packages/schema/package.json`.
 You can run all code generation tasks with `jlpm run build:schema`, or run them
 individually using the commands in the diagram below.
 
 ```mermaid
 flowchart TD
-    package-manifest[packages/schema/package.json]
-    npm-script-schema-registry{{build:schema:registry}}
-    npm-script-schema-js{{build:schema:js}}
-    npm-script-schema-py{{build:schema:py}}
+    package-manifest["package.json"]
+    npm-script-schema-registry{{"build:schema:registry"}}
+    npm-script-schema-js{{"build:schema:js"}}
+    npm-script-schema-py{{"build:schema:py"}}
 
-    combined-schema[(Combined schema<br/>&lpar;forms.json&rpar;)]
-    schema-registry[[python/jupytergis_core/src/schemaregistry.ts]]
-    react-forms[[React forms]]
+    combined-schema[("Combined schema<br/>(forms.json)")]
+    schema-registry[["schemaregistry.ts"]]
+    react-forms[["React forms"]]
 
-    ts-types[(TypeScript type definitions)]
+    ts-types[("TypeScript type definitions")]
 
-    tmp-schema[(Temporary schema<br/>&lpar;Normalized $ref paths&rpar;)]
-    py-types[(Python type definitions)]
+    tmp-schema[("Temporary schema<br/>(rewritten $ref paths)")]
+    py-types[("Python type definitions")]
 
     package-manifest -->|jlpm run| npm-script-schema-registry
     package-manifest -->|jlpm run| npm-script-schema-js
