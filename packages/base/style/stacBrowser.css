@@ -76,3 +76,16 @@
   width: 1rem;
   height: 1rem;
 }
+
+.jgis-stac-badge {
+  gap: 0.25rem;
+  padding-right: 0.3rem !important;
+}
+
+.jgis-stac-badge-icon:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--jp-error-color0),
+    transparent 20%
+  ) !important;
+}
