@@ -5,11 +5,92 @@ import {
   JupyterGISDoc,
 } from '@jupytergis/schema';
 import { SidePanel } from '@jupyterlab/ui-components';
+import * as React from 'react';
 
-import { Annotations } from './annotationPanel';
-import IdentifyPanel from './components/identify-panel/IdentifyPanel';
+import { Annotations, AnnotationsPanel } from './annotationPanel';
+import IdentifyPanel, {
+  IdentifyPanelComponent,
+} from './components/identify-panel/IdentifyPanel';
 import { ControlPanelHeader } from './header';
-import { ObjectProperties } from './objectproperties';
+import { ObjectPropertiesReact, ObjectProperties } from './objectproperties';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '../shared/components/Tabs';
+
+interface IRightComponentProps {
+  formSchemaRegistry: IJGISFormSchemaRegistry;
+  annotationModel: IAnnotationModel;
+  model: IJupyterGISModel;
+}
+
+export const RightPanelComponent = (options: IRightComponentProps) => {
+  return (
+    <div
+      style={{
+        width: 300,
+        position: 'absolute',
+        top: 30,
+        right: 0,
+      }}
+    >
+      <Tabs defaultValue="filters" className="jgis-stac-browser-main">
+        <TabsList style={{ borderRadius: 5, fontSize: 8 }}>
+          <TabsTrigger
+            className="jGIS-layer-browser-category"
+            value="objectProperties"
+          >
+            Object Properties
+          </TabsTrigger>
+          <TabsTrigger
+            className="jGIS-layer-browser-category"
+            value="annotations"
+          >
+            Annotations
+          </TabsTrigger>
+          <TabsTrigger
+            className="jGIS-layer-browser-category"
+            value="identifyPanel"
+          >
+            Identify Panels
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent
+          value="objectProperties"
+          style={{
+            borderRadius: 5,
+            fontSize: 10,
+            backgroundColor: '#eef',
+          }}
+        >
+          <ObjectPropertiesReact
+            formSchemaRegistry={options.formSchemaRegistry}
+            model={options.model}
+          />
+        </TabsContent>
+        <TabsContent value="annotations">
+          <AnnotationsPanel
+            annotationModel={options.annotationModel}
+            rightPanelModel={options.model}
+          ></AnnotationsPanel>
+        </TabsContent>
+        <TabsContent
+          value="identifyPanel"
+          style={{
+            borderRadius: 5,
+            backgroundColor: '#eef',
+          }}
+        >
+          <IdentifyPanelComponent
+            model={options.model}
+          ></IdentifyPanelComponent>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
 
 export class RightPanelWidget extends SidePanel {
   constructor(options: RightPanelWidget.IOptions) {

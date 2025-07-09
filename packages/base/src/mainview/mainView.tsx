@@ -1,7 +1,7 @@
-import { IStateDB } from '@jupyterlab/statedb';
 import { MapChange } from '@jupyter/ydoc';
 import {
   IAnnotation,
+  IAnnotationModel,
   IDict,
   IGeoTiffSource,
   IHeatmapLayer,
@@ -9,6 +9,7 @@ import {
   IImageLayer,
   IImageSource,
   IJGISFilterItem,
+  IJGISFormSchemaRegistry,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -34,9 +35,10 @@ import {
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
+import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
-import { ContextMenu, Widget } from '@lumino/widgets';
+import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine } from 'ol/control';
@@ -80,19 +82,17 @@ import StacLayer from 'ol-stac';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
-import { Rnd } from 'react-rnd';
 
 import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import StatusBar from '@/src/statusbar/StatusBar';
-import { isLightTheme, loadFile, throttle } from '@/src/tools';
-import Lumino from '../Lumino';
+import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import { LeftPanelComponent } from '../panelview';
+import { LeftPanelComponent, RightPanelComponent } from '../panelview';
 
 type OlLayerTypes =
   | TileLayer
@@ -106,7 +106,8 @@ type OlLayerTypes =
 interface IProps {
   viewModel: MainViewModel;
   state?: IStateDB;
-  rightPanel?: Widget;
+  formSchemaRegistry?: IJGISFormSchemaRegistry;
+  annotationModel?: IAnnotationModel;
 }
 
 interface IStates {
@@ -128,8 +129,11 @@ interface IStates {
 export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
-
     this._state = props.state;
+
+    this._formSchemaRegistry = props.formSchemaRegistry;
+
+    this._annotationModel = props.annotationModel;
 
     // Enforce the map to take the full available width in the case of Jupyter Notebook viewer
     const el = document.getElementById('main-panel');
@@ -160,7 +164,6 @@ export class MainView extends React.Component<IProps, IStates> {
       resizeObserver.observe(el);
     }
 
-    this._rightPanel = props.rightPanel;
     this._mainViewModel = this.props.viewModel;
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
 
@@ -225,6 +228,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._contextMenu = new ContextMenu({
       commands: this._commands,
     });
+    this._updateCenter = debounce(this.updateCenter, 100);
   }
 
   async componentDidMount(): Promise<void> {
@@ -2205,51 +2209,20 @@ export class MainView extends React.Component<IProps, IStates> {
             scale={this.state.scale}
           />
         </div>
-        {this._state &&
-        <Rnd
-            default={{
-              x: 400,
-              y: 0,
-              width: 200,
-              height: 600,
-            }}
-            bounds="window"
-            minWidth={100}
-            minHeight={100}
-          >
-            <LeftPanelComponent model={this._model} commands={this._commands} state={this._state}></LeftPanelComponent>
-          </Rnd>
-        }
-        {/* {this._leftPanel && (
-          <Rnd
-            default={{
-              x: 0,
-              y: 0,
-              width: 200,
-              height: 600,
-            }}
-            bounds="window"
-            minWidth={100}
-            minHeight={100}
-          >
-            <Lumino>{this._leftPanel}</Lumino>
-          </Rnd>
-        )} */}
 
-        {this._rightPanel && (
-          <Rnd
-            default={{
-              x: 400,
-              y: 0,
-              width: 200,
-              height: 600,
-            }}
-            bounds="window"
-            minWidth={100}
-            minHeight={100}
-          >
-            <Lumino>{this._rightPanel}</Lumino>
-          </Rnd>
+        {this._state && (
+          <LeftPanelComponent
+            model={this._model}
+            commands={this._commands}
+            state={this._state}
+          ></LeftPanelComponent>
+        )}
+        {this._formSchemaRegistry && this._annotationModel && (
+          <RightPanelComponent
+            model={this._model}
+            formSchemaRegistry={this._formSchemaRegistry}
+            annotationModel={this._annotationModel}
+          ></RightPanelComponent>
         )}
       </>
     );
@@ -2272,5 +2245,6 @@ export class MainView extends React.Component<IProps, IStates> {
   private _highlightLayer: VectorLayer<VectorSource>;
   private _updateCenter: CallableFunction;
   private _state?: IStateDB;
-  private _rightPanel?: Widget;
+  private _formSchemaRegistry?: IJGISFormSchemaRegistry;
+  private _annotationModel?: IAnnotationModel;
 }

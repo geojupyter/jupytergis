@@ -1,4 +1,6 @@
 import {
+  IAnnotationModel,
+  IJGISFormSchemaRegistry,
   IJupyterGISDocumentWidget,
   IJupyterGISModel,
   IJupyterGISOutputWidget,
@@ -7,6 +9,7 @@ import { MainAreaWidget } from '@jupyterlab/apputils';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
+import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue } from '@lumino/coreutils';
 import { MessageLoop } from '@lumino/messaging';
@@ -16,7 +19,6 @@ import { SplitPanel, Widget } from '@lumino/widgets';
 import { ConsoleView } from './console';
 import { JupyterGISMainViewPanel } from './mainview';
 import { MainViewModel } from './mainview/mainviewmodel';
-import { IStateDB } from '@jupyterlab/statedb';
 
 const CELL_OUTPUT_WIDGET_CLASS = 'jgis-cell-output-widget';
 
@@ -102,13 +104,14 @@ export class JupyterGISPanel extends SplitPanel {
       consoleTracker,
       state,
       commandRegistry,
-      rightControlPanel,
+      formSchemaRegistry,
+      annotationModel,
       ...consoleOption
     } = options;
 
     this._state = state;
     this._initModel({ model, commandRegistry });
-    this._initView(rightControlPanel);
+    this._initView(formSchemaRegistry, annotationModel);
     this._consoleOption = { commandRegistry, ...consoleOption };
     this._consoleTracker = consoleTracker;
   }
@@ -125,14 +128,16 @@ export class JupyterGISPanel extends SplitPanel {
     });
   }
 
-  _initView(rightControlPanel?: Widget) {
-    this._jupyterGISMainViewPanel = new JupyterGISMainViewPanel(
-      {
-        mainViewModel: this._mainViewModel,
-        state: this._state
-      },
-      rightControlPanel,
-    );
+  _initView(
+    formSchemaRegistry?: IJGISFormSchemaRegistry,
+    annotationModel?: IAnnotationModel,
+  ) {
+    this._jupyterGISMainViewPanel = new JupyterGISMainViewPanel({
+      mainViewModel: this._mainViewModel,
+      state: this._state,
+      formSchemaRegistry: formSchemaRegistry,
+      annotationModel: annotationModel,
+    });
     this.addWidget(this._jupyterGISMainViewPanel);
     SplitPanel.setStretch(this._jupyterGISMainViewPanel, 1);
   }
@@ -262,6 +267,7 @@ export namespace JupyterGISPanel {
     commandRegistry: CommandRegistry;
     state?: IStateDB;
     consoleTracker?: IConsoleTracker;
-    rightControlPanel?: Widget;
+    formSchemaRegistry?: IJGISFormSchemaRegistry;
+    annotationModel?: IAnnotationModel;
   }
 }

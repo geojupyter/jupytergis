@@ -1,4 +1,8 @@
-import { IJGISFormSchemaRegistry, IJupyterGISClientState, IJupyterGISModel } from '@jupytergis/schema';
+import {
+  IJGISFormSchemaRegistry,
+  IJupyterGISClientState,
+  IJupyterGISModel,
+} from '@jupytergis/schema';
 import { ReactWidget } from '@jupyterlab/apputils';
 import { PanelWithToolbar } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
@@ -35,11 +39,11 @@ interface IProps {
   model: IJupyterGISModel;
 }
 
-class ObjectPropertiesReact extends React.Component<IProps, IStates> {
+export class ObjectPropertiesReact extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
     this.state = {
-      clientId: null,
+      clientId: props.model.getClientId(),
       id: uuid(),
       model: props.model,
     };
@@ -99,7 +103,7 @@ class ObjectPropertiesReact extends React.Component<IProps, IStates> {
     const selectedObject = this.state.selectedObject;
 
     if (!selectedObject || !this.state.model) {
-      return <div></div>;
+      return <div style={{ textAlign: 'center' }}>No layer selected</div>;
     }
 
     let layerId: string | undefined = undefined;

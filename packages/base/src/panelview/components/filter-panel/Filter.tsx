@@ -285,6 +285,9 @@ const FilterComponent: React.FC<IFilterComponentProps> = props => {
           </div>
         </div>
       )}
+      {!shouldDisplay && (
+        <div style={{ textAlign: 'center' }}>No layer selected</div>
+      )}
     </>
   );
 };

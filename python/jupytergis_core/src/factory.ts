@@ -3,7 +3,6 @@ import {
   JupyterGISPanel,
   JupyterGISDocumentWidget,
   ToolbarWidget,
-  RightPanelWidget,
 } from '@jupytergis/base';
 import {
   JupyterGISModel,
@@ -73,12 +72,6 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       model.contentsManager = this._contentsManager;
     }
 
-    const rightControlPanel = new RightPanelWidget({
-      model: model,
-      formSchemaRegistry: this.options.formSchemaRegistry,
-      annotationModel: this.options.annotationModel,
-    });
-
     const content = new JupyterGISPanel({
       model,
       manager: this.options.manager,
@@ -88,7 +81,8 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       consoleTracker: this.options.consoleTracker,
       commandRegistry: this.options.commands,
       state: this.options.state,
-      rightControlPanel: rightControlPanel,
+      formSchemaRegistry: this.options.formSchemaRegistry,
+      annotationModel: this.options.annotationModel,
     });
     const toolbar = new ToolbarWidget({
       commands: this._commands,

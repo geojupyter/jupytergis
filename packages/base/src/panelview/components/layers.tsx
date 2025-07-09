@@ -8,11 +8,8 @@ import {
 } from '@jupytergis/schema';
 import { DOMUtils } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
-import {
-  Button,
-  LabIcon,
-  caretDownIcon,
-} from '@jupyterlab/ui-components';
+import { Button, LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
+import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import React, {
   MouseEvent as ReactMouseEvent,
@@ -22,10 +19,7 @@ import React, {
 
 import { CommandIDs, icons } from '@/src/constants';
 import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
-import {
-  ILeftPanelClickHandlerParams,
-} from '@/src/panelview/leftpanel';
-import { CommandRegistry } from '@lumino/commands';
+import { ILeftPanelClickHandlerParams } from '@/src/panelview/leftpanel';
 
 // const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
@@ -36,7 +30,6 @@ const LAYER_CLASS = 'jp-gis-layer';
 const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
 const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
-
 
 // /**
 //  * The layers panel widget.
@@ -156,7 +149,7 @@ export function LayersBodyComponent(props: IBodyProps): JSX.Element {
     // Notify commands that need updating
     props.commands.notifyCommandChanged(CommandIDs.identify);
     props.commands.notifyCommandChanged(CommandIDs.temporalController);
-  }
+  };
 
   const onSelect = ({
     type,
@@ -219,7 +212,11 @@ export function LayersBodyComponent(props: IBodyProps): JSX.Element {
     }
   };
 
-  const resetSelected = (type: SelectionType, nodeId?: string, item?: string) => {
+  const resetSelected = (
+    type: SelectionType,
+    nodeId?: string,
+    item?: string,
+  ) => {
     const selection: { [key: string]: ISelection } = {};
     if (item && nodeId) {
       selection[item] = {
@@ -230,7 +227,7 @@ export function LayersBodyComponent(props: IBodyProps): JSX.Element {
     props.model.syncSelected(selection, id);
 
     notifyCommands();
-  }
+  };
 
   /**
    * Propagate the layer selection.

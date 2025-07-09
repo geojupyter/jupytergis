@@ -13,6 +13,8 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
   constructor(props: IAnnotationPanelProps) {
     super(props);
 
+    console.log(props.annotationModel);
+
     const updateCallback = () => {
       this.forceUpdate();
     };
@@ -20,18 +22,8 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
     this._annotationModel = props.annotationModel;
     this._rightPanelModel = props.rightPanelModel;
 
-    this._annotationModel.modelChanged.connect(async () => {
-      // await this._annotationModel?.context?.ready;
-
-      this._annotationModel?.model?.sharedMetadataChanged.disconnect(
-        updateCallback,
-      );
-      this._annotationModel = props.annotationModel;
-      this._annotationModel?.model?.sharedMetadataChanged.connect(
-        updateCallback,
-      );
-      this.forceUpdate();
-    });
+    this._annotationModel?.model?.sharedMetadataChanged.connect(updateCallback);
+    this.forceUpdate();
   }
 
   render(): JSX.Element {
