@@ -1,4 +1,4 @@
-# Building JupyterGIS documentation locally
+# Build JupyterGIS documentation locally
 
 :::{tip}
 You can use `conda` or `mamba` as drop-in replacements for `micromamba` in the steps
