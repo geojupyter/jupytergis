@@ -81,7 +81,7 @@ The former expects "relative" paths, and the latter expects "absolute" paths.
 
 For example, if we have two schema files:
 
-```
+```text
 ├── referent.json
 └── subdir
     └── referrer.json
