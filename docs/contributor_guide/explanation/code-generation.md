@@ -3,7 +3,6 @@
 JupyterGIS leverages code generation to share information about data structures across
 Python and TypeScript packages.
 
-
 ## Overview
 
 There are 3 code generation targets: the schema registry, TypeScript types, and Python
@@ -43,7 +42,6 @@ flowchart LR
     --> |datamodel-code-generator| py-types
 ```
 
-
 ## Schema registry
 
 The schema registry is built for use in TypeScript code.
@@ -62,7 +60,6 @@ Now that we're building a schema registry for interfacing with schemas, perhaps 
 need a combined `forms.json` schema.
 :::
 
-
 ## TypeScript types
 
 TypeScript types are generated from the JSONSchema files using
@@ -71,12 +68,10 @@ TypeScript types are generated from the JSONSchema files using
 We additionally run a custom script (`scripts/add-schema-version.ts`) to generate a
 version number variable.
 
-
 ## Python types
 
 Python types are generated from the JSONSchema files using
 [`datamodel-code-generator`](https://github.com/koxudaxi/datamodel-code-generator).
-
 
 ### Weirdness with `$ref` paths
 
