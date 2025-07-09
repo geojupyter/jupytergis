@@ -11,7 +11,7 @@ types.
 You can run all code generation tasks with `jlpm run build:schema`, or run them
 individually using the commands in the diagram below.
 
-```{mermaid}
+```mermaid
 flowchart LR
     package-manifest[packages/schema/package.json]
     npm-script-schema-registry{{build:schema:registry}}
