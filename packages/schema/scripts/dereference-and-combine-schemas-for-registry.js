@@ -28,7 +28,10 @@ function getSchemaFiles(dir) {
 // Dereference all schema files and combine into `forms.json`
 const packagePath = path.resolve(path.join(__dirname, "../"));
 const schemaPath = path.join(packagePath, "src/schema");
+const interfacePath = path.join(packagePath, "lib/_interface");
 const schemaFiles = getSchemaFiles(schemaPath);
+
+fs.mkdirSync(interfacePath, {recursive: true});
 
 const allSchema = {};
 schemaFiles.forEach((file) => {
@@ -44,7 +47,7 @@ schemaFiles.forEach((file) => {
         allSchema[description] = props;
       }
       fs.writeFileSync(
-        path.join(packagePath, "lib/_interface/forms.json"),
+        path.join(interfacePath, "forms.json"),
         JSON.stringify(allSchema, null, 2),
       );
     }
