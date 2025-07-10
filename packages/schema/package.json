@@ -26,9 +26,10 @@
   },
   "scripts": {
     "build": "jlpm build:schema && jlpm build:lib",
-    "build:schema": "jlpm run build:processing && node ./cacheGeoJSONSchema.js && jlpm build:schema:js && jlpm build:schema:py",
+    "build:schema": "jlpm run build:processing && node ./cacheGeoJSONSchema.js && jlpm build:schema:registry && jlpm build:schema:js && jlpm build:schema:py",
     "build:processing": "python scripts/process.py",
-    "build:schema:js": "echo 'Generating TypeScript types from schema...' && json2ts -i src/schema -o src/_interface --no-unknownAny --unreachableDefinitions --cwd ./src/schema && cd src/schema && node ../../schema.js",
+    "build:schema:registry": "echo 'Generating combined schema file for schema registry...' && cd src/schema && node ../../scripts/dereference-and-combine-schemas-for-registry.js",
+    "build:schema:js": "echo 'Generating TypeScript types from schema...' && json2ts -i src/schema -o src/_interface --no-unknownAny --unreachableDefinitions --cwd ./src/schema && node ./scripts/add-schema-version.js && cp -R ./src/_interface/* ./lib/_interface/.",
     "build:schema:py": "echo 'Generating Python types from schema...' && node scripts/preprocess-schemas-for-python-type-generation.js && datamodel-codegen --input ./temp-schema --output ../../python/jupytergis_core/jupytergis_core/schema/interfaces --output-model-type pydantic_v2.BaseModel --input-file-type jsonschema && rm -rf ./temp-schema",
     "build:prod": "jlpm run clean && jlpm build:schema && jlpm run build:lib",
     "build:lib": "tsc -b",

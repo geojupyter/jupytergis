@@ -16,6 +16,7 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
+    "sphinxcontrib.mermaid",
     "sphinx_tabs.tabs",
     "sphinx_exercise",
     "sphinx_togglebutton",
@@ -25,6 +26,7 @@ extensions = [
 myst_enable_extensions = [
     "colon_fence",
 ]
+myst_fence_as_directive = ["mermaid"]
 
 master_doc = "index"
 project = "JupyterGIS"

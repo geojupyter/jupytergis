@@ -10,12 +10,7 @@ To chat with other contributors, please
 :maxdepth: 2
 
 development_setup
-architecture
 how-tos/index
-testing
-code_quality
-releasing
-docs
+explanation/index
 troubleshooting
-tutorial_writing_guide
 ```
