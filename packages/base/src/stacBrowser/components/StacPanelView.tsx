@@ -49,7 +49,10 @@ const StacPanelView = ({ model }: IStacViewProps) => {
           value="results"
         >{`Results (${totalResults})`}</TabsTrigger>
       </TabsList>
-      <TabsContent value="filters">
+      <TabsContent
+        value="filters"
+        style={{ backgroundColor: '#eef', padding: 8 }}
+      >
         <StacPanelFilters
           filterState={filterState}
           filterSetters={filterSetters}
@@ -61,7 +64,10 @@ const StacPanelView = ({ model }: IStacViewProps) => {
           setUseWorldBBox={setUseWorldBBox}
         />
       </TabsContent>
-      <TabsContent value="results">
+      <TabsContent
+        value="results"
+        style={{ backgroundColor: '#eef', padding: 8 }}
+      >
         <StacPanelResults
           results={results}
           currentPage={currentPage}

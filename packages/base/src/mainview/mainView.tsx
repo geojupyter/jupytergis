@@ -1,6 +1,7 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
   IAnnotation,
+  IAnnotationModel,
   IDict,
   IGeoTiffSource,
   IHeatmapLayer,
@@ -8,6 +9,7 @@ import {
   IImageLayer,
   IImageSource,
   IJGISFilterItem,
+  IJGISFormSchemaRegistry,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -33,6 +35,7 @@ import {
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
+import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu } from '@lumino/widgets';
@@ -89,6 +92,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import { LeftPanelComponent, RightPanelComponent } from '../panelview';
 
 type OlLayerTypes =
   | TileLayer
@@ -101,6 +105,9 @@ type OlLayerTypes =
   | ImageLayer<any>;
 interface IProps {
   viewModel: MainViewModel;
+  state?: IStateDB;
+  formSchemaRegistry?: IJGISFormSchemaRegistry;
+  annotationModel?: IAnnotationModel;
 }
 
 interface IStates {
@@ -122,6 +129,11 @@ interface IStates {
 export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
+    this._state = props.state;
+
+    this._formSchemaRegistry = props.formSchemaRegistry;
+
+    this._annotationModel = props.annotationModel;
 
     // Enforce the map to take the full available width in the case of Jupyter Notebook viewer
     const el = document.getElementById('main-panel');
@@ -2197,6 +2209,21 @@ export class MainView extends React.Component<IProps, IStates> {
             scale={this.state.scale}
           />
         </div>
+
+        {this._state && (
+          <LeftPanelComponent
+            model={this._model}
+            commands={this._commands}
+            state={this._state}
+          ></LeftPanelComponent>
+        )}
+        {this._formSchemaRegistry && this._annotationModel && (
+          <RightPanelComponent
+            model={this._model}
+            formSchemaRegistry={this._formSchemaRegistry}
+            annotationModel={this._annotationModel}
+          ></RightPanelComponent>
+        )}
       </>
     );
   }
@@ -2217,4 +2244,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
   private _updateCenter: CallableFunction;
+  private _state?: IStateDB;
+  private _formSchemaRegistry?: IJGISFormSchemaRegistry;
+  private _annotationModel?: IAnnotationModel;
 }
