@@ -4,24 +4,21 @@ import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import MultibandColor from './types/MultibandColor';
 import SingleBandPseudoColor from './types/SingleBandPseudoColor';
 
-const TiffRendering: React.FC<ISymbologyDialogProps> = ({
-  model,
-  state,
-  okSignalPromise,
-  cancel,
-  layerId,
-}) => {
+const TiffRendering: React.FC<ISymbologyDialogProps> = props => {
   const renderTypes = ['Singleband Pseudocolor', 'Multiband Color'];
   const [selectedRenderType, setSelectedRenderType] = useState<string>();
   const [componentToRender, setComponentToRender] = useState<any>(null);
 
   let RenderComponent;
 
-  if (!layerId) {
+  if (!props.layerId) {
     return;
   }
   useEffect(() => {
-    const layer = model.getLayer(layerId);
+    if (!props.layerId) {
+      throw new Error('Layer ID is required');
+    }
+    const layer = props.model.getLayer(props.layerId);
     const renderType = layer?.parameters?.symbologyState?.renderType;
     setSelectedRenderType(renderType ?? 'Singleband Pseudocolor');
   }, []);
@@ -35,22 +32,22 @@ const TiffRendering: React.FC<ISymbologyDialogProps> = ({
       case 'Singleband Pseudocolor':
         RenderComponent = (
           <SingleBandPseudoColor
-            model={model}
-            state={state}
-            okSignalPromise={okSignalPromise}
-            cancel={cancel}
-            layerId={layerId}
+            model={props.model}
+            state={props.state}
+            okSignalPromise={props.okSignalPromise}
+            cancel={props.cancel}
+            layerId={props.layerId}
           />
         );
         break;
       case 'Multiband Color':
         RenderComponent = (
           <MultibandColor
-            model={model}
-            state={state}
-            okSignalPromise={okSignalPromise}
-            cancel={cancel}
-            layerId={layerId}
+            model={props.model}
+            state={props.state}
+            okSignalPromise={props.okSignalPromise}
+            cancel={props.cancel}
+            layerId={props.layerId}
           />
         );
         break;
