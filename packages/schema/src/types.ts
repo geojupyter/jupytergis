@@ -9,6 +9,7 @@ export * from './_interface/project/sources/rasterSource';
 export * from './_interface/project/sources/shapefileSource';
 export * from './_interface/project/sources/vectorTileSource';
 export * from './_interface/project/sources/videoSource';
+export * from './_interface/project/sources/geoParquetSource';
 
 // Layers
 export * from './_interface/project/layers/heatmapLayer';

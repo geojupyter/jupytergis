@@ -320,6 +320,27 @@ export function addCommands(
     ...icons.get(CommandIDs.newVectorTileEntry),
   });
 
+  commands.addCommand(CommandIDs.newGeoParquetEntry, {
+    label: trans.__('New GeoParquet Layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoParquet Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { name: 'Custom GeoParquet Source' },
+      layerData: { name: 'Custom GeoParquet Layer' },
+      sourceType: 'GeoParquetSource',
+      layerType: 'VectorLayer',
+    }),
+    ...icons.get(CommandIDs.newGeoParquetEntry),
+  });
+
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),
     isEnabled: () => {

@@ -24,6 +24,7 @@ export const newHillshadeEntry = 'jupytergis:newHillshadeEntry';
 export const newImageEntry = 'jupytergis:newImageEntry';
 export const newVideoEntry = 'jupytergis:newVideoEntry';
 export const newGeoTiffEntry = 'jupytergis:newGeoTiffEntry';
+export const newGeoParquetEntry = 'jupytergis:newGeoParquetEntry';
 
 // Layer and group actions
 export const renameLayer = 'jupytergis:renameLayer';

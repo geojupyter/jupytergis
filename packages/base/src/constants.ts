@@ -52,6 +52,7 @@ const iconObject = {
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
   [CommandIDs.newShapefileEntry]: { iconClass: 'fa fa-file' },
   [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
+  [CommandIDs.newGeoParquetEntry]: { iconClass: 'fa fa-file' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },

@@ -26,6 +26,11 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
     command: CommandIDs.newShapefileEntry,
   });
 
+  subMenu.addItem({
+    type: 'command',
+    command: CommandIDs.newGeoParquetEntry,
+  });
+
   return subMenu;
 };
 

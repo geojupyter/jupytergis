@@ -54,7 +54,8 @@
         "VideoSource",
         "ImageSource",
         "ShapefileSource",
-        "GeoTiffSource"
+        "GeoTiffSource",
+        "GeoParquetSource"
       ]
     },
     "jGISLayer": {
