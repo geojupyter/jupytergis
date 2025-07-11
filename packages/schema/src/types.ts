@@ -20,12 +20,20 @@ export * from './_interface/project/layers/stacLayer';
 export * from './_interface/project/layers/vectorTileLayer';
 export * from './_interface/project/layers/webGlLayer';
 
+// Symbology
+export * from './_interface/project/layers/symbology/vectorColor';
+export * from './_interface/project/layers/symbology/vectorSize';
+export * from './_interface/project/layers/symbology/geoTiffSingleBand';
+export * from './_interface/project/layers/symbology/geoTiffMultiBand';
+
+
 // Processing
 export * from './processing/_generated/exportProcessingSchema';
 
 // exportLayer
 export * from './_interface/export/exportGeoJson';
 export * from './_interface/export/exportGeoTiff';
+
 
 // Other
 export * from './doc';
