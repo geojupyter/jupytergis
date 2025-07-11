@@ -14,6 +14,7 @@ import * as React from 'react';
 
 import { deepCopy } from '@/src/tools';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
+import { loadFile } from '@/src/tools';
 
 export interface ICreationFormProps {
   /**
@@ -80,7 +81,13 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
     super(props);
 
     this.filePath = props.model.filePath;
+    console.log('filePath:', this.filePath);
     this.jGISModel = props.model;
+  }
+
+  async loadData(path: string) {
+    const data = await loadFile({ filepath: path, type: this.props.sourceType, model: this.jGISModel });
+    return data
   }
 
   render() {
@@ -186,56 +193,152 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
           visible: true,
           name: actualName,
         };
+        console.log('layerModel:', layerModel);
 
-        this.jGISModel.addLayer(UUID.uuid4(), layerModel);
+
+        if (this.props.layerType === 'VectorLayer' && this.props.sourceType === 'GeoJSONSource') {
+          const data = await this.loadData(this.props?.sourceData?.path)
+          const features = data.features;
+
+          let points: any = [];
+          let lineStrings: any = [];
+          let polygons: any = [];
+
+          features.forEach((feature: any) => {
+            if (feature.geometry.type === 'Point') {
+              points.push(feature);
+            } else if (feature.geometry.type === 'LineString') {
+              lineStrings.push(feature);
+            } else if (feature.geometry.type === 'Polygon') {
+              polygons.push(feature);
+            }
+          })
+          const pointsData = {
+            type: 'FeatureCollection',
+            features: points,
+          };
+
+          const lineStringsData = {
+            type: 'FeatureCollection',
+            features: lineStrings,
+          };
+
+          const polygonData = {
+            type: 'FeatureCollection',
+            features: polygons,
+          };
+
+
+          const pointSource: IJGISSource = {
+            name: "Point Source",
+            type: "GeoJSONSource",
+            parameters: {
+              data: pointsData,
+            },
+          };
+
+          const lineStringSource: IJGISSource = {
+            name: "LineString Source",
+            type: "GeoJSONSource",
+            parameters: {
+              data: lineStringsData,
+            },
+          };
+
+          const polygonSource: IJGISSource = {
+            name: "",
+            type: "GeoJSONSource",
+            parameters: {
+              data: polygonData,
+            },
+          };
+
+          const pointLayer: IJGISLayer = {
+            type: 'VectorLayer',
+            visible: true,
+            name: 'Point Vector Layer',
+            parameters: {
+              type: 'point',
+              source: pointSource,
+            },
+          };
+
+           const lineStringLayer: IJGISLayer = {
+            type: 'VectorLayer',
+            visible: true,
+            name: 'LineString Vector Layer',
+            parameters: {
+              type: 'lineString',
+              source: lineStringSource,
+            },
+          };
+
+           const polygonLayer: IJGISLayer = {
+            type: 'VectorLayer',
+            visible: true,
+            name: 'Polygon Vector Layer',
+            parameters: {
+              type: 'polygon',
+              source: polygonSource,
+            },
+          };
+          //this.jGISModel.addLayer(UUID.uuid4(), layerModel);
+          this.jGISModel.addLayer(UUID.uuid4(), pointLayer);
+          this.jGISModel.addLayer(UUID.uuid4(), lineStringLayer);
+          this.jGISModel.addLayer(UUID.uuid4(), polygonLayer);
+        }
       }
     });
 
     return (
       <div>
-        {this.props.createSource && (
-          <div>
-            <h3>Source Properties</h3>
-            <SourceForm
-              formContext="create"
-              model={this.jGISModel}
-              filePath={this.filePath}
-              schema={sourceSchema}
-              sourceData={this.props.sourceData}
-              syncData={(properties: { [key: string]: any }) => {
-                sourceCreationPromise?.resolve(properties);
-              }}
-              ok={this.props.ok}
-              cancel={this.props.cancel}
-              formChangedSignal={this.sourceFormChangedSignal}
-              formErrorSignal={this.props.formErrorSignal}
-              dialogOptions={this.props.dialogOptions}
-              sourceType={this.props.sourceType}
-            />
-          </div>
-        )}
-        {this.props.createLayer && (
-          <div>
-            <h3>Layer Properties</h3>
-            <LayerForm
-              formContext="create"
-              sourceType={this.props.sourceType}
-              model={this.jGISModel}
-              filePath={this.filePath}
-              schema={layerSchema}
-              sourceData={layerData}
-              syncData={(properties: { [key: string]: any }) => {
-                layerCreationPromise?.resolve(properties);
-              }}
-              ok={this.props.ok}
-              cancel={this.props.cancel}
-              sourceFormChangedSignal={this.sourceFormChangedSignal}
-              formErrorSignal={this.props.formErrorSignal}
-              dialogOptions={this.props.dialogOptions}
-            />
-          </div>
-        )}
-      </div>
+        {
+          this.props.createSource && (
+            <div>
+              <h3>Source Properties</h3>
+              <SourceForm
+                formContext="create"
+                model={this.jGISModel}
+                filePath={this.filePath}
+                schema={sourceSchema}
+                sourceData={this.props.sourceData}
+                syncData={(properties: { [key: string]: any }) => {
+                  sourceCreationPromise?.resolve(properties);
+                }}
+                ok={this.props.ok}
+                cancel={this.props.cancel}
+                formChangedSignal={this.sourceFormChangedSignal}
+                formErrorSignal={this.props.formErrorSignal}
+                dialogOptions={this.props.dialogOptions}
+                sourceType={this.props.sourceType}
+              />
+            </div>
+          )
+        }
+        {
+          this.props.createLayer && (
+            <div>
+              <h3>Layer Properties</h3>
+              <LayerForm
+                formContext="create"
+                sourceType={this.props.sourceType}
+                model={this.jGISModel}
+                filePath={this.filePath}
+                schema={layerSchema}
+                sourceData={layerData}
+                syncData={(properties: { [key: string]: any }) => {
+                  layerCreationPromise?.resolve(properties);
+                }}
+                ok={this.props.ok}
+                cancel={this.props.cancel}
+                sourceFormChangedSignal={this.sourceFormChangedSignal}
+                formErrorSignal={this.props.formErrorSignal}
+                dialogOptions={this.props.dialogOptions}
+              />
+            </div>
+          )
+        }
+      </div >
     );
   }
 
