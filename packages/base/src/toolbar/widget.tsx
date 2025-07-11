@@ -1,5 +1,5 @@
 import { UsersItem } from '@jupyter/collaboration';
-import { IJGISExternalCommand, JupyterGISModel } from '@jupytergis/schema';
+import { IUserData, IJGISExternalCommand, JupyterGISModel } from '@jupytergis/schema';
 import { CommandToolbarButton } from '@jupyterlab/apputils';
 import {
   MenuSvg,
@@ -32,7 +32,14 @@ export class Separator extends Widget {
   }
 }
 
+
+interface IToolbarState {
+  selectedUser?: IUserData;
+}
+
 export class ToolbarWidget extends ReactiveToolbar {
+  private _selectedUser: IUserData | undefined = undefined;
+
   constructor(options: ToolbarWidget.IOptions) {
     super();
 
@@ -140,10 +147,57 @@ export class ToolbarWidget extends ReactiveToolbar {
       // Users
       this.addItem(
         'users',
-        ReactWidget.create(<UsersItem model={options.model} />),
+        ReactWidget.create(
+          <UsersItem
+            model={options.model}
+            iconRenderer={this.userIconRenderer}
+          />
+        ),
       );
     }
   }
+
+  selectUser = (user: IUserData): void => {
+    let selected: IUserData | undefined = undefined;
+    if (user.userId !== this._selectedUser?.userId) {
+      selected = user;
+    }
+    this._selectedUser = selected;
+    (this.options as ToolbarWidget.IOptions).model.setUserToFollow(selected?.userId);
+  };
+
+  userIconRenderer = (props: { user: IUserData }): JSX.Element => {
+    const { user } = props;
+    const { userId, userData } = user;
+    const selected = `${
+      userId === this._selectedUser?.userId ? 'selected' : ''
+    }`;
+    if (userData.avatar_url) {
+      return (
+        <div
+          key={userId}
+          title={userData.display_name}
+          className={`lm-MenuBar-itemIcon jp-MenuBar-imageIcon ${selected}`}
+          onClick={() => this.selectUser(user)}
+        >
+          <img src={userData.avatar_url} alt="" />
+        </div>
+      );
+    } else {
+      return (
+        <div
+          key={userId}
+          title={userData.display_name}
+          className={`lm-MenuBar-itemIcon jp-MenuBar-anonymousIcon ${selected}`}
+          style={{ backgroundColor: userData.color }}
+          onClick={() => this.selectUser(user)}
+        >
+          <span>{userData.initials}</span>
+        </div>
+      );
+    }
+  }
+
 }
 
 export namespace ToolbarWidget {
