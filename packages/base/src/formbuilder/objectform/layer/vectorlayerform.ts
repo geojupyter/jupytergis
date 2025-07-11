@@ -1,5 +1,6 @@
 import { IDict, IVectorLayer } from '@jupytergis/schema';
 import { IChangeEvent } from '@rjsf/core';
+
 import { ILayerProps, LayerPropertiesForm } from './layerform';
 
 /**
@@ -30,7 +31,7 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
   protected processSchema(
     data: IVectorLayer | undefined,
     schema: IDict,
-    uiSchema: IDict
+    uiSchema: IDict,
   ) {
     this.removeFormEntry('color', data, schema, uiSchema);
     this.removeFormEntry('symbologyState', data, schema, uiSchema);

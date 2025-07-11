@@ -2,11 +2,11 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   IJupyterGISTracker,
-  IJupyterGISWidget
+  IJupyterGISWidget,
 } from '@jupytergis/schema';
 import { ISignal } from '@lumino/signaling';
 
-import { IControlPanelModel } from '../types';
+import { IControlPanelModel } from '@/src/types';
 
 export class ControlPanelModel implements IControlPanelModel {
   constructor(options: ControlPanelModel.IOptions) {

@@ -1,7 +1,11 @@
 import { IDict, SourceType } from '@jupytergis/schema';
-import { BaseForm, IBaseFormProps } from '../baseform';
 import { Signal } from '@lumino/signaling';
 import { IChangeEvent } from '@rjsf/core';
+
+import {
+  BaseForm,
+  IBaseFormProps,
+} from '@/src/formbuilder/objectform/baseform';
 
 export interface ILayerProps extends IBaseFormProps {
   /**
@@ -34,17 +38,17 @@ export class LayerPropertiesForm extends BaseForm {
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,
-    uiSchema: IDict
+    uiSchema: IDict,
   ): void {
     super.processSchema(data, schema, uiSchema);
 
-    if (!schema.properties.source) {
+    if (!schema.properties?.source) {
       return;
     }
 
     // Replace the source text box by a dropdown menu
     const availableSources = this.props.model.getSourcesByType(
-      this.props.sourceType
+      this.props.sourceType,
     );
 
     schema.properties.source.enumNames = Object.values(availableSources);

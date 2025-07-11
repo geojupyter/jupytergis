@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { IBandRow } from '../../hooks/useGetBandInfo';
+
+import { IBandRow } from '@/src/dialogs/symbology/hooks/useGetBandInfo';
 
 interface IBandRowProps {
   label: string;
@@ -21,15 +22,15 @@ interface IBandRowProps {
  * @param setBandRows Function to update band rows in parent
  * @param isMultibandColor Used to hide min/max input and add 'Unset' option to drop down menu for MultiBand symbology
  */
-const BandRow = ({
+const BandRow: React.FC<IBandRowProps> = ({
   label,
   index,
   bandRow,
   bandRows,
   setSelectedBand,
   setBandRows,
-  isMultibandColor
-}: IBandRowProps) => {
+  isMultibandColor,
+}) => {
   const [minValue, setMinValue] = useState(bandRow?.stats.minimum);
   const [maxValue, setMaxValue] = useState(bandRow?.stats.maximum);
 
@@ -95,7 +96,7 @@ const BandRow = ({
             style={{
               display: 'flex',
               justifyContent: 'space-between',
-              width: '50%'
+              width: '50%',
             }}
           >
             <label htmlFor="band-min" style={{ alignSelf: 'center' }}>
@@ -114,7 +115,7 @@ const BandRow = ({
               display: 'flex',
               justifyContent: 'space-between',
               width: '50%',
-              paddingRight: '2px'
+              paddingRight: '2px',
             }}
           >
             <label htmlFor="band-max" style={{ alignSelf: 'center' }}>

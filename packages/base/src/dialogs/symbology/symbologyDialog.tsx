@@ -4,6 +4,8 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
+
+import { SymbologyTab } from '@/src/types';
 import TiffRendering from './tiff_layer/TiffRendering';
 import VectorRendering from './vector_layer/VectorRendering';
 
@@ -15,6 +17,18 @@ export interface ISymbologyDialogProps {
   layerId?: string;
 }
 
+export interface ISymbologyDialogWithAttributesProps
+  extends ISymbologyDialogProps {
+  selectableAttributesAndValues: Record<string, Set<any>>;
+}
+
+export interface ISymbologyTabbedDialogProps extends ISymbologyDialogProps {
+  symbologyTab: SymbologyTab;
+}
+
+export type ISymbologyTabbedDialogWithAttributesProps =
+  ISymbologyDialogWithAttributesProps & ISymbologyTabbedDialogProps;
+
 export interface ISymbologyWidgetOptions {
   model: IJupyterGISModel;
   state: IStateDB;
@@ -25,12 +39,12 @@ export interface IStopRow {
   output: number | number[];
 }
 
-const SymbologyDialog = ({
+const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   model,
   state,
   okSignalPromise,
-  cancel
-}: ISymbologyDialogProps) => {
+  cancel,
+}) => {
   const [selectedLayer, setSelectedLayer] = useState<string | null>(null);
   const [componentToRender, setComponentToRender] = useState<any>(null);
 

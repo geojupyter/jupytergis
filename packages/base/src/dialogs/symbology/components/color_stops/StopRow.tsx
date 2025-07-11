@@ -2,17 +2,10 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef } from 'react';
-import { IStopRow } from '../../symbologyDialog';
 
-const StopRow = ({
-  index,
-  value,
-  outputValue,
-  stopRows,
-  setStopRows,
-  deleteRow,
-  useNumber
-}: {
+import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
+
+const StopRow: React.FC<{
   index: number;
   value: number;
   outputValue: number | number[];
@@ -20,6 +13,14 @@ const StopRow = ({
   setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
   useNumber?: boolean;
+}> = ({
+  index,
+  value,
+  outputValue,
+  stopRows,
+  setStopRows,
+  deleteRow,
+  useNumber,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -55,7 +56,7 @@ const StopRow = ({
       parseInt(result[1], 16),
       parseInt(result[2], 16),
       parseInt(result[3], 16),
-      1 // TODO: Make alpha customizable?
+      1, // TODO: Make alpha customizable?
     ];
 
     return rgbValues;

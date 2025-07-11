@@ -1,12 +1,13 @@
 // Adapted from https://github.com/qgis/QGIS/blob/master/src/core/classification/
 
 import { Pool, fromUrl, TypedArray } from 'geotiff';
+
 import { InterpolationType } from './dialogs/symbology/tiff_layer/types/SingleBandPseudoColor';
 
 export namespace VectorClassifications {
   export const calculateQuantileBreaks = (
     values: number[],
-    nClasses: number
+    nClasses: number,
   ) => {
     // q-th quantile of a data set:
     // value where q fraction of data is below and (1-q) fraction is above this value
@@ -47,7 +48,7 @@ export namespace VectorClassifications {
 
   export const calculateEqualIntervalBreaks = (
     values: number[],
-    nClasses: number
+    nClasses: number,
   ) => {
     const minimum = Math.min(...values);
     const maximum = Math.max(...values);
@@ -86,10 +87,10 @@ export namespace VectorClassifications {
     const n = sample.length;
 
     const matrixOne = Array.from({ length: n + 1 }, () =>
-      Array(nClasses + 1).fill(0)
+      Array(nClasses + 1).fill(0),
     );
     const matrixTwo = Array.from({ length: n + 1 }, () =>
-      Array(nClasses + 1).fill(Number.MAX_VALUE)
+      Array(nClasses + 1).fill(Number.MAX_VALUE),
     );
 
     for (let i = 1; i <= nClasses; i++) {
@@ -264,7 +265,7 @@ export namespace VectorClassifications {
 
   export const calculateLogarithmicBreaks = (
     values: number[],
-    nClasses: number
+    nClasses: number,
   ) => {
     const minimum = Math.min(...values);
     const maximum = Math.max(...values);
@@ -301,7 +302,7 @@ export namespace GeoTiffClassifications {
     nClasses: number,
     bandNumber: number,
     url: string,
-    colorRampType: string
+    colorRampType: string,
   ) => {
     const breaks: number[] = [];
     const isDiscrete = colorRampType === 'discrete';
@@ -363,7 +364,7 @@ export namespace GeoTiffClassifications {
     nClasses: number,
     minimumValue: number,
     maximumValue: number,
-    colorRampType: InterpolationType
+    colorRampType: InterpolationType,
   ) => {
     const min = minimumValue;
     const max = maximumValue;
@@ -403,7 +404,7 @@ export namespace GeoTiffClassifications {
     nClasses: number,
     minimumValue: number,
     maximumValue: number,
-    colorRampType: InterpolationType
+    colorRampType: InterpolationType,
   ) => {
     const min = minimumValue;
     const max = maximumValue;

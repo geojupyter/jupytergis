@@ -1,6 +1,7 @@
 import { Button } from '@jupyterlab/ui-components';
 import colormap from 'colormap';
 import React, { useEffect, useRef, useState } from 'react';
+
 import ColorRampEntry from './ColorRampEntry';
 
 export interface IColorMap {
@@ -13,10 +14,10 @@ interface ICanvasSelectComponentProps {
   setSelected: (item: any) => void;
 }
 
-const CanvasSelectComponent = ({
+const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
   selectedRamp,
-  setSelected
-}: ICanvasSelectComponentProps) => {
+  setSelected,
+}) => {
   const colorRampNames = [
     'jet',
     // 'hsv', 11 steps min
@@ -59,7 +60,7 @@ const CanvasSelectComponent = ({
     'temperature',
     'turbidity',
     'velocity-blue',
-    'velocity-green'
+    'velocity-green',
     // 'cubehelix' 16 steps min
   ];
 
@@ -74,7 +75,7 @@ const CanvasSelectComponent = ({
       const colorRamp = colormap({
         colormap: name,
         nshades: 255,
-        format: 'rgbaString'
+        format: 'rgbaString',
       });
       const colorMap = { name: name, colors: colorRamp };
       colorMapList.push(colorMap);

@@ -1,0 +1,53 @@
+@keyframes enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.jgis-popover-content {
+  position: relative;
+  width: 18rem;
+  border-radius: 0.375rem;
+  border-width: 1px;
+  background-color: var(--jp-layout-color0);
+  color: var(--jp-ui-font-color0);
+  box-shadow: 0 4px 6px
+    color-mix(in srgb, var(--jp-ui-font-color0), transparent 90%);
+  z-index: 50;
+}
+
+.jgis-popover-content[data-state='open'] {
+  animation: enter 300ms;
+}
+
+.jgis-popover-content[data-state='closed'] {
+  animation: exit 300ms;
+}
+
+.jgis-popover-content[data-side='top'] {
+  animation: enter 300ms;
+}
+
+.jgis-popover-content[data-side='right'] {
+  animation: enter 300ms;
+}
+
+.jgis-popover-content[data-side='left'] {
+  animation: enter 300ms;
+}
+
+.jgis-popover-content[data-side='bottom'] {
+  animation: enter 300ms;
+}

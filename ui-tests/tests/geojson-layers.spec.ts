@@ -2,7 +2,7 @@ import {
   IJupyterLabPageFixture,
   expect,
   galata,
-  test
+  test,
 } from '@jupyterlab/galata';
 import { Locator } from '@playwright/test';
 import path from 'path';
@@ -12,7 +12,7 @@ const FILENAME = 'empty-france.jGIS';
 const openGIS = async (
   page: IJupyterLabPageFixture,
   tmpPath: string,
-  filename: string
+  filename: string,
 ): Promise<Locator> => {
   const panel = await page.activity.getPanelLocator(filename);
   if (panel !== null && (await panel.count())) {
@@ -21,7 +21,7 @@ const openGIS = async (
 
   await page.filebrowser.open(`/${tmpPath}/${filename}`);
   await page.waitForCondition(
-    async () => await page.activity.isTabActive(filename)
+    async () => await page.activity.isTabActive(filename),
   );
   return (await page.activity.getPanelLocator(filename)) as Locator;
 };
@@ -31,11 +31,11 @@ test.describe('#geoJSONLayer', () => {
     const content = galata.newContentsHelper(request);
     await content.uploadFile(
       path.resolve(__dirname, `./gis-files/${FILENAME}`),
-      `/${tmpPath}/${FILENAME}`
+      `/${tmpPath}/${FILENAME}`,
     );
     await content.uploadFile(
       path.resolve(__dirname, `./gis-files/france_regions.json`),
-      `/${tmpPath}/france_regions.json`
+      `/${tmpPath}/france_regions.json`,
     );
   });
 

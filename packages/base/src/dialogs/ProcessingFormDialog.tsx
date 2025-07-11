@@ -1,10 +1,14 @@
-import { IDict, IJupyterGISModel } from '@jupytergis/schema';
+import { ProcessingType, IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
-import * as React from 'react';
-import { BaseForm, IBaseFormProps } from '../formbuilder/objectform/baseform';
-import { DissolveForm } from '../formbuilder/objectform/process';
-import { Signal } from '@lumino/signaling';
 import { PromiseDelegate } from '@lumino/coreutils';
+import { Signal } from '@lumino/signaling';
+import * as React from 'react';
+
+import {
+  BaseForm,
+  IBaseFormProps,
+} from '@/src/formbuilder/objectform/baseform';
+import { DissolveForm } from '@/src/formbuilder/objectform/process';
 
 export interface IProcessingFormDialogOptions extends IBaseFormProps {
   formContext: 'update' | 'create';
@@ -15,10 +19,10 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
   syncSelectedPropField?: (
     id: string | null,
     value: any,
-    parentType: 'dialog' | 'panel'
+    parentType: 'dialog' | 'panel',
   ) => void;
   model: IJupyterGISModel;
-  processingType: 'Buffer' | 'Dissolve' | 'Export';
+  processingType: 'Export' | ProcessingType;
 }
 
 /**
@@ -30,7 +34,7 @@ export interface IProcessingFormWrapperProps
   formErrorSignalPromise?: PromiseDelegate<Signal<Dialog<any>, boolean>>;
 }
 
-const ProcessingFormWrapper = (props: IProcessingFormWrapperProps) => {
+const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = props => {
   const [ready, setReady] = React.useState<boolean>(false);
 
   const okSignal = React.useRef<Signal<Dialog<any>, number>>();
@@ -38,7 +42,7 @@ const ProcessingFormWrapper = (props: IProcessingFormWrapperProps) => {
 
   Promise.all([
     props.okSignalPromise.promise,
-    props.formErrorSignalPromise?.promise
+    props.formErrorSignalPromise?.promise,
   ]).then(([ok, formChanged]) => {
     okSignal.current = ok;
     formErrorSignal.current = formChanged;
@@ -50,8 +54,6 @@ const ProcessingFormWrapper = (props: IProcessingFormWrapperProps) => {
     case 'Dissolve':
       FormComponent = DissolveForm;
       break;
-    case 'Buffer':
-    case 'Export':
     default:
       FormComponent = BaseForm;
   }
@@ -81,17 +83,17 @@ export class ProcessingFormDialog extends Dialog<IDict> {
     const layers = options.model.sharedModel.layers ?? {};
     const layerOptions = Object.keys(layers).map(layerId => ({
       value: layerId,
-      label: layers[layerId].name
+      label: layers[layerId].name,
     }));
 
     // Modify schema to include layer options and layer name field
     if (options.schema) {
       if (options.schema.properties?.inputLayer) {
         options.schema.properties.inputLayer.enum = layerOptions.map(
-          option => option.value
+          option => option.value,
         );
         options.schema.properties.inputLayer.enumNames = layerOptions.map(
-          option => option.label
+          option => option.label,
         );
       }
 
@@ -99,7 +101,7 @@ export class ProcessingFormDialog extends Dialog<IDict> {
       if (!options.schema.properties?.outputLayerName) {
         options.schema.properties.outputLayerName = {
           type: 'string',
-          title: 'outputLayerName'
+          title: 'outputLayerName',
           // default: ''
         };
       }
@@ -143,7 +145,7 @@ export class ProcessingFormDialog extends Dialog<IDict> {
     super({
       title: options.title,
       body,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
     });
 
     this.okSignal = new Signal(this);

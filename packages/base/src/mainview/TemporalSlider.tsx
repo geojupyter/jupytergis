@@ -6,7 +6,7 @@ import {
   IJGISFilterItem,
   IJGISLayerDocChange,
   IJupyterGISDoc,
-  IJupyterGISModel
+  IJupyterGISModel,
 } from '@jupytergis/schema';
 import { format, isValid, parse } from 'date-fns';
 import {
@@ -16,10 +16,11 @@ import {
   millisecondsInMinute,
   millisecondsInSecond,
   millisecondsInWeek,
-  minutesInMonth
+  minutesInMonth,
 } from 'date-fns/constants';
 import React, { useEffect, useRef, useState } from 'react';
-import { useGetProperties } from '../dialogs/symbology/hooks/useGetProperties';
+
+import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
 
 interface ITemporalSliderProps {
   model: IJupyterGISModel;
@@ -37,7 +38,7 @@ const commonDateFormats = [
   'MM-dd-yyyy', // US format with hyphens (e.g., 10-05-2023)
   'yyyy/MM/dd', // ISO format with slashes (e.g., 2023/10/05)
   'dd.MM.yyyy', // European format with dots (e.g., 05.10.2023)
-  'MM.dd.yyyy' // US format with dots (e.g., 10.05.2023)
+  'MM.dd.yyyy', // US format with dots (e.g., 10.05.2023)
 ];
 
 // Time steps in milliseconds
@@ -49,10 +50,13 @@ const stepMap = {
   day: millisecondsInDay,
   week: millisecondsInWeek,
   month: minutesInMonth * millisecondsInMinute,
-  year: millisecondsInDay * daysInYear
+  year: millisecondsInDay * daysInYear,
 };
 
-const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
+const TemporalSlider: React.FC<ITemporalSliderProps> = ({
+  model,
+  filterStates,
+}) => {
   const [layerId, setLayerId] = useState('');
   const [selectedFeature, setSelectedFeature] = useState('');
   const [range, setRange] = useState({ start: 0, end: 1 }); // min/max of current range being displayed
@@ -89,11 +93,11 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
     // this is for when the layer itself changes
     const handleLayerChange = (
       _: IJupyterGISDoc,
-      change: IJGISLayerDocChange
+      change: IJGISLayerDocChange,
     ) => {
       // Get the changes for the selected layer
       const selectedLayer = change.layerChange?.find(
-        layer => layer.id === layerIdRef.current
+        layer => layer.id === layerIdRef.current,
       );
 
       // Bail if there's no relevant change
@@ -200,7 +204,7 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
 
     // Get valid step options
     const filteredSteps = Object.fromEntries(
-      Object.entries(stepMap).filter(([_, val]) => val < max - min)
+      Object.entries(stepMap).filter(([_, val]) => val < max - min),
     );
 
     //using filter item as a state object to restore prev values
@@ -213,7 +217,7 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
     setMinMax({ min, max });
     setRange({
       start: currentState?.betweenMin ?? min,
-      end: currentState?.betweenMax ?? min + step
+      end: currentState?.betweenMax ?? min + step,
     });
 
     model.addFeatureAsMs(layerId, selectedFeature);
@@ -224,7 +228,7 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
     const currentState = filterStates[layerId];
 
     setCurrentValue(
-      typeof currentState?.value === 'number' ? currentState.value : minMax.min
+      typeof currentState?.value === 'number' ? currentState.value : minMax.min,
     );
   }, [minMax]);
 
@@ -242,7 +246,7 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
   // Convert milliseconds back to the original date string format
   const millisecondsToDateString = (
     milliseconds: number,
-    dateFormat: string
+    dateFormat: string,
   ): string => {
     const date = new Date(milliseconds); // Create a Date object from milliseconds
     return format(date, dateFormat); // Format back to the original string format
@@ -260,7 +264,7 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
       operator: 'between' as const,
       value: value,
       betweenMin: value,
-      betweenMax: value + step
+      betweenMax: value + step,
     };
 
     const layer = model.getLayer(layerId);
@@ -274,13 +278,13 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
     // This is the only way to add a 'between' filter so
     // find the index of the existing 'between' filter
     const betweenFilterIndex = appliedFilters.findIndex(
-      filter => filter.operator === 'between'
+      filter => filter.operator === 'between',
     );
 
     if (betweenFilterIndex !== -1) {
       // If found, replace the existing filter
       appliedFilters[betweenFilterIndex] = {
-        ...newFilter
+        ...newFilter,
       };
     } else {
       // If not found, add the new filter
@@ -304,7 +308,7 @@ const TemporalSlider = ({ model, filterStates }: ITemporalSliderProps) => {
     // This is the only way to add a 'between' filter so
     // find the index of the existing 'between' filter
     const betweenFilterIndex = appliedFilters.findIndex(
-      filter => filter.operator === 'between'
+      filter => filter.operator === 'between',
     );
 
     if (betweenFilterIndex !== -1) {

@@ -22,13 +22,14 @@ import {
   IRasterLayer,
   IRasterSource,
   IShapefileSource,
+  IStacLayer,
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
   IGeoParquetSource,
   IWebGlLayer,
   JgisCoordinates,
-  JupyterGISModel
+  JupyterGISModel,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -37,13 +38,12 @@ import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu } from '@lumino/widgets';
 import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
-//@ts-expect-error no types for ol-pmtiles
-import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
 import Feature, { FeatureLike } from 'ol/Feature';
-import { ScaleLine } from 'ol/control';
+import { FullScreen, ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { GeoJSON, MVT } from 'ol/format';
+import { Geometry, Point } from 'ol/geom';
 import { DragAndDrop, Select } from 'ol/interaction';
 import {
   Heatmap as HeatmapLayer,
@@ -51,16 +51,16 @@ import {
   Layer,
   Vector as VectorLayer,
   VectorTile as VectorTileLayer,
-  WebGLTile as WebGlTileLayer
+  WebGLTile as WebGlTileLayer,
 } from 'ol/layer';
+import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
 import {
   fromLonLat,
-  get as getRegisteredProjection,
+  get as getProjection,
   toLonLat,
-  transformExtent
+  transformExtent,
 } from 'ol/proj';
-import { get as getProjection } from 'ol/proj.js';
 import { register } from 'ol/proj/proj4.js';
 import RenderFeature from 'ol/render/Feature';
 import {
@@ -68,26 +68,38 @@ import {
   ImageTile as ImageTileSource,
   Vector as VectorSource,
   VectorTile as VectorTileSource,
-  XYZ as XYZSource
+  XYZ as XYZSource,
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import TileSource from 'ol/source/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
+//@ts-expect-error no types for ol-pmtiles
+import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
+import StacLayer from 'ol-stac';
 import proj4 from 'proj4';
 import proj4list from 'proj4-list';
 import * as React from 'react';
-import AnnotationFloater from '../annotations/components/AnnotationFloater';
-import { CommandIDs } from '../constants';
-import StatusBar from '../statusbar/StatusBar';
-import { isLightTheme, loadFile, throttle } from '../tools';
+
+import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
+import { CommandIDs } from '@/src/constants';
+import { LoadingOverlay } from '@/src/shared/components/loading';
+import StatusBar from '@/src/statusbar/StatusBar';
+import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import { Spinner } from './spinner';
-import { Geometry, Point } from 'ol/geom';
 
+type OlLayerTypes =
+  | TileLayer
+  | VectorLayer
+  | VectorTileLayer
+  | WebGlTileLayer
+  | WebGlTileLayer
+  | HeatmapLayer
+  | StacLayer
+  | ImageLayer<any>;
 interface IProps {
   viewModel: MainViewModel;
 }
@@ -112,6 +124,35 @@ export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
 
+    // Enforce the map to take the full available width in the case of Jupyter Notebook viewer
+    const el = document.getElementById('main-panel');
+
+    if (el) {
+      const setWidthOneHundred = (selector: string) => {
+        (document.querySelector(selector) as HTMLElement).style.setProperty(
+          'width',
+          '100%',
+        );
+      };
+      //We need to observe the size to counteract
+      //What the default jupyter plugin will try
+      //To do dynamically with the width
+      const resizeObserver = new ResizeObserver(_ => {
+        el.style.setProperty('width', '100%');
+        el.style.setProperty('max-width', '100%');
+        el?.style.setProperty('left', '0px');
+
+        setWidthOneHundred('#main-panel jp-toolbar');
+        setWidthOneHundred('#main-panel .lm-SplitPanel ');
+
+        setWidthOneHundred(
+          '#main-panel   .lm-SplitPanel .lm-SplitPanel-child ',
+        );
+      });
+
+      resizeObserver.observe(el);
+    }
+
     this._mainViewModel = this.props.viewModel;
     this._mainViewModel.viewSettingChanged.connect(this._onViewChanged, this);
 
@@ -120,11 +161,11 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._model.sharedOptionsChanged.connect(
       this._onSharedOptionsChanged,
-      this
+      this,
     );
     this._model.clientStateChanged.connect(
       this._onClientSharedStateChanged,
-      this
+      this,
     );
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
@@ -132,20 +173,20 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
     this._model.sharedMetadataChanged.connect(
       this._onSharedMetadataChanged,
-      this
+      this,
     );
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
     this._model.geolocationChanged.connect(
       this._handleGeolocationChanged,
-      this
+      this,
     );
 
     this._model.flyToGeometrySignal.connect(this.flyToGeometry, this);
     this._model.highlightFeatureSignal.connect(
       this.highlightFeatureOnMap,
-      this
+      this,
     );
 
     // Watch isIdentifying and clear the highlight when Identify Tool is turned off
@@ -167,13 +208,16 @@ export class MainView extends React.Component<IProps, IStates> {
       scale: 0,
       loadingErrors: [],
       displayTemporalController: false,
-      filterStates: {}
+      filterStates: {},
     };
 
     this._sources = [];
     this._loadingLayers = new Set();
     this._commands = new CommandRegistry();
-    this._contextMenu = new ContextMenu({ commands: this._commands });
+    this._contextMenu = new ContextMenu({
+      commands: this._commands,
+    });
+    this._updateCenter = debounce(this.updateCenter, 100);
   }
 
   async componentDidMount(): Promise<void> {
@@ -184,7 +228,8 @@ export class MainView extends React.Component<IProps, IStates> {
         ? fromLonLat([options.longitude!, options.latitude!])
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom! : 1;
-    await this.generateScene(center, zoom);
+
+    await this.generateMap(center, zoom);
     this.addContextMenu();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
@@ -199,38 +244,38 @@ export class MainView extends React.Component<IProps, IStates> {
     window.removeEventListener('resize', this._handleWindowResize);
     this._mainViewModel.viewSettingChanged.disconnect(
       this._onViewChanged,
-      this
+      this,
     );
 
     this._model.themeChanged.disconnect(this._handleThemeChange, this);
     this._model.sharedOptionsChanged.disconnect(
       this._onSharedOptionsChanged,
-      this
+      this,
     );
 
     this._model.clientStateChanged.disconnect(
       this._onClientSharedStateChanged,
-      this
+      this,
     );
 
     this._mainViewModel.dispose();
   }
 
-  async generateScene(center: number[], zoom: number): Promise<void> {
+  async generateMap(center: number[], zoom: number): Promise<void> {
     if (this.divRef.current) {
       this._Map = new OlMap({
         target: this.divRef.current,
         layers: [],
         view: new View({
           center,
-          zoom
+          zoom,
         }),
-        controls: [new ScaleLine()]
+        controls: [new ScaleLine(), new FullScreen()],
       });
 
       // Add map interactions
       const dragAndDropInteraction = new DragAndDrop({
-        formatConstructors: [GeoJSON]
+        formatConstructors: [GeoJSON],
       });
 
       dragAndDropInteraction.on('addfeatures', event => {
@@ -239,7 +284,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const sourceModel: IJGISSource = {
           type: 'GeoJSONSource',
           name: 'Drag and Drop source',
-          parameters: { path: event.file.name }
+          parameters: { path: event.file.name },
         };
 
         const layerId = UUID.uuid4();
@@ -256,8 +301,8 @@ export class MainView extends React.Component<IProps, IStates> {
             color: '#FF0000',
             opacity: 1.0,
             type: 'line',
-            source: sourceId
-          }
+            source: sourceId,
+          },
         };
 
         this.addLayer(layerId, layerModel, this.getLayerIDs().length);
@@ -269,6 +314,8 @@ export class MainView extends React.Component<IProps, IStates> {
       this.createSelectInteraction();
 
       const view = this._Map.getView();
+
+      view.on('change:center', () => this._updateCenter());
 
       // TODO: Note for the future, will need to update listeners if view changes
       view.on(
@@ -285,10 +332,16 @@ export class MainView extends React.Component<IProps, IStates> {
             return;
           }
           this._model.syncViewport(
-            { coordinates: { x: center[0], y: center[1] }, zoom },
-            this._mainViewModel.id
+            {
+              coordinates: {
+                x: center[0],
+                y: center[1],
+              },
+              zoom,
+            },
+            this._mainViewModel.id,
           );
-        })
+        }),
       );
 
       this._Map.on('postrender', () => {
@@ -314,14 +367,14 @@ export class MainView extends React.Component<IProps, IStates> {
           longitude: latLng[0],
           bearing,
           projection: projection.getCode(),
-          zoom
+          zoom,
         };
 
         updatedOptions.extent = view.calculateExtent();
 
         this._model.setOptions({
           ...currentOptions,
-          ...updatedOptions
+          ...updatedOptions,
         });
 
         // Calculate scale
@@ -333,7 +386,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
           this.setState(old => ({
             ...old,
-            scale
+            scale,
           }));
         }
       });
@@ -346,7 +399,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       if (JupyterGISModel.getOrderedLayerIds(this._model).length !== 0) {
         await this._updateLayersImpl(
-          JupyterGISModel.getOrderedLayerIds(this._model)
+          JupyterGISModel.getOrderedLayerIds(this._model),
         );
         const options = this._model.getOptions();
         this.updateOptions(options);
@@ -365,39 +418,55 @@ export class MainView extends React.Component<IProps, IStates> {
         loading: false,
         viewProjection: {
           code: view.getProjection().getCode(),
-          units: view.getProjection().getUnits()
-        }
+          units: view.getProjection().getUnits(),
+        },
       }));
     }
   }
+
+  updateCenter = () => {
+    const extentIn4326 = this.getViewBbox();
+    this._model.updateBboxSignal.emit(extentIn4326);
+  };
+
+  getViewBbox = (targetProjection = 'EPSG:4326') => {
+    const view = this._Map.getView();
+    const extent = view.calculateExtent(this._Map.getSize());
+
+    if (view.getProjection().getCode() === targetProjection) {
+      return extent;
+    }
+
+    return transformExtent(extent, view.getProjection(), targetProjection);
+  };
 
   createSelectInteraction = () => {
     const pointStyle = new Style({
       image: new Circle({
         radius: 5,
         fill: new Fill({
-          color: '#C52707'
+          color: '#C52707',
         }),
         stroke: new Stroke({
           color: '#171717',
-          width: 2
-        })
-      })
+          width: 2,
+        }),
+      }),
     });
 
     const lineStyle = new Style({
       stroke: new Stroke({
         color: '#171717',
-        width: 2
-      })
+        width: 2,
+      }),
     });
 
     const polygonStyle = new Style({
       fill: new Fill({ color: '#C5270780' }),
       stroke: new Stroke({
         color: '#171717',
-        width: 2
-      })
+        width: 2,
+      }),
     });
 
     const styleFunction = (feature: FeatureLike) => {
@@ -432,7 +501,7 @@ export class MainView extends React.Component<IProps, IStates> {
       condition: (event: MapBrowserEvent<any>) => {
         return singleClick(event) && this._model.isIdentifying;
       },
-      style: styleFunction
+      style: styleFunction,
     });
 
     selectInteraction.on('select', event => {
@@ -443,7 +512,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       this._model.syncIdentifiedFeatures(
         identifiedFeatures,
-        this._mainViewModel.id
+        this._mainViewModel.id,
       );
     });
 
@@ -458,24 +527,27 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         this._mainViewModel.addAnnotation({
-          position: { x: this._clickCoords[0], y: this._clickCoords[1] },
+          position: {
+            x: this._clickCoords[0],
+            y: this._clickCoords[1],
+          },
           zoom: this._Map.getView().getZoom() ?? 0,
           label: 'New annotation',
           contents: [],
           parent: this._Map.getViewport().id,
-          open: true
+          open: true,
         });
       },
       label: 'Add annotation',
       isEnabled: () => {
         return !!this._Map;
-      }
+      },
     });
 
     this._contextMenu.addItem({
       command: CommandIDs.addAnnotation,
       selector: '.ol-viewport',
-      rank: 1
+      rank: 1,
     });
   };
 
@@ -502,14 +574,14 @@ export class MainView extends React.Component<IProps, IStates> {
             minZoom: sourceParameters.minZoom,
             maxZoom: sourceParameters.maxZoom,
             tileSize: 256,
-            url: url
+            url: url,
           });
         } else {
           newSource = new PMTilesRasterSource({
             interpolate: sourceParameters.interpolate,
             attributions: sourceParameters.attribution,
             tileSize: 256,
-            url: url
+            url: url,
           });
         }
 
@@ -521,7 +593,7 @@ export class MainView extends React.Component<IProps, IStates> {
         newSource = new ImageTileSource({
           interpolate: sourceParameters.interpolate,
           url: this.computeSourceUrl(source),
-          attributions: sourceParameters.attribution
+          attributions: sourceParameters.attribution,
         });
 
         break;
@@ -538,12 +610,14 @@ export class MainView extends React.Component<IProps, IStates> {
             minZoom: sourceParameters.minZoom,
             maxZoom: sourceParameters.maxZoom,
             url: url,
-            format: new MVT({ featureClass: RenderFeature })
+            format: new MVT({
+              featureClass: RenderFeature,
+            }),
           });
         } else {
           newSource = new PMTilesVectorSource({
             attributions: sourceParameters.attribution,
-            url: url
+            url: url,
           });
         }
 
@@ -555,17 +629,17 @@ export class MainView extends React.Component<IProps, IStates> {
           (await loadFile({
             filepath: source.parameters?.path,
             type: 'GeoJSONSource',
-            model: this._model
+            model: this._model,
           }));
 
         const format = new GeoJSON({
-          featureProjection: this._Map.getView().getProjection()
+          featureProjection: this._Map.getView().getProjection(),
         });
 
         // TODO: Don't hardcode projection
         const featureArray = format.readFeatures(data, {
           dataProjection: 'EPSG:4326',
-          featureProjection: this._Map.getView().getProjection()
+          featureProjection: this._Map.getView().getProjection(),
         });
 
         const featureCollection = new Collection(featureArray);
@@ -575,7 +649,7 @@ export class MainView extends React.Component<IProps, IStates> {
         });
 
         newSource = new VectorSource({
-          features: featureCollection
+          features: featureCollection,
         });
 
         break;
@@ -586,7 +660,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const geojson = await loadFile({
           filepath: parameters.path,
           type: 'ShapefileSource',
-          model: this._model
+          model: this._model,
         });
 
         const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
@@ -596,8 +670,8 @@ export class MainView extends React.Component<IProps, IStates> {
         newSource = new VectorSource({
           features: format.readFeatures(geojsonData, {
             dataProjection: 'EPSG:4326',
-            featureProjection: this._Map.getView().getProjection()
-          })
+            featureProjection: this._Map.getView().getProjection(),
+          }),
         });
         break;
       }
@@ -607,16 +681,16 @@ export class MainView extends React.Component<IProps, IStates> {
         // Convert lon/lat array to extent
         // Get lon/lat from source coordinates
         const leftSide = Math.min(
-          ...sourceParameters.coordinates.map(corner => corner[0])
+          ...sourceParameters.coordinates.map(corner => corner[0]),
         );
         const bottomSide = Math.min(
-          ...sourceParameters.coordinates.map(corner => corner[1])
+          ...sourceParameters.coordinates.map(corner => corner[1]),
         );
         const rightSide = Math.max(
-          ...sourceParameters.coordinates.map(corner => corner[0])
+          ...sourceParameters.coordinates.map(corner => corner[0]),
         );
         const topSide = Math.max(
-          ...sourceParameters.coordinates.map(corner => corner[1])
+          ...sourceParameters.coordinates.map(corner => corner[1]),
         );
 
         // Convert lon/lat to OpenLayer coordinates
@@ -634,14 +708,14 @@ export class MainView extends React.Component<IProps, IStates> {
         const imageUrl = await loadFile({
           filepath: sourceParameters.path,
           type: 'ImageSource',
-          model: this._model
+          model: this._model,
         });
 
         newSource = new Static({
           interpolate: sourceParameters.interpolate,
           imageExtent: extent,
           url: imageUrl,
-          crossOrigin: ''
+          crossOrigin: '',
         });
 
         break;
@@ -668,30 +742,30 @@ export class MainView extends React.Component<IProps, IStates> {
                 ...addNoData(sourceInfo),
                 min: sourceInfo.min,
                 max: sourceInfo.max,
-                url: sourceInfo.url
+                url: sourceInfo.url,
               };
             } else {
               const geotiff = await loadFile({
                 filepath: sourceInfo.url ?? '',
                 type: 'GeoTiffSource',
-                model: this._model
+                model: this._model,
               });
               return {
                 ...addNoData(sourceInfo),
                 min: sourceInfo.min,
                 max: sourceInfo.max,
                 geotiff,
-                url: URL.createObjectURL(geotiff.file)
+                url: URL.createObjectURL(geotiff.file),
               };
             }
-          })
+          }),
         );
 
         newSource = new GeoTIFFSource({
           interpolate: sourceParameters.interpolate,
           sources,
           normalize: sourceParameters.normalize,
-          wrapX: sourceParameters.wrapX
+          wrapX: sourceParameters.wrapX,
         });
 
         break;
@@ -809,7 +883,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       if (!layer) {
         console.warn(
-          `Layer with ID ${layerId} does not exist in the shared model.`
+          `Layer with ID ${layerId} does not exist in the shared model.`,
         );
         continue;
       }
@@ -848,25 +922,29 @@ export class MainView extends React.Component<IProps, IStates> {
    */
   private async _buildMapLayer(
     id: string,
-    layer: IJGISLayer
-  ): Promise<Layer | undefined> {
-    const sourceId = layer.parameters?.source;
-    const source = this._model.sharedModel.getLayerSource(sourceId);
-    if (!source) {
-      return;
-    }
-
+    layer: IJGISLayer,
+  ): Promise<Layer | StacLayer | undefined> {
     this.setState(old => ({ ...old, loadingLayer: true }));
     this._loadingLayers.add(id);
 
-    if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source);
+    let newMapLayer: OlLayerTypes;
+    let layerParameters: any;
+    let sourceId: string | undefined;
+    let source: IJGISSource | undefined;
+
+    if (layer.type !== 'StacLayer') {
+      sourceId = layer.parameters?.source;
+      if (!sourceId) {
+        return;
+      }
+      source = this._model.sharedModel.getLayerSource(sourceId);
+      if (!source) {
+        return;
+      }
+      if (!this._sources[sourceId]) {
+        await this.addSource(sourceId, source);
+      }
     }
-
-    this._loadingLayers.add(id);
-
-    let newMapLayer;
-    let layerParameters;
 
     // TODO: OpenLayers provides a bunch of sources for specific tile
     // providers, so maybe set up some way to use those
@@ -877,7 +955,7 @@ export class MainView extends React.Component<IProps, IStates> {
         newMapLayer = new TileLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
-          source: this._sources[layerParameters.source]
+          source: this._sources[layerParameters.source],
         });
 
         break;
@@ -889,7 +967,7 @@ export class MainView extends React.Component<IProps, IStates> {
           opacity: layerParameters.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
-          style: this.vectorLayerStyleRuleBuilder(layer)
+          style: this.vectorLayerStyleRuleBuilder(layer),
         });
 
         break;
@@ -900,7 +978,7 @@ export class MainView extends React.Component<IProps, IStates> {
         newMapLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
           source: this._sources[layerParameters.source],
-          style: this.vectorLayerStyleRuleBuilder(layer)
+          style: this.vectorLayerStyleRuleBuilder(layer),
         });
 
         break;
@@ -912,8 +990,8 @@ export class MainView extends React.Component<IProps, IStates> {
           opacity: 0.3,
           source: this._sources[layerParameters.source],
           style: {
-            color: ['color', this.hillshadeMath()]
-          }
+            color: ['color', this.hillshadeMath()],
+          },
         });
 
         break;
@@ -923,7 +1001,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new ImageLayer({
           opacity: layerParameters.opacity,
-          source: this._sources[layerParameters.source]
+          source: this._sources[layerParameters.source],
         });
 
         break;
@@ -934,11 +1012,13 @@ export class MainView extends React.Component<IProps, IStates> {
         // This is to handle python sending a None for the color
         const layerOptions: any = {
           opacity: layerParameters.opacity,
-          source: this._sources[layerParameters.source]
+          source: this._sources[layerParameters.source],
         };
 
         if (layerParameters.color) {
-          layerOptions['style'] = { color: layerParameters.color };
+          layerOptions['style'] = {
+            color: layerParameters.color,
+          };
         }
 
         newMapLayer = new WebGlTileLayer(layerOptions);
@@ -952,24 +1032,48 @@ export class MainView extends React.Component<IProps, IStates> {
           source: this._sources[layerParameters.source],
           blur: layerParameters.blur ?? 15,
           radius: layerParameters.radius ?? 8,
-          gradient: layerParameters.color
+          gradient: layerParameters.color,
         });
+
+        break;
+      }
+      case 'StacLayer': {
+        layerParameters = layer.parameters as IStacLayer;
+
+        newMapLayer = new StacLayer({
+          displayPreview: true,
+          data: layerParameters.data,
+          opacity: layerParameters.opacity,
+          visible: layer.visible,
+          assets: Object.keys(layerParameters.data.assets),
+          extent: layerParameters.data.bbox,
+        });
+
+        this.setState(old => ({
+          ...old,
+          metadata: layerParameters.data.properties,
+        }));
+
         break;
       }
     }
 
-    await this._waitForSourceReady(newMapLayer);
-
     // OpenLayers doesn't have name/id field so add it
     newMapLayer.set('id', id);
 
-    // we need to keep track of which source has which layers
-    this._sourceToLayerMap.set(layerParameters.source, id);
+    // STAC layers don't have source
+    if (newMapLayer instanceof Layer) {
+      // we need to keep track of which source has which layers
+      // Only set sourceToLayerMap if 'source' exists on layerParameters
+      if ('source' in layerParameters) {
+        this._sourceToLayerMap.set(layerParameters.source, id);
+      }
 
-    this.addProjection(newMapLayer);
+      this.addProjection(newMapLayer);
+      await this._waitForSourceReady(newMapLayer);
+    }
 
     this._loadingLayers.delete(id);
-
     return newMapLayer;
   }
 
@@ -982,12 +1086,12 @@ export class MainView extends React.Component<IProps, IStates> {
 
     const projectionCode = sourceProjection.getCode();
 
-    const isProjectionRegistered = getRegisteredProjection(projectionCode);
+    const isProjectionRegistered = getProjection(projectionCode);
     if (!isProjectionRegistered) {
       // Check if the projection exists in proj4list
       if (!proj4list[projectionCode]) {
         console.warn(
-          `Projection code '${projectionCode}' not found in proj4list`
+          `Projection code '${projectionCode}' not found in proj4list`,
         );
         return;
       }
@@ -997,7 +1101,7 @@ export class MainView extends React.Component<IProps, IStates> {
         register(proj4);
       } catch (error: any) {
         console.warn(
-          `Failed to register projection '${projectionCode}'. Error: ${error.message}`
+          `Failed to register projection '${projectionCode}'. Error: ${error.message}`,
         );
         return;
       }
@@ -1030,7 +1134,7 @@ export class MainView extends React.Component<IProps, IStates> {
     } catch (error: any) {
       if (
         this.state.loadingErrors.find(
-          item => item.id === id && item.error === error.message
+          item => item.id === id && item.error === error.message,
         )
       ) {
         this._loadingLayers.delete(id);
@@ -1039,13 +1143,13 @@ export class MainView extends React.Component<IProps, IStates> {
 
       await showErrorMessage(
         `Error Adding ${layer.name}`,
-        `Failed to add ${layer.name}: ${error.message || 'invalid file path'}`
+        `Failed to add ${layer.name}: ${error.message || 'invalid file path'}`,
       );
       this.setState(old => ({ ...old, loadingLayer: false }));
       this.state.loadingErrors.push({
         id,
         error: error.message || 'invalid file path',
-        index
+        index,
       });
       this._loadingLayers.delete(id);
     }
@@ -1064,11 +1168,11 @@ export class MainView extends React.Component<IProps, IStates> {
       'circle-radius': 5,
       'circle-fill-color': 'rgba(255,255,255,0.4)',
       'circle-stroke-width': 1.25,
-      'circle-stroke-color': '#3399CC'
+      'circle-stroke-color': '#3399CC',
     };
 
     const defaultRules: Rule = {
-      style: defaultStyle
+      style: defaultStyle,
     };
 
     const layerStyle = { ...defaultRules };
@@ -1091,7 +1195,7 @@ export class MainView extends React.Component<IProps, IStates> {
         // Arguments for "Any" and 'All' need to be wrapped in brackets
         filterExpr = [
           layer.filters.logicalOp,
-          ...layer.filters.appliedFilters.map(buildCondition)
+          ...layer.filters.appliedFilters.map(buildCondition),
         ];
       }
 
@@ -1133,7 +1237,7 @@ export class MainView extends React.Component<IProps, IStates> {
         ['*', 255 * 256, red],
         ['*', 255, green],
         ['*', 255 / 256, blue],
-        -32768
+        -32768,
       ];
     }
     // Generates a shaded relief image given elevation data.  Uses a 3x3
@@ -1153,7 +1257,7 @@ export class MainView extends React.Component<IProps, IStates> {
     const cosIncidence = [
       '+',
       ['*', ['sin', sunEl], ['cos', slope]],
-      ['*', ['cos', sunEl], ['sin', slope], ['cos', ['-', sunAz, aspect]]]
+      ['*', ['cos', sunEl], ['sin', slope], ['cos', ['-', sunAz, aspect]]],
     ];
     const scaled = ['*', 255, cosIncidence];
 
@@ -1170,18 +1274,8 @@ export class MainView extends React.Component<IProps, IStates> {
     id: string,
     layer: IJGISLayer,
     mapLayer: Layer,
-    oldLayer?: IDict
+    oldLayer?: IDict,
   ): Promise<void> {
-    const sourceId = layer.parameters?.source;
-    const source = this._model.sharedModel.getLayerSource(sourceId);
-    if (!source) {
-      return;
-    }
-
-    if (!this._sources[sourceId]) {
-      await this.addSource(sourceId, source);
-    }
-
     mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
@@ -1195,7 +1289,7 @@ export class MainView extends React.Component<IProps, IStates> {
         mapLayer.setOpacity(layerParams.opacity || 1);
 
         (mapLayer as VectorLayer).setStyle(
-          this.vectorLayerStyleRuleBuilder(layer)
+          this.vectorLayerStyleRuleBuilder(layer),
         );
 
         break;
@@ -1206,7 +1300,7 @@ export class MainView extends React.Component<IProps, IStates> {
         mapLayer.setOpacity(layerParams.opacity || 1);
 
         (mapLayer as VectorTileLayer).setStyle(
-          this.vectorLayerStyleRuleBuilder(layer)
+          this.vectorLayerStyleRuleBuilder(layer),
         );
 
         break;
@@ -1223,7 +1317,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         if (layer?.parameters?.color) {
           (mapLayer as WebGlTileLayer).setStyle({
-            color: layer.parameters.color
+            color: layer.parameters.color,
           });
         }
         break;
@@ -1236,13 +1330,16 @@ export class MainView extends React.Component<IProps, IStates> {
         heatmap.setBlur(layerParams.blur ?? 15);
         heatmap.setRadius(layerParams.radius ?? 8);
         heatmap.setGradient(
-          layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
+          layerParams.color ?? ['#00f', '#0ff', '#0f0', '#ff0', '#f00'],
         );
 
         this.handleTemporalController(id, layer);
 
         break;
       }
+      case 'StacLayer':
+        mapLayer.setOpacity(layer.parameters?.opacity || 1);
+        break;
     }
   }
 
@@ -1295,8 +1392,8 @@ export class MainView extends React.Component<IProps, IStates> {
         ...old,
         filterStates: {
           ...this.state.filterStates,
-          [selectedLayerId]: activeFilter
-        }
+          [selectedLayerId]: activeFilter,
+        },
       }));
 
       source.addFeatures(filteredFeatures);
@@ -1319,13 +1416,13 @@ export class MainView extends React.Component<IProps, IStates> {
     view.fit(extent, {
       padding: [50, 50, 50, 50],
       duration: 1000,
-      maxZoom: 16
+      maxZoom: 16,
     });
   }
 
   private highlightFeatureOnMap(
     sender: IJupyterGISModel,
-    featureOrGeometry: any
+    featureOrGeometry: any,
   ): void {
     const geometry =
       featureOrGeometry?.geometry ||
@@ -1342,12 +1439,12 @@ export class MainView extends React.Component<IProps, IStates> {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
-          featureProjection: this._Map.getView().getProjection()
+          featureProjection: this._Map.getView().getProjection(),
         });
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
-      ...(geometry !== featureOrGeometry ? featureOrGeometry : {})
+      ...(geometry !== featureOrGeometry ? featureOrGeometry : {}),
     });
 
     if (!this._highlightLayer) {
@@ -1361,39 +1458,44 @@ export class MainView extends React.Component<IProps, IStates> {
               return new Style({
                 image: new Circle({
                   radius: 6,
-                  fill: new Fill({ color: 'rgba(255, 255, 0, 0.8)' }),
-                  stroke: new Stroke({ color: '#ff0', width: 2 })
-                })
+                  fill: new Fill({
+                    color: 'rgba(255, 255, 0, 0.8)',
+                  }),
+                  stroke: new Stroke({
+                    color: '#ff0',
+                    width: 2,
+                  }),
+                }),
               });
             case 'LineString':
             case 'MultiLineString':
               return new Style({
                 stroke: new Stroke({
                   color: 'rgba(255, 255, 0, 0.8)',
-                  width: 3
-                })
+                  width: 3,
+                }),
               });
             case 'Polygon':
             case 'MultiPolygon':
               return new Style({
                 stroke: new Stroke({
                   color: '#f00',
-                  width: 2
+                  width: 2,
                 }),
                 fill: new Fill({
-                  color: 'rgba(255, 255, 0, 0.8)'
-                })
+                  color: 'rgba(255, 255, 0, 0.8)',
+                }),
               });
             default:
               return new Style({
                 stroke: new Stroke({
                   color: '#000',
-                  width: 2
-                })
+                  width: 2,
+                }),
               });
           }
         },
-        zIndex: 999
+        zIndex: 999,
       });
       this._Map.addLayer(this._highlightLayer);
     }
@@ -1410,7 +1512,10 @@ export class MainView extends React.Component<IProps, IStates> {
     return new Promise(resolve => {
       const checkReady = () => {
         if (this._loadingLayers.size === 0) {
-          this.setState(old => ({ ...old, loadingLayer: false }));
+          this.setState(old => ({
+            ...old,
+            loadingLayer: false,
+          }));
           resolve();
         } else {
           setTimeout(checkReady, 50);
@@ -1425,7 +1530,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * Wait for a layers source state to be 'ready'
    * @param layer The Layer to check
    */
-  private _waitForSourceReady(layer: Layer) {
+  private _waitForSourceReady(layer: Layer | LayerGroup) {
     return new Promise<void>((resolve, reject) => {
       const checkState = () => {
         const state = layer.getSourceState();
@@ -1460,7 +1565,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _onClientSharedStateChanged = (
     sender: IJupyterGISModel,
-    clients: Map<number, IJupyterGISClientState>
+    clients: Map<number, IJupyterGISClientState>,
   ): void => {
     const localState = this._model.localState;
     if (!localState) {
@@ -1476,7 +1581,10 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       if (remoteState.user?.username !== this.state.remoteUser?.username) {
-        this.setState(old => ({ ...old, remoteUser: remoteState.user }));
+        this.setState(old => ({
+          ...old,
+          remoteUser: remoteState.user,
+        }));
       }
 
       const remoteViewport = remoteState.viewportState;
@@ -1490,7 +1598,10 @@ export class MainView extends React.Component<IProps, IStates> {
     } else {
       // If we are unfollowing a remote user, we reset our center and zoom to their previous values
       if (this.state.remoteUser !== null) {
-        this.setState(old => ({ ...old, remoteUser: null }));
+        this.setState(old => ({
+          ...old,
+          remoteUser: null,
+        }));
         const viewportState = localState.viewportState?.value;
 
         if (viewportState) {
@@ -1518,7 +1629,7 @@ export class MainView extends React.Component<IProps, IStates> {
       if (pointer) {
         const pixel = this._Map.getPixelFromCoordinate([
           pointer.coordinates.x,
-          pointer.coordinates.y
+          pointer.coordinates.y,
         ]);
 
         const lonLat = toLonLat([pointer.coordinates.x, pointer.coordinates.y]);
@@ -1528,14 +1639,26 @@ export class MainView extends React.Component<IProps, IStates> {
             username: client.user.username,
             displayName: client.user.display_name,
             color: client.user.color,
-            coordinates: { x: pixel[0], y: pixel[1] },
-            lonLat: { longitude: lonLat[0], latitude: lonLat[1] }
+            coordinates: {
+              x: pixel[0],
+              y: pixel[1],
+            },
+            lonLat: {
+              longitude: lonLat[0],
+              latitude: lonLat[1],
+            },
           };
         } else {
           currentClientPointer = {
             ...currentClientPointer,
-            coordinates: { x: pixel[0], y: pixel[1] },
-            lonLat: { longitude: lonLat[0], latitude: lonLat[1] }
+            coordinates: {
+              x: pixel[0],
+              y: pixel[1],
+            },
+            lonLat: {
+              longitude: lonLat[0],
+              latitude: lonLat[1],
+            },
           };
         }
 
@@ -1554,11 +1677,11 @@ export class MainView extends React.Component<IProps, IStates> {
     if (isTemporalControllerActive !== this.state.displayTemporalController) {
       this.setState(old => ({
         ...old,
-        displayTemporalController: isTemporalControllerActive
+        displayTemporalController: isTemporalControllerActive,
       }));
 
       this._mainViewModel.commands.notifyCommandChanged(
-        CommandIDs.temporalController
+        CommandIDs.temporalController,
       );
     }
   };
@@ -1579,7 +1702,7 @@ export class MainView extends React.Component<IProps, IStates> {
       latitude,
       longitude,
       zoom,
-      bearing
+      bearing,
     } = options;
     let view = this._Map.getView();
     const currentProjection = view.getProjection().getCode();
@@ -1601,7 +1724,7 @@ export class MainView extends React.Component<IProps, IStates> {
     } else {
       const centerCoord = fromLonLat(
         [longitude || 0, latitude || 0],
-        view.getProjection()
+        view.getProjection(),
       );
 
       this._moveToPosition({ x: centerCoord[0], y: centerCoord[1] }, zoom || 0);
@@ -1620,7 +1743,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _onViewChanged(
     sender: ObservableMap<JSONValue>,
-    change: IObservableMap.IChangedArgs<JSONValue>
+    change: IObservableMap.IChangedArgs<JSONValue>,
   ): void {
     // TODO SOMETHING
   }
@@ -1698,7 +1821,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _onLayersChanged(
     _: IJupyterGISDoc,
-    change: IJGISLayerDocChange
+    change: IJGISLayerDocChange,
   ): void {
     // Avoid concurrency update on layers on first load, if layersTreeChanged and
     // LayersChanged are triggered simultaneously.
@@ -1722,10 +1845,6 @@ export class MainView extends React.Component<IProps, IStates> {
       const mapLayer = this.getLayer(id);
       const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
 
-      if (!mapLayer) {
-        return;
-      }
-
       if (layerTree.includes(id)) {
         this.updateLayer(id, newLayer, mapLayer, oldLayer);
       } else {
@@ -1736,7 +1855,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _onLayerTreeChange(
     sender?: IJupyterGISDoc,
-    change?: IJGISLayerTreeDocChange
+    change?: IJGISLayerTreeDocChange,
   ): void {
     this._ready = false;
     // We can't properly use the change, because of the nested groups in the the shared
@@ -1746,7 +1865,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _onSourcesChange(
     _: IJupyterGISDoc,
-    change: IJGISSourceDocChange
+    change: IJGISSourceDocChange,
   ): void {
     if (!this._ready) {
       return;
@@ -1766,7 +1885,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _onSharedModelStateChange = (
     _: any,
-    change: IJupyterGISDocChange
+    change: IJupyterGISDocChange,
   ) => {
     const changedState = change.stateChange?.map(value => value.name);
     if (!changedState?.includes('path')) {
@@ -1786,7 +1905,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _onSharedMetadataChanged = (
     _: IJupyterGISModel,
-    changes: MapChange
+    changes: MapChange,
   ) => {
     const newState = { ...this.state.annotations };
     changes.forEach((val, key) => {
@@ -1865,6 +1984,10 @@ export class MainView extends React.Component<IProps, IStates> {
       extent = tileGrid?.getExtent();
     }
 
+    if (layer instanceof StacLayer) {
+      extent = layer.getExtent();
+    }
+
     if (!extent) {
       console.warn('Layer has no extent.');
       return;
@@ -1881,14 +2004,14 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._Map.getView().fit(transformedExtent, {
       size: this._Map.getSize(),
-      duration: 500
+      duration: 500,
     });
   }
 
   private _moveToPosition(
     center: { x: number; y: number },
     zoom: number,
-    duration = 1000
+    duration = 1000,
   ) {
     const view = this._Map.getView();
 
@@ -1897,14 +2020,17 @@ export class MainView extends React.Component<IProps, IStates> {
     // Zoom needs to be set before changing center
     if (!view.animate === undefined) {
       view.animate({ zoom, duration });
-      view.animate({ center: [center.x, center.y], duration });
+      view.animate({
+        center: [center.x, center.y],
+        duration,
+      });
     }
   }
 
   private _flyToPosition(
     center: { x: number; y: number },
     zoom: number,
-    duration = 1000
+    duration = 1000,
   ) {
     const view = this._Map.getView();
     view.animate({ zoom, duration });
@@ -1920,7 +2046,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _syncPointer = throttle((coordinates: Coordinate) => {
     const pointer = {
-      coordinates: { x: coordinates[0], y: coordinates[1] }
+      coordinates: { x: coordinates[0], y: coordinates[1] },
     };
     this._model.syncPointer(pointer);
   });
@@ -1963,7 +2089,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         this._model.syncIdentifiedFeatures(
           [bandValues],
-          this._mainViewModel.id
+          this._mainViewModel.id,
         );
 
         const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
@@ -2006,7 +2132,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _handleGeolocationChanged(
     sender: any,
-    newPosition: JgisCoordinates
+    newPosition: JgisCoordinates,
   ): void {
     const view = this._Map.getView();
     const zoom = view.getZoom();
@@ -2014,7 +2140,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this._flyToPosition(newPosition, zoom);
     } else {
       throw new Error(
-        'Could not move to geolocation, because current zoom is not defined.'
+        'Could not move to geolocation, because current zoom is not defined.',
       );
     }
   }
@@ -2046,7 +2172,7 @@ export class MainView extends React.Component<IProps, IStates> {
                 id={key}
                 style={{
                   left: screenPosition.x,
-                  top: screenPosition.y
+                  top: screenPosition.y,
                 }}
                 className={'jGIS-Popup-Wrapper'}
               >
@@ -2072,10 +2198,10 @@ export class MainView extends React.Component<IProps, IStates> {
             style={{
               border: this.state.remoteUser
                 ? `solid 3px ${this.state.remoteUser.color}`
-                : 'unset'
+                : 'unset',
             }}
           >
-            <Spinner loading={this.state.loading} />
+            <LoadingOverlay loading={this.state.loading} />
             <FollowIndicator remoteUser={this.state.remoteUser} />
             <CollaboratorPointers clients={this.state.clientPointers} />
 
@@ -2083,7 +2209,7 @@ export class MainView extends React.Component<IProps, IStates> {
               ref={this.divRef}
               style={{
                 width: '100%',
-                height: '100%'
+                height: '100%',
               }}
             />
           </div>
@@ -2113,4 +2239,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _loadingLayers: Set<string>;
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
+  private _updateCenter: CallableFunction;
 }

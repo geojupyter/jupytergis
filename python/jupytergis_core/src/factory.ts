@@ -1,21 +1,20 @@
-import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
-import {
-  JupyterGISModel,
-  IJupyterGISTracker,
-  IJGISExternalCommandRegistry
-} from '@jupytergis/schema';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
-import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
-import { CommandRegistry } from '@lumino/commands';
-
 import {
   JupyterGISPanel,
   JupyterGISDocumentWidget,
-  ToolbarWidget
+  ToolbarWidget,
 } from '@jupytergis/base';
+import {
+  JupyterGISModel,
+  IJupyterGISTracker,
+  IJGISExternalCommandRegistry,
+} from '@jupytergis/schema';
+import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
+import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
+import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Contents, ServiceManager } from '@jupyterlab/services';
+import { CommandRegistry } from '@lumino/commands';
 
 interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   tracker: IJupyterGISTracker;
@@ -50,7 +49,7 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
    * @returns The widget
    */
   protected createNewWidget(
-    context: DocumentRegistry.IContext<JupyterGISModel>
+    context: DocumentRegistry.IContext<JupyterGISModel>,
   ): JupyterGISDocumentWidget {
     if (this._backendCheck) {
       const checked = this._backendCheck();
@@ -60,6 +59,9 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
     }
     const { model } = context;
     model.filePath = context.localPath;
+    context.pathChanged.connect(() => {
+      model.filePath = context.localPath;
+    });
     if (this._contentsManager) {
       model.contentsManager = this._contentsManager;
     }
@@ -70,12 +72,12 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       mimeTypeService: this.options.mimeTypeService,
       rendermime: this.options.rendermime,
       consoleTracker: this.options.consoleTracker,
-      commandRegistry: this.options.commands
+      commandRegistry: this.options.commands,
     });
     const toolbar = new ToolbarWidget({
       commands: this._commands,
       model,
-      externalCommands: this._externalCommandRegistry.getCommands()
+      externalCommands: this._externalCommandRegistry.getCommands(),
     });
     return new JupyterGISDocumentWidget({ context, content, toolbar });
   }

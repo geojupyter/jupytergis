@@ -2,7 +2,7 @@ import {
   IJGISLayerGroup,
   IJGISLayerTree,
   IJupyterGISClientState,
-  IJupyterGISModel
+  IJupyterGISModel,
 } from '@jupytergis/schema';
 import { DOMUtils } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
@@ -10,19 +10,23 @@ import {
   Button,
   LabIcon,
   ReactWidget,
-  caretDownIcon
+  caretDownIcon,
 } from '@jupyterlab/ui-components';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { Panel } from '@lumino/widgets';
 import React, {
   MouseEvent as ReactMouseEvent,
   useEffect,
-  useState
+  useState,
 } from 'react';
-import { icons } from '../../constants';
-import { nonVisibilityIcon, visibilityIcon } from '../../icons';
-import { IControlPanelModel } from '../../types';
-import { ILayerPanelOptions, ILeftPanelClickHandlerParams } from '../leftpanel';
+
+import { icons } from '@/src/constants';
+import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
+import {
+  ILayerPanelOptions,
+  ILeftPanelClickHandlerParams,
+} from '@/src/panelview/leftpanel';
+import { IControlPanelModel } from '@/src/types';
 
 const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
@@ -53,8 +57,8 @@ export class LayersPanel extends Panel {
           model={this._model}
           onSelect={this._onSelect}
           state={this._state}
-        ></LayersBodyComponent>
-      )
+        ></LayersBodyComponent>,
+      ),
     );
     this.node.ondragover = this._onDragOver;
     this.node.ondrop = this._onDrop;
@@ -116,7 +120,7 @@ export class LayersPanel extends Panel {
     model?.moveItemRelatedTo(
       draggedId,
       dragOverId,
-      dragOverPosition === 'above'
+      dragOverPosition === 'above',
     );
   };
 
@@ -125,7 +129,7 @@ export class LayersPanel extends Panel {
   private _onSelect: ({
     type,
     item,
-    nodeId
+    nodeId,
   }: ILeftPanelClickHandlerParams) => void;
 }
 
@@ -141,12 +145,12 @@ interface IBodyProps {
 /**
  * The body component of the panel.
  */
-function LayersBodyComponent(props: IBodyProps): JSX.Element {
+const LayersBodyComponent: React.FC<IBodyProps> = props => {
   const [model, setModel] = useState<IJupyterGISModel | undefined>(
-    props.model?.jGISModel
+    props.model?.jGISModel,
   );
   const [layerTree, setLayerTree] = useState<IJGISLayerTree>(
-    model?.getLayerTree() || []
+    model?.getLayerTree() || [],
   );
 
   /**
@@ -156,7 +160,7 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
     type,
     item,
     nodeId,
-    event
+    event,
   }: ILeftPanelClickHandlerParams) => {
     props.onSelect({ type, item, nodeId, event });
   };
@@ -207,11 +211,11 @@ function LayersBodyComponent(props: IBodyProps): JSX.Element {
               onClick={onItemClick}
               state={props.state}
             />
-          )
+          ),
         )}
     </div>
   );
-}
+};
 
 /**
  * Properties of the layer group component.
@@ -226,7 +230,7 @@ interface ILayerGroupProps {
 /**
  * The component to handle group of layers.
  */
-function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
+const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
   const { group, gisModel, onClick, state } = props;
 
   if (group === undefined) {
@@ -239,7 +243,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
   const layers = group?.layers ?? [];
   const [selected, setSelected] = useState<boolean>(
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
-    isSelected(group.name, gisModel)
+    isSelected(group.name, gisModel),
   );
 
   useEffect(() => {
@@ -249,7 +253,7 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
 
       setOpen(
         ((groupState as ReadonlyPartialJSONObject)?.expanded as boolean) ??
-          false
+          false,
       );
     };
 
@@ -326,13 +330,13 @@ function LayerGroupComponent(props: ILayerGroupProps): JSX.Element {
                   onClick={onClick}
                   state={props.state}
                 />
-              )
+              ),
             )}
         </div>
       )}
     </div>
   );
-}
+};
 
 /**
  * Properties of the layer component.
@@ -354,7 +358,7 @@ function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
 /**
  * The component to display a single layer.
  */
-function LayerComponent(props: ILayerProps): JSX.Element {
+const LayerComponent: React.FC<ILayerProps> = props => {
   const { layerId, gisModel, onClick } = props;
   const layer = gisModel?.getLayer(layerId);
   if (layer === undefined) {
@@ -364,7 +368,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
   const [id, setId] = useState('');
   const [selected, setSelected] = useState<boolean>(
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
-    isSelected(layerId, gisModel)
+    isSelected(layerId, gisModel),
   );
   const name = layer.name;
 
@@ -378,7 +382,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
   useEffect(() => {
     const onClientSharedStateChanged = (
       sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>
+      clients: Map<number, IJupyterGISClientState>,
     ) => {
       // TODO Support follow mode and remoteUser state
       setSelected(isSelected(layerId, gisModel));
@@ -442,7 +446,7 @@ function LayerComponent(props: ILayerProps): JSX.Element {
       </div>
     </div>
   );
-}
+};
 
 namespace Private {
   export const dragIndicator = document.createElement('div');
@@ -457,7 +461,7 @@ namespace Private {
   export const dragInfo: IDragInfo = {
     draggedElement: null,
     dragOverElement: null,
-    dragOverPosition: null
+    dragOverPosition: null,
   };
 
   export const onDragStart = (e: React.DragEvent) => {
@@ -470,7 +474,7 @@ namespace Private {
     const { clientY } = e;
 
     let target = (e.target as HTMLElement).closest(
-      `.${LAYER_GROUP_HEADER_CLASS}, .${LAYER_ITEM_CLASS}`
+      `.${LAYER_GROUP_HEADER_CLASS}, .${LAYER_ITEM_CLASS}`,
     ) as HTMLDivElement;
 
     if (!target) {

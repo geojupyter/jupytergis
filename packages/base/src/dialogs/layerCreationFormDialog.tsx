@@ -1,10 +1,10 @@
 import { IDict } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
+import { PromiseDelegate } from '@lumino/coreutils';
+import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
-import { CreationForm, ICreationFormProps } from '../formbuilder';
-import { Signal } from '@lumino/signaling';
-import { PromiseDelegate } from '@lumino/coreutils';
+import { CreationForm, ICreationFormProps } from '@/src/formbuilder';
 
 export interface ICreationFormWrapperProps extends ICreationFormProps {
   /**
@@ -29,7 +29,9 @@ export interface ICreationFormDialogOptions extends ICreationFormProps {
   title: string;
 }
 
-export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
+export const CreationFormWrapper: React.FC<
+  ICreationFormWrapperProps
+> = props => {
   const [ready, setReady] = React.useState<boolean>(false);
 
   const okSignal = React.useRef<Signal<Dialog<any>, number>>();
@@ -37,7 +39,7 @@ export const CreationFormWrapper = (props: ICreationFormWrapperProps) => {
 
   Promise.all([
     props.okSignalPromise.promise,
-    props.formErrorSignalPromise?.promise
+    props.formErrorSignalPromise?.promise,
   ]).then(([ok, formChanged]) => {
     okSignal.current = ok;
     formErrorSignal.current = formChanged;
@@ -102,7 +104,7 @@ export class LayerCreationFormDialog extends Dialog<IDict> {
     super({
       title: options.title,
       body,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
     });
 
     this.okSignal = new Signal(this);

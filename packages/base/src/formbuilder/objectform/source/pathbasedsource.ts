@@ -2,8 +2,8 @@ import { IDict } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
-import { loadFile } from '../../../tools';
-import { FileSelectorWidget } from '../fileselectorwidget';
+import { FileSelectorWidget } from '@/src/formbuilder/objectform/fileselectorwidget';
+import { loadFile } from '@/src/tools';
 import { ISourceFormProps, SourcePropertiesForm } from './sourceform';
 
 /**
@@ -21,7 +21,7 @@ export class PathBasedSourcePropertiesForm extends SourcePropertiesForm {
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,
-    uiSchema: IDict
+    uiSchema: IDict,
   ) {
     super.processSchema(data, schema, uiSchema);
     if (!schema.properties || !data) {
@@ -37,8 +37,8 @@ export class PathBasedSourcePropertiesForm extends SourcePropertiesForm {
         'ui:widget': FileSelectorWidget,
         'ui:options': {
           docManager,
-          formOptions: this.props
-        }
+          formOptions: this.props,
+        },
       };
     }
     // This is not user-editable
@@ -87,7 +87,7 @@ export class PathBasedSourcePropertiesForm extends SourcePropertiesForm {
         await loadFile({
           filepath: path,
           type: this.props.sourceType,
-          model: this.props.model
+          model: this.props.model,
         });
       } catch (e) {
         valid = false;
@@ -97,14 +97,14 @@ export class PathBasedSourcePropertiesForm extends SourcePropertiesForm {
 
     if (!valid) {
       extraErrors.path = {
-        __errors: [error]
+        __errors: [error],
       };
 
       this.setState(old => ({ ...old, extraErrors }));
     } else {
       this.setState(old => ({
         ...old,
-        extraErrors: { ...extraErrors, path: { __errors: [] } }
+        extraErrors: { ...extraErrors, path: { __errors: [] } },
       }));
     }
 

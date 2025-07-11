@@ -1,8 +1,9 @@
+import { IAnnotationModel } from '@jupytergis/schema';
 import { PanelWithToolbar, ReactWidget } from '@jupyterlab/ui-components';
 import React, { Component } from 'react';
-import { IAnnotationModel } from '@jupytergis/schema';
-import Annotation from '../annotations/components/Annotation';
-import { IControlPanelModel } from '../types';
+
+import Annotation from '@/src/annotations/components/Annotation';
+import { IControlPanelModel } from '@/src/types';
 
 interface IAnnotationPanelProps {
   annotationModel: IAnnotationModel;
@@ -24,11 +25,11 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
       // await this._annotationModel?.context?.ready;
 
       this._annotationModel?.model?.sharedMetadataChanged.disconnect(
-        updateCallback
+        updateCallback,
       );
       this._annotationModel = props.annotationModel;
       this._annotationModel?.model?.sharedMetadataChanged.connect(
-        updateCallback
+        updateCallback,
       );
       this.forceUpdate();
     });
@@ -75,7 +76,7 @@ export class Annotations extends PanelWithToolbar {
       <AnnotationsPanel
         rightPanelModel={this._rightPanelModel}
         annotationModel={this._annotationModel}
-      />
+      />,
     );
 
     this.addWidget(this._widget);

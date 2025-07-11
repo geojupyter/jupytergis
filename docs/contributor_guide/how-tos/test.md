@@ -1,4 +1,4 @@
-# Testing
+# Test JupyterGIS
 
 ## Python unit tests
 

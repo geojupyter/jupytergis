@@ -2,9 +2,11 @@ import { MapChange } from '@jupyter/ydoc';
 import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
+
 import {
   IJGISContent,
   IJGISLayer,
@@ -14,7 +16,7 @@ import {
   IJGISLayers,
   IJGISOptions,
   IJGISSource,
-  IJGISSources
+  IJGISSources,
 } from './_interface/project/jgis';
 import { JupyterGISDoc } from './doc';
 import {
@@ -31,10 +33,9 @@ import {
   IViewPortState,
   JgisCoordinates,
   Pointer,
-  IJupyterGISSettings
+  IJupyterGISSettings,
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
@@ -51,10 +52,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.sharedModel.awareness.on('change', this._onClientStateChanged);
     this._sharedModel.metadataChanged.connect(
       this._metadataChangedHandler,
-      this
+      this,
     );
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
+    this._pathChanged = new Signal<JupyterGISModel, string>(this);
   }
 
   /**
@@ -100,6 +102,10 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get stateChanged(): ISignal<this, IChangedArgs<any, any, string>> {
     return this._stateChanged;
+  }
+
+  get pathChanged(): ISignal<IJupyterGISModel, string> {
+    return this._pathChanged;
   }
 
   get themeChanged(): Signal<
@@ -252,7 +258,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         zoom: 0,
         bearing: 0,
         pitch: 0,
-        projection: 'EPSG:3857'
+        projection: 'EPSG:3857',
       };
       this.sharedModel.metadata = jsonData.metadata ?? {};
     });
@@ -277,6 +283,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   readonly flyToGeometrySignal = new Signal<this, any>(this);
   readonly highlightFeatureSignal = new Signal<this, any>(this);
+  readonly updateBboxSignal = new Signal<this, any>(this);
 
   getContent(): IJGISContent {
     return {
@@ -284,7 +291,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       layers: this.sharedModel.layers,
       layerTree: this.sharedModel.layerTree,
       options: this.sharedModel.options,
-      metadata: this.sharedModel.metadata
+      metadata: this.sharedModel.metadata,
     };
   }
 
@@ -315,6 +322,7 @@ export class JupyterGISModel implements IJupyterGISModel {
    */
   set filePath(path: string) {
     this._filePath = path;
+    this._pathChanged.emit(path);
   }
 
   getLayers(): IJGISLayers {
@@ -385,7 +393,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
     const item: IJGISLayerGroup = {
       name,
-      layers: []
+      layers: [],
     };
     this._addLayerTreeItem(item, groupName, position);
   }
@@ -404,7 +412,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     id: string,
     layer: IJGISLayer,
     groupName?: string,
-    position?: number
+    position?: number,
   ): void {
     if (!this.getLayer(id)) {
       this.sharedModel.addLayer(id, layer);
@@ -433,28 +441,28 @@ export class JupyterGISModel implements IJupyterGISModel {
   syncViewport(viewport?: IViewPortState, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('viewportState', {
       value: viewport,
-      emitter
+      emitter,
     });
   }
 
   syncPointer(pointer?: Pointer, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('pointer', {
       value: pointer,
-      emitter
+      emitter,
     });
   }
 
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('selected', {
       value,
-      emitter
+      emitter,
     });
   }
 
   syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
       value: features,
-      emitter
+      emitter,
     });
   }
 
@@ -480,7 +488,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _addLayerTreeItem(
     item: IJGISLayerItem,
     groupName?: string,
-    index?: number
+    index?: number,
   ): void {
     if (groupName) {
       const layerTreeInfo = this._getLayerTreeInfo(groupName);
@@ -489,18 +497,18 @@ export class JupyterGISModel implements IJupyterGISModel {
         layerTreeInfo.workingGroup.layers.splice(
           index ?? layerTreeInfo.workingGroup.layers.length,
           0,
-          item
+          item,
         );
 
         this._sharedModel.updateLayerTreeItem(
           layerTreeInfo.mainGroupIndex,
-          layerTreeInfo.mainGroup
+          layerTreeInfo.mainGroup,
         );
       }
     } else {
       this.sharedModel.addLayerTreeItem(
         index ?? this.getLayerTree().length,
-        item
+        item,
       );
     }
   }
@@ -559,7 +567,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   addNewLayerGroup(
     selected: { [key: string]: ISelection },
-    group: IJGISLayerGroup
+    group: IJGISLayerGroup,
   ) {
     const layerTree = this.getLayerTree();
     for (const item in selected) {
@@ -571,7 +579,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _removeLayerTreeLayer(
     layerTree: IJGISLayerItem[],
-    layerIdToRemove: string
+    layerIdToRemove: string,
   ) {
     this._removeLayerTreeItem(layerTree, layerIdToRemove, true);
     this.sharedModel.layerTree = layerTree;
@@ -579,7 +587,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _removeLayerTreeGroup(
     layerTree: IJGISLayerItem[],
-    groupName: string
+    groupName: string,
   ) {
     this._removeLayerTreeItem(layerTree, groupName, false);
     this.sharedModel.layerTree = layerTree;
@@ -588,7 +596,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _removeLayerTreeItem(
     layerTree: IJGISLayerItem[],
     target: string,
-    isLayer: boolean
+    isLayer: boolean,
   ) {
     // Iterate over each item in the layerTree
     for (let i = 0; i < layerTree.length; i++) {
@@ -617,7 +625,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       layerTreeInfo.workingGroup.name = newName;
       this._sharedModel.updateLayerTreeItem(
         layerTreeInfo.mainGroupIndex,
-        layerTreeInfo.mainGroup
+        layerTreeInfo.mainGroup,
       );
     } else {
       console.log('Something went wrong when renaming layer');
@@ -631,7 +639,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     function removeLayerGroupEntry(
       layerTree: IJGISLayerItem[],
-      groupName: string
+      groupName: string,
     ): IJGISLayerItem[] {
       const result: IJGISLayerItem[] = [];
 
@@ -650,7 +658,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     if (layerTreeInfo) {
       this._sharedModel.updateLayerTreeItem(
         layerTreeInfo.mainGroupIndex,
-        updatedLayerTree[layerTreeInfo.mainGroupIndex]
+        updatedLayerTree[layerTreeInfo.mainGroupIndex],
       );
     }
   }
@@ -664,7 +672,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this.sharedModel.awareness.setLocalStateField(
       'isTemporalControllerActive',
-      this._isTemporalControllerActive
+      this._isTemporalControllerActive,
     );
   }
 
@@ -699,7 +707,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return {
       mainGroup,
       workingGroup,
-      mainGroupIndex
+      mainGroupIndex,
     };
   }
 
@@ -761,6 +769,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _userChanged = new Signal<this, IUserData[]>(this);
   private _usersMap?: Map<number, any>;
 
+  private _pathChanged: Signal<IJupyterGISModel, string>;
+
   private _disposed = new Signal<this, void>(this);
   private _contentChanged = new Signal<this, void>(this);
   private _stateChanged = new Signal<this, IChangedArgs<any>>(this);
@@ -809,7 +819,7 @@ namespace Private {
    */
   export function layerTreeRecursion(
     items: IJGISLayerItem[],
-    current: string[] = []
+    current: string[] = [],
   ): string[] {
     for (const layer of items) {
       if (typeof layer === 'string') {
@@ -832,7 +842,7 @@ namespace Private {
   export function findItemPath(
     items: IJGISLayerItem[],
     itemId: string,
-    indexes: number[] = []
+    indexes: number[] = [],
   ): number[] {
     for (let index = 0; index < items.length; index++) {
       const item = items[index];

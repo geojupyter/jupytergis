@@ -1,7 +1,11 @@
 import { IDict, SourceType } from '@jupytergis/schema';
-import { BaseForm, IBaseFormProps } from '../baseform';
 import { Signal } from '@lumino/signaling';
 import { IChangeEvent } from '@rjsf/core';
+
+import {
+  BaseForm,
+  IBaseFormProps,
+} from '@/src/formbuilder/objectform/baseform';
 
 export interface ISourceFormProps extends IBaseFormProps {
   /**

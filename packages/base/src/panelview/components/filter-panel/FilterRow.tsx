@@ -3,26 +3,20 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
-const FilterRow = ({
-  index,
-  features,
-  filterRows,
-  setFilterRows,
-  deleteRow
-}: {
+const FilterRow: React.FC<{
   index: number;
   features: Record<string, Set<string | number>>;
   filterRows: any;
   setFilterRows: any;
   deleteRow: () => void;
-}) => {
+}> = ({ index, features, filterRows, setFilterRows, deleteRow }) => {
   const operators = ['==', '!=', '>', '<', '>=', '<='];
 
   const [sortedFeatures, setSortedFeatures] = useState<{ [key: string]: any }>(
-    {}
+    {},
   );
   const [selectedFeature, setSelectedFeature] = useState(
-    filterRows[index].feature || Object.keys(features)[0]
+    filterRows[index].feature || Object.keys(features)[0],
   );
 
   // Ensure selected feature matches filter rows and proper values are displayed
@@ -46,7 +40,7 @@ const FilterRow = ({
   // Update the value when a new feature is selected
   useEffect(() => {
     const valueSelect = document.getElementById(
-      `jp-gis-value-select-${index}`
+      `jp-gis-value-select-${index}`,
     ) as HTMLSelectElement;
 
     if (!valueSelect) {
@@ -73,7 +67,7 @@ const FilterRow = ({
   };
 
   const handleOperatorChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const newFilters = [...filterRows];
     newFilters[index].operator = event.target.value;

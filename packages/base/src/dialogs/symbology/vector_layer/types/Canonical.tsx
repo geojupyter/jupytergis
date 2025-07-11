@@ -1,22 +1,20 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { getColorCodeFeatureAttributes } from '../../../../tools';
-import { useGetProperties } from '../../hooks/useGetProperties';
-import { ISymbologyDialogProps } from '../../symbologyDialog';
-import ValueSelect from '../components/ValueSelect';
 
-const Canonical = ({
+import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import { ISymbologyDialogWithAttributesProps } from '../../symbologyDialog';
+
+const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
-  layerId
-}: ISymbologyDialogProps) => {
+  layerId,
+  selectableAttributesAndValues,
+}) => {
   const selectedValueRef = useRef<string>();
-
   const [selectedValue, setSelectedValue] = useState('');
-  const [attributes, setAttributes] = useState<Record<string, Set<string>>>({});
 
   if (!layerId) {
     return;
@@ -25,10 +23,6 @@ const Canonical = ({
   if (!layer?.parameters) {
     return;
   }
-  const { featureProperties } = useGetProperties({
-    layerId,
-    model: model
-  });
 
   useEffect(() => {
     okSignalPromise.promise.then(okSignal => {
@@ -43,17 +37,13 @@ const Canonical = ({
   }, [selectedValue]);
 
   useEffect(() => {
-    // Filter for hex color code attributes
-    const hexAttributes = getColorCodeFeatureAttributes(featureProperties);
-
-    setAttributes(hexAttributes);
-
     const layerParams = layer.parameters as IVectorLayer;
     const value =
-      layerParams.symbologyState?.value ?? Object.keys(hexAttributes)[0];
+      layerParams.symbologyState?.value ??
+      Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedValue(value);
-  }, [featureProperties]);
+  }, [selectableAttributesAndValues]);
 
   useEffect(() => {
     selectedValueRef.current = selectedValue;
@@ -72,7 +62,7 @@ const Canonical = ({
 
     const symbologyState = {
       renderType: 'Canonical',
-      value: selectedValueRef.current
+      value: selectedValueRef.current,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -85,13 +75,29 @@ const Canonical = ({
     cancel();
   };
 
+  const body = (() => {
+    if (Object.keys(selectableAttributesAndValues)?.length === 0) {
+      return (
+        <p className="errors">
+          This symbology type is not available; no attributes contain a hex
+          color code.
+        </p>
+      );
+    } else {
+      return (
+        <ValueSelect
+          featureProperties={selectableAttributesAndValues}
+          selectedValue={selectedValue}
+          setSelectedValue={setSelectedValue}
+        />
+      );
+    }
+  })();
+
   return (
     <div className="jp-gis-layer-symbology-container">
-      <ValueSelect
-        featureProperties={attributes}
-        selectedValue={selectedValue}
-        setSelectedValue={setSelectedValue}
-      />
+      <p>Color features based on an attribute containing a hex color code.</p>
+      {body}
     </div>
   );
 };

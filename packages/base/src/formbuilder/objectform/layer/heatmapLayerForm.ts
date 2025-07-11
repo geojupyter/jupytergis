@@ -1,6 +1,7 @@
 import { IDict, IGeoJSONSource, IHeatmapLayer } from '@jupytergis/schema';
 import { IChangeEvent } from '@rjsf/core';
-import { loadFile } from '../../../tools';
+
+import { loadFile } from '@/src/tools';
 import { ILayerProps, LayerPropertiesForm } from './layerform';
 
 export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
@@ -17,7 +18,7 @@ export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
         if (this.props.sourceType === 'GeoJSONSource') {
           this.fetchFeatureNames(
             this.currentFormData,
-            sourceData as IGeoJSONSource
+            sourceData as IGeoJSONSource,
           );
         }
       });
@@ -34,14 +35,14 @@ export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
 
     this.fetchFeatureNames(
       this.currentFormData,
-      source.parameters as IGeoJSONSource
+      source.parameters as IGeoJSONSource,
     );
   }
 
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,
-    uiSchema: IDict
+    uiSchema: IDict,
   ) {
     this.removeFormEntry('color', data, schema, uiSchema);
     this.removeFormEntry('symbologyState', data, schema, uiSchema);
@@ -58,7 +59,7 @@ export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
 
   private async fetchFeatureNames(
     data: IHeatmapLayer,
-    sourceData?: IGeoJSONSource
+    sourceData?: IGeoJSONSource,
   ) {
     if (data && data.source) {
       if (!sourceData) {
@@ -82,7 +83,7 @@ export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
     const jsonData = await loadFile({
       filepath: source.parameters.path,
       type: 'GeoJSONSource',
-      model: this.props.model
+      model: this.props.model,
     });
 
     const featureProps = jsonData.features[0].properties;

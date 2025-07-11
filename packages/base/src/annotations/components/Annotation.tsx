@@ -1,15 +1,16 @@
 import {
   faTrash,
   faPaperPlane,
-  faArrowsToDot
+  faArrowsToDot,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IAnnotationModel, IJupyterGISModel } from '@jupytergis/schema';
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useMemo, useState } from 'react';
+
+import { IControlPanelModel } from '@/src/types';
 import { Message } from './Message';
-import { IControlPanelModel } from '../../types';
 
 export interface IAnnotationProps {
   itemId: string;
@@ -18,15 +19,15 @@ export interface IAnnotationProps {
   children?: JSX.Element[] | JSX.Element;
 }
 
-const Annotation = ({
+const Annotation: React.FC<IAnnotationProps> = ({
   itemId,
   annotationModel,
   rightPanelModel,
-  children
-}: IAnnotationProps) => {
+  children,
+}) => {
   const [messageContent, setMessageContent] = useState('');
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
-    rightPanelModel?.jGISModel
+    rightPanelModel?.jGISModel,
   );
 
   const annotation = annotationModel.getAnnotation(itemId);
@@ -54,7 +55,7 @@ const Annotation = ({
     const result = await showDialog({
       title: 'Delete Annotation',
       body: 'Are you sure you want to delete this annotation?',
-      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Delete' })]
+      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Delete' })],
     });
 
     if (result.button.accept) {

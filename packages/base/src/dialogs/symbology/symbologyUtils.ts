@@ -1,6 +1,7 @@
 import { IJGISLayer } from '@jupytergis/schema';
-import { IStopRow } from './symbologyDialog';
 import colormap from 'colormap';
+
+import { IStopRow } from './symbologyDialog';
 
 export namespace VectorUtils {
   export const buildColorInfo = (layer: IJGISLayer) => {
@@ -36,7 +37,7 @@ export namespace VectorUtils {
             if (!seenPairs.has(pairKey)) {
               valueColorPairs.push({
                 stop: color[key][i],
-                output: color[key][i + 1]
+                output: color[key][i + 1],
               });
               seenPairs.add(pairKey);
             }
@@ -49,7 +50,7 @@ export namespace VectorUtils {
             if (!seenPairs.has(pairKey)) {
               valueColorPairs.push({
                 stop: color[key][i][2],
-                output: color[key][i + 1]
+                output: color[key][i + 1],
               });
               seenPairs.add(pairKey);
             }
@@ -78,7 +79,7 @@ export namespace VectorUtils {
     for (let i = 3; i < color['circle-radius'].length; i += 2) {
       const obj: IStopRow = {
         stop: color['circle-radius'][i],
-        output: color['circle-radius'][i + 1]
+        output: color['circle-radius'][i + 1],
       };
       stopOutputPairs.push(obj);
     }
@@ -91,12 +92,12 @@ export namespace Utils {
   export const getValueColorPairs = (
     stops: number[],
     selectedRamp: string,
-    nClasses: number
+    nClasses: number,
   ) => {
     let colorMap = colormap({
       colormap: selectedRamp,
       nshades: nClasses > 9 ? nClasses : 9,
-      format: 'rgba'
+      format: 'rgba',
     });
 
     const valueColorPairs: IStopRow[] = [];
@@ -111,7 +112,7 @@ export namespace Utils {
 
       // Get the last n/2 elements from the second array
       const secondPart = colorMap.slice(
-        colorMap.length - (stops.length - firstPart.length)
+        colorMap.length - (stops.length - firstPart.length),
       );
 
       // Create the new array by combining the first and last parts

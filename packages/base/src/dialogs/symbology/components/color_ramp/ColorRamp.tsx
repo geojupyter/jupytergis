@@ -1,10 +1,10 @@
+import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
+
+import { LoadingIcon } from '@/src/shared/components/loading';
 import CanvasSelectComponent from './CanvasSelectComponent';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import ModeSelectRow from './ModeSelectRow';
-import { IDict } from '@jupytergis/schema';
 
 interface IColorRampProps {
   modeOptions: string[];
@@ -13,9 +13,10 @@ interface IColorRampProps {
     selectedMode: string,
     numberOfShades: string,
     selectedRamp: string,
-    setIsLoading: (isLoading: boolean) => void
+    setIsLoading: (isLoading: boolean) => void,
   ) => void;
   showModeRow: boolean;
+  showRampSelector: boolean;
 }
 
 export type ColorRampOptions = {
@@ -24,12 +25,13 @@ export type ColorRampOptions = {
   selectedMode: string;
 };
 
-const ColorRamp = ({
+const ColorRamp: React.FC<IColorRampProps> = ({
   layerParams,
   modeOptions,
   classifyFunc,
-  showModeRow
-}: IColorRampProps) => {
+  showModeRow,
+  showRampSelector,
+}) => {
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
@@ -37,7 +39,7 @@ const ColorRamp = ({
 
   useEffect(() => {
     populateOptions();
-  }, []);
+  }, [layerParams]);
 
   const populateOptions = async () => {
     let nClasses, singleBandMode, colorRamp;
@@ -54,13 +56,15 @@ const ColorRamp = ({
 
   return (
     <div className="jp-gis-color-ramp-container">
-      <div className="jp-gis-symbology-row">
-        <label htmlFor="color-ramp-select">Color Ramp:</label>
-        <CanvasSelectComponent
-          selectedRamp={selectedRamp}
-          setSelected={setSelectedRamp}
-        />
-      </div>
+      {showRampSelector && (
+        <div className="jp-gis-symbology-row">
+          <label htmlFor="color-ramp-select">Color Ramp:</label>
+          <CanvasSelectComponent
+            selectedRamp={selectedRamp}
+            setSelected={setSelectedRamp}
+          />
+        </div>
+      )}
       {showModeRow && (
         <ModeSelectRow
           modeOptions={modeOptions}
@@ -71,7 +75,7 @@ const ColorRamp = ({
         />
       )}
       {isLoading ? (
-        <FontAwesomeIcon icon={faSpinner} className="jp-gis-loading-spinner" />
+        <LoadingIcon />
       ) : (
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
@@ -80,7 +84,7 @@ const ColorRamp = ({
               selectedMode,
               numberOfShades,
               selectedRamp,
-              setIsLoading
+              setIsLoading,
             )
           }
         >

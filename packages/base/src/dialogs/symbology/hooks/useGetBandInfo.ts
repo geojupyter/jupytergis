@@ -1,7 +1,8 @@
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import { useEffect, useState } from 'react';
 import { fromUrl, fromBlob } from 'geotiff';
-import { loadFile } from '../../../tools';
+import { useEffect, useState } from 'react';
+
+import { loadFile } from '@/src/tools';
 
 export interface IBandHistogram {
   buckets: number[];
@@ -51,7 +52,7 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
         const preloadedFile = await loadFile({
           filepath: sourceInfo.url,
           type: 'GeoTiffSource',
-          model
+          model,
         });
 
         if (!preloadedFile.file) {
@@ -71,8 +72,8 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
           band: i,
           stats: {
             minimum: sourceInfo.min ?? 0,
-            maximum: sourceInfo.max ?? 100
-          }
+            maximum: sourceInfo.max ?? 100,
+          },
         });
       }
 

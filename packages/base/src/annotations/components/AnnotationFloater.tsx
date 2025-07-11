@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
 import { faWindowMinimize } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { useState } from 'react';
+
 import Annotation, { IAnnotationProps } from './Annotation';
 
-const AnnotationFloater = ({
+const AnnotationFloater: React.FC<IAnnotationProps> = ({
   itemId,
-  annotationModel: model
-}: IAnnotationProps) => {
+  annotationModel: model,
+}) => {
   const annotation = model.getAnnotation(itemId);
   const [isOpen, setIsOpen] = useState(annotation?.open);
 

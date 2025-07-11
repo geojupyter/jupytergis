@@ -1,4 +1,4 @@
-# Releasing
+# Release JupyterGIS packages
 
 ## Automated Releases with `jupyter_releaser`
 

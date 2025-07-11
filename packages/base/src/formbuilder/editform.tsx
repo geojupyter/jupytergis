@@ -2,12 +2,12 @@ import {
   IDict,
   IJGISFormSchemaRegistry,
   IJGISSource,
-  IJupyterGISModel
+  IJupyterGISModel,
 } from '@jupytergis/schema';
 import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
-import { deepCopy } from '../tools';
+import { deepCopy } from '@/src/tools';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 import { LayerPropertiesForm } from './objectform/layer';
 import { SourcePropertiesForm } from './objectform/source';
@@ -33,7 +33,7 @@ export interface IEditFormProps {
 export class EditForm extends React.Component<IEditFormProps, any> {
   async syncObjectProperties(
     id: string | undefined,
-    properties: { [key: string]: any }
+    properties: { [key: string]: any },
   ) {
     if (!id) {
       return;
@@ -55,7 +55,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
       LayerForm = getLayerTypeForm(layer?.type || 'RasterLayer');
       layerData = deepCopy(layer?.parameters || {});
       layerSchema = deepCopy(
-        this.props.formSchemaRegistry.getSchemas().get(layer.type)
+        this.props.formSchemaRegistry.getSchemas().get(layer.type),
       );
 
       if (!layerSchema) {
@@ -77,7 +77,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
       SourceForm = getSourceTypeForm(source?.type || 'RasterSource');
       sourceData = deepCopy(source?.parameters || {});
       sourceSchema = deepCopy(
-        this.props.formSchemaRegistry.getSchemas().get(source.type)
+        this.props.formSchemaRegistry.getSchemas().get(source.type),
       );
 
       if (!sourceSchema) {

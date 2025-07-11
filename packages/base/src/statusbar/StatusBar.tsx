@@ -1,13 +1,14 @@
 import {
   faGlobe,
   faLocationDot,
-  faRuler
+  faRuler,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
 import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
-import { version } from '../../package.json'; // Adjust the path as necessary
+
+import { version } from '@/package.json';
 
 interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
@@ -15,12 +16,12 @@ interface IStatusBarProps {
   projection?: { code: string; units: string };
   scale: number;
 }
-const StatusBar = ({
+const StatusBar: React.FC<IStatusBarProps> = ({
   jgisModel,
   loading,
   projection,
-  scale
-}: IStatusBarProps) => {
+  scale,
+}) => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
 
   useEffect(() => {

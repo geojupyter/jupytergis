@@ -6,9 +6,9 @@ import {
   RightPanelWidget,
   addCommands,
   createDefaultLayerRegistry,
+  logoMiniIcon,
   rasterSubMenu,
   vectorSubMenu,
-  logoMiniIcon
 } from '@jupytergis/base';
 import {
   IAnnotationModel,
@@ -20,12 +20,13 @@ import {
   IJGISLayerItem,
   IJupyterGISDocTracker,
   IJupyterGISTracker,
-  IJupyterGISWidget
+  IJupyterGISWidget,
+  ProcessingMerge,
 } from '@jupytergis/schema';
 import {
   ILayoutRestorer,
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
@@ -33,6 +34,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { ContextMenu, Menu } from '@lumino/widgets';
+
 import { notebookRendererPlugin } from './notebookrenderer';
 
 const NAME_SPACE = 'jupytergis';
@@ -44,7 +46,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     IJupyterGISDocTracker,
     IJGISFormSchemaRegistryToken,
     IJGISLayerBrowserRegistryToken,
-    IStateDB
+    IStateDB,
   ],
   optional: [IMainMenu, ITranslator, ICompletionProviderManager],
   activate: (
@@ -55,7 +57,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     state: IStateDB,
     mainMenu?: IMainMenu,
     translator?: ITranslator,
-    completionProviderManager?: ICompletionProviderManager
+    completionProviderManager?: ICompletionProviderManager,
   ): void => {
     console.log('jupytergis:lab:main-menu is activated!');
     translator = translator ?? nullTranslator;
@@ -77,51 +79,51 @@ const plugin: JupyterFrontEndPlugin<void> = {
       formSchemaRegistry,
       layerBrowserRegistry,
       state,
-      completionProviderManager
+      completionProviderManager,
     );
 
     app.contextMenu.addItem({
       selector: '.jp-gis-source.jp-gis-sourceUnused',
       rank: 1,
-      command: CommandIDs.removeSource
+      command: CommandIDs.removeSource,
     });
 
     app.contextMenu.addItem({
       selector: '.jp-gis-source',
       rank: 1,
-      command: CommandIDs.renameSource
+      command: CommandIDs.renameSource,
     });
 
     // LAYERS and LAYER GROUPS context menu
     app.contextMenu.addItem({
       command: CommandIDs.symbology,
       selector: '.jp-gis-layerItem',
-      rank: 1
+      rank: 1,
     });
 
     // Separator
     app.contextMenu.addItem({
       type: 'separator',
       selector: '.jp-gis-layerPanel',
-      rank: 1
+      rank: 1,
     });
 
     app.contextMenu.addItem({
       command: CommandIDs.removeLayer,
       selector: '.jp-gis-layerItem',
-      rank: 2
+      rank: 2,
     });
 
     app.contextMenu.addItem({
       command: CommandIDs.renameLayer,
       selector: '.jp-gis-layerItem',
-      rank: 2
+      rank: 2,
     });
 
     app.contextMenu.addItem({
       command: CommandIDs.zoomToLayer,
       selector: '.jp-gis-layerItem',
-      rank: 2
+      rank: 2,
     });
 
     // Create the Download submenu
@@ -130,7 +132,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     downloadSubmenu.id = 'jp-gis-contextmenu-download';
 
     downloadSubmenu.addItem({
-      command: CommandIDs.downloadGeoJSON
+      command: CommandIDs.downloadGeoJSON,
     });
 
     // Add the Download submenu to the context menu
@@ -138,7 +140,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       type: 'submenu',
       selector: '.jp-gis-layerItem',
       rank: 2,
-      submenu: downloadSubmenu
+      submenu: downloadSubmenu,
     });
 
     // Create the Processing submenu
@@ -148,19 +150,17 @@ const plugin: JupyterFrontEndPlugin<void> = {
       .__('Processing');
     processingSubmenu.id = 'jp-gis-contextmenu-processing';
 
-    processingSubmenu.addItem({
-      command: CommandIDs.buffer
-    });
-
-    processingSubmenu.addItem({
-      command: CommandIDs.dissolve
-    });
+    for (const processingElement of ProcessingMerge) {
+      processingSubmenu.addItem({
+        command: processingElement.name,
+      });
+    }
 
     app.contextMenu.addItem({
       type: 'submenu',
       selector: '.jp-gis-layerItem',
       rank: 2,
-      submenu: processingSubmenu
+      submenu: processingSubmenu,
     });
 
     const moveLayerSubmenu = new Menu({ commands: app.commands });
@@ -173,30 +173,30 @@ const plugin: JupyterFrontEndPlugin<void> = {
       type: 'submenu',
       selector: '.jp-gis-layerItem',
       rank: 2,
-      submenu: moveLayerSubmenu
+      submenu: moveLayerSubmenu,
     });
 
     app.contextMenu.opened.connect(() =>
-      buildGroupsMenu(app.contextMenu, tracker)
+      buildGroupsMenu(app.contextMenu, tracker),
     );
 
     app.contextMenu.addItem({
       command: CommandIDs.removeGroup,
       selector: '.jp-gis-layerGroupHeader',
-      rank: 2
+      rank: 2,
     });
 
     app.contextMenu.addItem({
       command: CommandIDs.renameGroup,
       selector: '.jp-gis-layerGroupHeader',
-      rank: 2
+      rank: 2,
     });
 
     // Separator
     app.contextMenu.addItem({
       type: 'separator',
       selector: '.jp-gis-layerPanel',
-      rank: 2
+      rank: 2,
     });
 
     const newLayerSubMenu = new Menu({ commands: app.commands });
@@ -205,24 +205,24 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     newLayerSubMenu.addItem({
       type: 'submenu',
-      submenu: rasterSubMenu(app.commands)
+      submenu: rasterSubMenu(app.commands),
     });
     newLayerSubMenu.addItem({
       type: 'submenu',
-      submenu: vectorSubMenu(app.commands)
+      submenu: vectorSubMenu(app.commands),
     });
 
     app.contextMenu.addItem({
       type: 'submenu',
       selector: '.jp-gis-layerPanel',
       rank: 3,
-      submenu: newLayerSubMenu
+      submenu: newLayerSubMenu,
     });
 
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }
-  }
+  },
 };
 
 const controlPanel: JupyterFrontEndPlugin<void> = {
@@ -233,7 +233,7 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     IJupyterGISDocTracker,
     IJGISFormSchemaRegistryToken,
     IStateDB,
-    IAnnotationToken
+    IAnnotationToken,
   ],
   activate: (
     app: JupyterFrontEnd,
@@ -241,7 +241,7 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
     tracker: IJupyterGISTracker,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     state: IStateDB,
-    annotationModel: IAnnotationModel
+    annotationModel: IAnnotationModel,
   ) => {
     const controlModel = new ControlPanelModel({ tracker });
 
@@ -249,7 +249,7 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
       model: controlModel,
       tracker,
       state,
-      commands: app.commands
+      commands: app.commands,
     });
     leftControlPanel.id = 'jupytergis::leftControlPanel';
     leftControlPanel.title.caption = 'JupyterGIS Control Panel';
@@ -259,19 +259,19 @@ const controlPanel: JupyterFrontEndPlugin<void> = {
       model: controlModel,
       tracker,
       formSchemaRegistry,
-      annotationModel
+      annotationModel,
     });
     rightControlPanel.id = 'jupytergis::rightControlPanel';
     rightControlPanel.title.caption = 'JupyterGIS Control Panel';
     rightControlPanel.title.icon = logoMiniIcon;
 
     if (restorer) {
-      restorer.add(leftControlPanel, NAME_SPACE);
-      restorer.add(rightControlPanel, NAME_SPACE);
+      restorer.add(leftControlPanel, `${NAME_SPACE}-left`);
+      restorer.add(rightControlPanel, `${NAME_SPACE}-right`);
     }
     app.shell.add(leftControlPanel, 'left', { rank: 2000 });
     app.shell.add(rightControlPanel, 'right', { rank: 2000 });
-  }
+  },
 };
 
 /**
@@ -281,11 +281,11 @@ function populateMenus(mainMenu: IMainMenu, isEnabled: () => boolean): void {
   // Add undo/redo hooks to the edit menu.
   mainMenu.editMenu.undoers.redo.add({
     id: CommandIDs.redo,
-    isEnabled
+    isEnabled,
   });
   mainMenu.editMenu.undoers.undo.add({
     id: CommandIDs.undo,
-    isEnabled
+    isEnabled,
   });
 }
 
@@ -294,7 +294,7 @@ function populateMenus(mainMenu: IMainMenu, isEnabled: () => boolean): void {
  */
 function buildGroupsMenu(
   contextMenu: ContextMenu,
-  tracker: WidgetTracker<IJupyterGISWidget>
+  tracker: WidgetTracker<IJupyterGISWidget>,
 ) {
   if (!tracker.currentWidget?.model) {
     return;
@@ -306,7 +306,7 @@ function buildGroupsMenu(
     contextMenu.menu.items.find(
       item =>
         item.type === 'submenu' &&
-        item.submenu?.id === 'jp-gis-contextmenu-movelayer'
+        item.submenu?.id === 'jp-gis-contextmenu-movelayer',
     )?.submenu ?? null;
 
   // Bail early if the submenu isn't found
@@ -345,18 +345,18 @@ function buildGroupsMenu(
 
   submenu.addItem({
     command: CommandIDs.moveLayersToGroup,
-    args: { label: '' }
+    args: { label: '' },
   });
 
   groupNames.forEach(name => {
     submenu.addItem({
       command: CommandIDs.moveLayersToGroup,
-      args: { label: name }
+      args: { label: name },
     });
   });
 
   submenu.addItem({
-    command: CommandIDs.moveLayerToNewGroup
+    command: CommandIDs.moveLayerToNewGroup,
   });
 }
 

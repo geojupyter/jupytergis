@@ -3,15 +3,15 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
   IJupyterGISTracker,
-  JupyterGISDoc
+  JupyterGISDoc,
 } from '@jupytergis/schema';
 import { SidePanel } from '@jupyterlab/ui-components';
 
-import { IControlPanelModel } from '../types';
-import { ControlPanelHeader } from './header';
-import { ObjectProperties } from './objectproperties';
+import { IControlPanelModel } from '@/src/types';
 import { Annotations } from './annotationPanel';
 import IdentifyPanel from './components/identify-panel/IdentifyPanel';
+import { ControlPanelHeader } from './header';
+import { ObjectProperties } from './objectproperties';
 
 export class RightPanelWidget extends SidePanel {
   constructor(options: RightPanelWidget.IOptions) {
@@ -28,25 +28,29 @@ export class RightPanelWidget extends SidePanel {
     const properties = new ObjectProperties({
       controlPanelModel: this._model,
       formSchemaRegistry: options.formSchemaRegistry,
-      tracker: options.tracker
+      tracker: options.tracker,
     });
 
     this.addWidget(properties);
 
     const annotations = new Annotations({
       rightPanelModel: this._model,
-      annotationModel: this._annotationModel
+      annotationModel: this._annotationModel,
     });
     this.addWidget(annotations);
 
     const identifyPanel = new IdentifyPanel({
       model: this._model,
-      tracker: options.tracker
+      tracker: options.tracker,
     });
     identifyPanel.title.caption = 'Identify';
     identifyPanel.title.label = 'Identify';
     identifyPanel.addClass('jgis-scrollable');
     this.addWidget(identifyPanel);
+
+    this._handleFileChange = () => {
+      header.title.label = this._currentModel?.filePath || '-';
+    };
 
     this._model.documentChanged.connect((_, changed) => {
       if (changed) {
@@ -64,8 +68,12 @@ export class RightPanelWidget extends SidePanel {
 
     options.tracker.currentChanged.connect(async (_, changed) => {
       if (changed) {
+        if (this._currentModel) {
+          this._currentModel.pathChanged.disconnect(this._handleFileChange);
+        }
         this._currentModel = changed.model;
         header.title.label = this._currentModel.filePath;
+        this._currentModel.pathChanged.connect(this._handleFileChange);
         this._annotationModel.model =
           options.tracker.currentWidget?.model || undefined;
         // await changed.context.ready;
@@ -82,6 +90,7 @@ export class RightPanelWidget extends SidePanel {
   }
 
   private _currentModel: IJupyterGISModel | null;
+  private _handleFileChange: () => void;
   private _model: IControlPanelModel;
   private _annotationModel: IAnnotationModel;
 }

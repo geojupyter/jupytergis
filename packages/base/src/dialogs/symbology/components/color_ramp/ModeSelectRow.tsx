@@ -6,13 +6,13 @@ interface IModeSelectRowProps {
   setSelectedMode: (value: string) => void;
   modeOptions: string[];
 }
-const ModeSelectRow = ({
+const ModeSelectRow: React.FC<IModeSelectRowProps> = ({
   numberOfShades,
   setNumberOfShades,
   selectedMode,
   setSelectedMode,
-  modeOptions
-}: IModeSelectRowProps) => {
+  modeOptions,
+}) => {
   return (
     <div className="jp-gis-symbology-row">
       <div className="jp-gis-color-ramp-div">

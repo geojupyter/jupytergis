@@ -3,14 +3,15 @@ import {
   IDict,
   IJGISFilterItem,
   IJupyterGISModel,
-  IJupyterGISTracker
+  IJupyterGISTracker,
 } from '@jupytergis/schema';
 import { Button, ReactWidget } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import { cloneDeep } from 'lodash';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
-import { debounce, loadFile } from '../../../tools';
-import { IControlPanelModel } from '../../../types';
+
+import { debounce, loadFile } from '@/src/tools';
+import { IControlPanelModel } from '@/src/types';
 import FilterRow from './FilterRow';
 
 /**
@@ -30,8 +31,8 @@ export class FilterPanel extends Panel {
         <FilterComponent
           model={this._model}
           tracker={this._tracker}
-        ></FilterComponent>
-      )
+        ></FilterComponent>,
+      ),
     );
   }
 
@@ -51,7 +52,7 @@ interface IFilterComponentProps {
   tracker: IJupyterGISTracker;
 }
 
-const FilterComponent = (props: IFilterComponentProps) => {
+const FilterComponent: React.FC<IFilterComponentProps> = props => {
   const featuresInLayerRef = useRef({});
   const [widgetId, setWidgetId] = useState('');
   const [logicalOp, setLogicalOp] = useState('all');
@@ -62,7 +63,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
     Record<string, Set<string | number>>
   >({});
   const [model, setModel] = useState<IJupyterGISModel | undefined>(
-    props.model.jGISModel
+    props.model.jGISModel,
   );
 
   props.model?.documentChanged.connect((_, widget) => {
@@ -191,7 +192,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
         const data = await loadFile({
           filepath: source.parameters?.path,
           type: 'GeoJSONSource',
-          model: model
+          model: model,
         });
         data?.features.forEach((feature: GeoJSONFeature1) => {
           feature.properties &&
@@ -211,7 +212,7 @@ const FilterComponent = (props: IFilterComponentProps) => {
 
   const addFeatureValue = (
     featureProperties: Record<string, string | number> | IDict,
-    aggregatedProperties: Record<string, Set<string | number>>
+    aggregatedProperties: Record<string, Set<string | number>>,
   ) => {
     Object.entries(featureProperties).forEach(([key, value]) => {
       if (!(key in aggregatedProperties)) {
@@ -227,8 +228,8 @@ const FilterComponent = (props: IFilterComponentProps) => {
       {
         feature: Object.keys(featuresInLayer)[0],
         operator: '==',
-        value: [...Object.values(featuresInLayer)[0]][0]
-      }
+        value: [...Object.values(featuresInLayer)[0]][0],
+      },
     ]);
   };
 
