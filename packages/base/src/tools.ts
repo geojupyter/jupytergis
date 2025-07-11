@@ -12,11 +12,11 @@ import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
 import * as d3Color from 'd3-color';
+import { compressors } from 'hyparquet-compressors';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
-import { compressors } from 'hyparquet-compressors';
 
 export const debounce = (
   func: CallableFunction,

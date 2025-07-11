@@ -336,11 +336,10 @@ export function addCommands(
       sourceData: { name: 'Custom GeoParquet Source' },
       layerData: { name: 'Custom GeoParquet Layer' },
       sourceType: 'GeoParquetSource',
-      layerType: 'VectorLayer'
+      layerType: 'VectorLayer',
     }),
-    ...icons.get(CommandIDs.newGeoParquetEntry)
+    ...icons.get(CommandIDs.newGeoParquetEntry),
   });
-
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),

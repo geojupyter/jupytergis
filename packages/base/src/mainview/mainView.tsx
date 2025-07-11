@@ -777,7 +777,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const geojson = await loadFile({
           filepath: parameters.path,
           type: 'GeoParquetSource',
-          model: this._model
+          model: this._model,
         });
 
         const geojsonData = Array.isArray(geojson) ? geojson[0] : geojson;
@@ -787,8 +787,8 @@ export class MainView extends React.Component<IProps, IStates> {
         newSource = new VectorSource({
           features: format.readFeatures(geojsonData, {
             dataProjection: parameters.projection,
-            featureProjection: this._Map.getView().getProjection()
-          })
+            featureProjection: this._Map.getView().getProjection(),
+          }),
         });
         break;
       }
