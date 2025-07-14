@@ -496,11 +496,12 @@ const cache = new Map<string, Promise<TableMap>>();
 
 export function loadGeoPackageFile(
   filepath: string,
-  projection: string
+  projection: string,
+  cache_filename: string
 ): Promise<TableMap> {
-  if (!cache.has(filepath)) {
+  if (!cache.has(cache_filename)) {
     cache.set(
-      filepath,
+      cache_filename,
       (async () => {
         const [tables, slds] = await loadGpkg(filepath, projection);
         const tableMap: TableMap = {};
@@ -514,13 +515,7 @@ export function loadGeoPackageFile(
       })()
     );
   }
-  return cache.get(filepath)!;
-}
-
-export interface IGpkgLayer {
-  name: string;
-  source: Source;
-  sld?: string;
+  return cache.get(cache_filename)!;
 }
 
 /**
@@ -609,7 +604,7 @@ export const loadFile = async (fileInfo: {
         if (!projection) {
           throw new Error(`Projection is not specified for ${filepath}`);
         }
-        return loadGeoPackageFile(filepath, projection);
+        return loadGeoPackageFile(filepath, projection, filepath);
       }
 
       default: {
@@ -679,8 +674,14 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoPackageSource': {
-        //TODO: currently used library function (loadGpkg from 'ol-load-geopackage') takes URL as argument
-        throw new Error('Please provide URL of the source.');
+        const projection = model.sharedModel.options.projection;
+        if (!projection) {
+          throw new Error(`Projection is not specified for ${filepath}`);
+        }
+
+        const blob = await base64ToBlob(file.content, getMimeType(filepath));
+        const url = URL.createObjectURL(blob);
+        return loadGeoPackageFile(url, projection, filepath);
       }
 
       default: {
@@ -754,6 +755,7 @@ export const MIME_TYPES: { [ext: string]: string } = {
   '.etx': 'text/x-setext',
   '.exe': 'application/octet-stream',
   '.gif': 'image/gif',
+  '.gpkg': 'application/geopackage+vnd.sqlite3',
   '.gtar': 'application/x-gtar',
   '.h': 'text/plain',
   '.hdf': 'application/x-hdf',

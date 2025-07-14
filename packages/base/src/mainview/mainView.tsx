@@ -709,7 +709,11 @@ export class MainView extends React.Component<IProps, IStates> {
         }
 
         const projection = this._Map.getView().getProjection().getCode();
-        const tableMap = await loadGeoPackageFile(parameters.path, projection);
+        const tableMap = await loadGeoPackageFile(
+          parameters.path,
+          projection,
+          parameters.path
+        );
         const table = tableMap[parameters.table];
 
         const vectorSource = table.source;

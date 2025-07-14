@@ -164,7 +164,8 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
 
         const tableMap = await loadGeoPackageFile(
           source.path,
-          source.projection
+          source.projection,
+          source.path
         );
 
         for (const tableName of Object.keys(tableMap)) {
