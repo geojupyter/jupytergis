@@ -1,5 +1,9 @@
-import { UsersItem } from '@jupyter/collaboration';
-import { IUserData, IJGISExternalCommand, JupyterGISModel } from '@jupytergis/schema';
+import { UsersItem, DefaultIconRenderer } from '@jupyter/collaboration';
+import {
+  IUserData,
+  IJGISExternalCommand,
+  JupyterGISModel,
+} from '@jupytergis/schema';
 import { CommandToolbarButton } from '@jupyterlab/apputils';
 import {
   MenuSvg,
@@ -32,17 +36,41 @@ export class Separator extends Widget {
   }
 }
 
+function createUserIconRenderer(model: JupyterGISModel) {
+  let selectedUserId: number | undefined;
 
-interface IToolbarState {
-  selectedUser?: IUserData;
+  return (props: { user: IUserData }): JSX.Element => {
+    const { user } = props;
+    const isSelected = user.userId === selectedUserId;
+    const className = isSelected ? 'selected' : '';
+
+    const onClick = () => {
+      if (user.userId === selectedUserId) {
+        selectedUserId = undefined;
+        model.setUserToFollow(undefined);
+      } else {
+        selectedUserId = user.userId;
+        model.setUserToFollow(user.userId);
+      }
+    };
+
+    return (
+      <DefaultIconRenderer
+        user={user}
+        onClick={onClick}
+        className={className}
+      />
+    );
+  };
 }
 
 export class ToolbarWidget extends ReactiveToolbar {
-  private _selectedUser: IUserData | undefined = undefined;
+  private _model: JupyterGISModel;
 
   constructor(options: ToolbarWidget.IOptions) {
     super();
 
+    this._model = options.model;
     this.addClass('jGIS-toolbar-widget');
 
     if (options.commands) {
@@ -145,59 +173,15 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
       // Users
+      const iconRenderer = createUserIconRenderer(this._model);
       this.addItem(
         'users',
         ReactWidget.create(
-          <UsersItem
-            model={options.model}
-            iconRenderer={this.userIconRenderer}
-          />
+          <UsersItem model={this._model} iconRenderer={iconRenderer} />,
         ),
       );
     }
   }
-
-  selectUser = (user: IUserData): void => {
-    let selected: IUserData | undefined = undefined;
-    if (user.userId !== this._selectedUser?.userId) {
-      selected = user;
-    }
-    this._selectedUser = selected;
-    (this.options as ToolbarWidget.IOptions).model.setUserToFollow(selected?.userId);
-  };
-
-  userIconRenderer = (props: { user: IUserData }): JSX.Element => {
-    const { user } = props;
-    const { userId, userData } = user;
-    const selected = `${
-      userId === this._selectedUser?.userId ? 'selected' : ''
-    }`;
-    if (userData.avatar_url) {
-      return (
-        <div
-          key={userId}
-          title={userData.display_name}
-          className={`lm-MenuBar-itemIcon jp-MenuBar-imageIcon ${selected}`}
-          onClick={() => this.selectUser(user)}
-        >
-          <img src={userData.avatar_url} alt="" />
-        </div>
-      );
-    } else {
-      return (
-        <div
-          key={userId}
-          title={userData.display_name}
-          className={`lm-MenuBar-itemIcon jp-MenuBar-anonymousIcon ${selected}`}
-          style={{ backgroundColor: userData.color }}
-          onClick={() => this.selectUser(user)}
-        >
-          <span>{userData.initials}</span>
-        </div>
-      );
-    }
-  }
-
 }
 
 export namespace ToolbarWidget {
