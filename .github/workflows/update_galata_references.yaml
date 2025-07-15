@@ -101,7 +101,7 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: jlpm install
 
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@v1
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@main
         with:
           npm_client: jlpm
           github_token: ${{ secrets.GITHUB_TOKEN }}
