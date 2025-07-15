@@ -19,6 +19,11 @@
       "type": "string",
       "description": "The projection information for the GeoPackage data (optional).",
       "default": "EPSG:4326"
+    },
+    "table": {
+      "type": "string",
+      "description": "The name of the table in the GeoPackage to use as a source.",
+      "default": ""
     }
   }
 }

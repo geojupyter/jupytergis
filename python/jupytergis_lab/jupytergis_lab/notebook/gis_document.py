@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
@@ -10,6 +11,9 @@ from pycrdt import Array, Map
 from pydantic import BaseModel
 from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
+
+import sqlite3
+from urllib.request import urlopen, Request
 
 from jupytergis_core.schema import (
     IGeoJSONSource,
@@ -38,6 +42,30 @@ def reversed_tree(root):
     if isinstance(root, list):
         return reversed([reversed_tree(el) for el in root])
     return root
+
+def _isURL(path: str) -> bool:
+    return path.startswith("http://") or path.startswith("https://")
+
+def _download_file(url: str, ext:str) -> str:
+    filename = f"downloaded_{uuid.uuid4().hex[:8]}.{ext}"
+
+    req = Request(url, headers={"User-Agent": "python-urllib"})
+    with urlopen(req) as resp, open(filename, "wb") as out:
+        out.write(resp.read())
+
+    return filename
+
+
+def _get_gpkg_layers(gpkg_path: str) -> list[str]:
+    if _isURL(gpkg_path):
+        gpkg_path = _download_file(gpkg_path, "gpkg")
+
+    conn = sqlite3.connect(gpkg_path)
+    cursor = conn.cursor()
+    cursor.execute("""SELECT table_name FROM gpkg_contents WHERE data_type = 'features'""")
+    layers = [row[0] for row in cursor.fetchall()]
+    conn.close()
+    return layers
 
 
 class GISDocument(CommWidget):
@@ -563,33 +591,42 @@ class GISDocument(CommWidget):
         :param color_expr: The style expression used to style the layer
         """
 
-        source = {
-            "type": SourceType.GeoPackageSource,
-            "name": f"{name} Source",
-            "parameters": {"path": path},
-        }
+        table_names = _get_gpkg_layers(path)
+        layer_ids = []
 
-        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+        for table_name in table_names:
+            source = {
+                "type": SourceType.GeoPackageSource,
+                "name": f"{name} {table_name} Source",
+                "parameters": {"path": path, 'table': table_name},
+            }
 
-        layer = {
-            "type": LayerType.VectorLayer,
-            "name": name,
-            "visible": True,
-            "parameters": {
-                "source": source_id,
-                "type": type,
-                "opacity": opacity,
-                "color": color_expr,
-            },
-            "filters": {
-                "appliedFilters": [
-                    {"feature": feature, "operator": operator, "value": value}
-                ],
-                "logicalOp": logical_op,
-            },
-        }
+            source_id = str(uuid4()) + '/' + str(table_name)
 
-        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+            self._add_source(OBJECT_FACTORY.create_source(source, self), source_id)
+
+            layer = {
+                "type": LayerType.VectorLayer,
+                "name": f"{name} {table_name} Layer",
+                "visible": True,
+                "parameters": {
+                    "source": source_id,
+                    "type": type,
+                    "opacity": opacity,
+                    "color": color_expr,
+                },
+                "filters": {
+                    "appliedFilters": [
+                        {"feature": feature, "operator": operator, "value": value}
+                    ],
+                    "logicalOp": logical_op,
+                },
+            }
+
+            layer_id = str(uuid4()) + '/' + str(table_name)
+            layer_ids.append(self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id))
+
+        return layer_ids
 
     def remove_layer(self, layer_id: str):
         """
@@ -789,8 +826,8 @@ class GISDocument(CommWidget):
         self._sources[_id] = obj_dict
         return _id
 
-    def _add_layer(self, new_object: "JGISObject") -> str:
-        _id = str(uuid4())
+    def _add_layer(self, new_object: "JGISObject", id: str | None = None) -> str:
+        _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
         self._layers[_id] = obj_dict
         self._layerTree.append(_id)
