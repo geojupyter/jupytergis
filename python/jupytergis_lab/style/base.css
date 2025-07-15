@@ -830,3 +830,13 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   border-bottom: 2px solid var(--jp-brand-color1);
   font-weight: 500;
 }
+
+.jp-toolbar-users-item > .lm-MenuBar-itemIcon {
+  cursor: pointer !important;
+  border: 2px solid transparent;
+  border-radius: 50%;
+}
+
+.jp-toolbar-users-item > .lm-MenuBar-itemIcon.selected {
+  border-color: var(--jp-brand-color1);
+}
