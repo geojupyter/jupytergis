@@ -2,6 +2,38 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.6.1
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.6.0...d5a5451ae352fe06d1f90a5803275f47048b3036))
+
+### Enhancements made
+
+- Add 'New JupyterGIS Project' option to right-click context menu [#800](https://github.com/geojupyter/jupytergis/pull/800) ([@arjxn-py](https://github.com/arjxn-py))
+
+### Bugs fixed
+
+- Ensure correct positioning of collaborator icons [#817](https://github.com/geojupyter/jupytergis/pull/817) ([@arjxn-py](https://github.com/arjxn-py))
+- Fix collaborative follow mode [#812](https://github.com/geojupyter/jupytergis/pull/812) ([@mfisher87](https://github.com/mfisher87))
+- Add remove button to STAC badges [#806](https://github.com/geojupyter/jupytergis/pull/806) ([@gjmooney](https://github.com/gjmooney))
+- Remove STAC platform/product selections when no longer relevant [#805](https://github.com/geojupyter/jupytergis/pull/805) ([@gjmooney](https://github.com/gjmooney))
+
+### Maintenance and upkeep improvements
+
+- Indicate to user when running the JS and Python type generation build steps [#798](https://github.com/geojupyter/jupytergis/pull/798) ([@mfisher87](https://github.com/mfisher87))
+- Move GeoJSON source schema to correct dir [#801](https://github.com/geojupyter/jupytergis/pull/801) ([@mfisher87](https://github.com/mfisher87))
+
+### Documentation improvements
+
+- Add code generation documentation [#807](https://github.com/geojupyter/jupytergis/pull/807) ([@mfisher87](https://github.com/mfisher87))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-07-02&to=2025-07-15&type=c))
+
+[@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-07-02..2025-07-15&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2025-07-02..2025-07-15&type=Issues) | [@HaudinFlorence](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AHaudinFlorence+updated%3A2025-07-02..2025-07-15&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-07-02..2025-07-15&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.6.0
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.5.0...89fd8fb7cc101629f546ea1617590633287b4454))
@@ -63,8 +95,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-05-08&to=2025-07-02&type=c))
 
 [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-05-08..2025-07-02&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adependabot+updated%3A2025-05-08..2025-07-02&type=Issues) | [@Gauss-Taylor-Euler](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AGauss-Taylor-Euler+updated%3A2025-05-08..2025-07-02&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-05-08..2025-07-02&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2025-05-08..2025-07-02&type=Issues) | [@HaudinFlorence](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AHaudinFlorence+updated%3A2025-05-08..2025-07-02&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-05-08..2025-07-02&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-05-08..2025-07-02&type=Issues) | [@MMesch](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2025-05-08..2025-07-02&type=Issues) | [@SylvainCorlay](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3ASylvainCorlay+updated%3A2025-05-08..2025-07-02&type=Issues) | [@trungleduc](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Atrungleduc+updated%3A2025-05-08..2025-07-02&type=Issues) | [@tylere](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Atylere+updated%3A2025-05-08..2025-07-02&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.5.0
 
