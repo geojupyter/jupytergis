@@ -89,7 +89,7 @@ jobs:
             jlpm install
             yarn playwright install
 
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@v1
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@main
         with:
           npm_client: jlpm
           github_token: ${{ secrets.GITHUB_TOKEN }}
