@@ -5,19 +5,17 @@ interface IFollowIndicatorProps {
   remoteUser: User.IIdentity | null | undefined;
 }
 
-export const FollowIndicator: React.FC<IFollowIndicatorProps> = ({
-  remoteUser,
-}) => {
-  return remoteUser?.display_name ? (
+export const FollowIndicator: React.FC<IFollowIndicatorProps> = props => {
+  return props.remoteUser?.display_name ? (
     <div
       style={{
         position: 'absolute',
         top: 1,
         right: 3,
-        background: remoteUser.color,
+        background: props.remoteUser.color,
       }}
     >
-      {`Following ${remoteUser.display_name}`}
+      {`Following ${props.remoteUser.display_name}`}
     </div>
   ) : null;
 };

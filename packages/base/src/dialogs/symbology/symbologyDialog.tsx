@@ -39,12 +39,7 @@ export interface IStopRow {
   output: number | number[];
 }
 
-const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
-  model,
-  state,
-  okSignalPromise,
-  cancel,
-}) => {
+const SymbologyDialog: React.FC<ISymbologyDialogProps> = props => {
   const [selectedLayer, setSelectedLayer] = useState<string | null>(null);
   const [componentToRender, setComponentToRender] = useState<any>(null);
 
@@ -52,11 +47,11 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
 
   useEffect(() => {
     const handleClientStateChanged = () => {
-      if (!model.localState?.selected?.value) {
+      if (!props.model.localState?.selected?.value) {
         return;
       }
 
-      const currentLayer = Object.keys(model.localState.selected.value)[0];
+      const currentLayer = Object.keys(props.model.localState.selected.value)[0];
 
       setSelectedLayer(currentLayer);
     };
@@ -64,10 +59,10 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
     // Initial state
     handleClientStateChanged();
 
-    model.clientStateChanged.connect(handleClientStateChanged);
+    props.model.clientStateChanged.connect(handleClientStateChanged);
 
     return () => {
-      model.clientStateChanged.disconnect(handleClientStateChanged);
+      props.model.clientStateChanged.disconnect(handleClientStateChanged);
     };
   }, []);
 
@@ -76,7 +71,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
       return;
     }
 
-    const layer = model.getLayer(selectedLayer);
+    const layer = props.model.getLayer(selectedLayer);
 
     if (!layer) {
       return;
@@ -89,10 +84,10 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
       case 'HeatmapLayer':
         LayerSymbology = (
           <VectorRendering
-            model={model}
-            state={state}
-            okSignalPromise={okSignalPromise}
-            cancel={cancel}
+            model={props.model}
+            state={props.state}
+            okSignalPromise={props.okSignalPromise}
+            cancel={props.cancel}
             layerId={selectedLayer}
           />
         );
@@ -100,10 +95,10 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
       case 'WebGlLayer':
         LayerSymbology = (
           <TiffRendering
-            model={model}
-            state={state}
-            okSignalPromise={okSignalPromise}
-            cancel={cancel}
+            model={props.model}
+            state={props.state}
+            okSignalPromise={props.okSignalPromise}
+            cancel={props.cancel}
             layerId={selectedLayer}
           />
         );

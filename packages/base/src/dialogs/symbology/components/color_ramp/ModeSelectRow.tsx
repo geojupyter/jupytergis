@@ -6,13 +6,7 @@ interface IModeSelectRowProps {
   setSelectedMode: (value: string) => void;
   modeOptions: string[];
 }
-const ModeSelectRow: React.FC<IModeSelectRowProps> = ({
-  numberOfShades,
-  setNumberOfShades,
-  selectedMode,
-  setSelectedMode,
-  modeOptions,
-}) => {
+const ModeSelectRow: React.FC<IModeSelectRowProps> = props => {
   return (
     <div className="jp-gis-symbology-row">
       <div className="jp-gis-color-ramp-div">
@@ -21,9 +15,9 @@ const ModeSelectRow: React.FC<IModeSelectRowProps> = ({
           className="jp-mod-styled"
           name="class-number-input"
           type="number"
-          value={selectedMode === 'continuous' ? 52 : numberOfShades}
-          onChange={event => setNumberOfShades(event.target.value)}
-          disabled={selectedMode === 'continuous'}
+          value={props.selectedMode === 'continuous' ? 52 : props.numberOfShades}
+          onChange={event => props.setNumberOfShades(event.target.value)}
+          disabled={props.selectedMode === 'continuous'}
         />
       </div>
       <div className="jp-gis-color-ramp-div">
@@ -33,11 +27,11 @@ const ModeSelectRow: React.FC<IModeSelectRowProps> = ({
             name="mode-select"
             id="mode-select"
             className="jp-mod-styled"
-            value={selectedMode}
-            onChange={event => setSelectedMode(event.target.value)}
+            value={props.selectedMode}
+            onChange={event => props.setSelectedMode(event.target.value)}
           >
-            {modeOptions.map(mode => (
-              <option key={mode} value={mode} selected={selectedMode === mode}>
+            {props.modeOptions.map(mode => (
+              <option key={mode} value={mode} selected={props.selectedMode === mode}>
                 {mode}
               </option>
             ))}

@@ -14,15 +14,7 @@ import {
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 
-const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
-  model,
-  state,
-  okSignalPromise,
-  cancel,
-  layerId,
-  symbologyTab,
-  selectableAttributesAndValues,
-}) => {
+const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = props => {
   const modeOptions = [
     'quantile',
     'equal interval',
@@ -55,10 +47,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const colorManualStyleRef = useRef(colorManualStyle);
   const radiusManualStyleRef = useRef(radiusManualStyle);
 
-  if (!layerId) {
+  if (!props.layerId) {
     return;
   }
-  const layer = model.getLayer(layerId);
+  const layer = props.model.getLayer(props.layerId);
   if (!layer?.parameters) {
     return;
   }
@@ -66,12 +58,12 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   useEffect(() => {
     updateStopRowsBasedOnLayer();
 
-    okSignalPromise.promise.then(okSignal => {
+    props.okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk, this);
     });
 
     return () => {
-      okSignalPromise.promise.then(okSignal => {
+      props.okSignalPromise.promise.then(okSignal => {
         okSignal.disconnect(handleOk, this);
       });
     };
@@ -107,19 +99,19 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         radius: layer.parameters.color['circle-radius'] || 5,
       });
     }
-  }, [layerId]);
+  }, [props.layerId]);
 
   useEffect(() => {
     colorStopRowsRef.current = colorStopRows;
     radiusStopRowsRef.current = radiusStopRows;
     selectableAttributeRef.current = selectedAttribute;
-    symbologyTabRef.current = symbologyTab;
+    symbologyTabRef.current = props.symbologyTab;
     colorRampOptionsRef.current = colorRampOptions;
   }, [
     colorStopRows,
     radiusStopRows,
     selectedAttribute,
-    symbologyTab,
+    props.symbologyTab,
     colorRampOptions,
   ]);
 
@@ -132,10 +124,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const layerParams = layer.parameters as IVectorLayer;
     const attribute =
       layerParams.symbologyState?.value ??
-      Object.keys(selectableAttributesAndValues)[0];
+      Object.keys(props.selectableAttributesAndValues)[0];
 
     setSelectedAttribute(attribute);
-  }, [selectableAttributesAndValues]);
+  }, [props.selectableAttributesAndValues]);
 
   const updateStopRowsBasedOnLayer = () => {
     if (!layer) {
@@ -147,6 +139,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   };
 
   const handleOk = () => {
+    if (!props.layerId) {
+      throw new Error('layerId is required for Graduated component');
+    }
     if (!layer.parameters) {
       return;
     }
@@ -206,8 +201,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       layer.type = 'VectorLayer';
     }
 
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+    props.model.sharedModel.updateLayer(props.layerId, layer);
+    props.cancel();
   };
 
   const buildColorInfoFromClassification = (
@@ -223,7 +218,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     let stops;
 
-    const values = Array.from(selectableAttributesAndValues[selectedAttribute]);
+    const values = Array.from(props.selectableAttributesAndValues[selectedAttribute]);
 
     switch (selectedMode) {
       case 'quantile':
@@ -262,11 +257,11 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     }
 
     const stopOutputPairs =
-      symbologyTab === 'radius'
+      props.symbologyTab === 'radius'
         ? stops.map(v => ({ stop: v, output: v }))
         : Utils.getValueColorPairs(stops, selectedRamp, +numberOfShades);
 
-    if (symbologyTab === 'radius') {
+    if (props.symbologyTab === 'radius') {
       setRadiusStopRows(stopOutputPairs);
     } else {
       setColorStopRows(stopOutputPairs);
@@ -274,6 +269,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   };
 
   const handleReset = (method: string) => {
+    if (!props.layerId) {
+      throw new Error('layerId is required for Graduated component');
+    }
     if (!layer?.parameters) {
       return;
     }
@@ -294,11 +292,11 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     }
 
     layer.parameters.color = newStyle;
-    model.sharedModel.updateLayer(layerId, layer);
+    props.model.sharedModel.updateLayer(props.layerId, layer);
   };
 
   const body = (() => {
-    if (Object.keys(selectableAttributesAndValues)?.length === 0) {
+    if (Object.keys(props.selectableAttributesAndValues)?.length === 0) {
       return (
         <p className="errors">
           This symbology type is not available; no attributes contain numeric
@@ -309,12 +307,12 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       return (
         <>
           <ValueSelect
-            featureProperties={selectableAttributesAndValues}
+            featureProperties={props.selectableAttributesAndValues}
             selectedValue={selectedAttribute}
             setSelectedValue={setSelectedAttribute}
           />
           <div className="jp-gis-layer-symbology-container">
-            {symbologyTab === 'color' && (
+            {props.symbologyTab === 'color' && (
               <>
                 <div className="jp-gis-symbology-row">
                   <label>Fill Color:</label>
@@ -361,7 +359,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
                 </div>
               </>
             )}
-            {symbologyTab === 'radius' && (
+            {props.symbologyTab === 'radius' && (
               <div className="jp-gis-symbology-row">
                 <label>Circle Radius:</label>
                 <input
@@ -385,13 +383,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             modeOptions={modeOptions}
             classifyFunc={buildColorInfoFromClassification}
             showModeRow={true}
-            showRampSelector={symbologyTab === 'color'}
+            showRampSelector={props.symbologyTab === 'color'}
           />
           <StopContainer
-            selectedMethod={symbologyTab || 'color'}
-            stopRows={symbologyTab === 'color' ? colorStopRows : radiusStopRows}
+            selectedMethod={props.symbologyTab || 'color'}
+            stopRows={props.symbologyTab === 'color' ? colorStopRows : radiusStopRows}
             setStopRows={
-              symbologyTab === 'color' ? setColorStopRows : setRadiusStopRows
+              props.symbologyTab === 'color' ? setColorStopRows : setRadiusStopRows
             }
           />
         </>
