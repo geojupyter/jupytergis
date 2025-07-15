@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
@@ -11,9 +10,6 @@ from pycrdt import Array, Map
 from pydantic import BaseModel
 from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
-
-import sqlite3
-from urllib.request import urlopen, Request
 
 from jupytergis_core.schema import (
     IGeoJSONSource,
@@ -34,6 +30,7 @@ from jupytergis_core.schema import (
     LayerType,
     SourceType,
 )
+from jupytergis_lab.notebook.utils import get_gpkg_layers, isURL, file_to_data_url
 
 logger = logging.getLogger(__file__)
 
@@ -42,30 +39,6 @@ def reversed_tree(root):
     if isinstance(root, list):
         return reversed([reversed_tree(el) for el in root])
     return root
-
-def _isURL(path: str) -> bool:
-    return path.startswith("http://") or path.startswith("https://")
-
-def _download_file(url: str, ext:str) -> str:
-    filename = f"downloaded_{uuid.uuid4().hex[:8]}.{ext}"
-
-    req = Request(url, headers={"User-Agent": "python-urllib"})
-    with urlopen(req) as resp, open(filename, "wb") as out:
-        out.write(resp.read())
-
-    return filename
-
-
-def _get_gpkg_layers(gpkg_path: str) -> list[str]:
-    if _isURL(gpkg_path):
-        gpkg_path = _download_file(gpkg_path, "gpkg")
-
-    conn = sqlite3.connect(gpkg_path)
-    cursor = conn.cursor()
-    cursor.execute("""SELECT table_name FROM gpkg_contents WHERE data_type = 'features'""")
-    layers = [row[0] for row in cursor.fetchall()]
-    conn.close()
-    return layers
 
 
 class GISDocument(CommWidget):
@@ -569,6 +542,7 @@ class GISDocument(CommWidget):
     def add_geopackage_layer(
         self,
         path: str,
+        table_names: list[str] | str | None = None,
         name: str = "GeoPackage Layer",
         type: "circle" | "fill" | "line" = "line",
         opacity: float = 1,
@@ -581,6 +555,7 @@ class GISDocument(CommWidget):
         """
         Add a GeoPackage Layer to the document
         :param path: The path to the GeoPackage file to embed into the jGIS file.
+        :param table_names: A list of table names to create layers for.
         :param name: The name that will be used for the object in the document.
         :param type: The type of the vector layer to create.
         :param opacity: The opacity, between 0 and 1.
@@ -591,14 +566,22 @@ class GISDocument(CommWidget):
         :param color_expr: The style expression used to style the layer
         """
 
-        table_names = _get_gpkg_layers(path)
+        if isinstance(table_names, str):
+            table_names = [part.strip() for part in table_names.split(',')]
+
+        if not table_names:
+            table_names = get_gpkg_layers(path)
+
         layer_ids = []
+
+        if not isURL(path):
+            path = file_to_data_url(path, mime="application/geopackage+sqlite3")
 
         for table_name in table_names:
             source = {
                 "type": SourceType.GeoPackageSource,
                 "name": f"{name} {table_name} Source",
-                "parameters": {"path": path, 'table': table_name},
+                "parameters": {"path": path, 'tables': table_name},
             }
 
             source_id = str(uuid4()) + '/' + str(table_name)

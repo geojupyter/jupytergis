@@ -162,13 +162,11 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
           return;
         }
 
-        const tableMap = await loadGeoPackageFile(
-          source.path,
-          source.projection,
-          source.path
-        );
+        const tableNames: string[] = source.tables
+          ? source.tables.split(",").map((s: string) => s.trim()).filter(Boolean)
+          : Object.keys(await loadGeoPackageFile(source.path, source.projection, source.path));
 
-        for (const tableName of Object.keys(tableMap)) {
+        for (const tableName of tableNames) {
           const childId = `${sourceId}/${tableName}`;
 
           if (this.props.createSource) {
@@ -177,7 +175,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               name: `${source.name} ${tableName} Source`,
               parameters: {
                 path: source.path,
-                table: tableName
+                tables: tableName
               }
             };
             this.props.model.sharedModel.addSource(childId, sourceModel);

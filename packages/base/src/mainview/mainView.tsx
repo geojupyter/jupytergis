@@ -702,19 +702,14 @@ export class MainView extends React.Component<IProps, IStates> {
           throw new Error('GeoPackageSource has no parameters');
         }
 
-        if (parameters.vectorSource) {
-          //TODO: parameters.vectorSource is always undefined
-          newSource = parameters.vectorSource;
-          break;
-        }
-
         const projection = this._Map.getView().getProjection().getCode();
         const tableMap = await loadGeoPackageFile(
           parameters.path,
           projection,
-          parameters.path
+          parameters.path,
+          parameters.tables
         );
-        const table = tableMap[parameters.table];
+        const table = tableMap[parameters.tables];
 
         const vectorSource = table.source;
         parameters.vectorSource = vectorSource;

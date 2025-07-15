@@ -497,7 +497,8 @@ const cache = new Map<string, Promise<TableMap>>();
 export function loadGeoPackageFile(
   filepath: string,
   projection: string,
-  cache_filename: string
+  cache_filename: string,
+  tables?: string[]
 ): Promise<TableMap> {
   if (!cache.has(cache_filename)) {
     cache.set(
@@ -506,10 +507,12 @@ export function loadGeoPackageFile(
         const [tables, slds] = await loadGpkg(filepath, projection);
         const tableMap: TableMap = {};
         for (const name of Object.keys(tables)) {
-          tableMap[name] = {
-            source: tables[name] as Source,
-            sld: slds[name]
-          };
+            if (name in tables){
+                tableMap[name] = {
+                    source: tables[name] as Source,
+                    sld: slds[name]
+                };
+            }
         }
         return tableMap;
       })()
