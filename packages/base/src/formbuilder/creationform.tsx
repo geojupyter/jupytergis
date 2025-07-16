@@ -8,7 +8,7 @@ import {
   SourceType
 } from '@jupytergis/schema';
 
-import { deepCopy, loadGeoPackageFile } from '../tools';
+import { deepCopy, getGeoPackageTableNames } from '../tools';
 
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
@@ -154,7 +154,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
     // Perform the layer/source creation
     Promise.all(creationPromises).then(async () => {
       // We add multiple tables from GeoPackage file as different sources and layers
-      if (this.props.sourceType === 'GeoPackageSource') {
+      if (this.props.sourceType === 'GeoPackageVectorSource' || this.props.sourceType === 'GeoPackageRasterSource') {
         const source = await sourceCreationPromise?.promise;
 
         if (!source) {
@@ -163,15 +163,15 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
         }
 
         const tableNames: string[] = source.tables
-          ? source.tables.split(",").map((s: string) => s.trim()).filter(Boolean)
-          : Object.keys(await loadGeoPackageFile(source.path, source.projection, source.path));
+          ? source.tables.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : await getGeoPackageTableNames(source.path, this.props.sourceType, this.jGISModel);
 
         for (const tableName of tableNames) {
           const childId = `${sourceId}/${tableName}`;
 
           if (this.props.createSource) {
             const sourceModel: IJGISSource = {
-              type: this.props.sourceType || 'GeoPackageSource',
+              type: this.props.sourceType,
               name: `${source.name} ${tableName} Source`,
               parameters: {
                 path: source.path,
@@ -182,16 +182,19 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
           }
           if (this.props.createLayer) {
             const layerModel: IJGISLayer = {
-              type: this.props.layerType || 'VectorLayer',
+              type: this.props.layerType
+            || (this.props.sourceType === 'GeoPackageVectorSource'
+              ? 'VectorLayer' :  'RasterLayer'),
               parameters: { source: childId },
               visible: true,
-              name: `${source.name} ${tableName} Layer`
+              name: `${source.name} ${tableName} Layer`,
             };
             this.jGISModel.addLayer(UUID.uuid4(), layerModel);
           }
         }
         return;
       }
+
       if (this.props.createSource) {
         let actualName = '';
         const { name, ...sourceData } =

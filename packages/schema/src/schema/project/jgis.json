@@ -54,7 +54,8 @@
         "ImageSource",
         "ShapefileSource",
         "GeoTiffSource",
-        "GeoPackageSource"
+        "GeoPackageVectorSource",
+        "GeoPackageRasterSource"
       ]
     },
     "jGISLayer": {

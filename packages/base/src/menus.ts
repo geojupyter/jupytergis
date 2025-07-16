@@ -28,7 +28,7 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newGeoPackageEntry
+    command: CommandIDs.newGeoPackageVectorEntry
   });
 
   return subMenu;
@@ -59,6 +59,11 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
   subMenu.addItem({
     type: 'command',
     command: CommandIDs.newGeoTiffEntry
+  });
+
+  subMenu.addItem({
+    type: 'command',
+    command: CommandIDs.newGeoPackageRasterEntry
   });
 
   return subMenu;

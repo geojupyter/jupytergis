@@ -9,6 +9,8 @@ import * as d3Color from 'd3-color';
 import shp from 'shpjs';
 import { getGdal } from './gdal';
 import loadGpkg from 'ol-load-geopackage';
+import { GeoPackageAPI, GeoPackageTileRetriever } from '@ngageoint/geopackage';
+
 
 import {
   IDict,
@@ -491,35 +493,100 @@ export const loadGeoTiff = async (
   };
 };
 
-type TableMap = Record<string, { source: Source; sld?: string }>;
+type TableMap = Record<string, any>;
 const cache = new Map<string, Promise<TableMap>>();
 
-export function loadGeoPackageFile(
+export function loadGeoPackageVectorFile(
   filepath: string,
   projection: string,
   cache_filename: string,
-  tables?: string[]
 ): Promise<TableMap> {
   if (!cache.has(cache_filename)) {
-    cache.set(
-      cache_filename,
-      (async () => {
+    const loader = (async (): Promise<TableMap> => {
+      try {
+        console.log(filepath, projection);
         const [tables, slds] = await loadGpkg(filepath, projection);
+        console.log('done');
         const tableMap: TableMap = {};
         for (const name of Object.keys(tables)) {
-            if (name in tables){
-                tableMap[name] = {
-                    source: tables[name] as Source,
-                    sld: slds[name]
-                };
-            }
+          tableMap[name] = {
+            source: tables[name] as Source,
+            sld: slds[name],
+          };
         }
         return tableMap;
-      })()
-    );
+      } catch (e: any) {
+        showErrorMessage('Failed to load gpkg file', e);
+        throw e;
+      }
+    })();
+    cache.set(cache_filename, loader);
   }
   return cache.get(cache_filename)!;
 }
+
+
+export function loadGeoPackageRasterFile(
+  filepath: string,
+  projection: string, //TODO
+  cache_filename: string,
+  uintarray :any
+)  {
+if (!cache.has(cache_filename)) {
+  const loader = (async (): Promise<TableMap> => {
+    try {
+      const geoPackage = await GeoPackageAPI.open(uintarray);
+      const tileTables = geoPackage.getTileTables();
+      const tableMap: TableMap = {};
+
+      tileTables.forEach(table => {
+        console.log('tablename',table);
+        const tileDao = geoPackage.getTileDao(table);
+        console.log('tileDao',tileDao);
+         tableMap[table] = {gpr: new GeoPackageTileRetriever(tileDao, 256, 256), tileDao: tileDao};
+         console.log('tableMap[table]', tableMap[table]);
+      } )
+
+      console.log('tablemap', tableMap);
+      return tableMap;
+    } catch (e: any) {
+      showErrorMessage('Failed to load gpkg file', e);
+      throw e;
+    }
+  })();
+  cache.set(cache_filename, loader);
+}
+return cache.get(cache_filename)!;
+}
+
+export async function getGeoPackageTableNames(
+  filepath: string,
+  type: 'GeoPackageVectorSource' | 'GeoPackageRasterSource',
+  model: IJupyterGISModel,
+){
+
+  let geoPackage;
+
+  if (filepath.startsWith('https://') || filepath.startsWith('https://')) {
+    geoPackage = await GeoPackageAPI.open(filepath);
+  }
+  else {
+      const file = await model.contentsManager!.get(filepath, {
+        content: true
+      });
+      const arrayBuffer = await stringToArrayBuffer(file.content)
+      const bytes = new Uint8Array(arrayBuffer);
+      geoPackage = await GeoPackageAPI.open(bytes);
+  }
+
+
+  if (type === 'GeoPackageVectorSource') {
+      return geoPackage.getFeatureTables();
+    } else {
+      return geoPackage.getTileTables();
+    }
+}
+
 
 /**
  * Generalized file reader for different source types.
@@ -602,12 +669,20 @@ export const loadFile = async (fileInfo: {
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
-      case 'GeoPackageSource': {
+      case 'GeoPackageVectorSource': {
         const projection = model.sharedModel.options.projection;
         if (!projection) {
           throw new Error(`Projection is not specified for ${filepath}`);
         }
-        return loadGeoPackageFile(filepath, projection, filepath);
+        return loadGeoPackageVectorFile(filepath, projection, filepath+'Vector');
+      }
+
+      case 'GeoPackageRasterSource': {
+        const projection = model.sharedModel.options.projection;
+        if (!projection) {
+          throw new Error(`Projection is not specified for ${filepath}`);
+        }
+        return loadGeoPackageRasterFile(filepath, '', filepath, filepath+'Raster');
       }
 
       default: {
@@ -676,7 +751,7 @@ export const loadFile = async (fileInfo: {
         }
       }
 
-      case 'GeoPackageSource': {
+      case 'GeoPackageVectorSource': {
         const projection = model.sharedModel.options.projection;
         if (!projection) {
           throw new Error(`Projection is not specified for ${filepath}`);
@@ -684,7 +759,19 @@ export const loadFile = async (fileInfo: {
 
         const blob = await base64ToBlob(file.content, getMimeType(filepath));
         const url = URL.createObjectURL(blob);
-        return loadGeoPackageFile(url, projection, filepath);
+        return loadGeoPackageVectorFile(url, projection, filepath+'Vector');
+      }
+
+      case 'GeoPackageRasterSource': {
+        const projection = model.sharedModel.options.projection;
+        if (!projection) {
+          throw new Error(`Projection is not specified for ${filepath}`);
+        }
+
+        const arrayBuffer = await stringToArrayBuffer(file.content);
+        const bytes = new Uint8Array(arrayBuffer);
+
+        return loadGeoPackageRasterFile(filepath, '', filepath+'Raster', bytes);
       }
 
       default: {

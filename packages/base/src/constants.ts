@@ -36,7 +36,8 @@ export namespace CommandIDs {
   export const newImageEntry = 'jupytergis:newImageEntry';
   export const newVideoEntry = 'jupytergis:newVideoEntry';
   export const newGeoTiffEntry = 'jupytergis:newGeoTiffEntry';
-  export const newGeoPackageEntry = 'jupytergis:newGeoPackageEntry';
+  export const newGeoPackageVectorEntry = 'jupytergis:newGeoPackageVectorEntry';
+  export const newGeoPackageRasterEntry = 'jupytergis:newGeoPackageRasterEntry';
 
   // Processing commands
   export const buffer = 'jupytergis:buffer';
@@ -96,7 +97,8 @@ const iconObject = {
   [CommandIDs.newHillshadeEntry]: { icon: moundIcon },
   [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },
-  [CommandIDs.newGeoPackageEntry]: { icon: geoPackageIcon },
+  [CommandIDs.newGeoPackageVectorEntry]: { icon: geoPackageIcon },
+  [CommandIDs.newGeoPackageRasterEntry]: { icon: geoPackageIcon },
   [CommandIDs.newShapefileEntry]: { iconClass: 'fa fa-file' },
   [CommandIDs.newGeoTiffEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },

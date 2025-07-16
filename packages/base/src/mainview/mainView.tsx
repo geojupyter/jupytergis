@@ -60,7 +60,7 @@ import {
   transformExtent
 } from 'ol/proj';
 import { get as getProjection } from 'ol/proj.js';
-import { register } from 'ol/proj/proj4.js';
+//import { register } from 'ol/proj/proj4.js';
 import RenderFeature from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
@@ -79,7 +79,7 @@ import * as React from 'react';
 import AnnotationFloater from '../annotations/components/AnnotationFloater';
 import { CommandIDs } from '../constants';
 import StatusBar from '../statusbar/StatusBar';
-import { loadGeoPackageFile, isLightTheme, loadFile, throttle } from '../tools';
+import { isLightTheme, loadFile, throttle } from '../tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
@@ -695,27 +695,59 @@ export class MainView extends React.Component<IProps, IStates> {
 
         break;
       }
-      case 'GeoPackageSource': {
+      case 'GeoPackageVectorSource': {
         const parameters = source.parameters;
 
         if (!parameters) {
           throw new Error('GeoPackageSource has no parameters');
         }
 
-        const projection = this._Map.getView().getProjection().getCode();
-        const tableMap = await loadGeoPackageFile(
-          parameters.path,
-          projection,
-          parameters.path,
-          parameters.tables
-        );
+        const tableMap = await loadFile({
+          filepath: parameters.path,
+          type: 'GeoPackageVectorSource',
+          model: this._model
+        });
+
         const table = tableMap[parameters.tables];
 
         const vectorSource = table.source;
-        parameters.vectorSource = vectorSource;
+        //parameters.vectorSource = vectorSource; safe to delete?
         newSource = vectorSource;
         break;
       }
+
+      case 'GeoPackageRasterSource': {
+        const parameters = source.parameters;
+
+        if (!parameters) {
+          throw new Error('GeoPackageSource has no parameters');
+        }
+
+        const tableMap = await loadFile({
+          filepath: parameters.path,
+          type: 'GeoPackageRasterSource',
+          model: this._model
+        });
+
+        const {gpr, tileDao} = tableMap[parameters.tables];
+
+        const rasterSource = new XYZSource({
+          wrapX: false,
+          minZoom: tileDao.minWebMapZoom,
+          maxZoom: tileDao.maxWebMapZoom,
+          url: "{z},{x},{y}",
+          tileLoadFunction(tile: any, src) {
+            const [z, x, y] = src.split(",").map(Number);
+            gpr
+              .getTile(x, y, z)
+              .then((dataUri: any) => (tile.getImage().src = dataUri));
+          },
+        });
+
+        newSource = rasterSource;
+        break;
+      }
+
     }
 
     newSource.set('id', id);
@@ -996,7 +1028,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       try {
         proj4.defs([proj4list[projectionCode]]);
-        register(proj4);
+        //register(proj4); //TODO: this is happening because we updated proj4 library
       } catch (error: any) {
         console.warn(
           `Failed to register projection '${projectionCode}'. Error: ${error.message}`

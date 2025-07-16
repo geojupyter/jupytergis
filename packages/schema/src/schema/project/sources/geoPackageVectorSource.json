@@ -1,7 +1,7 @@
 {
   "type": "object",
-  "description": "GeoPackageSource",
-  "title": "IGeoPackageSource",
+  "description": "GeoPackageVectorSource",
+  "title": "IGeoPackageVectorSource",
   "required": ["path"],
   "additionalProperties": false,
   "properties": {
