@@ -61,29 +61,22 @@ if __name__ == "__main__":
         file for file in os.listdir(processingSchemaDir) if file.endswith(".json")
     ]
 
-    params = []
     for filename in filenamesSchema:
-        filename = f"{processingSchemaDir}/{filename}"
-        with open(filename, "r") as f:
+        schemaFilename = f"{processingSchemaDir}/{filename}"
+
+        processingParams = {}
+        with open(schemaFilename, "r") as f:
             e = json.loads(f.read())
 
-            toAdd = {}
-            toAdd["description"] = e["description"]
+            processingParams["description"] = e["description"]
 
-            params.append(toAdd)
-
-    filenamesProcessConfig = [
-        file for file in os.listdir(processingConfigDir) if file.endswith(".json")
-    ]
-
-    cnt = 0
-    for filename in filenamesProcessConfig:
-        filename = f"{processingConfigDir}/{filename}"
-        with open(filename, "r") as f:
+        configName = f"{processingConfigDir}/{filename}"
+        with open(configName, "r") as f:
             e = json.loads(f.read())
             for x in e:
-                params[cnt][x] = e[x]
-        cnt += 1
+                processingParams[x] = e[x]
+
+        params.append(processingParams)
 
     os.makedirs(directory, exist_ok=True)
     generateJsonMerge()
