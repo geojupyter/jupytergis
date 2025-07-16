@@ -809,7 +809,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupytergis/base@^0.6.1, @jupytergis/base@workspace:packages/base":
+"@jupytergis/base@^0.6.2, @jupytergis/base@workspace:packages/base":
   version: 0.0.0-use.local
   resolution: "@jupytergis/base@workspace:packages/base"
   dependencies:
@@ -820,7 +820,7 @@ __metadata:
     "@jupyter/collaboration": ^3.1.0
     "@jupyter/react-components": ^0.16.6
     "@jupyter/ydoc": ^2.0.0 || ^3.0.0
-    "@jupytergis/schema": ^0.6.1
+    "@jupytergis/schema": ^0.6.2
     "@jupyterlab/application": ^4.3.0
     "@jupyterlab/apputils": ^4.3.0
     "@jupyterlab/completer": ^4.3.0
@@ -885,13 +885,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupytergis/jupytergis-core@^0.6.1, @jupytergis/jupytergis-core@workspace:python/jupytergis_core":
+"@jupytergis/jupytergis-core@^0.6.2, @jupytergis/jupytergis-core@workspace:python/jupytergis_core":
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-core@workspace:python/jupytergis_core"
   dependencies:
     "@jupyter/collaborative-drive": ^3.0.0
-    "@jupytergis/base": ^0.6.1
-    "@jupytergis/schema": ^0.6.1
+    "@jupytergis/base": ^0.6.2
+    "@jupytergis/schema": ^0.6.2
     "@jupyterlab/application": ^4.3.0
     "@jupyterlab/apputils": ^4.3.0
     "@jupyterlab/builder": ^4.3.0
@@ -924,8 +924,8 @@ __metadata:
   resolution: "@jupytergis/jupytergis-lab@workspace:python/jupytergis_lab"
   dependencies:
     "@jupyter/collaborative-drive": ^3.0.0
-    "@jupytergis/base": ^0.6.1
-    "@jupytergis/schema": ^0.6.1
+    "@jupytergis/base": ^0.6.2
+    "@jupytergis/schema": ^0.6.2
     "@jupyterlab/application": ^4.3.0
     "@jupyterlab/apputils": ^4.3.0
     "@jupyterlab/builder": ^4.3.0
@@ -956,9 +956,9 @@ __metadata:
   resolution: "@jupytergis/jupytergis-qgis@workspace:python/jupytergis_qgis"
   dependencies:
     "@jupyter/collaborative-drive": ^3.0.0
-    "@jupytergis/base": ^0.6.1
-    "@jupytergis/jupytergis-core": ^0.6.1
-    "@jupytergis/schema": ^0.6.1
+    "@jupytergis/base": ^0.6.2
+    "@jupytergis/jupytergis-core": ^0.6.2
+    "@jupytergis/schema": ^0.6.2
     "@jupyterlab/application": ^4.3.0
     "@jupyterlab/apputils": ^4.3.0
     "@jupyterlab/builder": ^4.3.0
@@ -1003,7 +1003,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupytergis/schema@^0.6.1, @jupytergis/schema@workspace:packages/schema":
+"@jupytergis/schema@^0.6.2, @jupytergis/schema@workspace:packages/schema":
   version: 0.0.0-use.local
   resolution: "@jupytergis/schema@workspace:packages/schema"
   dependencies:
@@ -5652,9 +5652,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.173":
-  version: 1.5.183
-  resolution: "electron-to-chromium@npm:1.5.183"
-  checksum: 236b816d75778223ef0b15bb8840c14d882062868ea3278694cbeefd2fb8f14984f366487e9077cb6309925cf9fa3a7f578c7f6e5ad580e553519fd264010982
+  version: 1.5.185
+  resolution: "electron-to-chromium@npm:1.5.185"
+  checksum: e84e14c116229d38aaa9ba4eae49fe0f8a5e6d67f32fab54e3d2b03f28e9655336c9efac14428001191d8ad79112d745c9dd22a9403cb43ddec707a6ac7782fb
   languageName: node
   linkType: hard
 
@@ -8200,15 +8200,15 @@ __metadata:
   linkType: hard
 
 "lib0@npm:^0.2.76, lib0@npm:^0.2.85, lib0@npm:^0.2.99":
-  version: 0.2.111
-  resolution: "lib0@npm:0.2.111"
+  version: 0.2.112
+  resolution: "lib0@npm:0.2.112"
   dependencies:
     isomorphic.js: ^0.2.4
   bin:
     0ecdsa-generate-keypair: bin/0ecdsa-generate-keypair.js
     0gentesthtml: bin/gentesthtml.js
     0serve: bin/0serve.js
-  checksum: 84ad7f159380dcc4689529f65bf933cc81b95a84b88eeb81bb69710be48850f54461f6afb31f706a10c030aee357e9b100d34e15631cb32d52365deea58be334
+  checksum: e3d96d713143b016fc51fb6ec027abf855cee52fbb7fa76ac0793af1c780bedd5cc53d8d0b6c17328307d891da50cbd8a7491f4c4bc679221a660f7cfd7b7552
   languageName: node
   linkType: hard
 
@@ -9831,9 +9831,9 @@ __metadata:
   linkType: hard
 
 "picomatch@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "picomatch@npm:4.0.2"
-  checksum: a7a5188c954f82c6585720e9143297ccd0e35ad8072231608086ca950bee672d51b0ef676254af0788205e59bd4e4deb4e7708769226bed725bf13370a7d1464
+  version: 4.0.3
+  resolution: "picomatch@npm:4.0.3"
+  checksum: 6817fb74eb745a71445debe1029768de55fd59a42b75606f478ee1d0dc1aa6e78b711d041a7c9d5550e042642029b7f373dc1a43b224c4b7f12d23436735dba0
   languageName: node
   linkType: hard
 
@@ -10071,7 +10071,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"proj4@npm:*":
+"proj4@npm:*, proj4@npm:^2.1.4":
   version: 2.19.7
   resolution: "proj4@npm:2.19.7"
   dependencies:
@@ -10090,16 +10090,6 @@ __metadata:
   peerDependencies:
     geotiff: "*"
   checksum: 59c9c18fd0dfc48f2b4b5e14e350cf3f366e70f39407bb3a7f27b4da922c4ae75222837f9d61227b0ed2722a8cbb6891027470748eec993e36d2f1d642f1bdf7
-  languageName: node
-  linkType: hard
-
-"proj4@npm:^2.1.4":
-  version: 2.19.6
-  resolution: "proj4@npm:2.19.6"
-  dependencies:
-    mgrs: 1.0.0
-    wkt-parser: ^1.5.1
-  checksum: 146bf0407489bf3ee443adf28bde0473e84f0c76df9c009e51d0a5b1214101c1e95b79ef844a056fc0eb038e2ee39a2c8f4cc5c6e13b8cbc717bf9e93d639daa
   languageName: node
   linkType: hard
 
