@@ -851,7 +851,7 @@ __metadata:
     "@types/colormap": ^2.3.4
     "@types/d3-color": ^3.1.0
     "@types/node": ^18.15.11
-    "@types/proj4": ^2.5.6
+    "@types/proj4": 2.19.0
     "@types/shpjs": ^3.4.7
     "@types/uuid": ^10.0.0
     ajv: ^8.14.0
@@ -869,8 +869,8 @@ __metadata:
     ol-stac: ^1.0.0-rc.10
     pbf: ^4.0.1
     pmtiles: ^3.0.7
-    proj4: ^2.19.3
-    proj4-list: ^1.0.4
+    proj4: 2.19.3
+    proj4-list: 1.0.4
     react: ^18.0.1
     react-day-picker: ^9.7.0
     rimraf: ^3.0.2
@@ -3578,7 +3578,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/proj4@npm:^2.5.6":
+"@types/proj4@npm:2.19.0":
   version: 2.19.0
   resolution: "@types/proj4@npm:2.19.0"
   dependencies:
@@ -10064,14 +10064,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"proj4-list@npm:^1.0.4":
+"proj4-list@npm:1.0.4":
   version: 1.0.4
   resolution: "proj4-list@npm:1.0.4"
   checksum: 3833f61bbbc93684e97555fa11db72009954565ad56313d7dd306ab7c9e4fc480ab64280ae418c0108ee83d0ae0810b334a42dbf8f8f8be4d58371a29a8a35ef
   languageName: node
   linkType: hard
 
-"proj4@npm:*, proj4@npm:^2.1.4, proj4@npm:^2.19.3":
+"proj4@npm:*":
+  version: 2.19.7
+  resolution: "proj4@npm:2.19.7"
+  dependencies:
+    mgrs: 1.0.0
+    wkt-parser: ^1.5.1
+  checksum: fb8a9b0fbc2666fc21fbb6daa39e3a532d39766dd84997091c6bec020d2d97576236c287e8d46ec8d579ff4882ea6b3cf011a0073422d28c092883851c87fe0f
+  languageName: node
+  linkType: hard
+
+"proj4@npm:2.19.3":
+  version: 2.19.3
+  resolution: "proj4@npm:2.19.3"
+  dependencies:
+    mgrs: 1.0.0
+    wkt-parser: ^1.5.1
+  peerDependencies:
+    geotiff: "*"
+  checksum: 59c9c18fd0dfc48f2b4b5e14e350cf3f366e70f39407bb3a7f27b4da922c4ae75222837f9d61227b0ed2722a8cbb6891027470748eec993e36d2f1d642f1bdf7
+  languageName: node
+  linkType: hard
+
+"proj4@npm:^2.1.4":
   version: 2.19.6
   resolution: "proj4@npm:2.19.6"
   dependencies:

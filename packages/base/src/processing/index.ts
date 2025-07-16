@@ -213,6 +213,8 @@ export async function executeSQLProcessing(
   const processedGeoJSONString = new TextDecoder().decode(processedBytes);
   Gdal.close(dataset);
 
+  const layerName = `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`;
+
   if (!embedOutputLayer) {
     // Save the output as a file
     const jgisFilePath = tracker.currentWidget?.model.filePath;
@@ -242,7 +244,7 @@ export async function executeSQLProcessing(
       type: 'VectorLayer',
       parameters: { source: newSourceId },
       visible: true,
-      name: outputFileName,
+      name: layerName,
     };
 
     model.sharedModel.addSource(newSourceId, sourceModel);
@@ -254,7 +256,7 @@ export async function executeSQLProcessing(
 
     const sourceModel: IJGISSource = {
       type: 'GeoJSONSource',
-      name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`,
+      name: `${layerName} Source`,
       parameters: { data: processedGeoJSON },
     };
 
@@ -262,7 +264,7 @@ export async function executeSQLProcessing(
       type: 'VectorLayer',
       parameters: { source: newSourceId },
       visible: true,
-      name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`,
+      name: layerName,
     };
 
     model.sharedModel.addSource(newSourceId, sourceModel);
