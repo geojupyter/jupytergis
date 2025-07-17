@@ -1,0 +1,63 @@
+{
+  "layerTree": [
+    "9556ca29-a5ec-41af-bf14-4b543c52aafe",
+    "d7a2ad84-0750-4e9b-82c0-542fcc6b3265"
+  ],
+  "layers": {
+    "9556ca29-a5ec-41af-bf14-4b543c52aafe": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "2a52082b-7992-40dc-92d6-75e309a1ed27"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "d7a2ad84-0750-4e9b-82c0-542fcc6b3265": {
+      "name": "Custom GeoParquet Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "c1da95b9-8a71-4fee-b4e3-6f0b5f53d2d4"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -20037508.342789244,
+      -15214174.147482341,
+      20037508.342789244,
+      15214174.147482341
+    ],
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 1.5058115539195944
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "2a52082b-7992-40dc-92d6-75e309a1ed27": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "c1da95b9-8a71-4fee-b4e3-6f0b5f53d2d4": {
+      "name": "Custom GeoParquet Source",
+      "parameters": {
+        "attribution": "",
+        "path": "https://raw.githubusercontent.com/opengeospatial/geoparquet/main/examples/example.parquet",
+        "projection": "EPSG:4326"
+      },
+      "type": "GeoParquetSource"
+    }
+  }
+}

@@ -12,6 +12,7 @@ import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
 import * as d3Color from 'd3-color';
+import { compressors } from 'hyparquet-compressors';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
@@ -567,6 +568,26 @@ export const loadFile = async (fileInfo: {
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
+      case 'GeoParquetSource': {
+        const cached = await getFromIndexedDB(filepath);
+        if (cached) {
+          return cached.file;
+        }
+
+        const { asyncBufferFromUrl, toGeoJson } = await import('geoparquet');
+
+        const file = await asyncBufferFromUrl({ url: filepath });
+        const geojson = await toGeoJson({ file });
+
+        if (geojson) {
+          await saveToIndexedDB(filepath, geojson);
+          return geojson;
+        }
+
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
+      }
+
       default: {
         throw new Error(`Unsupported URL handling for source type: ${type}`);
       }
@@ -630,6 +651,18 @@ export const loadFile = async (fileInfo: {
           return tiff;
         } else {
           throw new Error('Invalid file format for tiff content.');
+        }
+      }
+
+      case 'GeoParquetSource': {
+        if (typeof file.content === 'string') {
+          const { toGeoJson } = await import('geoparquet');
+
+          const arrayBuffer = await stringToArrayBuffer(file.content as string);
+
+          return await toGeoJson({ file: arrayBuffer, compressors });
+        } else {
+          throw new Error('Invalid file format for GeoParquet content.');
         }
       }
 
