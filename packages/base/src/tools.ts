@@ -493,8 +493,8 @@ export const loadGeoTiff = async (
   };
 };
 
-type TableMap = Record<string, any>;
-const cache = new Map<string, Promise<TableMap>>();
+type TableMap = Record<string, any>; //TODO: Define a more specific type
+const cache = new Map<string, Promise<TableMap>>(); //TODO give a more specific name
 
 export function loadGeoPackageVectorFile(
   filepath: string,
@@ -504,9 +504,7 @@ export function loadGeoPackageVectorFile(
   if (!cache.has(cache_filename)) {
     const loader = (async (): Promise<TableMap> => {
       try {
-        console.log(filepath, projection);
         const [tables, slds] = await loadGpkg(filepath, projection);
-        console.log('done');
         const tableMap: TableMap = {};
         for (const name of Object.keys(tables)) {
           tableMap[name] = {
@@ -527,27 +525,21 @@ export function loadGeoPackageVectorFile(
 
 
 export function loadGeoPackageRasterFile(
-  filepath: string,
-  projection: string, //TODO
-  cache_filename: string,
-  uintarray :any
+  file: Uint8Array ,
+  cache_filename: string
 )  {
 if (!cache.has(cache_filename)) {
   const loader = (async (): Promise<TableMap> => {
     try {
-      const geoPackage = await GeoPackageAPI.open(uintarray);
+      const geoPackage = await GeoPackageAPI.open(file);
       const tileTables = geoPackage.getTileTables();
       const tableMap: TableMap = {};
 
       tileTables.forEach(table => {
-        console.log('tablename',table);
         const tileDao = geoPackage.getTileDao(table);
-        console.log('tileDao',tileDao);
          tableMap[table] = {gpr: new GeoPackageTileRetriever(tileDao, 256, 256), tileDao: tileDao};
-         console.log('tableMap[table]', tableMap[table]);
       } )
 
-      console.log('tablemap', tableMap);
       return tableMap;
     } catch (e: any) {
       showErrorMessage('Failed to load gpkg file', e);
@@ -572,7 +564,7 @@ export async function getGeoPackageTableNames(
   }
   else {
       const file = await model.contentsManager!.get(filepath, {
-        content: true
+        content: true //TODO: can we do this another way?
       });
       const arrayBuffer = await stringToArrayBuffer(file.content)
       const bytes = new Uint8Array(arrayBuffer);
@@ -682,7 +674,15 @@ export const loadFile = async (fileInfo: {
         if (!projection) {
           throw new Error(`Projection is not specified for ${filepath}`);
         }
-        return loadGeoPackageRasterFile(filepath, '', filepath, filepath+'Raster');
+        return await fetchWithProxies(
+          filepath,
+          model,
+          async response => {
+            const arrayBuffer = await response.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            return loadGeoPackageRasterFile(bytes, filepath+'Raster');
+            }
+        );
       }
 
       default: {
@@ -771,7 +771,7 @@ export const loadFile = async (fileInfo: {
         const arrayBuffer = await stringToArrayBuffer(file.content);
         const bytes = new Uint8Array(arrayBuffer);
 
-        return loadGeoPackageRasterFile(filepath, '', filepath+'Raster', bytes);
+        return loadGeoPackageRasterFile(bytes, filepath+'Raster');
       }
 
       default: {

@@ -175,7 +175,8 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               name: `${source.name} ${tableName} Source`,
               parameters: {
                 path: source.path,
-                tables: tableName
+                tables: tableName,
+                projection: source.projection || 'EPSG:4326'
               }
             };
             this.props.model.sharedModel.addSource(childId, sourceModel);

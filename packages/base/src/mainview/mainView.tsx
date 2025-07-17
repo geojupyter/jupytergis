@@ -709,9 +709,8 @@ export class MainView extends React.Component<IProps, IStates> {
         });
 
         const table = tableMap[parameters.tables];
-
         const vectorSource = table.source;
-        //parameters.vectorSource = vectorSource; safe to delete?
+        vectorSource['projection'] = getProjection(parameters.projection);
         newSource = vectorSource;
         break;
       }
