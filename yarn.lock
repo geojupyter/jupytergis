@@ -999,7 +999,6 @@ __metadata:
     lerna: ^8.1.9
     npm-run-all: ^4.1.5
     prettier: ^3.0.0
-    react-rnd: ^10.5.2
     rimraf: ^3.0.2
     typescript: ^5
     webpack: ^5.76.3
@@ -4853,13 +4852,6 @@ __metadata:
   version: 1.0.4
   resolution: "clone@npm:1.0.4"
   checksum: d06418b7335897209e77bdd430d04f882189582e67bd1f75a04565f3f07f5b3f119a9d670c943b6697d0afb100f03b866b3b8a1f91d4d02d72c4ecf2bb64b5dd
-  languageName: node
-  linkType: hard
-
-"clsx@npm:^1.1.1":
-  version: 1.2.1
-  resolution: "clsx@npm:1.2.1"
-  checksum: 30befca8019b2eb7dbad38cff6266cf543091dae2825c856a62a8ccf2c3ab9c2907c4d12b288b73101196767f66812365400a227581484a05f968b0307cfaf12
   languageName: node
   linkType: hard
 
@@ -10275,16 +10267,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"re-resizable@npm:6.11.2":
-  version: 6.11.2
-  resolution: "re-resizable@npm:6.11.2"
-  peerDependencies:
-    react: ^16.13.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    react-dom: ^16.13.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 6e754c459f5e3b878184a4f3bffaef2f64ee32e4375e6a93f5f302eecc55d15f91fc7970d28a3ceb17b36292b421039b9cfcfe2ecef7785f44aeeb2d1baefa1a
-  languageName: node
-  linkType: hard
-
 "react-day-picker@npm:^9.7.0":
   version: 9.8.0
   resolution: "react-day-picker@npm:9.8.0"
@@ -10307,19 +10289,6 @@ __metadata:
   peerDependencies:
     react: ^18.3.1
   checksum: 298954ecd8f78288dcaece05e88b570014d8f6dce5db6f66e6ee91448debeb59dcd31561dddb354eee47e6c1bb234669459060deb238ed0213497146e555a0b9
-  languageName: node
-  linkType: hard
-
-"react-draggable@npm:4.4.6":
-  version: 4.4.6
-  resolution: "react-draggable@npm:4.4.6"
-  dependencies:
-    clsx: ^1.1.1
-    prop-types: ^15.8.1
-  peerDependencies:
-    react: ">= 16.3.0"
-    react-dom: ">= 16.3.0"
-  checksum: 9b15aac59244873ac4561c5a2bead43a56e18d406e0a5f242bd4f9d151c074530c02b99387983104bf43417292f9cf8d063e554ed08d88792235e3fbc965f1b8
   languageName: node
   linkType: hard
 
@@ -10389,20 +10358,6 @@ __metadata:
     "@types/react":
       optional: true
   checksum: c8b1988d473ca0b4911a0a42f09dc7806d5db998c3ec938ae2791a5f82d807c2cdebb78a1c58a0bab62a83112528dda2f20d509d0e048fe281b9dfc027c39763
-  languageName: node
-  linkType: hard
-
-"react-rnd@npm:^10.5.2":
-  version: 10.5.2
-  resolution: "react-rnd@npm:10.5.2"
-  dependencies:
-    re-resizable: 6.11.2
-    react-draggable: 4.4.6
-    tslib: 2.6.2
-  peerDependencies:
-    react: ">=16.3.0"
-    react-dom: ">=16.3.0"
-  checksum: 0ca7f46fabd0f095998ba45c7463d2a433b5a91b1691f0ec1a210aae527ede09d0f75f57259f8579faf5dd677cfae6ec8a5767ec2c95444005698f31a8dc6e13
   languageName: node
   linkType: hard
 
@@ -11789,13 +11744,6 @@ __metadata:
     minimist: ^1.2.6
     strip-bom: ^3.0.0
   checksum: 28c5f7bbbcabc9dabd4117e8fdc61483f6872a1c6b02a4b1c4d68c5b79d06896c3cc9547610c4c3ba64658531caa2de13ead1ea1bf321c7b53e969c4752b98c7
-  languageName: node
-  linkType: hard
-
-"tslib@npm:2.6.2":
-  version: 2.6.2
-  resolution: "tslib@npm:2.6.2"
-  checksum: 329ea56123005922f39642318e3d1f0f8265d1e7fcb92c633e0809521da75eeaca28d2cf96d7248229deb40e5c19adf408259f4b9640afd20d13aecc1430f3ad
   languageName: node
   linkType: hard
 
