@@ -35,25 +35,14 @@ def download_file(url: str, ext:str) -> str:
     return filename
 
 
-def get_gpkg_layers(gpkg_path: str) -> list[str]:
+def get_gpkg_layers(gpkg_path: str, data_type:str) -> list[str]:
     if isURL(gpkg_path):
         gpkg_path = download_file(gpkg_path, "gpkg")
 
     conn = sqlite3.connect(gpkg_path)
     cursor = conn.cursor()
-    cursor.execute("""SELECT table_name FROM gpkg_contents WHERE data_type = 'features'""")
+    cursor.execute(f"""SELECT table_name FROM gpkg_contents WHERE data_type = '{data_type}'""")
     layers = [row[0] for row in cursor.fetchall()]
     conn.close()
     return layers
 
-
-def file_to_data_url(path: str, mime:str=None) -> str:
-    p = Path(path)
-
-    if mime is None:
-        mime = "application/octet-stream"
-
-    data = p.read_bytes()
-    b64 = base64.b64encode(data).decode("ascii")
-
-    return f"data:{mime};base64,{b64}"

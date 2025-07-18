@@ -13,7 +13,8 @@ from ypywidgets.comm import CommWidget
 
 from jupytergis_core.schema import (
     IGeoJSONSource,
-    IGeoPackageSource,
+    IGeoPackageVectorSource,
+    IGeoPackageRasterSource,
     IGeoTiffSource,
     IHeatmapLayer,
     IHillshadeLayer,
@@ -30,7 +31,7 @@ from jupytergis_core.schema import (
     LayerType,
     SourceType,
 )
-from jupytergis_lab.notebook.utils import get_gpkg_layers, isURL, file_to_data_url
+from jupytergis_lab.notebook.utils import get_gpkg_layers
 
 logger = logging.getLogger(__file__)
 
@@ -539,7 +540,7 @@ class GISDocument(CommWidget):
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
-    def add_geopackage_layer(
+    def add_geopackage_vector_layer(
         self,
         path: str,
         table_names: list[str] | str | None = None,
@@ -553,7 +554,7 @@ class GISDocument(CommWidget):
         color_expr=None,
     ):
         """
-        Add a GeoPackage Layer to the document
+        Add a GeoPackage Vector Layer to the document
         :param path: The path to the GeoPackage file to embed into the jGIS file.
         :param table_names: A list of table names to create layers for.
         :param name: The name that will be used for the object in the document.
@@ -570,18 +571,21 @@ class GISDocument(CommWidget):
             table_names = [part.strip() for part in table_names.split(',')]
 
         if not table_names:
-            table_names = get_gpkg_layers(path)
+            table_names = get_gpkg_layers(path, 'features')
 
         layer_ids = []
 
-        if not isURL(path):
-            path = file_to_data_url(path, mime="application/geopackage+sqlite3")
+
+        if "projection" in self._options:
+            projection = self._options["projection"]
+        else:
+            projection = "EPSG:3857"
 
         for table_name in table_names:
             source = {
-                "type": SourceType.GeoPackageSource,
+                "type": SourceType.GeoPackageVectorSource,
                 "name": f"{name} {table_name} Source",
-                "parameters": {"path": path, 'tables': table_name},
+                "parameters": {"path": path, 'tables': table_name, 'projection':projection},
             }
 
             source_id = str(uuid4()) + '/' + str(table_name)
@@ -604,6 +608,60 @@ class GISDocument(CommWidget):
                     ],
                     "logicalOp": logical_op,
                 },
+            }
+
+            layer_id = str(uuid4()) + '/' + str(table_name)
+            layer_ids.append(self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id))
+
+        return layer_ids
+
+    def add_geopackage_raster_layer(
+        self,
+        path: str,
+        table_names: list[str] | str | None = None,
+        name: str = "GeoPackage Layer",
+        attribution: str = "",
+        opacity: float = 1,
+    ):
+        """
+        Add a GeoPackage Raster Layer to the document.
+
+        :param path: The tiles path.
+        :param table_names: A list of table names to create layers for.
+        :param name: The name that will be used for the object in the document.
+        :param attribution: The attribution.
+        :param opacity: The opacity, between 0 and 1.
+        """
+
+        if isinstance(table_names, str):
+            table_names = [part.strip() for part in table_names.split(',')]
+
+        if not table_names:
+            table_names = get_gpkg_layers(path, 'tiles')
+
+        layer_ids = []
+
+        for table_name in table_names:
+            source = {
+                "type": SourceType.GeoPackageRasterSource,
+                "name": f"{name} {table_name} Source",
+                "parameters": {"path": path, 'tables': table_name},
+            }
+
+            source_id = str(uuid4()) + '/' + str(table_name)
+
+            self._add_source(OBJECT_FACTORY.create_source(source, self), source_id)
+
+            layer = {
+                "type": LayerType.RasterLayer,
+                "name": f"{name} {table_name} Layer",
+                "visible": True,
+                "parameters": {
+                    "source": source_id,
+                    "type": type,
+                    "opacity": opacity,
+                    "attribution": attribution,
+                }
             }
 
             layer_id = str(uuid4()) + '/' + str(table_name)
@@ -897,7 +955,8 @@ class JGISSource(BaseModel):
         IVideoSource,
         IGeoTiffSource,
         IRasterDemSource,
-        IGeoPackageSource,
+        IGeoPackageVectorSource,
+        IGeoPackageRasterSource
     ]
     _parent = Optional[GISDocument]
 
@@ -985,4 +1044,5 @@ OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)
 OBJECT_FACTORY.register_factory(SourceType.VideoSource, IVideoSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoTiffSource, IGeoTiffSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterDemSource, IRasterDemSource)
-OBJECT_FACTORY.register_factory(SourceType.GeoPackageSource, IGeoPackageSource)
+OBJECT_FACTORY.register_factory(SourceType.GeoPackageVectorSource, IGeoPackageVectorSource)
+OBJECT_FACTORY.register_factory(SourceType.GeoPackageRasterSource, IGeoPackageRasterSource)

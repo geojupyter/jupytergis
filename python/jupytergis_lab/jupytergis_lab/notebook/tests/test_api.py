@@ -5,8 +5,8 @@ import pytest
 from jupytergis_lab import GISDocument
 
 TEST_TIF = "https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif"
-TEST_GPKG = "https://raw.githubusercontent.com/ngageoint/GeoPackage/master/docs/examples/java/example.gpkg"
-
+TEST_GPKG_VECTOR = "https://raw.githubusercontent.com/richard-thomas/ol-load-geopackage/master/examples/dist/Natural_Earth_QGIS_layers_and_styles.gpkg"
+TEST_GPKG_RASTER = "https://cdn.jsdelivr.net/gh/ngageoint/geopackage-js@master/docs/examples/GeoPackageToGo/StLouis.gpkg"
 
 class TestDocument:
     def setup_method(self):
@@ -31,12 +31,15 @@ class TestTiffLayer(TestDocument):
         assert self.doc.layers[tif_layer]["parameters"]["color"] == color
 
 
-class TestGeoPackageLayer(TestDocument):
+class TestGeoPackageVectorLayer(TestDocument):
     def test_sourcelayer(self):
-        color = {"fill-color": "#00FF00", "stroke-color": "#FF0000"}
+        gpkg_layers = self.doc.add_geopackage_vector_layer(TEST_GPKG_VECTOR)
+        assert all(name in self.doc.layers for name in gpkg_layers)
 
-        gpkg_layer = self.doc.add_geopackage_layer(TEST_GPKG, color_expr=color)
-        assert self.doc.layers[gpkg_layer]["parameters"]["color"] == color
+class TestGeoPackageRasterLayer(TestDocument):
+    def test_sourcelayer(self):
+        gpkg_layers = self.doc.add_geopackage_raster_layer(TEST_GPKG_RASTER)
+        assert all(name in self.doc.layers for name in gpkg_layers)
 
 
 class TestLayerManipulation(TestDocument):

@@ -524,31 +524,51 @@ export function loadGeoPackageVectorFile(
 }
 
 
-export function loadGeoPackageRasterFile(
-  file: Uint8Array ,
-  cache_filename: string
-)  {
-if (!cache.has(cache_filename)) {
+async function loadGeoPackageRasterFile(
+  filepath: string,
+  cacheFilename: string,
+  model?: IJupyterGISModel,
+  file_content?: string
+): Promise<TableMap> {
+
+  if (cache.has(cacheFilename)) {
+    return cache.get(cacheFilename)!;
+  }
+
   const loader = (async (): Promise<TableMap> => {
     try {
-      const geoPackage = await GeoPackageAPI.open(file);
-      const tileTables = geoPackage.getTileTables();
-      const tableMap: TableMap = {};
+      let bytes: Uint8Array;
+      if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
+        bytes = await loadGkpgFromUrl(filepath, model!);
+      }
+      else {
+          const arrayBuffer = await stringToArrayBuffer(file_content as string);
+          bytes = new Uint8Array(arrayBuffer);
+      }
 
-      tileTables.forEach(table => {
-        const tileDao = geoPackage.getTileDao(table);
-         tableMap[table] = {gpr: new GeoPackageTileRetriever(tileDao, 256, 256), tileDao: tileDao};
-      } )
+      const geoPackage = await GeoPackageAPI.open(bytes);
+          const tileTables = await geoPackage.getTileTables();
+          const map: TableMap = {};
 
-      return tableMap;
-    } catch (e: any) {
-      showErrorMessage('Failed to load gpkg file', e);
-      throw e;
+          tileTables.forEach(tableName => {
+            const tileDao = geoPackage.getTileDao(tableName);
+            map[tableName] = {
+              gpr: new GeoPackageTileRetriever(tileDao, 256, 256),
+              tileDao,
+            };
+          });
+
+          return map;
+        }
+      
+     catch (error: any) {
+      showErrorMessage(`Failed to load GeoPackage raster: ${cacheFilename}`, error);
+      throw error;
     }
   })();
-  cache.set(cache_filename, loader);
-}
-return cache.get(cache_filename)!;
+
+  cache.set(cacheFilename, loader);
+  return loader;
 }
 
 export async function getGeoPackageTableNames(
@@ -559,24 +579,15 @@ export async function getGeoPackageTableNames(
 
   let geoPackage;
 
-  if (filepath.startsWith('https://') || filepath.startsWith('https://')) {
-    geoPackage = await GeoPackageAPI.open(filepath);
-  }
+
+  if (type === 'GeoPackageRasterSource') {
+    geoPackage = await loadGeoPackageRasterFile(filepath, filepath+'Raster', model);
+    } 
   else {
-      const file = await model.contentsManager!.get(filepath, {
-        content: true //TODO: can we do this another way?
-      });
-      const arrayBuffer = await stringToArrayBuffer(file.content)
-      const bytes = new Uint8Array(arrayBuffer);
-      geoPackage = await GeoPackageAPI.open(bytes);
+    geoPackage = await loadGeoPackageVectorFile(filepath, model.sharedModel.options.projection!, filepath+'Vector');
   }
 
-
-  if (type === 'GeoPackageVectorSource') {
-      return geoPackage.getFeatureTables();
-    } else {
-      return geoPackage.getTileTables();
-    }
+  return Object.keys(geoPackage);
 }
 
 
@@ -662,27 +673,18 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoPackageVectorSource': {
-        const projection = model.sharedModel.options.projection;
+        let projection = model.sharedModel.options.projection;
         if (!projection) {
-          throw new Error(`Projection is not specified for ${filepath}`);
+          //TODO: this error should be uncommented when PR #732 is merged
+          //throw new Error(`Projection is not specified for ${filepath}`);
+          projection = 'EPSG:3857';
         }
         return loadGeoPackageVectorFile(filepath, projection, filepath+'Vector');
       }
 
-      case 'GeoPackageRasterSource': {
-        const projection = model.sharedModel.options.projection;
-        if (!projection) {
-          throw new Error(`Projection is not specified for ${filepath}`);
-        }
-        return await fetchWithProxies(
-          filepath,
-          model,
-          async response => {
-            const arrayBuffer = await response.arrayBuffer();
-            const bytes = new Uint8Array(arrayBuffer);
-            return loadGeoPackageRasterFile(bytes, filepath+'Raster');
-            }
-        );
+      case 'GeoPackageRasterSource': {      
+        return loadGeoPackageRasterFile(filepath, filepath+'Raster', model);
+      
       }
 
       default: {
@@ -752,26 +754,19 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoPackageVectorSource': {
-        const projection = model.sharedModel.options.projection;
+        let projection = model.sharedModel.options.projection;
         if (!projection) {
-          throw new Error(`Projection is not specified for ${filepath}`);
+          //TODO: this error should be uncommented when PR #732 is merged
+          //throw new Error(`Projection is not specified for ${filepath}`);
+          projection = 'EPSG:3857';
         }
-
         const blob = await base64ToBlob(file.content, getMimeType(filepath));
         const url = URL.createObjectURL(blob);
         return loadGeoPackageVectorFile(url, projection, filepath+'Vector');
       }
 
       case 'GeoPackageRasterSource': {
-        const projection = model.sharedModel.options.projection;
-        if (!projection) {
-          throw new Error(`Projection is not specified for ${filepath}`);
-        }
-
-        const arrayBuffer = await stringToArrayBuffer(file.content);
-        const bytes = new Uint8Array(arrayBuffer);
-
-        return loadGeoPackageRasterFile(bytes, filepath+'Raster');
+        return loadGeoPackageRasterFile(filepath, filepath+'Raster', undefined, file.content);
       }
 
       default: {
@@ -1062,4 +1057,19 @@ export async function getGeoJSONDataFromLayerSource(
   }
   console.error("Source is missing both 'path' and 'data' parameters.");
   return null;
+}
+
+async function loadGkpgFromUrl(filepath: string, model: IJupyterGISModel): Promise<Uint8Array> {
+  const response = await fetchWithProxies(
+    filepath,
+    model,
+    async (response) => {
+      const arrayBuffer = await response.arrayBuffer();
+      return new Uint8Array(arrayBuffer);
+    }
+  );
+  if (!response) {
+    throw new Error(`Failed to fetch GeoPackage from URL: ${filepath}`);
+  }
+  return response;
 }

@@ -18,7 +18,7 @@
     "projection": {
       "type": "string",
       "description": "The projection information for the GeoPackage data (optional).",
-      "default": "EPSG:4326"
+      "default": "EPSG:3857"
     },
     "tables": {
       "type": "string",
