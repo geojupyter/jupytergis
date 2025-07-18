@@ -45,7 +45,6 @@ export const RightPanelComponent = (options: IRightComponentProps) => {
                 className="jGIS-layer-browser-category"
                 value={e.name}
                 onClick={() => {
-                  console.log('HERE');
                   if (curTab !== e.name) {
                     setCurTab(e.name);
                   } else {

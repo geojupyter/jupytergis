@@ -12,8 +12,6 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
   constructor(props: IAnnotationPanelProps) {
     super(props);
 
-    console.log(props.annotationModel);
-
     const updateCallback = () => {
       this.forceUpdate();
     };
