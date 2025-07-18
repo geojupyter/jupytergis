@@ -21,7 +21,6 @@ import { CommandIDs, icons } from '@/src/constants';
 import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/panelview/leftpanel';
 
-// const LAYERS_PANEL_CLASS = 'jp-gis-layerPanel';
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
 const LAYER_GROUP_HEADER_CLASS = 'jp-gis-layerGroupHeader';
 const LAYER_GROUP_COLLAPSER_CLASS = 'jp-gis-layerGroupCollapser';
