@@ -17,6 +17,8 @@ import {
   IJupyterGISWidget,
   IAnnotationModel,
   IAnnotationToken,
+  IJGISFormSchemaRegistry,
+  IJGISFormSchemaRegistryToken,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -36,6 +38,7 @@ import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { IStateDB } from '@jupyterlab/statedb';
 import { Widget } from '@lumino/widgets';
 
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
@@ -80,6 +83,8 @@ const activate = async (
   consoleTracker: IConsoleTracker,
   annotationModel: IAnnotationModel,
   settingRegistry: ISettingRegistry,
+  formSchemaRegistry: IJGISFormSchemaRegistry,
+  state: IStateDB,
   commandPalette: ICommandPalette | null,
 ): Promise<void> => {
   const fcCheck = await requestAPI<{ installed: boolean }>(
@@ -113,6 +118,9 @@ const activate = async (
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
     consoleTracker,
+    formSchemaRegistry,
+    state,
+    annotationModel,
   });
   const QGZWidgetFactory = new JupyterGISDocumentWidgetFactory({
     name: 'JupyterGIS QGZ Factory',
@@ -128,6 +136,9 @@ const activate = async (
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
     consoleTracker,
+    formSchemaRegistry,
+    state,
+    annotationModel,
   });
 
   // Registering the widget factory
@@ -285,7 +296,9 @@ const activate = async (
         } else if (response.logs.warnings.length) {
           const bodyElement = document.createElement('pre');
           bodyElement.textContent = `${filepath} has been exported with warnings\n  - ${response.logs.warnings.join('\n  - ')}`;
-          const body = new Widget({ node: bodyElement });
+          const body = new Widget({
+            node: bodyElement,
+          });
           await showDialog<HTMLPreElement>({
             title: 'Export the project to QGZ file',
             body,
@@ -319,6 +332,8 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
     IConsoleTracker,
     IAnnotationToken,
     ISettingRegistry,
+    IJGISFormSchemaRegistryToken,
+    IStateDB,
   ],
   optional: [ICommandPalette],
   autoStart: true,
