@@ -8,6 +8,7 @@ TEST_TIF = "https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless
 TEST_GPKG_VECTOR = "https://raw.githubusercontent.com/richard-thomas/ol-load-geopackage/master/examples/dist/Natural_Earth_QGIS_layers_and_styles.gpkg"
 TEST_GPKG_RASTER = "https://cdn.jsdelivr.net/gh/ngageoint/geopackage-js@master/docs/examples/GeoPackageToGo/StLouis.gpkg"
 
+
 class TestDocument:
     def setup_method(self):
         self.doc = GISDocument()
@@ -35,6 +36,7 @@ class TestGeoPackageVectorLayer(TestDocument):
     def test_sourcelayer(self):
         gpkg_layers = self.doc.add_geopackage_vector_layer(TEST_GPKG_VECTOR)
         assert all(name in self.doc.layers for name in gpkg_layers)
+
 
 class TestGeoPackageRasterLayer(TestDocument):
     def test_sourcelayer(self):

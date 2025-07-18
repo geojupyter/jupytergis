@@ -154,7 +154,10 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
     // Perform the layer/source creation
     Promise.all(creationPromises).then(async () => {
       // We add multiple tables from GeoPackage file as different sources and layers
-      if (this.props.sourceType === 'GeoPackageVectorSource' || this.props.sourceType === 'GeoPackageRasterSource') {
+      if (
+        this.props.sourceType === 'GeoPackageVectorSource' ||
+        this.props.sourceType === 'GeoPackageRasterSource'
+      ) {
         const source = await sourceCreationPromise?.promise;
 
         if (!source) {
@@ -163,8 +166,15 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
         }
 
         const tableNames: string[] = source.tables
-          ? source.tables.split(',').map((s: string) => s.trim()).filter(Boolean)
-          : await getGeoPackageTableNames(source.path, this.props.sourceType, this.jGISModel);
+          ? source.tables
+              .split(',')
+              .map((s: string) => s.trim())
+              .filter(Boolean)
+          : await getGeoPackageTableNames(
+              source.path,
+              this.props.sourceType,
+              this.jGISModel
+            );
 
         for (const tableName of tableNames) {
           const childId = `${sourceId}/${tableName}`;
@@ -183,12 +193,14 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
           }
           if (this.props.createLayer) {
             const layerModel: IJGISLayer = {
-              type: this.props.layerType
-            || (this.props.sourceType === 'GeoPackageVectorSource'
-              ? 'VectorLayer' :  'RasterLayer'),
+              type:
+                this.props.layerType ||
+                (this.props.sourceType === 'GeoPackageVectorSource'
+                  ? 'VectorLayer'
+                  : 'RasterLayer'),
               parameters: { source: childId },
               visible: true,
-              name: `${source.name} ${tableName} Layer`,
+              name: `${source.name} ${tableName} Layer`
             };
             this.jGISModel.addLayer(UUID.uuid4(), layerModel);
           }

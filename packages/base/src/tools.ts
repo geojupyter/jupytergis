@@ -11,7 +11,6 @@ import { getGdal } from './gdal';
 import loadGpkg from 'ol-load-geopackage';
 import { GeoPackageAPI, GeoPackageTileRetriever } from '@ngageoint/geopackage';
 
-
 import {
   IDict,
   IJGISLayerBrowserRegistry,
@@ -499,7 +498,7 @@ const cache = new Map<string, Promise<TableMap>>(); //TODO give a more specific 
 export function loadGeoPackageVectorFile(
   filepath: string,
   projection: string,
-  cache_filename: string,
+  cache_filename: string
 ): Promise<TableMap> {
   if (!cache.has(cache_filename)) {
     const loader = (async (): Promise<TableMap> => {
@@ -509,7 +508,7 @@ export function loadGeoPackageVectorFile(
         for (const name of Object.keys(tables)) {
           tableMap[name] = {
             source: tables[name] as Source,
-            sld: slds[name],
+            sld: slds[name]
           };
         }
         return tableMap;
@@ -523,14 +522,12 @@ export function loadGeoPackageVectorFile(
   return cache.get(cache_filename)!;
 }
 
-
 async function loadGeoPackageRasterFile(
   filepath: string,
   cacheFilename: string,
   model?: IJupyterGISModel,
   file_content?: string
 ): Promise<TableMap> {
-
   if (cache.has(cacheFilename)) {
     return cache.get(cacheFilename)!;
   }
@@ -540,29 +537,29 @@ async function loadGeoPackageRasterFile(
       let bytes: Uint8Array;
       if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
         bytes = await loadGkpgFromUrl(filepath, model!);
-      }
-      else {
-          const arrayBuffer = await stringToArrayBuffer(file_content as string);
-          bytes = new Uint8Array(arrayBuffer);
+      } else {
+        const arrayBuffer = await stringToArrayBuffer(file_content as string);
+        bytes = new Uint8Array(arrayBuffer);
       }
 
       const geoPackage = await GeoPackageAPI.open(bytes);
-          const tileTables = await geoPackage.getTileTables();
-          const map: TableMap = {};
+      const tileTables = await geoPackage.getTileTables();
+      const map: TableMap = {};
 
-          tileTables.forEach(tableName => {
-            const tileDao = geoPackage.getTileDao(tableName);
-            map[tableName] = {
-              gpr: new GeoPackageTileRetriever(tileDao, 256, 256),
-              tileDao,
-            };
-          });
+      tileTables.forEach(tableName => {
+        const tileDao = geoPackage.getTileDao(tableName);
+        map[tableName] = {
+          gpr: new GeoPackageTileRetriever(tileDao, 256, 256),
+          tileDao
+        };
+      });
 
-          return map;
-        }
-      
-     catch (error: any) {
-      showErrorMessage(`Failed to load GeoPackage raster: ${cacheFilename}`, error);
+      return map;
+    } catch (error: any) {
+      showErrorMessage(
+        `Failed to load GeoPackage raster: ${cacheFilename}`,
+        error
+      );
       throw error;
     }
   })();
@@ -574,22 +571,26 @@ async function loadGeoPackageRasterFile(
 export async function getGeoPackageTableNames(
   filepath: string,
   type: 'GeoPackageVectorSource' | 'GeoPackageRasterSource',
-  model: IJupyterGISModel,
-){
-
+  model: IJupyterGISModel
+) {
   let geoPackage;
 
-
   if (type === 'GeoPackageRasterSource') {
-    geoPackage = await loadGeoPackageRasterFile(filepath, filepath+'Raster', model);
-    } 
-  else {
-    geoPackage = await loadGeoPackageVectorFile(filepath, model.sharedModel.options.projection!, filepath+'Vector');
+    geoPackage = await loadGeoPackageRasterFile(
+      filepath,
+      filepath + 'Raster',
+      model
+    );
+  } else {
+    geoPackage = await loadGeoPackageVectorFile(
+      filepath,
+      model.sharedModel.options.projection!,
+      filepath + 'Vector'
+    );
   }
 
   return Object.keys(geoPackage);
 }
-
 
 /**
  * Generalized file reader for different source types.
@@ -679,12 +680,15 @@ export const loadFile = async (fileInfo: {
           //throw new Error(`Projection is not specified for ${filepath}`);
           projection = 'EPSG:3857';
         }
-        return loadGeoPackageVectorFile(filepath, projection, filepath+'Vector');
+        return loadGeoPackageVectorFile(
+          filepath,
+          projection,
+          filepath + 'Vector'
+        );
       }
 
-      case 'GeoPackageRasterSource': {      
-        return loadGeoPackageRasterFile(filepath, filepath+'Raster', model);
-      
+      case 'GeoPackageRasterSource': {
+        return loadGeoPackageRasterFile(filepath, filepath + 'Raster', model);
       }
 
       default: {
@@ -762,11 +766,16 @@ export const loadFile = async (fileInfo: {
         }
         const blob = await base64ToBlob(file.content, getMimeType(filepath));
         const url = URL.createObjectURL(blob);
-        return loadGeoPackageVectorFile(url, projection, filepath+'Vector');
+        return loadGeoPackageVectorFile(url, projection, filepath + 'Vector');
       }
 
       case 'GeoPackageRasterSource': {
-        return loadGeoPackageRasterFile(filepath, filepath+'Raster', undefined, file.content);
+        return loadGeoPackageRasterFile(
+          filepath,
+          filepath + 'Raster',
+          undefined,
+          file.content
+        );
       }
 
       default: {
@@ -1059,15 +1068,14 @@ export async function getGeoJSONDataFromLayerSource(
   return null;
 }
 
-async function loadGkpgFromUrl(filepath: string, model: IJupyterGISModel): Promise<Uint8Array> {
-  const response = await fetchWithProxies(
-    filepath,
-    model,
-    async (response) => {
-      const arrayBuffer = await response.arrayBuffer();
-      return new Uint8Array(arrayBuffer);
-    }
-  );
+async function loadGkpgFromUrl(
+  filepath: string,
+  model: IJupyterGISModel
+): Promise<Uint8Array> {
+  const response = await fetchWithProxies(filepath, model, async response => {
+    const arrayBuffer = await response.arrayBuffer();
+    return new Uint8Array(arrayBuffer);
+  });
   if (!response) {
     throw new Error(`Failed to fetch GeoPackage from URL: ${filepath}`);
   }

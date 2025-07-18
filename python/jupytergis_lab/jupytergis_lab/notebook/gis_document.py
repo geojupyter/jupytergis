@@ -568,13 +568,12 @@ class GISDocument(CommWidget):
         """
 
         if isinstance(table_names, str):
-            table_names = [part.strip() for part in table_names.split(',')]
+            table_names = [part.strip() for part in table_names.split(",")]
 
         if not table_names:
-            table_names = get_gpkg_layers(path, 'features')
+            table_names = get_gpkg_layers(path, "features")
 
         layer_ids = []
-
 
         if "projection" in self._options:
             projection = self._options["projection"]
@@ -585,10 +584,14 @@ class GISDocument(CommWidget):
             source = {
                 "type": SourceType.GeoPackageVectorSource,
                 "name": f"{name} {table_name} Source",
-                "parameters": {"path": path, 'tables': table_name, 'projection':projection},
+                "parameters": {
+                    "path": path,
+                    "tables": table_name,
+                    "projection": projection,
+                },
             }
 
-            source_id = str(uuid4()) + '/' + str(table_name)
+            source_id = str(uuid4()) + "/" + str(table_name)
 
             self._add_source(OBJECT_FACTORY.create_source(source, self), source_id)
 
@@ -610,8 +613,10 @@ class GISDocument(CommWidget):
                 },
             }
 
-            layer_id = str(uuid4()) + '/' + str(table_name)
-            layer_ids.append(self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id))
+            layer_id = str(uuid4()) + "/" + str(table_name)
+            layer_ids.append(
+                self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id)
+            )
 
         return layer_ids
 
@@ -634,10 +639,10 @@ class GISDocument(CommWidget):
         """
 
         if isinstance(table_names, str):
-            table_names = [part.strip() for part in table_names.split(',')]
+            table_names = [part.strip() for part in table_names.split(",")]
 
         if not table_names:
-            table_names = get_gpkg_layers(path, 'tiles')
+            table_names = get_gpkg_layers(path, "tiles")
 
         layer_ids = []
 
@@ -645,10 +650,10 @@ class GISDocument(CommWidget):
             source = {
                 "type": SourceType.GeoPackageRasterSource,
                 "name": f"{name} {table_name} Source",
-                "parameters": {"path": path, 'tables': table_name},
+                "parameters": {"path": path, "tables": table_name},
             }
 
-            source_id = str(uuid4()) + '/' + str(table_name)
+            source_id = str(uuid4()) + "/" + str(table_name)
 
             self._add_source(OBJECT_FACTORY.create_source(source, self), source_id)
 
@@ -661,11 +666,13 @@ class GISDocument(CommWidget):
                     "type": type,
                     "opacity": opacity,
                     "attribution": attribution,
-                }
+                },
             }
 
-            layer_id = str(uuid4()) + '/' + str(table_name)
-            layer_ids.append(self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id))
+            layer_id = str(uuid4()) + "/" + str(table_name)
+            layer_ids.append(
+                self._add_layer(OBJECT_FACTORY.create_layer(layer, self), layer_id)
+            )
 
         return layer_ids
 
@@ -956,7 +963,7 @@ class JGISSource(BaseModel):
         IGeoTiffSource,
         IRasterDemSource,
         IGeoPackageVectorSource,
-        IGeoPackageRasterSource
+        IGeoPackageRasterSource,
     ]
     _parent = Optional[GISDocument]
 
@@ -1044,5 +1051,9 @@ OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)
 OBJECT_FACTORY.register_factory(SourceType.VideoSource, IVideoSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoTiffSource, IGeoTiffSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterDemSource, IRasterDemSource)
-OBJECT_FACTORY.register_factory(SourceType.GeoPackageVectorSource, IGeoPackageVectorSource)
-OBJECT_FACTORY.register_factory(SourceType.GeoPackageRasterSource, IGeoPackageRasterSource)
+OBJECT_FACTORY.register_factory(
+    SourceType.GeoPackageVectorSource, IGeoPackageVectorSource
+)
+OBJECT_FACTORY.register_factory(
+    SourceType.GeoPackageRasterSource, IGeoPackageRasterSource
+)
