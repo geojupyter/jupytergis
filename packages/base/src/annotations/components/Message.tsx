@@ -18,7 +18,7 @@ interface IProps {
   user?: User.IIdentity;
 }
 
-export const Message = (props: IProps): JSX.Element => {
+export const Message: React.FC<IProps> = props => {
   const { self, message, user } = props;
   const color = user?.color ?? 'black';
   const author = user?.display_name ?? '';
@@ -28,13 +28,13 @@ export const Message = (props: IProps): JSX.Element => {
     <div
       className="jGIS-Annotation-Message"
       style={{
-        flexFlow: self ? 'row' : 'row-reverse'
+        flexFlow: self ? 'row' : 'row-reverse',
       }}
     >
       <div
         className="jGIS-Annotation-User-Icon"
         style={{
-          backgroundColor: color
+          backgroundColor: color,
         }}
         title={author}
       >

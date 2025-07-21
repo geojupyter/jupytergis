@@ -3,7 +3,7 @@ import {
   IJupyterGISDoc,
   IJupyterGISModel,
   IJupyterGISTracker,
-  IJupyterGISWidget
+  IJupyterGISWidget,
 } from '@jupytergis/schema';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { ISignal } from '@lumino/signaling';
@@ -21,6 +21,15 @@ export interface IControlPanelModel {
   jGISModel: IJupyterGISModel | undefined;
   sharedModel: IJupyterGISDoc | undefined;
 }
+
+export type SymbologyTab = 'color' | 'radius';
+
+export type VectorRenderType =
+  | 'Single Symbol'
+  | 'Canonical'
+  | 'Graduated'
+  | 'Categorized'
+  | 'Heatmap';
 
 /**
  * Add jupytergisMaps object to the global variables.

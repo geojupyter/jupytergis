@@ -2,12 +2,20 @@
   "extends": "../../tsconfigbase.json",
   "compilerOptions": {
     "outDir": "lib",
-    "rootDir": "src"
+    "rootDir": "src",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "plugins": [
+      { "transform": "typescript-transform-paths" },
+      { "transform": "typescript-transform-paths", "afterDeclarations": true }
+    ]
   },
   "include": [
     "src/**/*",
     "src/schema/*.json",
     "src/_interface/*.json",
-    "src/*.json"
+    "src/*.json",
+    "src/types/*"
   ]
 }

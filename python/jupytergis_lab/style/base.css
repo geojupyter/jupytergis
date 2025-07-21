@@ -223,6 +223,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   width: 100%;
   box-sizing: border-box;
   flex: 1;
+  position: relative;
 }
 
 .jGIS-Popup-Wrapper {
@@ -586,10 +587,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   display: none;
 }
 
-.jGIS-property-panel .rjsf .errors {
-  color: var(--jp-warn-color0);
-}
-
 .jGIS-property-panel .rjsf .errors ul,
 .jGIS-property-panel .rjsf .validationErrors ul,
 .jGIS-property-panel .rjsf .validationErrors li,
@@ -789,4 +786,57 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: auto;
+}
+
+.jp-gis-stop-container-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+}
+
+.jp-gis-stop-container-wrapper > * {
+  flex: 1;
+}
+
+.jp-gis-stop-container-wrapper > *:only-child {
+  flex: 1 1 100%;
+}
+
+.jp-gis-symbology-tabs {
+  display: flex;
+  border-bottom: 1px solid #ccc;
+  margin: 12px 0;
+}
+
+.jp-gis-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size2);
+  color: var(--jp-ui-font-color1);
+  background-color: var(--jp-layout-color1);
+}
+
+.jp-gis-tab:not(.active):hover {
+  background-color: var(--jp-layout-color2);
+}
+
+.jp-gis-tab.active {
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-brand-color1);
+  border-bottom: 2px solid var(--jp-brand-color1);
+  font-weight: 500;
+}
+
+.jp-toolbar-users-item > .lm-MenuBar-itemIcon {
+  cursor: pointer !important;
+  border: 2px solid transparent;
+  border-radius: 50%;
+}
+
+.jp-toolbar-users-item > .lm-MenuBar-itemIcon.selected {
+  border-color: var(--jp-brand-color1);
 }

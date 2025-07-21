@@ -1,0 +1,167 @@
+.jgis-pagination {
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.jgis-pagination-content {
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  width: 100%;
+  justify-content: space-evenly;
+  list-style-type: none;
+  gap: 0.25rem;
+  padding-left: unset;
+  align-items: center;
+}
+
+.jgis-pagination-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition-property: color, background-color, border-color;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+  outline: none;
+  background-color: var(--jp-layout-color0);
+  color: var(--jp-ui-font-color0);
+  border: 0.0375rem solid
+    color-mix(in srgb, var(--jp-border-color0), transparent 80%);
+  transition: background-color 0.2s ease;
+  padding: 0.25rem;
+}
+
+.jgis-pagination-link:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--jp-layout-color0),
+    transparent 90%
+  );
+}
+
+.jgis-pagination-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--jp-layout-color2), transparent 50%);
+}
+
+.jgis-pagination-link:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.jgis-pagination-link:disabled:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.jgis-pagination-link[data-variant='destructive'] {
+  background-color: var(--jp-error-color0);
+  color: var(--jp-ui-font-color0);
+  transition: background-color 0.2s ease;
+}
+
+.jgis-pagination-link[data-variant='destructive']:hover {
+  background-color: color-mix(in srgb, var(--jp-error-color0), transparent 90%);
+}
+
+.jgis-pagination-link[data-variant='outline'] {
+  border: 1px solid var(--jp-accent-color0);
+  background-color: var(--jp-layout-color2);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.jgis-pagination-link[data-variant='ghost']:hover,
+.jgis-pagination-link[data-variant='outline']:hover {
+  background-color: var(--jp-accent-color0);
+  color: var(--jp-ui-inverse-font-color0);
+}
+
+.jgis-pagination-link[data-variant='secondary'] {
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color2);
+  transition: background-color 0.2s ease;
+}
+
+.jgis-pagination-link[data-variant='secondary']:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--jp-layout-color0),
+    transparent 80%
+  );
+}
+
+.jgis-pagination-link[data-variant='ghost'] {
+  background-color: var(--jp-layout-color0);
+  color: var(--jp-ui-font-color0);
+}
+
+.jgis-pagination-link[data-variant='link'] {
+  color: var(--jp-ui-font-color0);
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+  transition: text-decoration 0.2s ease;
+  border: none;
+  padding: 0;
+}
+
+.jgis-pagination-link[data-variant='link']:hover {
+  color: color-mix(in srgb, var(--jp-ui-font-color0), transparent 80%);
+  text-decoration-color: var(--jp-ui-font-color0);
+}
+
+.jgis-pagination-link[data-size='sm'] {
+  height: 2.25rem;
+  border-radius: 0.375rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.jgis-pagination-link[data-size='lg'] {
+  height: 2.75rem;
+  border-radius: 0.375rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.jgis-pagination-link[data-size='icon'] {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.jgis-pagination-previous {
+  gap: 0.25rem;
+  padding-left: 0.625rem;
+  display: flex;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  color: var(--jp-ui-font-color0);
+  background-color: var(--jp-layout-color1);
+}
+
+.jgis-pagination-next {
+  gap: 0.25rem;
+  padding-right: 0.625rem;
+  display: flex;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  color: var(--jp-ui-font-color0);
+  background-color: var(--jp-layout-color1);
+}
+
+.jgis-pagination-ellipsis {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+}

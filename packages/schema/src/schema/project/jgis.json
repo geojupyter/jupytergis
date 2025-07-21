@@ -40,7 +40,8 @@
         "HillshadeLayer",
         "WebGlLayer",
         "ImageLayer",
-        "HeatmapLayer"
+        "HeatmapLayer",
+        "StacLayer"
       ]
     },
     "sourceType": {
@@ -55,7 +56,8 @@
         "ShapefileSource",
         "GeoTiffSource",
         "GeoPackageVectorSource",
-        "GeoPackageRasterSource"
+        "GeoPackageRasterSource",
+        "GeoParquetSource"
       ]
     },
     "jGISLayer": {

@@ -3,26 +3,32 @@ import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { Spinner } from '../../../../mainview/spinner';
-import { GlobalStateDbManager } from '../../../../store';
-import { GeoTiffClassifications } from '../../classificationModes';
+
+import { GeoTiffClassifications } from '@/src/dialogs/symbology/classificationModes';
 import ColorRamp, {
-  ColorRampOptions
-} from '../../components/color_ramp/ColorRamp';
-import StopRow from '../../components/color_stops/StopRow';
-import useGetBandInfo, { IBandRow } from '../../hooks/useGetBandInfo';
-import { IStopRow, ISymbologyDialogProps } from '../../symbologyDialog';
-import { Utils } from '../../symbologyUtils';
-import BandRow from '../components/BandRow';
+  ColorRampOptions,
+} from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import StopRow from '@/src/dialogs/symbology/components/color_stops/StopRow';
+import useGetBandInfo, {
+  IBandRow,
+} from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+import {
+  IStopRow,
+  ISymbologyDialogProps,
+} from '@/src/dialogs/symbology/symbologyDialog';
+import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
+import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
+import { LoadingOverlay } from '@/src/shared/components/loading';
+import { GlobalStateDbManager } from '@/src/store';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
-const SingleBandPseudoColor = ({
+const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
   cancel,
-  layerId
-}: ISymbologyDialogProps) => {
+  layerId,
+}) => {
   if (!layerId) {
     return;
   }
@@ -81,7 +87,7 @@ const SingleBandPseudoColor = ({
 
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
-      `jupytergis:${layerId}`
+      `jupytergis:${layerId}`,
     )) as ReadonlyJSONObject;
 
     setLayerState(layerState);
@@ -123,7 +129,7 @@ const SingleBandPseudoColor = ({
         for (let i = 5; i < color.length; i += 2) {
           const obj: IStopRow = {
             stop: scaleValue(color[i], isQuantile),
-            output: color[i + 1]
+            output: color[i + 1],
           };
           valueColorPairs.push(obj);
         }
@@ -140,7 +146,7 @@ const SingleBandPseudoColor = ({
         for (let i = 3; i < color.length - 1; i += 2) {
           const obj: IStopRow = {
             stop: scaleValue(color[i][2], isQuantile),
-            output: color[i + 1]
+            output: color[i + 1],
           };
           valueColorPairs.push(obj);
         }
@@ -210,7 +216,7 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '<=',
             ['band', selectedBand],
-            unscaleValue(stop.stop, isQuantile)
+            unscaleValue(stop.stop, isQuantile),
           ]);
           colorExpr.push(stop.output);
         });
@@ -230,7 +236,7 @@ const SingleBandPseudoColor = ({
           colorExpr.push([
             '==',
             ['band', selectedBand],
-            unscaleValue(stop.stop, isQuantile)
+            unscaleValue(stop.stop, isQuantile),
           ]);
           colorExpr.push(stop.output);
         });
@@ -247,7 +253,7 @@ const SingleBandPseudoColor = ({
       interpolation: selectedFunctionRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode
+      mode: colorRampOptionsRef.current?.selectedMode,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -262,9 +268,9 @@ const SingleBandPseudoColor = ({
     setStopRows([
       {
         stop: 0,
-        output: [0, 0, 0, 1]
+        output: [0, 0, 0, 1],
       },
-      ...stopRows
+      ...stopRows,
     ]);
   };
 
@@ -279,13 +285,13 @@ const SingleBandPseudoColor = ({
     selectedMode: string,
     numberOfShades: string,
     selectedRamp: string,
-    setIsLoading: (isLoading: boolean) => void
+    setIsLoading: (isLoading: boolean) => void,
   ) => {
     // Update layer state with selected options
     setColorRampOptions({
       selectedRamp,
       numberOfShades,
-      selectedMode
+      selectedMode,
     });
 
     let stops: number[] = [];
@@ -302,7 +308,7 @@ const SingleBandPseudoColor = ({
           nClasses,
           selectedBand,
           sourceInfo.url,
-          selectedFunction
+          selectedFunction,
         );
         break;
       case 'continuous':
@@ -310,7 +316,7 @@ const SingleBandPseudoColor = ({
           nClasses,
           currentBand.stats.minimum,
           currentBand.stats.maximum,
-          selectedFunction
+          selectedFunction,
         );
         break;
       case 'equal interval':
@@ -318,7 +324,7 @@ const SingleBandPseudoColor = ({
           nClasses,
           currentBand.stats.minimum,
           currentBand.stats.maximum,
-          selectedFunction
+          selectedFunction,
         );
         break;
       default:
@@ -330,7 +336,7 @@ const SingleBandPseudoColor = ({
     const valueColorPairs = Utils.getValueColorPairs(
       stops,
       selectedRamp,
-      nClasses
+      nClasses,
     );
 
     setStopRows(valueColorPairs);
@@ -361,19 +367,16 @@ const SingleBandPseudoColor = ({
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
-        {loading ? (
-          <Spinner loading={loading} />
-        ) : (
-          <BandRow
-            label="Band"
-            // Band numbers are 1 indexed
-            index={selectedBand - 1}
-            bandRow={bandRows[selectedBand - 1]}
-            bandRows={bandRows}
-            setSelectedBand={setSelectedBand}
-            setBandRows={setBandRows}
-          />
-        )}
+        <LoadingOverlay loading={loading} />
+        <BandRow
+          label="Band"
+          // Band numbers are 1 indexed
+          index={selectedBand - 1}
+          bandRow={bandRows[selectedBand - 1]}
+          bandRows={bandRows}
+          setSelectedBand={setSelectedBand}
+          setBandRows={setBandRows}
+        />
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor="function-select">Interpolation:</label>
@@ -406,6 +409,7 @@ const SingleBandPseudoColor = ({
           modeOptions={modeOptions}
           classifyFunc={buildColorInfoFromClassification}
           showModeRow={true}
+          showRampSelector={true}
         />
       )}
       <div className="jp-gis-stop-container">

@@ -2,7 +2,8 @@
 
 import { GeoJSONFeature1, IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
-import { loadFile } from '../../../tools';
+
+import { loadFile } from '@/src/tools';
 
 interface IUseGetPropertiesProps {
   layerId?: string;
@@ -17,11 +18,13 @@ interface IUseGetPropertiesResult {
 
 export const useGetProperties = ({
   layerId,
-  model
+  model,
 }: IUseGetPropertiesProps): IUseGetPropertiesResult => {
-  const [featureProperties, setFeatureProperties] = useState<any>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | undefined>(undefined);
+  const [featureProperties, setFeatureProperties] = useState<
+    Record<string, Set<any>>
+  >({});
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | undefined>();
 
   const getProperties = async () => {
     if (!layerId) {
@@ -39,7 +42,7 @@ export const useGetProperties = ({
       const data = await loadFile({
         filepath: source.parameters?.path,
         type: 'GeoJSONSource',
-        model: model
+        model: model,
       });
 
       if (!data) {

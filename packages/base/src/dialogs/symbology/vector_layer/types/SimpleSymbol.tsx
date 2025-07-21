@@ -1,15 +1,17 @@
 import { FlatStyle } from 'ol/style/flat';
 import React, { useEffect, useRef, useState } from 'react';
-import { IParsedStyle, parseColor } from '../../../../tools';
-import { ISymbologyDialogProps } from '../../symbologyDialog';
 
-const SimpleSymbol = ({
+import { ISymbologyTabbedDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import { IParsedStyle, parseColor } from '@/src/tools';
+
+const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
-  layerId
-}: ISymbologyDialogProps) => {
+  layerId,
+  symbologyTab,
+}) => {
   const styleRef = useRef<IParsedStyle>();
 
   const [style, setStyle] = useState<IParsedStyle>({
@@ -18,7 +20,7 @@ const SimpleSymbol = ({
     strokeColor: '#3399CC',
     capStyle: 'round',
     strokeWidth: 1.25,
-    radius: 5
+    radius: 5,
   });
 
   const joinStyleOptions = ['bevel', 'round', 'miter'];
@@ -86,11 +88,11 @@ const SimpleSymbol = ({
       'stroke-color': styleRef.current?.strokeColor,
       'stroke-width': styleRef.current?.strokeWidth,
       'stroke-line-join': styleRef.current?.joinStyle,
-      'stroke-line-cap': styleRef.current?.capStyle
+      'stroke-line-cap': styleRef.current?.capStyle,
     };
 
     const symbologyState = {
-      renderType: 'Single Symbol'
+      renderType: 'Single Symbol',
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -103,22 +105,8 @@ const SimpleSymbol = ({
     cancel();
   };
 
-  return (
-    <div className="jp-gis-layer-symbology-container">
-      <div className="jp-gis-symbology-row">
-        <label htmlFor={'vector-value-select'}>Radius:</label>
-        <input
-          type="number"
-          value={style.radius}
-          className="jp-mod-styled"
-          onChange={event =>
-            setStyle(prevState => ({
-              ...prevState,
-              radius: +event.target.value
-            }))
-          }
-        />
-      </div>
+  const renderColorTab = () => (
+    <>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Fill Color:</label>
         <input
@@ -128,7 +116,7 @@ const SimpleSymbol = ({
           onChange={event =>
             setStyle(prevState => ({
               ...prevState,
-              fillColor: event.target.value
+              fillColor: event.target.value,
             }))
           }
         />
@@ -142,7 +130,7 @@ const SimpleSymbol = ({
           onChange={event =>
             setStyle(prevState => ({
               ...prevState,
-              strokeColor: event.target.value
+              strokeColor: event.target.value,
             }))
           }
         />
@@ -156,7 +144,7 @@ const SimpleSymbol = ({
           onChange={event =>
             setStyle(prevState => ({
               ...prevState,
-              strokeWidth: +event.target.value
+              strokeWidth: +event.target.value,
             }))
           }
         />
@@ -169,7 +157,7 @@ const SimpleSymbol = ({
             onChange={event =>
               setStyle(prevState => ({
                 ...prevState,
-                joinStyle: event.target.value
+                joinStyle: event.target.value,
               }))
             }
             className="jp-mod-styled"
@@ -191,7 +179,7 @@ const SimpleSymbol = ({
             onChange={event =>
               setStyle(prevState => ({
                 ...prevState,
-                capStyle: event.target.value
+                capStyle: event.target.value,
               }))
             }
             className="jp-mod-styled"
@@ -205,6 +193,25 @@ const SimpleSymbol = ({
           </select>
         </div>
       </div>
+    </>
+  );
+
+  const renderRadiusTab = () => (
+    <div className="jp-gis-symbology-row">
+      <label>Radius:</label>
+      <input
+        type="number"
+        value={style.radius}
+        className="jp-mod-styled"
+        onChange={e => setStyle(prev => ({ ...prev, radius: +e.target.value }))}
+      />
+    </div>
+  );
+
+  return (
+    <div className="jp-gis-layer-symbology-container">
+      <p>Color all features the same way.</p>
+      {symbologyTab === 'color' ? renderColorTab() : renderRadiusTab()}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/jupytergis-root",
-  "version": "0.5.0",
+  "version": "0.6.2",
   "private": true,
   "homepage": "https://github.com/geojupyter/jupytergis",
   "repository": {
@@ -64,6 +64,7 @@
     "copy-webpack-plugin": "^10.0.0",
     "eslint": "^8.36.0",
     "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.0.1",
     "lerna": "^8.1.9",
     "npm-run-all": "^4.1.5",

@@ -1,7 +1,13 @@
-import { BaseForm, IBaseFormProps, IBaseFormStates } from '../baseform'; // Ensure BaseForm imports states
 import { IDict, IJupyterGISModel, IGeoJSONSource } from '@jupytergis/schema';
 import { IChangeEvent } from '@rjsf/core';
-import { loadFile } from '../../../tools';
+import { RJSFSchema } from '@rjsf/utils';
+
+import {
+  BaseForm,
+  IBaseFormProps,
+  IBaseFormStates,
+} from '@/src/formbuilder/objectform/baseform'; // Ensure BaseForm imports states
+import { loadFile } from '@/src/tools';
 
 interface IDissolveFormOptions extends IBaseFormProps {
   schema: IDict;
@@ -22,7 +28,7 @@ export class DissolveForm extends BaseForm {
 
     // Ensure initial state matches IBaseFormStates
     this.state = {
-      schema: options.schema ?? {} // Ensure schema is never undefined
+      schema: options.schema ?? {}, // Ensure schema is never undefined
     };
 
     this.onFormChange = this.handleFormChange.bind(this);
@@ -50,7 +56,7 @@ export class DissolveForm extends BaseForm {
       const jsonData = await loadFile({
         filepath: sourceData.path,
         type: 'GeoJSONSource',
-        model: this.model
+        model: this.model,
       });
 
       if (!jsonData?.features?.length) {
@@ -80,15 +86,15 @@ export class DissolveForm extends BaseForm {
           properties: {
             ...prevState.schema?.properties,
             dissolveField: {
-              ...prevState.schema?.properties?.dissolveField,
-              enum: [...this.features]
-            }
-          }
-        }
+              ...(prevState.schema?.properties?.dissolveField as RJSFSchema),
+              enum: [...this.features],
+            },
+          },
+        },
       }),
       () => {
         this.forceUpdate();
-      }
+      },
     );
   }
 }

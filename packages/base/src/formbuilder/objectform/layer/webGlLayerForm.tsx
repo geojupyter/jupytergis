@@ -1,4 +1,5 @@
 import { IDict } from '@jupytergis/schema';
+
 import { LayerPropertiesForm } from './layerform';
 
 /**
@@ -8,7 +9,7 @@ export class WebGlLayerPropertiesForm extends LayerPropertiesForm {
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,
-    uiSchema: IDict
+    uiSchema: IDict,
   ) {
     this.removeFormEntry('color', data, schema, uiSchema);
     this.removeFormEntry('symbologyState', data, schema, uiSchema);

@@ -1,7 +1,6 @@
 import { Delta, MapChange, YDocument } from '@jupyter/ydoc';
 import { JSONExt, JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
-import { SCHEMA_VERSION } from './_interface/version';
 import * as Y from 'yjs';
 
 import {
@@ -11,15 +10,16 @@ import {
   IJGISLayers,
   IJGISOptions,
   IJGISSource,
-  IJGISSources
+  IJGISSources,
 } from './_interface/project/jgis';
+import { SCHEMA_VERSION } from './_interface/version';
 import {
   IDict,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
   IJupyterGISDoc,
-  IJupyterGISDocChange
+  IJupyterGISDocChange,
 } from './interfaces';
 
 export class JupyterGISDoc
@@ -67,7 +67,7 @@ export class JupyterGISDoc
     this.transact(() => {
       const layers = value['layers'] ?? {};
       Object.entries(layers).forEach(([key, val]) =>
-        this._layers.set(key, val as string)
+        this._layers.set(key, val as string),
       );
 
       const layerTree =
@@ -78,17 +78,17 @@ export class JupyterGISDoc
 
       const options = value['options'] ?? {};
       Object.entries(options).forEach(([key, val]) =>
-        this._options.set(key, val)
+        this._options.set(key, val),
       );
 
       const sources = value['sources'] ?? {};
       Object.entries(sources).forEach(([key, val]) =>
-        this._sources.set(key, val)
+        this._sources.set(key, val),
       );
 
       const metadata = value['metadata'] ?? {};
       Object.entries(metadata).forEach(([key, val]) =>
-        this._metadata.set(key, val as string)
+        this._metadata.set(key, val as string),
       );
     });
   }
@@ -229,13 +229,13 @@ export class JupyterGISDoc
 
   updateObjectParameters(
     id: string,
-    value: IJGISLayer['parameters'] | IJGISSource['parameters']
+    value: IJGISLayer['parameters'] | IJGISSource['parameters'],
   ) {
     const layer = this.getLayer(id);
     if (layer) {
       layer.parameters = {
         ...layer.parameters,
-        ...value
+        ...value,
       };
 
       this.updateLayer(id, layer);
@@ -245,7 +245,7 @@ export class JupyterGISDoc
     if (source) {
       source.parameters = {
         ...source.parameters,
-        ...value
+        ...value,
       };
 
       this.updateSource(id, source);
@@ -349,7 +349,7 @@ export class JupyterGISDoc
         changes.push({
           id: key as string,
           oldValue: change.oldValue,
-          newValue: JSONExt.deepCopy(event.target.toJSON()[key])
+          newValue: JSONExt.deepCopy(event.target.toJSON()[key]),
         });
       });
     });
@@ -377,7 +377,7 @@ export class JupyterGISDoc
         }
         changes.push({
           id: key as string,
-          newValue: JSONExt.deepCopy(event.target.toJSON()[key])
+          newValue: JSONExt.deepCopy(event.target.toJSON()[key]),
         });
       });
     });
@@ -403,14 +403,14 @@ export class JupyterGISDoc
 
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
-    this
+    this,
   );
   private _layerTreeChanged = new Signal<
     IJupyterGISDoc,
     IJGISLayerTreeDocChange
   >(this);
   private _sourcesChanged = new Signal<IJupyterGISDoc, IJGISSourceDocChange>(
-    this
+    this,
   );
   private _metadataChanged = new Signal<IJupyterGISDoc, MapChange>(this);
 }

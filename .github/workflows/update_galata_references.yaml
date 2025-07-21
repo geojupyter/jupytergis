@@ -70,7 +70,7 @@ jobs:
           fi
 
       - name: Download extension package
-        uses: dawidd6/action-download-artifact@v9
+        uses: dawidd6/action-download-artifact@v11
         with:
           pr: ${{github.event.issue.number}}
           workflow: 'build.yml'
@@ -101,7 +101,7 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: jlpm install
 
-      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@v1
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@main
         with:
           npm_client: jlpm
           github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -31,7 +31,6 @@ First, let's create a GIS file and invite collaborators to the session.
 ### Create Your GIS File
 
 1. Open JupyterLab
-
    - If you are using a local installation, start JupyterLab.
 
      ```

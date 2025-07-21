@@ -1,4 +1,5 @@
 import { IDict } from '@jupytergis/schema';
+
 import { SourcePropertiesForm } from './sourceform';
 
 export class TileSourcePropertiesForm extends SourcePropertiesForm {
@@ -7,7 +8,7 @@ export class TileSourcePropertiesForm extends SourcePropertiesForm {
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,
-    uiSchema: IDict
+    uiSchema: IDict,
   ) {
     super.processSchema(data, schema, uiSchema);
 
@@ -39,7 +40,7 @@ export class TileSourcePropertiesForm extends SourcePropertiesForm {
     schema.properties.urlParameters = {
       type: 'object',
       required: this._urlParameters,
-      properties: propertiesSchema
+      properties: propertiesSchema,
     };
 
     for (const parameterName of this._urlParameters) {
@@ -48,12 +49,12 @@ export class TileSourcePropertiesForm extends SourcePropertiesForm {
         case 'time':
           propertiesSchema[parameterName] = {
             type: 'string',
-            format: 'date'
+            format: 'date',
           };
           break;
         default:
           propertiesSchema[parameterName] = {
-            type: 'string'
+            type: 'string',
           };
           break;
       }

@@ -1,15 +1,16 @@
 import colormap from 'colormap';
 import React, { useEffect, useRef, useState } from 'react';
-import CanvasSelectComponent from '../../components/color_ramp/CanvasSelectComponent';
-import { ISymbologyDialogProps } from '../../symbologyDialog';
 
-const Heatmap = ({
+import CanvasSelectComponent from '@/src/dialogs/symbology/components/color_ramp/CanvasSelectComponent';
+import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+
+const Heatmap: React.FC<ISymbologyDialogProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
-  layerId
-}: ISymbologyDialogProps) => {
+  layerId,
+}) => {
   if (!layerId) {
     return;
   }
@@ -20,12 +21,12 @@ const Heatmap = ({
   const [selectedRamp, setSelectedRamp] = useState('');
   const [heatmapOptions, setHetamapOptions] = useState({
     radius: 8,
-    blur: 15
+    blur: 15,
   });
   const selectedRampRef = useRef('cool');
   const heatmapOptionsRef = useRef({
     radius: 8,
-    blur: 15
+    blur: 15,
   });
 
   useEffect(() => {
@@ -65,12 +66,12 @@ const Heatmap = ({
     const colorMap = colormap({
       colormap: selectedRampRef.current,
       nshades: 9,
-      format: 'hex'
+      format: 'hex',
     });
 
     const symbologyState = {
       renderType: 'Heatmap',
-      colorRamp: selectedRampRef.current
+      colorRamp: selectedRampRef.current,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -86,6 +87,7 @@ const Heatmap = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
+      <p>Represent features based on their density using a heatmap.</p>
       <div className="jp-gis-symbology-row jp-gis-heatmap">
         <label htmlFor="color-ramp-select">Color Ramp:</label>
         <CanvasSelectComponent
@@ -102,7 +104,7 @@ const Heatmap = ({
           onChange={event =>
             setHetamapOptions(prevState => ({
               ...prevState,
-              radius: +event.target.value
+              radius: +event.target.value,
             }))
           }
         />
@@ -116,7 +118,7 @@ const Heatmap = ({
           onChange={event =>
             setHetamapOptions(prevState => ({
               ...prevState,
-              blur: +event.target.value
+              blur: +event.target.value,
             }))
           }
         />

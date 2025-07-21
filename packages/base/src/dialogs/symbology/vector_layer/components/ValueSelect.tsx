@@ -6,11 +6,11 @@ interface IValueSelectProps {
   setSelectedValue: (value: string) => void;
 }
 
-const ValueSelect = ({
+const ValueSelect: React.FC<IValueSelectProps> = ({
   featureProperties,
   selectedValue,
-  setSelectedValue
-}: IValueSelectProps) => {
+  setSelectedValue,
+}) => {
   return (
     <div className="jp-gis-symbology-row">
       <label htmlFor={'vector-value-select'}>Value:</label>

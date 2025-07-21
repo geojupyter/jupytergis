@@ -8,7 +8,7 @@ test.describe('#annotations', () => {
     await content.deleteDirectory('/testDir');
     await content.uploadDirectory(
       path.resolve(__dirname, './gis-files'),
-      '/testDir'
+      '/testDir',
     );
   });
   test.beforeEach(async ({ page }) => {
@@ -27,8 +27,8 @@ test.describe('#annotations', () => {
       button: 'right',
       position: {
         x: 253,
-        y: 194
-      }
+        y: 194,
+      },
     });
     await page.getByText('Add annotation').click();
     await page
@@ -47,12 +47,12 @@ test.describe('#annotations', () => {
 
     // Check map
     await expect(
-      page.getByLabel('annotation-test.jGIS').getByRole('paragraph')
+      page.getByLabel('annotation-test.jGIS').getByRole('paragraph'),
     ).toContainText('this is a test');
 
     // Check side panel
     await expect(
-      page.getByLabel('Annotations', { exact: true }).getByRole('paragraph')
+      page.getByLabel('Annotations', { exact: true }).getByRole('paragraph'),
     ).toContainText('this is a test');
 
     // Delete
@@ -68,7 +68,7 @@ test.describe('#annotations', () => {
         .getByLabel('annotation-test.jGIS')
         .locator('div')
         .filter({ hasText: /^AHthis is a test$/ })
-        .nth(2)
+        .nth(2),
     ).not.toBeVisible();
   });
 });

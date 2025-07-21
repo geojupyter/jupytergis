@@ -5,15 +5,15 @@ import {
   IJGISExternalCommandRegistry,
   IJGISFormSchemaRegistry,
   IJGISLayerBrowserRegistry,
-  IJupyterGISTracker
+  IJupyterGISTracker,
 } from './interfaces';
 
 export const IJupyterGISDocTracker = new Token<IJupyterGISTracker>(
-  'jupyterGISDocTracker'
+  'jupyterGISDocTracker',
 );
 
 export const IJGISFormSchemaRegistryToken = new Token<IJGISFormSchemaRegistry>(
-  'jupytergisFormSchemaRegistry'
+  'jupytergisFormSchemaRegistry',
 );
 
 export const IJGISExternalCommandRegistryToken =
@@ -23,5 +23,5 @@ export const IJGISLayerBrowserRegistryToken =
   new Token<IJGISLayerBrowserRegistry>('jupytergisExternalCommandRegistry');
 
 export const IAnnotationToken = new Token<IAnnotationModel>(
-  'jupytergisAnnotationModel'
+  'jupytergisAnnotationModel',
 );

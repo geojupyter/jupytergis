@@ -1,17 +1,17 @@
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   IDict,
   IJupyterGISClientState,
   IJupyterGISModel,
-  IJupyterGISTracker
+  IJupyterGISTracker,
 } from '@jupytergis/schema';
+import { User } from '@jupyterlab/services';
 import { LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
 import { Panel } from '@lumino/widgets';
 import React, { useEffect, useRef, useState } from 'react';
-import { IControlPanelModel } from '../../../types';
-import { User } from '@jupyterlab/services';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { IControlPanelModel } from '@/src/types';
 
 export class IdentifyPanel extends Panel {
   constructor(options: IdentifyPanel.IOptions) {
@@ -29,8 +29,8 @@ export class IdentifyPanel extends Panel {
         <IdentifyPanelComponent
           controlPanelModel={this._model}
           tracker={this._tracker}
-        />
-      )
+        />,
+      ),
     );
   }
 
@@ -50,18 +50,18 @@ interface IIdentifyComponentProps {
   tracker: IJupyterGISTracker;
 }
 
-const IdentifyPanelComponent = ({
+const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   controlPanelModel,
-  tracker
-}: IIdentifyComponentProps) => {
+  tracker,
+}) => {
   const [widgetId, setWidgetId] = useState('');
   const [features, setFeatures] = useState<IDict<any>>();
   const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
-    0: true
+    0: true,
   });
   const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
-    controlPanelModel?.jGISModel
+    controlPanelModel?.jGISModel,
   );
 
   const featuresRef = useRef(features);
@@ -99,7 +99,7 @@ const IdentifyPanelComponent = ({
   useEffect(() => {
     const handleClientStateChanged = (
       sender: IJupyterGISModel,
-      clients: Map<number, IJupyterGISClientState>
+      clients: Map<number, IJupyterGISClientState>,
     ) => {
       const remoteUserId = jgisModel?.localState?.remoteUser;
 
@@ -150,7 +150,7 @@ const IdentifyPanelComponent = ({
   const toggleFeatureVisibility = (index: number) => {
     setVisibleFeatures(prev => ({
       ...prev,
-      [index]: !prev[index]
+      [index]: !prev[index],
     }));
   };
 
@@ -160,7 +160,7 @@ const IdentifyPanelComponent = ({
       style={{
         border: jgisModel?.localState?.remoteUser
           ? `solid 3px ${remoteUser?.color}`
-          : 'unset'
+          : 'unset',
       }}
     >
       {features &&
@@ -207,7 +207,7 @@ const IdentifyPanelComponent = ({
                 {Object.entries(feature)
                   .filter(
                     ([key, value]) =>
-                      typeof value !== 'object' || value === null
+                      typeof value !== 'object' || value === null,
                   )
                   .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
                   .map(([key, value]) => (

@@ -4,20 +4,24 @@ import {
   IJGISSource,
   IJupyterGISModel,
   IJGISFormSchemaRegistry,
-  LayerType
+  LayerType,
+  processingList,
+  ProcessingType,
 } from '@jupytergis/schema';
-import { getGdal } from './gdal';
-import { JupyterGISTracker } from './types';
-import { UUID } from '@lumino/coreutils';
-import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
-import { getGeoJSONDataFromLayerSource } from './tools';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import { UUID } from '@lumino/coreutils';
+
+import { ProcessingFormDialog } from '../dialogs/ProcessingFormDialog';
+import { getGdal } from '../gdal';
+import { processingFormToParam } from './processingFormToParam';
+import { getGeoJSONDataFromLayerSource } from '../tools';
+import { JupyterGISTracker } from '../types';
 
 /**
  * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
  */
 export function getSingleSelectedLayer(
-  tracker: JupyterGISTracker
+  tracker: JupyterGISTracker,
 ): IJGISLayer | null {
   const model = tracker.currentWidget?.model as IJupyterGISModel;
   if (!model) {
@@ -48,7 +52,7 @@ export function getSingleSelectedLayer(
  */
 export function selectedLayerIsOfType(
   allowedTypes: LayerType[],
-  tracker: JupyterGISTracker
+  tracker: JupyterGISTracker,
 ): boolean {
   const selectedLayer = getSingleSelectedLayer(tracker);
   return selectedLayer ? allowedTypes.includes(selectedLayer.type) : false;
@@ -60,7 +64,7 @@ export function selectedLayerIsOfType(
 export async function getLayerGeoJSON(
   layer: IJGISLayer,
   sources: IDict,
-  model: IJupyterGISModel
+  model: IJupyterGISModel,
 ): Promise<string | null> {
   if (!layer.parameters || !layer.parameters.source) {
     console.error('Selected layer does not have a valid source.');
@@ -70,7 +74,7 @@ export async function getLayerGeoJSON(
   const source = sources[layer.parameters.source];
   if (!source || !source.parameters) {
     console.error(
-      `Source with ID ${layer.parameters.source} not found or missing path.`
+      `Source with ID ${layer.parameters.source} not found or missing path.`,
     );
     return null;
   }
@@ -90,13 +94,13 @@ export type GdalFunctions =
 export async function processSelectedLayer(
   tracker: JupyterGISTracker,
   formSchemaRegistry: IJGISFormSchemaRegistry,
-  processingType: 'Buffer' | 'Dissolve',
+  processingType: ProcessingType,
   processingOptions: {
     sqlQueryFn: (layerName: string, param: any) => string;
     gdalFunction: GdalFunctions;
     options: (sqlQuery: string) => string[];
   },
-  app: JupyterFrontEnd
+  app: JupyterFrontEnd,
 ) {
   const selected = getSingleSelectedLayer(tracker);
   if (!selected || !tracker.currentWidget) {
@@ -112,10 +116,10 @@ export async function processSelectedLayer(
   }
 
   const schema = {
-    ...(formSchemaRegistry.getSchemas().get(processingType) as IDict)
+    ...(formSchemaRegistry.getSchemas().get(processingType) as IDict),
   };
   const selectedLayerId = Object.keys(
-    model?.sharedModel.awareness.getLocalState()?.selected?.value || {}
+    model?.sharedModel.awareness.getLocalState()?.selected?.value || {},
   )[0];
 
   // Open ProcessingFormDialog
@@ -126,14 +130,14 @@ export async function processSelectedLayer(
       model,
       sourceData: {
         inputLayer: selectedLayerId,
-        outputLayerName: selected.name
+        outputLayerName: selected.name,
       },
       formContext: 'create',
       processingType,
       syncData: (props: IDict) => {
         resolve(props);
         dialog.dispose();
-      }
+      },
     });
     dialog.launch();
   });
@@ -142,26 +146,20 @@ export async function processSelectedLayer(
     return;
   }
 
-  let processParam: any;
-  switch (processingType) {
-    case 'Buffer':
-      processParam = formValues.bufferDistance;
-      break;
-    case 'Dissolve':
-      processParam = formValues.dissolveField;
-      break;
-    default:
-      console.error(`Unsupported processing type: ${processingType}`);
-      return;
+  if (!processingList.includes(processingType)) {
+    console.error(`Unsupported processing type: ${processingType}`);
+    return;
   }
+
+  const processParam: any = processingFormToParam(formValues, processingType);
 
   const embedOutputLayer = formValues.embedOutputLayer;
 
   const fileBlob = new Blob([geojsonString], {
-    type: 'application/geo+json'
+    type: 'application/geo+json',
   });
   const geoFile = new File([fileBlob], 'data.geojson', {
-    type: 'application/geo+json'
+    type: 'application/geo+json',
   });
 
   const Gdal = await getGdal();
@@ -181,7 +179,7 @@ export async function processSelectedLayer(
     processingType,
     embedOutputLayer,
     tracker,
-    app
+    app,
   );
 }
 
@@ -191,15 +189,15 @@ export async function executeSQLProcessing(
   gdalFunction: GdalFunctions,
   options: string[],
   layerNamePrefix: string,
-  processingType: 'Buffer' | 'Dissolve',
+  processingType: ProcessingType,
   embedOutputLayer: boolean,
   tracker: JupyterGISTracker,
-  app: JupyterFrontEnd
+  app: JupyterFrontEnd,
 ) {
   const geoFile = new File(
     [new Blob([geojsonString], { type: 'application/geo+json' })],
     'data.geojson',
-    { type: 'application/geo+json' }
+    { type: 'application/geo+json' },
   );
 
   const Gdal = await getGdal();
@@ -215,6 +213,8 @@ export async function executeSQLProcessing(
   const processedGeoJSONString = new TextDecoder().decode(processedBytes);
   Gdal.close(dataset);
 
+  const layerName = `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`;
+
   if (!embedOutputLayer) {
     // Save the output as a file
     const jgisFilePath = tracker.currentWidget?.model.filePath;
@@ -228,7 +228,7 @@ export async function executeSQLProcessing(
     await app.serviceManager.contents.save(savePath, {
       type: 'file',
       format: 'text',
-      content: processedGeoJSONString
+      content: processedGeoJSONString,
     });
 
     const newSourceId = UUID.uuid4();
@@ -236,15 +236,15 @@ export async function executeSQLProcessing(
       type: 'GeoJSONSource',
       name: outputFileName,
       parameters: {
-        path: outputFileName
-      }
+        path: outputFileName,
+      },
     };
 
     const layerModel: IJGISLayer = {
       type: 'VectorLayer',
       parameters: { source: newSourceId },
       visible: true,
-      name: outputFileName
+      name: layerName,
     };
 
     model.sharedModel.addSource(newSourceId, sourceModel);
@@ -256,15 +256,15 @@ export async function executeSQLProcessing(
 
     const sourceModel: IJGISSource = {
       type: 'GeoJSONSource',
-      name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`,
-      parameters: { data: processedGeoJSON }
+      name: `${layerName} Source`,
+      parameters: { data: processedGeoJSON },
     };
 
     const layerModel: IJGISLayer = {
       type: 'VectorLayer',
       parameters: { source: newSourceId },
       visible: true,
-      name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`
+      name: layerName,
     };
 
     model.sharedModel.addSource(newSourceId, sourceModel);

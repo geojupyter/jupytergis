@@ -4,13 +4,15 @@ import { Dialog } from '@jupyterlab/apputils';
 import { FormComponent } from '@jupyterlab/ui-components';
 import { Signal } from '@lumino/signaling';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
+import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import validatorAjv8 from '@rjsf/validator-ajv8';
 import * as React from 'react';
-import { deepCopy } from '../../tools';
-import { IDict } from '../../types';
+
+import { deepCopy } from '@/src/tools';
+import { IDict } from '@/src/types';
 
 export interface IBaseFormStates {
-  schema?: IDict;
+  schema?: RJSFSchema;
   extraErrors?: any;
 }
 
@@ -68,14 +70,14 @@ export interface IBaseFormProps {
   formErrorSignal?: Signal<Dialog<any>, boolean>;
 }
 
-const WrappedFormComponent = (props: any): JSX.Element => {
+const WrappedFormComponent: React.FC<any> = props => {
   const { fields, ...rest } = props;
   return (
     <FormComponent
       {...rest}
       validator={validatorAjv8}
       fields={{
-        ...fields
+        ...fields,
       }}
     />
   );
@@ -92,13 +94,13 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
     this.currentFormData = deepCopy(this.props.sourceData);
     this.state = {
       schema: props.schema,
-      extraErrors: {}
+      extraErrors: {},
     };
   }
 
   componentDidUpdate(
     prevProps: IBaseFormProps,
-    prevState: IBaseFormStates
+    prevState: IBaseFormStates,
   ): void {
     if (prevProps.sourceData !== this.props.sourceData) {
       this.currentFormData = deepCopy(this.props.sourceData);
@@ -117,8 +119,8 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
 
   protected processSchema(
     data: IDict<any> | undefined,
-    schema: IDict,
-    uiSchema: IDict
+    schema: RJSFSchema,
+    uiSchema: UiSchema,
   ): void {
     if (!schema['properties']) {
       return;
@@ -133,9 +135,9 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
           'ui:options': {
             orderable: false,
             removable: false,
-            addable: false
+            addable: false,
           },
-          ...uiSchema[k]
+          ...uiSchema[k],
         };
 
         if (v['items']['type'] === 'array') {
@@ -144,12 +146,12 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
               'ui:options': {
                 orderable: false,
                 removable: false,
-                addable: false
+                addable: false,
               },
-              ...uiSchema[k]['items']
+              ...uiSchema[k]['items'],
             },
 
-            ...uiSchema[k]
+            ...uiSchema[k],
           };
         }
       }
@@ -162,7 +164,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
         uiSchema[k] = {
           'ui:field': (props: any) => {
             const [inputValue, setInputValue] = React.useState(
-              props.formData.toFixed(1)
+              props.formData.toFixed(1),
             );
 
             React.useEffect(() => {
@@ -179,7 +181,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
             };
 
             const handleInputChange = (
-              event: React.ChangeEvent<HTMLInputElement>
+              event: React.ChangeEvent<HTMLInputElement>,
             ) => {
               const value = event.target.value;
               setInputValue(value);
@@ -218,12 +220,12 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                     border: '1px solid #ccc',
                     borderRadius: '4px',
                     padding: '4px',
-                    marginBottom: '5px'
+                    marginBottom: '5px',
                   }}
                 />
               </div>
             );
-          }
+          },
         };
       }
 
@@ -250,13 +252,15 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   protected removeFormEntry(
     entry: string,
     data: IDict<any> | undefined,
-    schema: IDict,
-    uiSchema: IDict
+    schema: RJSFSchema,
+    uiSchema: UiSchema,
   ) {
     if (data) {
       delete data[entry];
     }
-    delete schema.properties[entry];
+    if (schema.properties) {
+      delete schema.properties[entry];
+    }
     delete uiSchema[entry];
     if (schema.required && schema.required.includes(entry)) {
       schema.required.splice(schema.required.indexOf(entry), 1);
@@ -282,6 +286,9 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       const extraErrors = Object.keys(this.state.extraErrors).length > 0;
       this.props.formErrorSignal.emit(extraErrors);
     }
+    if (this.props.formContext === 'update') {
+      this.syncData(this.currentFormData);
+    }
   }
 
   protected onFormBlur(id: string, value: any) {
@@ -304,8 +311,8 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       const uiSchema = {
         additionalProperties: {
           'ui:label': false,
-          classNames: 'jGIS-hidden-field'
-        }
+          classNames: 'jGIS-hidden-field',
+        },
       };
       this.processSchema(formData, schema, uiSchema);
 
@@ -349,17 +356,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
               extraErrors={this.state.extraErrors}
             />
           </div>
-
-          {!this.props.ok && (
-            <div className="jGIS-property-buttons">
-              <button
-                className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-                onClick={() => submitRef.current?.click()}
-              >
-                <div className="jp-Dialog-buttonLabel">Ok</div>
-              </button>
-            </div>
-          )}
         </div>
       );
     }

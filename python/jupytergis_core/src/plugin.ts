@@ -10,16 +10,16 @@ import {
   IJGISLayerBrowserRegistryToken,
   IJupyterGISDocTracker,
   IJupyterGISTracker,
-  IJupyterGISWidget
+  IJupyterGISWidget,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
+import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ITranslator } from '@jupyterlab/translation';
-import { IDocumentManager } from '@jupyterlab/docmanager';
 
 import { JupyterGISExternalCommandRegistry } from './externalcommand';
 import { JupyterGISLayerBrowserRegistry } from './layerBrowserRegistry';
@@ -41,14 +41,14 @@ export const trackerPlugin: JupyterFrontEndPlugin<IJupyterGISTracker> = {
   activate: (
     app: JupyterFrontEnd,
     translator: ITranslator,
-    mainMenu?: IMainMenu
+    mainMenu?: IMainMenu,
   ): IJupyterGISTracker => {
     const tracker = new WidgetTracker<IJupyterGISWidget>({
-      namespace: NAME_SPACE
+      namespace: NAME_SPACE,
     });
     console.log('jupytergis:core:tracker is activated!');
     return tracker;
-  }
+  },
 };
 
 export const formSchemaRegistryPlugin: JupyterFrontEndPlugin<IJGISFormSchemaRegistry> =
@@ -59,11 +59,11 @@ export const formSchemaRegistryPlugin: JupyterFrontEndPlugin<IJGISFormSchemaRegi
     provides: IJGISFormSchemaRegistryToken,
     activate: (
       app: JupyterFrontEnd,
-      docmanager: IDocumentManager
+      docmanager: IDocumentManager,
     ): IJGISFormSchemaRegistry => {
       const registry = new JupyterGISFormSchemaRegistry(docmanager);
       return registry;
-    }
+    },
   };
 
 export const externalCommandRegistryPlugin: JupyterFrontEndPlugin<IJGISExternalCommandRegistry> =
@@ -75,7 +75,7 @@ export const externalCommandRegistryPlugin: JupyterFrontEndPlugin<IJGISExternalC
     activate: (app: JupyterFrontEnd): IJGISExternalCommandRegistry => {
       const registry = new JupyterGISExternalCommandRegistry();
       return registry;
-    }
+    },
   };
 
 export const layerBrowserRegistryPlugin: JupyterFrontEndPlugin<IJGISLayerBrowserRegistry> =
@@ -89,7 +89,7 @@ export const layerBrowserRegistryPlugin: JupyterFrontEndPlugin<IJGISLayerBrowser
 
       const registry = new JupyterGISLayerBrowserRegistry();
       return registry;
-    }
+    },
   };
 
 export const annotationPlugin: JupyterFrontEndPlugin<IAnnotationModel> = {
@@ -99,12 +99,12 @@ export const annotationPlugin: JupyterFrontEndPlugin<IAnnotationModel> = {
   provides: IAnnotationToken,
   activate: (app: JupyterFrontEnd, tracker: IJupyterGISTracker) => {
     const annotationModel = new AnnotationModel({
-      model: tracker.currentWidget?.model
+      model: tracker.currentWidget?.model,
     });
 
     tracker.currentChanged.connect((_, changed) => {
       annotationModel.model = changed?.model || undefined;
     });
     return annotationModel;
-  }
+  },
 };

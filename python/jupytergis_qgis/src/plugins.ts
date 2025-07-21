@@ -1,7 +1,14 @@
 import {
   ICollaborativeDrive,
-  SharedDocumentFactory
+  SharedDocumentFactory,
 } from '@jupyter/collaborative-drive';
+import {
+  JupyterGISDocumentWidget,
+  logoMiniIcon,
+  logoMiniIconQGZ,
+  requestAPI,
+} from '@jupytergis/base';
+import { JupyterGISDocumentWidgetFactory } from '@jupytergis/jupytergis-core';
 import {
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
@@ -9,11 +16,11 @@ import {
   IJupyterGISDocTracker,
   IJupyterGISWidget,
   IAnnotationModel,
-  IAnnotationToken
+  IAnnotationToken,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import {
   Dialog,
@@ -22,22 +29,15 @@ import {
   InputDialog,
   WidgetTracker,
   showDialog,
-  showErrorMessage
+  showErrorMessage,
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { Widget } from '@lumino/widgets';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { Widget } from '@lumino/widgets';
 
-import {
-  JupyterGISDocumentWidget,
-  logoMiniIcon,
-  logoMiniIconQGZ,
-  requestAPI
-} from '@jupytergis/base';
-import { JupyterGISDocumentWidgetFactory } from '@jupytergis/jupytergis-core';
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
 
 /**
@@ -80,21 +80,21 @@ const activate = async (
   consoleTracker: IConsoleTracker,
   annotationModel: IAnnotationModel,
   settingRegistry: ISettingRegistry,
-  commandPalette: ICommandPalette | null
+  commandPalette: ICommandPalette | null,
 ): Promise<void> => {
   const fcCheck = await requestAPI<{ installed: boolean }>(
     'jupytergis_qgis/backend-check',
     {
       method: 'POST',
-      body: JSON.stringify({})
-    }
+      body: JSON.stringify({}),
+    },
   );
   const { installed } = fcCheck;
   const backendCheck = () => {
     if (!installed) {
       showErrorMessage(
         'QGIS is not installed',
-        'QGIS is required to open QGIS files'
+        'QGIS is required to open QGIS files',
       );
     }
     return installed;
@@ -112,7 +112,7 @@ const activate = async (
     contentFactory,
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
-    consoleTracker
+    consoleTracker,
   });
   const QGZWidgetFactory = new JupyterGISDocumentWidgetFactory({
     name: 'JupyterGIS QGZ Factory',
@@ -127,7 +127,7 @@ const activate = async (
     contentFactory,
     rendermime,
     mimeTypeService: editorServices.mimeTypeService,
-    consoleTracker
+    consoleTracker,
   });
 
   // Registering the widget factory
@@ -136,10 +136,10 @@ const activate = async (
 
   // Creating and registering the model factory for our custom DocumentModel
   app.docRegistry.addModelFactory(
-    new QGSModelFactory({ annotationModel, settingRegistry })
+    new QGSModelFactory({ annotationModel, settingRegistry }),
   );
   app.docRegistry.addModelFactory(
-    new QGZModelFactory({ annotationModel, settingRegistry })
+    new QGZModelFactory({ annotationModel, settingRegistry }),
   );
   // register the filetype
   app.docRegistry.addFileType({
@@ -149,7 +149,7 @@ const activate = async (
     extensions: ['.qgs', '.QGS'],
     fileFormat: 'base64',
     contentType: 'QGS',
-    icon: logoMiniIcon
+    icon: logoMiniIcon,
   });
   app.docRegistry.addFileType({
     name: 'QGZ',
@@ -158,7 +158,7 @@ const activate = async (
     extensions: ['.qgz', '.QGZ'],
     fileFormat: 'base64',
     contentType: 'QGZ',
-    icon: logoMiniIconQGZ
+    icon: logoMiniIconQGZ,
   });
 
   const QGISSharedModelFactory: SharedDocumentFactory = () => {
@@ -166,16 +166,16 @@ const activate = async (
   };
   drive.sharedModelFactory.registerDocumentFactory(
     'QGS',
-    QGISSharedModelFactory
+    QGISSharedModelFactory,
   );
   drive.sharedModelFactory.registerDocumentFactory(
     'QGZ',
-    QGISSharedModelFactory
+    QGISSharedModelFactory,
   );
 
   const widgetCreatedCallback = (
     sender: any,
-    widget: JupyterGISDocumentWidget
+    widget: JupyterGISDocumentWidget,
   ) => {
     widget.title.icon = logoMiniIconQGZ;
     // Notify the instance tracker if restore data needs to update.
@@ -183,7 +183,7 @@ const activate = async (
       tracker.save(widget);
     });
     themeManager.themeChanged.connect((_, changes) =>
-      widget.model.themeChanged.emit(changes)
+      widget.model.themeChanged.emit(changes),
     );
 
     tracker.add(widget);
@@ -222,7 +222,7 @@ const activate = async (
             await InputDialog.getText({
               label: 'File name',
               placeholder: PathExt.basename(sourcePath, sourceExtension),
-              title: 'Export the project to QGZ file'
+              title: 'Export the project to QGZ file',
             })
           ).value;
         }
@@ -248,7 +248,7 @@ const activate = async (
           layers: model.layers,
           sources: model.sources,
           layerTree: model.layerTree.slice().reverse(),
-          options: model.options
+          options: model.options,
         };
 
         // Check if the file exists
@@ -259,7 +259,7 @@ const activate = async (
         if (fileExist) {
           const overwrite = await showDialog({
             title: 'Export the project to QGZ file',
-            body: `The file ${filepath} already exists.\nDo you want to overwrite it ?`
+            body: `The file ${filepath} already exists.\nDo you want to overwrite it ?`,
           });
           if (!overwrite.button.accept) {
             return;
@@ -271,16 +271,16 @@ const activate = async (
             method: 'POST',
             body: JSON.stringify({
               path: absolutePath,
-              virtual_file: virtualFile
-            })
-          }
+              virtual_file: virtualFile,
+            }),
+          },
         );
         if (!response.exported) {
           showErrorMessage(
             'Export the project to QGZ file',
             response.logs.errors.length
               ? response.logs.errors.join('\n')
-              : 'Unknown error'
+              : 'Unknown error',
           );
         } else if (response.logs.warnings.length) {
           const bodyElement = document.createElement('pre');
@@ -289,16 +289,16 @@ const activate = async (
           await showDialog<HTMLPreElement>({
             title: 'Export the project to QGZ file',
             body,
-            buttons: [Dialog.okButton()]
+            buttons: [Dialog.okButton()],
           });
         }
-      }
+      },
     });
 
     if (commandPalette) {
       commandPalette.addItem({
         command: CommandIDs.exportQgis,
-        category: 'JupyterGIS'
+        category: 'JupyterGIS',
       });
     }
   }
@@ -318,9 +318,9 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
     IRenderMimeRegistry,
     IConsoleTracker,
     IAnnotationToken,
-    ISettingRegistry
+    ISettingRegistry,
   ],
   optional: [ICommandPalette],
   autoStart: true,
-  activate
+  activate,
 };

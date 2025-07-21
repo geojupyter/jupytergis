@@ -1,6 +1,7 @@
-import React from 'react';
 import { Button } from '@jupyterlab/ui-components';
-import { IStopRow } from '../../symbologyDialog';
+import React from 'react';
+
+import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
 import StopRow from './StopRow';
 
 interface IStopContainerProps {
@@ -9,18 +10,18 @@ interface IStopContainerProps {
   setStopRows: (stops: IStopRow[]) => void;
 }
 
-const StopContainer = ({
+const StopContainer: React.FC<IStopContainerProps> = ({
   selectedMethod,
   stopRows,
-  setStopRows
-}: IStopContainerProps) => {
+  setStopRows,
+}) => {
   const addStopRow = () => {
     setStopRows([
       {
         stop: 0,
-        output: [0, 0, 0, 1]
+        output: [0, 0, 0, 1],
       },
-      ...stopRows
+      ...stopRows,
     ]);
   };
 

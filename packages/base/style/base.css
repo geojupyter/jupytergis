@@ -10,7 +10,21 @@
 @import url('./symbologyDialog.css');
 @import url('./statusBar.css');
 @import url('./temporalSlider.css');
+@import url('./stacBrowser.css');
 @import url('ol/ol.css');
+@import url('./shared/button.css');
+@import url('./shared/toggle.css');
+@import url('./shared/tabs.css');
+@import url('./shared/pagination.css');
+@import url('./shared/calendar.css');
+@import url('./shared/dropdownMenu.css');
+@import url('./shared/badge.css');
+@import url('./shared/checkbox.css');
+
+.errors {
+  color: var(--jp-warn-color0);
+  font-weight: bold;
+}
 
 .jGIS-Toolbar-GroupName {
   font-size: var(--jp-ui-font-size0);
@@ -58,4 +72,16 @@ button.jp-mod-styled.jp-mod-accept {
 
 button.jp-mod-styled.jp-mod-reject {
   background-color: var(--jp-layout-color4) !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

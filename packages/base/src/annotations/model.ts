@@ -2,7 +2,7 @@ import {
   IAnnotation,
   IAnnotationContent,
   IAnnotationModel,
-  IJupyterGISModel
+  IJupyterGISModel,
 } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
 import { ISignal, Signal } from '@lumino/signaling';
@@ -80,13 +80,13 @@ export class AnnotationModel implements IAnnotationModel {
   addContent(id: string, value: string): void {
     const newContent: IAnnotationContent = {
       value,
-      user: this._user
+      user: this._user,
     };
     const currentAnnotation = this.getAnnotation(id);
     if (currentAnnotation) {
       const newAnnotation: IAnnotation = {
         ...currentAnnotation,
-        contents: [...currentAnnotation.contents, newContent]
+        contents: [...currentAnnotation.contents, newContent],
       };
 
       this._model?.sharedModel.setMetadata(id, newAnnotation);

@@ -1,25 +1,27 @@
 import { IWebGlLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
-import { Spinner } from '../../../../mainview/spinner';
-import useGetBandInfo from '../../hooks/useGetBandInfo';
-import { ISymbologyDialogProps } from '../../symbologyDialog';
-import BandRow from '../components/BandRow';
+
+import useGetBandInfo from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
+import { LoadingOverlay } from '@/src/shared/components/loading';
 
 interface ISelectedBands {
   red: number;
   green: number;
   blue: number;
+  alpha: number;
 }
 
-type rgbEnum = 'red' | 'green' | 'blue';
+type rgbEnum = keyof ISelectedBands;
 
-const MultibandColor = ({
+const MultibandColor: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
   cancel,
-  layerId
-}: ISymbologyDialogProps) => {
+  layerId,
+}) => {
   if (!layerId) {
     return;
   }
@@ -33,14 +35,16 @@ const MultibandColor = ({
   const [selectedBands, setSelectedBands] = useState<ISelectedBands>({
     red: 1,
     green: 2,
-    blue: 3
+    blue: 3,
+    alpha: 4,
   });
 
   const numOfBandsRef = useRef(0);
   const selectedBandsRef = useRef<ISelectedBands>({
     red: selectedBands.red,
     green: selectedBands.green,
-    blue: selectedBands.blue
+    blue: selectedBands.blue,
+    alpha: selectedBands.alpha,
   });
 
   useEffect(() => {
@@ -70,14 +74,15 @@ const MultibandColor = ({
     const red = layerParams.symbologyState?.redBand ?? 1;
     const green = layerParams.symbologyState?.greenBand ?? 2;
     const blue = layerParams.symbologyState?.blueBand ?? 3;
+    const alpha = layerParams.symbologyState?.alphaBand ?? 4;
 
-    setSelectedBands({ red, green, blue });
+    setSelectedBands({ red, green, blue, alpha });
   };
 
   const updateBand = (color: rgbEnum, value: number) => {
     setSelectedBands(prevBands => ({
       ...prevBands,
-      [color]: value
+      [color]: value,
     }));
   };
 
@@ -88,22 +93,26 @@ const MultibandColor = ({
     }
 
     const colorExpr: ExpressionValue[] = ['array'];
-    const rgb: rgbEnum[] = ['red', 'green', 'blue'];
+    const colors: (keyof ISelectedBands)[] = ['red', 'green', 'blue'];
 
-    rgb.forEach(color => {
+    colors.forEach(color => {
       const bandValue = selectedBandsRef.current[color];
       colorExpr.push(bandValue !== 0 ? ['band', bandValue] : 0);
     });
 
-    // Array expression expects 4 values
-    // Last band should be alpha band added by OpenLayers
-    colorExpr.push(['band', numOfBandsRef.current + 1]);
+    // Push alpha if selected, else default to 0
+    if (selectedBandsRef.current.alpha) {
+      colorExpr.push(['band', selectedBandsRef.current.alpha]);
+    } else {
+      colorExpr.push(['band', numOfBandsRef.current + 1]);
+    }
 
     const symbologyState = {
       renderType: 'Multiband Color',
-      redBand: selectedBandsRef.current['red'],
-      greenBand: selectedBandsRef.current['green'],
-      blueBand: selectedBandsRef.current['blue']
+      redBand: selectedBandsRef.current.red,
+      greenBand: selectedBandsRef.current.green,
+      blueBand: selectedBandsRef.current.blue,
+      alphaBand: selectedBandsRef.current.alpha,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -117,41 +126,46 @@ const MultibandColor = ({
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
-        {loading ? (
-          <Spinner loading={loading} />
-        ) : (
-          <>
-            <BandRow
-              label="Red Band"
-              index={selectedBands['red'] - 1}
-              bandRow={bandRows[selectedBands['red'] - 1]}
-              bandRows={bandRows}
-              setSelectedBand={val => updateBand('red', val)}
-              setBandRows={setBandRows}
-              isMultibandColor={true}
-            />
+        <LoadingOverlay loading={loading} />
+        <BandRow
+          label="Red Band"
+          index={selectedBands.red - 1}
+          bandRow={bandRows[selectedBands.red - 1]}
+          bandRows={bandRows}
+          setSelectedBand={val => updateBand('red', val >= 0 ? val + 1 : 0)}
+          setBandRows={setBandRows}
+          isMultibandColor={true}
+        />
 
-            <BandRow
-              label="Green Band"
-              index={selectedBands['green'] - 1}
-              bandRow={bandRows[selectedBands['green'] - 1]}
-              bandRows={bandRows}
-              setSelectedBand={val => updateBand('green', val)}
-              setBandRows={setBandRows}
-              isMultibandColor={true}
-            />
+        <BandRow
+          label="Green Band"
+          index={selectedBands.green - 1}
+          bandRow={bandRows[selectedBands.green - 1]}
+          bandRows={bandRows}
+          setSelectedBand={val => updateBand('green', val >= 0 ? val + 1 : 0)}
+          setBandRows={setBandRows}
+          isMultibandColor={true}
+        />
 
-            <BandRow
-              label="Blue Band"
-              index={selectedBands['blue'] - 1}
-              bandRow={bandRows[selectedBands['blue'] - 1]}
-              bandRows={bandRows}
-              setSelectedBand={val => updateBand('blue', val)}
-              setBandRows={setBandRows}
-              isMultibandColor={true}
-            />
-          </>
-        )}
+        <BandRow
+          label="Blue Band"
+          index={selectedBands.blue - 1}
+          bandRow={bandRows[selectedBands.blue - 1]}
+          bandRows={bandRows}
+          setSelectedBand={val => updateBand('blue', val >= 0 ? val + 1 : 0)}
+          setBandRows={setBandRows}
+          isMultibandColor={true}
+        />
+
+        <BandRow
+          label="Alpha Band"
+          index={selectedBands.alpha - 1}
+          bandRow={bandRows[selectedBands.alpha - 1]}
+          bandRows={bandRows}
+          setSelectedBand={val => updateBand('alpha', val >= 0 ? val + 1 : 0)}
+          setBandRows={setBandRows}
+          isMultibandColor={true}
+        />
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-# Tutorial Writing Guide
+# Write tutorials
 
 This guide provides best practices for writing tutorials for JupyterGIS. To keep tutorials consistent and easy to follow, please follow the guidelines below.
 

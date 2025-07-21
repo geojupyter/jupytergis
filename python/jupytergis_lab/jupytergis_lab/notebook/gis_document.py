@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
+import requests
 
 from pycrdt import Array, Map
 from pydantic import BaseModel
@@ -13,6 +14,7 @@ from ypywidgets.comm import CommWidget
 
 from jupytergis_core.schema import (
     IGeoJSONSource,
+    IGeoParquetSource,
     IGeoPackageVectorSource,
     IGeoPackageRasterSource,
     IGeoTiffSource,
@@ -257,7 +259,7 @@ class GISDocument(CommWidget):
         Add a GeoJSON Layer to the document.
 
         :param name: The name that will be used for the object in the document.
-        :param path: The path to the JSON file to embed into the jGIS file.
+        :param path: The path to the JSON file or URL to embed into the jGIS file.
         :param data: The raw GeoJSON data to embed into the jGIS file.
         :param opacity: The opacity, between 0 and 1.
         :param color_expr: The style expression used to style the layer, defaults to None
@@ -271,16 +273,22 @@ class GISDocument(CommWidget):
         if path is not None and data is not None:
             raise ValueError("Cannot set GeoJSON layer data and path at the same time")
 
+        parameters = {}
+
         if path is not None:
-            # We cannot put the path to the file in the model
-            # We don't know where the kernel runs/live
-            # The front-end would have no way of finding the file reliably
-            # TODO Support urls to JSON files, in that case, don't embed the data
-            with open(path, "r") as fobj:
-                parameters = {"data": json.loads(fobj.read())}
+            if path.startswith("http://") or path.startswith("https://"):
+                response = requests.get(path)
+                response.raise_for_status()
+                parameters["path"] = path
+            else:
+                # We cannot put the path to the file in the model
+                # We don't know where the kernel runs/live
+                # The front-end would have no way of finding the file reliably
+                with open(path, "r") as fobj:
+                    parameters["data"] = json.load(fobj)
 
         if data is not None:
-            parameters = {"data": data}
+            parameters["data"] = data
 
         source = {
             "type": SourceType.GeoJSONSource,
@@ -535,6 +543,59 @@ class GISDocument(CommWidget):
                 "blur": blur,
                 "radius": radius,
                 "feature": feature,
+            },
+        }
+
+        return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
+    def add_geoparquet_layer(
+        self,
+        path: str,
+        name: str = "GeoParquetLayer",
+        type: "circle" | "fill" | "line" = "line",
+        opacity: float = 1,
+        logical_op: str | None = None,
+        feature: str | None = None,
+        operator: str | None = None,
+        value: Union[str, int, float] | None = None,
+        color_expr=None,
+    ):
+        """
+        Add a GeoParquet Layer to the document
+        :param path: The path to the GeoParquet file to embed into the jGIS file.
+        :param name: The name that will be used for the object in the document.
+        :param type: The type of the vector layer to create.
+        :param opacity: The opacity, between 0 and 1.
+        :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
+        :param feature: The feature to be filtered on
+        :param operator: The operator used to compare the feature and value
+        :param value: The value to be filtered on
+        :param color_expr: The style expression used to style the layer
+        """
+
+        source = {
+            "type": SourceType.GeoParquetSource,
+            "name": f"{name} Source",
+            "parameters": {"path": path},
+        }
+
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.VectorLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {
+                "source": source_id,
+                "type": type,
+                "opacity": opacity,
+                "color": color_expr,
+            },
+            "filters": {
+                "appliedFilters": [
+                    {"feature": feature, "operator": operator, "value": value}
+                ],
+                "logicalOp": logical_op,
             },
         }
 
@@ -962,6 +1023,7 @@ class JGISSource(BaseModel):
         IVideoSource,
         IGeoTiffSource,
         IRasterDemSource,
+        IGeoParquetSource,
         IGeoPackageVectorSource,
         IGeoPackageRasterSource,
     ]
@@ -1051,6 +1113,7 @@ OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)
 OBJECT_FACTORY.register_factory(SourceType.VideoSource, IVideoSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoTiffSource, IGeoTiffSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterDemSource, IRasterDemSource)
+OBJECT_FACTORY.register_factory(SourceType.GeoParquetSource, IGeoParquetSource)
 OBJECT_FACTORY.register_factory(
     SourceType.GeoPackageVectorSource, IGeoPackageVectorSource
 )

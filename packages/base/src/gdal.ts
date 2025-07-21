@@ -8,9 +8,9 @@ export async function getGdal() {
   return await initGdalJs({
     paths: {
       wasm: wasmurl.href,
-      data: dataurl.href
+      data: dataurl.href,
     },
-    useWorker: false
+    useWorker: false,
   });
 }
 

@@ -1,5 +1,5 @@
-import { Menu } from '@lumino/widgets';
 import { CommandRegistry } from '@lumino/commands';
+import { Menu } from '@lumino/widgets';
 
 import { CommandIDs } from './constants';
 import { rasterIcon } from './icons';
@@ -13,17 +13,22 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newVectorTileEntry
+    command: CommandIDs.newVectorTileEntry,
   });
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newGeoJSONEntry
+    command: CommandIDs.newGeoJSONEntry,
   });
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newShapefileEntry
+    command: CommandIDs.newShapefileEntry,
+  });
+
+  subMenu.addItem({
+    type: 'command',
+    command: CommandIDs.newGeoParquetEntry,
   });
 
   subMenu.addItem({
@@ -43,22 +48,22 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newRasterEntry
+    command: CommandIDs.newRasterEntry,
   });
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newHillshadeEntry
+    command: CommandIDs.newHillshadeEntry,
   });
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newImageEntry
+    command: CommandIDs.newImageEntry,
   });
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newGeoTiffEntry
+    command: CommandIDs.newGeoTiffEntry,
   });
 
   subMenu.addItem({
