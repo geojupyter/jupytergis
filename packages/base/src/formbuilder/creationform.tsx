@@ -10,7 +10,7 @@ import {
 
 import { deepCopy, getGeoPackageTableNames } from '../tools';
 
-import { Dialog } from '@jupyterlab/apputils';
+import { Dialog, showErrorMessage } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import * as React from 'react';
@@ -165,17 +165,42 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
           return;
         }
 
-        const tableNames: string[] = source.tables
-          ? source.tables
-              .split(',')
-              .map((s: string) => s.trim())
-              .filter(Boolean)
-          : await getGeoPackageTableNames(
-              source.path,
-              this.props.sourceType,
-              this.jGISModel
-            );
+        const allTables = await getGeoPackageTableNames(
+          source.path,
+          this.props.sourceType,
+          this.jGISModel
+        );
 
+        let tableNames: string[];
+
+        if (source.tables) {
+          const requestedTableNames = source.tables
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter(Boolean);
+
+          const invalidTableNames = requestedTableNames.filter((name: string) => !allTables.includes(name));
+          if (invalidTableNames.length) {
+            showErrorMessage(
+              'Invalid GeoPackage Tables',
+              `The following table${
+                invalidTableNames.length > 1 ? 's are' : ' is'
+              } not in the GeoPackage: ${invalidTableNames.join(', ')}. ` +
+              `Available tables are: ${allTables.join(', ')}.`
+            );
+          }
+
+          tableNames = requestedTableNames.filter((name:string ) => allTables.includes(name));
+
+          if (tableNames.length === 0) {
+            console.warn('No valid tables left to process, aborting.');
+            return;
+          }
+
+        } else {
+          tableNames = allTables;
+        }
+        
         for (const tableName of tableNames) {
           const childId = `${sourceId}/${tableName}`;
 
