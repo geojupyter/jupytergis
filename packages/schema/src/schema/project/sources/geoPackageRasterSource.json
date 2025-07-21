@@ -9,21 +9,37 @@
       "type": "string",
       "description": "The path to the GeoPackage source"
     },
-    "attribution": {
-      "type": "string",
+    "minZoom": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
       "readOnly": true,
-      "description": "The attribution for the GeoPackage source.",
-      "default": ""
+      "description": "The minimum zoom level for the raster source",
+      "default": 0
     },
-    "projection": {
-      "type": "string",
-      "description": "The projection information for the GeoPackage data (optional).",
-      "default": "EPSG:4326"
+    "maxZoom": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "readOnly": true,
+      "description": "The maximum zoom level for the raster source",
+      "default": 24
     },
     "tables": {
       "type": "string",
       "description": "The names of the tables in the GeoPackage to use as a source (optional). If left empty, all tables will be used.",
       "default": ""
+    },
+    "attribution": {
+      "type": "string",
+      "readOnly": true,
+      "description": "The attribution for the GeoPackage source",
+      "default": ""
+    },
+    "interpolate": {
+      "type": "boolean",
+      "description": "Interpolate between grid cells when overzooming?",
+      "default": false
     }
   }
 }

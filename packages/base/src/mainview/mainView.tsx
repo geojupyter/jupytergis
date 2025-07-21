@@ -696,51 +696,52 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'GeoPackageVectorSource': {
-        const parameters = source.parameters;
+        const sourceParameters = source.parameters;
 
-        if (!parameters) {
+        if (!sourceParameters) {
           throw new Error('GeoPackageSource has no parameters');
         }
 
         const tableMap = await loadFile({
-          filepath: parameters.path,
+          filepath: sourceParameters.path,
           type: 'GeoPackageVectorSource',
           model: this._model
         });
 
-        const table = tableMap[parameters.tables];
+        const table = tableMap[sourceParameters.tables];
         const vectorSource = table.source;
-        vectorSource['projection'] = getProjection(parameters.projection);
+        vectorSource['projection'] = getProjection(sourceParameters.projection);
         newSource = vectorSource;
         break;
       }
 
       case 'GeoPackageRasterSource': {
-        const parameters = source.parameters;
+        const sourceParameters = source.parameters;
 
-        if (!parameters) {
+        if (!sourceParameters) {
           throw new Error('GeoPackageSource has no parameters');
         }
 
         const tableMap = await loadFile({
-          filepath: parameters.path,
+          filepath: sourceParameters.path,
           type: 'GeoPackageRasterSource',
           model: this._model
         });
 
-        const { gpr, tileDao } = tableMap[parameters.tables];
+        const { gpr, tileDao } = tableMap[sourceParameters.tables];
 
         const rasterSource = new XYZSource({
-          wrapX: false,
-          minZoom: tileDao.minWebMapZoom,
-          maxZoom: tileDao.maxWebMapZoom,
+          minZoom: sourceParameters.minZoom ?? tileDao.minWebMapZoom,
+          maxZoom: sourceParameters.maxZoom ?? tileDao.maxWebMapZoom,
+          interpolate: sourceParameters.interpolate,
           url: '{z},{x},{y}',
           tileLoadFunction(tile: any, src) {
             const [z, x, y] = src.split(',').map(Number);
             gpr
               .getTile(x, y, z)
               .then((dataUri: any) => (tile.getImage().src = dataUri));
-          }
+          },
+          attributions: sourceParameters.attribution
         });
 
         newSource = rasterSource;

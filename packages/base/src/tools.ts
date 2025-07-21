@@ -11,7 +11,6 @@ import { getGdal } from './gdal';
 import loadGpkg from 'ol-load-geopackage';
 import { GeoPackageAPI, GeoPackageTileRetriever } from '@ngageoint/geopackage';
 
-
 import {
   IDict,
   IJGISLayerBrowserRegistry,
@@ -503,7 +502,7 @@ interface TileEntry {
   tileDao: object;
 }
 
-type GpkgTable = Record<string, VectorEntry | TileEntry>;''
+type GpkgTable = Record<string, VectorEntry | TileEntry>;
 
 const geoPackageCache = new Map<string, Promise<GpkgTable>>();
 
@@ -516,26 +515,25 @@ function loadGeoPackageVectorFile(
     return geoPackageCache.get(cacheFilename)!;
   }
 
-    const loader = (async (): Promise<GpkgTable> => {
-      try {
-        const [tables, slds] = await loadGpkg(filepath, projection);
-        const tableMap: GpkgTable = {};
-        for (const name of Object.keys(tables)) {
-          tableMap[name] = {
-            source: tables[name] as Source,
-            sld: slds[name]
-          };
-        }
-        return tableMap;
-      } catch (e: any) {
-        showErrorMessage('Failed to load GeoPackage file', e);
-        throw e;
+  const loader = (async (): Promise<GpkgTable> => {
+    try {
+      const [tables, slds] = await loadGpkg(filepath, projection);
+      const tableMap: GpkgTable = {};
+      for (const name of Object.keys(tables)) {
+        tableMap[name] = {
+          source: tables[name] as Source,
+          sld: slds[name]
+        };
       }
-    })();
-    geoPackageCache.set(cacheFilename, loader);
-    return loader;
-  }
-
+      return tableMap;
+    } catch (e: any) {
+      showErrorMessage('Failed to load GeoPackage file', e);
+      throw e;
+    }
+  })();
+  geoPackageCache.set(cacheFilename, loader);
+  return loader;
+}
 
 async function loadGeoPackageRasterFile(
   filepath: string,
@@ -566,7 +564,6 @@ async function loadGeoPackageRasterFile(
 
         const tileWidth = tileDao.tileMatrices[0].tile_width;
         const tileHeight = tileDao.tileMatrices[0].tile_height;
-
 
         tableMap[tableName] = {
           gpr: new GeoPackageTileRetriever(tileDao, tileWidth, tileHeight),
@@ -1101,4 +1098,3 @@ export async function getGeoJSONDataFromLayerSource(
   console.error("Source is missing both 'path' and 'data' parameters.");
   return null;
 }
-

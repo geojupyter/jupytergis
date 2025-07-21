@@ -179,28 +179,31 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
             .map((s: string) => s.trim())
             .filter(Boolean);
 
-          const invalidTableNames = requestedTableNames.filter((name: string) => !allTables.includes(name));
+          const invalidTableNames = requestedTableNames.filter(
+            (name: string) => !allTables.includes(name)
+          );
           if (invalidTableNames.length) {
             showErrorMessage(
               'Invalid GeoPackage Tables',
               `The following table${
                 invalidTableNames.length > 1 ? 's are' : ' is'
               } not in the GeoPackage: ${invalidTableNames.join(', ')}. ` +
-              `Available tables are: ${allTables.join(', ')}.`
+                `Available tables are: ${allTables.join(', ')}.`
             );
           }
 
-          tableNames = requestedTableNames.filter((name:string ) => allTables.includes(name));
+          tableNames = requestedTableNames.filter((name: string) =>
+            allTables.includes(name)
+          );
 
           if (tableNames.length === 0) {
             console.warn('No valid tables left to process, aborting.');
             return;
           }
-
         } else {
           tableNames = allTables;
         }
-        
+
         for (const tableName of tableNames) {
           const childId = `${sourceId}/${tableName}`;
 
@@ -211,7 +214,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               parameters: {
                 path: source.path,
                 tables: tableName,
-                projection: source.projection || 'EPSG:4326'
+                projection: source.projection || 'EPSG:3857'
               }
             };
             this.props.model.sharedModel.addSource(childId, sourceModel);
