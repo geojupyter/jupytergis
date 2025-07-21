@@ -8,6 +8,7 @@
   gap: 1rem;
   width: 100%;
   font-size: 9px;
+  border-radius: 5px;
 }
 
 .jgis-tabs-trigger {
