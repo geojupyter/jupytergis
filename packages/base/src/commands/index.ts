@@ -507,9 +507,9 @@ export function addCommands(
       sourceData: { name: 'Custom GeoPackage Vector Source' },
       layerData: { name: 'Custom GeoPackage Vector Layer' },
       sourceType: 'GeoPackageVectorSource',
-      layerType: 'VectorLayer'
+      layerType: 'VectorLayer',
     }),
-    ...icons.get(CommandIDs.newGeoPackageVectorEntry)
+    ...icons.get(CommandIDs.newGeoPackageVectorEntry),
   });
   commands.addCommand(CommandIDs.newGeoPackageRasterEntry, {
     label: trans.__('New GeoPackage Layer'),
@@ -527,9 +527,9 @@ export function addCommands(
       sourceData: { name: 'Custom GeoPackage Raster Source' },
       layerData: { name: 'Custom GeoPackage Raster Layer' },
       sourceType: 'GeoPackageRasterSource',
-      layerType: 'RasterLayer'
+      layerType: 'RasterLayer',
     }),
-    ...icons.get(CommandIDs.newGeoPackageRasterEntry)
+    ...icons.get(CommandIDs.newGeoPackageRasterEntry),
   });
 
   /**

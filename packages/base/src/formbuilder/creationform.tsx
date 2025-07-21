@@ -7,14 +7,12 @@ import {
   LayerType,
   SourceType,
 } from '@jupytergis/schema';
-
-import { deepCopy, getGeoPackageTableNames } from '@/src/';
 import { Dialog, showErrorMessage } from '@jupyterlab/apputils';
-
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
+import { deepCopy, getGeoPackageTableNames } from '@/src/';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 
 export interface ICreationFormProps {
@@ -169,7 +167,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
         const allTables = await getGeoPackageTableNames(
           source.path,
           this.props.sourceType,
-          this.jGISModel
+          this.jGISModel,
         );
 
         let tableNames: string[];
@@ -181,7 +179,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
             .filter(Boolean);
 
           const invalidTableNames = requestedTableNames.filter(
-            (name: string) => !allTables.includes(name)
+            (name: string) => !allTables.includes(name),
           );
           if (invalidTableNames.length) {
             showErrorMessage(
@@ -189,12 +187,12 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               `The following table${
                 invalidTableNames.length > 1 ? 's are' : ' is'
               } not in the GeoPackage: ${invalidTableNames.join(', ')}. ` +
-                `Available tables are: ${allTables.join(', ')}.`
+                `Available tables are: ${allTables.join(', ')}.`,
             );
           }
 
           tableNames = requestedTableNames.filter((name: string) =>
-            allTables.includes(name)
+            allTables.includes(name),
           );
 
           if (tableNames.length === 0) {
@@ -215,8 +213,8 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               parameters: {
                 path: source.path,
                 tables: tableName,
-                projection: source.projection || 'EPSG:3857'
-              }
+                projection: source.projection || 'EPSG:3857',
+              },
             };
             this.props.model.sharedModel.addSource(childId, sourceModel);
           }
@@ -229,7 +227,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
                   : 'RasterLayer'),
               parameters: { source: childId },
               visible: true,
-              name: `${source.name} ${tableName} Layer`
+              name: `${source.name} ${tableName} Layer`,
             };
             this.jGISModel.addLayer(UUID.uuid4(), layerModel);
           }

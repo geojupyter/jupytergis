@@ -781,7 +781,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const tableMap = await loadFile({
           filepath: sourceParameters.path,
           type: 'GeoPackageVectorSource',
-          model: this._model
+          model: this._model,
         });
 
         const table = tableMap[sourceParameters.tables];
@@ -801,7 +801,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const tableMap = await loadFile({
           filepath: sourceParameters.path,
           type: 'GeoPackageRasterSource',
-          model: this._model
+          model: this._model,
         });
 
         const { gpr, tileDao } = tableMap[sourceParameters.tables];
@@ -817,7 +817,7 @@ export class MainView extends React.Component<IProps, IStates> {
               .getTile(x, y, z)
               .then((dataUri: any) => (tile.getImage().src = dataUri));
           },
-          attributions: sourceParameters.attribution
+          attributions: sourceParameters.attribution,
         });
 
         newSource = rasterSource;

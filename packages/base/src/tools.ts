@@ -11,15 +11,15 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
+import { GeoPackageAPI, GeoPackageTileRetriever } from '@ngageoint/geopackage';
 import * as d3Color from 'd3-color';
 import { compressors } from 'hyparquet-compressors';
+import { Source } from 'ol/source';
+import loadGpkg from 'ol-load-geopackage';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
-import { GeoPackageAPI, GeoPackageTileRetriever } from '@ngageoint/geopackage';
-import loadGpkg from 'ol-load-geopackage';
-import { Source } from 'ol/source';
 
 export const debounce = (
   func: CallableFunction,
@@ -490,24 +490,24 @@ export const loadGeoTiff = async (
   }
 };
 
-interface VectorEntry {
+interface IVectorEntry {
   source: Source;
   sld: string | undefined;
 }
 
-interface TileEntry {
+interface ITileEntry {
   gpr: GeoPackageTileRetriever;
   tileDao: object;
 }
 
-type GpkgTable = Record<string, VectorEntry | TileEntry>;
+type GpkgTable = Record<string, IVectorEntry | ITileEntry>;
 
 const geoPackageCache = new Map<string, Promise<GpkgTable>>();
 
 function loadGeoPackageVectorFile(
   filepath: string,
   projection: string,
-  cacheFilename: string
+  cacheFilename: string,
 ): Promise<GpkgTable> {
   if (geoPackageCache.has(cacheFilename)) {
     return geoPackageCache.get(cacheFilename)!;
@@ -520,7 +520,7 @@ function loadGeoPackageVectorFile(
       for (const name of Object.keys(tables)) {
         tableMap[name] = {
           source: tables[name] as Source,
-          sld: slds[name]
+          sld: slds[name],
         };
       }
       return tableMap;
@@ -537,7 +537,7 @@ async function loadGeoPackageRasterFile(
   filepath: string,
   cacheFilename: string,
   model?: IJupyterGISModel,
-  file_content?: string
+  file_content?: string,
 ): Promise<GpkgTable> {
   if (geoPackageCache.has(cacheFilename)) {
     return geoPackageCache.get(cacheFilename)!;
@@ -565,7 +565,7 @@ async function loadGeoPackageRasterFile(
 
         tableMap[tableName] = {
           gpr: new GeoPackageTileRetriever(tileDao, tileWidth, tileHeight),
-          tileDao
+          tileDao,
         };
       });
 
@@ -573,7 +573,7 @@ async function loadGeoPackageRasterFile(
     } catch (error: any) {
       showErrorMessage(
         `Failed to load GeoPackage file: ${cacheFilename}`,
-        error
+        error,
       );
       throw error;
     }
@@ -585,7 +585,7 @@ async function loadGeoPackageRasterFile(
 
 async function loadGkpgFromUrl(
   filepath: string,
-  model: IJupyterGISModel
+  model: IJupyterGISModel,
 ): Promise<Uint8Array> {
   const response = await fetchWithProxies(filepath, model, async response => {
     const arrayBuffer = await response.arrayBuffer();
@@ -600,7 +600,7 @@ async function loadGkpgFromUrl(
 export async function getGeoPackageTableNames(
   filepath: string,
   type: 'GeoPackageVectorSource' | 'GeoPackageRasterSource',
-  model: IJupyterGISModel
+  model: IJupyterGISModel,
 ) {
   let geoPackage;
 
@@ -608,13 +608,13 @@ export async function getGeoPackageTableNames(
     geoPackage = await loadGeoPackageRasterFile(
       filepath,
       filepath + 'Raster',
-      model
+      model,
     );
   } else {
     geoPackage = await loadGeoPackageVectorFile(
       filepath,
       model.sharedModel.options.projection!,
-      filepath + 'Vector'
+      filepath + 'Vector',
     );
   }
 
@@ -712,7 +712,7 @@ export const loadFile = async (fileInfo: {
         return loadGeoPackageVectorFile(
           filepath,
           projection,
-          filepath + 'Vector'
+          filepath + 'Vector',
         );
       }
 
@@ -823,7 +823,7 @@ export const loadFile = async (fileInfo: {
           filepath,
           filepath + 'Raster',
           undefined,
-          file.content
+          file.content,
         );
       }
 
