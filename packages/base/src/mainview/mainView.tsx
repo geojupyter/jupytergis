@@ -2236,7 +2236,7 @@ export class MainView extends React.Component<IProps, IStates> {
         {this._state && (
           <LeftPanelComponent
             model={this._model}
-            commands={this._commands}
+            commands={this._mainViewModel.commands}
             state={this._state}
           ></LeftPanelComponent>
         )}
