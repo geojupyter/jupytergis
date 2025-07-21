@@ -770,7 +770,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         break;
       }
-      
+
       case 'GeoPackageVectorSource': {
         const sourceParameters = source.parameters;
 

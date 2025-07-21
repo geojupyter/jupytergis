@@ -826,7 +826,7 @@ export const loadFile = async (fileInfo: {
           file.content
         );
       }
-      
+
       case 'GeoParquetSource': {
         if (typeof file.content === 'string') {
           const { toGeoJson } = await import('geoparquet');

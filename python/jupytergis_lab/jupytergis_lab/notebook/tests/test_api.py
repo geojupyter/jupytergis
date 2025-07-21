@@ -43,6 +43,8 @@ class TestGeoPackageRasterLayer(TestDocument):
     def test_sourcelayer(self):
         gpkg_layers = self.doc.add_geopackage_raster_layer(TEST_GPKG_RASTER)
         assert all(name in self.doc.layers for name in gpkg_layers)
+
+
 class TestGeoParquetLayer(TestDocument):
     def test_sourcelayer(self):
         color = {"fill-color": "#00FF00", "stroke-color": "#FF0000"}
