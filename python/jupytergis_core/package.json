@@ -109,7 +109,7 @@
     },
     "extension": true,
     "outputDir": "jupytergis_core/labextension",
-    "webpackConfig": "webpack.config.js",
+    "webpackConfig": "./webpack.config.js",
     "sharedPackages": {
       "@jupytergis/base": {
         "singleton": true,

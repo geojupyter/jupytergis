@@ -1,15 +1,12 @@
 {
   "layerTree": [
+    "c3e1b470-fd4e-4c57-ac0a-5b4a24e602ac/tiles",
     "d090703f-5953-44b3-acde-c6286e125385/PointsOfInterest",
     "21467e04-77ba-445d-8e7b-638149deb9f4/Parks",
     "3e335ea9-4358-4fc1-acb3-ceea34b852d5/Pizza",
     "03fa7c7c-4f88-49cf-b975-38a42ef38710/Countries",
     "e811f15b-d11a-4113-bc5a-3726dde9976b/Lakes",
-    "58c36230-5fa7-4158-965d-cc4f5c2a0794/Rivers + Lake Centrelines",
-    "c3e1b470-fd4e-4c57-ac0a-5b4a24e602ac/tiles",
-    "08243201-86af-4623-a1b9-16e569fdc166/Countries",
-    "d26faffe-10ac-4ddf-9eb4-54832a9dde2b/Lakes",
-    "37bdd5f8-085d-48be-8060-6482d87c3e32/Rivers + Lake Centrelines"
+    "58c36230-5fa7-4158-965d-cc4f5c2a0794/Rivers + Lake Centrelines"
   ],
   "layers": {
     "03fa7c7c-4f88-49cf-b975-38a42ef38710/Countries": {
@@ -33,27 +30,6 @@
       "type": "VectorLayer",
       "visible": true
     },
-    "08243201-86af-4623-a1b9-16e569fdc166/Countries": {
-      "filters": {
-        "appliedFilters": [
-          {
-            "feature": null,
-            "operator": null,
-            "value": null
-          }
-        ],
-        "logicalOp": null
-      },
-      "name": "GeoPackage Layer Countries Layer",
-      "parameters": {
-        "color": null,
-        "opacity": 1.0,
-        "source": "894de599-1240-4d96-b7c3-29b43fc9a9bd/Countries",
-        "symbologyState": null
-      },
-      "type": "VectorLayer",
-      "visible": true
-    },
     "21467e04-77ba-445d-8e7b-638149deb9f4/Parks": {
       "filters": {
         "appliedFilters": [
@@ -70,27 +46,6 @@
         "color": null,
         "opacity": 1.0,
         "source": "c0e58d6d-7dc7-4878-9aa4-b241f8172262/Parks",
-        "symbologyState": null
-      },
-      "type": "VectorLayer",
-      "visible": true
-    },
-    "37bdd5f8-085d-48be-8060-6482d87c3e32/Rivers + Lake Centrelines": {
-      "filters": {
-        "appliedFilters": [
-          {
-            "feature": null,
-            "operator": null,
-            "value": null
-          }
-        ],
-        "logicalOp": null
-      },
-      "name": "GeoPackage Layer Rivers + Lake Centrelines Layer",
-      "parameters": {
-        "color": null,
-        "opacity": 1.0,
-        "source": "176813fb-8572-4b84-9d3a-247ef86ad752/Rivers + Lake Centrelines",
         "symbologyState": null
       },
       "type": "VectorLayer",
@@ -169,27 +124,6 @@
       "type": "VectorLayer",
       "visible": true
     },
-    "d26faffe-10ac-4ddf-9eb4-54832a9dde2b/Lakes": {
-      "filters": {
-        "appliedFilters": [
-          {
-            "feature": null,
-            "operator": null,
-            "value": null
-          }
-        ],
-        "logicalOp": null
-      },
-      "name": "GeoPackage Layer Lakes Layer",
-      "parameters": {
-        "color": null,
-        "opacity": 1.0,
-        "source": "33ab235b-2582-4489-a871-42d187cb5f26/Lakes",
-        "symbologyState": null
-      },
-      "type": "VectorLayer",
-      "visible": true
-    },
     "e811f15b-d11a-4113-bc5a-3726dde9976b/Lakes": {
       "filters": {
         "appliedFilters": [
@@ -216,15 +150,15 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -20037508.342789244,
-      -7368890.476495446,
-      20037508.342789244,
-      7368890.476495444
+      -22036985.40727903,
+      -6817247.246847427,
+      18038031.278299443,
+      18065694.93156175
     ],
-    "latitude": 0.0,
-    "longitude": 0.0,
+    "latitude": 45.01716292551504,
+    "longitude": -17.96160807277616,
     "projection": "EPSG:3857",
-    "zoom": 2.5517082616206883
+    "zoom": 2.1032878084120226
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -250,37 +184,7 @@
       },
       "type": "GeoPackageRasterSource"
     },
-    "176813fb-8572-4b84-9d3a-247ef86ad752/Rivers + Lake Centrelines": {
-      "name": "GeoPackage Layer Rivers + Lake Centrelines Source",
-      "parameters": {
-        "attribution": null,
-        "path": "https://raw.githubusercontent.com/richard-thomas/ol-load-geopackage/master/examples/dist/Natural_Earth_QGIS_layers_and_styles.gpkg",
-        "projection": "EPSG:3857",
-        "tables": "Rivers + Lake Centrelines"
-      },
-      "type": "GeoPackageVectorSource"
-    },
-    "33ab235b-2582-4489-a871-42d187cb5f26/Lakes": {
-      "name": "GeoPackage Layer Lakes Source",
-      "parameters": {
-        "attribution": null,
-        "path": "https://raw.githubusercontent.com/richard-thomas/ol-load-geopackage/master/examples/dist/Natural_Earth_QGIS_layers_and_styles.gpkg",
-        "projection": "EPSG:3857",
-        "tables": "Lakes"
-      },
-      "type": "GeoPackageVectorSource"
-    },
     "41ba7c89-0986-4d8f-a3a2-72847069de89/Countries": {
-      "name": "GeoPackage Layer Countries Source",
-      "parameters": {
-        "attribution": null,
-        "path": "https://raw.githubusercontent.com/richard-thomas/ol-load-geopackage/master/examples/dist/Natural_Earth_QGIS_layers_and_styles.gpkg",
-        "projection": "EPSG:3857",
-        "tables": "Countries"
-      },
-      "type": "GeoPackageVectorSource"
-    },
-    "894de599-1240-4d96-b7c3-29b43fc9a9bd/Countries": {
       "name": "GeoPackage Layer Countries Source",
       "parameters": {
         "attribution": null,
