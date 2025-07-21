@@ -26,7 +26,7 @@ def isURL(path: str) -> bool:
 
 
 def download_file(url: str, ext: str) -> str:
-    filename = f"downloaded_{uuid.uuid4().hex[:8]}.{ext}"
+    filename = Path(f"downloaded_{uuid.uuid4().hex[:8]}.{ext}")
 
     req = Request(url, headers={"User-Agent": "python-urllib"})
     with urlopen(req) as resp, open(filename, "wb") as out:
@@ -46,4 +46,8 @@ def get_gpkg_layers(gpkg_path: str, data_type: str) -> list[str]:
     )
     layers = [row[0] for row in cursor.fetchall()]
     conn.close()
+
+    if gpkg_path.exists():
+        gpkg_path.unlink()
+
     return layers
