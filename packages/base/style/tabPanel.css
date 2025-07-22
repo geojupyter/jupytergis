@@ -1,103 +1,90 @@
 .jgis-panel-tab-content {
-  border-radius: 5px;
-  font-size: 10px;
-}
-
-.jgis-stac-panel-main {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--jp-layout-color0);
-  box-shadow:
-    0 4px 8px 0 rgba(0, 0, 0, 0.2),
-    0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  border-radius: 5px;
+	border-radius: 5px;
+	font-size: 10px;
 }
 
 .jgis-stac-browser-collection {
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
+	flex-wrap: wrap;
+	margin-top: 0.5rem;
 }
 
 .jgis-stac-browser-section-item {
-  border-radius: 1rem !important;
-  cursor: pointer;
+	border-radius: 1rem !important;
+	cursor: pointer;
 }
 
 .jgis-stac-browser-results-item {
-  border-radius: 1rem !important;
-  cursor: pointer;
-  white-space: normal !important;
-  height: auto !important;
+	border-radius: 1rem !important;
+	cursor: pointer;
+	white-space: normal !important;
+	height: auto !important;
 }
 
 .jgis-stac-browser-results-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  word-break: break-word;
-  padding: 0.25rem;
-  margin-right: 0.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	word-break: break-word;
+	padding: 0.25rem;
+	margin-right: 0.5rem;
 }
 
 .jgis-stac-browser-date-picker {
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+	display: flex;
+	justify-content: space-around;
+	flex-wrap: wrap;
+	gap: 0.5rem;
 }
 
 .jgis-stac-browser-filters-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: flex-start;
-  padding: 0 0.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	align-items: flex-start;
+	padding: 0 0.5rem;
 }
 
 .jgis-stac-filter-trigger {
-  max-width: fit-content;
-  border: 1px solid var(--jp-border-color0);
-  padding: 0.5rem;
-  cursor: pointer;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 0.15rem;
+	max-width: fit-content;
+	border: 1px solid var(--jp-border-color0);
+	padding: 0.5rem;
+	cursor: pointer;
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+	gap: 0.15rem;
 }
 
 .jgis-stac-filter-trigger:disabled {
-  cursor: not-allowed;
+	cursor: not-allowed;
 }
 
 .jgis-stac-filter-section-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
 }
 
 .jgis-stac-filter-section-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem;
 }
 
 .jgis-stac-datepicker-icon {
-  width: 1rem;
-  height: 1rem;
+	width: 1rem;
+	height: 1rem;
 }
 
 .jgis-stac-badge {
-  gap: 0.25rem;
-  padding-right: 0.3rem !important;
+	gap: 0.25rem;
+	padding-right: 0.3rem !important;
 }
 
 .jgis-stac-badge-icon:hover {
-  background-color: color-mix(
-    in srgb,
-    var(--jp-error-color0),
-    transparent 20%
-  ) !important;
+	background-color: color-mix(
+		in srgb,
+		var(--jp-error-color0),
+		transparent 20%
+	) !important;
 }

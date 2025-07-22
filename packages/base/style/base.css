@@ -22,82 +22,82 @@
 @import url('./shared/checkbox.css');
 
 .errors {
-  color: var(--jp-warn-color0);
-  font-weight: bold;
+	color: var(--jp-warn-color0);
+	font-weight: bold;
 }
 
 .jGIS-Toolbar-GroupName {
-  font-size: var(--jp-ui-font-size0);
-  padding-left: 3px;
+	font-size: var(--jp-ui-font-size0);
+	padding-left: 3px;
 }
 
 /* Overwrite forms CSS */
 .jGIS-property-panel .array-item-list {
-  display: flex;
-  background-color: var(--jp-layout-color0);
+	display: flex;
+	background-color: var(--jp-layout-color0);
 }
 
 .jGIS-property-panel .rjsf .array-item:not(:last-child) {
-  border-bottom: none;
-  margin-bottom: unset;
-  padding-bottom: unset;
+	border-bottom: none;
+	margin-bottom: unset;
+	padding-bottom: unset;
 }
 
 .jGIS-property-panel .rjsf .array-item {
-  flex: 1 0 0%;
-  align-items: center;
+	flex: 1 0 0%;
+	align-items: center;
 }
 
 .jGIS-property-panel .rjsf fieldset fieldset {
-  padding-left: unset;
-  border-left: none;
+	padding-left: unset;
+	border-left: none;
 }
 
 .jGIS-property-panel .rjsf .array-item-list:has(.field-array) {
-  flex-direction: column;
+	flex-direction: column;
 }
 
 .jp-gis-text-label {
-  margin: 0;
-  padding: 0;
-  font-weight: bold;
-  display: block;
-  position: relative;
+	margin: 0;
+	padding: 0;
+	font-weight: bold;
+	display: block;
+	position: relative;
 }
 
 /*This is being upstreamed. Will remove once upstream's been fixed.*/
 button.jp-mod-styled.jp-mod-accept {
-  background-color: var(--jp-brand-color1) !important;
+	background-color: var(--jp-brand-color1) !important;
 }
 
 button.jp-mod-styled.jp-mod-reject {
-  background-color: var(--jp-layout-color4) !important;
+	background-color: var(--jp-layout-color4) !important;
 }
 
 .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
 }
 
 .jgis-right-panel-container {
-  width: 330px;
-  top: 30px;
-  right: 0px;
-  position: absolute;
-  margin: 5px;
+	width: 330px;
+	top: 30px;
+	right: 0px;
+	position: absolute;
+	margin: 5px;
 }
 
 .jgis-left-panel-container {
-  position: absolute;
-  width: 250px;
-  top: 30px;
-  left: 0px;
-  margin: 5px;
+	position: absolute;
+	width: 250px;
+	top: 30px;
+	left: 0px;
+	margin: 5px;
 }

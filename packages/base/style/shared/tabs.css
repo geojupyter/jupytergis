@@ -1,57 +1,71 @@
+.jgis-panel-tabs {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	justify-content: center;
+	align-items: center;
+	background-color: var(--jp-layout-color0);
+	box-shadow:
+		0 4px 8px 0 rgba(0, 0, 0, 0.2),
+		0 6px 20px 0 rgba(0, 0, 0, 0.19);
+	border-radius: 5px;
+}
 .jgis-tabs-list {
-  display: inline-flex;
-  height: 2.5rem;
-  align-items: center;
-  justify-content: space-evenly;
-  background-color: var(--jp-layout-color2);
-  color: var(--jp-ui-font-color0);
-  gap: 1rem;
-  width: 100%;
-  font-size: 9px;
-  border-radius: 5px;
+	display: inline-flex;
+	height: 2.5rem;
+	align-items: center;
+	justify-content: space-evenly;
+	background-color: var(--jp-layout-color2);
+	color: var(--jp-ui-font-color0);
+	gap: 1rem;
+	width: 100%;
+	font-size: 9px;
+	border-radius: 5px;
 }
 
 .jgis-tabs-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  border-radius: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  font-size: var(--jp-ui-font-size2);
-  font-weight: 500;
-  outline: none;
-  transition: all 0.3s ease;
-  border: 1px solid transparent;
-  background-color: transparent;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	white-space: nowrap;
+	border-radius: 0.25rem;
+	padding: 0.25rem 0.5rem;
+	font-size: var(--jp-ui-font-size2);
+	font-weight: 500;
+	outline: none;
+	transition: all 0.3s ease;
+	border: 1px solid transparent;
+	background-color: transparent;
 }
 
 .jgis-tabs-trigger:focus-visible {
-  box-shadow:
-    0 0 0 2px var(--jp-accent-color0),
-    0 0 0 4px var(--jp-accent-color0);
+	box-shadow:
+		0 0 0 2px var(--jp-accent-color0),
+		0 0 0 4px var(--jp-accent-color0);
 }
 
 .jgis-tabs-trigger:disabled {
-  pointer-events: none;
-  opacity: 0.5;
+	pointer-events: none;
+	opacity: 0.5;
 }
 
 .jgis-tabs-trigger[data-state='active'] {
-  background-color: var(--jp-layout-color2);
-  color: var(--jp-ui-font-color0);
-  box-shadow: 0 1px 2px
-    color-mix(in srgb, var(--jp-layout-color0), transparent 90%);
+	background-color: var(--jp-layout-color2);
+	color: var(--jp-ui-font-color0);
+	box-shadow: 0 1px 2px
+		color-mix(in srgb, var(--jp-layout-color0), transparent 90%);
 }
 
 .jgis-tabs-content {
-  outline: none;
-  width: 100%;
+	outline: none;
+	width: 100%;
+	overflow-y: scroll;
+	max-height: 600px;
 }
 
 .jgis-tabs-content:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 2px var(--jp-accent-color0),
-    0 0 0 4px var(--jp-accent-color0);
+	outline: none;
+	box-shadow:
+		0 0 0 2px var(--jp-accent-color0),
+		0 0 0 4px var(--jp-accent-color0);
 }
