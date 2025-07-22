@@ -36,7 +36,7 @@ language = "en"
 
 jupyterlite_contents = [
     "../examples/*.jGIS",
-    "../examples/*.json",
+    "../examples/*.geojson",
     "../examples/*.zip",
     "../examples/*.gif",
     "../examples/*.geojson",

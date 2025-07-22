@@ -81,7 +81,7 @@
     "7d082e75-69d5-447a-82d8-b05cca5945ba": {
       "name": "france_regions",
       "parameters": {
-        "path": "france_regions.json",
+        "path": "france_regions.geojson",
         "valid": true
       },
       "type": "GeoJSONSource"

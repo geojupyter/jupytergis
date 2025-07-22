@@ -26,16 +26,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      1257995.4368141007,
-      5965892.141673056,
-      1284108.0787959865,
-      6003232.789515357
+      1258677.6374753749,
+      5970540.9301103065,
+      1287818.4633432643,
+      5997795.7380603505
     ],
-    "latitude": 47.25967099028631,
-    "longitude": 11.418052209432549,
+    "latitude": 47.25726805100891,
+    "longitude": 11.437781841580746,
     "pitch": 59.00000000000003,
     "projection": "EPSG:3857",
-    "zoom": 11.829291680317894
+    "zoom": 12.047497460381734
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -55,6 +55,7 @@
       "name": "Custom Hillshade Layer Source",
       "parameters": {
         "encoding": "mapbox",
+        "interpolate": false,
         "tileSize": 512.0,
         "url": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
         "urlParameters": {}

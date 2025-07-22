@@ -34,8 +34,8 @@ test.describe('#geoJSONLayer', () => {
       `/${tmpPath}/${FILENAME}`,
     );
     await content.uploadFile(
-      path.resolve(__dirname, `./gis-files/france_regions.json`),
-      `/${tmpPath}/france_regions.json`,
+      path.resolve(__dirname, `./gis-files/france_regions.geojson`),
+      `/${tmpPath}/france_regions.geojson`,
     );
   });
 
@@ -61,7 +61,7 @@ test.describe('#geoJSONLayer', () => {
     await expect(dialog).toBeAttached();
 
     const fileInput = dialog.locator('input#root_path');
-    await fileInput.fill('france_regions.json');
+    await fileInput.fill('france_regions.geojson');
     await fileInput.blur();
 
     await dialog.getByText('Ok', { exact: true }).first().click();

@@ -60,7 +60,7 @@
     "d07cc573-51fb-4ae8-965b-a0082ace7f2b": {
       "name": "Custom GeoJSON Layer Source",
       "parameters": {
-        "path": "eq.json"
+        "path": "eq.geojson"
       },
       "type": "GeoJSONSource"
     }
