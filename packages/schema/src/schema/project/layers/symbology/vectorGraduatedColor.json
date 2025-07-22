@@ -1,14 +1,10 @@
 {
-    "title": "IVectorColor",
-    "description": "The state of the layer's color symbology options (fill color, stroke color etc.)",
+    "title": "IVectorGraduatedColor",
+    "description": "The state of the layer's graduated color symbology options",
     "type": "object",
-    "required": ["renderType"],
+    "required": ["selectedAttribute", "colorRamp"],
     "additionalProperties": false,
     "properties": {
-        "renderType": {
-            "type": "string",
-            "enum": ["Single Symbol", "Graduated", "Categorized", "Canonical", "Heatmap"]
-        },
         "selectedAttribute": {
             "type": "string",
             "description": "The selected attribute for varying the color"
@@ -36,7 +32,7 @@
         },
         "stopsValues": {
             "type": "object",
-            "description": "The mapping of input data values to size values",
+            "description": "The mapping of input data values to color values",
             "patternProperties": {
                 "^[0-9]+$": {
                     "type": "string",

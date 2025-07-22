@@ -23,10 +23,10 @@
       "additionalProperties": false,
       "properties": {
         "color": {
-          "$ref": "project/layers/symbology/vectorColor.json"
+          "$ref": "project/layers/symbology/vectorGraduatedColor.json"
         },
         "size": {
-          "$ref": "project/layers/symbology/vectorSize.json"
+          "$ref": "project/layers/symbology/vectorGraduatedSize.json"
         }
       }
     }

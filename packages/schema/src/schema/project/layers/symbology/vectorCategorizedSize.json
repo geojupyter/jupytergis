@@ -1,0 +1,33 @@
+{
+    "title": "IVectorCategorizedSize",
+    "description": "The state of the layer's categorized size symbology options",
+    "type": "object",
+    "required": ["selectedAttribute"],
+    "additionalProperties": false,
+    "properties": {
+        "selectedAttribute": {
+            "type": "string",
+            "description": "The selected attribute for categorizing the size"
+        },
+        "stopsValues": {
+            "type": "object",
+            "description": "The mapping of category values to size values",
+            "patternProperties": {
+                ".*": {
+                    "type": "number",
+                    "description": "The size value in pixels for the category, where the key is the category value"
+                }
+            }
+        },
+        "strokeThickness": {
+            "type": "number",
+            "description": "The thickness of the stroke in pixels",
+            "default": 1.25
+        },
+        "symbolRadius": {
+            "type": "number",
+            "description": "The radius of the symbols in pixels",
+            "default": 1
+        }
+    }
+}

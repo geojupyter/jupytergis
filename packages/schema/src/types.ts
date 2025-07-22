@@ -30,8 +30,14 @@ export * from './_interface/project/layers/webGlLayer';
 // Use namespaced exports to avoid duplicate interface exports when $ref schemas
 // are inlined by json-schema-to-typescript. This can be removed once
 // https://github.com/bcherny/json-schema-to-typescript/pull/662 is merged.
-export * as SymbologyVectorColor from './_interface/project/layers/symbology/vectorColor';
-export * as SymbologyVectorSize from './_interface/project/layers/symbology/vectorSize';
+export * as SymbologyVectorSimpleColor from './_interface/project/layers/symbology/vectorSimpleColor';
+export * as SymbologyVectorSimpleSize from './_interface/project/layers/symbology/vectorSimpleSize';
+export * as SymbologyVectorGraduatedColor from './_interface/project/layers/symbology/vectorGraduatedColor';
+export * as SymbologyVectorGraduatedSize from './_interface/project/layers/symbology/vectorGraduatedSize';
+export * as SymbologyVectorCategorizedColor from './_interface/project/layers/symbology/vectorCategorizedColor';
+export * as SymbologyVectorCategorizedSize from './_interface/project/layers/symbology/vectorCategorizedSize';
+export * as SymbologyVectorCanonicalColor from './_interface/project/layers/symbology/vectorCanonicalColor';
+export * as SymbologyVectorHeatmapColor from './_interface/project/layers/symbology/vectorHeatmapColor';
 export * as SymbologyGeoTiffSingleBand from './_interface/project/layers/symbology/geoTiffSingleBand';
 export * as SymbologyGeoTiffMultiBand from './_interface/project/layers/symbology/geoTiffMultiBand';
 
