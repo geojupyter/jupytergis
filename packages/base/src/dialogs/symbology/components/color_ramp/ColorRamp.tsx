@@ -51,7 +51,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     }
     setNumberOfShades(nClasses ? nClasses : '9');
     setSelectedMode(singleBandMode ? singleBandMode : 'equal interval');
-    setSelectedRamp(colorRamp ? colorRamp : 'cool');
+    setSelectedRamp(colorRamp ? colorRamp : 'viridis');
   };
 
   return (
