@@ -1,48 +1,48 @@
 .jp-gis-temporal-slider-container {
-	display: flex;
-	flex-direction: column;
-	gap: 0.2rem;
-	padding: 0.5rem;
-	background-color: var(--jp-layout-color1);
-	border-bottom: 1px solid var(--jp-border-color1);
-	z-index: 99;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.5rem;
+  background-color: var(--jp-layout-color1);
+  border-bottom: 1px solid var(--jp-border-color1);
+  z-index: 99;
 }
 
 .jp-gis-temporal-slider-container span,
 .jp-gis-temporal-slider-container label {
-	font-weight: bold;
+  font-weight: bold;
 }
 
 .jp-gis-temporal-slider-row {
-	display: flex;
-	gap: 0.25rem;
-	justify-content: space-between;
-	align-items: center;
+  display: flex;
+  gap: 0.25rem;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .jp-gis-temporal-slider-controls {
-	display: flex;
-	flex-grow: 1;
-	justify-content: space-around;
+  display: flex;
+  flex-grow: 1;
+  justify-content: space-around;
 }
 
 .jp-gis-temporal-slider-sub-controls {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: 0.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .jp-gis-temporal-slider-sub-controls > input {
-	width: 35px;
+  width: 35px;
 }
 
 select,
 select option {
-	text-transform: capitalize;
+  text-transform: capitalize;
 }
 
 .jp-gis-temporal-slider {
-	flex: 1 0 40%;
-	min-width: 300px;
+  flex: 1 0 40%;
+  min-width: 300px;
 }
