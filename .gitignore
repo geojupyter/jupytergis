@@ -141,3 +141,12 @@ untitled*
 
 # GeoJSON schema
 packages/schema/src/schema/geojson.json
+# Schema pre-processing
+packages/schema/temp-schema
+
+# Automatically generated file for processing
+
+packages/schema/src/processing/_generated/*
+
+# Local example files
+examples/local_examples/*

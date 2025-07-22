@@ -4,13 +4,13 @@ import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import MultibandColor from './types/MultibandColor';
 import SingleBandPseudoColor from './types/SingleBandPseudoColor';
 
-const TiffRendering = ({
+const TiffRendering: React.FC<ISymbologyDialogProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
   layerId,
-}: ISymbologyDialogProps) => {
+}) => {
   const renderTypes = ['Singleband Pseudocolor', 'Multiband Color'];
   const [selectedRenderType, setSelectedRenderType] = useState<string>();
   const [componentToRender, setComponentToRender] = useState<any>(null);

@@ -4,16 +4,16 @@ import * as React from 'react';
 
 import { cn } from './utils';
 
-const toggleVariants = cva('Toggle', {
+const toggleVariants = cva('jgis-toggle', {
   variants: {
     variant: {
-      default: 'ToggleDefault',
-      outline: 'ToggleOutline',
+      default: 'jgis-toggle-default',
+      outline: 'jgis-toggle-outline',
     },
     size: {
-      default: 'ToggleDefaultSize',
-      sm: 'ToggleSmallSize',
-      lg: 'ToggleLargeSize',
+      default: 'jgis-toggle-default-size',
+      sm: 'jgis-toggle-small-size',
+      lg: 'jgis-toggle-large-size',
     },
   },
   defaultVariants: {
@@ -36,7 +36,7 @@ const ToggleGroup = React.forwardRef<
 >(({ className, variant, size, children, ...props }, ref) => (
   <ToggleGroupPrimitive.Root
     ref={ref}
-    className={cn('ToggleGroupContext', className)}
+    className={cn('jgis-toggle-group-context', className)}
     {...props}
   >
     <ToggleGroupContext.Provider value={{ variant, size }}>

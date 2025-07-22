@@ -12,6 +12,7 @@ import {
   IJupyterGISWidget,
   JupyterGISDoc,
   SCHEMA_VERSION,
+  ProcessingMerge,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -150,7 +151,7 @@ const activate = async (
   });
 
   app.commands.addCommand(CommandIDs.createNew, {
-    label: args => 'GIS File',
+    label: args => (args['label'] as string) ?? 'GIS Project',
     caption: 'Create a new JGIS Editor',
     icon: args => logoIcon,
     execute: async args => {
@@ -230,26 +231,21 @@ const activate = async (
       category: 'JupyterGIS',
     });
 
-    palette.addItem({
-      command: CommandIDs.buffer,
-      category: 'JupyterGIS',
-    });
-
-    palette.addItem({
-      command: CommandIDs.dissolve,
-      category: 'JupyterGIS',
-    });
-
-    palette.addItem({
-      command: CommandIDs.centroids,
-      category: 'JupyterGIS',
-    });
-
-    palette.addItem({
-      command: CommandIDs.boundingBoxes,
-      category: 'JupyterGIS',
-    });
+    for (const processingElement of ProcessingMerge) {
+      palette.addItem({
+        command: processingElement.name,
+        category: 'JupyterGIS',
+      });
+    }
   }
+
+  // Inject “New JupyterGIS file” into the File Browser context menu
+  app.contextMenu.addItem({
+    command: CommandIDs.createNew,
+    selector: '.jp-DirListing',
+    rank: 55,
+    args: { label: 'New JupyterGIS Project' },
+  });
 };
 
 const jGISPlugin: JupyterFrontEndPlugin<void> = {

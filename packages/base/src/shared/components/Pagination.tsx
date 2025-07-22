@@ -3,11 +3,11 @@ import * as React from 'react';
 
 import { Button, ButtonProps } from './Button';
 
-const Pagination = ({ ...props }: React.ComponentProps<'nav'>) => (
+const Pagination: React.FC<React.ComponentProps<'nav'>> = ({ ...props }) => (
   <nav
     role="navigation"
     aria-label="pagination"
-    className={'Pagination'}
+    className={'jgis-pagination'}
     {...props}
   />
 );
@@ -17,7 +17,7 @@ const PaginationContent = React.forwardRef<
   HTMLUListElement,
   React.ComponentProps<'ul'>
 >(({ ...props }, ref) => (
-  <ul ref={ref} className={'PaginationContent'} {...props} />
+  <ul ref={ref} className={'jgis-pagination-content'} {...props} />
 ));
 PaginationContent.displayName = 'PaginationContent';
 
@@ -41,7 +41,7 @@ const PaginationLink = ({
     aria-current={isActive ? 'page' : undefined}
     data-variant={isActive ? 'outline' : 'ghost'}
     data-size={size}
-    className={'PaginationLink'}
+    className={'jgis-pagination-link'}
     {...props}
   />
 );
@@ -53,7 +53,7 @@ const PaginationPrevious = ({
 }: React.ComponentProps<typeof PaginationLink>) => (
   <PaginationLink
     aria-label="Go to previous page"
-    className={'PaginationPrevious'}
+    className={'jgis-pagination-previous'}
     {...props}
   >
     <ChevronLeft
@@ -73,7 +73,7 @@ const PaginationNext = ({
 }: React.ComponentProps<typeof PaginationLink>) => (
   <PaginationLink
     aria-label="Go to next page"
-    className={'PaginationNext'}
+    className={'jgis-pagination-next'}
     {...props}
   >
     <span>Next</span>
@@ -89,7 +89,7 @@ const PaginationNext = ({
 PaginationNext.displayName = 'PaginationNext';
 
 const PaginationEllipsis = ({ ...props }: React.ComponentProps<'span'>) => (
-  <span aria-hidden className={'PaginationEllipsis'} {...props}>
+  <span aria-hidden className={'jgis-pagination-ellipsis'} {...props}>
     <MoreHorizontal
       style={{
         height: '1rem',

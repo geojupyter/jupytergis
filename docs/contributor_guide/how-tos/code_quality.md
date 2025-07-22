@@ -1,7 +1,7 @@
-# Code quality
+# Check code quality
 
 ```{seealso}
-Complete [dev install](./development_setup) instructions before continuing.
+Complete [dev install](../development_setup) instructions before continuing.
 ```
 
 We have several tools configured for checking code quality:
@@ -10,7 +10,6 @@ We have several tools configured for checking code quality:
   Install checks with `pre-commit install`.
   Run them manually with `pre-commit run --all-files`.
   **Will exit non-zero when finding errors or changing files.**
-
   - Ruff formats and lints (sometimes autofixes) Python code.
 
   - Generic pre-commit checks help avoid common mistakes like committing large
@@ -21,7 +20,6 @@ We have several tools configured for checking code quality:
   Run manually with `jlpm run lint`.
   **Will exit 0 when applying fixes.**
   **Check the logs and/or `git status` after every run.**
-
   - Prettier formats the file types listed above.
 
   - Eslint lints (sometimes autofixes) JS/TS code.

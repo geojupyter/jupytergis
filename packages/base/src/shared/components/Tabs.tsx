@@ -3,10 +3,10 @@ import * as React from 'react';
 
 import { cn } from './utils';
 
-function Tabs({
+const Tabs: React.FC<React.ComponentProps<typeof TabsPrimitive.Root>> = ({
   className,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root>) {
+}) => {
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
@@ -14,45 +14,43 @@ function Tabs({
       {...props}
     />
   );
-}
+};
 
-function TabsList({
+const TabsList: React.FC<React.ComponentProps<typeof TabsPrimitive.List>> = ({
   className,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.List>) {
+}) => {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn('TabsList', className)}
+      className={cn('jgis-tabs-list', className)}
       {...props}
     />
   );
-}
+};
 
-function TabsTrigger({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+const TabsTrigger: React.FC<
+  React.ComponentProps<typeof TabsPrimitive.Trigger>
+> = ({ className, ...props }) => {
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
-      className={cn('TabsTrigger', className)}
+      className={cn('jgis-tabs-trigger', className)}
       {...props}
     />
   );
-}
+};
 
-function TabsContent({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Content>) {
+const TabsContent: React.FC<
+  React.ComponentProps<typeof TabsPrimitive.Content>
+> = ({ className, ...props }) => {
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
-      className={cn('TabsContent', className)}
+      className={cn('jgis-tabs-content', className)}
       {...props}
     />
   );
-}
+};
 
 export { Tabs, TabsContent, TabsList, TabsTrigger };

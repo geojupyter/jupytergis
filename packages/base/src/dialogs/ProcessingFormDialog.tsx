@@ -1,4 +1,4 @@
-import { IDict, IJupyterGISModel } from '@jupytergis/schema';
+import { ProcessingType, IDict, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
@@ -22,12 +22,7 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
     parentType: 'dialog' | 'panel',
   ) => void;
   model: IJupyterGISModel;
-  processingType:
-    | 'Buffer'
-    | 'Dissolve'
-    | 'Export'
-    | 'Centroids'
-    | 'BoundingBoxes';
+  processingType: 'Export' | ProcessingType;
 }
 
 /**
@@ -39,7 +34,7 @@ export interface IProcessingFormWrapperProps
   formErrorSignalPromise?: PromiseDelegate<Signal<Dialog<any>, boolean>>;
 }
 
-const ProcessingFormWrapper = (props: IProcessingFormWrapperProps) => {
+const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = props => {
   const [ready, setReady] = React.useState<boolean>(false);
 
   const okSignal = React.useRef<Signal<Dialog<any>, number>>();
@@ -59,10 +54,6 @@ const ProcessingFormWrapper = (props: IProcessingFormWrapperProps) => {
     case 'Dissolve':
       FormComponent = DissolveForm;
       break;
-    case 'Buffer':
-    case 'Export':
-    case 'Centroids':
-    case 'BoundingBoxes':
     default:
       FormComponent = BaseForm;
   }

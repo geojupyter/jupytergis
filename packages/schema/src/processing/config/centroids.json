@@ -1,0 +1,10 @@
+{
+  "name": "centroids",
+  "operationParams": [],
+  "label": "Centroids",
+  "operations": {
+    "gdalFunction": "ogr2ogr",
+    "sql": "SELECT ST_Centroid(geometry) AS geometry, * FROM \"{layerName}\""
+  },
+  "type": "vector"
+}

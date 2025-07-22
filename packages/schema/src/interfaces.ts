@@ -26,8 +26,8 @@ import {
   IJGISSources,
   SourceType,
 } from './_interface/project/jgis';
-import { IRasterSource } from './_interface/project/sources/rastersource';
-export { IGeoJSONSource } from './_interface/geojsonsource';
+import { IRasterSource } from './_interface/project/sources/rasterSource';
+export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 
 export type JgisCoordinates = { x: number; y: number };
 
@@ -179,6 +179,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   geolocationChanged: Signal<IJupyterGISModel, JgisCoordinates>;
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
+  updateBboxSignal: Signal<IJupyterGISModel, any>;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;

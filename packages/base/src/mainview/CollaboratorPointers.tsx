@@ -18,7 +18,9 @@ export type ClientPointer = {
   lonLat: { latitude: number; longitude: number };
 };
 
-const CollaboratorPointers = ({ clients }: ICollaboratorPointersProps) => {
+const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
+  clients,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

@@ -1,0 +1,61 @@
+.jgis-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  padding: 2px 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  outline: none;
+  color: var(--jp-ui-inverse-font-color1);
+  background-color: var(--jp-brand-color0);
+  width: max-content;
+  word-break: break-word;
+  max-width: 200px;
+  text-align: center;
+}
+
+.jgis-badge:hover {
+  background-color: color-mix(in srgb, var(--jp-brand-color0) 80%, transparent);
+}
+
+.jgis-badge[data-variant='secondary'] {
+  border: 1px solid transparent;
+  background-color: var(--jp-brand-color1);
+  color: var(--jp-ui-inverse-font-color1);
+  transition: background-color 0.3s ease;
+}
+
+.jgis-badge[data-variant='secondary']:focus {
+  border-width: 2px;
+  border-color: var(--jp-border-color0);
+  box-shadow: 0 0 0 3px var(--jp-border-color0);
+}
+
+.jgis-badge[data-variant='destructive'] {
+  border: 1px solid transparent;
+  background-color: color-mix(in srgb, var(--jp-error-color1) 90%, transparent);
+  color: var(--jp-ui-inverse-font-color1);
+}
+
+.jgis-badge[data-variant='destructive']:hover {
+  background-color: color-mix(in srgb, var(--jp-error-color1) 80%, transparent);
+}
+
+.jgis-badge[data-variant='destructive']:focus {
+  background-color: var(--jp-error-color1);
+}
+
+.jgis-badge[data-variant='outline'] {
+  color: var(--jp-ui-font-color1);
+  background-color: transparent;
+  border: 1px solid color-mix(in srgb, var(--jp-border-color1) 80%, transparent);
+}
+
+.jgis-badge[data-variant='outline']:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color1) 10%,
+    transparent
+  );
+}

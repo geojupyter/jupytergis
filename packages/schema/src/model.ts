@@ -283,6 +283,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   readonly flyToGeometrySignal = new Signal<this, any>(this);
   readonly highlightFeatureSignal = new Signal<this, any>(this);
+  readonly updateBboxSignal = new Signal<this, any>(this);
 
   getContent(): IJGISContent {
     return {

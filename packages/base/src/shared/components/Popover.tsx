@@ -3,41 +3,38 @@ import * as React from 'react';
 
 import { cn } from './utils';
 
-function Popover({
+const Popover: React.FC<React.ComponentProps<typeof PopoverPrimitive.Root>> = ({
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
+}) => {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />;
-}
+};
 
-function PopoverTrigger({
-  ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
+const PopoverTrigger: React.FC<
+  React.ComponentProps<typeof PopoverPrimitive.Trigger>
+> = ({ ...props }) => {
   return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
-}
+};
 
-function PopoverContent({
-  className,
-  align = 'center',
-  sideOffset = 4,
-  ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+const PopoverContent: React.FC<
+  React.ComponentProps<typeof PopoverPrimitive.Content>
+> = ({ className, align = 'center', sideOffset = 4, ...props }) => {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
         data-slot="popover-content"
         align={align}
         sideOffset={sideOffset}
-        className={cn('PopoverContent', className)}
+        className={cn('jgis-popover-content', className)}
         {...props}
       />
     </PopoverPrimitive.Portal>
   );
-}
+};
 
-function PopoverAnchor({
-  ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
+const PopoverAnchor: React.FC<
+  React.ComponentProps<typeof PopoverPrimitive.Anchor>
+> = ({ ...props }) => {
   return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />;
-}
+};
 
 export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger };

@@ -50,10 +50,10 @@ interface IIdentifyComponentProps {
   tracker: IJupyterGISTracker;
 }
 
-const IdentifyPanelComponent = ({
+const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   controlPanelModel,
   tracker,
-}: IIdentifyComponentProps) => {
+}) => {
   const [widgetId, setWidgetId] = useState('');
   const [features, setFeatures] = useState<IDict<any>>();
   const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({

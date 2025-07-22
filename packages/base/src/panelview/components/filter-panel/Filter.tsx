@@ -52,7 +52,7 @@ interface IFilterComponentProps {
   tracker: IJupyterGISTracker;
 }
 
-const FilterComponent = (props: IFilterComponentProps) => {
+const FilterComponent: React.FC<IFilterComponentProps> = props => {
   const featuresInLayerRef = useRef({});
   const [widgetId, setWidgetId] = useState('');
   const [logicalOp, setLogicalOp] = useState('all');

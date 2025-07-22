@@ -5,14 +5,17 @@ import {
   IJupyterGISModel,
   IJGISFormSchemaRegistry,
   LayerType,
+  processingList,
+  ProcessingType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { UUID } from '@lumino/coreutils';
 
-import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
-import { getGdal } from './gdal';
-import { getGeoJSONDataFromLayerSource } from './tools';
-import { JupyterGISTracker } from './types';
+import { ProcessingFormDialog } from '../dialogs/ProcessingFormDialog';
+import { getGdal } from '../gdal';
+import { processingFormToParam } from './processingFormToParam';
+import { getGeoJSONDataFromLayerSource } from '../tools';
+import { JupyterGISTracker } from '../types';
 
 /**
  * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
@@ -91,7 +94,7 @@ export type GdalFunctions =
 export async function processSelectedLayer(
   tracker: JupyterGISTracker,
   formSchemaRegistry: IJGISFormSchemaRegistry,
-  processingType: 'Buffer' | 'Dissolve' | 'Centroids' | 'BoundingBoxes',
+  processingType: ProcessingType,
   processingOptions: {
     sqlQueryFn: (layerName: string, param: any) => string;
     gdalFunction: GdalFunctions;
@@ -143,24 +146,12 @@ export async function processSelectedLayer(
     return;
   }
 
-  let processParam: any;
-  switch (processingType) {
-    case 'Buffer':
-      processParam = formValues.bufferDistance;
-      break;
-    case 'Dissolve':
-      processParam = formValues.dissolveField;
-      break;
-    case 'Centroids':
-      processParam = null;
-      break;
-    case 'BoundingBoxes':
-      processParam = null;
-      break;
-    default:
-      console.error(`Unsupported processing type: ${processingType}`);
-      return;
+  if (!processingList.includes(processingType)) {
+    console.error(`Unsupported processing type: ${processingType}`);
+    return;
   }
+
+  const processParam: any = processingFormToParam(formValues, processingType);
 
   const embedOutputLayer = formValues.embedOutputLayer;
 
@@ -198,7 +189,7 @@ export async function executeSQLProcessing(
   gdalFunction: GdalFunctions,
   options: string[],
   layerNamePrefix: string,
-  processingType: 'Buffer' | 'Dissolve' | 'Centroids' | 'BoundingBoxes',
+  processingType: ProcessingType,
   embedOutputLayer: boolean,
   tracker: JupyterGISTracker,
   app: JupyterFrontEnd,
@@ -221,6 +212,8 @@ export async function executeSQLProcessing(
   const processedBytes = await Gdal.getFileBytes(outputFilePath);
   const processedGeoJSONString = new TextDecoder().decode(processedBytes);
   Gdal.close(dataset);
+
+  const layerName = `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`;
 
   if (!embedOutputLayer) {
     // Save the output as a file
@@ -251,7 +244,7 @@ export async function executeSQLProcessing(
       type: 'VectorLayer',
       parameters: { source: newSourceId },
       visible: true,
-      name: outputFileName,
+      name: layerName,
     };
 
     model.sharedModel.addSource(newSourceId, sourceModel);
@@ -263,7 +256,7 @@ export async function executeSQLProcessing(
 
     const sourceModel: IJGISSource = {
       type: 'GeoJSONSource',
-      name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`,
+      name: `${layerName} Source`,
       parameters: { data: processedGeoJSON },
     };
 
@@ -271,7 +264,7 @@ export async function executeSQLProcessing(
       type: 'VectorLayer',
       parameters: { source: newSourceId },
       visible: true,
-      name: `${layerNamePrefix} ${processingType.charAt(0).toUpperCase() + processingType.slice(1)}`,
+      name: layerName,
     };
 
     model.sharedModel.addSource(newSourceId, sourceModel);

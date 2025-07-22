@@ -1,10 +1,12 @@
 import { Slot } from '@radix-ui/react-slot';
 import * as React from 'react';
 
+import { cn } from './utils';
+
 interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
   variant?: 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'icon';
-  size?: 'sm' | 'lg' | 'icon';
+  size?: 'sm' | 'lg' | 'icon' | 'icon-sm';
 }
 
 const Button = React.forwardRef<HTMLButtonElement, IButtonProps>(
@@ -14,7 +16,7 @@ const Button = React.forwardRef<HTMLButtonElement, IButtonProps>(
       <Comp
         data-size={size}
         data-variant={variant}
-        className={`Button ${className ? className : ''}`}
+        className={cn('jgis-button', className)}
         ref={ref}
         {...props}
       />

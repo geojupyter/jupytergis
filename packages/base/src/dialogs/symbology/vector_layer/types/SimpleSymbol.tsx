@@ -4,14 +4,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ISymbologyTabbedDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import { IParsedStyle, parseColor } from '@/src/tools';
 
-const SimpleSymbol = ({
+const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
   layerId,
   symbologyTab,
-}: ISymbologyTabbedDialogProps) => {
+}) => {
   const styleRef = useRef<IParsedStyle>();
 
   const [style, setStyle] = useState<IParsedStyle>({
@@ -210,6 +210,7 @@ const SimpleSymbol = ({
 
   return (
     <div className="jp-gis-layer-symbology-container">
+      <p>Color all features the same way.</p>
       {symbologyTab === 'color' ? renderColorTab() : renderRadiusTab()}
     </div>
   );

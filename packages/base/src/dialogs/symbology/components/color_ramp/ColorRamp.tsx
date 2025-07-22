@@ -1,9 +1,8 @@
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
+import { LoadingIcon } from '@/src/shared/components/loading';
 import CanvasSelectComponent from './CanvasSelectComponent';
 import ModeSelectRow from './ModeSelectRow';
 
@@ -26,13 +25,13 @@ export type ColorRampOptions = {
   selectedMode: string;
 };
 
-const ColorRamp = ({
+const ColorRamp: React.FC<IColorRampProps> = ({
   layerParams,
   modeOptions,
   classifyFunc,
   showModeRow,
   showRampSelector,
-}: IColorRampProps) => {
+}) => {
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
@@ -76,7 +75,7 @@ const ColorRamp = ({
         />
       )}
       {isLoading ? (
-        <FontAwesomeIcon icon={faSpinner} className="jp-gis-loading-spinner" />
+        <LoadingIcon />
       ) : (
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"

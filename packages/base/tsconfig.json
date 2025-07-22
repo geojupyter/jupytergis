@@ -15,6 +15,7 @@
     "src/**/*",
     "src/schema/*.json",
     "src/_interface/*.json",
-    "src/*.json"
+    "src/*.json",
+    "src/types/*"
   ]
 }

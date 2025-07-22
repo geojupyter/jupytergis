@@ -17,9 +17,17 @@ export interface ISymbologyDialogProps {
   layerId?: string;
 }
 
+export interface ISymbologyDialogWithAttributesProps
+  extends ISymbologyDialogProps {
+  selectableAttributesAndValues: Record<string, Set<any>>;
+}
+
 export interface ISymbologyTabbedDialogProps extends ISymbologyDialogProps {
   symbologyTab: SymbologyTab;
 }
+
+export type ISymbologyTabbedDialogWithAttributesProps =
+  ISymbologyDialogWithAttributesProps & ISymbologyTabbedDialogProps;
 
 export interface ISymbologyWidgetOptions {
   model: IJupyterGISModel;
@@ -31,12 +39,12 @@ export interface IStopRow {
   output: number | number[];
 }
 
-const SymbologyDialog = ({
+const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   model,
   state,
   okSignalPromise,
   cancel,
-}: ISymbologyDialogProps) => {
+}) => {
   const [selectedLayer, setSelectedLayer] = useState<string | null>(null);
   const [componentToRender, setComponentToRender] = useState<any>(null);
 

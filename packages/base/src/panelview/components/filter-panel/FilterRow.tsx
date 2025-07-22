@@ -3,19 +3,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
-const FilterRow = ({
-  index,
-  features,
-  filterRows,
-  setFilterRows,
-  deleteRow,
-}: {
+const FilterRow: React.FC<{
   index: number;
   features: Record<string, Set<string | number>>;
   filterRows: any;
   setFilterRows: any;
   deleteRow: () => void;
-}) => {
+}> = ({ index, features, filterRows, setFilterRows, deleteRow }) => {
   const operators = ['==', '!=', '>', '<', '>=', '<='];
 
   const [sortedFeatures, setSortedFeatures] = useState<{ [key: string]: any }>(

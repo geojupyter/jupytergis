@@ -3,3 +3,7 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
+
+jp-toolbar.jpcad-toolbar-widget .jp-MenuBar-anonymousIcon {
+  position: unset !important;
+}

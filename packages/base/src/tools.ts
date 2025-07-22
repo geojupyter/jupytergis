@@ -12,11 +12,11 @@ import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
 import * as d3Color from 'd3-color';
+import { compressors } from 'hyparquet-compressors';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
-import { getGdal } from '@/src/gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -387,31 +387,46 @@ export const getFromIndexedDB = async (key: string) => {
   });
 };
 
-const fetchWithProxies = async <T>(
+export const isJupyterLite = () => {
+  return document.querySelectorAll('[data-jupyter-lite-root]')[0] !== undefined;
+};
+
+type ProxyStrategy = 'direct' | 'internal' | 'external';
+
+export const fetchWithProxies = async <T>(
   url: string,
   model: IJupyterGISModel,
   parseResponse: (response: Response) => Promise<T>,
+  options?: RequestInit,
+  strategy?: ProxyStrategy,
 ): Promise<T | null> => {
   let settings: any = null;
 
-  try {
-    settings = await model.getSettings();
-  } catch (e) {
-    console.warn('Failed to get settings from model. Falling back.', e);
+  if (model) {
+    try {
+      settings = model.getSettings();
+    } catch (e) {
+      console.warn('Failed to get settings from model. Falling back.', e);
+    }
   }
 
   const proxyUrl =
     settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
 
-  const proxyUrls = [
-    url, // Direct fetch
-    `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`, // Internal proxy
-    `${proxyUrl}/?url=${encodeURIComponent(url)}`, // External proxy
-  ];
+  const strategies: Record<ProxyStrategy, (url: string) => string> = {
+    direct: url => url,
+    internal: url => `/jupytergis_core/proxy?url=${encodeURIComponent(url)}`,
+    external: url => `${proxyUrl}/?url=${encodeURIComponent(url)}`,
+  };
 
-  for (const proxyUrl of proxyUrls) {
+  const defaultOrder: ProxyStrategy[] = ['direct', 'internal', 'external'];
+
+  const strategyOrder: ProxyStrategy[] = strategy ? [strategy] : defaultOrder;
+
+  for (const strat of strategyOrder) {
+    const proxyUrl = strategies[strat](url);
     try {
-      const response = await fetch(proxyUrl);
+      const response = await fetch(proxyUrl, options);
       if (!response.ok) {
         console.warn(
           `Failed to fetch from ${proxyUrl}: ${response.statusText}`,
@@ -470,21 +485,6 @@ export const loadGeoTiff = async (
   } else {
     fileBlob = await base64ToBlob(file.content, mimeType);
   }
-
-  const geotiff = new File([fileBlob], 'loaded.tif');
-  const Gdal = await getGdal();
-  const result = await Gdal.open(geotiff);
-  const tifDataset = result.datasets[0];
-  const metadata = await Gdal.gdalinfo(tifDataset, ['-stats']);
-  Gdal.close(tifDataset);
-
-  await saveToIndexedDB(url, fileBlob, metadata);
-
-  return {
-    file: fileBlob,
-    metadata,
-    sourceUrl: url,
-  };
 };
 
 /**
@@ -568,6 +568,26 @@ export const loadFile = async (fileInfo: {
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
+      case 'GeoParquetSource': {
+        const cached = await getFromIndexedDB(filepath);
+        if (cached) {
+          return cached.file;
+        }
+
+        const { asyncBufferFromUrl, toGeoJson } = await import('geoparquet');
+
+        const file = await asyncBufferFromUrl({ url: filepath });
+        const geojson = await toGeoJson({ file });
+
+        if (geojson) {
+          await saveToIndexedDB(filepath, geojson);
+          return geojson;
+        }
+
+        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        throw new Error(`Failed to fetch ${filepath}`);
+      }
+
       default: {
         throw new Error(`Unsupported URL handling for source type: ${type}`);
       }
@@ -631,6 +651,18 @@ export const loadFile = async (fileInfo: {
           return tiff;
         } else {
           throw new Error('Invalid file format for tiff content.');
+        }
+      }
+
+      case 'GeoParquetSource': {
+        if (typeof file.content === 'string') {
+          const { toGeoJson } = await import('geoparquet');
+
+          const arrayBuffer = await stringToArrayBuffer(file.content as string);
+
+          return await toGeoJson({ file: arrayBuffer, compressors });
+        } else {
+          throw new Error('Invalid file format for GeoParquet content.');
         }
       }
 
@@ -949,3 +981,16 @@ export async function getGeoJSONDataFromLayerSource(
   console.error("Source is missing both 'path' and 'data' parameters.");
   return null;
 }
+
+/**
+ * `Object.entries`, but strongly-typed.
+ *
+ * `Object.entries` return value is always typed as `[string, any]` for type
+ * safety reasons, which means we need to use type assertions to have typed
+ * code when using it.
+ */
+export const objectEntries = Object.entries as <
+  T extends Record<PropertyKey, unknown>,
+>(
+  obj: T,
+) => Array<{ [K in keyof T]: [K, T[K]] }[keyof T]>;

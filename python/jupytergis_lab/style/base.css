@@ -223,6 +223,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   width: 100%;
   box-sizing: border-box;
   flex: 1;
+  position: relative;
 }
 
 .jGIS-Popup-Wrapper {
@@ -586,10 +587,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   display: none;
 }
 
-.jGIS-property-panel .rjsf .errors {
-  color: var(--jp-warn-color0);
-}
-
 .jGIS-property-panel .rjsf .errors ul,
 .jGIS-property-panel .rjsf .validationErrors ul,
 .jGIS-property-panel .rjsf .validationErrors li,
@@ -832,4 +829,14 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   color: var(--jp-brand-color1);
   border-bottom: 2px solid var(--jp-brand-color1);
   font-weight: 500;
+}
+
+.jp-toolbar-users-item > .lm-MenuBar-itemIcon {
+  cursor: pointer !important;
+  border: 2px solid transparent;
+  border-radius: 50%;
+}
+
+.jp-toolbar-users-item > .lm-MenuBar-itemIcon.selected {
+  border-color: var(--jp-brand-color1);
 }

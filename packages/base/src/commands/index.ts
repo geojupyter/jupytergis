@@ -20,21 +20,18 @@ import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
-import { CommandIDs, icons } from './constants';
-import { ProcessingFormDialog } from './dialogs/ProcessingFormDialog';
-import { LayerBrowserWidget } from './dialogs/layerBrowserDialog';
-import { LayerCreationFormDialog } from './dialogs/layerCreationFormDialog';
-import { SymbologyWidget } from './dialogs/symbology/symbologyDialog';
-import { targetWithCenterIcon } from './icons';
-import keybindings from './keybindings.json';
-import {
-  getSingleSelectedLayer,
-  selectedLayerIsOfType,
-  processSelectedLayer,
-} from './processing';
-import { getGeoJSONDataFromLayerSource, downloadFile } from './tools';
-import { JupyterGISTracker } from './types';
-import { JupyterGISDocumentWidget } from './widget';
+import { CommandIDs, icons } from '../constants';
+import { ProcessingFormDialog } from '../dialogs/ProcessingFormDialog';
+import { LayerBrowserWidget } from '../dialogs/layerBrowserDialog';
+import { LayerCreationFormDialog } from '../dialogs/layerCreationFormDialog';
+import { SymbologyWidget } from '../dialogs/symbology/symbologyDialog';
+import { targetWithCenterIcon } from '../icons';
+import keybindings from '../keybindings.json';
+import { getSingleSelectedLayer } from '../processing/index';
+import { addProcessingCommands } from '../processing/processingCommands';
+import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
+import { JupyterGISTracker } from '../types';
+import { JupyterGISDocumentWidget } from '../widget';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -323,120 +320,25 @@ export function addCommands(
     ...icons.get(CommandIDs.newVectorTileEntry),
   });
 
-  commands.addCommand(CommandIDs.buffer, {
-    label: trans.__('Buffer'),
-    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
-    execute: async () => {
-      await processSelectedLayer(
-        tracker,
-        formSchemaRegistry,
-        'Buffer',
-        {
-          sqlQueryFn: (layerName, bufferDistance) => `
-          SELECT ST_Union(ST_Buffer(geometry, ${bufferDistance})) AS geometry, *
-          FROM "${layerName}"
-        `,
-          gdalFunction: 'ogr2ogr',
-          options: (sqlQuery: string) => [
-            '-f',
-            'GeoJSON',
-            '-dialect',
-            'SQLITE',
-            '-sql',
-            sqlQuery,
-            'output.geojson',
-          ],
-        },
-        app,
-      );
+  commands.addCommand(CommandIDs.newGeoParquetEntry, {
+    label: trans.__('New GeoParquet Layer'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
     },
-  });
-
-  commands.addCommand(CommandIDs.dissolve, {
-    label: trans.__('Dissolve'),
-    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
-    execute: async () => {
-      await processSelectedLayer(
-        tracker,
-        formSchemaRegistry,
-        'Dissolve',
-        {
-          sqlQueryFn: (layerName, dissolveField) => `
-          SELECT ST_Union(geometry) AS geometry, ${dissolveField}
-          FROM "${layerName}"
-          GROUP BY ${dissolveField}
-        `,
-          gdalFunction: 'ogr2ogr',
-          options: (sqlQuery: string) => [
-            '-f',
-            'GeoJSON',
-            '-dialect',
-            'SQLITE',
-            '-sql',
-            sqlQuery,
-            'output.geojson',
-          ],
-        },
-        app,
-      );
-    },
-  });
-  commands.addCommand(CommandIDs.centroids, {
-    label: trans.__('Centroids'),
-    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
-    execute: async () => {
-      await processSelectedLayer(
-        tracker,
-        formSchemaRegistry,
-        'Centroids',
-        {
-          sqlQueryFn: (layerName, _) => `
-	  SELECT ST_Centroid(geometry) AS geometry, *
-	  FROM "${layerName}"
-        `,
-          gdalFunction: 'ogr2ogr',
-          options: (sqlQuery: string) => [
-            '-f',
-            'GeoJSON',
-            '-dialect',
-            'SQLITE',
-            '-sql',
-            sqlQuery,
-            'output.geojson',
-          ],
-        },
-        app,
-      );
-    },
-  });
-
-  commands.addCommand(CommandIDs.boundingBoxes, {
-    label: trans.__('Bounding Boxes'),
-    isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
-    execute: async () => {
-      await processSelectedLayer(
-        tracker,
-        formSchemaRegistry,
-        'BoundingBoxes',
-        {
-          sqlQueryFn: (layerName, _) => `
-	  SELECT ST_Envelope(geometry) AS geometry, *
-	  FROM "${layerName}"
-        `,
-          gdalFunction: 'ogr2ogr',
-          options: (sqlQuery: string) => [
-            '-f',
-            'GeoJSON',
-            '-dialect',
-            'SQLITE',
-            '-sql',
-            sqlQuery,
-            'output.geojson',
-          ],
-        },
-        app,
-      );
-    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoParquet Layer',
+      createLayer: true,
+      createSource: true,
+      sourceData: { name: 'Custom GeoParquet Source' },
+      layerData: { name: 'Custom GeoParquet Layer' },
+      sourceType: 'GeoParquetSource',
+      layerType: 'VectorLayer',
+    }),
+    ...icons.get(CommandIDs.newGeoParquetEntry),
   });
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
@@ -458,6 +360,9 @@ export function addCommands(
     }),
     ...icons.get(CommandIDs.newGeoJSONEntry),
   });
+
+  //Add processing commands
+  addProcessingCommands(app, commands, tracker, trans, formSchemaRegistry);
 
   commands.addCommand(CommandIDs.newHillshadeEntry, {
     label: trans.__('New Hillshade layer'),

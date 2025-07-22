@@ -18,17 +18,17 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
-import { Spinner } from '@/src/mainview/spinner';
+import { LoadingOverlay } from '@/src/shared/components/loading';
 import { GlobalStateDbManager } from '@/src/store';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
-const SingleBandPseudoColor = ({
+const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
   cancel,
   layerId,
-}: ISymbologyDialogProps) => {
+}) => {
   if (!layerId) {
     return;
   }
@@ -367,19 +367,16 @@ const SingleBandPseudoColor = ({
   return (
     <div className="jp-gis-layer-symbology-container">
       <div className="jp-gis-band-container">
-        {loading ? (
-          <Spinner loading={loading} />
-        ) : (
-          <BandRow
-            label="Band"
-            // Band numbers are 1 indexed
-            index={selectedBand - 1}
-            bandRow={bandRows[selectedBand - 1]}
-            bandRows={bandRows}
-            setSelectedBand={setSelectedBand}
-            setBandRows={setBandRows}
-          />
-        )}
+        <LoadingOverlay loading={loading} />
+        <BandRow
+          label="Band"
+          // Band numbers are 1 indexed
+          index={selectedBand - 1}
+          bandRow={bandRows[selectedBand - 1]}
+          bandRows={bandRows}
+          setSelectedBand={setSelectedBand}
+          setBandRows={setBandRows}
+        />
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor="function-select">Interpolation:</label>
