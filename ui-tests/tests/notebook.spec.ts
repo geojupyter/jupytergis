@@ -2,7 +2,7 @@ import { expect, IJupyterLabPageFixture, test } from '@jupyterlab/galata';
 import * as path from 'path';
 const klaw = require('klaw-sync');
 
-const FILENAME = 'eq.json';
+const FILENAME = 'eq.geojson';
 
 const testCellOutputs = async (
   page: IJupyterLabPageFixture,
