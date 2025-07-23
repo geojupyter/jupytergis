@@ -1,0 +1,26 @@
+{
+    "title": "IVectorHeatmapColor",
+    "description": "The state of the layer's heatmap color symbology options",
+    "type": "object",
+    "required": ["selectedAttribute", "colorRamp"],
+    "additionalProperties": false,
+    "properties": {
+        "type": {
+            "const": "Heatmap"
+        },
+        "colorRamp": {
+            "type": "string",
+            "default": "cool"
+        },
+        "radius": {
+            "type": "number",
+            "description": "The radius of influence for each point in the heatmap",
+            "default": 20
+        },
+        "blur": {
+            "type": "number",
+            "description": "The blur radius for the heatmap effect",
+            "default": 15
+        }
+    }
+}

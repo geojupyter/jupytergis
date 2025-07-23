@@ -1,0 +1,27 @@
+{
+    "type": "object",
+    "description": "The state of the GeoTiff layer's multiband coloring symbology options",
+    "required": [],
+    "additionalProperties": false,
+    "properties": {
+        "type": {
+            "const": "Multiband"
+        },
+        "red": {
+            "type": "string",
+            "description": "The name of the band used for the red channel."
+        },
+        "green": {
+            "type": "string",
+            "description": "The name of the band used for the green channel."
+        },
+        "blue": {
+            "type": "string",
+            "description": "The name of the band used for the blue channel."
+        },
+        "alpha": {
+            "type": "string",
+            "description": "The name of the band used for the alpha channel."
+        }
+    }
+}

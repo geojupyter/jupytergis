@@ -1,0 +1,36 @@
+{
+    "title": "IVectorCategorizedColor",
+    "description": "The state of the layer's categorized color symbology options",
+    "type": "object",
+    "required": ["selectedAttribute"],
+    "additionalProperties": false,
+    "properties": {
+        "type": {
+            "const": "Categorized"
+        },
+        "selectedAttribute": {
+            "type": "string",
+            "description": "The selected attribute for categorizing the color"
+        },
+        "colorRamp": {
+            "type": "string",
+            "default": "cool"
+        },
+        "stopsValues": {
+            "type": "object",
+            "description": "The mapping of category values to color values",
+            "patternProperties": {
+                ".*": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$",
+                    "description": "The hex color value for the category, where the key is the category value"
+                }
+            }
+        },
+        "strokeColor": {
+            "type": "string",
+            "description": "The color of the stroke for the symbol",
+            "default": "#ffffff"
+        }
+    }
+}

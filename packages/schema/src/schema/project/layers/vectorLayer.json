@@ -9,55 +9,26 @@
       "type": "string",
       "description": "The id of the source"
     },
-    "color": {
-      "type": "object",
-      "description": "The color of the the object"
-    },
     "opacity": {
       "type": "number",
-      "description": "The opacity of the the object",
+      "description": "The opacity of the layer",
       "default": 1,
       "multipleOf": 0.1,
       "minimum": 0,
       "maximum": 1
     },
-    "symbologyState": {
+    "symbology": {
       "type": "object",
-      "description": "The state of the symbology panel options",
-      "required": ["renderType"],
+      "description": "The user inputs for symbology options",
+      "additionalProperties": false,
       "properties": {
-        "renderType": {
-          "type": "string",
-          "enum": ["Single Symbol", "Graduated", "Categorized"]
+        "color": {
+          "$ref": "project/layers/symbology/vectorGraduatedColor.json"
         },
-        "value": {
-          "type": "string"
-        },
-        "method": {
-          "type": "string",
-          "enum": ["color", "radius"]
-        },
-        "colorRamp": {
-          "type": "string",
-          "default": "cool"
-        },
-        "nClasses": {
-          "type": "string",
-          "default": "9"
-        },
-        "mode": {
-          "type": "string",
-          "default": "equal interval",
-          "enum": [
-            "quantile",
-            "equal interval",
-            "jenks",
-            "pretty",
-            "logarithmic"
-          ]
+        "size": {
+          "$ref": "project/layers/symbology/vectorGraduatedSize.json"
         }
-      },
-      "additionalProperties": false
+      }
     }
   }
 }

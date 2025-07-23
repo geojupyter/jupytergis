@@ -1,0 +1,16 @@
+{
+    "title": "IVectorCanonicalColor",
+    "description": "The state of the layer's canonical color symbology options",
+    "type": "object",
+    "required": ["selectedAttribute"],
+    "additionalProperties": false,
+    "properties": {
+        "type": {
+            "const": "Canonical"
+        },
+        "selectedAttribute": {
+            "type": "string",
+            "description": "The selected attribute for canonical color mapping"
+        }
+    }
+}

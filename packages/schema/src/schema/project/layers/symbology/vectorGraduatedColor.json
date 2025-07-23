@@ -1,0 +1,53 @@
+{
+    "title": "IVectorGraduatedColor",
+    "description": "The state of the layer's graduated color symbology options",
+    "type": "object",
+    "required": ["selectedAttribute", "colorRamp"],
+    "additionalProperties": false,
+    "properties": {
+        "type": {
+            "const": "Graduated"
+        },
+        "selectedAttribute": {
+            "type": "string",
+            "description": "The selected attribute for varying the color"
+        },
+        "colorRamp": {
+            "type": "string",
+            "default": "cool"
+        },
+        "nStops": {
+            "type": "number",
+            "description": "The number of segments to use when mapping colors to data values",
+            "default": 9
+        },
+        "stopsDistributionMode": {
+            "type": "string",
+            "description": "The method of distributing segments when mapping colors to data values",
+            "default": "equal interval",
+            "enum": [
+                "quantile",
+                "equal interval",
+                "jenks",
+                "pretty",
+                "logarithmic"
+            ]
+        },
+        "stopsValues": {
+            "type": "object",
+            "description": "The mapping of input data values to color values",
+            "patternProperties": {
+                "^[0-9]+$": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$",
+                    "description": "The hex color value at the stop index, where the key is the index of the stop"
+                }
+            }
+        },
+        "strokeColor": {
+            "type": "string",
+            "description": "The color of the stroke for the symbol",
+            "default": "#ffffff"
+        }
+    }
+}

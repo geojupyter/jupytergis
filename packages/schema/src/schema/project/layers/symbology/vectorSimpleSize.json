@@ -1,0 +1,21 @@
+{
+    "title": "IVectorSimpleSize",
+    "description": "The state of the layer's simple (single symbol) size symbology options",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "type": {
+            "const": "Simple symbol"
+        },
+        "strokeThickness": {
+            "type": "number",
+            "description": "The thickness of the stroke in pixels",
+            "default": 1.25
+        },
+        "symbolRadius": {
+            "type": "number",
+            "description": "The radius of the symbols in pixels",
+            "default": 5
+        }
+    }
+}
