@@ -212,7 +212,7 @@ def qgis_layer_to_jgis(
                 case_conditions.append([r, g, b, a / 255])
 
             layer_parameters["symbologyState"] = {
-                "colorRamp": "cool",
+                "colorRamp": "viridis",
                 "mode": "",
                 "nClasses": "",
                 "renderType": "Categorized",

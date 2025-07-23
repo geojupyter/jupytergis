@@ -39,7 +39,7 @@
         },
         "colorRamp": {
           "type": "string",
-          "default": "cool"
+          "default": "viridis"
         },
         "nClasses": {
           "type": "string",

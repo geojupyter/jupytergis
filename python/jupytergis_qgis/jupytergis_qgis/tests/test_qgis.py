@@ -302,7 +302,7 @@ def test_qgis_saver():
                     "opacity": 1.0,
                     "source": source_ids[6],
                     "symbologyState": {
-                        "colorRamp": "cool",
+                        "colorRamp": "viridis",
                         "mode": "",
                         "nClasses": "",
                         "renderType": "Categorized",
