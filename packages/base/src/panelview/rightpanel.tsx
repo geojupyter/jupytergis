@@ -71,7 +71,7 @@ export const RightPanelComponent = (options: IRightComponentProps) => {
         <TabsContent value="annotations">
           <AnnotationsPanel
             annotationModel={options.annotationModel}
-            rightPanelModel={options.model}
+            jgisModel={options.model}
           ></AnnotationsPanel>
         </TabsContent>
         <TabsContent value="identifyPanel" className="jgis-panel-tab-content">

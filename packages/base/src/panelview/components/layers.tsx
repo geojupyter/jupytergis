@@ -56,6 +56,65 @@ export function LayersBodyComponent(props: IBodyProps): JSX.Element {
     props.commands.notifyCommandChanged(CommandIDs.temporalController);
   };
 
+  const _onDragOver = (e: React.DragEvent) => {
+    console.log('_onDragOver');
+    e.stopPropagation();
+    e.preventDefault();
+    Private.dragInfo.dragOverElement = null;
+    Private.dragInfo.dragOverPosition = null;
+  };
+
+  const _onDrop = (e: React.DragEvent) => {
+    console.log('_onDrop');
+    Private.dragIndicator.style.display = 'none';
+
+    if (model === undefined) {
+      return;
+    }
+
+    const { draggedElement, dragOverElement, dragOverPosition } =
+      Private.dragInfo;
+
+    if (dragOverElement === 'error') {
+      return;
+    }
+
+    if (!draggedElement) {
+      return;
+    }
+    const draggedId = draggedElement.dataset.id;
+    if (!draggedId) {
+      return;
+    }
+
+    // Element has been dropped in the empty zone below the tree.
+    if (dragOverElement === null) {
+      model?.moveItemsToGroup([draggedId], '', 0);
+      return;
+    }
+
+    const dragOverId = dragOverElement.dataset.id;
+    if (!dragOverId) {
+      return;
+    }
+
+    // Handle the special case where we want to drop the element on top of the first
+    // element of a group.
+    if (
+      dragOverElement.classList.contains(LAYER_GROUP_HEADER_CLASS) &&
+      dragOverPosition === 'below'
+    ) {
+      model?.moveItemsToGroup([draggedId], dragOverId);
+      return;
+    }
+
+    model?.moveItemRelatedTo(
+      draggedId,
+      dragOverId,
+      dragOverPosition === 'above',
+    );
+  };
+
   const onSelect = ({
     type,
     item,
@@ -164,7 +223,7 @@ export function LayersBodyComponent(props: IBodyProps): JSX.Element {
   }, [model]);
 
   return (
-    <div id="jp-gis-layer-tree">
+    <div id="jp-gis-layer-tree" onDrop={_onDrop} onDragOver={_onDragOver}>
       {layerTree
         .slice()
         .reverse()

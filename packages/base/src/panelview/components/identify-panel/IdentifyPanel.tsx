@@ -87,8 +87,6 @@ export const IdentifyPanelComponent = (options: IIdentifyComponentProps) => {
     }));
   };
 
-  console.log(features);
-
   return (
     <div
       className="jgis-identify-wrapper"

@@ -97,17 +97,16 @@ export namespace JupyterGISOutputWidget {
 }
 
 export class JupyterGISPanel extends SplitPanel {
-  constructor(options: JupyterGISPanel.IOptions) {
+  constructor({
+    model,
+    consoleTracker,
+    state,
+    commandRegistry,
+    formSchemaRegistry,
+    annotationModel,
+    ...consoleOption
+  }: JupyterGISPanel.IOptions) {
     super({ orientation: 'vertical', spacing: 0 });
-    const {
-      model,
-      consoleTracker,
-      state,
-      commandRegistry,
-      formSchemaRegistry,
-      annotationModel,
-      ...consoleOption
-    } = options;
 
     this._state = state;
     this._initModel({ model, commandRegistry });

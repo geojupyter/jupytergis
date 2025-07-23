@@ -15,7 +15,7 @@ interface IFilterComponentProps {
   model: IJupyterGISModel;
 }
 
-const FilterComponent: React.FC<IFilterComponentProps> = props => {
+const FilterComponent: React.FC<IFilterComponentProps> = ({ model }) => {
   const featuresInLayerRef = useRef({});
   const [logicalOp, setLogicalOp] = useState('all');
   const [selectedLayer, setSelectedLayer] = useState('');
@@ -24,7 +24,6 @@ const FilterComponent: React.FC<IFilterComponentProps> = props => {
   const [featuresInLayer, setFeaturesInLayer] = useState<
     Record<string, Set<string | number>>
   >({});
-  const model = props.model;
 
   useEffect(() => {
     // Keep layer selected when widget changes

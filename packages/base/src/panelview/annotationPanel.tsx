@@ -5,7 +5,7 @@ import Annotation from '@/src/annotations/components/Annotation';
 
 interface IAnnotationPanelProps {
   annotationModel: IAnnotationModel;
-  rightPanelModel: IJupyterGISModel;
+  jgisModel: IJupyterGISModel;
 }
 
 export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
@@ -17,7 +17,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
     };
 
     this._annotationModel = props.annotationModel;
-    this._rightPanelModel = props.rightPanelModel;
+    this._jgisModel = props.jgisModel;
 
     this._annotationModel?.model?.sharedMetadataChanged.connect(updateCallback);
     this.forceUpdate();
@@ -34,7 +34,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
       return (
         <div>
           <Annotation
-            rightPanelModel={this._rightPanelModel}
+            rightPanelModel={this._jgisModel}
             annotationModel={this._annotationModel}
             itemId={id}
           />
@@ -47,5 +47,5 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
   }
 
   private _annotationModel: IAnnotationModel;
-  private _rightPanelModel: IJupyterGISModel;
+  private _jgisModel: IJupyterGISModel;
 }

@@ -79,7 +79,7 @@ export const LeftPanelComponent = (options: ILeftComponentProps) => {
           ></LayersBodyComponent>
         </TabsContent>
         <TabsContent value="stac">
-          <StacBrowser controlPanelModel={options.model}></StacBrowser>
+          <StacBrowser model={options.model}></StacBrowser>
         </TabsContent>
         <TabsContent value="filters" className="jgis-panel-tab-content">
           <FilterComponent model={options.model}></FilterComponent>,

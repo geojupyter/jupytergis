@@ -4,12 +4,10 @@ import * as React from 'react';
 import StacPanelView from '@/src/stacBrowser/components/StacPanelView';
 
 interface IStacBrowserDialogProps {
-  controlPanelModel: IJupyterGISModel;
+  model: IJupyterGISModel;
 }
 
-const StacBrowser = ({ controlPanelModel: model }: IStacBrowserDialogProps) => {
-  const jgisModel = model;
-
-  return <StacPanelView model={jgisModel} />;
+const StacBrowser: React.FC<IStacBrowserDialogProps> = ({ model }) => {
+  return <StacPanelView model={model} />;
 };
 export default StacBrowser;
