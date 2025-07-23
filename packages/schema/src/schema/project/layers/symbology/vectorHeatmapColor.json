@@ -5,6 +5,9 @@
     "required": ["selectedAttribute", "colorRamp"],
     "additionalProperties": false,
     "properties": {
+        "type": {
+            "const": "Heatmap"
+        },
         "colorRamp": {
             "type": "string",
             "default": "cool"

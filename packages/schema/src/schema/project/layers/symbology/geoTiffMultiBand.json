@@ -4,6 +4,9 @@
     "required": [],
     "additionalProperties": false,
     "properties": {
+        "type": {
+            "const": "Multiband"
+        },
         "red": {
             "type": "string",
             "description": "The name of the band used for the red channel."

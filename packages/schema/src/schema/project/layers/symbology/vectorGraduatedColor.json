@@ -5,6 +5,9 @@
     "required": ["selectedAttribute", "colorRamp"],
     "additionalProperties": false,
     "properties": {
+        "type": {
+            "const": "Graduated"
+        },
         "selectedAttribute": {
             "type": "string",
             "description": "The selected attribute for varying the color"

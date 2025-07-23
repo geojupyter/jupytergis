@@ -5,6 +5,9 @@
     "required": ["selectedAttribute"],
     "additionalProperties": false,
     "properties": {
+        "type": {
+            "const": "Categorized"
+        },
         "selectedAttribute": {
             "type": "string",
             "description": "The selected attribute for categorizing the size"

@@ -4,6 +4,9 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
+        "type": {
+            "const": "Simple symbol"
+        },
         "strokeThickness": {
             "type": "number",
             "description": "The thickness of the stroke in pixels",

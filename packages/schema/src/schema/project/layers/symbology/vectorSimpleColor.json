@@ -4,6 +4,9 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
+        "type": {
+            "const": "Simple symbol"
+        },
         "fillColor": {
             "type": "string",
             "pattern": "^#[0-9a-fA-F]{6}$",
