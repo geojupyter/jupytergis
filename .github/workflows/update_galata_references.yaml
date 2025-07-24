@@ -99,7 +99,9 @@ jobs:
         working-directory: ui-tests
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-        run: jlpm install
+        run: |
+          jlpm install
+          yarn playwright install
 
       - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots@main
         with:
