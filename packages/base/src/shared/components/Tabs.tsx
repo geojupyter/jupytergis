@@ -3,6 +3,11 @@ import * as React from 'react';
 
 import { cn } from './utils';
 
+interface IPanelTabProps {
+  className: string;
+  curTab: string | undefined;
+  children: any;
+}
 const Tabs: React.FC<React.ComponentProps<typeof TabsPrimitive.Root>> = ({
   className,
   ...props
@@ -12,6 +17,24 @@ const Tabs: React.FC<React.ComponentProps<typeof TabsPrimitive.Root>> = ({
       data-slot="tabs"
       className={cn('TabsList', className)}
       {...props}
+    />
+  );
+};
+
+const PanelTabs: React.FC<IPanelTabProps> = ({
+  className,
+  curTab,
+  children,
+}) => {
+  return (
+    <TabsPrimitive.Root
+      data-slot="tabs"
+      className={cn('TabsList', className)}
+      value={curTab}
+      onValueChange={() => {
+        return;
+      }}
+      children={children}
     />
   );
 };
@@ -53,4 +76,4 @@ const TabsContent: React.FC<
   );
 };
 
-export { Tabs, TabsContent, TabsList, TabsTrigger };
+export { Tabs, TabsContent, TabsList, TabsTrigger, PanelTabs };
