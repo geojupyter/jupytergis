@@ -11,6 +11,7 @@ import bookOpenSvgStr from '../style/icons/book_open.svg';
 import clockSvgStr from '../style/icons/clock-solid.svg';
 import geoJsonSvgStr from '../style/icons/geojson.svg';
 import geolocationSvgStr from '../style/icons/geolocation.svg';
+import geoPackageSvgStr from '../style/icons/geopackage.svg';
 import infoSvgStr from '../style/icons/info-solid.svg';
 import logoSvgStr from '../style/icons/logo.svg';
 import logoMiniSvgStr from '../style/icons/logo_mini.svg';
@@ -108,4 +109,9 @@ export const targetWithoutCenterIcon = new LabIcon({
 export const targetWithCenterIcon = new LabIcon({
   name: 'jupytergis::targetWithoutCenter',
   svgstr: targetWithoutCenterSvgStr,
+});
+
+export const geoPackageIcon = new LabIcon({
+  name: 'jupytergis::geoPackage',
+  svgstr: geoPackageSvgStr,
 });

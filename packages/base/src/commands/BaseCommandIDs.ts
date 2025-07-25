@@ -25,6 +25,8 @@ export const newImageEntry = 'jupytergis:newImageEntry';
 export const newVideoEntry = 'jupytergis:newVideoEntry';
 export const newGeoTiffEntry = 'jupytergis:newGeoTiffEntry';
 export const newGeoParquetEntry = 'jupytergis:newGeoParquetEntry';
+export const newGeoPackageRasterEntry = 'jupytergis:newGeoPackageRasterEntry';
+export const newGeoPackageVectorEntry = 'jupytergis:newGeoPackageVectorEntry';
 
 // Layer and group actions
 export const renameLayer = 'jupytergis:renameLayer';

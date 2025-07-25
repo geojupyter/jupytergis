@@ -55,6 +55,8 @@
         "ImageSource",
         "ShapefileSource",
         "GeoTiffSource",
+        "GeoPackageVectorSource",
+        "GeoPackageRasterSource",
         "GeoParquetSource"
       ]
     },
