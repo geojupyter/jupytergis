@@ -65,7 +65,6 @@ const activate = async (
 
   try {
     settings = await settingRegistry.load(SETTINGS_ID);
-    console.log(`Loaded settings for ${SETTINGS_ID}`, settings);
   } catch (error) {
     console.warn(`Failed to load settings for ${SETTINGS_ID}`, error);
   }
