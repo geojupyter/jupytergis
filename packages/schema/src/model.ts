@@ -735,7 +735,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         layerTreeInfo.mainGroup,
       );
     } else {
-      console.log('Something went wrong when renaming layer');
+      console.error('Layer group rename failed -- could not get layer tree.');
     }
   }
 

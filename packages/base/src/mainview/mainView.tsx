@@ -2270,7 +2270,7 @@ export class MainView extends React.Component<IProps, IStates> {
     const olLayer = this.getLayer(layerId);
 
     if (!jgisLayer || !olLayer) {
-      console.log('Layer not found');
+      console.error('Failed to update layer -- layer not found');
       return;
     }
 
