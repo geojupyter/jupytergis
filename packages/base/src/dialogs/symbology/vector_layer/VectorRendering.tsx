@@ -101,29 +101,23 @@ const useLayerRenderType = (
     setSelectedRenderType(renderType);
   }, []);
 
-const VectorRendering: React.FC<ISymbologyDialogProps> = ({
-  model,
-  state,
-  okSignalPromise,
-  cancel,
-  layerId,
-}) => {
+const VectorRendering: React.FC<ISymbologyDialogProps> = props => {
   const [selectedRenderType, setSelectedRenderType] = useState<
     VectorRenderType | undefined
   >();
   const [symbologyTab, setSymbologyTab] = useState<SymbologyTab>('color');
 
-  if (!layerId) {
+  if (!props.layerId) {
     return;
   }
-  const layer = model.getLayer(layerId);
+  const layer = props.model.getLayer(props.layerId);
   if (!layer?.parameters) {
     return;
   }
 
   const { featureProperties, isLoading: featuresLoading } = useGetProperties({
-    layerId,
-    model: model,
+    layerId: props.layerId,
+    model: props.model,
   });
 
   useLayerRenderType(layer, setSelectedRenderType);
@@ -186,11 +180,11 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
       </div>
 
       <selectedRenderTypeProps.component
-        model={model}
-        state={state}
-        okSignalPromise={okSignalPromise}
-        cancel={cancel}
-        layerId={layerId}
+        model={props.model}
+        state={props.state}
+        okSignalPromise={props.okSignalPromise}
+        cancel={props.cancel}
+        layerId={props.layerId}
         {...(selectedRenderTypeProps.isTabbed ? { symbologyTab } : {})}
         {...(selectedRenderTypeProps.selectableAttributesAndValues
           ? {

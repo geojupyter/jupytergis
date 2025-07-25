@@ -53,10 +53,7 @@ const stepMap = {
   year: millisecondsInDay * daysInYear,
 };
 
-const TemporalSlider: React.FC<ITemporalSliderProps> = ({
-  model,
-  filterStates,
-}) => {
+const TemporalSlider: React.FC<ITemporalSliderProps> = props => {
   const [layerId, setLayerId] = useState('');
   const [selectedFeature, setSelectedFeature] = useState('');
   const [range, setRange] = useState({ start: 0, end: 1 }); // min/max of current range being displayed
@@ -71,16 +68,16 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
   const layerIdRef = useRef('');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { featureProperties } = useGetProperties({ layerId, model });
+  const { featureProperties } = useGetProperties({ layerId, model: props.model });
 
   useEffect(() => {
     // This is for when the selected layer changes
     const handleClientStateChanged = () => {
-      if (!model.localState?.selected?.value) {
+      if (!props.model.localState?.selected?.value) {
         return;
       }
 
-      const selectedLayerId = Object.keys(model.localState.selected.value)[0];
+      const selectedLayerId = Object.keys(props.model.localState.selected.value)[0];
 
       // reset
       if (selectedLayerId !== layerIdRef.current) {
@@ -112,19 +109,19 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
         Object.keys(newValue).length === 0 ||
         newValue.type !== oldValue.type
       ) {
-        model.toggleTemporalController();
+        props.model.toggleTemporalController();
       }
     };
 
     // Initial state
     handleClientStateChanged();
 
-    model.clientStateChanged.connect(handleClientStateChanged);
-    model.sharedLayersChanged.connect(handleLayerChange);
+    props.model.clientStateChanged.connect(handleClientStateChanged);
+    props.model.sharedLayersChanged.connect(handleLayerChange);
 
     return () => {
-      model.clientStateChanged.disconnect(handleClientStateChanged);
-      model.sharedLayersChanged.disconnect(handleLayerChange);
+      props.model.clientStateChanged.disconnect(handleClientStateChanged);
+      props.model.sharedLayersChanged.disconnect(handleLayerChange);
       removeFilter();
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -167,7 +164,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
     }
 
     // if we have state then remove the ms from the converted feature name
-    const currentState = filterStates[layerId];
+    const currentState = props.filterStates[layerId];
     const currentFeature = currentState?.feature.slice(0, -2);
     setValidFeatures(results);
     setSelectedFeature(currentFeature ?? results[0]);
@@ -208,7 +205,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
     );
 
     //using filter item as a state object to restore prev values
-    const currentState = filterStates[layerId];
+    const currentState = props.filterStates[layerId];
     const step =
       Object.values(filteredSteps).slice(-1)[0] ?? stepMap.millisecond;
 
@@ -220,12 +217,12 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
       end: currentState?.betweenMax ?? min + step,
     });
 
-    model.addFeatureAsMs(layerId, selectedFeature);
+    props.model.addFeatureAsMs(layerId, selectedFeature);
   }, [selectedFeature]);
 
   // minMax needs to be set before current value so the slider displays correctly
   useEffect(() => {
-    const currentState = filterStates[layerId];
+    const currentState = props.filterStates[layerId];
 
     setCurrentValue(
       typeof currentState?.value === 'number' ? currentState.value : minMax.min,
@@ -267,7 +264,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
       betweenMax: value + step,
     };
 
-    const layer = model.getLayer(layerId);
+    const layer = props.model.getLayer(layerId);
     if (!layer) {
       return;
     }
@@ -293,11 +290,11 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
 
     // Apply the updated filters to the layer
     layer.filters = { logicalOp, appliedFilters };
-    model.triggerLayerUpdate(layerId, layer);
+    props.model.triggerLayerUpdate(layerId, layer);
   };
 
   const removeFilter = () => {
-    const layer = model.getLayer(layerIdRef.current);
+    const layer = props.model.getLayer(layerIdRef.current);
     if (!layer) {
       return;
     }
@@ -318,7 +315,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
 
     // Apply the updated filters to the layer
     layer.filters = { logicalOp, appliedFilters };
-    model.triggerLayerUpdate(layerIdRef.current, layer);
+    props.model.triggerLayerUpdate(layerIdRef.current, layer);
   };
 
   const playAnimation = () => {

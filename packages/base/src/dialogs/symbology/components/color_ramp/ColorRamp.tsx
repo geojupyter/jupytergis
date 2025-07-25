@@ -25,13 +25,7 @@ export type ColorRampOptions = {
   selectedMode: string;
 };
 
-const ColorRamp: React.FC<IColorRampProps> = ({
-  layerParams,
-  modeOptions,
-  classifyFunc,
-  showModeRow,
-  showRampSelector,
-}) => {
+const ColorRamp: React.FC<IColorRampProps> = props => {
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
@@ -39,15 +33,15 @@ const ColorRamp: React.FC<IColorRampProps> = ({
 
   useEffect(() => {
     populateOptions();
-  }, [layerParams]);
+  }, [props.layerParams]);
 
   const populateOptions = async () => {
     let nClasses, singleBandMode, colorRamp;
 
-    if (layerParams.symbologyState) {
-      nClasses = layerParams.symbologyState.nClasses;
-      singleBandMode = layerParams.symbologyState.mode;
-      colorRamp = layerParams.symbologyState.colorRamp;
+    if (props.layerParams.symbologyState) {
+      nClasses = props.layerParams.symbologyState.nClasses;
+      singleBandMode = props.layerParams.symbologyState.mode;
+      colorRamp = props.layerParams.symbologyState.colorRamp;
     }
     setNumberOfShades(nClasses ? nClasses : '9');
     setSelectedMode(singleBandMode ? singleBandMode : 'equal interval');
@@ -56,7 +50,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
 
   return (
     <div className="jp-gis-color-ramp-container">
-      {showRampSelector && (
+      {props.showRampSelector && (
         <div className="jp-gis-symbology-row">
           <label htmlFor="color-ramp-select">Color Ramp:</label>
           <CanvasSelectComponent
@@ -65,9 +59,9 @@ const ColorRamp: React.FC<IColorRampProps> = ({
           />
         </div>
       )}
-      {showModeRow && (
+      {props.showModeRow && (
         <ModeSelectRow
-          modeOptions={modeOptions}
+          modeOptions={props.modeOptions}
           numberOfShades={numberOfShades}
           setNumberOfShades={setNumberOfShades}
           selectedMode={selectedMode}
@@ -80,7 +74,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
           onClick={() =>
-            classifyFunc(
+            props.classifyFunc(
               selectedMode,
               numberOfShades,
               selectedRamp,

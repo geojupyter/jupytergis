@@ -50,10 +50,7 @@ interface IIdentifyComponentProps {
   tracker: IJupyterGISTracker;
 }
 
-const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
-  controlPanelModel,
-  tracker,
-}) => {
+const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = props => {
   const [widgetId, setWidgetId] = useState('');
   const [features, setFeatures] = useState<IDict<any>>();
   const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
@@ -61,36 +58,36 @@ const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   });
   const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
   const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
-    controlPanelModel?.jGISModel,
+    props.controlPanelModel?.jGISModel,
   );
 
   const featuresRef = useRef(features);
   /**
    * Update the model when it changes.
    */
-  controlPanelModel?.documentChanged.connect((_, widget) => {
+  props.controlPanelModel?.documentChanged.connect((_, widget) => {
     setJgisModel(widget?.model);
   });
 
   // Reset state values when current widget changes
   useEffect(() => {
     const handleCurrentChanged = () => {
-      if (tracker.currentWidget?.id === widgetId) {
+      if (props.tracker.currentWidget?.id === widgetId) {
         return;
       }
 
-      if (tracker.currentWidget) {
-        setWidgetId(tracker.currentWidget.id);
+      if (props.tracker.currentWidget) {
+        setWidgetId(props.tracker.currentWidget.id);
       }
       setFeatures({});
       setVisibleFeatures({ 0: true });
     };
-    tracker.currentChanged.connect(handleCurrentChanged);
+    props.tracker.currentChanged.connect(handleCurrentChanged);
 
     return () => {
-      tracker.currentChanged.disconnect(handleCurrentChanged);
+      props.tracker.currentChanged.disconnect(handleCurrentChanged);
     };
-  }, []);
+  }, [props.tracker]);
 
   useEffect(() => {
     featuresRef.current = features;

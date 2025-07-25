@@ -4,11 +4,8 @@ import React, { useState } from 'react';
 
 import Annotation, { IAnnotationProps } from './Annotation';
 
-const AnnotationFloater: React.FC<IAnnotationProps> = ({
-  itemId,
-  annotationModel: model,
-}) => {
-  const annotation = model.getAnnotation(itemId);
+const AnnotationFloater: React.FC<IAnnotationProps> = props => {
+  const annotation = props.annotationModel.getAnnotation(props.itemId);
   const [isOpen, setIsOpen] = useState(annotation?.open);
 
   // Function that either
@@ -17,15 +14,15 @@ const AnnotationFloater: React.FC<IAnnotationProps> = ({
   // - closes the annotation if `!open` and the annotation is not empty
   const setOpenOrDelete = (open: boolean) => {
     if (open) {
-      model.updateAnnotation(itemId, { open: true });
+      props.annotationModel.updateAnnotation(props.itemId, { open: true });
       return setIsOpen(true);
     }
 
-    const current = model.getAnnotation(itemId);
+    const current = props.annotationModel.getAnnotation(props.itemId);
     if (!current?.contents.length) {
-      model.removeAnnotation(itemId);
+      props.annotationModel.removeAnnotation(props.itemId);
     } else {
-      model.updateAnnotation(itemId, { open: false });
+      props.annotationModel.updateAnnotation(props.itemId, { open: false });
       setIsOpen(false);
     }
   };
@@ -40,7 +37,7 @@ const AnnotationFloater: React.FC<IAnnotationProps> = ({
         className="jGIS-FloatingAnnotation"
         style={{ visibility: isOpen ? 'visible' : 'hidden' }}
       >
-        <Annotation itemId={itemId} annotationModel={model}>
+        <Annotation itemId={props.itemId} annotationModel={props.annotationModel}>
           <div
             className="jGIS-Popup-Topbar"
             onClick={() => {

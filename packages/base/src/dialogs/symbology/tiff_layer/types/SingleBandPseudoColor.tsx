@@ -23,16 +23,11 @@ import { GlobalStateDbManager } from '@/src/store';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
-const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
-  model,
-  okSignalPromise,
-  cancel,
-  layerId,
-}) => {
-  if (!layerId) {
+const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = props => {
+  if (!props.layerId) {
     return;
   }
-  const layer = model.getLayer(layerId);
+  const layer = props.model.getLayer(props.layerId);
   if (!layer?.parameters) {
     return;
   }
@@ -42,7 +37,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-  const { bandRows, setBandRows, loading } = useGetBandInfo(model, layer);
+  const { bandRows, setBandRows, loading } = useGetBandInfo(props.model, layer);
 
   const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
@@ -62,12 +57,12 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   useEffect(() => {
     populateOptions();
 
-    okSignalPromise.promise.then(okSignal => {
+    props.okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk);
     });
 
     return () => {
-      okSignalPromise.promise.then(okSignal => {
+      props.okSignalPromise.promise.then(okSignal => {
         okSignal.disconnect(handleOk, this);
       });
     };
@@ -87,7 +82,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
-      `jupytergis:${layerId}`,
+      `jupytergis:${props.layerId}`,
     )) as ReadonlyJSONObject;
 
     setLayerState(layerState);
@@ -158,13 +153,16 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   };
 
   const handleOk = () => {
+    if (!props.layerId) {
+      throw new Error('layerId is required for SingleBandPseudoColor component');
+    }
     // Update source
     const bandRow = bandRowsRef.current[selectedBand - 1];
     if (!bandRow) {
       return;
     }
     const sourceId = layer.parameters?.source;
-    const source = model.getSource(sourceId);
+    const source = props.model.getSource(sourceId);
 
     if (!source || !source.parameters) {
       return;
@@ -178,7 +176,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     source.parameters.urls[0] = sourceInfo;
 
-    model.sharedModel.updateSource(sourceId, source);
+    props.model.sharedModel.updateSource(sourceId, source);
 
     // Update layer
     if (!layer.parameters) {
@@ -260,8 +258,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     layer.parameters.color = colorExpr;
     layer.type = 'WebGlLayer';
 
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+    props.model.sharedModel.updateLayer(props.layerId, layer);
+    props.cancel();
   };
 
   const addStopRow = () => {
@@ -297,7 +295,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     let stops: number[] = [];
 
     const currentBand = bandRows[selectedBand - 1];
-    const source = model.getSource(layer?.parameters?.source);
+    const source = props.model.getSource(layer?.parameters?.source);
     const sourceInfo = source?.parameters?.urls[0];
     const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
 

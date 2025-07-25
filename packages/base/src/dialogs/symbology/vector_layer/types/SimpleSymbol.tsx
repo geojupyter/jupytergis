@@ -4,14 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ISymbologyTabbedDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import { IParsedStyle, parseColor } from '@/src/tools';
 
-const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
-  model,
-  state,
-  okSignalPromise,
-  cancel,
-  layerId,
-  symbologyTab,
-}) => {
+const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = props => {
   const styleRef = useRef<IParsedStyle>();
 
   const [style, setStyle] = useState<IParsedStyle>({
@@ -26,10 +19,10 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
   const joinStyleOptions = ['bevel', 'round', 'miter'];
   const capStyleOptions = ['butt', 'round', 'square'];
 
-  if (!layerId) {
+  if (!props.layerId) {
     return;
   }
-  const layer = model.getLayer(layerId);
+  const layer = props.model.getLayer(props.layerId);
   if (!layer) {
     return;
   }
@@ -57,12 +50,12 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
     };
     initStyle();
 
-    okSignalPromise.promise.then(okSignal => {
+    props.okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk, this);
     });
 
     return () => {
-      okSignalPromise.promise.then(okSignal => {
+      props.okSignalPromise.promise.then(okSignal => {
         okSignal.disconnect(handleOk, this);
       });
     };
@@ -73,6 +66,9 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
   }, [style]);
 
   const handleOk = () => {
+    if (!props.layerId) {
+      throw new Error('Layer ID is required for symbology update');
+    }
     if (!layer.parameters) {
       return;
     }
@@ -101,8 +97,8 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
       layer.type = 'VectorLayer';
     }
 
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+    props.model.sharedModel.updateLayer(props.layerId, layer);
+    props.cancel();
   };
 
   const renderColorTab = () => (
@@ -211,7 +207,7 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
   return (
     <div className="jp-gis-layer-symbology-container">
       <p>Color all features the same way.</p>
-      {symbologyTab === 'color' ? renderColorTab() : renderRadiusTab()}
+      {props.symbologyTab === 'color' ? renderColorTab() : renderRadiusTab()}
     </div>
   );
 };
