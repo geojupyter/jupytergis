@@ -93,7 +93,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
-import { LeftPanelComponent, RightPanelComponent } from '../panelview';
+import { LeftPanel, RightPanel } from '../panelview';
 
 type OlLayerTypes =
   | TileLayer
@@ -2234,18 +2234,18 @@ export class MainView extends React.Component<IProps, IStates> {
         </div>
 
         {this._state && (
-          <LeftPanelComponent
+          <LeftPanel
             model={this._model}
             commands={this._mainViewModel.commands}
             state={this._state}
-          ></LeftPanelComponent>
+          ></LeftPanel>
         )}
         {this._formSchemaRegistry && this._annotationModel && (
-          <RightPanelComponent
+          <RightPanel
             model={this._model}
             formSchemaRegistry={this._formSchemaRegistry}
             annotationModel={this._annotationModel}
-          ></RightPanelComponent>
+          ></RightPanel>
         )}
       </>
     );

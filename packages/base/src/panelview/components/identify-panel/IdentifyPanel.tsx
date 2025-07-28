@@ -13,13 +13,14 @@ interface IIdentifyComponentProps {
   model: IJupyterGISModel;
 }
 
-export const IdentifyPanelComponent = (options: IIdentifyComponentProps) => {
+export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
+  model,
+}) => {
   const [features, setFeatures] = useState<IDict<any>>();
   const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
     0: true,
   });
   const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
-  const jgisModel = options.model;
 
   const featuresRef = useRef(features);
 
@@ -34,7 +35,7 @@ export const IdentifyPanelComponent = (options: IIdentifyComponentProps) => {
       sender: IJupyterGISModel,
       clients: Map<number, IJupyterGISClientState>,
     ) => {
-      const remoteUserId = jgisModel?.localState?.remoteUser;
+      const remoteUserId = model?.localState?.remoteUser;
 
       // If following a collaborator
       if (remoteUserId) {
@@ -50,34 +51,30 @@ export const IdentifyPanelComponent = (options: IIdentifyComponentProps) => {
       }
 
       // If not following a collaborator
-      const identifiedFeatures =
-        jgisModel?.localState?.identifiedFeatures?.value;
+      const identifiedFeatures = model?.localState?.identifiedFeatures?.value;
 
       if (!identifiedFeatures) {
         setFeatures({});
         return;
       }
 
-      if (
-        jgisModel.isIdentifying &&
-        featuresRef.current !== identifiedFeatures
-      ) {
+      if (model.isIdentifying && featuresRef.current !== identifiedFeatures) {
         setFeatures(identifiedFeatures);
       }
     };
 
-    jgisModel?.clientStateChanged.connect(handleClientStateChanged);
+    model?.clientStateChanged.connect(handleClientStateChanged);
 
     return () => {
-      jgisModel?.clientStateChanged.disconnect(handleClientStateChanged);
+      model?.clientStateChanged.disconnect(handleClientStateChanged);
     };
-  }, [jgisModel]);
+  }, [model]);
 
   const highlightFeatureOnMap = (feature: any) => {
-    jgisModel?.highlightFeatureSignal?.emit(feature);
+    model?.highlightFeatureSignal?.emit(feature);
 
     const geometry = feature.geometry || feature._geometry;
-    jgisModel?.flyToGeometrySignal?.emit(geometry);
+    model?.flyToGeometrySignal?.emit(geometry);
   };
 
   const toggleFeatureVisibility = (index: number) => {
@@ -91,7 +88,7 @@ export const IdentifyPanelComponent = (options: IIdentifyComponentProps) => {
     <div
       className="jgis-identify-wrapper"
       style={{
-        border: jgisModel?.localState?.remoteUser
+        border: model?.localState?.remoteUser
           ? `solid 3px ${remoteUser?.color}`
           : 'unset',
       }}

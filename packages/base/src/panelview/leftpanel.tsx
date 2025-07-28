@@ -11,20 +11,8 @@ import {
   TabsList,
   TabsTrigger,
 } from '../shared/components/Tabs';
-import StacBrowser from '../stacBrowser/StacBrowser';
+import StacPanel from '../stacBrowser/components/StacPanel';
 import FilterComponent from './components/filter-panel/Filter';
-
-/**
- * Options of the left panel widget.
- */
-export interface ILeftPanelOptions {
-  model: IJupyterGISModel;
-  onSelect: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
-}
-
-export interface ILayerPanelOptions extends ILeftPanelOptions {
-  state: IStateDB;
-}
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
@@ -33,13 +21,15 @@ export interface ILeftPanelClickHandlerParams {
   event: ReactMouseEvent;
 }
 
-interface ILeftComponentProps {
+interface ILeftPanelProps {
   model: IJupyterGISModel;
   state: IStateDB;
   commands: CommandRegistry;
 }
 
-export const LeftPanelComponent = (options: ILeftComponentProps) => {
+export const LeftPanel: React.FC<ILeftPanelProps> = (
+  props: ILeftPanelProps,
+) => {
   const tabInfo = [
     { name: 'layers', title: 'Layers' },
     { name: 'stac', title: 'Stac Browser' },
@@ -73,16 +63,16 @@ export const LeftPanelComponent = (options: ILeftComponentProps) => {
         </TabsList>
         <TabsContent value="layers" className="jgis-panel-tab-content">
           <LayersBodyComponent
-            model={options.model}
-            commands={options.commands}
-            state={options.state}
+            model={props.model}
+            commands={props.commands}
+            state={props.state}
           ></LayersBodyComponent>
         </TabsContent>
         <TabsContent value="stac">
-          <StacBrowser model={options.model}></StacBrowser>
+          <StacPanel model={props.model}></StacPanel>
         </TabsContent>
         <TabsContent value="filters" className="jgis-panel-tab-content">
-          <FilterComponent model={options.model}></FilterComponent>,
+          <FilterComponent model={props.model}></FilterComponent>,
         </TabsContent>
       </PanelTabs>
     </div>

@@ -3,7 +3,6 @@ import {
   IJupyterGISClientState,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { Panel } from '@lumino/widgets';
 import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 
@@ -118,15 +117,5 @@ export class ObjectPropertiesReact extends React.Component<IProps, IStates> {
         model={this.state.model}
       />
     );
-  }
-}
-
-export namespace ObjectProperties {
-  /**
-   * Instantiation options for `ObjectProperties`.
-   */
-  export interface IOptions extends Panel.IOptions {
-    model: IJupyterGISModel;
-    formSchemaRegistry: IJGISFormSchemaRegistry;
   }
 }

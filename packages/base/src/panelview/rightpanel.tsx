@@ -15,20 +15,20 @@ import {
   TabsTrigger,
 } from '../shared/components/Tabs';
 
-interface IRightComponentProps {
+interface IRightPanelProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
   annotationModel: IAnnotationModel;
   model: IJupyterGISModel;
 }
 
-export const RightPanelComponent = (options: IRightComponentProps) => {
+export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
 
   const tabInfo = [
     { name: 'objectProperties', title: 'Object Properties' },
     { name: 'annotations', title: 'Annotations' },
-    { name: 'identifyPanel', title: 'Identify Panels' },
+    { name: 'identifyPanel', title: 'Identify Features' },
   ];
 
   const [curTab, setCurTab] = React.useState<string | undefined>(
@@ -64,20 +64,18 @@ export const RightPanelComponent = (options: IRightComponentProps) => {
           <ObjectPropertiesReact
             setSelectedObject={setSelectedObjectProperties}
             selectedObject={selectedObjectProperties}
-            formSchemaRegistry={options.formSchemaRegistry}
-            model={options.model}
+            formSchemaRegistry={props.formSchemaRegistry}
+            model={props.model}
           />
         </TabsContent>
         <TabsContent value="annotations">
           <AnnotationsPanel
-            annotationModel={options.annotationModel}
-            jgisModel={options.model}
+            annotationModel={props.annotationModel}
+            jgisModel={props.model}
           ></AnnotationsPanel>
         </TabsContent>
         <TabsContent value="identifyPanel" className="jgis-panel-tab-content">
-          <IdentifyPanelComponent
-            model={options.model}
-          ></IdentifyPanelComponent>
+          <IdentifyPanelComponent model={props.model}></IdentifyPanelComponent>
         </TabsContent>
       </PanelTabs>
     </div>

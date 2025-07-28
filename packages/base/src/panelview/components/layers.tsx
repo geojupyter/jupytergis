@@ -30,19 +30,13 @@ const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
 const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
 
-/**
- * Properties of the layers body component.
- */
 interface IBodyProps {
   model: IJupyterGISModel;
   commands: CommandRegistry;
   state: IStateDB;
 }
 
-/**
- * The body component of the panel.
- */
-export function LayersBodyComponent(props: IBodyProps): JSX.Element {
+export const LayersBodyComponent: React.FC<IBodyProps> = props => {
   const model = props.model;
   const id = UUID.uuid4();
 
@@ -57,7 +51,6 @@ export function LayersBodyComponent(props: IBodyProps): JSX.Element {
   };
 
   const _onDragOver = (e: React.DragEvent) => {
-    console.log('_onDragOver');
     e.stopPropagation();
     e.preventDefault();
     Private.dragInfo.dragOverElement = null;
@@ -65,7 +58,6 @@ export function LayersBodyComponent(props: IBodyProps): JSX.Element {
   };
 
   const _onDrop = (e: React.DragEvent) => {
-    console.log('_onDrop');
     Private.dragIndicator.style.display = 'none';
 
     if (model === undefined) {
@@ -247,7 +239,7 @@ export function LayersBodyComponent(props: IBodyProps): JSX.Element {
         )}
     </div>
   );
-}
+};
 
 /**
  * Properties of the layer group component.

@@ -14,7 +14,7 @@ import StacPanelResults from './StacPanelResults';
 interface IStacViewProps {
   model?: IJupyterGISModel;
 }
-const StacPanelView = ({ model }: IStacViewProps) => {
+const StacPanel = ({ model }: IStacViewProps) => {
   const {
     filterState,
     filterSetters,
@@ -76,4 +76,4 @@ const StacPanelView = ({ model }: IStacViewProps) => {
   );
 };
 
-export default StacPanelView;
+export default StacPanel;
