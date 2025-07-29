@@ -11,8 +11,11 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
+import { GeoPackageAPI, GeoPackageTileRetriever } from '@ngageoint/geopackage';
 import * as d3Color from 'd3-color';
 import { compressors } from 'hyparquet-compressors';
+import { Source } from 'ol/source';
+import loadGpkg from 'ol-load-geopackage';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
@@ -487,6 +490,137 @@ export const loadGeoTiff = async (
   }
 };
 
+interface IVectorEntry {
+  source: Source;
+  sld: string | undefined;
+}
+
+interface ITileEntry {
+  gpr: GeoPackageTileRetriever;
+  tileDao: object;
+}
+
+type GpkgTable = Record<string, IVectorEntry | ITileEntry>;
+
+const geoPackageCache = new Map<string, Promise<GpkgTable>>();
+
+function loadGeoPackageVectorFile(
+  filepath: string,
+  projection: string,
+  cacheFilename: string,
+): Promise<GpkgTable> {
+  if (geoPackageCache.has(cacheFilename)) {
+    return geoPackageCache.get(cacheFilename)!;
+  }
+
+  const loader = (async (): Promise<GpkgTable> => {
+    try {
+      const [tables, slds] = await loadGpkg(filepath, projection);
+      const tableMap: GpkgTable = {};
+      for (const name of Object.keys(tables)) {
+        tableMap[name] = {
+          source: tables[name] as Source,
+          sld: slds[name],
+        };
+      }
+      return tableMap;
+    } catch (e: any) {
+      showErrorMessage('Failed to load GeoPackage file', e);
+      throw e;
+    }
+  })();
+  geoPackageCache.set(cacheFilename, loader);
+  return loader;
+}
+
+async function loadGeoPackageRasterFile(
+  filepath: string,
+  cacheFilename: string,
+  model?: IJupyterGISModel,
+  file_content?: string,
+): Promise<GpkgTable> {
+  if (geoPackageCache.has(cacheFilename)) {
+    return geoPackageCache.get(cacheFilename)!;
+  }
+
+  const loader = (async (): Promise<GpkgTable> => {
+    try {
+      let bytes: Uint8Array;
+      if (filepath.startsWith('http://') || filepath.startsWith('https://')) {
+        bytes = await loadGkpgFromUrl(filepath, model!);
+      } else {
+        const arrayBuffer = await stringToArrayBuffer(file_content as string);
+        bytes = new Uint8Array(arrayBuffer);
+      }
+
+      const geoPackage = await GeoPackageAPI.open(bytes);
+      const tileTables = await geoPackage.getTileTables();
+      const tableMap: GpkgTable = {};
+
+      tileTables.forEach(tableName => {
+        const tileDao = geoPackage.getTileDao(tableName);
+
+        const tileWidth = tileDao.tileMatrices[0].tile_width;
+        const tileHeight = tileDao.tileMatrices[0].tile_height;
+
+        tableMap[tableName] = {
+          gpr: new GeoPackageTileRetriever(tileDao, tileWidth, tileHeight),
+          tileDao,
+        };
+      });
+
+      return tableMap;
+    } catch (error: any) {
+      showErrorMessage(
+        `Failed to load GeoPackage file: ${cacheFilename}`,
+        error,
+      );
+      throw error;
+    }
+  })();
+
+  geoPackageCache.set(cacheFilename, loader);
+  return loader;
+}
+
+async function loadGkpgFromUrl(
+  filepath: string,
+  model: IJupyterGISModel,
+): Promise<Uint8Array> {
+  const response = await fetchWithProxies(filepath, model, async response => {
+    const arrayBuffer = await response.arrayBuffer();
+    return new Uint8Array(arrayBuffer);
+  });
+  if (!response) {
+    throw new Error(`Failed to fetch GeoPackage from URL: ${filepath}`);
+  }
+  return response;
+}
+
+export async function getGeoPackageTableNames(
+  filepath: string,
+  type: 'GeoPackageVectorSource' | 'GeoPackageRasterSource',
+  model: IJupyterGISModel,
+) {
+  let geoPackage;
+
+  if (type === 'GeoPackageRasterSource') {
+    geoPackage = await loadGeoPackageRasterFile(
+      filepath,
+      filepath + 'Raster',
+      model,
+    );
+  } else {
+    geoPackage = await loadGeoPackageVectorFile(
+      filepath,
+      model.sharedModel.options.projection!,
+      filepath + 'Vector',
+    );
+  }
+
+  return Object.keys(geoPackage);
+}
+
 /**
  * Generalized file reader for different source types.
  *
@@ -566,6 +700,24 @@ export const loadFile = async (fileInfo: {
 
         showErrorMessage('Network error', `Failed to fetch ${filepath}`);
         throw new Error(`Failed to fetch ${filepath}`);
+      }
+
+      case 'GeoPackageVectorSource': {
+        let projection = model.sharedModel.options.projection;
+        if (!projection) {
+          //TODO: this error should be uncommented when PR #732 is merged
+          //throw new Error(`Projection is not specified for ${filepath}`);
+          projection = 'EPSG:3857';
+        }
+        return loadGeoPackageVectorFile(
+          filepath,
+          projection,
+          filepath + 'Vector',
+        );
+      }
+
+      case 'GeoPackageRasterSource': {
+        return loadGeoPackageRasterFile(filepath, filepath + 'Raster', model);
       }
 
       case 'GeoParquetSource': {
@@ -654,6 +806,27 @@ export const loadFile = async (fileInfo: {
         }
       }
 
+      case 'GeoPackageVectorSource': {
+        let projection = model.sharedModel.options.projection;
+        if (!projection) {
+          //TODO: this error should be uncommented when PR #732 is merged
+          //throw new Error(`Projection is not specified for ${filepath}`);
+          projection = 'EPSG:3857';
+        }
+        const blob = await base64ToBlob(file.content, getMimeType(filepath));
+        const url = URL.createObjectURL(blob);
+        return loadGeoPackageVectorFile(url, projection, filepath + 'Vector');
+      }
+
+      case 'GeoPackageRasterSource': {
+        return loadGeoPackageRasterFile(
+          filepath,
+          filepath + 'Raster',
+          undefined,
+          file.content,
+        );
+      }
+
       case 'GeoParquetSource': {
         if (typeof file.content === 'string') {
           const { toGeoJson } = await import('geoparquet');
@@ -737,6 +910,7 @@ export const MIME_TYPES: { [ext: string]: string } = {
   '.etx': 'text/x-setext',
   '.exe': 'application/octet-stream',
   '.gif': 'image/gif',
+  '.gpkg': 'application/geopackage+vnd.sqlite3',
   '.gtar': 'application/x-gtar',
   '.h': 'text/plain',
   '.hdf': 'application/x-hdf',
