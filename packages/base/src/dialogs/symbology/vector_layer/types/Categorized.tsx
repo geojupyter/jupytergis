@@ -13,15 +13,7 @@ import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { SymbologyTab } from '@/src/types';
 
-const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
-  model,
-  state,
-  okSignalPromise,
-  cancel,
-  layerId,
-  symbologyTab,
-  selectableAttributesAndValues,
-}) => {
+const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = props => {
   const selectedAttributeRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
   const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
@@ -39,10 +31,10 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   });
   const manualStyleRef = useRef(manualStyle);
 
-  if (!layerId) {
+  if (!props.layerId) {
     return;
   }
-  const layer = model.getLayer(layerId);
+  const layer = props.model.getLayer(props.layerId);
   if (!layer?.parameters) {
     return;
   }
@@ -52,12 +44,12 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     setStopRows(valueColorPairs);
 
-    okSignalPromise.promise.then(okSignal => {
+    props.okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk, this);
     });
 
     return () => {
-      okSignalPromise.promise.then(okSignal => {
+      props.okSignalPromise.promise.then(okSignal => {
         okSignal.disconnect(handleOk, this);
       });
     };
@@ -93,7 +85,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         radius: layer.parameters.color['circle-radius'] || 5,
       });
     }
-  }, [layerId]);
+  }, [props.layerId]);
 
   useEffect(() => {
     manualStyleRef.current = manualStyle;
@@ -104,10 +96,10 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const layerParams = layer.parameters as IVectorLayer;
     const attribute =
       layerParams.symbologyState?.value ??
-      Object.keys(selectableAttributesAndValues)[0];
+      Object.keys(props.selectableAttributesAndValues)[0];
 
     setSelectedAttribute(attribute);
-  }, [selectableAttributesAndValues]);
+  }, [props.selectableAttributesAndValues]);
 
   useEffect(() => {
     selectedAttributeRef.current = selectedAttribute;
@@ -129,7 +121,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     });
 
     const stops = Array.from(
-      selectableAttributesAndValues[selectedAttribute],
+      props.selectableAttributesAndValues[selectedAttribute],
     ).sort((a, b) => a - b);
 
     const valueColorPairs = Utils.getValueColorPairs(
@@ -142,6 +134,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   };
 
   const handleOk = () => {
+    if (!props.layerId) {
+      throw new Error('layerId is required for Categorized component');
+    }
     if (!layer.parameters) {
       return;
     }
@@ -157,7 +152,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         expr.push(stop.output);
       });
 
-      if (symbologyTab === 'color') {
+      if (props.symbologyTab === 'color') {
         expr.push([0, 0, 0, 0.0]); // fallback color
 
         newStyle['fill-color'] = expr;
@@ -181,7 +176,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
-      symbologyTab,
+      symbologyTab: props.symbologyTab,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -191,11 +186,14 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       layer.type = 'VectorLayer';
     }
 
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+    props.model.sharedModel.updateLayer(props.layerId, layer);
+    props.cancel();
   };
 
   const handleReset = (method: SymbologyTab) => {
+    if (!props.layerId) {
+      throw new Error('layerId is required for Categorized component');
+    }
     if (!layer?.parameters) {
       return;
     }
@@ -225,11 +223,11 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     layer.parameters.color = newStyle;
 
-    model.sharedModel.updateLayer(layerId, layer);
+    props.model.sharedModel.updateLayer(props.layerId, layer);
   };
 
   const body = (() => {
-    if (Object.keys(selectableAttributesAndValues).length === 0) {
+    if (Object.keys(props.selectableAttributesAndValues).length === 0) {
       return (
         <p className="errors">
           This symbology type is not available; no attributes contain numeric
@@ -240,14 +238,14 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       return (
         <>
           <ValueSelect
-            featureProperties={selectableAttributesAndValues}
+            featureProperties={props.selectableAttributesAndValues}
             selectedValue={selectedAttribute}
             setSelectedValue={setSelectedAttribute}
           />
 
           <div className="jp-gis-layer-symbology-container">
             {/* Inputs depending on active tab */}
-            {symbologyTab === 'color' && (
+            {props.symbologyTab === 'color' && (
               <>
                 <div className="jp-gis-symbology-row">
                   <label>Fill Color:</label>
@@ -295,7 +293,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               </>
             )}
 
-            {symbologyTab === 'radius' && (
+            {props.symbologyTab === 'radius' && (
               <div className="jp-gis-symbology-row">
                 <label>Circle Radius:</label>
                 <input
@@ -319,7 +317,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               modeOptions={[]}
               classifyFunc={buildColorInfoFromClassification}
               showModeRow={false}
-              showRampSelector={symbologyTab === 'color'}
+              showRampSelector={props.symbologyTab === 'color'}
             />
             <StopContainer
               selectedMethod={''}

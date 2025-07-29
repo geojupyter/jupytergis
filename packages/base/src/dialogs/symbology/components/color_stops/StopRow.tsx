@@ -13,22 +13,14 @@ const StopRow: React.FC<{
   setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
   useNumber?: boolean;
-}> = ({
-  index,
-  value,
-  outputValue,
-  stopRows,
-  setStopRows,
-  deleteRow,
-  useNumber,
-}) => {
+}> = props => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (inputRef.current === document.activeElement) {
       inputRef.current?.focus();
     }
-  }, [stopRows]);
+  }, [props.stopRows]);
 
   const rgbArrToHex = (rgbArr: number | number[]) => {
     if (!Array.isArray(rgbArr)) {
@@ -63,13 +55,13 @@ const StopRow: React.FC<{
   };
 
   const handleStopChange = (event: { target: { value: string | number } }) => {
-    const newRows = [...stopRows];
-    newRows[index].stop = +event.target.value;
-    setStopRows(newRows);
+    const newRows = [...props.stopRows];
+    newRows[props.index].stop = +event.target.value;
+    props.setStopRows(newRows);
   };
 
   const handleBlur = () => {
-    const newRows = [...stopRows];
+    const newRows = [...props.stopRows];
     newRows.sort((a, b) => {
       if (a.stop < b.stop) {
         return -1;
@@ -79,41 +71,41 @@ const StopRow: React.FC<{
       }
       return 0;
     });
-    setStopRows(newRows);
+    props.setStopRows(newRows);
   };
 
   const handleOutputChange = (event: { target: { value: any } }) => {
-    const newRows = [...stopRows];
-    useNumber
-      ? (newRows[index].output = +event.target.value)
-      : (newRows[index].output = hexToRgb(event.target.value));
-    setStopRows(newRows);
+    const newRows = [...props.stopRows];
+    props.useNumber
+      ? (newRows[props.index].output = +event.target.value)
+      : (newRows[props.index].output = hexToRgb(event.target.value));
+    props.setStopRows(newRows);
   };
 
   return (
     <div className="jp-gis-color-row">
       <input
-        id={`jp-gis-color-value-${index}`}
+        id={`jp-gis-color-value-${props.index}`}
         type="number"
-        value={value}
+        value={props.value}
         onChange={handleStopChange}
         onBlur={handleBlur}
         className="jp-mod-styled jp-gis-color-row-value-input"
       />
 
-      {useNumber ? (
+      {props.useNumber ? (
         <input
           type="number"
           ref={inputRef}
-          value={outputValue as number}
+          value={props.outputValue as number}
           onChange={handleOutputChange}
           className="jp-mod-styled jp-gis-color-row-output-input"
         />
       ) : (
         <input
-          id={`jp-gis-color-color-${index}`}
+          id={`jp-gis-color-color-${props.index}`}
           ref={inputRef}
-          value={rgbArrToHex(outputValue)}
+          value={rgbArrToHex(props.outputValue)}
           type="color"
           onChange={handleOutputChange}
           className="jp-mod-styled jp-gis-color-row-output-input"
@@ -121,10 +113,10 @@ const StopRow: React.FC<{
       )}
 
       <Button
-        id={`jp-gis-remove-color-${index}`}
+        id={`jp-gis-remove-color-${props.index}`}
         className="jp-Button jp-gis-filter-icon"
       >
-        <FontAwesomeIcon icon={faTrash} onClick={deleteRow} />
+        <FontAwesomeIcon icon={faTrash} onClick={props.deleteRow} />
       </Button>
     </div>
   );

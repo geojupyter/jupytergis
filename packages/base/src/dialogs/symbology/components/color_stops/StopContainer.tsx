@@ -10,26 +10,22 @@ interface IStopContainerProps {
   setStopRows: (stops: IStopRow[]) => void;
 }
 
-const StopContainer: React.FC<IStopContainerProps> = ({
-  selectedMethod,
-  stopRows,
-  setStopRows,
-}) => {
+const StopContainer: React.FC<IStopContainerProps> = props => {
   const addStopRow = () => {
-    setStopRows([
+    props.setStopRows([
       {
         stop: 0,
         output: [0, 0, 0, 1],
       },
-      ...stopRows,
+      ...props.stopRows,
     ]);
   };
 
   const deleteStopRow = (index: number) => {
-    const newFilters = [...stopRows];
+    const newFilters = [...props.stopRows];
     newFilters.splice(index, 1);
 
-    setStopRows(newFilters);
+    props.setStopRows(newFilters);
   };
 
   return (
@@ -39,16 +35,16 @@ const StopContainer: React.FC<IStopContainerProps> = ({
           <span style={{ flex: '0 0 18%' }}>Value</span>
           <span>Output Value</span>
         </div>
-        {stopRows.map((stop, index) => (
+        {props.stopRows.map((stop, index) => (
           <StopRow
             key={`${index}-${stop.output}`}
             index={index}
             value={stop.stop}
             outputValue={stop.output}
-            stopRows={stopRows}
-            setStopRows={setStopRows}
+            stopRows={props.stopRows}
+            setStopRows={props.setStopRows}
             deleteRow={() => deleteStopRow(index)}
-            useNumber={selectedMethod === 'radius' ? true : false}
+            useNumber={props.selectedMethod === 'radius' ? true : false}
           />
         ))}
       </div>

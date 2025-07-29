@@ -22,17 +22,9 @@ interface IBandRowProps {
  * @param setBandRows Function to update band rows in parent
  * @param isMultibandColor Used to hide min/max input and add 'Unset' option to drop down menu for MultiBand symbology
  */
-const BandRow: React.FC<IBandRowProps> = ({
-  label,
-  index,
-  bandRow,
-  bandRows,
-  setSelectedBand,
-  setBandRows,
-  isMultibandColor,
-}) => {
-  const [minValue, setMinValue] = useState(bandRow?.stats.minimum);
-  const [maxValue, setMaxValue] = useState(bandRow?.stats.maximum);
+const BandRow: React.FC<IBandRowProps> = props => {
+  const [minValue, setMinValue] = useState(props.bandRow?.stats.minimum);
+  const [maxValue, setMaxValue] = useState(props.bandRow?.stats.maximum);
 
   const handleMinValueChange = (event: {
     target: { value: string | number };
@@ -49,27 +41,27 @@ const BandRow: React.FC<IBandRowProps> = ({
   };
 
   const setNewBands = () => {
-    const newBandRows = [...bandRows];
-    newBandRows[index].stats.minimum = minValue;
-    newBandRows[index].stats.maximum = maxValue;
-    setBandRows(newBandRows);
+    const newBandRows = [...props.bandRows];
+    newBandRows[props.index].stats.minimum = minValue;
+    newBandRows[props.index].stats.maximum = maxValue;
+    props.setBandRows(newBandRows);
   };
 
   return (
     <>
       <div className="jp-gis-symbology-row">
-        <label htmlFor={`band-select-${index}`}>{label}:</label>
+        <label htmlFor={`band-select-${props.index}`}>{props.label}:</label>
         <div className="jp-select-wrapper">
           <select
-            name={`band-select-${index}`}
-            onChange={event => setSelectedBand(+event.target.value)}
+            name={`band-select-${props.index}`}
+            onChange={event => props.setSelectedBand(+event.target.value)}
             className="jp-mod-styled"
           >
-            {bandRows.map((band, bandIndex) => (
+            {props.bandRows.map((band, bandIndex) => (
               <option
                 key={bandIndex}
                 value={band.band}
-                selected={band.band === bandRow?.band}
+                selected={band.band === props.bandRow?.band}
                 className="jp-mod-styled"
               >
                 {band.colorInterpretation
@@ -77,11 +69,11 @@ const BandRow: React.FC<IBandRowProps> = ({
                   : `Band ${band.band}`}
               </option>
             ))}
-            {isMultibandColor ? (
+            {props.isMultibandColor ? (
               <option
                 key={'unset'}
                 value={-1}
-                selected={!bandRow}
+                selected={!props.bandRow}
                 className="jp-mod-styled"
               >
                 Unset
@@ -90,7 +82,7 @@ const BandRow: React.FC<IBandRowProps> = ({
           </select>
         </div>
       </div>
-      {isMultibandColor ? null : (
+      {props.isMultibandColor ? null : (
         <div className="jp-gis-symbology-row" style={{ gap: '0.5rem' }}>
           <div
             style={{

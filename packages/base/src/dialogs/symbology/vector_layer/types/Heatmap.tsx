@@ -4,17 +4,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import CanvasSelectComponent from '@/src/dialogs/symbology/components/color_ramp/CanvasSelectComponent';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 
-const Heatmap: React.FC<ISymbologyDialogProps> = ({
-  model,
-  state,
-  okSignalPromise,
-  cancel,
-  layerId,
-}) => {
-  if (!layerId) {
+const Heatmap: React.FC<ISymbologyDialogProps> = props => {
+  if (!props.layerId) {
     return;
   }
-  const layer = model.getLayer(layerId);
+  const layer = props.model.getLayer(props.layerId);
   if (!layer?.parameters) {
     return;
   }
@@ -32,12 +26,12 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
   useEffect(() => {
     populateOptions();
 
-    okSignalPromise.promise.then(okSignal => {
+    props.okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk, this);
     });
 
     return () => {
-      okSignalPromise.promise.then(okSignal => {
+      props.okSignalPromise.promise.then(okSignal => {
         okSignal.disconnect(handleOk, this);
       });
     };
@@ -59,6 +53,9 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
   };
 
   const handleOk = () => {
+    if (!props.layerId) {
+      throw new Error('Layer ID is required for symbology update');
+    }
     if (!layer.parameters) {
       return;
     }
@@ -80,9 +77,9 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
     layer.parameters.radius = heatmapOptionsRef.current.radius;
     layer.type = 'HeatmapLayer';
 
-    model.sharedModel.updateLayer(layerId, layer);
+    props.model.sharedModel.updateLayer(props.layerId, layer);
 
-    cancel();
+    props.cancel();
   };
 
   return (

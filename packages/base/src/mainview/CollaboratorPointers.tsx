@@ -18,15 +18,13 @@ export type ClientPointer = {
   lonLat: { latitude: number; longitude: number };
 };
 
-const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
-  clients,
-}) => {
+const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = props => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      {clients &&
-        Object.values(clients).map(client => (
+      {props.clients &&
+        Object.values(props.clients).map(client => (
           <div
             className="jGIS-Popup-Wrapper"
             style={{

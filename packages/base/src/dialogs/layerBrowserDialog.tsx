@@ -25,13 +25,7 @@ interface ILayerBrowserDialogProps {
   cancel: () => void;
 }
 
-export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
-  model,
-  registry,
-  formSchemaRegistry,
-  okSignalPromise,
-  cancel,
-}) => {
+export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = props => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] =
@@ -39,19 +33,19 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   const [creatingCustomRaster, setCreatingCustomRaster] = useState(false);
 
   const [galleryWithCategory, setGalleryWithCategory] =
-    useState<IRasterLayerGalleryEntry[]>(registry);
+    useState<IRasterLayerGalleryEntry[]>(props.registry);
 
-  const providers = [...new Set(registry.map(item => item.source.provider))];
+  const providers = [...new Set(props.registry.map(item => item.source.provider))];
 
   const filteredGallery = galleryWithCategory.filter(item =>
     item.name.toLowerCase().includes(searchTerm),
   );
 
   useEffect(() => {
-    model.sharedModel.layersChanged.connect(handleLayerChange);
+    props.model.sharedModel.layersChanged.connect(handleLayerChange);
 
     return () => {
-      model.sharedModel.layersChanged.disconnect(handleLayerChange);
+      props.model.sharedModel.layersChanged.disconnect(handleLayerChange);
     };
   }, []);
 
@@ -61,7 +55,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   const handleLayerChange = (_: any, change: IJGISLayerDocChange) => {
     // The split is to get rid of the 'Layer' part of the name to match the names in the gallery
     setActiveLayers(
-      Object.values(model.sharedModel.layers).map(
+      Object.values(props.model.sharedModel.layers).map(
         layer => layer.name.split(' ')[0],
       ),
     );
@@ -79,8 +73,8 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
     selectedCategory?.classList.remove('jGIS-layer-browser-category-selected');
 
     const filteredGallery = sameAsOld
-      ? registry
-      : registry.filter(item =>
+      ? props.registry
+      : props.registry.filter(item =>
           item.source.provider?.includes(categoryTab.innerText),
         );
 
@@ -115,21 +109,21 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
       name: tile.name + ' Layer',
     };
 
-    model.sharedModel.addSource(sourceId, sourceModel);
-    model.addLayer(UUID.uuid4(), layerModel);
+    props.model.sharedModel.addSource(sourceId, sourceModel);
+    props.model.addLayer(UUID.uuid4(), layerModel);
   };
 
   if (creatingCustomRaster) {
     // Disconnect any previous handler
-    okSignalPromise.promise.then(value => {
-      value.disconnect(cancel, this);
+    props.okSignalPromise.promise.then(value => {
+      value.disconnect(props.cancel, this);
     });
 
     return (
       <div className="jGIS-customlayer-form">
         <CreationFormWrapper
-          model={model}
-          formSchemaRegistry={formSchemaRegistry}
+          model={props.model}
+          formSchemaRegistry={props.formSchemaRegistry}
           createLayer={true}
           createSource={true}
           layerType={'RasterLayer'}
@@ -143,16 +137,16 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
             minZoom: 0,
             attribution: '(C) OpenStreetMap contributors',
           }}
-          okSignalPromise={okSignalPromise}
-          cancel={cancel}
+          okSignalPromise={props.okSignalPromise}
+          cancel={props.cancel}
         />
       </div>
     );
   }
 
   // Ok is like cancel in the case of gallery item selections
-  okSignalPromise.promise.then(value => {
-    value.connect(cancel, this);
+  props.okSignalPromise.promise.then(value => {
+    value.connect(props.cancel, this);
   });
 
   return (

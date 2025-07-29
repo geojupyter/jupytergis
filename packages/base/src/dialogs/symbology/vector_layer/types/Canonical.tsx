@@ -5,32 +5,25 @@ import React, { useEffect, useRef, useState } from 'react';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { ISymbologyDialogWithAttributesProps } from '../../symbologyDialog';
 
-const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
-  model,
-  state,
-  okSignalPromise,
-  cancel,
-  layerId,
-  selectableAttributesAndValues,
-}) => {
+const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = props => {
   const selectedValueRef = useRef<string>();
   const [selectedValue, setSelectedValue] = useState('');
 
-  if (!layerId) {
+  if (!props.layerId) {
     return;
   }
-  const layer = model.getLayer(layerId);
+  const layer = props.model.getLayer(props.layerId);
   if (!layer?.parameters) {
     return;
   }
 
   useEffect(() => {
-    okSignalPromise.promise.then(okSignal => {
+    props.okSignalPromise.promise.then(okSignal => {
       okSignal.connect(handleOk, this);
     });
 
     return () => {
-      okSignalPromise.promise.then(okSignal => {
+      props.okSignalPromise.promise.then(okSignal => {
         okSignal.disconnect(handleOk, this);
       });
     };
@@ -40,16 +33,19 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
     const layerParams = layer.parameters as IVectorLayer;
     const value =
       layerParams.symbologyState?.value ??
-      Object.keys(selectableAttributesAndValues)[0];
+      Object.keys(props.selectableAttributesAndValues)[0];
 
     setSelectedValue(value);
-  }, [selectableAttributesAndValues]);
+  }, [props.selectableAttributesAndValues]);
 
   useEffect(() => {
     selectedValueRef.current = selectedValue;
   }, [selectedValue]);
 
   const handleOk = () => {
+    if (!props.layerId) {
+      throw new Error('Layer ID is required for symbology update');
+    }
     if (!layer.parameters) {
       return;
     }
@@ -71,12 +67,12 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
       layer.type = 'VectorLayer';
     }
 
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+    props.model.sharedModel.updateLayer(props.layerId, layer);
+    props.cancel();
   };
 
   const body = (() => {
-    if (Object.keys(selectableAttributesAndValues)?.length === 0) {
+    if (Object.keys(props.selectableAttributesAndValues)?.length === 0) {
       return (
         <p className="errors">
           This symbology type is not available; no attributes contain a hex
@@ -86,7 +82,7 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
     } else {
       return (
         <ValueSelect
-          featureProperties={selectableAttributesAndValues}
+          featureProperties={props.selectableAttributesAndValues}
           selectedValue={selectedValue}
           setSelectedValue={setSelectedValue}
         />
