@@ -34,7 +34,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
       return (
         <div>
           <Annotation
-            rightPanelModel={this._jgisModel}
+            jgisModel={this._jgisModel}
             annotationModel={this._annotationModel}
             itemId={id}
           />

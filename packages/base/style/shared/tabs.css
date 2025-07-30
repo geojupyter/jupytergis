@@ -60,7 +60,7 @@
   outline: none;
   width: 100%;
   overflow-y: scroll;
-  max-height: 600px;
+  max-height: 480px;
 }
 
 .jgis-tabs-content:focus-visible {

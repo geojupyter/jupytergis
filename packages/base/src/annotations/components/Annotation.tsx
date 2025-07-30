@@ -14,18 +14,17 @@ import { Message } from './Message';
 export interface IAnnotationProps {
   itemId: string;
   annotationModel: IAnnotationModel;
-  rightPanelModel?: IJupyterGISModel;
+  jgisModel?: IJupyterGISModel;
   children?: JSX.Element[] | JSX.Element;
 }
 
 const Annotation: React.FC<IAnnotationProps> = ({
   itemId,
   annotationModel,
-  rightPanelModel,
+  jgisModel,
   children,
 }) => {
   const [messageContent, setMessageContent] = useState('');
-  const jgisModel = rightPanelModel;
   const annotation = annotationModel.getAnnotation(itemId);
   const contents = useMemo(() => annotation?.contents ?? [], [annotation]);
 
@@ -87,7 +86,7 @@ const Annotation: React.FC<IAnnotationProps> = ({
         <Button className="jp-mod-styled jp-mod-warn" onClick={handleDelete}>
           <FontAwesomeIcon icon={faTrash} />
         </Button>
-        {rightPanelModel && (
+        {jgisModel && (
           <Button
             className="jp-mod-styled jp-mod-accept"
             onClick={centerOnAnnotation}
