@@ -30,6 +30,8 @@ test.describe('#annotations', () => {
         y: 194,
       },
     });
+
+    await page.getByText('Annotations').click();
     await page.getByText('Add annotation').click();
     await page
       .getByLabel('annotation-test.jGIS')
