@@ -61,7 +61,10 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
             );
           })}
         </TabsList>
-        <TabsContent value="layers" className="jgis-panel-tab-content">
+        <TabsContent
+          value="layers"
+          className="jgis-panel-tab-content jp-gis-layerPanel"
+        >
           <LayersBodyComponent
             model={props.model}
             commands={props.commands}

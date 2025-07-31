@@ -70,6 +70,8 @@ test.describe('#stac-browser', () => {
     const main = page.locator('.jGIS-Mainview');
     await expect(main).toBeVisible();
 
+    await page.getByText('Stac Browser').click();
+
     await page.getByRole('button', { name: 'Collection' }).click();
     await page.getByRole('menuitem', { name: 'Sentinel 2' }).hover();
     await page.getByRole('menuitemcheckbox', { name: 'PEPS_S2_L1C' }).click();

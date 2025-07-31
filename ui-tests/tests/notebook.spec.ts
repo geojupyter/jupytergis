@@ -9,7 +9,9 @@ const testCellOutputs = async (
   tmpPath: string,
   theme: 'JupyterLab Light' | 'JupyterLab Dark',
 ) => {
-  const paths = klaw(path.resolve(__dirname, './notebooks'), { nodir: true });
+  const paths = klaw(path.resolve(__dirname, './notebooks'), {
+    nodir: true,
+  });
   const notebooks = paths.map(item => path.basename(item.path));
 
   const contextPrefix = theme == 'JupyterLab Light' ? 'light' : 'dark';
@@ -22,9 +24,6 @@ const testCellOutputs = async (
     await page.notebook.activate(notebook);
 
     await page.waitForTimeout(1000);
-    if (await page.getByRole('button', { name: 'Ok' }).isVisible()) {
-      await page.getByRole('button', { name: 'Ok' }).click();
-    }
     let numCellImages = 0;
 
     const getCaptureImageName = (
