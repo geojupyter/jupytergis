@@ -1,1 +1,1 @@
-export * from './StacBrowser';
+export * from './components/StacPanel';

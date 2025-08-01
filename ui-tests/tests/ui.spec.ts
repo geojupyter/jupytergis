@@ -49,17 +49,19 @@ test.describe('UI Test', () => {
         await page.notebook.activate(fullPath);
         await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
         await page.waitForTimeout(1000);
-        if (await page.getByRole('button', { name: 'Ok' }).isVisible()) {
-          await page.getByRole('button', { name: 'Ok' }).click();
+        if (
+          await page
+            .getByRole('button', {
+              name: 'Ok',
+            })
+            .isVisible()
+        ) {
+          await page
+            .getByRole('button', {
+              name: 'Ok',
+            })
+            .click();
         }
-        await page
-          .getByRole('tablist', { name: 'main sidebar' })
-          .getByRole('tab', { name: 'JupyterGIS Control Panel' })
-          .click();
-        await page
-          .getByRole('tablist', { name: 'alternate sidebar' })
-          .getByRole('tab', { name: 'JupyterGIS Control Panel' })
-          .click();
         await page.waitForTimeout(1000);
         expect(errors).toBe(0);
 

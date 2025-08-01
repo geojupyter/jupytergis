@@ -4,93 +4,27 @@ import {
   IDict,
   IJupyterGISClientState,
   IJupyterGISModel,
-  IJupyterGISTracker,
 } from '@jupytergis/schema';
 import { User } from '@jupyterlab/services';
-import { LabIcon, ReactWidget, caretDownIcon } from '@jupyterlab/ui-components';
-import { Panel } from '@lumino/widgets';
+import { LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { IControlPanelModel } from '@/src/types';
-
-export class IdentifyPanel extends Panel {
-  constructor(options: IdentifyPanel.IOptions) {
-    super();
-    this._model = options.model;
-    this._tracker = options.tracker;
-
-    this.id = 'jupytergis::identifyPanel';
-    this.title.caption = 'Identify';
-    this.title.label = 'Identify';
-    this.addClass('jgis-scrollable');
-
-    this.addWidget(
-      ReactWidget.create(
-        <IdentifyPanelComponent
-          controlPanelModel={this._model}
-          tracker={this._tracker}
-        />,
-      ),
-    );
-  }
-
-  private _model: IControlPanelModel | undefined;
-  private _tracker: IJupyterGISTracker;
-}
-
-export namespace IdentifyPanel {
-  export interface IOptions {
-    model: IControlPanelModel;
-    tracker: IJupyterGISTracker;
-  }
-}
-
 interface IIdentifyComponentProps {
-  controlPanelModel: IControlPanelModel;
-  tracker: IJupyterGISTracker;
+  model: IJupyterGISModel;
 }
 
-const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
-  controlPanelModel,
-  tracker,
+export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
+  model,
 }) => {
-  const [widgetId, setWidgetId] = useState('');
   const [features, setFeatures] = useState<IDict<any>>();
   const [visibleFeatures, setVisibleFeatures] = useState<IDict<any>>({
     0: true,
   });
   const [remoteUser, setRemoteUser] = useState<User.IIdentity | null>(null);
-  const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
-    controlPanelModel?.jGISModel,
-  );
 
   const featuresRef = useRef(features);
-  /**
-   * Update the model when it changes.
-   */
-  controlPanelModel?.documentChanged.connect((_, widget) => {
-    setJgisModel(widget?.model);
-  });
 
   // Reset state values when current widget changes
-  useEffect(() => {
-    const handleCurrentChanged = () => {
-      if (tracker.currentWidget?.id === widgetId) {
-        return;
-      }
-
-      if (tracker.currentWidget) {
-        setWidgetId(tracker.currentWidget.id);
-      }
-      setFeatures({});
-      setVisibleFeatures({ 0: true });
-    };
-    tracker.currentChanged.connect(handleCurrentChanged);
-
-    return () => {
-      tracker.currentChanged.disconnect(handleCurrentChanged);
-    };
-  }, []);
 
   useEffect(() => {
     featuresRef.current = features;
@@ -101,7 +35,7 @@ const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       sender: IJupyterGISModel,
       clients: Map<number, IJupyterGISClientState>,
     ) => {
-      const remoteUserId = jgisModel?.localState?.remoteUser;
+      const remoteUserId = model?.localState?.remoteUser;
 
       // If following a collaborator
       if (remoteUserId) {
@@ -117,34 +51,30 @@ const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       }
 
       // If not following a collaborator
-      const identifiedFeatures =
-        jgisModel?.localState?.identifiedFeatures?.value;
+      const identifiedFeatures = model?.localState?.identifiedFeatures?.value;
 
       if (!identifiedFeatures) {
         setFeatures({});
         return;
       }
 
-      if (
-        jgisModel.isIdentifying &&
-        featuresRef.current !== identifiedFeatures
-      ) {
+      if (model.isIdentifying && featuresRef.current !== identifiedFeatures) {
         setFeatures(identifiedFeatures);
       }
     };
 
-    jgisModel?.clientStateChanged.connect(handleClientStateChanged);
+    model?.clientStateChanged.connect(handleClientStateChanged);
 
     return () => {
-      jgisModel?.clientStateChanged.disconnect(handleClientStateChanged);
+      model?.clientStateChanged.disconnect(handleClientStateChanged);
     };
-  }, [jgisModel]);
+  }, [model]);
 
   const highlightFeatureOnMap = (feature: any) => {
-    jgisModel?.highlightFeatureSignal?.emit(feature);
+    model?.highlightFeatureSignal?.emit(feature);
 
     const geometry = feature.geometry || feature._geometry;
-    jgisModel?.flyToGeometrySignal?.emit(geometry);
+    model?.flyToGeometrySignal?.emit(geometry);
   };
 
   const toggleFeatureVisibility = (index: number) => {
@@ -158,7 +88,7 @@ const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     <div
       className="jgis-identify-wrapper"
       style={{
-        border: jgisModel?.localState?.remoteUser
+        border: model?.localState?.remoteUser
           ? `solid 3px ${remoteUser?.color}`
           : 'unset',
       }}
@@ -216,7 +146,9 @@ const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
                       {typeof value === 'string' &&
                       /<\/?[a-z][\s\S]*>/i.test(value) ? (
                         <span
-                          dangerouslySetInnerHTML={{ __html: `${value}` }}
+                          dangerouslySetInnerHTML={{
+                            __html: `${value}`,
+                          }}
                         />
                       ) : (
                         <span>{String(value)}</span>
@@ -230,5 +162,3 @@ const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     </div>
   );
 };
-
-export default IdentifyPanel;

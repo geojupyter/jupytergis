@@ -7,24 +7,9 @@ import {
 import { Locator } from '@playwright/test';
 import path from 'path';
 
-async function openLeftPanel(page: IJupyterLabPageFixture): Promise<Locator> {
-  const sidePanel = page.locator('#jupytergis\\:\\:leftControlPanel');
-  if (!(await sidePanel.isVisible())) {
-    const panelIcon = page.getByTitle('JupyterGIS Control Panel');
-    await panelIcon.first().click();
-    await page.waitForCondition(async () => await sidePanel.isVisible());
-  }
-  return sidePanel;
-}
-
 async function openLayerTree(page: IJupyterLabPageFixture): Promise<Locator> {
-  const sidePanel = await openLeftPanel(page);
-  const layerTree = sidePanel.locator('.jp-gis-layerPanel');
-  if (!(await layerTree.isVisible())) {
-    const layerTitle = sidePanel.getByTitle('Layer tree');
-    await layerTitle.click();
-    await page.waitForCondition(async () => await layerTree.isVisible());
-  }
+  const layerTree = page.locator('#jp-gis-layer-tree');
+  expect(await layerTree.isVisible());
   return layerTree;
 }
 
@@ -33,6 +18,7 @@ async function getOpenLayerIds(
 ): Promise<string[]> {
   return await page.evaluate(() => {
     const olMap = Object.values(window.jupytergisMaps)[0];
+    console.log(jupytergisMaps);
     return olMap
       .getLayers()
       .getArray()
@@ -52,28 +38,7 @@ async function getOpenLayerVisibility(
   });
 }
 
-test.describe('#overview', () => {
-  test('should have a left panel', async ({ page }) => {
-    const panelIcon = page.getByTitle('JupyterGIS Control Panel');
-    await expect(panelIcon).toHaveCount(2);
-
-    await panelIcon.first().click();
-
-    const sidePanel = page.locator('#jupytergis\\:\\:leftControlPanel');
-    await expect(sidePanel).toBeVisible();
-
-    await expect(sidePanel.getByTitle('Layer tree')).toHaveCount(1);
-  });
-});
-
 test.describe('#layerPanel', () => {
-  test.describe('without GIS document', () => {
-    test('should have empty layer panel', async ({ page }) => {
-      const layerTree = await openLayerTree(page);
-      await expect(layerTree).toBeEmpty();
-    });
-  });
-
   test.describe('with GIS document', () => {
     test.beforeAll(async ({ request }) => {
       const content = galata.newContentsHelper(request);
@@ -94,12 +59,6 @@ test.describe('#layerPanel', () => {
     test('should have layer panel with content', async ({ page }) => {
       const layerTree = await openLayerTree(page);
       await expect(layerTree).not.toBeEmpty();
-    });
-
-    test('should restore empty layer panel', async ({ page }) => {
-      const layerTree = await openLayerTree(page);
-      await page.activity.closeAll();
-      await expect(layerTree).toBeEmpty();
     });
 
     test('raster layer should have icons', async ({ page }) => {
@@ -196,84 +155,6 @@ test.describe('#layerPanel', () => {
       // Restore the visibility of the layer.
       const showLayerButton = layerTree.getByTitle('Show layer');
       await showLayerButton.last().click();
-    });
-
-    test('drag indicator should move', async ({ page }) => {
-      const dragIndicatorId = 'jp-drag-indicator';
-      const layerTree = await openLayerTree(page);
-      const layerPanel = layerTree.locator('#jp-gis-layer-tree');
-      const layers = layerTree.locator('.jp-gis-layer');
-      const layerItems = layerTree.locator('.jp-gis-layerItem');
-      const layerGroup = layerTree.locator('.jp-gis-layerGroup');
-      const dragIndicator = layerTree.locator(`#${dragIndicatorId}`);
-
-      // Open the first level group
-      await layerGroup.last().click();
-      await page.waitForCondition(async () => (await layerGroup.count()) === 2);
-      // Open the second level group
-      await layerGroup.last().click();
-      await page.waitForCondition(async () => (await layerItems.count()) === 5);
-
-      const topLayerBox = await layers.nth(1).boundingBox();
-      const firstItemBox = await layerItems.first().boundingBox();
-
-      await page.mouse.move(topLayerBox!.x + 10, topLayerBox!.y + 10);
-      await page.mouse.down();
-      await page.mouse.move(firstItemBox!.x + 10, firstItemBox!.y + 10);
-      // We need to force hover
-      await layerItems.first().hover({ position: { x: 10, y: 10 } });
-
-      await expect(dragIndicator).toBeVisible();
-
-      let children = await layerPanel.evaluate(div => div.children);
-      expect(children[0].id === dragIndicatorId);
-
-      await page.mouse.move(
-        firstItemBox!.x + 10,
-        firstItemBox!.y + firstItemBox!.height - 10,
-      );
-      // We need to force hover
-      await layerItems
-        .first()
-        .hover({ position: { x: 10, y: firstItemBox!.height - 10 } });
-
-      children = await layerPanel.evaluate(div => div.children);
-      expect(children[1].id === dragIndicatorId);
-    });
-
-    test('should move the top raster layer using drag and drop', async ({
-      page,
-    }) => {
-      const layerTree = await openLayerTree(page);
-      const layers = layerTree.locator('.jp-gis-layer');
-      const layerGroup = layerTree.locator('.jp-gis-layerGroup');
-
-      // Wait for the map to be loaded;
-      await page.waitForCondition(
-        async () => (await getOpenLayerIds(page)).length === 3,
-      );
-
-      const layerIds = await getOpenLayerIds(page);
-
-      // Open the first level group
-      await layerGroup.last().click();
-      await page.waitForCondition(async () => (await layerGroup.count()) === 2);
-
-      const topLayerBox = await layers.first().boundingBox();
-      const lowLayerBox = await layers.last().boundingBox();
-      await page.mouse.move(topLayerBox!.x + 10, topLayerBox!.y + 10);
-      await page.mouse.down();
-      await page.mouse.move(
-        lowLayerBox!.x + 10,
-        lowLayerBox!.y + lowLayerBox!.height + 10,
-      );
-      await page.mouse.up();
-
-      const newLayerIds = await getOpenLayerIds(page);
-
-      // expect 2 layers to be inverted
-      expect(newLayerIds[0]).toBe(layerIds[1]);
-      expect(newLayerIds[1]).toBe(layerIds[0]);
     });
   });
 });

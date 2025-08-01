@@ -23,31 +23,42 @@ test.describe('#annotations', () => {
     const main = page.locator('.jGIS-Mainview');
     await expect(main).toBeVisible();
 
-    await page.locator('canvas').click({
-      button: 'right',
-      position: {
-        x: 253,
-        y: 194,
-      },
+    await page.getByText('Annotations').click();
+    await page.evaluate(() => {
+      const el = document.querySelector('canvas');
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      el.dispatchEvent(
+        new MouseEvent('contextmenu', {
+          bubbles: true,
+          cancelable: true,
+          button: 2,
+          clientX: rect.left + 10,
+          clientY: rect.top + 10,
+        }),
+      );
     });
+
     await page.getByText('Add annotation').click();
     await page
       .getByLabel('annotation-test.jGIS')
       .getByPlaceholder('Ctrl+Enter to submit')
+      .first()
       .click();
     await page
       .getByLabel('annotation-test.jGIS')
       .getByPlaceholder('Ctrl+Enter to submit')
+      .first()
       .fill('this is a test');
     await page
-      .getByRole('region', { name: 'notebook content' })
-      .getByRole('button')
+      .locator('.jGIS-Annotation-Buttons')
+      .locator('button')
       .nth(1)
       .click();
 
     // Check map
     await expect(
-      page.getByLabel('annotation-test.jGIS').getByRole('paragraph'),
+      page.locator('.jGIS-Annotation-Message').first(),
     ).toContainText('this is a test');
 
     // Check side panel
@@ -57,8 +68,8 @@ test.describe('#annotations', () => {
 
     // Delete
     await page
-      .getByRole('region', { name: 'notebook content' })
-      .getByRole('button')
+      .locator('.jGIS-Annotation-Buttons')
+      .locator('button')
       .first()
       .click();
     await page.getByRole('button', { name: 'Delete' }).click();

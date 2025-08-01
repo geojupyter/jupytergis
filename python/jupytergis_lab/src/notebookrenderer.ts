@@ -11,6 +11,10 @@ import {
   IJupyterGISDoc,
   IJupyterGISDocTracker,
   JupyterGISModel,
+  IJGISFormSchemaRegistry,
+  IAnnotationModel,
+  IJGISFormSchemaRegistryToken,
+  IAnnotationToken,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -21,6 +25,7 @@ import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { Contents } from '@jupyterlab/services';
+import { IStateDB } from '@jupyterlab/statedb';
 import { Toolbar } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { MessageLoop } from '@lumino/messaging';
@@ -80,8 +85,22 @@ export class YJupyterGISLuminoWidget extends Panel {
    * @param options
    */
   private _buildWidget = (options: IOptions) => {
-    const { commands, model, externalCommands, tracker } = options;
-    const content = new JupyterGISPanel({ model, commandRegistry: commands });
+    const {
+      commands,
+      model,
+      externalCommands,
+      tracker,
+      formSchemaRegistry,
+      state,
+      annotationModel,
+    } = options;
+    const content = new JupyterGISPanel({
+      model,
+      commandRegistry: commands,
+      formSchemaRegistry,
+      state,
+      annotationModel,
+    });
     let toolbar: Toolbar | undefined = undefined;
     if (model.filePath) {
       toolbar = new ToolbarWidget({
@@ -107,6 +126,9 @@ interface IOptions {
   model: JupyterGISModel;
   externalCommands?: IJGISExternalCommandRegistry;
   tracker?: JupyterGISTracker;
+  formSchemaRegistry?: IJGISFormSchemaRegistry;
+  state?: IStateDB;
+  annotationModel?: IAnnotationModel;
 }
 
 export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
@@ -117,6 +139,9 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     IJupyterGISDocTracker,
     IJupyterYWidgetManager,
     ICollaborativeDrive,
+    IStateDB,
+    IJGISFormSchemaRegistryToken,
+    IAnnotationToken,
   ],
   activate: (
     app: JupyterFrontEnd,
@@ -124,6 +149,9 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
     drive?: ICollaborativeDrive,
+    formSchemaRegistry?: IJGISFormSchemaRegistry,
+    state?: IStateDB,
+    annotationModel?: IAnnotationModel,
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -204,7 +232,11 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           commands: app.commands,
           model: yModel.jupyterGISModel,
           externalCommands: externalCommandRegistry,
+
           tracker: jgisTracker,
+          annotationModel,
+          state,
+          formSchemaRegistry,
         });
         this._jgisWidget = widget.jgisWidget;
 
