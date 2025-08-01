@@ -71,6 +71,9 @@ import {
   XYZ as XYZSource,
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
+import { TileSourceEvent } from 'ol/source/Tile';
+import VectorTile from "ol/source/VectorTile";
+// @ts-ignore
 import TileSource from 'ol/source/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
@@ -620,6 +623,23 @@ export class MainView extends React.Component<IProps, IStates> {
             url: url,
           });
         }
+
+      console.log('New VectorTileSource created:', newSource);
+
+      newSource.on('tileloadend', (event: TileSourceEvent) => {
+        console.log('Tile loaded:', event.tile.getKey());
+
+        const tile = event.tile as unknown as VectorTile;
+
+        // getFeatures() is only available on VectorTiles
+        const features = tile.getProperties().features as FeatureLike[];
+        if (features && features.length > 0) {
+          console.log('Tile loaded with features:');
+          features.forEach((feature: FeatureLike) => {
+            console.log('Feature properties:', feature.getProperties());
+          });
+        }
+      });
 
         break;
       }
