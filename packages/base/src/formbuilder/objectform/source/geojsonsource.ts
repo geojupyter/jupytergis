@@ -41,19 +41,21 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
    *
    * @param path - the path to validate.
    */
-  protected async _validatePath(path: string) {
+  protected async _validatePath(path: string | undefined) {
     const extraErrors: IDict = this.state.extraErrors;
 
     let error = '';
-    let valid = true;
+    let valid;
     if (path) {
       try {
+        console.log('We have a path')
         const geoJSONData = await loadFile({
           filepath: path,
           type: this.props.sourceType,
           model: this.props.model,
         });
         valid = this._validate(geoJSONData);
+        console.log('valid is', valid)
         if (!valid) {
           error = `"${path}" is not a valid GeoJSON file`;
         }
@@ -61,6 +63,11 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
         error = `"${path}" is not a valid GeoJSON file: ${e}`;
       }
     }
+    else {
+      console.log('No path')
+      valid = true;
+    }
+  
 
     if (!valid) {
       extraErrors.path = {
@@ -92,7 +99,7 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
         type: 'FeatureCollection',
         features: [],
       };
-      super.onFormSubmit(e);
     }
+     super.onFormSubmit(e);
   }
 }
