@@ -2,6 +2,34 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.7.0
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.6.2...4d0075ac0bde0b4fdd9e22b0ca62453f17a7be30))
+
+### Enhancements made
+
+- Change default colormap from 'cool' to 'viridis' [#828](https://github.com/geojupyter/jupytergis/pull/828) ([@mfisher87](https://github.com/mfisher87))
+- Embed side panels in map view [#784](https://github.com/geojupyter/jupytergis/pull/784) ([@Gauss-Taylor-Euler](https://github.com/Gauss-Taylor-Euler))
+- Add GeoParquet support [#727](https://github.com/geojupyter/jupytergis/pull/727) ([@elifsu-simula](https://github.com/elifsu-simula))
+
+### Maintenance and upkeep improvements
+
+- Fix bot again [#834](https://github.com/geojupyter/jupytergis/pull/834) ([@martinRenou](https://github.com/martinRenou))
+- Bump form-data from 4.0.3 to 4.0.4 [#832](https://github.com/geojupyter/jupytergis/pull/832) ([@dependabot](https://github.com/dependabot))
+- Cleanup examples [#822](https://github.com/geojupyter/jupytergis/pull/822) ([@martinRenou](https://github.com/martinRenou))
+
+### Other merged PRs
+
+- Try fixing snapshots bot [#833](https://github.com/geojupyter/jupytergis/pull/833) ([@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-07-16&to=2025-08-01&type=c))
+
+[@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-07-16..2025-08-01&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adependabot+updated%3A2025-07-16..2025-08-01&type=Issues) | [@elifsu-simula](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aelifsu-simula+updated%3A2025-07-16..2025-08-01&type=Issues) | [@Gauss-Taylor-Euler](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AGauss-Taylor-Euler+updated%3A2025-07-16..2025-08-01&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-07-16..2025-08-01&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-07-16..2025-08-01&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-07-16..2025-08-01&type=Issues) | [@MMesch](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2025-07-16..2025-08-01&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.6.2
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.6.1...86d8b46951ad45e215b75f2c16777224aabf9bce))
@@ -15,8 +43,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-07-15&to=2025-07-16&type=c))
 
 [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-07-15..2025-07-16&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-07-15..2025-07-16&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.6.1
 
