@@ -740,7 +740,6 @@ export function addCommands(
       if (!currentWidget || !completionProviderManager) {
         return;
       }
-      console.log('zooming');
       const model = tracker.currentWidget.model;
       const selectedItems = model.localState?.selected.value;
 
@@ -961,7 +960,7 @@ namespace Private {
     const selected = model?.localState?.selected?.value;
 
     if (!selected) {
-      console.info('Nothing selected');
+      console.error('Failed to remove selected item -- nothing selected');
       return;
     }
 
