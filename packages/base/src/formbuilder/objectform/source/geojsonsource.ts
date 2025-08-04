@@ -1,5 +1,7 @@
 import { IDict } from '@jupytergis/schema';
 import * as geojson from '@jupytergis/schema/src/schema/geojson.json';
+import { showErrorMessage } from '@jupyterlab/apputils';
+import { ISubmitEvent } from '@rjsf/core';
 import { Ajv, ValidateFunction } from 'ajv';
 
 import { loadFile } from '@/src/tools';
@@ -27,6 +29,10 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
     if (data?.path !== '') {
       this.removeFormEntry('data', data, schema, uiSchema);
     }
+    if (this.props.formContext === 'create') {
+      schema.properties.path.description =
+        'The local path to a GeoJSON file. (If no path/url is provided, an empty GeoJSON is created.)';
+    }
 
     super.processSchema(data, schema, uiSchema);
   }
@@ -36,11 +42,11 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
    *
    * @param path - the path to validate.
    */
-  protected async _validatePath(path: string) {
+  protected async _validatePath(path: string | undefined) {
     const extraErrors: IDict = this.state.extraErrors;
 
     let error = '';
-    let valid = false;
+    let valid = true;
     if (path) {
       try {
         const geoJSONData = await loadFile({
@@ -55,8 +61,6 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
       } catch (e) {
         error = `"${path}" is not a valid GeoJSON file: ${e}`;
       }
-    } else {
-      error = 'Path is required';
     }
 
     if (!valid) {
@@ -78,5 +82,18 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
     if (this.props.formErrorSignal) {
       this.props.formErrorSignal.emit(!valid);
     }
+  }
+  protected onFormSubmit(e: ISubmitEvent<any>) {
+    if (this.state.extraErrors?.path?.__errors?.length >= 1) {
+      showErrorMessage('Invalid file', this.state.extraErrors.path.__errors[0]);
+      return;
+    }
+    if (!e.formData.path) {
+      e.formData.data = {
+        type: 'FeatureCollection',
+        features: [],
+      };
+    }
+    super.onFormSubmit(e);
   }
 }
