@@ -34,6 +34,9 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
         'The local path to a GeoJSON file. (If no path/url is provided, an empty GeoJSON is created.)'),
         super.processSchema(data, schema, uiSchema));
     }
+    if (this.props.formContext === 'update') {
+      super.processSchema(data, schema, uiSchema);
+    }
   }
 
   /**
@@ -45,17 +48,17 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
     const extraErrors: IDict = this.state.extraErrors;
 
     let error = '';
-    let valid;
+    let valid = true;
     if (path) {
       try {
-        console.log('We have a path')
+        console.log('We have a path');
         const geoJSONData = await loadFile({
           filepath: path,
           type: this.props.sourceType,
           model: this.props.model,
         });
         valid = this._validate(geoJSONData);
-        console.log('valid is', valid)
+        console.log('valid is', valid);
         if (!valid) {
           error = `"${path}" is not a valid GeoJSON file`;
         }
@@ -63,11 +66,6 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
         error = `"${path}" is not a valid GeoJSON file: ${e}`;
       }
     }
-    else {
-      console.log('No path')
-      valid = true;
-    }
-  
 
     if (!valid) {
       extraErrors.path = {
@@ -100,6 +98,6 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
         features: [],
       };
     }
-     super.onFormSubmit(e);
+    super.onFormSubmit(e);
   }
 }
