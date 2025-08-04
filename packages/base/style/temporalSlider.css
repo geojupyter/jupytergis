@@ -5,6 +5,7 @@
   padding: 0.5rem;
   background-color: var(--jp-layout-color1);
   border-bottom: 1px solid var(--jp-border-color1);
+  z-index: 99;
 }
 
 .jp-gis-temporal-slider-container span,

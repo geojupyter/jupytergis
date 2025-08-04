@@ -37,7 +37,7 @@
   {
     "command": "jupytergis:renameLayer",
     "keys": ["F2"],
-    "selector": ".data-jgis-keybinding .jp-gis-layerItem"
+    "selector": ".jp-gis-layerItem"
   },
   {
     "command": "jupytergis:removeGroup",
@@ -47,7 +47,7 @@
   {
     "command": "jupytergis:renameGroup",
     "keys": ["F2"],
-    "selector": ".data-jgis-keybinding .jp-gis-layerGroupHeader"
+    "selector": ".jp-gis-layerGroupHeader"
   },
   {
     "command": "jupytergis:executeConsole",

@@ -26,6 +26,7 @@ test.describe('#filters', () => {
     /// Open Layer
     await page.getByText('Custom GeoJSON Layer', { exact: true }).click();
 
+    await page.getByText('Filters').click();
     // Add first filter
     await page.getByRole('button', { name: 'Add' }).click();
     await page.locator('#jp-gis-feature-select-0').selectOption('mag');
