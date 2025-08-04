@@ -27,7 +27,9 @@ export const useGetProperties = ({
   const [error, setError] = useState<Error | undefined>();
 
   const getProperties = async () => {
-    if (!layerId) {return;}
+    if (!layerId) {
+      return;
+    }
 
     setIsLoading(true);
     setError(undefined);
@@ -51,12 +53,16 @@ export const useGetProperties = ({
           model: model,
         });
 
-        if (!data) {throw new Error('Failed to read GeoJSON data');}
+        if (!data) {
+          throw new Error('Failed to read GeoJSON data');
+        }
 
         data.features.forEach((feature: GeoJSONFeature1) => {
           if (feature.properties) {
             for (const [key, value] of Object.entries(feature.properties)) {
-              if (!result[key]) {result[key] = new Set();}
+              if (!result[key]) {
+                result[key] = new Set();
+              }
               result[key].add(value);
             }
           }
@@ -80,13 +86,17 @@ export const useGetProperties = ({
         );
         console.log('urhrfb', features);
 
-        if (!features) {throw new Error('No features found in extent');}
+        if (!features) {
+          throw new Error('No features found in extent');
+        }
 
         features.forEach(feature => {
           const props = feature.getProperties?.();
           if (props) {
             for (const [key, value] of Object.entries(props)) {
-              if (!result[key]) {result[key] = new Set();}
+              if (!result[key]) {
+                result[key] = new Set();
+              }
               result[key].add(value);
             }
           }
