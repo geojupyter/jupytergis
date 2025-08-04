@@ -36,25 +36,30 @@ type SelectableRenderTypes = {
 const RENDER_TYPE_OPTIONS: RenderTypeOptions = {
   'Single Symbol': {
     component: SimpleSymbol,
-    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer'],
+    supportedLayerTypes: [
+      'VectorLayer',
+      'VectorTileLayer',
+      'VectorTileLayer',
+      'HeatmapLayer',
+    ],
     isTabbed: true,
   },
   Canonical: {
     component: Canonical,
     attributeChecker: getColorCodeFeatureAttributes,
-    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
+    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer'],
     isTabbed: false,
   },
   Graduated: {
     component: Graduated,
     attributeChecker: getNumericFeatureAttributes,
-    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
+    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer'],
     isTabbed: true,
   },
   Categorized: {
     component: Categorized,
     attributeChecker: getNumericFeatureAttributes,
-    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
+    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer'],
     isTabbed: true,
   },
   Heatmap: {

@@ -37,7 +37,14 @@ import { User } from '@jupyterlab/services';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu } from '@lumino/widgets';
-import { Collection, MapBrowserEvent, Map as OlMap, VectorTile, View, getUid } from 'ol';
+import {
+  Collection,
+  MapBrowserEvent,
+  Map as OlMap,
+  VectorTile,
+  View,
+  getUid,
+} from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -623,23 +630,16 @@ export class MainView extends React.Component<IProps, IStates> {
           });
         }
 
-      console.log('New VectorTileSource created:', newSource);
+        newSource.on('tileloadend', (event: TileSourceEvent) => {
+          const tile = event.tile as VectorTile<FeatureLike>;
+          const features = tile.getFeatures();
+          console.log('Loaded features:', features);
 
-      newSource.on('tileloadend', (event: TileSourceEvent) => {
-        console.log('Tile loaded:', event.tile.getKey());
-
-        const tile = event.tile as VectorTile<FeatureLike>;
-
-        // getFeatures() is only available on VectorTiles
-        const features = tile.getFeatures()
-        if (features && features.length > 0) {
-          console.log('Tile loaded with features:');
-          features.forEach((feature: FeatureLike) => {
-            console.log('Feature properties:', feature.getProperties());
-          });
-        }
-      });
-
+          if (features && features.length > 0) {
+            this._model.syncTileFeatures(id, features);
+          }
+          console.log('model instance in mainView:', this._model);
+        });
 
         break;
       }
@@ -2260,4 +2260,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
   private _updateCenter: CallableFunction;
+  // private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
 }

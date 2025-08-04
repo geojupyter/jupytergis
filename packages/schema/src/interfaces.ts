@@ -13,6 +13,7 @@ import { Contents, User } from '@jupyterlab/services';
 import { JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel } from '@lumino/widgets';
+import { FeatureLike } from 'ol/Feature';
 
 import {
   IJGISContent,
@@ -185,6 +186,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   filePath: string;
 
   pathChanged: ISignal<IJupyterGISModel, string>;
+  getFeaturesForLayer: (id: string) => FeatureLike[];
+  syncTileFeatures: (id: string, features: FeatureLike[]) => void;
 
   getSettings(): IJupyterGISSettings;
   getContent(): IJGISContent;
