@@ -175,7 +175,7 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl "jupyter-collaboration>=3,<4" "jupyterlab==4.4.2"
+          python -m pip install jupytergis*.whl "jupyter-collaboration>=3" "jupyterlab==4.4.2"
 
       - name: Install
         shell: bash -l {0}
