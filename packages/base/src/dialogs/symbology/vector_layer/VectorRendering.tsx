@@ -39,7 +39,6 @@ const RENDER_TYPE_OPTIONS: RenderTypeOptions = {
     supportedLayerTypes: [
       'VectorLayer',
       'VectorTileLayer',
-      'VectorTileLayer',
       'HeatmapLayer',
     ],
     isTabbed: true,
