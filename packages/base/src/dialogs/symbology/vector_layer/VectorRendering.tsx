@@ -36,11 +36,7 @@ type SelectableRenderTypes = {
 const RENDER_TYPE_OPTIONS: RenderTypeOptions = {
   'Single Symbol': {
     component: SimpleSymbol,
-    supportedLayerTypes: [
-      'VectorLayer',
-      'VectorTileLayer',
-      'HeatmapLayer',
-    ],
+    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer'],
     isTabbed: true,
   },
   Canonical: {

@@ -31,9 +31,6 @@ export const useGetProperties = ({
       return;
     }
 
-    setIsLoading(true);
-    setError(undefined);
-
     try {
       const layer = model.getLayer(layerId);
       const source = model.getSource(layer?.parameters?.source);
