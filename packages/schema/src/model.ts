@@ -80,7 +80,6 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   getFeaturesForLayer(id: string): FeatureLike[] {
-
     return Array.from(this._tileFeatureCache.get(id) ?? []);
   }
 
