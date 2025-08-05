@@ -68,20 +68,13 @@ export const useGetProperties = ({
         if (!layer?.parameters) {
           return;
         }
-        console.log('model instance in hook:', model);
-        console.log(
-          'getFeaturesForLayer:',
-          model.getFeaturesForLayer(layer.parameters.source),
-        );
         if (typeof model.getFeaturesForLayer !== 'function') {
           throw new Error('model.getFeaturesForLayer not available');
         }
-        console.log('igoingin');
 
         const features = await model.getFeaturesForLayer(
           layer.parameters.source,
         );
-        console.log('urhrfb', features);
 
         if (!features) {
           throw new Error('No features found in extent');

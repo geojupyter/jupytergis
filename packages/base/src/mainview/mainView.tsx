@@ -645,12 +645,10 @@ export class MainView extends React.Component<IProps, IStates> {
         newSource.on('tileloadend', (event: TileSourceEvent) => {
           const tile = event.tile as VectorTile<FeatureLike>;
           const features = tile.getFeatures();
-          console.log('Loaded features:', features);
 
           if (features && features.length > 0) {
             this._model.syncTileFeatures(id, features);
           }
-          console.log('model instance in mainView:', this._model);
         });
 
         break;
