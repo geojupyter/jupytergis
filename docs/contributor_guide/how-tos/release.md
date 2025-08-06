@@ -14,7 +14,7 @@ For full detailed instructions, see the
 
 ## Prerequisites
 
-* To do the following steps, you must have "admin" privileges on the repository.
+- To do the following steps, you must have "admin" privileges on the repository.
 
 ## Step 1a: Prep release
 
