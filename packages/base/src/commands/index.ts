@@ -22,6 +22,7 @@ import { fromLonLat } from 'ol/proj';
 
 import { CommandIDs, icons } from '../constants';
 import { ProcessingFormDialog } from '../dialogs/ProcessingFormDialog';
+import { AttributeTableWidget } from '../dialogs/attributeTable';
 import { LayerBrowserWidget } from '../dialogs/layerBrowserDialog';
 import { LayerCreationFormDialog } from '../dialogs/layerCreationFormDialog';
 import { SymbologyWidget } from '../dialogs/symbology/symbologyDialog';
@@ -843,6 +844,40 @@ export function addCommands(
     icon: targetWithCenterIcon,
   });
 
+  commands.addCommand(CommandIDs.openAttributeTable, {
+  label: trans.__('Open Attribute Table'),
+  isEnabled: () => {
+    const selectedLayer = getSingleSelectedLayer(tracker);
+    return selectedLayer
+      ? ['VectorLayer', 'VectorTileLayer', 'ShapefileLayer'].includes(
+          selectedLayer.type,
+        )
+      : false;
+  },
+  execute: async () => {
+    const currentWidget = tracker.currentWidget;
+    if (!currentWidget) {
+      return;
+    }
+
+    const model = currentWidget.model;
+    const selectedLayers = model.localState?.selected?.value;
+
+    if (!selectedLayers) {
+      console.warn('No layer selected');
+      return;
+    }
+
+    const layerId = Object.keys(selectedLayers)[0];
+
+    // You’ll replace this with the real attribute table dialog/component
+    console.log('Open attribute table for layer:', layerId);
+
+    // TODO: Launch your React dialog here once ready
+    // new AttributeTableDialog({ model, layerId }).launch();
+  },
+});
+
   loadKeybindings(commands, keybindings);
 }
 
@@ -886,6 +921,20 @@ namespace Private {
       await dialog.launch();
     };
   }
+
+  export function createAttributeTableDialog(tracker: JupyterGISTracker) {
+  return async () => {
+    const current = tracker.currentWidget;
+    if (!current) {
+      return;
+    }
+
+    const dialog = new AttributeTableWidget({
+      model: current.model
+    });
+    await dialog.launch();
+  };
+}
 
   export function createEntry({
     tracker,
