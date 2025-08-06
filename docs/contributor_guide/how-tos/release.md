@@ -2,45 +2,71 @@
 
 ## Automated Releases with `jupyter_releaser`
 
-The recommended way to make a release is to use
-[`jupyter_releaser`](https://jupyter-releaser.readthedocs.io/en/latest/get_started/making_release_from_repo.html)
-in GitHub Actions.
-Follow the linked instructions.
-
-**This project uses [Semantic Versioning](https://semver.org)**.
+We use [`jupyter_releaser`](https://jupyter-releaser.readthedocs.io/en/latest/) to
+create our releases in GitHub Actions.
+This document is a quick reference that will work for most releases.
+For full detailed instructions, see the
+[`jupyter_releaser` "Making your first release" document](https://jupyter-releaser.readthedocs.io/en/latest/get_started/making_release_from_repo.html).
 
 :::{important}
-Because this project is in early development, we **do not bump the major version number**.
-Most changes are minor version bumps, even breaking changes.
-See [the SemVer FAQ](https://semver.org/#how-should-i-deal-with-revisions-in-the-0yz-initial-development-phase) for more.
+**This project uses [Semantic Versioning](https://semver.org)**.
 :::
 
-### Specifying a version spec
+## Step 1a: Prep release
 
-When prompted for a "New Version Specifier", the default value is `next`.
-This will bump the packages as follows:
+**This step will bump versions, update the changelog, and create a "draft" release in
+GitHub.**
 
-- `0.1.0a0` -> `0.1.0a1`
-- `0.1.0b7` -> `0.1.0b8`
-- `0.1.0` -> `0.1.1`
+* From the [JupyterGIS actions menu](https://github.com/geojupyter/jupytergis/actions),
+  select "Step 1: Prep Release" action from the left pane.
+* On the right, click "Run workflow". This will present a menu you need to fill out.
+* The only thing you normally need to input here is the "new version specifier".
+  **The default value is `next`, but we recommend always specifying a numeric specifier, e.g. `0.3.0`**.
 
-This is often **not** what we want.
-To bump to another version, you can specify the desired version directly.
-For example:
+  :::{danger}
+  **Specifying a version part (e.g. `minor` or `patch`) for "New Version Specifier" will
+  cause Step 2 to fail.**
 
-- `0.1.0b8`
-- `0.4.0`
-- `1.0.0`
-- `1.2.0rc0`
+  Read below for more important information about the version specifier.
+  :::
 
-You can also specify a version part, e.g.:
+### Version specifier
 
-- `patch`
-  - Would bump `0.3.0` -> `0.3.1`
-- `minor`
-  - Would bump `0.3.0` -> `0.4.0`
-- `major`
-  - Would bump `0.3.0` -> `1.0.0`
+Ensure you understand the [Semantic Versioning](https://semver.org) version part
+definitions ("major", "minor", "patch") before selecting a version.
+
+:::{important}
+Because this project is currently in early development (pre-1.0), we **do not bump the
+major version number**.
+
+This means that **even breaking changes are minor version bumps**.
+
+See [the SemVer FAQ](https://semver.org/#how-should-i-deal-with-revisions-in-the-0yz-initial-development-phase) for more details.
+:::
+
+## Step 1b: Review changelog
+
+**This step will make the release notes more readable for end-users.**
+
+* Visit the new [GitHub "draft" release](https://github.com/geojupyter/jupytergis/releases) created in Step 1a.
+* Edit the release text to fix any typos and make other edits for end-user
+  accessibility.
+  * Remove any bot-created PRs, for example pre-commit hook updates or dependabot PRs.
+  * Remove any bots from the contributor list.
+  * Edit text for readability by end-users where appropriate.
+  * **Click "Save draft" to save your changes**.
+
+    :::{danger}
+    **Do not click "Publish a release" in the GitHub UI**.
+    That will be done automatically in Step 2.
+    :::
+
+## Step 2: Publish a release
+
+* From the [JupyterGIS actions menu](https://github.com/geojupyter/jupytergis/actions),
+  select "Step 2: Publish Release" action from the left pane.
+* On the right, click "Run workflow". This will present a menu, but you can leave it
+  blank.
 
 ## Conda Forge release
 
@@ -75,3 +101,14 @@ JupyterGIS is published to:
 
 Release assets are also available on GitHub. For example for
 [`0.3.0`](https://github.com/geojupyter/jupytergis/releases/tag/v0.3.0):
+
+## Troubleshooting
+
+### "Step 2: Publish release" fails to build a package with a version like `minor`
+
+In Step 1, if you provide a version specifier like `next`, `patch`, or `minor`, Step 2
+will fail.
+Please specify a numeric version specifier like `0.3.0`.
+
+**If you need to re-run Step 1, delete the draft release it created first**, then start
+over.
