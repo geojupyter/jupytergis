@@ -40,7 +40,14 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu } from '@lumino/widgets';
-import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
+import {
+  Collection,
+  MapBrowserEvent,
+  Map as OlMap,
+  VectorTile,
+  View,
+  getUid,
+} from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -72,9 +79,10 @@ import {
   Vector as VectorSource,
   VectorTile as VectorTileSource,
   XYZ as XYZSource,
+  Tile as TileSource,
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
-import TileSource from 'ol/source/Tile';
+import { TileSourceEvent } from 'ol/source/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
@@ -632,6 +640,15 @@ export class MainView extends React.Component<IProps, IStates> {
             url: url,
           });
         }
+
+        newSource.on('tileloadend', (event: TileSourceEvent) => {
+          const tile = event.tile as VectorTile<FeatureLike>;
+          const features = tile.getFeatures();
+
+          if (features && features.length > 0) {
+            this._model.syncTileFeatures({ sourceId: id, features });
+          }
+        });
 
         break;
       }
