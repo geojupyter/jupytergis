@@ -17,10 +17,10 @@ For full detailed instructions, see the
 **This step will bump versions, update the changelog, and create a "draft" release in
 GitHub.**
 
-* From the [JupyterGIS actions menu](https://github.com/geojupyter/jupytergis/actions),
+- From the [JupyterGIS actions menu](https://github.com/geojupyter/jupytergis/actions),
   select "Step 1: Prep Release" action from the left pane.
-* On the right, click "Run workflow". This will present a menu you need to fill out.
-* The only thing you normally need to input here is the "new version specifier".
+- On the right, click "Run workflow". This will present a menu you need to fill out.
+- The only thing you normally need to input here is the "new version specifier".
   **The default value is `next`, but we recommend always specifying a numeric specifier, e.g. `0.3.0`**.
 
   :::{danger}
@@ -48,13 +48,13 @@ See [the SemVer FAQ](https://semver.org/#how-should-i-deal-with-revisions-in-the
 
 **This step will make the release notes more readable for end-users.**
 
-* Visit the new [GitHub "draft" release](https://github.com/geojupyter/jupytergis/releases) created in Step 1a.
-* Edit the release text to fix any typos and make other edits for end-user
+- Visit the new [GitHub "draft" release](https://github.com/geojupyter/jupytergis/releases) created in Step 1a.
+- Edit the release text to fix any typos and make other edits for end-user
   accessibility.
-  * Remove any bot-created PRs, for example pre-commit hook updates or dependabot PRs.
-  * Remove any bots from the contributor list.
-  * Edit text for readability by end-users where appropriate.
-  * **Click "Save draft" to save your changes**.
+  - Remove any bot-created PRs, for example pre-commit hook updates or dependabot PRs.
+  - Remove any bots from the contributor list.
+  - Edit text for readability by end-users where appropriate.
+  - **Click "Save draft" to save your changes**.
 
     :::{danger}
     **Do not click "Publish a release" in the GitHub UI**.
@@ -63,11 +63,10 @@ See [the SemVer FAQ](https://semver.org/#how-should-i-deal-with-revisions-in-the
 
 ## Step 2: Publish a release
 
-* From the [JupyterGIS actions menu](https://github.com/geojupyter/jupytergis/actions),
+- From the [JupyterGIS actions menu](https://github.com/geojupyter/jupytergis/actions),
   select "Step 2: Publish Release" action from the left pane.
-* On the right, click "Run workflow". This will present a menu, but you can leave it
+- On the right, click "Run workflow". This will present a menu, but you can leave it
   blank.
-
 
 ## Step 3: Conda Forge release
 
