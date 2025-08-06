@@ -68,7 +68,14 @@ See [the SemVer FAQ](https://semver.org/#how-should-i-deal-with-revisions-in-the
 * On the right, click "Run workflow". This will present a menu, but you can leave it
   blank.
 
-## Conda Forge release
+
+## Step 3: Conda Forge release
+
+:::{important}
+Before moving on to the Conda Forge release, ensure that JupyterGIS has released on PyPI.
+Check [the PyPI JupyterGIS page](https://pypi.org/project/jupytergis/) to see if the new
+release is present.
+:::
 
 After the PyPI release, a Conda Forge bot will automatically open a PR on
 [our feedstock repo](https://github.com/conda-forge/jupytergis-packages-feedstock).
@@ -79,10 +86,17 @@ title `@conda-forge-admin, please update version`.
 If you need maintainer access to handle releases, you may request access by opening an
 issue with the title `@conda-forge-admin, please add user @my-username`.
 
+:::{caution}
 If the dependencies of JupyterGIS have changed, the Conda Forge recipe must also be
 manually updated -- the bot will not do this for you, but it will likely warn you in a
 comment that it must be done.
+
 Please update `recipe/meta.yaml` to reflect those changes.
+:::
+
+Once the Conda Forge PR is merged, it may take up to an hour for it to be installable.
+You can monitor this on
+[the Anaconda.org JupyterGIS page](https://anaconda.org/conda-forge/jupytergis/files).
 
 ## Release assets
 
