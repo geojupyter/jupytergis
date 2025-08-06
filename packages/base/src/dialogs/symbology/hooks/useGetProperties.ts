@@ -72,11 +72,11 @@ export const useGetProperties = ({
           throw new Error('model.getFeaturesForLayer not available');
         }
 
-        const features = await model.getFeaturesForLayer(
+        const features = model.getFeaturesForLayer(
           layer.parameters.source,
         );
 
-        if (!features) {
+        if (feature.length === 0) {
           throw new Error('No features found in extent');
         }
 

@@ -79,11 +79,10 @@ import {
   Vector as VectorSource,
   VectorTile as VectorTileSource,
   XYZ as XYZSource,
+  Tile as TileSource
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
-// @ts-ignore
-import TileSource from 'ol/source/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
