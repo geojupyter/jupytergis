@@ -95,8 +95,10 @@ Please update `recipe/meta.yaml` to reflect those changes.
 :::
 
 Once the Conda Forge PR is merged, it may take up to an hour for it to be installable.
-You can monitor this on
-[the Anaconda.org JupyterGIS page](https://anaconda.org/conda-forge/jupytergis/files).
+Even after the new release is visible on
+[the Anaconda.org JupyterGIS page](https://anaconda.org/conda-forge/jupytergis/files),
+it may still take up to another hour until it's actually installable with `micromamba`
+or similar tools.
 
 ## Release assets
 
