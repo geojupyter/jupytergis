@@ -12,6 +12,10 @@ For full detailed instructions, see the
 **This project uses [Semantic Versioning](https://semver.org)**.
 :::
 
+## Prerequisites
+
+* To do the following steps, you must have "admin" privileges on the repository.
+
 ## Step 1a: Prep release
 
 **This step will bump versions, update the changelog, and create a "draft" release in
