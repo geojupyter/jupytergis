@@ -79,20 +79,24 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._settings;
   }
 
-  getFeaturesForLayer(id: string): FeatureLike[] {
-    return Array.from(this._tileFeatureCache.get(id) ?? []);
+  getFeaturesForCurrentTile({ sourceId }: { sourceId: string }): FeatureLike[] {
+    return Array.from(this._tileFeatureCache.get(sourceId) ?? []);
   }
 
-  syncTileFeatures(id: string, features: FeatureLike[]): void {
-    let featureSet = this._tileFeatureCache.get(id);
+  syncTileFeatures({
+    sourceId,
+    features,
+  }: {
+    sourceId: string;
+    features: FeatureLike[];
+  }): void {
+    let featureSet = this._tileFeatureCache.get(sourceId);
+
     if (!featureSet) {
       featureSet = new Set();
-      this._tileFeatureCache.set(id, featureSet);
+      this._tileFeatureCache.set(sourceId, featureSet);
     }
-
-    features.forEach(feature => {
-      featureSet.add(feature);
-    });
+    features.forEach(feature => featureSet.add(feature));
   }
 
   private _onSharedModelChanged = (sender: any, changes: any): void => {

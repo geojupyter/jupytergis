@@ -79,7 +79,7 @@ import {
   Vector as VectorSource,
   VectorTile as VectorTileSource,
   XYZ as XYZSource,
-  Tile as TileSource
+  Tile as TileSource,
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
@@ -646,7 +646,7 @@ export class MainView extends React.Component<IProps, IStates> {
           const features = tile.getFeatures();
 
           if (features && features.length > 0) {
-            this._model.syncTileFeatures(id, features);
+            this._model.syncTileFeatures({ sourceId: id, features });
           }
         });
 

@@ -186,8 +186,19 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   filePath: string;
 
   pathChanged: ISignal<IJupyterGISModel, string>;
-  getFeaturesForLayer: ({sourceId: string}) => FeatureLike[];
-  syncTileFeatures: ({sourceId: string, features: FeatureLike[]}) => void;
+
+  getFeaturesForCurrentTile: ({
+    sourceId,
+  }: {
+    sourceId: string;
+  }) => FeatureLike[];
+  syncTileFeatures: ({
+    sourceId,
+    features,
+  }: {
+    sourceId: string;
+    features: FeatureLike[];
+  }) => void;
 
   getSettings(): IJupyterGISSettings;
   getContent(): IJGISContent;

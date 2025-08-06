@@ -68,17 +68,9 @@ export const useGetProperties = ({
         if (!layer?.parameters) {
           return;
         }
-        if (typeof model.getFeaturesForLayer !== 'function') {
-          throw new Error('model.getFeaturesForLayer not available');
-        }
+        const sourceId = layer.parameters.source;
 
-        const features = model.getFeaturesForLayer(
-          layer.parameters.source,
-        );
-
-        if (feature.length === 0) {
-          throw new Error('No features found in extent');
-        }
+        const features = model.getFeaturesForCurrentTile({ sourceId });
 
         features.forEach(feature => {
           const props = feature.getProperties?.();
