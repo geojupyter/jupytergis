@@ -1,4 +1,5 @@
 import { IJupyterGISModel, SelectionType } from '@jupytergis/schema';
+import { PageConfig } from '@jupyterlab/coreutils';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { MouseEvent as ReactMouseEvent } from 'react';
@@ -30,11 +31,14 @@ interface ILeftPanelProps {
 export const LeftPanel: React.FC<ILeftPanelProps> = (
   props: ILeftPanelProps,
 ) => {
+  const hideStacPanel = PageConfig.getOption('HIDE_STAC_PANEL') === 'true';
+
   const tabInfo = [
     { name: 'layers', title: 'Layers' },
-    { name: 'stac', title: 'Stac Browser' },
+    ...(hideStacPanel ? [] : [{ name: 'stac', title: 'Stac Browser' }]),
     { name: 'filters', title: 'Filters' },
   ];
+
   const [curTab, setCurTab] = React.useState<string | undefined>(
     tabInfo[0].name,
   );
@@ -71,9 +75,13 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
             state={props.state}
           ></LayersBodyComponent>
         </TabsContent>
-        <TabsContent value="stac">
-          <StacPanel model={props.model}></StacPanel>
-        </TabsContent>
+
+        {!hideStacPanel && (
+          <TabsContent value="stac">
+            <StacPanel model={props.model}></StacPanel>
+          </TabsContent>
+        )}
+
         <TabsContent value="filters" className="jgis-panel-tab-content">
           <FilterComponent model={props.model}></FilterComponent>,
         </TabsContent>
