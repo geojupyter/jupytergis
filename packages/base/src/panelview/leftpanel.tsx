@@ -49,19 +49,19 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
         <TabsList>
           {tabInfo.map(e => {
             return (
-            <TabsTrigger
-              className="jGIS-layer-browser-category"
-              value={e.name}
-              onClick={() => {
-                if (curTab !== e.name) {
-                  setCurTab(e.name);
-                } else {
-                  setCurTab('');
-                }
-              }}
-            >
-              {e.title}
-            </TabsTrigger>
+              <TabsTrigger
+                className="jGIS-layer-browser-category"
+                value={e.name}
+                onClick={() => {
+                  if (curTab !== e.name) {
+                    setCurTab(e.name);
+                  } else {
+                    setCurTab('');
+                  }
+                }}
+              >
+                {e.title}
+              </TabsTrigger>
             );
           })}
         </TabsList>
@@ -78,7 +78,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 
         {!hideStacPanel && (
           <TabsContent value="stac">
-          <StacPanel model={props.model}></StacPanel>
+            <StacPanel model={props.model}></StacPanel>
           </TabsContent>
         )}
 
