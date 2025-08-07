@@ -102,6 +102,7 @@ import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { LeftPanel, RightPanel } from '../panelview';
+import { toGeometry } from 'ol/render/Feature';
 
 type OlLayerTypes =
   | TileLayer
@@ -641,14 +642,16 @@ export class MainView extends React.Component<IProps, IStates> {
           });
         }
 
-        newSource.on('tileloadend', (event: TileSourceEvent) => {
-          const tile = event.tile as VectorTile<FeatureLike>;
-          const features = tile.getFeatures();
+    newSource.on('tileloadend', (event: TileSourceEvent) => {
+      const tile = event.tile as VectorTile<FeatureLike>;
+      const rawFeatures = tile.getFeatures() as RenderFeature[];
 
-          if (features && features.length > 0) {
-            this._model.syncTileFeatures({ sourceId: id, features });
-          }
-        });
+      if (rawFeatures && rawFeatures.length > 0) {
+        const realFeatures = this.convertRenderFeaturesToFeatures(rawFeatures);
+        this._model.syncTileFeatures({ sourceId: id, features: realFeatures });
+      }
+    });
+
 
         break;
       }
@@ -827,6 +830,24 @@ export class MainView extends React.Component<IProps, IStates> {
     // _sources is a list of OpenLayers sources
     this._sources[id] = newSource;
   }
+
+private convertRenderFeaturesToFeatures(renderFeatures: RenderFeature[]): Feature<Geometry>[] {
+  const features: Feature<Geometry>[] = [];
+
+  for (const rf of renderFeatures) {
+    const properties = rf.getProperties();
+    const geometry = toGeometry(rf);
+
+    if (!geometry) continue;
+
+    const feature = new Feature<Geometry>({ ...properties });
+    feature.setGeometry(geometry);
+    features.push(feature);
+  }
+
+  return features;
+}
+
 
   private computeSourceUrl(source: IJGISSource): string {
     const parameters = source.parameters as IRasterSource;

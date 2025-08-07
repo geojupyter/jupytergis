@@ -79,7 +79,7 @@ export async function getLayerGeoJSON(
     return null;
   }
 
-  return await getGeoJSONDataFromLayerSource(source, model);
+  return await getGeoJSONDataFromLayerSource(layer,source, model);
 }
 
 export type GdalFunctions =
