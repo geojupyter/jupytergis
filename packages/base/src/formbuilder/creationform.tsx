@@ -186,7 +186,8 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
           visible: true,
           name: actualName,
         };
-
+        console.log('sourceData:', this.props.sourceData);
+        console.log('layerData:', this.props.layerData);
         this.jGISModel.addLayer(UUID.uuid4(), layerModel);
       }
     });
