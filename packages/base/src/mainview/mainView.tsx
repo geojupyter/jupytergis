@@ -650,7 +650,10 @@ export class MainView extends React.Component<IProps, IStates> {
           const features = tile.getFeatures();
 
           if (features && features.length > 0) {
-            this._model.syncTileFeatures({ sourceId: id, features });
+            this._model.syncTileFeatures({
+              sourceId: id,
+              features,
+            });
           }
         });
 
@@ -2101,6 +2104,41 @@ export class MainView extends React.Component<IProps, IStates> {
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
+      case 'VectorTileLayer': {
+        const features: any[] = [];
+
+        this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
+          const props = feature.getProperties();
+          const geom = feature.getGeometry();
+          console.log(geom);
+
+          if (geom) {
+            const geometry = geom.clone().transform('EPSG:3857', 'EPSG:4326');
+            features.push({
+              ...props,
+              geometry,
+            });
+          } else {
+            features.push({
+              ...props,
+            });
+          }
+
+          return true;
+        });
+
+        if (features.length > 0) {
+          this._model.syncIdentifiedFeatures(features, this._mainViewModel.id);
+
+          const geometry = features[0].geometry;
+          if (geometry) {
+            this._model.highlightFeatureSignal.emit(geometry);
+          }
+        }
+
+        break;
+      }
+
       case 'WebGlLayer': {
         const layer = this.getLayer(layerId) as WebGlTileLayer;
         const data = layer.getData(e.pixel);
