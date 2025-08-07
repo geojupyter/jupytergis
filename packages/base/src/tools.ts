@@ -959,7 +959,7 @@ export async function getGeoJSONDataFromLayerSource(
   const vectorSourceTypes: SourceType[] = [
     'GeoJSONSource',
     'ShapefileSource',
-    'VectorTileSource'
+    'VectorTileSource',
   ];
 
   if (!vectorSourceTypes.includes(source.type as SourceType)) {
@@ -972,7 +972,6 @@ export async function getGeoJSONDataFromLayerSource(
   const sourceId = selectedLayer.parameters?.source;
   if (source.type === 'VectorTileSource' && sourceId) {
     const features = model.getFeaturesForCurrentTile({ sourceId });
-
 
     const format = new GeoJSON();
     const geojson = format.writeFeaturesObject(features as Feature[]);
