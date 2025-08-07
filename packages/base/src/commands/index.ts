@@ -158,6 +158,7 @@ export function addCommands(
         'VectorLayer',
         'ShapefileLayer',
         'WebGlLayer',
+        'VectorTileLayer',
       ].includes(selectedLayer.type);
       const isIdentifying = current.model.isIdentifying;
 
@@ -174,9 +175,13 @@ export function addCommands(
       if (!selectedLayer) {
         return false;
       }
-      return ['VectorLayer', 'ShapefileLayer', 'WebGlLayer'].includes(
-        selectedLayer.type,
-      );
+      return [
+        'VectorLayer',
+        'ShapefileLayer',
+        'WebGlLayer',
+
+        'VectorTileLayer',
+      ].includes(selectedLayer.type);
     },
     execute: args => {
       const current = tracker.currentWidget;
