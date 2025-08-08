@@ -2113,10 +2113,9 @@ export class MainView extends React.Component<IProps, IStates> {
           console.log(geom);
 
           if (geom) {
-            const geometry = geom.clone().transform('EPSG:3857', 'EPSG:4326');
             features.push({
               ...props,
-              geometry,
+              geom,
             });
           } else {
             features.push({
@@ -2129,12 +2128,12 @@ export class MainView extends React.Component<IProps, IStates> {
 
         if (features.length > 0) {
           this._model.syncIdentifiedFeatures(features, this._mainViewModel.id);
-
-          const geometry = features[0].geometry;
-          if (geometry) {
-            this._model.highlightFeatureSignal.emit(geometry);
-          }
         }
+
+        const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+        const point = new Point(coordinate);
+
+        this._model.highlightFeatureSignal.emit(point);
 
         break;
       }
