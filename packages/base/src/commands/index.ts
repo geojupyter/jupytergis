@@ -179,7 +179,6 @@ export function addCommands(
         'VectorLayer',
         'ShapefileLayer',
         'WebGlLayer',
-
         'VectorTileLayer',
       ].includes(selectedLayer.type);
     },
