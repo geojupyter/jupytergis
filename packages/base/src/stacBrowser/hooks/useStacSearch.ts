@@ -209,7 +209,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       )) as IStacSearchResult;
 
       if (!data) {
-        console.log('No Results found');
+        console.debug('STAC search failed -- no results found');
         setResults([]);
         setTotalPages(1);
         setTotalResults(0);
@@ -221,7 +221,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       setTotalPages(Math.ceil(pages));
       setTotalResults(data.context.matched);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('STAC search failed -- error fetching data:', error);
       setResults([]);
       setTotalPages(1);
       setTotalResults(0);
