@@ -811,7 +811,6 @@ export function addCommands(
         return;
       }
 
-
       downloadFile(
         geojsonString,
         `${exportFileName}.geojson`,

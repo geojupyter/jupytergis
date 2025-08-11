@@ -843,7 +843,9 @@ export class MainView extends React.Component<IProps, IStates> {
       const properties = rf.getProperties();
       const geometry = toGeometry(rf);
 
-      if (!geometry) {continue;}
+      if (!geometry) {
+        continue;
+      }
 
       const feature = new Feature<Geometry>({ ...properties });
       feature.setGeometry(geometry);
