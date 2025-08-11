@@ -584,7 +584,9 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'RasterSource': {
         const sourceParameters = source.parameters as IRasterSource;
 
-        const pmTiles = sourceParameters.url.endsWith('.pmtiles');
+        const pmTiles =
+          sourceParameters.url.endsWith('.pmtiles') ||
+          sourceParameters.url.endsWith('pmtiles.gz');
         const url = this.computeSourceUrl(source);
 
         if (!pmTiles) {
@@ -621,7 +623,9 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'VectorTileSource': {
         const sourceParameters = source.parameters as IVectorTileSource;
 
-        const pmTiles = sourceParameters.url.endsWith('.pmtiles');
+        const pmTiles =
+          sourceParameters.url.endsWith('.pmtiles') ||
+          sourceParameters.url.endsWith('pmtiles.gz');
         const url = this.computeSourceUrl(source);
 
         if (!pmTiles) {
