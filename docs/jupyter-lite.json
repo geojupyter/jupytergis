@@ -1,4 +1,6 @@
 {
   "jupyter-lite-schema-version": 0,
-  "jupyter-config-data": {}
+  "jupyter-config-data": {
+    "HIDE_STAC_PANEL": "true"
+  }
 }
