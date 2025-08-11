@@ -72,7 +72,7 @@ import {
   transformExtent,
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
-import RenderFeature from 'ol/render/Feature';
+import RenderFeature, { toGeometry } from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
@@ -2105,23 +2105,26 @@ export class MainView extends React.Component<IProps, IStates> {
 
     switch (jgisLayer?.type) {
       case 'VectorTileLayer': {
+        const geometries: Geometry[] = [];
         const features: any[] = [];
 
         this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
+          let geom: Geometry | undefined = undefined;
+
+          if (feature instanceof RenderFeature) {
+            geom = toGeometry(feature);
+          } else {
+            geom = feature.getGeometry ? feature.getGeometry() : undefined;
+          }
+
           const props = feature.getProperties();
-          const geom = feature.getGeometry();
-          console.log(geom);
 
           if (geom) {
-            features.push({
-              ...props,
-              geom,
-            });
-          } else {
-            features.push({
-              ...props,
-            });
+            geometries.push(geom);
           }
+          features.push({
+            ...props,
+          });
 
           return true;
         });
@@ -2130,10 +2133,15 @@ export class MainView extends React.Component<IProps, IStates> {
           this._model.syncIdentifiedFeatures(features, this._mainViewModel.id);
         }
 
-        const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
-        const point = new Point(coordinate);
-
-        this._model.highlightFeatureSignal.emit(point);
+        if (geometries.length > 0) {
+          for (const geom of geometries) {
+            this._model.highlightFeatureSignal.emit(geom);
+          }
+        } else {
+          const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+          const point = new Point(coordinate);
+          this._model.highlightFeatureSignal.emit(point);
+        }
 
         break;
       }
