@@ -898,6 +898,7 @@ __metadata:
     proj4: 2.19.3
     proj4-list: 1.0.4
     react: ^18.0.1
+    react-data-grid: ^7.0.0-beta.57
     react-day-picker: ^9.7.0
     rimraf: ^3.0.2
     shpjs: ^6.1.0
@@ -5003,6 +5004,13 @@ __metadata:
   version: 1.0.4
   resolution: "clone@npm:1.0.4"
   checksum: d06418b7335897209e77bdd430d04f882189582e67bd1f75a04565f3f07f5b3f119a9d670c943b6697d0afb100f03b866b3b8a1f91d4d02d72c4ecf2bb64b5dd
+  languageName: node
+  linkType: hard
+
+"clsx@npm:^1.1.1":
+  version: 1.2.1
+  resolution: "clsx@npm:1.2.1"
+  checksum: 30befca8019b2eb7dbad38cff6266cf543091dae2825c856a62a8ccf2c3ab9c2907c4d12b288b73101196767f66812365400a227581484a05f968b0307cfaf12
   languageName: node
   linkType: hard
 
@@ -10609,6 +10617,18 @@ __metadata:
   dependencies:
     quickselect: ^3.0.0
   checksum: f221cfb2c6ed437f5914bf46b791ebd83cc4c51dff8c39a5cdc5a0d4b4cbc49353b66d185279707c9a7cc55a8c6a50b7dc0a348175db6ad63a86caa8a627c781
+  languageName: node
+  linkType: hard
+
+"react-data-grid@npm:^7.0.0-beta.57":
+  version: 7.0.0-canary.49
+  resolution: "react-data-grid@npm:7.0.0-canary.49"
+  dependencies:
+    clsx: ^1.1.1
+  peerDependencies:
+    react: ^16.14 || ^17.0
+    react-dom: ^16.14 || ^17.0
+  checksum: fe57d441a5e56dac39a0f7e06979a27d5606515653ead31fc06f9c2fe08ebaf88ff4ab70f1565dd356b343cf4612137dea2d188a40a7e246b85dd5aa2589da04
   languageName: node
   linkType: hard
 
