@@ -4,7 +4,6 @@
 
 // import { AttributeTableWidget } from './attributeTable';
 
-
 // interface IAttributeTableWidgetProps {
 //   model: IJupyterGISModel;
 // }

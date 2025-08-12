@@ -919,7 +919,10 @@ namespace Private {
     };
   }
 
-  export function createAttributeTableDialog(tracker: JupyterGISTracker, layerId: string) {
+  export function createAttributeTableDialog(
+    tracker: JupyterGISTracker,
+    layerId: string,
+  ) {
     return async () => {
       const current = tracker.currentWidget;
       if (!current) {

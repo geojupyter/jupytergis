@@ -17,7 +17,9 @@ const AttributeTable: React.FC<IAttributeTableProps> = ({ model, layerId }) => {
   const { features, isLoading, error } = useGetFeatures({ layerId, model });
 
   React.useEffect(() => {
-    if (isLoading) {return;}
+    if (isLoading) {
+      return;
+    }
     if (error) {
       console.error('[AttributeTable] Error loading features:', error);
       return;
