@@ -845,38 +845,35 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.openAttributeTable, {
-  label: trans.__('Open Attribute Table'),
-  isEnabled: () => {
-    const selectedLayer = getSingleSelectedLayer(tracker);
-    return selectedLayer
-      ? ['VectorLayer', 'VectorTileLayer', 'ShapefileLayer'].includes(
-          selectedLayer.type,
-        )
-      : false;
-  },
-  execute: async () => {
-    const currentWidget = tracker.currentWidget;
-    if (!currentWidget) {
-      return;
-    }
+    label: trans.__('Open Attribute Table'),
+    isEnabled: () => {
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      return selectedLayer
+        ? ['VectorLayer', 'VectorTileLayer', 'ShapefileLayer'].includes(
+            selectedLayer.type,
+          )
+        : false;
+    },
+    execute: async () => {
+      const currentWidget = tracker.currentWidget;
+      if (!currentWidget) {
+        return;
+      }
 
-    const model = currentWidget.model;
-    const selectedLayers = model.localState?.selected?.value;
+      const model = currentWidget.model;
+      const selectedLayers = model.localState?.selected?.value;
 
-    if (!selectedLayers) {
-      console.warn('No layer selected');
-      return;
-    }
+      if (!selectedLayers) {
+        console.warn('No layer selected');
+        return;
+      }
 
-    const layerId = Object.keys(selectedLayers)[0];
+      const layerId = Object.keys(selectedLayers)[0];
 
-    // You’ll replace this with the real attribute table dialog/component
-    console.log('Open attribute table for layer:', layerId);
-
-    // TODO: Launch your React dialog here once ready
-    // new AttributeTableDialog({ model, layerId }).launch();
-  },
-});
+      console.log('Open attribute table for layer:', layerId);
+      Private.createAttributeTableDialog(tracker, layerId)();
+    },
+  });
 
   loadKeybindings(commands, keybindings);
 }
@@ -922,19 +919,17 @@ namespace Private {
     };
   }
 
-  export function createAttributeTableDialog(tracker: JupyterGISTracker) {
-  return async () => {
-    const current = tracker.currentWidget;
-    if (!current) {
-      return;
-    }
+  export function createAttributeTableDialog(tracker: JupyterGISTracker, layerId: string) {
+    return async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
 
-    const dialog = new AttributeTableWidget({
-      model: current.model
-    });
-    await dialog.launch();
-  };
-}
+      const dialog = new AttributeTableWidget(current.model, layerId);
+      await dialog.launch();
+    };
+  }
 
   export function createEntry({
     tracker,

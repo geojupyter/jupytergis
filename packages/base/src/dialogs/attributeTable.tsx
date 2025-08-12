@@ -3,7 +3,7 @@ import { Dialog } from '@jupyterlab/apputils';
 import React from 'react';
 import DataGrid from 'react-data-grid';
 
-import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
+import { useGetFeatures } from './symbology/hooks/useGetFeatures';
 
 export interface IAttributeTableProps {
   model: IJupyterGISModel;
@@ -14,42 +14,40 @@ const AttributeTable: React.FC<IAttributeTableProps> = ({ model, layerId }) => {
   const [columns, setColumns] = React.useState<any[]>([]);
   const [rows, setRows] = React.useState<any[]>([]);
 
+  const { features, isLoading, error } = useGetFeatures({ layerId, model });
+
   React.useEffect(() => {
-    const fetchFeatures = async () => {
-      // const features = await model.getFeaturesInExtent(layerId);
-      const { featureProperties } = useGetProperties({
-          layerId,
-          model: model,
-        });
+    if (isLoading) {return;}
+    if (error) {
+      console.error('[AttributeTable] Error loading features:', error);
+      return;
+    }
+    if (!features.length) {
+      console.warn('[AttributeTable] No features found.');
+      setColumns([]);
+      setRows([]);
+      return;
+    }
 
-      if (!featureProperties) {
-        setColumns([]);
-        setRows([]);
-        return;
-      }
-
-      // Assume properties of first feature determine columns
-      const sample = featureProperties[0] || {};
-      const keys = Object.keys(sample);
-
-      const cols = keys.map(key => ({
+    const sampleProps = features[0]?.properties ?? {};
+    const cols = [
+      { key: 'sno', name: 'S. No.', resizable: true, sortable: true },
+      ...Object.keys(sampleProps).map(key => ({
         key,
         name: key,
         resizable: true,
         sortable: true,
-      }));
+      })),
+    ];
 
-      const rowData = featureProperties.map((f: any, i: number) => ({
-        id: i,
-        ...f.properties,
-      }));
+    const rowData = features.map((f, i) => ({
+      sno: i + 1,
+      ...f.properties,
+    }));
 
-      setColumns(cols);
-      setRows(rowData);
-    };
-
-    fetchFeatures();
-  }, [model, layerId]);
+    setColumns(cols);
+    setRows(rowData);
+  }, [features, isLoading, error]);
 
   return (
     <div style={{ height: '500px' }}>
