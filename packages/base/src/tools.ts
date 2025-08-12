@@ -3,6 +3,7 @@ import {
   IJGISLayerBrowserRegistry,
   IJGISOptions,
   IJGISSource,
+  IJGISLayer,
   IJupyterGISModel,
   IRasterLayerGalleryEntry,
   SourceType,
@@ -13,6 +14,8 @@ import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
 import * as d3Color from 'd3-color';
 import { compressors } from 'hyparquet-compressors';
+import Feature from 'ol/Feature';
+import GeoJSON from 'ol/format/GeoJSON';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
@@ -949,16 +952,31 @@ export function downloadFile(
 }
 
 export async function getGeoJSONDataFromLayerSource(
+  selectedLayer: IJGISLayer,
   source: IJGISSource,
   model: IJupyterGISModel,
 ): Promise<string | null> {
-  const vectorSourceTypes: SourceType[] = ['GeoJSONSource', 'ShapefileSource'];
+  const vectorSourceTypes: SourceType[] = [
+    'GeoJSONSource',
+    'ShapefileSource',
+    'VectorTileSource',
+  ];
 
   if (!vectorSourceTypes.includes(source.type as SourceType)) {
     console.error(
       `Invalid source type '${source.type}'. Expected one of: ${vectorSourceTypes.join(', ')}`,
     );
     return null;
+  }
+
+  const sourceId = selectedLayer.parameters?.source;
+  if (source.type === 'VectorTileSource' && sourceId) {
+    const features = model.getFeaturesForCurrentTile({ sourceId });
+
+    const format = new GeoJSON();
+    const geojson = format.writeFeaturesObject(features as Feature[]);
+
+    return JSON.stringify(geojson);
   }
 
   if (!source.parameters) {

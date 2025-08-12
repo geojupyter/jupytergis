@@ -758,7 +758,9 @@ export function addCommands(
     isEnabled: () => {
       const selectedLayer = getSingleSelectedLayer(tracker);
       return selectedLayer
-        ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
+        ? ['VectorLayer', 'ShapefileLayer', 'VectorTileLayer'].includes(
+            selectedLayer.type,
+          )
         : false;
     },
     execute: async () => {
@@ -800,7 +802,11 @@ export function addCommands(
       const sourceId = selectedLayer.parameters.source;
       const source = sources[sourceId];
 
-      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
+      const geojsonString = await getGeoJSONDataFromLayerSource(
+        selectedLayer,
+        source,
+        model,
+      );
       if (!geojsonString) {
         return;
       }
