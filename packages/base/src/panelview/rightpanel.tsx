@@ -31,7 +31,9 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
 
   const tabInfo = [
     { name: 'objectProperties', title: 'Object Properties' },
-    ...(hideAnnotationPanel ? [] : [{ name: 'annotations', title: 'Annotations' }]),
+    ...(hideAnnotationPanel
+      ? []
+      : [{ name: 'annotations', title: 'Annotations' }]),
     { name: 'identifyPanel', title: 'Identify Features' },
   ];
 
