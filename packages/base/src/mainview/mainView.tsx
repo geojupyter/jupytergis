@@ -72,8 +72,7 @@ import {
   transformExtent,
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
-import RenderFeature from 'ol/render/Feature';
-import { toGeometry } from 'ol/render/Feature';
+import RenderFeature, { toGeometry } from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
