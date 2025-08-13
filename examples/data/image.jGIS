@@ -26,16 +26,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -10835715.64562285,
-      -4131544.7694810475,
-      718103.572681238,
-      12390226.369708324
+      -10792214.346949771,
+      4128784.1407455355,
+      -6607691.941695623,
+      5969839.123234468
     ],
-    "latitude": 34.74543821495182,
-    "longitude": -45.44402781957822,
+    "latitude": 41.25016747852149,
+    "longitude": -78.15300880668768,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 3.0398860010821136
+    "zoom": 5.5368556439314505
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -72,6 +72,7 @@
             37.936
           ]
         ],
+        "interpolate": false,
         "path": "https://maplibre.org/maplibre-gl-js/docs/assets/radar.gif"
       },
       "type": "ImageSource"
