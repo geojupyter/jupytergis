@@ -38,13 +38,13 @@ const AttributeTable: React.FC<IAttributeTableProps> = ({ model, layerId }) => {
         key,
         name: key,
         resizable: true,
-        sortable: true,
-      })),
+        sortable: true
+      }))
     ];
 
     const rowData = features.map((f, i) => ({
       sno: i + 1,
-      ...f.properties,
+      ...f.properties
     }));
 
     setColumns(cols);
@@ -52,19 +52,28 @@ const AttributeTable: React.FC<IAttributeTableProps> = ({ model, layerId }) => {
   }, [features, isLoading, error]);
 
   return (
-    <div style={{ height: '500px' }}>
-      <DataGrid columns={columns} rows={rows} />
+    <div style={{ height: '100%', width: '100%', overflow: 'auto' }}>
+      <DataGrid
+        columns={columns}
+        rows={rows}
+        className="rdg-light"
+        style={{ minHeight: '100%' }}
+      />
     </div>
   );
 };
 
 export class AttributeTableWidget extends Dialog<void> {
   constructor(model: IJupyterGISModel, layerId: string) {
-    const body = <AttributeTable model={model} layerId={layerId} />;
+    const body = (
+      <div style={{ minWidth: '70vw', maxHeight: '80vh' }}>
+        <AttributeTable model={model} layerId={layerId} />
+      </div>
+    );
 
     super({
       title: 'Attribute Table',
-      body,
+      body
     });
 
     this.id = 'jupytergis::attributeTable';
