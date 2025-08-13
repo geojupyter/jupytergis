@@ -166,9 +166,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
 
         const allTables = await getGeoPackageTableNames(
           source.path,
-          this.props.sourceType,
-          this.jGISModel,
-        );
+          this.props.sourceType);
 
         let tableNames: string[];
 

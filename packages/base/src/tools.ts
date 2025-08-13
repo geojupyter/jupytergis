@@ -18,6 +18,7 @@ import { Source } from 'ol/source';
 import loadGpkg from 'ol-load-geopackage';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
+import { getGdal } from './gdal';
 
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
 
@@ -504,8 +505,28 @@ type GpkgTable = Record<string, IVectorEntry | ITileEntry>;
 
 const geoPackageCache = new Map<string, Promise<GpkgTable>>();
 
+/**
+ * Convert curved geometries to linear geometries for a given GeoPackage vector file
+ *
+ * @param fileBlob GeoPackage file as a blob
+ * @returns Blob URL created from converted file
+ */
+async function linearizeGpkgInBrowser(
+  fileBlob:Blob
+): Promise<string> {
+  const gdal = await getGdal();
+  const file = new File([fileBlob], 'input.gpkg', { type: 'application/geopackage+sqlite3' });
+  const ds = await gdal.open(file);
+  await gdal.ogr2ogr(ds.datasets[0], ['-f', 'GPKG', '-nlt', 'CONVERT_TO_LINEAR'], 'output');
+  const bytes = await gdal.getFileBytes('/output/output.gpkg');
+  const blob = new Blob([new Uint8Array(bytes)], { type: 'application/geopackage+sqlite3' });
+  const url = URL.createObjectURL(blob);
+  return url
+}
+
+
 function loadGeoPackageVectorFile(
-  filepath: string,
+  fileBlob: Blob,
   projection: string,
   cacheFilename: string,
 ): Promise<GpkgTable> {
@@ -515,7 +536,8 @@ function loadGeoPackageVectorFile(
 
   const loader = (async (): Promise<GpkgTable> => {
     try {
-      const [tables, slds] = await loadGpkg(filepath, projection);
+      const url = await linearizeGpkgInBrowser(fileBlob);
+      const [tables, slds] = await loadGpkg(url, projection);
       const tableMap: GpkgTable = {};
       for (const name of Object.keys(tables)) {
         tableMap[name] = {
@@ -600,25 +622,15 @@ async function loadGkpgFromUrl(
 export async function getGeoPackageTableNames(
   filepath: string,
   type: 'GeoPackageVectorSource' | 'GeoPackageRasterSource',
-  model: IJupyterGISModel,
 ) {
-  let geoPackage;
+  const cacheKey = filepath + (type === 'GeoPackageRasterSource' ? 'Raster' : 'Vector');
 
-  if (type === 'GeoPackageRasterSource') {
-    geoPackage = await loadGeoPackageRasterFile(
-      filepath,
-      filepath + 'Raster',
-      model,
-    );
-  } else {
-    geoPackage = await loadGeoPackageVectorFile(
-      filepath,
-      model.sharedModel.options.projection!,
-      filepath + 'Vector',
-    );
+  const tableMap = await geoPackageCache.get(cacheKey);
+  if (!tableMap) {
+    return [];
   }
 
-  return Object.keys(geoPackage);
+    return Object.keys(tableMap);
 }
 
 /**
@@ -709,8 +721,16 @@ export const loadFile = async (fileInfo: {
           //throw new Error(`Projection is not specified for ${filepath}`);
           projection = 'EPSG:3857';
         }
+
+        const fileBlob = await fetchWithProxies(filepath, model, async response => response.blob());
+
+        if (!fileBlob) {
+          showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+          throw new Error(`Failed to fetch ${filepath}`);
+        }
+
         return loadGeoPackageVectorFile(
-          filepath,
+          fileBlob,
           projection,
           filepath + 'Vector',
         );
@@ -814,8 +834,7 @@ export const loadFile = async (fileInfo: {
           projection = 'EPSG:3857';
         }
         const blob = await base64ToBlob(file.content, getMimeType(filepath));
-        const url = URL.createObjectURL(blob);
-        return loadGeoPackageVectorFile(url, projection, filepath + 'Vector');
+        return loadGeoPackageVectorFile(blob, projection, filepath + 'Vector');
       }
 
       case 'GeoPackageRasterSource': {
