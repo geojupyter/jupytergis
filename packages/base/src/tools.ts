@@ -506,18 +506,19 @@ type GpkgTable = Record<string, IVectorEntry | ITileEntry>;
 const geoPackageCache = new Map<string, Promise<GpkgTable>>();
 
 /**
- * Convert curved geometries to linear geometries for a given GeoPackage vector file
+ * Convert curved geometries to linear geometries for a given GeoPackage vector file, and reproject the data
  *
  * @param fileBlob GeoPackage file as a blob
  * @returns Blob URL created from converted file
  */
-async function linearizeGpkgInBrowser(
-  fileBlob:Blob
+async function linearizeReprojectGpkg(
+  fileBlob:Blob,
+  projection:string
 ): Promise<string> {
   const gdal = await getGdal();
   const file = new File([fileBlob], 'input.gpkg', { type: 'application/geopackage+sqlite3' });
   const ds = await gdal.open(file);
-  await gdal.ogr2ogr(ds.datasets[0], ['-f', 'GPKG', '-nlt', 'CONVERT_TO_LINEAR'], 'output');
+  await gdal.ogr2ogr(ds.datasets[0], ['-f', 'GPKG', '-nlt', 'CONVERT_TO_LINEAR', '-t_srs', projection], 'output');
   const bytes = await gdal.getFileBytes('/output/output.gpkg');
   const blob = new Blob([new Uint8Array(bytes)], { type: 'application/geopackage+sqlite3' });
   const url = URL.createObjectURL(blob);
@@ -536,7 +537,7 @@ function loadGeoPackageVectorFile(
 
   const loader = (async (): Promise<GpkgTable> => {
     try {
-      const url = await linearizeGpkgInBrowser(fileBlob);
+      const url = await linearizeReprojectGpkg(fileBlob, projection);
       const [tables, slds] = await loadGpkg(url, projection);
       const tableMap: GpkgTable = {};
       for (const name of Object.keys(tables)) {
