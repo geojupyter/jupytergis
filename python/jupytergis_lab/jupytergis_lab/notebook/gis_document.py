@@ -447,8 +447,8 @@ class GISDocument(CommWidget):
         """
         Add a hillshade layer
 
-        :param str url: URL of the hillshade layer
-        :param str name: The name that will be used for the object in the document, defaults to "Hillshade Layer"
+        :param url: URL of the hillshade layer
+        :param name: The name that will be used for the object in the document, defaults to "Hillshade Layer"
         :param attribution: The attribution.
         """
         if urlParameters is None:
@@ -637,9 +637,9 @@ class GISDocument(CommWidget):
         """
         Create a color expression used to style the layer
 
-        :param Dict color_stops: Dictionary of stop values to [r, g, b, a] colors
-        :param float band: The band to be colored, defaults to 1.0
-        :param str interpolation_type: The interpolation function. Can be linear, discrete, or exact, defaults to 'linear'
+        :param color_stops: Dictionary of stop values to [r, g, b, a] colors
+        :param band: The band to be colored, defaults to 1.0
+        :param interpolation_type: The interpolation function. Can be linear, discrete, or exact, defaults to 'linear'
         """
 
         if interpolation_type not in ["linear", "discrete", "exact"]:
@@ -776,7 +776,7 @@ class GISDocument(CommWidget):
         """
         Clear filters on a layer
 
-        :param str layer_id: The ID of the layer to clear filters from
+        :param layer_id: The ID of the layer to clear filters from
         """
         layer = self._layers.get(layer_id)
 
