@@ -72,7 +72,7 @@ import {
   transformExtent,
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
-import RenderFeature from 'ol/render/Feature';
+import RenderFeature, { toGeometry } from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
@@ -650,7 +650,10 @@ export class MainView extends React.Component<IProps, IStates> {
           const features = tile.getFeatures();
 
           if (features && features.length > 0) {
-            this._model.syncTileFeatures({ sourceId: id, features });
+            this._model.syncTileFeatures({
+              sourceId: id,
+              features,
+            });
           }
         });
 
@@ -2101,6 +2104,48 @@ export class MainView extends React.Component<IProps, IStates> {
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
+      case 'VectorTileLayer': {
+        const geometries: Geometry[] = [];
+        const features: any[] = [];
+
+        this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
+          let geom: Geometry | undefined;
+
+          if (feature instanceof RenderFeature) {
+            geom = toGeometry(feature);
+          } else if ('getGeometry' in feature) {
+            geom = feature.getGeometry();
+          }
+
+          const props = feature.getProperties();
+
+          if (geom) {
+            geometries.push(geom);
+          }
+          features.push({
+            ...props,
+          });
+
+          return true;
+        });
+
+        if (features.length > 0) {
+          this._model.syncIdentifiedFeatures(features, this._mainViewModel.id);
+        }
+
+        if (geometries.length > 0) {
+          for (const geom of geometries) {
+            this._model.highlightFeatureSignal.emit(geom);
+          }
+        } else {
+          const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+          const point = new Point(coordinate);
+          this._model.highlightFeatureSignal.emit(point);
+        }
+
+        break;
+      }
+
       case 'WebGlLayer': {
         const layer = this.getLayer(layerId) as WebGlTileLayer;
         const data = layer.getData(e.pixel);
