@@ -2111,11 +2111,11 @@ export class MainView extends React.Component<IProps, IStates> {
         this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
           let geom: Geometry | undefined;
 
-		  if (feature instanceof RenderFeature) {
-		    geom = toGeometry(feature);
-		  } else if ("getGeometry" in feature) {
-		    geom = feature.getGeometry();
-		  }
+          if (feature instanceof RenderFeature) {
+            geom = toGeometry(feature);
+          } else if ('getGeometry' in feature) {
+            geom = feature.getGeometry();
+          }
 
           const props = feature.getProperties();
 
