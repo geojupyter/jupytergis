@@ -45,11 +45,3 @@ Information about contributing to the JupyterGIS project.
 
 contributor_guide/index
 ```
-
-## More
-
-```{toctree}
-:maxdepth: 2
-
-changelog
-```
