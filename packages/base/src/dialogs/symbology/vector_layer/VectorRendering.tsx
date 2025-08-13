@@ -42,19 +42,19 @@ const RENDER_TYPE_OPTIONS: RenderTypeOptions = {
   Canonical: {
     component: Canonical,
     attributeChecker: getColorCodeFeatureAttributes,
-    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
+    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer'],
     isTabbed: false,
   },
   Graduated: {
     component: Graduated,
     attributeChecker: getNumericFeatureAttributes,
-    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
+    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer'],
     isTabbed: true,
   },
   Categorized: {
     component: Categorized,
     attributeChecker: getNumericFeatureAttributes,
-    supportedLayerTypes: ['VectorLayer', 'HeatmapLayer'],
+    supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer'],
     isTabbed: true,
   },
   Heatmap: {

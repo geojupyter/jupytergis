@@ -6,6 +6,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
+import { FeatureLike } from 'ol/Feature';
 
 import {
   IJGISContent,
@@ -76,6 +77,26 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getSettings(): IJupyterGISSettings {
     return this._settings;
+  }
+
+  getFeaturesForCurrentTile({ sourceId }: { sourceId: string }): FeatureLike[] {
+    return Array.from(this._tileFeatureCache.get(sourceId) ?? []);
+  }
+
+  syncTileFeatures({
+    sourceId,
+    features,
+  }: {
+    sourceId: string;
+    features: FeatureLike[];
+  }): void {
+    let featureSet = this._tileFeatureCache.get(sourceId);
+
+    if (!featureSet) {
+      featureSet = new Set();
+      this._tileFeatureCache.set(sourceId, featureSet);
+    }
+    features.forEach(feature => featureSet.add(feature));
   }
 
   private _onSharedModelChanged = (sender: any, changes: any): void => {
@@ -793,6 +814,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
+  private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
 }
 
 export namespace JupyterGISModel {
