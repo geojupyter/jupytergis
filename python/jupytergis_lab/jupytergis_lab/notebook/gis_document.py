@@ -32,6 +32,8 @@ from jupytergis_core.schema import (
     SourceType,
 )
 
+from jupytergis_lab.notebook import layer_wrapper
+
 logger = logging.getLogger(__file__)
 
 
@@ -240,6 +242,18 @@ class GISDocument(CommWidget):
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
 
+    def get_source(self, source_id: str):
+        """
+        Get a source by its ID.
+
+        :param source_id: The ID of the source to retrieve.
+        :return: The source object.
+        """
+        source = self._sources.get(source_id)
+        if source is None:
+            raise KeyError(f"No source found with ID: {source_id}")
+        return source
+
     def add_geojson_layer(
         self,
         path: str | Path | None = None,
@@ -313,6 +327,77 @@ class GISDocument(CommWidget):
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
+    def add_geojson_layer2(
+        self,
+        path: str | Path | None = None,
+        data: Dict | None = None,
+        name: str = "GeoJSON Layer",
+        opacity: float = 1,
+        logical_op: str | None = None,
+        feature: str | None = None,
+        operator: str | None = None,
+        value: Union[str, int, float] | None = None,
+        color_expr=None,
+    ):
+        if isinstance(path, Path):
+            path = str(path)
+
+        if path is None and data is None:
+            raise ValueError("Cannot create a GeoJSON layer without data")
+
+        if path is not None and data is not None:
+            raise ValueError("Cannot set GeoJSON layer data and path at the same time")
+
+        parameters = {}
+
+        if path is not None:
+            if path.startswith("http://") or path.startswith("https://"):
+                response = requests.get(path)
+                response.raise_for_status()
+                parameters["path"] = path
+            else:
+                with open(path, "r") as fobj:
+                    parameters["data"] = json.load(fobj)
+
+        if data is not None:
+            parameters["data"] = data
+
+        source = {
+            "type": SourceType.GeoJSONSource,
+            "name": f"{name} Source",
+            "parameters": parameters,
+        }
+
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.VectorLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {
+                "source": source_id,
+                "color": color_expr,
+                "opacity": opacity,
+            },
+            "filters": {
+                "appliedFilters": [
+                    {"feature": feature, "operator": operator, "value": value}
+                ],
+                "logicalOp": logical_op,
+            },
+        }
+        print(layer)
+
+        base_layer = OBJECT_FACTORY.create_layer(layer, self)
+        print("Base Layer:", base_layer)
+        wrapped_layer = layer_wrapper.CustomVectorWrapper(base_layer)
+
+        print("cool", wrapped_layer)
+
+        self._add_layer(wrapped_layer)
+
+        return wrapped_layer
 
     def add_image_layer(
         self,
