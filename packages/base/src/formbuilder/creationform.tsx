@@ -7,12 +7,12 @@ import {
   LayerType,
   SourceType,
 } from '@jupytergis/schema';
-import { Dialog } from '@jupyterlab/apputils';
+import { Dialog, showErrorMessage } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
-import { deepCopy } from '@/src/tools';
+import { deepCopy, getGeoPackageTableNames } from '@/src/';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 
 export interface ICreationFormProps {
@@ -152,6 +152,88 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
 
     // Perform the layer/source creation
     Promise.all(creationPromises).then(async () => {
+      // We add multiple tables from GeoPackage file as different sources and layers
+      if (
+        this.props.sourceType === 'GeoPackageVectorSource' ||
+        this.props.sourceType === 'GeoPackageRasterSource'
+      ) {
+        const source = await sourceCreationPromise?.promise;
+
+        if (!source) {
+          console.error(`Cannot find source for ${this.props.sourceType}`);
+          return;
+        }
+
+        const allTables = await getGeoPackageTableNames(
+          source.path,
+          this.props.sourceType,
+        );
+
+        let tableNames: string[];
+
+        if (source.tables) {
+          const requestedTableNames = source.tables
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter(Boolean);
+
+          const invalidTableNames = requestedTableNames.filter(
+            (name: string) => !allTables.includes(name),
+          );
+          if (invalidTableNames.length) {
+            showErrorMessage(
+              'Invalid GeoPackage Tables',
+              `The following table${
+                invalidTableNames.length > 1 ? 's are' : ' is'
+              } not in the GeoPackage: ${invalidTableNames.join(', ')}. ` +
+                `Available tables are: ${allTables.join(', ')}.`,
+            );
+          }
+
+          tableNames = requestedTableNames.filter((name: string) =>
+            allTables.includes(name),
+          );
+
+          if (tableNames.length === 0) {
+            console.warn('No valid tables left to process, aborting.');
+            return;
+          }
+        } else {
+          tableNames = allTables;
+        }
+
+        for (const tableName of tableNames) {
+          const childId = `${sourceId}/${tableName}`;
+
+          if (this.props.createSource) {
+            const sourceModel: IJGISSource = {
+              type: this.props.sourceType,
+              name: `${source.name} ${tableName} Source`,
+              parameters: {
+                path: source.path,
+                tables: tableName,
+                projection: source.projection || 'EPSG:3857',
+              },
+            };
+            this.props.model.sharedModel.addSource(childId, sourceModel);
+          }
+          if (this.props.createLayer) {
+            const layerModel: IJGISLayer = {
+              type:
+                this.props.layerType ||
+                (this.props.sourceType === 'GeoPackageVectorSource'
+                  ? 'VectorLayer'
+                  : 'RasterLayer'),
+              parameters: { source: childId },
+              visible: true,
+              name: `${source.name} ${tableName} Layer`,
+            };
+            this.jGISModel.addLayer(UUID.uuid4(), layerModel);
+          }
+        }
+        return;
+      }
+
       if (this.props.createSource) {
         let actualName = '';
         const { name, ...sourceData } =
