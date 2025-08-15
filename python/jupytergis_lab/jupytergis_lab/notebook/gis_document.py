@@ -616,6 +616,7 @@ class GISDocument(CommWidget):
     ):
         """
         Add a GeoPackage Vector Layer to the document
+        
         :param path: The path to the GeoPackage file to embed into the jGIS file.
         :param table_names: A list of table names to create layers for.
         :param name: The name that will be used for the object in the document.
