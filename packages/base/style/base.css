@@ -10,7 +10,7 @@
 @import url('./symbologyDialog.css');
 @import url('./statusBar.css');
 @import url('./temporalSlider.css');
-@import url('./stacBrowser.css');
+@import url('./tabPanel.css');
 @import url('ol/ol.css');
 @import url('./shared/button.css');
 @import url('./shared/toggle.css');
@@ -34,7 +34,7 @@
 /* Overwrite forms CSS */
 .jGIS-property-panel .array-item-list {
   display: flex;
-  gap: 1rem;
+  background-color: var(--jp-layout-color0);
 }
 
 .jGIS-property-panel .rjsf .array-item:not(:last-child) {
@@ -84,4 +84,20 @@ button.jp-mod-styled.jp-mod-reject {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+.jgis-right-panel-container {
+  width: 330px;
+  top: 30px;
+  right: 0px;
+  position: absolute;
+  margin: 5px;
+}
+
+.jgis-left-panel-container {
+  position: absolute;
+  width: 250px;
+  top: 30px;
+  left: 0px;
+  margin: 5px;
 }

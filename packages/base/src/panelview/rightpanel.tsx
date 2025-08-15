@@ -2,108 +2,88 @@ import {
   IAnnotationModel,
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
-  IJupyterGISTracker,
-  JupyterGISDoc,
 } from '@jupytergis/schema';
-import { SidePanel } from '@jupyterlab/ui-components';
+import { PageConfig } from '@jupyterlab/coreutils';
+import * as React from 'react';
 
-import { IControlPanelModel } from '@/src/types';
-import { Annotations } from './annotationPanel';
-import IdentifyPanel from './components/identify-panel/IdentifyPanel';
-import { ControlPanelHeader } from './header';
-import { ObjectProperties } from './objectproperties';
+import { AnnotationsPanel } from './annotationPanel';
+import { IdentifyPanelComponent } from './components/identify-panel/IdentifyPanel';
+import { ObjectPropertiesReact } from './objectproperties';
+import {
+  PanelTabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '../shared/components/Tabs';
 
-export class RightPanelWidget extends SidePanel {
-  constructor(options: RightPanelWidget.IOptions) {
-    super();
-    this.addClass('jGIS-sidepanel-widget');
-    this.addClass('data-jgis-keybinding');
-    this.node.tabIndex = 0;
-
-    this._model = options.model;
-    this._annotationModel = options.annotationModel;
-
-    const header = new ControlPanelHeader();
-    this.header.addWidget(header);
-    const properties = new ObjectProperties({
-      controlPanelModel: this._model,
-      formSchemaRegistry: options.formSchemaRegistry,
-      tracker: options.tracker,
-    });
-
-    this.addWidget(properties);
-
-    const annotations = new Annotations({
-      rightPanelModel: this._model,
-      annotationModel: this._annotationModel,
-    });
-    this.addWidget(annotations);
-
-    const identifyPanel = new IdentifyPanel({
-      model: this._model,
-      tracker: options.tracker,
-    });
-    identifyPanel.title.caption = 'Identify';
-    identifyPanel.title.label = 'Identify';
-    identifyPanel.addClass('jgis-scrollable');
-    this.addWidget(identifyPanel);
-
-    this._handleFileChange = () => {
-      header.title.label = this._currentModel?.filePath || '-';
-    };
-
-    this._model.documentChanged.connect((_, changed) => {
-      if (changed) {
-        if (changed.model.sharedModel.editable) {
-          header.title.label = changed.model.filePath;
-          properties.show();
-        } else {
-          header.title.label = `${changed.model.filePath} - Read Only`;
-          properties.hide();
-        }
-      } else {
-        header.title.label = '-';
-      }
-    });
-
-    options.tracker.currentChanged.connect(async (_, changed) => {
-      if (changed) {
-        if (this._currentModel) {
-          this._currentModel.pathChanged.disconnect(this._handleFileChange);
-        }
-        this._currentModel = changed.model;
-        header.title.label = this._currentModel.filePath;
-        this._currentModel.pathChanged.connect(this._handleFileChange);
-        this._annotationModel.model =
-          options.tracker.currentWidget?.model || undefined;
-        // await changed.context.ready;
-      } else {
-        header.title.label = '-';
-        this._currentModel = null;
-        this._annotationModel.model = undefined;
-      }
-    });
-  }
-
-  dispose(): void {
-    super.dispose();
-  }
-
-  private _currentModel: IJupyterGISModel | null;
-  private _handleFileChange: () => void;
-  private _model: IControlPanelModel;
-  private _annotationModel: IAnnotationModel;
+interface IRightPanelProps {
+  formSchemaRegistry: IJGISFormSchemaRegistry;
+  annotationModel: IAnnotationModel;
+  model: IJupyterGISModel;
 }
 
-export namespace RightPanelWidget {
-  export interface IOptions {
-    model: IControlPanelModel;
-    tracker: IJupyterGISTracker;
-    formSchemaRegistry: IJGISFormSchemaRegistry;
-    annotationModel: IAnnotationModel;
-  }
-  export interface IProps {
-    filePath?: string;
-    sharedModel?: JupyterGISDoc;
-  }
-}
+export const RightPanel: React.FC<IRightPanelProps> = props => {
+  const hideAnnotationPanel =
+    PageConfig.getOption('HIDE_ANNOTATION_PANEL') === 'true';
+
+  const [selectedObjectProperties, setSelectedObjectProperties] =
+    React.useState(undefined);
+
+  const tabInfo = [
+    { name: 'objectProperties', title: 'Object Properties' },
+    ...(hideAnnotationPanel
+      ? []
+      : [{ name: 'annotations', title: 'Annotations' }]),
+    { name: 'identifyPanel', title: 'Identify Features' },
+  ];
+
+  const [curTab, setCurTab] = React.useState<string | undefined>(
+    tabInfo[0].name,
+  );
+
+  return (
+    <div className="jgis-right-panel-container">
+      <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
+        <TabsList>
+          {tabInfo.map(e => {
+            return (
+              <TabsTrigger
+                className="jGIS-layer-browser-category"
+                value={e.name}
+                onClick={() => {
+                  if (curTab !== e.name) {
+                    setCurTab(e.name);
+                  } else {
+                    setCurTab('');
+                  }
+                }}
+              >
+                {e.title}
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+        <TabsContent
+          value="objectProperties"
+          className="jgis-panel-tab-content"
+        >
+          <ObjectPropertiesReact
+            setSelectedObject={setSelectedObjectProperties}
+            selectedObject={selectedObjectProperties}
+            formSchemaRegistry={props.formSchemaRegistry}
+            model={props.model}
+          />
+        </TabsContent>
+        <TabsContent value="annotations">
+          <AnnotationsPanel
+            annotationModel={props.annotationModel}
+            jgisModel={props.model}
+          ></AnnotationsPanel>
+        </TabsContent>
+        <TabsContent value="identifyPanel" className="jgis-panel-tab-content">
+          <IdentifyPanelComponent model={props.model}></IdentifyPanelComponent>
+        </TabsContent>
+      </PanelTabs>
+    </div>
+  );
+};

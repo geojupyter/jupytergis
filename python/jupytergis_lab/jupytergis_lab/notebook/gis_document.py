@@ -562,6 +562,7 @@ class GISDocument(CommWidget):
     ):
         """
         Add a GeoParquet Layer to the document
+
         :param path: The path to the GeoParquet file to embed into the jGIS file.
         :param name: The name that will be used for the object in the document.
         :param type: The type of the vector layer to create.

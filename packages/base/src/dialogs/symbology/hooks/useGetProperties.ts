@@ -16,6 +16,64 @@ interface IUseGetPropertiesResult {
   error?: Error;
 }
 
+async function getGeoJsonProperties({
+  source,
+  model,
+}: {
+  source: any;
+  model: IJupyterGISModel;
+}): Promise<Record<string, Set<any>>> {
+  const result: Record<string, Set<any>> = {};
+
+  const data = await loadFile({
+    filepath: source.parameters?.path,
+    type: 'GeoJSONSource',
+    model,
+  });
+
+  if (!data) {
+    throw new Error('Failed to read GeoJSON data');
+  }
+
+  data.features.forEach((feature: GeoJSONFeature1) => {
+    if (feature.properties) {
+      for (const [key, value] of Object.entries(feature.properties)) {
+        if (!result[key]) {
+          result[key] = new Set();
+        }
+        result[key].add(value);
+      }
+    }
+  });
+
+  return result;
+}
+
+function getVectorTileProperties({
+  model,
+  sourceId,
+}: {
+  model: IJupyterGISModel;
+  sourceId: string;
+}): Record<string, Set<any>> {
+  const result: Record<string, Set<any>> = {};
+  const features = model.getFeaturesForCurrentTile({ sourceId });
+
+  features.forEach(feature => {
+    const props = feature.getProperties?.();
+    if (props) {
+      for (const [key, value] of Object.entries(props)) {
+        if (!result[key]) {
+          result[key] = new Set();
+        }
+        result[key].add(value);
+      }
+    }
+  });
+
+  return result;
+}
+
 export const useGetProperties = ({
   layerId,
   model,
@@ -39,33 +97,22 @@ export const useGetProperties = ({
         throw new Error('Source not found');
       }
 
-      const data = await loadFile({
-        filepath: source.parameters?.path,
-        type: 'GeoJSONSource',
-        model: model,
-      });
+      const sourceType = source?.type;
+      let result: Record<string, Set<any>> = {};
 
-      if (!data) {
-        throw new Error('Failed to read GeoJSON data');
+      if (sourceType === 'GeoJSONSource') {
+        result = await getGeoJsonProperties({ source, model });
+      } else if (sourceType === 'VectorTileSource') {
+        const sourceId = layer?.parameters?.source;
+        result = getVectorTileProperties({ model, sourceId });
+      } else {
+        throw new Error(`Unsupported source type: ${sourceType}`);
       }
 
-      const result: Record<string, Set<any>> = {};
-
-      data.features.forEach((feature: GeoJSONFeature1) => {
-        if (feature.properties) {
-          Object.entries(feature.properties).forEach(([key, value]) => {
-            if (!(key in result)) {
-              result[key] = new Set();
-            }
-            result[key].add(value);
-          });
-        }
-      });
-
       setFeatureProperties(result);
-      setIsLoading(false);
     } catch (err) {
       setError(err as Error);
+    } finally {
       setIsLoading(false);
     }
   };

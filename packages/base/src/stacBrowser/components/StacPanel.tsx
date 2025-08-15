@@ -14,7 +14,7 @@ import StacPanelResults from './StacPanelResults';
 interface IStacViewProps {
   model?: IJupyterGISModel;
 }
-const StacPanelView = ({ model }: IStacViewProps) => {
+const StacPanel = ({ model }: IStacViewProps) => {
   const {
     filterState,
     filterSetters,
@@ -39,7 +39,7 @@ const StacPanelView = ({ model }: IStacViewProps) => {
   }
 
   return (
-    <Tabs defaultValue="filters" className="jgis-stac-browser-main">
+    <Tabs defaultValue="filters" className="jgis-panel-tabs">
       <TabsList style={{ borderRadius: 0 }}>
         <TabsTrigger className="jGIS-layer-browser-category" value="filters">
           Filters
@@ -76,4 +76,4 @@ const StacPanelView = ({ model }: IStacViewProps) => {
   );
 };
 
-export default StacPanelView;
+export default StacPanel;

@@ -1,6 +1,7 @@
 import { MapChange } from '@jupyter/ydoc';
 import {
   IAnnotation,
+  IAnnotationModel,
   IDict,
   IGeoTiffSource,
   IHeatmapLayer,
@@ -8,6 +9,7 @@ import {
   IImageLayer,
   IImageSource,
   IJGISFilterItem,
+  IJGISFormSchemaRegistry,
   IJGISLayer,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -34,10 +36,18 @@ import {
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
 import { User } from '@jupyterlab/services';
+import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue, UUID } from '@lumino/coreutils';
 import { ContextMenu } from '@lumino/widgets';
-import { Collection, MapBrowserEvent, Map as OlMap, View, getUid } from 'ol';
+import {
+  Collection,
+  MapBrowserEvent,
+  Map as OlMap,
+  VectorTile,
+  View,
+  getUid,
+} from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -62,16 +72,17 @@ import {
   transformExtent,
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
-import RenderFeature from 'ol/render/Feature';
+import RenderFeature, { toGeometry } from 'ol/render/Feature';
 import {
   GeoTIFF as GeoTIFFSource,
   ImageTile as ImageTileSource,
   Vector as VectorSource,
   VectorTile as VectorTileSource,
   XYZ as XYZSource,
+  Tile as TileSource,
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
-import TileSource from 'ol/source/Tile';
+import { TileSourceEvent } from 'ol/source/Tile';
 import { Circle, Fill, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
@@ -90,6 +101,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import { LeftPanel, RightPanel } from '../panelview';
 
 type OlLayerTypes =
   | TileLayer
@@ -102,6 +114,9 @@ type OlLayerTypes =
   | ImageLayer<any>;
 interface IProps {
   viewModel: MainViewModel;
+  state?: IStateDB;
+  formSchemaRegistry?: IJGISFormSchemaRegistry;
+  annotationModel?: IAnnotationModel;
 }
 
 interface IStates {
@@ -123,6 +138,11 @@ interface IStates {
 export class MainView extends React.Component<IProps, IStates> {
   constructor(props: IProps) {
     super(props);
+    this._state = props.state;
+
+    this._formSchemaRegistry = props.formSchemaRegistry;
+
+    this._annotationModel = props.annotationModel;
 
     // Enforce the map to take the full available width in the case of Jupyter Notebook viewer
     const el = document.getElementById('main-panel');
@@ -564,7 +584,9 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'RasterSource': {
         const sourceParameters = source.parameters as IRasterSource;
 
-        const pmTiles = sourceParameters.url.endsWith('.pmtiles');
+        const pmTiles =
+          sourceParameters.url.endsWith('.pmtiles') ||
+          sourceParameters.url.endsWith('pmtiles.gz');
         const url = this.computeSourceUrl(source);
 
         if (!pmTiles) {
@@ -601,7 +623,9 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'VectorTileSource': {
         const sourceParameters = source.parameters as IVectorTileSource;
 
-        const pmTiles = sourceParameters.url.endsWith('.pmtiles');
+        const pmTiles =
+          sourceParameters.url.endsWith('.pmtiles') ||
+          sourceParameters.url.endsWith('pmtiles.gz');
         const url = this.computeSourceUrl(source);
 
         if (!pmTiles) {
@@ -620,6 +644,18 @@ export class MainView extends React.Component<IProps, IStates> {
             url: url,
           });
         }
+
+        newSource.on('tileloadend', (event: TileSourceEvent) => {
+          const tile = event.tile as VectorTile<FeatureLike>;
+          const features = tile.getFeatures();
+
+          if (features && features.length > 0) {
+            this._model.syncTileFeatures({
+              sourceId: id,
+              features,
+            });
+          }
+        });
 
         break;
       }
@@ -2125,6 +2161,48 @@ export class MainView extends React.Component<IProps, IStates> {
     const jgisLayer = this._model.getLayer(layerId);
 
     switch (jgisLayer?.type) {
+      case 'VectorTileLayer': {
+        const geometries: Geometry[] = [];
+        const features: any[] = [];
+
+        this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
+          let geom: Geometry | undefined;
+
+          if (feature instanceof RenderFeature) {
+            geom = toGeometry(feature);
+          } else if ('getGeometry' in feature) {
+            geom = feature.getGeometry();
+          }
+
+          const props = feature.getProperties();
+
+          if (geom) {
+            geometries.push(geom);
+          }
+          features.push({
+            ...props,
+          });
+
+          return true;
+        });
+
+        if (features.length > 0) {
+          this._model.syncIdentifiedFeatures(features, this._mainViewModel.id);
+        }
+
+        if (geometries.length > 0) {
+          for (const geom of geometries) {
+            this._model.highlightFeatureSignal.emit(geom);
+          }
+        } else {
+          const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+          const point = new Point(coordinate);
+          this._model.highlightFeatureSignal.emit(point);
+        }
+
+        break;
+      }
+
       case 'WebGlLayer': {
         const layer = this.getLayer(layerId) as WebGlTileLayer;
         const data = layer.getData(e.pixel);
@@ -2277,6 +2355,21 @@ export class MainView extends React.Component<IProps, IStates> {
             scale={this.state.scale}
           />
         </div>
+
+        {this._state && (
+          <LeftPanel
+            model={this._model}
+            commands={this._mainViewModel.commands}
+            state={this._state}
+          ></LeftPanel>
+        )}
+        {this._formSchemaRegistry && this._annotationModel && (
+          <RightPanel
+            model={this._model}
+            formSchemaRegistry={this._formSchemaRegistry}
+            annotationModel={this._annotationModel}
+          ></RightPanel>
+        )}
       </>
     );
   }
@@ -2297,4 +2390,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _originalFeatures: IDict<Feature<Geometry>[]> = {};
   private _highlightLayer: VectorLayer<VectorSource>;
   private _updateCenter: CallableFunction;
+  private _state?: IStateDB;
+  private _formSchemaRegistry?: IJGISFormSchemaRegistry;
+  private _annotationModel?: IAnnotationModel;
 }

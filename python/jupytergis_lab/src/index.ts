@@ -1,30 +1,22 @@
 import {
   CommandIDs,
-  ControlPanelModel,
   GlobalStateDbManager,
-  LeftPanelWidget,
-  RightPanelWidget,
   addCommands,
   createDefaultLayerRegistry,
-  logoMiniIcon,
   rasterSubMenu,
   vectorSubMenu,
 } from '@jupytergis/base';
 import {
-  IAnnotationModel,
-  IAnnotationToken,
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
   IJGISLayerBrowserRegistry,
   IJGISLayerBrowserRegistryToken,
   IJGISLayerItem,
   IJupyterGISDocTracker,
-  IJupyterGISTracker,
   IJupyterGISWidget,
   ProcessingMerge,
 } from '@jupytergis/schema';
 import {
-  ILayoutRestorer,
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
@@ -36,8 +28,6 @@ import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { ContextMenu, Menu } from '@lumino/widgets';
 
 import { notebookRendererPlugin } from './notebookrenderer';
-
-const NAME_SPACE = 'jupytergis';
 
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:lab:main-menu',
@@ -225,55 +215,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
   },
 };
 
-const controlPanel: JupyterFrontEndPlugin<void> = {
-  id: 'jupytergis:lab:controlpanel',
-  autoStart: true,
-  requires: [
-    ILayoutRestorer,
-    IJupyterGISDocTracker,
-    IJGISFormSchemaRegistryToken,
-    IStateDB,
-    IAnnotationToken,
-  ],
-  activate: (
-    app: JupyterFrontEnd,
-    restorer: ILayoutRestorer,
-    tracker: IJupyterGISTracker,
-    formSchemaRegistry: IJGISFormSchemaRegistry,
-    state: IStateDB,
-    annotationModel: IAnnotationModel,
-  ) => {
-    const controlModel = new ControlPanelModel({ tracker });
-
-    const leftControlPanel = new LeftPanelWidget({
-      model: controlModel,
-      tracker,
-      state,
-      commands: app.commands,
-    });
-    leftControlPanel.id = 'jupytergis::leftControlPanel';
-    leftControlPanel.title.caption = 'JupyterGIS Control Panel';
-    leftControlPanel.title.icon = logoMiniIcon;
-
-    const rightControlPanel = new RightPanelWidget({
-      model: controlModel,
-      tracker,
-      formSchemaRegistry,
-      annotationModel,
-    });
-    rightControlPanel.id = 'jupytergis::rightControlPanel';
-    rightControlPanel.title.caption = 'JupyterGIS Control Panel';
-    rightControlPanel.title.icon = logoMiniIcon;
-
-    if (restorer) {
-      restorer.add(leftControlPanel, `${NAME_SPACE}-left`);
-      restorer.add(rightControlPanel, `${NAME_SPACE}-right`);
-    }
-    app.shell.add(leftControlPanel, 'left', { rank: 2000 });
-    app.shell.add(rightControlPanel, 'right', { rank: 2000 });
-  },
-};
-
 /**
  * Populates the application menus for the notebook.
  */
@@ -360,4 +301,4 @@ function buildGroupsMenu(
   });
 }
 
-export default [plugin, controlPanel, notebookRendererPlugin];
+export default [plugin, notebookRendererPlugin];

@@ -23,7 +23,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
     radius: 8,
     blur: 15,
   });
-  const selectedRampRef = useRef('cool');
+  const selectedRampRef = useRef('viridis');
   const heatmapOptionsRef = useRef({
     radius: 8,
     blur: 15,
@@ -55,7 +55,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
       colorRamp = layer.parameters.symbologyState.colorRamp;
     }
 
-    setSelectedRamp(colorRamp ? colorRamp : 'cool');
+    setSelectedRamp(colorRamp ? colorRamp : 'viridis');
   };
 
   const handleOk = () => {

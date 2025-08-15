@@ -44,7 +44,7 @@
         },
         "colorRamp": {
           "type": "string",
-          "default": "cool"
+          "default": "viridis"
         }
       }
     }

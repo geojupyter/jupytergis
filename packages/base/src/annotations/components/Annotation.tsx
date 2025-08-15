@@ -9,36 +9,24 @@ import { showDialog, Dialog } from '@jupyterlab/apputils';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useMemo, useState } from 'react';
 
-import { IControlPanelModel } from '@/src/types';
 import { Message } from './Message';
 
 export interface IAnnotationProps {
   itemId: string;
   annotationModel: IAnnotationModel;
-  rightPanelModel?: IControlPanelModel;
+  jgisModel?: IJupyterGISModel;
   children?: JSX.Element[] | JSX.Element;
 }
 
 const Annotation: React.FC<IAnnotationProps> = ({
   itemId,
   annotationModel,
-  rightPanelModel,
+  jgisModel,
   children,
 }) => {
   const [messageContent, setMessageContent] = useState('');
-  const [jgisModel, setJgisModel] = useState<IJupyterGISModel | undefined>(
-    rightPanelModel?.jGISModel,
-  );
-
   const annotation = annotationModel.getAnnotation(itemId);
   const contents = useMemo(() => annotation?.contents ?? [], [annotation]);
-
-  /**
-   * Update the model when it changes.
-   */
-  rightPanelModel?.documentChanged.connect((_, widget) => {
-    setJgisModel(widget?.model);
-  });
 
   const handleSubmit = () => {
     annotationModel.addContent(itemId, messageContent);
@@ -98,7 +86,7 @@ const Annotation: React.FC<IAnnotationProps> = ({
         <Button className="jp-mod-styled jp-mod-warn" onClick={handleDelete}>
           <FontAwesomeIcon icon={faTrash} />
         </Button>
-        {rightPanelModel && (
+        {jgisModel && (
           <Button
             className="jp-mod-styled jp-mod-accept"
             onClick={centerOnAnnotation}
