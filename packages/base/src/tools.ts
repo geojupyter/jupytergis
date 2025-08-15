@@ -18,9 +18,10 @@ import { Source } from 'ol/source';
 import loadGpkg from 'ol-load-geopackage';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
-import { getGdal } from './gdal';
 
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
+import { getGdal } from './gdal';
+
 
 export const debounce = (
   func: CallableFunction,
@@ -512,19 +513,26 @@ const geoPackageCache = new Map<string, Promise<GpkgTable>>();
  * @returns Blob URL created from converted file
  */
 async function linearizeReprojectGpkg(
-  fileBlob:Blob,
-  projection:string
+  fileBlob: Blob,
+  projection: string,
 ): Promise<string> {
   const gdal = await getGdal();
-  const file = new File([fileBlob], 'input.gpkg', { type: 'application/geopackage+sqlite3' });
+  const file = new File([fileBlob], 'input.gpkg', {
+    type: 'application/geopackage+sqlite3',
+  });
   const ds = await gdal.open(file);
-  await gdal.ogr2ogr(ds.datasets[0], ['-f', 'GPKG', '-nlt', 'CONVERT_TO_LINEAR', '-t_srs', projection], 'output');
+  await gdal.ogr2ogr(
+    ds.datasets[0],
+    ['-f', 'GPKG', '-nlt', 'CONVERT_TO_LINEAR', '-t_srs', projection],
+    'output',
+  );
   const bytes = await gdal.getFileBytes('/output/output.gpkg');
-  const blob = new Blob([new Uint8Array(bytes)], { type: 'application/geopackage+sqlite3' });
+  const blob = new Blob([new Uint8Array(bytes)], {
+    type: 'application/geopackage+sqlite3',
+  });
   const url = URL.createObjectURL(blob);
-  return url
+  return url;
 }
-
 
 function loadGeoPackageVectorFile(
   fileBlob: Blob,
@@ -624,14 +632,15 @@ export async function getGeoPackageTableNames(
   filepath: string,
   type: 'GeoPackageVectorSource' | 'GeoPackageRasterSource',
 ) {
-  const cacheKey = filepath + (type === 'GeoPackageRasterSource' ? 'Raster' : 'Vector');
+  const cacheKey =
+    filepath + (type === 'GeoPackageRasterSource' ? 'Raster' : 'Vector');
 
   const tableMap = await geoPackageCache.get(cacheKey);
   if (!tableMap) {
     return [];
   }
 
-    return Object.keys(tableMap);
+  return Object.keys(tableMap);
 }
 
 /**
@@ -723,7 +732,11 @@ export const loadFile = async (fileInfo: {
           projection = 'EPSG:3857';
         }
 
-        const fileBlob = await fetchWithProxies(filepath, model, async response => response.blob());
+        const fileBlob = await fetchWithProxies(
+          filepath,
+          model,
+          async response => response.blob(),
+        );
 
         if (!fileBlob) {
           showErrorMessage('Network error', `Failed to fetch ${filepath}`);
