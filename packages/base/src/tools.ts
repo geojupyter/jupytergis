@@ -22,7 +22,6 @@ import shp from 'shpjs';
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
 import { getGdal } from './gdal';
 
-
 export const debounce = (
   func: CallableFunction,
   timeout = 100,
