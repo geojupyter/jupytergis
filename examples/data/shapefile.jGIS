@@ -1,7 +1,8 @@
 {
   "layerTree": [
     "54e0ea1f-32fd-4ff2-90fb-ad449a38f902",
-    "f909d9b9-bf07-42f6-8841-8d6470665dcb"
+    "f909d9b9-bf07-42f6-8841-8d6470665dcb",
+    "aae2de30-c7c3-4a48-a666-767a6a818d6b"
   ],
   "layers": {
     "54e0ea1f-32fd-4ff2-90fb-ad449a38f902": {
@@ -10,6 +11,15 @@
         "source": "780c4234-ba6d-4da2-9731-739f6c4d8033"
       },
       "type": "RasterLayer",
+      "visible": true
+    },
+    "aae2de30-c7c3-4a48-a666-767a6a818d6b": {
+      "name": "Custom Shapefile Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "283aace5-388e-4dae-9f0a-49a739f7af9e"
+      },
+      "type": "VectorLayer",
       "visible": true
     },
     "f909d9b9-bf07-42f6-8841-8d6470665dcb": {
@@ -37,19 +47,29 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8150520.166876536,
-      -10915042.527657213,
-      11341094.519137997,
-      16957645.359427817
+      -20353805.89233975,
+      -7495575.396107111,
+      9028117.398769472,
+      16363188.544105079
     ],
-    "latitude": 26.179270968888744,
-    "longitude": 14.330708528781068,
+    "latitude": 36.96196535926444,
+    "longitude": -50.87019538475389,
     "pitch": 0.0,
     "projection": "EPSG:3857",
     "zoom": 2.2854022188622487
   },
   "schemaVersion": "0.5.0",
   "sources": {
+    "283aace5-388e-4dae-9f0a-49a739f7af9e": {
+      "name": "Custom Shapefile Source",
+      "parameters": {
+        "attribution": "",
+        "encoding": "UTF-8",
+        "path": "nyc.zip",
+        "projection": "WGS84"
+      },
+      "type": "ShapefileSource"
+    },
     "780c4234-ba6d-4da2-9731-739f6c4d8033": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
