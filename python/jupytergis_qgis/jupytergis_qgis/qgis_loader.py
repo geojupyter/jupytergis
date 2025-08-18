@@ -517,6 +517,9 @@ def import_project_from_qgis(path: str | Path):
 
 def get_base_symbol(geometry_type, color_params, opacity):
     """Returns a base symbol based on geometry type."""
+    if opacity is None:
+        opacity = 1.0
+
     if geometry_type == "circle":
         symbol = QgsMarkerSymbol()
     elif geometry_type == "line":

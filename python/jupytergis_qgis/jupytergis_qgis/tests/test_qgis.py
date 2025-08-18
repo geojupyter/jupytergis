@@ -31,8 +31,8 @@ def test_qgis_loader():
         layers={
             "_02b1b4d5_316b_4f4d_9c38_16bf10a3bcb8": {
                 "name": "OpenStreetMap0",
+                "opacity": 1.0,
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_id0,
                 },
                 "type": "RasterLayer",
@@ -40,8 +40,8 @@ def test_qgis_loader():
             },
             "_097deeeb_6564_48d1_a3be_1caa4d93382f": {
                 "name": "OpenStreetMap1",
+                "opacity": 1.0,
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_id1,
                 },
                 "type": "RasterLayer",
@@ -49,8 +49,8 @@ def test_qgis_loader():
             },
             "_bccce044_998d_45f9_bf6b_fe1472681cc3": {
                 "name": "OpenStreetMap2",
+                "opacity": 1.0,
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_id2,
                 },
                 "type": "RasterLayer",
@@ -58,8 +58,8 @@ def test_qgis_loader():
             },
             "_32a77a2c_1756_4876_9f99_e3c7b702f86a": {
                 "name": "OpenStreetMap3",
+                "opacity": 1.0,
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_id3,
                 },
                 "type": "RasterLayer",
@@ -159,8 +159,8 @@ def test_qgis_saver():
         "layers": {
             layer_ids[0]: {
                 "name": "OpenStreetMap0",
+                "opacity": 1.0,
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_ids[0],
                 },
                 "type": "RasterLayer",
@@ -168,8 +168,8 @@ def test_qgis_saver():
             },
             layer_ids[1]: {
                 "name": "OpenStreetMap1",
+                "opacity": 1.0,
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_ids[1],
                 },
                 "type": "RasterLayer",
@@ -177,8 +177,8 @@ def test_qgis_saver():
             },
             layer_ids[2]: {
                 "name": "Vector Tile Layer",
+                "opacity": 1.0,
                 "parameters": {
-                    "opacity": 1.0,
                     "color": {
                         "circle-fill-color": "#e1598987",
                         "circle-stroke-color": "#e1598987",
@@ -193,8 +193,8 @@ def test_qgis_saver():
             },
             layer_ids[3]: {
                 "name": "OpenStreetMap3",
+                "opacity": 1.0,
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_ids[3],
                 },
                 "type": "RasterLayer",
@@ -202,12 +202,12 @@ def test_qgis_saver():
             },
             layer_ids[4]: {
                 "name": "Custom GeoJSON Layer",
+                "opacity": 1.0,
                 "parameters": {
                     "color": {
                         "fill-color": "#4ea4d0",
                         "stroke-color": "#4ea4d0",
                     },
-                    "opacity": 1.0,
                     "source": source_ids[4],
                     "symbologyState": {"renderType": "Single Symbol"},
                     "type": "fill",
@@ -217,6 +217,7 @@ def test_qgis_saver():
             },
             layer_ids[5]: {
                 "name": "Custom GeoJSON Layer",
+                "opacity": 1.0,
                 "parameters": {
                     "color": {
                         "fill-color": [
@@ -244,7 +245,6 @@ def test_qgis_saver():
                         ],
                         "stroke-color": "#000000",
                     },
-                    "opacity": 1.0,
                     "source": source_ids[5],
                     "symbologyState": {
                         "renderType": "Graduated",
@@ -257,6 +257,7 @@ def test_qgis_saver():
             },
             layer_ids[6]: {
                 "name": "Custom GeoJSON Layer",
+                "opacity": 1.0,
                 "parameters": {
                     "color": {
                         "stroke-color": [
@@ -299,7 +300,6 @@ def test_qgis_saver():
                         "stroke-line-join": "bevel",
                         "stroke-width": 1.0,
                     },
-                    "opacity": 1.0,
                     "source": source_ids[6],
                     "symbologyState": {
                         "colorRamp": "viridis",
