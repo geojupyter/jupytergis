@@ -390,13 +390,13 @@ def qgis_layer_to_jgis(
         source_name = f"{layer_name} Source"
 
     layer_parameters["source"] = source_id
-    layer_parameters["opacity"] = layer.opacity()
 
     layers[layer_id] = {
         "name": layer_name,
         "parameters": layer_parameters,
         "type": layer_type,
         "visible": is_visible,
+        "opacity": layer.opacity(),
     }
     sources[source_id] = {
         "name": source_name,

@@ -244,6 +244,7 @@ export async function executeSQLProcessing(
       type: 'VectorLayer',
       parameters: { source: newSourceId },
       visible: true,
+      opacity: 1.0,
       name: layerName,
     };
 
@@ -264,6 +265,7 @@ export async function executeSQLProcessing(
       type: 'VectorLayer',
       parameters: { source: newSourceId },
       visible: true,
+      opacity: 1.0,
       name: layerName,
     };
 
