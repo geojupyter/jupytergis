@@ -53,7 +53,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
       }
 
       LayerForm = getLayerTypeForm(layer?.type || 'RasterLayer');
-      layerData = { 
+      layerData = {
         opacity: layer?.opacity ?? 1,
         ...deepCopy(layer?.parameters || {})
       };
@@ -73,7 +73,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
             maximum: 1,
           },
         };
-      }      
+      }
 
       if (!layerSchema) {
         console.error(`Cannot find schema for ${layer.type}`);
