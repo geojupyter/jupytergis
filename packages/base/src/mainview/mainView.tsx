@@ -1319,7 +1319,6 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'VectorLayer': {
-
         mapLayer.setOpacity(layer.opacity || 1);
 
         (mapLayer as VectorLayer).setStyle(
@@ -1329,7 +1328,6 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'VectorTileLayer': {
-
         mapLayer.setOpacity(layer.opacity || 1);
 
         (mapLayer as VectorTileLayer).setStyle(

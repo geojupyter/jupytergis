@@ -55,7 +55,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
       LayerForm = getLayerTypeForm(layer?.type || 'RasterLayer');
       layerData = {
         opacity: layer?.opacity ?? 1,
-        ...deepCopy(layer?.parameters || {})
+        ...deepCopy(layer?.parameters || {}),
       };
       layerSchema = deepCopy(
         this.props.formSchemaRegistry.getSchemas().get(layer.type),
