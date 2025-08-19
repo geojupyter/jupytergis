@@ -102,6 +102,7 @@ import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { LeftPanel, RightPanel } from '../panelview';
+import Legends from './Legends';
 
 type OlLayerTypes =
   | TileLayer
@@ -2298,6 +2299,16 @@ export class MainView extends React.Component<IProps, IStates> {
             scale={this.state.scale}
           />
         </div>
+
+        <Legends
+  model={this._model}
+  layerId={
+    Object.keys(
+      this._model?.sharedModel.awareness.getLocalState()?.selected?.value || {}
+    )[0]
+  }
+/>
+
 
         {this._state && (
           <LeftPanel
