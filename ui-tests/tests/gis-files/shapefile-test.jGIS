@@ -7,12 +7,12 @@
     "14e7f33a-6736-4a9f-b863-9a7c7d2213d5": {
       "name": "Custom Shapefile Layer",
       "parameters": {
-        "opacity": 1.0,
         "source": "6614d6a0-bd68-4c3c-8e4d-a4444f5be4f1",
         "type": "line"
       },
       "type": "VectorLayer",
-      "visible": true
+      "visible": true,
+      "opacity": 1.0,
     },
     "56629dbf-c321-4953-9c54-cc9321af53ba": {
       "name": "OpenStreetMap.Mapnik Layer",

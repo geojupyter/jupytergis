@@ -31,39 +31,39 @@ def test_qgis_loader():
         layers={
             "_02b1b4d5_316b_4f4d_9c38_16bf10a3bcb8": {
                 "name": "OpenStreetMap0",
-                "opacity": 1.0,
                 "parameters": {
                     "source": source_id0,
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             "_097deeeb_6564_48d1_a3be_1caa4d93382f": {
                 "name": "OpenStreetMap1",
-                "opacity": 1.0,
                 "parameters": {
                     "source": source_id1,
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             "_bccce044_998d_45f9_bf6b_fe1472681cc3": {
                 "name": "OpenStreetMap2",
-                "opacity": 1.0,
                 "parameters": {
                     "source": source_id2,
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             "_32a77a2c_1756_4876_9f99_e3c7b702f86a": {
                 "name": "OpenStreetMap3",
-                "opacity": 1.0,
                 "parameters": {
                     "source": source_id3,
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
         },
         layerTree=[
@@ -159,25 +159,24 @@ def test_qgis_saver():
         "layers": {
             layer_ids[0]: {
                 "name": "OpenStreetMap0",
-                "opacity": 1.0,
                 "parameters": {
                     "source": source_ids[0],
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             layer_ids[1]: {
                 "name": "OpenStreetMap1",
-                "opacity": 1.0,
                 "parameters": {
                     "source": source_ids[1],
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             layer_ids[2]: {
                 "name": "Vector Tile Layer",
-                "opacity": 1.0,
                 "parameters": {
                     "color": {
                         "circle-fill-color": "#e1598987",
@@ -190,19 +189,19 @@ def test_qgis_saver():
                 },
                 "type": "VectorTileLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             layer_ids[3]: {
                 "name": "OpenStreetMap3",
-                "opacity": 1.0,
                 "parameters": {
                     "source": source_ids[3],
                 },
                 "type": "RasterLayer",
                 "visible": False,
+                "opacity": 1.0,
             },
             layer_ids[4]: {
                 "name": "Custom GeoJSON Layer",
-                "opacity": 1.0,
                 "parameters": {
                     "color": {
                         "fill-color": "#4ea4d0",
@@ -214,10 +213,10 @@ def test_qgis_saver():
                 },
                 "type": "VectorLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             layer_ids[5]: {
                 "name": "Custom GeoJSON Layer",
-                "opacity": 1.0,
                 "parameters": {
                     "color": {
                         "fill-color": [
@@ -254,10 +253,10 @@ def test_qgis_saver():
                 },
                 "type": "VectorLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             layer_ids[6]: {
                 "name": "Custom GeoJSON Layer",
-                "opacity": 1.0,
                 "parameters": {
                     "color": {
                         "stroke-color": [
@@ -312,6 +311,7 @@ def test_qgis_saver():
                 },
                 "type": "VectorLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
         },
         "layerTree": [

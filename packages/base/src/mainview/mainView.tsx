@@ -1315,7 +1315,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     switch (layer.type) {
       case 'RasterLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity || 1);
+        mapLayer.setOpacity(layer.opacity || 1);
         break;
       }
       case 'VectorLayer': {

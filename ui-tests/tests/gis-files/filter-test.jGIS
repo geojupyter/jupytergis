@@ -12,12 +12,12 @@
       "name": "Custom GeoJSON Layer",
       "parameters": {
         "color": "#865e3c",
-        "opacity": 1.0,
         "source": "d07cc573-51fb-4ae8-965b-a0082ace7f2b",
         "type": "circle"
       },
       "type": "VectorLayer",
-      "visible": true
+      "visible": true,
+      "opacity": 1.0,
     },
     "f907e26c-c4c8-4c2d-ad62-813f63ed9de9": {
       "name": "OpenStreetMap.Mapnik Layer",
