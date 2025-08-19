@@ -221,7 +221,7 @@ Solr, or Apache Solr, is an open-source enterprise search platform writtin in Ja
 
 ## Source
 
-Usually refers to the path on a file system, URL or other reference to the data file that a layer refers to 
+Usually refers to the path on a file system, URL or other reference to the data file that a layer refers to
 
 ## Spatial data infrastructure components
 
