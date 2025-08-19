@@ -25,7 +25,9 @@ export const useGetSymbology = ({
   const [error, setError] = useState<Error | undefined>();
 
   useEffect(() => {
-    if (!layerId) {return;}
+    if (!layerId) {
+      return;
+    }
 
     try {
       setIsLoading(true);

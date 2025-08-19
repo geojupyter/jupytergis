@@ -2301,14 +2301,14 @@ export class MainView extends React.Component<IProps, IStates> {
         </div>
 
         <Legends
-  model={this._model}
-  layerId={
-    Object.keys(
-      this._model?.sharedModel.awareness.getLocalState()?.selected?.value || {}
-    )[0]
-  }
-/>
-
+          model={this._model}
+          layerId={
+            Object.keys(
+              this._model?.sharedModel.awareness.getLocalState()?.selected
+                ?.value || {},
+            )[0]
+          }
+        />
 
         {this._state && (
           <LeftPanel
