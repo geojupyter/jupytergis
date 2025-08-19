@@ -1,22 +1,22 @@
-name: "📖 User story"
+name: '📖 User story'
 description: |
   Share a workflow that you would like to see improve (faster, less
   frustrating, less steps, and/or less cognitive load).
 labels:
-  - "user story"
+  - 'user story'
 body:
-  - type: "textarea"
+  - type: 'textarea'
     attributes:
-      label: "Description"
+      label: 'Description'
       description: |
         Please describe your experience clearly.
         Please describe points of friction, frustration, or mental burden.
     validations:
       required: true
 
-  - type: "textarea"
+  - type: 'textarea'
     attributes:
-      label: "Steps"
+      label: 'Steps'
       description: |
         Please write a numbered list of all the steps in your story.
         Please write as if you're describing what a non-GIS-professional
