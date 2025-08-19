@@ -14,7 +14,6 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
   const { symbology, isLoading, error } = useGetSymbology({ layerId, model });
   console.log('symbology', symbology);
 
-  // 🔹 Parse interpolate expression into discrete stops
   const parseColorStops = (expr: any): { value: number; color: string }[] => {
     if (!Array.isArray(expr) || expr[0] !== 'interpolate') {return [];}
     const stops: { value: number; color: string }[] = [];
@@ -29,7 +28,6 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
     return stops;
   };
 
-  // 🔹 Parse "case" expression into categories
   const parseCaseCategories = (
     expr: any,
   ): { category: string | number; color: string }[] => {
@@ -37,12 +35,11 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
 
     const categories: { category: string | number; color: string }[] = [];
 
-    // Loop over conditions in pairs: condition, color
     for (let i = 1; i < expr.length - 1; i += 2) {
       const condition = expr[i];
       const colorExpr = expr[i + 1];
 
-      // condition is usually ["==", ["get", "field"], value]
+
       let category;
       if (
         Array.isArray(condition) &&
@@ -54,7 +51,7 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
         category = condition[2];
       }
 
-      // colorExpr is an array [r,g,b,a]
+
       let color = '';
       if (Array.isArray(colorExpr)) {
         color = `rgba(${colorExpr[0]},${colorExpr[1]},${colorExpr[2]},${colorExpr[3]})`;
@@ -73,7 +70,6 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
 
     const state = symbology.symbologyState?.renderType;
 
-    // 🔹 Single Symbol
     if (state === 'Single Symbol') {
       const color =
         symbology.color?.['fill-color'] || symbology.color?.['stroke-color'];
@@ -98,7 +94,6 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
       );
     }
 
-    // 🔹 Graduated (discrete steps from interpolate)
     if (state === 'Graduated') {
       const stops = parseColorStops(
         symbology.color?.['fill-color'] || symbology.color?.['stroke-color'],
@@ -135,8 +130,6 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
       );
     }
 
-    // 🔹 Categorized (continuous ramp with ticks)
-    // 🔹 Categorized (case expression)
     if (state === 'Categorized') {
       const categories = parseCaseCategories(
         symbology.color?.['fill-color'] || symbology.color?.['stroke-color'],

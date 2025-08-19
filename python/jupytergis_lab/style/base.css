@@ -880,4 +880,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 
 .legends-body {
   padding: 10px;
+  max-height: 150px;
+  overflow: auto;
 }
