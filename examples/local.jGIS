@@ -7,6 +7,7 @@
   "layers": {
     "042f37ac-6d05-4b07-a944-8f56fb889612": {
       "name": "Custom Shapefile Layer",
+      "opacity": 1.0,
       "parameters": {
         "color": {
           "fill-color": "#cc3342",
@@ -15,7 +16,6 @@
           "stroke-line-join": "round",
           "stroke-width": 1.25
         },
-        "opacity": 1.0,
         "source": "0e9d027f-56ea-427e-a845-a5ee33427e67",
         "symbologyState": {
           "renderType": "Single Symbol"
@@ -27,8 +27,8 @@
     },
     "52e46caf-e212-4276-ade9-6b0683642f8d": {
       "name": "Custom Image Layer",
+      "opacity": 1.0,
       "parameters": {
-        "opacity": 1.0,
         "source": "f124c6de-e444-4798-be88-61c3ee8968db"
       },
       "type": "ImageLayer",
@@ -36,8 +36,9 @@
     },
     "f5e91204-3ce9-408e-b179-c6cf5f75f0f7": {
       "name": "OpenStreetMap.Mapnik Layer",
+      "opacity": 1.0,
       "parameters": {
-        "source": "3bd6b874-a28a-4ef6-bef8-a7257bb35c51"
+        "source": "f124c6de-e444-4798-be88-61c3ee8968db"
       },
       "type": "RasterLayer",
       "visible": true
@@ -47,16 +48,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8703718.385476297,
-      4845264.714813822,
-      -8189138.675329441,
-      5581105.222898616
+      -10118716.303943159,
+      3988180.028271699,
+      -7405580.502307219,
+      5500028.028428582
     ],
-    "latitude": 42.34755800727709,
-    "longitude": -75.87555845084086,
+    "latitude": 39.1564325498224,
+    "longitude": -78.71171832250815,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 7.528717444291546
+    "zoom": 6.519481004917444
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -74,6 +75,7 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
@@ -103,6 +105,7 @@
             37.936
           ]
         ],
+        "interpolate": false,
         "path": "radar.gif"
       },
       "type": "ImageSource"

@@ -8,12 +8,12 @@
       "name": "Buildings Vector Tile",
       "parameters": {
         "color": "#086600",
-        "opacity": 1.0,
         "source": "7a7ee6fd-c1e2-4c5d-a4e2-a7974db138a4",
         "type": "fill"
       },
       "type": "VectorTileLayer",
-      "visible": true
+      "visible": true,
+      "opacity": 1
     },
     "f99eb7b0-5e38-4078-b310-36a0746472aa": {
       "name": "OpenStreetMap.Mapnik Layer",

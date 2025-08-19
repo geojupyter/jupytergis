@@ -7451,7 +7451,6 @@
             ]
           ]
         },
-        "opacity": 1.0,
         "source": "b9e30ab1-864e-4395-9071-cddb6ac813e5",
         "symbologyState": {
           "colorRamp": "rainbow",
@@ -7463,7 +7462,8 @@
         "type": "line"
       },
       "type": "VectorLayer",
-      "visible": true
+      "visible": true,
+      "opacity": 1.0
     }
   },
   "metadata": {},

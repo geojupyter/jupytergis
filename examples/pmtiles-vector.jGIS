@@ -16,12 +16,12 @@
       "name": "Buildings",
       "parameters": {
         "color": "#FF0000",
-        "opacity": 1.0,
         "source": "e52daf20-9b57-4a14-9521-70eabbe4cda2",
         "type": "line"
       },
       "type": "VectorTileLayer",
-      "visible": true
+      "visible": true,
+      "opacity": 1
     }
   },
   "metadata": {},

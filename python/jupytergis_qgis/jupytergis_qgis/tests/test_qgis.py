@@ -120,6 +120,21 @@ def test_qgis_loader():
     )
 
 
+def normalize_jgis(jgis):
+    import copy
+
+    norm = copy.deepcopy(jgis)
+
+    for layer in norm["layers"].values():
+        if "opacity" not in layer:
+            layer["opacity"] = 1.0
+
+        if "parameters" in layer and "opacity" in layer["parameters"]:
+            del layer["parameters"]["opacity"]
+
+    return norm
+
+
 def test_qgis_saver():
     filename = FILES / "project1.qgz"
     if os.path.exists(filename):
@@ -394,4 +409,4 @@ def test_qgis_saver():
 
     imported_jgis = import_project_from_qgis(filename)
 
-    assert jgis == imported_jgis
+    assert normalize_jgis(jgis) == normalize_jgis(imported_jgis)

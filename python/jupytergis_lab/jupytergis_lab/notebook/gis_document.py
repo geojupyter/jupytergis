@@ -226,7 +226,6 @@ class GISDocument(CommWidget):
             "name": name,
             "visible": True,
             "opacity": opacity,
-            "opacity": opacity,
             "parameters": {
                 "source": source_id,
                 "color": color_expr,

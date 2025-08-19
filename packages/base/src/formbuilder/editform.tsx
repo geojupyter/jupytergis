@@ -116,7 +116,28 @@ export class EditForm extends React.Component<IEditFormProps, any> {
               schema={layerSchema}
               sourceData={layerData}
               syncData={(properties: { [key: string]: any }) => {
-                this.syncObjectProperties(this.props.layer, properties);
+                if (!this.props.layer) {
+                  return;
+                }
+
+                const { opacity, ...params } = properties;
+
+                if (opacity !== undefined) {
+                  const layer = this.props.model.getLayer(this.props.layer);
+                  if (layer) {
+                    this.props.model.sharedModel.updateLayer(this.props.layer, {
+                      ...layer,
+                      opacity,
+                    });
+                  }
+                }
+
+                if (Object.keys(params).length > 0) {
+                  this.props.model.sharedModel.updateObjectParameters(
+                    this.props.layer,
+                    params,
+                  );
+                }
               }}
             />
           </div>

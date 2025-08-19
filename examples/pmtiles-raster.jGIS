@@ -7,11 +7,11 @@
     "2815540d-70c6-4eed-ba86-51596adf6863": {
       "name": "Custom Raster Layer",
       "parameters": {
-        "opacity": 0.5,
         "source": "d3a5ad67-d6fe-4793-a6c5-dd773d76c745"
       },
       "type": "RasterLayer",
-      "visible": true
+      "visible": true,
+      "opacity": 0.5
     },
     "3d4563da-904d-4026-a06b-1e8cffbf536f": {
       "name": "OpenStreetMap.Mapnik Layer",

@@ -113,7 +113,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
         name: { type: 'string', description: 'The name of the layer' },
         opacity: {
           type: 'number',
-          description: 'The opacity of the the object',
+          description: 'The opacity of the object',
           default: 1,
           multipleOf: 0.1,
           minimum: 0,

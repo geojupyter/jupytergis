@@ -22,7 +22,6 @@
           "stroke-line-join": "round",
           "stroke-width": 1.25
         },
-        "opacity": 1.0,
         "source": "eb4b68da-eab6-44a1-8e75-ca9c871d2755",
         "symbologyState": {
           "renderType": "Single Symbol"
@@ -30,7 +29,8 @@
         "type": "line"
       },
       "type": "VectorLayer",
-      "visible": true
+      "visible": true,
+      "opacity": 1
     }
   },
   "metadata": {},

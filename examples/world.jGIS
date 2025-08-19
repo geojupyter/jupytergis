@@ -82,7 +82,6 @@
             ]
           ]
         },
-        "opacity": 1.0,
         "source": "b4287bea-e217-443c-b527-58f7559c824c",
         "symbologyState": {
           "colorRamp": "cool",
@@ -95,7 +94,8 @@
         "type": "fill"
       },
       "type": "VectorLayer",
-      "visible": true
+      "visible": true,
+      "opacity": 1
     },
     "f80d0fa2-3e2b-4922-b7d5-fefd4b085259": {
       "name": "France",
@@ -107,7 +107,6 @@
           "stroke-line-join": "round",
           "stroke-width": 1.25
         },
-        "opacity": 1.0,
         "source": "5970d6c9-26be-4cc6-84c9-16593dd3edfe",
         "symbologyState": {
           "renderType": "Single Symbol"
@@ -115,7 +114,8 @@
         "type": "line"
       },
       "type": "VectorLayer",
-      "visible": true
+      "visible": true,
+      "opacity": 1
     }
   },
   "metadata": {},
