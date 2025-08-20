@@ -15,6 +15,7 @@ interface IUseGetSymbologyResult {
 /**
  * Extracts symbology information (paint/layout + symbologyState)
  * for a given layer from the JupyterGIS model.
+ * Keeps symbology updated when the layer changes.
  */
 export const useGetSymbology = ({
   layerId,
@@ -29,33 +30,61 @@ export const useGetSymbology = ({
       return;
     }
 
-    try {
-      setIsLoading(true);
-      setError(undefined);
+    let disposed = false;
 
-      const layer = model.getLayer(layerId);
+    const fetchSymbology = () => {
+      try {
+        setIsLoading(true);
+        setError(undefined);
 
-      if (!layer) {
-        throw new Error(`Layer not found: ${layerId}`);
+        const layer = model.getLayer(layerId);
+
+        if (!layer) {
+          throw new Error(`Layer not found: ${layerId}`);
+        }
+
+        const params = layer.parameters ?? {};
+        const { symbologyState, color, ...rest } = params;
+
+        const result: Record<string, any> = {
+          ...rest,
+          ...(color ? { color } : {}),
+          ...(symbologyState ? { symbologyState } : {}),
+        };
+
+        if (!disposed) {
+          setSymbology(result);
+        }
+      } catch (err) {
+        if (!disposed) {
+          setError(err as Error);
+          setSymbology(null);
+        }
+      } finally {
+        if (!disposed) {
+          setIsLoading(false);
+        }
       }
+    };
 
-      const params = layer.parameters ?? {};
-      const { symbologyState, color, ...rest } = params;
+    // initial load
+    fetchSymbology();
 
-      // Merge both style props + high-level symbology metadata
-      const result: Record<string, any> = {
-        ...rest,
-        ...(color ? { color } : {}),
-        ...(symbologyState ? { symbologyState } : {}),
-      };
 
-      setSymbology(result);
-    } catch (err) {
-      setError(err as Error);
-      setSymbology(null);
-    } finally {
-      setIsLoading(false);
-    }
+    model.sharedLayersChanged.connect(() => {
+      if (model.getLayer(layerId)) {
+        fetchSymbology();
+      } else {
+        if (!disposed) {
+          setSymbology(null);
+          setIsLoading(false);
+        }
+      }
+    });
+
+    return () => {
+      disposed = true;
+    };
   }, [layerId, model]);
 
   return { symbology, isLoading, error };
