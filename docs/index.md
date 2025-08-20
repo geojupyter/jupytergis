@@ -47,6 +47,7 @@ contributor_guide/index
 ```
 
 <!-- hidden because listing every version here is too verbose -->
+
 ```{toctree}
 :hidden:
 
