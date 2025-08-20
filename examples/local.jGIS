@@ -1,37 +1,26 @@
 {
   "layerTree": [
     "f5e91204-3ce9-408e-b179-c6cf5f75f0f7",
-    "52e46caf-e212-4276-ade9-6b0683642f8d",
-    "042f37ac-6d05-4b07-a944-8f56fb889612"
+    "66198b90-5d1c-4637-a15d-450b17c4fcb6",
+    "aae4466d-49da-4308-b73d-046e974f92a4"
   ],
   "layers": {
-    "042f37ac-6d05-4b07-a944-8f56fb889612": {
-      "name": "Custom Shapefile Layer",
-      "parameters": {
-        "color": {
-          "fill-color": "#cc3342",
-          "stroke-color": "#cc3333",
-          "stroke-line-cap": "round",
-          "stroke-line-join": "round",
-          "stroke-width": 1.25
-        },
-        "opacity": 1.0,
-        "source": "0e9d027f-56ea-427e-a845-a5ee33427e67",
-        "symbologyState": {
-          "renderType": "Single Symbol"
-        },
-        "type": "line"
-      },
-      "type": "VectorLayer",
-      "visible": true
-    },
-    "52e46caf-e212-4276-ade9-6b0683642f8d": {
-      "name": "Custom Image Layer",
+    "66198b90-5d1c-4637-a15d-450b17c4fcb6": {
+      "name": "Radar",
       "parameters": {
         "opacity": 1.0,
-        "source": "f124c6de-e444-4798-be88-61c3ee8968db"
+        "source": "756b4c42-6ca0-40c1-9e3b-90c1f5f99fab"
       },
       "type": "ImageLayer",
+      "visible": true
+    },
+    "aae4466d-49da-4308-b73d-046e974f92a4": {
+      "name": "Subset of Manhattan roads",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "d82b24cf-e43a-43aa-bc7b-2578adc7ef8a"
+      },
+      "type": "VectorLayer",
       "visible": true
     },
     "f5e91204-3ce9-408e-b179-c6cf5f75f0f7": {
@@ -47,29 +36,19 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8703718.385476297,
-      4845264.714813822,
-      -8189138.675329441,
-      5581105.222898616
+      -8246934.717061622,
+      4968795.586674349,
+      -8213337.266605692,
+      4985044.919630708
     ],
-    "latitude": 42.34755800727709,
-    "longitude": -75.87555845084086,
+    "latitude": 40.759417164353295,
+    "longitude": -73.93256951846351,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 7.528717444291546
+    "zoom": 12.854946697713963
   },
   "schemaVersion": "0.5.0",
   "sources": {
-    "0e9d027f-56ea-427e-a845-a5ee33427e67": {
-      "name": "Custom Shapefile Source",
-      "parameters": {
-        "attribution": "",
-        "encoding": "UTF-8",
-        "path": "nyc.zip",
-        "projection": "WGS84"
-      },
-      "type": "ShapefileSource"
-    },
     "3bd6b874-a28a-4ef6-bef8-a7257bb35c51": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
@@ -82,7 +61,7 @@
       },
       "type": "RasterSource"
     },
-    "f124c6de-e444-4798-be88-61c3ee8968db": {
+    "756b4c42-6ca0-40c1-9e3b-90c1f5f99fab": {
       "name": "Custom Image Source",
       "parameters": {
         "coordinates": [
@@ -103,9 +82,20 @@
             37.936
           ]
         ],
-        "path": "radar.gif"
+        "interpolate": false,
+        "path": "data/radar.gif"
       },
       "type": "ImageSource"
+    },
+    "d82b24cf-e43a-43aa-bc7b-2578adc7ef8a": {
+      "name": "Custom Shapefile Source",
+      "parameters": {
+        "attribution": "",
+        "encoding": "UTF-8",
+        "path": "data/nyc/nyc.zip",
+        "projection": "WGS84"
+      },
+      "type": "ShapefileSource"
     }
   }
 }
