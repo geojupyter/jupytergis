@@ -791,7 +791,7 @@ export class MainView extends React.Component<IProps, IStates> {
                 min: sourceInfo.min,
                 max: sourceInfo.max,
                 geotiff,
-                url: URL.createObjectURL(geotiff.file),
+                url: URL.createObjectURL(geotiff),
               };
             }
           }),

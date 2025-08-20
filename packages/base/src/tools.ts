@@ -485,6 +485,8 @@ export const loadGeoTiff = async (
   } else {
     fileBlob = await base64ToBlob(file.content, mimeType);
   }
+
+  return fileBlob;
 };
 
 /**
