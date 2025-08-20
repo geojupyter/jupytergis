@@ -15,7 +15,9 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
   console.log('symbology', symbology);
 
   const parseColorStops = (expr: any): { value: number; color: string }[] => {
-    if (!Array.isArray(expr) || expr[0] !== 'interpolate') {return [];}
+    if (!Array.isArray(expr) || expr[0] !== 'interpolate') {
+      return [];
+    }
     const stops: { value: number; color: string }[] = [];
     for (let i = 3; i < expr.length; i += 2) {
       const value = expr[i] as number;
@@ -31,14 +33,15 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
   const parseCaseCategories = (
     expr: any,
   ): { category: string | number; color: string }[] => {
-    if (!Array.isArray(expr) || expr[0] !== 'case') {return [];}
+    if (!Array.isArray(expr) || expr[0] !== 'case') {
+      return [];
+    }
 
     const categories: { category: string | number; color: string }[] = [];
 
     for (let i = 1; i < expr.length - 1; i += 2) {
       const condition = expr[i];
       const colorExpr = expr[i + 1];
-
 
       let category;
       if (
@@ -50,7 +53,6 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
       } else if (Array.isArray(condition) && condition[0] === '==') {
         category = condition[2];
       }
-
 
       let color = '';
       if (Array.isArray(colorExpr)) {
@@ -66,7 +68,9 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
   };
 
   const renderLegend = () => {
-    if (!symbology) {return <p>No symbology available</p>;}
+    if (!symbology) {
+      return <p>No symbology available</p>;
+    }
 
     const state = symbology.symbologyState?.renderType;
 
@@ -98,7 +102,9 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
       const stops = parseColorStops(
         symbology.color?.['fill-color'] || symbology.color?.['stroke-color'],
       );
-      if (stops.length === 0) {return <p>No graduated symbology</p>;}
+      if (stops.length === 0) {
+        return <p>No graduated symbology</p>;
+      }
 
       return (
         <>
@@ -134,7 +140,9 @@ const Legends: React.FC<ILegendsProps> = ({ layerId, model }) => {
       const categories = parseCaseCategories(
         symbology.color?.['fill-color'] || symbology.color?.['stroke-color'],
       );
-      if (categories.length === 0) {return <p>No categorized symbology</p>;}
+      if (categories.length === 0) {
+        return <p>No categorized symbology</p>;
+      }
 
       return (
         <div style={{ padding: '4px 0' }}>

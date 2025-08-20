@@ -70,7 +70,6 @@ export const useGetSymbology = ({
     // initial load
     fetchSymbology();
 
-
     model.sharedLayersChanged.connect(() => {
       if (model.getLayer(layerId)) {
         fetchSymbology();
@@ -80,6 +79,11 @@ export const useGetSymbology = ({
           setIsLoading(false);
         }
       }
+    });
+
+    model.sharedModel.awareness.on('change', () => {
+        console.log(`Awareness changed for layer ${layerId}`);
+        fetchSymbology();
     });
 
     return () => {
