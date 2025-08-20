@@ -2,7 +2,7 @@
   "layerTree": [
     "54e0ea1f-32fd-4ff2-90fb-ad449a38f902",
     "f909d9b9-bf07-42f6-8841-8d6470665dcb",
-    "aae2de30-c7c3-4a48-a666-767a6a818d6b"
+    "df947252-afb1-489f-8bce-7057318a50e3"
   ],
   "layers": {
     "54e0ea1f-32fd-4ff2-90fb-ad449a38f902": {
@@ -13,17 +13,17 @@
       "type": "RasterLayer",
       "visible": true
     },
-    "aae2de30-c7c3-4a48-a666-767a6a818d6b": {
-      "name": "Custom Shapefile Layer",
+    "df947252-afb1-489f-8bce-7057318a50e3": {
+      "name": "Subset of Manhattan roads",
       "parameters": {
         "opacity": 1.0,
-        "source": "283aace5-388e-4dae-9f0a-49a739f7af9e"
+        "source": "c3215d81-4b47-4b93-ae1c-5eb0fe8a68a8"
       },
       "type": "VectorLayer",
       "visible": true
     },
     "f909d9b9-bf07-42f6-8841-8d6470665dcb": {
-      "name": "Custom Shapefile Layer",
+      "name": "Administrative boundaries",
       "parameters": {
         "color": {
           "fill-color": "#eaa4e7",
@@ -47,29 +47,19 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -20353805.89233975,
-      -7495575.396107111,
-      9028117.398769472,
-      16363188.544105079
+      -8248331.031441965,
+      4964779.172089877,
+      -8217052.144120962,
+      4979907.137089783
     ],
-    "latitude": 36.96196535926444,
-    "longitude": -50.87019538475389,
+    "latitude": 40.72826565084668,
+    "longitude": -73.95552682746299,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 2.2854022188622487
+    "zoom": 12.958109263100704
   },
   "schemaVersion": "0.5.0",
   "sources": {
-    "283aace5-388e-4dae-9f0a-49a739f7af9e": {
-      "name": "Custom Shapefile Source",
-      "parameters": {
-        "attribution": "",
-        "encoding": "UTF-8",
-        "path": "nyc.zip",
-        "projection": "WGS84"
-      },
-      "type": "ShapefileSource"
-    },
     "780c4234-ba6d-4da2-9731-739f6c4d8033": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
@@ -81,6 +71,16 @@
         "urlParameters": {}
       },
       "type": "RasterSource"
+    },
+    "c3215d81-4b47-4b93-ae1c-5eb0fe8a68a8": {
+      "name": "Custom Shapefile Source",
+      "parameters": {
+        "attribution": "",
+        "encoding": "UTF-8",
+        "path": "data/nyc/nyc.zip",
+        "projection": "WGS84"
+      },
+      "type": "ShapefileSource"
     },
     "eb4b68da-eab6-44a1-8e75-ca9c871d2755": {
       "name": "Custom Shapefile Source",
