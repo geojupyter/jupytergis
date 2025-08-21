@@ -46,10 +46,10 @@ Information about contributing to the JupyterGIS project.
 contributor_guide/index
 ```
 
-## More
+<!-- hidden because listing every version here is too verbose -->
 
 ```{toctree}
-:maxdepth: 2
+:hidden:
 
 changelog
 ```
