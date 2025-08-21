@@ -3,6 +3,7 @@ import colormap from 'colormap';
 import React, { useEffect, useRef, useState } from 'react';
 
 import ColorRampEntry from './ColorRampEntry';
+import cmocean from './cmocean.json';
 
 export interface IColorMap {
   name: string;
@@ -79,9 +80,16 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
       });
       const colorMap = { name: name, colors: colorRamp };
       colorMapList.push(colorMap);
-
-      setColorMaps(colorMapList);
     });
+
+    Object.keys(cmocean).forEach(name => {
+      colorMapList.push({
+        name,
+        colors: cmocean[name as keyof typeof cmocean],
+      });
+    });
+
+    setColorMaps(colorMapList);
   }, []);
 
   useEffect(() => {

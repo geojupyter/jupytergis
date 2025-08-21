@@ -8,7 +8,7 @@ import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
 const StopRow: React.FC<{
   index: number;
   value: number;
-  outputValue: number | number[];
+  outputValue: number | number[] | string;
   stopRows: IStopRow[];
   setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
@@ -30,7 +30,10 @@ const StopRow: React.FC<{
     }
   }, [stopRows]);
 
-  const rgbArrToHex = (rgbArr: number | number[]) => {
+  const rgbArrToHex = (rgbArr: number[] | string) => {
+    if (typeof rgbArr === 'string') {
+      return rgbArr;
+    }
     if (!Array.isArray(rgbArr)) {
       return;
     }
@@ -62,7 +65,7 @@ const StopRow: React.FC<{
     return rgbValues;
   };
 
-  const handleStopChange = (event: { target: { value: string | number } }) => {
+  const handleStopChange = (event: { target: { value: string } }) => {
     const newRows = [...stopRows];
     newRows[index].stop = +event.target.value;
     setStopRows(newRows);
@@ -113,7 +116,7 @@ const StopRow: React.FC<{
         <input
           id={`jp-gis-color-color-${index}`}
           ref={inputRef}
-          value={rgbArrToHex(outputValue)}
+          value={rgbArrToHex(outputValue as number[])}
           type="color"
           onChange={handleOutputChange}
           className="jp-mod-styled jp-gis-color-row-output-input"

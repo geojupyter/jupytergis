@@ -9,9 +9,10 @@ import {
   IStopRow,
   ISymbologyTabbedDialogWithAttributesProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
-import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
+import { VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { SymbologyTab } from '@/src/types';
+import { resolveColorRamp } from './colorRampUtils';
 
 const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -128,15 +129,14 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       selectedMode: '',
     });
 
-    const stops = Array.from(
-      selectableAttributesAndValues[selectedAttribute],
-    ).sort((a, b) => a - b);
+    const stops = Array.from(selectableAttributesAndValues[selectedAttribute]);
 
-    const valueColorPairs = Utils.getValueColorPairs(
-      stops,
-      selectedRamp,
-      stops.length,
-    );
+    const rampColors = resolveColorRamp(selectedRamp, stops.length, 'hex');
+
+    const valueColorPairs = stops.map((val, i) => ({
+      stop: val,
+      output: rampColors[i % rampColors.length],
+    }));
 
     setStopRows(valueColorPairs);
   };

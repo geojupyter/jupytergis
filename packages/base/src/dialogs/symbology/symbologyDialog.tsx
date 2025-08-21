@@ -36,7 +36,11 @@ export interface ISymbologyWidgetOptions {
 
 export interface IStopRow {
   stop: number;
-  output: number | number[];
+  output: number | number[] | string;
+}
+
+export interface ICmoceanColormaps {
+  [key: string]: string[];
 }
 
 const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({

@@ -1,8 +1,8 @@
-import colormap from 'colormap';
 import React, { useEffect, useRef, useState } from 'react';
 
 import CanvasSelectComponent from '@/src/dialogs/symbology/components/color_ramp/CanvasSelectComponent';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import { resolveColorRamp } from './colorRampUtils';
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
   model,
@@ -63,11 +63,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
       return;
     }
 
-    const colorMap = colormap({
-      colormap: selectedRampRef.current,
-      nshades: 9,
-      format: 'hex',
-    });
+    const rampColors = resolveColorRamp(selectedRampRef.current, 255, 'hex');
 
     const symbologyState = {
       renderType: 'Heatmap',
@@ -75,7 +71,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
     };
 
     layer.parameters.symbologyState = symbologyState;
-    layer.parameters.color = colorMap;
+    layer.parameters.color = rampColors;
     layer.parameters.blur = heatmapOptionsRef.current.blur;
     layer.parameters.radius = heatmapOptionsRef.current.radius;
     layer.type = 'HeatmapLayer';
