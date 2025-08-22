@@ -27,12 +27,12 @@
       "name": "Regions France",
       "parameters": {
         "color": "#e66100",
+        "opacity": 0.6,
         "source": "7d082e75-69d5-447a-82d8-b05cca5945ba",
         "type": "line"
       },
       "type": "VectorLayer",
-      "visible": true,
-      "opacity": 0.6,
+      "visible": true
     },
     "a0044fd7-f167-445f-b3d1-620a8f94b498": {
       "name": "Open Topo Map",
