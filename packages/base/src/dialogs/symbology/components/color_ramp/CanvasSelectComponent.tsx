@@ -82,10 +82,13 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
       colorMapList.push(colorMap);
     });
 
-    Object.keys(cmocean).forEach(name => {
+    Object.entries(cmocean).forEach(([name, colors]) => {
+      if (name === 'license') {
+        return;
+      }
       colorMapList.push({
         name,
-        colors: cmocean[name as keyof typeof cmocean],
+        colors: colors as string[],
       });
     });
 

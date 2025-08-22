@@ -5,6 +5,7 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
 
+import { SymbologyValue } from '@/src/dialogs/symbology/components/color_stops/StopRow';
 import { SymbologyTab } from '@/src/types';
 import TiffRendering from './tiff_layer/TiffRendering';
 import VectorRendering from './vector_layer/VectorRendering';
@@ -36,7 +37,7 @@ export interface ISymbologyWidgetOptions {
 
 export interface IStopRow {
   stop: number;
-  output: number | number[] | string;
+  output: SymbologyValue;
 }
 
 export interface ICmoceanColormaps {

@@ -5,18 +5,29 @@ import React, { useEffect, useRef } from 'react';
 
 import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
 
+type RgbColorValue =
+  | [number, number, number]
+  | [number, number, number, number];
+type HexColorValue = string;
+type InternalRgbArray = number[];
+
+type ColorValue = RgbColorValue | HexColorValue;
+type SizeValue = number;
+
+export type SymbologyValue = SizeValue | ColorValue | InternalRgbArray;
+
 const StopRow: React.FC<{
   index: number;
-  value: number;
-  outputValue: number | number[] | string;
+  dataValue: number;
+  symbologyValue: SymbologyValue;
   stopRows: IStopRow[];
   setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
   useNumber?: boolean;
 }> = ({
   index,
-  value,
-  outputValue,
+  dataValue,
+  symbologyValue,
   stopRows,
   setStopRows,
   deleteRow,
@@ -30,15 +41,18 @@ const StopRow: React.FC<{
     }
   }, [stopRows]);
 
-  const rgbArrToHex = (rgbArr: number[] | string) => {
-    if (typeof rgbArr === 'string') {
-      return rgbArr;
+  const ensureHexColorCode = (color: number | number[] | string): string => {
+    if (typeof color === 'string') {
+      return color;
     }
-    if (!Array.isArray(rgbArr)) {
-      return;
+    if (typeof color === 'number') {
+      return '#000000';
+    }
+    if (!Array.isArray(color)) {
+      return '#000000'; // Default to black
     }
 
-    const hex = rgbArr
+    const hex = color
       .slice(0, -1) // Color input doesn't support hex alpha values so cut that out
       .map((val: { toString: (arg0: number) => string }) => {
         return val.toString(16).padStart(2, '0');
@@ -98,7 +112,7 @@ const StopRow: React.FC<{
       <input
         id={`jp-gis-color-value-${index}`}
         type="number"
-        value={value}
+        value={dataValue}
         onChange={handleStopChange}
         onBlur={handleBlur}
         className="jp-mod-styled jp-gis-color-row-value-input"
@@ -108,7 +122,7 @@ const StopRow: React.FC<{
         <input
           type="number"
           ref={inputRef}
-          value={outputValue as number}
+          value={symbologyValue as SizeValue}
           onChange={handleOutputChange}
           className="jp-mod-styled jp-gis-color-row-output-input"
         />
@@ -116,7 +130,7 @@ const StopRow: React.FC<{
         <input
           id={`jp-gis-color-color-${index}`}
           ref={inputRef}
-          value={rgbArrToHex(outputValue as number[])}
+          value={ensureHexColorCode(symbologyValue as ColorValue)}
           type="color"
           onChange={handleOutputChange}
           className="jp-mod-styled jp-gis-color-row-output-input"
