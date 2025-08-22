@@ -42,15 +42,15 @@ We will explore the JupyterGIS user interface to help you become familiar with i
 
 The elements shown in the figure above are:
 
-1. The application Launcher helps you to select which application you want to start e.g. a Notebook, a Console, and another application such as a Terminal or open a GIS file (which can be either a JupyterGIS file or a QGIS file).
-2. Left Sidebar which contains a file browser, a list of tabs in the main work and of running kernels and terminals, the command palette, the table of contents, the extension manager, and the JupyterGIS extension which allows you to see the GIS layers list.
-3. GIS Layers List / Browser Panel
-4. Right Sidebar showing the property inspector (active in notebooks), the debugger, and GIS object properties, annotation and filters.
+1. Application Launcher: Where you select which application you want to start - e.g. a Notebook, a Console, another application such as a Terminal, or open a GIS file (which can be either a JupyterGIS file or a QGIS file).
+2. Left Sidebar: Contains a file browser, panels that show a list of open tabs in the main work space and for running kernels and terminals, collaboration features, the table of contents (for notebooks or other files with headers), the extension manager, and the JupyterGIS extension which allows you to see the GIS layers list.
+3. GIS Layers List / Browser Panel.
+4. Right Sidebar: Contains the property inspector (active in notebooks), kernal usage, the debugger, and GIS object properties, annotation and filters.
 5. The GIS object properties, annotations and filters of a selected GIS layer.
-6. The Jupyter toolbar menu which you will use with Jupyter Notebooks.
-7. The Log console (which you can use for debugging).
+6. The Jupyter Toolbar Menu: Used with Jupyter Notebooks.
+7. The Log Console: Used for debugging.
 
-## Adding your first layers
+## Adding Your First Layers
 
 We will start the JupyterGIS application and create a basic map.
 
@@ -62,7 +62,7 @@ Launch JupyterGIS from your terminal or start an online version of JupyterGIS de
 jupyter lab
 ```
 
-### Add a vector Layer
+### Add a Vector Layer
 
 Follow along to add a vector layer available online.
 
@@ -72,11 +72,11 @@ Follow along to add a vector layer available online.
    :class: attention
    If you don't see **GIS File** (under the JupyterGIS icon) in the **Other** section of the application launcher, you may have an issue with the JupyterGIS installation or may have forgotten to install it. Please refer to the prerequisites at the top of this tutorial to continue.
    :::
-2. Open Layer Browser (see image below) and select for instance _OpenStreetMap.Mapnik_. An interactive map will appear and you will be able to zoom in and zoom out with your mouse.
+2. Open Layer Browser (see image below) and select _OpenStreetMap.Mapnik_. An interactive map will appear and you will be able to zoom in and zoom out with your mouse.
    ![Open Layer Browser](images/OpenLayerBrowser.png)
 3. Click on the **+** to add a user-defined layer and select "New Shapefile Layer" to add a new vector layer (stored as a shapefile).
    ![Add a Vector Layer](images/addVectorLayer.png)
-4. Set the path of the new shapefile Layer to `https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/georef-united-states-of-america-county/exports/shp` and click **Ok**.
+4. Set the path of the new Shapefile Layer to an open source dataset of counties in the US - `https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/georef-united-states-of-america-county/exports/shp` - and click **Ok**.
    ![Set Shapefile Layer](images/CreateShapefileLayer.png)
 5. You will see the new Shapefile Layer on the map. When clicking on the **Custom Shapefile Layer** (see figure below), you will also see the details of the object properties on the right of the map. You can pan and zoom to focus on your area of interest, or automatically focus on your new data layer by right-clicking on the **Custom Shapefile Layer** and selecting "Zoom to Layer".
    ![View Shapefile Layer](images/viewShapefileLayer.png)
@@ -92,7 +92,7 @@ Let's rename the source called 'Custom Shapefile Source' to 'US Counties' so tha
 :label: Rename-layer
 :nonumber:
 
-Rename the **Custom Shapefile Layer** with a meaningful name e.g., **US Counties** for the US County Shapefile Layer.
+Rename the **Custom Shapefile Layer** with a meaningful name - e.g., **US Counties** for the US County Shapefile Layer.
 
 ```
 
@@ -103,11 +103,11 @@ Rename the **Custom Shapefile Layer** with a meaningful name e.g., **US Counties
 
 :::{admonition} Ordering in the list of Sources versus Layers
 :class: warning
-Did you notice in the figures above that in the list of sources, the source for 'US Counties' appears before the source for 'OpenStreetMap.Mapmik'? In contrast, you can see the reverse order in the list of Layers.
+Did you notice in the figures above that in the list of sources, the source for 'US Counties' appears before the source for 'OpenStreetMap.Mapmik'? By contrast, you can see the reverse order in the list of Layers.
 The reason is that sources are ordered alphabetically, while layers are ordered based on the order in which they are added, with the top layer being the most recently added to your map.
 :::
 
-## Adding a new layer on top of an existing one
+## Adding a New Layer on Top of an Existing One
 
 Let's do an exercise to practice adding a new layer.
 
@@ -122,9 +122,9 @@ Let's do an exercise to practice adding a new layer.
    ```
 2. Zoom over New-York (USA) and check if you can see the newly added layer.
 3. Rename both the newly added layer and its corresponding source, e.g. 'NYC Roads'.
-4. Let's customize this new layer by changing the color. In the GIS Layer/Browser Panel, select the top layer (corresponds to the last layer you added) and right click to **Edit Symbology**. Then change the **Stroke Color** to a color of your choice. You can also change the Stroke Width and check the result after pressing \*_OK_.
+4. Let's customize this new layer by changing the color. In the GIS Layer/Browser Panel, select the top layer (corresponds to the last layer you added) and right click to **Edit Symbology**. Then change the **Stroke Color** to a color of your choice. You can also change the Stroke Width and check the result after clicking **Ok**.
 5. In a similar way, you can edit the symbology of the 'US Counties' Shapefile Layer we added earlier and change the **Fill Color**, **Stroke Color** and **Stroke Width**.
-6. Do you still see the roads in New-York? Try to adjust the **Opacity** value (default is 1) to a lower value for this Shapefile Layer. Can you see all your layers now?
+6. Do you still see the roads in New York? Try to adjust the **Opacity** value (default is 1) to a lower value for this Shapefile Layer. Can you see all your layers now?
 
 ```{exercise-end}
 
@@ -133,7 +133,7 @@ Let's do an exercise to practice adding a new layer.
 ```{solution} add-vector-layer
 :class: dropdown
 
-After adding the new Shapefile Layer and zooming over New-York, you should have the following map:
+After adding the new Shapefile Layer and zooming over New York, you should have the following map:
 ![View several shapefile Layer on the same map](images/severalShapefileLayers.png)
 
 When you right click to edit the symbology, you should get the following pop-up menu:
