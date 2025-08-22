@@ -4,7 +4,7 @@ import { ICmoceanColormaps } from '@/src/dialogs/symbology/symbologyDialog';
 import rawCmocean from '../../components/color_ramp/cmocean.json';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { license, ...cmocean } = rawCmocean;
+const { __license__, ...cmocean } = rawCmocean;
 
 const cmoceanMaps: ICmoceanColormaps = cmocean;
 

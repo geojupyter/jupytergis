@@ -83,7 +83,7 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
     });
 
     Object.entries(cmocean).forEach(([name, colors]) => {
-      if (name === 'license') {
+      if (name === '__license__') {
         return;
       }
       colorMapList.push({
