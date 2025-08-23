@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "description": "GeoPackageVectorSource",
+  "title": "IGeoPackageVectorSource",
+  "required": ["path"],
+  "additionalProperties": false,
+  "properties": {
+    "path": {
+      "type": "string",
+      "description": "The path to the GeoPackage source"
+    },
+    "attribution": {
+      "type": "string",
+      "readOnly": true,
+      "description": "The attribution for the GeoPackage source.",
+      "default": ""
+    },
+    "projection": {
+      "type": "string",
+      "description": "The projection information for the GeoPackage data (optional).",
+      "default": "EPSG:3857"
+    },
+    "tables": {
+      "type": "string",
+      "description": "The names of the tables in the GeoPackage to use as a source (optional). If left empty, all tables will be used.",
+      "default": ""
+    }
+  }
+}

@@ -60,6 +60,12 @@ export function getSourceTypeForm(
     case 'VectorTileSource':
       SourceForm = TileSourcePropertiesForm;
       break;
+    case 'GeoPackageVectorSource':
+      SourceForm = PathBasedSourcePropertiesForm;
+      break;
+    case 'GeoPackageRasterSource':
+      SourceForm = PathBasedSourcePropertiesForm;
+      break;
     case 'GeoParquetSource':
       SourceForm = PathBasedSourcePropertiesForm;
       break;

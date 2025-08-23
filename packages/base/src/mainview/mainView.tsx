@@ -807,6 +807,59 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
 
+      case 'GeoPackageVectorSource': {
+        const sourceParameters = source.parameters;
+
+        if (!sourceParameters) {
+          throw new Error('GeoPackageSource has no parameters');
+        }
+
+        const tableMap = await loadFile({
+          filepath: sourceParameters.path,
+          type: 'GeoPackageVectorSource',
+          model: this._model,
+        });
+
+        const table = tableMap[sourceParameters.tables];
+        const vectorSource = table.source;
+        vectorSource['projection'] = getProjection(sourceParameters.projection);
+        newSource = vectorSource;
+        break;
+      }
+
+      case 'GeoPackageRasterSource': {
+        const sourceParameters = source.parameters;
+
+        if (!sourceParameters) {
+          throw new Error('GeoPackageSource has no parameters');
+        }
+
+        const tableMap = await loadFile({
+          filepath: sourceParameters.path,
+          type: 'GeoPackageRasterSource',
+          model: this._model,
+        });
+
+        const { gpr, tileDao } = tableMap[sourceParameters.tables];
+
+        const rasterSource = new XYZSource({
+          minZoom: sourceParameters.minZoom ?? tileDao.minWebMapZoom,
+          maxZoom: sourceParameters.maxZoom ?? tileDao.maxWebMapZoom,
+          interpolate: sourceParameters.interpolate,
+          url: '{z},{x},{y}',
+          tileLoadFunction(tile: any, src) {
+            const [z, x, y] = src.split(',').map(Number);
+            gpr
+              .getTile(x, y, z)
+              .then((dataUri: any) => (tile.getImage().src = dataUri));
+          },
+          attributions: sourceParameters.attribution,
+        });
+
+        newSource = rasterSource;
+        break;
+      }
+
       case 'GeoParquetSource': {
         const parameters = source.parameters as IGeoParquetSource;
 
@@ -916,6 +969,10 @@ export class MainView extends React.Component<IProps, IStates> {
     ) {
       const layerId = layerIds[targetLayerPosition];
       const layer = this._model.sharedModel.getLayer(layerId);
+
+      if (this._loadingLayers.has(layerId)) {
+        continue;
+      }
 
       if (!layer) {
         console.warn(
@@ -1134,7 +1191,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
       try {
         proj4.defs([proj4list[projectionCode]]);
-        register(proj4);
+        register(proj4 as any);
       } catch (error: any) {
         console.warn(
           `Failed to register projection '${projectionCode}'. Error: ${error.message}`,
