@@ -452,11 +452,13 @@ const LayerComponent: React.FC<ILayerProps> = props => {
       onDragOver={Private.onDragOver}
       onDragEnd={Private.onDragEnd}
       data-id={layerId}
+      style={{ display: 'flex', flexDirection: 'column' }}
     >
       <div
         className={LAYER_TITLE_CLASS}
         onClick={setSelection}
         onContextMenu={setSelection}
+        style={{ display: 'flex' }}
       >
         {/* Expand/collapse legend */}
         <Button
@@ -499,7 +501,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
       </div>
 
       {expanded && gisModel && (
-        <div style={{ marginLeft: 28, marginTop: 6, marginBottom: 6 }}>
+        <div style={{ marginTop: 6, width: '100%' }}>
           <LegendItem layerId={layerId} model={gisModel} />
         </div>
       )}
