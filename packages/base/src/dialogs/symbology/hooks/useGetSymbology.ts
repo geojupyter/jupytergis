@@ -82,8 +82,8 @@ export const useGetSymbology = ({
     });
 
     model.sharedModel.awareness.on('change', () => {
-        console.log(`Awareness changed for layer ${layerId}`);
-        fetchSymbology();
+      console.log(`Awareness changed for layer ${layerId}`);
+      fetchSymbology();
     });
 
     return () => {

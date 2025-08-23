@@ -102,7 +102,7 @@ import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { LeftPanel, RightPanel } from '../panelview';
-import Legends from './Legends';
+// import Legends from './Legends';
 
 type OlLayerTypes =
   | TileLayer
@@ -2300,7 +2300,7 @@ export class MainView extends React.Component<IProps, IStates> {
           />
         </div>
 
-        <Legends
+        {/* <Legends
           model={this._model}
           layerId={
             Object.keys(
@@ -2308,7 +2308,7 @@ export class MainView extends React.Component<IProps, IStates> {
                 ?.value || {},
             )[0]
           }
-        />
+        /> */}
 
         {this._state && (
           <LeftPanel
