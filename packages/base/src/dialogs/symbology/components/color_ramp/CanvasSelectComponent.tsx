@@ -1,9 +1,10 @@
 import { Button } from '@jupyterlab/ui-components';
 import colormap from 'colormap';
+import colorScale from 'colormap/colorScale.js';
 import React, { useEffect, useRef, useState } from 'react';
 
 import ColorRampEntry from './ColorRampEntry';
-import cmocean from './cmocean.json';
+import rawCmocean from './cmocean.json';
 
 export interface IColorMap {
   name: string;
@@ -14,6 +15,11 @@ interface ICanvasSelectComponentProps {
   selectedRamp: string;
   setSelected: (item: any) => void;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const { __license__, ...cmocean } = rawCmocean as any;
+
+Object.assign(colorScale, cmocean);
 
 const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
   selectedRamp,
@@ -63,6 +69,18 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
     'velocity-blue',
     'velocity-green',
     // 'cubehelix' 16 steps min
+    'ice',
+    'oxy',
+    'matter',
+    'amp',
+    'tempo',
+    'rain',
+    'topo',
+    'balance',
+    'delta',
+    'curl',
+    'diff',
+    'tarn',
   ];
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,25 +91,18 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
     const colorMapList: IColorMap[] = [];
 
     colorRampNames.forEach(name => {
+      const cmoRamp = (cmocean as any)[name];
+      const requiredShades =
+        Array.isArray(cmoRamp) && cmoRamp.length > 0 ? cmoRamp.length : 256;
+
       const colorRamp = colormap({
         colormap: name,
-        nshades: 255,
+        nshades: requiredShades,
         format: 'rgbaString',
       });
       const colorMap = { name: name, colors: colorRamp };
       colorMapList.push(colorMap);
     });
-
-    Object.entries(cmocean).forEach(([name, colors]) => {
-      if (name === '__license__') {
-        return;
-      }
-      colorMapList.push({
-        name,
-        colors: colors as string[],
-      });
-    });
-
     setColorMaps(colorMapList);
   }, []);
 

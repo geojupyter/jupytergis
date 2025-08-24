@@ -3,18 +3,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef } from 'react';
 
+import {
+  ensureHexColorCode,
+  hexToRgb,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
-
-type RgbColorValue =
-  | [number, number, number]
-  | [number, number, number, number];
-type HexColorValue = string;
-type InternalRgbArray = number[];
-
-type ColorValue = RgbColorValue | HexColorValue;
-type SizeValue = number;
-
-export type SymbologyValue = SizeValue | ColorValue | InternalRgbArray;
+import { SymbologyValue, SizeValue, ColorValue } from '@/src/types';
 
 const StopRow: React.FC<{
   index: number;
@@ -40,44 +34,6 @@ const StopRow: React.FC<{
       inputRef.current?.focus();
     }
   }, [stopRows]);
-
-  const ensureHexColorCode = (color: number | number[] | string): string => {
-    if (typeof color === 'string') {
-      return color;
-    }
-    if (typeof color === 'number') {
-      return '#000000';
-    }
-    if (!Array.isArray(color)) {
-      return '#000000'; // Default to black
-    }
-
-    const hex = color
-      .slice(0, -1) // Color input doesn't support hex alpha values so cut that out
-      .map((val: { toString: (arg0: number) => string }) => {
-        return val.toString(16).padStart(2, '0');
-      })
-      .join('');
-
-    return '#' + hex;
-  };
-
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-
-    if (!result) {
-      console.warn('Unable to parse hex value, defaulting to black');
-      return [parseInt('0', 16), parseInt('0', 16), parseInt('0', 16)];
-    }
-    const rgbValues = [
-      parseInt(result[1], 16),
-      parseInt(result[2], 16),
-      parseInt(result[3], 16),
-      1, // TODO: Make alpha customizable?
-    ];
-
-    return rgbValues;
-  };
 
   const handleStopChange = (event: { target: { value: string } }) => {
     const newRows = [...stopRows];

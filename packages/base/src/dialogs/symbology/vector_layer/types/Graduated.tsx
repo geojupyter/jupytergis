@@ -11,9 +11,8 @@ import {
   IStopRow,
   ISymbologyTabbedDialogWithAttributesProps,
 } from '@/src/dialogs/symbology/symbologyDialog';
-import { VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
+import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { resolveColorRamp } from './colorRampUtils';
 
 const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -264,17 +263,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         return;
     }
 
-    let stopOutputPairs;
-
-    if (symbologyTab === 'radius') {
-      stopOutputPairs = stops.map(v => ({ stop: v, output: v }));
-    } else {
-      const rampColors = resolveColorRamp(selectedRamp, +numberOfShades, 'hex');
-      stopOutputPairs = stops.map((v, i) => ({
-        stop: v,
-        output: rampColors[i % rampColors.length],
-      }));
-    }
+    const stopOutputPairs =
+      symbologyTab === 'radius'
+        ? stops.map(v => ({ stop: v, output: v }))
+        : Utils.getValueColorPairs(stops, selectedRamp, +numberOfShades);
 
     if (symbologyTab === 'radius') {
       setRadiusStopRows(stopOutputPairs);
