@@ -40,7 +40,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
-    "@fortawesome/react-fontawesome": "latest",
+    "@fortawesome/react-fontawesome": ">=0.2.6 <3.0.0",
     "@jupyter/collaboration": "^3.1.0",
     "@jupyter/react-components": "^0.16.6",
     "@jupyter/ydoc": "^2.0.0 || ^3.0.0",
