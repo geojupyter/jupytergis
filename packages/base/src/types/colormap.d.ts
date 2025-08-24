@@ -3,7 +3,7 @@ declare module "colormap/colorScale.js" {
       index: number;
       rgb: [number, number, number];
     }
-  
+
     export default function colorScale(
       options: {
         colormap: string | ColorScalePoint[];
@@ -12,4 +12,4 @@ declare module "colormap/colorScale.js" {
       }
     ): string[];
   }
-  
+
