@@ -11,7 +11,9 @@ export const LegendItem: React.FC<{
   const [content, setContent] = useState<JSX.Element | null>(null);
 
   const parseColorStops = (expr: any): { value: number; color: string }[] => {
-    if (!Array.isArray(expr) || expr[0] !== 'interpolate') {return [];}
+    if (!Array.isArray(expr) || expr[0] !== 'interpolate') {
+      return [];
+    }
     const stops: { value: number; color: string }[] = [];
     for (let i = 3; i < expr.length; i += 2) {
       const value = expr[i] as number;
@@ -27,7 +29,9 @@ export const LegendItem: React.FC<{
   const parseCaseCategories = (
     expr: any,
   ): { category: string | number; color: string }[] => {
-    if (!Array.isArray(expr) || expr[0] !== 'case') {return [];}
+    if (!Array.isArray(expr) || expr[0] !== 'case') {
+      return [];
+    }
     const categories: { category: string | number; color: string }[] = [];
     for (let i = 1; i < expr.length - 1; i += 2) {
       const condition = expr[i];
@@ -119,11 +123,13 @@ export const LegendItem: React.FC<{
       const colors = stops.map(s => s.color);
       const ranges: string[] = [];
       for (let i = 0; i < values.length; i++) {
-        if (i === 0) {ranges.push(`< ${values[0].toFixed(2)}`);}
-        else if (i === values.length - 1)
-          {ranges.push(`> ${values[values.length - 1].toFixed(2)}`);}
-        else
-          {ranges.push(`${values[i - 1].toFixed(2)} – ${values[i].toFixed(2)}`);}
+        if (i === 0) {
+          ranges.push(`< ${values[0].toFixed(2)}`);
+        } else if (i === values.length - 1) {
+          ranges.push(`> ${values[values.length - 1].toFixed(2)}`);
+        } else {
+          ranges.push(`${values[i - 1].toFixed(2)} – ${values[i].toFixed(2)}`);
+        }
       }
       setContent(
         <div style={{ display: 'grid', gap: 6, padding: 6 }}>
@@ -160,12 +166,12 @@ export const LegendItem: React.FC<{
       }
 
       const n = cats.length;
-      const tickCount = 5;
+      const tickCount = Math.min(6, n); // limit ticks (e.g. 6 max)
       const tickIdx = Array.from({ length: tickCount }, (_, i) =>
         Math.round((i * (n - 1)) / (tickCount - 1)),
       );
       const uniqueIdx = Array.from(new Set(tickIdx));
-      const labeled = uniqueIdx.map(i => cats[i]);
+      const labeled = uniqueIdx.map(i => ({ ...cats[i], idx: i }));
 
       const segments = cats
         .map((c, i) => {
@@ -174,51 +180,54 @@ export const LegendItem: React.FC<{
           return `${c.color} ${start}% ${end}%`;
         })
         .join(', ');
-      const gradient = `linear-gradient(to top, ${segments})`;
+      const gradient = `linear-gradient(to right, ${segments})`;
 
       setContent(
-        <div style={{ display: 'flex', gap: 10, padding: 6 }}>
-          <div style={{ position: 'relative', width: 22, height: 140 }}>
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                margin: '0 4px',
-                background: gradient,
-                border: '1px solid #ccc',
-                borderRadius: 3,
-              }}
-            />
-            {Array.from({ length: tickCount }, (_, i) => {
-              const pos = (i * 100) / (tickCount - 1);
+        <div style={{ padding: 6, width: '90%' }}>
+          <div
+            style={{
+              position: 'relative',
+              height: 12,
+              background: gradient,
+              border: '1px solid #ccc',
+              borderRadius: 3,
+              marginBottom: 20,
+              marginTop: 10,
+            }}
+          >
+            {labeled.map((c, i) => {
+              const left = (c.idx * 100) / (n - 1);
+              const up = i % 2 === 0;
               return (
                 <div
                   key={i}
                   style={{
                     position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: `${pos}%`,
+                    left: `${left}%`,
+                    transform: 'translateX(-50%)',
                   }}
                 >
-                  <div style={{ height: 1, background: '#666' }} />
+                  <div
+                    style={{
+                      width: 1,
+                      height: 8,
+                      background: '#333',
+                      margin: '0 auto',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: up ? -18 : 12,
+                      fontSize: '0.7em',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {String(c.category)}
+                  </div>
                 </div>
               );
             })}
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              height: 140,
-            }}
-          >
-            {labeled.map((c, i) => (
-              <span key={i} style={{ fontSize: '0.7em' }}>
-                {String(c.category)}
-              </span>
-            ))}
           </div>
         </div>,
       );
