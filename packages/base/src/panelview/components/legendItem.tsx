@@ -234,16 +234,8 @@ export const LegendItem: React.FC<{
       return;
     }
 
-    setContent(
-      <p>
-        Unsupported symbology: {String(renderType)}
-      </p>,
-    );
+    setContent(<p>Unsupported symbology: {String(renderType)}</p>);
   }, [symbology, isLoading, error]);
 
-  return (
-    <div>
-      {content}
-    </div>
-  );
+  return <div>{content}</div>;
 };
