@@ -49,7 +49,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     translator?: ITranslator,
     completionProviderManager?: ICompletionProviderManager,
   ): void => {
-    console.log('jupytergis:lab:main-menu is activated!');
     translator = translator ?? nullTranslator;
     const isEnabled = (): boolean => {
       return (
