@@ -101,3 +101,23 @@ button.jp-mod-styled.jp-mod-reject {
   left: 0px;
   margin: 5px;
 }
+
+@media (max-width: 768px) {
+  .jgis-panels-wrapper {
+    position: fixed;
+    top: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 5px;
+    z-index: 1000;
+    width: 60%;
+  }
+
+  .jgis-left-panel-container,
+  .jgis-right-panel-container {
+    position: relative;
+    margin: 0;
+  }
+}
