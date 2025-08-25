@@ -101,3 +101,21 @@ button.jp-mod-styled.jp-mod-reject {
   left: 0px;
   margin: 5px;
 }
+
+@media (max-width: 768px) {
+  .jgis-left-panel-container,
+  .jgis-right-panel-container {
+    position: fixed;
+    left: 0;
+    right: auto;
+    width: 90%;
+  }
+
+  .jgis-left-panel-container {
+    top: 30px;
+  }
+
+  .jgis-right-panel-container {
+    top: calc(30px + 250px + 20px);
+  }
+}
