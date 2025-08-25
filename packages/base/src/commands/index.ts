@@ -906,9 +906,6 @@ export function addCommands(
           current.model.jgisSettings.jgisRightPanelVisible = !currentValue;
         }
 
-        // Optional: emit a signal if you have one for panel changes
-        // current.model.emitSettingChanged('jgisRightPanelVisible');
-
         commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
       } catch (err) {
         console.error('Failed to toggle Right Panel:', err);
