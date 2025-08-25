@@ -34,7 +34,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     ...(hideAnnotationPanel
       ? []
       : [{ name: 'annotations', title: 'Annotations' }]),
-    { name: 'identifyPanel', title: 'Identify Features' },
+    { name: 'identifyPanel', title: 'Identified Features' },
   ];
 
   const [curTab, setCurTab] = React.useState<string | undefined>(
