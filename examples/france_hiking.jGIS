@@ -17,6 +17,7 @@
     "4a0703b3-ed56-4158-8a2e-e008c3d0fee2": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
+        "opacity": 1.0,
         "source": "60da082e-8b70-4fa2-b2f0-48524468fea0"
       },
       "type": "RasterLayer",
@@ -36,16 +37,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -2239574.063687247,
-      3618804.2553047766,
-      2597633.452669818,
-      8142943.772506753
+      -1758562.2264582724,
+      4833787.226784039,
+      3704101.498072755,
+      7114345.535233745
     ],
-    "latitude": 46.623742146769416,
-    "longitude": 1.6082511087277014,
+    "latitude": 47.195641286772855,
+    "longitude": 8.738538317730255,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 4.672508604627439
+    "zoom": 5.722083946960902
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -53,6 +54,7 @@
       "name": "NASAGIBS.ModisTerraTrueColorCR",
       "parameters": {
         "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "interpolate": false,
         "maxZoom": 9.0,
         "minZoom": 1.0,
         "provider": "NASAGIBS",
@@ -70,6 +72,7 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
@@ -82,6 +85,7 @@
       "name": "WaymarkedTrails.hiking",
       "parameters": {
         "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)",
+        "interpolate": false,
         "maxZoom": 18.0,
         "minZoom": 0.0,
         "provider": "WaymarkedTrails",
