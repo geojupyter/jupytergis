@@ -68,6 +68,7 @@ export const LegendItem: React.FC<{
     }
 
     const renderType = symbology.symbologyState?.renderType;
+    const property = symbology.symbologyState?.value;
     const fill =
       symbology.color?.['fill-color'] ?? symbology.color?.['circle-fill-color'];
     const stroke =
@@ -132,24 +133,31 @@ export const LegendItem: React.FC<{
         }
       }
       setContent(
-        <div style={{ display: 'grid', gap: 6, padding: 6 }}>
-          {ranges.map((label, i) => (
-            <div
-              key={i}
-              style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-            >
-              <span
-                style={{
-                  width: 16,
-                  height: 16,
-                  background: colors[i] || '#ccc',
-                  border: '1px solid #000',
-                  borderRadius: 2,
-                }}
-              />
-              <span style={{ fontSize: '0.75em' }}>{label}</span>
+        <div style={{ padding: 6 }}>
+          {property && (
+            <div style={{ fontSize: '1em', marginBottom: 4 }}>
+              <strong>{property}</strong>
             </div>
-          ))}
+          )}
+          <div style={{ display: 'grid', gap: 6 }}>
+            {ranges.map((label, i) => (
+              <div
+                key={i}
+                style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+              >
+                <span
+                  style={{
+                    width: 16,
+                    height: 16,
+                    background: colors[i] || '#ccc',
+                    border: '1px solid #000',
+                    borderRadius: 2,
+                  }}
+                />
+                <span style={{ fontSize: '0.75em' }}>{label}</span>
+              </div>
+            ))}
+          </div>
         </div>,
       );
       return;
@@ -166,7 +174,7 @@ export const LegendItem: React.FC<{
       }
 
       const n = cats.length;
-      const tickCount = Math.min(6, n); // limit ticks (e.g. 6 max)
+      const tickCount = Math.min(6, n);
       const tickIdx = Array.from({ length: tickCount }, (_, i) =>
         Math.round((i * (n - 1)) / (tickCount - 1)),
       );
@@ -184,6 +192,11 @@ export const LegendItem: React.FC<{
 
       setContent(
         <div style={{ padding: 6, width: '90%' }}>
+          {property && (
+            <div style={{ fontSize: '1em', marginBottom: 20 }}>
+              <strong>{property}</strong>
+            </div>
+          )}
           <div
             style={{
               position: 'relative',
