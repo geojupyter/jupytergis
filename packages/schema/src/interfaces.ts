@@ -181,6 +181,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
   updateBboxSignal: Signal<IJupyterGISModel, any>;
+  showLeftPanel: boolean;
+  showRightPanel: boolean;
 
   contentsManager: Contents.IManager | undefined;
   filePath: string;
@@ -247,7 +249,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   toggleTemporalController(): void;
   addFeatureAsMs(id: string, selectedFeature: string): void;
   triggerLayerUpdate(layerId: string, layer: IJGISLayer): void;
+  toggleLeftPanel(): void;
+  toggleRightPanel(): void;
 
+  panelVisibilityChanged: ISignal<this, void>;
   disposed: ISignal<any, void>;
 }
 

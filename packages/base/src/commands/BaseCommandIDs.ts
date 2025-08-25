@@ -25,6 +25,8 @@ export const newImageEntry = 'jupytergis:newImageEntry';
 export const newVideoEntry = 'jupytergis:newVideoEntry';
 export const newGeoTiffEntry = 'jupytergis:newGeoTiffEntry';
 export const newGeoParquetEntry = 'jupytergis:newGeoParquetEntry';
+export const toggleLeftPanel = 'jupytergis:toggleLeftPanel';
+export const toggleRightPanel = 'jupytergis:toggleRightPanel';
 
 // Layer and group actions
 export const renameLayer = 'jupytergis:renameLayer';

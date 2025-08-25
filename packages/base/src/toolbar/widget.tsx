@@ -170,6 +170,22 @@ export class ToolbarWidget extends ReactiveToolbar {
       temporalControllerButton.node.dataset.testid =
         'temporal-controller-button';
 
+      const toggleLeftPanelButton = new CommandToolbarButton({
+        id: CommandIDs.toggleLeftPanel,
+        commands: options.commands,
+        label: '',
+      });
+      this.addItem('toggleLeftPanel', toggleLeftPanelButton);
+      toggleLeftPanelButton.node.dataset.testid = 'toggle-left-panel-button';
+
+      const toggleRightPanelButton = new CommandToolbarButton({
+        id: CommandIDs.toggleRightPanel,
+        commands: options.commands,
+        label: '',
+      });
+      this.addItem('toggleRightPanel', toggleRightPanelButton);
+      toggleRightPanelButton.node.dataset.testid = 'toggle-right-panel-button';
+
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
       // Users

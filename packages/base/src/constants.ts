@@ -56,6 +56,8 @@ const iconObject = {
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
+  [CommandIDs.toggleLeftPanel]: { iconClass: 'fa fa-chevron-left' },
+  [CommandIDs.toggleRightPanel]: { iconClass: 'fa fa-chevron-right' },
 };
 
 /**
