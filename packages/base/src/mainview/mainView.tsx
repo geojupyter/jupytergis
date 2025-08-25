@@ -2299,6 +2299,7 @@ export class MainView extends React.Component<IProps, IStates> {
           />
         </div>
 
+        <div className="jgis-panels-wrapper">
         {this._state && (
           <LeftPanel
             model={this._model}
@@ -2313,6 +2314,7 @@ export class MainView extends React.Component<IProps, IStates> {
             annotationModel={this._annotationModel}
           ></RightPanel>
         )}
+        </div>
       </>
     );
   }
