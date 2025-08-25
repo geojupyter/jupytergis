@@ -33,25 +33,33 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 ) => {
   const hideStacPanel = PageConfig.getOption('HIDE_STAC_PANEL') === 'true';
 
+  const settings = props.model.jgisSettings;
+  const leftPanelVisible = settings?.jgisLeftPanelVisible ?? true;
+
+  if (!leftPanelVisible) {
+    return null;
+  }
+
   const tabInfo = [
-    { name: 'layers', title: 'Layers' },
-    ...(hideStacPanel ? [] : [{ name: 'stac', title: 'Stac Browser' }]),
-    { name: 'filters', title: 'Filters' },
-  ];
+    settings?.jgisLeftTabLayers ? { name: 'layers', title: 'Layers' } : null,
+    settings?.jgisLeftTabStac && !hideStacPanel
+      ? { name: 'stac', title: 'Stac Browser' }
+      : null,
+    settings?.jgisLeftTabFilters ? { name: 'filters', title: 'Filters' } : null,
+  ].filter(Boolean) as { name: string; title: string }[];
 
   const [curTab, setCurTab] = React.useState<string | undefined>(
-    tabInfo[0].name,
+    tabInfo.length > 0 ? tabInfo[0].name : undefined,
   );
 
   return (
     <div className="jgis-left-panel-container">
       <PanelTabs curTab={curTab} className="jgis-panel-tabs">
         <TabsList>
-          {tabInfo.map(e => {
-            return (
-              <TabsTrigger
-                className="jGIS-layer-browser-category"
-                value={e.name}
+          {tabInfo.map(e => (
+            <TabsTrigger
+              className="jGIS-layer-browser-category"
+              value={e.name}
                 onClick={() => {
                   if (curTab !== e.name) {
                     setCurTab(e.name);
@@ -59,32 +67,36 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
                     setCurTab('');
                   }
                 }}
-              >
-                {e.title}
-              </TabsTrigger>
-            );
-          })}
+            >
+              {e.title}
+            </TabsTrigger>
+          ))}
         </TabsList>
-        <TabsContent
-          value="layers"
-          className="jgis-panel-tab-content jp-gis-layerPanel"
-        >
-          <LayersBodyComponent
-            model={props.model}
-            commands={props.commands}
-            state={props.state}
-          ></LayersBodyComponent>
-        </TabsContent>
 
-        {!hideStacPanel && (
-          <TabsContent value="stac">
-            <StacPanel model={props.model}></StacPanel>
+        {settings?.jgisLeftTabLayers && (
+          <TabsContent
+            value="layers"
+            className="jgis-panel-tab-content jp-gis-layerPanel"
+          >
+            <LayersBodyComponent
+              model={props.model}
+              commands={props.commands}
+              state={props.state}
+          ></LayersBodyComponent>
           </TabsContent>
         )}
 
-        <TabsContent value="filters" className="jgis-panel-tab-content">
-          <FilterComponent model={props.model}></FilterComponent>,
-        </TabsContent>
+        {settings?.jgisLeftTabStac && !hideStacPanel && (
+          <TabsContent value="stac" className="jgis-panel-tab-content">
+            <StacPanel model={props.model} />
+          </TabsContent>
+        )}
+
+        {settings?.jgisLeftTabFilters && (
+          <TabsContent value="filters" className="jgis-panel-tab-content">
+            <FilterComponent model={props.model}></FilterComponent>
+          </TabsContent>
+        )}
       </PanelTabs>
     </div>
   );

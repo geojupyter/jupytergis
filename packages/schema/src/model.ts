@@ -58,24 +58,101 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
+    this._settingsChanged = new Signal<JupyterGISModel, string>(this);
   }
 
   /**
    * Initialize custom settings for JupyterLab.
    */
-  async initSettings(): Promise<void> {
+  async initSettings() {
     if (this.settingRegistry) {
-      const setting = await this.settingRegistry.load(SETTINGS_ID);
-      this._settings = setting.composite as any;
+      try {
+        const setting = await this.settingRegistry.load(SETTINGS_ID);
+        this._settings = setting;
 
-      setting.changed.connect(() => {
-        this._settings = setting.composite as any;
-        console.log('JupyterGIS Settings updated:', this._settings);
-      });
+        this._updateLocalSettings();
+
+        setting.changed.connect(this._onSettingsChanged, this);
+      } catch (error) {
+        console.error(`Failed to load settings for ${SETTINGS_ID}:`, error);
+        this._jgisSettings = {
+          proxyUrl: 'https://corsproxy.io',
+          jgisLeftPanelVisible: true,
+          jgisRightPanelVisible: true,
+          jgisLeftTabLayers: true,
+          jgisLeftTabStac: true,
+          jgisLeftTabFilters: true,
+          jgisRightTabObjectProperties: true,
+          jgisRightTabAnnotations: true,
+          jgisRightTabIdentifyPanel: true,
+        };
+      }
     }
   }
 
-  getSettings(): IJupyterGISSettings {
+  private _onSettingsChanged(): void {
+    const oldSettings = this._jgisSettings;
+    this._updateLocalSettings();
+    const newSettings = this._jgisSettings;
+
+    const keys: (keyof IJupyterGISSettings)[] = [
+      'proxyUrl',
+      'jgisLeftPanelVisible',
+      'jgisRightPanelVisible',
+      'jgisLeftTabLayers',
+      'jgisLeftTabStac',
+      'jgisLeftTabFilters',
+      'jgisRightTabObjectProperties',
+      'jgisRightTabAnnotations',
+      'jgisRightTabIdentifyPanel',
+    ];
+
+    keys.forEach(key => {
+      if (oldSettings[key] !== newSettings[key]) {
+        this._settingsChanged.emit(key);
+      }
+    });
+  }
+
+  private _updateLocalSettings(): void {
+    const composite = this._settings.composite;
+
+    this._jgisSettings = {
+      proxyUrl: (composite.proxyUrl as string) ?? 'https://corsproxy.io',
+      jgisLeftPanelVisible: (composite.jgisLeftPanelVisible as boolean) ?? true,
+      jgisRightPanelVisible:
+        (composite.jgisRightPanelVisible as boolean) ?? true,
+      jgisLeftTabLayers: (composite.jgisLeftTabLayers as boolean) ?? true,
+      jgisLeftTabStac: (composite.jgisLeftTabStac as boolean) ?? true,
+      jgisLeftTabFilters: (composite.jgisLeftTabFilters as boolean) ?? true,
+      jgisRightTabObjectProperties:
+        (composite.jgisRightTabObjectProperties as boolean) ?? true,
+      jgisRightTabAnnotations:
+        (composite.jgisRightTabAnnotations as boolean) ?? true,
+      jgisRightTabIdentifyPanel:
+        (composite.jgisRightTabIdentifyPanel as boolean) ?? true,
+    };
+  }
+
+  get jgisSettings(): IJupyterGISSettings {
+    return this._jgisSettings;
+  }
+
+  /**
+   * Expose the settingsChanged signal for external use.
+   */
+  get settingsChanged(): ISignal<JupyterGISModel, string> {
+    return this._settingsChanged;
+  }
+
+  emitSettingChanged(settingName: string) {
+    this._settingsChanged.emit(settingName);
+  }
+
+  /**
+   * Return stored settings.
+   */
+  async getSettings(): Promise<ISettingRegistry.ISettings> {
     return this._settings;
   }
 
@@ -779,7 +856,10 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly annotationModel?: IAnnotationModel;
   readonly settingRegistry?: ISettingRegistry;
 
-  private _settings: IJupyterGISSettings;
+  private _settings: ISettingRegistry.ISettings;
+  private _settingsChanged: Signal<JupyterGISModel, string>;
+  private _jgisSettings: IJupyterGISSettings;
+
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
   private _contentsManager?: Contents.IManager;

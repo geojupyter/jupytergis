@@ -847,6 +847,185 @@ export function addCommands(
     icon: targetWithCenterIcon,
   });
 
+  // Panel visibility commands
+  commands.addCommand(CommandIDs.toggleLeftPanel, {
+    label: trans.__('Toggle Left Panel'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      return current ? current.model.jgisSettings.jgisLeftPanelVisible : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      try {
+        const settings = await current.model.getSettings();
+
+        if (settings?.composite) {
+          const currentValue = settings.composite.jgisLeftPanelVisible ?? true;
+          await settings.set('jgisLeftPanelVisible', !currentValue);
+        } else {
+          const currentValue = current.model.jgisSettings.jgisLeftPanelVisible;
+          current.model.jgisSettings.jgisLeftPanelVisible = !currentValue;
+        }
+
+        // Optional: emit a signal if you have one for panel changes
+        // current.model.emitSettingChanged('jgisLeftPanelVisible');
+
+        commands.notifyCommandChanged(CommandIDs.toggleLeftPanel);
+      } catch (err) {
+        console.error('Failed to toggle Left Panel:', err);
+      }
+    },
+  });
+
+  commands.addCommand(CommandIDs.toggleRightPanel, {
+    label: trans.__('Toggle Right Panel'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      return current ? current.model.jgisSettings.jgisRightPanelVisible : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      try {
+        const settings = await current.model.getSettings();
+
+        if (settings?.composite) {
+          const currentValue = settings.composite.jgisRightPanelVisible ?? true;
+          await settings.set('jgisRightPanelVisible', !currentValue);
+        } else {
+          const currentValue = current.model.jgisSettings.jgisRightPanelVisible;
+          current.model.jgisSettings.jgisRightPanelVisible = !currentValue;
+        }
+
+        // Optional: emit a signal if you have one for panel changes
+        // current.model.emitSettingChanged('jgisRightPanelVisible');
+
+        commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
+      } catch (err) {
+        console.error('Failed to toggle Right Panel:', err);
+      }
+    },
+  });
+
+  // Left panel tabs
+  commands.addCommand(CommandIDs.showLayersTab, {
+    label: trans.__('Show Layers Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget?.model.jgisSettings.jgisLeftTabLayers ?? false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue = settings?.composite?.jgisLeftTabLayers ?? false;
+      await settings.set('jgisLeftTabLayers', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showLayersTab);
+    },
+  });
+
+  commands.addCommand(CommandIDs.showStacBrowserTab, {
+    label: trans.__('Show STAC Browser Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget?.model.jgisSettings.jgisLeftTabStac ?? false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue = settings?.composite?.jgisLeftTabStac ?? false;
+      await settings.set('jgisLeftTabStac', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showStacBrowserTab);
+    },
+  });
+
+  commands.addCommand(CommandIDs.showFiltersTab, {
+    label: trans.__('Show Filters Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget?.model.jgisSettings.jgisLeftTabFilters ?? false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue = settings?.composite?.jgisLeftTabFilters ?? false;
+      await settings.set('jgisLeftTabFilters', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showFiltersTab);
+    },
+  });
+
+  // Right panel tabs
+  commands.addCommand(CommandIDs.showObjectPropertiesTab, {
+    label: trans.__('Show Object Properties Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget?.model.jgisSettings.jgisRightTabObjectProperties ??
+      false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue =
+        settings?.composite?.jgisRightTabObjectProperties ?? false;
+      await settings.set('jgisRightTabObjectProperties', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showObjectPropertiesTab);
+    },
+  });
+
+  commands.addCommand(CommandIDs.showAnnotationsTab, {
+    label: trans.__('Show Annotations Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget?.model.jgisSettings.jgisRightTabAnnotations ??
+      false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue =
+        settings?.composite?.jgisRightTabAnnotations ?? false;
+      await settings.set('jgisRightTabAnnotations', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showAnnotationsTab);
+    },
+  });
+
+  commands.addCommand(CommandIDs.showIdentifyPanelTab, {
+    label: trans.__('Show Identify Panel Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget?.model.jgisSettings.jgisRightTabIdentifyPanel ??
+      false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue =
+        settings?.composite?.jgisRightTabIdentifyPanel ?? false;
+      await settings.set('jgisRightTabIdentifyPanel', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showIdentifyPanelTab);
+    },
+  });
+
   loadKeybindings(commands, keybindings);
 }
 
