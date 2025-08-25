@@ -2,8 +2,8 @@ import colormap from 'colormap';
 import React, { useEffect, useRef, useState } from 'react';
 
 import CanvasSelectComponent from '@/src/dialogs/symbology/components/color_ramp/CanvasSelectComponent';
+import cmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
-
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
   model,
   state,
@@ -63,11 +63,24 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
       return;
     }
 
-    const colorMap = colormap({
-      colormap: selectedRampRef.current,
-      nshades: 9,
-      format: 'hex',
-    });
+    const cmoRamp = (cmocean as any)[selectedRampRef.current];
+    let colorMap: string[];
+
+    if (cmoRamp) {
+      const fullRamp = colormap({
+        colormap: selectedRampRef.current,
+        nshades: cmoRamp.length,
+        format: 'hex',
+      });
+      const step = Math.floor(fullRamp.length / 9);
+      colorMap = Array.from({ length: 9 }, (_, i) => fullRamp[i * step]);
+    } else {
+      colorMap = colormap({
+        colormap: selectedRampRef.current,
+        nshades: 9,
+        format: 'hex',
+      });
+    }
 
     const symbologyState = {
       renderType: 'Heatmap',

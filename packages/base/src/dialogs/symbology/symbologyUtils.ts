@@ -76,10 +76,16 @@ export namespace VectorUtils {
 
     const stopOutputPairs: IStopRow[] = [];
 
-    for (let i = 3; i < color['circle-radius'].length; i += 2) {
+    const circleRadius = color['circle-radius'];
+
+    if (!Array.isArray(circleRadius) || circleRadius.length < 4) {
+      return [];
+    }
+
+    for (let i = 3; i < circleRadius.length; i += 2) {
       const obj: IStopRow = {
-        stop: color['circle-radius'][i],
-        output: color['circle-radius'][i + 1],
+        stop: circleRadius[i],
+        output: circleRadius[i + 1],
       };
       stopOutputPairs.push(obj);
     }
@@ -94,33 +100,19 @@ export namespace Utils {
     selectedRamp: string,
     nClasses: number,
   ) => {
-    let colorMap = colormap({
+    const colorMap = colormap({
       colormap: selectedRamp,
-      nshades: nClasses > 9 ? nClasses : 9,
+      nshades: 256,
       format: 'rgba',
     });
 
     const valueColorPairs: IStopRow[] = [];
 
     // colormap requires 9 classes to generate the ramp
-    // so we do some tomfoolery to make it work with less than 9 stops
-    if (nClasses < 9) {
-      const midIndex = Math.floor(nClasses / 2);
-
-      // Get the first n/2 elements from the second array
-      const firstPart = colorMap.slice(0, midIndex);
-
-      // Get the last n/2 elements from the second array
-      const secondPart = colorMap.slice(
-        colorMap.length - (stops.length - firstPart.length),
-      );
-
-      // Create the new array by combining the first and last parts
-      colorMap = firstPart.concat(secondPart);
-    }
-
     for (let i = 0; i < nClasses; i++) {
-      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
+      // Pick evenly spaced colors from the 256-shade ramp
+      const idx = Math.floor((i / (nClasses - 1)) * (colorMap.length - 1));
+      valueColorPairs.push({ stop: stops[i], output: colorMap[idx] });
     }
 
     return valueColorPairs;

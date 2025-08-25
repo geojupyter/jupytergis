@@ -38,10 +38,12 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    populateOptions();
+    if (selectedRamp === '' && selectedMode === '' && numberOfShades === '') {
+      populateOptions();
+    }
   }, [layerParams]);
 
-  const populateOptions = async () => {
+  const populateOptions = () => {
     let nClasses, singleBandMode, colorRamp;
 
     if (layerParams.symbologyState) {
