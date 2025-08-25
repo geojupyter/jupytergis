@@ -137,7 +137,6 @@
             1.0
           ]
         ],
-        "opacity": 1.0,
         "source": "8b1d4258-5d46-48da-b466-496d376b593d",
         "symbologyState": {
           "band": 1.0,
@@ -149,7 +148,8 @@
         }
       },
       "type": "WebGlLayer",
-      "visible": true
+      "visible": true,
+      "opacity": 1
     }
   },
   "metadata": {},

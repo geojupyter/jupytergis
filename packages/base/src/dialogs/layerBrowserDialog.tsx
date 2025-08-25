@@ -112,6 +112,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
         source: sourceId,
       },
       visible: true,
+      opacity: 1.0,
       name: tile.name + ' Layer',
     };
 
