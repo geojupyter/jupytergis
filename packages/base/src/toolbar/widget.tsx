@@ -170,6 +170,40 @@ export class ToolbarWidget extends ReactiveToolbar {
       temporalControllerButton.node.dataset.testid =
         'temporal-controller-button';
 
+      const visibilityMenu = new MenuSvg({ commands: options.commands });
+      visibilityMenu.title.label = 'Visibility';
+
+      const leftPanelSubmenu = new MenuSvg({ commands: options.commands });
+      leftPanelSubmenu.title.label = 'Left Panel';
+      leftPanelSubmenu.addItem({ command: CommandIDs.toggleLeftPanel });
+      leftPanelSubmenu.addItem({ command: CommandIDs.showLayersTab });
+      leftPanelSubmenu.addItem({ command: CommandIDs.showStacBrowserTab });
+      leftPanelSubmenu.addItem({ command: CommandIDs.showFiltersTab });
+      visibilityMenu.addItem({ type: 'submenu', submenu: leftPanelSubmenu });
+
+      const rightPanelSubmenu = new MenuSvg({ commands: options.commands });
+      rightPanelSubmenu.title.label = 'Right Panel';
+      rightPanelSubmenu.addItem({ command: CommandIDs.toggleRightPanel });
+      rightPanelSubmenu.addItem({
+        command: CommandIDs.showObjectPropertiesTab,
+      });
+      rightPanelSubmenu.addItem({ command: CommandIDs.showAnnotationsTab });
+      rightPanelSubmenu.addItem({ command: CommandIDs.showIdentifyPanelTab });
+      visibilityMenu.addItem({ type: 'submenu', submenu: rightPanelSubmenu });
+
+      const visibilityButton = new ToolbarButton({
+        icon: addIcon,
+        label: 'Visibility',
+        noFocusOnClick: false,
+        onClick: () => {
+          const bbox = visibilityButton.node.getBoundingClientRect();
+          visibilityMenu.open(bbox.x, bbox.bottom);
+        },
+      });
+
+      visibilityButton.node.dataset.testid = 'visibility-button';
+      this.addItem('visibility', visibilityButton);
+
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
       // Users

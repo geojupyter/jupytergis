@@ -8,6 +8,46 @@
       "title": "Proxy URL",
       "description": "The proxy URL to use for external requests.",
       "default": "https://corsproxy.io"
+    },
+    "jgisLeftPanelVisible": {
+      "type": "boolean",
+      "title": "Show Left Panel",
+      "default": true
+    },
+    "jgisRightPanelVisible": {
+      "type": "boolean",
+      "title": "Show Right Panel",
+      "default": true
+    },
+    "jgisLeftTabLayers": {
+      "type": "boolean",
+      "title": "JGIS Layers Tab",
+      "default": true
+    },
+    "jgisLeftTabStac": {
+      "type": "boolean",
+      "title": "JGIS STAC Browser Tab",
+      "default": true
+    },
+    "jgisLeftTabFilters": {
+      "type": "boolean",
+      "title": "JGIS Filters Tab",
+      "default": true
+    },
+    "jgisRightTabObjectProperties": {
+      "type": "boolean",
+      "title": "JGIS Object Properties Tab",
+      "default": true
+    },
+    "jgisRightTabAnnotations": {
+      "type": "boolean",
+      "title": "JGIS Annotations Tab",
+      "default": true
+    },
+    "jgisRightTabIdentifyPanel": {
+      "type": "boolean",
+      "title": "JGIS Identify Features Tab",
+      "default": true
     }
   }
 }
