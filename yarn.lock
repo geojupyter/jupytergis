@@ -598,15 +598,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/react-fontawesome@latest":
-  version: 0.2.3
-  resolution: "@fortawesome/react-fontawesome@npm:0.2.3"
+"@fortawesome/react-fontawesome@npm:>=0.2.6 <3.0.0":
+  version: 0.2.6
+  resolution: "@fortawesome/react-fontawesome@npm:0.2.6"
   dependencies:
     prop-types: ^15.8.1
   peerDependencies:
     "@fortawesome/fontawesome-svg-core": ~1 || ~6 || ~7
     react: ^16.3 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 6e32ce71c72d91fbb8323c108868421fcadc4a166850e3296c785440615eb7e5c249100951d4ad252afbb68570ffe5acf6e48e07dea05cff64787823c42f38ea
+  checksum: 6212b557ab12a9af213e57e0370643b62f4c9c5282132c3947305965c817163377dfb51b0185952ea3f6dbe038dbb0733bb5023cb1ddba39d16824e547a145ac
   languageName: node
   linkType: hard
 
@@ -868,7 +868,7 @@ __metadata:
     "@apidevtools/json-schema-ref-parser": ^9.0.9
     "@fortawesome/fontawesome-svg-core": ^6.5.2
     "@fortawesome/free-solid-svg-icons": ^6.5.2
-    "@fortawesome/react-fontawesome": latest
+    "@fortawesome/react-fontawesome": ">=0.2.6 <3.0.0"
     "@jupyter/collaboration": ^3.1.0
     "@jupyter/react-components": ^0.16.6
     "@jupyter/ydoc": ^2.0.0 || ^3.0.0
