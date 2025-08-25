@@ -133,6 +133,8 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
+  showLeftPanel: boolean;
+  showRightPanel: boolean;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -229,6 +231,8 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
+      showLeftPanel: this._model.showLeftPanel,
+      showRightPanel: this._model.showRightPanel,
     };
 
     this._sources = [];
@@ -255,6 +259,11 @@ export class MainView extends React.Component<IProps, IStates> {
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
     }
+
+    this._model.panelVisibilityChanged.connect(
+      this._onPanelVisibilityChanged,
+      this,
+    );
   }
 
   componentWillUnmount(): void {
@@ -278,6 +287,10 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
 
+    this._model.panelVisibilityChanged.disconnect(
+      this._onPanelVisibilityChanged,
+      this,
+    );
     this._mainViewModel.dispose();
   }
 
@@ -2235,6 +2248,13 @@ export class MainView extends React.Component<IProps, IStates> {
     // TODO SOMETHING
   };
 
+  private _onPanelVisibilityChanged(): void {
+    this.setState({
+      showLeftPanel: this._model.showLeftPanel,
+      showRightPanel: this._model.showRightPanel,
+    });
+  }
+
   render(): JSX.Element {
     return (
       <>
@@ -2299,20 +2319,22 @@ export class MainView extends React.Component<IProps, IStates> {
           />
         </div>
 
-        {this._state && (
+        {this._state && this.state.showLeftPanel && (
           <LeftPanel
             model={this._model}
             commands={this._mainViewModel.commands}
             state={this._state}
           ></LeftPanel>
         )}
-        {this._formSchemaRegistry && this._annotationModel && (
-          <RightPanel
-            model={this._model}
-            formSchemaRegistry={this._formSchemaRegistry}
-            annotationModel={this._annotationModel}
-          ></RightPanel>
-        )}
+        {this._formSchemaRegistry &&
+          this._annotationModel &&
+          this.state.showRightPanel && (
+            <RightPanel
+              model={this._model}
+              formSchemaRegistry={this._formSchemaRegistry}
+              annotationModel={this._annotationModel}
+            ></RightPanel>
+          )}
       </>
     );
   }
