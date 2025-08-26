@@ -43,7 +43,12 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     };
   }, [props.model]);
 
-  const leftPanelVisible = !settings.leftPanelDisabled;
+  const allLeftTabsDisabled =
+    settings.layersDisabled &&
+    settings.stacBrowserDisabled &&
+    settings.filtersDisabled;
+
+  const leftPanelVisible = !settings.leftPanelDisabled && !allLeftTabsDisabled;
 
   const tabInfo = [
     !settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,

@@ -35,7 +35,13 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     };
   }, [props.model]);
 
-  const rightPanelVisible = !settings.rightPanelDisabled;
+  const allRightTabsDisabled =
+    settings.objectPropertiesDisabled &&
+    settings.annotationsDisabled &&
+    settings.identifyDisabled;
+
+  const rightPanelVisible =
+    !settings.rightPanelDisabled && !allRightTabsDisabled;
 
   const tabInfo = [
     !settings.objectPropertiesDisabled
