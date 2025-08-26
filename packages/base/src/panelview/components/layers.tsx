@@ -23,6 +23,7 @@ import React, {
 } from 'react';
 
 import { CommandIDs, icons } from '@/src/constants';
+import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
 import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/panelview/leftpanel';
 import { LegendItem } from './legendItem';
@@ -402,6 +403,10 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   );
   const [expanded, setExpanded] = useState(false);
 
+  const { symbology } = useGetSymbology({layerId, model: gisModel as IJupyterGISModel});
+
+  const hasSupportedSymbology = symbology?.symbologyState !== undefined;
+
   const name = layer.name;
 
   useEffect(() => {
@@ -460,20 +465,22 @@ const LayerComponent: React.FC<ILayerProps> = props => {
         onContextMenu={setSelection}
         style={{ display: 'flex' }}
       >
-        {/* Expand/collapse legend */}
-        <Button
-          minimal
-          onClick={e => {
-            e.stopPropagation();
-            setExpanded(v => !v);
-          }}
-          title={expanded ? 'Hide legend' : 'Show legend'}
-        >
-          <LabIcon.resolveReact
-            icon={expanded ? caretDownIcon : caretRightIcon}
-            tag="span"
-          />
-        </Button>
+        {/* Expand/collapse legend button (only if symbology is supported) */}
+        {hasSupportedSymbology && (
+          <Button
+            minimal
+            onClick={e => {
+              e.stopPropagation();
+              setExpanded(v => !v);
+            }}
+            title={expanded ? 'Hide legend' : 'Show legend'}
+          >
+            <LabIcon.resolveReact
+              icon={expanded ? caretDownIcon : caretRightIcon}
+              tag="span"
+            />
+          </Button>
+        )}
 
         {/* Visibility toggle */}
         <Button
@@ -500,7 +507,8 @@ const LayerComponent: React.FC<ILayerProps> = props => {
         </span>
       </div>
 
-      {expanded && gisModel && (
+      {/* Show legend only if supported symbology */}
+      {expanded && gisModel && hasSupportedSymbology && (
         <div style={{ marginTop: 6, width: '100%' }}>
           <LegendItem layerId={layerId} model={gisModel} />
         </div>
