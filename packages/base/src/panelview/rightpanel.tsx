@@ -103,13 +103,15 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             <AnnotationsPanel
               annotationModel={props.annotationModel}
               jgisModel={props.model}
-          ></AnnotationsPanel>
+            ></AnnotationsPanel>
           </TabsContent>
         )}
 
         {!settings.identifyDisabled && (
           <TabsContent value="identifyPanel" className="jgis-panel-tab-content">
-          <IdentifyPanelComponent model={props.model}></IdentifyPanelComponent>
+            <IdentifyPanelComponent
+              model={props.model}
+            ></IdentifyPanelComponent>
           </TabsContent>
         )}
       </PanelTabs>

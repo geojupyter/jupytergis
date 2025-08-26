@@ -93,7 +93,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
               model={props.model}
               commands={props.commands}
               state={props.state}
-          ></LayersBodyComponent>
+            ></LayersBodyComponent>
           </TabsContent>
         )}
 
