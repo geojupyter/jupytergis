@@ -35,7 +35,7 @@ author = "The JupyterGIS Development Team"
 language = "en"
 
 jupyterlite_contents = [
-    "../examples/**",
+    "../examples",
 ]
 jupyterlite_dir = "."
 jupyterlite_config = "jupyter_lite_config.json"
