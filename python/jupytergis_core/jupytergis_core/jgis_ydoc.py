@@ -62,7 +62,7 @@ class YJGIS(YBaseDoc):
             raise ValueError(f"Cannot load file version {file_version}")
 
         if file_version < Version("0.8.1"):
-            for layer_id, layer in valueDict.get("layers", {}).items():
+            for _layer_id, layer in valueDict.get("layers", {}).items():
                 params = layer.get("parameters", {})
                 if "opacity" in params:
                     # only set top-level opacity if missing
