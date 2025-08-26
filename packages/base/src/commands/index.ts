@@ -171,6 +171,9 @@ export function addCommands(
       return isIdentifying;
     },
     isEnabled: () => {
+      if (tracker.currentWidget?.model.jgisSettings.identifyDisabled) {
+        return false;
+      }
       const selectedLayer = getSingleSelectedLayer(tracker);
       if (!selectedLayer) {
         return false;
