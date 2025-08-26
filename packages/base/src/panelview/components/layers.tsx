@@ -403,7 +403,10 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   );
   const [expanded, setExpanded] = useState(false);
 
-  const { symbology } = useGetSymbology({layerId, model: gisModel as IJupyterGISModel});
+  const { symbology } = useGetSymbology({
+    layerId,
+    model: gisModel as IJupyterGISModel,
+  });
 
   const hasSupportedSymbology = symbology?.symbologyState !== undefined;
 
