@@ -161,6 +161,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   geolocation: JgisCoordinates;
   localState: IJupyterGISClientState | null;
   annotationModel?: IAnnotationModel;
+  activeRightPanelTab?: string;
 
   themeChanged: Signal<
     IJupyterGISModel,

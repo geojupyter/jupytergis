@@ -161,6 +161,22 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._settings;
   }
 
+  get activeRightPanelTab(): string | undefined {
+    return this._activeRightPanelTab;
+  }
+
+  set activeRightPanelTab(tab: string | undefined) {
+    if (this._activeRightPanelTab !== tab) {
+      const oldValue = this._activeRightPanelTab;
+      this._activeRightPanelTab = tab;
+      this._stateChanged.emit({
+        name: 'activeRightPanelTab',
+        oldValue,
+        newValue: tab,
+      });
+    }
+  }
+
   getFeaturesForCurrentTile({ sourceId }: { sourceId: string }): FeatureLike[] {
     return Array.from(this._tileFeatureCache.get(sourceId) ?? []);
   }
@@ -871,6 +887,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _dirty = false;
   private _readOnly = false;
   private _isDisposed = false;
+
+  private _activeRightPanelTab: string | undefined;
 
   private _userChanged = new Signal<this, IUserData[]>(this);
   private _usersMap?: Map<number, any>;

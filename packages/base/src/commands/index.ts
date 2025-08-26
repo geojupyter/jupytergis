@@ -207,6 +207,11 @@ export function addCommands(
 
       current.node.classList.toggle('jGIS-identify-tool');
       current.model.toggleIdentify();
+
+      if (current.model.isIdentifying) {
+        current.model.activeRightPanelTab = 'identifyPanel';
+      }
+
       commands.notifyCommandChanged(CommandIDs.identify);
     },
     ...icons.get(CommandIDs.identify),

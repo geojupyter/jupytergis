@@ -62,6 +62,12 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
 
+  React.useEffect(() => {
+    if (props.model.activeRightPanelTab) {
+      setCurTab(props.model.activeRightPanelTab);
+    }
+  }, [props.model.activeRightPanelTab]);
+
   return (
     <div
       className="jgis-right-panel-container"
