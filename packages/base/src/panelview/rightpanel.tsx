@@ -3,7 +3,6 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { PageConfig } from '@jupyterlab/coreutils';
 import * as React from 'react';
 
 import { AnnotationsPanel } from './annotationPanel';
@@ -23,9 +22,6 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
-  const hideAnnotationPanel =
-    PageConfig.getOption('HIDE_ANNOTATION_PANEL') === 'true';
-
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
 
   React.useEffect(() => {
@@ -45,7 +41,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     !settings.objectPropertiesDisabled
       ? { name: 'objectProperties', title: 'Object Properties' }
       : false,
-    !settings.annotationsDisabled && !hideAnnotationPanel
+    !settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
       : false,
     !settings.identifyDisabled
@@ -98,7 +94,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           </TabsContent>
         )}
 
-        {!settings.annotationsDisabled && !hideAnnotationPanel && (
+        {!settings.annotationsDisabled && (
           <TabsContent value="annotations" className="jgis-panel-tab-content">
             <AnnotationsPanel
               annotationModel={props.annotationModel}
