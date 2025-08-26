@@ -3,6 +3,7 @@ import colormap from 'colormap';
 
 import { IStopRow } from './symbologyDialog';
 
+const MAPBOX_INDEX = 3;
 export namespace VectorUtils {
   export const buildColorInfo = (layer: IJGISLayer) => {
     // This it to parse a color object on the layer
@@ -32,7 +33,7 @@ export namespace VectorUtils {
           // Second element is type of interpolation (ie linear)
           // Third is input value that stop values are compared with
           // Fourth and on is value:color pairs
-          for (let i = 3; i < color[key].length; i += 2) {
+          for (let i = MAPBOX_INDEX; i < color[key].length; i += 2) {
             const pairKey = `${color[key][i]}-${color[key][i + 1]}`;
             if (!seenPairs.has(pairKey)) {
               valueColorPairs.push({
@@ -78,11 +79,11 @@ export namespace VectorUtils {
 
     const circleRadius = color['circle-radius'];
 
-    if (!Array.isArray(circleRadius) || circleRadius.length < 4) {
+    if (!Array.isArray(circleRadius) || circleRadius.length <= MAPBOX_INDEX) {
       return [];
     }
 
-    for (let i = 3; i < circleRadius.length; i += 2) {
+    for (let i = MAPBOX_INDEX; i < circleRadius.length; i += 2) {
       const obj: IStopRow = {
         stop: circleRadius[i],
         output: circleRadius[i + 1],

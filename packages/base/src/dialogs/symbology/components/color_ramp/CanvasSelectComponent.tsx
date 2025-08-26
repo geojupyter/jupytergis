@@ -1,10 +1,11 @@
 import { Button } from '@jupyterlab/ui-components';
-import colormap from 'colormap';
-import colorScale from 'colormap/colorScale.js';
 import React, { useEffect, useRef, useState } from 'react';
 
+import {
+  useColorMapList,
+  COLOR_RAMP_NAMES,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import ColorRampEntry from './ColorRampEntry';
-import rawCmocean from './cmocean.json';
 
 export interface IColorMap {
   name: string;
@@ -16,95 +17,17 @@ interface ICanvasSelectComponentProps {
   setSelected: (item: any) => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { __license__, ...cmocean } = rawCmocean as any;
-
-Object.assign(colorScale, cmocean);
-
 const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
   selectedRamp,
   setSelected,
 }) => {
-  const colorRampNames = [
-    'jet',
-    // 'hsv', 11 steps min
-    'hot',
-    'cool',
-    'spring',
-    'summer',
-    'autumn',
-    'winter',
-    'bone',
-    'copper',
-    'greys',
-    'YiGnBu',
-    'greens',
-    'YiOrRd',
-    'bluered',
-    'RdBu',
-    // 'picnic', 11 steps min
-    'rainbow',
-    'portland',
-    'blackbody',
-    'earth',
-    'electric',
-    'viridis',
-    'inferno',
-    'magma',
-    'plasma',
-    'warm',
-    // 'rainbow-soft', 11 steps min
-    'bathymetry',
-    'cdom',
-    'chlorophyll',
-    'density',
-    'freesurface-blue',
-    'freesurface-red',
-    'oxygen',
-    'par',
-    'phase',
-    'salinity',
-    'temperature',
-    'turbidity',
-    'velocity-blue',
-    'velocity-green',
-    // 'cubehelix' 16 steps min
-    'ice',
-    'oxy',
-    'matter',
-    'amp',
-    'tempo',
-    'rain',
-    'topo',
-    'balance',
-    'delta',
-    'curl',
-    'diff',
-    'tarn',
-  ];
+  const colorRampNames = COLOR_RAMP_NAMES;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
 
-  useEffect(() => {
-    const colorMapList: IColorMap[] = [];
-
-    colorRampNames.forEach(name => {
-      const cmoRamp = (cmocean as any)[name];
-      const requiredShades =
-        Array.isArray(cmoRamp) && cmoRamp.length > 0 ? cmoRamp.length : 256;
-
-      const colorRamp = colormap({
-        colormap: name,
-        nshades: requiredShades,
-        format: 'rgbaString',
-      });
-      const colorMap = { name: name, colors: colorRamp };
-      colorMapList.push(colorMap);
-    });
-    setColorMaps(colorMapList);
-  }, []);
+  useColorMapList(colorRampNames, setColorMaps);
 
   useEffect(() => {
     if (colorMaps.length > 0) {

@@ -1,20 +1,104 @@
-/**
- * Convert an [r,g,b] array to hex string.
- */
-export function rgbToHex(rgb: number[]): string {
-  return `#${rgb.map(v => v.toString(16).padStart(2, '0')).join('')}`;
+import colormap from 'colormap';
+import colorScale from 'colormap/colorScale.js';
+import { useEffect } from 'react';
+
+import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
+
+export interface IColorMap {
+  name: string;
+  colors: string[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const { __license__, ...cmocean } = rawCmocean as any;
+
+Object.assign(colorScale, cmocean);
+
+export const COLOR_RAMP_NAMES: string[] = [
+  'jet',
+  // 'hsv', 11 steps min
+  'hot',
+  'cool',
+  'spring',
+  'summer',
+  'autumn',
+  'winter',
+  'bone',
+  'copper',
+  'greys',
+  'YiGnBu',
+  'greens',
+  'YiOrRd',
+  'bluered',
+  'RdBu',
+  // 'picnic', 11 steps min
+  'rainbow',
+  'portland',
+  'blackbody',
+  'earth',
+  'electric',
+  'viridis',
+  'inferno',
+  'magma',
+  'plasma',
+  'warm',
+  // 'rainbow-soft', 11 steps min
+  'bathymetry',
+  'cdom',
+  'chlorophyll',
+  'density',
+  'freesurface-blue',
+  'freesurface-red',
+  'oxygen',
+  'par',
+  'phase',
+  'salinity',
+  'temperature',
+  'turbidity',
+  'velocity-blue',
+  'velocity-green',
+  // 'cubehelix' 16 steps min
+  'ice',
+  'oxy',
+  'matter',
+  'amp',
+  'tempo',
+  'rain',
+  'topo',
+  'balance',
+  'delta',
+  'curl',
+  'diff',
+  'tarn',
+];
+
+export const getColorMapList = (colorRampNames: string[]): IColorMap[] => {
+  const colorMapList: IColorMap[] = [];
+
+  colorRampNames.forEach(name => {
+    const colorRamp = colormap({
+      colormap: name,
+      nshades: 256,
+      format: 'rgbaString',
+    });
+
+    colorMapList.push({ name, colors: colorRamp });
+  });
+
+  return colorMapList;
+};
+
 /**
- * Convert hex to rgba string.
+ * Hook that loads and sets color maps.
  */
-export function hexToRgba(hex: string, alpha = 1): string {
-  const bigint = parseInt(hex.slice(1), 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+export const useColorMapList = (
+  colorRampNames: string[],
+  setColorMaps: (maps: IColorMap[]) => void,
+) => {
+  useEffect(() => {
+    setColorMaps(getColorMapList(colorRampNames));
+  }, [colorRampNames, setColorMaps]);
+};
 
 /**
  * Ensure we always get a valid hex string from either an array or string.
@@ -22,10 +106,6 @@ export function hexToRgba(hex: string, alpha = 1): string {
 export const ensureHexColorCode = (color: number[] | string): string => {
   if (typeof color === 'string') {
     return color;
-  }
-
-  if (!Array.isArray(color)) {
-    return '#000000'; // Default to black
   }
 
   // color must be an RGBA array
@@ -42,19 +122,17 @@ export const ensureHexColorCode = (color: number[] | string): string => {
 /**
  * Convert hex to [r,g,b,a] array.
  */
-export function hexToRgb(hex: string) {
+export function hexToRgb(hex: string): [number, number, number, number] {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 
   if (!result) {
     console.warn('Unable to parse hex value, defaulting to black');
-    return [parseInt('0', 16), parseInt('0', 16), parseInt('0', 16)];
+    return [0, 0, 0, 255];
   }
-  const rgbValues = [
+  return [
     parseInt(result[1], 16),
     parseInt(result[2], 16),
     parseInt(result[3], 16),
-    1, // TODO: Make alpha customizable?
+    255, // TODO: Make alpha customizable?
   ];
-
-  return rgbValues;
 }
