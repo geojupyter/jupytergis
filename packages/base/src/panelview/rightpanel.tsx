@@ -39,18 +39,18 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     };
   }, [props.model]);
 
-  const rightPanelVisible = settings?.jgisRightPanelVisible ?? true;
+  const rightPanelVisible = !settings.rightPanelDisabled;
 
   const tabInfo = [
-    settings?.jgisRightTabObjectProperties
+    !settings.objectPropertiesDisabled
       ? { name: 'objectProperties', title: 'Object Properties' }
-      : null,
-    settings?.jgisRightTabAnnotations && !hideAnnotationPanel
+      : false,
+    !settings.annotationsDisabled && !hideAnnotationPanel
       ? { name: 'annotations', title: 'Annotations' }
-      : null,
-    settings?.jgisRightTabIdentifyPanel
+      : false,
+    !settings.identifyDisabled
       ? { name: 'identifyPanel', title: 'Identified Features' }
-      : null,
+      : false,
   ].filter(Boolean) as { name: string; title: string }[];
 
   const [curTab, setCurTab] = React.useState<string | undefined>(
@@ -84,7 +84,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           ))}
         </TabsList>
 
-        {settings?.jgisRightTabObjectProperties && (
+        {!settings.objectPropertiesDisabled && (
           <TabsContent
             value="objectProperties"
             className="jgis-panel-tab-content"
@@ -98,7 +98,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           </TabsContent>
         )}
 
-        {settings?.jgisRightTabAnnotations && !hideAnnotationPanel && (
+        {!settings.annotationsDisabled && !hideAnnotationPanel && (
           <TabsContent value="annotations" className="jgis-panel-tab-content">
             <AnnotationsPanel
               annotationModel={props.annotationModel}
@@ -107,7 +107,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           </TabsContent>
         )}
 
-        {settings?.jgisRightTabIdentifyPanel && (
+        {!settings.identifyDisabled && (
           <TabsContent value="identifyPanel" className="jgis-panel-tab-content">
           <IdentifyPanelComponent model={props.model}></IdentifyPanelComponent>
           </TabsContent>

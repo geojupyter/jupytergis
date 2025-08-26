@@ -375,16 +375,16 @@ export interface IJupyterGISSettings {
   proxyUrl: string;
 
   // Panel visibility
-  jgisLeftPanelVisible: boolean;
-  jgisRightPanelVisible: boolean;
+  leftPanelDisabled: boolean;
+  rightPanelDisabled: boolean;
 
   // Left panel tabs
-  jgisLeftTabLayers: boolean;
-  jgisLeftTabStac: boolean;
-  jgisLeftTabFilters: boolean;
+  layersDisabled: boolean;
+  stacBrowserDisabled: boolean;
+  filtersDisabled: boolean;
 
   // Right panel tabs
-  jgisRightTabObjectProperties: boolean;
-  jgisRightTabAnnotations: boolean;
-  jgisRightTabIdentifyPanel: boolean;
+  objectPropertiesDisabled: boolean;
+  annotationsDisabled: boolean;
+  identifyDisabled: boolean;
 }

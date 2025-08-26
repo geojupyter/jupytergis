@@ -46,14 +46,14 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     };
   }, [props.model]);
 
-  const leftPanelVisible = settings?.jgisLeftPanelVisible ?? true;
+  const leftPanelVisible = !settings.leftPanelDisabled;
 
   const tabInfo = [
-    settings?.jgisLeftTabLayers ? { name: 'layers', title: 'Layers' } : null,
-    settings?.jgisLeftTabStac && !hideStacPanel
+    !settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,
+    !settings.stacBrowserDisabled && !hideStacPanel
       ? { name: 'stac', title: 'Stac Browser' }
-      : null,
-    settings?.jgisLeftTabFilters ? { name: 'filters', title: 'Filters' } : null,
+      : false,
+    !settings.filtersDisabled ? { name: 'filters', title: 'Filters' } : false,
   ].filter(Boolean) as { name: string; title: string }[];
 
   const [curTab, setCurTab] = React.useState<string | undefined>(
@@ -84,7 +84,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
           ))}
         </TabsList>
 
-        {settings?.jgisLeftTabLayers && (
+        {!settings.layersDisabled && (
           <TabsContent
             value="layers"
             className="jgis-panel-tab-content jp-gis-layerPanel"
@@ -97,13 +97,13 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
           </TabsContent>
         )}
 
-        {settings?.jgisLeftTabStac && !hideStacPanel && (
+        {!settings.stacBrowserDisabled && !hideStacPanel && (
           <TabsContent value="stac" className="jgis-panel-tab-content">
             <StacPanel model={props.model} />
           </TabsContent>
         )}
 
-        {settings?.jgisLeftTabFilters && (
+        {!settings.filtersDisabled && (
           <TabsContent value="filters" className="jgis-panel-tab-content">
             <FilterComponent model={props.model}></FilterComponent>
           </TabsContent>

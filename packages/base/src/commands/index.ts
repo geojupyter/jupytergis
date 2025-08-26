@@ -853,7 +853,7 @@ export function addCommands(
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
-      return current ? current.model.jgisSettings.jgisLeftPanelVisible : false;
+      return current ? !current.model.jgisSettings.leftPanelDisabled : false;
     },
     execute: async () => {
       const current = tracker.currentWidget;
@@ -863,18 +863,11 @@ export function addCommands(
 
       try {
         const settings = await current.model.getSettings();
-
-        if (settings?.composite) {
-          const currentValue = settings.composite.jgisLeftPanelVisible ?? true;
-          await settings.set('jgisLeftPanelVisible', !currentValue);
-        } else {
-          const currentValue = current.model.jgisSettings.jgisLeftPanelVisible;
-          current.model.jgisSettings.jgisLeftPanelVisible = !currentValue;
-        }
-
-        // Optional: emit a signal if you have one for panel changes
-        // current.model.emitSettingChanged('jgisLeftPanelVisible');
-
+        const currentValue =
+          settings?.composite?.leftPanelDisabled ??
+          current.model.jgisSettings.leftPanelDisabled ??
+          false;
+        await settings?.set('leftPanelDisabled', !currentValue);
         commands.notifyCommandChanged(CommandIDs.toggleLeftPanel);
       } catch (err) {
         console.error('Failed to toggle Left Panel:', err);
@@ -887,7 +880,7 @@ export function addCommands(
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
-      return current ? current.model.jgisSettings.jgisRightPanelVisible : false;
+      return current ? !current.model.jgisSettings.rightPanelDisabled : false;
     },
     execute: async () => {
       const current = tracker.currentWidget;
@@ -897,15 +890,11 @@ export function addCommands(
 
       try {
         const settings = await current.model.getSettings();
-
-        if (settings?.composite) {
-          const currentValue = settings.composite.jgisRightPanelVisible ?? true;
-          await settings.set('jgisRightPanelVisible', !currentValue);
-        } else {
-          const currentValue = current.model.jgisSettings.jgisRightPanelVisible;
-          current.model.jgisSettings.jgisRightPanelVisible = !currentValue;
-        }
-
+        const currentValue =
+          settings?.composite?.rightPanelDisabled ??
+          current.model.jgisSettings.rightPanelDisabled ??
+          false;
+        await settings?.set('rightPanelDisabled', !currentValue);
         commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
       } catch (err) {
         console.error('Failed to toggle Right Panel:', err);
@@ -918,15 +907,20 @@ export function addCommands(
     label: trans.__('Show Layers Tab'),
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
-      tracker.currentWidget?.model.jgisSettings.jgisLeftTabLayers ?? false,
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.layersDisabled
+        : false,
     execute: async () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
       const settings = await current.model.getSettings();
-      const currentValue = settings?.composite?.jgisLeftTabLayers ?? false;
-      await settings.set('jgisLeftTabLayers', !currentValue);
+      const currentValue =
+        settings?.composite?.layersDisabled ??
+        current.model.jgisSettings.layersDisabled ??
+        false;
+      await settings?.set('layersDisabled', !currentValue);
       commands.notifyCommandChanged(CommandIDs.showLayersTab);
     },
   });
@@ -935,15 +929,20 @@ export function addCommands(
     label: trans.__('Show STAC Browser Tab'),
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
-      tracker.currentWidget?.model.jgisSettings.jgisLeftTabStac ?? false,
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.stacBrowserDisabled
+        : false,
     execute: async () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
       const settings = await current.model.getSettings();
-      const currentValue = settings?.composite?.jgisLeftTabStac ?? false;
-      await settings.set('jgisLeftTabStac', !currentValue);
+      const currentValue =
+        settings?.composite?.stacBrowserDisabled ??
+        current.model.jgisSettings.stacBrowserDisabled ??
+        false;
+      await settings?.set('stacBrowserDisabled', !currentValue);
       commands.notifyCommandChanged(CommandIDs.showStacBrowserTab);
     },
   });
@@ -952,15 +951,20 @@ export function addCommands(
     label: trans.__('Show Filters Tab'),
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
-      tracker.currentWidget?.model.jgisSettings.jgisLeftTabFilters ?? false,
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.filtersDisabled
+        : false,
     execute: async () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
       const settings = await current.model.getSettings();
-      const currentValue = settings?.composite?.jgisLeftTabFilters ?? false;
-      await settings.set('jgisLeftTabFilters', !currentValue);
+      const currentValue =
+        settings?.composite?.filtersDisabled ??
+        current.model.jgisSettings.filtersDisabled ??
+        false;
+      await settings?.set('filtersDisabled', !currentValue);
       commands.notifyCommandChanged(CommandIDs.showFiltersTab);
     },
   });
@@ -970,8 +974,9 @@ export function addCommands(
     label: trans.__('Show Object Properties Tab'),
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
-      tracker.currentWidget?.model.jgisSettings.jgisRightTabObjectProperties ??
-      false,
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.objectPropertiesDisabled
+        : false,
     execute: async () => {
       const current = tracker.currentWidget;
       if (!current) {
@@ -979,8 +984,10 @@ export function addCommands(
       }
       const settings = await current.model.getSettings();
       const currentValue =
-        settings?.composite?.jgisRightTabObjectProperties ?? false;
-      await settings.set('jgisRightTabObjectProperties', !currentValue);
+        settings?.composite?.objectPropertiesDisabled ??
+        current.model.jgisSettings.objectPropertiesDisabled ??
+        false;
+      await settings?.set('objectPropertiesDisabled', !currentValue);
       commands.notifyCommandChanged(CommandIDs.showObjectPropertiesTab);
     },
   });
@@ -989,8 +996,9 @@ export function addCommands(
     label: trans.__('Show Annotations Tab'),
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
-      tracker.currentWidget?.model.jgisSettings.jgisRightTabAnnotations ??
-      false,
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.annotationsDisabled
+        : false,
     execute: async () => {
       const current = tracker.currentWidget;
       if (!current) {
@@ -998,8 +1006,10 @@ export function addCommands(
       }
       const settings = await current.model.getSettings();
       const currentValue =
-        settings?.composite?.jgisRightTabAnnotations ?? false;
-      await settings.set('jgisRightTabAnnotations', !currentValue);
+        settings?.composite?.annotationsDisabled ??
+        current.model.jgisSettings.annotationsDisabled ??
+        false;
+      await settings?.set('annotationsDisabled', !currentValue);
       commands.notifyCommandChanged(CommandIDs.showAnnotationsTab);
     },
   });
@@ -1008,8 +1018,9 @@ export function addCommands(
     label: trans.__('Show Identify Panel Tab'),
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
-      tracker.currentWidget?.model.jgisSettings.jgisRightTabIdentifyPanel ??
-      false,
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.identifyDisabled
+        : false,
     execute: async () => {
       const current = tracker.currentWidget;
       if (!current) {
@@ -1017,8 +1028,10 @@ export function addCommands(
       }
       const settings = await current.model.getSettings();
       const currentValue =
-        settings?.composite?.jgisRightTabIdentifyPanel ?? false;
-      await settings.set('jgisRightTabIdentifyPanel', !currentValue);
+        settings?.composite?.identifyDisabled ??
+        current.model.jgisSettings.identifyDisabled ??
+        false;
+      await settings?.set('identifyDisabled', !currentValue);
       commands.notifyCommandChanged(CommandIDs.showIdentifyPanelTab);
     },
   });

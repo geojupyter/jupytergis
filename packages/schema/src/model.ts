@@ -77,14 +77,14 @@ export class JupyterGISModel implements IJupyterGISModel {
         console.error(`Failed to load settings for ${SETTINGS_ID}:`, error);
         this._jgisSettings = {
           proxyUrl: 'https://corsproxy.io',
-          jgisLeftPanelVisible: true,
-          jgisRightPanelVisible: true,
-          jgisLeftTabLayers: true,
-          jgisLeftTabStac: true,
-          jgisLeftTabFilters: true,
-          jgisRightTabObjectProperties: true,
-          jgisRightTabAnnotations: true,
-          jgisRightTabIdentifyPanel: true,
+          leftPanelDisabled: false,
+          rightPanelDisabled: false,
+          layersDisabled: false,
+          stacBrowserDisabled: false,
+          filtersDisabled: false,
+          objectPropertiesDisabled: false,
+          annotationsDisabled: false,
+          identifyDisabled: false,
         };
       }
     }
@@ -97,14 +97,14 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     const keys: (keyof IJupyterGISSettings)[] = [
       'proxyUrl',
-      'jgisLeftPanelVisible',
-      'jgisRightPanelVisible',
-      'jgisLeftTabLayers',
-      'jgisLeftTabStac',
-      'jgisLeftTabFilters',
-      'jgisRightTabObjectProperties',
-      'jgisRightTabAnnotations',
-      'jgisRightTabIdentifyPanel',
+      'leftPanelDisabled',
+      'rightPanelDisabled',
+      'layersDisabled',
+      'stacBrowserDisabled',
+      'filtersDisabled',
+      'objectPropertiesDisabled',
+      'annotationsDisabled',
+      'identifyDisabled',
     ];
 
     keys.forEach(key => {
@@ -119,18 +119,15 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._jgisSettings = {
       proxyUrl: (composite.proxyUrl as string) ?? 'https://corsproxy.io',
-      jgisLeftPanelVisible: (composite.jgisLeftPanelVisible as boolean) ?? true,
-      jgisRightPanelVisible:
-        (composite.jgisRightPanelVisible as boolean) ?? true,
-      jgisLeftTabLayers: (composite.jgisLeftTabLayers as boolean) ?? true,
-      jgisLeftTabStac: (composite.jgisLeftTabStac as boolean) ?? true,
-      jgisLeftTabFilters: (composite.jgisLeftTabFilters as boolean) ?? true,
-      jgisRightTabObjectProperties:
-        (composite.jgisRightTabObjectProperties as boolean) ?? true,
-      jgisRightTabAnnotations:
-        (composite.jgisRightTabAnnotations as boolean) ?? true,
-      jgisRightTabIdentifyPanel:
-        (composite.jgisRightTabIdentifyPanel as boolean) ?? true,
+      leftPanelDisabled: (composite.leftPanelDisabled as boolean) ?? false,
+      rightPanelDisabled: (composite.rightPanelDisabled as boolean) ?? false,
+      layersDisabled: (composite.layersDisabled as boolean) ?? false,
+      stacBrowserDisabled: (composite.stacBrowserDisabled as boolean) ?? false,
+      filtersDisabled: (composite.filtersDisabled as boolean) ?? false,
+      objectPropertiesDisabled:
+        (composite.objectPropertiesDisabled as boolean) ?? false,
+      annotationsDisabled: (composite.annotationsDisabled as boolean) ?? false,
+      identifyDisabled: (composite.identifyDisabled as boolean) ?? false,
     };
   }
 

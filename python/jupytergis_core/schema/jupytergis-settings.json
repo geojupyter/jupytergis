@@ -9,45 +9,40 @@
       "description": "The proxy URL to use for external requests.",
       "default": "https://corsproxy.io"
     },
-    "jgisLeftPanelVisible": {
+    "leftPanelDisabled": {
       "type": "boolean",
-      "title": "Show Left Panel",
-      "default": true
+      "title": "Disable Left Panel",
+      "default": false
     },
-    "jgisRightPanelVisible": {
+    "stacBrowserDisabled": {
       "type": "boolean",
-      "title": "Show Right Panel",
-      "default": true
+      "title": "Disable STAC Browser",
+      "default": false
     },
-    "jgisLeftTabLayers": {
+    "filtersDisabled": {
       "type": "boolean",
-      "title": "JGIS Layers Tab",
-      "default": true
+      "title": "Disable Filters",
+      "default": false
     },
-    "jgisLeftTabStac": {
+    "annotationsDisabled": {
       "type": "boolean",
-      "title": "JGIS STAC Browser Tab",
-      "default": true
+      "title": "Disable Annotations",
+      "default": false
     },
-    "jgisLeftTabFilters": {
+    "identifyDisabled": {
       "type": "boolean",
-      "title": "JGIS Filters Tab",
-      "default": true
+      "title": "Disable Identify Features",
+      "default": false
     },
-    "jgisRightTabObjectProperties": {
+    "objectPropertiesDisabled": {
       "type": "boolean",
-      "title": "JGIS Object Properties Tab",
-      "default": true
+      "title": "Disable Object Properties",
+      "default": false
     },
-    "jgisRightTabAnnotations": {
+    "rightPanelDisabled": {
       "type": "boolean",
-      "title": "JGIS Annotations Tab",
-      "default": true
-    },
-    "jgisRightTabIdentifyPanel": {
-      "type": "boolean",
-      "title": "JGIS Identify Features Tab",
-      "default": true
+      "title": "Disable Right Panel",
+      "default": false
     }
   }
 }
