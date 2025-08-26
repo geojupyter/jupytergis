@@ -33,12 +33,20 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 ) => {
   const hideStacPanel = PageConfig.getOption('HIDE_STAC_PANEL') === 'true';
 
-  const settings = props.model.jgisSettings;
-  const leftPanelVisible = settings?.jgisLeftPanelVisible ?? true;
+  const [settings, setSettings] = React.useState(props.model.jgisSettings);
 
-  if (!leftPanelVisible) {
-    return null;
-  }
+  React.useEffect(() => {
+    const onSettingsChanged = () => {
+      setSettings({ ...props.model.jgisSettings });
+    };
+
+    props.model.settingsChanged.connect(onSettingsChanged);
+    return () => {
+      props.model.settingsChanged.disconnect(onSettingsChanged);
+    };
+  }, [props.model]);
+
+  const leftPanelVisible = settings?.jgisLeftPanelVisible ?? true;
 
   const tabInfo = [
     settings?.jgisLeftTabLayers ? { name: 'layers', title: 'Layers' } : null,
@@ -53,20 +61,23 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   );
 
   return (
-    <div className="jgis-left-panel-container">
+    <div
+      className="jgis-left-panel-container"
+      style={{ display: leftPanelVisible ? 'block' : 'none' }}
+    >
       <PanelTabs curTab={curTab} className="jgis-panel-tabs">
         <TabsList>
           {tabInfo.map(e => (
             <TabsTrigger
               className="jGIS-layer-browser-category"
               value={e.name}
-                onClick={() => {
-                  if (curTab !== e.name) {
-                    setCurTab(e.name);
-                  } else {
-                    setCurTab('');
-                  }
-                }}
+              onClick={() => {
+                if (curTab !== e.name) {
+                  setCurTab(e.name);
+                } else {
+                  setCurTab('');
+                }
+              }}
             >
               {e.title}
             </TabsTrigger>

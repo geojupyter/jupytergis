@@ -26,12 +26,20 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const hideAnnotationPanel =
     PageConfig.getOption('HIDE_ANNOTATION_PANEL') === 'true';
 
-  const settings = props.model.jgisSettings;
-  const rightPanelVisible = settings?.jgisRightPanelVisible ?? true;
+  const [settings, setSettings] = React.useState(props.model.jgisSettings);
 
-  if (!rightPanelVisible) {
-    return null;
-  }
+  React.useEffect(() => {
+    const onSettingsChanged = () => {
+      setSettings({ ...props.model.jgisSettings });
+    };
+
+    props.model.settingsChanged.connect(onSettingsChanged);
+    return () => {
+      props.model.settingsChanged.disconnect(onSettingsChanged);
+    };
+  }, [props.model]);
+
+  const rightPanelVisible = settings?.jgisRightPanelVisible ?? true;
 
   const tabInfo = [
     settings?.jgisRightTabObjectProperties
@@ -53,20 +61,23 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     React.useState(undefined);
 
   return (
-    <div className="jgis-right-panel-container">
+    <div
+      className="jgis-right-panel-container"
+      style={{ display: rightPanelVisible ? 'block' : 'none' }}
+    >
       <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
         <TabsList>
           {tabInfo.map(e => (
             <TabsTrigger
               className="jGIS-layer-browser-category"
               value={e.name}
-                onClick={() => {
-                  if (curTab !== e.name) {
-                    setCurTab(e.name);
-                  } else {
-                    setCurTab('');
-                  }
-                }}
+              onClick={() => {
+                if (curTab !== e.name) {
+                  setCurTab(e.name);
+                } else {
+                  setCurTab('');
+                }
+              }}
             >
               {e.title}
             </TabsTrigger>
