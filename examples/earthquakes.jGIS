@@ -10,7 +10,7 @@
         "logicalOp": "all"
       },
       "name": "Earthquakes",
-      "opacity": 0.8,
+      "opacity": 1.0,
       "parameters": {
         "color": {
           "circle-fill-color": [
@@ -183,7 +183,7 @@
     },
     "8de7c2c0-6024-4716-b542-031a89fb87f9": {
       "name": "OpenStreetMap.Mapnik Layer",
-      "opacity": 0.5,
+      "opacity": 1.0,
       "parameters": {
         "source": "b2ea427a-a51b-43ad-ae72-02cd900736d5"
       },
@@ -195,10 +195,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -27922934.4862938,
-      -6683727.565817105,
-      11267556.775325594,
-      15154495.866758233
+      -19456309.48732131,
+      -3639686.263420881,
+      2800931.776353102,
+      12110454.564362008
     ],
     "latitude": 35.52446437432016,
     "longitude": -74.80890180273175,

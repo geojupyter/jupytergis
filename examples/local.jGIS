@@ -38,7 +38,7 @@
       "name": "OpenStreetMap.Mapnik Layer",
       "opacity": 1.0,
       "parameters": {
-        "source": "f124c6de-e444-4798-be88-61c3ee8968db"
+        "source": "3bd6b874-a28a-4ef6-bef8-a7257bb35c51"
       },
       "type": "RasterLayer",
       "visible": true
@@ -48,16 +48,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -10118716.303943159,
-      3988180.028271699,
-      -7405580.502307219,
-      5500028.028428582
+      -8703718.385476297,
+      4845264.714813822,
+      -8189138.675329441,
+      5581105.222898616
     ],
-    "latitude": 39.1564325498224,
-    "longitude": -78.71171832250815,
+    "latitude": 42.34755800727709,
+    "longitude": -75.87555845084086,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 6.519481004917444
+    "zoom": 7.528717444291546
   },
   "schemaVersion": "0.5.0",
   "sources": {
