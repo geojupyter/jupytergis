@@ -305,6 +305,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly flyToGeometrySignal = new Signal<this, any>(this);
   readonly highlightFeatureSignal = new Signal<this, any>(this);
   readonly updateBboxSignal = new Signal<this, any>(this);
+  readonly panelVisibilityChanged = new Signal<this, void>(this);
 
   getContent(): IJGISContent {
     return {
@@ -774,6 +775,36 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._geolocationChanged;
   }
 
+  get showLeftPanel(): boolean {
+    return this._showLeftPanel;
+  }
+  set showLeftPanel(value: boolean) {
+    if (this._showLeftPanel !== value) {
+      this._showLeftPanel = value;
+      this.panelVisibilityChanged.emit();
+    }
+  }
+
+  get showRightPanel(): boolean {
+    return this._showRightPanel;
+  }
+  set showRightPanel(value: boolean) {
+    if (this._showRightPanel !== value) {
+      this._showRightPanel = value;
+      this.panelVisibilityChanged.emit();
+    }
+  }
+
+  toggleLeftPanel(): void {
+    this.showLeftPanel = !this.showLeftPanel;
+    this.panelVisibilityChanged.emit();
+  }
+
+  toggleRightPanel(): void {
+    this.showRightPanel = !this.showRightPanel;
+    this.panelVisibilityChanged.emit();
+  }
+
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
   readonly annotationModel?: IAnnotationModel;
@@ -786,6 +817,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _dirty = false;
   private _readOnly = false;
   private _isDisposed = false;
+  private _showLeftPanel = true;
+  private _showRightPanel = true;
 
   private _userChanged = new Signal<this, IUserData[]>(this);
   private _usersMap?: Map<number, any>;

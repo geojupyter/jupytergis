@@ -258,6 +258,38 @@ export function addCommands(
     ...icons.get(CommandIDs.temporalController),
   });
 
+  commands.addCommand(CommandIDs.toggleLeftPanel, {
+    label: trans.__('Toggle Left Panel'),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      return current?.model?.showLeftPanel ?? false;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (current) {
+        current.model.toggleLeftPanel();
+        commands.notifyCommandChanged(CommandIDs.toggleLeftPanel);
+      }
+    },
+    ...icons.get(CommandIDs.toggleLeftPanel),
+  });
+
+  commands.addCommand(CommandIDs.toggleRightPanel, {
+    label: trans.__('Toggle Right Panel'),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      return current?.model?.showRightPanel ?? false;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (current) {
+        current.model.toggleRightPanel();
+        commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
+      }
+    },
+    ...icons.get(CommandIDs.toggleRightPanel),
+  });
+
   /**
    * SOURCES and LAYERS creation commands.
    */
