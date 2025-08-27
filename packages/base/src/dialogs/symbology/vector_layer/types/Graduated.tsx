@@ -51,6 +51,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [radiusManualStyle, setRadiusManualStyle] = useState({
     radius: 5,
   });
+  const [reverseRamp, setReverseRamp] = useState(false);
 
   const colorManualStyleRef = useRef(colorManualStyle);
   const radiusManualStyleRef = useRef(radiusManualStyle);
@@ -202,6 +203,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
+      reverse: reverseRamp,
     };
 
     if (layer.type === 'HeatmapLayer') {
@@ -266,7 +268,12 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const stopOutputPairs =
       symbologyTab === 'radius'
         ? stops.map(v => ({ stop: v, output: v }))
-        : Utils.getValueColorPairs(stops, selectedRamp, +numberOfShades);
+        : Utils.getValueColorPairs(
+            stops,
+            selectedRamp,
+            +numberOfShades,
+            reverseRamp,
+          );
 
     if (symbologyTab === 'radius') {
       setRadiusStopRows(stopOutputPairs);
@@ -381,6 +388,19 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               </div>
             )}
           </div>
+
+          {symbologyTab === 'color' && (
+            <div className="jp-gis-symbology-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={reverseRamp}
+                  onChange={e => setReverseRamp(e.target.checked)}
+                />
+                Reverse Color Ramp
+              </label>
+            </div>
+          )}
 
           <ColorRamp
             layerParams={layer.parameters}

@@ -38,6 +38,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     radius: 5,
   });
   const manualStyleRef = useRef(manualStyle);
+  const [reverseRamp, setReverseRamp] = useState(false);
 
   if (!layerId) {
     return;
@@ -136,6 +137,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       stops,
       selectedRamp,
       stops.length,
+      reverseRamp,
     );
 
     setStopRows(valueColorPairs);
@@ -182,6 +184,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
       symbologyTab,
+      reverse: reverseRamp,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -312,6 +315,19 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               </div>
             )}
           </div>
+
+          {symbologyTab === 'color' && (
+            <div className="jp-gis-symbology-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={reverseRamp}
+                  onChange={e => setReverseRamp(e.target.checked)}
+                />
+                Reverse Color Ramp
+              </label>
+            </div>
+          )}
 
           <div className="jp-gis-layer-symbology-container">
             <ColorRamp

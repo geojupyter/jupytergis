@@ -93,12 +93,17 @@ export namespace Utils {
     stops: number[],
     selectedRamp: string,
     nClasses: number,
+    reverse: boolean = false,
   ) => {
     let colorMap = colormap({
       colormap: selectedRamp,
       nshades: nClasses > 9 ? nClasses : 9,
       format: 'rgba',
     });
+
+    if (reverse) {
+      colorMap = [...colorMap].reverse();
+    }
 
     const valueColorPairs: IStopRow[] = [];
 
