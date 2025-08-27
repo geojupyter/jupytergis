@@ -285,7 +285,6 @@ jobs:
         working-directory: lite
         run: |
           set -eux
-          mkdir -p content/data
           cp -R ../examples ./content
           cp ../ui-tests/data/* ./content/.
           find ./content -type d -name ".ipynb_checkpoints" -exec rm -rf {} +
