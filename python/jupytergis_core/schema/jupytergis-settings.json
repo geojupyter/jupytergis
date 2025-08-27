@@ -8,6 +8,41 @@
       "title": "Proxy URL",
       "description": "The proxy URL to use for external requests.",
       "default": "https://corsproxy.io"
+    },
+    "leftPanelDisabled": {
+      "type": "boolean",
+      "title": "Disable Left Panel",
+      "default": false
+    },
+    "stacBrowserDisabled": {
+      "type": "boolean",
+      "title": "Disable STAC Browser",
+      "default": false
+    },
+    "filtersDisabled": {
+      "type": "boolean",
+      "title": "Disable Filters",
+      "default": false
+    },
+    "annotationsDisabled": {
+      "type": "boolean",
+      "title": "Disable Annotations",
+      "default": false
+    },
+    "identifyDisabled": {
+      "type": "boolean",
+      "title": "Disable Identify Features",
+      "default": false
+    },
+    "objectPropertiesDisabled": {
+      "type": "boolean",
+      "title": "Disable Object Properties",
+      "default": false
+    },
+    "rightPanelDisabled": {
+      "type": "boolean",
+      "title": "Disable Right Panel",
+      "default": false
     }
   }
 }

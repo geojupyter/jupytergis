@@ -171,6 +171,9 @@ export function addCommands(
       return isIdentifying;
     },
     isEnabled: () => {
+      if (tracker.currentWidget?.model.jgisSettings.identifyDisabled) {
+        return false;
+      }
       const selectedLayer = getSingleSelectedLayer(tracker);
       if (!selectedLayer) {
         return false;
@@ -845,6 +848,195 @@ export function addCommands(
       navigator.geolocation.getCurrentPosition(success, error, options);
     },
     icon: targetWithCenterIcon,
+  });
+
+  // Panel visibility commands
+  commands.addCommand(CommandIDs.toggleLeftPanel, {
+    label: trans.__('Toggle Left Panel'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      return current ? !current.model.jgisSettings.leftPanelDisabled : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      try {
+        const settings = await current.model.getSettings();
+        const currentValue =
+          settings?.composite?.leftPanelDisabled ??
+          current.model.jgisSettings.leftPanelDisabled ??
+          false;
+        await settings?.set('leftPanelDisabled', !currentValue);
+        commands.notifyCommandChanged(CommandIDs.toggleLeftPanel);
+      } catch (err) {
+        console.error('Failed to toggle Left Panel:', err);
+      }
+    },
+  });
+
+  commands.addCommand(CommandIDs.toggleRightPanel, {
+    label: trans.__('Toggle Right Panel'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      return current ? !current.model.jgisSettings.rightPanelDisabled : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      try {
+        const settings = await current.model.getSettings();
+        const currentValue =
+          settings?.composite?.rightPanelDisabled ??
+          current.model.jgisSettings.rightPanelDisabled ??
+          false;
+        await settings?.set('rightPanelDisabled', !currentValue);
+        commands.notifyCommandChanged(CommandIDs.toggleRightPanel);
+      } catch (err) {
+        console.error('Failed to toggle Right Panel:', err);
+      }
+    },
+  });
+
+  // Left panel tabs
+  commands.addCommand(CommandIDs.showLayersTab, {
+    label: trans.__('Show Layers Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.layersDisabled
+        : false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue =
+        settings?.composite?.layersDisabled ??
+        current.model.jgisSettings.layersDisabled ??
+        false;
+      await settings?.set('layersDisabled', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showLayersTab);
+    },
+  });
+
+  commands.addCommand(CommandIDs.showStacBrowserTab, {
+    label: trans.__('Show STAC Browser Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.stacBrowserDisabled
+        : false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue =
+        settings?.composite?.stacBrowserDisabled ??
+        current.model.jgisSettings.stacBrowserDisabled ??
+        false;
+      await settings?.set('stacBrowserDisabled', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showStacBrowserTab);
+    },
+  });
+
+  commands.addCommand(CommandIDs.showFiltersTab, {
+    label: trans.__('Show Filters Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.filtersDisabled
+        : false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue =
+        settings?.composite?.filtersDisabled ??
+        current.model.jgisSettings.filtersDisabled ??
+        false;
+      await settings?.set('filtersDisabled', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showFiltersTab);
+    },
+  });
+
+  // Right panel tabs
+  commands.addCommand(CommandIDs.showObjectPropertiesTab, {
+    label: trans.__('Show Object Properties Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.objectPropertiesDisabled
+        : false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue =
+        settings?.composite?.objectPropertiesDisabled ??
+        current.model.jgisSettings.objectPropertiesDisabled ??
+        false;
+      await settings?.set('objectPropertiesDisabled', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showObjectPropertiesTab);
+    },
+  });
+
+  commands.addCommand(CommandIDs.showAnnotationsTab, {
+    label: trans.__('Show Annotations Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.annotationsDisabled
+        : false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue =
+        settings?.composite?.annotationsDisabled ??
+        current.model.jgisSettings.annotationsDisabled ??
+        false;
+      await settings?.set('annotationsDisabled', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showAnnotationsTab);
+    },
+  });
+
+  commands.addCommand(CommandIDs.showIdentifyPanelTab, {
+    label: trans.__('Show Identify Panel Tab'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    isToggled: () =>
+      tracker.currentWidget
+        ? !tracker.currentWidget.model.jgisSettings.identifyDisabled
+        : false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const settings = await current.model.getSettings();
+      const currentValue =
+        settings?.composite?.identifyDisabled ??
+        current.model.jgisSettings.identifyDisabled ??
+        false;
+      await settings?.set('identifyDisabled', !currentValue);
+      commands.notifyCommandChanged(CommandIDs.showIdentifyPanelTab);
+    },
   });
 
   loadKeybindings(commands, keybindings);

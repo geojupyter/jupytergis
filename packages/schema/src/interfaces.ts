@@ -10,6 +10,7 @@ import { IChangedArgs } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 import { Contents, User } from '@jupyterlab/services';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import { SplitPanel } from '@lumino/widgets';
@@ -200,7 +201,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     features: FeatureLike[];
   }) => void;
 
-  getSettings(): IJupyterGISSettings;
+  getSettings(): Promise<ISettingRegistry.ISettings>;
+  settingsChanged: ISignal<IJupyterGISModel, string>;
+  jgisSettings: IJupyterGISSettings;
   getContent(): IJGISContent;
   getLayers(): IJGISLayers;
   getLayer(id: string): IJGISLayer | undefined;
@@ -370,4 +373,18 @@ export interface IAnnotation {
 
 export interface IJupyterGISSettings {
   proxyUrl: string;
+
+  // Panel visibility
+  leftPanelDisabled?: boolean;
+  rightPanelDisabled?: boolean;
+
+  // Left panel tabs
+  layersDisabled?: boolean;
+  stacBrowserDisabled?: boolean;
+  filtersDisabled?: boolean;
+
+  // Right panel tabs
+  objectPropertiesDisabled?: boolean;
+  annotationsDisabled?: boolean;
+  identifyDisabled?: boolean;
 }
