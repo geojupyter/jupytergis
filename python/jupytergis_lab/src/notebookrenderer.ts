@@ -20,6 +20,7 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
@@ -142,6 +143,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     IStateDB,
     IJGISFormSchemaRegistryToken,
     IAnnotationToken,
+    ISettingRegistry,
   ],
   activate: (
     app: JupyterFrontEnd,
@@ -152,6 +154,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     formSchemaRegistry?: IJGISFormSchemaRegistry,
     state?: IStateDB,
     annotationModel?: IAnnotationModel,
+    settingRegistry?: ISettingRegistry
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -214,6 +217,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         })!;
         this.jupyterGISModel = new JupyterGISModel({
           sharedModel: sharedModel as IJupyterGISDoc,
+          settingRegistry
         });
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
