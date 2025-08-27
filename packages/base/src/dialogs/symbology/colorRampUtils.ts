@@ -9,7 +9,7 @@ export interface IColorMap {
   colors: string[];
 }
 
-const { __license__: _, ...cmocean } = rawCmocean as any;
+const { __license__: _, ...cmocean } = rawCmocean;
 
 Object.assign(colorScale, cmocean);
 
