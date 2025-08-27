@@ -428,8 +428,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           <StopRow
             key={`${index}-${stop.output}`}
             index={index}
-            value={stop.stop}
-            outputValue={stop.output}
+            dataValue={stop.stop}
+            symbologyValue={stop.output}
             stopRows={stopRows}
             setStopRows={setStopRows}
             deleteRow={() => deleteStopRow(index)}

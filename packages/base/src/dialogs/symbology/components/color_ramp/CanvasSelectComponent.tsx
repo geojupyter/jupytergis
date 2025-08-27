@@ -1,7 +1,7 @@
 import { Button } from '@jupyterlab/ui-components';
-import colormap from 'colormap';
 import React, { useEffect, useRef, useState } from 'react';
 
+import { useColorMapList } from '@/src/dialogs/symbology/colorRampUtils';
 import ColorRampEntry from './ColorRampEntry';
 
 export interface IColorMap {
@@ -18,71 +18,11 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
   selectedRamp,
   setSelected,
 }) => {
-  const colorRampNames = [
-    'jet',
-    // 'hsv', 11 steps min
-    'hot',
-    'cool',
-    'spring',
-    'summer',
-    'autumn',
-    'winter',
-    'bone',
-    'copper',
-    'greys',
-    'YiGnBu',
-    'greens',
-    'YiOrRd',
-    'bluered',
-    'RdBu',
-    // 'picnic', 11 steps min
-    'rainbow',
-    'portland',
-    'blackbody',
-    'earth',
-    'electric',
-    'viridis',
-    'inferno',
-    'magma',
-    'plasma',
-    'warm',
-    // 'rainbow-soft', 11 steps min
-    'bathymetry',
-    'cdom',
-    'chlorophyll',
-    'density',
-    'freesurface-blue',
-    'freesurface-red',
-    'oxygen',
-    'par',
-    'phase',
-    'salinity',
-    'temperature',
-    'turbidity',
-    'velocity-blue',
-    'velocity-green',
-    // 'cubehelix' 16 steps min
-  ];
-
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
 
-  useEffect(() => {
-    const colorMapList: IColorMap[] = [];
-
-    colorRampNames.forEach(name => {
-      const colorRamp = colormap({
-        colormap: name,
-        nshades: 255,
-        format: 'rgbaString',
-      });
-      const colorMap = { name: name, colors: colorRamp };
-      colorMapList.push(colorMap);
-
-      setColorMaps(colorMapList);
-    });
-  }, []);
+  useColorMapList(setColorMaps);
 
   useEffect(() => {
     if (colorMaps.length > 0) {

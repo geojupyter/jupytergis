@@ -225,7 +225,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       selectedMode,
     });
 
-    let stops;
+    let stops: number[];
 
     const values = Array.from(selectableAttributesAndValues[selectedAttribute]);
 
