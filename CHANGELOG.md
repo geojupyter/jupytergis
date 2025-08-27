@@ -2,6 +2,47 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.9.0
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.8.1...a1c9126e1dc406ae736283cdd849d57388ba17b5))
+
+### Enhancements made
+
+- Identify panel: try to infer the feature name instead of showing the default "Feature X" name [#906](https://github.com/geojupyter/jupytergis/pull/906) ([@martinRenou](https://github.com/martinRenou))
+- Adding Checkbox for reverse Color Ramp [#904](https://github.com/geojupyter/jupytergis/pull/904) ([@nakul-py](https://github.com/nakul-py))
+- Lazy load gdal [#901](https://github.com/geojupyter/jupytergis/pull/901) ([@martinRenou](https://github.com/martinRenou))
+- Automatically switch to identify panel when identifying [#900](https://github.com/geojupyter/jupytergis/pull/900) ([@arjxn-py](https://github.com/arjxn-py))
+- Introduce settings to optionally disable some features (filtering/annotations etc) [#898](https://github.com/geojupyter/jupytergis/pull/898) ([@arjxn-py](https://github.com/arjxn-py))
+- Fix Overlapping of Panels on smaller screens [#896](https://github.com/geojupyter/jupytergis/pull/896) ([@arjxn-py](https://github.com/arjxn-py))
+- Rename "Identify Features" panel tab -> "Identified Features" (#893) [#895](https://github.com/geojupyter/jupytergis/pull/895) ([@Gauss-Taylor-Euler](https://github.com/Gauss-Taylor-Euler))
+- Legends for Vector Layers [#880](https://github.com/geojupyter/jupytergis/pull/880) ([@arjxn-py](https://github.com/arjxn-py))
+
+### Bugs fixed
+
+- Don't hardcode geojson feature projection [#903](https://github.com/geojupyter/jupytergis/pull/903) ([@gjmooney](https://github.com/gjmooney))
+- Fix geotif file loading [#884](https://github.com/geojupyter/jupytergis/pull/884) ([@gjmooney](https://github.com/gjmooney))
+
+### Maintenance and upkeep improvements
+
+- Avoid react-fontawesome 3.0.0 for now because of breaking change [#888](https://github.com/geojupyter/jupytergis/pull/888) ([@mfisher87](https://github.com/mfisher87))
+- Add user story issue template [#883](https://github.com/geojupyter/jupytergis/pull/883) ([@mfisher87](https://github.com/mfisher87))
+
+### Documentation improvements
+
+- Python API documentation grammar and rendering updates [#874](https://github.com/geojupyter/jupytergis/pull/874) ([@mtaniguchiking](https://github.com/mtaniguchiking))
+- Make minor text edits to 'Getting Started with JupyterGIS' markdown file [#873](https://github.com/geojupyter/jupytergis/pull/873) ([@kpdavi](https://github.com/kpdavi))
+- Fix typo in docs: delete extra backtick [#868](https://github.com/geojupyter/jupytergis/pull/868) ([@jasongrout](https://github.com/jasongrout))
+- Fix add_geoparquet_layer docstring bug [#867](https://github.com/geojupyter/jupytergis/pull/867) ([@giswqs](https://github.com/giswqs))
+- Remove changelog list from the homepage [#864](https://github.com/geojupyter/jupytergis/pull/864) ([@giswqs](https://github.com/giswqs))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-08-13&to=2025-08-27&type=c))
+
+[@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-08-13..2025-08-27&type=Issues) | [@Gauss-Taylor-Euler](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AGauss-Taylor-Euler+updated%3A2025-08-13..2025-08-27&type=Issues) | [@giswqs](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agiswqs+updated%3A2025-08-13..2025-08-27&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2025-08-13..2025-08-27&type=Issues) | [@jasongrout](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Ajasongrout+updated%3A2025-08-13..2025-08-27&type=Issues) | [@kpdavi](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Akpdavi+updated%3A2025-08-13..2025-08-27&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-08-13..2025-08-27&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-08-13..2025-08-27&type=Issues) | [@MMesch](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2025-08-13..2025-08-27&type=Issues) | [@mtaniguchiking](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amtaniguchiking+updated%3A2025-08-13..2025-08-27&type=Issues) | [@nakul-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2025-08-13..2025-08-27&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.8.1
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.8.0...7a8af8129738cccb8c586bdf8eee0711f5de5035))
@@ -22,8 +63,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-08-06&to=2025-08-13&type=c))
 
 [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-08-06..2025-08-13&type=Issues) | [@Gauss-Taylor-Euler](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AGauss-Taylor-Euler+updated%3A2025-08-06..2025-08-13&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-08-06..2025-08-13&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.8.0
 
