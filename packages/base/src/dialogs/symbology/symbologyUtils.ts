@@ -93,7 +93,7 @@ export namespace Utils {
     stops: number[],
     selectedRamp: string,
     nClasses: number,
-    reverse: boolean = false,
+    reverse = false,
   ) => {
     let colorMap = colormap({
       colormap: selectedRamp,
