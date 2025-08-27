@@ -11,6 +11,7 @@ from pycrdt import Array, Map
 from pydantic import BaseModel
 from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
+import os
 
 from jupytergis_core.schema import (
     IGeoJSONSource,
@@ -313,6 +314,62 @@ class GISDocument(CommWidget):
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+
+    def add_vector_layer(
+        self,
+        path: Optional[Union[str, Path]] = None,
+        name: str = "Vector Layer",
+        type: str = "line",
+        opacity: float = 1.0,
+        logical_op: Optional[str] = None,
+        feature: Optional[str] = None,
+        operator: Optional[str] = None,
+        value: Optional[Union[str, int, float]] = None,
+        color_expr: Optional[str] = None,
+        **kwargs,
+    ) -> None:
+        """
+        Adds a vector layer to the map, intelligently handling GeoJSON vs vector formats.
+
+        Args:
+            path (Optional[Union[str, Path]]): The path to the vector file.
+            name (str): The name of the vector layer. Defaults to "Vector Layer".
+            type (str): The type of the vector layer. Defaults to "line".
+            opacity (float): The opacity of the vector layer. Defaults to 1.0.
+            logical_op (Optional[str]): The logical operation to apply. Defaults to None.
+            feature (Optional[str]): The feature to apply the logical operation on. Defaults to None.
+            operator (Optional[str]): The operator to use in the logical operation. Defaults to None.
+            value (Optional[Union[str, int, float]]): The value to use in the logical operation. Defaults to None.
+            color_expr (Optional[str]): The color expression to use for the vector layer. Defaults to None.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            None
+        """
+
+        if path and _looks_like_geojson(path):
+            self.add_geojson_layer(
+                path=str(path),
+                name=name,
+                opacity=opacity,
+                logical_op=logical_op,
+                feature=feature,
+                operator=operator,
+                value=value,
+                color_expr=color_expr,
+            )
+        else:
+            geojson = vector_to_geojson(path, **kwargs)
+            self.add_geojson_layer(
+                data=geojson,
+                name=name,
+                opacity=opacity,
+                logical_op=logical_op,
+                feature=feature,
+                operator=operator,
+                value=value,
+                color_expr=color_expr,
+            )
 
     def add_image_layer(
         self,
@@ -954,6 +1011,134 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
             )
 
         return None
+
+
+def _looks_like_geojson(path: Union[str, Path]) -> bool:
+    """
+    Tries to determine whether the file or URL is a GeoJSON.
+    - For URLs, looks at file extension or Content-Type.
+    - For local files, tries to load and parse the content.
+    """
+    path_str = str(path).lower()
+
+    if path_str.startswith("http://") or path_str.startswith("https://"):
+        if path_str.endswith(".geojson") or path_str.endswith(".json"):
+            return True
+
+        try:
+            head = requests.head(path, timeout=5)
+            content_type = head.headers.get("Content-Type", "")
+            return (
+                "application/geo+json" in content_type
+                or "application/json" in content_type
+            )
+        except requests.RequestException:
+            return False
+
+    elif os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return isinstance(data, dict) and data.get("type") in {
+                    "FeatureCollection",
+                    "Feature",
+                }
+        except Exception:
+            return False
+
+    return False
+
+
+def vector_to_geojson(
+    filepath,
+    out_geojson=None,
+    bbox=None,
+    mask=None,
+    rows=None,
+    epsg="4326",
+    encoding="utf-8",
+    **kwargs,
+):
+    """Converts any geopandas-supported vector dataset to GeoJSON.
+
+    Args:
+        filepath (str): Either the absolute or relative path to the file or URL
+            to be opened, or any object with a read() method (such as an open
+            file or StringIO).
+        out_geojson (str, optional): The file path to the output GeoJSON.
+            Defaults to None.
+        bbox (tuple | GeoDataFrame or GeoSeries | shapely Geometry, optional):
+            Filter features by given bounding box, GeoSeries, GeoDataFrame or
+            a shapely geometry. CRS mis-matches are resolved if given a GeoSeries
+            or GeoDataFrame. Cannot be used with mask. Defaults to None.
+        mask (dict | GeoDataFrame or GeoSeries | shapely Geometry, optional):
+            Filter for features that intersect with the given dict-like geojson
+            geometry, GeoSeries, GeoDataFrame or shapely geometry. CRS mis-matches
+            are resolved if given a GeoSeries or GeoDataFrame. Cannot be used with
+            bbox. Defaults to None.
+        rows (int or slice, optional): Load in specific rows by passing an integer
+            (first n rows) or a slice() object.. Defaults to None.
+        epsg (str, optional): The EPSG number to convert to. Defaults to "4326".
+        encoding (str, optional): The encoding of the input file. Defaults to "utf-8".
+        kwargs: Additional arguments to pass to geopandas.read_file.
+
+
+    Raises:
+        ValueError: When the output file path is invalid.
+
+    Returns:
+        dict: A dictionary containing the GeoJSON.
+    """
+
+    try:
+        import geopandas as gpd
+    except ImportError as err:
+        raise ImportError(
+            "geopandas is required for this function. Please install it using `pip install geopandas`."
+        ) from err
+
+    if not filepath.startswith("http"):
+        filepath = os.path.abspath(filepath)
+        if filepath.endswith(".zip"):
+            filepath = "zip://" + filepath
+    ext = os.path.splitext(filepath)[1].lower()
+    if ext == ".kml":
+        try:
+            import fiona
+        except ImportError as err:
+            raise ImportError(
+                "fiona is required for this function. Please install it using `pip install fiona`."
+            ) from err
+
+        fiona.drvsupport.supported_drivers["KML"] = "rw"
+        df = gpd.read_file(
+            filepath,
+            bbox=bbox,
+            mask=mask,
+            rows=rows,
+            driver="KML",
+            encoding=encoding,
+            **kwargs,
+        )
+    else:
+        df = gpd.read_file(
+            filepath, bbox=bbox, mask=mask, rows=rows, encoding=encoding, **kwargs
+        )
+    gdf = df.to_crs(epsg=epsg)
+
+    if out_geojson is not None:
+        if not out_geojson.lower().endswith(".geojson"):
+            raise ValueError("The output file must have a geojson file extension.")
+
+        out_geojson = os.path.abspath(out_geojson)
+        out_dir = os.path.dirname(out_geojson)
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+
+        gdf.to_file(out_geojson, driver="GeoJSON")
+
+    else:
+        return gdf.__geo_interface__
 
 
 OBJECT_FACTORY = ObjectFactoryManager()
