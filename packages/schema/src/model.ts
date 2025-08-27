@@ -72,7 +72,29 @@ export class JupyterGISModel implements IJupyterGISModel {
 
         this._updateLocalSettings();
 
-        setting.changed.connect(this._onSettingsChanged, this);
+        setting.changed.connect(() => {
+          const oldSettings = { ...this._jgisSettings };
+          this._updateLocalSettings();
+          const newSettings = this._jgisSettings;
+
+          const keys: (keyof IJupyterGISSettings)[] = [
+            'proxyUrl',
+            'leftPanelDisabled',
+            'rightPanelDisabled',
+            'layersDisabled',
+            'stacBrowserDisabled',
+            'filtersDisabled',
+            'objectPropertiesDisabled',
+            'annotationsDisabled',
+            'identifyDisabled',
+          ];
+
+          keys.forEach(key => {
+            if (oldSettings[key] !== newSettings[key]) {
+              this._onSettingsChanged(key);
+            }
+          });
+        });
       } catch (error) {
         console.error(`Failed to load settings for ${SETTINGS_ID}:`, error);
         this._jgisSettings = {
@@ -90,7 +112,15 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
-  private _onSettingsChanged(): void {
+  private _onSettingsChanged(changedKey: keyof IJupyterGISSettings): void {
+    this._updateLocalSettings();
+
+    if (changedKey) {
+      this._settingsChanged.emit(changedKey);
+      return;
+    }
+
+    // fallback: if no key specified, emit all keys that changed
     const oldSettings = this._jgisSettings;
     this._updateLocalSettings();
     const newSettings = this._jgisSettings;
