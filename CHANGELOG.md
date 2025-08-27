@@ -2,6 +2,26 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.9.1
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.9.0...5a70634d47a9fc2d3ed4dde6d5fb722cf75d659c))
+
+### Enhancements made
+
+- Add some information to the user on how to use the identify tool [#909](https://github.com/geojupyter/jupytergis/pull/909) ([@martinRenou](https://github.com/martinRenou))
+
+### Bugs fixed
+
+- Fix double click bug while identifying vectorTileLayers [#908](https://github.com/geojupyter/jupytergis/pull/908) ([@arjxn-py](https://github.com/arjxn-py))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-08-27&to=2025-08-27&type=c))
+
+[@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-08-27..2025-08-27&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-08-27..2025-08-27&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-08-27..2025-08-27&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.9.0
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.8.1...a1c9126e1dc406ae736283cdd849d57388ba17b5))
@@ -40,8 +60,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-08-13&to=2025-08-27&type=c))
 
 [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-08-13..2025-08-27&type=Issues) | [@Gauss-Taylor-Euler](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AGauss-Taylor-Euler+updated%3A2025-08-13..2025-08-27&type=Issues) | [@giswqs](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agiswqs+updated%3A2025-08-13..2025-08-27&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2025-08-13..2025-08-27&type=Issues) | [@jasongrout](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Ajasongrout+updated%3A2025-08-13..2025-08-27&type=Issues) | [@kpdavi](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Akpdavi+updated%3A2025-08-13..2025-08-27&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-08-13..2025-08-27&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-08-13..2025-08-27&type=Issues) | [@MMesch](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2025-08-13..2025-08-27&type=Issues) | [@mtaniguchiking](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amtaniguchiking+updated%3A2025-08-13..2025-08-27&type=Issues) | [@nakul-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2025-08-13..2025-08-27&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.8.1
 

@@ -864,7 +864,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupytergis/base@^0.9.0, @jupytergis/base@workspace:packages/base":
+"@jupytergis/base@^0.9.1, @jupytergis/base@workspace:packages/base":
   version: 0.0.0-use.local
   resolution: "@jupytergis/base@workspace:packages/base"
   dependencies:
@@ -875,7 +875,7 @@ __metadata:
     "@jupyter/collaboration": ^3.1.0
     "@jupyter/react-components": ^0.16.6
     "@jupyter/ydoc": ^2.0.0 || ^3.0.0
-    "@jupytergis/schema": ^0.9.0
+    "@jupytergis/schema": ^0.9.1
     "@jupyterlab/application": ^4.3.0
     "@jupyterlab/apputils": ^4.3.0
     "@jupyterlab/completer": ^4.3.0
@@ -942,13 +942,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupytergis/jupytergis-core@^0.9.0, @jupytergis/jupytergis-core@workspace:python/jupytergis_core":
+"@jupytergis/jupytergis-core@^0.9.1, @jupytergis/jupytergis-core@workspace:python/jupytergis_core":
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-core@workspace:python/jupytergis_core"
   dependencies:
     "@jupyter/collaborative-drive": ^3.0.0
-    "@jupytergis/base": ^0.9.0
-    "@jupytergis/schema": ^0.9.0
+    "@jupytergis/base": ^0.9.1
+    "@jupytergis/schema": ^0.9.1
     "@jupyterlab/application": ^4.3.0
     "@jupyterlab/apputils": ^4.3.0
     "@jupyterlab/builder": ^4.3.0
@@ -981,8 +981,8 @@ __metadata:
   resolution: "@jupytergis/jupytergis-lab@workspace:python/jupytergis_lab"
   dependencies:
     "@jupyter/collaborative-drive": ^3.0.0
-    "@jupytergis/base": ^0.9.0
-    "@jupytergis/schema": ^0.9.0
+    "@jupytergis/base": ^0.9.1
+    "@jupytergis/schema": ^0.9.1
     "@jupyterlab/application": ^4.3.0
     "@jupyterlab/apputils": ^4.3.0
     "@jupyterlab/builder": ^4.3.0
@@ -1013,9 +1013,9 @@ __metadata:
   resolution: "@jupytergis/jupytergis-qgis@workspace:python/jupytergis_qgis"
   dependencies:
     "@jupyter/collaborative-drive": ^3.0.0
-    "@jupytergis/base": ^0.9.0
-    "@jupytergis/jupytergis-core": ^0.9.0
-    "@jupytergis/schema": ^0.9.0
+    "@jupytergis/base": ^0.9.1
+    "@jupytergis/jupytergis-core": ^0.9.1
+    "@jupytergis/schema": ^0.9.1
     "@jupyterlab/application": ^4.3.0
     "@jupyterlab/apputils": ^4.3.0
     "@jupyterlab/builder": ^4.3.0
@@ -1060,7 +1060,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupytergis/schema@^0.9.0, @jupytergis/schema@workspace:packages/schema":
+"@jupytergis/schema@^0.9.1, @jupytergis/schema@workspace:packages/schema":
   version: 0.0.0-use.local
   resolution: "@jupytergis/schema@workspace:packages/schema"
   dependencies:
