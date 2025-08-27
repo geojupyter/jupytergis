@@ -2299,20 +2299,22 @@ export class MainView extends React.Component<IProps, IStates> {
           />
         </div>
 
-        {this._state && (
-          <LeftPanel
-            model={this._model}
-            commands={this._mainViewModel.commands}
-            state={this._state}
-          ></LeftPanel>
-        )}
-        {this._formSchemaRegistry && this._annotationModel && (
-          <RightPanel
-            model={this._model}
-            formSchemaRegistry={this._formSchemaRegistry}
-            annotationModel={this._annotationModel}
-          ></RightPanel>
-        )}
+        <div className="jgis-panels-wrapper">
+          {this._state && (
+            <LeftPanel
+              model={this._model}
+              commands={this._mainViewModel.commands}
+              state={this._state}
+            ></LeftPanel>
+          )}
+          {this._formSchemaRegistry && this._annotationModel && (
+            <RightPanel
+              model={this._model}
+              formSchemaRegistry={this._formSchemaRegistry}
+              annotationModel={this._annotationModel}
+            ></RightPanel>
+          )}
+        </div>
       </>
     );
   }
