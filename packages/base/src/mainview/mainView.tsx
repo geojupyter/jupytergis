@@ -26,7 +26,6 @@ import {
   IShapefileSource,
   IStacLayer,
   IVectorLayer,
-  IVectorTileLayer,
   IVectorTileSource,
   IGeoParquetSource,
   IWebGlLayer,
@@ -315,10 +314,10 @@ export class MainView extends React.Component<IProps, IStates> {
         const layerModel: IJGISLayer = {
           type: 'VectorLayer',
           visible: true,
+          opacity: 1.0,
           name: 'Drag and Drop layer',
           parameters: {
             color: '#FF0000',
-            opacity: 1.0,
             type: 'line',
             source: sourceId,
           },
@@ -986,7 +985,7 @@ export class MainView extends React.Component<IProps, IStates> {
         layerParameters = layer.parameters as IRasterLayer;
 
         newMapLayer = new TileLayer({
-          opacity: layerParameters.opacity,
+          opacity: layer.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
         });
@@ -997,7 +996,7 @@ export class MainView extends React.Component<IProps, IStates> {
         layerParameters = layer.parameters as IVectorLayer;
 
         newMapLayer = new VectorLayer({
-          opacity: layerParameters.opacity,
+          opacity: layer.opacity,
           visible: layer.visible,
           source: this._sources[layerParameters.source],
           style: this.vectorLayerStyleRuleBuilder(layer),
@@ -1009,7 +1008,7 @@ export class MainView extends React.Component<IProps, IStates> {
         layerParameters = layer.parameters as IVectorLayer;
 
         newMapLayer = new VectorTileLayer({
-          opacity: layerParameters.opacity,
+          opacity: layer.opacity,
           source: this._sources[layerParameters.source],
           style: this.vectorLayerStyleRuleBuilder(layer),
         });
@@ -1033,7 +1032,7 @@ export class MainView extends React.Component<IProps, IStates> {
         layerParameters = layer.parameters as IImageLayer;
 
         newMapLayer = new ImageLayer({
-          opacity: layerParameters.opacity,
+          opacity: layer.opacity,
           source: this._sources[layerParameters.source],
         });
 
@@ -1044,7 +1043,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         // This is to handle python sending a None for the color
         const layerOptions: any = {
-          opacity: layerParameters.opacity,
+          opacity: layer.opacity,
           source: this._sources[layerParameters.source],
         };
 
@@ -1061,7 +1060,7 @@ export class MainView extends React.Component<IProps, IStates> {
         layerParameters = layer.parameters as IHeatmapLayer;
 
         newMapLayer = new HeatmapLayer({
-          opacity: layerParameters.opacity,
+          opacity: layer.opacity,
           source: this._sources[layerParameters.source],
           blur: layerParameters.blur ?? 15,
           radius: layerParameters.radius ?? 8,
@@ -1076,7 +1075,7 @@ export class MainView extends React.Component<IProps, IStates> {
         newMapLayer = new StacLayer({
           displayPreview: true,
           data: layerParameters.data,
-          opacity: layerParameters.opacity,
+          opacity: layer.opacity,
           visible: layer.visible,
           assets: Object.keys(layerParameters.data.assets),
           extent: layerParameters.data.bbox,
@@ -1313,13 +1312,11 @@ export class MainView extends React.Component<IProps, IStates> {
 
     switch (layer.type) {
       case 'RasterLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity || 1);
+        mapLayer.setOpacity(layer.opacity || 1);
         break;
       }
       case 'VectorLayer': {
-        const layerParams = layer.parameters as IVectorLayer;
-
-        mapLayer.setOpacity(layerParams.opacity || 1);
+        mapLayer.setOpacity(layer.opacity || 1);
 
         (mapLayer as VectorLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
@@ -1328,9 +1325,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'VectorTileLayer': {
-        const layerParams = layer.parameters as IVectorTileLayer;
-
-        mapLayer.setOpacity(layerParams.opacity || 1);
+        mapLayer.setOpacity(layer.opacity || 1);
 
         (mapLayer as VectorTileLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
@@ -1346,7 +1341,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'WebGlLayer': {
-        mapLayer.setOpacity(layer.parameters?.opacity);
+        mapLayer.setOpacity(layer.opacity || 1);
 
         if (layer?.parameters?.color) {
           (mapLayer as WebGlTileLayer).setStyle({
@@ -1359,7 +1354,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const layerParams = layer.parameters as IHeatmapLayer;
         const heatmap = mapLayer as HeatmapLayer;
 
-        heatmap.setOpacity(layerParams.opacity ?? 1);
+        heatmap.setOpacity(layer.opacity ?? 1);
         heatmap.setBlur(layerParams.blur ?? 15);
         heatmap.setRadius(layerParams.radius ?? 8);
         heatmap.setGradient(
@@ -1371,7 +1366,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
       case 'StacLayer':
-        mapLayer.setOpacity(layer.parameters?.opacity || 1);
+        mapLayer.setOpacity(layer.opacity || 1);
         break;
     }
   }

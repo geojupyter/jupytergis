@@ -53,10 +53,27 @@ export class EditForm extends React.Component<IEditFormProps, any> {
       }
 
       LayerForm = getLayerTypeForm(layer?.type || 'RasterLayer');
-      layerData = deepCopy(layer?.parameters || {});
+      layerData = {
+        opacity: layer?.opacity ?? 1,
+        ...deepCopy(layer?.parameters || {}),
+      };
       layerSchema = deepCopy(
         this.props.formSchemaRegistry.getSchemas().get(layer.type),
       );
+
+      if (layerSchema) {
+        layerSchema['properties'] = {
+          ...layerSchema['properties'],
+          opacity: {
+            type: 'number',
+            description: 'The opacity of the source',
+            default: 1,
+            multipleOf: 0.1,
+            minimum: 0,
+            maximum: 1,
+          },
+        };
+      }
 
       if (!layerSchema) {
         console.error(`Cannot find schema for ${layer.type}`);
@@ -99,7 +116,28 @@ export class EditForm extends React.Component<IEditFormProps, any> {
               schema={layerSchema}
               sourceData={layerData}
               syncData={(properties: { [key: string]: any }) => {
-                this.syncObjectProperties(this.props.layer, properties);
+                if (!this.props.layer) {
+                  return;
+                }
+
+                const { opacity, ...params } = properties;
+
+                if (opacity !== undefined) {
+                  const layer = this.props.model.getLayer(this.props.layer);
+                  if (layer) {
+                    this.props.model.sharedModel.updateLayer(this.props.layer, {
+                      ...layer,
+                      opacity,
+                    });
+                  }
+                }
+
+                if (Object.keys(params).length > 0) {
+                  this.props.model.sharedModel.updateObjectParameters(
+                    this.props.layer,
+                    params,
+                  );
+                }
               }}
             />
           </div>

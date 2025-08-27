@@ -10,6 +10,7 @@
         "logicalOp": "all"
       },
       "name": "Earthquakes",
+      "opacity": 1.0,
       "parameters": {
         "color": {
           "circle-fill-color": [
@@ -166,7 +167,6 @@
           "stroke-color": "#62a0ea",
           "stroke-width": 1.25
         },
-        "opacity": 1.0,
         "source": "348d85fa-3a71-447f-8a64-e283ec47cc7c",
         "symbologyState": {
           "colorRamp": "cool",
@@ -183,6 +183,7 @@
     },
     "8de7c2c0-6024-4716-b542-031a89fb87f9": {
       "name": "OpenStreetMap.Mapnik Layer",
+      "opacity": 1.0,
       "parameters": {
         "source": "b2ea427a-a51b-43ad-ae72-02cd900736d5"
       },
@@ -218,6 +219,7 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
