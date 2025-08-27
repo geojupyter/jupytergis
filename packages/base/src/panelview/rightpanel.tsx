@@ -1,6 +1,7 @@
 import {
   IAnnotationModel,
   IJGISFormSchemaRegistry,
+  IJupyterGISClientState,
   IJupyterGISModel,
 } from '@jupytergis/schema';
 import * as React from 'react';
@@ -23,26 +24,6 @@ interface IRightPanelProps {
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
-
-  React.useEffect(() => {
-    const onSettingsChanged = () => {
-      setSettings({ ...props.model.jgisSettings });
-    };
-
-    props.model.settingsChanged.connect(onSettingsChanged);
-    return () => {
-      props.model.settingsChanged.disconnect(onSettingsChanged);
-    };
-  }, [props.model]);
-
-  const allRightTabsDisabled =
-    settings.objectPropertiesDisabled &&
-    settings.annotationsDisabled &&
-    settings.identifyDisabled;
-
-  const rightPanelVisible =
-    !settings.rightPanelDisabled && !allRightTabsDisabled;
-
   const tabInfo = [
     !settings.objectPropertiesDisabled
       ? { name: 'objectProperties', title: 'Object Properties' }
@@ -58,6 +39,45 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [curTab, setCurTab] = React.useState<string | undefined>(
     tabInfo.length > 0 ? tabInfo[0].name : undefined,
   );
+
+  React.useEffect(() => {
+    const onSettingsChanged = () => {
+      setSettings({ ...props.model.jgisSettings });
+    };
+    let currentlyIdentifiedFeatures: any = undefined;
+    const onAwerenessChanged = (
+      _: IJupyterGISModel,
+      clients: Map<number, IJupyterGISClientState>,
+    ) => {
+      const clientId = props.model.getClientId();
+      const localState = clientId ? clients.get(clientId) : null;
+
+      if (
+        localState &&
+        localState.identifiedFeatures?.value &&
+        localState.identifiedFeatures.value !== currentlyIdentifiedFeatures
+      ) {
+        currentlyIdentifiedFeatures = localState.identifiedFeatures.value;
+        setCurTab('identifyPanel');
+      }
+    };
+
+    props.model.settingsChanged.connect(onSettingsChanged);
+    props.model.clientStateChanged.connect(onAwerenessChanged);
+
+    return () => {
+      props.model.settingsChanged.disconnect(onSettingsChanged);
+      props.model.clientStateChanged.disconnect(onAwerenessChanged);
+    };
+  }, [props.model]);
+
+  const allRightTabsDisabled =
+    settings.objectPropertiesDisabled &&
+    settings.annotationsDisabled &&
+    settings.identifyDisabled;
+
+  const rightPanelVisible =
+    !settings.rightPanelDisabled && !allRightTabsDisabled;
 
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);

@@ -58,7 +58,10 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
         return;
       }
 
-      if (model.isIdentifying && featuresRef.current !== identifiedFeatures) {
+      if (
+        model.currentMode === 'identifying' &&
+        featuresRef.current !== identifiedFeatures
+      ) {
         setFeatures(identifiedFeatures);
       }
     };

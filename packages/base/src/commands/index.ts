@@ -160,15 +160,14 @@ export function addCommands(
         'WebGlLayer',
         'VectorTileLayer',
       ].includes(selectedLayer.type);
-      const isIdentifying = current.model.isIdentifying;
 
-      if (isIdentifying && !canIdentify) {
-        current.model.isIdentifying = false;
+      if (current.model.currentMode === 'identifying' && !canIdentify) {
+        current.model.currentMode = 'panning';
         current.node.classList.remove('jGIS-identify-tool');
         return false;
       }
 
-      return isIdentifying;
+      return current.model.currentMode === 'identifying';
     },
     isEnabled: () => {
       if (tracker.currentWidget?.model.jgisSettings.identifyDisabled) {
@@ -198,7 +197,7 @@ export function addCommands(
       if (luminoEvent) {
         const keysPressed = luminoEvent.keys as string[] | undefined;
         if (keysPressed?.includes('Escape')) {
-          current.model.isIdentifying = false;
+          current.model.currentMode = 'panning';
           current.node.classList.remove('jGIS-identify-tool');
           commands.notifyCommandChanged(CommandIDs.identify);
           return;
@@ -207,6 +206,7 @@ export function addCommands(
 
       current.node.classList.toggle('jGIS-identify-tool');
       current.model.toggleIdentify();
+
       commands.notifyCommandChanged(CommandIDs.identify);
     },
     ...icons.get(CommandIDs.identify),
