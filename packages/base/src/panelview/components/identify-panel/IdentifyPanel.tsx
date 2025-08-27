@@ -108,6 +108,12 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
           : 'unset',
       }}
     >
+      {!Object.keys(features ?? {}).length && (
+        <div style={{ textAlign: 'center' }}>
+          Please select a layer from the layer list, then "i" from the toolbar
+          to start identifying features.
+        </div>
+      )}
       {features &&
         Object.values(features).map((feature, featureIndex) => (
           <div key={featureIndex} className="jgis-identify-grid-item">
