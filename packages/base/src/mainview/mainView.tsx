@@ -2084,6 +2084,8 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.syncPointer(pointer);
   });
 
+  private _featurePropertyCache: Map<string | number, any> = new Map();
+
   private _identifyFeature(e: MapBrowserEvent<any>) {
     if (this._model.currentMode !== 'identifying') {
       return;
@@ -2104,9 +2106,13 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
         const features: any[] = [];
+        let foundAny = false;
 
         this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
+          foundAny = true;
+
           let geom: Geometry | undefined;
+          let props = {};
 
           if (feature instanceof RenderFeature) {
             geom = toGeometry(feature);
@@ -2114,20 +2120,33 @@ export class MainView extends React.Component<IProps, IStates> {
             geom = feature.getGeometry();
           }
 
-          const props = feature.getProperties();
+          const rawProps = feature.getProperties();
+          const fid = feature.getId?.() ?? rawProps?.fid;
+
+          if (rawProps && Object.keys(rawProps).length > 1) {
+            const { geometry, ...clean } = rawProps;
+            props = clean;
+            if (fid !== null) {
+              this._featurePropertyCache.set(fid, props);
+            }
+          } else if (fid !== null && this._featurePropertyCache.has(fid)) {
+            props = this._featurePropertyCache.get(fid);
+          }
 
           if (geom) {
             geometries.push(geom);
           }
-          features.push({
-            ...props,
-          });
+          if (props && Object.keys(props).length > 0) {
+            features.push(props);
+          }
 
           return true;
         });
 
         if (features.length > 0) {
           this._model.syncIdentifiedFeatures(features, this._mainViewModel.id);
+        } else if (!foundAny) {
+          this._model.syncIdentifiedFeatures([], this._mainViewModel.id);
         }
 
         if (geometries.length > 0) {
