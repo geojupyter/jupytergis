@@ -120,72 +120,11 @@ export const LegendItem: React.FC<{
         setContent(<p style={{ fontSize: '0.8em' }}>No graduated symbology</p>);
         return;
       }
-      const values = stops.map(s => s.value);
-      const colors = stops.map(s => s.color);
-      const ranges: string[] = [];
-      for (let i = 0; i < values.length; i++) {
-        if (i === 0) {
-          ranges.push(`< ${values[0].toFixed(2)}`);
-        } else if (i === values.length - 1) {
-          ranges.push(`> ${values[values.length - 1].toFixed(2)}`);
-        } else {
-          ranges.push(`${values[i - 1].toFixed(2)} – ${values[i].toFixed(2)}`);
-        }
-      }
-      setContent(
-        <div style={{ padding: 6 }}>
-          {property && (
-            <div style={{ fontSize: '1em', marginBottom: 4 }}>
-              <strong>{property}</strong>
-            </div>
-          )}
-          <div style={{ display: 'grid', gap: 6 }}>
-            {ranges.map((label, i) => (
-              <div
-                key={i}
-                style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-              >
-                <span
-                  style={{
-                    width: 16,
-                    height: 16,
-                    background: colors[i] || '#ccc',
-                    border: '1px solid #000',
-                    borderRadius: 2,
-                  }}
-                />
-                <span style={{ fontSize: '0.75em' }}>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>,
-      );
-      return;
-    }
 
-    // Categorized
-    if (renderType === 'Categorized') {
-      const cats = parseCaseCategories(fill || stroke);
-      if (!cats.length) {
-        setContent(
-          <p style={{ fontSize: '0.8em' }}>No categorized symbology</p>,
-        );
-        return;
-      }
-
-      const n = cats.length;
-      const tickCount = Math.min(6, n);
-      const tickIdx = Array.from({ length: tickCount }, (_, i) =>
-        Math.round((i * (n - 1)) / (tickCount - 1)),
-      );
-      const uniqueIdx = Array.from(new Set(tickIdx));
-      const labeled = uniqueIdx.map(i => ({ ...cats[i], idx: i }));
-
-      const segments = cats
-        .map((c, i) => {
-          const start = (i * 100) / n;
-          const end = ((i + 1) * 100) / n;
-          return `${c.color} ${start}% ${end}%`;
+      const segments = stops
+        .map((s, i) => {
+          const pct = (i / (stops.length - 1)) * 100;
+          return `${s.color} ${pct}%`;
         })
         .join(', ');
       const gradient = `linear-gradient(to right, ${segments})`;
@@ -208,8 +147,8 @@ export const LegendItem: React.FC<{
               marginTop: 10,
             }}
           >
-            {labeled.map((c, i) => {
-              const left = (c.idx * 100) / (n - 1);
+            {stops.map((s, i) => {
+              const left = (i / (stops.length - 1)) * 100;
               const up = i % 2 === 0;
               return (
                 <div
@@ -234,13 +173,55 @@ export const LegendItem: React.FC<{
                       top: up ? -18 : 12,
                       fontSize: '0.7em',
                       whiteSpace: 'nowrap',
+                      marginTop: up ? 0 : 4,
                     }}
                   >
-                    {String(c.category)}
+                    {s.value.toFixed(2)}
                   </div>
                 </div>
               );
             })}
+          </div>
+        </div>,
+      );
+      return;
+    }
+
+    // Categorized
+    if (renderType === 'Categorized') {
+      const cats = parseCaseCategories(fill || stroke);
+      if (!cats.length) {
+        setContent(
+          <p style={{ fontSize: '0.8em' }}>No categorized symbology</p>,
+        );
+        return;
+      }
+
+      setContent(
+        <div style={{ padding: 6 }}>
+          {property && (
+            <div style={{ fontSize: '1em', marginBottom: 6 }}>
+              <strong>{property}</strong>
+            </div>
+          )}
+          <div style={{ display: 'grid', gap: 6 }}>
+            {cats.map((c, i) => (
+              <div
+                key={i}
+                style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+              >
+                <span
+                  style={{
+                    width: 16,
+                    height: 16,
+                    background: c.color || '#ccc',
+                    border: '1px solid #000',
+                    borderRadius: 2,
+                  }}
+                />
+                <span style={{ fontSize: '0.75em' }}>{String(c.category)}</span>
+              </div>
+            ))}
           </div>
         </div>,
       );
