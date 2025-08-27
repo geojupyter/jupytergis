@@ -204,7 +204,15 @@ export const LegendItem: React.FC<{
               <strong>{property}</strong>
             </div>
           )}
-          <div style={{ display: 'grid', gap: 6 }}>
+          <div
+            style={{
+              display: 'grid',
+              gap: 6,
+              maxHeight: 200,
+              overflowY: 'auto',
+              paddingRight: 4,
+            }}
+          >
             {cats.map((c, i) => (
               <div
                 key={i}
