@@ -2084,8 +2084,6 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.syncPointer(pointer);
   });
 
-  private _featurePropertyCache: Map<string | number, any> = new Map();
-
   private _identifyFeature(e: MapBrowserEvent<any>) {
     if (this._model.currentMode !== 'identifying') {
       return;
@@ -2354,4 +2352,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
+  private _featurePropertyCache: Map<string | number, any> = new Map();
 }
