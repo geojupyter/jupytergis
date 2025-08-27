@@ -154,7 +154,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     formSchemaRegistry?: IJGISFormSchemaRegistry,
     state?: IStateDB,
     annotationModel?: IAnnotationModel,
-    settingRegistry?: ISettingRegistry
+    settingRegistry?: ISettingRegistry,
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -217,7 +217,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         })!;
         this.jupyterGISModel = new JupyterGISModel({
           sharedModel: sharedModel as IJupyterGISDoc,
-          settingRegistry
+          settingRegistry,
         });
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
