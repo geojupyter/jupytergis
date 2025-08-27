@@ -211,8 +211,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     // Watch isIdentifying and clear the highlight when Identify Tool is turned off
     this._model.sharedModel.awareness.on('change', () => {
-      const isIdentifying = this._model.isIdentifying;
-      if (!isIdentifying && this._highlightLayer) {
+      if (this._model.currentMode !== 'identifying' && this._highlightLayer) {
         this._highlightLayer.getSource()?.clear();
       }
     });
@@ -519,7 +518,7 @@ export class MainView extends React.Component<IProps, IStates> {
         return layer === this.getLayer(selectedLayerId);
       },
       condition: (event: MapBrowserEvent<any>) => {
-        return singleClick(event) && this._model.isIdentifying;
+        return singleClick(event) && this._model.currentMode === 'identifying';
       },
       style: styleFunction,
     });
@@ -2086,7 +2085,7 @@ export class MainView extends React.Component<IProps, IStates> {
   });
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
-    if (!this._model.isIdentifying) {
+    if (this._model.currentMode !== 'identifying') {
       return;
     }
 

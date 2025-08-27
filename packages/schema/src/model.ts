@@ -161,22 +161,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._settings;
   }
 
-  get activeRightPanelTab(): string | undefined {
-    return this._activeRightPanelTab;
-  }
-
-  set activeRightPanelTab(tab: string | undefined) {
-    if (this._activeRightPanelTab !== tab) {
-      const oldValue = this._activeRightPanelTab;
-      this._activeRightPanelTab = tab;
-      this._stateChanged.emit({
-        name: 'activeRightPanelTab',
-        oldValue,
-        newValue: tab,
-      });
-    }
-  }
-
   getFeaturesForCurrentTile({ sourceId }: { sourceId: string }): FeatureLike[] {
     return Array.from(this._tileFeatureCache.get(sourceId) ?? []);
   }
@@ -305,14 +289,6 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get zoomToPositionSignal(): ISignal<this, string> {
     return this._zoomToPositionSignal;
-  }
-
-  set isIdentifying(isIdentifying: boolean) {
-    this._isIdentifying = isIdentifying;
-  }
-
-  get isIdentifying(): boolean {
-    return this._isIdentifying;
   }
 
   set isTemporalControllerActive(isActive: boolean) {
@@ -783,7 +759,19 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   toggleIdentify() {
-    this._isIdentifying = !this._isIdentifying;
+    if (this._currentMode === 'identifying') {
+      this._currentMode = 'panning';
+    } else {
+      this._currentMode = 'identifying';
+    }
+  }
+
+  get currentMode(): 'panning' | 'identifying' {
+    return this._currentMode;
+  }
+
+  set currentMode(value: 'panning' | 'identifying') {
+    this._currentMode = value;
   }
 
   toggleTemporalController() {
@@ -881,14 +869,14 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _settingsChanged: Signal<JupyterGISModel, string>;
   private _jgisSettings: IJupyterGISSettings;
 
+  private _currentMode: 'panning' | 'identifying';
+
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
   private _contentsManager?: Contents.IManager;
   private _dirty = false;
   private _readOnly = false;
   private _isDisposed = false;
-
-  private _activeRightPanelTab: string | undefined;
 
   private _userChanged = new Signal<this, IUserData[]>(this);
   private _usersMap?: Map<number, any>;
@@ -910,7 +898,6 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _updateLayerSignal = new Signal<this, string>(this);
 
-  private _isIdentifying = false;
   private _isTemporalControllerActive = false;
 
   static worker: Worker;

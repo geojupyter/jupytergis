@@ -161,7 +161,9 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   geolocation: JgisCoordinates;
   localState: IJupyterGISClientState | null;
   annotationModel?: IAnnotationModel;
-  activeRightPanelTab?: string;
+
+  // TODO Add more modes: "annotating"
+  currentMode: 'panning' | 'identifying';
 
   themeChanged: Signal<
     IJupyterGISModel,
@@ -245,7 +247,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   centerOnPosition(id: string): void;
 
   toggleIdentify(): void;
-  isIdentifying: boolean;
 
   isTemporalControllerActive: boolean;
   toggleTemporalController(): void;
