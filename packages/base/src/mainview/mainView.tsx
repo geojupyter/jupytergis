@@ -672,9 +672,7 @@ export class MainView extends React.Component<IProps, IStates> {
           featureProjection: this._Map.getView().getProjection(),
         });
 
-        // TODO: Don't hardcode projection
         const featureArray = format.readFeatures(data, {
-          dataProjection: 'EPSG:4326',
           featureProjection: this._Map.getView().getProjection(),
         });
 
