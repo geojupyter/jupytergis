@@ -87,6 +87,18 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     }));
   };
 
+  const getFeatureNameOrId = (feature: any, featureIndex: number) => {
+    for (const key of Object.keys(feature)) {
+      const lowerCase = key.toLowerCase();
+
+      if ((lowerCase.includes('name') || lowerCase === 'id') && feature[key]) {
+        return feature[key];
+      }
+    }
+
+    return `Feature ${featureIndex + 1}`;
+  };
+
   return (
     <div
       className="jgis-identify-wrapper"
@@ -106,7 +118,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
                   className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
                   tag={'span'}
                 />
-                <span>Feature {featureIndex + 1}</span>
+                <span>{getFeatureNameOrId(feature, featureIndex)}</span>
               </span>
 
               {(() => {
