@@ -2125,6 +2125,7 @@ export class MainView extends React.Component<IProps, IStates> {
             const { geometry, ...clean } = rawProps;
             props = clean;
             if (fid !== null) {
+              // TODO Clean the cache under some condition?
               this._featurePropertyCache.set(fid, props);
             }
           } else if (fid !== null && this._featurePropertyCache.has(fid)) {
