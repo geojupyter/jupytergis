@@ -8,7 +8,12 @@ import {
 } from '@jupytergis/schema';
 import { DOMUtils } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
-import { Button, LabIcon, caretDownIcon } from '@jupyterlab/ui-components';
+import {
+  Button,
+  LabIcon,
+  caretDownIcon,
+  caretRightIcon,
+} from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import React, {
@@ -18,8 +23,10 @@ import React, {
 } from 'react';
 
 import { CommandIDs, icons } from '@/src/constants';
+import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
 import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/panelview/leftpanel';
+import { LegendItem } from './legendItem';
 
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
 const LAYER_GROUP_HEADER_CLASS = 'jp-gis-layerGroupHeader';
@@ -394,6 +401,15 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(layerId, gisModel),
   );
+  const [expanded, setExpanded] = useState(false);
+
+  const { symbology } = useGetSymbology({
+    layerId,
+    model: gisModel as IJupyterGISModel,
+  });
+
+  const hasSupportedSymbology = symbology?.symbologyState !== undefined;
+
   const name = layer.name;
 
   useEffect(() => {
@@ -444,12 +460,32 @@ const LayerComponent: React.FC<ILayerProps> = props => {
       onDragOver={Private.onDragOver}
       onDragEnd={Private.onDragEnd}
       data-id={layerId}
+      style={{ display: 'flex', flexDirection: 'column' }}
     >
       <div
         className={LAYER_TITLE_CLASS}
         onClick={setSelection}
         onContextMenu={setSelection}
+        style={{ display: 'flex' }}
       >
+        {/* Expand/collapse legend button (only if symbology is supported) */}
+        {hasSupportedSymbology && (
+          <Button
+            minimal
+            onClick={e => {
+              e.stopPropagation();
+              setExpanded(v => !v);
+            }}
+            title={expanded ? 'Hide legend' : 'Show legend'}
+          >
+            <LabIcon.resolveReact
+              icon={expanded ? caretDownIcon : caretRightIcon}
+              tag="span"
+            />
+          </Button>
+        )}
+
+        {/* Visibility toggle */}
         <Button
           title={layer.visible ? 'Hide layer' : 'Show layer'}
           onClick={toggleVisibility}
@@ -473,6 +509,13 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           {name}
         </span>
       </div>
+
+      {/* Show legend only if supported symbology */}
+      {expanded && gisModel && hasSupportedSymbology && (
+        <div style={{ marginTop: 6, width: '100%' }}>
+          <LegendItem layerId={layerId} model={gisModel} />
+        </div>
+      )}
     </div>
   );
 };

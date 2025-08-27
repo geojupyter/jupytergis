@@ -41,7 +41,7 @@
 .jp-gis-source {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  /* align-items: center; */
   color: var(--jp-ui-font-color1);
 }
 
