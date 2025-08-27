@@ -22,7 +22,13 @@ module.exports = {
         },
       },
     ],
-    "@typescript-eslint/no-unused-vars": ["warn", { args: "none" }],
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        args: "none",
+        varsIgnorePattern: "^_$"
+      }
+    ],
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/ban-ts-comment": "warn",

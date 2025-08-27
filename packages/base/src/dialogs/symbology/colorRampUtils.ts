@@ -5,16 +5,15 @@ import { useEffect } from 'react';
 import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
 
 export interface IColorMap {
-  name: string;
+  name: ColorRampName;
   colors: string[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { __license__, ...cmocean } = rawCmocean as any;
+const { __license__: _, ...cmocean } = rawCmocean as any;
 
 Object.assign(colorScale, cmocean);
 
-export const COLOR_RAMP_NAMES: string[] = [
+export const COLOR_RAMP_NAMES = [
   'jet',
   // 'hsv', 11 steps min
   'hot',
@@ -70,15 +69,17 @@ export const COLOR_RAMP_NAMES: string[] = [
   'curl',
   'diff',
   'tarn',
-];
+] as const;
 
-export const getColorMapList = (colorRampNames: string[]): IColorMap[] => {
+export type ColorRampName = (typeof COLOR_RAMP_NAMES)[number];
+
+export const getColorMapList = (): IColorMap[] => {
   const colorMapList: IColorMap[] = [];
 
-  colorRampNames.forEach(name => {
+  COLOR_RAMP_NAMES.forEach(name => {
     const colorRamp = colormap({
       colormap: name,
-      nshades: 256,
+      nshades: 255,
       format: 'rgbaString',
     });
 
@@ -91,17 +92,14 @@ export const getColorMapList = (colorRampNames: string[]): IColorMap[] => {
 /**
  * Hook that loads and sets color maps.
  */
-export const useColorMapList = (
-  colorRampNames: string[],
-  setColorMaps: (maps: IColorMap[]) => void,
-) => {
+export const useColorMapList = (setColorMaps: (maps: IColorMap[]) => void) => {
   useEffect(() => {
-    setColorMaps(getColorMapList(colorRampNames));
-  }, [colorRampNames, setColorMaps]);
+    setColorMaps(getColorMapList());
+  }, [setColorMaps]);
 };
 
 /**
- * Ensure we always get a valid hex string from either an array or string.
+ * Ensure we always get a valid hex string from either an RGB(A) array or string.
  */
 export const ensureHexColorCode = (color: number[] | string): string => {
   if (typeof color === 'string') {

@@ -1,10 +1,7 @@
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
 
-import {
-  useColorMapList,
-  COLOR_RAMP_NAMES,
-} from '@/src/dialogs/symbology/colorRampUtils';
+import { useColorMapList } from '@/src/dialogs/symbology/colorRampUtils';
 import ColorRampEntry from './ColorRampEntry';
 
 export interface IColorMap {
@@ -21,13 +18,11 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
   selectedRamp,
   setSelected,
 }) => {
-  const colorRampNames = COLOR_RAMP_NAMES;
-
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
 
-  useColorMapList(colorRampNames, setColorMaps);
+  useColorMapList(setColorMaps);
 
   useEffect(() => {
     if (colorMaps.length > 0) {
