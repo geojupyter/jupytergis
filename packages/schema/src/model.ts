@@ -59,6 +59,20 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
     this._settingsChanged = new Signal<JupyterGISModel, string>(this);
+
+    this._jgisSettings = {
+      proxyUrl: 'https://corsproxy.io',
+      leftPanelDisabled: false,
+      rightPanelDisabled: false,
+      layersDisabled: false,
+      stacBrowserDisabled: false,
+      filtersDisabled: false,
+      objectPropertiesDisabled: false,
+      annotationsDisabled: false,
+      identifyDisabled: false,
+    };
+
+    this.initSettings();
   }
 
   /**
@@ -138,10 +152,6 @@ export class JupyterGISModel implements IJupyterGISModel {
    */
   get settingsChanged(): ISignal<JupyterGISModel, string> {
     return this._settingsChanged;
-  }
-
-  emitSettingChanged(settingName: string) {
-    this._settingsChanged.emit(settingName);
   }
 
   /**
