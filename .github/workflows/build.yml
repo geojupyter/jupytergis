@@ -287,6 +287,7 @@ jobs:
           set -eux
           mkdir -p content/data
           cp -R ../examples ./content
+          cp ../ui-tests/data/* ./content/.
           find ./content -type d -name ".ipynb_checkpoints" -exec rm -rf {} +
           jupyter lite build --contents content --output-dir dist
 
