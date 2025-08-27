@@ -170,6 +170,8 @@ export class ToolbarWidget extends ReactiveToolbar {
       temporalControllerButton.node.dataset.testid =
         'temporal-controller-button';
 
+      this.addItem('spacer', ReactiveToolbar.createSpacerItem());
+
       // Users
       const iconRenderer = createUserIconRenderer(this._model);
       this.addItem(

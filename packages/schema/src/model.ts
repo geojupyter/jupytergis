@@ -91,7 +91,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
           keys.forEach(key => {
             if (oldSettings[key] !== newSettings[key]) {
-              this._onSettingsChanged(key);
+              this._settingsChanged.emit(key);
             }
           });
         });
@@ -110,38 +110,6 @@ export class JupyterGISModel implements IJupyterGISModel {
         };
       }
     }
-  }
-
-  private _onSettingsChanged(changedKey: keyof IJupyterGISSettings): void {
-    this._updateLocalSettings();
-
-    if (changedKey) {
-      this._settingsChanged.emit(changedKey);
-      return;
-    }
-
-    // fallback: if no key specified, emit all keys that changed
-    const oldSettings = this._jgisSettings;
-    this._updateLocalSettings();
-    const newSettings = this._jgisSettings;
-
-    const keys: (keyof IJupyterGISSettings)[] = [
-      'proxyUrl',
-      'leftPanelDisabled',
-      'rightPanelDisabled',
-      'layersDisabled',
-      'stacBrowserDisabled',
-      'filtersDisabled',
-      'objectPropertiesDisabled',
-      'annotationsDisabled',
-      'identifyDisabled',
-    ];
-
-    keys.forEach(key => {
-      if (oldSettings[key] !== newSettings[key]) {
-        this._settingsChanged.emit(key);
-      }
-    });
   }
 
   private _updateLocalSettings(): void {
