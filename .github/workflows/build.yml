@@ -285,7 +285,8 @@ jobs:
         working-directory: lite
         run: |
           set -eux
-          mkdir -p content && cp ../examples/*.jGIS ../examples/*.qgz ../examples/*.geojson ../examples/*.tif ../examples/*.zip ../examples/*.ipynb ../examples/*.gif ./content
+          cp --recursive --dereference ../ui-tests/content ./content
+          find ./content -type d -name ".ipynb_checkpoints" -exec rm -rf {} +
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload Lite artifacts
