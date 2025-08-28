@@ -285,8 +285,7 @@ jobs:
         working-directory: lite
         run: |
           set -eux
-          cp -R ../examples ./content
-          cp ../ui-tests/data/* ./content/.
+          cp --recursive --dereference ../ui-tests/content ./content
           find ./content -type d -name ".ipynb_checkpoints" -exec rm -rf {} +
           jupyter lite build --contents content --output-dir dist
 
