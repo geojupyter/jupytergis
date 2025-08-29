@@ -6,6 +6,8 @@ import React, { useEffect, useRef } from 'react';
 import {
   ensureHexColorCode,
   hexToRgb,
+  COLOR_RAMP_DEFINITIONS,
+  ColorRampName,
 } from '@/src/dialogs/symbology/colorRampUtils';
 import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
 import { SymbologyValue, SizeValue, ColorValue } from '@/src/types';
@@ -18,6 +20,7 @@ const StopRow: React.FC<{
   setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
   useNumber?: boolean;
+  rampName?: string;
 }> = ({
   index,
   dataValue,
@@ -26,8 +29,15 @@ const StopRow: React.FC<{
   setStopRows,
   deleteRow,
   useNumber,
+  rampName,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const ramp = rampName
+    ? COLOR_RAMP_DEFINITIONS[rampName as ColorRampName]
+    : undefined;
+  const isCritical =
+    ramp?.type === 'Divergent' && ramp?.criticalValue?.includes(dataValue);
 
   useEffect(() => {
     if (inputRef.current === document.activeElement) {
@@ -36,12 +46,18 @@ const StopRow: React.FC<{
   }, [stopRows]);
 
   const handleStopChange = (event: { target: { value: string } }) => {
+    if (isCritical) {
+      return;
+    }
     const newRows = [...stopRows];
     newRows[index].stop = +event.target.value;
     setStopRows(newRows);
   };
 
   const handleBlur = () => {
+    if (isCritical) {
+      return;
+    }
     const newRows = [...stopRows];
     newRows.sort((a, b) => {
       if (a.stop < b.stop) {
@@ -56,6 +72,9 @@ const StopRow: React.FC<{
   };
 
   const handleOutputChange = (event: { target: { value: any } }) => {
+    if (isCritical) {
+      return;
+    }
     const newRows = [...stopRows];
     useNumber
       ? (newRows[index].output = +event.target.value)
@@ -71,6 +90,7 @@ const StopRow: React.FC<{
         value={dataValue}
         onChange={handleStopChange}
         onBlur={handleBlur}
+        disabled={isCritical}
         className="jp-mod-styled jp-gis-color-row-value-input"
       />
 
@@ -80,6 +100,7 @@ const StopRow: React.FC<{
           ref={inputRef}
           value={symbologyValue as SizeValue}
           onChange={handleOutputChange}
+          disabled={isCritical}
           className="jp-mod-styled jp-gis-color-row-output-input"
         />
       ) : (
@@ -89,16 +110,21 @@ const StopRow: React.FC<{
           value={ensureHexColorCode(symbologyValue as ColorValue)}
           type="color"
           onChange={handleOutputChange}
+          disabled={isCritical}
           className="jp-mod-styled jp-gis-color-row-output-input"
         />
       )}
 
-      <Button
-        id={`jp-gis-remove-color-${index}`}
-        className="jp-Button jp-gis-filter-icon"
-      >
-        <FontAwesomeIcon icon={faTrash} onClick={deleteRow} />
-      </Button>
+      {!isCritical && (
+        <Button
+          id={`jp-gis-remove-color-${index}`}
+          className="jp-Button jp-gis-filter-icon"
+        >
+          <FontAwesomeIcon icon={faTrash} onClick={deleteRow} />
+        </Button>
+      )}
+      {/* Critical label */}
+      {isCritical && <span className="text-xs text-gray-500">(critical)</span>}
     </div>
   );
 };

@@ -83,6 +83,10 @@ export const getColorMapList = (): IColorMap[] => {
       format: 'rgbaString',
     });
 
+    if (COLOR_RAMP_DEFINITIONS[name]) {
+      COLOR_RAMP_DEFINITIONS[name].colors = colorRamp;
+    }
+
     colorMapList.push({ name, colors: colorRamp });
   });
 
@@ -134,3 +138,47 @@ export function hexToRgb(hex: string): [number, number, number, number] {
     255, // TODO: Make alpha customizable?
   ];
 }
+
+export type ColorRampType = 'Sequential' | 'Divergent' | 'Cyclic';
+
+export interface IColorRampDefinition {
+  name: ColorRampName;
+  type: ColorRampType;
+  colors: string[];
+  criticalValue?: number[]; // Only for divergent ramps
+}
+
+export const COLOR_RAMP_DEFINITIONS: Partial<
+  Record<ColorRampName, IColorRampDefinition>
+> = {
+  balance: {
+    name: 'balance',
+    type: 'Divergent',
+    colors: [],
+    criticalValue: [0],
+  },
+  delta: {
+    name: 'delta',
+    type: 'Divergent',
+    colors: [],
+    criticalValue: [0],
+  },
+  curl: {
+    name: 'curl',
+    type: 'Divergent',
+    colors: [],
+    criticalValue: [0],
+  },
+  diff: {
+    name: 'diff',
+    type: 'Divergent',
+    colors: [],
+    criticalValue: [0],
+  },
+  tarn: {
+    name: 'tarn',
+    type: 'Divergent',
+    colors: [],
+    criticalValue: [0],
+  },
+};
