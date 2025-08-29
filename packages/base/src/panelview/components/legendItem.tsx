@@ -1,6 +1,10 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
+import {
+  COLOR_RAMP_DEFINITIONS,
+  ColorRampName,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
 
 export const LegendItem: React.FC<{
@@ -121,6 +125,11 @@ export const LegendItem: React.FC<{
         return;
       }
 
+      const rampName = symbology.symbologyState?.colorRamp;
+      const rampDef = rampName
+        ? COLOR_RAMP_DEFINITIONS[rampName as ColorRampName]
+        : undefined;
+
       const segments = stops
         .map((s, i) => {
           const pct = (i / (stops.length - 1)) * 100;
@@ -128,6 +137,11 @@ export const LegendItem: React.FC<{
         })
         .join(', ');
       const gradient = `linear-gradient(to right, ${segments})`;
+
+      const minValue = stops[0].value;
+      const maxValue = stops[stops.length - 1].value;
+      const criticalValue =
+        rampDef?.type === 'Divergent' ? rampDef.criticalValue : undefined;
 
       setContent(
         <div style={{ padding: 6, width: '90%' }}>
@@ -147,40 +161,75 @@ export const LegendItem: React.FC<{
               marginTop: 10,
             }}
           >
-            {stops.map((s, i) => {
-              const left = (i / (stops.length - 1)) * 100;
-              const up = i % 2 === 0;
-              return (
+            {/* Min */}
+            <div
+              style={{
+                position: 'absolute',
+                left: '0%',
+                transform: 'translateX(0%)',
+              }}
+            >
+              <div
+                style={{
+                  width: 1,
+                  height: 8,
+                  background: '#333',
+                  margin: '0 auto',
+                }}
+              />
+              <div style={{ position: 'absolute', top: 12, fontSize: '0.7em' }}>
+                {minValue.toFixed(2)}
+              </div>
+            </div>
+
+            {/* Max */}
+            <div
+              style={{
+                position: 'absolute',
+                left: '100%',
+                transform: 'translateX(-100%)',
+              }}
+            >
+              <div
+                style={{
+                  width: 1,
+                  height: 8,
+                  background: '#333',
+                  margin: '0 auto',
+                }}
+              />
+              <div style={{ position: 'absolute', top: 12, fontSize: '0.7em' }}>
+                {maxValue.toFixed(2)}
+              </div>
+            </div>
+
+            {/* Critical (divergent only) */}
+            {criticalValue !== undefined && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: `${
+                    ((criticalValue[0] - minValue) / (maxValue - minValue)) *
+                    100
+                  }%`,
+                  transform: 'translateX(-50%)',
+                }}
+              >
                 <div
-                  key={i}
                   style={{
-                    position: 'absolute',
-                    left: `${left}%`,
-                    transform: 'translateX(-50%)',
+                    width: 2,
+                    height: 14,
+                    background: 'red',
+                    margin: '0 auto',
                   }}
+                />
+                <div
+                  style={{ position: 'absolute', top: -20, fontSize: '0.7em' }}
                 >
-                  <div
-                    style={{
-                      width: 1,
-                      height: 8,
-                      background: '#333',
-                      margin: '0 auto',
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: up ? -18 : 12,
-                      fontSize: '0.7em',
-                      whiteSpace: 'nowrap',
-                      marginTop: up ? 0 : 4,
-                    }}
-                  >
-                    {s.value.toFixed(2)}
-                  </div>
+                  {criticalValue}
                 </div>
-              );
-            })}
+              </div>
+            )}
           </div>
         </div>,
       );

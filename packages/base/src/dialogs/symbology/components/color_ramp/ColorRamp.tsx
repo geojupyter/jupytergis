@@ -5,7 +5,10 @@ import React, { useEffect, useState } from 'react';
 import { LoadingIcon } from '@/src/shared/components/loading';
 import CanvasSelectComponent from './CanvasSelectComponent';
 import ModeSelectRow from './ModeSelectRow';
-
+import {
+  COLOR_RAMP_DEFINITIONS,
+  ColorRampName,
+} from '../../../symbology/colorRampUtils';
 interface IColorRampProps {
   modeOptions: string[];
   layerParams: IDict;
@@ -56,6 +59,9 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     setSelectedRamp(colorRamp ? colorRamp : 'viridis');
   };
 
+  const rampType =
+    COLOR_RAMP_DEFINITIONS[selectedRamp as ColorRampName]?.type || 'Unknown';
+
   return (
     <div className="jp-gis-color-ramp-container">
       {showRampSelector && (
@@ -65,6 +71,11 @@ const ColorRamp: React.FC<IColorRampProps> = ({
             selectedRamp={selectedRamp}
             setSelected={setSelectedRamp}
           />
+          {selectedRamp && (
+            <div className="jp-gis-ramp-type ml-auto">
+              <span className="jp-gis-ramp-type-label">Color Ramp Type: {rampType}</span>
+            </div>
+          )}
         </div>
       )}
       {showModeRow && (
