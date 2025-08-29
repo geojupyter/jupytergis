@@ -17,12 +17,12 @@ dependencies:
   - sphinx-togglebutton
   - sphinxcontrib-mermaid
   - myst-parser
-  - xeus-python # TODO: Do we need this?
 
   - pip
   - pip:
-      # Install JupyterGIS so we can autodoc.
-      # IMPORTANT: You must do `jlpm build` at the root of the repo before this can work.
-      # See: https://github.com/geojupyter/jupytergis/issues/585
-      - ../python/jupytergis_core
-      - ../python/jupytergis_lab
+    - specta
+    # Install JupyterGIS so we can autodoc.
+    # IMPORTANT: You must do `jlpm build` at the root of the repo before this can work.
+    # See: https://github.com/geojupyter/jupytergis/issues/585
+    - ../python/jupytergis_core
+    - ../python/jupytergis_lab
