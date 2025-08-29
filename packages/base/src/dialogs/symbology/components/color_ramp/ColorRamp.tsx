@@ -73,7 +73,9 @@ const ColorRamp: React.FC<IColorRampProps> = ({
           />
           {selectedRamp && (
             <div className="jp-gis-ramp-type ml-auto">
-              <span className="jp-gis-ramp-type-label">Color Ramp Type: {rampType}</span>
+              <span className="jp-gis-ramp-type-label">
+                Color Ramp Type: {rampType}
+              </span>
             </div>
           )}
         </div>

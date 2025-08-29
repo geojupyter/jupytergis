@@ -161,74 +161,120 @@ export const LegendItem: React.FC<{
               marginTop: 10,
             }}
           >
-            {/* Min */}
-            <div
-              style={{
-                position: 'absolute',
-                left: '0%',
-                transform: 'translateX(0%)',
-              }}
-            >
-              <div
-                style={{
-                  width: 1,
-                  height: 8,
-                  background: '#333',
-                  margin: '0 auto',
-                }}
-              />
-              <div style={{ position: 'absolute', top: 12, fontSize: '0.7em' }}>
-                {minValue.toFixed(2)}
-              </div>
-            </div>
-
-            {/* Max */}
-            <div
-              style={{
-                position: 'absolute',
-                left: '100%',
-                transform: 'translateX(-100%)',
-              }}
-            >
-              <div
-                style={{
-                  width: 1,
-                  height: 8,
-                  background: '#333',
-                  margin: '0 auto',
-                }}
-              />
-              <div style={{ position: 'absolute', top: 12, fontSize: '0.7em' }}>
-                {maxValue.toFixed(2)}
-              </div>
-            </div>
-
-            {/* Critical (divergent only) */}
-            {criticalValue !== undefined && (
-              <div
-                style={{
-                  position: 'absolute',
-                  left: `${
-                    ((criticalValue[0] - minValue) / (maxValue - minValue)) *
-                    100
-                  }%`,
-                  transform: 'translateX(-50%)',
-                }}
-              >
+            {criticalValue === undefined ? (
+              stops.map((s, i) => {
+                const left = (i / (stops.length - 1)) * 100;
+                const up = i % 2 === 0;
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      position: 'absolute',
+                      left: `${left}%`,
+                      transform: 'translateX(-50%)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 1,
+                        height: 8,
+                        background: '#333',
+                        margin: '0 auto',
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: up ? -18 : 12,
+                        fontSize: '0.7em',
+                        whiteSpace: 'nowrap',
+                        marginTop: up ? 0 : 4,
+                      }}
+                    >
+                      {s.value.toFixed(2)}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <>
+                {/* Min */}
                 <div
                   style={{
-                    width: 2,
-                    height: 14,
-                    background: 'red',
-                    margin: '0 auto',
+                    position: 'absolute',
+                    left: '0%',
+                    transform: 'translateX(0%)',
                   }}
-                />
-                <div
-                  style={{ position: 'absolute', top: -20, fontSize: '0.7em' }}
                 >
-                  {criticalValue}
+                  <div
+                    style={{
+                      width: 1,
+                      height: 8,
+                      background: '#333',
+                      margin: '0 auto',
+                    }}
+                  />
+                  <div
+                    style={{ position: 'absolute', top: 12, fontSize: '0.7em' }}
+                  >
+                    {minValue.toFixed(2)}
+                  </div>
                 </div>
-              </div>
+
+                {/* Max */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '100%',
+                    transform: 'translateX(-100%)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 1,
+                      height: 8,
+                      background: '#333',
+                      margin: '0 auto',
+                    }}
+                  />
+                  <div
+                    style={{ position: 'absolute', top: 12, fontSize: '0.7em' }}
+                  >
+                    {maxValue.toFixed(2)}
+                  </div>
+                </div>
+
+                {/* Critical */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: `${
+                      ((criticalValue[0] - minValue) / (maxValue - minValue)) *
+                      100
+                    }%`,
+                    transform: 'translateX(-50%)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 2,
+                      height: 14,
+                      background: 'red',
+                      margin: '0 auto',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: -20,
+                      fontSize: '0.7em',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {criticalValue}
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>,
