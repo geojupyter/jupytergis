@@ -262,7 +262,7 @@ const activate = async (
 
         // Check if the file exists
         let fileExist = true;
-        await drive.get(absolutePath, { content: false }).catch(() => {
+        await app.serviceManager.contents.get(absolutePath, { content: false }).catch(() => {
           fileExist = false;
         });
         if (fileExist) {
