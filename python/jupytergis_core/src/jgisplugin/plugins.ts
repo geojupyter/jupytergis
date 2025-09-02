@@ -1,4 +1,4 @@
-import {ICollaborativeContentProvider} from '@jupyter/collaborative-drive';
+import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import {
   IAnnotationModel,
