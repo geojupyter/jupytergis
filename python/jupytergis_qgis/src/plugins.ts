@@ -262,9 +262,11 @@ const activate = async (
 
         // Check if the file exists
         let fileExist = true;
-        await app.serviceManager.contents.get(absolutePath, { content: false }).catch(() => {
-          fileExist = false;
-        });
+        await app.serviceManager.contents
+          .get(absolutePath, { content: false })
+          .catch(() => {
+            fileExist = false;
+          });
         if (fileExist) {
           const overwrite = await showDialog({
             title: 'Export the project to QGZ file',
