@@ -218,11 +218,18 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     selectedMode: string,
     numberOfShades: string,
     selectedRamp: string,
+    setIsLoading: (isLoading: boolean) => void,
+    criticalValue?: number,
+    minValue?: number,
+    maxValue?: number,
   ) => {
     setColorRampOptions({
       selectedRamp,
       numberOfShades,
       selectedMode,
+      minValue,
+      maxValue,
+      criticalValue,
     });
 
     let stops: number[];
@@ -273,6 +280,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             selectedRamp,
             +numberOfShades,
             reverseRamp,
+            'graduated',
+            minValue,
+            maxValue,
           );
 
     if (symbologyTab === 'radius') {
@@ -280,6 +290,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     } else {
       setColorStopRows(stopOutputPairs);
     }
+
+    setIsLoading(false);
   };
 
   const handleReset = (method: string) => {
@@ -408,6 +420,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             classifyFunc={buildColorInfoFromClassification}
             showModeRow={true}
             showRampSelector={symbologyTab === 'color'}
+            layerType="graduated"
           />
           <StopContainer
             selectedMethod={symbologyTab || 'color'}

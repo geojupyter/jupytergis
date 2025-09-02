@@ -145,7 +145,9 @@ export interface IColorRampDefinition {
   name: ColorRampName;
   type: ColorRampType;
   colors: string[];
-  criticalValue?: number[]; // Only for divergent ramps
+  criticalValue?: number; // Only for divergent ramps
+  userMin?: number;
+  userMax?: number;
 }
 
 export const COLOR_RAMP_DEFINITIONS: Partial<
@@ -155,30 +157,30 @@ export const COLOR_RAMP_DEFINITIONS: Partial<
     name: 'balance',
     type: 'Divergent',
     colors: [],
-    criticalValue: [0],
+    criticalValue: 0,
   },
   delta: {
     name: 'delta',
     type: 'Divergent',
     colors: [],
-    criticalValue: [0],
+    criticalValue: 0,
   },
   curl: {
     name: 'curl',
     type: 'Divergent',
     colors: [],
-    criticalValue: [0],
+    criticalValue: 0,
   },
   diff: {
     name: 'diff',
     type: 'Divergent',
     colors: [],
-    criticalValue: [0],
+    criticalValue: 0,
   },
   tarn: {
     name: 'tarn',
     type: 'Divergent',
     colors: [],
-    criticalValue: [0],
+    criticalValue: 0,
   },
 };

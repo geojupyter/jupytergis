@@ -138,10 +138,13 @@ export const LegendItem: React.FC<{
         .join(', ');
       const gradient = `linear-gradient(to right, ${segments})`;
 
-      const minValue = stops[0].value;
-      const maxValue = stops[stops.length - 1].value;
+      const minValue = rampDef?.userMin ?? stops[0].value;
+      const maxValue = rampDef?.userMax ?? stops[stops.length - 1].value;
       const criticalValue =
-        rampDef?.type === 'Divergent' ? rampDef.criticalValue : undefined;
+        rampDef?.type === 'Divergent'
+          ? (rampDef.criticalValue ?? 0)
+          : undefined;
+      const isDivergent = criticalValue !== undefined;
 
       setContent(
         <div style={{ padding: 6, width: '90%' }}>
@@ -161,7 +164,7 @@ export const LegendItem: React.FC<{
               marginTop: 10,
             }}
           >
-            {criticalValue === undefined ? (
+            {!isDivergent ? (
               stops.map((s, i) => {
                 const left = (i / (stops.length - 1)) * 100;
                 const up = i % 2 === 0;
@@ -245,36 +248,57 @@ export const LegendItem: React.FC<{
                 </div>
 
                 {/* Critical */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: `${
-                      ((criticalValue[0] - minValue) / (maxValue - minValue)) *
-                      100
-                    }%`,
-                    transform: 'translateX(-50%)',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 2,
-                      height: 14,
-                      background: 'red',
-                      margin: '0 auto',
-                    }}
-                  />
+                {isDivergent && (
                   <div
                     style={{
                       position: 'absolute',
-                      top: -20,
-                      fontSize: '0.7em',
-                      fontWeight: 'bold',
+                      left: `${
+                        criticalValue <= minValue
+                          ? 0
+                          : criticalValue >= maxValue
+                            ? 100
+                            : ((criticalValue - minValue) /
+                                (maxValue - minValue)) *
+                              100
+                      }%`,
+                      transform: 'translateX(-50%)',
                     }}
                   >
-                    {criticalValue}
+                    <div
+                      style={{
+                        width: 2,
+                        height: 14,
+                        background: 'red',
+                        margin: '0 auto',
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: -20,
+                        fontSize: '0.7em',
+                        fontWeight: 'bold',
+                        color: 'red',
+                      }}
+                    >
+                      {criticalValue.toFixed(2)}
+                    </div>
                   </div>
-                </div>
+                )}
               </>
+            )}
+          </div>
+
+          {/* Labels below bar */}
+          <div
+            style={{ fontSize: '0.75em', color: '#555', fontWeight: 'bold' }}
+          >
+            {minValue !== undefined && <div>Min: {minValue.toFixed(2)}</div>}
+            {maxValue !== undefined && <div>Max: {maxValue.toFixed(2)}</div>}
+            {isDivergent && criticalValue !== undefined && (
+              <div style={{ color: '#555', fontWeight: 'bold' }}>
+                Critical: {criticalValue.toFixed(2)}
+              </div>
             )}
           </div>
         </div>,
@@ -292,6 +316,17 @@ export const LegendItem: React.FC<{
         return;
       }
 
+      const numericCats = cats
+        .map(c => (typeof c.category === 'number' ? c.category : NaN))
+        .filter(v => !isNaN(v));
+
+      const minValue = numericCats.length
+        ? Math.min(...numericCats)
+        : undefined;
+      const maxValue = numericCats.length
+        ? Math.max(...numericCats)
+        : undefined;
+
       setContent(
         <div style={{ padding: 6 }}>
           {property && (
@@ -299,6 +334,7 @@ export const LegendItem: React.FC<{
               <strong>{property}</strong>
             </div>
           )}
+
           <div
             style={{
               display: 'grid',
@@ -306,6 +342,7 @@ export const LegendItem: React.FC<{
               maxHeight: 200,
               overflowY: 'auto',
               paddingRight: 4,
+              marginBottom: 12,
             }}
           >
             {cats.map((c, i) => (
@@ -322,10 +359,24 @@ export const LegendItem: React.FC<{
                     borderRadius: 2,
                   }}
                 />
-                <span style={{ fontSize: '0.75em' }}>{String(c.category)}</span>
+                <span style={{ fontSize: '0.75em' }}>
+                  {typeof c.category === 'number'
+                    ? c.category.toFixed(2)
+                    : String(c.category)}
+                </span>
               </div>
             ))}
           </div>
+
+          {/* Min/Max */}
+          {(minValue !== undefined || maxValue !== undefined) && (
+            <div
+              style={{ fontSize: '0.75em', color: '#555', fontWeight: 'bold' }}
+            >
+              {minValue !== undefined && <div>Min: {minValue}</div>}
+              {maxValue !== undefined && <div>Max: {maxValue}</div>}
+            </div>
+          )}
         </div>,
       );
       return;
