@@ -1,5 +1,5 @@
 import {
-  ICollaborativeDrive,
+  ICollaborativeContentProvider,
   SharedDocumentFactory,
 } from '@jupyter/collaborative-drive';
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
@@ -60,7 +60,7 @@ const activate = async (
   state: IStateDB,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
-  drive: ICollaborativeDrive | null,
+  drive: ICollaborativeContentProvider | null,
 ): Promise<void> => {
   formSchemaRegistry && state;
   if (PageConfig.getOption('jgis_expose_maps')) {
@@ -273,7 +273,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IJGISFormSchemaRegistryToken,
     IStateDB,
   ],
-  optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
+  optional: [ILauncher, ICommandPalette, ICollaborativeContentProvider],
   autoStart: true,
   activate,
 };
