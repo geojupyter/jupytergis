@@ -1,4 +1,4 @@
-import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
+import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import {
   JupyterGISOutputWidget,
   JupyterGISPanel,
@@ -139,7 +139,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     IJGISExternalCommandRegistryToken,
     IJupyterGISDocTracker,
     IJupyterYWidgetManager,
-    ICollaborativeDrive,
+    ICollaborativeContentProvider,
     IStateDB,
     IJGISFormSchemaRegistryToken,
     IAnnotationToken,
@@ -150,7 +150,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     externalCommandRegistry?: IJGISExternalCommandRegistry,
     jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
-    drive?: ICollaborativeDrive,
+    drive?: ICollaborativeContentProvider,
     formSchemaRegistry?: IJGISFormSchemaRegistry,
     state?: IStateDB,
     annotationModel?: IAnnotationModel,

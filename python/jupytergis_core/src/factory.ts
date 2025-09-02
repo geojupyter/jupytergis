@@ -1,4 +1,4 @@
-import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
+import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import {
   JupyterGISPanel,
   JupyterGISDocumentWidget,
@@ -29,7 +29,7 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   rendermime?: IRenderMimeRegistry;
   consoleTracker?: IConsoleTracker;
   backendCheck?: () => boolean;
-  drive?: ICollaborativeDrive | null;
+  drive?: ICollaborativeContentProvider | null;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   state: IStateDB;
   annotationModel: IAnnotationModel;
