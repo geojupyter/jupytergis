@@ -1,7 +1,4 @@
-import {
-  ICollaborativeContentProvider,
-  SharedDocumentFactory,
-} from '@jupyter/collaborative-drive';
+import {ICollaborativeContentProvider} from '@jupyter/collaborative-drive';
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import {
   IAnnotationModel,
@@ -32,6 +29,7 @@ import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 
