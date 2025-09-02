@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -98,7 +98,7 @@ jobs:
             qgis
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install
         shell: bash -l {0}
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: extension-artifacts
 
@@ -152,7 +152,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -166,7 +166,7 @@ jobs:
             qgis
 
       - name: Download extension package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: extension-artifacts
 
@@ -212,7 +212,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -235,7 +235,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
       - uses: jupyterlab/maintainer-tools/.github/actions/check-links@v1
         with:
@@ -248,7 +248,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -263,7 +263,7 @@ jobs:
             jupyter_server
 
       - name: Download extension package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: extension-artifacts
 
@@ -306,7 +306,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -318,7 +318,7 @@ jobs:
             jupyterlab
 
       - name: Download extension package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: lite-artifacts
           path: dist
