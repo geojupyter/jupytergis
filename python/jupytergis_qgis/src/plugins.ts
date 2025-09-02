@@ -1,5 +1,5 @@
 import {
-  ICollaborativeDrive,
+  ICollaborativeContentProvider,
   SharedDocumentFactory,
 } from '@jupyter/collaborative-drive';
 import {
@@ -75,7 +75,7 @@ const activate = async (
   app: JupyterFrontEnd,
   tracker: WidgetTracker<IJupyterGISWidget>,
   themeManager: IThemeManager,
-  drive: ICollaborativeDrive,
+  drive: ICollaborativeContentProvider,
   externalCommandRegistry: IJGISExternalCommandRegistry,
   contentFactory: ConsolePanel.IContentFactory,
   editorServices: IEditorServices,
@@ -324,7 +324,7 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
   requires: [
     IJupyterGISDocTracker,
     IThemeManager,
-    ICollaborativeDrive,
+    ICollaborativeContentProvider,
     IJGISExternalCommandRegistryToken,
     ConsolePanel.IContentFactory,
     IEditorServices,
