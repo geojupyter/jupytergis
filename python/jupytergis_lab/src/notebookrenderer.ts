@@ -135,9 +135,7 @@ interface IOptions {
 export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
-  requires: [
-    IJGISFormSchemaRegistryToken,
-  ],
+  requires: [IJGISFormSchemaRegistryToken],
   optional: [
     IJGISExternalCommandRegistryToken,
     IJupyterGISDocTracker,
