@@ -127,7 +127,7 @@ interface IOptions {
   model: JupyterGISModel;
   externalCommands?: IJGISExternalCommandRegistry;
   tracker?: JupyterGISTracker;
-  formSchemaRegistry?: IJGISFormSchemaRegistry;
+  formSchemaRegistry: IJGISFormSchemaRegistry;
   state?: IStateDB;
   annotationModel?: IAnnotationModel;
 }
@@ -135,23 +135,25 @@ interface IOptions {
 export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
+  requires: [
+    IJGISFormSchemaRegistryToken,
+  ],
   optional: [
     IJGISExternalCommandRegistryToken,
     IJupyterGISDocTracker,
     IJupyterYWidgetManager,
     ICollaborativeDrive,
     IStateDB,
-    IJGISFormSchemaRegistryToken,
     IAnnotationToken,
     ISettingRegistry,
   ],
   activate: (
     app: JupyterFrontEnd,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
     externalCommandRegistry?: IJGISExternalCommandRegistry,
     jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
     drive?: ICollaborativeDrive,
-    formSchemaRegistry?: IJGISFormSchemaRegistry,
     state?: IStateDB,
     annotationModel?: IAnnotationModel,
     settingRegistry?: ISettingRegistry,
