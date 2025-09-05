@@ -31,6 +31,7 @@ export const debounce = (
   };
 };
 
+export const objectKeys = Object.keys as <T extends Record<string, any>>(obj: T) => Array<keyof T>;
 export function throttle<T extends (...args: any[]) => void>(
   callback: T,
   delay = 100,

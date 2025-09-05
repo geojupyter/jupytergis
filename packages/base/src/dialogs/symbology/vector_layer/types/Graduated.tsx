@@ -420,7 +420,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             classifyFunc={buildColorInfoFromClassification}
             showModeRow={true}
             showRampSelector={symbologyTab === 'color'}
-            layerType="graduated"
+            renderType="graduated"
           />
           <StopContainer
             selectedMethod={symbologyTab || 'color'}

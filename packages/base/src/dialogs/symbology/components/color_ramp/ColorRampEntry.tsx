@@ -42,7 +42,14 @@ const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
       onClick={() => onClick(colorMap.name)}
       className="jp-gis-color-ramp-entry"
     >
-      <span className="jp-gis-color-label">{colorMap.name}</span>
+      <span className="jp-gis-color-label">
+        <strong>{colorMap.name}</strong>{' '}
+        <span
+          style={{ color: 'var(--jp-ui-font-color2)', fontStyle: 'italic' }}
+        >
+          ({colorMap.type})
+        </span>
+      </span>
       <canvas
         id={`cv-${index}`}
         height={canvasHeight}

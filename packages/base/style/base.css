@@ -121,26 +121,3 @@ button.jp-mod-styled.jp-mod-reject {
     margin: 0;
   }
 }
-
-.jp-gis-ramp-type {
-  display: flex;
-  align-items: center;
-}
-
-.jp-gis-ramp-type-label {
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: var(--jp-layout-color2, #f3f4f6);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--jp-ui-font-color1, #374151);
-  border: 1px solid var(--jp-border-color2, #d1d5db);
-  line-height: 1.3;
-  white-space: nowrap;
-  user-select: none;
-  transition: background 0.2s ease;
-}
-
-.jp-gis-ramp-type-label:hover {
-  background: var(--jp-layout-color3, #e5e7eb);
-}

@@ -1,10 +1,7 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
-import {
-  COLOR_RAMP_DEFINITIONS,
-  ColorRampName,
-} from '@/src/dialogs/symbology/colorRampUtils';
+import { getColorMapList } from '@/src/dialogs/symbology/colorRampUtils';
 import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
 
 export const LegendItem: React.FC<{
@@ -127,7 +124,7 @@ export const LegendItem: React.FC<{
 
       const rampName = symbology.symbologyState?.colorRamp;
       const rampDef = rampName
-        ? COLOR_RAMP_DEFINITIONS[rampName as ColorRampName]
+        ? getColorMapList().find(c => c.name === rampName)
         : undefined;
 
       const segments = stops
@@ -141,8 +138,8 @@ export const LegendItem: React.FC<{
       const minValue = rampDef?.userMin ?? stops[0].value;
       const maxValue = rampDef?.userMax ?? stops[stops.length - 1].value;
       const criticalValue =
-        rampDef?.type === 'Divergent'
-          ? (rampDef.criticalValue ?? 0)
+        rampDef?.definition.type === 'Divergent'
+          ? (rampDef.criticalValue ?? 0.5)
           : undefined;
       const isDivergent = criticalValue !== undefined;
 
@@ -286,19 +283,6 @@ export const LegendItem: React.FC<{
                   </div>
                 )}
               </>
-            )}
-          </div>
-
-          {/* Labels below bar */}
-          <div
-            style={{ fontSize: '0.75em', color: '#555', fontWeight: 'bold' }}
-          >
-            {minValue !== undefined && <div>Min: {minValue.toFixed(2)}</div>}
-            {maxValue !== undefined && <div>Max: {maxValue.toFixed(2)}</div>}
-            {isDivergent && criticalValue !== undefined && (
-              <div style={{ color: '#555', fontWeight: 'bold' }}>
-                Critical: {criticalValue.toFixed(2)}
-              </div>
             )}
           </div>
         </div>,

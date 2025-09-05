@@ -105,14 +105,14 @@ export namespace Utils {
     selectedRamp: string,
     nClasses: number,
     reverse = false,
-    layerType: 'categorized' | 'graduated' = 'graduated',
+    renderType: 'categorized' | 'graduated' = 'graduated',
     minValue?: number,
     maxValue?: number,
   ) => {
     const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp as ColorRampName];
     let effectiveStops: number[] = [];
 
-    if (layerType === 'categorized') {
+    if (renderType === 'categorized') {
       effectiveStops = stops;
     } else {
       if (rampDef?.type === 'Divergent') {

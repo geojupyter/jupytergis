@@ -23,7 +23,7 @@ interface IColorRampProps {
   ) => void;
   showModeRow: boolean;
   showRampSelector: boolean;
-  layerType?: 'graduated' | 'categorized';
+  renderType?: 'graduated' | 'categorized';
 }
 
 export type ColorRampOptions = {
@@ -41,7 +41,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   classifyFunc,
   showModeRow,
   showRampSelector,
-  layerType,
+  renderType,
 }) => {
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
@@ -88,13 +88,6 @@ const ColorRamp: React.FC<IColorRampProps> = ({
             selectedRamp={selectedRamp}
             setSelected={setSelectedRamp}
           />
-          {selectedRamp && (
-            <div className="jp-gis-ramp-type ml-auto">
-              <span className="jp-gis-ramp-type-label">
-                Color Ramp Type: {rampType}
-              </span>
-            </div>
-          )}
         </div>
       )}
       {showModeRow && (
@@ -107,7 +100,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
         />
       )}
       {/* 🔹 Divergent colormap controls */}
-      {layerType === 'graduated' && rampType === 'Divergent' && (
+      {renderType === 'graduated' && rampType === 'Divergent' && (
         <>
           <div className="jp-gis-symbology-row">
             <label htmlFor="min-value">Min Value:</label>

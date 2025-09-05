@@ -3,91 +3,90 @@ import colorScale from 'colormap/colorScale.js';
 import { useEffect } from 'react';
 
 import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
+import { objectKeys } from '@/src/tools';
+import {
+  IColorMap,
+  IColorRampDefinition,
+} from '@/src/types';
 
-export interface IColorMap {
-  name: ColorRampName;
-  colors: string[];
-}
 
 const { __license__: _, ...cmocean } = rawCmocean;
 
 Object.assign(colorScale, cmocean);
 
-export const COLOR_RAMP_NAMES = [
-  'jet',
-  // 'hsv', 11 steps min
-  'hot',
-  'cool',
-  'spring',
-  'summer',
-  'autumn',
-  'winter',
-  'bone',
-  'copper',
-  'greys',
-  'YiGnBu',
-  'greens',
-  'YiOrRd',
-  'bluered',
-  'RdBu',
-  // 'picnic', 11 steps min
-  'rainbow',
-  'portland',
-  'blackbody',
-  'earth',
-  'electric',
-  'viridis',
-  'inferno',
-  'magma',
-  'plasma',
-  'warm',
-  // 'rainbow-soft', 11 steps min
-  'bathymetry',
-  'cdom',
-  'chlorophyll',
-  'density',
-  'freesurface-blue',
-  'freesurface-red',
-  'oxygen',
-  'par',
-  'phase',
-  'salinity',
-  'temperature',
-  'turbidity',
-  'velocity-blue',
-  'velocity-green',
-  // 'cubehelix' 16 steps min
-  'ice',
-  'oxy',
-  'matter',
-  'amp',
-  'tempo',
-  'rain',
-  'topo',
-  'balance',
-  'delta',
-  'curl',
-  'diff',
-  'tarn',
-] as const;
+export const COLOR_RAMP_DEFINITIONS = {
+  'jet': {type: 'Sequential'},
+  // 'hsv': {type: 'Sequential'}, 11 steps min
+  'hot': {type: 'Sequential'},
+  'cool': {type: 'Sequential'},
+  'spring': {type: 'Sequential'},
+  'summer': {type: 'Sequential'},
+  'autumn': {type: 'Sequential'},
+  'winter': {type: 'Sequential'},
+  'bone': {type: 'Sequential'},
+  'copper': {type: 'Sequential'},
+  'greys': {type: 'Sequential'},
+  'YiGnBu': {type: 'Sequential'},
+  'greens': {type: 'Sequential'},
+  'YiOrRd': {type: 'Sequential'},
+  'bluered': {type: 'Sequential'},
+  'RdBu': {type: 'Sequential'},
+  // 'picnic': {type: 'Sequential'}, 11 steps min
+  'rainbow': {type: 'Sequential'},
+  'portland': {type: 'Sequential'},
+  'blackbody': {type: 'Sequential'},
+  'earth': {type: 'Sequential'},
+  'electric': {type: 'Sequential'},
+  'viridis': {type: 'Sequential'},
+  'inferno': {type: 'Sequential'},
+  'magma': {type: 'Sequential'},
+  'plasma': {type: 'Sequential'},
+  'warm': {type: 'Sequential'},
+  // 'rainbow-soft': {type: 'Sequential'}, 11 steps min
+  'bathymetry': {type: 'Sequential'},
+  'cdom': {type: 'Sequential'},
+  'chlorophyll': {type: 'Sequential'},
+  'density': {type: 'Sequential'},
+  'freesurface-blue': {type: 'Sequential'},
+  'freesurface-red': {type: 'Sequential'},
+  'oxygen': {type: 'Sequential'},
+  'par': {type: 'Sequential'},
+  'phase': {type: 'Cyclic'},
+  'salinity': {type: 'Sequential'},
+  'temperature': {type: 'Sequential'},
+  'turbidity': {type: 'Sequential'},
+  'velocity-blue': {type: 'Sequential'},
+  'velocity-green': {type: 'Sequential'},
+  // 'cubehelix': {type: 'Sequential'}, 16 steps min
+  'ice': {type: 'Sequential'},
+  'oxy': {type: 'Sequential'},
+  'matter': {type: 'Sequential'},
+  'amp': {type: 'Sequential'},
+  'tempo': {type: 'Sequential'},
+  'rain': {type: 'Sequential'},
+  'topo': {type: 'Sequential'},
+  'balance': {type: 'Divergent', criticalValue: 0.5},
+  'delta': {type: 'Divergent', criticalValue: 0.5},
+  'curl': {type: 'Divergent', criticalValue: 0.5},
+  'diff': {type: 'Divergent', criticalValue: 0.5},
+  'tarn': {type: 'Divergent', criticalValue: 0.5},
+ } as const satisfies { [key: string]: IColorRampDefinition };
 
+export const COLOR_RAMP_NAMES = objectKeys(COLOR_RAMP_DEFINITIONS);
 export type ColorRampName = (typeof COLOR_RAMP_NAMES)[number];
 
 export const getColorMapList = (): IColorMap[] => {
   const colorMapList: IColorMap[] = [];
 
-  COLOR_RAMP_NAMES.forEach(name => {
-    const colorRamp = colormap({
+   COLOR_RAMP_NAMES.forEach(name => {
+    const definition = COLOR_RAMP_DEFINITIONS[name];
+    const colors = colormap({
       colormap: name,
       nshades: 255,
       format: 'rgbaString',
     });
 
-    if (COLOR_RAMP_DEFINITIONS[name]) {
-      COLOR_RAMP_DEFINITIONS[name].colors = colorRamp;
-    }
-
-    colorMapList.push({ name, colors: colorRamp });
+    colorMapList.push({ name, colors, definition });
   });
 
   return colorMapList;
@@ -138,49 +137,3 @@ export function hexToRgb(hex: string): [number, number, number, number] {
     255, // TODO: Make alpha customizable?
   ];
 }
-
-export type ColorRampType = 'Sequential' | 'Divergent' | 'Cyclic';
-
-export interface IColorRampDefinition {
-  name: ColorRampName;
-  type: ColorRampType;
-  colors: string[];
-  criticalValue?: number; // Only for divergent ramps
-  userMin?: number;
-  userMax?: number;
-}
-
-export const COLOR_RAMP_DEFINITIONS: Partial<
-  Record<ColorRampName, IColorRampDefinition>
-> = {
-  balance: {
-    name: 'balance',
-    type: 'Divergent',
-    colors: [],
-    criticalValue: 0,
-  },
-  delta: {
-    name: 'delta',
-    type: 'Divergent',
-    colors: [],
-    criticalValue: 0,
-  },
-  curl: {
-    name: 'curl',
-    type: 'Divergent',
-    colors: [],
-    criticalValue: 0,
-  },
-  diff: {
-    name: 'diff',
-    type: 'Divergent',
-    colors: [],
-    criticalValue: 0,
-  },
-  tarn: {
-    name: 'tarn',
-    type: 'Divergent',
-    colors: [],
-    criticalValue: 0,
-  },
-};
