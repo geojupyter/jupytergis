@@ -46,7 +46,6 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
-  const [criticalValue, setCriticalValue] = useState<number | undefined>(0);
   const [minValue, setMinValue] = useState<number | undefined>(-5);
   const [maxValue, setMaxValue] = useState<number | undefined>(5);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +57,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   }, [layerParams]);
 
   const populateOptions = () => {
-    let nClasses, singleBandMode, colorRamp, min, max, crit;
+    let nClasses, singleBandMode, colorRamp, min, max;
 
     if (layerParams.symbologyState) {
       nClasses = layerParams.symbologyState.nClasses;
@@ -66,18 +65,22 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       colorRamp = layerParams.symbologyState.colorRamp;
       min = layerParams.symbologyState.minValue;
       max = layerParams.symbologyState.maxValue;
-      crit = layerParams.symbologyState.criticalValue;
     }
     setNumberOfShades(nClasses ? nClasses : '9');
     setSelectedMode(singleBandMode ? singleBandMode : 'equal interval');
     setSelectedRamp(colorRamp ? colorRamp : 'viridis');
     setMinValue(min !== undefined ? min : -5);
     setMaxValue(max !== undefined ? max : 5);
-    setCriticalValue(crit !== undefined ? crit : 0);
   };
 
   const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp as ColorRampName];
   const rampType = rampDef?.type || 'Unknown';
+  const normalizedCritical =
+    rampDef?.type === 'Divergent' ? (rampDef.criticalValue ?? 0.5) : 0.5;
+  const scaledCritical =
+    minValue !== undefined && maxValue !== undefined
+      ? minValue + normalizedCritical * (maxValue - minValue)
+      : undefined;
 
   return (
     <div className="jp-gis-color-ramp-container">
@@ -125,16 +128,10 @@ const ColorRamp: React.FC<IColorRampProps> = ({
             <input
               id="critical-value"
               type="number"
-              value={criticalValue ?? ''}
-              onChange={e =>
-                setCriticalValue(
-                  e.target.value !== ''
-                    ? parseFloat(e.target.value)
-                    : undefined,
-                )
-              }
+              value={scaledCritical ?? ''}
+              readOnly
               className="jp-mod-styled"
-              placeholder="Enter critical value"
+              placeholder="Auto-calculated"
             />
           </div>
 
@@ -168,7 +165,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
               numberOfShades,
               selectedRamp,
               setIsLoading,
-              criticalValue,
+              scaledCritical,
               minValue,
               maxValue,
             )
