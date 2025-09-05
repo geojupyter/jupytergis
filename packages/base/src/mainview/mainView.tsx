@@ -773,8 +773,6 @@ export class MainView extends React.Component<IProps, IStates> {
             if (isRemote) {
               return {
                 ...addNoData(sourceInfo),
-                min: sourceInfo.min,
-                max: sourceInfo.max,
                 url: sourceInfo.url,
               };
             } else {
@@ -785,14 +783,32 @@ export class MainView extends React.Component<IProps, IStates> {
               });
               return {
                 ...addNoData(sourceInfo),
-                min: sourceInfo.min,
-                max: sourceInfo.max,
                 geotiff,
                 url: URL.createObjectURL(geotiff.file),
               };
             }
           }),
         );
+
+        const layerId = this._sourceToLayerMap.get(id);
+        const layer = layerId
+          ? this._model.sharedModel.getLayer(layerId)
+          : undefined;
+
+        if (layer && layer.parameters) {
+          if (!layer.parameters.symbologyState) {
+            layer.parameters.symbologyState = {
+              renderType: 'Singleband Pseudocolor',
+              min: sourceParameters.urls[0]?.min,
+              max: sourceParameters.urls[0]?.max,
+            };
+          } else {
+            layer.parameters.symbologyState.min ??=
+              sourceParameters.urls[0]?.min;
+            layer.parameters.symbologyState.max ??=
+              sourceParameters.urls[0]?.max;
+          }
+        }
 
         newSource = new GeoTIFFSource({
           interpolate: sourceParameters.interpolate,

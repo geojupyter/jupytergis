@@ -82,3 +82,11 @@ export interface IColorMap {
 }
 
 export type ColorRampName = keyof typeof COLOR_RAMP_DEFINITIONS;
+
+export interface IColorRampValueControlsProps {
+  min: number | undefined;
+  setMin: (v: number | undefined) => void;
+  max: number | undefined;
+  setMax: (v: number | undefined) => void;
+  rampDef: IColorRampDefinition;
+}

@@ -2,13 +2,14 @@ import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
-import { LoadingIcon } from '@/src/shared/components/loading';
-import CanvasSelectComponent from './CanvasSelectComponent';
-import ModeSelectRow from './ModeSelectRow';
 import {
   COLOR_RAMP_DEFINITIONS,
   ColorRampName,
-} from '../../../symbology/colorRampUtils';
+} from '@/src/dialogs/symbology/colorRampUtils';
+import { LoadingIcon } from '@/src/shared/components/loading';
+import CanvasSelectComponent from './CanvasSelectComponent';
+import { ColorRampValueControls } from './ColorRampValueControls';
+import ModeSelectRow from './ModeSelectRow';
 interface IColorRampProps {
   modeOptions: string[];
   layerParams: IDict;
@@ -23,7 +24,7 @@ interface IColorRampProps {
   ) => void;
   showModeRow: boolean;
   showRampSelector: boolean;
-  renderType?: 'graduated' | 'categorized';
+  renderType?: 'graduated' | 'categorized' | 'heatmap' | 'singleband';
 }
 
 export type ColorRampOptions = {
@@ -56,6 +57,24 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     }
   }, [layerParams]);
 
+  useEffect(() => {
+    if (!layerParams.symbologyState) {
+      layerParams.symbologyState = {};
+    }
+
+    if (renderType !== 'heatmap') {
+      layerParams.symbologyState.min = minValue;
+      layerParams.symbologyState.max = maxValue;
+      layerParams.symbologyState.colorRamp = selectedRamp;
+      layerParams.symbologyState.nClasses = numberOfShades;
+      layerParams.symbologyState.mode = selectedMode;
+
+      if (rampDef?.type === 'Divergent') {
+        layerParams.symbologyState.criticalValue = scaledCritical;
+      }
+    }
+  }, [minValue, maxValue, selectedRamp, selectedMode, numberOfShades]);
+
   const populateOptions = () => {
     let nClasses, singleBandMode, colorRamp, min, max;
 
@@ -63,8 +82,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       nClasses = layerParams.symbologyState.nClasses;
       singleBandMode = layerParams.symbologyState.mode;
       colorRamp = layerParams.symbologyState.colorRamp;
-      min = layerParams.symbologyState.minValue;
-      max = layerParams.symbologyState.maxValue;
+      min = layerParams.symbologyState.min;
+      max = layerParams.symbologyState.max;
     }
     setNumberOfShades(nClasses ? nClasses : '9');
     setSelectedMode(singleBandMode ? singleBandMode : 'equal interval');
@@ -74,7 +93,6 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   };
 
   const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp as ColorRampName];
-  const rampType = rampDef?.type || 'Unknown';
   const normalizedCritical =
     rampDef?.type === 'Divergent' ? (rampDef.criticalValue ?? 0.5) : 0.5;
   const scaledCritical =
@@ -102,58 +120,16 @@ const ColorRamp: React.FC<IColorRampProps> = ({
           setSelectedMode={setSelectedMode}
         />
       )}
-      {/* 🔹 Divergent colormap controls */}
-      {renderType === 'graduated' && rampType === 'Divergent' && (
-        <>
-          <div className="jp-gis-symbology-row">
-            <label htmlFor="min-value">Min Value:</label>
-            <input
-              id="min-value"
-              type="number"
-              value={minValue ?? ''}
-              onChange={e =>
-                setMinValue(
-                  e.target.value !== ''
-                    ? parseFloat(e.target.value)
-                    : undefined,
-                )
-              }
-              className="jp-mod-styled"
-              placeholder="Enter min value"
-            />
-          </div>
-
-          <div className="jp-gis-symbology-row">
-            <label htmlFor="critical-value">Critical Value:</label>
-            <input
-              id="critical-value"
-              type="number"
-              value={scaledCritical ?? ''}
-              readOnly
-              className="jp-mod-styled"
-              placeholder="Auto-calculated"
-            />
-          </div>
-
-          <div className="jp-gis-symbology-row">
-            <label htmlFor="max-value">Max Value:</label>
-            <input
-              id="max-value"
-              type="number"
-              value={maxValue ?? ''}
-              onChange={e =>
-                setMaxValue(
-                  e.target.value !== ''
-                    ? parseFloat(e.target.value)
-                    : undefined,
-                )
-              }
-              className="jp-mod-styled"
-              placeholder="Enter max value"
-            />
-          </div>
-        </>
+      {rampDef && (
+        <ColorRampValueControls
+          min={minValue}
+          setMin={setMinValue}
+          max={maxValue}
+          setMax={setMaxValue}
+          rampDef={rampDef}
+        />
       )}
+
       {isLoading ? (
         <LoadingIcon />
       ) : (
