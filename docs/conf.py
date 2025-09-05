@@ -50,6 +50,6 @@ htmlhelp_basename = "jupytergisdoc"
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 jupyterlite_ignore_contents = [
-    r"examples/.*\.qgz$",
-    r"examples/99-Explore_data_in_a_map\.ipynb$",
+    r".*\.qgz$",
+    r"99-Explore_data_in_a_map\.ipynb$",
 ]
