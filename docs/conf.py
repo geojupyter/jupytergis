@@ -48,3 +48,8 @@ todo_include_todos = False
 htmlhelp_basename = "jupytergisdoc"
 
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
+
+jupyterlite_ignore_contents = [
+    "../examples/*.qgz",
+    "../examples/99-Explore_data_in_a_map.ipynb",
+]
