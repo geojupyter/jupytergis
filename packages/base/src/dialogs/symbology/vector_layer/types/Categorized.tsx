@@ -138,6 +138,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       selectedRamp,
       stops.length,
       reverseRamp,
+      'categorized',
     );
 
     setStopRows(valueColorPairs);

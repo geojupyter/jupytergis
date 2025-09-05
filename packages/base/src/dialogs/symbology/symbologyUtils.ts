@@ -1,6 +1,7 @@
 import { IJGISLayer } from '@jupytergis/schema';
 import colormap from 'colormap';
 
+import { COLOR_RAMP_DEFINITIONS, ColorRampName } from './colorRampUtils';
 import { IStopRow } from './symbologyDialog';
 
 const COLOR_EXPR_STOPS_START = 3;
@@ -104,7 +105,35 @@ export namespace Utils {
     selectedRamp: string,
     nClasses: number,
     reverse = false,
+    renderType: 'categorized' | 'graduated' = 'graduated',
+    minValue?: number,
+    maxValue?: number,
   ) => {
+    const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp as ColorRampName];
+    let effectiveStops: number[] = [];
+
+    if (renderType === 'categorized') {
+      effectiveStops = stops;
+    } else {
+      if (rampDef?.type === 'Divergent') {
+        const min = minValue ?? Math.min(...stops);
+        const max = maxValue ?? Math.max(...stops);
+
+        effectiveStops = Array.from(
+          { length: nClasses },
+          (_, i) => min + (i / (nClasses - 1)) * (max - min),
+        );
+      } else {
+        const min = Math.min(...stops);
+        const max = Math.max(...stops);
+
+        effectiveStops = Array.from(
+          { length: nClasses },
+          (_, i) => min + (i / (nClasses - 1)) * (max - min),
+        );
+      }
+    }
+
     let colorMap = colormap({
       colormap: selectedRamp,
       nshades: nClasses > 9 ? nClasses : 9,
@@ -127,7 +156,7 @@ export namespace Utils {
 
       // Get the last n/2 elements from the second array
       const secondPart = colorMap.slice(
-        colorMap.length - (stops.length - firstPart.length),
+        colorMap.length - (effectiveStops.length - firstPart.length),
       );
 
       // Create the new array by combining the first and last parts
@@ -135,7 +164,7 @@ export namespace Utils {
     }
 
     for (let i = 0; i < nClasses; i++) {
-      valueColorPairs.push({ stop: stops[i], output: colorMap[i] });
+      valueColorPairs.push({ stop: effectiveStops[i], output: colorMap[i] });
     }
 
     return valueColorPairs;

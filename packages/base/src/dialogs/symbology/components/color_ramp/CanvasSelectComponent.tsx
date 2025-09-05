@@ -1,12 +1,17 @@
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useColorMapList } from '@/src/dialogs/symbology/colorRampUtils';
+import {
+  useColorMapList,
+  COLOR_RAMP_DEFINITIONS,
+  ColorRampName,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import ColorRampEntry from './ColorRampEntry';
 
 export interface IColorMap {
   name: string;
   colors: string[];
+  type?: string;
 }
 
 interface ICanvasSelectComponentProps {
@@ -22,7 +27,13 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
 
-  useColorMapList(setColorMaps);
+  useColorMapList((maps: IColorMap[]) => {
+    const withTypes = maps.map(m => {
+      const def = COLOR_RAMP_DEFINITIONS[m.name as ColorRampName];
+      return { ...m, type: def?.type ?? 'Unknown' };
+    });
+    setColorMaps(withTypes);
+  });
 
   useEffect(() => {
     if (colorMaps.length > 0) {
@@ -99,7 +110,12 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
         className={`jp-gis-color-ramp-dropdown ${isOpen ? 'jp-gis-open' : ''}`}
       >
         {colorMaps.map((item, index) => (
-          <ColorRampEntry index={index} colorMap={item} onClick={selectItem} />
+          <ColorRampEntry
+            key={item.name}
+            index={index}
+            colorMap={item}
+            onClick={selectItem}
+          />
         ))}
       </div>
     </div>

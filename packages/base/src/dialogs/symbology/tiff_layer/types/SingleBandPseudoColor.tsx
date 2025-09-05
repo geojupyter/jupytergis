@@ -20,6 +20,7 @@ import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import { GlobalStateDbManager } from '@/src/store';
+import { ColorRampValueControls } from '../../components/color_ramp/ColorRampValueControls';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
@@ -46,6 +47,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
   const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
+  const [minValue, setMinValue] = useState<number | undefined>();
+  const [maxValue, setMaxValue] = useState<number | undefined>();
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [selectedFunction, setSelectedFunction] =
     useState<InterpolationType>('linear');
@@ -172,14 +175,6 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     const isQuantile = colorRampOptionsRef.current?.selectedMode === 'quantile';
 
-    const sourceInfo = source.parameters.urls[0];
-    sourceInfo.min = bandRow.stats.minimum;
-    sourceInfo.max = bandRow.stats.maximum;
-
-    source.parameters.urls[0] = sourceInfo;
-
-    model.sharedModel.updateSource(sourceId, source);
-
     // Update layer
     if (!layer.parameters) {
       return;
@@ -254,6 +249,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
+      min: minValue ?? bandRow.stats.minimum,
+      max: maxValue ?? bandRow.stats.maximum,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -403,6 +400,15 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           </select>
         </div>
       </div>
+      <ColorRampValueControls
+        min={minValue}
+        setMin={setMinValue}
+        max={maxValue}
+        setMax={setMaxValue}
+        rampDef={{
+          type: 'Sequential',
+        }}
+      />
       {bandRows.length > 0 && (
         <ColorRamp
           layerParams={layer.parameters}
