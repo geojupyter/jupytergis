@@ -1,10 +1,12 @@
-name: jupytergis-docs
+name: jupytergis
 channels:
   - conda-forge
   - nodefaults
 dependencies:
   - python=3.12
-
+  - pip
+  - nodejs
+  - hatch
   # Build docs & JupyterLite
   - jupyterlite-core
   - jupyterlite-xeus
@@ -19,8 +21,9 @@ dependencies:
   - myst-parser
   - xeus-python # TODO: Do we need this?
 
-  - pip
   - pip:
+      - jupyterlab==4.3
+      - datamodel-code-generator>=0.23.0
       # Install JupyterGIS so we can autodoc.
       # IMPORTANT: You must do `jlpm build` at the root of the repo before this can work.
       # See: https://github.com/geojupyter/jupytergis/issues/585
