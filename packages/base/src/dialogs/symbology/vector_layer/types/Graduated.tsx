@@ -136,6 +136,17 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedAttribute(attribute);
+
+    const values = Array.from(selectableAttributesAndValues[attribute] ?? []);
+    if (values.length > 0) {
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      setColorRampOptions(prev => ({
+        ...prev,
+        minValue: min,
+        maxValue: max,
+      }));
+    }
   }, [selectableAttributesAndValues]);
 
   const updateStopRowsBasedOnLayer = () => {
@@ -280,7 +291,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             selectedRamp,
             +numberOfShades,
             reverseRamp,
-            'graduated',
+            'Graduated',
             minValue,
             maxValue,
           );
@@ -420,7 +431,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             classifyFunc={buildColorInfoFromClassification}
             showModeRow={true}
             showRampSelector={symbologyTab === 'color'}
-            renderType="graduated"
+            renderType="Graduated"
+            initialMin={colorRampOptions?.minValue}
+            initialMax={colorRampOptions?.maxValue}
           />
           <StopContainer
             selectedMethod={symbologyTab || 'color'}

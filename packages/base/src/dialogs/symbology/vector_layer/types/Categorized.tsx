@@ -1,9 +1,10 @@
 import { IVectorLayer } from '@jupytergis/schema';
-import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 
-import ColorRamp from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import ColorRamp, {
+  ColorRampOptions,
+} from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import {
   IStopRow,
@@ -24,12 +25,12 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 }) => {
   const selectedAttributeRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
-  const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
+  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
   const [selectedAttribute, setSelectedAttribute] = useState('');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [colorRampOptions, setColorRampOptions] = useState<
-    ReadonlyJSONObject | undefined
+    ColorRampOptions | undefined
   >();
   const [manualStyle, setManualStyle] = useState({
     fillColor: '#3399CC',
@@ -47,6 +48,22 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   if (!layer?.parameters) {
     return;
   }
+
+  const getInitialAttribute = () => {
+    const layerParams = layer.parameters as IVectorLayer;
+    return (
+      layerParams.symbologyState?.value ??
+      Object.keys(selectableAttributesAndValues)[0]
+    );
+  };
+  const initialAttribute = getInitialAttribute();
+  const initialValues = Array.from(
+    selectableAttributesAndValues[initialAttribute] ?? [],
+  );
+  const computedInitialMin =
+    initialValues.length > 0 ? Math.min(...initialValues) : undefined;
+  const computedInitialMax =
+    initialValues.length > 0 ? Math.max(...initialValues) : undefined;
 
   useEffect(() => {
     const valueColorPairs = VectorUtils.buildColorInfo(layer);
@@ -107,6 +124,13 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       layerParams.symbologyState?.value ??
       Object.keys(selectableAttributesAndValues)[0];
 
+    if (computedInitialMin !== undefined && computedInitialMax !== undefined) {
+      setColorRampOptions(prev => ({
+        ...prev,
+        minValue: computedInitialMin,
+        maxValue: computedInitialMax,
+      }));
+    }
     setSelectedAttribute(attribute);
   }, [selectableAttributesAndValues]);
 
@@ -123,10 +147,11 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     setIsLoading: (isLoading: boolean) => void,
   ) => {
     setColorRampOptions({
-      selectedFunction: '',
       selectedRamp,
       numberOfShades: '',
       selectedMode: '',
+      minValue: computedInitialMin,
+      maxValue: computedInitialMax,
     });
 
     const stops = Array.from(
@@ -138,7 +163,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       selectedRamp,
       stops.length,
       reverseRamp,
-      'categorized',
+      'Categorized',
     );
 
     setStopRows(valueColorPairs);
@@ -337,6 +362,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               classifyFunc={buildColorInfoFromClassification}
               showModeRow={false}
               showRampSelector={symbologyTab === 'color'}
+              renderType="Categorized"
+              initialMin={computedInitialMin}
+              initialMax={computedInitialMax}
             />
             <StopContainer
               selectedMethod={''}

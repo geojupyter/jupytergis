@@ -105,27 +105,36 @@ export namespace Utils {
     selectedRamp: string,
     nClasses: number,
     reverse = false,
-    renderType: 'categorized' | 'graduated' = 'graduated',
+    renderType:
+      | 'Categorized'
+      | 'Graduated'
+      | 'Heatmap'
+      | 'Singleband PseudoColor' = 'Graduated',
     minValue?: number,
     maxValue?: number,
   ) => {
     const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp as ColorRampName];
     let effectiveStops: number[] = [];
 
-    if (renderType === 'categorized') {
+    if (renderType === 'Categorized') {
       effectiveStops = stops;
     } else {
-      if (rampDef?.type === 'Divergent') {
-        const min = minValue ?? Math.min(...stops);
-        const max = maxValue ?? Math.max(...stops);
+      if (rampDef?.type === 'Divergent' && renderType === 'Graduated') {
+        const rawMin = minValue ?? Math.min(...stops);
+        const rawMax = maxValue ?? Math.max(...stops);
+
+        const absMax = Math.max(Math.abs(rawMin), Math.abs(rawMax));
+
+        const min = -absMax;
+        const max = absMax;
 
         effectiveStops = Array.from(
           { length: nClasses },
           (_, i) => min + (i / (nClasses - 1)) * (max - min),
         );
       } else {
-        const min = Math.min(...stops);
-        const max = Math.max(...stops);
+        const min = minValue ?? Math.min(...stops);
+        const max = maxValue ?? Math.max(...stops);
 
         effectiveStops = Array.from(
           { length: nClasses },

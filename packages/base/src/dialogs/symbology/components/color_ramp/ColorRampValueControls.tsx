@@ -1,3 +1,4 @@
+import { Button } from '@jupyterlab/ui-components';
 import React from 'react';
 
 import { IColorRampValueControlsProps } from '@/src/types';
@@ -8,6 +9,9 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
   max,
   setMax,
   rampDef,
+  initialMin,
+  initialMax,
+  renderType,
 }) => {
   return (
     <>
@@ -27,7 +31,7 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
         />
       </div>
 
-      {rampDef.type === 'Divergent' && (
+      {rampDef.type === 'Divergent' && renderType === 'Graduated' && (
         <div className="jp-gis-symbology-row">
           <label htmlFor="critical-value">Critical Value:</label>
           <input
@@ -56,6 +60,20 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
           placeholder="Enter max value"
         />
       </div>
+      {
+        <div className="jp-gis-symbology-row">
+          <Button
+            className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+            disabled={min === initialMin && max === initialMax}
+            onClick={() => {
+              setMin(initialMin);
+              setMax(initialMax);
+            }}
+          >
+            Use Actual Range
+          </Button>
+        </div>
+      }
     </>
   );
 };

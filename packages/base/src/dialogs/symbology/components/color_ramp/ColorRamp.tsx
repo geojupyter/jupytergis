@@ -24,13 +24,19 @@ interface IColorRampProps {
   ) => void;
   showModeRow: boolean;
   showRampSelector: boolean;
-  renderType?: 'graduated' | 'categorized' | 'heatmap' | 'singleband';
+  renderType?:
+    | 'Graduated'
+    | 'Categorized'
+    | 'Heatmap'
+    | 'Singleband PseudoColor';
+  initialMin?: number;
+  initialMax?: number;
 }
 
 export type ColorRampOptions = {
-  selectedRamp: string;
-  numberOfShades: string;
-  selectedMode: string;
+  selectedRamp?: string;
+  numberOfShades?: string;
+  selectedMode?: string;
   minValue?: number;
   maxValue?: number;
   criticalValue?: number;
@@ -43,12 +49,14 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   showModeRow,
   showRampSelector,
   renderType,
+  initialMin,
+  initialMax,
 }) => {
   const [selectedRamp, setSelectedRamp] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
-  const [minValue, setMinValue] = useState<number | undefined>(-5);
-  const [maxValue, setMaxValue] = useState<number | undefined>(5);
+  const [minValue, setMinValue] = useState<number | undefined>(initialMin);
+  const [maxValue, setMaxValue] = useState<number | undefined>(initialMax);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -62,7 +70,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       layerParams.symbologyState = {};
     }
 
-    if (renderType !== 'heatmap') {
+    if (renderType !== 'Heatmap') {
       layerParams.symbologyState.min = minValue;
       layerParams.symbologyState.max = maxValue;
       layerParams.symbologyState.colorRamp = selectedRamp;
@@ -75,21 +83,30 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     }
   }, [minValue, maxValue, selectedRamp, selectedMode, numberOfShades]);
 
+  useEffect(() => {
+    if (renderType === 'Graduated') {
+      if (initialMin !== undefined) {
+        setMinValue(initialMin);
+      }
+      if (initialMax !== undefined) {
+        setMaxValue(initialMax);
+      }
+    }
+  }, [initialMin, initialMax, renderType]);
+
   const populateOptions = () => {
-    let nClasses, singleBandMode, colorRamp, min, max;
+    let nClasses, singleBandMode, colorRamp;
 
     if (layerParams.symbologyState) {
       nClasses = layerParams.symbologyState.nClasses;
       singleBandMode = layerParams.symbologyState.mode;
       colorRamp = layerParams.symbologyState.colorRamp;
-      min = layerParams.symbologyState.min;
-      max = layerParams.symbologyState.max;
     }
     setNumberOfShades(nClasses ? nClasses : '9');
     setSelectedMode(singleBandMode ? singleBandMode : 'equal interval');
     setSelectedRamp(colorRamp ? colorRamp : 'viridis');
-    setMinValue(min !== undefined ? min : -5);
-    setMaxValue(max !== undefined ? max : 5);
+    setMinValue(initialMin);
+    setMaxValue(initialMax);
   };
 
   const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp as ColorRampName];
@@ -99,6 +116,23 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     minValue !== undefined && maxValue !== undefined
       ? minValue + normalizedCritical * (maxValue - minValue)
       : undefined;
+
+  let displayMin = minValue;
+  let displayMax = maxValue;
+
+  if (
+    rampDef?.type === 'Divergent' &&
+    renderType === 'Graduated' &&
+    displayMin !== undefined &&
+    displayMax !== undefined
+  ) {
+    const absMax = Math.max(
+      minValue ?? Math.abs(displayMin),
+      maxValue ?? Math.abs(displayMax),
+    );
+    displayMin = -absMax;
+    displayMax = absMax;
+  }
 
   return (
     <div className="jp-gis-color-ramp-container">
@@ -122,11 +156,14 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       )}
       {rampDef && (
         <ColorRampValueControls
-          min={minValue}
+          min={displayMin}
           setMin={setMinValue}
-          max={maxValue}
+          max={displayMax}
           setMax={setMaxValue}
           rampDef={rampDef}
+          initialMin={initialMin}
+          initialMax={initialMax}
+          renderType={renderType}
         />
       )}
 
@@ -135,6 +172,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       ) : (
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          disabled={minValue === undefined || maxValue === undefined}
           onClick={() =>
             classifyFunc(
               selectedMode,
@@ -142,8 +180,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
               selectedRamp,
               setIsLoading,
               scaledCritical,
-              minValue,
-              maxValue,
+              displayMin,
+              displayMax,
             )
           }
         >
