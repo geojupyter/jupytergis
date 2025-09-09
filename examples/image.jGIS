@@ -5,9 +5,9 @@
   ],
   "layers": {
     "756cb737-f817-4ba6-b7c0-8da0b97b9778": {
-      "name": "Custom Image Layer Layer",
-      "opacity": 1.0,
+      "name": "Radar",
       "parameters": {
+        "opacity": 1.0,
         "source": "fb9729b8-82c6-48ac-a12b-6343c0e037ae"
       },
       "type": "ImageLayer",
@@ -15,7 +15,6 @@
     },
     "acb76fb7-df6d-41da-8e08-0208a1c82136": {
       "name": "OpenStreetMap.Mapnik Layer",
-      "opacity": 0.4,
       "parameters": {
         "source": "5f7a1edf-1b76-4f82-893f-540d28998b1d"
       },
@@ -27,16 +26,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -10835715.64562285,
-      -4131544.7694810475,
-      718103.572681238,
-      12390226.369708324
+      -11380610.12432032,
+      3752817.7844314026,
+      -6019296.164325077,
+      6345805.479548599
     ],
-    "latitude": 34.74543821495182,
-    "longitude": -45.44402781957822,
+    "latitude": 41.25016747852149,
+    "longitude": -78.15300880668768,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 3.0398860010821136
+    "zoom": 5.5368556439314505
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -44,7 +43,6 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
-        "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
@@ -74,7 +72,7 @@
             37.936
           ]
         ],
-        "interpolate": true,
+        "interpolate": false,
         "path": "https://maplibre.org/maplibre-gl-js/docs/assets/radar.gif"
       },
       "type": "ImageSource"

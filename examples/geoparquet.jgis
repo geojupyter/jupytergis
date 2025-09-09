@@ -6,7 +6,6 @@
   "layers": {
     "9556ca29-a5ec-41af-bf14-4b543c52aafe": {
       "name": "OpenStreetMap.Mapnik Layer",
-      "opacity": 0.8,
       "parameters": {
         "source": "2a52082b-7992-40dc-92d6-75e309a1ed27"
       },
@@ -15,8 +14,8 @@
     },
     "d7a2ad84-0750-4e9b-82c0-542fcc6b3265": {
       "name": "GeoParquet Vector Layer",
-      "opacity": 1.0,
       "parameters": {
+        "opacity": 1.0,
         "source": "c1da95b9-8a71-4fee-b4e3-6f0b5f53d2d4"
       },
       "type": "VectorLayer",
@@ -32,8 +31,8 @@
       20037508.342789244,
       18740664.52872547
     ],
-    "latitude": -7.105427357601002e-14,
-    "longitude": -1.6732426064452555e-14,
+    "latitude": 0.0,
+    "longitude": 0.0,
     "projection": "EPSG:3857",
     "zoom": 1.6220518194563762
   },
@@ -43,7 +42,6 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
-        "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
