@@ -7,6 +7,7 @@
   "layers": {
     "54e0ea1f-32fd-4ff2-90fb-ad449a38f902": {
       "name": "OpenStreetMap.Mapnik Layer",
+      "opacity": 1.0,
       "parameters": {
         "source": "780c4234-ba6d-4da2-9731-739f6c4d8033"
       },
@@ -15,8 +16,8 @@
     },
     "df947252-afb1-489f-8bce-7057318a50e3": {
       "name": "Subset of Manhattan roads",
+      "opacity": 1.0,
       "parameters": {
-        "opacity": 1.0,
         "source": "c3215d81-4b47-4b93-ae1c-5eb0fe8a68a8"
       },
       "type": "VectorLayer",
@@ -24,6 +25,7 @@
     },
     "f909d9b9-bf07-42f6-8841-8d6470665dcb": {
       "name": "Administrative boundaries",
+      "opacity": 1.0,
       "parameters": {
         "color": {
           "fill-color": "#eaa4e7",
@@ -39,8 +41,7 @@
         "type": "line"
       },
       "type": "VectorLayer",
-      "visible": true,
-      "opacity": 1
+      "visible": true
     }
   },
   "metadata": {},

@@ -5,6 +5,7 @@
   "layers": {
     "95bfd9ba-f561-414d-8e2b-bc401dae0d7f": {
       "name": "Roads",
+      "opacity": 1.0,
       "parameters": {
         "color": {
           "stroke-color": [
@@ -7462,8 +7463,7 @@
         "type": "line"
       },
       "type": "VectorLayer",
-      "visible": true,
-      "opacity": 1.0
+      "visible": true
     }
   },
   "metadata": {},

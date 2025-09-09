@@ -6,6 +6,7 @@
   "layers": {
     "6e55cdae-35b0-4bff-9dd1-c8aa9563b2a6": {
       "name": "World",
+      "opacity": 1.0,
       "parameters": {
         "color": {
           "fill-color": [
@@ -94,11 +95,11 @@
         "type": "fill"
       },
       "type": "VectorLayer",
-      "visible": true,
-      "opacity": 1
+      "visible": true
     },
     "f80d0fa2-3e2b-4922-b7d5-fefd4b085259": {
       "name": "France",
+      "opacity": 1.0,
       "parameters": {
         "color": {
           "fill-color": "#ff0000",
@@ -114,8 +115,7 @@
         "type": "line"
       },
       "type": "VectorLayer",
-      "visible": true,
-      "opacity": 1
+      "visible": true
     }
   },
   "metadata": {},

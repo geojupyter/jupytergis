@@ -6,6 +6,7 @@
   "layers": {
     "93077483-0e49-4135-aa1d-244e29e5cf97": {
       "name": "OpenStreetMap.Mapnik Layer",
+      "opacity": 1.0,
       "parameters": {
         "source": "c42d25fc-ca10-4447-ba00-ba22b0367739"
       },
@@ -14,14 +15,14 @@
     },
     "95523f4c-27ef-42db-b755-a226ca017a94": {
       "name": "Buildings",
+      "opacity": 1.0,
       "parameters": {
         "color": "#FF0000",
         "source": "e52daf20-9b57-4a14-9521-70eabbe4cda2",
         "type": "line"
       },
       "type": "VectorTileLayer",
-      "visible": true,
-      "opacity": 1
+      "visible": true
     }
   },
   "metadata": {},
