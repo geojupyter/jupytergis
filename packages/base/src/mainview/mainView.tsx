@@ -210,8 +210,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     // Watch isIdentifying and clear the highlight when Identify Tool is turned off
     this._model.sharedModel.awareness.on('change', () => {
-      const isIdentifying = this._model.isIdentifying;
-      if (!isIdentifying && this._highlightLayer) {
+      if (this._model.currentMode !== 'identifying' && this._highlightLayer) {
         this._highlightLayer.getSource()?.clear();
       }
     });
@@ -518,7 +517,7 @@ export class MainView extends React.Component<IProps, IStates> {
         return layer === this.getLayer(selectedLayerId);
       },
       condition: (event: MapBrowserEvent<any>) => {
-        return singleClick(event) && this._model.isIdentifying;
+        return singleClick(event) && this._model.currentMode === 'identifying';
       },
       style: styleFunction,
     });
@@ -671,9 +670,7 @@ export class MainView extends React.Component<IProps, IStates> {
           featureProjection: this._Map.getView().getProjection(),
         });
 
-        // TODO: Don't hardcode projection
         const featureArray = format.readFeatures(data, {
-          dataProjection: 'EPSG:4326',
           featureProjection: this._Map.getView().getProjection(),
         });
 
@@ -2083,7 +2080,7 @@ export class MainView extends React.Component<IProps, IStates> {
   });
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
-    if (!this._model.isIdentifying) {
+    if (this._model.currentMode !== 'identifying') {
       return;
     }
 
@@ -2102,9 +2099,13 @@ export class MainView extends React.Component<IProps, IStates> {
       case 'VectorTileLayer': {
         const geometries: Geometry[] = [];
         const features: any[] = [];
+        let foundAny = false;
 
         this._Map.forEachFeatureAtPixel(e.pixel, (feature: FeatureLike) => {
+          foundAny = true;
+
           let geom: Geometry | undefined;
+          let props = {};
 
           if (feature instanceof RenderFeature) {
             geom = toGeometry(feature);
@@ -2112,20 +2113,34 @@ export class MainView extends React.Component<IProps, IStates> {
             geom = feature.getGeometry();
           }
 
-          const props = feature.getProperties();
+          const rawProps = feature.getProperties();
+          const fid = feature.getId?.() ?? rawProps?.fid;
+
+          if (rawProps && Object.keys(rawProps).length > 1) {
+            const { geometry, ...clean } = rawProps;
+            props = clean;
+            if (fid !== null) {
+              // TODO Clean the cache under some condition?
+              this._featurePropertyCache.set(fid, props);
+            }
+          } else if (fid !== null && this._featurePropertyCache.has(fid)) {
+            props = this._featurePropertyCache.get(fid);
+          }
 
           if (geom) {
             geometries.push(geom);
           }
-          features.push({
-            ...props,
-          });
+          if (props && Object.keys(props).length > 0) {
+            features.push(props);
+          }
 
           return true;
         });
 
         if (features.length > 0) {
           this._model.syncIdentifiedFeatures(features, this._mainViewModel.id);
+        } else if (!foundAny) {
+          this._model.syncIdentifiedFeatures([], this._mainViewModel.id);
         }
 
         if (geometries.length > 0) {
@@ -2294,20 +2309,22 @@ export class MainView extends React.Component<IProps, IStates> {
           />
         </div>
 
-        {this._state && (
-          <LeftPanel
-            model={this._model}
-            commands={this._mainViewModel.commands}
-            state={this._state}
-          ></LeftPanel>
-        )}
-        {this._formSchemaRegistry && this._annotationModel && (
-          <RightPanel
-            model={this._model}
-            formSchemaRegistry={this._formSchemaRegistry}
-            annotationModel={this._annotationModel}
-          ></RightPanel>
-        )}
+        <div className="jgis-panels-wrapper">
+          {this._state && (
+            <LeftPanel
+              model={this._model}
+              commands={this._mainViewModel.commands}
+              state={this._state}
+            ></LeftPanel>
+          )}
+          {this._formSchemaRegistry && this._annotationModel && (
+            <RightPanel
+              model={this._model}
+              formSchemaRegistry={this._formSchemaRegistry}
+              annotationModel={this._annotationModel}
+            ></RightPanel>
+          )}
+        </div>
       </>
     );
   }
@@ -2331,4 +2348,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _state?: IStateDB;
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
+  private _featurePropertyCache: Map<string | number, any> = new Map();
 }

@@ -5,7 +5,7 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
 
-import { SymbologyTab } from '@/src/types';
+import { SymbologyTab, SymbologyValue } from '@/src/types';
 import TiffRendering from './tiff_layer/TiffRendering';
 import VectorRendering from './vector_layer/VectorRendering';
 
@@ -36,7 +36,7 @@ export interface ISymbologyWidgetOptions {
 
 export interface IStopRow {
   stop: number;
-  output: number | number[];
+  output: SymbologyValue;
 }
 
 const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({

@@ -9,6 +9,18 @@ export type JupyterGISTracker = WidgetTracker<IJupyterGISWidget>;
 
 export type SymbologyTab = 'color' | 'radius';
 
+type RgbColorValue =
+  | [number, number, number]
+  | [number, number, number, number];
+type HexColorValue = string;
+type InternalRgbArray = number[];
+
+export type ColorValue = RgbColorValue | HexColorValue;
+
+export type SizeValue = number;
+
+export type SymbologyValue = SizeValue | ColorValue | InternalRgbArray;
+
 export type VectorRenderType =
   | 'Single Symbol'
   | 'Canonical'

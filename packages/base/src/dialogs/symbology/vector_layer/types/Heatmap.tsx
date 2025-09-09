@@ -23,11 +23,14 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
     radius: 8,
     blur: 15,
   });
+  const [reverseRamp, setReverseRamp] = useState(false);
+
   const selectedRampRef = useRef('viridis');
   const heatmapOptionsRef = useRef({
     radius: 8,
     blur: 15,
   });
+  const reverseRampRef = useRef(false);
 
   useEffect(() => {
     populateOptions();
@@ -46,7 +49,8 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
   useEffect(() => {
     selectedRampRef.current = selectedRamp;
     heatmapOptionsRef.current = heatmapOptions;
-  }, [selectedRamp, heatmapOptions]);
+    reverseRampRef.current = reverseRamp;
+  }, [selectedRamp, heatmapOptions, reverseRamp]);
 
   const populateOptions = async () => {
     let colorRamp;
@@ -63,15 +67,20 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
       return;
     }
 
-    const colorMap = colormap({
+    let colorMap = colormap({
       colormap: selectedRampRef.current,
       nshades: 9,
       format: 'hex',
     });
 
+    if (reverseRampRef.current) {
+      colorMap = [...colorMap].reverse();
+    }
+
     const symbologyState = {
       renderType: 'Heatmap',
       colorRamp: selectedRampRef.current,
+      reverse: reverseRampRef.current,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -94,6 +103,16 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
           selectedRamp={selectedRamp}
           setSelected={setSelectedRamp}
         />
+      </div>
+      <div className="jp-gis-symbology-row">
+        <label>
+          <input
+            type="checkbox"
+            checked={reverseRamp}
+            onChange={e => setReverseRamp(e.target.checked)}
+          />
+          Reverse Color Ramp
+        </label>
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Radius:</label>

@@ -3,20 +3,25 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef } from 'react';
 
+import {
+  ensureHexColorCode,
+  hexToRgb,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import { IStopRow } from '@/src/dialogs/symbology/symbologyDialog';
+import { SymbologyValue, SizeValue, ColorValue } from '@/src/types';
 
 const StopRow: React.FC<{
   index: number;
-  value: number;
-  outputValue: number | number[];
+  dataValue: number;
+  symbologyValue: SymbologyValue;
   stopRows: IStopRow[];
   setStopRows: (stopRows: IStopRow[]) => void;
   deleteRow: () => void;
   useNumber?: boolean;
 }> = ({
   index,
-  value,
-  outputValue,
+  dataValue,
+  symbologyValue,
   stopRows,
   setStopRows,
   deleteRow,
@@ -30,39 +35,7 @@ const StopRow: React.FC<{
     }
   }, [stopRows]);
 
-  const rgbArrToHex = (rgbArr: number | number[]) => {
-    if (!Array.isArray(rgbArr)) {
-      return;
-    }
-
-    const hex = rgbArr
-      .slice(0, -1) // Color input doesn't support hex alpha values so cut that out
-      .map((val: { toString: (arg0: number) => string }) => {
-        return val.toString(16).padStart(2, '0');
-      })
-      .join('');
-
-    return '#' + hex;
-  };
-
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-
-    if (!result) {
-      console.warn('Unable to parse hex value, defaulting to black');
-      return [parseInt('0', 16), parseInt('0', 16), parseInt('0', 16)];
-    }
-    const rgbValues = [
-      parseInt(result[1], 16),
-      parseInt(result[2], 16),
-      parseInt(result[3], 16),
-      1, // TODO: Make alpha customizable?
-    ];
-
-    return rgbValues;
-  };
-
-  const handleStopChange = (event: { target: { value: string | number } }) => {
+  const handleStopChange = (event: { target: { value: string } }) => {
     const newRows = [...stopRows];
     newRows[index].stop = +event.target.value;
     setStopRows(newRows);
@@ -95,7 +68,7 @@ const StopRow: React.FC<{
       <input
         id={`jp-gis-color-value-${index}`}
         type="number"
-        value={value}
+        value={dataValue}
         onChange={handleStopChange}
         onBlur={handleBlur}
         className="jp-mod-styled jp-gis-color-row-value-input"
@@ -105,7 +78,7 @@ const StopRow: React.FC<{
         <input
           type="number"
           ref={inputRef}
-          value={outputValue as number}
+          value={symbologyValue as SizeValue}
           onChange={handleOutputChange}
           className="jp-mod-styled jp-gis-color-row-output-input"
         />
@@ -113,7 +86,7 @@ const StopRow: React.FC<{
         <input
           id={`jp-gis-color-color-${index}`}
           ref={inputRef}
-          value={rgbArrToHex(outputValue)}
+          value={ensureHexColorCode(symbologyValue as ColorValue)}
           type="color"
           onChange={handleOutputChange}
           className="jp-mod-styled jp-gis-color-row-output-input"

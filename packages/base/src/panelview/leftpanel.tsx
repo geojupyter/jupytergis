@@ -1,5 +1,4 @@
 import { IJupyterGISModel, SelectionType } from '@jupytergis/schema';
-import { PageConfig } from '@jupyterlab/coreutils';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { MouseEvent as ReactMouseEvent } from 'react';
@@ -31,60 +30,86 @@ interface ILeftPanelProps {
 export const LeftPanel: React.FC<ILeftPanelProps> = (
   props: ILeftPanelProps,
 ) => {
-  const hideStacPanel = PageConfig.getOption('HIDE_STAC_PANEL') === 'true';
+  const [settings, setSettings] = React.useState(props.model.jgisSettings);
+
+  React.useEffect(() => {
+    const onSettingsChanged = () => {
+      setSettings({ ...props.model.jgisSettings });
+    };
+
+    props.model.settingsChanged.connect(onSettingsChanged);
+    return () => {
+      props.model.settingsChanged.disconnect(onSettingsChanged);
+    };
+  }, [props.model]);
+
+  const allLeftTabsDisabled =
+    settings.layersDisabled &&
+    settings.stacBrowserDisabled &&
+    settings.filtersDisabled;
+
+  const leftPanelVisible = !settings.leftPanelDisabled && !allLeftTabsDisabled;
 
   const tabInfo = [
-    { name: 'layers', title: 'Layers' },
-    ...(hideStacPanel ? [] : [{ name: 'stac', title: 'Stac Browser' }]),
-    { name: 'filters', title: 'Filters' },
-  ];
+    !settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,
+    !settings.stacBrowserDisabled
+      ? { name: 'stac', title: 'Stac Browser' }
+      : false,
+    !settings.filtersDisabled ? { name: 'filters', title: 'Filters' } : false,
+  ].filter(Boolean) as { name: string; title: string }[];
 
   const [curTab, setCurTab] = React.useState<string | undefined>(
-    tabInfo[0].name,
+    tabInfo.length > 0 ? tabInfo[0].name : undefined,
   );
 
   return (
-    <div className="jgis-left-panel-container">
+    <div
+      className="jgis-left-panel-container"
+      style={{ display: leftPanelVisible ? 'block' : 'none' }}
+    >
       <PanelTabs curTab={curTab} className="jgis-panel-tabs">
         <TabsList>
-          {tabInfo.map(e => {
-            return (
-              <TabsTrigger
-                className="jGIS-layer-browser-category"
-                value={e.name}
-                onClick={() => {
-                  if (curTab !== e.name) {
-                    setCurTab(e.name);
-                  } else {
-                    setCurTab('');
-                  }
-                }}
-              >
-                {e.title}
-              </TabsTrigger>
-            );
-          })}
+          {tabInfo.map(e => (
+            <TabsTrigger
+              className="jGIS-layer-browser-category"
+              value={e.name}
+              onClick={() => {
+                if (curTab !== e.name) {
+                  setCurTab(e.name);
+                } else {
+                  setCurTab('');
+                }
+              }}
+            >
+              {e.title}
+            </TabsTrigger>
+          ))}
         </TabsList>
-        <TabsContent
-          value="layers"
-          className="jgis-panel-tab-content jp-gis-layerPanel"
-        >
-          <LayersBodyComponent
-            model={props.model}
-            commands={props.commands}
-            state={props.state}
-          ></LayersBodyComponent>
-        </TabsContent>
 
-        {!hideStacPanel && (
-          <TabsContent value="stac">
-            <StacPanel model={props.model}></StacPanel>
+        {!settings.layersDisabled && (
+          <TabsContent
+            value="layers"
+            className="jgis-panel-tab-content jp-gis-layerPanel"
+          >
+            <LayersBodyComponent
+              model={props.model}
+              commands={props.commands}
+              state={props.state}
+            ></LayersBodyComponent>
           </TabsContent>
         )}
 
-        <TabsContent value="filters" className="jgis-panel-tab-content">
-          <FilterComponent model={props.model}></FilterComponent>,
-        </TabsContent>
+        {!settings.stacBrowserDisabled && (
+          <TabsContent value="stac" className="jgis-panel-tab-content">
+            <StacPanel model={props.model} />
+          </TabsContent>
+        )}
+
+        {!settings.filtersDisabled && (
+          <TabsContent value="filters" className="jgis-panel-tab-content">
+            <FilterComponent model={props.model}></FilterComponent>
+          </TabsContent>
+        )}
       </PanelTabs>
     </div>
   );

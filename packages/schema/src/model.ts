@@ -58,24 +58,106 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
+    this._settingsChanged = new Signal<JupyterGISModel, string>(this);
+
+    this._jgisSettings = {
+      proxyUrl: 'https://corsproxy.io',
+      leftPanelDisabled: false,
+      rightPanelDisabled: false,
+      layersDisabled: false,
+      stacBrowserDisabled: false,
+      filtersDisabled: false,
+      objectPropertiesDisabled: false,
+      annotationsDisabled: false,
+      identifyDisabled: false,
+    };
+
+    this.initSettings();
   }
 
   /**
    * Initialize custom settings for JupyterLab.
    */
-  async initSettings(): Promise<void> {
+  async initSettings() {
     if (this.settingRegistry) {
-      const setting = await this.settingRegistry.load(SETTINGS_ID);
-      this._settings = setting.composite as any;
+      try {
+        const setting = await this.settingRegistry.load(SETTINGS_ID);
+        this._settings = setting;
 
-      setting.changed.connect(() => {
-        this._settings = setting.composite as any;
-        console.log('JupyterGIS Settings updated:', this._settings);
-      });
+        this._updateLocalSettings();
+
+        setting.changed.connect(() => {
+          const oldSettings = { ...this._jgisSettings };
+          this._updateLocalSettings();
+          const newSettings = this._jgisSettings;
+
+          const keys: (keyof IJupyterGISSettings)[] = [
+            'proxyUrl',
+            'leftPanelDisabled',
+            'rightPanelDisabled',
+            'layersDisabled',
+            'stacBrowserDisabled',
+            'filtersDisabled',
+            'objectPropertiesDisabled',
+            'annotationsDisabled',
+            'identifyDisabled',
+          ];
+
+          keys.forEach(key => {
+            if (oldSettings[key] !== newSettings[key]) {
+              this._settingsChanged.emit(key);
+            }
+          });
+        });
+      } catch (error) {
+        console.error(`Failed to load settings for ${SETTINGS_ID}:`, error);
+        this._jgisSettings = {
+          proxyUrl: 'https://corsproxy.io',
+          leftPanelDisabled: false,
+          rightPanelDisabled: false,
+          layersDisabled: false,
+          stacBrowserDisabled: false,
+          filtersDisabled: false,
+          objectPropertiesDisabled: false,
+          annotationsDisabled: false,
+          identifyDisabled: false,
+        };
+      }
     }
   }
 
-  getSettings(): IJupyterGISSettings {
+  private _updateLocalSettings(): void {
+    const composite = this._settings.composite;
+
+    this._jgisSettings = {
+      proxyUrl: (composite.proxyUrl as string) ?? 'https://corsproxy.io',
+      leftPanelDisabled: (composite.leftPanelDisabled as boolean) ?? false,
+      rightPanelDisabled: (composite.rightPanelDisabled as boolean) ?? false,
+      layersDisabled: (composite.layersDisabled as boolean) ?? false,
+      stacBrowserDisabled: (composite.stacBrowserDisabled as boolean) ?? false,
+      filtersDisabled: (composite.filtersDisabled as boolean) ?? false,
+      objectPropertiesDisabled:
+        (composite.objectPropertiesDisabled as boolean) ?? false,
+      annotationsDisabled: (composite.annotationsDisabled as boolean) ?? false,
+      identifyDisabled: (composite.identifyDisabled as boolean) ?? false,
+    };
+  }
+
+  get jgisSettings(): IJupyterGISSettings {
+    return this._jgisSettings;
+  }
+
+  /**
+   * Expose the settingsChanged signal for external use.
+   */
+  get settingsChanged(): ISignal<JupyterGISModel, string> {
+    return this._settingsChanged;
+  }
+
+  /**
+   * Return stored settings.
+   */
+  async getSettings(): Promise<ISettingRegistry.ISettings> {
     return this._settings;
   }
 
@@ -207,14 +289,6 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get zoomToPositionSignal(): ISignal<this, string> {
     return this._zoomToPositionSignal;
-  }
-
-  set isIdentifying(isIdentifying: boolean) {
-    this._isIdentifying = isIdentifying;
-  }
-
-  get isIdentifying(): boolean {
-    return this._isIdentifying;
   }
 
   set isTemporalControllerActive(isActive: boolean) {
@@ -685,7 +759,19 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   toggleIdentify() {
-    this._isIdentifying = !this._isIdentifying;
+    if (this._currentMode === 'identifying') {
+      this._currentMode = 'panning';
+    } else {
+      this._currentMode = 'identifying';
+    }
+  }
+
+  get currentMode(): 'panning' | 'identifying' {
+    return this._currentMode;
+  }
+
+  set currentMode(value: 'panning' | 'identifying') {
+    this._currentMode = value;
   }
 
   toggleTemporalController() {
@@ -779,7 +865,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly annotationModel?: IAnnotationModel;
   readonly settingRegistry?: ISettingRegistry;
 
-  private _settings: IJupyterGISSettings;
+  private _settings: ISettingRegistry.ISettings;
+  private _settingsChanged: Signal<JupyterGISModel, string>;
+  private _jgisSettings: IJupyterGISSettings;
+
+  private _currentMode: 'panning' | 'identifying';
+
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
   private _contentsManager?: Contents.IManager;
@@ -807,7 +898,6 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _updateLayerSignal = new Signal<this, string>(this);
 
-  private _isIdentifying = false;
   private _isTemporalControllerActive = false;
 
   static worker: Worker;

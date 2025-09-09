@@ -4,7 +4,7 @@
   ],
   "layers": {
     "95bfd9ba-f561-414d-8e2b-bc401dae0d7f": {
-      "name": "Custom GeoJSON Layer",
+      "name": "Roads",
       "parameters": {
         "color": {
           "stroke-color": [
@@ -7470,16 +7470,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -26469740.02358401,
-      -15110822.972668167,
-      -5335478.400520468,
-      15110822.972668167
+      -35940117.55484148,
+      -9691096.80226725,
+      4134899.130737001,
+      9691096.80226725
     ],
     "latitude": 0.0,
     "longitude": -142.85556912566426,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 2.1686721181322306
+    "zoom": 2.634811050171718
   },
   "schemaVersion": "0.5.0",
   "sources": {

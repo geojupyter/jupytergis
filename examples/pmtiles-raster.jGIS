@@ -26,16 +26,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -4738125.268435165,
-      -6775441.075785377,
-      4738125.268435165,
-      6775441.075785375
+      -23812263.203224268,
+      -5492745.08424724,
+      16262753.482354213,
+      13889448.52028726
     ],
-    "latitude": 0.0,
-    "longitude": 0.0,
+    "latitude": 35.25326049393334,
+    "longitude": -33.90919984933236,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 3.3258675805754185
+    "zoom": 2.634811050171718
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -45,6 +45,7 @@
         "attribution": "",
         "bounds": [],
         "htmlAttribution": "",
+        "interpolate": false,
         "maxZoom": 24.0,
         "minZoom": 0.0,
         "provider": "",

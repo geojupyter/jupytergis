@@ -18,6 +18,7 @@
     "2467576f-b527-4cb7-998d-fa1d056fb8a1": {
       "name": "Open Street Map",
       "parameters": {
+        "opacity": 1.0,
         "source": "699facc9-e7c4-4f38-acf1-1fd7f02d9f36"
       },
       "type": "RasterLayer",
@@ -37,6 +38,7 @@
     "a0044fd7-f167-445f-b3d1-620a8f94b498": {
       "name": "Open Topo Map",
       "parameters": {
+        "opacity": 1.0,
         "source": "5fd42e3b-4681-4607-b15d-65c3a3e89b32"
       },
       "type": "RasterLayer",
@@ -63,6 +65,7 @@
     "5fd42e3b-4681-4607-b15d-65c3a3e89b32": {
       "name": "Open Topo Map",
       "parameters": {
+        "interpolate": false,
         "maxZoom": 24.0,
         "minZoom": 0.0,
         "url": "https://tile.opentopomap.org/{z}/{x}/{y}.png "
@@ -72,6 +75,7 @@
     "699facc9-e7c4-4f38-acf1-1fd7f02d9f36": {
       "name": "Open Street Map",
       "parameters": {
+        "interpolate": false,
         "maxZoom": 24.0,
         "minZoom": 0.0,
         "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -81,7 +85,7 @@
     "7d082e75-69d5-447a-82d8-b05cca5945ba": {
       "name": "france_regions",
       "parameters": {
-        "path": "france_regions.geojson",
+        "path": "data/france_regions.geojson",
         "valid": true
       },
       "type": "GeoJSONSource"

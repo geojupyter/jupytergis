@@ -1,0 +1,203 @@
+{
+  "layerTree": [
+    "6dd80360-2675-40cf-aaee-c7101ef1779a",
+    "f75fd646-bc7d-478b-b65b-de34155b8efa"
+  ],
+  "layers": {
+    "6dd80360-2675-40cf-aaee-c7101ef1779a": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "a6a98ac4-0d1c-4a3d-af71-88a91f28ccb9"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "f75fd646-bc7d-478b-b65b-de34155b8efa": {
+      "name": "COG Layer",
+      "parameters": {
+        "color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "band",
+            1.0
+          ],
+          0.0,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          0.0,
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          0.07142857142857144,
+          [
+            58.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          0.14285714285714288,
+          [
+            115.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          0.21428571428571427,
+          [
+            173.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          0.28571428571428575,
+          [
+            230.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          0.3571428571428571,
+          [
+            236.0,
+            53.0,
+            0.0,
+            1.0
+          ],
+          0.42857142857142855,
+          [
+            243.0,
+            105.0,
+            0.0,
+            1.0
+          ],
+          0.5,
+          [
+            249.0,
+            158.0,
+            0.0,
+            1.0
+          ],
+          0.5714285714285714,
+          [
+            255.0,
+            210.0,
+            0.0,
+            1.0
+          ],
+          0.6428571428571429,
+          [
+            255.0,
+            218.0,
+            43.0,
+            1.0
+          ],
+          0.7142857142857142,
+          [
+            255.0,
+            225.0,
+            85.0,
+            1.0
+          ],
+          0.7857142857142858,
+          [
+            255.0,
+            233.0,
+            128.0,
+            1.0
+          ],
+          0.8571428571428571,
+          [
+            255.0,
+            240.0,
+            170.0,
+            1.0
+          ],
+          0.9285714285714286,
+          [
+            255.0,
+            248.0,
+            213.0,
+            1.0
+          ],
+          1.0,
+          [
+            255.0,
+            255.0,
+            255.0,
+            1.0
+          ]
+        ],
+        "opacity": 1.0,
+        "source": "8b1d4258-5d46-48da-b466-496d376b593d",
+        "symbologyState": {
+          "band": 1.0,
+          "colorRamp": "hot",
+          "interpolation": "linear",
+          "mode": "equal interval",
+          "nClasses": "15",
+          "renderType": "Singleband Pseudocolor"
+        }
+      },
+      "type": "WebGlLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -17395896.73536663,
+      7388742.110425381,
+      -13933942.049595186,
+      9063108.873543771
+    ],
+    "latitude": 59.210048033386016,
+    "longitude": -140.72036514765887,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 6.167855425018033
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "8b1d4258-5d46-48da-b466-496d376b593d": {
+      "name": "Custom GeoTiff Source",
+      "parameters": {
+        "interpolate": false,
+        "normalize": true,
+        "urls": [
+          {
+            "max": 25000.0,
+            "min": 2000.0,
+            "url": "https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif"
+          }
+        ],
+        "wrapX": true
+      },
+      "type": "GeoTiffSource"
+    },
+    "a6a98ac4-0d1c-4a3d-af71-88a91f28ccb9": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "interpolate": false,
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  }
+}

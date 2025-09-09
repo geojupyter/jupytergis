@@ -25,6 +25,7 @@ import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { Contents } from '@jupyterlab/services';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { Toolbar } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
@@ -126,7 +127,7 @@ interface IOptions {
   model: JupyterGISModel;
   externalCommands?: IJGISExternalCommandRegistry;
   tracker?: JupyterGISTracker;
-  formSchemaRegistry?: IJGISFormSchemaRegistry;
+  formSchemaRegistry: IJGISFormSchemaRegistry;
   state?: IStateDB;
   annotationModel?: IAnnotationModel;
 }
@@ -134,24 +135,26 @@ interface IOptions {
 export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytergis:yjswidget-plugin',
   autoStart: true,
+  requires: [IJGISFormSchemaRegistryToken],
   optional: [
     IJGISExternalCommandRegistryToken,
     IJupyterGISDocTracker,
     IJupyterYWidgetManager,
     ICollaborativeDrive,
     IStateDB,
-    IJGISFormSchemaRegistryToken,
     IAnnotationToken,
+    ISettingRegistry,
   ],
   activate: (
     app: JupyterFrontEnd,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
     externalCommandRegistry?: IJGISExternalCommandRegistry,
     jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
     drive?: ICollaborativeDrive,
-    formSchemaRegistry?: IJGISFormSchemaRegistry,
     state?: IStateDB,
     annotationModel?: IAnnotationModel,
+    settingRegistry?: ISettingRegistry,
   ): void => {
     if (!yWidgetManager) {
       console.error('Missing IJupyterYWidgetManager token!');
@@ -214,6 +217,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         })!;
         this.jupyterGISModel = new JupyterGISModel({
           sharedModel: sharedModel as IJupyterGISDoc,
+          settingRegistry,
         });
 
         this.jupyterGISModel.contentsManager = app.serviceManager.contents;
