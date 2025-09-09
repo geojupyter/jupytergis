@@ -285,7 +285,16 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     const stopOutputPairs =
       symbologyTab === 'radius'
-        ? stops.map(v => ({ stop: v, output: v }))
+        ? stops.map(v => {
+            const scaled =
+              minValue !== undefined && maxValue !== undefined
+                ? minValue +
+                  ((v - Math.min(...stops)) /
+                    (Math.max(...stops) - Math.min(...stops))) *
+                    (maxValue - minValue)
+                : v;
+            return { stop: scaled, output: scaled };
+          })
         : Utils.getValueColorPairs(
             stops,
             selectedRamp,
