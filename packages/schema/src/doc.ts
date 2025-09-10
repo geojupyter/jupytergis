@@ -227,28 +227,37 @@ export class JupyterGISDoc
     }
   }
 
-  updateObjectParameters(
-    id: string,
-    value: IJGISLayer['parameters'] | IJGISSource['parameters'],
-  ) {
+  updateObject(id: string, value: Partial<IJGISLayer> | Partial<IJGISSource>) {
     const layer = this.getLayer(id);
     if (layer) {
-      layer.parameters = {
-        ...layer.parameters,
-        ...value,
-      };
+      const layerValue = value as Partial<IJGISLayer>;
 
-      this.updateLayer(id, layer);
+      const updatedLayer: IJGISLayer = {
+        ...layer,
+        ...layerValue,
+        parameters: {
+          ...layer.parameters,
+          ...(layerValue.parameters || {}),
+        },
+      };
+      this.updateLayer(id, updatedLayer);
+      return;
     }
 
     const source = this.getLayerSource(id);
     if (source) {
-      source.parameters = {
-        ...source.parameters,
-        ...value,
-      };
+      const sourceValue = value as Partial<IJGISSource>;
 
-      this.updateSource(id, source);
+      const updatedSource: IJGISSource = {
+        ...source,
+        ...sourceValue,
+        parameters: {
+          ...source.parameters,
+          ...(sourceValue.parameters || {}),
+        },
+      };
+      this.updateSource(id, updatedSource);
+      return;
     }
   }
 

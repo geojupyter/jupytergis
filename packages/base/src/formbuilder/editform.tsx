@@ -39,7 +39,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
       return;
     }
 
-    this.props.model.sharedModel.updateObjectParameters(id, properties);
+    this.props.model.sharedModel.updateObject(id, properties);
   }
 
   render() {
@@ -122,22 +122,10 @@ export class EditForm extends React.Component<IEditFormProps, any> {
 
                 const { opacity, ...params } = properties;
 
-                if (opacity !== undefined) {
-                  const layer = this.props.model.getLayer(this.props.layer);
-                  if (layer) {
-                    this.props.model.sharedModel.updateLayer(this.props.layer, {
-                      ...layer,
-                      opacity,
-                    });
-                  }
-                }
-
-                if (Object.keys(params).length > 0) {
-                  this.props.model.sharedModel.updateObjectParameters(
-                    this.props.layer,
-                    params,
-                  );
-                }
+                this.props.model.sharedModel.updateObject(this.props.layer, {
+                  opacity,
+                  parameters: params,
+                });
               }}
             />
           </div>
