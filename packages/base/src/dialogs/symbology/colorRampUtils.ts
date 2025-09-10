@@ -11,8 +11,10 @@ const { __license__: _, ...cmocean } = rawCmocean;
 Object.assign(colorScale, cmocean);
 
 export const COLOR_RAMP_DEFINITIONS = {
+  // 'rainbow-soft': {type: 'Cyclic'}, 11 steps min
+  // 'hsv': {type: 'Cyclic'}, 11 steps min
+  phase: { type: 'Cyclic' },
   jet: { type: 'Sequential' },
-  // 'hsv': {type: 'Sequential'}, 11 steps min
   hot: { type: 'Sequential' },
   cool: { type: 'Sequential' },
   spring: { type: 'Sequential' },
@@ -27,7 +29,6 @@ export const COLOR_RAMP_DEFINITIONS = {
   YiOrRd: { type: 'Sequential' },
   bluered: { type: 'Sequential' },
   RdBu: { type: 'Sequential' },
-  // 'picnic': {type: 'Sequential'}, 11 steps min
   rainbow: { type: 'Sequential' },
   portland: { type: 'Sequential' },
   blackbody: { type: 'Sequential' },
@@ -38,7 +39,6 @@ export const COLOR_RAMP_DEFINITIONS = {
   magma: { type: 'Sequential' },
   plasma: { type: 'Sequential' },
   warm: { type: 'Sequential' },
-  // 'rainbow-soft': {type: 'Sequential'}, 11 steps min
   bathymetry: { type: 'Sequential' },
   cdom: { type: 'Sequential' },
   chlorophyll: { type: 'Sequential' },
@@ -47,7 +47,6 @@ export const COLOR_RAMP_DEFINITIONS = {
   'freesurface-red': { type: 'Sequential' },
   oxygen: { type: 'Sequential' },
   par: { type: 'Sequential' },
-  phase: { type: 'Cyclic' },
   salinity: { type: 'Sequential' },
   temperature: { type: 'Sequential' },
   turbidity: { type: 'Sequential' },
@@ -61,6 +60,7 @@ export const COLOR_RAMP_DEFINITIONS = {
   tempo: { type: 'Sequential' },
   rain: { type: 'Sequential' },
   topo: { type: 'Sequential' },
+  // 'picnic': {type: 'Divergent', criticalValue: 0.5 }, 11 steps min
   balance: { type: 'Divergent', criticalValue: 0.5 },
   delta: { type: 'Divergent', criticalValue: 0.5 },
   curl: { type: 'Divergent', criticalValue: 0.5 },
