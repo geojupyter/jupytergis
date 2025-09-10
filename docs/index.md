@@ -1,29 +1,52 @@
 # JupyterGIS
 
+JupyterGIS is a **collaborative** Geographical Information System (GIS) environment in
+JupyterLab.
+
+```{raw} html
+<center>
+```
+
 ```{jupyterlite}
 :new_tab: True
 :new_tab_button_text: Try it with JupyterLite!
 ```
 
-JupyterGIS is a JupyterLab extension for collaborative GIS (Geographical Information System). It is designed to
-allow multiple people to work on the same geospatial project simultaneously, facilitating discussion and collaboration
-around map layers, spatial analyses, and other GIS data being developed.
+```{raw} html
+</center>
+<br />
+```
 
-JupyterGIS provides basic support for [QGIS](https://www.qgis.org) project files, allowing users to import and export
-projects seamlessly between QGIS and JupyterLab.
-This compatibility preserves layer styles, data sources, and project settings, enabling smooth transitions between GIS work
-in QGIS and collaborative, cloud-based work in JupyterLab.
+JupyterGIS is the flagship project of the user-centric and open
+[GeoJupyter community](https://geojupyter.org), which aims to enable more people to
+confidently engage with geospatial data.
+We'd love to hear from you at a
+[community meeting](https://geojupyter.org/calendar.html)!
 
-Beyond QGIS project support, JupyterGIS offers a range of features tailored specifically for collaborative geospatial analysis.
-Users can edit, visualize, and analyze spatial data together in real-time, share map layers, and annotate directly within the
-JupyterLab environment, fostering efficient teamwork on GIS projects.
 
-Python users can further extend JupyterGIS workflows by integrating with Python geospatial libraries, such as GeoPandas, Xarray
-and Rasterio, to perform custom analyses and automate processes. Together, these features make JupyterGIS a powerful tool for
-both collaborative mapping and in-depth geospatial analysis.
+## ✨ Highlights ✨
+
+🤝 Work simultaneously with your colleagues on the same GIS project (like Google Docs)
+
+🔄 Basic support for importing/exporting [QGIS](https://www.qgis.org) project files
+
+🐍 Python API and integration with Jupyter Notebook workflows
+
+For more details, check out the [project overview](overview/index.md)!
 
 ```{image} ../jupytergis.png
 :alt: JupyterGIS application
+```
+
+## Overview
+
+High-level information about the project.
+
+```{toctree}
+:titlesonly:
+:maxdepth: 2
+
+overview/index
 ```
 
 ## User guide
