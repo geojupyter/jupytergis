@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 THIS_DIR="$( cd "$(dirname "$0")"; pwd -P )"
 
 # Build can fail if certain artifacts exist here:
-rm -rf "${THIS_DIR}/_build"
+${THIS_DIR}/clean.sh
 
 python -m sphinx \
     --nitpicky --show-traceback \
