@@ -18,6 +18,5 @@ JupyterGIS offers:
 
 install
 tutorials/index
-features/index
 python_api
 ```
