@@ -23,3 +23,12 @@ Python users can further extend JupyterGIS workflows by integrating with Python 
 and Rasterio, to perform custom analyses and automate processes.
 Together, these features make JupyterGIS a powerful tool for
 both collaborative mapping and in-depth geospatial analysis.
+
+```{toctree}
+:titlesonly:
+:maxdepth: 2
+:glob:
+
+*/index
+*
+```
