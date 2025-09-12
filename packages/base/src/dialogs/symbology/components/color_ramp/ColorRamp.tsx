@@ -52,7 +52,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   initialMin,
   initialMax,
 }) => {
-  const [selectedRamp, setSelectedRamp] = useState('');
+  const [selectedRamp, setSelectedRamp] = useState<ColorRampName | undefined>();
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
   const [minValue, setMinValue] = useState<number | undefined>(initialMin);
@@ -60,7 +60,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (selectedRamp === '' && selectedMode === '' && numberOfShades === '') {
+    if (selectedRamp === undefined && selectedMode === '' && numberOfShades === '') {
       populateOptions();
     }
   }, [layerParams]);
@@ -109,7 +109,12 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     setMaxValue(initialMax);
   };
 
-  const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp as ColorRampName];
+  if (selectedRamp === undefined) {
+    // This should be set at this point!
+    return;
+  }
+  const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp];
+
   const normalizedCritical =
     rampDef?.type === 'Divergent' ? (rampDef.criticalValue ?? 0.5) : 0.5;
   const scaledCritical =
@@ -154,18 +159,17 @@ const ColorRamp: React.FC<IColorRampProps> = ({
           setSelectedMode={setSelectedMode}
         />
       )}
-      {rampDef && (
-        <ColorRampValueControls
-          min={displayMin}
-          setMin={setMinValue}
-          max={displayMax}
-          setMax={setMaxValue}
-          rampDef={rampDef}
-          initialMin={initialMin}
-          initialMax={initialMax}
-          renderType={renderType}
-        />
-      )}
+
+      <ColorRampValueControls
+        min={displayMin}
+        setMin={setMinValue}
+        max={displayMax}
+        setMax={setMaxValue}
+        rampDef={rampDef}
+        initialMin={initialMin}
+        initialMax={initialMax}
+        renderType={renderType}
+      />
 
       {isLoading ? (
         <LoadingIcon />
