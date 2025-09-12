@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { IColorMap } from './CanvasSelectComponent';
+import { IColorMap } from '@/src/types';
 
 interface IColorRampEntryProps {
   index: number;
@@ -47,7 +47,7 @@ const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
         <span
           style={{ color: 'var(--jp-ui-font-color2)', fontStyle: 'italic' }}
         >
-          ({colorMap.type})
+          ({colorMap.definition.type})
         </span>
       </span>
       <canvas
