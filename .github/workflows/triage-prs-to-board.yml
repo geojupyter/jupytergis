@@ -1,0 +1,18 @@
+name: "PR Triage Bot"
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch: true
+
+jobs:
+  pr-triage:
+    uses: "yuvipanda/pr-triage-board-bot/.github/workflows/reusable-pr-triage.yml@main"
+    with:
+      organization: "geojupyter"
+      project-number: "3"
+      gh-app-id: "1943749"
+      gh-installation-id: "85628873"
+      repositories: "jupytergis"
+    secrets:
+      gh-app-private-key: "${{ secrets.GH_APP_PRIVATE_KEY }}"
