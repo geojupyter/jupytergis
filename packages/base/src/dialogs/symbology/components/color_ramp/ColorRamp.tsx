@@ -52,7 +52,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   initialMin,
   initialMax,
 }) => {
-  const [selectedRamp, setSelectedRamp] = useState<ColorRampName | undefined>();
+  const [selectedRamp, setSelectedRamp] = useState<ColorRampName>('viridis');
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
   const [minValue, setMinValue] = useState<number | undefined>(initialMin);
@@ -60,28 +60,10 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (selectedRamp === undefined && selectedMode === '' && numberOfShades === '') {
+    if (selectedRamp && selectedMode === '' && numberOfShades === '') {
       populateOptions();
     }
   }, [layerParams]);
-
-  useEffect(() => {
-    if (!layerParams.symbologyState) {
-      layerParams.symbologyState = {};
-    }
-
-    if (renderType !== 'Heatmap') {
-      layerParams.symbologyState.min = minValue;
-      layerParams.symbologyState.max = maxValue;
-      layerParams.symbologyState.colorRamp = selectedRamp;
-      layerParams.symbologyState.nClasses = numberOfShades;
-      layerParams.symbologyState.mode = selectedMode;
-
-      if (rampDef?.type === 'Divergent') {
-        layerParams.symbologyState.criticalValue = scaledCritical;
-      }
-    }
-  }, [minValue, maxValue, selectedRamp, selectedMode, numberOfShades]);
 
   useEffect(() => {
     if (renderType === 'Graduated') {
@@ -109,10 +91,6 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     setMaxValue(initialMax);
   };
 
-  if (selectedRamp === undefined) {
-    // This should be set at this point!
-    return;
-  }
   const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp];
 
   const normalizedCritical =
@@ -138,6 +116,24 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     displayMin = -absMax;
     displayMax = absMax;
   }
+
+  useEffect(() => {
+    if (!layerParams.symbologyState) {
+      layerParams.symbologyState = {};
+    }
+
+    if (renderType !== 'Heatmap') {
+      layerParams.symbologyState.min = minValue;
+      layerParams.symbologyState.max = maxValue;
+      layerParams.symbologyState.colorRamp = selectedRamp;
+      layerParams.symbologyState.nClasses = numberOfShades;
+      layerParams.symbologyState.mode = selectedMode;
+
+      if (rampDef?.type === 'Divergent') {
+        layerParams.symbologyState.criticalValue = scaledCritical;
+      }
+    }
+  }, [minValue, maxValue, selectedRamp, selectedMode, numberOfShades]);
 
   return (
     <div className="jp-gis-color-ramp-container">

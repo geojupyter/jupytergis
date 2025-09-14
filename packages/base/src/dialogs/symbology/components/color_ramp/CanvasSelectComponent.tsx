@@ -2,8 +2,8 @@ import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { useColorMapList } from '@/src/dialogs/symbology/colorRampUtils';
-import ColorRampEntry from './ColorRampEntry';
 import { IColorMap } from '@/src/types';
+import ColorRampEntry from './ColorRampEntry';
 
 interface ICanvasSelectComponentProps {
   selectedRamp: string;
@@ -24,7 +24,7 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
     if (colorMaps.length > 0) {
       updateCanvas(selectedRamp);
     }
-  }, [selectedRamp]);
+  }, [selectedRamp, colorMaps]);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
