@@ -3,70 +3,13 @@ import colorScale from 'colormap/colorScale.js';
 import { useEffect } from 'react';
 
 import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
+import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/rampNames';
 import { objectEntries, objectKeys } from '@/src/tools';
-import { IColorMap, IColorRampDefinition } from '@/src/types';
+import { IColorMap } from '@/src/types';
 
 const { __license__: _, ...cmocean } = rawCmocean;
 
 Object.assign(colorScale, cmocean);
-
-export const COLOR_RAMP_DEFINITIONS = {
-  // 'rainbow-soft': {type: 'Cyclic'}, 11 steps min
-  // 'hsv': {type: 'Cyclic'}, 11 steps min
-  phase: { type: 'Cyclic' },
-  jet: { type: 'Sequential' },
-  hot: { type: 'Sequential' },
-  cool: { type: 'Sequential' },
-  spring: { type: 'Sequential' },
-  summer: { type: 'Sequential' },
-  autumn: { type: 'Sequential' },
-  winter: { type: 'Sequential' },
-  bone: { type: 'Sequential' },
-  copper: { type: 'Sequential' },
-  greys: { type: 'Sequential' },
-  YiGnBu: { type: 'Sequential' },
-  greens: { type: 'Sequential' },
-  YiOrRd: { type: 'Sequential' },
-  bluered: { type: 'Sequential' },
-  RdBu: { type: 'Sequential' },
-  rainbow: { type: 'Sequential' },
-  portland: { type: 'Sequential' },
-  blackbody: { type: 'Sequential' },
-  earth: { type: 'Sequential' },
-  electric: { type: 'Sequential' },
-  viridis: { type: 'Sequential' },
-  inferno: { type: 'Sequential' },
-  magma: { type: 'Sequential' },
-  plasma: { type: 'Sequential' },
-  warm: { type: 'Sequential' },
-  bathymetry: { type: 'Sequential' },
-  cdom: { type: 'Sequential' },
-  chlorophyll: { type: 'Sequential' },
-  density: { type: 'Sequential' },
-  'freesurface-blue': { type: 'Sequential' },
-  'freesurface-red': { type: 'Sequential' },
-  oxygen: { type: 'Sequential' },
-  par: { type: 'Sequential' },
-  salinity: { type: 'Sequential' },
-  temperature: { type: 'Sequential' },
-  turbidity: { type: 'Sequential' },
-  'velocity-blue': { type: 'Sequential' },
-  'velocity-green': { type: 'Sequential' },
-  // 'cubehelix': {type: 'Sequential'}, 16 steps min
-  ice: { type: 'Sequential' },
-  oxy: { type: 'Sequential' },
-  matter: { type: 'Sequential' },
-  amp: { type: 'Sequential' },
-  tempo: { type: 'Sequential' },
-  rain: { type: 'Sequential' },
-  topo: { type: 'Sequential' },
-  // 'picnic': {type: 'Divergent', criticalValue: 0.5 }, 11 steps min
-  balance: { type: 'Divergent', criticalValue: 0.5 },
-  delta: { type: 'Divergent', criticalValue: 0.5 },
-  curl: { type: 'Divergent', criticalValue: 0.5 },
-  diff: { type: 'Divergent', criticalValue: 0.5 },
-  tarn: { type: 'Divergent', criticalValue: 0.5 },
-} as const satisfies { [key: string]: IColorRampDefinition };
 
 export const COLOR_RAMP_NAMES = objectKeys(COLOR_RAMP_DEFINITIONS);
 export type ColorRampName = (typeof COLOR_RAMP_NAMES)[number];
@@ -76,7 +19,7 @@ export const getColorMapList = (): IColorMap[] => {
 
   for (const [name, definition] of objectEntries(COLOR_RAMP_DEFINITIONS)) {
     const colors = colormap({
-      colormap: name as string,
+      colormap: name,
       nshades: 255,
       format: 'rgbaString',
     });

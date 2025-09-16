@@ -401,10 +401,10 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
         </div>
       </div>
       <ColorRampValueControls
-        min={minValue}
-        setMin={setMinValue}
-        max={maxValue}
-        setMax={setMaxValue}
+        selectedMin={minValue}
+        settedMin={setMinValue}
+        selectedMax={maxValue}
+        settedMax={setMaxValue}
         rampDef={{
           type: 'Sequential',
         }}

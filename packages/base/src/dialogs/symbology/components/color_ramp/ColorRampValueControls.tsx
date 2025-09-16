@@ -1,16 +1,30 @@
 import { Button } from '@jupyterlab/ui-components';
 import React from 'react';
 
-import { IColorRampValueControlsProps } from '@/src/types';
+import { IColorRampDefinition } from '@/src/types';
 
+export interface IColorRampValueControlsProps {
+  selectedMin: number | undefined;
+  settedMin: (v: number | undefined) => void;
+  selectedMax: number | undefined;
+  settedMax: (v: number | undefined) => void;
+  rampDef: IColorRampDefinition;
+  dataMin?: number;
+  dataMax?: number;
+  renderType?:
+    | 'Categorized'
+    | 'Graduated'
+    | 'Heatmap'
+    | 'Singleband Pseudocolor';
+}
 export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
-  min,
-  setMin,
-  max,
-  setMax,
+  selectedMin,
+  settedMin,
+  selectedMax,
+  settedMax,
   rampDef,
-  initialMin,
-  initialMax,
+  dataMin,
+  dataMax,
   renderType,
 }) => {
   return (
@@ -20,9 +34,9 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
         <input
           id="min-value"
           type="number"
-          value={min ?? ''}
+          value={selectedMin ?? ''}
           onChange={e =>
-            setMin(
+            settedMin(
               e.target.value !== '' ? parseFloat(e.target.value) : undefined,
             )
           }
@@ -34,14 +48,9 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
       {rampDef.type === 'Divergent' && renderType === 'Graduated' && (
         <div className="jp-gis-symbology-row">
           <label htmlFor="critical-value">Critical Value:</label>
-          <input
-            id="critical-value"
-            type="number"
-            value={rampDef.criticalValue ?? ''}
-            readOnly
-            className="jp-mod-styled"
-            placeholder="Auto-calculated"
-          />
+          <output id="critical-value" className="jp-mod-styled">
+            {rampDef.criticalValue ?? 'Auto-calculated'}
+          </output>
         </div>
       )}
 
@@ -50,9 +59,9 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
         <input
           id="max-value"
           type="number"
-          value={max ?? ''}
+          value={selectedMax ?? ''}
           onChange={e =>
-            setMax(
+            settedMax(
               e.target.value !== '' ? parseFloat(e.target.value) : undefined,
             )
           }
@@ -64,10 +73,10 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
         <div className="jp-gis-symbology-row">
           <Button
             className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-            disabled={min === initialMin && max === initialMax}
+            disabled={selectedMin === dataMin && selectedMax === dataMax}
             onClick={() => {
-              setMin(initialMin);
-              setMax(initialMax);
+              settedMin(selectedMin);
+              settedMax(selectedMax);
             }}
           >
             Use Actual Range

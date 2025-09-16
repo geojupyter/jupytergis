@@ -2,10 +2,8 @@ import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
-import {
-  COLOR_RAMP_DEFINITIONS,
-  ColorRampName,
-} from '@/src/dialogs/symbology/colorRampUtils';
+import { ColorRampName } from '@/src/dialogs/symbology/colorRampUtils';
+import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/rampNames';
 import { LoadingIcon } from '@/src/shared/components/loading';
 import CanvasSelectComponent from './CanvasSelectComponent';
 import { ColorRampValueControls } from './ColorRampValueControls';
@@ -28,7 +26,7 @@ interface IColorRampProps {
     | 'Graduated'
     | 'Categorized'
     | 'Heatmap'
-    | 'Singleband PseudoColor';
+    | 'Singleband Pseudocolor';
   initialMin?: number;
   initialMax?: number;
 }
@@ -60,8 +58,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (selectedRamp && selectedMode === '' && numberOfShades === '') {
-      populateOptions();
+    if (selectedMode === '' && numberOfShades === '') {
+      initializeState();
     }
   }, [layerParams]);
 
@@ -76,7 +74,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     }
   }, [initialMin, initialMax, renderType]);
 
-  const populateOptions = () => {
+  const initializeState = () => {
     let nClasses, singleBandMode, colorRamp;
 
     if (layerParams.symbologyState) {
@@ -87,8 +85,6 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     setNumberOfShades(nClasses ? nClasses : '9');
     setSelectedMode(singleBandMode ? singleBandMode : 'equal interval');
     setSelectedRamp(colorRamp ? colorRamp : 'viridis');
-    setMinValue(initialMin);
-    setMaxValue(initialMax);
   };
 
   const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp];
@@ -130,7 +126,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       layerParams.symbologyState.mode = selectedMode;
 
       if (rampDef?.type === 'Divergent') {
-        layerParams.symbologyState.criticalValue = scaledCritical;
+        layerParams.symbologyState.criticalValue = rampDef.criticalValue;
       }
     }
   }, [minValue, maxValue, selectedRamp, selectedMode, numberOfShades]);
@@ -157,13 +153,13 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       )}
 
       <ColorRampValueControls
-        min={displayMin}
-        setMin={setMinValue}
-        max={displayMax}
-        setMax={setMaxValue}
+        selectedMin={displayMin}
+        settedMin={setMinValue}
+        selectedMax={displayMax}
+        settedMax={setMaxValue}
         rampDef={rampDef}
-        initialMin={initialMin}
-        initialMax={initialMax}
+        dataMin={initialMin}
+        dataMax={initialMax}
         renderType={renderType}
       />
 

@@ -1,7 +1,8 @@
 import { IJGISLayer } from '@jupytergis/schema';
 import colormap from 'colormap';
 
-import { COLOR_RAMP_DEFINITIONS, ColorRampName } from './colorRampUtils';
+import { ColorRampName } from './colorRampUtils';
+import { COLOR_RAMP_DEFINITIONS } from './rampNames';
 import { IStopRow } from './symbologyDialog';
 
 const COLOR_EXPR_STOPS_START = 3;
@@ -109,7 +110,7 @@ export namespace Utils {
       | 'Categorized'
       | 'Graduated'
       | 'Heatmap'
-      | 'Singleband PseudoColor' = 'Graduated',
+      | 'Singleband Pseudocolor' = 'Graduated',
     minValue?: number,
     maxValue?: number,
   ) => {

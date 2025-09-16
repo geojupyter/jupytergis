@@ -2,7 +2,7 @@ import { IDict, IJupyterGISWidget } from '@jupytergis/schema';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { Map } from 'ol';
 
-import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/colorRampUtils';
+import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/rampNames';
 
 export { IDict };
 export type ValueOf<T> = T[keyof T];
@@ -82,18 +82,3 @@ export interface IColorMap {
 }
 
 export type ColorRampName = keyof typeof COLOR_RAMP_DEFINITIONS;
-
-export interface IColorRampValueControlsProps {
-  min: number | undefined;
-  setMin: (v: number | undefined) => void;
-  max: number | undefined;
-  setMax: (v: number | undefined) => void;
-  rampDef: IColorRampDefinition;
-  initialMin?: number;
-  initialMax?: number;
-  renderType?:
-    | 'Categorized'
-    | 'Graduated'
-    | 'Heatmap'
-    | 'Singleband PseudoColor';
-}
