@@ -13,8 +13,8 @@ jobs:
         uses: 'yuvipanda/pr-triage-board-bot@c350212c2bba8a47cc2b07e7ce40fd6748b6beef'
         with:
           organization: 'geojupyter'
+          repositories: 'jupytergis'
           project-number: '3'
           gh-app-id: '1943749'
-          gh-installation-id: '85628873'
-          repositories: 'jupytergis'
+          gh-app-installation-id: '85628873'
           gh-app-private-key: '${{ secrets.GH_APP_PRIVATE_KEY }}'
