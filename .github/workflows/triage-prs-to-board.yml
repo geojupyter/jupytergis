@@ -10,7 +10,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - name: 'Run PR Triage Bot'
-        uses: 'yuvipanda/pr-triage-board-bot@main'
+        uses: 'yuvipanda/pr-triage-board-bot@c350212c2bba8a47cc2b07e7ce40fd6748b6beef'
         with:
           organization: 'geojupyter'
           project-number: '3'
