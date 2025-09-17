@@ -329,9 +329,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       delete newStyle['stroke-color'];
       delete newStyle['circle-fill-color'];
       setColorStopRows([]);
-      setColorRampOptions({ selectedRamp: 'viridis',
+      setColorRampOptions({
+        selectedRamp: 'viridis',
         numberOfShades: '',
-        selectedMode: ''
+        selectedMode: '',
       });
     }
 
