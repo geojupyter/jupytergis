@@ -12,7 +12,7 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { SymbologyTab } from '@/src/types';
+import { ColorRampName, SymbologyTab } from '@/src/types';
 
 const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -25,28 +25,28 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 }) => {
   const selectedAttributeRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
-  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
   const [selectedAttribute, setSelectedAttribute] = useState('');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
-  const [colorRampOptions, setColorRampOptions] = useState<
-    ColorRampOptions | undefined
-  >();
+  const [colorRampOptions, setColorRampOptions] = useState<ColorRampOptions>({
+    selectedRamp: 'viridis',
+  });
   const [manualStyle, setManualStyle] = useState({
     fillColor: '#3399CC',
     strokeColor: '#3399CC',
     strokeWidth: 1.25,
     radius: 5,
   });
+  const colorRampOptionsRef = useRef<ColorRampOptions>(colorRampOptions);
   const manualStyleRef = useRef(manualStyle);
   const [reverseRamp, setReverseRamp] = useState(false);
 
   if (!layerId) {
-    return;
+    return null;
   }
   const layer = model.getLayer(layerId);
   if (!layer?.parameters) {
-    return;
+    return null;
   }
 
   const getInitialAttribute = () => {
@@ -143,7 +143,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const buildColorInfoFromClassification = (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string,
+    selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
   ) => {
     setColorRampOptions({
@@ -206,9 +206,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const symbologyState = {
       renderType: 'Categorized',
       value: selectedAttributeRef.current,
-      colorRamp: colorRampOptionsRef.current?.selectedRamp,
-      nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode,
+      colorRamp: colorRampOptionsRef.current.selectedRamp,
+      nClasses: colorRampOptionsRef.current.numberOfShades,
+      mode: colorRampOptionsRef.current.selectedMode,
       symbologyTab,
       reverse: reverseRamp,
     };
@@ -242,9 +242,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
       // Reset color classification options
       if (layer.parameters.symbologyState) {
-        layer.parameters.symbologyState.colorRamp = undefined;
-        layer.parameters.symbologyState.nClasses = undefined;
-        layer.parameters.symbologyState.mode = undefined;
+        layer.parameters.symbologyState.colorRamp = 'viridis';
+        layer.parameters.symbologyState.nClasses = '';
+        layer.parameters.symbologyState.mode = '';
       }
     }
 

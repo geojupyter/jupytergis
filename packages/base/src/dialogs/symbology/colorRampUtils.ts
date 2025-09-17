@@ -12,7 +12,6 @@ const { __license__: _, ...cmocean } = rawCmocean;
 Object.assign(colorScale, cmocean);
 
 export const COLOR_RAMP_NAMES = objectKeys(COLOR_RAMP_DEFINITIONS);
-export type ColorRampName = (typeof COLOR_RAMP_NAMES)[number];
 
 export const getColorMapList = (): IColorMap[] => {
   const colorMapList: IColorMap[] = [];

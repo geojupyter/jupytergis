@@ -1,7 +1,8 @@
 import { IJGISLayer } from '@jupytergis/schema';
 import colormap from 'colormap';
 
-import { ColorRampName } from './colorRampUtils';
+import { ColorRampName } from '@/src/types';
+import { VectorClassifications } from './classificationModes';
 import { COLOR_RAMP_DEFINITIONS } from './rampNames';
 import { IStopRow } from './symbologyDialog';
 
@@ -103,7 +104,7 @@ export namespace VectorUtils {
 export namespace Utils {
   export const getValueColorPairs = (
     stops: number[],
-    selectedRamp: string,
+    selectedRamp: ColorRampName,
     nClasses: number,
     reverse = false,
     renderType:
@@ -114,7 +115,7 @@ export namespace Utils {
     minValue?: number,
     maxValue?: number,
   ) => {
-    const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp as ColorRampName];
+    const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp];
     let effectiveStops: number[] = [];
 
     if (renderType === 'Categorized') {
@@ -123,23 +124,20 @@ export namespace Utils {
       if (rampDef?.type === 'Divergent' && renderType === 'Graduated') {
         const rawMin = minValue ?? Math.min(...stops);
         const rawMax = maxValue ?? Math.max(...stops);
-
         const absMax = Math.max(Math.abs(rawMin), Math.abs(rawMax));
 
-        const min = -absMax;
-        const max = absMax;
-
-        effectiveStops = Array.from(
-          { length: nClasses },
-          (_, i) => min + (i / (nClasses - 1)) * (max - min),
+        effectiveStops = VectorClassifications.calculateEqualIntervalBreaks(
+          stops,
+          nClasses,
+          -absMax,
+          absMax,
         );
       } else {
-        const min = minValue ?? Math.min(...stops);
-        const max = maxValue ?? Math.max(...stops);
-
-        effectiveStops = Array.from(
-          { length: nClasses },
-          (_, i) => min + (i / (nClasses - 1)) * (max - min),
+        effectiveStops = VectorClassifications.calculateEqualIntervalBreaks(
+          stops,
+          nClasses,
+          minValue,
+          maxValue,
         );
       }
     }

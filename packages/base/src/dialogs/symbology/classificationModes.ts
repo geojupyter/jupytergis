@@ -49,20 +49,17 @@ export namespace VectorClassifications {
   export const calculateEqualIntervalBreaks = (
     values: number[],
     nClasses: number,
+    selectedMin?: number,
+    selectedMax?: number,
   ) => {
-    const minimum = Math.min(...values);
-    const maximum = Math.max(...values);
+    const minimum = selectedMin ?? Math.min(...values);
+    const maximum = selectedMax ?? Math.max(...values);
 
-    const breaks: number[] = [];
-    const step = (maximum - minimum) / nClasses;
+    const breaks: number[] = Array.from({ length: nClasses }, (_, i) => {
+      return minimum + (i / (nClasses - 1)) * (maximum - minimum);
+    });
 
-    let value = minimum;
-
-    for (let i = 0; i < nClasses; i++) {
-      value += step;
-      breaks.push(value);
-    }
-
+    breaks[0] = minimum;
     breaks[nClasses - 1] = maximum;
 
     return breaks;

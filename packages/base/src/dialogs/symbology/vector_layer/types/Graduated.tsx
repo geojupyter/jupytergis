@@ -13,6 +13,7 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import { ColorRampName } from '@/src/types';
 
 const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -35,14 +36,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const symbologyTabRef = useRef<string>();
   const colorStopRowsRef = useRef<IStopRow[]>([]);
   const radiusStopRowsRef = useRef<IStopRow[]>([]);
-  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
   const [selectedAttribute, setSelectedAttribute] = useState('');
   const [colorStopRows, setColorStopRows] = useState<IStopRow[]>([]);
   const [radiusStopRows, setRadiusStopRows] = useState<IStopRow[]>([]);
-  const [colorRampOptions, setColorRampOptions] = useState<
-    ColorRampOptions | undefined
-  >();
+  const [colorRampOptions, setColorRampOptions] = useState<ColorRampOptions>({
+    selectedRamp: 'viridis',
+  });
   const [colorManualStyle, setColorManualStyle] = useState({
     fillColor: '#3399CC',
     strokeColor: '#3399CC',
@@ -53,6 +53,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   });
   const [reverseRamp, setReverseRamp] = useState(false);
 
+  const colorRampOptionsRef = useRef<ColorRampOptions>(colorRampOptions);
   const colorManualStyleRef = useRef(colorManualStyle);
   const radiusManualStyleRef = useRef(radiusManualStyle);
 
@@ -211,9 +212,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       renderType: 'Graduated',
       value: selectableAttributeRef.current,
       method: symbologyTabRef.current,
-      colorRamp: colorRampOptionsRef.current?.selectedRamp,
-      nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode,
+      colorRamp: colorRampOptionsRef.current.selectedRamp,
+      nClasses: colorRampOptionsRef.current.numberOfShades,
+      mode: colorRampOptionsRef.current.selectedMode,
       reverse: reverseRamp,
     };
 
@@ -228,7 +229,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const buildColorInfoFromClassification = (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string,
+    selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
     criticalValue?: number,
     minValue?: number,
@@ -326,7 +327,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       delete newStyle['stroke-color'];
       delete newStyle['circle-fill-color'];
       setColorStopRows([]);
-      setColorRampOptions(undefined);
+      setColorRampOptions({ selectedRamp: 'viridis' });
     }
 
     if (method === 'radius') {

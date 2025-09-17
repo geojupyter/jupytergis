@@ -2,9 +2,9 @@ import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
-import { ColorRampName } from '@/src/dialogs/symbology/colorRampUtils';
 import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/rampNames';
 import { LoadingIcon } from '@/src/shared/components/loading';
+import { ColorRampName } from '@/src/types';
 import CanvasSelectComponent from './CanvasSelectComponent';
 import { ColorRampValueControls } from './ColorRampValueControls';
 import ModeSelectRow from './ModeSelectRow';
@@ -14,7 +14,7 @@ interface IColorRampProps {
   classifyFunc: (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string,
+    selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
     criticalValue?: number,
     minValue?: number,
@@ -32,7 +32,7 @@ interface IColorRampProps {
 }
 
 export type ColorRampOptions = {
-  selectedRamp?: string;
+  selectedRamp: ColorRampName;
   numberOfShades?: string;
   selectedMode?: string;
   minValue?: number;

@@ -20,6 +20,7 @@ import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import { GlobalStateDbManager } from '@/src/store';
+import { ColorRampName } from '@/src/types';
 import { ColorRampValueControls } from '../../components/color_ramp/ColorRampValueControls';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
@@ -281,7 +282,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   const buildColorInfoFromClassification = async (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string,
+    selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
   ) => {
     // Update layer state with selected options
@@ -332,7 +333,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     const valueColorPairs = Utils.getValueColorPairs(
       stops,
-      selectedRamp,
+      selectedRamp as ColorRampName,
       nClasses,
     );
 
