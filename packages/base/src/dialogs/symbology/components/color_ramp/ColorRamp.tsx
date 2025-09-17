@@ -33,8 +33,8 @@ interface IColorRampProps {
 
 export type ColorRampOptions = {
   selectedRamp: ColorRampName;
-  numberOfShades?: string;
-  selectedMode?: string;
+  numberOfShades: string;
+  selectedMode: string;
   minValue?: number;
   maxValue?: number;
   criticalValue?: number;

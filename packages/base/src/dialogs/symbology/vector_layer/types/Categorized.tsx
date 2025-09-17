@@ -30,6 +30,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [colorRampOptions, setColorRampOptions] = useState<ColorRampOptions>({
     selectedRamp: 'viridis',
+    numberOfShades: '',
+    selectedMode: '',
   });
   const [manualStyle, setManualStyle] = useState({
     fillColor: '#3399CC',
