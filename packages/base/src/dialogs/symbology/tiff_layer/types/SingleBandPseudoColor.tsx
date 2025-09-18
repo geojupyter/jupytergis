@@ -333,7 +333,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     const valueColorPairs = Utils.getValueColorPairs(
       stops,
-      selectedRamp as ColorRampName,
+      selectedRamp,
       nClasses,
     );
 
