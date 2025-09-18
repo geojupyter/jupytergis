@@ -663,7 +663,7 @@ export const loadFile = async (fileInfo: {
         if (typeof file.content === 'string') {
           const { toGeoJson } = await import('geoparquet');
 
-          const arrayBuffer = await stringToArrayBuffer(file.content as string);
+          const arrayBuffer = await stringToArrayBuffer(file.content);
 
           return await toGeoJson({ file: arrayBuffer, compressors });
         } else {
@@ -959,7 +959,7 @@ export async function getGeoJSONDataFromLayerSource(
 ): Promise<string | null> {
   const vectorSourceTypes: SourceType[] = ['GeoJSONSource', 'ShapefileSource'];
 
-  if (!vectorSourceTypes.includes(source.type as SourceType)) {
+  if (!vectorSourceTypes.includes(source.type)) {
     console.error(
       `Invalid source type '${source.type}'. Expected one of: ${vectorSourceTypes.join(', ')}`,
     );
