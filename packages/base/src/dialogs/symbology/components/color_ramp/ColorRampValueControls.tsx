@@ -45,14 +45,24 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
         />
       </div>
 
-      {rampDef.type === 'Divergent' && renderType === 'Graduated' && (
-        <div className="jp-gis-symbology-row">
-          <label htmlFor="critical-value">Critical Value:</label>
-          <output id="critical-value" className="jp-mod-styled">
-            {rampDef.criticalValue ?? 'Auto-calculated'}
-          </output>
-        </div>
-      )}
+      {rampDef.type === 'Divergent' &&
+        renderType === 'Graduated' &&
+        dataMin !== undefined &&
+        dataMax !== undefined && (
+          <div className="jp-gis-symbology-row">
+            <label htmlFor="critical-value">Critical Value:</label>
+            <input
+              id="critical-value"
+              type="text"
+              className="jp-mod-styled"
+              value={`${(
+                dataMin +
+                (rampDef.criticalValue ?? 0.5) * (dataMax - dataMin)
+              ).toFixed(1)}   (Colormap diverges at 50%)`}
+              readOnly
+            />
+          </div>
+        )}
 
       <div className="jp-gis-symbology-row">
         <label htmlFor="max-value">Max Value:</label>
@@ -75,8 +85,8 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
             className="jp-Dialog-button jp-mod-accept jp-mod-styled"
             disabled={selectedMin === dataMin && selectedMax === dataMax}
             onClick={() => {
-              settedMin(selectedMin);
-              settedMax(selectedMax);
+              settedMin(dataMin);
+              settedMax(dataMax);
             }}
           >
             Use Actual Range

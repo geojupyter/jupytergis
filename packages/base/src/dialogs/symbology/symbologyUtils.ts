@@ -3,7 +3,6 @@ import colormap from 'colormap';
 
 import { ColorRampName } from '@/src/types';
 import { VectorClassifications } from './classificationModes';
-import { COLOR_RAMP_DEFINITIONS } from './rampNames';
 import { IStopRow } from './symbologyDialog';
 
 const COLOR_EXPR_STOPS_START = 3;
@@ -115,31 +114,17 @@ export namespace Utils {
     minValue?: number,
     maxValue?: number,
   ) => {
-    const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp];
     let effectiveStops: number[] = [];
 
     if (renderType === 'Categorized') {
       effectiveStops = stops;
     } else {
-      if (rampDef?.type === 'Divergent' && renderType === 'Graduated') {
-        const rawMin = minValue ?? Math.min(...stops);
-        const rawMax = maxValue ?? Math.max(...stops);
-        const absMax = Math.max(Math.abs(rawMin), Math.abs(rawMax));
-
-        effectiveStops = VectorClassifications.calculateEqualIntervalBreaks(
-          stops,
-          nClasses,
-          -absMax,
-          absMax,
-        );
-      } else {
-        effectiveStops = VectorClassifications.calculateEqualIntervalBreaks(
-          stops,
-          nClasses,
-          minValue,
-          maxValue,
-        );
-      }
+      effectiveStops = VectorClassifications.calculateEqualIntervalBreaks(
+        stops,
+        nClasses,
+        minValue,
+        maxValue,
+      );
     }
 
     let colorMap = colormap({

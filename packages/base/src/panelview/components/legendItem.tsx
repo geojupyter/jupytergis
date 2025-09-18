@@ -135,12 +135,15 @@ export const LegendItem: React.FC<{
         .join(', ');
       const gradient = `linear-gradient(to right, ${segments})`;
 
-      const minValue = rampDef?.userMin ?? stops[0].value;
-      const maxValue = rampDef?.userMax ?? stops[stops.length - 1].value;
-      const criticalValue =
-        rampDef?.definition.type === 'Divergent'
-          ? (rampDef.criticalValue ?? 0.5)
-          : undefined;
+      const dataMin = symbology.symbologyState?.dataMin ?? stops[0].value;
+      const dataMax =
+        symbology.symbologyState?.dataMax ?? stops[stops.length - 1].value;
+
+      let criticalValue: number | undefined = undefined;
+      if (rampDef?.definition.type === 'Divergent') {
+        const relativeCritical = rampDef.criticalValue ?? 0.5;
+        criticalValue = dataMin + relativeCritical * (dataMax - dataMin);
+      }
       const isDivergent = criticalValue !== undefined;
 
       setContent(
@@ -204,6 +207,7 @@ export const LegendItem: React.FC<{
                     position: 'absolute',
                     left: '0%',
                     transform: 'translateX(0%)',
+                    fontWeight: 'bold',
                   }}
                 >
                   <div
@@ -217,7 +221,7 @@ export const LegendItem: React.FC<{
                   <div
                     style={{ position: 'absolute', top: 12, fontSize: '0.7em' }}
                   >
-                    {minValue.toFixed(2)}
+                    {dataMin.toFixed(2)}
                   </div>
                 </div>
 
@@ -227,6 +231,7 @@ export const LegendItem: React.FC<{
                     position: 'absolute',
                     left: '100%',
                     transform: 'translateX(-100%)',
+                    fontWeight: 'bold',
                   }}
                 >
                   <div
@@ -240,22 +245,22 @@ export const LegendItem: React.FC<{
                   <div
                     style={{ position: 'absolute', top: 12, fontSize: '0.7em' }}
                   >
-                    {maxValue.toFixed(2)}
+                    {dataMax.toFixed(2)}
                   </div>
                 </div>
 
                 {/* Critical */}
-                {isDivergent && (
+                {isDivergent && criticalValue !== undefined && (
                   <div
                     style={{
                       position: 'absolute',
                       left: `${
-                        criticalValue <= minValue
+                        criticalValue <= dataMin
                           ? 0
-                          : criticalValue >= maxValue
+                          : criticalValue >= dataMax
                             ? 100
-                            : ((criticalValue - minValue) /
-                                (maxValue - minValue)) *
+                            : ((criticalValue - dataMin) /
+                                (dataMax - dataMin)) *
                               100
                       }%`,
                       transform: 'translateX(-50%)',
@@ -275,10 +280,9 @@ export const LegendItem: React.FC<{
                         top: -20,
                         fontSize: '0.7em',
                         fontWeight: 'bold',
-                        color: 'red',
                       }}
                     >
-                      {criticalValue.toFixed(2)}
+                      {criticalValue.toFixed(1)}
                     </div>
                   </div>
                 )}

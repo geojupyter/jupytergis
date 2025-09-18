@@ -96,29 +96,14 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       ? minValue + normalizedCritical * (maxValue - minValue)
       : undefined;
 
-  let displayMin = minValue;
-  let displayMax = maxValue;
-
-  if (
-    rampDef?.type === 'Divergent' &&
-    renderType === 'Graduated' &&
-    displayMin !== undefined &&
-    displayMax !== undefined
-  ) {
-    const absMax = Math.max(
-      minValue ?? Math.abs(displayMin),
-      maxValue ?? Math.abs(displayMax),
-    );
-    displayMin = -absMax;
-    displayMax = absMax;
-  }
-
   useEffect(() => {
     if (!layerParams.symbologyState) {
       layerParams.symbologyState = {};
     }
 
     if (renderType !== 'Heatmap') {
+      layerParams.symbologyState.dataMin = initialMin;
+      layerParams.symbologyState.dataMax = initialMax;
       layerParams.symbologyState.min = minValue;
       layerParams.symbologyState.max = maxValue;
       layerParams.symbologyState.colorRamp = selectedRamp;
@@ -129,7 +114,15 @@ const ColorRamp: React.FC<IColorRampProps> = ({
         layerParams.symbologyState.criticalValue = rampDef.criticalValue;
       }
     }
-  }, [minValue, maxValue, selectedRamp, selectedMode, numberOfShades]);
+  }, [
+    minValue,
+    maxValue,
+    selectedRamp,
+    selectedMode,
+    numberOfShades,
+    initialMin,
+    initialMax,
+  ]);
 
   return (
     <div className="jp-gis-color-ramp-container">
@@ -153,9 +146,9 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       )}
 
       <ColorRampValueControls
-        selectedMin={displayMin}
+        selectedMin={minValue}
         settedMin={setMinValue}
-        selectedMax={displayMax}
+        selectedMax={maxValue}
         settedMax={setMaxValue}
         rampDef={rampDef}
         dataMin={initialMin}
@@ -176,8 +169,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
               selectedRamp,
               setIsLoading,
               scaledCritical,
-              displayMin,
-              displayMax,
+              minValue,
+              maxValue,
             )
           }
         >
