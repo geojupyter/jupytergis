@@ -51,6 +51,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   const [minValue, setMinValue] = useState<number | undefined>();
   const [maxValue, setMaxValue] = useState<number | undefined>();
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
+  const [reverseRamp, setReverseRamp] = useState(false);
   const [selectedFunction, setSelectedFunction] =
     useState<InterpolationType>('linear');
   const [colorRampOptions, setColorRampOptions] = useState<
@@ -252,6 +253,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       mode: colorRampOptionsRef.current?.selectedMode,
       min: minValue ?? bandRow.stats.minimum,
       max: maxValue ?? bandRow.stats.maximum,
+      reverse: reverseRamp,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -335,6 +337,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       stops,
       selectedRamp,
       nClasses,
+      reverseRamp,
     );
 
     setStopRows(valueColorPairs);
@@ -417,8 +420,11 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           classifyFunc={buildColorInfoFromClassification}
           showModeRow={true}
           showRampSelector={true}
+          reverse={reverseRamp}
+          setReverse={setReverseRamp}
         />
       )}
+
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>

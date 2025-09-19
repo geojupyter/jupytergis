@@ -27,6 +27,8 @@ interface IColorRampProps {
     | 'Categorized'
     | 'Heatmap'
     | 'Singleband Pseudocolor';
+  reverse: boolean;
+  setReverse: React.Dispatch<React.SetStateAction<boolean>>;
   initialMin?: number;
   initialMax?: number;
 }
@@ -47,6 +49,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   showModeRow,
   showRampSelector,
   renderType,
+  reverse = true,
+  setReverse,
   initialMin,
   initialMax,
 }) => {
@@ -126,12 +130,15 @@ const ColorRamp: React.FC<IColorRampProps> = ({
 
   return (
     <div className="jp-gis-color-ramp-container">
+
       {showRampSelector && (
         <div className="jp-gis-symbology-row">
           <label htmlFor="color-ramp-select">Color Ramp:</label>
           <CanvasSelectComponent
             selectedRamp={selectedRamp}
             setSelected={setSelectedRamp}
+            reverse={reverse}
+            setReverse={setReverse}
           />
         </div>
       )}

@@ -8,11 +8,15 @@ import ColorRampEntry from './ColorRampEntry';
 interface ICanvasSelectComponentProps {
   selectedRamp: string;
   setSelected: (item: any) => void;
+  reverse: boolean;
+  setReverse: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
   selectedRamp,
   setSelected,
+  reverse,
+  setReverse,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -102,6 +106,17 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
             onClick={selectItem}
           />
         ))}
+      </div>
+
+      <div className="jp-gis-symbology-row">
+        <label>
+          <input
+            type="checkbox"
+            checked={reverse}
+            onChange={e => setReverse(e.target.checked)}
+          />
+          Reverse Color Ramp
+        </label>
       </div>
     </div>
   );
