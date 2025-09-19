@@ -184,6 +184,8 @@ select option {
   position: absolute;
   transition: transform 0.3s ease;
   text-shadow: 0px 0px 4px black;
+  transform: scale(1);
+  transform-origin: left bottom;
 }
 
 .jp-gis-color-ramp-entry:hover .jp-gis-color-label {

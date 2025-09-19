@@ -51,16 +51,12 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
         dataMax !== undefined && (
           <div className="jp-gis-symbology-row">
             <label htmlFor="critical-value">Critical Value:</label>
-            <input
-              id="critical-value"
-              type="text"
-              className="jp-mod-styled"
-              value={`${(
+            <span id="critical-value" className="jp-mod-styled">
+              {`${(
                 dataMin +
                 (rampDef.criticalValue ?? 0.5) * (dataMax - dataMin)
-              ).toFixed(1)}   (Colormap diverges at 50%)`}
-              readOnly
-            />
+              ).toFixed(1)} (Colormap diverges at 50%)`}
+            </span>
           </div>
         )}
 
