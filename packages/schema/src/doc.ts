@@ -347,7 +347,7 @@ export class JupyterGISDoc
           needEmit = true;
         }
         changes.push({
-          id: key as string,
+          id: key,
           oldValue: change.oldValue,
           newValue: JSONExt.deepCopy(event.target.toJSON()[key]),
         });
@@ -376,7 +376,7 @@ export class JupyterGISDoc
           needEmit = true;
         }
         changes.push({
-          id: key as string,
+          id: key,
           newValue: JSONExt.deepCopy(event.target.toJSON()[key]),
         });
       });
