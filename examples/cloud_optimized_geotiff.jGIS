@@ -6,8 +6,8 @@
   "layers": {
     "6dd80360-2675-40cf-aaee-c7101ef1779a": {
       "name": "OpenStreetMap.Mapnik Layer",
+      "opacity": 1.0,
       "parameters": {
-        "opacity": 1.0,
         "source": "a6a98ac4-0d1c-4a3d-af71-88a91f28ccb9"
       },
       "type": "RasterLayer",
@@ -15,6 +15,7 @@
     },
     "f75fd646-bc7d-478b-b65b-de34155b8efa": {
       "name": "COG Layer",
+      "opacity": 1.0,
       "parameters": {
         "color": [
           "interpolate",
@@ -138,7 +139,6 @@
             1.0
           ]
         ],
-        "opacity": 1.0,
         "source": "8b1d4258-5d46-48da-b466-496d376b593d",
         "symbologyState": {
           "band": 1.0,

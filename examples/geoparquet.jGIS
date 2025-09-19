@@ -6,6 +6,7 @@
   "layers": {
     "9556ca29-a5ec-41af-bf14-4b543c52aafe": {
       "name": "OpenStreetMap.Mapnik Layer",
+      "opacity": 1.0,
       "parameters": {
         "source": "2a52082b-7992-40dc-92d6-75e309a1ed27"
       },
@@ -14,8 +15,8 @@
     },
     "d7a2ad84-0750-4e9b-82c0-542fcc6b3265": {
       "name": "GeoParquet Vector Layer",
+      "opacity": 1.0,
       "parameters": {
-        "opacity": 1.0,
         "source": "c1da95b9-8a71-4fee-b4e3-6f0b5f53d2d4"
       },
       "type": "VectorLayer",
