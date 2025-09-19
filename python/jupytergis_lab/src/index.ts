@@ -116,6 +116,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
       rank: 2,
     });
 
+    app.contextMenu.addItem({
+      command: CommandIDs.openAttributeTable,
+      selector: '.jp-gis-layerItem',
+      rank: 2,
+    });
+
     // Create the Download submenu
     const downloadSubmenu = new Menu({ commands: app.commands });
     downloadSubmenu.title.label = translator.load('jupyterlab').__('Download');
