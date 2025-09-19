@@ -1,0 +1,32 @@
+name: '📖 User story'
+description: |
+  Share a workflow that you would like to see improve (faster, less
+  frustrating, less steps, and/or less cognitive load).
+labels:
+  - 'user story'
+body:
+  - type: 'textarea'
+    attributes:
+      label: 'Description'
+      description: |
+        Please describe your experience clearly.
+        Please describe points of friction, frustration, or mental burden.
+    validations:
+      required: true
+
+  - type: 'textarea'
+    attributes:
+      label: 'Steps'
+      description: |
+        Please write a numbered list of all the steps in your story.
+        Please write as if you're describing what a non-GIS-professional
+        looking over your shoulder would see.
+
+        Please estimate the time consumed by each step, and let us know about
+        any steps that are particularly frustrating or rewarding.
+
+        **We would especially like to know about where you experienced
+        [mental context switches](https://en.wikipedia.org/wiki/Human_multitasking)
+        during this process.**
+    validations:
+      required: true

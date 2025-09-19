@@ -83,14 +83,12 @@ export class JupyterGISModelFactory
   createNew(
     options: DocumentRegistry.IModelOptions<IJupyterGISDoc>,
   ): JupyterGISModel {
-    const model = new JupyterGISModel({
+    return new JupyterGISModel({
       sharedModel: options.sharedModel,
       languagePreference: options.languagePreference,
       annotationModel: this._annotationModel,
       settingRegistry: this._settingRegistry,
     });
-    model.initSettings();
-    return model;
   }
 
   private _annotationModel: IAnnotationModel;

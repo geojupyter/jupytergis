@@ -50,3 +50,17 @@ export const addAnnotation = 'jupytergis:addAnnotation';
 export const zoomToLayer = 'jupytergis:zoomToLayer';
 export const downloadGeoJSON = 'jupytergis:downloadGeoJSON';
 export const openAttributeTable = 'jupytergis:openAttributeTable';
+
+// Panel toggles
+export const toggleLeftPanel = 'jupytergis:toggleLeftPanel';
+export const toggleRightPanel = 'jupytergis:toggleRightPanel';
+
+// Left panel tabs
+export const showLayersTab = 'jupytergis:showLayersTab';
+export const showStacBrowserTab = 'jupytergis:showStacBrowserTab';
+export const showFiltersTab = 'jupytergis:showFiltersTab';
+
+// Right panel tabs
+export const showObjectPropertiesTab = 'jupytergis:showObjectPropertiesTab';
+export const showAnnotationsTab = 'jupytergis:showAnnotationsTab';
+export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';

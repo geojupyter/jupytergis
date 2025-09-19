@@ -58,7 +58,10 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
         return;
       }
 
-      if (model.isIdentifying && featuresRef.current !== identifiedFeatures) {
+      if (
+        model.currentMode === 'identifying' &&
+        featuresRef.current !== identifiedFeatures
+      ) {
         setFeatures(identifiedFeatures);
       }
     };
@@ -84,6 +87,18 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
     }));
   };
 
+  const getFeatureNameOrId = (feature: any, featureIndex: number) => {
+    for (const key of Object.keys(feature)) {
+      const lowerCase = key.toLowerCase();
+
+      if ((lowerCase.includes('name') || lowerCase === 'id') && feature[key]) {
+        return feature[key];
+      }
+    }
+
+    return `Feature ${featureIndex + 1}`;
+  };
+
   return (
     <div
       className="jgis-identify-wrapper"
@@ -93,6 +108,12 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
           : 'unset',
       }}
     >
+      {!Object.keys(features ?? {}).length && (
+        <div style={{ textAlign: 'center' }}>
+          Please select a layer from the layer list, then "i" from the toolbar
+          to start identifying features.
+        </div>
+      )}
       {features &&
         Object.values(features).map((feature, featureIndex) => (
           <div key={featureIndex} className="jgis-identify-grid-item">
@@ -103,7 +124,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
                   className={`jp-gis-layerGroupCollapser${visibleFeatures[featureIndex] ? ' jp-mod-expanded' : ''}`}
                   tag={'span'}
                 />
-                <span>Feature {featureIndex + 1}</span>
+                <span>{getFeatureNameOrId(feature, featureIndex)}</span>
               </span>
 
               {(() => {
