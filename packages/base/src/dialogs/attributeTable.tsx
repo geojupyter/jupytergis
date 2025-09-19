@@ -38,13 +38,13 @@ const AttributeTable: React.FC<IAttributeTableProps> = ({ model, layerId }) => {
         key,
         name: key,
         resizable: true,
-        sortable: true
-      }))
+        sortable: true,
+      })),
     ];
 
     const rowData = features.map((f, i) => ({
       sno: i + 1,
-      ...f.properties
+      ...f.properties,
     }));
 
     setColumns(cols);
@@ -73,7 +73,7 @@ export class AttributeTableWidget extends Dialog<void> {
 
     super({
       title: 'Attribute Table',
-      body
+      body,
     });
 
     this.id = 'jupytergis::attributeTable';

@@ -879,6 +879,8 @@ export function addCommands(
 
       console.log('Open attribute table for layer:', layerId);
       Private.createAttributeTableDialog(tracker, layerId)();
+    },
+  });
   // Panel visibility commands
   commands.addCommand(CommandIDs.toggleLeftPanel, {
     label: trans.__('Toggle Left Panel'),
