@@ -16,13 +16,13 @@ interface IColorRampProps {
     numberOfShades: string,
     selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
+    minValue: number,
+    maxValue: number,
     criticalValue?: number,
-    minValue?: number,
-    maxValue?: number,
   ) => void;
   showModeRow: boolean;
   showRampSelector: boolean;
-  renderType?:
+  renderType:
     | 'Graduated'
     | 'Categorized'
     | 'Heatmap'
@@ -169,17 +169,21 @@ const ColorRamp: React.FC<IColorRampProps> = ({
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
           disabled={minValue === undefined || maxValue === undefined}
-          onClick={() =>
+          onClick={() => {
+            if (minValue === undefined || maxValue === undefined) {
+              return;
+            }
+
             classifyFunc(
               selectedMode,
               numberOfShades,
               selectedRamp,
               setIsLoading,
-              scaledCritical,
               minValue,
               maxValue,
+              scaledCritical,
             )
-          }
+          }}
         >
           Classify
         </Button>

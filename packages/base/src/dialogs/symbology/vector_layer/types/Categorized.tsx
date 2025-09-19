@@ -147,6 +147,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     numberOfShades: string,
     selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
+    minValue: number,
+    maxValue: number,
   ) => {
     setColorRampOptions({
       selectedRamp,
@@ -166,6 +168,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       stops.length,
       reverseRamp,
       'Categorized',
+      minValue,
+      maxValue,
     );
 
     setStopRows(valueColorPairs);

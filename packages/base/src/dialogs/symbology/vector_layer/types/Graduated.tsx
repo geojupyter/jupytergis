@@ -233,9 +233,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     numberOfShades: string,
     selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
+    minValue: number,
+    maxValue: number,
     criticalValue?: number,
-    minValue?: number,
-    maxValue?: number,
   ) => {
     setColorRampOptions({
       selectedRamp,
@@ -260,8 +260,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       case 'equal interval':
         stops = VectorClassifications.calculateEqualIntervalBreaks(
           +numberOfShades,
-          minValue ?? 0.95,
-          maxValue ?? 8.1,
+          minValue,
+          maxValue,
         );
         break;
       case 'jenks':

@@ -110,9 +110,9 @@ export namespace Utils {
       | 'Categorized'
       | 'Graduated'
       | 'Heatmap'
-      | 'Singleband Pseudocolor' = 'Graduated',
-    minValue?: number,
-    maxValue?: number,
+      | 'Singleband Pseudocolor',
+    minValue: number,
+    maxValue: number,
   ) => {
     let effectiveStops: number[] = [];
 
@@ -121,8 +121,8 @@ export namespace Utils {
     } else {
       effectiveStops = VectorClassifications.calculateEqualIntervalBreaks(
         nClasses,
-        minValue ?? 0.95,
-        maxValue ?? 8.1,
+        minValue,
+        maxValue,
       );
     }
 

@@ -21,7 +21,6 @@ import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import { GlobalStateDbManager } from '@/src/store';
 import { ColorRampName } from '@/src/types';
-import { ColorRampValueControls } from '../../components/color_ramp/ColorRampValueControls';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
@@ -48,8 +47,16 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
   const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
+
+  // TODO: New effect to set min/max. The min/max will be different per-band,
+  // so this effect will need to depend on the data values, and the selected band.
+  // The effect would be triggered on clicking "use actual range" or on
+  // component load if these values are not already initialized.
+  // This operation is expensive so we don't want to do it too many times; can
+  // we cache it in the global state db?
   const [minValue, setMinValue] = useState<number | undefined>();
   const [maxValue, setMaxValue] = useState<number | undefined>();
+
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [reverseRamp, setReverseRamp] = useState(false);
   const [selectedFunction, setSelectedFunction] =
@@ -286,6 +293,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     numberOfShades: string,
     selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
+    minValue: number,
+    maxValue: number,
   ) => {
     // Update layer state with selected options
     setColorRampOptions({
@@ -314,8 +323,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       case 'continuous':
         stops = GeoTiffClassifications.classifyContinuousBreaks(
           nClasses,
-          currentBand.stats.minimum,
-          currentBand.stats.maximum,
+          minValue,
+          maxValue,
           selectedFunction,
         );
         break;
@@ -338,6 +347,9 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       selectedRamp,
       nClasses,
       reverseRamp,
+      'Singleband Pseudocolor',
+      minValue,
+      maxValue
     );
 
     setStopRows(valueColorPairs);
@@ -404,15 +416,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           </select>
         </div>
       </div>
-      <ColorRampValueControls
-        selectedMin={minValue}
-        settedMin={setMinValue}
-        selectedMax={maxValue}
-        settedMax={setMaxValue}
-        rampDef={{
-          type: 'Sequential',
-        }}
-      />
+
       {bandRows.length > 0 && (
         <ColorRamp
           layerParams={layer.parameters}
@@ -420,6 +424,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           classifyFunc={buildColorInfoFromClassification}
           showModeRow={true}
           showRampSelector={true}
+          renderType='Singleband Pseudocolor'
           reverse={reverseRamp}
           setReverse={setReverseRamp}
         />
