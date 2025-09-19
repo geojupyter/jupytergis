@@ -120,10 +120,9 @@ export namespace Utils {
       effectiveStops = stops;
     } else {
       effectiveStops = VectorClassifications.calculateEqualIntervalBreaks(
-        stops,
         nClasses,
-        minValue,
-        maxValue,
+        minValue ?? 0.95,
+        maxValue ?? 8.1,
       );
     }
 

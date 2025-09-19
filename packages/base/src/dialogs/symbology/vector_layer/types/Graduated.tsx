@@ -259,8 +259,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         break;
       case 'equal interval':
         stops = VectorClassifications.calculateEqualIntervalBreaks(
-          values,
           +numberOfShades,
+          minValue ?? 0.95,
+          maxValue ?? 8.1,
         );
         break;
       case 'jenks':
