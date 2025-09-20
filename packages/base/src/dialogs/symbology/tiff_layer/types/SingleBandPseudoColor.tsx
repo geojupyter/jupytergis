@@ -349,7 +349,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       reverseRamp,
       'Singleband Pseudocolor',
       minValue,
-      maxValue
+      maxValue,
     );
 
     setStopRows(valueColorPairs);
@@ -424,7 +424,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           classifyFunc={buildColorInfoFromClassification}
           showModeRow={true}
           showRampSelector={true}
-          renderType='Singleband Pseudocolor'
+          renderType="Singleband Pseudocolor"
           reverse={reverseRamp}
           setReverse={setReverseRamp}
         />
