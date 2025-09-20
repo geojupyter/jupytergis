@@ -109,7 +109,7 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
       </div>
 
       <div className="jp-gis-symbology-row">
-        <label>
+        <label className="jp-gis-inline-label">
           <input
             type="checkbox"
             checked={reverse}

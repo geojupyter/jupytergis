@@ -130,7 +130,6 @@ const ColorRamp: React.FC<IColorRampProps> = ({
 
   return (
     <div className="jp-gis-color-ramp-container">
-
       {showRampSelector && (
         <div className="jp-gis-symbology-row">
           <label htmlFor="color-ramp-select">Color Ramp:</label>
@@ -182,7 +181,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
               minValue,
               maxValue,
               scaledCritical,
-            )
+            );
           }}
         >
           Classify

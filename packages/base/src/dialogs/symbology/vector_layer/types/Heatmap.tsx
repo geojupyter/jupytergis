@@ -30,7 +30,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
     radius: 8,
     blur: 15,
   });
-  const reverseRampRef = useRef(false);  // Do we need these refs here? Why not directly use the state?
+  const reverseRampRef = useRef(false); // Do we need these refs here? Why not directly use the state?
 
   useEffect(() => {
     populateOptions();

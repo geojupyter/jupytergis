@@ -54,8 +54,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   // component load if these values are not already initialized.
   // This operation is expensive so we don't want to do it too many times; can
   // we cache it in the global state db?
-  const [minValue, setMinValue] = useState<number | undefined>();
-  const [maxValue, setMaxValue] = useState<number | undefined>();
+  const [minValue] = useState<number | undefined>();
+  const [maxValue] = useState<number | undefined>();
 
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [reverseRamp, setReverseRamp] = useState(false);
