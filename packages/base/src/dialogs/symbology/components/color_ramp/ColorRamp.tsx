@@ -2,27 +2,44 @@ import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
+import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/rampNames';
 import { LoadingIcon } from '@/src/shared/components/loading';
+import { ColorRampName } from '@/src/types';
 import CanvasSelectComponent from './CanvasSelectComponent';
+import { ColorRampValueControls } from './ColorRampValueControls';
 import ModeSelectRow from './ModeSelectRow';
-
 interface IColorRampProps {
   modeOptions: string[];
   layerParams: IDict;
   classifyFunc: (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string,
+    selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
+    minValue: number,
+    maxValue: number,
+    criticalValue?: number,
   ) => void;
   showModeRow: boolean;
   showRampSelector: boolean;
+  renderType:
+    | 'Graduated'
+    | 'Categorized'
+    | 'Heatmap'
+    | 'Singleband Pseudocolor';
+  reverse: boolean;
+  setReverse: React.Dispatch<React.SetStateAction<boolean>>;
+  initialMin?: number;
+  initialMax?: number;
 }
 
 export type ColorRampOptions = {
-  selectedRamp: string;
+  selectedRamp: ColorRampName;
   numberOfShades: string;
   selectedMode: string;
+  minValue?: number;
+  maxValue?: number;
+  criticalValue?: number;
 };
 
 const ColorRamp: React.FC<IColorRampProps> = ({
@@ -31,19 +48,37 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   classifyFunc,
   showModeRow,
   showRampSelector,
+  renderType,
+  reverse = true,
+  setReverse,
+  initialMin,
+  initialMax,
 }) => {
-  const [selectedRamp, setSelectedRamp] = useState('');
+  const [selectedRamp, setSelectedRamp] = useState<ColorRampName>('viridis');
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
+  const [minValue, setMinValue] = useState<number | undefined>(initialMin);
+  const [maxValue, setMaxValue] = useState<number | undefined>(initialMax);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (selectedRamp === '' && selectedMode === '' && numberOfShades === '') {
-      populateOptions();
+    if (selectedMode === '' && numberOfShades === '') {
+      initializeState();
     }
   }, [layerParams]);
 
-  const populateOptions = () => {
+  useEffect(() => {
+    if (renderType === 'Graduated') {
+      if (initialMin !== undefined) {
+        setMinValue(initialMin);
+      }
+      if (initialMax !== undefined) {
+        setMaxValue(initialMax);
+      }
+    }
+  }, [initialMin, initialMax, renderType]);
+
+  const initializeState = () => {
     let nClasses, singleBandMode, colorRamp;
 
     if (layerParams.symbologyState) {
@@ -56,6 +91,43 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     setSelectedRamp(colorRamp ? colorRamp : 'viridis');
   };
 
+  const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp];
+
+  const normalizedCritical =
+    rampDef?.type === 'Divergent' ? (rampDef.criticalValue ?? 0.5) : 0.5;
+  const scaledCritical =
+    minValue !== undefined && maxValue !== undefined
+      ? minValue + normalizedCritical * (maxValue - minValue)
+      : undefined;
+
+  useEffect(() => {
+    if (!layerParams.symbologyState) {
+      layerParams.symbologyState = {};
+    }
+
+    if (renderType !== 'Heatmap') {
+      layerParams.symbologyState.dataMin = initialMin;
+      layerParams.symbologyState.dataMax = initialMax;
+      layerParams.symbologyState.min = minValue;
+      layerParams.symbologyState.max = maxValue;
+      layerParams.symbologyState.colorRamp = selectedRamp;
+      layerParams.symbologyState.nClasses = numberOfShades;
+      layerParams.symbologyState.mode = selectedMode;
+
+      if (rampDef?.type === 'Divergent') {
+        layerParams.symbologyState.criticalValue = rampDef.criticalValue;
+      }
+    }
+  }, [
+    minValue,
+    maxValue,
+    selectedRamp,
+    selectedMode,
+    numberOfShades,
+    initialMin,
+    initialMax,
+  ]);
+
   return (
     <div className="jp-gis-color-ramp-container">
       {showRampSelector && (
@@ -64,6 +136,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
           <CanvasSelectComponent
             selectedRamp={selectedRamp}
             setSelected={setSelectedRamp}
+            reverse={reverse}
+            setReverse={setReverse}
           />
         </div>
       )}
@@ -76,19 +150,39 @@ const ColorRamp: React.FC<IColorRampProps> = ({
           setSelectedMode={setSelectedMode}
         />
       )}
+
+      <ColorRampValueControls
+        selectedMin={minValue}
+        settedMin={setMinValue}
+        selectedMax={maxValue}
+        settedMax={setMaxValue}
+        rampDef={rampDef}
+        dataMin={initialMin}
+        dataMax={initialMax}
+        renderType={renderType}
+      />
+
       {isLoading ? (
         <LoadingIcon />
       ) : (
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          onClick={() =>
+          disabled={minValue === undefined || maxValue === undefined}
+          onClick={() => {
+            if (minValue === undefined || maxValue === undefined) {
+              return;
+            }
+
             classifyFunc(
               selectedMode,
               numberOfShades,
               selectedRamp,
               setIsLoading,
-            )
-          }
+              minValue,
+              maxValue,
+              scaledCritical,
+            );
+          }}
         >
           Classify
         </Button>

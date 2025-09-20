@@ -1,9 +1,10 @@
 import { IVectorLayer } from '@jupytergis/schema';
-import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 
-import ColorRamp from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import ColorRamp, {
+  ColorRampOptions,
+} from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import {
   IStopRow,
@@ -11,7 +12,7 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { SymbologyTab } from '@/src/types';
+import { ColorRampName, SymbologyTab } from '@/src/types';
 
 const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -24,29 +25,47 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 }) => {
   const selectedAttributeRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
-  const colorRampOptionsRef = useRef<ReadonlyJSONObject | undefined>();
 
   const [selectedAttribute, setSelectedAttribute] = useState('');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
-  const [colorRampOptions, setColorRampOptions] = useState<
-    ReadonlyJSONObject | undefined
-  >();
+  const [colorRampOptions, setColorRampOptions] = useState<ColorRampOptions>({
+    selectedRamp: 'viridis',
+    numberOfShades: '',
+    selectedMode: '',
+  });
   const [manualStyle, setManualStyle] = useState({
     fillColor: '#3399CC',
     strokeColor: '#3399CC',
     strokeWidth: 1.25,
     radius: 5,
   });
+  const colorRampOptionsRef = useRef<ColorRampOptions>(colorRampOptions);
   const manualStyleRef = useRef(manualStyle);
   const [reverseRamp, setReverseRamp] = useState(false);
 
   if (!layerId) {
-    return;
+    return null;
   }
   const layer = model.getLayer(layerId);
   if (!layer?.parameters) {
-    return;
+    return null;
   }
+
+  const getInitialAttribute = () => {
+    const layerParams = layer.parameters as IVectorLayer;
+    return (
+      layerParams.symbologyState?.value ??
+      Object.keys(selectableAttributesAndValues)[0]
+    );
+  };
+  const initialAttribute = getInitialAttribute();
+  const initialValues = Array.from(
+    selectableAttributesAndValues[initialAttribute] ?? [],
+  );
+  const computedInitialMin =
+    initialValues.length > 0 ? Math.min(...initialValues) : undefined;
+  const computedInitialMax =
+    initialValues.length > 0 ? Math.max(...initialValues) : undefined;
 
   useEffect(() => {
     const valueColorPairs = VectorUtils.buildColorInfo(layer);
@@ -107,6 +126,13 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       layerParams.symbologyState?.value ??
       Object.keys(selectableAttributesAndValues)[0];
 
+    if (computedInitialMin !== undefined && computedInitialMax !== undefined) {
+      setColorRampOptions(prev => ({
+        ...prev,
+        minValue: computedInitialMin,
+        maxValue: computedInitialMax,
+      }));
+    }
     setSelectedAttribute(attribute);
   }, [selectableAttributesAndValues]);
 
@@ -119,14 +145,17 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const buildColorInfoFromClassification = (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string,
+    selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
+    minValue: number,
+    maxValue: number,
   ) => {
     setColorRampOptions({
-      selectedFunction: '',
       selectedRamp,
       numberOfShades: '',
       selectedMode: '',
+      minValue: computedInitialMin,
+      maxValue: computedInitialMax,
     });
 
     const stops = Array.from(
@@ -138,6 +167,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       selectedRamp,
       stops.length,
       reverseRamp,
+      'Categorized',
+      minValue,
+      maxValue,
     );
 
     setStopRows(valueColorPairs);
@@ -180,9 +212,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const symbologyState = {
       renderType: 'Categorized',
       value: selectedAttributeRef.current,
-      colorRamp: colorRampOptionsRef.current?.selectedRamp,
-      nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode,
+      colorRamp: colorRampOptionsRef.current.selectedRamp,
+      nClasses: colorRampOptionsRef.current.numberOfShades,
+      mode: colorRampOptionsRef.current.selectedMode,
       symbologyTab,
       reverse: reverseRamp,
     };
@@ -216,9 +248,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
       // Reset color classification options
       if (layer.parameters.symbologyState) {
-        layer.parameters.symbologyState.colorRamp = undefined;
-        layer.parameters.symbologyState.nClasses = undefined;
-        layer.parameters.symbologyState.mode = undefined;
+        layer.parameters.symbologyState.colorRamp = 'viridis';
+        layer.parameters.symbologyState.nClasses = '';
+        layer.parameters.symbologyState.mode = '';
       }
     }
 
@@ -316,19 +348,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             )}
           </div>
 
-          {symbologyTab === 'color' && (
-            <div className="jp-gis-symbology-row">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={reverseRamp}
-                  onChange={e => setReverseRamp(e.target.checked)}
-                />
-                Reverse Color Ramp
-              </label>
-            </div>
-          )}
-
           <div className="jp-gis-layer-symbology-container">
             <ColorRamp
               layerParams={layer.parameters}
@@ -336,6 +355,11 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               classifyFunc={buildColorInfoFromClassification}
               showModeRow={false}
               showRampSelector={symbologyTab === 'color'}
+              renderType="Categorized"
+              reverse={reverseRamp}
+              setReverse={setReverseRamp}
+              initialMin={computedInitialMin}
+              initialMax={computedInitialMax}
             />
             <StopContainer
               selectedMethod={''}

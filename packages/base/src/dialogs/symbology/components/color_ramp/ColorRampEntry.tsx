@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { IColorMap } from './CanvasSelectComponent';
+import { IColorMap } from '@/src/types';
 
 interface IColorRampEntryProps {
   index: number;
@@ -42,7 +42,9 @@ const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
       onClick={() => onClick(colorMap.name)}
       className="jp-gis-color-ramp-entry"
     >
-      <span className="jp-gis-color-label">{colorMap.name}</span>
+      <span className="jp-gis-color-label">
+        <strong>{colorMap.name}</strong> ({colorMap.definition.type})
+      </span>
       <canvas
         id={`cv-${index}`}
         height={canvasHeight}

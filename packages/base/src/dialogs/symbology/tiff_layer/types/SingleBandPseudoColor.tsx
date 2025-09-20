@@ -20,6 +20,7 @@ import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import { GlobalStateDbManager } from '@/src/store';
+import { ColorRampName } from '@/src/types';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
@@ -46,7 +47,18 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
   const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
+
+  // TODO: New effect to set min/max. The min/max will be different per-band,
+  // so this effect will need to depend on the data values, and the selected band.
+  // The effect would be triggered on clicking "use actual range" or on
+  // component load if these values are not already initialized.
+  // This operation is expensive so we don't want to do it too many times; can
+  // we cache it in the global state db?
+  const [minValue] = useState<number | undefined>();
+  const [maxValue] = useState<number | undefined>();
+
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
+  const [reverseRamp, setReverseRamp] = useState(false);
   const [selectedFunction, setSelectedFunction] =
     useState<InterpolationType>('linear');
   const [colorRampOptions, setColorRampOptions] = useState<
@@ -172,14 +184,6 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     const isQuantile = colorRampOptionsRef.current?.selectedMode === 'quantile';
 
-    const sourceInfo = source.parameters.urls[0];
-    sourceInfo.min = bandRow.stats.minimum;
-    sourceInfo.max = bandRow.stats.maximum;
-
-    source.parameters.urls[0] = sourceInfo;
-
-    model.sharedModel.updateSource(sourceId, source);
-
     // Update layer
     if (!layer.parameters) {
       return;
@@ -254,6 +258,9 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
+      min: minValue ?? bandRow.stats.minimum,
+      max: maxValue ?? bandRow.stats.maximum,
+      reverse: reverseRamp,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -284,8 +291,10 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   const buildColorInfoFromClassification = async (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string,
+    selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
+    minValue: number,
+    maxValue: number,
   ) => {
     // Update layer state with selected options
     setColorRampOptions({
@@ -314,8 +323,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       case 'continuous':
         stops = GeoTiffClassifications.classifyContinuousBreaks(
           nClasses,
-          currentBand.stats.minimum,
-          currentBand.stats.maximum,
+          minValue,
+          maxValue,
           selectedFunction,
         );
         break;
@@ -337,6 +346,10 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       stops,
       selectedRamp,
       nClasses,
+      reverseRamp,
+      'Singleband Pseudocolor',
+      minValue,
+      maxValue,
     );
 
     setStopRows(valueColorPairs);
@@ -403,6 +416,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           </select>
         </div>
       </div>
+
       {bandRows.length > 0 && (
         <ColorRamp
           layerParams={layer.parameters}
@@ -410,8 +424,12 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           classifyFunc={buildColorInfoFromClassification}
           showModeRow={true}
           showRampSelector={true}
+          renderType="Singleband Pseudocolor"
+          reverse={reverseRamp}
+          setReverse={setReverseRamp}
         />
       )}
+
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>
