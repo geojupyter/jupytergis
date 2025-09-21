@@ -358,8 +358,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               renderType="Categorized"
               reverse={reverseRamp}
               setReverse={setReverseRamp}
-              initialMin={computedInitialMin}
-              initialMax={computedInitialMax}
             />
             <StopContainer
               selectedMethod={''}

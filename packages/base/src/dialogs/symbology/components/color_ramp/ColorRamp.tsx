@@ -29,8 +29,8 @@ interface IColorRampProps {
     | 'Singleband Pseudocolor';
   reverse: boolean;
   setReverse: React.Dispatch<React.SetStateAction<boolean>>;
-  initialMin?: number;
-  initialMax?: number;
+  dataMin?: number;
+  dataMax?: number;
 }
 
 export type ColorRampOptions = {
@@ -51,14 +51,14 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   renderType,
   reverse = true,
   setReverse,
-  initialMin,
-  initialMax,
+  dataMin,
+  dataMax,
 }) => {
   const [selectedRamp, setSelectedRamp] = useState<ColorRampName>('viridis');
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
-  const [minValue, setMinValue] = useState<number | undefined>(initialMin);
-  const [maxValue, setMaxValue] = useState<number | undefined>(initialMax);
+  const [minValue, setMinValue] = useState<number | undefined>(dataMin);
+  const [maxValue, setMaxValue] = useState<number | undefined>(dataMax);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -68,15 +68,15 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   }, [layerParams]);
 
   useEffect(() => {
-    if (renderType === 'Graduated') {
-      if (initialMin !== undefined) {
-        setMinValue(initialMin);
+    if (renderType) {
+      if (dataMin !== undefined) {
+        setMinValue(dataMin);
       }
-      if (initialMax !== undefined) {
-        setMaxValue(initialMax);
+      if (dataMax !== undefined) {
+        setMaxValue(dataMax);
       }
     }
-  }, [initialMin, initialMax, renderType]);
+  }, [dataMin, dataMax, renderType]);
 
   const initializeState = () => {
     let nClasses, singleBandMode, colorRamp;
@@ -106,8 +106,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     }
 
     if (renderType !== 'Heatmap') {
-      layerParams.symbologyState.dataMin = initialMin;
-      layerParams.symbologyState.dataMax = initialMax;
+      layerParams.symbologyState.dataMin;
+      layerParams.symbologyState.dataMax;
       layerParams.symbologyState.min = minValue;
       layerParams.symbologyState.max = maxValue;
       layerParams.symbologyState.colorRamp = selectedRamp;
@@ -124,8 +124,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     selectedRamp,
     selectedMode,
     numberOfShades,
-    initialMin,
-    initialMax,
+    dataMin,
+    dataMax,
   ]);
 
   return (
@@ -157,8 +157,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
         selectedMax={maxValue}
         settedMax={setMaxValue}
         rampDef={rampDef}
-        dataMin={initialMin}
-        dataMax={initialMax}
+        dataMin={dataMin}
+        dataMax={dataMax}
         renderType={renderType}
       />
 
