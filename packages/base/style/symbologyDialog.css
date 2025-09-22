@@ -77,6 +77,8 @@ select option {
   display: flex;
   flex-direction: column;
   gap: 13px;
+  border-top: 1px solid var(--jp-border-color2);
+  padding-top: 8px;
 }
 
 .jp-gis-stop-container {
