@@ -141,15 +141,6 @@ const ColorRamp: React.FC<IColorRampProps> = ({
           />
         </div>
       )}
-      {showModeRow && (
-        <ModeSelectRow
-          modeOptions={modeOptions}
-          numberOfShades={numberOfShades}
-          setNumberOfShades={setNumberOfShades}
-          selectedMode={selectedMode}
-          setSelectedMode={setSelectedMode}
-        />
-      )}
 
       <ColorRampValueControls
         selectedMin={minValue}
@@ -161,6 +152,16 @@ const ColorRamp: React.FC<IColorRampProps> = ({
         dataMax={dataMax}
         renderType={renderType}
       />
+
+      {showModeRow && (
+        <ModeSelectRow
+          modeOptions={modeOptions}
+          numberOfShades={numberOfShades}
+          setNumberOfShades={setNumberOfShades}
+          selectedMode={selectedMode}
+          setSelectedMode={setSelectedMode}
+        />
+      )}
 
       {isLoading ? (
         <LoadingIcon />
