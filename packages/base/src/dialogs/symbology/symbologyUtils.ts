@@ -123,7 +123,7 @@ export namespace Utils {
         nClasses,
         minValue,
         maxValue,
-      );
+      ).map(v => parseFloat(v.toFixed(2)));
     }
 
     let colorMap = colormap({

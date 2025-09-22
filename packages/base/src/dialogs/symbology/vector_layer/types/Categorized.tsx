@@ -25,23 +25,23 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 }) => {
   const selectedAttributeRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
+  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
   const [selectedAttribute, setSelectedAttribute] = useState('');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
-  const [colorRampOptions, setColorRampOptions] = useState<ColorRampOptions>({
-    selectedRamp: 'viridis',
-    numberOfShades: '',
-    selectedMode: '',
-  });
+  const [colorRampOptions, setColorRampOptions] = useState<
+    ColorRampOptions | undefined
+  >();
   const [manualStyle, setManualStyle] = useState({
     fillColor: '#3399CC',
     strokeColor: '#3399CC',
     strokeWidth: 1.25,
     radius: 5,
   });
-  const colorRampOptionsRef = useRef<ColorRampOptions>(colorRampOptions);
   const manualStyleRef = useRef(manualStyle);
   const [reverseRamp, setReverseRamp] = useState(false);
+  const [dataMin, setDataMin] = useState<number | undefined>();
+  const [dataMax, setDataMax] = useState<number | undefined>();
 
   if (!layerId) {
     return null;
@@ -50,22 +50,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   if (!layer?.parameters) {
     return null;
   }
-
-  const getInitialAttribute = () => {
-    const layerParams = layer.parameters as IVectorLayer;
-    return (
-      layerParams.symbologyState?.value ??
-      Object.keys(selectableAttributesAndValues)[0]
-    );
-  };
-  const initialAttribute = getInitialAttribute();
-  const initialValues = Array.from(
-    selectableAttributesAndValues[initialAttribute] ?? [],
-  );
-  const computedInitialMin =
-    initialValues.length > 0 ? Math.min(...initialValues) : undefined;
-  const computedInitialMax =
-    initialValues.length > 0 ? Math.max(...initialValues) : undefined;
 
   useEffect(() => {
     const valueColorPairs = VectorUtils.buildColorInfo(layer);
@@ -126,14 +110,16 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       layerParams.symbologyState?.value ??
       Object.keys(selectableAttributesAndValues)[0];
 
-    if (computedInitialMin !== undefined && computedInitialMax !== undefined) {
-      setColorRampOptions(prev => ({
-        ...prev,
-        minValue: computedInitialMin,
-        maxValue: computedInitialMax,
-      }));
-    }
     setSelectedAttribute(attribute);
+
+    const values = Array.from(selectableAttributesAndValues[attribute] ?? []);
+    if (values.length > 0) {
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+
+      setDataMin(min);
+      setDataMax(max);
+    }
   }, [selectableAttributesAndValues]);
 
   useEffect(() => {
@@ -154,8 +140,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       selectedRamp,
       numberOfShades: '',
       selectedMode: '',
-      minValue: computedInitialMin,
-      maxValue: computedInitialMax,
+      minValue,
+      maxValue,
     });
 
     const stops = Array.from(
@@ -212,9 +198,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const symbologyState = {
       renderType: 'Categorized',
       value: selectedAttributeRef.current,
-      colorRamp: colorRampOptionsRef.current.selectedRamp,
-      nClasses: colorRampOptionsRef.current.numberOfShades,
-      mode: colorRampOptionsRef.current.selectedMode,
+      colorRamp: colorRampOptionsRef.current?.selectedRamp,
+      nClasses: colorRampOptionsRef.current?.numberOfShades,
+      mode: colorRampOptionsRef.current?.selectedMode,
       symbologyTab,
       reverse: reverseRamp,
     };
@@ -248,9 +234,9 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
       // Reset color classification options
       if (layer.parameters.symbologyState) {
-        layer.parameters.symbologyState.colorRamp = 'viridis';
-        layer.parameters.symbologyState.nClasses = '';
-        layer.parameters.symbologyState.mode = '';
+        layer.parameters.symbologyState.colorRamp = undefined;
+        layer.parameters.symbologyState.nClasses = undefined;
+        layer.parameters.symbologyState.mode = undefined;
       }
     }
 
@@ -358,6 +344,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               renderType="Categorized"
               reverse={reverseRamp}
               setReverse={setReverseRamp}
+              dataMin={dataMin}
+              dataMax={dataMax}
             />
             <StopContainer
               selectedMethod={''}
