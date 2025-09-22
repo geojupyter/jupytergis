@@ -76,9 +76,6 @@ export interface IColorMap {
   name: ColorRampName;
   colors: string[];
   definition: IColorRampDefinition;
-  userMin?: number;
-  userMax?: number;
-  criticalValue?: number;
 }
 
 export type ColorRampName = keyof typeof COLOR_RAMP_DEFINITIONS;

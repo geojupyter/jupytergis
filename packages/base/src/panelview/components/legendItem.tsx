@@ -135,13 +135,13 @@ export const LegendItem: React.FC<{
         .join(', ');
       const gradient = `linear-gradient(to right, ${segments})`;
 
-      const dataMin = symbology.symbologyState?.dataMin ?? stops[0].value;
+      const dataMin = symbology.symbologyState.dataMin ?? stops[0].value;
       const dataMax =
-        symbology.symbologyState?.dataMax ?? stops[stops.length - 1].value;
+        symbology.symbologyState.dataMax ?? stops[stops.length - 1].value;
 
       let criticalValue: number | undefined = undefined;
       if (rampDef?.definition.type === 'Divergent') {
-        const relativeCritical = rampDef.criticalValue ?? 0.5;
+        const relativeCritical = symbology.symbologyState.criticalValue ?? 0.5;
         criticalValue = dataMin + relativeCritical * (dataMax - dataMin);
       }
       const isDivergent = criticalValue !== undefined;
