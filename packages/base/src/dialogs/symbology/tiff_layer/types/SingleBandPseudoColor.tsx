@@ -54,11 +54,11 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   // component load if these values are not already initialized.
   // This operation is expensive so we don't want to do it too many times; can
   // we cache it in the global state db?
-  const [minValue] = useState<number | undefined>();
-  const [maxValue] = useState<number | undefined>();
 
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [reverseRamp, setReverseRamp] = useState(false);
+  const [dataMin, setDataMin] = useState<number | undefined>();
+  const [dataMax, setDataMax] = useState<number | undefined>();
   const [selectedFunction, setSelectedFunction] =
     useState<InterpolationType>('linear');
   const [colorRampOptions, setColorRampOptions] = useState<
@@ -97,6 +97,16 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     selectedBandRef.current = selectedBand;
   }, [stopRows, selectedFunction, colorRampOptions, selectedBand, layerState]);
 
+  useEffect(() => {
+    if (bandRows.length > 0) {
+      const currentBand = bandRows[selectedBand - 1];
+      if (currentBand?.stats) {
+        setDataMin(currentBand.stats.minimum);
+        setDataMax(currentBand.stats.maximum);
+      }
+    }
+  }, [selectedBand, bandRows]);
+
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
       `jupytergis:${layerId}`,
@@ -110,6 +120,12 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     setSelectedBand(band);
     setSelectedFunction(interpolation);
+
+    const bandRow = bandRows[band - 1];
+    if (bandRow?.stats) {
+      setDataMin(bandRow.stats.minimum);
+      setDataMax(bandRow.stats.maximum);
+    }
   };
 
   const buildColorInfo = () => {
@@ -258,8 +274,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
-      min: minValue ?? bandRow.stats.minimum,
-      max: maxValue ?? bandRow.stats.maximum,
+      min: dataMin ?? bandRow.stats.minimum,
+      max: dataMax ?? bandRow.stats.maximum,
       reverse: reverseRamp,
     };
 
@@ -301,6 +317,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       selectedRamp,
       numberOfShades,
       selectedMode,
+      minValue,
+      maxValue,
     });
 
     let stops: number[] = [];
@@ -427,6 +445,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           renderType="Singleband Pseudocolor"
           reverse={reverseRamp}
           setReverse={setReverseRamp}
+          dataMin={dataMin}
+          dataMax={dataMax}
         />
       )}
 
