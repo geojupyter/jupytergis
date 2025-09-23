@@ -3,15 +3,13 @@ import colorScale from 'colormap/colorScale.js';
 import { useEffect } from 'react';
 
 import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
-import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/rampNames';
-import { objectEntries, objectKeys } from '@/src/tools';
+import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/colorRamps';
+import { objectEntries } from '@/src/tools';
 import { IColorMap } from '@/src/types';
 
 const { __license__: _, ...cmocean } = rawCmocean;
 
 Object.assign(colorScale, cmocean);
-
-export const COLOR_RAMP_NAMES = objectKeys(COLOR_RAMP_DEFINITIONS);
 
 export const getColorMapList = (): IColorMap[] => {
   const colorMapList: IColorMap[] = [];

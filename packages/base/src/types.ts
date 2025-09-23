@@ -2,7 +2,7 @@ import { IDict, IJupyterGISWidget } from '@jupytergis/schema';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { Map } from 'ol';
 
-import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/rampNames';
+import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/colorRamps';
 
 export { IDict };
 export type ValueOf<T> = T[keyof T];

@@ -2,7 +2,7 @@ import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
-import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/rampNames';
+import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/colorRamps';
 import { LoadingIcon } from '@/src/shared/components/loading';
 import { ColorRampName } from '@/src/types';
 import CanvasSelectComponent from './CanvasSelectComponent';
