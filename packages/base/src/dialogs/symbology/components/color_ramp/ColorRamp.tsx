@@ -33,9 +33,9 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   showRampSelector,
 }) => {
   const [selectedRamp, setSelectedRamp] = useState('');
-  const [selectedMode, setSelectedMode] = useState('');
-  const [numberOfShades, setNumberOfShades] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<string>('');
+  const [numberOfShades, setNumberOfShades] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (selectedRamp === '' && selectedMode === '' && numberOfShades === '') {
