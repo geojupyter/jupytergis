@@ -151,6 +151,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
         dataMin={dataMin}
         dataMax={dataMax}
         renderType={renderType}
+        selectedMode={selectedMode}
       />
 
       {showModeRow && (

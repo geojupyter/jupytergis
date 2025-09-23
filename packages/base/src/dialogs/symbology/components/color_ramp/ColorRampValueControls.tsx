@@ -16,6 +16,7 @@ export interface IColorRampValueControlsProps {
     | 'Graduated'
     | 'Heatmap'
     | 'Singleband Pseudocolor';
+  selectedMode: string;
 }
 export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
   selectedMin,
@@ -26,6 +27,7 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
   dataMin,
   dataMax,
   renderType,
+  selectedMode,
 }) => {
   return (
     <>
@@ -40,8 +42,11 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
               e.target.value !== '' ? parseFloat(e.target.value) : undefined,
             )
           }
-          className="jp-mod-styled"
+          className={`jp-mod-styled ${
+            selectedMode !== 'equal interval' ? 'jp-gis-disabled-input' : ''
+          }`}
           placeholder="Enter min value"
+          disabled={selectedMode !== 'equal interval'}
         />
       </div>
 
@@ -71,24 +76,32 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
               e.target.value !== '' ? parseFloat(e.target.value) : undefined,
             )
           }
-          className="jp-mod-styled"
+          className={`jp-mod-styled ${
+            selectedMode !== 'equal interval' ? 'jp-gis-disabled-input' : ''
+          }`}
           placeholder="Enter max value"
+          disabled={selectedMode !== 'equal interval'}
         />
       </div>
-      {
-        <div className="jp-gis-symbology-row">
-          <Button
-            className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-            disabled={selectedMin === dataMin && selectedMax === dataMax}
-            onClick={() => {
-              settedMin(dataMin);
-              settedMax(dataMax);
-            }}
-          >
-            Use Actual Range
-          </Button>
-        </div>
-      }
+
+      {renderType === 'Graduated' && selectedMode !== 'equal interval' && (
+        <p className="jp-gis-warning">
+          ⚠️Note: Min/Max values are only applied in Equal Interval mode.
+        </p>
+      )}
+
+      <div className="jp-gis-symbology-row">
+        <Button
+          className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          disabled={selectedMin === dataMin && selectedMax === dataMax}
+          onClick={() => {
+            settedMin(dataMin);
+            settedMax(dataMax);
+          }}
+        >
+          Use Actual Range
+        </Button>
+      </div>
     </>
   );
 };

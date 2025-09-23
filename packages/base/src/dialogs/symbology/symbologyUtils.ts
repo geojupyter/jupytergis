@@ -116,8 +116,8 @@ export namespace Utils {
   ) => {
     let effectiveStops: number[] = [];
 
-    if (renderType === 'Categorized') {
-      effectiveStops = stops;
+    if (stops && stops.length > 0) {
+      effectiveStops = stops.map(v => parseFloat(v.toFixed(2)));
     } else {
       effectiveStops = VectorClassifications.calculateEqualIntervalBreaks(
         nClasses,

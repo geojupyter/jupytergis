@@ -50,9 +50,10 @@ export namespace VectorClassifications {
     nClasses: number,
     minimum: number,
     maximum: number,
-  ): number[] => Array.from({ length: nClasses }, (_, i) => {
-    return minimum + (i / (nClasses - 1)) * (maximum - minimum);
-  });
+  ): number[] =>
+    Array.from({ length: nClasses }, (_, i) => {
+      return minimum + (i / (nClasses - 1)) * (maximum - minimum);
+    });
 
   export const calculateJenksBreaks = (values: number[], nClasses: number) => {
     const maximum = Math.max(...values);

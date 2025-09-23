@@ -121,3 +121,9 @@ button.jp-mod-styled.jp-mod-reject {
     margin: 0;
   }
 }
+
+.jp-gis-disabled-input {
+  opacity: 0.5;
+  pointer-events: none;
+  background-color: #dfdfdf;
+}
