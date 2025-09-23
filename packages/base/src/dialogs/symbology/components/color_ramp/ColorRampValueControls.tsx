@@ -89,9 +89,9 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
       <div className="jp-gis-symbology-row">
 
         {applyMinMax ? (
-          <p className="errors">
+          <div className="errors">
             ⚠️ Warning: User-specified min/max values are only applied in Equal Interval mode.
-          </p>
+          </div>
         ) : (
           <div></div>
         )}
