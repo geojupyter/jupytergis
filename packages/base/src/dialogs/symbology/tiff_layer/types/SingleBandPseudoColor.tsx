@@ -20,6 +20,7 @@ import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import { GlobalStateDbManager } from '@/src/store';
+import { ClassificationMode } from '@/src/types';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
@@ -38,7 +39,11 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   }
 
   const functions = ['discrete', 'linear', 'exact'];
-  const modeOptions = ['continuous', 'equal interval', 'quantile'];
+  const modeOptions = [
+    'continuous',
+    'equal interval',
+    'quantile',
+  ] as ClassificationMode[];
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
@@ -282,8 +287,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   };
 
   const buildColorInfoFromClassification = async (
-    selectedMode: string,
-    numberOfShades: string,
+    selectedMode: ClassificationMode | undefined,
+    numberOfShades: number | undefined,
     selectedRamp: string,
     setIsLoading: (isLoading: boolean) => void,
   ) => {
@@ -299,6 +304,10 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     const currentBand = bandRows[selectedBand - 1];
     const source = model.getSource(layer?.parameters?.source);
     const sourceInfo = source?.parameters?.urls[0];
+    if (!numberOfShades) {
+      console.warn('No number of shades provided');
+      return;
+    }
     const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
 
     setIsLoading(true);

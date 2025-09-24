@@ -13,6 +13,7 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import { ClassificationMode } from '@/src/types';
 
 const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -29,7 +30,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     'jenks',
     'pretty',
     'logarithmic',
-  ];
+  ] as ClassificationMode[];
 
   const selectableAttributeRef = useRef<string>();
   const symbologyTabRef = useRef<string>();
@@ -215,8 +216,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   };
 
   const buildColorInfoFromClassification = (
-    selectedMode: string,
-    numberOfShades: string,
+    selectedMode: ClassificationMode | undefined,
+    numberOfShades: number | undefined,
     selectedRamp: string,
   ) => {
     setColorRampOptions({
@@ -228,6 +229,11 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     let stops: number[];
 
     const values = Array.from(selectableAttributesAndValues[selectedAttribute]);
+
+    if (!numberOfShades) {
+      console.warn('No number of shades provided');
+      return;
+    }
 
     switch (selectedMode) {
       case 'quantile':
