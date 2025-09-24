@@ -26,6 +26,10 @@ export type ColorRampOptions = {
   selectedMode: ClassificationMode | undefined;
 };
 
+const isValidNumberOfShades = (value: number | undefined) => {
+  return value !== undefined && !isNaN(value) && value > 0;
+};
+
 const ColorRamp: React.FC<IColorRampProps> = ({
   layerParams,
   modeOptions,
@@ -84,6 +88,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       ) : (
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          disabled={!isValidNumberOfShades(numberOfShades)}
           onClick={() =>
             classifyFunc(
               selectedMode,

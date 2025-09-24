@@ -230,40 +230,35 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     const values = Array.from(selectableAttributesAndValues[selectedAttribute]);
 
-    if (!numberOfShades) {
-      console.warn('No number of shades provided');
-      return;
-    }
-
     switch (selectedMode) {
       case 'quantile':
         stops = VectorClassifications.calculateQuantileBreaks(
           values,
-          +numberOfShades,
+          numberOfShades as number,
         );
         break;
       case 'equal interval':
         stops = VectorClassifications.calculateEqualIntervalBreaks(
           values,
-          +numberOfShades,
+          numberOfShades as number,
         );
         break;
       case 'jenks':
         stops = VectorClassifications.calculateJenksBreaks(
           values,
-          +numberOfShades,
+          numberOfShades as number,
         );
         break;
       case 'pretty':
         stops = VectorClassifications.calculatePrettyBreaks(
           values,
-          +numberOfShades,
+          numberOfShades as number,
         );
         break;
       case 'logarithmic':
         stops = VectorClassifications.calculateLogarithmicBreaks(
           values,
-          +numberOfShades,
+          numberOfShades as number,
         );
         break;
       default:
@@ -277,7 +272,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         : Utils.getValueColorPairs(
             stops,
             selectedRamp,
-            +numberOfShades,
+            numberOfShades as number,
             reverseRamp,
           );
 
