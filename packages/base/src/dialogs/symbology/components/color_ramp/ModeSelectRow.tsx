@@ -1,10 +1,12 @@
 import React from 'react';
+
+import { ClassificationMode } from '@/src/types';
 interface IModeSelectRowProps {
-  numberOfShades: string;
-  setNumberOfShades: (value: string) => void;
-  selectedMode: string;
-  setSelectedMode: (value: string) => void;
-  modeOptions: string[];
+  numberOfShades: number | undefined;
+  setNumberOfShades: (value: number | undefined) => void;
+  selectedMode: ClassificationMode | undefined;
+  setSelectedMode: (value: ClassificationMode | undefined) => void;
+  modeOptions: ClassificationMode[];
 }
 const ModeSelectRow: React.FC<IModeSelectRowProps> = ({
   numberOfShades,
@@ -21,8 +23,11 @@ const ModeSelectRow: React.FC<IModeSelectRowProps> = ({
           className="jp-mod-styled"
           name="class-number-input"
           type="number"
-          value={selectedMode === 'continuous' ? 52 : numberOfShades}
-          onChange={event => setNumberOfShades(event.target.value)}
+          value={selectedMode === 'continuous' ? 52 : (numberOfShades ?? '')}
+          onChange={event => {
+            const value = event.target.value;
+            setNumberOfShades(value === '' ? undefined : Number(value));
+          }}
           disabled={selectedMode === 'continuous'}
         />
       </div>
@@ -34,10 +39,12 @@ const ModeSelectRow: React.FC<IModeSelectRowProps> = ({
             id="mode-select"
             className="jp-mod-styled"
             value={selectedMode}
-            onChange={event => setSelectedMode(event.target.value)}
+            onChange={event =>
+              setSelectedMode(event.target.value as ClassificationMode)
+            }
           >
             {modeOptions.map(mode => (
-              <option key={mode} value={mode} selected={selectedMode === mode}>
+              <option key={mode} value={mode}>
                 {mode}
               </option>
             ))}
