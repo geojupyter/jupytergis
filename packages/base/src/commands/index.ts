@@ -877,7 +877,6 @@ export function addCommands(
 
       const layerId = Object.keys(selectedLayers)[0];
 
-      console.log('Open attribute table for layer:', layerId);
       Private.createAttributeTableDialog(tracker, layerId)();
     },
   });
