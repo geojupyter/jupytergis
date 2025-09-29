@@ -244,9 +244,9 @@ export class MainView extends React.Component<IProps, IStates> {
     const options = this._model.getOptions();
     const center =
       options.longitude !== undefined && options.latitude !== undefined
-        ? fromLonLat([options.longitude!, options.latitude!])
+        ? fromLonLat([options.longitude, options.latitude])
         : [0, 0];
-    const zoom = options.zoom !== undefined ? options.zoom! : 1;
+    const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(center, zoom);
     this.addContextMenu();
@@ -871,7 +871,7 @@ export class MainView extends React.Component<IProps, IStates> {
     // create updated source
     await this.addSource(id, source);
     // change source of target layer
-    (mapLayer as Layer).setSource(this._sources[id]);
+    mapLayer.setSource(this._sources[id]);
   }
 
   /**
@@ -1957,7 +1957,7 @@ export class MainView extends React.Component<IProps, IStates> {
             return;
           }
         } else {
-          jsonData = data as IAnnotation;
+          jsonData = data;
         }
 
         newState[key] = jsonData;
@@ -2004,7 +2004,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     // The id is a layer
     let extent;
-    const layer = this.getLayer(id) as Layer;
+    const layer = this.getLayer(id);
     const source = layer?.getSource();
 
     if (source instanceof VectorSource) {
