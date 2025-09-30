@@ -1,4 +1,5 @@
 (how-to-collab)=
+
 # Create Collaborative JupyterGIS Sessions
 
 :::{important}

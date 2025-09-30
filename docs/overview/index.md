@@ -24,7 +24,6 @@ and Rasterio, to perform custom analyses and automate processes.
 Together, these features make JupyterGIS a powerful tool for
 both collaborative mapping and in-depth geospatial analysis.
 
-
 ## ✨ And more...
 
 ```{toctree}
