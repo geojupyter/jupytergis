@@ -17,7 +17,6 @@ opportunities by rethinking what GIS can be.
 For example, JupyterGIS is designed from the ground up with real-time collaboration and
 integration with Jupyter Notebooks in mind.
 
-
 ## What is JupyterGIS _not_?
 
 ### A reimplementation of traditional GIS paradigms
