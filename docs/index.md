@@ -23,7 +23,6 @@ confidently engage with geospatial data.
 We'd love to hear from you at a
 [community meeting](https://geojupyter.org/calendar.html)!
 
-
 ## ✨ Highlights ✨
 
 🤝 Work simultaneously with your colleagues on the same GIS project (like Google Docs)
