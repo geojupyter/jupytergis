@@ -27,6 +27,21 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = (p
   const enableMinMax = props.selectedMode === 'equal interval';
   return (
     <>
+      {props.rampDef.type === 'Divergent' &&
+        props.selectedMode === 'equal interval' &&
+        props.selectedMin !== undefined &&
+        props.selectedMax !== undefined && (
+          <div className="jp-gis-symbology-row">
+            <label htmlFor="critical-value">Critical Value:</label>
+            <span id="critical-value" className="jp-mod-styled">
+              {`${(
+                props.selectedMin +
+                (props.rampDef.criticalValue) * (props.selectedMax - props.selectedMin)
+              ).toFixed(2)} (Colormap diverges at ${props.rampDef.criticalValue * 100}%)`}
+            </span>
+          </div>
+        )}
+
       <div className="jp-gis-symbology-row">
         <label htmlFor="min-value">Min Value:</label>
         <input
@@ -43,20 +58,6 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = (p
           disabled={!enableMinMax}
         />
       </div>
-
-      {props.rampDef.type === 'Divergent' &&
-        props.dataMin !== undefined &&
-        props.dataMax !== undefined && (
-          <div className="jp-gis-symbology-row">
-            <label htmlFor="critical-value">Critical Value:</label>
-            <span id="critical-value" className="jp-mod-styled">
-              {`${(
-                props.dataMin +
-                (props.rampDef.criticalValue ?? 0.5) * (props.dataMax - props.dataMin)
-              ).toFixed(1)} (Colormap diverges at 50%)`}
-            </span>
-          </div>
-        )}
 
       <div className="jp-gis-symbology-row">
         <label htmlFor="max-value">Max Value:</label>
