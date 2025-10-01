@@ -29,9 +29,8 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
   renderType,
   selectedMode,
 }) => {
-  const applyMinMax =
-    renderType === 'Graduated' && selectedMode !== 'equal interval';
 
+  const enableMinMax = selectedMode === 'equal interval';
   return (
     <>
       <div className="jp-gis-symbology-row">
@@ -47,12 +46,11 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
           }
           className={'jp-mod-styled'}
           placeholder="Enter min value"
-          disabled={selectedMode !== 'equal interval'}
+          disabled={!enableMinMax}
         />
       </div>
 
       {rampDef.type === 'Divergent' &&
-        renderType === 'Graduated' &&
         dataMin !== undefined &&
         dataMax !== undefined && (
           <div className="jp-gis-symbology-row">
@@ -79,12 +77,12 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
           }
           className={'jp-mod-styled'}
           placeholder="Enter max value"
-          disabled={selectedMode !== 'equal interval'}
+          disabled={!enableMinMax}
         />
       </div>
 
       <div className="jp-gis-symbology-row">
-        {applyMinMax ? (
+        {!enableMinMax ? (
           <div className="errors">
             ⚠️ Warning: User-specified min/max values are only applied in Equal
             Interval mode.
@@ -95,7 +93,7 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
 
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          disabled={selectedMin === dataMin && selectedMax === dataMax}
+          disabled={!enableMinMax || (selectedMin === dataMin && selectedMax === dataMax)}
           onClick={() => {
             settedMin(dataMin);
             settedMax(dataMax);
