@@ -1,10 +1,10 @@
-(collab)=
+(how-to-collab)=
 
-# Collaborative Features
+# Create Collaborative JupyterGIS Sessions
 
-One of the standout features of JupyterGIS is its shared editing functionality, which **seamlessly connects users across different interfaces within the JupyterGIS ecosystem**. Whether collaborators are using the JupyterLab GIS extension, or working with the Python API in a Notebook, **any changes made to a shared document are instantly reflected for all users**.
-
-## Create Collaborative JupyterGIS Sessions
+:::{important}
+Please note that currently, real-time collaboration is not supported in [JupyterLite](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html).
+:::
 
 If you are using a local installation, your JupyterLab instance is not available to the Internet by default, thus collaborators cannot join your session directly. Here are two techniques to facilitating collaboration in such instances.
 
@@ -22,7 +22,3 @@ If you are using a local installation, your JupyterLab instance is not available
      ```
      Note that if you have added JupyterGIS to the `requirements.txt` file, it will be installed automatically when you create the Binder instance. In this case you do not need to follow [the installation guide](../install.md).
    - [Amazon SageMaker AI](https://aws.amazon.com/sagemaker-ai): If you prefer to use Amazon SageMaker AI, you can follow [this tutorial](https://docs.aws.amazon.com/sagemaker/latest/dg/onboard-quick-start.html) to set up your environment. After opening SageMaker Studio, create a JupyterLab space, and make sure choosing `Share with my domain` option to enable access for your collaborators.
-
-:::{important}
-Note that currently, real-time collaboration is not supported in [JupyterLite](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html).
-:::
