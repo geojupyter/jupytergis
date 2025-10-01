@@ -28,7 +28,7 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
     if (colorMaps.length > 0) {
       updateCanvas(selectedRamp);
     }
-  }, [selectedRamp, colorMaps]);
+  }, [selectedRamp, colorMaps, reverse]);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -67,7 +67,7 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
     for (let i = 0; i <= 255; i++) {
       ctx.beginPath();
 
-      const color = ramp[0].colors[i];
+      const color = reverse ? ramp[0].colors[255 - i] : ramp[0].colors[i];
       ctx.fillStyle = color;
 
       ctx.fillRect(i * 2, 0, 2, 50);
