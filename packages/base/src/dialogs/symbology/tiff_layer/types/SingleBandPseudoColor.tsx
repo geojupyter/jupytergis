@@ -56,7 +56,6 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   // we cache it in the global state db?
 
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
-  const [reverseRamp, setReverseRamp] = useState(false);
   const [dataMin, setDataMin] = useState<number | undefined>();
   const [dataMax, setDataMax] = useState<number | undefined>();
   const [selectedFunction, setSelectedFunction] =
@@ -272,11 +271,11 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       band: selectedBandRef.current,
       interpolation: selectedFunctionRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
+      reverse: colorRampOptionsRef.current?.reverseRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
-      min: dataMin ?? bandRow.stats.minimum,
-      max: dataMax ?? bandRow.stats.maximum,
-      reverse: reverseRamp,
+      min: dataMin ?? bandRow.stats.minimum,  // TODO: ?
+      max: dataMax ?? bandRow.stats.maximum,  // TODO: ?
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -308,6 +307,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     selectedMode: string,
     numberOfShades: string,
     selectedRamp: ColorRampName,
+    reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
     minValue: number,
     maxValue: number,
@@ -444,8 +444,6 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           showModeRow={true}
           showRampSelector={true}
           renderType="Singleband Pseudocolor"
-          reverse={reverseRamp}
-          setReverse={setReverseRamp}
           dataMin={dataMin}
           dataMax={dataMax}
         />

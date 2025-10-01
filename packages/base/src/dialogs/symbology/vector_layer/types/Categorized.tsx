@@ -39,7 +39,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     radius: 5,
   });
   const manualStyleRef = useRef(manualStyle);
-  const [reverseRamp, setReverseRamp] = useState(false);
   const [dataMin, setDataMin] = useState<number | undefined>();
   const [dataMax, setDataMax] = useState<number | undefined>();
 
@@ -132,6 +131,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     selectedMode: string,
     numberOfShades: string,
     selectedRamp: ColorRampName,
+    reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
     minValue: number,
     maxValue: number,
@@ -200,10 +200,10 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       renderType: 'Categorized',
       value: selectedAttributeRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
+      reverse: colorRampOptionsRef.current?.reverseRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
       symbologyTab,
-      reverse: reverseRamp,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -343,8 +343,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
               showModeRow={false}
               showRampSelector={symbologyTab === 'color'}
               renderType="Categorized"
-              reverse={reverseRamp}
-              setReverse={setReverseRamp}
               dataMin={dataMin}
               dataMax={dataMax}
             />

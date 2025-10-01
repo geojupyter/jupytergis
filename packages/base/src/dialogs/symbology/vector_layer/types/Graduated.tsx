@@ -51,7 +51,6 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [radiusManualStyle, setRadiusManualStyle] = useState({
     radius: 5,
   });
-  const [reverseRamp, setReverseRamp] = useState(false);
   const [dataMin, setDataMin] = useState<number | undefined>();
   const [dataMax, setDataMax] = useState<number | undefined>();
 
@@ -213,9 +212,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       value: selectableAttributeRef.current,
       method: symbologyTabRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
+      reverse: colorRampOptionsRef.current?.reverseRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
-      reverse: colorRampOptionsRef.current?.reverseRamp,
       min: colorRampOptionsRef.current?.minValue,
       max: colorRampOptionsRef.current?.maxValue,
     };
@@ -232,6 +231,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     selectedMode: string,
     numberOfShades: string,
     selectedRamp: ColorRampName,
+    reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
     minValue: number,
     maxValue: number,
@@ -433,8 +433,6 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             showModeRow={true}
             showRampSelector={symbologyTab === 'color'}
             renderType="Graduated"
-            reverse={reverseRamp}
-            setReverse={setReverseRamp}
             dataMin={dataMin}
             dataMax={dataMax}
           />

@@ -8,6 +8,7 @@ import { ColorRampName } from '@/src/types';
 import CanvasSelectComponent from './CanvasSelectComponent';
 import { ColorRampValueControls } from './ColorRampValueControls';
 import ModeSelectRow from './ModeSelectRow';
+
 interface IColorRampProps {
   modeOptions: string[];
   layerParams: IDict;
@@ -15,6 +16,7 @@ interface IColorRampProps {
     selectedMode: string,
     numberOfShades: string,
     selectedRamp: ColorRampName,
+    reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
     minValue: number,
     maxValue: number,
@@ -27,8 +29,6 @@ interface IColorRampProps {
     | 'Categorized'
     | 'Heatmap'
     | 'Singleband Pseudocolor';
-  reverse: boolean;
-  setReverse: React.Dispatch<React.SetStateAction<boolean>>;
   dataMin?: number;
   dataMax?: number;
 }
@@ -50,12 +50,11 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   showModeRow,
   showRampSelector,
   renderType,
-  reverse = true,
-  setReverse,
   dataMin,
   dataMax,
 }) => {
   const [selectedRamp, setSelectedRamp] = useState<ColorRampName>('viridis');
+  const [reverseRamp, setReverseRamp] = useState<boolean>(false);
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
   const [minValue, setMinValue] = useState<number | undefined>(dataMin);
@@ -80,16 +79,18 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   }, [dataMin, dataMax, renderType]);
 
   const initializeState = () => {
-    let nClasses, singleBandMode, colorRamp;
+    let nClasses, singleBandMode, colorRamp, reverseRamp;
 
     if (layerParams.symbologyState) {
       nClasses = layerParams.symbologyState.nClasses;
       singleBandMode = layerParams.symbologyState.mode;
       colorRamp = layerParams.symbologyState.colorRamp;
+      reverseRamp = layerParams.symbologyState.reverse;
     }
-    setNumberOfShades(nClasses ? nClasses : '9');
-    setSelectedMode(singleBandMode ? singleBandMode : 'equal interval');
-    setSelectedRamp(colorRamp ? colorRamp : 'viridis');
+    setNumberOfShades(nClasses ?? '9');
+    setSelectedMode(singleBandMode ?? 'equal interval');
+    setSelectedRamp(colorRamp ?? 'viridis');
+    setReverseRamp(reverseRamp ?? false);
   };
 
   const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp];
@@ -112,6 +113,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       layerParams.symbologyState.min = minValue;
       layerParams.symbologyState.max = maxValue;
       layerParams.symbologyState.colorRamp = selectedRamp;
+      layerParams.symbologyState.reverse = reverseRamp;
       layerParams.symbologyState.nClasses = numberOfShades;
       layerParams.symbologyState.mode = selectedMode;
 
@@ -123,6 +125,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     minValue,
     maxValue,
     selectedRamp,
+    reverseRamp,
     selectedMode,
     numberOfShades,
     dataMin,
@@ -137,8 +140,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
           <CanvasSelectComponent
             selectedRamp={selectedRamp}
             setSelected={setSelectedRamp}
-            reverse={reverse}
-            setReverse={setReverse}
+            reverse={reverseRamp}
+            setReverse={setReverseRamp}
           />
         </div>
       )}
@@ -180,6 +183,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
               selectedMode,
               numberOfShades,
               selectedRamp,
+              reverseRamp,
               setIsLoading,
               minValue,
               maxValue,
