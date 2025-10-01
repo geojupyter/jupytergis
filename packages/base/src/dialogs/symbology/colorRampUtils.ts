@@ -2,8 +2,8 @@ import colormap from 'colormap';
 import colorScale from 'colormap/colorScale.js';
 import { useEffect } from 'react';
 
-import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
 import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/colorRamps';
+import rawCmocean from '@/src/dialogs/symbology/components/color_ramp/cmocean.json';
 import { objectEntries } from '@/src/tools';
 import { IColorMap } from '@/src/types';
 

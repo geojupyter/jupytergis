@@ -16,7 +16,7 @@ export interface IColorRampValueControlsProps {
     | 'Graduated'
     | 'Heatmap'
     | 'Singleband Pseudocolor';
-  selectedMode: string;
+  selectedMode: string; // TODO: should be ClssificationMode | undefined;
 }
 export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
   selectedMin,

@@ -106,8 +106,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     }
 
     if (renderType !== 'Heatmap') {
-      layerParams.symbologyState.dataMin;
-      layerParams.symbologyState.dataMax;
+      layerParams.symbologyState.dataMin = dataMin;
+      layerParams.symbologyState.dataMax = dataMax;
       layerParams.symbologyState.min = minValue;
       layerParams.symbologyState.max = maxValue;
       layerParams.symbologyState.colorRamp = selectedRamp;

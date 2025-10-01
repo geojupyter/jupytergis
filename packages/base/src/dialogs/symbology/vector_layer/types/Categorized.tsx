@@ -138,8 +138,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   ) => {
     setColorRampOptions({
       selectedRamp,
-      numberOfShades: '',
-      selectedMode: '',
+      numberOfShades,
+      selectedMode,
       minValue,
       maxValue,
     });
