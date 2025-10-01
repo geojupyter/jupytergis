@@ -35,6 +35,7 @@ interface IColorRampProps {
 
 export type ColorRampOptions = {
   selectedRamp: ColorRampName;
+  reverseRamp: boolean;
   numberOfShades: string;
   selectedMode: string;
   minValue: number;

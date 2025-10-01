@@ -215,7 +215,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
-      reverse: reverseRamp,
+      reverse: colorRampOptionsRef.current?.reverseRamp,
+      min: colorRampOptionsRef.current?.minValue,
+      max: colorRampOptionsRef.current?.maxValue,
     };
 
     if (layer.type === 'HeatmapLayer') {
@@ -237,6 +239,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   ) => {
     setColorRampOptions({
       selectedRamp,
+      reverseRamp,
       numberOfShades,
       selectedMode,
       minValue,

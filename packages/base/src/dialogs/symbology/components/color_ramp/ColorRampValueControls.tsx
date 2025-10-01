@@ -16,7 +16,7 @@ export interface IColorRampValueControlsProps {
     | 'Singleband Pseudocolor';
   dataMin?: number;
   dataMax?: number;
-  selectedMode: string; // TODO: should be ClssificationMode
+  selectedMode: string;  // TODO: should be ClssificationMode (https://github.com/geojupyter/jupytergis/pull/937)
 }
 export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = (props) => {
   const permittedRenderTypes = ['Graduated', 'Singleband Pseudocolor'];

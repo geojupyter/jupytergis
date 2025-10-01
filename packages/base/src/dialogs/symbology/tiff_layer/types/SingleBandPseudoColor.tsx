@@ -315,6 +315,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     // Update layer state with selected options
     setColorRampOptions({
       selectedRamp,
+      reverseRamp,
       numberOfShades,
       selectedMode,
       minValue,

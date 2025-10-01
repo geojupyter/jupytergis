@@ -138,6 +138,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   ) => {
     setColorRampOptions({
       selectedRamp,
+      reverseRamp,
       numberOfShades,
       selectedMode,
       minValue,
