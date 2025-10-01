@@ -9,13 +9,13 @@ export interface IColorRampValueControlsProps {
   selectedMax: number | undefined;
   settedMax: (v: number | undefined) => void;
   rampDef: IColorRampDefinition;
-  dataMin?: number;
-  dataMax?: number;
-  renderType?:
+  renderType:
     | 'Categorized'
     | 'Graduated'
     | 'Heatmap'
     | 'Singleband Pseudocolor';
+  dataMin?: number;
+  dataMax?: number;
   selectedMode: string; // TODO: should be ClssificationMode | undefined;
 }
 export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
@@ -24,11 +24,15 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
   selectedMax,
   settedMax,
   rampDef,
+  renderType,
   dataMin,
   dataMax,
-  renderType,
   selectedMode,
 }) => {
+  const permittedRenderTypes = ['Graduated', 'Singleband Pseudocolor'];
+  if (!permittedRenderTypes.includes(renderType)) {
+    return;
+  }
 
   const enableMinMax = selectedMode === 'equal interval';
   return (
