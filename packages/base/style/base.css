@@ -65,6 +65,11 @@
   position: relative;
 }
 
+input.jp-mod-styled:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 /*This is being upstreamed. Will remove once upstream's been fixed.*/
 button.jp-mod-styled.jp-mod-accept {
   background-color: var(--jp-brand-color1) !important;
@@ -120,10 +125,4 @@ button.jp-mod-styled.jp-mod-reject {
     position: relative;
     margin: 0;
   }
-}
-
-.jp-gis-disabled-input {
-  opacity: 0.5;
-  pointer-events: none;
-  background-color: #dfdfdf;
 }

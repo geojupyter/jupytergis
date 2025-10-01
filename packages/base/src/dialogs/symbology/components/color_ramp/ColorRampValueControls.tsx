@@ -45,9 +45,7 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
               e.target.value !== '' ? parseFloat(e.target.value) : undefined,
             )
           }
-          className={`jp-mod-styled ${
-            selectedMode !== 'equal interval' ? 'jp-gis-disabled-input' : ''
-          }`}
+          className={'jp-mod-styled'}
           placeholder="Enter min value"
           disabled={selectedMode !== 'equal interval'}
         />
@@ -79,9 +77,7 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
               e.target.value !== '' ? parseFloat(e.target.value) : undefined,
             )
           }
-          className={`jp-mod-styled ${
-            selectedMode !== 'equal interval' ? 'jp-gis-disabled-input' : ''
-          }`}
+          className={'jp-mod-styled'}
           placeholder="Enter max value"
           disabled={selectedMode !== 'equal interval'}
         />
