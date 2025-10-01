@@ -45,7 +45,11 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (selectedRamp === '') {
+    if (
+      selectedRamp === '' &&
+      selectedMode === undefined &&
+      numberOfShades === undefined
+    ) {
       populateOptions();
     }
   }, [layerParams]);
@@ -58,7 +62,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       singleBandMode = layerParams.symbologyState.mode;
       colorRamp = layerParams.symbologyState.colorRamp;
     }
-    setNumberOfShades(nClasses ? nClasses : '9');
+    setNumberOfShades(nClasses ? nClasses : 9);
     setSelectedMode((singleBandMode as ClassificationMode) ?? 'equal interval');
     setSelectedRamp(colorRamp ? colorRamp : 'viridis');
   };

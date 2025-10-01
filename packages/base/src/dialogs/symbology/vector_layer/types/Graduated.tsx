@@ -30,7 +30,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     'jenks',
     'pretty',
     'logarithmic',
-  ] as ClassificationMode[];
+  ] as const satisfies ClassificationMode[];
 
   const selectableAttributeRef = useRef<string>();
   const symbologyTabRef = useRef<string>();

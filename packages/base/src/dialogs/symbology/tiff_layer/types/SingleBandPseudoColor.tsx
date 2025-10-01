@@ -43,7 +43,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     'continuous',
     'equal interval',
     'quantile',
-  ] as ClassificationMode[];
+  ] as const satisfies ClassificationMode[];
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 

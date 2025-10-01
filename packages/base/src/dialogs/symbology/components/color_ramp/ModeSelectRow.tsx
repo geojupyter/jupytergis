@@ -3,9 +3,11 @@ import React from 'react';
 import { ClassificationMode } from '@/src/types';
 interface IModeSelectRowProps {
   numberOfShades: number | undefined;
-  setNumberOfShades: (value: number | undefined) => void;
+  setNumberOfShades: React.Dispatch<React.SetStateAction<number | undefined>>;
   selectedMode: ClassificationMode | undefined;
-  setSelectedMode: (value: ClassificationMode | undefined) => void;
+  setSelectedMode: React.Dispatch<
+    React.SetStateAction<ClassificationMode | undefined>
+  >;
   modeOptions: ClassificationMode[];
 }
 const ModeSelectRow: React.FC<IModeSelectRowProps> = ({
