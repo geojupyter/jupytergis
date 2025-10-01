@@ -16,25 +16,15 @@ export interface IColorRampValueControlsProps {
     | 'Singleband Pseudocolor';
   dataMin?: number;
   dataMax?: number;
-  selectedMode: string; // TODO: should be ClssificationMode | undefined;
+  selectedMode: string; // TODO: should be ClssificationMode
 }
-export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
-  selectedMin,
-  settedMin,
-  selectedMax,
-  settedMax,
-  rampDef,
-  renderType,
-  dataMin,
-  dataMax,
-  selectedMode,
-}) => {
+export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = (props) => {
   const permittedRenderTypes = ['Graduated', 'Singleband Pseudocolor'];
-  if (!permittedRenderTypes.includes(renderType)) {
+  if (!permittedRenderTypes.includes(props.renderType)) {
     return;
   }
 
-  const enableMinMax = selectedMode === 'equal interval';
+  const enableMinMax = props.selectedMode === 'equal interval';
   return (
     <>
       <div className="jp-gis-symbology-row">
@@ -42,9 +32,9 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
         <input
           id="min-value"
           type="number"
-          value={selectedMin ?? ''}
+          value={props.selectedMin ?? ''}
           onChange={e =>
-            settedMin(
+            props.settedMin(
               e.target.value !== '' ? parseFloat(e.target.value) : undefined,
             )
           }
@@ -54,15 +44,15 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
         />
       </div>
 
-      {rampDef.type === 'Divergent' &&
-        dataMin !== undefined &&
-        dataMax !== undefined && (
+      {props.rampDef.type === 'Divergent' &&
+        props.dataMin !== undefined &&
+        props.dataMax !== undefined && (
           <div className="jp-gis-symbology-row">
             <label htmlFor="critical-value">Critical Value:</label>
             <span id="critical-value" className="jp-mod-styled">
               {`${(
-                dataMin +
-                (rampDef.criticalValue ?? 0.5) * (dataMax - dataMin)
+                props.dataMin +
+                (props.rampDef.criticalValue ?? 0.5) * (props.dataMax - props.dataMin)
               ).toFixed(1)} (Colormap diverges at 50%)`}
             </span>
           </div>
@@ -73,9 +63,9 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
         <input
           id="max-value"
           type="number"
-          value={selectedMax ?? ''}
+          value={props.selectedMax ?? ''}
           onChange={e =>
-            settedMax(
+            props.settedMax(
               e.target.value !== '' ? parseFloat(e.target.value) : undefined,
             )
           }
@@ -97,13 +87,13 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
 
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          disabled={!enableMinMax || (selectedMin === dataMin && selectedMax === dataMax)}
+          disabled={!enableMinMax || (props.selectedMin === props.dataMin && props.selectedMax === props.dataMax)}
           onClick={() => {
-            settedMin(dataMin);
-            settedMax(dataMax);
+            props.settedMin(props.dataMin);
+            props.settedMax(props.dataMax);
           }}
         >
-          Use Actual Range ({dataMin} - {dataMax})
+          Use Actual Range ({props.dataMin} - {props.dataMax})
         </Button>
       </div>
     </>
