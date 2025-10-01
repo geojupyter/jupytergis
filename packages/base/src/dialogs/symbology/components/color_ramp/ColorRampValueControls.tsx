@@ -101,7 +101,7 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = ({
             settedMax(dataMax);
           }}
         >
-          Use Actual Range
+          Use Actual Range ({dataMin} - {dataMax})
         </Button>
       </div>
     </>
