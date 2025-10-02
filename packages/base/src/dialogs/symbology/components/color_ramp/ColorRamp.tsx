@@ -3,15 +3,16 @@ import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
 import { LoadingIcon } from '@/src/shared/components/loading';
+import { ClassificationMode } from '@/src/types';
 import CanvasSelectComponent from './CanvasSelectComponent';
 import ModeSelectRow from './ModeSelectRow';
 
 interface IColorRampProps {
-  modeOptions: string[];
+  modeOptions: ClassificationMode[];
   layerParams: IDict;
   classifyFunc: (
-    selectedMode: string,
-    numberOfShades: string,
+    selectedMode: ClassificationMode | undefined,
+    numberOfShades: number | undefined,
     selectedRamp: string,
     setIsLoading: (isLoading: boolean) => void,
   ) => void;
@@ -21,8 +22,12 @@ interface IColorRampProps {
 
 export type ColorRampOptions = {
   selectedRamp: string;
-  numberOfShades: string;
-  selectedMode: string;
+  numberOfShades: number | undefined;
+  selectedMode: ClassificationMode | undefined;
+};
+
+const isValidNumberOfShades = (value: number | undefined) => {
+  return value !== undefined && !isNaN(value) && value > 0;
 };
 
 const ColorRamp: React.FC<IColorRampProps> = ({
@@ -33,12 +38,18 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   showRampSelector,
 }) => {
   const [selectedRamp, setSelectedRamp] = useState('');
-  const [selectedMode, setSelectedMode] = useState('');
-  const [numberOfShades, setNumberOfShades] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<
+    ClassificationMode | undefined
+  >();
+  const [numberOfShades, setNumberOfShades] = useState<number | undefined>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (selectedRamp === '' && selectedMode === '' && numberOfShades === '') {
+    if (
+      selectedRamp === '' &&
+      selectedMode === undefined &&
+      numberOfShades === undefined
+    ) {
       populateOptions();
     }
   }, [layerParams]);
@@ -51,8 +62,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       singleBandMode = layerParams.symbologyState.mode;
       colorRamp = layerParams.symbologyState.colorRamp;
     }
-    setNumberOfShades(nClasses ? nClasses : '9');
-    setSelectedMode(singleBandMode ? singleBandMode : 'equal interval');
+    setNumberOfShades(nClasses ? nClasses : 9);
+    setSelectedMode((singleBandMode as ClassificationMode) ?? 'equal interval');
     setSelectedRamp(colorRamp ? colorRamp : 'viridis');
   };
 
@@ -81,6 +92,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       ) : (
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          disabled={!isValidNumberOfShades(numberOfShades)}
           onClick={() =>
             classifyFunc(
               selectedMode,

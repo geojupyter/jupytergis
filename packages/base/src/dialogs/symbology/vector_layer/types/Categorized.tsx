@@ -11,7 +11,7 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { SymbologyTab } from '@/src/types';
+import { SymbologyTab, ClassificationMode } from '@/src/types';
 
 const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -117,8 +117,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   }, [selectedAttribute, stopRows, colorRampOptions]);
 
   const buildColorInfoFromClassification = (
-    selectedMode: string,
-    numberOfShades: string,
+    selectedMode: ClassificationMode | undefined,
+    numberOfShades: number | undefined,
     selectedRamp: string,
     setIsLoading: (isLoading: boolean) => void,
   ) => {
