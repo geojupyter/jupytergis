@@ -69,12 +69,8 @@ const ColorRamp: React.FC<IColorRampProps> = ({
 
   useEffect(() => {
     if (renderType) {
-      if (dataMin !== undefined) {
-        setMinValue(dataMin);
-      }
-      if (dataMax !== undefined) {
-        setMaxValue(dataMax);
-      }
+      setMinValue(layerParams.symbologyState.min ?? dataMin);
+      setMaxValue(layerParams.symbologyState.max ?? dataMax);
     }
   }, [dataMin, dataMax, renderType]);
 

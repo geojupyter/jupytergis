@@ -16,9 +16,11 @@ export interface IColorRampValueControlsProps {
     | 'Singleband Pseudocolor';
   dataMin?: number;
   dataMax?: number;
-  selectedMode: string;  // TODO: should be ClssificationMode (https://github.com/geojupyter/jupytergis/pull/937)
+  selectedMode: string; // TODO: should be ClssificationMode (https://github.com/geojupyter/jupytergis/pull/937)
 }
-export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = (props) => {
+export const ColorRampValueControls: React.FC<
+  IColorRampValueControlsProps
+> = props => {
   const permittedRenderTypes = ['Graduated', 'Singleband Pseudocolor'];
   if (!permittedRenderTypes.includes(props.renderType)) {
     return;
@@ -36,8 +38,11 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = (p
             <span id="critical-value" className="jp-mod-styled">
               {`${(
                 props.selectedMin +
-                (props.rampDef.criticalValue) * (props.selectedMax - props.selectedMin)
-              ).toFixed(2)} (Colormap diverges at ${props.rampDef.criticalValue * 100}%)`}
+                props.rampDef.criticalValue *
+                  (props.selectedMax - props.selectedMin)
+              ).toFixed(
+                2,
+              )} (Colormap diverges at ${props.rampDef.criticalValue * 100}%)`}
             </span>
           </div>
         )}
@@ -88,7 +93,11 @@ export const ColorRampValueControls: React.FC<IColorRampValueControlsProps> = (p
 
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          disabled={!enableMinMax || (props.selectedMin === props.dataMin && props.selectedMax === props.dataMax)}
+          disabled={
+            !enableMinMax ||
+            (props.selectedMin === props.dataMin &&
+              props.selectedMax === props.dataMax)
+          }
           onClick={() => {
             props.settedMin(props.dataMin);
             props.settedMax(props.dataMax);

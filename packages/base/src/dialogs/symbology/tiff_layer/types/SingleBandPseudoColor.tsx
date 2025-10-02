@@ -274,8 +274,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       reverse: colorRampOptionsRef.current?.reverseRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
-      min: dataMin ?? bandRow.stats.minimum,  // TODO: ?
-      max: dataMax ?? bandRow.stats.maximum,  // TODO: ?
+      min: dataMin ?? bandRow.stats.minimum, // TODO: ?
+      max: dataMax ?? bandRow.stats.maximum, // TODO: ?
     };
 
     layer.parameters.symbologyState = symbologyState;
