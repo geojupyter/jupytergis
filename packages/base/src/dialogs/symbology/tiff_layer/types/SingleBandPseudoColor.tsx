@@ -48,13 +48,6 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
 
-  // TODO: New effect to set min/max. The min/max will be different per-band,
-  // so this effect will need to depend on the data values, and the selected band.
-  // The effect would be triggered on clicking "use actual range" or on
-  // component load if these values are not already initialized.
-  // This operation is expensive so we don't want to do it too many times; can
-  // we cache it in the global state db?
-
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [dataMin, setDataMin] = useState<number | undefined>();
   const [dataMax, setDataMax] = useState<number | undefined>();
