@@ -96,7 +96,7 @@ import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import StatusBar from '@/src/statusbar/StatusBar';
-import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
+import { debounce, isLightTheme, loadFile, objectEntries, throttle } from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
@@ -278,6 +278,23 @@ export class MainView extends React.Component<IProps, IStates> {
     );
 
     this._mainViewModel.dispose();
+  }
+
+  /**
+   * Identify which layer uses a source.
+   *
+   * Relies on the assumption that sources and layers have a 1:1 relationship.
+   */
+  getLayerIdForSourceId(sourceId: string): string {
+    const layers = this._model.sharedModel.layers;
+
+    for (const [layerId, layer] of objectEntries(layers)) {
+      if (layer.parameters?.source === sourceId) {
+        return layerId;
+      }
+    }
+
+    throw new Error(`No layer found for source ID: ${sourceId}`);
   }
 
   async generateMap(center: number[], zoom: number): Promise<void> {
@@ -760,7 +777,7 @@ export class MainView extends React.Component<IProps, IStates> {
       }
       case 'GeoTiffSource': {
         const sourceParameters = source.parameters as IGeoTiffSource;
-        const layerId = this._sourceToLayerMap.get(id);
+        const layerId = this.getLayerIdForSourceId(id);
         const layer = layerId
           ? this._model.sharedModel.getLayer(layerId)
           : undefined;
@@ -880,7 +897,7 @@ export class MainView extends React.Component<IProps, IStates> {
    */
   async updateSource(id: string, source: IJGISSource): Promise<void> {
     // get the layer id associated with this source
-    const layerId = this._sourceToLayerMap.get(id);
+    const layerId = this.getLayerIdForSourceId(id);
     // get the OL layer
     const mapLayer = this.getLayer(layerId);
     if (!mapLayer) {
@@ -1116,12 +1133,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
     // STAC layers don't have source
     if (newMapLayer instanceof Layer) {
-      // we need to keep track of which source has which layers
-      // Only set sourceToLayerMap if 'source' exists on layerParameters
-      if ('source' in layerParameters) {
-        this._sourceToLayerMap.set(layerParameters.source, id);
-      }
-
       this.addProjection(newMapLayer);
       await this._waitForSourceReady(newMapLayer);
     }
@@ -1372,6 +1383,22 @@ export class MainView extends React.Component<IProps, IStates> {
           (mapLayer as WebGlTileLayer).setStyle({
             color: layer.parameters.color,
           });
+        }
+
+        // Update source when symbologyState.min/max changes
+        const sourceId = layer.parameters?.source;
+        if (sourceId && layer?.parameters?.symbologyState) {
+          const min = layer.parameters.symbologyState.min;
+          const max = layer.parameters.symbologyState.max;
+          const oldMin = oldLayer?.parameters?.symbologyState?.min;
+          const oldMax = oldLayer?.parameters?.symbologyState?.max;
+
+          if (min !== oldMin || max !== oldMax) {
+            const sourceModel = this._model.sharedModel.getLayerSource(sourceId);
+            if (sourceModel) {
+              this.updateSource(sourceId, sourceModel);
+            }
+          }
         }
         break;
       }
@@ -2363,7 +2390,6 @@ export class MainView extends React.Component<IProps, IStates> {
   private _mainViewModel: MainViewModel;
   private _ready = false;
   private _sources: Record<string, any>;
-  private _sourceToLayerMap = new Map();
   private _documentPath?: string;
   private _contextMenu: ContextMenu;
   private _loadingLayers: Set<string>;

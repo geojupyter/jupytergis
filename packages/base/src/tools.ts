@@ -998,7 +998,7 @@ export async function getGeoJSONDataFromLayerSource(
  * code when using it.
  */
 export const objectEntries = Object.entries as <
-  T extends Record<PropertyKey, unknown>,
+  T extends Record<string | number, unknown>,
 >(
   obj: T,
 ) => Array<{ [K in keyof T]: [K, T[K]] }[keyof T]>;
