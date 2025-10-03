@@ -56,8 +56,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   // we cache it in the global state db?
 
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
-  const [dataMin, setDataMin] = useState<number | undefined>(undefined);
-  const [dataMax, setDataMax] = useState<number | undefined>(undefined);
+  const [dataMin, setDataMin] = useState<number | undefined>();
+  const [dataMax, setDataMax] = useState<number | undefined>();
   const [selectedFunction, setSelectedFunction] =
     useState<InterpolationType>('linear');
   const [colorRampOptions, setColorRampOptions] = useState<
