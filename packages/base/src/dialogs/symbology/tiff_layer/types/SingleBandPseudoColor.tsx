@@ -274,8 +274,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       reverse: colorRampOptionsRef.current?.reverseRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
-      min: dataMin ?? bandRow.stats.minimum, // TODO: ?
-      max: dataMax ?? bandRow.stats.maximum, // TODO: ?
+      min: colorRampOptionsRef.current?.minValue,
+      max: colorRampOptionsRef.current?.maxValue,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -324,7 +324,6 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     let stops: number[] = [];
 
-    const currentBand = bandRows[selectedBand - 1];
     const source = model.getSource(layer?.parameters?.source);
     const sourceInfo = source?.parameters?.urls[0];
     const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
@@ -350,8 +349,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       case 'equal interval':
         stops = GeoTiffClassifications.classifyEqualIntervalBreaks(
           nClasses,
-          currentBand.stats.minimum,
-          currentBand.stats.maximum,
+          minValue,
+          maxValue,
           selectedFunction,
         );
         break;

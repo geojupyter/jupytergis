@@ -26,7 +26,12 @@ export const ColorRampValueControls: React.FC<
     return;
   }
 
-  const enableMinMax = props.selectedMode === 'equal interval';
+  const modesSupportingMinMax = ['equal interval', 'continuous'];
+  const enableMinMax = modesSupportingMinMax.includes(props.selectedMode);
+
+  const formatMode = (mode: string) =>
+    mode.charAt(0).toUpperCase() + mode.slice(1);
+
   return (
     <>
       {props.rampDef.type === 'Divergent' &&
@@ -84,8 +89,8 @@ export const ColorRampValueControls: React.FC<
       <div className="jp-gis-symbology-row">
         {!enableMinMax ? (
           <div className="errors">
-            ⚠️ Warning: User-specified min/max values are only applied in Equal
-            Interval mode.
+            ⚠️ Warning: User-specified min/max values are not supported for "
+            {formatMode(props.selectedMode)}" mode.
           </div>
         ) : (
           <div></div>
