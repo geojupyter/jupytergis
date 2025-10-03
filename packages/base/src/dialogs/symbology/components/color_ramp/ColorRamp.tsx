@@ -68,11 +68,9 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   }, [layerParams]);
 
   useEffect(() => {
-    if (renderType) {
-      setMinValue(layerParams.symbologyState.min ?? dataMin);
-      setMaxValue(layerParams.symbologyState.max ?? dataMax);
-    }
-  }, [dataMin, dataMax, renderType]);
+    setMinValue(layerParams.symbologyState?.min ?? dataMin);
+    setMaxValue(layerParams.symbologyState?.max ?? dataMax);
+  }, [dataMin, dataMax]);
 
   const initializeState = () => {
     let nClasses, singleBandMode, colorRamp, reverseRamp;
