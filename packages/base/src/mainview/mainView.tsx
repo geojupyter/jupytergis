@@ -802,10 +802,11 @@ export class MainView extends React.Component<IProps, IStates> {
           if (!layer.parameters.symbologyState) {
             layer.parameters.symbologyState = {
               renderType: 'Singleband Pseudocolor',
-              min: sourceParameters.urls[0]?.min,
-              max: sourceParameters.urls[0]?.max,
             };
           } else {
+            // Backwards compatibility for older projects that have min/max at
+            // source.parameters.urls[0] (i.e. before
+            // https://github.com/geojupyter/jupytergis/pull/912)
             layer.parameters.symbologyState.min ??=
               sourceParameters.urls[0]?.min;
             layer.parameters.symbologyState.max ??=
