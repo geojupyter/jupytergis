@@ -820,8 +820,6 @@ export class MainView extends React.Component<IProps, IStates> {
           normalize: sourceParameters.normalize,
           wrapX: sourceParameters.wrapX,
         });
-        console.log('newSource', newSource);
-        console.log('sources', sources);
 
         break;
       }
