@@ -56,8 +56,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   // we cache it in the global state db?
 
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
-  const [dataMin, setDataMin] = useState<number | undefined>();
-  const [dataMax, setDataMax] = useState<number | undefined>();
+  const [dataMin, setDataMin] = useState<number | undefined>(undefined);
+  const [dataMax, setDataMax] = useState<number | undefined>(undefined);
   const [selectedFunction, setSelectedFunction] =
     useState<InterpolationType>('linear');
   const [colorRampOptions, setColorRampOptions] = useState<
@@ -97,14 +97,27 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   }, [stopRows, selectedFunction, colorRampOptions, selectedBand, layerState]);
 
   useEffect(() => {
-    if (bandRows.length > 0) {
-      const currentBand = bandRows[selectedBand - 1];
-      if (currentBand?.stats) {
-        setDataMin(currentBand.stats.minimum);
-        setDataMax(currentBand.stats.maximum);
+    const loadCachedRange = async () => {
+      if (!stateDb || !layerId) {
+        return;
       }
+
+      const key = `jupytergis:${layerId}:band${selectedBand}:range`;
+      const cached = (await stateDb.fetch(key)) as
+        | { min: number; max: number }
+        | undefined;
+      if (cached) {
+        setDataMin(cached.min);
+        setDataMax(cached.max);
+      } else {
+        applyActualRange(selectedBand);
+      }
+    };
+
+    if (bandRows.length > 0) {
+      loadCachedRange();
     }
-  }, [selectedBand, bandRows]);
+  }, [selectedBand, bandRows, stateDb, layerId]);
 
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
@@ -119,11 +132,23 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     setSelectedBand(band);
     setSelectedFunction(interpolation);
+  };
 
-    const bandRow = bandRows[band - 1];
-    if (bandRow?.stats) {
-      setDataMin(bandRow.stats.minimum);
-      setDataMax(bandRow.stats.maximum);
+  const applyActualRange = async (bandIndex: number) => {
+    const currentBand = bandRows[bandIndex - 1];
+    if (!currentBand || !currentBand.stats) {
+      return;
+    }
+
+    const min = currentBand.stats.minimum;
+    const max = currentBand.stats.maximum;
+
+    setDataMin(min);
+    setDataMax(max);
+
+    if (stateDb) {
+      const key = `jupytergis:${layerId}:band${bandIndex}:range`;
+      await stateDb.save(key, { min, max });
     }
   };
 
