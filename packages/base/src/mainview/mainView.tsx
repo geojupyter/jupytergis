@@ -760,6 +760,10 @@ export class MainView extends React.Component<IProps, IStates> {
       }
       case 'GeoTiffSource': {
         const sourceParameters = source.parameters as IGeoTiffSource;
+        const layerId = this._sourceToLayerMap.get(id);
+        const layer = layerId
+          ? this._model.sharedModel.getLayer(layerId)
+          : undefined;
 
         const addNoData = (url: (typeof sourceParameters.urls)[0]) => {
           return { ...url, nodata: 0 };
@@ -774,6 +778,8 @@ export class MainView extends React.Component<IProps, IStates> {
               return {
                 ...addNoData(sourceInfo),
                 url: sourceInfo.url,
+                min: layer?.parameters?.symbologyState?.min,
+                max: layer?.parameters?.symbologyState?.max,
               };
             } else {
               const geotiff = await loadFile({
@@ -785,15 +791,12 @@ export class MainView extends React.Component<IProps, IStates> {
                 ...addNoData(sourceInfo),
                 geotiff,
                 url: URL.createObjectURL(geotiff.file),
+                min: layer?.parameters?.symbologyState?.min,
+                max: layer?.parameters?.symbologyState?.max,
               };
             }
           }),
         );
-
-        const layerId = this._sourceToLayerMap.get(id);
-        const layer = layerId
-          ? this._model.sharedModel.getLayer(layerId)
-          : undefined;
 
         if (layer && layer.parameters) {
           if (!layer.parameters.symbologyState) {
@@ -816,6 +819,8 @@ export class MainView extends React.Component<IProps, IStates> {
           normalize: sourceParameters.normalize,
           wrapX: sourceParameters.wrapX,
         });
+        console.log('newSource', newSource);
+        console.log('sources', sources);
 
         break;
       }
