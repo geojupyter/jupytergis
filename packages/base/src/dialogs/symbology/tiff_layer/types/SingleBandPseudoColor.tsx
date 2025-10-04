@@ -90,27 +90,10 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   }, [stopRows, selectedFunction, colorRampOptions, selectedBand, layerState]);
 
   useEffect(() => {
-    const loadCachedRange = async () => {
-      if (!stateDb || !layerId) {
-        return;
-      }
-
-      const key = `jupytergis:${layerId}:band${selectedBand}:range`;
-      const cached = (await stateDb.fetch(key)) as
-        | { min: number; max: number }
-        | undefined;
-      if (cached) {
-        setDataMin(cached.min);
-        setDataMax(cached.max);
-      } else {
-        applyActualRange(selectedBand);
-      }
-    };
-
     if (bandRows.length > 0) {
-      loadCachedRange();
+      applyActualRange(selectedBand);
     }
-  }, [selectedBand, bandRows, stateDb, layerId]);
+  }, [selectedBand, bandRows]);
 
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
@@ -127,7 +110,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     setSelectedFunction(interpolation);
   };
 
-  const applyActualRange = async (bandIndex: number) => {
+  const applyActualRange = (bandIndex: number) => {
     const currentBand = bandRows[bandIndex - 1];
     if (!currentBand || !currentBand.stats) {
       return;
@@ -138,11 +121,6 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     setDataMin(min);
     setDataMax(max);
-
-    if (stateDb) {
-      const key = `jupytergis:${layerId}:band${bandIndex}:range`;
-      await stateDb.save(key, { min, max });
-    }
   };
 
   const buildColorInfo = () => {

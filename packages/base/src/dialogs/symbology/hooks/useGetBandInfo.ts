@@ -71,8 +71,8 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
         bandsArr.push({
           band: i,
           stats: {
-            minimum: layer.parameters?.symbologyState?.min ?? 0,
-            maximum: layer.parameters?.symbologyState?.max ?? 100,
+            minimum: sourceInfo.min ?? 0,
+            maximum: sourceInfo.max ?? 100,
           },
         });
       }

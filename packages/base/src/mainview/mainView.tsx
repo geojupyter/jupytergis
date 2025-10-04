@@ -96,7 +96,13 @@ import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import StatusBar from '@/src/statusbar/StatusBar';
-import { debounce, isLightTheme, loadFile, objectEntries, throttle } from '@/src/tools';
+import {
+  debounce,
+  isLightTheme,
+  loadFile,
+  objectEntries,
+  throttle,
+} from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
@@ -1394,7 +1400,8 @@ export class MainView extends React.Component<IProps, IStates> {
           const oldMax = oldLayer?.parameters?.symbologyState?.max;
 
           if (min !== oldMin || max !== oldMax) {
-            const sourceModel = this._model.sharedModel.getLayerSource(sourceId);
+            const sourceModel =
+              this._model.sharedModel.getLayerSource(sourceId);
             if (sourceModel) {
               this.updateSource(sourceId, sourceModel);
             }
