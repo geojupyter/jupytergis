@@ -20,6 +20,7 @@ import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import { GlobalStateDbManager } from '@/src/store';
+import { ColorRampName } from '@/src/types';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
@@ -46,7 +47,10 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
   const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
+
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
+  const [dataMin, setDataMin] = useState<number | undefined>();
+  const [dataMax, setDataMax] = useState<number | undefined>();
   const [selectedFunction, setSelectedFunction] =
     useState<InterpolationType>('linear');
   const [colorRampOptions, setColorRampOptions] = useState<
@@ -85,6 +89,12 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
     selectedBandRef.current = selectedBand;
   }, [stopRows, selectedFunction, colorRampOptions, selectedBand, layerState]);
 
+  useEffect(() => {
+    if (bandRows.length > 0) {
+      applyActualRange(selectedBand);
+    }
+  }, [selectedBand, bandRows]);
+
   const populateOptions = async () => {
     const layerState = (await stateDb?.fetch(
       `jupytergis:${layerId}`,
@@ -98,6 +108,19 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     setSelectedBand(band);
     setSelectedFunction(interpolation);
+  };
+
+  const applyActualRange = (bandIndex: number) => {
+    const currentBand = bandRows[bandIndex - 1];
+    if (!currentBand || !currentBand.stats) {
+      return;
+    }
+
+    const min = currentBand.stats.minimum;
+    const max = currentBand.stats.maximum;
+
+    setDataMin(min);
+    setDataMax(max);
   };
 
   const buildColorInfo = () => {
@@ -172,14 +195,6 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     const isQuantile = colorRampOptionsRef.current?.selectedMode === 'quantile';
 
-    const sourceInfo = source.parameters.urls[0];
-    sourceInfo.min = bandRow.stats.minimum;
-    sourceInfo.max = bandRow.stats.maximum;
-
-    source.parameters.urls[0] = sourceInfo;
-
-    model.sharedModel.updateSource(sourceId, source);
-
     // Update layer
     if (!layer.parameters) {
       return;
@@ -252,8 +267,11 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       band: selectedBandRef.current,
       interpolation: selectedFunctionRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
+      reverse: colorRampOptionsRef.current?.reverseRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
+      min: colorRampOptionsRef.current?.minValue,
+      max: colorRampOptionsRef.current?.maxValue,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -284,19 +302,24 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   const buildColorInfoFromClassification = async (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string,
+    selectedRamp: ColorRampName,
+    reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
+    minValue: number,
+    maxValue: number,
   ) => {
     // Update layer state with selected options
     setColorRampOptions({
       selectedRamp,
+      reverseRamp,
       numberOfShades,
       selectedMode,
+      minValue,
+      maxValue,
     });
 
     let stops: number[] = [];
 
-    const currentBand = bandRows[selectedBand - 1];
     const source = model.getSource(layer?.parameters?.source);
     const sourceInfo = source?.parameters?.urls[0];
     const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
@@ -314,16 +337,16 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       case 'continuous':
         stops = GeoTiffClassifications.classifyContinuousBreaks(
           nClasses,
-          currentBand.stats.minimum,
-          currentBand.stats.maximum,
+          minValue,
+          maxValue,
           selectedFunction,
         );
         break;
       case 'equal interval':
         stops = GeoTiffClassifications.classifyEqualIntervalBreaks(
           nClasses,
-          currentBand.stats.minimum,
-          currentBand.stats.maximum,
+          minValue,
+          maxValue,
           selectedFunction,
         );
         break;
@@ -337,6 +360,10 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       stops,
       selectedRamp,
       nClasses,
+      reverseRamp,
+      'Singleband Pseudocolor',
+      minValue,
+      maxValue,
     );
 
     setStopRows(valueColorPairs);
@@ -403,6 +430,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           </select>
         </div>
       </div>
+
       {bandRows.length > 0 && (
         <ColorRamp
           layerParams={layer.parameters}
@@ -410,8 +438,12 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           classifyFunc={buildColorInfoFromClassification}
           showModeRow={true}
           showRampSelector={true}
+          renderType="Singleband Pseudocolor"
+          dataMin={dataMin}
+          dataMax={dataMax}
         />
       )}
+
       <div className="jp-gis-stop-container">
         <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
           <span style={{ flex: '0 0 18%' }}>
