@@ -87,6 +87,9 @@
           "type": "string",
           "default": "equal interval",
           "enum": ["continuous", "equal interval", "quantile"]
+        },
+        "stops": {
+          "type": "array"
         }
       },
       "additionalProperties": false
