@@ -67,12 +67,73 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
       const image = await tiff.getImage();
       const numberOfBands = image.getSamplesPerPixel();
 
+      let min = layer.parameters?.symbologyState?.min;
+      let max = layer.parameters?.symbologyState?.max;
+
+      if (min === undefined || max === undefined) {
+        // 1. Try metadata first
+        let dataMin = image.fileDirectory.STATISTICS_MINIMUM;
+        let dataMax = image.fileDirectory.STATISTICS_MAXIMUM;
+
+        if (dataMin === undefined || dataMax === undefined) {
+          // 2. Try smallest overview if available
+          const overviewCount = await tiff.getImageCount();
+          const targetImage =
+            overviewCount > 1 ? await tiff.getImage(overviewCount - 1) : image;
+
+          // 3. Read a downsampled raster (fast)
+          const rasters = await targetImage.readRasters({
+            width: 256,
+            height: 256,
+            resampleMethod: 'nearest',
+          });
+
+          dataMin = Infinity;
+          dataMax = -Infinity;
+
+          for (let i = 0; i < rasters.length; i++) {
+            const bandData = rasters[i] as
+              | Float32Array
+              | Uint16Array
+              | Int16Array;
+            for (let j = 0; j < bandData.length; j++) {
+              if (bandData[j] < dataMin) {
+                dataMin = bandData[j];
+              }
+              if (bandData[j] > dataMax) {
+                dataMax = bandData[j];
+              }
+            }
+          }
+        }
+
+        min = dataMin;
+        max = dataMax;
+
+        layer.parameters = {
+          ...layer.parameters,
+          symbologyState: {
+            ...(layer.parameters?.symbologyState ?? {}),
+            min,
+            max,
+          },
+        };
+
+        sourceInfo.min = min;
+        sourceInfo.max = max;
+
+        console.log(`[Symbology Init] Final Min=${min}, Max=${max}`);
+      } else {
+        sourceInfo.min = min;
+        sourceInfo.max = max;
+      }
+
       for (let i = 0; i < numberOfBands; i++) {
         bandsArr.push({
           band: i,
           stats: {
-            minimum: sourceInfo.min ?? 0,
-            maximum: sourceInfo.max ?? 100,
+            minimum: min ?? 0,
+            maximum: max ?? 100,
           },
         });
       }
