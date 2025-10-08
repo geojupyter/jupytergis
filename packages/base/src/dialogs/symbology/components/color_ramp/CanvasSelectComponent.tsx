@@ -95,9 +95,7 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
         className="jp-Dialog-button jp-gis-canvas-button"
       >
         <div className="jp-gis-color-ramp-entry jp-gis-selected-entry">
-          {selectedRamp && (
-            <span className="jp-gis-color-label">{selectedRamp}</span>
-          )}
+          <span className="jp-gis-color-label">{selectedRamp}</span>
           <canvas
             id="cv"
             className="jp-gis-color-canvas-display"
