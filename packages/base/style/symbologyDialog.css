@@ -158,9 +158,9 @@ select option {
   border: var(--jp-border-width) solid var(--jp-input-border-color);
   border-radius: 0;
   outline: none;
-  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  appearance: none;
 }
 
 .jp-gis-open {
@@ -172,11 +172,12 @@ select option {
   align-items: center;
   font-size: var(--jp-ui-font-size2);
   color: var(--jp-ui-font-color0);
-  appearance: none;
   text-transform: capitalize;
   cursor: pointer;
+  position: relative;
   -webkit-appearance: none;
   -moz-appearance: none;
+  appearance: none;
 }
 
 .jp-gis-color-label {
@@ -215,8 +216,23 @@ select option {
 }
 
 #jp-gis-canvas-button.jp-gis-canvas-button {
-  visibility: hidden;
   margin: 0;
   padding: 0 1px 0 0;
   width: 100%;
+}
+
+.jp-gis-selected-entry {
+  display: flex;
+  width: 100%;
+  position: relative;
+}
+
+.jp-gis-selected-entry .jp-gis-color-label {
+  color: white;
+  position: absolute;
+  left: 10px;
+  transition: transform 0.3s ease;
+  text-shadow: 0px 0px 4px black;
+  transform: scale(1);
+  transform-origin: left bottom;
 }
