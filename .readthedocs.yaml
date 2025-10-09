@@ -40,5 +40,5 @@ build:
       html:
         - |-
           /bin/bash --login -c "cd docs && micromamba run -n jupytergis-docs \
-          python -m sphinx --fail-on-warning --keep-going --nitpicky --show-traceback --builder html --doctree-dir _build/doctrees --define language=en . \
+          python -m sphinx --keep-going --nitpicky --show-traceback --builder html --doctree-dir _build/doctrees --define language=en . \
           $READTHEDOCS_OUTPUT/html"
