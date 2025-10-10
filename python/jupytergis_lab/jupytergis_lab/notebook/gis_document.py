@@ -50,7 +50,7 @@ class GISDocument(CommWidget):
 
     def __init__(
         self,
-        path: Optional[str | Path] = None,
+        path: str | Path | None = None,
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
         zoom: Optional[float] = None,
