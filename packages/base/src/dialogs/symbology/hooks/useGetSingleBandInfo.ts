@@ -30,7 +30,7 @@ const useGetSingleBandInfo = (
     try {
       const bandsArr: IBandRow[] = [];
       const source = model.getSource(layer?.parameters?.source);
-      const sourceInfo = source?.parameters?.urls?.[0];
+      const sourceInfo = source?.parameters?.urls[0];
 
       if (!sourceInfo?.url) {
         setError('No source URL found.');
@@ -38,7 +38,6 @@ const useGetSingleBandInfo = (
         return;
       }
 
-      // Load TIFF
       let tiff;
       if (
         sourceInfo.url.startsWith('http') ||
@@ -53,11 +52,13 @@ const useGetSingleBandInfo = (
           type: 'GeoTiffSource',
           model,
         });
+
         if (!preloadedFile.file) {
           setError('Failed to load local file.');
           setLoading(false);
           return;
         }
+
         tiff = await fromBlob(preloadedFile.file);
       }
 
@@ -68,17 +69,17 @@ const useGetSingleBandInfo = (
       let max = layer.parameters?.symbologyState?.max;
 
       if (min === undefined || max === undefined) {
-        // 1. Try metadata
-        let dataMin = image.fileDirectory?.STATISTICS_MINIMUM;
-        let dataMax = image.fileDirectory?.STATISTICS_MAXIMUM;
+        // 1. Try metadata first
+        let dataMin = image.fileDirectory.STATISTICS_MINIMUM;
+        let dataMax = image.fileDirectory.STATISTICS_MAXIMUM;
 
         if (dataMin === undefined || dataMax === undefined) {
-          // 2. Try smallest overview
+          // 2. Try smallest overview if available
           const overviewCount = await tiff.getImageCount();
           const targetImage =
             overviewCount > 1 ? await tiff.getImage(overviewCount - 1) : image;
 
-          // 3. Read downsampled raster
+          // 3. Read downsampled raster (fast)
           const rasters = await targetImage.readRasters();
           dataMin = Infinity;
           dataMax = -Infinity;
