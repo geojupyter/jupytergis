@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IBandRow } from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+import { IBandRow } from '@/src/dialogs/symbology/hooks/useGetMultiBandInfo';
 
 interface IBandRowProps {
   label: string;
@@ -8,7 +8,7 @@ interface IBandRowProps {
   bandRow: IBandRow;
   bandRows: IBandRow[];
   setSelectedBand: (band: number) => void;
-  setBandRows: (bandRows: IBandRow[]) => void;
+  setBandRows?: (bandRows: IBandRow[]) => void;
   isMultibandColor?: boolean;
 }
 

@@ -9,9 +9,9 @@ import ColorRamp, {
   ColorRampOptions,
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
 import StopRow from '@/src/dialogs/symbology/components/color_stops/StopRow';
-import useGetBandInfo, {
+import useGetSingleBandInfo, {
   IBandRow,
-} from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+} from '@/src/dialogs/symbology/hooks/useGetSingleBandInfo';
 import {
   IStopRow,
   ISymbologyDialogProps,
@@ -43,10 +43,15 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-  const { bandRows, setBandRows, loading } = useGetBandInfo(model, layer);
+  const [selectedBand, setSelectedBand] = useState(1);
+  const { bandRows, loading } = useGetSingleBandInfo(
+    model,
+    layer,
+    layerId,
+    selectedBand,
+  );
 
   const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
-  const [selectedBand, setSelectedBand] = useState(1);
 
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [dataMin, setDataMin] = useState<number | undefined>();
@@ -402,7 +407,6 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
           bandRow={bandRows[selectedBand - 1]}
           bandRows={bandRows}
           setSelectedBand={setSelectedBand}
-          setBandRows={setBandRows}
         />
       </div>
       <div className="jp-gis-symbology-row">
