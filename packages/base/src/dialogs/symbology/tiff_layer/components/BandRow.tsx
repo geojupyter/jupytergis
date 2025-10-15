@@ -31,39 +31,41 @@ const BandRow: React.FC<IBandRowProps> = ({
   isMultibandColor,
 }) => {
   return (
-    <div className="jp-gis-symbology-row">
-      <label htmlFor={`band-select-${index}`}>{label}:</label>
-      <div className="jp-select-wrapper">
-        <select
-          name={`band-select-${index}`}
-          onChange={event => setSelectedBand(+event.target.value)}
-          className="jp-mod-styled"
-        >
-          {bandRows.map((band, bandIndex) => (
-            <option
-              key={bandIndex}
-              value={band.band}
-              selected={band.band === bandRow?.band}
-              className="jp-mod-styled"
-            >
-              {band.colorInterpretation
-                ? `Band ${band.band} (${band.colorInterpretation})`
-                : `Band ${band.band}`}
-            </option>
-          ))}
-          {isMultibandColor ? (
-            <option
-              key={'unset'}
-              value={-1}
-              selected={!bandRow}
-              className="jp-mod-styled"
-            >
-              Unset
-            </option>
-          ) : null}
-        </select>
+    <>
+      <div className="jp-gis-symbology-row">
+        <label htmlFor={`band-select-${index}`}>{label}:</label>
+        <div className="jp-select-wrapper">
+          <select
+            name={`band-select-${index}`}
+            onChange={event => setSelectedBand(+event.target.value)}
+            className="jp-mod-styled"
+          >
+            {bandRows.map((band, bandIndex) => (
+              <option
+                key={bandIndex}
+                value={band.band}
+                selected={band.band === bandRow?.band}
+                className="jp-mod-styled"
+              >
+                {band.colorInterpretation
+                  ? `Band ${band.band} (${band.colorInterpretation})`
+                  : `Band ${band.band}`}
+              </option>
+            ))}
+            {isMultibandColor ? (
+              <option
+                key={'unset'}
+                value={-1}
+                selected={!bandRow}
+                className="jp-mod-styled"
+              >
+                Unset
+              </option>
+            ) : null}
+          </select>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
