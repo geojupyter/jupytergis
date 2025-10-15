@@ -65,45 +65,37 @@ const useGetSingleBandInfo = (
       const image = await tiff.getImage();
       const numberOfBands = image.getSamplesPerPixel();
 
-      let min = layer.parameters?.symbologyState?.min;
-      let max = layer.parameters?.symbologyState?.max;
+      // 1. Try metadata first
+      let dataMin = image.fileDirectory.STATISTICS_MINIMUM;
+      let dataMax = image.fileDirectory.STATISTICS_MAXIMUM;
 
-      if (min === undefined || max === undefined) {
-        // 1. Try metadata first
-        let dataMin = image.fileDirectory.STATISTICS_MINIMUM;
-        let dataMax = image.fileDirectory.STATISTICS_MAXIMUM;
+      if (dataMin === undefined || dataMax === undefined) {
+        // 2. Try smallest overview if available
+        const overviewCount = await tiff.getImageCount();
+        const targetImage =
+          overviewCount > 1 ? await tiff.getImage(overviewCount - 1) : image;
 
-        if (dataMin === undefined || dataMax === undefined) {
-          // 2. Try smallest overview if available
-          const overviewCount = await tiff.getImageCount();
-          const targetImage =
-            overviewCount > 1 ? await tiff.getImage(overviewCount - 1) : image;
+        // 3. Read downsampled raster (fast)
+        const rasters = await targetImage.readRasters();
+        dataMin = Infinity;
+        dataMax = -Infinity;
 
-          // 3. Read downsampled raster (fast)
-          const rasters = await targetImage.readRasters();
-          dataMin = Infinity;
-          dataMax = -Infinity;
-
-          const bandIndex = selectedBand - 1;
-          const bandData = rasters[bandIndex] as
-            | Float32Array
-            | Uint16Array
-            | Int16Array;
-          if (bandData) {
-            for (let j = 0; j < bandData.length; j++) {
-              const val = bandData[j];
-              if (val < dataMin) {
-                dataMin = val;
-              }
-              if (val > dataMax) {
-                dataMax = val;
-              }
+        const bandIndex = selectedBand - 1;
+        const bandData = rasters[bandIndex] as
+          | Float32Array
+          | Uint16Array
+          | Int16Array;
+        if (bandData) {
+          for (let j = 0; j < bandData.length; j++) {
+            const val = bandData[j];
+            if (val < dataMin) {
+              dataMin = val;
+            }
+            if (val > dataMax) {
+              dataMax = val;
             }
           }
         }
-
-        min = dataMin;
-        max = dataMax;
 
         model.sharedModel.updateLayer(layerId, {
           ...layer,
@@ -111,22 +103,22 @@ const useGetSingleBandInfo = (
             ...layer.parameters,
             symbologyState: {
               ...(layer.parameters?.symbologyState ?? {}),
-              min,
-              max,
+              dataMin,
+              dataMax,
               band: selectedBand,
             },
           },
         });
 
-        console.log(`[Symbology Init] Final Min=${min}, Max=${max}`);
+        console.debug(`[Symbology Init] Final Min=${dataMin}, Max=${dataMax}`);
       }
 
       for (let i = 0; i < numberOfBands; i++) {
         bandsArr.push({
           band: i,
           stats: {
-            minimum: min ?? 0,
-            maximum: max ?? 100,
+            minimum: dataMin ?? 0,
+            maximum: dataMax ?? 100,
           },
         });
       }
