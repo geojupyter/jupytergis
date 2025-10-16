@@ -5,9 +5,9 @@ import { IColorRampDefinition } from '@/src/types';
 
 export interface IColorRampValueControlsProps {
   selectedMin: number | undefined;
-  settedMin: (v: number | undefined) => void;
+  setSelectedMin: React.Dispatch<React.SetStateAction<number | undefined>>;
   selectedMax: number | undefined;
-  settedMax: (v: number | undefined) => void;
+  setSelectedMax: React.Dispatch<React.SetStateAction<number | undefined>>;
   rampDef: IColorRampDefinition;
   renderType:
     | 'Categorized'
@@ -59,7 +59,7 @@ export const ColorRampValueControls: React.FC<
           type="number"
           value={props.selectedMin ?? ''}
           onChange={e =>
-            props.settedMin(
+            props.setSelectedMin(
               e.target.value !== '' ? parseFloat(e.target.value) : undefined,
             )
           }
@@ -76,7 +76,7 @@ export const ColorRampValueControls: React.FC<
           type="number"
           value={props.selectedMax ?? ''}
           onChange={e =>
-            props.settedMax(
+            props.setSelectedMax(
               e.target.value !== '' ? parseFloat(e.target.value) : undefined,
             )
           }
@@ -104,8 +104,8 @@ export const ColorRampValueControls: React.FC<
               props.selectedMax === props.dataMax)
           }
           onClick={() => {
-            props.settedMin(props.dataMin);
-            props.settedMax(props.dataMax);
+            props.setSelectedMin(props.dataMin);
+            props.setSelectedMax(props.dataMax);
           }}
         >
           Use Actual Range ({props.dataMin} - {props.dataMax})

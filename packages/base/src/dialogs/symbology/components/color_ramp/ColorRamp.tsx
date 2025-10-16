@@ -89,30 +89,36 @@ const ColorRamp: React.FC<IColorRampProps> = ({
 
   const rampDef = COLOR_RAMP_DEFINITIONS[selectedRamp];
 
-  const normalizedCritical =
-    rampDef?.type === 'Divergent' ? (rampDef.criticalValue ?? 0.5) : 0.5;
+  if (rampDef === undefined) {
+    // Typeguard: This should never happen
+    return;
+  }
   const scaledCritical =
-    minValue !== undefined && maxValue !== undefined
-      ? minValue + normalizedCritical * (maxValue - minValue)
+    rampDef.type === 'Divergent' &&
+    minValue !== undefined &&
+    maxValue !== undefined
+      ? minValue + rampDef.criticalValue * (maxValue - minValue)
       : undefined;
 
   useEffect(() => {
+    if (renderType === 'Heatmap') {
+      return;
+    }
+
     if (!layerParams.symbologyState) {
       layerParams.symbologyState = {};
     }
-
-    if (renderType !== 'Heatmap') {
-      layerParams.symbologyState.min = minValue;  // TODO: Not saving, probably because we're not calling `updateLayer`
-      layerParams.symbologyState.max = maxValue;
-      layerParams.symbologyState.colorRamp = selectedRamp;
-      layerParams.symbologyState.reverse = reverseRamp;
-      layerParams.symbologyState.nClasses = numberOfShades;
-      layerParams.symbologyState.mode = selectedMode;
-
-      if (rampDef?.type === 'Divergent') {
-        layerParams.symbologyState.criticalValue = rampDef.criticalValue;
-      }
-    }
+    layerParams.symbologyState = {
+      ...layerParams.symbologyState,
+      dataMin,
+      dataMax,
+      min: minValue,
+      max: maxValue,
+      colorRamp: selectedRamp,
+      reverse: reverseRamp,
+      nClasses: numberOfShades,
+      mode: selectedMode,
+    };
   }, [
     minValue,
     maxValue,
@@ -140,9 +146,9 @@ const ColorRamp: React.FC<IColorRampProps> = ({
 
       <ColorRampValueControls
         selectedMin={minValue}
-        settedMin={setMinValue}
+        setSelectedMin={setMinValue}
         selectedMax={maxValue}
-        settedMax={setMaxValue}
+        setSelectedMax={setMaxValue}
         rampDef={rampDef}
         dataMin={dataMin}
         dataMax={dataMax}
