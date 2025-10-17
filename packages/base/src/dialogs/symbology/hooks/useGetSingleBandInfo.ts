@@ -96,26 +96,26 @@ const useGetSingleBandInfo = (
             }
           }
         }
-
-        model.sharedModel.updateLayer(layerId, {
-          ...layer,
-          parameters: {
-            ...layer.parameters,
-            symbologyState: {
-              ...(layer.parameters?.symbologyState ?? {}),
-              dataMin,
-              dataMax,
-              band: selectedBand,
-            },
-          },
-        });
-
-        console.debug(`[Symbology Init] Final Min=${dataMin}, Max=${dataMax}`);
       }
+
+      model.sharedModel.updateLayer(layerId, {
+        ...layer,
+        parameters: {
+          ...layer.parameters,
+          symbologyState: {
+            ...(layer.parameters?.symbologyState ?? {}),
+            dataMin,
+            dataMax,
+            band: selectedBand,
+          },
+        },
+      });
+
+      console.debug(`[Symbology Init] Final Min=${dataMin}, Max=${dataMax}`);
 
       for (let i = 0; i < numberOfBands; i++) {
         bandsArr.push({
-          band: i,
+          band: i + 1,
           stats: {
             minimum: dataMin ?? 0,
             maximum: dataMax ?? 100,
