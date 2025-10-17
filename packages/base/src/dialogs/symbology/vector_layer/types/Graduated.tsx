@@ -13,6 +13,7 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import { ColorRampName } from '@/src/types';
 
 const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -35,7 +36,6 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const symbologyTabRef = useRef<string>();
   const colorStopRowsRef = useRef<IStopRow[]>([]);
   const radiusStopRowsRef = useRef<IStopRow[]>([]);
-  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
 
   const [selectedAttribute, setSelectedAttribute] = useState('');
   const [colorStopRows, setColorStopRows] = useState<IStopRow[]>([]);
@@ -51,8 +51,10 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const [radiusManualStyle, setRadiusManualStyle] = useState({
     radius: 5,
   });
-  const [reverseRamp, setReverseRamp] = useState(false);
+  const [dataMin, setDataMin] = useState<number | undefined>();
+  const [dataMax, setDataMax] = useState<number | undefined>();
 
+  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
   const colorManualStyleRef = useRef(colorManualStyle);
   const radiusManualStyleRef = useRef(radiusManualStyle);
 
@@ -136,6 +138,15 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       Object.keys(selectableAttributesAndValues)[0];
 
     setSelectedAttribute(attribute);
+
+    const values = Array.from(selectableAttributesAndValues[attribute] ?? []);
+    if (values.length > 0) {
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+
+      setDataMin(min);
+      setDataMax(max);
+    }
   }, [selectableAttributesAndValues]);
 
   const updateStopRowsBasedOnLayer = () => {
@@ -201,9 +212,11 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       value: selectableAttributeRef.current,
       method: symbologyTabRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
+      reverse: colorRampOptionsRef.current?.reverseRamp,
       nClasses: colorRampOptionsRef.current?.numberOfShades,
       mode: colorRampOptionsRef.current?.selectedMode,
-      reverse: reverseRamp,
+      min: colorRampOptionsRef.current?.minValue,
+      max: colorRampOptionsRef.current?.maxValue,
     };
 
     if (layer.type === 'HeatmapLayer') {
@@ -217,12 +230,21 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const buildColorInfoFromClassification = (
     selectedMode: string,
     numberOfShades: string,
-    selectedRamp: string,
+    selectedRamp: ColorRampName,
+    reverseRamp: boolean,
+    setIsLoading: (isLoading: boolean) => void,
+    minValue: number,
+    maxValue: number,
+    criticalValue?: number,
   ) => {
     setColorRampOptions({
       selectedRamp,
+      reverseRamp,
       numberOfShades,
       selectedMode,
+      minValue,
+      maxValue,
+      criticalValue,
     });
 
     let stops: number[];
@@ -238,8 +260,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         break;
       case 'equal interval':
         stops = VectorClassifications.calculateEqualIntervalBreaks(
-          values,
           +numberOfShades,
+          minValue,
+          maxValue,
         );
         break;
       case 'jenks':
@@ -267,12 +290,24 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 
     const stopOutputPairs =
       symbologyTab === 'radius'
-        ? stops.map(v => ({ stop: v, output: v }))
+        ? stops.map(v => {
+            const scaled =
+              minValue !== undefined && maxValue !== undefined
+                ? minValue +
+                  ((v - Math.min(...stops)) /
+                    (Math.max(...stops) - Math.min(...stops))) *
+                    (maxValue - minValue)
+                : v;
+            return { stop: scaled, output: scaled };
+          })
         : Utils.getValueColorPairs(
             stops,
             selectedRamp,
             +numberOfShades,
             reverseRamp,
+            'Graduated',
+            minValue,
+            maxValue,
           );
 
     if (symbologyTab === 'radius') {
@@ -280,6 +315,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     } else {
       setColorStopRows(stopOutputPairs);
     }
+
+    setIsLoading(false);
   };
 
   const handleReset = (method: string) => {
@@ -389,25 +426,15 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             )}
           </div>
 
-          {symbologyTab === 'color' && (
-            <div className="jp-gis-symbology-row">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={reverseRamp}
-                  onChange={e => setReverseRamp(e.target.checked)}
-                />
-                Reverse Color Ramp
-              </label>
-            </div>
-          )}
-
           <ColorRamp
             layerParams={layer.parameters}
             modeOptions={modeOptions}
             classifyFunc={buildColorInfoFromClassification}
             showModeRow={true}
             showRampSelector={symbologyTab === 'color'}
+            renderType="Graduated"
+            dataMin={dataMin}
+            dataMax={dataMax}
           />
           <StopContainer
             selectedMethod={symbologyTab || 'color'}
