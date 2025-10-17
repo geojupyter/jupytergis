@@ -13,7 +13,7 @@ const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
   colorMap,
   onClick,
 }) => {
-  const canvasWidth = 256 * 2;
+  const canvasWidth = 512;
   const canvasHeight = 30;
 
   useEffect(() => {
