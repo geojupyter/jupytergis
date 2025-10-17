@@ -158,9 +158,9 @@ select option {
   border: var(--jp-border-width) solid var(--jp-input-border-color);
   border-radius: 0;
   outline: none;
-  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  appearance: none;
 }
 
 .jp-gis-open {
@@ -172,20 +172,25 @@ select option {
   align-items: center;
   font-size: var(--jp-ui-font-size2);
   color: var(--jp-ui-font-color0);
-  appearance: none;
   text-transform: capitalize;
   cursor: pointer;
+  position: relative;
   -webkit-appearance: none;
   -moz-appearance: none;
+  appearance: none;
 }
 
 .jp-gis-color-label {
   color: white;
+  padding-left: 10px;
   position: absolute;
+  text-shadow: 0px 0px 4px black;
+
   transition: transform 0.3s ease;
+  transform-origin: left bottom;
 }
 
-.jp-gis-color-ramp-entry:hover .jp-gis-color-label {
+.jp-gis-color-ramp-entry:not(.jp-gis-selected-entry):hover .jp-gis-color-label {
   transform: scale(1.2);
 }
 
@@ -215,8 +220,11 @@ select option {
 }
 
 #jp-gis-canvas-button.jp-gis-canvas-button {
-  visibility: hidden;
   margin: 0;
   padding: 0 1px 0 0;
+  width: 100%;
+}
+
+.jp-gis-selected-entry {
   width: 100%;
 }
