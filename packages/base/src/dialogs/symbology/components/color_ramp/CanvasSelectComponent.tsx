@@ -21,7 +21,7 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
-  const canvasWidth = 256 * 2;
+  const canvasWidth = 512;
   const canvasHeight = 30;
 
   useColorMapList(setColorMaps);
