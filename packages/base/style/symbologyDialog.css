@@ -182,11 +182,15 @@ select option {
 
 .jp-gis-color-label {
   color: white;
+  padding-left: 10px;
   position: absolute;
+  text-shadow: 0px 0px 4px black;
+
   transition: transform 0.3s ease;
+  transform-origin: left bottom;
 }
 
-.jp-gis-color-ramp-entry:hover .jp-gis-color-label {
+.jp-gis-color-ramp-entry:not(.jp-gis-selected-entry):hover .jp-gis-color-label {
   transform: scale(1.2);
 }
 
@@ -222,17 +226,5 @@ select option {
 }
 
 .jp-gis-selected-entry {
-  display: flex;
   width: 100%;
-  position: relative;
-}
-
-.jp-gis-selected-entry .jp-gis-color-label {
-  color: white;
-  position: absolute;
-  left: 10px;
-  transition: transform 0.3s ease;
-  text-shadow: 0px 0px 4px black;
-  transform: scale(1);
-  transform-origin: left bottom;
 }
