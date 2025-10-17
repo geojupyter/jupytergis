@@ -12,7 +12,7 @@ The `jlpm` command is JupyterLab's pinned version of
 
 ### Install the Essential Tools
 1. Install Git: Go to the official Git website and follow the installation instructions for your operating system (Windows, macOS, or Linux).
-2. Install Python: Go to the official Python website and follow the installation instructions for your operating system (Windows, macOS, or Linux). 
+2. Install Python: Go to the official Python website and follow the installation instructions for your operating system (Windows, macOS, or Linux).
 3. (Recommended) Install Micromamba: Go to the official Micromamba website and follow the installation instructions for your operating system (Windows, macOS, or Linux).
 
 
