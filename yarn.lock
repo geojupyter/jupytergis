@@ -1828,10 +1828,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lezer/common@npm:^1.0.0, @lezer/common@npm:^1.0.2, @lezer/common@npm:^1.1.0, @lezer/common@npm:^1.2.0, @lezer/common@npm:^1.2.1":
-  version: 1.2.3
-  resolution: "@lezer/common@npm:1.2.3"
-  checksum: 9b5f52d949adae69d077f56c0b1c2295923108c3dfb241dd9f17654ff708f3eab81ff9fa7f0d0e4a668eabdcb9d961c73e75caca87c966ca1436e30e49130fcb
+"@lezer/common@npm:^1.0.0, @lezer/common@npm:^1.0.2, @lezer/common@npm:^1.1.0, @lezer/common@npm:^1.2.0, @lezer/common@npm:^1.2.1, @lezer/common@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "@lezer/common@npm:1.3.0"
+  checksum: 55b579ce7ed18e667844954e460f5082f10e833cc6fcb6791f27a2dff1bf63647da477e20c5f857accec25f82c58ed12cd95875af754052e44866bc1be2bd4d4
   languageName: node
   linkType: hard
 
@@ -1870,11 +1870,11 @@ __metadata:
   linkType: hard
 
 "@lezer/highlight@npm:^1.0.0, @lezer/highlight@npm:^1.1.3, @lezer/highlight@npm:^1.2.0":
-  version: 1.2.1
-  resolution: "@lezer/highlight@npm:1.2.1"
+  version: 1.2.2
+  resolution: "@lezer/highlight@npm:1.2.2"
   dependencies:
-    "@lezer/common": ^1.0.0
-  checksum: a8822d7e37f79ff64669eb2df4a9f9d16580e88f2b276a646092e19a9bdccac304e92510e200e35869a8b1f6c27eba5972c508d347a277e9b722d582ab7a23d5
+    "@lezer/common": ^1.3.0
+  checksum: 6f15cc1ecc48fe2d47299d83106d7b9a6b3031ba747ebb41cdb1f03086ef00930fc8fc469ed12f6c7536e5aff49bb5b6747540bff4705bf7f9a5bab911d74107
   languageName: node
   linkType: hard
 
@@ -3657,11 +3657,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 24.7.2
-  resolution: "@types/node@npm:24.7.2"
+  version: 24.8.1
+  resolution: "@types/node@npm:24.8.1"
   dependencies:
     undici-types: ~7.14.0
-  checksum: dd676a9041e36825e9c6917b34105da0c3f390ee95cca8e050a9efb7d55851dcb48d05f23700eb5540a22a8d4fd3da289b4c07a3888aeb74d3304dcb07b813b0
+  checksum: 55fca8f900a017c207e4e413956f3fdd17178c3d5ffc8fd4bb7b0b5136865ca06076b1335e1e5e6f3269cace491dc1f4ecc1ab4410ff4acf25c9087585560c86
   languageName: node
   linkType: hard
 
@@ -4656,11 +4656,11 @@ __metadata:
   linkType: hard
 
 "baseline-browser-mapping@npm:^2.8.9":
-  version: 2.8.16
-  resolution: "baseline-browser-mapping@npm:2.8.16"
+  version: 2.8.17
+  resolution: "baseline-browser-mapping@npm:2.8.17"
   bin:
     baseline-browser-mapping: dist/cli.js
-  checksum: 929b3f2b5f4beb3b9e02b660a4a8b24f62e43cc7efdc38a726ef061137f9529d3372e1c70298eacde191ac70f5defd21ae4a29ff9e470c4c2b7fd7be68320241
+  checksum: 2ff31d36b475b628b551e0b29b2fb1ac36f903b99392da4da208ef718beefdc659b24b612a2922664fcffa1fc9bf733bb52d2e29756dcf09c54d764c64f0b964
   languageName: node
   linkType: hard
 
@@ -4867,9 +4867,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001746":
-  version: 1.0.30001750
-  resolution: "caniuse-lite@npm:1.0.30001750"
-  checksum: 4a50a24ceed75cde8a8cd8b370a8c044463c26cc171eb30d1e738cd55b328c599b6e2602ec79e3e9d3b15d56e3cc980f02dd2f82784f91410544fa49c6d09cad
+  version: 1.0.30001751
+  resolution: "caniuse-lite@npm:1.0.30001751"
+  checksum: d11e25c44e40c21e7b7492a25c9fd60f4c04e94aa265573f7c487666f5e1b5ca3ed09d09560336f959237063616255cb294d415511bb6cf0486eb2cb6a3a4318
   languageName: node
   linkType: hard
 
@@ -5887,9 +5887,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.227":
-  version: 1.5.236
-  resolution: "electron-to-chromium@npm:1.5.236"
-  checksum: e2888a37c7805937516d3dfa71b9ac500cf188cba3131df0fd8296047aaa3eb4c86c78918d2c3c79aa4ccd8e094a457ec24437bb5af2b2620503df58c40e87da
+  version: 1.5.237
+  resolution: "electron-to-chromium@npm:1.5.237"
+  checksum: 5905e2808dc6243ced0a83537afbafedec20c063feb6403a678b612a7855d79bc6ecb7d094bdab71f54173cf2ae5d1d8070b0c31572025001c94de62af84f5f8
   languageName: node
   linkType: hard
 
@@ -5982,11 +5982,11 @@ __metadata:
   linkType: hard
 
 "envinfo@npm:^7.7.3":
-  version: 7.18.0
-  resolution: "envinfo@npm:7.18.0"
+  version: 7.19.0
+  resolution: "envinfo@npm:7.19.0"
   bin:
     envinfo: dist/cli.js
-  checksum: 1a4d0094d9aede737e3a1ea59756d6dff440ba2a7e87509cae3a8f69ef8748cba952e9a6c0f66e54bc12a90902d32a082b0934dfc156ca4252e18fe5a0c4d11d
+  checksum: ae27a34200fab30c6898867b63024b016bf883f8a166854055be5ccda34d7e7fc81b5048df21f7f9acaf8f6ce49cf91247c5a58df8bb054ed08ccdab9ab12fe8
   languageName: node
   linkType: hard
 
@@ -9391,9 +9391,9 @@ __metadata:
   linkType: hard
 
 "node-releases@npm:^2.0.21":
-  version: 2.0.23
-  resolution: "node-releases@npm:2.0.23"
-  checksum: dc3194ffdf04975f8525a5e175c03f5a95cecd7607b6b0e80d28aaa03900706d920722b5f2ae2e8e28e029e6ae75f0d0f7eae87e8ee2a363c704785e3118f13d
+  version: 2.0.25
+  resolution: "node-releases@npm:2.0.25"
+  checksum: 9a23149cf3f6778e62440b1f26f91927aff06c3606a29996f3d196c7c0f5e31c17c24c324b5ef1f571cebef6b5a8db9adce9c09381ca271bc6422aac91463f75
   languageName: node
   linkType: hard
 
@@ -11769,9 +11769,9 @@ __metadata:
   linkType: hard
 
 "style-mod@npm:^4.0.0, style-mod@npm:^4.1.0":
-  version: 4.1.2
-  resolution: "style-mod@npm:4.1.2"
-  checksum: 7c5c3e82747f9bcf5f288d8d07f50848e4630fe5ff7bfe4d94cc87d6b6a2588227cbf21b4c792ac6406e5852293300a75e710714479a5c59a06af677f0825ef8
+  version: 4.1.3
+  resolution: "style-mod@npm:4.1.3"
+  checksum: 2372098b8747ea0d662084e88961f48d49796b2aca6f8f7de2546aa73059e869db1149325106eba37267afd9e7f97109be6679a6011c48ae1d5c0b6382a4d163
   languageName: node
   linkType: hard
 
