@@ -2,12 +2,10 @@ import React from 'react';
 
 import { ClassificationMode } from '@/src/types';
 interface IModeSelectRowProps {
-  numberOfShades: number | undefined;
-  setNumberOfShades: React.Dispatch<React.SetStateAction<number | undefined>>;
-  selectedMode: ClassificationMode | undefined;
-  setSelectedMode: React.Dispatch<
-    React.SetStateAction<ClassificationMode | undefined>
-  >;
+  numberOfShades: number;
+  setNumberOfShades: React.Dispatch<React.SetStateAction<number>>;
+  selectedMode: ClassificationMode;
+  setSelectedMode: React.Dispatch<React.SetStateAction<ClassificationMode>>;
   modeOptions: ClassificationMode[];
 }
 const ModeSelectRow: React.FC<IModeSelectRowProps> = ({
@@ -25,10 +23,12 @@ const ModeSelectRow: React.FC<IModeSelectRowProps> = ({
           className="jp-mod-styled"
           name="class-number-input"
           type="number"
-          value={selectedMode === 'continuous' ? 52 : (numberOfShades ?? '')}
+          value={selectedMode === 'continuous' ? 52 : numberOfShades}
           onChange={event => {
-            const value = event.target.value;
-            setNumberOfShades(value === '' ? undefined : Number(value));
+            const value = Number(event.target.value);
+            if (!isNaN(value) && value > 0) {
+              setNumberOfShades(value);
+            }
           }}
           disabled={selectedMode === 'continuous'}
         />

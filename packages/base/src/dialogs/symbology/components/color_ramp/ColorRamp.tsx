@@ -6,14 +6,15 @@ import { LoadingIcon } from '@/src/shared/components/loading';
 import { ClassificationMode } from '@/src/types';
 import CanvasSelectComponent from './CanvasSelectComponent';
 import ModeSelectRow from './ModeSelectRow';
+import { ColorRampName } from '../../colorRampUtils';
 
 interface IColorRampProps {
   modeOptions: ClassificationMode[];
   layerParams: IDict;
   classifyFunc: (
-    selectedMode: ClassificationMode | undefined,
-    numberOfShades: number | undefined,
-    selectedRamp: string,
+    selectedMode: ClassificationMode,
+    numberOfShades: number,
+    selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
   ) => void;
   showModeRow: boolean;
@@ -21,14 +22,12 @@ interface IColorRampProps {
 }
 
 export type ColorRampOptions = {
-  selectedRamp: string;
-  numberOfShades: number | undefined;
-  selectedMode: ClassificationMode | undefined;
+  selectedRamp: ColorRampName;
+  numberOfShades: number;
+  selectedMode: ClassificationMode;
 };
 
-const isValidNumberOfShades = (value: number | undefined) => {
-  return value !== undefined && !isNaN(value) && value > 0;
-};
+const isValidNumberOfShades = (value: number) => !isNaN(value) && value > 0;
 
 const ColorRamp: React.FC<IColorRampProps> = ({
   layerParams,
@@ -37,34 +36,27 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   showModeRow,
   showRampSelector,
 }) => {
-  const [selectedRamp, setSelectedRamp] = useState('');
-  const [selectedMode, setSelectedMode] = useState<
-    ClassificationMode | undefined
-  >();
-  const [numberOfShades, setNumberOfShades] = useState<number | undefined>();
+  const [selectedRamp, setSelectedRamp] = useState<ColorRampName>('viridis');
+  const [selectedMode, setSelectedMode] =
+    useState<ClassificationMode>('equal interval');
+  const [numberOfShades, setNumberOfShades] = useState<number>(9);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (
-      selectedRamp === '' &&
-      selectedMode === undefined &&
-      numberOfShades === undefined
-    ) {
+    if (layerParams.symbologyState) {
       populateOptions();
     }
-  }, [layerParams]);
+  }, [
+    layerParams.symbologyState.nClasses,
+    layerParams.symbologyState.mode,
+    layerParams.symbologyState.colorRamp,
+  ]);
 
   const populateOptions = () => {
-    let nClasses, singleBandMode, colorRamp;
-
-    if (layerParams.symbologyState) {
-      nClasses = layerParams.symbologyState.nClasses;
-      singleBandMode = layerParams.symbologyState.mode;
-      colorRamp = layerParams.symbologyState.colorRamp;
-    }
-    setNumberOfShades(nClasses ? nClasses : 9);
-    setSelectedMode((singleBandMode as ClassificationMode) ?? 'equal interval');
-    setSelectedRamp(colorRamp ? colorRamp : 'viridis');
+    const { nClasses, mode, colorRamp } = layerParams.symbologyState ?? {};
+    setNumberOfShades(nClasses ?? 9);
+    setSelectedMode((mode as ClassificationMode) ?? 'equal interval');
+    setSelectedRamp((colorRamp as ColorRampName) ?? 'viridis');
   };
 
   return (
@@ -92,7 +84,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       ) : (
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          disabled={!isValidNumberOfShades(numberOfShades)}
+          disabled={!isValidNumberOfShades(numberOfShades) || !selectedMode}
           onClick={() =>
             classifyFunc(
               selectedMode,

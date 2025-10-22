@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import CanvasSelectComponent from '@/src/dialogs/symbology/components/color_ramp/CanvasSelectComponent';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import { ColorRampName } from '../../colorRampUtils';
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
   model,
@@ -18,7 +19,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
   if (!layer?.parameters) {
     return;
   }
-  const [selectedRamp, setSelectedRamp] = useState('');
+  const [selectedRamp, setSelectedRamp] = useState<ColorRampName>('viridis');
   const [heatmapOptions, setHetamapOptions] = useState({
     radius: 8,
     blur: 15,

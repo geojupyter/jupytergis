@@ -14,6 +14,7 @@ import {
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
 import { ClassificationMode } from '@/src/types';
+import { ColorRampName } from '../../colorRampUtils';
 
 const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -216,9 +217,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   };
 
   const buildColorInfoFromClassification = (
-    selectedMode: ClassificationMode | undefined,
-    numberOfShades: number | undefined,
-    selectedRamp: string,
+    selectedMode: ClassificationMode,
+    numberOfShades: number,
+    selectedRamp: ColorRampName,
   ) => {
     setColorRampOptions({
       selectedRamp,
@@ -234,31 +235,31 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       case 'quantile':
         stops = VectorClassifications.calculateQuantileBreaks(
           values,
-          numberOfShades as number,
+          numberOfShades,
         );
         break;
       case 'equal interval':
         stops = VectorClassifications.calculateEqualIntervalBreaks(
           values,
-          numberOfShades as number,
+          numberOfShades,
         );
         break;
       case 'jenks':
         stops = VectorClassifications.calculateJenksBreaks(
           values,
-          numberOfShades as number,
+          numberOfShades,
         );
         break;
       case 'pretty':
         stops = VectorClassifications.calculatePrettyBreaks(
           values,
-          numberOfShades as number,
+          numberOfShades,
         );
         break;
       case 'logarithmic':
         stops = VectorClassifications.calculateLogarithmicBreaks(
           values,
-          numberOfShades as number,
+          numberOfShades,
         );
         break;
       default:
@@ -272,7 +273,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         : Utils.getValueColorPairs(
             stops,
             selectedRamp,
-            numberOfShades as number,
+            numberOfShades,
             reverseRamp,
           );
 
