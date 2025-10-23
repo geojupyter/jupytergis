@@ -132,7 +132,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
       if (!this.props.createLayer) {
         sourceSchema['required'] = ['name', ...sourceSchema['required']];
         sourceSchema['properties'] = {
-          name: { type: 'string', description: 'The name of the source' },
+          name: { type: 'string', description: 'The name of the source' , 'ui:autofocus':true},
           ...sourceSchema['properties'],
         };
       }
@@ -193,27 +193,6 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
 
     return (
       <div>
-        {this.props.createSource && (
-          <div>
-            <h3>Source Properties</h3>
-            <SourceForm
-              formContext="create"
-              model={this.jGISModel}
-              filePath={this.filePath}
-              schema={sourceSchema}
-              sourceData={this.props.sourceData}
-              syncData={(properties: { [key: string]: any }) => {
-                sourceCreationPromise?.resolve(properties);
-              }}
-              ok={this.props.ok}
-              cancel={this.props.cancel}
-              formChangedSignal={this.sourceFormChangedSignal}
-              formErrorSignal={this.props.formErrorSignal}
-              dialogOptions={this.props.dialogOptions}
-              sourceType={this.props.sourceType}
-            />
-          </div>
-        )}
         {this.props.createLayer && (
           <div>
             <h3>Layer Properties</h3>
@@ -232,6 +211,27 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
               sourceFormChangedSignal={this.sourceFormChangedSignal}
               formErrorSignal={this.props.formErrorSignal}
               dialogOptions={this.props.dialogOptions}
+            />
+          </div>
+        )}
+        {this.props.createSource && (
+          <div>
+            <h3>Source Properties</h3>
+            <SourceForm
+              formContext="create"
+              model={this.jGISModel}
+              filePath={this.filePath}
+              schema={sourceSchema}
+              sourceData={this.props.sourceData}
+              syncData={(properties: { [key: string]: any }) => {
+                sourceCreationPromise?.resolve(properties);
+              }}
+              ok={this.props.ok}
+              cancel={this.props.cancel}
+              formChangedSignal={this.sourceFormChangedSignal}
+              formErrorSignal={this.props.formErrorSignal}
+              dialogOptions={this.props.dialogOptions}
+              sourceType={this.props.sourceType}
             />
           </div>
         )}
