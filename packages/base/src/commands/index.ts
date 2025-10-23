@@ -1043,21 +1043,35 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.addLandmark, {
     label: trans.__('Add Landmark'),
-    isEnabled: () => Boolean(tracker.currentWidget),
-    // isToggled: () =>
-    //   tracker.currentWidget
-    //     ? !tracker.currentWidget.model.jgisSettings.identifyDisabled
-    //     : false,
-    execute: async () => {
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      return current.model.currentMode === 'landmark';
+    },
+    isEnabled: () => {
+      // TODO should check if at least one layer exists?
+      return true;
+    },
+    execute: args => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
 
-      console.log('adding landmark');
+      current.node.classList.toggle(IDENTIFY_TOOL_CLASS);
 
-      // commands.notifyCommandChanged(CommandIDs.guidedLandmarkTour);
+      if (current.model.currentMode === 'landmark') {
+        current.model.currentMode = 'panning';
+      } else {
+        current.model.currentMode = 'landmark';
+      }
+
+      commands.notifyCommandChanged(CommandIDs.addLandmark);
     },
+    ...icons.get(CommandIDs.identify),
   });
 
   loadKeybindings(commands, keybindings);
