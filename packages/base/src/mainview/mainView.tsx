@@ -32,6 +32,7 @@ import {
   IWebGlLayer,
   JgisCoordinates,
   JupyterGISModel,
+  IMarkerSource,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -411,7 +412,7 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.on('click', this._identifyFeature.bind(this));
-      this._Map.on('click', this._addLandmark.bind(this));
+      this._Map.on('click', this._addMarker.bind(this));
 
       this._Map
         .getViewport()
@@ -825,6 +826,36 @@ export class MainView extends React.Component<IProps, IStates> {
           }),
         });
         break;
+      }
+
+      // read as marker source
+      case 'MarkerSource': {
+        const parameters = source.parameters as IMarkerSource;
+
+        const point = new Point(parameters.feature.coords);
+        const marker = new Feature({
+          type: 'icon',
+          geometry: point,
+        });
+
+        marker.setStyle(
+          new Style({
+            image: new Circle({
+              radius: 6,
+              fill: new Fill({
+                color: 'rgba(255, 0, 255, 1)',
+              }),
+              stroke: new Stroke({
+                color: '#ff0',
+                width: 2,
+              }),
+            }),
+          }),
+        );
+
+        newSource = new VectorSource({
+          features: [marker],
+        });
       }
     }
 
@@ -2085,9 +2116,8 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.syncPointer(pointer);
   });
 
-  private _addLandmark(e: MapBrowserEvent<any>) {
-    // should have a layer for landmarks? no actually makes sense one layer per
-    if (this._model.currentMode !== 'landmark') {
+  private _addMarker(e: MapBrowserEvent<any>) {
+    if (this._model.currentMode !== 'marking') {
       return;
     }
 
@@ -2113,15 +2143,36 @@ export class MainView extends React.Component<IProps, IStates> {
       }),
     );
 
-    const newLandmarkLayer = new VectorLayer({
-      source: new VectorSource({ features: [marker] }),
-    });
+    const sourceId = UUID.uuid4();
+    const layerId = UUID.uuid4();
 
-    // need to add to jgis shit too
-    this._Map.addLayer(newLandmarkLayer);
+    const parameters: IMarkerSource = {
+      feature: { coords: [coordinate[0], coordinate[1]] },
+    };
+    const sourceModel: IJGISSource = {
+      type: 'MarkerSource',
+      name: 'Marker',
+      parameters,
+    };
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      visible: true,
+      name: 'marker',
+      parameters: {
+        opacity: 1.0,
+        source: sourceId,
+      },
+    };
+
+    this.addSource(sourceId, sourceModel);
+    this._model.sharedModel.addSource(sourceId, sourceModel);
+
+    this.addLayer(layerId, layerModel, this.getLayerIDs().length);
+    this._model.addLayer(layerId, layerModel);
   }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
+    console.log('this._model.currentMode', this._model.currentMode);
     if (this._model.currentMode !== 'identifying') {
       return;
     }
