@@ -34,3 +34,5 @@ export * from './index';
 export * from './interfaces';
 export * from './model';
 export * from './token';
+
+export type Modes = 'panning' | 'identifying' | 'landmark';

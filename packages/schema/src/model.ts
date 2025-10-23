@@ -37,6 +37,7 @@ import {
   IJupyterGISSettings,
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
+import { Modes } from './types';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
@@ -766,11 +767,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
-  get currentMode(): 'panning' | 'identifying' {
+  get currentMode(): Modes {
     return this._currentMode;
   }
 
-  set currentMode(value: 'panning' | 'identifying') {
+  set currentMode(value: Modes) {
     this._currentMode = value;
   }
 
@@ -869,7 +870,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _settingsChanged: Signal<JupyterGISModel, string>;
   private _jgisSettings: IJupyterGISSettings;
 
-  private _currentMode: 'panning' | 'identifying';
+  private _currentMode: Modes;
 
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
