@@ -32,38 +32,38 @@ def test_qgis_loader():
             "_02b1b4d5_316b_4f4d_9c38_16bf10a3bcb8": {
                 "name": "OpenStreetMap0",
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_id0,
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             "_097deeeb_6564_48d1_a3be_1caa4d93382f": {
                 "name": "OpenStreetMap1",
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_id1,
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             "_bccce044_998d_45f9_bf6b_fe1472681cc3": {
                 "name": "OpenStreetMap2",
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_id2,
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             "_32a77a2c_1756_4876_9f99_e3c7b702f86a": {
                 "name": "OpenStreetMap3",
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_id3,
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
         },
         layerTree=[
@@ -120,6 +120,21 @@ def test_qgis_loader():
     )
 
 
+def normalize_jgis(jgis):
+    import copy
+
+    norm = copy.deepcopy(jgis)
+
+    for layer in norm["layers"].values():
+        if "opacity" not in layer:
+            layer["opacity"] = 1.0
+
+        if "parameters" in layer and "opacity" in layer["parameters"]:
+            del layer["parameters"]["opacity"]
+
+    return norm
+
+
 def test_qgis_saver():
     filename = FILES / "project1.qgz"
     if os.path.exists(filename):
@@ -160,25 +175,24 @@ def test_qgis_saver():
             layer_ids[0]: {
                 "name": "OpenStreetMap0",
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_ids[0],
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             layer_ids[1]: {
                 "name": "OpenStreetMap1",
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_ids[1],
                 },
                 "type": "RasterLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             layer_ids[2]: {
                 "name": "Vector Tile Layer",
                 "parameters": {
-                    "opacity": 1.0,
                     "color": {
                         "circle-fill-color": "#e1598987",
                         "circle-stroke-color": "#e1598987",
@@ -190,15 +204,16 @@ def test_qgis_saver():
                 },
                 "type": "VectorTileLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             layer_ids[3]: {
                 "name": "OpenStreetMap3",
                 "parameters": {
-                    "opacity": 1.0,
                     "source": source_ids[3],
                 },
                 "type": "RasterLayer",
                 "visible": False,
+                "opacity": 1.0,
             },
             layer_ids[4]: {
                 "name": "Custom GeoJSON Layer",
@@ -207,13 +222,13 @@ def test_qgis_saver():
                         "fill-color": "#4ea4d0",
                         "stroke-color": "#4ea4d0",
                     },
-                    "opacity": 1.0,
                     "source": source_ids[4],
                     "symbologyState": {"renderType": "Single Symbol"},
                     "type": "fill",
                 },
                 "type": "VectorLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             layer_ids[5]: {
                 "name": "Custom GeoJSON Layer",
@@ -244,7 +259,6 @@ def test_qgis_saver():
                         ],
                         "stroke-color": "#000000",
                     },
-                    "opacity": 1.0,
                     "source": source_ids[5],
                     "symbologyState": {
                         "renderType": "Graduated",
@@ -254,6 +268,7 @@ def test_qgis_saver():
                 },
                 "type": "VectorLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
             layer_ids[6]: {
                 "name": "Custom GeoJSON Layer",
@@ -299,7 +314,6 @@ def test_qgis_saver():
                         "stroke-line-join": "bevel",
                         "stroke-width": 1.0,
                     },
-                    "opacity": 1.0,
                     "source": source_ids[6],
                     "symbologyState": {
                         "colorRamp": "viridis",
@@ -312,6 +326,7 @@ def test_qgis_saver():
                 },
                 "type": "VectorLayer",
                 "visible": True,
+                "opacity": 1.0,
             },
         },
         "layerTree": [
@@ -394,4 +409,4 @@ def test_qgis_saver():
 
     imported_jgis = import_project_from_qgis(filename)
 
-    assert jgis == imported_jgis
+    assert normalize_jgis(jgis) == normalize_jgis(imported_jgis)

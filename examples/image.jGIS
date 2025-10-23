@@ -6,8 +6,8 @@
   "layers": {
     "756cb737-f817-4ba6-b7c0-8da0b97b9778": {
       "name": "Radar",
+      "opacity": 1.0,
       "parameters": {
-        "opacity": 1.0,
         "source": "fb9729b8-82c6-48ac-a12b-6343c0e037ae"
       },
       "type": "ImageLayer",
@@ -15,6 +15,7 @@
     },
     "acb76fb7-df6d-41da-8e08-0208a1c82136": {
       "name": "OpenStreetMap.Mapnik Layer",
+      "opacity": 1.0,
       "parameters": {
         "source": "5f7a1edf-1b76-4f82-893f-540d28998b1d"
       },
