@@ -1041,15 +1041,15 @@ export function addCommands(
     },
   });
 
-  commands.addCommand(CommandIDs.addLandmark, {
-    label: trans.__('Add Landmark'),
+  commands.addCommand(CommandIDs.addMarker, {
+    label: trans.__('Add Marker'),
     isToggled: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return false;
       }
 
-      return current.model.currentMode === 'landmark';
+      return current.model.currentMode === 'marking';
     },
     isEnabled: () => {
       // TODO should check if at least one layer exists?
@@ -1063,13 +1063,13 @@ export function addCommands(
 
       current.node.classList.toggle(IDENTIFY_TOOL_CLASS);
 
-      if (current.model.currentMode === 'landmark') {
+      if (current.model.currentMode === 'marking') {
         current.model.currentMode = 'panning';
       } else {
-        current.model.currentMode = 'landmark';
+        current.model.currentMode = 'marking';
       }
 
-      commands.notifyCommandChanged(CommandIDs.addLandmark);
+      commands.notifyCommandChanged(CommandIDs.addMarker);
     },
     ...icons.get(CommandIDs.identify),
   });

@@ -10,6 +10,7 @@ export * from './_interface/project/sources/shapefileSource';
 export * from './_interface/project/sources/vectorTileSource';
 export * from './_interface/project/sources/videoSource';
 export * from './_interface/project/sources/geoParquetSource';
+export * from './_interface/project/sources/vectorSource';
 
 // Layers
 export * from './_interface/project/layers/heatmapLayer';
@@ -35,4 +36,4 @@ export * from './interfaces';
 export * from './model';
 export * from './token';
 
-export type Modes = 'panning' | 'identifying' | 'landmark';
+export type Modes = 'panning' | 'identifying' | 'marking';
