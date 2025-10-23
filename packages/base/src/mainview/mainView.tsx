@@ -411,6 +411,7 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.on('click', this._identifyFeature.bind(this));
+      this._Map.on('click', this._addLandmark.bind(this));
 
       this._Map
         .getViewport()
@@ -2083,6 +2084,42 @@ export class MainView extends React.Component<IProps, IStates> {
     };
     this._model.syncPointer(pointer);
   });
+
+  private _addLandmark(e: MapBrowserEvent<any>) {
+    // should have a layer for landmarks? no actually makes sense one layer per
+    if (this._model.currentMode !== 'landmark') {
+      return;
+    }
+
+    const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+    const point = new Point(coordinate);
+    const marker = new Feature({
+      type: 'icon',
+      geometry: point,
+    });
+
+    marker.setStyle(
+      new Style({
+        image: new Circle({
+          radius: 6,
+          fill: new Fill({
+            color: 'rgba(255, 0, 255, 1)',
+          }),
+          stroke: new Stroke({
+            color: '#ff0',
+            width: 2,
+          }),
+        }),
+      }),
+    );
+
+    const newLandmarkLayer = new VectorLayer({
+      source: new VectorSource({ features: [marker] }),
+    });
+
+    // need to add to jgis shit too
+    this._Map.addLayer(newLandmarkLayer);
+  }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
     if (this._model.currentMode !== 'identifying') {
