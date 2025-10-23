@@ -63,3 +63,6 @@ export const showFiltersTab = 'jupytergis:showFiltersTab';
 export const showObjectPropertiesTab = 'jupytergis:showObjectPropertiesTab';
 export const showAnnotationsTab = 'jupytergis:showAnnotationsTab';
 export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
+
+// Story maps
+export const addLandmark = 'jupytergis:addLandmark';

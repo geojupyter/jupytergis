@@ -1039,8 +1039,29 @@ export function addCommands(
     },
   });
 
+  commands.addCommand(CommandIDs.addLandmark, {
+    label: trans.__('Add Landmark'),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    // isToggled: () =>
+    //   tracker.currentWidget
+    //     ? !tracker.currentWidget.model.jgisSettings.identifyDisabled
+    //     : false,
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      console.log('adding landmark');
+
+      // commands.notifyCommandChanged(CommandIDs.guidedLandmarkTour);
+    },
+  });
+
   loadKeybindings(commands, keybindings);
 }
+
+
 
 namespace Private {
   export function createLayerBrowser(
