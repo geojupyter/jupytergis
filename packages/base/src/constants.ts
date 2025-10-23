@@ -1,5 +1,10 @@
 import { IDict, ProcessingCommandIDs } from '@jupytergis/schema';
-import { LabIcon, redoIcon, undoIcon } from '@jupyterlab/ui-components';
+import {
+  addIcon,
+  LabIcon,
+  redoIcon,
+  undoIcon,
+} from '@jupyterlab/ui-components';
 
 import * as BaseCommandIDs from './commands/BaseCommandIDs';
 import {
@@ -56,6 +61,7 @@ const iconObject = {
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
+  [CommandIDs.addMarker]: { icon: addIcon },
 };
 
 /**
