@@ -26,10 +26,12 @@
     },
     "normalize": {
       "type": "boolean",
+      "description": "Check to normalize values between min and max; Uncheck to see raw band values",
       "default": true
     },
     "wrapX": {
       "type": "boolean",
+      "description": "Wrap the map horizontally?",
       "default": false
     },
     "interpolate": {
