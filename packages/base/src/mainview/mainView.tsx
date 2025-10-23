@@ -828,7 +828,6 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
 
-      // read as marker source
       case 'MarkerSource': {
         const parameters = source.parameters as IMarkerSource;
 
@@ -837,21 +836,6 @@ export class MainView extends React.Component<IProps, IStates> {
           type: 'icon',
           geometry: point,
         });
-
-        marker.setStyle(
-          new Style({
-            image: new Circle({
-              radius: 6,
-              fill: new Fill({
-                color: 'rgba(255, 0, 255, 1)',
-              }),
-              stroke: new Stroke({
-                color: '#ff0',
-                width: 2,
-              }),
-            }),
-          }),
-        );
 
         newSource = new VectorSource({
           features: [marker],
@@ -2146,22 +2130,27 @@ export class MainView extends React.Component<IProps, IStates> {
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
 
-    const parameters: IMarkerSource = {
+    const sourceParameters: IMarkerSource = {
       feature: { coords: [coordinate[0], coordinate[1]] },
     };
+
+    const layerParams: IVectorLayer = {
+      opacity: 1.0,
+      source: sourceId,
+      symbologyState: { renderType: 'Single Symbol' },
+    };
+
     const sourceModel: IJGISSource = {
       type: 'MarkerSource',
       name: 'Marker',
-      parameters,
+      parameters: sourceParameters,
     };
+
     const layerModel: IJGISLayer = {
       type: 'VectorLayer',
       visible: true,
-      name: 'marker',
-      parameters: {
-        opacity: 1.0,
-        source: sourceId,
-      },
+      name: 'Marker',
+      parameters: layerParams,
     };
 
     this.addSource(sourceId, sourceModel);
