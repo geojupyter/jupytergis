@@ -33,6 +33,8 @@ import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
 
+const IDENTIFY_TOOL_CLASS = 'jGIS-identify-tool';
+
 interface ICreateEntry {
   tracker: JupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -163,7 +165,7 @@ export function addCommands(
 
       if (current.model.currentMode === 'identifying' && !canIdentify) {
         current.model.currentMode = 'panning';
-        current.node.classList.remove('jGIS-identify-tool');
+        current.node.classList.remove(IDENTIFY_TOOL_CLASS);
         return false;
       }
 
@@ -198,13 +200,13 @@ export function addCommands(
         const keysPressed = luminoEvent.keys as string[] | undefined;
         if (keysPressed?.includes('Escape')) {
           current.model.currentMode = 'panning';
-          current.node.classList.remove('jGIS-identify-tool');
+          current.node.classList.remove(IDENTIFY_TOOL_CLASS);
           commands.notifyCommandChanged(CommandIDs.identify);
           return;
         }
       }
 
-      current.node.classList.toggle('jGIS-identify-tool');
+      current.node.classList.toggle(IDENTIFY_TOOL_CLASS);
       current.model.toggleIdentify();
 
       commands.notifyCommandChanged(CommandIDs.identify);
