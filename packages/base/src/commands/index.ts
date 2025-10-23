@@ -33,7 +33,7 @@ import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
 
-const IDENTIFY_TOOL_CLASS = 'jGIS-point-selection-tool';
+const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -165,7 +165,7 @@ export function addCommands(
 
       if (current.model.currentMode === 'identifying' && !canIdentify) {
         current.model.currentMode = 'panning';
-        current.node.classList.remove(IDENTIFY_TOOL_CLASS);
+        current.node.classList.remove(POINT_SELECTION_TOOL_CLASS);
         return false;
       }
 
@@ -200,14 +200,14 @@ export function addCommands(
         const keysPressed = luminoEvent.keys as string[] | undefined;
         if (keysPressed?.includes('Escape')) {
           current.model.currentMode = 'panning';
-          current.node.classList.remove(IDENTIFY_TOOL_CLASS);
+          current.node.classList.remove(POINT_SELECTION_TOOL_CLASS);
           commands.notifyCommandChanged(CommandIDs.identify);
           return;
         }
       }
 
-      current.node.classList.toggle(IDENTIFY_TOOL_CLASS);
-      current.model.toggleIdentify();
+      current.node.classList.toggle(POINT_SELECTION_TOOL_CLASS);
+      current.model.toggleMode('identifying');
 
       commands.notifyCommandChanged(CommandIDs.identify);
     },
@@ -1061,13 +1061,8 @@ export function addCommands(
         return;
       }
 
-      current.node.classList.toggle(IDENTIFY_TOOL_CLASS);
-
-      if (current.model.currentMode === 'marking') {
-        current.model.currentMode = 'panning';
-      } else {
-        current.model.currentMode = 'marking';
-      }
+      current.node.classList.toggle(POINT_SELECTION_TOOL_CLASS);
+      current.model.toggleMode('marking');
 
       commands.notifyCommandChanged(CommandIDs.addMarker);
     },
