@@ -1071,7 +1071,7 @@ export function addCommands(
 
       commands.notifyCommandChanged(CommandIDs.addMarker);
     },
-    ...icons.get(CommandIDs.identify),
+    ...icons.get(CommandIDs.addMarker),
   });
 
   loadKeybindings(commands, keybindings);
