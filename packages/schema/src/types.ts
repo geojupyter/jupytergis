@@ -10,7 +10,7 @@ export * from './_interface/project/sources/shapefileSource';
 export * from './_interface/project/sources/vectorTileSource';
 export * from './_interface/project/sources/videoSource';
 export * from './_interface/project/sources/geoParquetSource';
-export * from './_interface/project/sources/vectorSource';
+export * from './_interface/project/sources/markerSource';
 
 // Layers
 export * from './_interface/project/layers/heatmapLayer';
