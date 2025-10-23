@@ -2106,27 +2106,6 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
-    const point = new Point(coordinate);
-    const marker = new Feature({
-      type: 'icon',
-      geometry: point,
-    });
-
-    marker.setStyle(
-      new Style({
-        image: new Circle({
-          radius: 6,
-          fill: new Fill({
-            color: 'rgba(255, 0, 255, 1)',
-          }),
-          stroke: new Stroke({
-            color: '#ff0',
-            width: 2,
-          }),
-        }),
-      }),
-    );
-
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
 
@@ -2161,7 +2140,6 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
-    console.log('this._model.currentMode', this._model.currentMode);
     if (this._model.currentMode !== 'identifying') {
       return;
     }
