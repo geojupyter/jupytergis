@@ -126,7 +126,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
       NewSubMenu.addItem({
         type: 'command',
-        command: CommandIDs.addLandmark,
+        command: CommandIDs.addMarker,
       });
 
       const NewEntryButton = new ToolbarButton({
