@@ -244,7 +244,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   removeMetadata(key: string): void;
   centerOnPosition(id: string): void;
 
-  toggleIdentify(): void;
+  toggleMode(mode: Modes): void;
 
   isTemporalControllerActive: boolean;
   toggleTemporalController(): void;

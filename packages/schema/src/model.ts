@@ -759,12 +759,13 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
-  toggleIdentify() {
-    if (this._currentMode === 'identifying') {
-      this._currentMode = 'panning';
-    } else {
-      this._currentMode = 'identifying';
-    }
+  /**
+   * Toggle a map interaction mode on or off.
+   * Toggleing off sets the mode to 'panning'.
+   * @param mode The mode to be toggled
+   */
+  toggleMode(mode: Modes) {
+    this._currentMode = this._currentMode === mode ? 'panning' : mode;
   }
 
   get currentMode(): Modes {
