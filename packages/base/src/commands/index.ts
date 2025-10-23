@@ -33,7 +33,7 @@ import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
 
-const IDENTIFY_TOOL_CLASS = 'jGIS-identify-tool';
+const IDENTIFY_TOOL_CLASS = 'jGIS-point-selection-tool';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
