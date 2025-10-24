@@ -33,6 +33,7 @@ import {
   JgisCoordinates,
   JupyterGISModel,
   IMarkerSource,
+  ILandmarkLayer,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -2039,6 +2040,17 @@ export class MainView extends React.Component<IProps, IStates> {
     let extent;
     const layer = this.getLayer(id);
     const source = layer?.getSource();
+
+    if (!layer) {
+      const jLayer = this._model.getLayer(id);
+      const p = jLayer?.parameters as ILandmarkLayer;
+      this._Map.getView().fit(p.extent!, {
+        size: this._Map.getSize(),
+        duration: 500,
+        maxZoom: p.zoom!,
+      });
+      return;
+    }
 
     if (source instanceof VectorSource) {
       extent = source.getExtent();
