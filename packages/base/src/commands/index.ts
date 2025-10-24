@@ -1054,6 +1054,19 @@ export function addCommands(
     ...icons.get(CommandIDs.addMarker),
   });
 
+  commands.addCommand(CommandIDs.addLandmark, {
+    label: trans.__('Add Landmark'),
+    execute: args => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      console.log('adding landmark');
+    },
+    ...icons.get(CommandIDs.addMarker),
+  });
+
   loadKeybindings(commands, keybindings);
 }
 
