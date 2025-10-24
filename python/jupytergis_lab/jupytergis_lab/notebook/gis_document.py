@@ -29,6 +29,7 @@ from jupytergis_core.schema import (
     IMarkerSource,
     IVideoSource,
     IWebGlLayer,
+    ILandmarkLayer,
     LayerType,
     SourceType,
 )
@@ -863,6 +864,7 @@ class JGISLayer(BaseModel):
         | IImageLayer
         | IWebGlLayer
         | IHeatmapLayer
+        | ILandmarkLayer
     )
     _parent = Optional[GISDocument]
 
@@ -967,6 +969,7 @@ OBJECT_FACTORY.register_factory(LayerType.HillshadeLayer, IHillshadeLayer)
 OBJECT_FACTORY.register_factory(LayerType.WebGlLayer, IWebGlLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.HeatmapLayer, IHeatmapLayer)
+OBJECT_FACTORY.register_factory(LayerType.LandmarkLayer, ILandmarkLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
