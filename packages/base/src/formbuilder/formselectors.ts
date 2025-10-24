@@ -33,6 +33,10 @@ export function getLayerTypeForm(
       break;
     case 'HeatmapLayer':
       LayerForm = HeatmapLayerPropertiesForm;
+      break;
+    case 'LandmarkLayer':
+      LayerForm = LayerPropertiesForm;
+      break;
     // ADD MORE FORM TYPES HERE
   }
 
