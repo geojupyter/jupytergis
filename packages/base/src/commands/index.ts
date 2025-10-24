@@ -1,10 +1,12 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISLayerBrowserRegistry,
   IJGISLayerGroup,
   IJGISLayerItem,
   IJupyterGISModel,
+  ILandmarkLayer,
   JgisCoordinates,
   LayerType,
   SelectionType,
@@ -16,7 +18,7 @@ import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
@@ -1056,13 +1058,37 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.addLandmark, {
     label: trans.__('Add Landmark'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
     execute: args => {
+      console.log('addLandmark command executing');
       const current = tracker.currentWidget;
       if (!current) {
         return;
       }
+      const { zoom, extent } = current.model.getOptions();
+      const layerParams: ILandmarkLayer = { extent, zoom };
+      const layerModel: IJGISLayer = {
+        type: 'LandmarkLayer',
+        visible: true,
+        name: 'Landmark',
+        parameters: layerParams,
+      };
 
-      console.log('adding landmark');
+      current.model.addLayer(UUID.uuid4(), layerModel);
+      // return Private.createEntry({
+      //   tracker,
+      //   formSchemaRegistry,
+      //   title: 'Create Landmark Layer',
+      //   createLayer: true,
+      //   createSource: true,
+      //   layerData: { name: 'Custom Landmark Layer' },
+      //   sourceType: 'MarkerSource',
+      //   layerType: 'LandmarkLayer',
+      // })();
     },
     ...icons.get(CommandIDs.addMarker),
   });
@@ -1125,6 +1151,7 @@ namespace Private {
     return async () => {
       const current = tracker.currentWidget;
 
+      console.log('current', current);
       if (!current) {
         return;
       }

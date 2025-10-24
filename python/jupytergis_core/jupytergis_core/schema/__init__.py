@@ -7,6 +7,7 @@ from .interfaces.project.layers.hillshadeLayer import IHillshadeLayer  # noqa
 from .interfaces.project.layers.imageLayer import IImageLayer  # noqa
 from .interfaces.project.layers.webGlLayer import IWebGlLayer  # noqa
 from .interfaces.project.layers.heatmapLayer import IHeatmapLayer  # noqa
+from .interfaces.project.layers.landmarkLayer import ILandmarkLayer  # noqa
 
 from .interfaces.project.sources.vectorTileSource import IVectorTileSource  # noqa
 from .interfaces.project.sources.markerSource import IMarkerSource  # noqa

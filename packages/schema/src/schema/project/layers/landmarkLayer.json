@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "description": "LandmarkLayer",
+  "title": "ILandmarkLayer",
+  "additionalProperties": false,
+  "properties": {
+    "zoom": {
+      "type": "number",
+      "default": 0
+    },
+    "extent": {
+      "type": "array",
+      "default": null,
+      "items": {
+        "type": "number"
+      }
+    }
+  }
+}

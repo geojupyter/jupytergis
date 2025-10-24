@@ -41,7 +41,8 @@
         "WebGlLayer",
         "ImageLayer",
         "HeatmapLayer",
-        "StacLayer"
+        "StacLayer",
+        "LandmarkLayer"
       ]
     },
     "sourceType": {
