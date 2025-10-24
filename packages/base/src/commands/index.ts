@@ -1072,8 +1072,6 @@ export function addCommands(
   loadKeybindings(commands, keybindings);
 }
 
-
-
 namespace Private {
   export function createLayerBrowser(
     tracker: JupyterGISTracker,
