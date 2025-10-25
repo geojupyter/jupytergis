@@ -13,6 +13,7 @@ const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
   colorMap,
   onClick,
 }) => {
+  const canvasWidth = 512;
   const canvasHeight = 30;
 
   useEffect(() => {
@@ -20,6 +21,9 @@ const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
     if (!canvas) {
       return;
     }
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
     const ctx = canvas.getContext('2d');
 
     if (!ctx) {
@@ -45,6 +49,7 @@ const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
       <span className="jp-gis-color-label">{colorMap.name}</span>
       <canvas
         id={`cv-${index}`}
+        width={canvasWidth}
         height={canvasHeight}
         className="jp-gis-color-canvas"
       ></canvas>

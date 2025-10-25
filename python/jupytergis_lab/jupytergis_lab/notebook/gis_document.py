@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional
 from uuid import uuid4
 import requests
 
@@ -50,7 +50,7 @@ class GISDocument(CommWidget):
 
     def __init__(
         self,
-        path: Optional[str | Path] = None,
+        path: str | Path | None = None,
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
         zoom: Optional[float] = None,
@@ -192,7 +192,7 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, float, float] | None = None,
+        value: str | float | float | None = None,
     ):
         """
         Add a Vector Tile Layer to the document.
@@ -249,7 +249,7 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, int, float] | None = None,
+        value: str | int | float | None = None,
         color_expr=None,
     ):
         """
@@ -554,7 +554,7 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, int, float] | None = None,
+        value: str | int | float | None = None,
         color_expr=None,
     ):
         """
@@ -688,7 +688,7 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, int, float],
+        value: str | int | float,
     ):
         """
         Add a filter to a layer
@@ -734,7 +734,7 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, int, float],
+        value: str | int | float,
     ):
         """
         Update a filter applied to a layer
@@ -854,15 +854,15 @@ class JGISLayer(BaseModel):
     name: str
     type: LayerType
     visible: bool
-    parameters: Union[
-        IRasterLayer,
-        IVectorLayer,
-        IVectorTileLayer,
-        IHillshadeLayer,
-        IImageLayer,
-        IWebGlLayer,
-        IHeatmapLayer,
-    ]
+    parameters: (
+        IRasterLayer
+        | IVectorLayer
+        | IVectorTileLayer
+        | IHillshadeLayer
+        | IImageLayer
+        | IWebGlLayer
+        | IHeatmapLayer
+    )
     _parent = Optional[GISDocument]
 
     def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
@@ -877,16 +877,16 @@ class JGISSource(BaseModel):
 
     name: str
     type: SourceType
-    parameters: Union[
-        IRasterSource,
-        IVectorTileSource,
-        IGeoJSONSource,
-        IImageSource,
-        IVideoSource,
-        IGeoTiffSource,
-        IRasterDemSource,
-        IGeoParquetSource,
-    ]
+    parameters: (
+        IRasterSource
+        | IVectorTileSource
+        | IGeoJSONSource
+        | IImageSource
+        | IVideoSource
+        | IGeoTiffSource
+        | IRasterDemSource
+        | IGeoParquetSource
+    )
     _parent = Optional[GISDocument]
 
     def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa

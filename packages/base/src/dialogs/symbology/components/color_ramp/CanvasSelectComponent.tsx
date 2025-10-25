@@ -21,6 +21,8 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
+  const canvasWidth = 512;
+  const canvasHeight = 30;
 
   useColorMapList(setColorMaps);
 
@@ -64,13 +66,16 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
 
     const ramp = colorMaps.filter(c => c.name === rampName);
 
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
     for (let i = 0; i <= 255; i++) {
       ctx.beginPath();
 
       const color = ramp[0].colors[i];
       ctx.fillStyle = color;
 
-      ctx.fillRect(i * 2, 0, 2, 50);
+      ctx.fillRect(i * 2, 0, 2, canvasHeight);
     }
     canvas.style.visibility = 'initial';
   };
@@ -89,11 +94,15 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
         onClick={toggleDropdown}
         className="jp-Dialog-button jp-gis-canvas-button"
       >
-        <canvas
-          id="cv"
-          className="jp-gis-color-canvas-display"
-          height="30"
-        ></canvas>
+        <div className="jp-gis-color-ramp-entry jp-gis-selected-entry">
+          <span className="jp-gis-color-label">{selectedRamp}</span>
+          <canvas
+            id="cv"
+            className="jp-gis-color-canvas-display"
+            width={canvasWidth}
+            height={canvasHeight}
+          ></canvas>
+        </div>
       </Button>
       <div
         className={`jp-gis-color-ramp-dropdown ${isOpen ? 'jp-gis-open' : ''}`}

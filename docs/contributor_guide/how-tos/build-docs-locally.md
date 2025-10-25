@@ -7,7 +7,7 @@ below, but they will not be as fast.
 
 ## 0. Build JupyterGIS JavaScript packages
 
-Follow the [development environment setup instructions](../development_setup.md) through running `jlpm run build` from the **root of the repo**.
+Follow the [development environment setup instructions](/contributor_guide/development_setup.md) through running `jlpm run build` from the **root of the repo**.
 
 :::{important}
 Navigate to the `docs/` directory before starting any of the following steps!
