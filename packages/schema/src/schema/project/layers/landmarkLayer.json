@@ -1,9 +1,29 @@
 {
+  "$id": "/project/layers/landmarkLayer",
   "type": "object",
   "description": "LandmarkLayer",
   "title": "ILandmarkLayer",
   "additionalProperties": false,
+  "required": ["zoom", "extent"],
   "properties": {
+    "rank": { "type": "number" },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "imgSrc": {
+          "type": "string",
+          "description": "Link to image for the story"
+        },
+        "markdown": {
+          "type": "string",
+          "description": "Markdown string representing the content of the story stop"
+        }
+      }
+    },
     "zoom": {
       "type": "number",
       "default": 0
