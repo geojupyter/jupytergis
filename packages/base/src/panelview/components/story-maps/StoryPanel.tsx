@@ -1,5 +1,5 @@
 import { Button } from '@jupyter/react-components';
-import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useEffect, useState, useCallback } from 'react';
 
 import { BaseForm } from '@/src/formbuilder/objectform/baseform';
@@ -8,10 +8,9 @@ import { IDict } from '@/src/types';
 
 interface IStoryPanelProps {
   model: IJupyterGISModel;
-  formSchemaRegistry: IJGISFormSchemaRegistry;
 }
 
-export function StoryPanel({ model, formSchemaRegistry }: IStoryPanelProps) {
+export function StoryEditorPanel({ model }: IStoryPanelProps) {
   const [schema, setSchema] = useState<IDict | undefined>(undefined);
   const [storyData, setStoryData] = useState<IDict>({});
 
@@ -65,4 +64,4 @@ export function StoryPanel({ model, formSchemaRegistry }: IStoryPanelProps) {
   );
 }
 
-export default StoryPanel;
+export default StoryEditorPanel;

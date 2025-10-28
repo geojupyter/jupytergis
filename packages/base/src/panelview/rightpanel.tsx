@@ -16,7 +16,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '../shared/components/Tabs';
-import StoryPanel from './components/story-maps/StoryPanel';
+import StoryEditorPanel from './components/story-maps/StoryPanel';
 
 interface IRightPanelProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -144,6 +144,10 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
               model={props.model}
               formSchemaRegistry={props.formSchemaRegistry}
             ></StoryPanel>
+          </TabsContent>
+          <TabsContent value="storyPanel" className="jgis-panel-tab-content">
+            {/* switch to this panel when clicking create story */}
+            <StoryEditorPanel model={props.model}></StoryEditorPanel>
           </TabsContent>
 
           {!settings.annotationsDisabled && (
