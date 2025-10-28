@@ -161,6 +161,22 @@ const activate = async (
 
   app.commands.addCommand(CommandIDs.createNew, {
     label: args => (args['label'] as string) ?? 'GIS Project',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          label: {
+            type: 'string',
+            description: 'The label for the file creation command'
+          },
+          cwd: {
+            type: 'string',
+            description:
+              'The current working directory where the file should be created'
+          }
+        }
+      }
+    },
     caption: 'Create a new JGIS Editor',
     icon: args => logoIcon,
     execute: async args => {

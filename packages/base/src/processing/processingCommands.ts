@@ -51,6 +51,12 @@ export function addProcessingCommands(
     if (processingElement.type === ProcessingLogicType.vector) {
       commands.addCommand(processingElement.name, {
         label: trans.__(processingElement.label),
+        describedBy: {
+          args: {
+            type: 'object',
+            properties: {},
+          },
+        },
         isEnabled: () => selectedLayerIsOfType(['VectorLayer'], tracker),
         execute: async () => {
           await processSelectedLayer(

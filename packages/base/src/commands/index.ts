@@ -72,6 +72,17 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          selected: {
+            type: 'object',
+            description: 'Currently selected layer(s) in the map view'
+          }
+        }
+      }
+    },
     isEnabled: () => {
       const model = tracker.currentWidget?.model;
       const localState = model?.sharedModel.awareness.getLocalState();
@@ -110,6 +121,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.redo, {
     label: trans.__('Redo'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {}
+      }
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -127,6 +144,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.undo, {
     label: trans.__('Undo'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {}
+      }
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -144,6 +167,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.identify, {
     label: trans.__('Identify'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {}
+      }
+    },
     isToggled: () => {
       const current = tracker.currentWidget;
       if (!current) {
@@ -214,6 +243,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.temporalController, {
     label: trans.__('Temporal Controller'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {}
+      }
+    },
     isToggled: () => {
       return tracker.currentWidget?.model.isTemporalControllerActive || false;
     },
@@ -266,6 +301,12 @@ export function addCommands(
    */
   commands.addCommand(CommandIDs.openLayerBrowser, {
     label: trans.__('Open Layer Browser'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {}
+      }
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -284,6 +325,12 @@ export function addCommands(
    */
   commands.addCommand(CommandIDs.newRasterEntry, {
     label: trans.__('New Raster Tile Layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {}
+      }
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -308,6 +355,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.newVectorTileEntry, {
     label: trans.__('New Vector Tile Layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {}
+      }
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -329,6 +382,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.newGeoParquetEntry, {
     label: trans.__('New GeoParquet Layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {}
+      }
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -350,6 +409,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.newGeoJSONEntry, {
     label: trans.__('New GeoJSON layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {}
+      }
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -373,6 +438,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.newHillshadeEntry, {
     label: trans.__('New Hillshade layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -393,6 +464,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.newImageEntry, {
     label: trans.__('New Image layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -423,6 +500,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.newVideoEntry, {
     label: trans.__('New Video layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -456,6 +539,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.newGeoTiffEntry, {
     label: trans.__('New GeoTiff layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -480,6 +569,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.newShapefileEntry, {
     label: trans.__('New Shapefile Layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -504,6 +599,12 @@ export function addCommands(
    */
   commands.addCommand(CommandIDs.renameLayer, {
     label: trans.__('Rename Layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     execute: async () => {
       const model = tracker.currentWidget?.model;
       await Private.renameSelectedItem(model, 'layer', (layerId, newName) => {
@@ -518,6 +619,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.removeLayer, {
     label: trans.__('Remove Layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     execute: () => {
       const model = tracker.currentWidget?.model;
       Private.removeSelectedItems(model, 'layer', selection => {
@@ -528,6 +635,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.renameGroup, {
     label: trans.__('Rename Group'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     execute: async () => {
       const model = tracker.currentWidget?.model;
       await Private.renameSelectedItem(model, 'group', (groupName, newName) => {
@@ -538,6 +651,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.removeGroup, {
     label: trans.__('Remove Group'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     execute: async () => {
       const model = tracker.currentWidget?.model;
       Private.removeSelectedItems(model, 'group', selection => {
@@ -549,6 +668,14 @@ export function addCommands(
   commands.addCommand(CommandIDs.moveLayersToGroup, {
     label: args =>
       args['label'] ? (args['label'] as string) : trans.__('Move to Root'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          label: { type: 'string' },
+        },
+      },
+    },
     execute: args => {
       const model = tracker.currentWidget?.model;
       const groupName = args['label'] as string;
@@ -565,6 +692,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.moveLayerToNewGroup, {
     label: trans.__('Move Selected Layers to New Group'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     execute: async () => {
       const model = tracker.currentWidget?.model;
       const selectedLayers = model?.localState?.selected?.value;
@@ -631,6 +764,12 @@ export function addCommands(
    */
   commands.addCommand(CommandIDs.renameSource, {
     label: trans.__('Rename Source'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     execute: async () => {
       const model = tracker.currentWidget?.model;
       await Private.renameSelectedItem(model, 'source', (sourceId, newName) => {
@@ -645,6 +784,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.removeSource, {
     label: trans.__('Remove Source'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     execute: () => {
       const model = tracker.currentWidget?.model;
       Private.removeSelectedItems(model, 'source', selection => {
@@ -663,6 +808,12 @@ export function addCommands(
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
@@ -681,8 +832,15 @@ export function addCommands(
       commands.notifyCommandChanged(CommandIDs.toggleConsole);
     },
   });
+
   commands.addCommand(CommandIDs.executeConsole, {
     label: trans.__('Execute console'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
@@ -691,8 +849,15 @@ export function addCommands(
     },
     execute: () => Private.executeConsole(tracker),
   });
+
   commands.addCommand(CommandIDs.removeConsole, {
     label: trans.__('Remove console'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
@@ -704,6 +869,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.invokeCompleter, {
     label: trans.__('Display the completion helper.'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     execute: () => {
       const currentWidget = tracker.currentWidget;
@@ -723,6 +894,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.selectCompleter, {
     label: trans.__('Select the completion suggestion.'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     execute: () => {
       const currentWidget = tracker.currentWidget;
@@ -742,6 +919,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.zoomToLayer, {
     label: trans.__('Zoom to Layer'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     execute: () => {
       const currentWidget = tracker.currentWidget;
       if (!currentWidget || !completionProviderManager) {
@@ -762,6 +945,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.downloadGeoJSON, {
     label: trans.__('Download as GeoJSON'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       const selectedLayer = getSingleSelectedLayer(tracker);
       return selectedLayer
@@ -822,6 +1011,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.getGeolocation, {
     label: trans.__('Center on Geolocation'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     execute: async () => {
       const viewModel = tracker.currentWidget?.model;
       const options = {
@@ -853,6 +1048,12 @@ export function addCommands(
   // Panel visibility commands
   commands.addCommand(CommandIDs.toggleLeftPanel, {
     label: trans.__('Toggle Left Panel'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
@@ -880,6 +1081,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.toggleRightPanel, {
     label: trans.__('Toggle Right Panel'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
@@ -908,6 +1115,12 @@ export function addCommands(
   // Left panel tabs
   commands.addCommand(CommandIDs.showLayersTab, {
     label: trans.__('Show Layers Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget
@@ -930,6 +1143,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showStacBrowserTab, {
     label: trans.__('Show STAC Browser Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget
@@ -952,6 +1171,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showFiltersTab, {
     label: trans.__('Show Filters Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget
@@ -975,6 +1200,12 @@ export function addCommands(
   // Right panel tabs
   commands.addCommand(CommandIDs.showObjectPropertiesTab, {
     label: trans.__('Show Object Properties Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget
@@ -997,6 +1228,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showAnnotationsTab, {
     label: trans.__('Show Annotations Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget
@@ -1019,6 +1256,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showIdentifyPanelTab, {
     label: trans.__('Show Identify Panel Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget

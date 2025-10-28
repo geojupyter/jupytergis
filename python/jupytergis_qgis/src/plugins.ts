@@ -214,6 +214,18 @@ const activate = async (
   if (installed) {
     app.commands.addCommand(CommandIDs.exportQgis, {
       label: 'Export To QGZ',
+      describedBy: {
+        args: {
+          type: 'object',
+          properties: {
+            filepath: {
+              type: 'string',
+              description:
+                'Optional. Destination filename (with or without .qgz extension) for the exported QGIS project.'
+            }
+          }
+        }
+      },
       isEnabled: () =>
         tracker.currentWidget
           ? tracker.currentWidget.model.sharedModel.editable
