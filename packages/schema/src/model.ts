@@ -3,7 +3,7 @@ import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { PartialJSONObject } from '@lumino/coreutils';
+import { PartialJSONObject, UUID } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 import { FeatureLike } from 'ol/Feature';
@@ -18,6 +18,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources,
+  IJGISStoryMap,
 } from './_interface/project/jgis';
 import { JupyterGISDoc } from './doc';
 import {
@@ -873,6 +874,19 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._geolocationChanged;
   }
 
+  createStory(layerIds: string[]) {
+    // Create story map
+    //TODO sync with file stuff
+    console.log('create story');
+
+    const title = '';
+    const storyType = 'guided';
+    const landmarks = layerIds;
+
+    const storyMap: IJGISStoryMap = { title, storyType, landmarks };
+    this.storiesMap.set(UUID.uuid4(), storyMap);
+  }
+
   readonly defaultKernelName: string = '';
   readonly defaultKernelLanguage: string = '';
   readonly annotationModel?: IAnnotationModel;
@@ -924,6 +938,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
+  storiesMap: Map<string, IJGISStoryMap> = new Map();
 }
 
 export namespace JupyterGISModel {
