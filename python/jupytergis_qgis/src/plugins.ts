@@ -221,10 +221,10 @@ const activate = async (
             filepath: {
               type: 'string',
               description:
-                'Optional. Destination filename (with or without .qgz extension) for the exported QGIS project.'
-            }
-          }
-        }
+                'Optional. Destination filename (with or without .qgz extension) for the exported QGIS project.',
+            },
+          },
+        },
       },
       isEnabled: () =>
         tracker.currentWidget

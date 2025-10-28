@@ -78,10 +78,10 @@ export function addCommands(
         properties: {
           selected: {
             type: 'object',
-            description: 'Currently selected layer(s) in the map view'
-          }
-        }
-      }
+            description: 'Currently selected layer(s) in the map view',
+          },
+        },
+      },
     },
     isEnabled: () => {
       const model = tracker.currentWidget?.model;
@@ -124,8 +124,8 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {}
-      }
+        properties: {},
+      },
     },
     isEnabled: () => {
       return tracker.currentWidget
@@ -147,8 +147,8 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {}
-      }
+        properties: {},
+      },
     },
     isEnabled: () => {
       return tracker.currentWidget
@@ -170,8 +170,8 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {}
-      }
+        properties: {},
+      },
     },
     isToggled: () => {
       const current = tracker.currentWidget;
@@ -246,8 +246,8 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {}
-      }
+        properties: {},
+      },
     },
     isToggled: () => {
       return tracker.currentWidget?.model.isTemporalControllerActive || false;
@@ -304,8 +304,8 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {}
-      }
+        properties: {},
+      },
     },
     isEnabled: () => {
       return tracker.currentWidget
@@ -328,8 +328,8 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {}
-      }
+        properties: {},
+      },
     },
     isEnabled: () => {
       return tracker.currentWidget
@@ -358,8 +358,8 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {}
-      }
+        properties: {},
+      },
     },
     isEnabled: () => {
       return tracker.currentWidget
@@ -385,8 +385,8 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {}
-      }
+        properties: {},
+      },
     },
     isEnabled: () => {
       return tracker.currentWidget
@@ -412,8 +412,8 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {}
-      }
+        properties: {},
+      },
     },
     isEnabled: () => {
       return tracker.currentWidget

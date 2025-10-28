@@ -167,15 +167,15 @@ const activate = async (
         properties: {
           label: {
             type: 'string',
-            description: 'The label for the file creation command'
+            description: 'The label for the file creation command',
           },
           cwd: {
             type: 'string',
             description:
-              'The current working directory where the file should be created'
-          }
-        }
-      }
+              'The current working directory where the file should be created',
+          },
+        },
+      },
     },
     caption: 'Create a new JGIS Editor',
     icon: args => logoIcon,
