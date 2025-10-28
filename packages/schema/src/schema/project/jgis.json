@@ -1,5 +1,4 @@
 {
-  "$id": "/project",
   "type": "object",
   "title": "IJGISContent",
   "required": ["layers", "sources"],
@@ -141,13 +140,23 @@
     "jGISStoryMap": {
       "title": "IJGISStoryMap",
       "type": "object",
+      "additionalProperties": false,
       "properties": {
-        "storyType": { "type": "string", "enum": ["guided", "unguided"] },
+        "title": {
+          "type": "string",
+          "description": "The title of the story map"
+        },
+        "storyType": {
+          "type": "string",
+          "enum": ["guided", "unguided"],
+          "description": "The type of story map"
+        },
         "landmarks": {
           "type": "array",
           "default": [],
+          "description": "Array of landmarks for the story map",
           "items": {
-            "$ref": "project/layers/landmarkLayer.json"
+            "type": "string"
           }
         }
       }

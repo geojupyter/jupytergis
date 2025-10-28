@@ -1,5 +1,4 @@
 {
-  "$id": "/project/layers/landmarkLayer",
   "type": "object",
   "description": "LandmarkLayer",
   "title": "ILandmarkLayer",
