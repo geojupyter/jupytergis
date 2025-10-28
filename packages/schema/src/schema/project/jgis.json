@@ -1,4 +1,5 @@
 {
+  "$id": "/project",
   "type": "object",
   "title": "IJGISContent",
   "required": ["layers", "sources"],
@@ -136,6 +137,20 @@
           "$ref": "#/definitions/jGISLayerGroup"
         }
       ]
+    },
+    "jGISStoryMap": {
+      "title": "IJGISStoryMap",
+      "type": "object",
+      "properties": {
+        "storyType": { "type": "string", "enum": ["guided", "unguided"] },
+        "landmarks": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "project/layers/landmarkLayer.json"
+          }
+        }
+      }
     },
     "jGISLayers": {
       "title": "IJGISLayers",
