@@ -1070,6 +1070,11 @@ export function addCommands(
         return;
       }
       const { zoom, extent } = current.model.getOptions();
+
+      if (!zoom || !extent) {
+        console.log('shut up');
+        return;
+      }
       const layerParams: ILandmarkLayer = { extent, zoom };
       const layerModel: IJGISLayer = {
         type: 'LandmarkLayer',
