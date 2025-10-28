@@ -15,6 +15,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '../shared/components/Tabs';
+import StoryPanel from './components/story-maps/StoryPanel';
 
 interface IRightPanelProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -28,6 +29,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     !settings.objectPropertiesDisabled
       ? { name: 'objectProperties', title: 'Object Properties' }
       : false,
+    { name: 'storyPanel', title: 'Stories' },
     !settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
       : false,
@@ -120,6 +122,14 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             />
           </TabsContent>
         )}
+
+        <TabsContent value="storyPanel" className="jgis-panel-tab-content">
+          {/* switch to this panel when clicking create story */}
+          <StoryPanel
+            model={props.model}
+            formSchemaRegistry={props.formSchemaRegistry}
+          ></StoryPanel>
+        </TabsContent>
 
         {!settings.annotationsDisabled && (
           <TabsContent value="annotations" className="jgis-panel-tab-content">
