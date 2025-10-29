@@ -29,7 +29,7 @@ We'd love to hear from you at a
 
 🔄 Basic support for importing/exporting [QGIS](https://www.qgis.org) project files
 
-🐍 Python API and integration with Jupyter Notebook workflows
+🐍 Python API and integration with collaborative Jupyter Notebook workflows
 
 For more details, check out the [project overview](overview/index.md)!
 
