@@ -1,9 +1,13 @@
 import {
+  IJGISLayer,
   IJGISStoryMap,
   IJupyterGISModel,
   ILandmarkLayer,
 } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
+import Markdown from 'react-markdown';
+
+import StoryNavBar from './StoryNavBar';
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
@@ -11,9 +15,13 @@ interface IStoryViewerPanelProps {
 
 function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   const [storyData, setStoryData] = useState<IJGISStoryMap>({});
+  const [currentRankDisplayed, setCurrentRankDisplayed] = useState(0);
   const [activeSlide, setActiveSlide] = useState<ILandmarkLayer | undefined>(
     undefined,
   );
+  const [landmarks, setLandmarks] = useState<
+    (IJGISLayer | undefined)[] | undefined
+  >();
 
   //TODO this is copied from the editor panel, do better
   useEffect(() => {
@@ -49,8 +57,19 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
       setActiveSlide(layers[0].parameters as ILandmarkLayer);
     }
 
+    setLandmarks(layers);
+    setCurrentRankDisplayed(0);
+
     setStoryData(firstStory);
   }, []);
+
+  const zoomToLayer = () => {
+    const landmarkId = storyData.landmarks?.[currentRankDisplayed];
+    if (landmarkId) {
+      model?.centerOnPosition(landmarkId);
+    }
+  };
+
   return (
     <div>
       {/* title */}
@@ -58,8 +77,37 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
       {/* content */}
       <div>{activeSlide?.content?.imgSrc}</div>
       <div>{activeSlide?.content?.title}</div>
-      <div>{activeSlide?.content?.markdown}</div>
+      {/* <div>{activeSlide?.content?.markdown}</div>
+       */}
+      <div>
+        <Markdown>{activeSlide?.content?.markdown}</Markdown>
+      </div>
       {/* if guided -> nav buttons */}
+      {storyData.storyType === 'guided' && (
+        <StoryNavBar
+          onPrev={() => {
+            const prevLandmark = landmarks?.[currentRankDisplayed - 1];
+            if (prevLandmark?.parameters) {
+              setActiveSlide(prevLandmark.parameters as ILandmarkLayer);
+              setCurrentRankDisplayed(currentRankDisplayed - 1);
+              zoomToLayer();
+            }
+          }}
+          onNext={() => {
+            const nextLandmark = landmarks?.[currentRankDisplayed + 1];
+            if (nextLandmark?.parameters) {
+              setActiveSlide(nextLandmark.parameters as ILandmarkLayer);
+              setCurrentRankDisplayed(currentRankDisplayed + 1);
+              zoomToLayer();
+            }
+          }}
+          hasPrev={currentRankDisplayed > 0}
+          hasNext={
+            landmarks !== undefined &&
+            currentRankDisplayed < landmarks.length - 1
+          }
+        />
+      )}
     </div>
   );
 }
