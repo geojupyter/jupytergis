@@ -1,6 +1,5 @@
-import { Button } from '@jupyter/react-components';
-import { IJupyterGISModel } from '@jupytergis/schema';
-import React, { useEffect, useState, useCallback } from 'react';
+import { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
+import React, { useEffect, useState } from 'react';
 
 import { BaseForm } from '@/src/formbuilder/objectform/baseform';
 import { deepCopy } from '@/src/tools';
@@ -13,6 +12,9 @@ interface IStoryPanelProps {
 export function StoryEditorPanel({ model }: IStoryPanelProps) {
   const [schema, setSchema] = useState<IDict | undefined>(undefined);
   const [storyData, setStoryData] = useState<IDict>({});
+  const [firstStoryKey, setFirstStoryKey] = useState<string | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     // Get the story map schema from the definitions
@@ -21,28 +23,31 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
     const storyMapSchema = deepCopy(jgisSchema.definitions.jGISStoryMap);
 
     // Set initial data (you may need to get this from the model)
-    const firstStory = Array.from(model.storiesMap.values())[0];
-    const initialData: IDict = firstStory ?? {
+    const entries = Object.entries(model.sharedModel.storiesMap);
+    const [firstKey, firstStory] = entries[0] ?? [undefined, undefined];
+
+    const initialData: IJGISStoryMap = firstStory ?? {
       title: '',
-      storyType: 'guided',
-      landmarks: [] as string[],
+      storyType: 'unguided',
+      landmarks: [],
     };
 
     setSchema(storyMapSchema);
     setStoryData(initialData);
-  }, [model]);
+    setFirstStoryKey(firstKey);
+  }, []);
 
-  const syncStoryData = useCallback(
-    (properties: IDict) => {
-      // TODO: Implement sync to model
-      // For now, just log the data
-      console.log('Syncing story data:', properties);
-      console.log('storyData', storyData);
-      // You may want to store this in metadata or add methods to the model
-      // model.sharedModel.setMetadata('storyMap', JSON.stringify(properties));
-    },
-    [storyData],
-  );
+  const syncStoryData = (properties: IDict) => {
+    if (!firstStoryKey) {
+      return;
+    }
+
+    const { title, storyType, landmarks } = properties;
+    const updatedStory: IJGISStoryMap = { title, storyType, landmarks };
+
+    setStoryData(updatedStory);
+    model.sharedModel.updateStoryMap(firstStoryKey, updatedStory);
+  };
 
   if (!schema) {
     return <div>Loading schema...</div>;
@@ -52,14 +57,14 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
     <div style={{ padding: '10px' }}>
       <h3>Story Map Properties</h3>
       <BaseForm
-        formContext="create"
+        formContext="update"
         sourceData={storyData}
         model={model}
         schema={schema}
         syncData={syncStoryData}
         filePath={model.filePath}
       />
-      <Button onClick={syncStoryData}>Submit</Button>
+      {/* <Button onClick={syncStoryData}>Submit</Button> */}
     </div>
   );
 }
