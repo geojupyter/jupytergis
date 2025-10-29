@@ -884,7 +884,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const landmarks = layerIds;
 
     const storyMap: IJGISStoryMap = { title, storyType, landmarks };
-    this.storiesMap.set(UUID.uuid4(), storyMap);
+    this.sharedModel.addStoryMap(UUID.uuid4(), storyMap);
   }
 
   readonly defaultKernelName: string = '';
