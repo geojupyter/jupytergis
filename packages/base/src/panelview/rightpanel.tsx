@@ -15,7 +15,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '../shared/components/Tabs';
-import StoryEditorPanel from './components/story-maps/StoryPanel';
+import StoryEditorPanel from './components/story-maps/StoryEditorPanel';
 
 interface IRightPanelProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
