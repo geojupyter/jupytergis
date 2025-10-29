@@ -11,6 +11,7 @@ import { JupyterGISTracker } from '../types';
 
 export namespace LayerCreationCommandIDs {
   export const newGeoJSONWithParams = 'jupytergis:newGeoJSONWithParams';
+  export const newRasterWithParams = 'jupytergis:newRasterWithParams';
 }
 
 export function addLayerCreationCommands(options: {
@@ -132,10 +133,6 @@ export function addLayerCreationCommands(options: {
 
       const model: IJupyterGISModel = current.model;
       const sharedModel = model.sharedModel;
-      if (!sharedModel.editable) {
-        console.warn('Shared model not editable');
-        return;
-      }
 
       const sourceId = UUID.uuid4();
       const layerId = UUID.uuid4();
@@ -156,6 +153,144 @@ export function addLayerCreationCommands(options: {
           color: parameters.color ?? {},
           opacity: parameters.opacity ?? 1,
           symbologyState: parameters.symbologyState,
+          source: sourceId
+        }
+      };
+
+      model.addLayer(layerId, layerModel);
+    }) as any
+  });
+
+  commands.addCommand(LayerCreationCommandIDs.newRasterWithParams, {
+    label: trans.__('New Raster Tile Layer From Parameters'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'Name', 'parameters'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Path to the .jGIS file to modify'
+          },
+          Name: {
+            type: 'string',
+            description: 'The name of the new Raster Tile Layer'
+          },
+          parameters: {
+            type: 'object',
+            required: ['source', 'opacity'],
+            properties: {
+              source: {
+                type: 'object',
+                description: 'Raster source configuration',
+                required: ['url', 'maxZoom', 'minZoom'],
+                properties: {
+                  url: {
+                    type: 'string',
+                    description: 'The URL to the tile provider'
+                  },
+                  minZoom: {
+                    type: 'number',
+                    minimum: 0,
+                    maximum: 24,
+                    default: 0,
+                    description: 'Minimum zoom level'
+                  },
+                  maxZoom: {
+                    type: 'number',
+                    minimum: 0,
+                    maximum: 24,
+                    default: 24,
+                    description: 'Maximum zoom level'
+                  },
+                  attribution: {
+                    type: 'string',
+                    default: '',
+                    description: 'Attribution for the raster source'
+                  },
+                  htmlAttribution: {
+                    type: 'string',
+                    default: '',
+                    description: 'HTML attribution for the raster source'
+                  },
+                  provider: {
+                    type: 'string',
+                    default: '',
+                    description: 'Provider name'
+                  },
+                  bounds: {
+                    type: 'array',
+                    description: 'Bounds of the source',
+                    items: {
+                      type: 'array',
+                      items: { type: 'number' }
+                    },
+                    default: []
+                  },
+                  urlParameters: {
+                    type: 'object',
+                    description: 'Extra URL parameters',
+                    additionalProperties: { type: 'string' },
+                    default: {}
+                  },
+                  interpolate: {
+                    type: 'boolean',
+                    description:
+                      'Interpolate between grid cells when overzooming?',
+                    default: false
+                  }
+                }
+              },
+              opacity: {
+                type: 'number',
+                description: 'Layer opacity',
+                default: 1,
+                minimum: 0,
+                maximum: 1,
+                multipleOf: 0.1
+              }
+            }
+          }
+        }
+      }
+    },
+    execute: (async (args: {
+      filePath: string;
+      Name: string;
+      parameters: {
+        source: Record<string, any>;
+        opacity: number;
+      };
+    }) => {
+      const { filePath, Name, parameters } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+
+      if (!current) {
+        console.warn('No JupyterGIS widget found for', filePath);
+        return;
+      }
+
+      const model: IJupyterGISModel = current.model;
+      const sharedModel = model.sharedModel;
+
+      const sourceId = UUID.uuid4();
+      const layerId = UUID.uuid4();
+
+      const sourceModel: IJGISSource = {
+        type: 'RasterSource',
+        name: `${Name} Source`,
+        parameters: parameters.source
+      };
+
+      sharedModel.addSource(sourceId, sourceModel);
+
+      const layerModel: IJGISLayer = {
+        type: 'RasterLayer',
+        name: Name,
+        visible: true,
+        parameters: {
+          opacity: parameters.opacity ?? 1,
           source: sourceId
         }
       };
