@@ -12,6 +12,8 @@ JupyterLab.
 :new_tab_button_text: Try it with JupyterLite!
 ```
 
+_Please note that JupyterLite is local-only and thus does not support collaboration._
+
 ```{raw} html
 </center>
 <br />
