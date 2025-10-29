@@ -19,7 +19,7 @@ By following this tutorial, you will be able to:
 
 :::{admonition} Prerequisites
 :class: warning
-Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)). Alternatively, you can use an online installation of JupyterGIS. Your choice may have implications for collaboration, so please read our [collaboration feature overview](../../../overview/features/collab.md) for more context.
+Before beginning this tutorial, JupyterGIS must be installed on your computer (see [installation instructions](../../install.md)). Alternatively, you can use an online installation of JupyterGIS. Your choice may have implications for collaboration, so please read our [collaboration feature overview](../../../overview/features/collab.md) for more context.
 :::
 
 ---
