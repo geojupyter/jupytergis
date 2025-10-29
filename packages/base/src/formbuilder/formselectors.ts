@@ -3,6 +3,7 @@ import { LayerType, SourceType } from '@jupytergis/schema';
 import {
   HeatmapLayerPropertiesForm,
   HillshadeLayerPropertiesForm,
+  LandmarkLayerPropertiesForm,
   LayerPropertiesForm,
   VectorLayerPropertiesForm,
   WebGlLayerPropertiesForm,
@@ -35,8 +36,9 @@ export function getLayerTypeForm(
       LayerForm = HeatmapLayerPropertiesForm;
       break;
     case 'LandmarkLayer':
-      LayerForm = LayerPropertiesForm;
+      LayerForm = LandmarkLayerPropertiesForm;
       break;
+
     // ADD MORE FORM TYPES HERE
   }
 
