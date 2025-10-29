@@ -12,6 +12,7 @@ import { JupyterGISTracker } from '../types';
 export namespace LayerCreationCommandIDs {
   export const newGeoJSONWithParams = 'jupytergis:newGeoJSONWithParams';
   export const newRasterWithParams = 'jupytergis:newRasterWithParams';
+  export const newVectorTileWithParams = 'jupytergis:newVectorTileWithParams';
 }
 
 export function addLayerCreationCommands(options: {
@@ -290,6 +291,126 @@ export function addLayerCreationCommands(options: {
         name: Name,
         visible: true,
         parameters: {
+          opacity: parameters.opacity ?? 1,
+          source: sourceId
+        }
+      };
+
+      model.addLayer(layerId, layerModel);
+    }) as any
+  });
+
+  commands.addCommand(LayerCreationCommandIDs.newVectorTileWithParams, {
+    label: trans.__('New Vector Tile Layer From Parameters'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'Name', 'parameters'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Path to the .jGIS file to modify'
+          },
+          Name: {
+            type: 'string',
+            description: 'The name of the new Vector Tile Layer'
+          },
+          parameters: {
+            type: 'object',
+            required: ['source', 'opacity'],
+            properties: {
+              source: {
+                type: 'object',
+                description: 'Vector tile source configuration',
+                required: ['url', 'maxZoom', 'minZoom'],
+                properties: {
+                  url: {
+                    type: 'string',
+                    description: 'The URL to the tile provider'
+                  },
+                  minZoom: {
+                    type: 'number',
+                    minimum: 0,
+                    maximum: 24,
+                    description: 'Minimum zoom level for the vector source'
+                  },
+                  maxZoom: {
+                    type: 'number',
+                    minimum: 0,
+                    maximum: 24,
+                    description: 'Maximum zoom level for the vector source'
+                  },
+                  attribution: {
+                    type: 'string',
+                    description: 'Attribution for the vector source'
+                  },
+                  provider: {
+                    type: 'string',
+                    description: 'The map provider',
+                    readOnly: true
+                  },
+                  urlParameters: {
+                    type: 'object',
+                    description: 'Additional URL parameters',
+                    additionalProperties: { type: 'string' }
+                  }
+                }
+              },
+              color: {
+                type: 'object',
+                description: 'Color styling configuration for the layer'
+              },
+              opacity: {
+                type: 'number',
+                description: 'Layer opacity (0–1)',
+                default: 1,
+                minimum: 0,
+                maximum: 1,
+                multipleOf: 0.1
+              }
+            }
+          }
+        }
+      }
+    },
+    execute: (async (args: {
+      filePath: string;
+      Name: string;
+      parameters: {
+        source: Record<string, any>;
+        color?: Record<string, any>;
+        opacity?: number;
+      };
+    }) => {
+      const { filePath, Name, parameters } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+
+      if (!current) {
+        console.warn('No JupyterGIS widget found for', filePath);
+        return;
+      }
+
+      const model: IJupyterGISModel = current.model;
+      const sharedModel = model.sharedModel;
+
+      const sourceId = UUID.uuid4();
+      const layerId = UUID.uuid4();
+
+      const sourceModel: IJGISSource = {
+        type: 'VectorTileSource',
+        name: `${Name} Source`,
+        parameters: parameters.source
+      };
+
+      sharedModel.addSource(sourceId, sourceModel);
+
+      const layerModel: IJGISLayer = {
+        type: 'VectorTileLayer',
+        name: Name,
+        visible: true,
+        parameters: {
+          color: parameters.color ?? {},
           opacity: parameters.opacity ?? 1,
           source: sourceId
         }
