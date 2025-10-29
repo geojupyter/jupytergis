@@ -138,6 +138,7 @@
 .jp-gis-sourceText {
   padding: 3px 0;
   cursor: pointer;
+  flex-grow: 1;
 }
 
 li .lm-Menu-itemLabel {
