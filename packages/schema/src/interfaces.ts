@@ -29,6 +29,10 @@ import {
   IJGISStoryMap,
   SourceType,
 } from './_interface/project/jgis';
+
+export interface IJGISStoryMaps {
+  [k: string]: IJGISStoryMap;
+}
 import { IRasterSource } from './_interface/project/sources/rasterSource';
 import { Modes } from './types';
 export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
@@ -57,6 +61,13 @@ export interface IJGISLayerDocChange {
 
 export interface IJGISLayerTreeDocChange {
   layerTreeChange?: Delta<IJGISLayerItem[]>;
+}
+
+export interface IJGISStoryMapDocChange {
+  storyMapChange?: Array<{
+    id: string;
+    newValue: IJGISStoryMap | undefined;
+  }>;
 }
 
 export interface IJGISSourceDocChange {
@@ -93,6 +104,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   options: IJGISOptions;
   layers: IJGISLayers;
   sources: IJGISSources;
+  storiesMap: IJGISStoryMaps;
   layerTree: IJGISLayerTree;
   metadata: any;
 
@@ -120,6 +132,12 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   addSource(id: string, value: IJGISSource): void;
   updateSource(id: string, value: IJGISSource): void;
 
+  storyMapExists(id: string): boolean;
+  getStoryMap(id: string): IJGISStoryMap | undefined;
+  removeStoryMap(id: string): void;
+  addStoryMap(id: string, value: IJGISStoryMap): void;
+  updateStoryMap(id: string, value: IJGISStoryMap): void;
+
   addLayerTreeItem(index: number, item: IJGISLayerItem): void;
   updateLayerTreeItem(index: number, item: IJGISLayerItem): void;
 
@@ -139,6 +157,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
+  storyMapsChanged: ISignal<IJupyterGISDoc, IJGISStoryMapDocChange>;
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
 }
