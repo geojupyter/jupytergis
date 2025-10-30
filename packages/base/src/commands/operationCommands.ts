@@ -13,6 +13,7 @@ export namespace LayerCreationCommandIDs {
   export const newGeoJSONWithParams = 'jupytergis:newGeoJSONWithParams';
   export const newRasterWithParams = 'jupytergis:newRasterWithParams';
   export const newVectorTileWithParams = 'jupytergis:newVectorTileWithParams';
+  export const newGeoParquetWithParams = 'jupytergis:newGeoParquetWithParams';
 }
 
 export function addLayerCreationCommands(options: {
@@ -412,6 +413,152 @@ export function addLayerCreationCommands(options: {
         parameters: {
           color: parameters.color ?? {},
           opacity: parameters.opacity ?? 1,
+          source: sourceId
+        }
+      };
+
+      model.addLayer(layerId, layerModel);
+    }) as any
+  });
+
+  commands.addCommand(LayerCreationCommandIDs.newGeoParquetWithParams, {
+    label: trans.__('New GeoParquet Layer From Parameters'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'Name', 'parameters'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Path to the .jGIS file to modify'
+          },
+          Name: {
+            type: 'string',
+            description: 'The name of the new GeoParquet layer'
+          },
+          parameters: {
+            type: 'object',
+            required: ['source', 'opacity', 'symbologyState'],
+            properties: {
+              source: {
+                type: 'object',
+                description: 'GeoParquet source configuration',
+                required: ['path'],
+                properties: {
+                  path: {
+                    type: 'string',
+                    description: 'The path to the GeoParquet source'
+                  },
+                  attribution: {
+                    type: 'string',
+                    readOnly: true,
+                    description: 'Attribution for the GeoParquet source',
+                    default: ''
+                  },
+                  projection: {
+                    type: 'string',
+                    description:
+                      'Projection information for the GeoParquet data',
+                    default: 'EPSG:4326'
+                  }
+                }
+              },
+              color: {
+                type: 'object',
+                description: 'Color styling for the layer'
+              },
+              opacity: {
+                type: 'number',
+                description: 'Layer opacity (0–1)',
+                default: 1,
+                minimum: 0,
+                maximum: 1,
+                multipleOf: 0.1
+              },
+              symbologyState: {
+                type: 'object',
+                description: 'Symbology configuration for the layer',
+                required: ['renderType'],
+                properties: {
+                  renderType: {
+                    type: 'string',
+                    enum: ['Single Symbol', 'Graduated', 'Categorized']
+                  },
+                  value: {
+                    type: 'string'
+                  },
+                  method: {
+                    type: 'string',
+                    enum: ['color', 'radius']
+                  },
+                  colorRamp: {
+                    type: 'string',
+                    default: 'viridis'
+                  },
+                  nClasses: {
+                    type: 'string',
+                    default: '9'
+                  },
+                  mode: {
+                    type: 'string',
+                    default: 'equal interval',
+                    enum: [
+                      'quantile',
+                      'equal interval',
+                      'jenks',
+                      'pretty',
+                      'logarithmic'
+                    ]
+                  }
+                },
+                additionalProperties: false
+              }
+            }
+          }
+        }
+      }
+    },
+    execute: (async (args: {
+      filePath: string;
+      Name: string;
+      parameters: {
+        source: Record<string, any>;
+        color?: Record<string, any>;
+        opacity?: number;
+        symbologyState: Record<string, any>;
+      };
+    }) => {
+      const { filePath, Name, parameters } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+
+      if (!current) {
+        console.warn('No JupyterGIS widget found for', filePath);
+        return;
+      }
+
+      const model: IJupyterGISModel = current.model;
+      const sharedModel = model.sharedModel;
+
+      const sourceId = UUID.uuid4();
+      const layerId = UUID.uuid4();
+
+      const sourceModel: IJGISSource = {
+        type: 'GeoParquetSource',
+        name: `${Name} Source`,
+        parameters: parameters.source
+      };
+
+      sharedModel.addSource(sourceId, sourceModel);
+
+      const layerModel: IJGISLayer = {
+        type: 'VectorLayer',
+        name: Name,
+        visible: true,
+        parameters: {
+          color: parameters.color ?? {},
+          opacity: parameters.opacity ?? 1,
+          symbologyState: parameters.symbologyState,
           source: sourceId
         }
       };
