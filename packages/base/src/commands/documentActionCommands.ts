@@ -9,6 +9,7 @@ export namespace DocumentActionCommandIDs {
   export const redoWithParams = 'jupytergis:redoWithParams';
   export const identifyWithParams = 'jupytergis:identifyWithParams';
   export const temporalControllerWithParams = 'jupytergis:temporalControllerWithParams';
+  export const renameLayerWithParams = 'jupytergis:renameLayerWithParams';
 }
 
 export function addDocumentActionCommands(options: {
@@ -176,4 +177,46 @@ export function addDocumentActionCommands(options: {
       commands.notifyCommandChanged(DocumentActionCommandIDs.temporalControllerWithParams);
     }) as any
   });
+
+  commands.addCommand(DocumentActionCommandIDs.renameLayerWithParams, {
+  label: trans.__('Rename layer from file name'),
+  isEnabled: () => true,
+  describedBy: {
+    args: {
+      type: 'object',
+      required: ['filePath', 'layerId', 'newName'],
+      properties: {
+        filePath: {
+          type: 'string',
+          description: 'The path to the .jGIS file to be modified'
+        },
+        layerId: {
+          type: 'string',
+          description: 'The ID of the layer to be renamed'
+        },
+        newName: {
+          type: 'string',
+          description: 'The new name for the layer'
+        }
+      }
+    }
+  },
+  execute: (async (args: { filePath: string; layerId: string; newName: string }) => {
+    const { filePath, layerId, newName } = args;
+    const current = tracker.find(w => w.model.filePath === filePath);
+
+    if (!current || !current.model.sharedModel.editable) {
+      return;
+    }
+
+    const sharedModel = current.model.sharedModel;
+    const layer = sharedModel.layers[layerId];
+    if (!layer) {
+      return;
+    }
+
+    layer.name = newName;
+    sharedModel.updateLayer(layerId, layer);
+  }) as any
+});
 }
