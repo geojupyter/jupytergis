@@ -1,8 +1,4 @@
-import {
-  IJupyterGISModel,
-  IJGISLayer,
-  IJGISSource
-} from '@jupytergis/schema';
+import { IJupyterGISModel, IJGISLayer, IJGISSource } from '@jupytergis/schema';
 import { IRenderMime } from '@jupyterlab/rendermime';
 import { CommandRegistry } from '@lumino/commands';
 import { UUID } from '@lumino/coreutils';
@@ -38,11 +34,11 @@ export function addLayerCreationCommands(options: {
         properties: {
           filePath: {
             type: 'string',
-            description: 'The path to the .jGIS file to modify'
+            description: 'The path to the .jGIS file to modify',
           },
           Name: {
             type: 'string',
-            description: 'The name of the new GeoJSON layer'
+            description: 'The name of the new GeoJSON layer',
           },
           parameters: {
             type: 'object',
@@ -55,22 +51,22 @@ export function addLayerCreationCommands(options: {
                 properties: {
                   path: {
                     type: 'string',
-                    description: 'The path to the GeoJSON file'
+                    description: 'The path to the GeoJSON file',
                   },
                   data: {
                     type: 'object',
-                    description: 'The GeoJSON data object'
+                    description: 'The GeoJSON data object',
                   },
                   valid: {
                     type: 'boolean',
                     description: 'Whether the data are valid',
-                    readOnly: true
-                  }
-                }
+                    readOnly: true,
+                  },
+                },
               },
               color: {
                 type: 'object',
-                description: 'The color configuration for the layer'
+                description: 'The color configuration for the layer',
               },
               opacity: {
                 type: 'number',
@@ -78,7 +74,7 @@ export function addLayerCreationCommands(options: {
                 default: 1,
                 minimum: 0,
                 maximum: 1,
-                multipleOf: 0.1
+                multipleOf: 0.1,
               },
               symbologyState: {
                 type: 'object',
@@ -87,20 +83,20 @@ export function addLayerCreationCommands(options: {
                 properties: {
                   renderType: {
                     type: 'string',
-                    enum: ['Single Symbol', 'Graduated', 'Categorized']
+                    enum: ['Single Symbol', 'Graduated', 'Categorized'],
                   },
                   value: { type: 'string' },
                   method: {
                     type: 'string',
-                    enum: ['color', 'radius']
+                    enum: ['color', 'radius'],
                   },
                   colorRamp: {
                     type: 'string',
-                    default: 'viridis'
+                    default: 'viridis',
                   },
                   nClasses: {
                     type: 'string',
-                    default: '9'
+                    default: '9',
                   },
                   mode: {
                     type: 'string',
@@ -110,15 +106,15 @@ export function addLayerCreationCommands(options: {
                       'equal interval',
                       'jenks',
                       'pretty',
-                      'logarithmic'
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                      'logarithmic',
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     execute: (async (args: {
       filePath: string;
@@ -147,7 +143,7 @@ export function addLayerCreationCommands(options: {
       const sourceModel: IJGISSource = {
         type: 'GeoJSONSource',
         name: `${Name} Source`,
-        parameters: parameters.source
+        parameters: parameters.source,
       };
 
       sharedModel.addSource(sourceId, sourceModel);
@@ -160,12 +156,12 @@ export function addLayerCreationCommands(options: {
           color: parameters.color ?? {},
           opacity: parameters.opacity ?? 1,
           symbologyState: parameters.symbologyState,
-          source: sourceId
-        }
+          source: sourceId,
+        },
       };
 
       model.addLayer(layerId, layerModel);
-    }) as any
+    }) as any,
   });
 
   commands.addCommand(LayerCreationCommandIDs.newRasterWithParams, {
@@ -178,11 +174,11 @@ export function addLayerCreationCommands(options: {
         properties: {
           filePath: {
             type: 'string',
-            description: 'Path to the .jGIS file to modify'
+            description: 'Path to the .jGIS file to modify',
           },
           Name: {
             type: 'string',
-            description: 'The name of the new Raster Tile Layer'
+            description: 'The name of the new Raster Tile Layer',
           },
           parameters: {
             type: 'object',
@@ -195,59 +191,59 @@ export function addLayerCreationCommands(options: {
                 properties: {
                   url: {
                     type: 'string',
-                    description: 'The URL to the tile provider'
+                    description: 'The URL to the tile provider',
                   },
                   minZoom: {
                     type: 'number',
                     minimum: 0,
                     maximum: 24,
                     default: 0,
-                    description: 'Minimum zoom level'
+                    description: 'Minimum zoom level',
                   },
                   maxZoom: {
                     type: 'number',
                     minimum: 0,
                     maximum: 24,
                     default: 24,
-                    description: 'Maximum zoom level'
+                    description: 'Maximum zoom level',
                   },
                   attribution: {
                     type: 'string',
                     default: '',
-                    description: 'Attribution for the raster source'
+                    description: 'Attribution for the raster source',
                   },
                   htmlAttribution: {
                     type: 'string',
                     default: '',
-                    description: 'HTML attribution for the raster source'
+                    description: 'HTML attribution for the raster source',
                   },
                   provider: {
                     type: 'string',
                     default: '',
-                    description: 'Provider name'
+                    description: 'Provider name',
                   },
                   bounds: {
                     type: 'array',
                     description: 'Bounds of the source',
                     items: {
                       type: 'array',
-                      items: { type: 'number' }
+                      items: { type: 'number' },
                     },
-                    default: []
+                    default: [],
                   },
                   urlParameters: {
                     type: 'object',
                     description: 'Extra URL parameters',
                     additionalProperties: { type: 'string' },
-                    default: {}
+                    default: {},
                   },
                   interpolate: {
                     type: 'boolean',
                     description:
                       'Interpolate between grid cells when overzooming?',
-                    default: false
-                  }
-                }
+                    default: false,
+                  },
+                },
               },
               opacity: {
                 type: 'number',
@@ -255,12 +251,12 @@ export function addLayerCreationCommands(options: {
                 default: 1,
                 minimum: 0,
                 maximum: 1,
-                multipleOf: 0.1
-              }
-            }
-          }
-        }
-      }
+                multipleOf: 0.1,
+              },
+            },
+          },
+        },
+      },
     },
     execute: (async (args: {
       filePath: string;
@@ -287,7 +283,7 @@ export function addLayerCreationCommands(options: {
       const sourceModel: IJGISSource = {
         type: 'RasterSource',
         name: `${Name} Source`,
-        parameters: parameters.source
+        parameters: parameters.source,
       };
 
       sharedModel.addSource(sourceId, sourceModel);
@@ -298,12 +294,12 @@ export function addLayerCreationCommands(options: {
         visible: true,
         parameters: {
           opacity: parameters.opacity ?? 1,
-          source: sourceId
-        }
+          source: sourceId,
+        },
       };
 
       model.addLayer(layerId, layerModel);
-    }) as any
+    }) as any,
   });
 
   commands.addCommand(LayerCreationCommandIDs.newVectorTileWithParams, {
@@ -316,11 +312,11 @@ export function addLayerCreationCommands(options: {
         properties: {
           filePath: {
             type: 'string',
-            description: 'Path to the .jGIS file to modify'
+            description: 'Path to the .jGIS file to modify',
           },
           Name: {
             type: 'string',
-            description: 'The name of the new Vector Tile Layer'
+            description: 'The name of the new Vector Tile Layer',
           },
           parameters: {
             type: 'object',
@@ -333,39 +329,39 @@ export function addLayerCreationCommands(options: {
                 properties: {
                   url: {
                     type: 'string',
-                    description: 'The URL to the tile provider'
+                    description: 'The URL to the tile provider',
                   },
                   minZoom: {
                     type: 'number',
                     minimum: 0,
                     maximum: 24,
-                    description: 'Minimum zoom level for the vector source'
+                    description: 'Minimum zoom level for the vector source',
                   },
                   maxZoom: {
                     type: 'number',
                     minimum: 0,
                     maximum: 24,
-                    description: 'Maximum zoom level for the vector source'
+                    description: 'Maximum zoom level for the vector source',
                   },
                   attribution: {
                     type: 'string',
-                    description: 'Attribution for the vector source'
+                    description: 'Attribution for the vector source',
                   },
                   provider: {
                     type: 'string',
                     description: 'The map provider',
-                    readOnly: true
+                    readOnly: true,
                   },
                   urlParameters: {
                     type: 'object',
                     description: 'Additional URL parameters',
-                    additionalProperties: { type: 'string' }
-                  }
-                }
+                    additionalProperties: { type: 'string' },
+                  },
+                },
               },
               color: {
                 type: 'object',
-                description: 'Color styling configuration for the layer'
+                description: 'Color styling configuration for the layer',
               },
               opacity: {
                 type: 'number',
@@ -373,12 +369,12 @@ export function addLayerCreationCommands(options: {
                 default: 1,
                 minimum: 0,
                 maximum: 1,
-                multipleOf: 0.1
-              }
-            }
-          }
-        }
-      }
+                multipleOf: 0.1,
+              },
+            },
+          },
+        },
+      },
     },
     execute: (async (args: {
       filePath: string;
@@ -406,7 +402,7 @@ export function addLayerCreationCommands(options: {
       const sourceModel: IJGISSource = {
         type: 'VectorTileSource',
         name: `${Name} Source`,
-        parameters: parameters.source
+        parameters: parameters.source,
       };
 
       sharedModel.addSource(sourceId, sourceModel);
@@ -418,12 +414,12 @@ export function addLayerCreationCommands(options: {
         parameters: {
           color: parameters.color ?? {},
           opacity: parameters.opacity ?? 1,
-          source: sourceId
-        }
+          source: sourceId,
+        },
       };
 
       model.addLayer(layerId, layerModel);
-    }) as any
+    }) as any,
   });
 
   commands.addCommand(LayerCreationCommandIDs.newGeoParquetWithParams, {
@@ -436,11 +432,11 @@ export function addLayerCreationCommands(options: {
         properties: {
           filePath: {
             type: 'string',
-            description: 'Path to the .jGIS file to modify'
+            description: 'Path to the .jGIS file to modify',
           },
           Name: {
             type: 'string',
-            description: 'The name of the new GeoParquet layer'
+            description: 'The name of the new GeoParquet layer',
           },
           parameters: {
             type: 'object',
@@ -453,25 +449,25 @@ export function addLayerCreationCommands(options: {
                 properties: {
                   path: {
                     type: 'string',
-                    description: 'The path to the GeoParquet source'
+                    description: 'The path to the GeoParquet source',
                   },
                   attribution: {
                     type: 'string',
                     readOnly: true,
                     description: 'Attribution for the GeoParquet source',
-                    default: ''
+                    default: '',
                   },
                   projection: {
                     type: 'string',
                     description:
                       'Projection information for the GeoParquet data',
-                    default: 'EPSG:4326'
-                  }
-                }
+                    default: 'EPSG:4326',
+                  },
+                },
               },
               color: {
                 type: 'object',
-                description: 'Color styling for the layer'
+                description: 'Color styling for the layer',
               },
               opacity: {
                 type: 'number',
@@ -479,7 +475,7 @@ export function addLayerCreationCommands(options: {
                 default: 1,
                 minimum: 0,
                 maximum: 1,
-                multipleOf: 0.1
+                multipleOf: 0.1,
               },
               symbologyState: {
                 type: 'object',
@@ -488,22 +484,22 @@ export function addLayerCreationCommands(options: {
                 properties: {
                   renderType: {
                     type: 'string',
-                    enum: ['Single Symbol', 'Graduated', 'Categorized']
+                    enum: ['Single Symbol', 'Graduated', 'Categorized'],
                   },
                   value: {
-                    type: 'string'
+                    type: 'string',
                   },
                   method: {
                     type: 'string',
-                    enum: ['color', 'radius']
+                    enum: ['color', 'radius'],
                   },
                   colorRamp: {
                     type: 'string',
-                    default: 'viridis'
+                    default: 'viridis',
                   },
                   nClasses: {
                     type: 'string',
-                    default: '9'
+                    default: '9',
                   },
                   mode: {
                     type: 'string',
@@ -513,16 +509,16 @@ export function addLayerCreationCommands(options: {
                       'equal interval',
                       'jenks',
                       'pretty',
-                      'logarithmic'
-                    ]
-                  }
+                      'logarithmic',
+                    ],
+                  },
                 },
-                additionalProperties: false
-              }
-            }
-          }
-        }
-      }
+                additionalProperties: false,
+              },
+            },
+          },
+        },
+      },
     },
     execute: (async (args: {
       filePath: string;
@@ -551,7 +547,7 @@ export function addLayerCreationCommands(options: {
       const sourceModel: IJGISSource = {
         type: 'GeoParquetSource',
         name: `${Name} Source`,
-        parameters: parameters.source
+        parameters: parameters.source,
       };
 
       sharedModel.addSource(sourceId, sourceModel);
@@ -564,12 +560,12 @@ export function addLayerCreationCommands(options: {
           color: parameters.color ?? {},
           opacity: parameters.opacity ?? 1,
           symbologyState: parameters.symbologyState,
-          source: sourceId
-        }
+          source: sourceId,
+        },
       };
 
       model.addLayer(layerId, layerModel);
-    }) as any
+    }) as any,
   });
 
   commands.addCommand(LayerCreationCommandIDs.newHillshadeWithParams, {
@@ -582,11 +578,11 @@ export function addLayerCreationCommands(options: {
         properties: {
           filePath: {
             type: 'string',
-            description: 'Path to the .jGIS file to modify'
+            description: 'Path to the .jGIS file to modify',
           },
           Name: {
             type: 'string',
-            description: 'The name of the new Hillshade layer'
+            description: 'The name of the new Hillshade layer',
           },
           parameters: {
             type: 'object',
@@ -599,38 +595,38 @@ export function addLayerCreationCommands(options: {
                 properties: {
                   url: {
                     type: 'string',
-                    description: 'The URL to the DEM tile provider'
+                    description: 'The URL to the DEM tile provider',
                   },
                   attribution: {
                     type: 'string',
                     description:
-                      'Attribution for the raster-dem source (optional)'
+                      'Attribution for the raster-dem source (optional)',
                   },
                   urlParameters: {
                     type: 'object',
                     description:
                       'Additional URL parameters for the raster-dem source',
                     additionalProperties: {
-                      type: 'string'
-                    }
+                      type: 'string',
+                    },
                   },
                   interpolate: {
                     type: 'boolean',
                     description:
                       'Interpolate between grid cells when overzooming',
-                    default: false
-                  }
-                }
+                    default: false,
+                  },
+                },
               },
               shadowColor: {
                 type: 'string',
                 description: 'The color of the shadows',
-                default: '#473B24'
-              }
-            }
-          }
-        }
-      }
+                default: '#473B24',
+              },
+            },
+          },
+        },
+      },
     },
     execute: (async (args: {
       filePath: string;
@@ -657,7 +653,7 @@ export function addLayerCreationCommands(options: {
       const sourceModel: IJGISSource = {
         type: 'RasterDemSource',
         name: `${Name} Source`,
-        parameters: parameters.source
+        parameters: parameters.source,
       };
 
       sharedModel.addSource(sourceId, sourceModel);
@@ -668,12 +664,12 @@ export function addLayerCreationCommands(options: {
         visible: true,
         parameters: {
           shadowColor: parameters.shadowColor ?? '#473B24',
-          source: sourceId
-        }
+          source: sourceId,
+        },
       };
 
       model.addLayer(layerId, layerModel);
-    }) as any
+    }) as any,
   });
 
   commands.addCommand(LayerCreationCommandIDs.newImageWithParams, {
@@ -686,11 +682,11 @@ export function addLayerCreationCommands(options: {
         properties: {
           filePath: {
             type: 'string',
-            description: 'Path to the .jGIS file to modify'
+            description: 'Path to the .jGIS file to modify',
           },
           Name: {
             type: 'string',
-            description: 'The name of the new Image layer'
+            description: 'The name of the new Image layer',
           },
           parameters: {
             type: 'object',
@@ -703,7 +699,7 @@ export function addLayerCreationCommands(options: {
                 properties: {
                   path: {
                     type: 'string',
-                    description: 'Path that points to the image'
+                    description: 'Path that points to the image',
                   },
                   coordinates: {
                     type: 'array',
@@ -715,16 +711,16 @@ export function addLayerCreationCommands(options: {
                       type: 'array',
                       minItems: 2,
                       maxItems: 2,
-                      items: { type: 'number' }
-                    }
+                      items: { type: 'number' },
+                    },
                   },
                   interpolate: {
                     type: 'boolean',
                     description:
                       'Whether to interpolate between grid cells when overzooming',
-                    default: false
-                  }
-                }
+                    default: false,
+                  },
+                },
               },
               opacity: {
                 type: 'number',
@@ -732,12 +728,12 @@ export function addLayerCreationCommands(options: {
                 default: 1,
                 minimum: 0,
                 maximum: 1,
-                multipleOf: 0.1
-              }
-            }
-          }
-        }
-      }
+                multipleOf: 0.1,
+              },
+            },
+          },
+        },
+      },
     },
     execute: (async (args: {
       filePath: string;
@@ -771,8 +767,8 @@ export function addLayerCreationCommands(options: {
         parameters: {
           path: parameters.source.path,
           coordinates: parameters.source.coordinates,
-          interpolate: parameters.source.interpolate ?? false
-        }
+          interpolate: parameters.source.interpolate ?? false,
+        },
       };
 
       sharedModel.addSource(sourceId, sourceModel);
@@ -783,12 +779,12 @@ export function addLayerCreationCommands(options: {
         visible: true,
         parameters: {
           source: sourceId,
-          opacity: parameters.opacity ?? 1
-        }
+          opacity: parameters.opacity ?? 1,
+        },
       };
 
       model.addLayer(layerId, layerModel);
-    }) as any
+    }) as any,
   });
 
   commands.addCommand(LayerCreationCommandIDs.newVideoWithParams, {
@@ -801,11 +797,11 @@ export function addLayerCreationCommands(options: {
         properties: {
           filePath: {
             type: 'string',
-            description: 'Path to the .jGIS file to modify'
+            description: 'Path to the .jGIS file to modify',
           },
           Name: {
             type: 'string',
-            description: 'The name of the new Video layer'
+            description: 'The name of the new Video layer',
           },
           parameters: {
             type: 'object',
@@ -820,7 +816,7 @@ export function addLayerCreationCommands(options: {
                     type: 'array',
                     description: 'List of video URLs in preferred format order',
                     minItems: 1,
-                    items: { type: 'string' }
+                    items: { type: 'string' },
                   },
                   coordinates: {
                     type: 'array',
@@ -832,10 +828,10 @@ export function addLayerCreationCommands(options: {
                       type: 'array',
                       minItems: 2,
                       maxItems: 2,
-                      items: { type: 'number' }
-                    }
-                  }
-                }
+                      items: { type: 'number' },
+                    },
+                  },
+                },
               },
               opacity: {
                 type: 'number',
@@ -843,12 +839,12 @@ export function addLayerCreationCommands(options: {
                 default: 1,
                 minimum: 0,
                 maximum: 1,
-                multipleOf: 0.1
-              }
-            }
-          }
-        }
-      }
+                multipleOf: 0.1,
+              },
+            },
+          },
+        },
+      },
     },
     execute: (async (args: {
       filePath: string;
@@ -880,8 +876,8 @@ export function addLayerCreationCommands(options: {
         name: `${Name} Source`,
         parameters: {
           urls: parameters.source.urls,
-          coordinates: parameters.source.coordinates
-        }
+          coordinates: parameters.source.coordinates,
+        },
       };
 
       sharedModel.addSource(sourceId, sourceModel);
@@ -892,12 +888,12 @@ export function addLayerCreationCommands(options: {
         visible: true,
         parameters: {
           source: sourceId,
-          opacity: parameters.opacity ?? 1
-        }
+          opacity: parameters.opacity ?? 1,
+        },
       };
 
       model.addLayer(layerId, layerModel);
-    }) as any
+    }) as any,
   });
 
   commands.addCommand(LayerCreationCommandIDs.newGeoTiffWithParams, {
@@ -910,11 +906,11 @@ export function addLayerCreationCommands(options: {
         properties: {
           filePath: {
             type: 'string',
-            description: 'Path to the .jGIS file to modify'
+            description: 'Path to the .jGIS file to modify',
           },
           Name: {
             type: 'string',
-            description: 'Name of the new GeoTIFF layer'
+            description: 'Name of the new GeoTIFF layer',
           },
           parameters: {
             type: 'object',
@@ -927,34 +923,45 @@ export function addLayerCreationCommands(options: {
                 properties: {
                   urls: {
                     type: 'array',
-                    description: 'List of GeoTIFF URL objects with optional min/max values',
+                    description:
+                      'List of GeoTIFF URL objects with optional min/max values',
                     minItems: 1,
                     items: {
                       type: 'object',
                       properties: {
-                        url: { type: 'string', description: 'URL to the GeoTIFF file' },
-                        min: { type: 'number', description: 'Minimum value for scaling' },
-                        max: { type: 'number', description: 'Maximum value for scaling' }
-                      }
-                    }
+                        url: {
+                          type: 'string',
+                          description: 'URL to the GeoTIFF file',
+                        },
+                        min: {
+                          type: 'number',
+                          description: 'Minimum value for scaling',
+                        },
+                        max: {
+                          type: 'number',
+                          description: 'Maximum value for scaling',
+                        },
+                      },
+                    },
                   },
                   normalize: {
                     type: 'boolean',
                     description:
                       'Normalize values between 0 and 1 for RGB display; disable to keep raw values',
-                    default: true
+                    default: true,
                   },
                   wrapX: {
                     type: 'boolean',
                     description: 'Wrap map horizontally?',
-                    default: false
+                    default: false,
                   },
                   interpolate: {
                     type: 'boolean',
-                    description: 'Interpolate between grid cells when overzooming?',
-                    default: false
-                  }
-                }
+                    description:
+                      'Interpolate between grid cells when overzooming?',
+                    default: false,
+                  },
+                },
               },
               opacity: {
                 type: 'number',
@@ -962,7 +969,7 @@ export function addLayerCreationCommands(options: {
                 default: 1,
                 minimum: 0,
                 maximum: 1,
-                multipleOf: 0.1
+                multipleOf: 0.1,
               },
               color: {
                 oneOf: [
@@ -977,14 +984,14 @@ export function addLayerCreationCommands(options: {
                         {
                           type: 'array',
                           items: {
-                            anyOf: [{ type: 'number' }, { type: 'string' }]
-                          }
-                        }
-                      ]
-                    }
-                  }
+                            anyOf: [{ type: 'number' }, { type: 'string' }],
+                          },
+                        },
+                      ],
+                    },
+                  },
                 ],
-                description: 'Color of the WebGL layer'
+                description: 'Color of the WebGL layer',
               },
               symbologyState: {
                 type: 'object',
@@ -999,27 +1006,27 @@ export function addLayerCreationCommands(options: {
                   alphaBand: { type: 'number' },
                   interpolation: {
                     type: 'string',
-                    enum: ['discrete', 'linear', 'exact']
+                    enum: ['discrete', 'linear', 'exact'],
                   },
                   colorRamp: {
                     type: 'string',
-                    default: 'viridis'
+                    default: 'viridis',
                   },
                   nClasses: {
                     type: 'string',
-                    default: '9'
+                    default: '9',
                   },
                   mode: {
                     type: 'string',
                     default: 'equal interval',
-                    enum: ['continuous', 'equal interval', 'quantile']
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    enum: ['continuous', 'equal interval', 'quantile'],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     execute: (async (args: {
       filePath: string;
@@ -1060,8 +1067,8 @@ export function addLayerCreationCommands(options: {
           urls: parameters.source.urls,
           normalize: parameters.source.normalize ?? true,
           wrapX: parameters.source.wrapX ?? false,
-          interpolate: parameters.source.interpolate ?? false
-        }
+          interpolate: parameters.source.interpolate ?? false,
+        },
       };
 
       sharedModel.addSource(sourceId, sourceModel);
@@ -1074,12 +1081,14 @@ export function addLayerCreationCommands(options: {
           source: sourceId,
           opacity: parameters.opacity ?? 1,
           color: parameters.color,
-          symbologyState: parameters.symbologyState ?? { renderType: 'continuous' }
-        }
+          symbologyState: parameters.symbologyState ?? {
+            renderType: 'continuous',
+          },
+        },
       };
 
       model.addLayer(layerId, layerModel);
-    }) as any
+    }) as any,
   });
 
   commands.addCommand(LayerCreationCommandIDs.newShapefileWithParams, {
@@ -1092,11 +1101,11 @@ export function addLayerCreationCommands(options: {
         properties: {
           filePath: {
             type: 'string',
-            description: 'Path to the .jGIS file to modify'
+            description: 'Path to the .jGIS file to modify',
           },
           Name: {
             type: 'string',
-            description: 'Name of the new Shapefile layer'
+            description: 'Name of the new Shapefile layer',
           },
           parameters: {
             type: 'object',
@@ -1109,35 +1118,36 @@ export function addLayerCreationCommands(options: {
                 properties: {
                   path: {
                     type: 'string',
-                    description: 'Path to the shapefile (.shp, .zip, or folder URL)'
+                    description:
+                      'Path to the shapefile (.shp, .zip, or folder URL)',
                   },
                   attribution: {
                     type: 'string',
                     description: 'Attribution for the shapefile source',
-                    default: ''
+                    default: '',
                   },
                   projection: {
                     type: 'string',
                     description: 'Projection for the shapefile (optional)',
-                    default: 'WGS84'
+                    default: 'WGS84',
                   },
                   encoding: {
                     type: 'string',
                     description: 'DBF encoding (optional)',
-                    default: 'UTF-8'
+                    default: 'UTF-8',
                   },
                   additionalFiles: {
                     type: 'object',
                     description:
                       'Additional files (.dbf, .prj, .cpg) associated with the shapefile',
                     additionalProperties: { type: 'string' },
-                    default: {}
-                  }
-                }
+                    default: {},
+                  },
+                },
               },
               color: {
                 type: 'object',
-                description: 'Color configuration for the layer'
+                description: 'Color configuration for the layer',
               },
               opacity: {
                 type: 'number',
@@ -1145,7 +1155,7 @@ export function addLayerCreationCommands(options: {
                 default: 1,
                 minimum: 0,
                 maximum: 1,
-                multipleOf: 0.1
+                multipleOf: 0.1,
               },
               symbologyState: {
                 type: 'object',
@@ -1154,20 +1164,20 @@ export function addLayerCreationCommands(options: {
                 properties: {
                   renderType: {
                     type: 'string',
-                    enum: ['Single Symbol', 'Graduated', 'Categorized']
+                    enum: ['Single Symbol', 'Graduated', 'Categorized'],
                   },
                   value: { type: 'string' },
                   method: {
                     type: 'string',
-                    enum: ['color', 'radius']
+                    enum: ['color', 'radius'],
                   },
                   colorRamp: {
                     type: 'string',
-                    default: 'viridis'
+                    default: 'viridis',
                   },
                   nClasses: {
                     type: 'string',
-                    default: '9'
+                    default: '9',
                   },
                   mode: {
                     type: 'string',
@@ -1177,15 +1187,15 @@ export function addLayerCreationCommands(options: {
                       'equal interval',
                       'jenks',
                       'pretty',
-                      'logarithmic'
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                      'logarithmic',
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     execute: (async (args: {
       filePath: string;
@@ -1228,8 +1238,8 @@ export function addLayerCreationCommands(options: {
           attribution: parameters.source.attribution ?? '',
           projection: parameters.source.projection ?? 'WGS84',
           encoding: parameters.source.encoding ?? 'UTF-8',
-          additionalFiles: parameters.source.additionalFiles ?? {}
-        }
+          additionalFiles: parameters.source.additionalFiles ?? {},
+        },
       };
 
       sharedModel.addSource(sourceId, sourceModel);
@@ -1242,12 +1252,13 @@ export function addLayerCreationCommands(options: {
           source: sourceId,
           color: parameters.color ?? {},
           opacity: parameters.opacity ?? 1,
-          symbologyState:
-            parameters.symbologyState ?? { renderType: 'Single Symbol' }
-        }
+          symbologyState: parameters.symbologyState ?? {
+            renderType: 'Single Symbol',
+          },
+        },
       };
 
       model.addLayer(layerId, layerModel);
-    }) as any
+    }) as any,
   });
 }

@@ -8,7 +8,8 @@ export namespace DocumentActionCommandIDs {
   export const undoWithParams = 'jupytergis:undoWithParams';
   export const redoWithParams = 'jupytergis:redoWithParams';
   export const identifyWithParams = 'jupytergis:identifyWithParams';
-  export const temporalControllerWithParams = 'jupytergis:temporalControllerWithParams';
+  export const temporalControllerWithParams =
+    'jupytergis:temporalControllerWithParams';
   export const renameLayerWithParams = 'jupytergis:renameLayerWithParams';
 }
 
@@ -29,10 +30,10 @@ export function addDocumentActionCommands(options: {
         properties: {
           filePath: {
             type: 'string',
-            description: 'The path to the .jGIS file to be modified'
-          }
-        }
-      }
+            description: 'The path to the .jGIS file to be modified',
+          },
+        },
+      },
     },
     execute: (async (args: { filePath: string }) => {
       const { filePath } = args;
@@ -40,7 +41,7 @@ export function addDocumentActionCommands(options: {
       if (current) {
         return current.model.sharedModel.undo();
       }
-    }) as any
+    }) as any,
   });
 
   commands.addCommand(DocumentActionCommandIDs.redoWithParams, {
@@ -53,10 +54,10 @@ export function addDocumentActionCommands(options: {
         properties: {
           filePath: {
             type: 'string',
-            description: 'The path to the .jGIS file to be modified'
-          }
-        }
-      }
+            description: 'The path to the .jGIS file to be modified',
+          },
+        },
+      },
     },
     execute: (async (args: { filePath: string }) => {
       const { filePath } = args;
@@ -64,7 +65,7 @@ export function addDocumentActionCommands(options: {
       if (current) {
         return current.model.sharedModel.redo();
       }
-    }) as any
+    }) as any,
   });
 
   commands.addCommand(DocumentActionCommandIDs.identifyWithParams, {
@@ -78,10 +79,10 @@ export function addDocumentActionCommands(options: {
           filePath: {
             type: 'string',
             description:
-              'The path to the .jGIS file where identify mode will be toggled'
-          }
-        }
-      }
+              'The path to the .jGIS file where identify mode will be toggled',
+          },
+        },
+      },
     },
     execute: (async (args: { filePath: string }) => {
       const { filePath } = args;
@@ -102,7 +103,7 @@ export function addDocumentActionCommands(options: {
         'VectorLayer',
         'ShapefileLayer',
         'WebGlLayer',
-        'VectorTileLayer'
+        'VectorTileLayer',
       ].includes(selectedLayer.type);
 
       if (current.model.currentMode === 'identifying' && !canIdentify) {
@@ -116,8 +117,10 @@ export function addDocumentActionCommands(options: {
       current.model.toggleIdentify();
 
       // Notify change
-      commands.notifyCommandChanged(DocumentActionCommandIDs.identifyWithParams);
-    }) as any
+      commands.notifyCommandChanged(
+        DocumentActionCommandIDs.identifyWithParams,
+      );
+    }) as any,
   });
 
   commands.addCommand(DocumentActionCommandIDs.temporalControllerWithParams, {
@@ -131,10 +134,10 @@ export function addDocumentActionCommands(options: {
           filePath: {
             type: 'string',
             description:
-              'Path to the .jGIS file whose temporal controller should be toggled'
-          }
-        }
-      }
+              'Path to the .jGIS file whose temporal controller should be toggled',
+          },
+        },
+      },
     },
     isToggled: () => {
       const current = tracker.currentWidget;
@@ -169,54 +172,62 @@ export function addDocumentActionCommands(options: {
 
       if (!isSelectionValid && model.isTemporalControllerActive) {
         model.toggleTemporalController();
-        commands.notifyCommandChanged(DocumentActionCommandIDs.temporalControllerWithParams);
+        commands.notifyCommandChanged(
+          DocumentActionCommandIDs.temporalControllerWithParams,
+        );
         return;
       }
 
       model.toggleTemporalController();
-      commands.notifyCommandChanged(DocumentActionCommandIDs.temporalControllerWithParams);
-    }) as any
+      commands.notifyCommandChanged(
+        DocumentActionCommandIDs.temporalControllerWithParams,
+      );
+    }) as any,
   });
 
   commands.addCommand(DocumentActionCommandIDs.renameLayerWithParams, {
-  label: trans.__('Rename layer from file name'),
-  isEnabled: () => true,
-  describedBy: {
-    args: {
-      type: 'object',
-      required: ['filePath', 'layerId', 'newName'],
-      properties: {
-        filePath: {
-          type: 'string',
-          description: 'The path to the .jGIS file to be modified'
+    label: trans.__('Rename layer from file name'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'layerId', 'newName'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'The path to the .jGIS file to be modified',
+          },
+          layerId: {
+            type: 'string',
+            description: 'The ID of the layer to be renamed',
+          },
+          newName: {
+            type: 'string',
+            description: 'The new name for the layer',
+          },
         },
-        layerId: {
-          type: 'string',
-          description: 'The ID of the layer to be renamed'
-        },
-        newName: {
-          type: 'string',
-          description: 'The new name for the layer'
-        }
+      },
+    },
+    execute: (async (args: {
+      filePath: string;
+      layerId: string;
+      newName: string;
+    }) => {
+      const { filePath, layerId, newName } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+
+      if (!current || !current.model.sharedModel.editable) {
+        return;
       }
-    }
-  },
-  execute: (async (args: { filePath: string; layerId: string; newName: string }) => {
-    const { filePath, layerId, newName } = args;
-    const current = tracker.find(w => w.model.filePath === filePath);
 
-    if (!current || !current.model.sharedModel.editable) {
-      return;
-    }
+      const sharedModel = current.model.sharedModel;
+      const layer = sharedModel.layers[layerId];
+      if (!layer) {
+        return;
+      }
 
-    const sharedModel = current.model.sharedModel;
-    const layer = sharedModel.layers[layerId];
-    if (!layer) {
-      return;
-    }
-
-    layer.name = newName;
-    sharedModel.updateLayer(layerId, layer);
-  }) as any
-});
+      layer.name = newName;
+      sharedModel.updateLayer(layerId, layer);
+    }) as any,
+  });
 }
