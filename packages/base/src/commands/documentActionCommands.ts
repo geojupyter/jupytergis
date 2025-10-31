@@ -11,6 +11,7 @@ export namespace DocumentActionCommandIDs {
   export const temporalControllerWithParams =
     'jupytergis:temporalControllerWithParams';
   export const renameLayerWithParams = 'jupytergis:renameLayerWithParams';
+  export const removeLayerWithParams = 'jupytergis:removeLayerWithParams';
 }
 
 export function addDocumentActionCommands(options: {
@@ -228,6 +229,43 @@ export function addDocumentActionCommands(options: {
 
       layer.name = newName;
       sharedModel.updateLayer(layerId, layer);
+    }) as any,
+  });
+
+  commands.addCommand(DocumentActionCommandIDs.removeLayerWithParams, {
+    label: trans.__('Remove layer from file name'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'layerId'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'The path to the .jGIS file to be modified',
+          },
+          layerId: {
+            type: 'string',
+            description: 'The ID of the layer to be removed',
+          },
+        },
+      },
+    },
+    execute: ((args: { filePath: string; layerId: string }) => {
+      const { filePath, layerId } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+
+      if (!current || !current.model.sharedModel.editable) {
+        return;
+      }
+
+      const sharedModel = current.model.sharedModel;
+      const existing = sharedModel.layers[layerId];
+      if (!existing) {
+        return;
+      }
+
+      current.model.removeLayer(layerId);
     }) as any,
   });
 }
