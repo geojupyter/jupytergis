@@ -1,4 +1,5 @@
 import { IJGISLayerGroup } from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { IRenderMime } from '@jupyterlab/rendermime';
 import { CommandRegistry } from '@lumino/commands';
 
@@ -19,6 +20,8 @@ export namespace DocumentActionCommandIDs {
     'jupytergis:moveLayersToGroupWithParams';
   export const moveLayerToNewGroupWithParams =
     'jupytergis:moveLayerToNewGroupWithParams';
+  export const renameSourceWithParams = 'jupytergis:renameSourceWithParams';
+  export const removeSourceWithParams = 'jupytergis:removeSourceWithParams';
 }
 
 export function addDocumentActionCommands(options: {
@@ -429,6 +432,92 @@ export function addDocumentActionCommands(options: {
       };
 
       current.model.addNewLayerGroup(layerMap, newGroup);
+    }) as any,
+  });
+
+  commands.addCommand(DocumentActionCommandIDs.renameSourceWithParams, {
+    label: trans.__('Rename source from file name'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'sourceId', 'newName'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Path to the .jGIS file to be modified',
+          },
+          sourceId: {
+            type: 'string',
+            description: 'The ID of the source to rename',
+          },
+          newName: {
+            type: 'string',
+            description: 'The new name for the source',
+          },
+        },
+      },
+    },
+    execute: (async (args: {
+      filePath: string;
+      sourceId: string;
+      newName: string;
+    }) => {
+      const { filePath, sourceId, newName } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+
+      if (!current || !current.model.sharedModel.editable) {
+        return;
+      }
+
+      const source = current.model.getSource(sourceId);
+      if (!source) {
+        console.warn(`Source with ID ${sourceId} not found`);
+        return;
+      }
+
+      source.name = newName;
+      current.model.sharedModel.updateSource(sourceId, source);
+    }) as any,
+  });
+
+  commands.addCommand(DocumentActionCommandIDs.removeSourceWithParams, {
+    label: trans.__('Remove source from file name'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'sourceId'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Path to the .jGIS file to be modified',
+          },
+          sourceId: {
+            type: 'string',
+            description: 'The ID of the source to remove',
+          },
+        },
+      },
+    },
+    execute: ((args: { filePath: string; sourceId: string }) => {
+      const { filePath, sourceId } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+
+      if (!current || !current.model.sharedModel.editable) {
+        return;
+      }
+
+      const layersUsingSource = current.model.getLayersBySource(sourceId);
+      if (layersUsingSource.length > 0) {
+        showErrorMessage(
+          'Remove source error',
+          'The source is used by a layer.',
+        );
+        return;
+      }
+
+      current.model.sharedModel.removeSource(sourceId);
     }) as any,
   });
 }
