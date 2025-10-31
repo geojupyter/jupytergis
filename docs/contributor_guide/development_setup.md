@@ -30,7 +30,6 @@ It is recommended for setting up the JupyterGIS development environment. If you 
 ```
 
 ```bash
-
 # Create a virtual environment
 
 micromamba create --name jupytergis_dev -c conda-forge pip "nodejs<22" qgis
