@@ -14,6 +14,7 @@ export namespace LayerCreationCommandIDs {
   export const newRasterWithParams = 'jupytergis:newRasterWithParams';
   export const newVectorTileWithParams = 'jupytergis:newVectorTileWithParams';
   export const newGeoParquetWithParams = 'jupytergis:newGeoParquetWithParams';
+  export const newHillshadeWithParams = 'jupytergis:newHillshadeWithParams';
 }
 
 export function addLayerCreationCommands(options: {
@@ -559,6 +560,110 @@ export function addLayerCreationCommands(options: {
           color: parameters.color ?? {},
           opacity: parameters.opacity ?? 1,
           symbologyState: parameters.symbologyState,
+          source: sourceId
+        }
+      };
+
+      model.addLayer(layerId, layerModel);
+    }) as any
+  });
+
+  commands.addCommand(LayerCreationCommandIDs.newHillshadeWithParams, {
+    label: trans.__('New Hillshade Layer From Parameters'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'Name', 'parameters'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Path to the .jGIS file to modify'
+          },
+          Name: {
+            type: 'string',
+            description: 'The name of the new Hillshade layer'
+          },
+          parameters: {
+            type: 'object',
+            required: ['source'],
+            properties: {
+              source: {
+                type: 'object',
+                description: 'RasterDem source configuration',
+                required: ['url'],
+                properties: {
+                  url: {
+                    type: 'string',
+                    description: 'The URL to the DEM tile provider'
+                  },
+                  attribution: {
+                    type: 'string',
+                    description:
+                      'Attribution for the raster-dem source (optional)'
+                  },
+                  urlParameters: {
+                    type: 'object',
+                    description:
+                      'Additional URL parameters for the raster-dem source',
+                    additionalProperties: {
+                      type: 'string'
+                    }
+                  },
+                  interpolate: {
+                    type: 'boolean',
+                    description:
+                      'Interpolate between grid cells when overzooming',
+                    default: false
+                  }
+                }
+              },
+              shadowColor: {
+                type: 'string',
+                description: 'The color of the shadows',
+                default: '#473B24'
+              }
+            }
+          }
+        }
+      }
+    },
+    execute: (async (args: {
+      filePath: string;
+      Name: string;
+      parameters: {
+        source: Record<string, any>;
+        shadowColor?: string;
+      };
+    }) => {
+      const { filePath, Name, parameters } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+
+      if (!current) {
+        console.warn('No JupyterGIS widget found for', filePath);
+        return;
+      }
+
+      const model: IJupyterGISModel = current.model;
+      const sharedModel = model.sharedModel;
+
+      const sourceId = UUID.uuid4();
+      const layerId = UUID.uuid4();
+
+      const sourceModel: IJGISSource = {
+        type: 'RasterDemSource',
+        name: `${Name} Source`,
+        parameters: parameters.source
+      };
+
+      sharedModel.addSource(sourceId, sourceModel);
+
+      const layerModel: IJGISLayer = {
+        type: 'HillshadeLayer',
+        name: Name,
+        visible: true,
+        parameters: {
+          shadowColor: parameters.shadowColor ?? '#473B24',
           source: sourceId
         }
       };
