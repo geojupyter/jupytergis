@@ -17,6 +17,7 @@ export namespace LayerCreationCommandIDs {
   export const newHillshadeWithParams = 'jupytergis:newHillshadeWithParams';
   export const newImageWithParams = 'jupytergis:newImageWithParams';
   export const newVideoWithParams = 'jupytergis:newVideoWithParams';
+  export const newGeoTiffWithParams = 'jupytergis:newGeoTiffWithParams';
 }
 
 export function addLayerCreationCommands(options: {
@@ -891,6 +892,188 @@ export function addLayerCreationCommands(options: {
         parameters: {
           source: sourceId,
           opacity: parameters.opacity ?? 1
+        }
+      };
+
+      model.addLayer(layerId, layerModel);
+    }) as any
+  });
+
+  commands.addCommand(LayerCreationCommandIDs.newGeoTiffWithParams, {
+    label: trans.__('New GeoTIFF Layer From Parameters'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'Name', 'parameters'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Path to the .jGIS file to modify'
+          },
+          Name: {
+            type: 'string',
+            description: 'Name of the new GeoTIFF layer'
+          },
+          parameters: {
+            type: 'object',
+            required: ['source'],
+            properties: {
+              source: {
+                type: 'object',
+                description: 'GeoTIFF source configuration',
+                required: ['urls'],
+                properties: {
+                  urls: {
+                    type: 'array',
+                    description: 'List of GeoTIFF URL objects with optional min/max values',
+                    minItems: 1,
+                    items: {
+                      type: 'object',
+                      properties: {
+                        url: { type: 'string', description: 'URL to the GeoTIFF file' },
+                        min: { type: 'number', description: 'Minimum value for scaling' },
+                        max: { type: 'number', description: 'Maximum value for scaling' }
+                      }
+                    }
+                  },
+                  normalize: {
+                    type: 'boolean',
+                    description:
+                      'Normalize values between 0 and 1 for RGB display; disable to keep raw values',
+                    default: true
+                  },
+                  wrapX: {
+                    type: 'boolean',
+                    description: 'Wrap map horizontally?',
+                    default: false
+                  },
+                  interpolate: {
+                    type: 'boolean',
+                    description: 'Interpolate between grid cells when overzooming?',
+                    default: false
+                  }
+                }
+              },
+              opacity: {
+                type: 'number',
+                description: 'Layer opacity (0–1)',
+                default: 1,
+                minimum: 0,
+                maximum: 1,
+                multipleOf: 0.1
+              },
+              color: {
+                oneOf: [
+                  { type: 'string' },
+                  { type: 'number' },
+                  {
+                    type: 'array',
+                    items: {
+                      anyOf: [
+                        { type: 'string' },
+                        { type: 'number' },
+                        {
+                          type: 'array',
+                          items: {
+                            anyOf: [{ type: 'number' }, { type: 'string' }]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                description: 'Color of the WebGL layer'
+              },
+              symbologyState: {
+                type: 'object',
+                description: 'Symbology configuration for the layer',
+                required: ['renderType'],
+                properties: {
+                  renderType: { type: 'string' },
+                  band: { type: 'number' },
+                  redBand: { type: 'number' },
+                  greenBand: { type: 'number' },
+                  blueBand: { type: 'number' },
+                  alphaBand: { type: 'number' },
+                  interpolation: {
+                    type: 'string',
+                    enum: ['discrete', 'linear', 'exact']
+                  },
+                  colorRamp: {
+                    type: 'string',
+                    default: 'viridis'
+                  },
+                  nClasses: {
+                    type: 'string',
+                    default: '9'
+                  },
+                  mode: {
+                    type: 'string',
+                    default: 'equal interval',
+                    enum: ['continuous', 'equal interval', 'quantile']
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    execute: (async (args: {
+      filePath: string;
+      Name: string;
+      parameters: {
+        source: {
+          urls: { url: string; min?: number; max?: number }[];
+          normalize?: boolean;
+          wrapX?: boolean;
+          interpolate?: boolean;
+        };
+        opacity?: number;
+        color?: any;
+        symbologyState?: Record<string, any>;
+      };
+    }) => {
+      const { filePath, Name, parameters } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+      if (!current) {
+        console.warn('No JupyterGIS widget found for', filePath);
+        return;
+      }
+
+      const model: IJupyterGISModel = current.model;
+      const sharedModel = model.sharedModel;
+      if (!sharedModel.editable) {
+        console.warn('Shared model not editable');
+        return;
+      }
+
+      const sourceId = UUID.uuid4();
+      const layerId = UUID.uuid4();
+
+      const sourceModel: IJGISSource = {
+        type: 'GeoTiffSource',
+        name: `${Name} Source`,
+        parameters: {
+          urls: parameters.source.urls,
+          normalize: parameters.source.normalize ?? true,
+          wrapX: parameters.source.wrapX ?? false,
+          interpolate: parameters.source.interpolate ?? false
+        }
+      };
+
+      sharedModel.addSource(sourceId, sourceModel);
+
+      const layerModel: IJGISLayer = {
+        type: 'WebGlLayer',
+        name: Name,
+        visible: true,
+        parameters: {
+          source: sourceId,
+          opacity: parameters.opacity ?? 1,
+          color: parameters.color,
+          symbologyState: parameters.symbologyState ?? { renderType: 'continuous' }
         }
       };
 
