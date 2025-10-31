@@ -15,6 +15,7 @@ export namespace LayerCreationCommandIDs {
   export const newVectorTileWithParams = 'jupytergis:newVectorTileWithParams';
   export const newGeoParquetWithParams = 'jupytergis:newGeoParquetWithParams';
   export const newHillshadeWithParams = 'jupytergis:newHillshadeWithParams';
+  export const newImageWithParams = 'jupytergis:newImageWithParams';
 }
 
 export function addLayerCreationCommands(options: {
@@ -665,6 +666,121 @@ export function addLayerCreationCommands(options: {
         parameters: {
           shadowColor: parameters.shadowColor ?? '#473B24',
           source: sourceId
+        }
+      };
+
+      model.addLayer(layerId, layerModel);
+    }) as any
+  });
+
+  commands.addCommand(LayerCreationCommandIDs.newImageWithParams, {
+    label: trans.__('New Image Layer From Parameters'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'Name', 'parameters'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Path to the .jGIS file to modify'
+          },
+          Name: {
+            type: 'string',
+            description: 'The name of the new Image layer'
+          },
+          parameters: {
+            type: 'object',
+            required: ['source'],
+            properties: {
+              source: {
+                type: 'object',
+                description: 'Image source configuration',
+                required: ['path', 'coordinates'],
+                properties: {
+                  path: {
+                    type: 'string',
+                    description: 'Path that points to the image'
+                  },
+                  coordinates: {
+                    type: 'array',
+                    description:
+                      'Four corner coordinates in [lon, lat] pairs defining the image bounds',
+                    minItems: 4,
+                    maxItems: 4,
+                    items: {
+                      type: 'array',
+                      minItems: 2,
+                      maxItems: 2,
+                      items: { type: 'number' }
+                    }
+                  },
+                  interpolate: {
+                    type: 'boolean',
+                    description:
+                      'Whether to interpolate between grid cells when overzooming',
+                    default: false
+                  }
+                }
+              },
+              opacity: {
+                type: 'number',
+                description: 'The opacity of the image layer',
+                default: 1,
+                minimum: 0,
+                maximum: 1,
+                multipleOf: 0.1
+              }
+            }
+          }
+        }
+      }
+    },
+    execute: (async (args: {
+      filePath: string;
+      Name: string;
+      parameters: {
+        source: {
+          path: string;
+          coordinates: number[][];
+          interpolate?: boolean;
+        };
+        opacity?: number;
+      };
+    }) => {
+      const { filePath, Name, parameters } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+
+      if (!current) {
+        console.warn('No JupyterGIS widget found for', filePath);
+        return;
+      }
+
+      const model: IJupyterGISModel = current.model;
+      const sharedModel = model.sharedModel;
+
+      const sourceId = UUID.uuid4();
+      const layerId = UUID.uuid4();
+
+      const sourceModel: IJGISSource = {
+        type: 'ImageSource',
+        name: `${Name} Source`,
+        parameters: {
+          path: parameters.source.path,
+          coordinates: parameters.source.coordinates,
+          interpolate: parameters.source.interpolate ?? false
+        }
+      };
+
+      sharedModel.addSource(sourceId, sourceModel);
+
+      const layerModel: IJGISLayer = {
+        type: 'ImageLayer',
+        name: Name,
+        visible: true,
+        parameters: {
+          source: sourceId,
+          opacity: parameters.opacity ?? 1
         }
       };
 
