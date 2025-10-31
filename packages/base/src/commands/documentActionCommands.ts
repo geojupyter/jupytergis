@@ -1,7 +1,9 @@
-import { IJGISLayerGroup } from '@jupytergis/schema';
+import { IJGISLayerGroup, JgisCoordinates } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IRenderMime } from '@jupyterlab/rendermime';
 import { CommandRegistry } from '@lumino/commands';
+import { Coordinate } from 'ol/coordinate';
+import { fromLonLat } from 'ol/proj';
 
 import { getSingleSelectedLayer } from '../processing';
 import { downloadFile, getGeoJSONDataFromLayerSource } from '../tools';
@@ -26,6 +28,7 @@ export namespace DocumentActionCommandIDs {
   export const zoomToLayerWithParams = 'jupytergis:zoomToLayerWithParams';
   export const downloadGeoJSONWithParams =
     'jupytergis:downloadGeoJSONWithParams';
+  export const getGeolocationWithParams = 'jupytergis:getGeolocationWithParams';
 }
 
 export function addDocumentActionCommands(options: {
@@ -620,6 +623,59 @@ export function addDocumentActionCommands(options: {
         `${exportFileName}.geojson`,
         'application/geo+json',
       );
+    }) as any,
+  });
+
+  commands.addCommand(DocumentActionCommandIDs.getGeolocationWithParams, {
+    label: trans.__('Center on Geolocation'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description:
+              'Path to the .jGIS document to center on the user’s geolocation',
+          },
+        },
+      },
+    },
+    execute: (async (args: { filePath: string }) => {
+      const { filePath } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+      if (!current) {
+        console.warn('No document found for provided filePath');
+        return;
+      }
+
+      const viewModel = current.model;
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      };
+
+      const success = (pos: GeolocationPosition) => {
+        const location: Coordinate = fromLonLat([
+          pos.coords.longitude,
+          pos.coords.latitude,
+        ]);
+
+        const jgisLocation: JgisCoordinates = {
+          x: location[0],
+          y: location[1],
+        };
+
+        viewModel.geolocationChanged.emit(jgisLocation);
+      };
+
+      const error = (err: GeolocationPositionError) => {
+        console.warn(`Geolocation error (${err.code}): ${err.message}`);
+      };
+
+      navigator.geolocation.getCurrentPosition(success, error, options);
     }) as any,
   });
 }
