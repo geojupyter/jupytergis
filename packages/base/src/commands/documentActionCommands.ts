@@ -1,11 +1,13 @@
 import { IRenderMime } from '@jupyterlab/rendermime';
 import { CommandRegistry } from '@lumino/commands';
 
+import { getSingleSelectedLayer } from '../processing';
 import { JupyterGISTracker } from '../types';
 
 export namespace DocumentActionCommandIDs {
   export const undoWithParams = 'jupytergis:undoWithParams';
   export const redoWithParams = 'jupytergis:redoWithParams';
+  export const identifyWithParams = 'jupytergis:identifyWithParams';
 }
 
 export function addDocumentActionCommands(options: {
@@ -60,6 +62,59 @@ export function addDocumentActionCommands(options: {
       if (current) {
         return current.model.sharedModel.redo();
       }
+    }) as any
+  });
+
+  commands.addCommand(DocumentActionCommandIDs.identifyWithParams, {
+    label: trans.__('Identify features from file name'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description:
+              'The path to the .jGIS file where identify mode will be toggled'
+          }
+        }
+      }
+    },
+    execute: (async (args: { filePath: string }) => {
+      const { filePath } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+      if (!current) {
+        console.warn('No active JupyterGIS widget found for', filePath);
+        return;
+      }
+
+      // Get currently selected layer
+      const selectedLayer = getSingleSelectedLayer(tracker);
+      if (!selectedLayer) {
+        console.warn('No selected layer found');
+        return;
+      }
+
+      const canIdentify = [
+        'VectorLayer',
+        'ShapefileLayer',
+        'WebGlLayer',
+        'VectorTileLayer'
+      ].includes(selectedLayer.type);
+
+      if (current.model.currentMode === 'identifying' && !canIdentify) {
+        current.model.currentMode = 'panning';
+        current.node.classList.remove('jGIS-identify-tool');
+        return;
+      }
+
+      // Toggle identify tool
+      current.node.classList.toggle('jGIS-identify-tool');
+      current.model.toggleIdentify();
+
+      // Notify change
+      commands.notifyCommandChanged(DocumentActionCommandIDs.identifyWithParams);
     }) as any
   });
 }

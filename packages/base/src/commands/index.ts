@@ -32,6 +32,7 @@ import { addProcessingCommands } from '../processing/processingCommands';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
+import { addDocumentActionCommands } from './documentActionCommands';
 import { addLayerCreationCommands } from './operationCommands';
 
 interface ICreateEntry {
@@ -72,6 +73,7 @@ export function addCommands(
   const { commands } = app;
 
   addLayerCreationCommands({ tracker, commands, trans });
+  addDocumentActionCommands({ tracker, commands, trans });
 
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
