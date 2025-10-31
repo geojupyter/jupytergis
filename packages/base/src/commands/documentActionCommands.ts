@@ -1,3 +1,4 @@
+import { IJGISLayerGroup } from '@jupytergis/schema';
 import { IRenderMime } from '@jupyterlab/rendermime';
 import { CommandRegistry } from '@lumino/commands';
 
@@ -14,7 +15,10 @@ export namespace DocumentActionCommandIDs {
   export const removeLayerWithParams = 'jupytergis:removeLayerWithParams';
   export const renameGroupWithParams = 'jupytergis:renameGroupWithParams';
   export const removeGroupWithParams = 'jupytergis:removeGroupWithParams';
-  export const moveLayersToGroupWithParams = 'jupytergis:moveLayersToGroupWithParams';
+  export const moveLayersToGroupWithParams =
+    'jupytergis:moveLayersToGroupWithParams';
+  export const moveLayerToNewGroupWithParams =
+    'jupytergis:moveLayerToNewGroupWithParams';
 }
 
 export function addDocumentActionCommands(options: {
@@ -273,41 +277,45 @@ export function addDocumentActionCommands(options: {
   });
 
   commands.addCommand(DocumentActionCommandIDs.renameGroupWithParams, {
-  label: trans.__('Rename Group from file name'),
-  isEnabled: () => true,
-  describedBy: {
-    args: {
-      type: 'object',
-      required: ['filePath', 'oldName', 'newName'],
-      properties: {
-        filePath: {
-          type: 'string',
-          description: 'The path to the .jGIS file to be modified'
+    label: trans.__('Rename Group from file name'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'oldName', 'newName'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'The path to the .jGIS file to be modified',
+          },
+          oldName: {
+            type: 'string',
+            description: 'The existing name of the group to rename',
+          },
+          newName: {
+            type: 'string',
+            description: 'The new name for the group',
+          },
         },
-        oldName: {
-          type: 'string',
-          description: 'The existing name of the group to rename'
-        },
-        newName: {
-          type: 'string',
-          description: 'The new name for the group'
-        }
+      },
+    },
+    execute: (async (args: {
+      filePath: string;
+      oldName: string;
+      newName: string;
+    }) => {
+      const { filePath, oldName, newName } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+      if (!current || !current.model.sharedModel.editable) {
+        return;
       }
-    }
-  },
-  execute: (async (args: { filePath: string; oldName: string; newName: string }) => {
-    const { filePath, oldName, newName } = args;
-    const current = tracker.find(w => w.model.filePath === filePath);
-    if (!current || !current.model.sharedModel.editable) {
-      return;
-    }
 
-    const model = current.model;
-    model.renameLayerGroup(oldName, newName);
-  }) as any
-});
+      const model = current.model;
+      model.renameLayerGroup(oldName, newName);
+    }) as any,
+  });
 
-commands.addCommand(DocumentActionCommandIDs.removeGroupWithParams, {
+  commands.addCommand(DocumentActionCommandIDs.removeGroupWithParams, {
     label: trans.__('Remove group from file name'),
     isEnabled: () => true,
     describedBy: {
@@ -317,14 +325,14 @@ commands.addCommand(DocumentActionCommandIDs.removeGroupWithParams, {
         properties: {
           filePath: {
             type: 'string',
-            description: 'The path to the .jGIS file to be modified'
+            description: 'The path to the .jGIS file to be modified',
           },
           groupName: {
             type: 'string',
-            description: 'The name of the group to remove'
-          }
-        }
-      }
+            description: 'The name of the group to remove',
+          },
+        },
+      },
     },
     execute: ((args: { filePath: string; groupName: string }) => {
       const { filePath, groupName } = args;
@@ -333,7 +341,7 @@ commands.addCommand(DocumentActionCommandIDs.removeGroupWithParams, {
         return;
       }
       current.model.removeLayerGroup(groupName);
-    }) as any
+    }) as any,
   });
 
   commands.addCommand(DocumentActionCommandIDs.moveLayersToGroupWithParams, {
@@ -346,20 +354,20 @@ commands.addCommand(DocumentActionCommandIDs.removeGroupWithParams, {
         properties: {
           filePath: {
             type: 'string',
-            description: 'The path to the .jGIS file to be modified'
+            description: 'The path to the .jGIS file to be modified',
           },
           layerIds: {
             type: 'array',
             description: 'Array of layer IDs to move',
-            items: { type: 'string' }
+            items: { type: 'string' },
           },
           groupName: {
             type: 'string',
             description:
-              'The name of the target group. Use empty string for root.'
-          }
-        }
-      }
+              'The name of the target group. Use empty string for root.',
+          },
+        },
+      },
     },
     execute: ((args: {
       filePath: string;
@@ -372,6 +380,55 @@ commands.addCommand(DocumentActionCommandIDs.removeGroupWithParams, {
         return;
       }
       current.model.moveItemsToGroup(layerIds, groupName);
-    }) as any
+    }) as any,
+  });
+
+  commands.addCommand(DocumentActionCommandIDs.moveLayerToNewGroupWithParams, {
+    label: trans.__('Move selected layers to new group from file name'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'groupName', 'layerIds'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'The path to the .jGIS file to be modified',
+          },
+          groupName: {
+            type: 'string',
+            description: 'The name of the new layer group to create',
+          },
+          layerIds: {
+            type: 'array',
+            description: 'Array of layer IDs to move to the new group',
+            items: { type: 'string' },
+          },
+        },
+      },
+    },
+    execute: ((args: {
+      filePath: string;
+      groupName: string;
+      layerIds: string[];
+    }) => {
+      const { filePath, groupName, layerIds } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+      if (!current || !current.model.sharedModel.editable) {
+        return;
+      }
+
+      const layerMap: { [key: string]: any } = {};
+      layerIds.forEach(id => {
+        layerMap[id] = { type: 'layer', selectedNodeId: id };
+      });
+
+      const newGroup: IJGISLayerGroup = {
+        name: groupName,
+        layers: layerIds,
+      };
+
+      current.model.addNewLayerGroup(layerMap, newGroup);
+    }) as any,
   });
 }
