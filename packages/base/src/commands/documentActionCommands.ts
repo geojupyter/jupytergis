@@ -12,6 +12,7 @@ export namespace DocumentActionCommandIDs {
     'jupytergis:temporalControllerWithParams';
   export const renameLayerWithParams = 'jupytergis:renameLayerWithParams';
   export const removeLayerWithParams = 'jupytergis:removeLayerWithParams';
+  export const renameGroupWithParams = 'jupytergis:renameGroupWithParams';
 }
 
 export function addDocumentActionCommands(options: {
@@ -268,4 +269,39 @@ export function addDocumentActionCommands(options: {
       current.model.removeLayer(layerId);
     }) as any,
   });
+
+  commands.addCommand(DocumentActionCommandIDs.renameGroupWithParams, {
+  label: trans.__('Rename Group from file name'),
+  isEnabled: () => true,
+  describedBy: {
+    args: {
+      type: 'object',
+      required: ['filePath', 'oldName', 'newName'],
+      properties: {
+        filePath: {
+          type: 'string',
+          description: 'The path to the .jGIS file to be modified'
+        },
+        oldName: {
+          type: 'string',
+          description: 'The existing name of the group to rename'
+        },
+        newName: {
+          type: 'string',
+          description: 'The new name for the group'
+        }
+      }
+    }
+  },
+  execute: (async (args: { filePath: string; oldName: string; newName: string }) => {
+    const { filePath, oldName, newName } = args;
+    const current = tracker.find(w => w.model.filePath === filePath);
+    if (!current || !current.model.sharedModel.editable) {
+      return;
+    }
+
+    const model = current.model;
+    model.renameLayerGroup(oldName, newName);
+  }) as any
+});
 }
