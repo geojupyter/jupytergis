@@ -22,6 +22,7 @@ export namespace DocumentActionCommandIDs {
     'jupytergis:moveLayerToNewGroupWithParams';
   export const renameSourceWithParams = 'jupytergis:renameSourceWithParams';
   export const removeSourceWithParams = 'jupytergis:removeSourceWithParams';
+  export const zoomToLayerWithParams = 'jupytergis:zoomToLayerWithParams';
 }
 
 export function addDocumentActionCommands(options: {
@@ -518,6 +519,38 @@ export function addDocumentActionCommands(options: {
       }
 
       current.model.sharedModel.removeSource(sourceId);
+    }) as any,
+  });
+
+  commands.addCommand(DocumentActionCommandIDs.zoomToLayerWithParams, {
+    label: trans.__('Zoom to layer from file name'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'layerId'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Path to the .jGIS file containing the layer',
+          },
+          layerId: {
+            type: 'string',
+            description: 'The ID of the layer to zoom to',
+          },
+        },
+      },
+    },
+    execute: ((args: { filePath: string; layerId: string }) => {
+      const { filePath, layerId } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+
+      if (!current || !current.model.sharedModel.editable) {
+        return;
+      }
+
+      console.log(`Zooming to layer: ${layerId}`);
+      current.model.centerOnPosition(layerId);
     }) as any,
   });
 }
