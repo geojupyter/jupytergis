@@ -49,7 +49,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   const [componentToRender, setComponentToRender] =
     useState<JSX.Element | null>(null);
 
-  let LayerSymbology: React.JSX.Element | null = null;
+  let LayerSymbology: React.JSX.Element;
 
   useEffect(() => {
     const handleClientStateChanged = () => {

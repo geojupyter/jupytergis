@@ -16,7 +16,6 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
   sourceData: IDict;
   title: string;
   syncData: (props: IDict) => void;
-  cancel?: () => void;
   syncSelectedPropField?: (
     id: string | null,
     value: any,
@@ -38,18 +37,12 @@ export interface IProcessingFormWrapperProps
 const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = props => {
   const [ready, setReady] = React.useState<boolean>(false);
 
-  const okSignal = React.useRef<Signal<Dialog<any>, number> | undefined>(
-    undefined,
-  );
-  const formErrorSignal = React.useRef<
-    Signal<Dialog<any>, boolean> | undefined
-  >(undefined);
+  const okSignal = React.useRef<Signal<Dialog<any>, number>>();
+  const formErrorSignal = React.useRef<Signal<Dialog<any>, boolean>>();
 
   Promise.all([
     props.okSignalPromise.promise,
-    props.formErrorSignalPromise
-      ? props.formErrorSignalPromise.promise
-      : Promise.resolve(undefined),
+    props.formErrorSignalPromise?.promise,
   ]).then(([ok, formChanged]) => {
     okSignal.current = ok;
     formErrorSignal.current = formChanged || undefined;
@@ -72,7 +65,6 @@ const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = props => {
         filePath={props.model.filePath}
         model={props.model}
         ok={okSignal.current}
-        cancel={props.cancel}
         sourceData={props.sourceData}
         schema={props.schema}
         syncData={props.syncData}
@@ -145,12 +137,6 @@ export class ProcessingFormDialog extends Dialog<IDict> {
           okSignalPromise={okSignalPromise}
           formErrorSignalPromise={formErrorSignalPromise}
           syncData={syncData} // Use the modified sync function
-          cancel={
-            options.cancel ??
-            (() => {
-              /* no action needed on cancel */
-            })
-          }
         />
       </div>
     );
@@ -170,14 +156,9 @@ export class ProcessingFormDialog extends Dialog<IDict> {
     formErrorSignal.connect((_, extraErrors) => {
       const invalid = extraErrors || !!this.node.querySelector(':invalid');
       if (invalid) {
-        const okBtn = this.node.getElementsByClassName(
-          'jp-mod-accept',
-        )[0] as HTMLButtonElement;
-        if (invalid) {
-          okBtn.setAttribute('disabled', '');
-        } else {
-          okBtn.removeAttribute('disabled');
-        }
+        this.node
+          .getElementsByClassName('jp-mod-accept')[0]
+          .setAttribute('disabled', '');
       } else {
         this.node
           .getElementsByClassName('jp-mod-accept')[0]
