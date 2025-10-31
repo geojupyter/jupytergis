@@ -18,6 +18,7 @@ export namespace LayerCreationCommandIDs {
   export const newImageWithParams = 'jupytergis:newImageWithParams';
   export const newVideoWithParams = 'jupytergis:newVideoWithParams';
   export const newGeoTiffWithParams = 'jupytergis:newGeoTiffWithParams';
+  export const newShapefileWithParams = 'jupytergis:newShapefileWithParams';
 }
 
 export function addLayerCreationCommands(options: {
@@ -1074,6 +1075,175 @@ export function addLayerCreationCommands(options: {
           opacity: parameters.opacity ?? 1,
           color: parameters.color,
           symbologyState: parameters.symbologyState ?? { renderType: 'continuous' }
+        }
+      };
+
+      model.addLayer(layerId, layerModel);
+    }) as any
+  });
+
+  commands.addCommand(LayerCreationCommandIDs.newShapefileWithParams, {
+    label: trans.__('New Shapefile Layer From Parameters'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'Name', 'parameters'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Path to the .jGIS file to modify'
+          },
+          Name: {
+            type: 'string',
+            description: 'Name of the new Shapefile layer'
+          },
+          parameters: {
+            type: 'object',
+            required: ['source'],
+            properties: {
+              source: {
+                type: 'object',
+                description: 'Shapefile source configuration',
+                required: ['path'],
+                properties: {
+                  path: {
+                    type: 'string',
+                    description: 'Path to the shapefile (.shp, .zip, or folder URL)'
+                  },
+                  attribution: {
+                    type: 'string',
+                    description: 'Attribution for the shapefile source',
+                    default: ''
+                  },
+                  projection: {
+                    type: 'string',
+                    description: 'Projection for the shapefile (optional)',
+                    default: 'WGS84'
+                  },
+                  encoding: {
+                    type: 'string',
+                    description: 'DBF encoding (optional)',
+                    default: 'UTF-8'
+                  },
+                  additionalFiles: {
+                    type: 'object',
+                    description:
+                      'Additional files (.dbf, .prj, .cpg) associated with the shapefile',
+                    additionalProperties: { type: 'string' },
+                    default: {}
+                  }
+                }
+              },
+              color: {
+                type: 'object',
+                description: 'Color configuration for the layer'
+              },
+              opacity: {
+                type: 'number',
+                description: 'Layer opacity (0–1)',
+                default: 1,
+                minimum: 0,
+                maximum: 1,
+                multipleOf: 0.1
+              },
+              symbologyState: {
+                type: 'object',
+                description: 'Symbology configuration for the layer',
+                required: ['renderType'],
+                properties: {
+                  renderType: {
+                    type: 'string',
+                    enum: ['Single Symbol', 'Graduated', 'Categorized']
+                  },
+                  value: { type: 'string' },
+                  method: {
+                    type: 'string',
+                    enum: ['color', 'radius']
+                  },
+                  colorRamp: {
+                    type: 'string',
+                    default: 'viridis'
+                  },
+                  nClasses: {
+                    type: 'string',
+                    default: '9'
+                  },
+                  mode: {
+                    type: 'string',
+                    default: 'equal interval',
+                    enum: [
+                      'quantile',
+                      'equal interval',
+                      'jenks',
+                      'pretty',
+                      'logarithmic'
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    execute: (async (args: {
+      filePath: string;
+      Name: string;
+      parameters: {
+        source: {
+          path: string;
+          attribution?: string;
+          projection?: string;
+          encoding?: string;
+          additionalFiles?: Record<string, string>;
+        };
+        color?: Record<string, any>;
+        opacity?: number;
+        symbologyState?: Record<string, any>;
+      };
+    }) => {
+      const { filePath, Name, parameters } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+      if (!current) {
+        console.warn('No JupyterGIS widget found for', filePath);
+        return;
+      }
+
+      const model: IJupyterGISModel = current.model;
+      const sharedModel = model.sharedModel;
+      if (!sharedModel.editable) {
+        console.warn('Shared model not editable');
+        return;
+      }
+
+      const sourceId = UUID.uuid4();
+      const layerId = UUID.uuid4();
+
+      const sourceModel: IJGISSource = {
+        type: 'ShapefileSource',
+        name: `${Name} Source`,
+        parameters: {
+          path: parameters.source.path,
+          attribution: parameters.source.attribution ?? '',
+          projection: parameters.source.projection ?? 'WGS84',
+          encoding: parameters.source.encoding ?? 'UTF-8',
+          additionalFiles: parameters.source.additionalFiles ?? {}
+        }
+      };
+
+      sharedModel.addSource(sourceId, sourceModel);
+
+      const layerModel: IJGISLayer = {
+        type: 'VectorLayer',
+        name: Name,
+        visible: true,
+        parameters: {
+          source: sourceId,
+          color: parameters.color ?? {},
+          opacity: parameters.opacity ?? 1,
+          symbologyState:
+            parameters.symbologyState ?? { renderType: 'Single Symbol' }
         }
       };
 
