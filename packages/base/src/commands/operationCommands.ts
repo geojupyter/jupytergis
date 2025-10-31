@@ -16,6 +16,7 @@ export namespace LayerCreationCommandIDs {
   export const newGeoParquetWithParams = 'jupytergis:newGeoParquetWithParams';
   export const newHillshadeWithParams = 'jupytergis:newHillshadeWithParams';
   export const newImageWithParams = 'jupytergis:newImageWithParams';
+  export const newVideoWithParams = 'jupytergis:newVideoWithParams';
 }
 
 export function addLayerCreationCommands(options: {
@@ -776,6 +777,115 @@ export function addLayerCreationCommands(options: {
 
       const layerModel: IJGISLayer = {
         type: 'ImageLayer',
+        name: Name,
+        visible: true,
+        parameters: {
+          source: sourceId,
+          opacity: parameters.opacity ?? 1
+        }
+      };
+
+      model.addLayer(layerId, layerModel);
+    }) as any
+  });
+
+  commands.addCommand(LayerCreationCommandIDs.newVideoWithParams, {
+    label: trans.__('New Video Layer From Parameters'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'Name', 'parameters'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Path to the .jGIS file to modify'
+          },
+          Name: {
+            type: 'string',
+            description: 'The name of the new Video layer'
+          },
+          parameters: {
+            type: 'object',
+            required: ['source'],
+            properties: {
+              source: {
+                type: 'object',
+                description: 'Video source configuration',
+                required: ['urls', 'coordinates'],
+                properties: {
+                  urls: {
+                    type: 'array',
+                    description: 'List of video URLs in preferred format order',
+                    minItems: 1,
+                    items: { type: 'string' }
+                  },
+                  coordinates: {
+                    type: 'array',
+                    description:
+                      'Four corner coordinates in [lon, lat] pairs defining the video projection area',
+                    minItems: 4,
+                    maxItems: 4,
+                    items: {
+                      type: 'array',
+                      minItems: 2,
+                      maxItems: 2,
+                      items: { type: 'number' }
+                    }
+                  }
+                }
+              },
+              opacity: {
+                type: 'number',
+                description: 'The opacity of the video layer',
+                default: 1,
+                minimum: 0,
+                maximum: 1,
+                multipleOf: 0.1
+              }
+            }
+          }
+        }
+      }
+    },
+    execute: (async (args: {
+      filePath: string;
+      Name: string;
+      parameters: {
+        source: {
+          urls: string[];
+          coordinates: number[][];
+        };
+        opacity?: number;
+      };
+    }) => {
+      const { filePath, Name, parameters } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+
+      if (!current) {
+        console.warn('No JupyterGIS widget found for', filePath);
+        return;
+      }
+
+      const model: IJupyterGISModel = current.model;
+      const sharedModel = model.sharedModel;
+
+      const sourceId = UUID.uuid4();
+      const layerId = UUID.uuid4();
+
+      const sourceModel: IJGISSource = {
+        type: 'VideoSource',
+        name: `${Name} Source`,
+        parameters: {
+          urls: parameters.source.urls,
+          coordinates: parameters.source.coordinates
+        }
+      };
+
+      sharedModel.addSource(sourceId, sourceModel);
+
+      const layerModel: IJGISLayer = {
+        type: 'RasterLayer',
         name: Name,
         visible: true,
         parameters: {
