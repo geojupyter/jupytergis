@@ -13,6 +13,8 @@ export namespace DocumentActionCommandIDs {
   export const renameLayerWithParams = 'jupytergis:renameLayerWithParams';
   export const removeLayerWithParams = 'jupytergis:removeLayerWithParams';
   export const renameGroupWithParams = 'jupytergis:renameGroupWithParams';
+  export const removeGroupWithParams = 'jupytergis:removeGroupWithParams';
+  export const moveLayersToGroupWithParams = 'jupytergis:moveLayersToGroupWithParams';
 }
 
 export function addDocumentActionCommands(options: {
@@ -304,4 +306,72 @@ export function addDocumentActionCommands(options: {
     model.renameLayerGroup(oldName, newName);
   }) as any
 });
+
+commands.addCommand(DocumentActionCommandIDs.removeGroupWithParams, {
+    label: trans.__('Remove group from file name'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'groupName'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'The path to the .jGIS file to be modified'
+          },
+          groupName: {
+            type: 'string',
+            description: 'The name of the group to remove'
+          }
+        }
+      }
+    },
+    execute: ((args: { filePath: string; groupName: string }) => {
+      const { filePath, groupName } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+      if (!current || !current.model.sharedModel.editable) {
+        return;
+      }
+      current.model.removeLayerGroup(groupName);
+    }) as any
+  });
+
+  commands.addCommand(DocumentActionCommandIDs.moveLayersToGroupWithParams, {
+    label: trans.__('Move layers to group from file name'),
+    isEnabled: () => true,
+    describedBy: {
+      args: {
+        type: 'object',
+        required: ['filePath', 'layerIds', 'groupName'],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'The path to the .jGIS file to be modified'
+          },
+          layerIds: {
+            type: 'array',
+            description: 'Array of layer IDs to move',
+            items: { type: 'string' }
+          },
+          groupName: {
+            type: 'string',
+            description:
+              'The name of the target group. Use empty string for root.'
+          }
+        }
+      }
+    },
+    execute: ((args: {
+      filePath: string;
+      layerIds: string[];
+      groupName: string;
+    }) => {
+      const { filePath, layerIds, groupName } = args;
+      const current = tracker.find(w => w.model.filePath === filePath);
+      if (!current || !current.model.sharedModel.editable) {
+        return;
+      }
+      current.model.moveItemsToGroup(layerIds, groupName);
+    }) as any
+  });
 }
