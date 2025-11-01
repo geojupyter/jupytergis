@@ -540,6 +540,16 @@ export class MainView extends React.Component<IProps, IStates> {
 
   addContextMenu = (): void => {
     this._commands.addCommand(CommandIDs.addAnnotation, {
+      label: 'Add annotation',
+      describedBy: {
+        args: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      isEnabled: () => {
+        return !!this._Map;
+      },
       execute: () => {
         if (!this._Map) {
           return;
@@ -556,10 +566,6 @@ export class MainView extends React.Component<IProps, IStates> {
           parent: this._Map.getViewport().id,
           open: true,
         });
-      },
-      label: 'Add annotation',
-      isEnabled: () => {
-        return !!this._Map;
       },
     });
 
