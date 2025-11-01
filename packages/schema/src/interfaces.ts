@@ -29,6 +29,7 @@ import {
   SourceType,
 } from './_interface/project/jgis';
 import { IRasterSource } from './_interface/project/sources/rasterSource';
+import { Modes } from './types';
 export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 
 export type JgisCoordinates = { x: number; y: number };
@@ -161,10 +162,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   geolocation: JgisCoordinates;
   localState: IJupyterGISClientState | null;
   annotationModel?: IAnnotationModel;
-
-  // TODO Add more modes: "annotating"
-  currentMode: 'panning' | 'identifying';
-
+  currentMode: Modes;
   themeChanged: Signal<
     IJupyterGISModel,
     IChangedArgs<string, string | null, string>
@@ -246,7 +244,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   removeMetadata(key: string): void;
   centerOnPosition(id: string): void;
 
-  toggleIdentify(): void;
+  toggleMode(mode: Modes): void;
 
   isTemporalControllerActive: boolean;
   toggleTemporalController(): void;
