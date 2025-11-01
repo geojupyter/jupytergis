@@ -1,7 +1,10 @@
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useColorMapList } from '@/src/dialogs/symbology/colorRampUtils';
+import {
+  ColorRampName,
+  useColorMapList,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import ColorRampEntry from './ColorRampEntry';
 
 export interface IColorMap {
@@ -10,7 +13,7 @@ export interface IColorMap {
 }
 
 interface ICanvasSelectComponentProps {
-  selectedRamp: string;
+  selectedRamp: ColorRampName;
   setSelected: (item: any) => void;
 }
 
