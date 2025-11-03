@@ -34,6 +34,7 @@ import { JupyterGISTracker } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
 import { addDocumentActionCommands } from './documentActionCommands';
 import { addLayerCreationCommands } from './operationCommands';
+import { addProcessingCommandsFromParams } from './processingCommandsFromParams';
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -440,6 +441,14 @@ export function addCommands(
 
   //Add processing commands
   addProcessingCommands(app, commands, tracker, trans, formSchemaRegistry);
+  addProcessingCommandsFromParams({
+    app,
+    commands,
+    tracker,
+    trans,
+    formSchemaRegistry,
+    processingSchemas: Object.fromEntries(formSchemaRegistry.getSchemas()),
+  });
 
   commands.addCommand(CommandIDs.newHillshadeEntry, {
     label: trans.__('New Hillshade layer'),
