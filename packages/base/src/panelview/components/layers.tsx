@@ -216,10 +216,6 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     }
   }, [props.layerTree]);
 
-  const createStory = () => {
-    props.model.createStory(props.layerTree as string[]);
-  };
-
   return (
     <div id="jp-gis-layer-tree" onDrop={_onDrop} onDragOver={_onDragOver}>
       {layerTree
@@ -243,8 +239,6 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
             />
           ),
         )}
-      {/* use layertree based isLandmarks or something to control rendering this  */}
-      <Button onClick={createStory}>Create Story</Button>
     </div>
   );
 };
