@@ -505,8 +505,28 @@ export class JupyterGISModel implements IJupyterGISModel {
     const source_id = layer?.parameters?.source;
 
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
-    this.sharedModel.removeLayer(layer_id);
-    this.sharedModel.removeSource(source_id);
+
+    if (layer?.type === 'LandmarkLayer') {
+      this.sharedModel.removeLayer(layer_id);
+
+      // remove this layer id from story maps
+      Object.entries(this.sharedModel.storiesMap).forEach(
+        ([storyMapId, storyMap]) => {
+          if (storyMap.landmarks?.includes(layer_id)) {
+            const updatedLandmarks = storyMap.landmarks.filter(
+              id => id !== layer_id,
+            );
+            this.sharedModel.updateStoryMap(storyMapId, {
+              ...storyMap,
+              landmarks: updatedLandmarks,
+            });
+          }
+        },
+      );
+    } else {
+      this.sharedModel.removeLayer(layer_id);
+      this.sharedModel.removeSource(source_id);
+    }
   }
 
   setOptions(value: IJGISOptions) {
