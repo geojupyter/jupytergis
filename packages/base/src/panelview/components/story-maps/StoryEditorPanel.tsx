@@ -11,10 +11,27 @@ interface IStoryPanelProps {
 
 export function StoryEditorPanel({ model }: IStoryPanelProps) {
   const [schema, setSchema] = useState<IDict | undefined>(undefined);
-  const [storyData, setStoryData] = useState<IDict>({});
-  const [firstStoryKey, setFirstStoryKey] = useState<string | undefined>(
-    undefined,
-  );
+  const [storyData, setStoryData] = useState<IJGISStoryMap>({});
+  const [firstStoryKey, setFirstStoryKey] = useState('');
+
+  useEffect(() => {
+    if (!firstStoryKey) {
+      return;
+    }
+
+    const updateLandmarks = () => {
+      const story = model.sharedModel.getStoryMap(firstStoryKey);
+      if (story) {
+        setStoryData({ ...story });
+      }
+    };
+
+    model.sharedModel.storyMapsChanged.connect(updateLandmarks);
+
+    return () => {
+      model.sharedModel.storyMapsChanged.disconnect(updateLandmarks);
+    };
+  }, [firstStoryKey]);
 
   useEffect(() => {
     // Get the story map schema from the definitions
@@ -64,7 +81,6 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
         syncData={syncStoryData}
         filePath={model.filePath}
       />
-      {/* <Button onClick={syncStoryData}>Submit</Button> */}
     </div>
   );
 }
