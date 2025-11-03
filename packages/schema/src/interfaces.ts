@@ -29,13 +29,13 @@ import {
   IJGISStoryMap,
   SourceType,
 } from './_interface/project/jgis';
+import { IRasterSource } from './_interface/project/sources/rasterSource';
+import { Modes } from './types';
+export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 
 export interface IJGISStoryMaps {
   [k: string]: IJGISStoryMap;
 }
-import { IRasterSource } from './_interface/project/sources/rasterSource';
-import { Modes } from './types';
-export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 
 export type JgisCoordinates = { x: number; y: number };
 
@@ -279,8 +279,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   toggleTemporalController(): void;
   addFeatureAsMs(id: string, selectedFeature: string): void;
   triggerLayerUpdate(layerId: string, layer: IJGISLayer): void;
-
-  createStory(layerIds: string[]): void;
 
   disposed: ISignal<any, void>;
 }
