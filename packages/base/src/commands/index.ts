@@ -5,6 +5,7 @@ import {
   IJGISLayerBrowserRegistry,
   IJGISLayerGroup,
   IJGISLayerItem,
+  IJGISStoryMap,
   IJupyterGISModel,
   ILandmarkLayer,
   JgisCoordinates,
@@ -1065,6 +1066,10 @@ export function addCommands(
     },
     execute: args => {
       console.log('addLandmark command executing');
+      // only want to use one story for now so hardcoding the id for now
+
+      const storyMapId = 'b48c2622-1188-4734-9450-68e3b7623354';
+      const newLandmarkId = UUID.uuid4();
       const current = tracker.currentWidget;
       if (!current) {
         return;
@@ -1083,17 +1088,37 @@ export function addCommands(
         parameters: layerParams,
       };
 
-      current.model.addLayer(UUID.uuid4(), layerModel);
-      // return Private.createEntry({
-      //   tracker,
-      //   formSchemaRegistry,
-      //   title: 'Create Landmark Layer',
-      //   createLayer: true,
-      //   createSource: true,
-      //   layerData: { name: 'Custom Landmark Layer' },
-      //   sourceType: 'MarkerSource',
-      //   layerType: 'LandmarkLayer',
-      // })();
+      current.model.addLayer(newLandmarkId, layerModel);
+
+      // TODO Add to story when making landmark
+      // check for stories
+      const isStoriesExist =
+        Object.keys(current.model.sharedModel.storiesMap).length !== 0;
+
+      // if not stories, then just add simple
+      if (!isStoriesExist) {
+        const title = 'New Story';
+        const storyType = 'guided';
+        const landmarks = [newLandmarkId];
+
+        const storyMap: IJGISStoryMap = { title, storyType, landmarks };
+
+        current.model.sharedModel.addStoryMap(storyMapId, storyMap);
+      } else {
+        // else need to update tories
+        // get first story
+        const story = current.model.sharedModel.getStoryMap(storyMapId);
+        if (!story) {
+          console.log('brok');
+          return;
+        }
+        const newStory: IJGISStoryMap = {
+          ...story,
+          landmarks: [...(story.landmarks ?? []), newLandmarkId],
+        };
+
+        current.model.sharedModel.updateStoryMap(storyMapId, newStory);
+      }
     },
     ...icons.get(CommandIDs.addMarker),
   });

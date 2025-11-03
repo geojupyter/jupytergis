@@ -3,7 +3,7 @@ import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { PartialJSONObject, UUID } from '@lumino/coreutils';
+import { PartialJSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 import { FeatureLike } from 'ol/Feature';
@@ -872,19 +872,6 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   get geolocationChanged() {
     return this._geolocationChanged;
-  }
-
-  createStory(layerIds: string[]) {
-    // Create story map
-    //TODO sync with file stuff
-    console.log('create story');
-
-    const title = '';
-    const storyType = 'guided';
-    const landmarks = layerIds;
-
-    const storyMap: IJGISStoryMap = { title, storyType, landmarks };
-    this.sharedModel.addStoryMap(UUID.uuid4(), storyMap);
   }
 
   readonly defaultKernelName: string = '';

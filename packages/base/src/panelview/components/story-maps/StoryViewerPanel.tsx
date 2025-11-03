@@ -16,6 +16,7 @@ interface IStoryViewerPanelProps {
 function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   const [storyData, setStoryData] = useState<IJGISStoryMap>({});
   const [currentRankDisplayed, setCurrentRankDisplayed] = useState(0);
+  const [layerName, setLayerName] = useState('');
   const [activeSlide, setActiveSlide] = useState<ILandmarkLayer | undefined>(
     undefined,
   );
@@ -55,11 +56,11 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     console.log('sorted layers', layers);
     if (layers?.[0]) {
       setActiveSlide(layers[0].parameters as ILandmarkLayer);
+      setLayerName(layers[0].name);
     }
 
     setLandmarks(layers);
     setCurrentRankDisplayed(0);
-
     setStoryData(firstStory);
   }, []);
 
@@ -73,10 +74,10 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   return (
     <div>
       {/* title */}
-      <span>{storyData.title}</span>
+      <h1>{storyData.title}</h1>
       {/* content */}
       <div>{activeSlide?.content?.imgSrc}</div>
-      <div>{activeSlide?.content?.title}</div>
+      <h2>{`${layerName} - ${activeSlide?.content?.title}`}</h2>
       {/* <div>{activeSlide?.content?.markdown}</div>
        */}
       <div>
