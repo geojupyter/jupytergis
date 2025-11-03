@@ -74,6 +74,14 @@
           "type": "boolean",
           "default": true
         },
+        "opacity": {
+          "type": "number",
+          "description": "The opacity of the source",
+          "default": 1,
+          "multipleOf": 0.1,
+          "minimum": 0,
+          "maximum": 1
+        },
         "parameters": {
           "type": "object"
         },
