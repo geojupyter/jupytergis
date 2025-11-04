@@ -4,7 +4,7 @@ import {
   IJupyterGISModel,
   ILandmarkLayer,
 } from '@jupytergis/schema';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Markdown from 'react-markdown';
 
 import StoryNavBar from './StoryNavBar';
@@ -14,37 +14,44 @@ interface IStoryViewerPanelProps {
 }
 
 function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
-  const [storyData, setStoryData] = useState<IJGISStoryMap>({});
   const [currentRankDisplayed, setCurrentRankDisplayed] = useState(0);
-  const [layerName, setLayerName] = useState('');
-  const [activeSlide, setActiveSlide] = useState<ILandmarkLayer | undefined>(
-    undefined,
-  );
-  const [landmarks, setLandmarks] = useState<
-    (IJGISLayer | undefined)[] | undefined
-  >();
+  const [storyData, setStoryData] = useState<IJGISStoryMap | null>(null);
+
+  // Derive landmarks from story data
+  const landmarks = useMemo(() => {
+    if (!storyData?.landmarks) {
+      return [];
+    }
+    return storyData.landmarks
+      .map(landmarkId => model.getLayer(landmarkId))
+      .filter((layer): layer is IJGISLayer => layer !== undefined);
+  }, [storyData, model]);
+
+  // Derive current landmark from landmarks and currentRankDisplayed
+  const currentLandmark = useMemo(() => {
+    return landmarks[currentRankDisplayed];
+  }, [landmarks, currentRankDisplayed]);
+
+  // Derive active slide and layer name from current landmark
+  const activeSlide = useMemo(() => {
+    return currentLandmark?.parameters as ILandmarkLayer | undefined;
+  }, [currentLandmark]);
+
+  const layerName = useMemo(() => {
+    return currentLandmark?.name ?? '';
+  }, [currentLandmark]);
+
+  // Derive landmark ID for zooming
+  const currentLandmarkId = useMemo(() => {
+    return storyData?.landmarks?.[currentRankDisplayed];
+  }, [storyData, currentRankDisplayed]);
 
   useEffect(() => {
     const updateStory = () => {
       const { story } = model.getSelectedStory();
-
-      if (!story) {
-        return;
-      }
-
-      // need to build story
-      const layers = story.landmarks?.map(landmarkId =>
-        model.getLayer(landmarkId),
-      );
-
-      if (layers?.[0]) {
-        setActiveSlide(layers[0].parameters as ILandmarkLayer);
-        setLayerName(layers[0].name);
-      }
-
-      setLandmarks(layers);
+      setStoryData(story ?? null);
+      // Reset to first slide when story changes
       setCurrentRankDisplayed(0);
-      setStoryData(story);
     };
 
     updateStory();
@@ -54,54 +61,64 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     return () => {
       model.sharedModel.storyMapsChanged.disconnect(updateStory);
     };
-  }, []);
+  }, [model]);
 
-  const zoomToLayer = (landmarkId: string | undefined) => {
-    if (!landmarkId) {
-      return;
+  const zoomToCurrentLayer = () => {
+    if (currentLandmarkId) {
+      model.centerOnPosition(currentLandmarkId);
     }
-
-    model.centerOnPosition(landmarkId);
   };
+
+  const handlePrev = () => {
+    if (currentRankDisplayed > 0) {
+      setCurrentRankDisplayed(currentRankDisplayed - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentRankDisplayed < landmarks.length - 1) {
+      setCurrentRankDisplayed(currentRankDisplayed + 1);
+    }
+  };
+
+  // Auto-zoom when slide changes (only if guided mode)
+  useEffect(() => {
+    if (storyData?.storyType === 'guided' && currentLandmarkId) {
+      zoomToCurrentLayer();
+    }
+  }, [currentRankDisplayed, storyData?.storyType, currentLandmarkId, model]);
+
+  if (!storyData) {
+    return (
+      <div>
+        <p>No story map available. Create one in the Story Editor panel.</p>
+      </div>
+    );
+  }
 
   return (
     <div>
       {/* title */}
       <h1>{storyData.title}</h1>
       {/* content */}
-      <div>{activeSlide?.content?.imgSrc}</div>
-      <h2>{`${layerName} - ${activeSlide?.content?.title}`}</h2>
-      {/* <div>{activeSlide?.content?.markdown}</div>
-       */}
-      <div>
-        <Markdown>{activeSlide?.content?.markdown}</Markdown>
-      </div>
+      {activeSlide?.content?.imgSrc && <div>{activeSlide.content.imgSrc}</div>}
+      <h2>
+        {layerName && activeSlide?.content?.title
+          ? `${layerName} - ${activeSlide.content.title}`
+          : layerName || activeSlide?.content?.title || ''}
+      </h2>
+      {activeSlide?.content?.markdown && (
+        <div>
+          <Markdown>{activeSlide.content.markdown}</Markdown>
+        </div>
+      )}
       {/* if guided -> nav buttons */}
       {storyData.storyType === 'guided' && (
         <StoryNavBar
-          onPrev={() => {
-            const prevLandmark = landmarks?.[currentRankDisplayed - 1];
-            if (prevLandmark?.parameters) {
-              setActiveSlide(prevLandmark.parameters as ILandmarkLayer);
-              setCurrentRankDisplayed(currentRankDisplayed - 1);
-              setLayerName(prevLandmark.name);
-              zoomToLayer(storyData?.landmarks?.[currentRankDisplayed - 1]);
-            }
-          }}
-          onNext={() => {
-            const nextLandmark = landmarks?.[currentRankDisplayed + 1];
-            if (nextLandmark?.parameters) {
-              setActiveSlide(nextLandmark.parameters as ILandmarkLayer);
-              setCurrentRankDisplayed(currentRankDisplayed + 1);
-              setLayerName(nextLandmark.name);
-              zoomToLayer(storyData?.landmarks?.[currentRankDisplayed + 1]);
-            }
-          }}
+          onPrev={handlePrev}
+          onNext={handleNext}
           hasPrev={currentRankDisplayed > 0}
-          hasNext={
-            landmarks !== undefined &&
-            currentRankDisplayed < landmarks.length - 1
-          }
+          hasNext={currentRankDisplayed < landmarks.length - 1}
         />
       )}
     </div>
