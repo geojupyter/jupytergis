@@ -26,7 +26,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
 
   useEffect(() => {
     const updateStory = () => {
-      const story = model.getSelectedStory();
+      const { story } = model.getSelectedStory();
 
       if (!story) {
         return;
@@ -56,11 +56,12 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     };
   }, []);
 
-  const zoomToLayer = () => {
-    const landmarkId = storyData.landmarks?.[currentRankDisplayed];
-    if (landmarkId) {
-      model?.centerOnPosition(landmarkId);
+  const zoomToLayer = (landmarkId: string | undefined) => {
+    if (!landmarkId) {
+      return;
     }
+
+    model.centerOnPosition(landmarkId);
   };
 
   return (
@@ -84,7 +85,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
               setActiveSlide(prevLandmark.parameters as ILandmarkLayer);
               setCurrentRankDisplayed(currentRankDisplayed - 1);
               setLayerName(prevLandmark.name);
-              zoomToLayer();
+              zoomToLayer(storyData?.landmarks?.[currentRankDisplayed - 1]);
             }
           }}
           onNext={() => {
@@ -93,7 +94,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
               setActiveSlide(nextLandmark.parameters as ILandmarkLayer);
               setCurrentRankDisplayed(currentRankDisplayed + 1);
               setLayerName(nextLandmark.name);
-              zoomToLayer();
+              zoomToLayer(storyData?.landmarks?.[currentRankDisplayed + 1]);
             }
           }}
           hasPrev={currentRankDisplayed > 0}
