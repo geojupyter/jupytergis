@@ -14,6 +14,7 @@ interface IStoryViewerPanelProps {
 }
 
 function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
+  // ! TODO change name and remove rank from schema
   const [currentRankDisplayed, setCurrentRankDisplayed] = useState(0);
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(null);
 
@@ -22,6 +23,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     if (!storyData?.landmarks) {
       return [];
     }
+
     return storyData.landmarks
       .map(landmarkId => model.getLayer(landmarkId))
       .filter((layer): layer is IJGISLayer => layer !== undefined);
