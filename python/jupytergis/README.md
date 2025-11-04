@@ -74,7 +74,7 @@ You can run JupyterGIS entirely in the browser using **JupyterLite**.
    ```
 3. **Add your data and jGIS files** under the `content/` directory of your repository.
    These files will be available directly inside your Lite deployment.
-4. **Enable GitHub Pages** under *Settings → Pages* for your repository.
+4. **Enable GitHub Pages** under _Settings → Pages_ for your repository.
 5. Once the build completes, your Lite deployment will be live at:
    ```
    https://<username>.github.io/<repo-name>/
