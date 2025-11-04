@@ -115,12 +115,14 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     return { filteredLayerTree: filtered, landmarkLayerTree: landmarks };
   }, [layerTree]);
 
+  /**
+   * ! TODO LOOK HERE
+   * If we want to support multiple stories then we need a way to assign landmarks to them
+   * Probably just wont do multiple stories then
+   */
   React.useEffect(() => {
-    console.log('landmarkLayerTree', landmarkLayerTree);
-    // ! >_>
-    const story = props.model.sharedModel.getStoryMap(
-      'b48c2622-1188-4734-9450-68e3b7623354',
-    );
+    const story = props.model.getSelectedStory();
+
     if (!story) {
       return;
     }
