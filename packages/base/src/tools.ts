@@ -890,7 +890,7 @@ export const stringToArrayBuffer = async (
   return await base64Response.arrayBuffer();
 };
 
-const getFeatureAttributes = <T>(
+export const getFeatureAttributes = <T>(
   featureProperties: Record<string, Set<any>>,
   predicate: (key: string, value: any) => boolean = (key: string, value) =>
     true,
