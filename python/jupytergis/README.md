@@ -63,6 +63,23 @@ docker run -p 8888:8888 ghcr.io/geojupyter/jupytergis:latest
 Replace `latest` with a specific version number if you prefer.
 Docker build source is at <https://github.com/geojupyter/jupytergis-docker>.
 
+## Deploying JupyterGIS with JupyterLite
+
+You can run JupyterGIS entirely in the browser using **JupyterLite**.
+
+1. **Create a repository** using the [xeus-lite-demo](https://github.com/jupyterlite/xeus-lite-demo) template.
+2. In your fork, edit `environment.yml` and add:
+   ```yaml
+   - jupytergis-lite
+   ```
+3. **Enable GitHub Pages** under *Settings → Pages* for your repository.
+4. Once the build completes, your Lite deployment will be live at:
+   ```
+   https://<username>.github.io/<repo-name>/
+   ```
+
+This provides a lightweight, fully browser-based JupyterGIS environment — no server required.
+
 ## Documentation
 
 https://jupytergis.readthedocs.io
