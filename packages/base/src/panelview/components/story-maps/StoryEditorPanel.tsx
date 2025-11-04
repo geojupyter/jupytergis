@@ -12,15 +12,15 @@ interface IStoryPanelProps {
 export function StoryEditorPanel({ model }: IStoryPanelProps) {
   const [schema, setSchema] = useState<IDict | undefined>(undefined);
   const [storyData, setStoryData] = useState<IJGISStoryMap>({});
-  const [firstStoryKey, setFirstStoryKey] = useState('');
+  const [selectedStoryKey, setSelectedStoryKey] = useState('');
 
   useEffect(() => {
-    if (!firstStoryKey) {
+    if (!selectedStoryKey) {
       return;
     }
 
     const updateLandmarks = () => {
-      const story = model.sharedModel.getStoryMap(firstStoryKey);
+      const story = model.sharedModel.getStoryMap(selectedStoryKey);
       if (story) {
         setStoryData({ ...story });
       }
@@ -31,7 +31,7 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
     return () => {
       model.sharedModel.storyMapsChanged.disconnect(updateLandmarks);
     };
-  }, [firstStoryKey]);
+  }, [selectedStoryKey]);
 
   useEffect(() => {
     // Get the story map schema from the definitions
@@ -39,23 +39,17 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
     const jgisSchema = require('@jupytergis/schema/lib/schema/project/jgis.json');
     const storyMapSchema = deepCopy(jgisSchema.definitions.jGISStoryMap);
 
-    // Set initial data (you may need to get this from the model)
-    const entries = Object.entries(model.sharedModel.storiesMap);
-    const [firstKey, firstStory] = entries[0] ?? [undefined, undefined];
-
-    const initialData: IJGISStoryMap = firstStory ?? {
-      title: '',
-      storyType: 'unguided',
-      landmarks: [],
-    };
+    const { landmarkId, story } = model.getSelectedStory();
 
     setSchema(storyMapSchema);
-    setStoryData(initialData);
-    setFirstStoryKey(firstKey);
+    setSelectedStoryKey(landmarkId);
+    if (story) {
+      setStoryData(story);
+    }
   }, []);
 
   const syncStoryData = (properties: IDict) => {
-    if (!firstStoryKey) {
+    if (!selectedStoryKey) {
       return;
     }
 
@@ -63,7 +57,7 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
     const updatedStory: IJGISStoryMap = { title, storyType, landmarks };
 
     setStoryData(updatedStory);
-    model.sharedModel.updateStoryMap(firstStoryKey, updatedStory);
+    model.sharedModel.updateStoryMap(selectedStoryKey, updatedStory);
   };
 
   if (!schema) {
