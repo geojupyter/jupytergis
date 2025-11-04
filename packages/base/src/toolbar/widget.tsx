@@ -170,6 +170,14 @@ export class ToolbarWidget extends ReactiveToolbar {
       temporalControllerButton.node.dataset.testid =
         'temporal-controller-button';
 
+      const addMarkerButton = new CommandToolbarButton({
+        id: CommandIDs.addMarker,
+        label: '',
+        commands: options.commands,
+      });
+      this.addItem('addMarker', addMarkerButton);
+      addMarkerButton.node.dataset.testid = 'add-marker-controller-button';
+
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
       // Users
