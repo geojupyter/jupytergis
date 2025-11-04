@@ -152,46 +152,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     tabInfo.length > 0 ? tabInfo[0].name : undefined,
   );
 
-  // ! TUESDAY TO DO ITS THESE CHANGES
-  // useEffect(() => {
-  //   const updateOrder = (
-  //     sender: IJupyterGISDoc,
-  //     changes: IJGISLayerTreeDocChange,
-  //   ) => {
-  //     const layerTree = model.getLayerTree();
-  //     layerTree.filter(layer => {
-  //       // Include only LandmarkLayer types
-  //       if (typeof layer === 'string') {
-  //         const layerData = model.getLayer(layer);
-  //         return layerData?.type === 'LandmarkLayer';
-  //       }
-  //       // For layer groups, recursively filter their layers
-  //       if (typeof layer === 'object' && layer.layers) {
-  //         const filteredGroup = {
-  //           ...layer,
-  //           layers: layer.layers.filter(groupLayer => {
-  //             if (typeof groupLayer === 'string') {
-  //               const layerData = model.getLayer(groupLayer);
-  //               return layerData?.type === 'LandmarkLayer';
-  //             }
-  //             return true; // Keep layer groups as they are
-  //           }),
-  //         };
-  //         return filteredGroup.layers.length > 0; // Only show groups that have remaining layers
-  //       }
-  //       return false; // Exclude everything else
-  //     });
-
-  //     setLayerTree(layerTree);
-  //   };
-
-  //   model.sharedModel.layerTreeChanged.connect(updateOrder);
-
-  //   return () => {
-  //     model.sharedModel.layerTreeChanged.disconnect(updateOrder);
-  //   };
-  // }, [firstStoryKey]);
-
   return (
     <div
       className="jgis-left-panel-container"

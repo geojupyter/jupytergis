@@ -24,43 +24,19 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     (IJGISLayer | undefined)[] | undefined
   >();
 
-  //TODO this is copied from the editor panel, do better
-  useEffect(() => {
-    // Set initial data (you may need to get this from the model)
-    // Set initial data (you may need to get this from the model)
-    const entries = Object.entries(model.sharedModel.storiesMap);
-    const [firstKey, firstStory] = entries[0] ?? [undefined, undefined];
-    console.log('firstKey', firstKey);
-
-    // need to build story
-    const layers = firstStory.landmarks?.map(landmarkId =>
-      model.getLayer(landmarkId),
-    );
-
-    console.log('layers', layers);
-
-    if (layers?.[0]) {
-      setActiveSlide(layers[0].parameters as ILandmarkLayer);
-      setLayerName(layers[0].name);
-    }
-
-    setLandmarks(layers);
-    setCurrentRankDisplayed(0);
-    setStoryData(firstStory);
-  }, []);
-
   useEffect(() => {
     const updateStory = () => {
-      const entries = Object.entries(model.sharedModel.storiesMap);
-      const [firstKey, firstStory] = entries[0] ?? [undefined, undefined];
-      console.log('firstKey', firstKey);
+      const story = model.getSelectedStory();
+
+      if (!story) {
+        return;
+      }
 
       // need to build story
-      const layers = firstStory.landmarks?.map(landmarkId =>
+      const layers = story.landmarks?.map(landmarkId =>
         model.getLayer(landmarkId),
       );
 
-      console.log('layers', layers);
       if (layers?.[0]) {
         setActiveSlide(layers[0].parameters as ILandmarkLayer);
         setLayerName(layers[0].name);
@@ -68,8 +44,10 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
 
       setLandmarks(layers);
       setCurrentRankDisplayed(0);
-      setStoryData(firstStory);
+      setStoryData(story);
     };
+
+    updateStory();
 
     model.sharedModel.storyMapsChanged.connect(updateStory);
 
@@ -77,7 +55,6 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
       model.sharedModel.storyMapsChanged.disconnect(updateStory);
     };
   }, []);
-
 
   const zoomToLayer = () => {
     const landmarkId = storyData.landmarks?.[currentRankDisplayed];
@@ -106,6 +83,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
             if (prevLandmark?.parameters) {
               setActiveSlide(prevLandmark.parameters as ILandmarkLayer);
               setCurrentRankDisplayed(currentRankDisplayed - 1);
+              setLayerName(prevLandmark.name);
               zoomToLayer();
             }
           }}
@@ -114,6 +92,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
             if (nextLandmark?.parameters) {
               setActiveSlide(nextLandmark.parameters as ILandmarkLayer);
               setCurrentRankDisplayed(currentRankDisplayed + 1);
+              setLayerName(nextLandmark.name);
               zoomToLayer();
             }
           }}
