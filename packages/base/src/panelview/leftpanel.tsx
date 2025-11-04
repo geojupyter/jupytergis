@@ -1,5 +1,6 @@
 import {
   IJupyterGISModel,
+  IJGISLayerItem,
   IJGISLayerTree,
   SelectionType,
 } from '@jupytergis/schema';
@@ -35,85 +36,84 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 ) => {
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
   const [layerTree, setLayerTree] = React.useState<IJGISLayerTree>(
-    props.model?.getLayerTree() || [],
+    props.model.getLayerTree(),
   );
 
   React.useEffect(() => {
     const onSettingsChanged = () => {
       setSettings({ ...props.model.jgisSettings });
     };
+    const updateLayerTree = () => {
+      setLayerTree(props.model.getLayerTree() || []);
+    };
 
     props.model.settingsChanged.connect(onSettingsChanged);
+    props.model.sharedModel.layersChanged.connect(updateLayerTree);
+    props.model.sharedModel.layerTreeChanged.connect(updateLayerTree);
+
+    updateLayerTree();
     return () => {
       props.model.settingsChanged.disconnect(onSettingsChanged);
+      props.model.sharedModel.layersChanged.disconnect(updateLayerTree);
+      props.model.sharedModel.layerTreeChanged.disconnect(updateLayerTree);
     };
   }, [props.model]);
 
-  React.useEffect(() => {
-    const updateLayers = () => {
-      setLayerTree(props.model?.getLayerTree() || []);
-    };
-    props.model?.sharedModel.layersChanged.connect(updateLayers);
-    props.model?.sharedModel.layerTreeChanged.connect(updateLayers);
+  // Process layer tree once to create both filtered and landmark trees
+  const { filteredLayerTree, landmarkLayerTree } = React.useMemo(() => {
+    const filtered: IJGISLayerTree = [];
+    const landmarks: IJGISLayerTree = [];
 
-    updateLayers();
-    return () => {
-      props.model?.sharedModel.layersChanged.disconnect(updateLayers);
-      props.model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
-    };
-  }, [props.model]);
-
-  // Filter out LandmarkLayer types from the layer tree
-  const filteredLayerTree = React.useMemo(() => {
-    return layerTree.filter(layer => {
-      // Filter out LandmarkLayer types
+    const processLayer = (
+      layer: IJGISLayerItem,
+    ): { filtered: IJGISLayerItem | null; landmark: IJGISLayerItem | null } => {
       if (typeof layer === 'string') {
-        const layerData = props.model?.getLayer(layer);
-        return layerData?.type !== 'LandmarkLayer';
-      }
-      // For layer groups, recursively filter their layers
-      if (typeof layer === 'object' && layer.layers) {
-        const filteredGroup = {
-          ...layer,
-          layers: layer.layers.filter(groupLayer => {
-            if (typeof groupLayer === 'string') {
-              const layerData = props.model?.getLayer(groupLayer);
-              return layerData?.type !== 'LandmarkLayer';
-            }
-            return true; // Keep layer groups as they are
-          }),
+        const layerData = props.model.getLayer(layer);
+        const isLandmark = layerData?.type === 'LandmarkLayer';
+        return {
+          filtered: isLandmark ? null : layer,
+          landmark: isLandmark ? layer : null,
         };
-        return filteredGroup.layers.length > 0; // Only show groups that have remaining layers
       }
-      return true;
-    });
-  }, [layerTree, props.model]);
 
-  // Create a layer tree containing only LandmarkLayer types
-  const landmarkLayerTree = React.useMemo(() => {
-    return layerTree.filter(layer => {
-      // Include only LandmarkLayer types
-      if (typeof layer === 'string') {
-        const layerData = props.model?.getLayer(layer);
-        return layerData?.type === 'LandmarkLayer';
+      // For layer groups, recursively process their layers
+      const filteredGroupLayers: IJGISLayerItem[] = [];
+      const landmarkGroupLayers: IJGISLayerItem[] = [];
+
+      for (const groupLayer of layer.layers) {
+        const result = processLayer(groupLayer);
+        if (result.filtered !== null) {
+          filteredGroupLayers.push(result.filtered);
+        }
+        if (result.landmark !== null) {
+          landmarkGroupLayers.push(result.landmark);
+        }
       }
-      // For layer groups, recursively filter their layers
-      if (typeof layer === 'object' && layer.layers) {
-        const filteredGroup = {
-          ...layer,
-          layers: layer.layers.filter(groupLayer => {
-            if (typeof groupLayer === 'string') {
-              const layerData = props.model?.getLayer(groupLayer);
-              return layerData?.type === 'LandmarkLayer';
-            }
-            return true; // Keep layer groups as they are
-          }),
-        };
-        return filteredGroup.layers.length > 0; // Only show groups that have remaining layers
+
+      return {
+        filtered:
+          filteredGroupLayers.length > 0
+            ? { ...layer, layers: filteredGroupLayers }
+            : null,
+        landmark:
+          landmarkGroupLayers.length > 0
+            ? { ...layer, layers: landmarkGroupLayers }
+            : null,
+      };
+    };
+
+    for (const layer of layerTree) {
+      const result = processLayer(layer);
+      if (result.filtered !== null) {
+        filtered.push(result.filtered);
       }
-      return false; // Exclude everything else
-    });
-  }, [layerTree, props.model]);
+      if (result.landmark !== null) {
+        landmarks.push(result.landmark);
+      }
+    }
+
+    return { filteredLayerTree: filtered, landmarkLayerTree: landmarks };
+  }, [layerTree]);
 
   React.useEffect(() => {
     console.log('landmarkLayerTree', landmarkLayerTree);
@@ -160,7 +160,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   //     layerTree.filter(layer => {
   //       // Include only LandmarkLayer types
   //       if (typeof layer === 'string') {
-  //         const layerData = model?.getLayer(layer);
+  //         const layerData = model.getLayer(layer);
   //         return layerData?.type === 'LandmarkLayer';
   //       }
   //       // For layer groups, recursively filter their layers
@@ -169,7 +169,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   //           ...layer,
   //           layers: layer.layers.filter(groupLayer => {
   //             if (typeof groupLayer === 'string') {
-  //               const layerData = model?.getLayer(groupLayer);
+  //               const layerData = model.getLayer(groupLayer);
   //               return layerData?.type === 'LandmarkLayer';
   //             }
   //             return true; // Keep layer groups as they are
