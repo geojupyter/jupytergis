@@ -80,6 +80,9 @@ You can run JupyterGIS entirely in the browser using **JupyterLite**.
 
 This provides a lightweight, fully browser-based JupyterGIS environment — no server required.
 
+> [!IMPORTANT]  
+> Collaboration is **not yet supported** in JupyterLite static deployments.
+
 ## Documentation
 
 https://jupytergis.readthedocs.io
