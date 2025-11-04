@@ -281,7 +281,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   triggerLayerUpdate(layerId: string, layer: IJGISLayer): void;
 
   disposed: ISignal<any, void>;
-  getSelectedStory(): IJGISStoryMap | undefined;
+  getSelectedStory(): { landmarkId: string; story: IJGISStoryMap | undefined };
 }
 
 export interface IUserData {

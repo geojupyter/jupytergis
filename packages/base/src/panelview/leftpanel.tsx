@@ -120,16 +120,17 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
    * If we want to support multiple stories then we need a way to assign landmarks to them
    * Probably just wont do multiple stories then
    */
+  // Updates landmarks array based on layer tree array
   React.useEffect(() => {
-    const story = props.model.getSelectedStory();
+    const { landmarkId, story } = props.model.getSelectedStory();
 
     if (!story) {
       return;
     }
-    props.model.sharedModel.updateStoryMap(
-      'b48c2622-1188-4734-9450-68e3b7623354',
-      { ...story, landmarks: landmarkLayerTree as string[] },
-    );
+    props.model.sharedModel.updateStoryMap(landmarkId, {
+      ...story,
+      landmarks: landmarkLayerTree as string[],
+    });
   }, [landmarkLayerTree]);
 
   const allLeftTabsDisabled =

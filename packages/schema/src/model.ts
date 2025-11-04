@@ -604,8 +604,13 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.awareness.clientID;
   }
 
-  getSelectedStory(): IJGISStoryMap | undefined {
-    return this.sharedModel.getStoryMap('b48c2622-1188-4734-9450-68e3b7623354');
+  getSelectedStory(): { landmarkId: string; story: IJGISStoryMap | undefined } {
+    return {
+      landmarkId: 'b48c2622-1188-4734-9450-68e3b7623354',
+      story: this.sharedModel.getStoryMap(
+        'b48c2622-1188-4734-9450-68e3b7623354',
+      ),
+    };
   }
 
   /**
