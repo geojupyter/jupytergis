@@ -65,12 +65,12 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     };
   }, [model]);
 
-  // Auto-zoom when slide changes (only if guided mode)
+  // Auto-zoom when slide changes
   useEffect(() => {
-    if (storyData?.storyType === 'guided' && currentLandmarkId) {
+    if (currentLandmarkId) {
       zoomToCurrentLayer();
     }
-  }, [currentRankDisplayed, storyData?.storyType, currentLandmarkId, model]);
+  }, [currentLandmarkId, model]);
 
   // Listen for layer selection changes in unguided mode
   // ! TODO refactor selection stuff
@@ -78,7 +78,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     const handleAwarenessChange = (thig: any, more: any, extra: any) => {
       // This is just to update the displayed content
       // So bail early if we don't need to do thath
-      if (!storyData || storyData.storyType === 'unguided') {
+      if (!storyData || storyData.storyType !== 'unguided') {
         return;
       }
 
