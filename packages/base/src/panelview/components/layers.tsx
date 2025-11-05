@@ -24,11 +24,7 @@ import React, {
 
 import { CommandIDs, icons } from '@/src/constants';
 import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
-import {
-  nonVisibilityIcon,
-  targetWithCenterIcon,
-  visibilityIcon,
-} from '@/src/icons';
+import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/panelview/leftpanel';
 import { LegendItem } from './legendItem';
 
@@ -538,10 +534,6 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   const toggleVisibility = () => {
     layer.visible = !layer.visible;
     gisModel?.sharedModel?.updateLayer(layerId, layer);
-  };
-
-  const zoomToLayer = () => {
-    gisModel?.centerOnPosition(layerId);
   };
 
   const setSelection = (event: ReactMouseEvent<HTMLElement>) => {
