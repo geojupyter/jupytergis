@@ -65,6 +65,56 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     };
   }, [model]);
 
+  // Auto-zoom when slide changes (only if guided mode)
+  useEffect(() => {
+    if (storyData?.storyType === 'guided' && currentLandmarkId) {
+      zoomToCurrentLayer();
+    }
+  }, [currentRankDisplayed, storyData?.storyType, currentLandmarkId, model]);
+
+  // Listen for layer selection changes in unguided mode
+  // ! TODO refactor selection stuff
+  useEffect(() => {
+    const handleAwarenessChange = (thig: any, more: any, extra: any) => {
+      // This is just to update the displayed content
+      // So bail early if we don't need to do thath
+      if (!storyData || storyData.storyType === 'unguided') {
+        return;
+      }
+
+      const localState = model.sharedModel.awareness.getLocalState();
+      if (!localState || !localState['selected']?.value) {
+        return;
+      }
+
+      const selectedLayers = Object.keys(localState['selected'].value);
+
+      // Ensure only one layer is selected
+      if (selectedLayers.length !== 1) {
+        return;
+      }
+
+      const selectedLayerId = selectedLayers[0];
+      const selectedLayer = model.getLayer(selectedLayerId);
+      if (!selectedLayer || selectedLayer.type !== 'LandmarkLayer') {
+        return;
+      }
+
+      const index = storyData.landmarks?.indexOf(selectedLayerId);
+      if (index === undefined || index === -1) {
+        return;
+      }
+
+      setCurrentRankDisplayed(index);
+    };
+
+    model.sharedModel.awareness.on('change', handleAwarenessChange);
+
+    return () => {
+      model.sharedModel.awareness.off('change', handleAwarenessChange);
+    };
+  }, [model, storyData]);
+
   const zoomToCurrentLayer = () => {
     if (currentLandmarkId) {
       model.centerOnPosition(currentLandmarkId);
@@ -82,13 +132,6 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
       setCurrentRankDisplayed(currentRankDisplayed + 1);
     }
   };
-
-  // Auto-zoom when slide changes (only if guided mode)
-  useEffect(() => {
-    if (storyData?.storyType === 'guided' && currentLandmarkId) {
-      zoomToCurrentLayer();
-    }
-  }, [currentRankDisplayed, storyData?.storyType, currentLandmarkId, model]);
 
   if (!storyData) {
     return (
