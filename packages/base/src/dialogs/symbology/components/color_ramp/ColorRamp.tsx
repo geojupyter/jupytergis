@@ -6,7 +6,7 @@ import { LoadingIcon } from '@/src/shared/components/loading';
 import { ClassificationMode } from '@/src/types';
 import CanvasSelectComponent from './CanvasSelectComponent';
 import ModeSelectRow from './ModeSelectRow';
-import { ColorRampName } from '../../colorRampUtils';
+import { COLOR_RAMP_DEFAULTS, ColorRampName } from '../../colorRampUtils';
 
 interface IColorRampProps {
   modeOptions: ClassificationMode[];
@@ -41,6 +41,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     useState<ClassificationMode>('equal interval');
   const [numberOfShades, setNumberOfShades] = useState<number>(9);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [warning, setWarning] = useState<string | null>(null);
 
   useEffect(() => {
     if (layerParams.symbologyState) {
@@ -52,9 +53,40 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     layerParams.symbologyState.colorRamp,
   ]);
 
+  useEffect(() => {
+    if (!selectedRamp) {
+      return;
+    }
+
+    const defaultClasses = COLOR_RAMP_DEFAULTS[selectedRamp] ?? 9;
+
+    setNumberOfShades(defaultClasses);
+    setWarning(null);
+  }, [selectedRamp]);
+
+  useEffect(() => {
+    if (!selectedRamp || !numberOfShades) {
+      return;
+    }
+
+    const minRequired = COLOR_RAMP_DEFAULTS[selectedRamp];
+    const shades = numberOfShades;
+    const rampLabel = selectedRamp
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('-');
+
+    if (minRequired && shades < minRequired) {
+      setWarning(
+        `${rampLabel} requires at least ${minRequired} classes (got ${shades})`,
+      );
+    } else {
+      setWarning(null);
+    }
+  }, [selectedRamp, numberOfShades]);
   const populateOptions = () => {
     const { nClasses, mode, colorRamp } = layerParams.symbologyState ?? {};
-    setNumberOfShades(nClasses ?? 9);
+    setNumberOfShades(Number(nClasses ?? 9));
     setSelectedMode((mode as ClassificationMode) ?? 'equal interval');
     setSelectedRamp((colorRamp as ColorRampName) ?? 'viridis');
   };
@@ -79,12 +111,20 @@ const ColorRamp: React.FC<IColorRampProps> = ({
           setSelectedMode={setSelectedMode}
         />
       )}
+      {warning && (
+        <div
+          className="jp-gis-warning"
+          style={{ color: 'orange', marginTop: 4 }}
+        >
+          {warning}
+        </div>
+      )}
       {isLoading ? (
         <LoadingIcon />
       ) : (
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          disabled={!isValidNumberOfShades(numberOfShades) || !selectedMode}
+          disabled={!isValidNumberOfShades(numberOfShades) || !selectedMode || !!warning}
           onClick={() =>
             classifyFunc(
               selectedMode,

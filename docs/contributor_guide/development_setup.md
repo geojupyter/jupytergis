@@ -24,6 +24,11 @@ cd jupytergis
 
 ```````{tabs}
 ``````{group-tab} Micromamba (Recommended)
+```{note}
+Micromamba is a lightweight package manager compatible with conda environments.
+It is recommended for setting up the JupyterGIS development environment. If you don’t have it installed, please follow the official documentation: [Micromamba Installation Guide](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html)
+```
+
 ```bash
 # Create a virtual environment
 

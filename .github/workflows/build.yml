@@ -69,7 +69,7 @@ jobs:
           yarn build:packages
 
       - name: Upload extension packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.python-version == '3.12' && 'extension-artifacts' || format('extension-artifacts-{0}', matrix.python-version) }}
           path: |
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: extension-artifacts
 
@@ -166,7 +166,7 @@ jobs:
             qgis
 
       - name: Download extension package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: extension-artifacts
 
@@ -192,7 +192,7 @@ jobs:
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: jupytergis-playwright-tests
           path: |
@@ -239,7 +239,7 @@ jobs:
       - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
       - uses: jupyterlab/maintainer-tools/.github/actions/check-links@v1
         with:
-          ignore_links: 'lite/'
+          ignore_links: 'lite/ https://www.npmjs.com.* ^/.*'
 
   build-lite:
     name: Build JupyterLite artifacts
@@ -263,7 +263,7 @@ jobs:
             jupyter_server
 
       - name: Download extension package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: extension-artifacts
 
@@ -290,7 +290,7 @@ jobs:
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload Lite artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: lite-artifacts
           path: ./lite/dist
@@ -318,7 +318,7 @@ jobs:
             jupyterlab
 
       - name: Download extension package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: lite-artifacts
           path: dist
@@ -350,7 +350,7 @@ jobs:
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: jupytergis-lite-playwright-tests
           path: |

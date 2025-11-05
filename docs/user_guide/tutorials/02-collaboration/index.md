@@ -19,7 +19,7 @@ By following this tutorial, you will be able to:
 
 :::{admonition} Prerequisites
 :class: warning
-Before beginning this tutorial, JupyterGIS must be installed on your computer (see [Installation instructions](https://jupytergis.readthedocs.io/en/latest/user_guide/install.html)). Alternatively, you can use an online installation of JupyterGIS. Your choice may have implications for collaboration, so please read our [collaboration feature overview](../../features/collab.md) for more context.
+Before beginning this tutorial, JupyterGIS must be installed on your computer (see [installation instructions](../../install.md)). Alternatively, you can use an online installation of JupyterGIS. Your choice may have implications for collaboration, so please read our [collaboration feature overview](../../../overview/features/collab.md) for more context.
 :::
 
 ---
@@ -63,7 +63,7 @@ When your colleagues join using the link, their usernames appear in the top righ
 
 ### Adding and Editing Layers
 
-When you add a new layer to your GIS file, the new layer appears immediately for all collaborators in your session. You can experiment by adding a layer from the layer browser or from the add layer menu, and customizing its symbology, such as changing the opacity or color. Observe that each change is instantly visible to your collaborators. You can check the [Getting Started with JupyterGIS](../01-intro/index.md) tutorial for more details on how to customize the layer appearance.
+When you add a new layer to your GIS file, the new layer appears immediately for all collaborators in your session. You can experiment by adding a layer from the layer browser or from the add layer menu, and customizing its symbology, such as changing the opacity or color. Observe that each change is instantly visible to your collaborators. You can check the [Getting Started with JupyterGIS](/user_guide/tutorials/01-intro/index.md) tutorial for more details on how to customize the layer appearance.
 
 ![Add Layers](images/add_layers.gif)
 
