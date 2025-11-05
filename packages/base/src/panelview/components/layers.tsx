@@ -218,27 +218,24 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
 
   return (
     <div id="jp-gis-layer-tree" onDrop={_onDrop} onDragOver={_onDragOver}>
-      {layerTree
-        .slice()
-        .reverse()
-        .map(layer =>
-          typeof layer === 'string' ? (
-            <LayerComponent
-              key={layer}
-              gisModel={model}
-              layerId={layer}
-              onClick={onItemClick}
-            />
-          ) : (
-            <LayerGroupComponent
-              key={layer.name}
-              gisModel={model}
-              group={layer}
-              onClick={onItemClick}
-              state={props.state}
-            />
-          ),
-        )}
+      {layerTree.map(layer =>
+        typeof layer === 'string' ? (
+          <LayerComponent
+            key={layer}
+            gisModel={model}
+            layerId={layer}
+            onClick={onItemClick}
+          />
+        ) : (
+          <LayerGroupComponent
+            key={layer.name}
+            gisModel={model}
+            group={layer}
+            onClick={onItemClick}
+            state={props.state}
+          />
+        ),
+      )}
     </div>
   );
 };
