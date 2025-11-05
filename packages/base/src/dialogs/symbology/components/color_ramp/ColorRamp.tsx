@@ -124,7 +124,9 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       ) : (
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          disabled={!isValidNumberOfShades(numberOfShades) || !selectedMode || !!warning}
+          disabled={
+            !isValidNumberOfShades(numberOfShades) || !selectedMode || !!warning
+          }
           onClick={() =>
             classifyFunc(
               selectedMode,
