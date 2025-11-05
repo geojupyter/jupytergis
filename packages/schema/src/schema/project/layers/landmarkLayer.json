@@ -5,7 +5,6 @@
   "additionalProperties": false,
   "required": ["zoom", "extent"],
   "properties": {
-    "rank": { "type": "number" },
     "content": {
       "type": "object",
       "additionalProperties": false,
@@ -13,7 +12,7 @@
         "title": {
           "type": "string"
         },
-        "imgSrc": {
+        "image": {
           "type": "string",
           "description": "Link to image for the story"
         },
