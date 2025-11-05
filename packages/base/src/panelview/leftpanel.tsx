@@ -112,7 +112,13 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
       }
     }
 
-    return { filteredLayerTree: filtered, landmarkLayerTree: landmarks };
+    // Reverse filteredLayerTree before returning
+    filtered.reverse();
+
+    return {
+      filteredLayerTree: filtered,
+      landmarkLayerTree: landmarks,
+    };
   }, [layerTree]);
 
   /**
