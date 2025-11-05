@@ -142,18 +142,50 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   }
 
   return (
-    <div>
-      {/* title */}
-      <h1>{storyData.title}</h1>
-      {/* content */}
-      {activeSlide?.content?.imgSrc && <div>{activeSlide.content.imgSrc}</div>}
-      <h2>
-        {layerName && activeSlide?.content?.title
-          ? `${layerName} - ${activeSlide.content.title}`
-          : layerName || activeSlide?.content?.title || ''}
+    <div style={{ overflow: 'hidden' }}>
+      {/* Image container with title overlay */}
+      {activeSlide?.content?.image ? (
+        <div style={{ position: 'relative', width: '100%', height: '30%' }}>
+          <img
+            src={activeSlide.content.image}
+            alt={activeSlide.content.title || 'Story map image'}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+            }}
+          />
+          <h1
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              margin: 0,
+              padding: '1rem',
+              color: 'white',
+              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              textAlign: 'center',
+            }}
+          >
+            {storyData.title}
+          </h1>
+        </div>
+      ) : (
+        <h1 style={{ textAlign: 'center' }}>{storyData.title}</h1>
+      )}
+      <h2 style={{ textAlign: 'center' }}>
+        {`Slide ${currentRankDisplayed} - ${layerName ? layerName : 'Landmark Name'}`}
       </h2>
+      <h3 style={{ paddingLeft: 2 }}>
+        {activeSlide?.content?.title
+          ? activeSlide.content.title
+          : 'Slide Title'}
+      </h3>
       {activeSlide?.content?.markdown && (
-        <div>
+        <div style={{ paddingLeft: 4 }}>
           <Markdown>{activeSlide.content.markdown}</Markdown>
         </div>
       )}
