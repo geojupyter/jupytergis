@@ -26,13 +26,16 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
+  const [displayPreview, setDisplayPreview] = React.useState(false);
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
   const tabInfo = [
     !settings.objectPropertiesDisabled
       ? { name: 'objectProperties', title: 'Object Properties' }
       : false,
-    { name: 'storyEditorPanel', title: 'S Editor' },
-    { name: 'storyViewerPanel', title: 'S Viewer' },
+    {
+      name: 'storyPanel',
+      title: displayPreview ? 'Story Map' : 'Story Editor',
+    },
     !settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
       : false,
@@ -87,6 +90,10 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
 
+  const togglePreview = () => {
+    setDisplayPreview(!displayPreview);
+  };
+
   return (
     <Draggable handle=".jgis-panel-tabs" bounds=".jGIS-Mainview-Container">
       <div
@@ -126,23 +133,20 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
               />
             </TabsContent>
           )}
-          {!settings.objectPropertiesDisabled && (
-            <TabsContent
-              value="objectProperties"
-              className="jgis-panel-tab-content"
-            >
-              <ObjectPropertiesReact
-                setSelectedObject={setSelectedObjectProperties}
-                selectedObject={selectedObjectProperties}
-                formSchemaRegistry={props.formSchemaRegistry}
-                model={props.model}
-              />
-            </TabsContent>
-          )}
 
-          <TabsContent value="storyPanel" className="jgis-panel-tab-content">
+          <TabsContent
+            value="storyEditorPanel"
+            className="jgis-panel-tab-content"
+          >
             {/* switch to this panel when clicking create story */}
             <StoryEditorPanel model={props.model}></StoryEditorPanel>
+          </TabsContent>
+
+          <TabsContent
+            value="storyViewerPanel"
+            className="jgis-panel-tab-content"
+          >
+            <StoryViewerPanel model={props.model}></StoryViewerPanel>
           </TabsContent>
 
           {!settings.annotationsDisabled && (
