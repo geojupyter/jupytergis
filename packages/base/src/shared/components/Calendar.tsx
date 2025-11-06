@@ -450,8 +450,8 @@ function YearGrid({
 }: {
   className?: string;
   displayYears: { from: number; to: number };
-  startMonth: Date;
-  endMonth: Date;
+  startMonth?: Date;
+  endMonth?: Date;
   setNavView: React.Dispatch<React.SetStateAction<NavView>>;
   navView: NavView;
 } & React.HTMLAttributes<HTMLDivElement>) {
@@ -465,13 +465,13 @@ function YearGrid({
           const isBefore =
             differenceInCalendarDays(
               new Date(displayYears.from + i, 11, 31),
-              startMonth,
+              startMonth!,
             ) < 0;
 
           const isAfter =
             differenceInCalendarDays(
               new Date(displayYears.from + i, 0, 0),
-              endMonth,
+              endMonth!,
             ) > 0;
 
           const isDisabled = isBefore || isAfter;
