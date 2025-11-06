@@ -35,6 +35,7 @@ import {
   JgisCoordinates,
   Pointer,
   IJupyterGISSettings,
+  SelectionType,
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
 import { Modes } from './types';
@@ -536,6 +537,66 @@ export class JupyterGISModel implements IJupyterGISModel {
     });
   }
 
+  handleItemSelection(
+    type: SelectionType,
+    item: string,
+    event?: { ctrlKey: boolean; button: number },
+  ): { [key: string]: ISelection } | null {
+    const selectedValue = this.localState?.selected?.value;
+
+    // Programmatic selection (no event) - always set single selection
+    if (!event) {
+      return {
+        [item]: {
+          type,
+        },
+      };
+    }
+
+    // Early return if no selection exists
+    if (!selectedValue) {
+      return {
+        [item]: {
+          type,
+        },
+      };
+    }
+
+    // Don't want to reset selected if right clicking a selected item
+    if (!event.ctrlKey && event.button === 2 && item in selectedValue) {
+      return null;
+    }
+
+    // Reset selection for normal left click
+    if (!event.ctrlKey) {
+      return {
+        [item]: {
+          type,
+        },
+      };
+    }
+
+    // Check if new selection is the same type as previous selections
+    const isSelectedSameType = Object.values(selectedValue).some(
+      selection => selection.type === type,
+    );
+
+    if (!isSelectedSameType) {
+      // Selecting a new type, so reset selected
+      return {
+        [item]: {
+          type,
+        },
+      };
+    }
+
+    // If types are the same add the selection
+    return {
+      ...selectedValue,
+      [item]: { type },
+    };
+  }
+
   syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
       value: features,
@@ -547,6 +608,27 @@ export class JupyterGISModel implements IJupyterGISModel {
     if (this._sharedModel) {
       this._sharedModel.awareness.setLocalStateField('remoteUser', userId);
     }
+  }
+
+  setEditingItem(type: SelectionType, itemId: string): void {
+    this._editing = { type, itemId };
+    this._editingChanged.emit(this._editing);
+  }
+
+  clearEditingItem(): void {
+    this._editing = null;
+    this._editingChanged.emit(null);
+  }
+
+  get editing(): { type: SelectionType; itemId: string } | null {
+    return this._editing;
+  }
+
+  get editingChanged(): ISignal<
+    this,
+    { type: SelectionType; itemId: string } | null
+  > {
+    return this._editingChanged;
   }
 
   getClientId(): number {
@@ -882,6 +964,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _updateLayerSignal = new Signal<this, string>(this);
 
   private _isTemporalControllerActive = false;
+
+  private _editing: { type: SelectionType; itemId: string } | null = null;
+  private _editingChanged = new Signal<
+    this,
+    { type: SelectionType; itemId: string } | null
+  >(this);
 
   static worker: Worker;
 
