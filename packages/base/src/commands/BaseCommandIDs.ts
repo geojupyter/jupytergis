@@ -2,12 +2,14 @@
  *
  * See the documentation for more details.
  */
+// Toolbar
 export const createNew = 'jupytergis:create-new-jGIS-file';
 export const redo = 'jupytergis:redo';
 export const undo = 'jupytergis:undo';
 export const symbology = 'jupytergis:symbology';
 export const identify = 'jupytergis:identify';
 export const temporalController = 'jupytergis:temporalController';
+export const addMarker = 'jupytergis:addMarker';
 
 // geolocation
 export const getGeolocation = 'jupytergis:getGeolocation';
