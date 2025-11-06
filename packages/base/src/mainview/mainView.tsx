@@ -1841,15 +1841,13 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
     const layer = this.getLayer(id);
-    let nextIndex = index;
+
     // should not be undefined since the id exists above
     if (layer === undefined) {
       return;
     }
     this._Map.getLayers().removeAt(currentIndex);
-    if (currentIndex < index) {
-      nextIndex -= 1;
-    }
+
     // Adjust index to ensure it's within bounds
     const numLayers = this._Map.getLayers().getLength();
     const safeIndex = Math.min(index, numLayers);
@@ -2177,7 +2175,7 @@ export class MainView extends React.Component<IProps, IStates> {
           const fid = feature.getId?.() ?? rawProps?.fid;
 
           if (rawProps && Object.keys(rawProps).length > 1) {
-            const { geometry, ...clean } = rawProps;
+            const { ...clean } = rawProps;
             props = clean;
             if (fid !== null) {
               // TODO Clean the cache under some condition?
