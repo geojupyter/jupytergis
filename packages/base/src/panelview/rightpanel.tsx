@@ -25,13 +25,16 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
+  const [displayPreview, setDisplayPreview] = React.useState(false);
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
   const tabInfo = [
     !settings.objectPropertiesDisabled
       ? { name: 'objectProperties', title: 'Object Properties' }
       : false,
-    { name: 'storyEditorPanel', title: 'S Editor' },
-    { name: 'storyViewerPanel', title: 'S Viewer' },
+    {
+      name: 'storyPanel',
+      title: displayPreview ? 'Story Map' : 'Story Editor',
+    },
     !settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
       : false,
@@ -86,6 +89,10 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
 
+  const togglePreview = () => {
+    setDisplayPreview(!displayPreview);
+  };
+
   return (
     <div
       className="jgis-right-panel-container"
@@ -125,19 +132,18 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           </TabsContent>
         )}
 
-        <TabsContent
-          value="storyEditorPanel"
-          className="jgis-panel-tab-content"
-        >
-          {/* switch to this panel when clicking create story */}
-          <StoryEditorPanel model={props.model}></StoryEditorPanel>
-        </TabsContent>
-
-        <TabsContent
-          value="storyViewerPanel"
-          className="jgis-panel-tab-content"
-        >
-          <StoryViewerPanel model={props.model}></StoryViewerPanel>
+        <TabsContent value="storyPanel" className="jgis-panel-tab-content">
+          {displayPreview ? (
+            <StoryViewerPanel
+              model={props.model}
+              togglePreview={togglePreview}
+            />
+          ) : (
+            <StoryEditorPanel
+              model={props.model}
+              togglePreview={togglePreview}
+            />
+          )}
         </TabsContent>
 
         {!settings.annotationsDisabled && (
