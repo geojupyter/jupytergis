@@ -996,7 +996,8 @@ export class MainView extends React.Component<IProps, IStates> {
     let sourceId: string | undefined;
     let source: IJGISSource | undefined;
 
-    if (layer.type !== 'StacLayer') {
+    // Sourceless layers
+    if (!['StacLayer', 'LandmarkLayer'].includes(layer.type)) {
       sourceId = layer.parameters?.source;
       if (!sourceId) {
         return;
@@ -1206,7 +1207,6 @@ export class MainView extends React.Component<IProps, IStates> {
           item => item.id === id && item.error === error.message,
         )
       ) {
-        this._loadingLayers.delete(id);
         return;
       }
 
@@ -1220,7 +1220,9 @@ export class MainView extends React.Component<IProps, IStates> {
         error: error.message || 'invalid file path',
         index,
       });
+    } finally {
       this._loadingLayers.delete(id);
+      this.setState(old => ({ ...old, loadingLayer: false }));
     }
   }
 
@@ -1600,10 +1602,12 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param layer The Layer to check
    */
   private _waitForSourceReady(layer: Layer | LayerGroup) {
+    console.log('wait start');
     return new Promise<void>((resolve, reject) => {
       const checkState = () => {
         const state = layer.getSourceState();
         if (state === 'ready') {
+          console.log('wait resolve');
           layer.un('change', checkState);
           resolve();
         } else if (state === 'error') {
