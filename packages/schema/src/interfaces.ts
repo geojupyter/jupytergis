@@ -240,6 +240,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   ): { [key: string]: ISelection } | null;
   setEditingItem(type: SelectionType, itemId: string): void;
   clearEditingItem(): void;
+  readonly editing: { type: SelectionType; itemId: string } | null;
   editingChanged: ISignal<
     IJupyterGISModel,
     { type: SelectionType; itemId: string } | null
