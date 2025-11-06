@@ -1,15 +1,16 @@
 import { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { BaseForm } from '@/src/formbuilder/objectform/baseform';
+import { StoryEditorForm } from '@/src/formbuilder/objectform/StoryForm';
 import { deepCopy } from '@/src/tools';
 import { IDict } from '@/src/types';
 
 interface IStoryPanelProps {
   model: IJupyterGISModel;
+  togglePreview: () => void;
 }
 
-export function StoryEditorPanel({ model }: IStoryPanelProps) {
+export function StoryEditorPanel({ model, togglePreview }: IStoryPanelProps) {
   const [schema, setSchema] = useState<IDict | undefined>(undefined);
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(null);
 
@@ -73,13 +74,14 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
   return (
     <div style={{ padding: '10px' }}>
       <h3>Story Map Properties</h3>
-      <BaseForm
+      <StoryEditorForm
         formContext="update"
         sourceData={storyData}
         model={model}
         schema={schema}
         syncData={syncStoryData}
         filePath={model.filePath}
+        togglePreview={togglePreview}
       />
     </div>
   );
