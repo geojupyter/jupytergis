@@ -417,4 +417,7 @@ export interface IJupyterGISSettings {
   objectPropertiesDisabled?: boolean;
   annotationsDisabled?: boolean;
   identifyDisabled?: boolean;
+
+  // Story maps
+  storyMapPresentation: boolean;
 }
