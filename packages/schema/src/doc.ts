@@ -467,7 +467,6 @@ export class JupyterGISDoc
       });
     });
     needEmit = changes.length === 0 ? true : needEmit;
-    console.log('needEmit', needEmit);
     if (needEmit) {
       this._storyMapsChanged.emit({ storyMapChange: changes });
     }
