@@ -1602,12 +1602,10 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param layer The Layer to check
    */
   private _waitForSourceReady(layer: Layer | LayerGroup) {
-    console.log('wait start');
     return new Promise<void>((resolve, reject) => {
       const checkState = () => {
         const state = layer.getSourceState();
         if (state === 'ready') {
-          console.log('wait resolve');
           layer.un('change', checkState);
           resolve();
         } else if (state === 'error') {
