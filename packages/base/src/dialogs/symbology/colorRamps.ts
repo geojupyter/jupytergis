@@ -1,8 +1,8 @@
 import { IColorRampDefinition } from '@/src/types';
 
 export const COLOR_RAMP_DEFINITIONS = {
-  // 'rainbow-soft': {type: 'Cyclic'}, 11 steps min
-  // 'hsv': {type: 'Cyclic'}, 11 steps min
+  'rainbow-soft': { type: 'Cyclic' },
+  hsv: { type: 'Cyclic' },
   phase: { type: 'Cyclic' },
   jet: { type: 'Sequential' },
   hot: { type: 'Sequential' },
@@ -42,7 +42,7 @@ export const COLOR_RAMP_DEFINITIONS = {
   turbidity: { type: 'Sequential' },
   'velocity-blue': { type: 'Sequential' },
   'velocity-green': { type: 'Sequential' },
-  // 'cubehelix': {type: 'Sequential'}, 16 steps min
+  cubehelix: { type: 'Sequential' },
   ice: { type: 'Sequential' },
   oxy: { type: 'Sequential' },
   matter: { type: 'Sequential' },
@@ -50,7 +50,7 @@ export const COLOR_RAMP_DEFINITIONS = {
   tempo: { type: 'Sequential' },
   rain: { type: 'Sequential' },
   topo: { type: 'Sequential' },
-  // 'picnic': {type: 'Divergent', criticalValue: 0.5 }, 11 steps min
+  picnic: { type: 'Divergent', criticalValue: 0.5 },
   balance: { type: 'Divergent', criticalValue: 0.5 },
   delta: { type: 'Divergent', criticalValue: 0.5 },
   curl: { type: 'Divergent', criticalValue: 0.5 },

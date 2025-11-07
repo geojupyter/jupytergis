@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/jupytergis-root",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "private": true,
   "homepage": "https://github.com/geojupyter/jupytergis",
   "repository": {

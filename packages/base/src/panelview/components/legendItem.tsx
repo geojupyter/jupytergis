@@ -370,6 +370,59 @@ export const LegendItem: React.FC<{
       return;
     }
 
+    // Heatmap
+    if (renderType === 'Heatmap') {
+      const colors = Array.isArray(symbology.color) ? symbology.color : [];
+      if (!colors.length) {
+        setContent(<p style={{ fontSize: '0.8em' }}>No heatmap colors</p>);
+        return;
+      }
+
+      const gradient = `linear-gradient(to right, ${colors.join(', ')})`;
+      const reversed = symbology.symbologyState?.reverse;
+
+      setContent(
+        <div style={{ padding: 6, width: '90%' }}>
+          <div style={{ fontSize: '1em', marginBottom: 10 }}>
+            <strong>Heatmap</strong>
+          </div>
+          <div
+            style={{
+              height: 12,
+              background: gradient,
+              border: '1px solid #ccc',
+              borderRadius: 3,
+              marginBottom: 4,
+            }}
+          />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: '0.75em',
+              marginBottom: 8,
+            }}
+          >
+            <span style={{ fontWeight: 'bold' }}>Low</span>
+            <span style={{ fontWeight: 'bold' }}>High</span>
+          </div>
+          <div
+            style={{
+              fontSize: '0.75em',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+            }}
+          >
+            {reversed && (
+              <span style={{ fontWeight: 'bold' }}>Reversed ramp</span>
+            )}
+          </div>
+        </div>,
+      );
+      return;
+    }
+
     setContent(<p>Unsupported symbology: {String(renderType)}</p>);
   }, [symbology, isLoading, error]);
 

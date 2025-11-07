@@ -2,6 +2,35 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.9.2
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.9.1...fc35e76946d0fc9a0c53528531ee56de9e0c4987))
+
+### Enhancements made
+
+- Add cmocean colormaps, fix bug when switching render type [#886](https://github.com/geojupyter/jupytergis/pull/886) ([@nakul-py](https://github.com/nakul-py))
+
+### Bugs fixed
+
+- Notebook Renderer: make `formSchemaRegistry` a required property [#918](https://github.com/geojupyter/jupytergis/pull/918) ([@arjxn-py](https://github.com/arjxn-py))
+
+### Maintenance and upkeep improvements
+
+- Bump the gha-dependencies group with 2 updates [#914](https://github.com/geojupyter/jupytergis/pull/914) ([@dependabot](https://github.com/dependabot))
+
+### Documentation improvements
+
+- JupyterLite deployment: Disable caching content [#913](https://github.com/geojupyter/jupytergis/pull/913) ([@martinRenou](https://github.com/martinRenou))
+- Updated and organized ipynb examples directory for clarity [#872](https://github.com/geojupyter/jupytergis/pull/872) ([@mapninja](https://github.com/mapninja))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-08-27&to=2025-09-05&type=c))
+
+[@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-08-27..2025-09-05&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adependabot+updated%3A2025-08-27..2025-09-05&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-08-27..2025-09-05&type=Issues) | [@mapninja](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amapninja+updated%3A2025-08-27..2025-09-05&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-08-27..2025-09-05&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-08-27..2025-09-05&type=Issues) | [@nakul-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2025-08-27..2025-09-05&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.9.1
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.9.0...5a70634d47a9fc2d3ed4dde6d5fb722cf75d659c))
@@ -19,8 +48,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-08-27&to=2025-08-27&type=c))
 
 [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-08-27..2025-08-27&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-08-27..2025-08-27&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-08-27..2025-08-27&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.9.0
 

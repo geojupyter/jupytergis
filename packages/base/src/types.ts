@@ -79,3 +79,10 @@ export interface IColorMap {
 }
 
 export type ColorRampName = keyof typeof COLOR_RAMP_DEFINITIONS;
+
+export const COLOR_RAMP_DEFAULTS: Partial<Record<ColorRampName, number>> = {
+  hsv: 11,
+  picnic: 11,
+  'rainbow-soft': 11,
+  cubehelix: 16,
+};

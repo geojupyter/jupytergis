@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 
 import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/colorRamps';
 import { LoadingIcon } from '@/src/shared/components/loading';
-import { ColorRampName } from '@/src/types';
+import { ColorRampName, COLOR_RAMP_DEFAULTS } from '@/src/types';
 import CanvasSelectComponent from './CanvasSelectComponent';
 import { ColorRampValueControls } from './ColorRampValueControls';
 import ModeSelectRow from './ModeSelectRow';
@@ -60,6 +60,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   const [minValue, setMinValue] = useState<number | undefined>(dataMin);
   const [maxValue, setMaxValue] = useState<number | undefined>(dataMax);
   const [isLoading, setIsLoading] = useState(false);
+  const [warning, setWarning] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedMode === '' && numberOfShades === '') {
@@ -72,6 +73,38 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     setMaxValue(layerParams.symbologyState?.max ?? dataMax);
   }, [dataMin, dataMax]);
 
+  useEffect(() => {
+    if (!selectedRamp) {
+      return;
+    }
+
+    const defaultClasses =
+      COLOR_RAMP_DEFAULTS[selectedRamp as ColorRampName] ?? 9;
+
+    setNumberOfShades(defaultClasses.toString());
+    setWarning(null);
+  }, [selectedRamp]);
+
+  useEffect(() => {
+    if (!selectedRamp || !numberOfShades) {
+      return;
+    }
+
+    const minRequired = COLOR_RAMP_DEFAULTS[selectedRamp as ColorRampName];
+    const shades = parseInt(numberOfShades, 10);
+    const rampLabel = selectedRamp
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('-');
+
+    if (minRequired && shades < minRequired) {
+      setWarning(
+        `${rampLabel} requires at least ${minRequired} classes (got ${shades})`,
+      );
+    } else {
+      setWarning(null);
+    }
+  }, [selectedRamp, numberOfShades]);
   const initializeState = () => {
     let nClasses, singleBandMode, colorRamp, reverseRamp;
 
@@ -81,9 +114,13 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       colorRamp = layerParams.symbologyState.colorRamp;
       reverseRamp = layerParams.symbologyState.reverse;
     }
-    setNumberOfShades(nClasses ?? '9');
+    const defaultRamp = colorRamp ?? 'viridis';
+    const defaultClasses =
+      nClasses ?? COLOR_RAMP_DEFAULTS[defaultRamp as ColorRampName] ?? 9;
+
+    setNumberOfShades(defaultClasses.toString());
     setSelectedMode(singleBandMode ?? 'equal interval');
-    setSelectedRamp(colorRamp ?? 'viridis');
+    setSelectedRamp(defaultRamp);
     setReverseRamp(reverseRamp ?? false);
   };
 
@@ -165,13 +202,22 @@ const ColorRamp: React.FC<IColorRampProps> = ({
           setSelectedMode={setSelectedMode}
         />
       )}
-
+      {warning && (
+        <div
+          className="jp-gis-warning"
+          style={{ color: 'orange', marginTop: 4 }}
+        >
+          {warning}
+        </div>
+      )}
       {isLoading ? (
         <LoadingIcon />
       ) : (
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
-          disabled={minValue === undefined || maxValue === undefined}
+          disabled={
+            minValue === undefined || maxValue === undefined || !!warning
+          }
           onClick={() => {
             if (minValue === undefined || maxValue === undefined) {
               return;

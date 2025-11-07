@@ -20,10 +20,12 @@
     },
     "normalize": {
       "type": "boolean",
+      "description": "Enable to normalize values between 0 and 1 and displayed as RGB values; disable to keep raw band values",
       "default": true
     },
     "wrapX": {
       "type": "boolean",
+      "description": "Wrap the map horizontally?",
       "default": false
     },
     "interpolate": {

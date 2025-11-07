@@ -32,6 +32,7 @@ import {
   IWebGlLayer,
   JgisCoordinates,
   JupyterGISModel,
+  IMarkerSource,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -250,9 +251,9 @@ export class MainView extends React.Component<IProps, IStates> {
     const options = this._model.getOptions();
     const center =
       options.longitude !== undefined && options.latitude !== undefined
-        ? fromLonLat([options.longitude!, options.latitude!])
+        ? fromLonLat([options.longitude, options.latitude])
         : [0, 0];
-    const zoom = options.zoom !== undefined ? options.zoom! : 1;
+    const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(center, zoom);
     this.addContextMenu();
@@ -434,6 +435,7 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.on('click', this._identifyFeature.bind(this));
+      this._Map.on('click', this._addMarker.bind(this));
 
       this._Map
         .getViewport()
@@ -868,6 +870,20 @@ export class MainView extends React.Component<IProps, IStates> {
         });
         break;
       }
+
+      case 'MarkerSource': {
+        const parameters = source.parameters as IMarkerSource;
+
+        const point = new Point(parameters.feature.coords);
+        const marker = new Feature({
+          type: 'icon',
+          geometry: point,
+        });
+
+        newSource = new VectorSource({
+          features: [marker],
+        });
+      }
     }
 
     newSource.set('id', id);
@@ -914,7 +930,7 @@ export class MainView extends React.Component<IProps, IStates> {
     // create updated source
     await this.addSource(id, source);
     // change source of target layer
-    (mapLayer as Layer).setSource(this._sources[id]);
+    mapLayer.setSource(this._sources[id]);
   }
 
   /**
@@ -2011,7 +2027,7 @@ export class MainView extends React.Component<IProps, IStates> {
             return;
           }
         } else {
-          jsonData = data as IAnnotation;
+          jsonData = data;
         }
 
         newState[key] = jsonData;
@@ -2058,7 +2074,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     // The id is a layer
     let extent;
-    const layer = this.getLayer(id) as Layer;
+    const layer = this.getLayer(id);
     const source = layer?.getSource();
 
     if (source instanceof VectorSource) {
@@ -2137,6 +2153,45 @@ export class MainView extends React.Component<IProps, IStates> {
     };
     this._model.syncPointer(pointer);
   });
+
+  private _addMarker(e: MapBrowserEvent<any>) {
+    if (this._model.currentMode !== 'marking') {
+      return;
+    }
+
+    const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+    const sourceId = UUID.uuid4();
+    const layerId = UUID.uuid4();
+
+    const sourceParameters: IMarkerSource = {
+      feature: { coords: [coordinate[0], coordinate[1]] },
+    };
+
+    const layerParams: IVectorLayer = {
+      opacity: 1.0,
+      source: sourceId,
+      symbologyState: { renderType: 'Single Symbol' },
+    };
+
+    const sourceModel: IJGISSource = {
+      type: 'MarkerSource',
+      name: 'Marker',
+      parameters: sourceParameters,
+    };
+
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      visible: true,
+      name: 'Marker',
+      parameters: layerParams,
+    };
+
+    this.addSource(sourceId, sourceModel);
+    this._model.sharedModel.addSource(sourceId, sourceModel);
+
+    this.addLayer(layerId, layerModel, this.getLayerIDs().length);
+    this._model.addLayer(layerId, layerModel);
+  }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
     if (this._model.currentMode !== 'identifying') {

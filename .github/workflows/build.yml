@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -69,7 +69,7 @@ jobs:
           yarn build:packages
 
       - name: Upload extension packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.python-version == '3.12' && 'extension-artifacts' || format('extension-artifacts-{0}', matrix.python-version) }}
           path: |
@@ -98,7 +98,7 @@ jobs:
             qgis
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install
         shell: bash -l {0}
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: extension-artifacts
 
@@ -152,7 +152,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -166,7 +166,7 @@ jobs:
             qgis
 
       - name: Download extension package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: extension-artifacts
 
@@ -192,7 +192,7 @@ jobs:
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: jupytergis-playwright-tests
           path: |
@@ -212,7 +212,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -235,11 +235,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
       - uses: jupyterlab/maintainer-tools/.github/actions/check-links@v1
         with:
-          ignore_links: 'lite/'
+          ignore_links: 'lite/ https://www.npmjs.com.* ^/.*'
 
   build-lite:
     name: Build JupyterLite artifacts
@@ -248,7 +248,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -263,7 +263,7 @@ jobs:
             jupyter_server
 
       - name: Download extension package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: extension-artifacts
 
@@ -285,11 +285,12 @@ jobs:
         working-directory: lite
         run: |
           set -eux
-          mkdir -p content && cp ../examples/*.jGIS ../examples/*.qgz ../examples/*.geojson ../examples/*.tif ../examples/*.zip ../examples/*.ipynb ../examples/*.gif ./content
+          cp --recursive --dereference ../ui-tests/content ./content
+          find ./content -type d -name ".ipynb_checkpoints" -exec rm -rf {} +
           jupyter lite build --contents content --output-dir dist
 
       - name: Upload Lite artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: lite-artifacts
           path: ./lite/dist
@@ -305,7 +306,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -317,7 +318,7 @@ jobs:
             jupyterlab
 
       - name: Download extension package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: lite-artifacts
           path: dist
@@ -349,7 +350,7 @@ jobs:
       - name: Upload Playwright Test report
         id: upload-galata-artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: jupytergis-lite-playwright-tests
           path: |

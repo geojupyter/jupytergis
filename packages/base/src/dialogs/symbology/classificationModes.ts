@@ -334,7 +334,7 @@ export namespace GeoTiffClassifications {
       if (numValuesInCurrentBin + 1 < valuesPerBin) {
         numValuesInCurrentBin++;
       } else {
-        breaks.push(bandSortedValues[i] as number);
+        breaks.push(bandSortedValues[i]);
         numValuesInCurrentBin = 0;
       }
     }

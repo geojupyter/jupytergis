@@ -35,13 +35,7 @@ author = "The JupyterGIS Development Team"
 language = "en"
 
 jupyterlite_contents = [
-    "../examples/*.jGIS",
-    "../examples/*.geojson",
-    "../examples/*.zip",
-    "../examples/*.gif",
-    "../examples/*.geojson",
-    "../examples/*.tif",
-    "../examples/*.ipynb",
+    "../examples",
 ]
 jupyterlite_dir = "."
 jupyterlite_config = "jupyter_lite_config.json"
@@ -54,3 +48,8 @@ todo_include_todos = False
 htmlhelp_basename = "jupytergisdoc"
 
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
+
+jupyterlite_ignore_contents = [
+    r".*\.qgz$",
+    r"99-Explore_data_in_a_map\.ipynb$",
+]

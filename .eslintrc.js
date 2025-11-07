@@ -11,6 +11,7 @@ module.exports = {
   },
   plugins: ["@typescript-eslint", "import"],
   rules: {
+    "@typescript-eslint/ban-ts-comment": "warn",
     "@typescript-eslint/naming-convention": [
       "error",
       {
@@ -31,7 +32,7 @@ module.exports = {
     ],
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-namespace": "off",
-    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/no-unnecessary-type-assertion": "error",
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/quotes": [
       "error",
