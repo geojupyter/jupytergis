@@ -1,5 +1,6 @@
 import { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import jgisSchema from '@jupytergis/schema/lib/schema/project/jgis.json';
+import React, { useMemo } from 'react';
 
 import { StoryEditorForm } from '@/src/formbuilder/objectform/StoryForm';
 import { deepCopy } from '@/src/tools';
@@ -10,46 +11,12 @@ interface IStoryPanelProps {
   togglePreview: () => void;
 }
 
-export function StoryEditorPanel({ model, togglePreview }: IStoryPanelProps) {
-  const [schema, setSchema] = useState<IDict | undefined>(undefined);
-  const [storyData, setStoryData] = useState<IJGISStoryMap | null>(null);
+const storyMapSchema: IDict = deepCopy(jgisSchema.definitions.jGISStoryMap);
 
-  // Get selected story info (derived from model)
+export function StoryEditorPanel({ model, togglePreview }: IStoryPanelProps) {
   const { landmarkId, story } = useMemo(() => {
     return model.getSelectedStory();
-  }, [model]);
-
-  // Helper to update story data from selected story
-  const updateStoryFromModel = useCallback(() => {
-    setStoryData(story ?? null);
-  }, [story]);
-
-  // Load schema once on mount
-  useEffect(() => {
-    // Get the story map schema from the definitions
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const jgisSchema = require('@jupytergis/schema/lib/schema/project/jgis.json');
-    const storyMapSchema = deepCopy(jgisSchema.definitions.jGISStoryMap);
-    setSchema(storyMapSchema);
-  }, []);
-
-  // Load initial story data when selected story changes
-  useEffect(() => {
-    updateStoryFromModel();
-  }, [updateStoryFromModel]);
-
-  // Listen for story map changes
-  useEffect(() => {
-    if (!landmarkId) {
-      return;
-    }
-
-    model.sharedModel.storyMapsChanged.connect(updateStoryFromModel);
-
-    return () => {
-      model.sharedModel.storyMapsChanged.disconnect(updateStoryFromModel);
-    };
-  }, [model, landmarkId, updateStoryFromModel]);
+  }, [model, model.sharedModel.storiesMap]);
 
   const syncStoryData = (properties: IDict) => {
     if (!landmarkId) {
@@ -59,11 +26,10 @@ export function StoryEditorPanel({ model, togglePreview }: IStoryPanelProps) {
     const { title, storyType, landmarks } = properties;
     const updatedStory: IJGISStoryMap = { title, storyType, landmarks };
 
-    setStoryData(updatedStory);
     model.sharedModel.updateStoryMap(landmarkId, updatedStory);
   };
 
-  if (!storyData) {
+  if (!story) {
     return (
       <div style={{ padding: '10px' }}>
         <p>No story map available. Create one by adding a landmark.</p>
@@ -76,9 +42,9 @@ export function StoryEditorPanel({ model, togglePreview }: IStoryPanelProps) {
       <h3>Story Map Properties</h3>
       <StoryEditorForm
         formContext="update"
-        sourceData={storyData}
+        sourceData={story}
         model={model}
-        schema={schema}
+        schema={storyMapSchema}
         syncData={syncStoryData}
         filePath={model.filePath}
         togglePreview={togglePreview}
