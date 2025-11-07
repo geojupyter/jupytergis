@@ -148,10 +148,12 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 
   const tabInfo = [
     !settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,
-    !settings.stacBrowserDisabled
+    !settings.stacBrowserDisabled && !settings.storyMapPresentation
       ? { name: 'stac', title: 'Stac Browser' }
       : false,
-    !settings.filtersDisabled ? { name: 'filters', title: 'Filters' } : false,
+    !settings.filtersDisabled && !settings.storyMapPresentation
+      ? { name: 'filters', title: 'Filters' }
+      : false,
     { name: 'landmarks', title: 'Landmarks' },
   ].filter(Boolean) as { name: string; title: string }[];
 
