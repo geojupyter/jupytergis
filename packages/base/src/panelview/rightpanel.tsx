@@ -25,7 +25,7 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
-  const [displayPreview, setDisplayPreview] = React.useState(false);
+  const [displayEditor, setDisplayEditor] = React.useState(true);
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
   const tabInfo = [
     !settings.objectPropertiesDisabled
@@ -33,7 +33,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
       : false,
     {
       name: 'storyPanel',
-      title: displayPreview ? 'Story Map' : 'Story Editor',
+      title: displayEditor ? 'Story Editor' : 'Story Map',
     },
     !settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
@@ -43,9 +43,12 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
       : false,
   ].filter(Boolean) as { name: string; title: string }[];
 
-  const [curTab, setCurTab] = React.useState<string | undefined>(
-    tabInfo.length > 0 ? tabInfo[0].name : undefined,
-  );
+  const [curTab, setCurTab] = React.useState<string>(() => {
+    if (settings.storyMapPresentation) {
+      return 'storyPanel';
+    }
+    return tabInfo.length > 0 ? tabInfo[0].name : '';
+  });
 
   React.useEffect(() => {
     const onSettingsChanged = () => {
@@ -89,8 +92,8 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
 
-  const togglePreview = () => {
-    setDisplayPreview(!displayPreview);
+  const toggleEditor = () => {
+    setDisplayEditor(!displayEditor);
   };
 
   return (
@@ -118,30 +121,31 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           ))}
         </TabsList>
 
-        {!settings.objectPropertiesDisabled && (
-          <TabsContent
-            value="objectProperties"
-            className="jgis-panel-tab-content"
-          >
-            <ObjectPropertiesReact
-              setSelectedObject={setSelectedObjectProperties}
-              selectedObject={selectedObjectProperties}
-              formSchemaRegistry={props.formSchemaRegistry}
-              model={props.model}
-            />
-          </TabsContent>
-        )}
+        {!settings.objectPropertiesDisabled &&
+          !settings.storyMapPresentation && (
+            <TabsContent
+              value="objectProperties"
+              className="jgis-panel-tab-content"
+            >
+              <ObjectPropertiesReact
+                setSelectedObject={setSelectedObjectProperties}
+                selectedObject={selectedObjectProperties}
+                formSchemaRegistry={props.formSchemaRegistry}
+                model={props.model}
+              />
+            </TabsContent>
+          )}
 
         <TabsContent value="storyPanel" className="jgis-panel-tab-content">
-          {displayPreview ? (
+          {settings.storyMapPresentation || !displayEditor ? (
             <StoryViewerPanel
               model={props.model}
-              togglePreview={togglePreview}
+              togglePreview={toggleEditor}
             />
           ) : (
             <StoryEditorPanel
               model={props.model}
-              togglePreview={togglePreview}
+              togglePreview={toggleEditor}
             />
           )}
         </TabsContent>
