@@ -1,0 +1,9 @@
+.jgis-story-panel-content p,
+.jgis-story-panel-content span,
+.jgis-story-panel-content li {
+  font-size: var(--jp-ui-font-size2);
+}
+
+.jgis-story-panel-content > ul {
+  padding-left: 1rem;
+}

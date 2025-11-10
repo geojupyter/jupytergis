@@ -11,6 +11,7 @@
 @import url('./statusBar.css');
 @import url('./temporalSlider.css');
 @import url('./tabPanel.css');
+@import url('./storyPanel.css');
 @import url('ol/ol.css');
 @import url('./shared/button.css');
 @import url('./shared/toggle.css');
