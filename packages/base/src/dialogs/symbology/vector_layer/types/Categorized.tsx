@@ -3,7 +3,7 @@ import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 
-import ColorRamp from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import ColorRampControls from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import {
   IStopRow,
@@ -331,7 +331,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
           )}
 
           <div className="jp-gis-layer-symbology-container">
-            <ColorRamp
+            <ColorRampControls
               layerParams={layer.parameters}
               modeOptions={[]}
               classifyFunc={buildColorInfoFromClassification}

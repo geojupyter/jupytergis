@@ -1,14 +1,33 @@
+/**
+ * @module ColorRampControls
+ *
+ * This component provides the main UI controls for classifying raster layers
+ * using different color ramps and classification modes.
+ *
+ * Allows users to:
+ * - Select a color ramp (`ColorRampSelector`)
+ * - Choose classification mode and number of classes (`ModeSelectRow`)
+ * - Run classification via `classifyFunc`, with loading state (`LoadingIcon`)
+ *
+ * Props:
+ * - `modeOptions`: Available classification modes.
+ * - `layerParams`: Layer symbology state.
+ * - `classifyFunc`: Callback for classification.
+ * - `showModeRow`: Toggle for mode selector.
+ * - `showRampSelector`: Toggle for ramp selector.
+ */
+
 import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
 import { LoadingIcon } from '@/src/shared/components/loading';
 import { ClassificationMode } from '@/src/types';
-import CanvasSelectComponent from './CanvasSelectComponent';
+import ColorRampSelector from './ColorRampSelector';
 import ModeSelectRow from './ModeSelectRow';
 import { COLOR_RAMP_DEFAULTS, ColorRampName } from '../../colorRampUtils';
 
-interface IColorRampProps {
+interface IColorRampControlsProps {
   modeOptions: ClassificationMode[];
   layerParams: IDict;
   classifyFunc: (
@@ -21,7 +40,7 @@ interface IColorRampProps {
   showRampSelector: boolean;
 }
 
-export type ColorRampOptions = {
+export type ColorRampControlsOptions = {
   selectedRamp: ColorRampName;
   numberOfShades: number;
   selectedMode: ClassificationMode;
@@ -29,7 +48,7 @@ export type ColorRampOptions = {
 
 const isValidNumberOfShades = (value: number) => !isNaN(value) && value > 0;
 
-const ColorRamp: React.FC<IColorRampProps> = ({
+const ColorRampControls: React.FC<IColorRampControlsProps> = ({
   layerParams,
   modeOptions,
   classifyFunc,
@@ -96,7 +115,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       {showRampSelector && (
         <div className="jp-gis-symbology-row">
           <label htmlFor="color-ramp-select">Color Ramp:</label>
-          <CanvasSelectComponent
+          <ColorRampSelector
             selectedRamp={selectedRamp}
             setSelected={setSelectedRamp}
           />
@@ -143,4 +162,4 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   );
 };
 
-export default ColorRamp;
+export default ColorRampControls;

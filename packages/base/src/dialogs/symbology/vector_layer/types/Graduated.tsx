@@ -3,9 +3,9 @@ import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { VectorClassifications } from '@/src/dialogs/symbology/classificationModes';
-import ColorRamp, {
-  ColorRampOptions,
-} from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import ColorRampControls, {
+  ColorRampControlsOptions,
+} from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import {
   IStopRow,
@@ -37,13 +37,13 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   const symbologyTabRef = useRef<string>();
   const colorStopRowsRef = useRef<IStopRow[]>([]);
   const radiusStopRowsRef = useRef<IStopRow[]>([]);
-  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
+  const colorRampOptionsRef = useRef<ColorRampControlsOptions | undefined>();
 
   const [selectedAttribute, setSelectedAttribute] = useState('');
   const [colorStopRows, setColorStopRows] = useState<IStopRow[]>([]);
   const [radiusStopRows, setRadiusStopRows] = useState<IStopRow[]>([]);
   const [colorRampOptions, setColorRampOptions] = useState<
-    ColorRampOptions | undefined
+    ColorRampControlsOptions | undefined
   >();
   const [colorManualStyle, setColorManualStyle] = useState({
     strokeColor: '#3399CC',
@@ -383,7 +383,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             </div>
           )}
 
-          <ColorRamp
+          <ColorRampControls
             layerParams={layer.parameters}
             modeOptions={modeOptions}
             classifyFunc={buildColorInfoFromClassification}

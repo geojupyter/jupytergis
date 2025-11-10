@@ -1,3 +1,16 @@
+/**
+ * @module ColorRampSelector
+ *
+ * Dropdown component for selecting a color ramp.
+ * - Displays the currently selected ramp as a preview on a canvas.
+ * - Expands to show a list of available ramps (`ColorRampSelectorEntry`).
+ * - Updates the preview and notifies parent via `setSelected` when a ramp is chosen.
+ *
+ * Props:
+ * - `selectedRamp`: Name of the currently selected color ramp.
+ * - `setSelected`: Callback fired with the new ramp when selected.
+ */
+
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -5,19 +18,19 @@ import {
   ColorRampName,
   useColorMapList,
 } from '@/src/dialogs/symbology/colorRampUtils';
-import ColorRampEntry from './ColorRampEntry';
+import ColorRampSelectorEntry from './ColorRampSelectorEntry';
 
 export interface IColorMap {
   name: string;
   colors: string[];
 }
 
-interface ICanvasSelectComponentProps {
+interface IColorRampSelectorProps {
   selectedRamp: ColorRampName;
   setSelected: (item: any) => void;
 }
 
-const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
+const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   selectedRamp,
   setSelected,
 }) => {
@@ -111,11 +124,15 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
         className={`jp-gis-color-ramp-dropdown ${isOpen ? 'jp-gis-open' : ''}`}
       >
         {colorMaps.map((item, index) => (
-          <ColorRampEntry index={index} colorMap={item} onClick={selectItem} />
+          <ColorRampSelectorEntry
+            index={index}
+            colorMap={item}
+            onClick={selectItem}
+          />
         ))}
       </div>
     </div>
   );
 };
 
-export default CanvasSelectComponent;
+export default ColorRampSelector;

@@ -5,9 +5,9 @@ import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { GeoTiffClassifications } from '@/src/dialogs/symbology/classificationModes';
-import ColorRamp, {
-  ColorRampOptions,
-} from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import ColorRampControls, {
+  ColorRampControlsOptions,
+} from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import StopRow from '@/src/dialogs/symbology/components/color_stops/StopRow';
 import useGetBandInfo, {
   IBandRow,
@@ -56,13 +56,13 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   const [selectedFunction, setSelectedFunction] =
     useState<InterpolationType>('linear');
   const [colorRampOptions, setColorRampOptions] = useState<
-    ColorRampOptions | undefined
+    ColorRampControlsOptions | undefined
   >();
 
   const stopRowsRef = useRef<IStopRow[]>();
   const bandRowsRef = useRef<IBandRow[]>([]);
   const selectedFunctionRef = useRef<InterpolationType>();
-  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
+  const colorRampOptionsRef = useRef<ColorRampControlsOptions | undefined>();
   const selectedBandRef = useRef<number>();
 
   useEffect(() => {
@@ -410,7 +410,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
         </div>
       </div>
       {bandRows.length > 0 && (
-        <ColorRamp
+        <ColorRampControls
           layerParams={layer.parameters}
           modeOptions={modeOptions}
           classifyFunc={buildColorInfoFromClassification}
