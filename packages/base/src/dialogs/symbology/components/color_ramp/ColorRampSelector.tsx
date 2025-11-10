@@ -17,13 +17,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ColorRampName,
   useColorMapList,
+  IColorMap,
 } from '@/src/dialogs/symbology/colorRampUtils';
 import ColorRampSelectorEntry from './ColorRampSelectorEntry';
-
-export interface IColorMap {
-  name: string;
-  colors: string[];
-}
 
 interface IColorRampSelectorProps {
   selectedRamp: ColorRampName;
