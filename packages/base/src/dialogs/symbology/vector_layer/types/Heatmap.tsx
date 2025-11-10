@@ -1,7 +1,7 @@
 import colormap from 'colormap';
 import React, { useEffect, useRef, useState } from 'react';
 
-import CanvasSelectComponent from '@/src/dialogs/symbology/components/color_ramp/CanvasSelectComponent';
+import ColorRampSelector from '@/src/dialogs/symbology/components/color_ramp/ColorRampSelector';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
@@ -99,7 +99,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
       <p>Represent features based on their density using a heatmap.</p>
       <div className="jp-gis-symbology-row jp-gis-heatmap">
         <label htmlFor="color-ramp-select">Color Ramp:</label>
-        <CanvasSelectComponent
+        <ColorRampSelector
           selectedRamp={selectedRamp}
           setSelected={setSelectedRamp}
           reverse={reverseRamp}

@@ -97,6 +97,7 @@ button.jp-mod-styled.jp-mod-reject {
   right: 0px;
   position: absolute;
   margin: 5px;
+  z-index: 40;
 }
 
 .jgis-left-panel-container {
@@ -105,6 +106,7 @@ button.jp-mod-styled.jp-mod-reject {
   top: 30px;
   left: 0px;
   margin: 5px;
+  z-index: 40;
 }
 
 @media (max-width: 768px) {

@@ -1,14 +1,26 @@
+/**
+ * @module ColorRampSelectorEntry
+ *
+ * Represents a single selectable color ramp option in the `ColorRampSelector`.
+ * Renders a preview ColorRamp on a canvas and triggers `onClick` when selected.
+ *
+ * Props:
+ * - `index`: Unique index for canvas ID.
+ * - `colorMap`: Ramp definition including name and colors.
+ * - `onClick`: Callback fired with the ramp name when clicked.
+ */
+
 import React, { useEffect } from 'react';
 
 import { IColorMap } from '@/src/types';
 
-interface IColorRampEntryProps {
+interface IColorRampSelectorEntryProps {
   index: number;
   colorMap: IColorMap;
   onClick: (item: any) => void;
 }
 
-const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
+const ColorRampSelectorEntry: React.FC<IColorRampSelectorEntryProps> = ({
   index,
   colorMap,
   onClick,
@@ -59,4 +71,4 @@ const ColorRampEntry: React.FC<IColorRampEntryProps> = ({
   );
 };
 
-export default ColorRampEntry;
+export default ColorRampSelectorEntry;

@@ -1895,15 +1895,13 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
     const layer = this.getLayer(id);
-    let nextIndex = index;
+
     // should not be undefined since the id exists above
     if (layer === undefined) {
       return;
     }
     this._Map.getLayers().removeAt(currentIndex);
-    if (currentIndex < index) {
-      nextIndex -= 1;
-    }
+
     // Adjust index to ensure it's within bounds
     const numLayers = this._Map.getLayers().getLength();
     const safeIndex = Math.min(index, numLayers);
@@ -2231,7 +2229,7 @@ export class MainView extends React.Component<IProps, IStates> {
           const fid = feature.getId?.() ?? rawProps?.fid;
 
           if (rawProps && Object.keys(rawProps).length > 1) {
-            const { geometry, ...clean } = rawProps;
+            const { ...clean } = rawProps;
             props = clean;
             if (fid !== null) {
               // TODO Clean the cache under some condition?
@@ -2413,7 +2411,24 @@ export class MainView extends React.Component<IProps, IStates> {
                 width: '100%',
                 height: '100%',
               }}
-            />
+            >
+              <div className="jgis-panels-wrapper">
+                {this._state && (
+                  <LeftPanel
+                    model={this._model}
+                    commands={this._mainViewModel.commands}
+                    state={this._state}
+                  ></LeftPanel>
+                )}
+                {this._formSchemaRegistry && this._annotationModel && (
+                  <RightPanel
+                    model={this._model}
+                    formSchemaRegistry={this._formSchemaRegistry}
+                    annotationModel={this._annotationModel}
+                  ></RightPanel>
+                )}
+              </div>
+            </div>
           </div>
           <StatusBar
             jgisModel={this._model}
@@ -2421,23 +2436,6 @@ export class MainView extends React.Component<IProps, IStates> {
             projection={this.state.viewProjection}
             scale={this.state.scale}
           />
-        </div>
-
-        <div className="jgis-panels-wrapper">
-          {this._state && (
-            <LeftPanel
-              model={this._model}
-              commands={this._mainViewModel.commands}
-              state={this._state}
-            ></LeftPanel>
-          )}
-          {this._formSchemaRegistry && this._annotationModel && (
-            <RightPanel
-              model={this._model}
-              formSchemaRegistry={this._formSchemaRegistry}
-              annotationModel={this._annotationModel}
-            ></RightPanel>
-          )}
         </div>
       </>
     );

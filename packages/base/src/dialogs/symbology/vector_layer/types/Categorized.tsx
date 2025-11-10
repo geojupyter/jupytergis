@@ -2,9 +2,7 @@ import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 
-import ColorRamp, {
-  ColorRampOptions,
-} from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import ColorRampControls, { ColorRampControlsOptions } from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import {
   IStopRow,
@@ -25,12 +23,12 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
 }) => {
   const selectedAttributeRef = useRef<string>();
   const stopRowsRef = useRef<IStopRow[]>();
-  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
+  const colorRampOptionsRef = useRef<ColorRampControlsOptions | undefined>();
 
   const [selectedAttribute, setSelectedAttribute] = useState('');
   const [stopRows, setStopRows] = useState<IStopRow[]>([]);
   const [colorRampOptions, setColorRampOptions] = useState<
-    ColorRampOptions | undefined
+    ColorRampControlsOptions | undefined
   >();
   const [manualStyle, setManualStyle] = useState({
     fillColor: '#3399CC',
@@ -336,7 +334,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
           </div>
 
           <div className="jp-gis-layer-symbology-container">
-            <ColorRamp
+            <ColorRampControls
               layerParams={layer.parameters}
               modeOptions={[]}
               classifyFunc={buildColorInfoFromClassification}
