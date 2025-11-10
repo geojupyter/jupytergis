@@ -12,7 +12,7 @@
 
 import React, { useEffect } from 'react';
 
-import { IColorMap } from './ColorRampSelector';
+import { IColorMap } from '@/src/dialogs/symbology/colorRampUtils';
 
 interface IColorRampSelectorEntryProps {
   index: number;
