@@ -76,5 +76,21 @@ test.describe('#annotations', () => {
 
     // Verify the entered text is displayed in the side panel annotation
     await expect(annotationPanel).toContainText(annotationText, {});
+
+    // Delete the annotation
+    const deleteButton = annotationPanel
+      .locator('.jGIS-Annotation-Buttons')
+      .getByRole('button')
+      .first();
+    await deleteButton.click();
+
+    // Confirm deletion in the dialog
+    await page.getByRole('button', { name: 'Delete' }).click();
+
+    // Verify the annotation is no longer visible in the side panel
+    await expect(annotationPanel).not.toBeVisible();
+
+    const a = false;
+    expect(a);
   });
 });
