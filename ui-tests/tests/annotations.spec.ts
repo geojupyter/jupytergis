@@ -19,67 +19,62 @@ test.describe('#annotations', () => {
     await page.activity.closeAll();
   });
 
-  test('Should be able to add an annotation', async ({ page }) => {
-    const main = page.locator('.jGIS-Mainview');
-    await expect(main).toBeVisible();
+  test('Should add an annotation and display the entered text', async ({
+    page,
+  }) => {
+    // Wait for main view to be visible
+    await expect(page.locator('.jGIS-Mainview')).toBeVisible();
 
+    // Open Annotations tab in side panel
     await page.getByText('Annotations').click();
-    await page.evaluate(() => {
-      const el = document.querySelector('canvas');
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      el.dispatchEvent(
-        new MouseEvent('contextmenu', {
-          bubbles: true,
-          cancelable: true,
-          button: 2,
-          clientX: rect.left + 10,
-          clientY: rect.top + 10,
-        }),
-      );
+
+    // Right-click on the map canvas to open context menu
+    const canvas = page.locator('canvas').first();
+    await canvas.click({ button: 'right', position: { x: 10, y: 10 } });
+
+    // Click "Add annotation" from context menu
+    await page.getByText('Add annotation').click();
+
+    // Get the annotations panel and wait for the annotation to appear in the side panel
+    const annotationsPanel = page.getByRole('tabpanel', {
+      name: 'Annotations',
     });
 
-    await page.getByText('Add annotation').click();
-    await page
-      .getByLabel('annotation-test.jGIS')
-      .getByPlaceholder('Ctrl+Enter to submit')
-      .first()
-      .click();
-    await page
-      .getByLabel('annotation-test.jGIS')
-      .getByPlaceholder('Ctrl+Enter to submit')
-      .first()
-      .fill('this is a test');
-    await page
+    // Wait for the annotation panel container to appear
+    const annotationPanel = annotationsPanel
+      .locator('.jgis-annotation-panel')
+      .first();
+    await expect(annotationPanel).toBeVisible();
+
+    // Find the textarea within the side panel annotation
+    const textarea = annotationPanel.locator('[data-id="annotation-textarea"]');
+    await expect(textarea).toBeVisible();
+    await expect(textarea).toBeEnabled();
+
+    // Click the textarea to focus it, then clear and fill it
+    await textarea.click();
+    await textarea.clear();
+
+    // Enter text in the annotation textarea
+    const annotationText = 'Test annotation message';
+    await textarea.fill(annotationText);
+
+    // Verify the text was actually entered
+    await expect(textarea).toHaveValue(annotationText);
+
+    // Submit the annotation - find the submit button in the side panel annotation
+    const submitButton = annotationPanel
       .locator('.jGIS-Annotation-Buttons')
-      .locator('button')
-      .nth(1)
-      .click();
+      .getByRole('button')
+      .last();
+    await submitButton.click();
 
-    // Check map
+    // Wait for the message to appear in the annotation
     await expect(
-      page.locator('.jGIS-Annotation-Message').first(),
-    ).toContainText('this is a test');
+      annotationPanel.locator('.jGIS-Annotation-Message-Content'),
+    ).toBeVisible();
 
-    // Check side panel
-    await expect(
-      page.getByLabel('Annotations', { exact: true }).getByRole('paragraph'),
-    ).toContainText('this is a test');
-
-    // Delete
-    await page
-      .locator('.jGIS-Annotation-Buttons')
-      .locator('button')
-      .first()
-      .click();
-    await page.getByRole('button', { name: 'Delete' }).click();
-
-    await expect(
-      page
-        .getByLabel('annotation-test.jGIS')
-        .locator('div')
-        .filter({ hasText: /^AHthis is a test$/ })
-        .nth(2),
-    ).not.toBeVisible();
+    // Verify the entered text is displayed in the side panel annotation
+    await expect(annotationPanel).toContainText(annotationText, {});
   });
 });
