@@ -3,7 +3,6 @@ import {
   IJGISLayer,
   IJGISStoryMap,
   IJupyterGISModel,
-  ILandmarkLayer,
 } from '@jupytergis/schema';
 import React, { useEffect, useMemo, useState } from 'react';
 import Markdown from 'react-markdown';
@@ -38,7 +37,7 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
 
   // Derive active slide and layer name from current landmark
   const activeSlide = useMemo(() => {
-    return currentLandmark?.parameters as ILandmarkLayer | undefined;
+    return currentLandmark?.parameters;
   }, [currentLandmark]);
 
   const layerName = useMemo(() => {
@@ -154,6 +153,7 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
             style={{
               width: '100%',
               height: '100%',
+              maxHeight: '240px',
               objectFit: 'cover',
               display: 'block',
             }}
@@ -172,22 +172,24 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
               textAlign: 'center',
             }}
           >
-            {storyData.title}
+            {`Slide ${currentRankDisplayed + 1} - ${layerName ? layerName : 'Landmark Name'}`}
           </h1>
         </div>
       ) : (
         <h1 style={{ textAlign: 'center' }}>{storyData.title}</h1>
       )}
       <h2 style={{ textAlign: 'center' }}>
-        {`Slide ${currentRankDisplayed} - ${layerName ? layerName : 'Landmark Name'}`}
-      </h2>
-      <h3 style={{ paddingLeft: 2 }}>
         {activeSlide?.content?.title
           ? activeSlide.content.title
           : 'Slide Title'}
-      </h3>
+      </h2>
+      {/* <h3 style={{ paddingLeft: 2 }}>
+        {activeSlide?.content?.title
+          ? activeSlide.content.title
+          : 'Slide Title'}
+      </h3> */}
       {activeSlide?.content?.markdown && (
-        <div style={{ paddingLeft: 4 }}>
+        <div className="jgis-story-panel-content" style={{ paddingLeft: 32 }}>
           <Markdown>{activeSlide.content.markdown}</Markdown>
         </div>
       )}
