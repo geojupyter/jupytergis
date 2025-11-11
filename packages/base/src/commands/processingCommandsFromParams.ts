@@ -39,7 +39,10 @@ export function addProcessingCommandsFromParams(options: {
       continue;
     }
 
-    const schema = processingSchemas[processingElement.name];
+    const schemaKey = Object.keys(processingSchemas).find(
+      key => key.toLowerCase() === processingElement.name.toLowerCase(),
+    );
+    const schema = schemaKey ? processingSchemas[schemaKey] : undefined;
     if (!schema) {
       console.warn(
         `No schema found for ${processingElement.name}, skipping command`,
