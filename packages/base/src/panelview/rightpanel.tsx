@@ -136,7 +136,11 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             </TabsContent>
           )}
 
-        <TabsContent value="storyPanel" className="jgis-panel-tab-content">
+        <TabsContent
+          value="storyPanel"
+          className="jgis-panel-tab-content"
+          style={{ paddingTop: 0 }}
+        >
           {settings.storyMapPresentation || !displayEditor ? (
             <StoryViewerPanel
               model={props.model}
