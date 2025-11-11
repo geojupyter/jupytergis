@@ -2112,7 +2112,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.syncPointer(pointer);
   });
 
-  private _addMarker(e: MapBrowserEvent<any>) {
+  private async _addMarker(e: MapBrowserEvent<any>) {
     if (this._model.currentMode !== 'marking') {
       return;
     }
@@ -2144,11 +2144,11 @@ export class MainView extends React.Component<IProps, IStates> {
       parameters: layerParams,
     };
 
-    this.addSource(sourceId, sourceModel);
     this._model.sharedModel.addSource(sourceId, sourceModel);
+    await this.addSource(sourceId, sourceModel);
 
-    this.addLayer(layerId, layerModel, this.getLayerIDs().length);
     this._model.addLayer(layerId, layerModel);
+    await this.addLayer(layerId, layerModel, this.getLayerIDs().length);
   }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
