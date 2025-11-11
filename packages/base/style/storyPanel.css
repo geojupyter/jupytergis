@@ -1,9 +1,13 @@
-.jgis-story-panel-content p,
-.jgis-story-panel-content span,
-.jgis-story-panel-content li {
+.jgis-story-viewer-panel * {
+    box-sizing: border-box;
+}
+
+.jgis-story-viewer-content p,
+.jgis-story-viewer-content span,
+.jgis-story-viewer-content li {
   font-size: var(--jp-ui-font-size2);
 }
 
-.jgis-story-panel-content > ul {
+.jgis-story-viewer-content > ul {
   padding-left: 1rem;
 }
