@@ -3,16 +3,84 @@ import {
   ProcessingLogicType,
   ProcessingType,
   ProcessingMerge,
+  IJGISLayer,
+  IJGISSource,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CommandRegistry } from '@lumino/commands';
+import { UUID } from '@lumino/coreutils';
 
-import { processSelectedLayer } from '../processing';
+import { getGdal } from '../gdal';
+import { getLayerGeoJSON } from '../processing';
 import { replaceInSql } from '../processing/processingCommands';
 import { JupyterGISTracker } from '../types';
 
 /**
- * Dynamically registers processing commands from schemas and ProcessingMerge metadata.
+ * Execute processing directly from params (no UI dialogs).
+ */
+async function processLayerFromParams(
+  tracker: JupyterGISTracker,
+  processingType: ProcessingType,
+  options: {
+    sqlQueryFn: (layerName: string, param: any) => string;
+    gdalFunction: 'ogr2ogr' | 'gdal_rasterize' | 'gdalwarp' | 'gdal_translate';
+    gdalOptions: (sqlQuery: string) => string[];
+  },
+  app: JupyterFrontEnd,
+  filePath: string,
+  params: Record<string, any>,
+): Promise<void> {
+  const current = tracker.find(w => w.model.filePath === filePath);
+  if (!current) {return;}
+
+  const model = current.model;
+  const { sources = {}, layers = {} } = model.sharedModel;
+  const inputLayerId = params.inputLayer;
+  const inputLayer = layers[inputLayerId];
+  if (!inputLayer) {return;}
+
+  const geojsonString = await getLayerGeoJSON(inputLayer, sources, model);
+  if (!geojsonString) {return;}
+
+  const Gdal = await getGdal();
+  const fileBlob = new Blob([geojsonString], { type: 'application/geo+json' });
+  const geoFile = new File([fileBlob], 'input.geojson', {
+    type: 'application/geo+json',
+  });
+
+  const result = await Gdal.open(geoFile);
+  const dataset = result.datasets[0] as any;
+  const layerName = dataset.info.layers[0].name;
+
+  const sqlQuery = options.sqlQueryFn(layerName, params);
+  const fullOptions = options.gdalOptions(sqlQuery);
+
+  const outputFilePath = await Gdal.ogr2ogr(dataset, fullOptions);
+  const processedBytes = await Gdal.getFileBytes(outputFilePath);
+  Gdal.close(dataset);
+
+  const processedGeoJSON = JSON.parse(new TextDecoder().decode(processedBytes));
+  const newSourceId = UUID.uuid4();
+
+  const sourceModel: IJGISSource = {
+    type: 'GeoJSONSource',
+    name: `${processingType} Output`,
+    parameters: { data: processedGeoJSON },
+  };
+
+  const layerModel: IJGISLayer = {
+    type: 'VectorLayer',
+    name: `${processingType} Layer`,
+    visible: true,
+    parameters: { source: newSourceId },
+  };
+
+  model.sharedModel.addSource(newSourceId, sourceModel);
+  model.addLayer(UUID.uuid4(), layerModel);
+}
+
+/**
+ * Register all processing commands from schema + ProcessingMerge metadata.
  */
 export function addProcessingCommandsFromParams(options: {
   app: JupyterFrontEnd;
@@ -21,39 +89,22 @@ export function addProcessingCommandsFromParams(options: {
   trans: any;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   processingSchemas: Record<string, any>;
-}) {
-  const {
-    app,
-    commands,
-    tracker,
-    trans,
-    formSchemaRegistry,
-    processingSchemas,
-  } = options;
+}): void {
+  const { app, commands, tracker, trans, processingSchemas } = options;
 
-  for (const processingElement of ProcessingMerge) {
-    if (processingElement.type !== ProcessingLogicType.vector) {
-      console.error(
-        `Skipping unsupported processing type: ${processingElement.type}`,
-      );
-      continue;
-    }
+  for (const proc of ProcessingMerge) {
+    if (proc.type !== ProcessingLogicType.vector) {continue;}
 
     const schemaKey = Object.keys(processingSchemas).find(
-      key => key.toLowerCase() === processingElement.name.toLowerCase(),
+      k => k.toLowerCase() === proc.name.toLowerCase(),
     );
     const schema = schemaKey ? processingSchemas[schemaKey] : undefined;
-    if (!schema) {
-      console.warn(
-        `No schema found for ${processingElement.name}, skipping command`,
-      );
-      continue;
-    }
+    if (!schema) {continue;}
 
-    const commandId = `${processingElement.name}WithParams`;
+    const commandId = `${proc.name}WithParams`;
 
     commands.addCommand(commandId, {
-      label: trans.__(`${processingElement.label} from params`),
+      label: trans.__(`${proc.label} from params`),
       isEnabled: () => true,
       describedBy: {
         args: {
@@ -62,7 +113,7 @@ export function addProcessingCommandsFromParams(options: {
           properties: {
             filePath: {
               type: 'string',
-              description: 'Path to the .jGIS file containing the layer',
+              description: 'Path to the .jGIS file',
             },
             params: schema,
           },
@@ -73,41 +124,26 @@ export function addProcessingCommandsFromParams(options: {
         params: Record<string, any>;
       }) => {
         const { filePath, params } = args;
-        const current = tracker.find(w => w.model.filePath === filePath);
-
-        if (!current) {
-          console.warn('No JupyterGIS widget found for', filePath);
-          return;
-        }
-
-        // Build SQL using replaceInSql()
-        const sql = replaceInSql(
-          processingElement.operations.sql,
-          Object.fromEntries(
-            Object.entries(params).map(([k, v]) => [k, String(v)]),
-          ),
-          params.inputLayer ?? '',
-        );
-
-        // Execute using standard processSelectedLayer()
-        await processSelectedLayer(
+        await processLayerFromParams(
           tracker,
-          formSchemaRegistry,
-          processingElement as unknown as ProcessingType,
+          proc.name as ProcessingType,
           {
-            sqlQueryFn: () => sql,
-            gdalFunction: processingElement.operations.gdalFunction,
-            options: (query: string) => [
+            sqlQueryFn: (layer, p) =>
+              replaceInSql(proc.operations.sql, p, layer),
+            gdalFunction: 'ogr2ogr',
+            gdalOptions: (sql: string) => [
               '-f',
               'GeoJSON',
               '-dialect',
               'SQLITE',
               '-sql',
-              query,
+              sql,
               'output.geojson',
             ],
           },
           app,
+          filePath,
+          params,
         );
       }) as any,
     });
