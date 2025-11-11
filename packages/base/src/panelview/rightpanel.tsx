@@ -138,15 +138,15 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           )}
 
           <TabsContent value="storyPanel" className="jgis-panel-tab-content">
-            {displayPreview ? (
+            {settings.storyMapPresentation || !displayEditor ? (
               <StoryViewerPanel
                 model={props.model}
-                togglePreview={togglePreview}
+                togglePreview={toggleEditor}
               />
             ) : (
               <StoryEditorPanel
                 model={props.model}
-                togglePreview={togglePreview}
+                togglePreview={toggleEditor}
               />
             )}
           </TabsContent>

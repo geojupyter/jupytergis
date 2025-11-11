@@ -1,6 +1,5 @@
 .jgis-panel-tab-content {
-  border-radius: 5px;
-  font-size: 10px;
+  font-size: var(--jp-ui-font-size0);
   padding-bottom: 50px;
 }
 

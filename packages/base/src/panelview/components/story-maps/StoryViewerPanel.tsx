@@ -143,7 +143,7 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
   }
 
   return (
-    <div style={{ overflow: 'hidden' }}>
+    <div className="jgis-story-viewer-panel" style={{ overflow: 'hidden' }}>
       {/* Image container with title overlay */}
       {activeSlide?.content?.image ? (
         <div style={{ position: 'relative', width: '100%', height: '30%' }}>
@@ -164,8 +164,12 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
               top: 0,
               left: 0,
               width: '100%',
-              margin: 0,
-              padding: '1rem',
+              marginTop: 0,
+              marginBottom: 0,
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              paddingTop: '1rem',
+              paddingBottom: '1rem',
               color: 'white',
               textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
               backgroundColor: 'rgba(0, 0, 0, 0.3)',
@@ -189,7 +193,7 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
           : 'Slide Title'}
       </h3> */}
       {activeSlide?.content?.markdown && (
-        <div className="jgis-story-panel-content" style={{ paddingLeft: 32 }}>
+        <div className="jgis-story-viewer-content" style={{ paddingLeft: 16 }}>
           <Markdown>{activeSlide.content.markdown}</Markdown>
         </div>
       )}
