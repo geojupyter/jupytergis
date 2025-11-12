@@ -31,16 +31,22 @@ async function processLayerFromParams(
   params: Record<string, any>,
 ): Promise<void> {
   const current = tracker.find(w => w.model.filePath === filePath);
-  if (!current) {return;}
+  if (!current) {
+    return;
+  }
 
   const model = current.model;
   const { sources = {}, layers = {} } = model.sharedModel;
   const inputLayerId = params.inputLayer;
   const inputLayer = layers[inputLayerId];
-  if (!inputLayer) {return;}
+  if (!inputLayer) {
+    return;
+  }
 
   const geojsonString = await getLayerGeoJSON(inputLayer, sources, model);
-  if (!geojsonString) {return;}
+  if (!geojsonString) {
+    return;
+  }
 
   const Gdal = await getGdal();
   const fileBlob = new Blob([geojsonString], { type: 'application/geo+json' });
@@ -93,13 +99,17 @@ export function addProcessingCommandsFromParams(options: {
   const { app, commands, tracker, trans, processingSchemas } = options;
 
   for (const proc of ProcessingMerge) {
-    if (proc.type !== ProcessingLogicType.vector) {continue;}
+    if (proc.type !== ProcessingLogicType.vector) {
+      continue;
+    }
 
     const schemaKey = Object.keys(processingSchemas).find(
       k => k.toLowerCase() === proc.name.toLowerCase(),
     );
     const schema = schemaKey ? processingSchemas[schemaKey] : undefined;
-    if (!schema) {continue;}
+    if (!schema) {
+      continue;
+    }
 
     const commandId = `${proc.name}WithParams`;
 
