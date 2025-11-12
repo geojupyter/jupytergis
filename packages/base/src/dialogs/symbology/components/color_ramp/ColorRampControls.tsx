@@ -1,12 +1,32 @@
+/**
+ * @module ColorRampControls
+ *
+ * This component provides the main UI controls for classifying raster layers
+ * using different color ramps and classification modes.
+ *
+ * Allows users to:
+ * - Select a color ramp (`ColorRampSelector`)
+ * - Choose classification mode and number of classes (`ModeSelectRow`)
+ * - Run classification via `classifyFunc`, with loading state (`LoadingIcon`)
+ *
+ * Props:
+ * - `modeOptions`: Available classification modes.
+ * - `layerParams`: Layer symbology state.
+ * - `classifyFunc`: Callback for classification.
+ * - `showModeRow`: Toggle for mode selector.
+ * - `showRampSelector`: Toggle for ramp selector.
+ */
+
 import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
 import { LoadingIcon } from '@/src/shared/components/loading';
-import CanvasSelectComponent from './CanvasSelectComponent';
+import ColorRampSelector from './ColorRampSelector';
 import ModeSelectRow from './ModeSelectRow';
+import { COLOR_RAMP_DEFAULTS, ColorRampName } from '../../colorRampUtils';
 
-interface IColorRampProps {
+interface IColorRampControlsProps {
   modeOptions: string[];
   layerParams: IDict;
   classifyFunc: (
@@ -19,13 +39,13 @@ interface IColorRampProps {
   showRampSelector: boolean;
 }
 
-export type ColorRampOptions = {
+export type ColorRampControlsOptions = {
   selectedRamp: string;
   numberOfShades: string;
   selectedMode: string;
 };
 
-const ColorRamp: React.FC<IColorRampProps> = ({
+const ColorRampControls: React.FC<IColorRampControlsProps> = ({
   layerParams,
   modeOptions,
   classifyFunc,
@@ -36,6 +56,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   const [selectedMode, setSelectedMode] = useState('');
   const [numberOfShades, setNumberOfShades] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [warning, setWarning] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedRamp === '' && selectedMode === '' && numberOfShades === '') {
@@ -43,6 +64,38 @@ const ColorRamp: React.FC<IColorRampProps> = ({
     }
   }, [layerParams]);
 
+  useEffect(() => {
+    if (!selectedRamp) {
+      return;
+    }
+
+    const defaultClasses =
+      COLOR_RAMP_DEFAULTS[selectedRamp as ColorRampName] ?? 9;
+
+    setNumberOfShades(defaultClasses.toString());
+    setWarning(null);
+  }, [selectedRamp]);
+
+  useEffect(() => {
+    if (!selectedRamp || !numberOfShades) {
+      return;
+    }
+
+    const minRequired = COLOR_RAMP_DEFAULTS[selectedRamp as ColorRampName];
+    const shades = parseInt(numberOfShades, 10);
+    const rampLabel = selectedRamp
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('-');
+
+    if (minRequired && shades < minRequired) {
+      setWarning(
+        `${rampLabel} requires at least ${minRequired} classes (got ${shades})`,
+      );
+    } else {
+      setWarning(null);
+    }
+  }, [selectedRamp, numberOfShades]);
   const populateOptions = () => {
     let nClasses, singleBandMode, colorRamp;
 
@@ -51,9 +104,13 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       singleBandMode = layerParams.symbologyState.mode;
       colorRamp = layerParams.symbologyState.colorRamp;
     }
-    setNumberOfShades(nClasses ? nClasses : '9');
+    const defaultRamp = colorRamp ? colorRamp : 'viridis';
+    const defaultClasses =
+      nClasses ?? COLOR_RAMP_DEFAULTS[defaultRamp as ColorRampName] ?? 9;
+
+    setNumberOfShades(defaultClasses.toString());
     setSelectedMode(singleBandMode ? singleBandMode : 'equal interval');
-    setSelectedRamp(colorRamp ? colorRamp : 'viridis');
+    setSelectedRamp(defaultRamp);
   };
 
   return (
@@ -61,7 +118,7 @@ const ColorRamp: React.FC<IColorRampProps> = ({
       {showRampSelector && (
         <div className="jp-gis-symbology-row">
           <label htmlFor="color-ramp-select">Color Ramp:</label>
-          <CanvasSelectComponent
+          <ColorRampSelector
             selectedRamp={selectedRamp}
             setSelected={setSelectedRamp}
           />
@@ -76,11 +133,20 @@ const ColorRamp: React.FC<IColorRampProps> = ({
           setSelectedMode={setSelectedMode}
         />
       )}
+      {warning && (
+        <div
+          className="jp-gis-warning"
+          style={{ color: 'orange', marginTop: 4 }}
+        >
+          {warning}
+        </div>
+      )}
       {isLoading ? (
         <LoadingIcon />
       ) : (
         <Button
           className="jp-Dialog-button jp-mod-accept jp-mod-styled"
+          disabled={!!warning}
           onClick={() =>
             classifyFunc(
               selectedMode,
@@ -97,4 +163,4 @@ const ColorRamp: React.FC<IColorRampProps> = ({
   );
 };
 
-export default ColorRamp;
+export default ColorRampControls;

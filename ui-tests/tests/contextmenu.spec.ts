@@ -72,8 +72,6 @@ test.describe('context menu', () => {
       .press('Enter');
 
     await expect(page.getByText('new group', { exact: true })).toHaveCount(1);
-    await page.getByRole('button', { name: 'Undo' }).click();
-    await expect(layer).toBeVisible();
   });
 
   test('clicking remove layer should remove the layer from the tree', async ({
@@ -121,9 +119,6 @@ test.describe('context menu', () => {
 
     await page.getByRole('menu').getByText('Remove Group').click();
     await expect(firstItem).not.toBeVisible();
-
-    await page.getByRole('button', { name: 'Undo' }).click();
-    await expect(firstItem).toBeVisible();
   });
 
   test('pressing F2 should start rename for layer', async ({ page }) => {

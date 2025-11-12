@@ -32,6 +32,7 @@ import {
   IWebGlLayer,
   JgisCoordinates,
   JupyterGISModel,
+  IMarkerSource,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -411,6 +412,7 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.on('click', this._identifyFeature.bind(this));
+      this._Map.on('click', this._addMarker.bind(this));
 
       this._Map
         .getViewport()
@@ -830,6 +832,20 @@ export class MainView extends React.Component<IProps, IStates> {
           }),
         });
         break;
+      }
+
+      case 'MarkerSource': {
+        const parameters = source.parameters as IMarkerSource;
+
+        const point = new Point(parameters.feature.coords);
+        const marker = new Feature({
+          type: 'icon',
+          geometry: point,
+        });
+
+        newSource = new VectorSource({
+          features: [marker],
+        });
       }
     }
 
@@ -1831,15 +1847,13 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
     const layer = this.getLayer(id);
-    let nextIndex = index;
+
     // should not be undefined since the id exists above
     if (layer === undefined) {
       return;
     }
     this._Map.getLayers().removeAt(currentIndex);
-    if (currentIndex < index) {
-      nextIndex -= 1;
-    }
+
     // Adjust index to ensure it's within bounds
     const numLayers = this._Map.getLayers().getLength();
     const safeIndex = Math.min(index, numLayers);
@@ -2090,6 +2104,45 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.syncPointer(pointer);
   });
 
+  private _addMarker(e: MapBrowserEvent<any>) {
+    if (this._model.currentMode !== 'marking') {
+      return;
+    }
+
+    const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+    const sourceId = UUID.uuid4();
+    const layerId = UUID.uuid4();
+
+    const sourceParameters: IMarkerSource = {
+      feature: { coords: [coordinate[0], coordinate[1]] },
+    };
+
+    const layerParams: IVectorLayer = {
+      opacity: 1.0,
+      source: sourceId,
+      symbologyState: { renderType: 'Single Symbol' },
+    };
+
+    const sourceModel: IJGISSource = {
+      type: 'MarkerSource',
+      name: 'Marker',
+      parameters: sourceParameters,
+    };
+
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      visible: true,
+      name: 'Marker',
+      parameters: layerParams,
+    };
+
+    this.addSource(sourceId, sourceModel);
+    this._model.sharedModel.addSource(sourceId, sourceModel);
+
+    this.addLayer(layerId, layerModel, this.getLayerIDs().length);
+    this._model.addLayer(layerId, layerModel);
+  }
+
   private _identifyFeature(e: MapBrowserEvent<any>) {
     if (this._model.currentMode !== 'identifying') {
       return;
@@ -2128,7 +2181,7 @@ export class MainView extends React.Component<IProps, IStates> {
           const fid = feature.getId?.() ?? rawProps?.fid;
 
           if (rawProps && Object.keys(rawProps).length > 1) {
-            const { geometry, ...clean } = rawProps;
+            const { ...clean } = rawProps;
             props = clean;
             if (fid !== null) {
               // TODO Clean the cache under some condition?
@@ -2310,7 +2363,24 @@ export class MainView extends React.Component<IProps, IStates> {
                 width: '100%',
                 height: '100%',
               }}
-            />
+            >
+              <div className="jgis-panels-wrapper">
+                {this._state && (
+                  <LeftPanel
+                    model={this._model}
+                    commands={this._mainViewModel.commands}
+                    state={this._state}
+                  ></LeftPanel>
+                )}
+                {this._formSchemaRegistry && this._annotationModel && (
+                  <RightPanel
+                    model={this._model}
+                    formSchemaRegistry={this._formSchemaRegistry}
+                    annotationModel={this._annotationModel}
+                  ></RightPanel>
+                )}
+              </div>
+            </div>
           </div>
           <StatusBar
             jgisModel={this._model}
@@ -2318,23 +2388,6 @@ export class MainView extends React.Component<IProps, IStates> {
             projection={this.state.viewProjection}
             scale={this.state.scale}
           />
-        </div>
-
-        <div className="jgis-panels-wrapper">
-          {this._state && (
-            <LeftPanel
-              model={this._model}
-              commands={this._mainViewModel.commands}
-              state={this._state}
-            ></LeftPanel>
-          )}
-          {this._formSchemaRegistry && this._annotationModel && (
-            <RightPanel
-              model={this._model}
-              formSchemaRegistry={this._formSchemaRegistry}
-              annotationModel={this._annotationModel}
-            ></RightPanel>
-          )}
         </div>
       </>
     );

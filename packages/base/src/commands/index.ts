@@ -36,6 +36,8 @@ import { addDocumentActionCommands } from './documentActionCommands';
 import { addLayerCreationCommands } from './operationCommands';
 import { addProcessingCommandsFromParams } from './processingCommandsFromParams';
 
+const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
+
 interface ICreateEntry {
   tracker: JupyterGISTracker;
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -198,7 +200,7 @@ export function addCommands(
 
       if (current.model.currentMode === 'identifying' && !canIdentify) {
         current.model.currentMode = 'panning';
-        current.node.classList.remove('jGIS-identify-tool');
+        current.node.classList.remove(POINT_SELECTION_TOOL_CLASS);
         return false;
       }
 
@@ -233,14 +235,14 @@ export function addCommands(
         const keysPressed = luminoEvent.keys as string[] | undefined;
         if (keysPressed?.includes('Escape')) {
           current.model.currentMode = 'panning';
-          current.node.classList.remove('jGIS-identify-tool');
+          current.node.classList.remove(POINT_SELECTION_TOOL_CLASS);
           commands.notifyCommandChanged(CommandIDs.identify);
           return;
         }
       }
 
-      current.node.classList.toggle('jGIS-identify-tool');
-      current.model.toggleIdentify();
+      current.node.classList.toggle(POINT_SELECTION_TOOL_CLASS);
+      current.model.toggleMode('identifying');
 
       commands.notifyCommandChanged(CommandIDs.identify);
     },
@@ -1294,6 +1296,34 @@ export function addCommands(
       await settings?.set('identifyDisabled', !currentValue);
       commands.notifyCommandChanged(CommandIDs.showIdentifyPanelTab);
     },
+  });
+
+  commands.addCommand(CommandIDs.addMarker, {
+    label: trans.__('Add Marker'),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      return current.model.currentMode === 'marking';
+    },
+    isEnabled: () => {
+      // TODO should check if at least one layer exists?
+      return true;
+    },
+    execute: args => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      current.node.classList.toggle(POINT_SELECTION_TOOL_CLASS);
+      current.model.toggleMode('marking');
+
+      commands.notifyCommandChanged(CommandIDs.addMarker);
+    },
+    ...icons.get(CommandIDs.addMarker),
   });
 
   loadKeybindings(commands, keybindings);
