@@ -132,7 +132,7 @@ export function addDocumentActionCommands(options: {
 
       // Toggle identify tool
       current.node.classList.toggle('jGIS-identify-tool');
-      current.model.toggleIdentify();
+      current.model?.toggleIdentify();
 
       // Notify change
       commands.notifyCommandChanged(
