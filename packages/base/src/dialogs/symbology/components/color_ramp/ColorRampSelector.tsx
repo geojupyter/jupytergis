@@ -14,16 +14,15 @@
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useColorMapList } from '@/src/dialogs/symbology/colorRampUtils';
+import {
+  ColorRampName,
+  useColorMapList,
+  IColorMap,
+} from '@/src/dialogs/symbology/colorRampUtils';
 import ColorRampSelectorEntry from './ColorRampSelectorEntry';
 
-export interface IColorMap {
-  name: string;
-  colors: string[];
-}
-
 interface IColorRampSelectorProps {
-  selectedRamp: string;
+  selectedRamp: ColorRampName;
   setSelected: (item: any) => void;
 }
 

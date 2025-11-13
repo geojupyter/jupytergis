@@ -1,6 +1,7 @@
 import { IJGISLayer } from '@jupytergis/schema';
 import colormap from 'colormap';
 
+import { ColorRampName } from './colorRampUtils';
 import { IStopRow } from './symbologyDialog';
 
 const COLOR_EXPR_STOPS_START = 3;
@@ -101,7 +102,7 @@ export namespace VectorUtils {
 export namespace Utils {
   export const getValueColorPairs = (
     stops: number[],
-    selectedRamp: string,
+    selectedRamp: ColorRampName,
     nClasses: number,
     reverse = false,
   ) => {
