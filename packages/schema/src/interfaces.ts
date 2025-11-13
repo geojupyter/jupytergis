@@ -233,11 +233,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   syncViewport(viewport?: IViewPortState, emitter?: string): void;
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
-  handleItemSelection(
-    type: SelectionType,
-    item: string,
-    event?: { ctrlKey: boolean; button: number },
-  ): { [key: string]: ISelection } | null;
+  selected: { [key: string]: ISelection } | undefined;
   setEditingItem(type: SelectionType, itemId: string): void;
   clearEditingItem(): void;
   readonly editing: { type: SelectionType; itemId: string } | null;

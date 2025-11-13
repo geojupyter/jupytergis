@@ -3,6 +3,7 @@ import {
   IJGISLayerTree,
   IJupyterGISClientState,
   IJupyterGISModel,
+  ISelection,
   SelectionType,
 } from '@jupytergis/schema';
 import { DOMUtils } from '@jupyterlab/apputils';
@@ -14,7 +15,7 @@ import {
   caretRightIcon,
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
-import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import React, {
   MouseEvent as ReactMouseEvent,
   useEffect,
@@ -44,7 +45,6 @@ interface IBodyProps {
 
 export const LayersBodyComponent: React.FC<IBodyProps> = props => {
   const model = props.model;
-  const id = UUID.uuid4();
 
   const [layerTree, setLayerTree] = useState<IJGISLayerTree>(
     model?.getLayerTree() || [],
@@ -118,17 +118,60 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
       return;
     }
 
-    // Delegate selection logic to the model (no DOM dependencies)
-    const newSelection = props.model.handleItemSelection(type, item, {
-      ctrlKey: event.ctrlKey,
-      button: event.button,
-    });
+    const selectedValue = props.model.selected;
 
-    // If selection was updated, sync it
-    if (newSelection !== null) {
-      props.model.syncSelected(newSelection, id);
-      notifyCommands();
+    // Don't want to reset selected if right clicking a selected item
+    if (
+      selectedValue &&
+      !event.ctrlKey &&
+      event.button === 2 &&
+      item in selectedValue
+    ) {
+      return;
     }
+
+    // Calculate the new selection value
+    let newSelection: { [key: string]: ISelection };
+
+    // Early return if no selection exists - single selection
+    if (!selectedValue) {
+      newSelection = {
+        [item]: {
+          type,
+        },
+      };
+    } else if (!event.ctrlKey) {
+      // Reset selection for normal left click - single selection
+      newSelection = {
+        [item]: {
+          type,
+        },
+      };
+    } else {
+      // Check if new selection is the same type as previous selections
+      const isSelectedSameType = Object.values(selectedValue).some(
+        selection => (selection as ISelection).type === type,
+      );
+
+      if (!isSelectedSameType) {
+        // Selecting a new type, so reset selected - single selection
+        newSelection = {
+          [item]: {
+            type,
+          },
+        };
+      } else {
+        // If types are the same add the selection - multi-selection
+        newSelection = {
+          ...selectedValue,
+          [item]: { type },
+        };
+      }
+    }
+
+    // Set the selection
+    props.model.selected = newSelection;
+    notifyCommands();
   };
 
   /**

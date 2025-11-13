@@ -537,64 +537,12 @@ export class JupyterGISModel implements IJupyterGISModel {
     });
   }
 
-  handleItemSelection(
-    type: SelectionType,
-    item: string,
-    event?: { ctrlKey: boolean; button: number },
-  ): { [key: string]: ISelection } | null {
-    const selectedValue = this.localState?.selected?.value;
+  get selected(): { [key: string]: ISelection } | undefined {
+    return this.localState?.selected?.value;
+  }
 
-    // Programmatic selection (no event) - always set single selection
-    if (!event) {
-      return {
-        [item]: {
-          type,
-        },
-      };
-    }
-
-    // Early return if no selection exists
-    if (!selectedValue) {
-      return {
-        [item]: {
-          type,
-        },
-      };
-    }
-
-    // Don't want to reset selected if right clicking a selected item
-    if (!event.ctrlKey && event.button === 2 && item in selectedValue) {
-      return null;
-    }
-
-    // Reset selection for normal left click
-    if (!event.ctrlKey) {
-      return {
-        [item]: {
-          type,
-        },
-      };
-    }
-
-    // Check if new selection is the same type as previous selections
-    const isSelectedSameType = Object.values(selectedValue).some(
-      selection => selection.type === type,
-    );
-
-    if (!isSelectedSameType) {
-      // Selecting a new type, so reset selected
-      return {
-        [item]: {
-          type,
-        },
-      };
-    }
-
-    // If types are the same add the selection
-    return {
-      ...selectedValue,
-      [item]: { type },
-    };
+  set selected(value: { [key: string]: ISelection } | undefined) {
+    this.syncSelected(value || {}, this.getClientId().toString());
   }
 
   syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
