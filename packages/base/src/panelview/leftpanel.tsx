@@ -17,7 +17,6 @@ import FilterComponent from './components/filter-panel/Filter';
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
   item: string;
-  nodeId?: string;
   event: ReactMouseEvent;
 }
 

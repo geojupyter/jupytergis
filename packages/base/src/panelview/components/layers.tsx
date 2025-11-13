@@ -15,7 +15,7 @@ import {
   caretRightIcon,
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
-import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import React, {
   MouseEvent as ReactMouseEvent,
   useEffect,
@@ -45,7 +45,6 @@ interface IBodyProps {
 
 export const LayersBodyComponent: React.FC<IBodyProps> = props => {
   const model = props.model;
-  const id = UUID.uuid4();
 
   const [layerTree, setLayerTree] = useState<IJGISLayerTree>(
     model?.getLayerTree() || [],
@@ -114,94 +113,72 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     );
   };
 
-  const onSelect = ({
-    type,
-    item,
-    nodeId,
-    event,
-  }: ILeftPanelClickHandlerParams) => {
-    if (!props.model || !nodeId) {
+  const onSelect = ({ type, item, event }: ILeftPanelClickHandlerParams) => {
+    if (!props.model) {
       return;
     }
 
-    const selectedValue = props.model.localState?.selected?.value;
-    const node = document.getElementById(nodeId);
-
-    if (!node) {
-      return;
-    }
-
-    node.tabIndex = 0;
-    node.focus();
-
-    // Early return if no selection exists
-    if (!selectedValue) {
-      resetSelected(type, nodeId, item);
-      return;
-    }
+    const selectedValue = props.model.selected;
 
     // Don't want to reset selected if right clicking a selected item
-    if (!event.ctrlKey && event.button === 2 && item in selectedValue) {
+    if (
+      selectedValue &&
+      !event.ctrlKey &&
+      event.button === 2 &&
+      item in selectedValue
+    ) {
       return;
     }
 
-    // Reset selection for normal left click
-    if (!event.ctrlKey) {
-      resetSelected(type, nodeId, item);
-      return;
-    }
+    // Calculate the new selection value
+    let newSelection: { [key: string]: ISelection };
 
-    if (nodeId) {
+    // Early return if no selection exists - single selection
+    if (!selectedValue) {
+      newSelection = {
+        [item]: {
+          type,
+        },
+      };
+    } else if (!event.ctrlKey) {
+      // Reset selection for normal left click - single selection
+      newSelection = {
+        [item]: {
+          type,
+        },
+      };
+    } else {
       // Check if new selection is the same type as previous selections
       const isSelectedSameType = Object.values(selectedValue).some(
-        selection => selection.type === type,
+        selection => (selection as ISelection).type === type,
       );
 
       if (!isSelectedSameType) {
-        // Selecting a new type, so reset selected
-        resetSelected(type, nodeId, item);
-        return;
+        // Selecting a new type, so reset selected - single selection
+        newSelection = {
+          [item]: {
+            type,
+          },
+        };
+      } else {
+        // If types are the same add the selection - multi-selection
+        newSelection = {
+          ...selectedValue,
+          [item]: { type },
+        };
       }
-
-      // If types are the same add the selection
-      const updatedSelectedValue = {
-        ...selectedValue,
-        [item]: { type, selectedNodeId: nodeId },
-      };
-
-      props.model.syncSelected(updatedSelectedValue, id);
-
-      notifyCommands();
     }
-  };
 
-  const resetSelected = (
-    type: SelectionType,
-    nodeId?: string,
-    item?: string,
-  ) => {
-    const selection: { [key: string]: ISelection } = {};
-    if (item && nodeId) {
-      selection[item] = {
-        type,
-        selectedNodeId: nodeId,
-      };
-    }
-    props.model.syncSelected(selection, id);
-
+    // Set the selection
+    props.model.selected = newSelection;
     notifyCommands();
   };
 
   /**
    * Propagate the layer selection.
    */
-  const onItemClick = ({
-    type,
-    item,
-    nodeId,
-    event,
-  }: ILeftPanelClickHandlerParams) => {
-    onSelect({ type, item, nodeId, event });
+  const onItemClick = ({ type, item, event }: ILeftPanelClickHandlerParams) => {
+    onSelect({ type, item, event });
   };
 
   /**
@@ -255,7 +232,7 @@ interface ILayerGroupProps {
   gisModel: IJupyterGISModel | undefined;
   group: IJGISLayerGroup | undefined;
   state: IStateDB;
-  onClick: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
+  onClick: ({ type, item }: ILeftPanelClickHandlerParams) => void;
 }
 
 /**
@@ -276,6 +253,8 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(group.name, gisModel),
   );
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
 
   useEffect(() => {
     setId(DOMUtils.createDomID());
@@ -304,16 +283,68 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
     return () => {
       gisModel?.clientStateChanged.disconnect(onClientSharedStateChanged);
     };
-  }, [gisModel]);
+  }, [gisModel, group.name]);
+
+  /**
+   * Listen to editing state changes.
+   */
+  useEffect(() => {
+    const onEditingChanged = (
+      sender: IJupyterGISModel,
+      editing: { type: SelectionType; itemId: string } | null,
+    ) => {
+      if (editing?.type === 'group' && editing.itemId === name) {
+        setIsEditing(true);
+        setEditValue(name);
+      } else {
+        setIsEditing(false);
+      }
+    };
+
+    // Check initial editing state
+    const editing = gisModel?.editing;
+    if (editing?.type === 'group' && editing.itemId === name) {
+      setIsEditing(true);
+      setEditValue(name);
+    }
+
+    gisModel?.editingChanged.connect(onEditingChanged);
+
+    return () => {
+      gisModel?.editingChanged.disconnect(onEditingChanged);
+    };
+  }, [gisModel, name]);
 
   const handleRightClick = (event: ReactMouseEvent<HTMLElement>) => {
-    const childId = event.currentTarget.children.namedItem(id)?.id;
-    onClick({ type: 'group', item: name, nodeId: childId, event });
+    onClick({ type: 'group', item: name, event });
   };
 
   const handleExpand = async () => {
     state.save(`jupytergis:${group.name}`, { expanded: !open });
     setOpen(!open);
+  };
+
+  const handleRenameSave = () => {
+    const newName = editValue.trim();
+    if (newName && newName !== name && gisModel) {
+      gisModel.renameLayerGroup(name, newName);
+    }
+    gisModel?.clearEditingItem();
+  };
+
+  const handleRenameCancel = () => {
+    setEditValue(name);
+    gisModel?.clearEditingItem();
+  };
+
+  const handleRenameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleRenameSave();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleRenameCancel();
+    }
   };
 
   return (
@@ -336,9 +367,29 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
           className={`${LAYER_GROUP_COLLAPSER_CLASS}${open ? ' jp-mod-expanded' : ''}`}
           tag={'span'}
         />
-        <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
-          {name}
-        </span>
+        {isEditing ? (
+          <input
+            type="text"
+            value={editValue}
+            onChange={e => setEditValue(e.target.value)}
+            onKeyDown={handleRenameKeyDown}
+            onBlur={handleRenameSave}
+            className={LAYER_TEXT_CLASS}
+            style={{
+              flex: 1,
+              border: '1px solid var(--jp-border-color1)',
+              borderRadius: '2px',
+              padding: '2px 4px',
+              fontSize: 'inherit',
+              fontFamily: 'inherit',
+            }}
+            autoFocus
+          />
+        ) : (
+          <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
+            {name}
+          </span>
+        )}
       </div>
       {open && (
         <div>
@@ -375,7 +426,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
 interface ILayerProps {
   gisModel: IJupyterGISModel | undefined;
   layerId: string;
-  onClick: ({ type, item, nodeId }: ILeftPanelClickHandlerParams) => void;
+  onClick: ({ type, item }: ILeftPanelClickHandlerParams) => void;
 }
 
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
@@ -402,6 +453,8 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     isSelected(layerId, gisModel),
   );
   const [expanded, setExpanded] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
 
   const { symbology } = useGetSymbology({
     layerId,
@@ -432,7 +485,37 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     return () => {
       gisModel?.clientStateChanged.disconnect(onClientSharedStateChanged);
     };
-  }, [gisModel]);
+  }, [gisModel, layerId]);
+
+  /**
+   * Listen to editing state changes.
+   */
+  useEffect(() => {
+    const onEditingChanged = (
+      sender: IJupyterGISModel,
+      editing: { type: SelectionType; itemId: string } | null,
+    ) => {
+      if (editing?.type === 'layer' && editing.itemId === layerId) {
+        setIsEditing(true);
+        setEditValue(name);
+      } else {
+        setIsEditing(false);
+      }
+    };
+
+    // Check initial editing state
+    const editing = gisModel?.editing;
+    if (editing?.type === 'layer' && editing.itemId === layerId) {
+      setIsEditing(true);
+      setEditValue(name);
+    }
+
+    gisModel?.editingChanged.connect(onEditingChanged);
+
+    return () => {
+      gisModel?.editingChanged.disconnect(onEditingChanged);
+    };
+  }, [gisModel, layerId, name]);
 
   /**
    * Toggle layer visibility.
@@ -443,13 +526,35 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   };
 
   const setSelection = (event: ReactMouseEvent<HTMLElement>) => {
-    const childId = event.currentTarget.children.namedItem(id)?.id;
     onClick({
       type: 'layer',
       item: layerId,
-      nodeId: childId,
       event,
     });
+  };
+
+  const handleRenameSave = () => {
+    const newName = editValue.trim();
+    if (newName && newName !== name && gisModel) {
+      const updatedLayer = { ...layer, name: newName };
+      gisModel.sharedModel.updateLayer(layerId, updatedLayer);
+    }
+    gisModel?.clearEditingItem();
+  };
+
+  const handleRenameCancel = () => {
+    setEditValue(name);
+    gisModel?.clearEditingItem();
+  };
+
+  const handleRenameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleRenameSave();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleRenameCancel();
+    }
   };
 
   return (
@@ -505,9 +610,29 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           />
         )}
 
-        <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
-          {name}
-        </span>
+        {isEditing ? (
+          <input
+            type="text"
+            value={editValue}
+            onChange={e => setEditValue(e.target.value)}
+            onKeyDown={handleRenameKeyDown}
+            onBlur={handleRenameSave}
+            className={LAYER_TEXT_CLASS}
+            style={{
+              flex: 1,
+              border: '1px solid var(--jp-border-color1)',
+              borderRadius: '2px',
+              padding: '2px 4px',
+              fontSize: 'inherit',
+              fontFamily: 'inherit',
+            }}
+            autoFocus
+          />
+        ) : (
+          <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
+            {name}
+          </span>
+        )}
       </div>
 
       {/* Show legend only if supported symbology */}
