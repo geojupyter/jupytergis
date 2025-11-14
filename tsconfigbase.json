@@ -21,6 +21,6 @@
     "skipLibCheck": true,
     "lib": ["ES2019", "WebWorker", "DOM"]
   },
-  "esModuleInterop": true,
-  "resolveJsonModule": true
+  "include": ["src/stacBrowser/components/catalogs.json"],
+  "files": ["src/stacBrowser/components/catalogs.json"]
 }
