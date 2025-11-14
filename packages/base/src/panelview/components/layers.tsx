@@ -24,7 +24,11 @@ import React, {
 
 import { CommandIDs, icons } from '@/src/constants';
 import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
-import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
+import {
+  nonVisibilityIcon,
+  targetWithCenterIcon,
+  visibilityIcon,
+} from '@/src/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/panelview/leftpanel';
 import { LegendItem } from './legendItem';
 
@@ -568,6 +572,26 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     }
   };
 
+  /**
+   * Set landmark layer to current map view.
+   */
+  const handleSetLandmarkToCurrentView = () => {
+    if (!gisModel) {
+      return;
+    }
+    const { zoom, extent } = gisModel.getOptions();
+    const updatedLayer = {
+      ...layer,
+      parameters: {
+        ...layer.parameters,
+        zoom,
+        extent,
+      },
+    };
+
+    gisModel.sharedModel.updateLayer(layerId, updatedLayer);
+  };
+
   return (
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
@@ -643,6 +667,20 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
             {name}
           </span>
+        )}
+
+        {layer.type === 'LandmarkLayer' && (
+          <Button
+            title={'Set landmark to current view'}
+            onClick={handleSetLandmarkToCurrentView}
+            minimal
+          >
+            <LabIcon.resolveReact
+              icon={targetWithCenterIcon}
+              className={LAYER_ICON_CLASS}
+              tag="span"
+            />
+          </Button>
         )}
       </div>
 
