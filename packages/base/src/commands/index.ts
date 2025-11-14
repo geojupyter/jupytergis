@@ -1080,6 +1080,7 @@ export function addCommands(
         console.log('shut up');
         return;
       }
+
       const layerParams: ILandmarkLayer = { extent, zoom };
       const layerModel: IJGISLayer = {
         type: 'LandmarkLayer',
@@ -1090,7 +1091,6 @@ export function addCommands(
 
       current.model.addLayer(newLandmarkId, layerModel);
 
-      // TODO Add to story when making landmark
       // check for stories
       const isStoriesExist =
         Object.keys(current.model.sharedModel.storiesMap).length !== 0;
