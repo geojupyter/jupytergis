@@ -20,7 +20,7 @@ import { Utils } from '@/src/dialogs/symbology/symbologyUtils';
 import BandRow from '@/src/dialogs/symbology/tiff_layer/components/BandRow';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import { GlobalStateDbManager } from '@/src/store';
-import { ColorRampName } from '@/src/types';
+import { ColorRampName, ClassificationMode } from '@/src/types';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
@@ -39,7 +39,11 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   }
 
   const functions = ['discrete', 'linear', 'exact'];
-  const modeOptions = ['continuous', 'equal interval', 'quantile'];
+  const modeOptions = [
+    'continuous',
+    'equal interval',
+    'quantile',
+  ] as const satisfies ClassificationMode[];
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
@@ -305,8 +309,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   };
 
   const buildColorInfoFromClassification = async (
-    selectedMode: string,
-    numberOfShades: string,
+    selectedMode: ClassificationMode,
+    numberOfShades: number,
     selectedRamp: ColorRampName,
     reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
@@ -327,7 +331,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
     const source = model.getSource(layer?.parameters?.source);
     const sourceInfo = source?.parameters?.urls[0];
-    const nClasses = selectedMode === 'continuous' ? 52 : +numberOfShades;
+    const nClasses = selectedMode === 'continuous' ? 52 : numberOfShades;
 
     setIsLoading(true);
     switch (selectedMode) {

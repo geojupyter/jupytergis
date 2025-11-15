@@ -2,7 +2,9 @@ import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 
-import ColorRampControls, { ColorRampControlsOptions } from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
+import ColorRampControls, {
+  ColorRampControlsOptions,
+} from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import {
   IStopRow,
@@ -10,7 +12,7 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { ColorRampName, SymbologyTab } from '@/src/types';
+import { ColorRampName, SymbologyTab, ClassificationMode } from '@/src/types';
 
 const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -126,8 +128,8 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   }, [selectedAttribute, stopRows, colorRampOptions]);
 
   const buildColorInfoFromClassification = (
-    selectedMode: string,
-    numberOfShades: string,
+    selectedMode: ClassificationMode,
+    numberOfShades: number,
     selectedRamp: ColorRampName,
     reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,

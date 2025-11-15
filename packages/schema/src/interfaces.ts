@@ -70,7 +70,6 @@ export type SelectionType = 'layer' | 'source' | 'group';
 export interface ISelection {
   type: SelectionType;
   parent?: string;
-  selectedNodeId?: string;
 }
 
 export interface IJupyterGISClientState {
@@ -234,6 +233,14 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   syncViewport(viewport?: IViewPortState, emitter?: string): void;
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
+  selected: { [key: string]: ISelection } | undefined;
+  setEditingItem(type: SelectionType, itemId: string): void;
+  clearEditingItem(): void;
+  readonly editing: { type: SelectionType; itemId: string } | null;
+  editingChanged: ISignal<
+    IJupyterGISModel,
+    { type: SelectionType; itemId: string } | null
+  >;
   syncPointer(pointer?: Pointer, emitter?: string): void;
   syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void;
   setUserToFollow(userId?: number): void;

@@ -35,6 +35,7 @@ import {
   JgisCoordinates,
   Pointer,
   IJupyterGISSettings,
+  SelectionType,
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
 import { Modes } from './types';
@@ -536,6 +537,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     });
   }
 
+  get selected(): { [key: string]: ISelection } | undefined {
+    return this.localState?.selected?.value;
+  }
+
+  set selected(value: { [key: string]: ISelection } | undefined) {
+    this.syncSelected(value || {}, this.getClientId().toString());
+  }
+
   syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
       value: features,
@@ -547,6 +556,27 @@ export class JupyterGISModel implements IJupyterGISModel {
     if (this._sharedModel) {
       this._sharedModel.awareness.setLocalStateField('remoteUser', userId);
     }
+  }
+
+  setEditingItem(type: SelectionType, itemId: string): void {
+    this._editing = { type, itemId };
+    this._editingChanged.emit(this._editing);
+  }
+
+  clearEditingItem(): void {
+    this._editing = null;
+    this._editingChanged.emit(null);
+  }
+
+  get editing(): { type: SelectionType; itemId: string } | null {
+    return this._editing;
+  }
+
+  get editingChanged(): ISignal<
+    this,
+    { type: SelectionType; itemId: string } | null
+  > {
+    return this._editingChanged;
   }
 
   getClientId(): number {
@@ -882,6 +912,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _updateLayerSignal = new Signal<this, string>(this);
 
   private _isTemporalControllerActive = false;
+
+  private _editing: { type: SelectionType; itemId: string } | null = null;
+  private _editingChanged = new Signal<
+    this,
+    { type: SelectionType; itemId: string } | null
+  >(this);
 
   static worker: Worker;
 

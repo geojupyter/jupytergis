@@ -86,3 +86,13 @@ export const COLOR_RAMP_DEFAULTS: Partial<Record<ColorRampName, number>> = {
   'rainbow-soft': 11,
   cubehelix: 16,
 };
+const classificationModes = [
+  'quantile',
+  'equal interval',
+  'jenks',
+  'pretty',
+  'logarithmic',
+  'continuous',
+] as const;
+
+export type ClassificationMode = (typeof classificationModes)[number];

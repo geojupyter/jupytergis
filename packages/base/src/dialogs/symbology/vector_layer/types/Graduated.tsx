@@ -13,7 +13,7 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { ColorRampName } from '@/src/types';
+import { ColorRampName, ClassificationMode } from '@/src/types';
 
 const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -30,7 +30,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     'jenks',
     'pretty',
     'logarithmic',
-  ];
+  ] as const satisfies ClassificationMode[];
 
   const selectableAttributeRef = useRef<string>();
   const symbologyTabRef = useRef<string>();
@@ -219,8 +219,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   };
 
   const buildColorInfoFromClassification = (
-    selectedMode: string,
-    numberOfShades: string,
+    selectedMode: ClassificationMode,
+    numberOfShades: number,
     selectedRamp: ColorRampName,
     reverseRamp: boolean,
     setIsLoading: (isLoading: boolean) => void,
@@ -246,12 +246,12 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       case 'quantile':
         stops = VectorClassifications.calculateQuantileBreaks(
           values,
-          +numberOfShades,
+          numberOfShades,
         );
         break;
       case 'equal interval':
         stops = VectorClassifications.calculateEqualIntervalBreaks(
-          +numberOfShades,
+          numberOfShades,
           minValue,
           maxValue,
         );
@@ -259,19 +259,19 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       case 'jenks':
         stops = VectorClassifications.calculateJenksBreaks(
           values,
-          +numberOfShades,
+          numberOfShades,
         );
         break;
       case 'pretty':
         stops = VectorClassifications.calculatePrettyBreaks(
           values,
-          +numberOfShades,
+          numberOfShades,
         );
         break;
       case 'logarithmic':
         stops = VectorClassifications.calculateLogarithmicBreaks(
           values,
-          +numberOfShades,
+          numberOfShades,
         );
         break;
       default:
@@ -294,7 +294,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         : Utils.getValueColorPairs(
             stops,
             selectedRamp,
-            +numberOfShades,
+            numberOfShades,
             reverseRamp,
             'Graduated',
             minValue,
