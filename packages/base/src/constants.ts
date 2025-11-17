@@ -47,7 +47,7 @@ const iconObject = {
   [CommandIDs.openLayerBrowser]: { icon: bookOpenIcon },
   [CommandIDs.newRasterEntry]: { icon: rasterIcon },
   [CommandIDs.newVectorTileEntry]: { icon: vectorSquareIcon },
-  [CommandIDs.newGeoJSONEntry]: { icon: geoJSONIcon },
+  [CommandIDs.openNewGeoJSONDialog]: { icon: geoJSONIcon },
   [CommandIDs.newHillshadeEntry]: { icon: moundIcon },
   [CommandIDs.newImageEntry]: { iconClass: 'fa fa-image' },
   [CommandIDs.newVideoEntry]: { iconClass: 'fa fa-video' },

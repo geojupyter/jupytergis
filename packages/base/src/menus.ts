@@ -18,7 +18,7 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newGeoJSONEntry,
+    command: CommandIDs.openNewGeoJSONDialog,
   });
 
   subMenu.addItem({

@@ -241,7 +241,7 @@ const activate = async (
     });
 
     palette.addItem({
-      command: CommandIDs.newGeoJSONEntry,
+      command: CommandIDs.openNewGeoJSONDialog,
       category: 'JupyterGIS',
     });
 

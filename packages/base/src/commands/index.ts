@@ -441,8 +441,8 @@ export function addCommands(
     ...icons.get(CommandIDs.newGeoParquetEntry),
   });
 
-  commands.addCommand(CommandIDs.newGeoJSONEntry, {
-    label: trans.__('New GeoJSON layer'),
+  commands.addCommand(CommandIDs.openNewGeoJSONDialog, {
+    label: trans.__('Open New GeoJSON Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -464,7 +464,7 @@ export function addCommands(
       sourceType: 'GeoJSONSource',
       layerType: 'VectorLayer',
     }),
-    ...icons.get(CommandIDs.newGeoJSONEntry),
+    ...icons.get(CommandIDs.openNewGeoJSONDialog),
   });
 
   //Add processing commands
