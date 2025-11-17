@@ -155,16 +155,26 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        required: [],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Optional .jGIS file path. If omitted, uses the focused file.',
+          }
+        }
+      }
     },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
-    execute: () => {
-      const current = tracker.currentWidget;
+    execute: (args: { filePath?: string }) => {
+      const filePath = args?.filePath;
+
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
 
       if (current) {
         return current.model.sharedModel.undo();
