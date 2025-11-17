@@ -159,10 +159,11 @@ export function addCommands(
         properties: {
           filePath: {
             type: 'string',
-            description: 'Optional .jGIS file path. If omitted, uses the focused file.',
-          }
-        }
-      }
+            description:
+              'Optional .jGIS file path. If omitted, uses the focused file.',
+          },
+        },
+      },
     },
     isEnabled: () => {
       return tracker.currentWidget
@@ -192,10 +193,11 @@ export function addCommands(
         properties: {
           filePath: {
             type: 'string',
-            description: 'Optional .jGIS file path. If omitted, uses active widget.'
-          }
-        }
-      }
+            description:
+              'Optional .jGIS file path. If omitted, uses active widget.',
+          },
+        },
+      },
     },
 
     isToggled: () => {
@@ -240,7 +242,7 @@ export function addCommands(
       ].includes(selectedLayer.type);
     },
 
-    execute: (args) => {
+    execute: args => {
       const filePath = args?.filePath;
 
       const current = filePath
