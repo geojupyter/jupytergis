@@ -1068,7 +1068,7 @@ export function addCommands(
       console.log('addLandmark command executing');
       // only want to use one story for now so hardcoding the id for now
 
-      const storyMapId = 'b48c2622-1188-4734-9450-68e3b7623354';
+      const storyMapId = UUID.uuid4();
       const newLandmarkId = UUID.uuid4();
       const current = tracker.currentWidget;
       if (!current) {
@@ -1107,7 +1107,7 @@ export function addCommands(
       } else {
         // else need to update tories
         // get first story
-        const story = current.model.sharedModel.getStoryMap(storyMapId);
+        const story = current.model.getSelectedStory().story;
         if (!story) {
           console.log('brok');
           return;
