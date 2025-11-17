@@ -188,9 +188,16 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        required: [],
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Optional .jGIS file path. If omitted, uses active widget.'
+          }
+        }
+      }
     },
+
     isToggled: () => {
       const current = tracker.currentWidget;
       if (!current) {
@@ -201,6 +208,7 @@ export function addCommands(
       if (!selectedLayer) {
         return false;
       }
+
       const canIdentify = [
         'VectorLayer',
         'ShapefileLayer',
@@ -231,8 +239,14 @@ export function addCommands(
         'VectorTileLayer',
       ].includes(selectedLayer.type);
     },
-    execute: args => {
-      const current = tracker.currentWidget;
+
+    execute: (args) => {
+      const filePath = args?.filePath;
+
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
+
       if (!current) {
         return;
       }
