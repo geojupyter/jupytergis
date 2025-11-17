@@ -15,7 +15,6 @@ interface IStoryViewerPanelProps {
 }
 
 function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
-  // ! TODO change name and remove rank from schema
   const [currentRankDisplayed, setCurrentRankDisplayed] = useState(0);
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(null);
 

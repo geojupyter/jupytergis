@@ -605,12 +605,17 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this.sharedModel.awareness.clientID;
   }
 
+  /**
+   * Placeholder in case we eventually want to support multiple stories
+   * @returns First/only story
+   */
   getSelectedStory(): { landmarkId: string; story: IJGISStoryMap | undefined } {
+    const stories = this.sharedModel.storiesMap;
+    const storyId = Object.keys(stories)[0];
+
     return {
-      landmarkId: 'b48c2622-1188-4734-9450-68e3b7623354',
-      story: this.sharedModel.getStoryMap(
-        'b48c2622-1188-4734-9450-68e3b7623354',
-      ),
+      landmarkId: storyId,
+      story: this.sharedModel.getStoryMap(storyId),
     };
   }
 
