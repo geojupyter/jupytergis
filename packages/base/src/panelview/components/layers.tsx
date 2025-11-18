@@ -150,7 +150,7 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     } else {
       // Check if new selection is the same type as previous selections
       const isSelectedSameType = Object.values(selectedValue).some(
-        selection => (selection ).type === type,
+        selection => selection.type === type,
       );
 
       if (!isSelectedSameType) {
