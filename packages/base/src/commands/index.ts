@@ -814,14 +814,14 @@ export function addCommands(
         properties: {
           filePath: {
             type: 'string',
-            description: 'Optional .jGIS file path'
+            description: 'Optional .jGIS file path',
           },
           groupName: {
             type: 'string',
-            description: 'Optional group name to remove'
-          }
-        }
-      }
+            description: 'Optional group name to remove',
+          },
+        },
+      },
     },
 
     execute: async (args?: { filePath?: string; groupName?: string }) => {
@@ -859,9 +859,9 @@ export function addCommands(
           filePath: { type: 'string' },
           layerIds: {
             type: 'array',
-            items: { type: 'string' }
+            items: { type: 'string' },
           },
-          groupName: { type: 'string' }
+          groupName: { type: 'string' },
         },
       },
     },
@@ -910,10 +910,10 @@ export function addCommands(
           groupName: { type: 'string' },
           layerIds: {
             type: 'array',
-            items: { type: 'string' }
-          }
-        }
-      }
+            items: { type: 'string' },
+          },
+        },
+      },
     },
 
     execute: async (args?: {
@@ -940,7 +940,7 @@ export function addCommands(
 
         const newGroup: IJGISLayerGroup = {
           name: groupName,
-          layers: layerIds
+          layers: layerIds,
         };
 
         model.addNewLayerGroup(layerMap, newGroup);
@@ -1017,9 +1017,9 @@ export function addCommands(
         properties: {
           filePath: { type: 'string' },
           sourceId: { type: 'string' },
-          newName: { type: 'string' }
-        }
-      }
+          newName: { type: 'string' },
+        },
+      },
     },
 
     execute: async (args?: {
@@ -1062,9 +1062,9 @@ export function addCommands(
         type: 'object',
         properties: {
           filePath: { type: 'string' },
-          sourceId: { type: 'string' }
-        }
-      }
+          sourceId: { type: 'string' },
+        },
+      },
     },
 
     execute: (args?: { filePath?: string; sourceId?: string }) => {
@@ -1084,7 +1084,7 @@ export function addCommands(
         if (layersUsingSource.length > 0) {
           showErrorMessage(
             'Remove source error',
-            'The source is used by a layer.'
+            'The source is used by a layer.',
           );
           return;
         }
@@ -1226,9 +1226,9 @@ export function addCommands(
         type: 'object',
         properties: {
           filePath: { type: 'string' },
-          layerId: { type: 'string' }
-        }
-      }
+          layerId: { type: 'string' },
+        },
+      },
     },
 
     execute: (args?: { filePath?: string; layerId?: string }) => {
@@ -1272,9 +1272,9 @@ export function addCommands(
         properties: {
           filePath: { type: 'string' },
           layerId: { type: 'string' },
-          exportFileName: { type: 'string' }
-        }
-      }
+          exportFileName: { type: 'string' },
+        },
+      },
     },
     isEnabled: () => {
       const selectedLayer = getSingleSelectedLayer(tracker);
@@ -1315,7 +1315,10 @@ export function addCommands(
           return;
         }
 
-        const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
+        const geojsonString = await getGeoJSONDataFromLayerSource(
+          source,
+          model,
+        );
         if (!geojsonString) {
           console.warn('Failed to generate GeoJSON data');
           return;
@@ -1324,7 +1327,7 @@ export function addCommands(
         downloadFile(
           geojsonString,
           `${exportFileName}.geojson`,
-          'application/geo+json'
+          'application/geo+json',
         );
         return;
       }
@@ -1373,11 +1376,7 @@ export function addCommands(
         return;
       }
 
-      downloadFile(
-        geojsonString,
-        `${outName}.geojson`,
-        'application/geo+json',
-      );
+      downloadFile(geojsonString, `${outName}.geojson`, 'application/geo+json');
     },
   });
 
@@ -1387,9 +1386,9 @@ export function addCommands(
       args: {
         type: 'object',
         properties: {
-          filePath: { type: 'string' }
-        }
-      }
+          filePath: { type: 'string' },
+        },
+      },
     },
 
     execute: async (args?: { filePath?: string }) => {
@@ -1407,18 +1406,18 @@ export function addCommands(
         const options = {
           enableHighAccuracy: true,
           timeout: 5000,
-          maximumAge: 0
+          maximumAge: 0,
         };
 
         const success = (pos: GeolocationPosition) => {
           const location: Coordinate = fromLonLat([
             pos.coords.longitude,
-            pos.coords.latitude
+            pos.coords.latitude,
           ]);
 
           const jgisLocation: JgisCoordinates = {
             x: location[0],
-            y: location[1]
+            y: location[1],
           };
 
           viewModel.geolocationChanged.emit(jgisLocation);
