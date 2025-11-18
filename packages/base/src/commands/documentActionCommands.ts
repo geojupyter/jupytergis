@@ -29,35 +29,6 @@ export function addDocumentActionCommands(options: {
 }) {
   const { commands, tracker, trans } = options;
 
-  commands.addCommand(DocumentActionCommandIDs.removeGroupWithParams, {
-    label: trans.__('Remove group from file name'),
-    isEnabled: () => true,
-    describedBy: {
-      args: {
-        type: 'object',
-        required: ['filePath', 'groupName'],
-        properties: {
-          filePath: {
-            type: 'string',
-            description: 'The path to the .jGIS file to be modified',
-          },
-          groupName: {
-            type: 'string',
-            description: 'The name of the group to remove',
-          },
-        },
-      },
-    },
-    execute: ((args: { filePath: string; groupName: string }) => {
-      const { filePath, groupName } = args;
-      const current = tracker.find(w => w.model.filePath === filePath);
-      if (!current || !current.model.sharedModel.editable) {
-        return;
-      }
-      current.model.removeLayerGroup(groupName);
-    }) as any,
-  });
-
   commands.addCommand(DocumentActionCommandIDs.moveLayersToGroupWithParams, {
     label: trans.__('Move layers to group from file name'),
     isEnabled: () => true,

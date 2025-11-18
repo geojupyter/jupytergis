@@ -709,7 +709,7 @@ export function addCommands(
         return;
       }
 
-      // ---- FALLBACK TO ORIGINAL BEHAVIOR ----
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       await Private.renameSelectedItem(model, 'layer');
     },
   });
@@ -753,7 +753,7 @@ export function addCommands(
         return;
       }
 
-      // ---- FALLBACK TO ORIGINAL BEHAVIOR ----
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       Private.removeSelectedItems(model, 'layer', selection => {
         model?.removeLayer(selection);
       });
@@ -813,12 +813,38 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Optional .jGIS file path'
+          },
+          groupName: {
+            type: 'string',
+            description: 'Optional group name to remove'
+          }
+        }
+      }
     },
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
-      Private.removeSelectedItems(model, 'group', selection => {
+
+    execute: async (args?: { filePath?: string; groupName?: string }) => {
+      const { filePath, groupName } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && groupName) {
+        model.removeLayerGroup(groupName);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
+      await Private.removeSelectedItems(model, 'group', selection => {
         model?.removeLayerGroup(selection);
       });
     },
