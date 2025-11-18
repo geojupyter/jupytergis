@@ -32,7 +32,6 @@ import { addProcessingCommands } from '../processing/processingCommands';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
-import { addDocumentActionCommands } from './documentActionCommands';
 import { addLayerCreationCommands } from './operationCommands';
 import { addProcessingCommandsFromParams } from './processingCommandsFromParams';
 
@@ -76,7 +75,6 @@ export function addCommands(
   const { commands } = app;
 
   addLayerCreationCommands({ tracker, commands, trans });
-  addDocumentActionCommands({ tracker, commands, trans });
 
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
@@ -1388,10 +1386,53 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        properties: {
+          filePath: { type: 'string' }
+        }
+      }
     },
-    execute: async () => {
+
+    execute: async (args?: { filePath?: string }) => {
+      const { filePath } = args ?? {};
+
+      // ----- PARAMETER MODE -----
+      if (filePath) {
+        const current = tracker.find(w => w.model.filePath === filePath);
+        if (!current) {
+          console.warn('No document found for provided filePath');
+          return;
+        }
+
+        const viewModel = current.model;
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        };
+
+        const success = (pos: GeolocationPosition) => {
+          const location: Coordinate = fromLonLat([
+            pos.coords.longitude,
+            pos.coords.latitude
+          ]);
+
+          const jgisLocation: JgisCoordinates = {
+            x: location[0],
+            y: location[1]
+          };
+
+          viewModel.geolocationChanged.emit(jgisLocation);
+        };
+
+        const error = (err: GeolocationPositionError) => {
+          console.warn(`Geolocation error (${err.code}): ${err.message}`);
+        };
+
+        navigator.geolocation.getCurrentPosition(success, error, options);
+        return;
+      }
+
+      // ----- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR -----
       const viewModel = tracker.currentWidget?.model;
       const options = {
         enableHighAccuracy: true,
