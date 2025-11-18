@@ -770,11 +770,45 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Optional .jGIS file path'
+          },
+          oldName: {
+            type: 'string',
+            description: 'Optional existing group name'
+          },
+          newName: {
+            type: 'string',
+            description: 'Optional new group name'
+          }
+        }
+      }
     },
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
+
+    execute: async (args?: {
+      filePath?: string;
+      oldName?: string;
+      newName?: string;
+    }) => {
+      const { filePath, oldName, newName } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && oldName && newName) {
+        model.renameLayerGroup(oldName, newName);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       await Private.renameSelectedItem(model, 'group', (groupName, newName) => {
         model?.renameLayerGroup(groupName, newName);
       });
