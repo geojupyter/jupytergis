@@ -9,9 +9,6 @@ import { downloadFile, getGeoJSONDataFromLayerSource } from '../tools';
 import { JupyterGISTracker } from '../types';
 
 export namespace DocumentActionCommandIDs {
-  export const removeGroupWithParams = 'jupytergis:removeGroupWithParams';
-  export const moveLayersToGroupWithParams =
-    'jupytergis:moveLayersToGroupWithParams';
   export const moveLayerToNewGroupWithParams =
     'jupytergis:moveLayerToNewGroupWithParams';
   export const renameSourceWithParams = 'jupytergis:renameSourceWithParams';
@@ -28,45 +25,6 @@ export function addDocumentActionCommands(options: {
   trans: IRenderMime.TranslationBundle;
 }) {
   const { commands, tracker, trans } = options;
-
-  commands.addCommand(DocumentActionCommandIDs.moveLayersToGroupWithParams, {
-    label: trans.__('Move layers to group from file name'),
-    isEnabled: () => true,
-    describedBy: {
-      args: {
-        type: 'object',
-        required: ['filePath', 'layerIds', 'groupName'],
-        properties: {
-          filePath: {
-            type: 'string',
-            description: 'The path to the .jGIS file to be modified',
-          },
-          layerIds: {
-            type: 'array',
-            description: 'Array of layer IDs to move',
-            items: { type: 'string' },
-          },
-          groupName: {
-            type: 'string',
-            description:
-              'The name of the target group. Use empty string for root.',
-          },
-        },
-      },
-    },
-    execute: ((args: {
-      filePath: string;
-      layerIds: string[];
-      groupName: string;
-    }) => {
-      const { filePath, layerIds, groupName } = args;
-      const current = tracker.find(w => w.model.filePath === filePath);
-      if (!current || !current.model.sharedModel.editable) {
-        return;
-      }
-      current.model.moveItemsToGroup(layerIds, groupName);
-    }) as any,
-  });
 
   commands.addCommand(DocumentActionCommandIDs.moveLayerToNewGroupWithParams, {
     label: trans.__('Move selected layers to new group from file name'),

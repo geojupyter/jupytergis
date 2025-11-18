@@ -858,20 +858,47 @@ export function addCommands(
         type: 'object',
         properties: {
           label: { type: 'string' },
+          filePath: { type: 'string' },
+          layerIds: {
+            type: 'array',
+            items: { type: 'string' }
+          },
+          groupName: { type: 'string' }
         },
       },
     },
-    execute: args => {
-      const model = tracker.currentWidget?.model;
-      const groupName = args['label'] as string;
 
-      const selectedLayers = model?.localState?.selected?.value;
+    execute: (args?: {
+      filePath?: string;
+      layerIds?: string[];
+      groupName?: string;
+      label?: string;
+    }) => {
+      const { filePath, layerIds, groupName } = args ?? {};
 
+      // Resolve model based on filePath or current widget
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && layerIds && groupName !== undefined) {
+        model.moveItemsToGroup(layerIds, groupName);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
+      const selectedLayers = model.localState?.selected?.value;
       if (!selectedLayers) {
         return;
       }
 
-      model.moveItemsToGroup(Object.keys(selectedLayers), groupName);
+      const targetGroup = args?.label as string;
+      model.moveItemsToGroup(Object.keys(selectedLayers), targetGroup);
     },
   });
 
