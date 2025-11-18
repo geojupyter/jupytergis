@@ -709,13 +709,7 @@ export function addCommands(
       }
 
       // ---- FALLBACK TO ORIGINAL BEHAVIOR ----
-      await Private.renameSelectedItem(model, 'layer', (id, name) => {
-        const layer = model.getLayer(id);
-        if (layer) {
-          layer.name = name;
-          model.sharedModel.updateLayer(id, layer);
-        }
-      });
+      await Private.renameSelectedItem(model, 'layer');
     },
   });
 
@@ -809,9 +803,7 @@ export function addCommands(
       }
 
       // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
-      await Private.renameSelectedItem(model, 'group', (groupName, newName) => {
-        model?.renameLayerGroup(groupName, newName);
-      });
+      await Private.renameSelectedItem(model, 'group');
     },
   });
 
