@@ -18,15 +18,15 @@ export const getGeolocation = 'jupytergis:getGeolocation';
 export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 
 // Layer and source
-export const newRasterEntry = 'jupytergis:newRasterEntry';
-export const newVectorTileEntry = 'jupytergis:newVectorTileEntry';
-export const newShapefileEntry = 'jupytergis:newShapefileEntry';
+export const opeNewRasterDialog = 'jupytergis:opeNewRasterDialog';
+export const openNewVectorTileDialog = 'jupytergis:openNewVectorTileDialog';
+export const openNewShapefileDialog = 'jupytergis:openNewShapefileDialog';
 export const openNewGeoJSONDialog = 'jupytergis:openNewGeoJSONDialog';
-export const newHillshadeEntry = 'jupytergis:newHillshadeEntry';
-export const newImageEntry = 'jupytergis:newImageEntry';
-export const newVideoEntry = 'jupytergis:newVideoEntry';
-export const newGeoTiffEntry = 'jupytergis:newGeoTiffEntry';
-export const newGeoParquetEntry = 'jupytergis:newGeoParquetEntry';
+export const openNewHillshadeDialog = 'jupytergis:openNewHillshadeDialog';
+export const openNewImageDialog = 'jupytergis:openNewImageDialog';
+export const openNewVideoDialog = 'jupytergis:openNewVideoDialog';
+export const openNewGeoTiffDialog = 'jupytergis:openNewGeoTiffDialog';
+export const openNewGeoParquetDialog = 'jupytergis:openNewGeoParquetDialog';
 
 // Layer and group actions
 export const renameLayer = 'jupytergis:renameLayer';

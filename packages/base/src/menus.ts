@@ -13,7 +13,7 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newVectorTileEntry,
+    command: CommandIDs.openNewVectorTileDialog,
   });
 
   subMenu.addItem({
@@ -23,12 +23,12 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newShapefileEntry,
+    command: CommandIDs.openNewShapefileDialog,
   });
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newGeoParquetEntry,
+    command: CommandIDs.openNewGeoParquetDialog,
   });
 
   return subMenu;
@@ -43,22 +43,22 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newRasterEntry,
+    command: CommandIDs.opeNewRasterDialog,
   });
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newHillshadeEntry,
+    command: CommandIDs.openNewHillshadeDialog,
   });
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newImageEntry,
+    command: CommandIDs.openNewImageDialog,
   });
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.newGeoTiffEntry,
+    command: CommandIDs.openNewGeoTiffDialog,
   });
 
   return subMenu;

@@ -357,8 +357,8 @@ export function addCommands(
   /**
    * Source and layers
    */
-  commands.addCommand(CommandIDs.newRasterEntry, {
-    label: trans.__('New Raster Tile Layer'),
+  commands.addCommand(CommandIDs.opeNewRasterDialog, {
+    label: trans.__('Open New Raster Tile Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -384,11 +384,11 @@ export function addCommands(
       sourceType: 'RasterSource',
       layerType: 'RasterLayer',
     }),
-    ...icons.get(CommandIDs.newRasterEntry),
+    ...icons.get(CommandIDs.opeNewRasterDialog),
   });
 
-  commands.addCommand(CommandIDs.newVectorTileEntry, {
-    label: trans.__('New Vector Tile Layer'),
+  commands.addCommand(CommandIDs.openNewVectorTileDialog, {
+    label: trans.__('Open New Vector Tile Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -411,11 +411,11 @@ export function addCommands(
       sourceType: 'VectorTileSource',
       layerType: 'VectorTileLayer',
     }),
-    ...icons.get(CommandIDs.newVectorTileEntry),
+    ...icons.get(CommandIDs.openNewVectorTileDialog),
   });
 
-  commands.addCommand(CommandIDs.newGeoParquetEntry, {
-    label: trans.__('New GeoParquet Layer'),
+  commands.addCommand(CommandIDs.openNewGeoParquetDialog, {
+    label: trans.__('Open New GeoParquet Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -438,7 +438,7 @@ export function addCommands(
       sourceType: 'GeoParquetSource',
       layerType: 'VectorLayer',
     }),
-    ...icons.get(CommandIDs.newGeoParquetEntry),
+    ...icons.get(CommandIDs.openNewGeoParquetDialog),
   });
 
   commands.addCommand(CommandIDs.openNewGeoJSONDialog, {
@@ -478,8 +478,8 @@ export function addCommands(
     processingSchemas: Object.fromEntries(formSchemaRegistry.getSchemas()),
   });
 
-  commands.addCommand(CommandIDs.newHillshadeEntry, {
-    label: trans.__('New Hillshade layer'),
+  commands.addCommand(CommandIDs.openNewHillshadeDialog, {
+    label: trans.__('Open New Hillshade Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -501,11 +501,11 @@ export function addCommands(
       sourceType: 'RasterDemSource',
       layerType: 'HillshadeLayer',
     }),
-    ...icons.get(CommandIDs.newHillshadeEntry),
+    ...icons.get(CommandIDs.openNewHillshadeDialog),
   });
 
-  commands.addCommand(CommandIDs.newImageEntry, {
-    label: trans.__('New Image layer'),
+  commands.addCommand(CommandIDs.openNewImageDialog, {
+    label: trans.__('Open New Image Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -537,11 +537,11 @@ export function addCommands(
       sourceType: 'ImageSource',
       layerType: 'ImageLayer',
     }),
-    ...icons.get(CommandIDs.newImageEntry),
+    ...icons.get(CommandIDs.openNewImageDialog),
   });
 
-  commands.addCommand(CommandIDs.newVideoEntry, {
-    label: trans.__('New Video layer'),
+  commands.addCommand(CommandIDs.openNewVideoDialog, {
+    label: trans.__('Open New Video Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -576,11 +576,11 @@ export function addCommands(
       sourceType: 'VideoSource',
       layerType: 'RasterLayer',
     }),
-    ...icons.get(CommandIDs.newVideoEntry),
+    ...icons.get(CommandIDs.openNewVideoDialog),
   });
 
-  commands.addCommand(CommandIDs.newGeoTiffEntry, {
-    label: trans.__('New GeoTiff layer'),
+  commands.addCommand(CommandIDs.openNewGeoTiffDialog, {
+    label: trans.__('Open New GeoTiff Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -606,11 +606,11 @@ export function addCommands(
       sourceType: 'GeoTiffSource',
       layerType: 'WebGlLayer',
     }),
-    ...icons.get(CommandIDs.newGeoTiffEntry),
+    ...icons.get(CommandIDs.openNewGeoTiffDialog),
   });
 
-  commands.addCommand(CommandIDs.newShapefileEntry, {
-    label: trans.__('New Shapefile Layer'),
+  commands.addCommand(CommandIDs.openNewShapefileDialog, {
+    label: trans.__('Open New Shapefile Dialog'),
     describedBy: {
       args: {
         type: 'object',
@@ -633,7 +633,7 @@ export function addCommands(
       sourceType: 'ShapefileSource',
       layerType: 'VectorLayer',
     }),
-    ...icons.get(CommandIDs.newShapefileEntry),
+    ...icons.get(CommandIDs.openNewShapefileDialog),
   });
 
   /**

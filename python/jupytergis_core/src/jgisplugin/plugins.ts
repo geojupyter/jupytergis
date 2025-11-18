@@ -231,12 +231,12 @@ const activate = async (
 
     // Layers and Sources
     palette.addItem({
-      command: CommandIDs.newRasterEntry,
+      command: CommandIDs.opeNewRasterDialog,
       category: 'JupyterGIS',
     });
 
     palette.addItem({
-      command: CommandIDs.newVectorTileEntry,
+      command: CommandIDs.openNewVectorTileDialog,
       category: 'JupyterGIS',
     });
 
@@ -246,7 +246,7 @@ const activate = async (
     });
 
     palette.addItem({
-      command: CommandIDs.newHillshadeEntry,
+      command: CommandIDs.openNewHillshadeDialog,
       category: 'JupyterGIS',
     });
 
