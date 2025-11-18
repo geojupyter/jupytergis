@@ -1226,24 +1226,43 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        properties: {
+          filePath: { type: 'string' },
+          layerId: { type: 'string' }
+        }
+      }
     },
-    execute: () => {
-      const currentWidget = tracker.currentWidget;
-      if (!currentWidget || !completionProviderManager) {
+
+    execute: (args?: { filePath?: string; layerId?: string }) => {
+      const { filePath, layerId } = args ?? {};
+
+      // Determine model from provided file path or fallback to current widget
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
+
+      if (!current || !current.model.sharedModel.editable) {
         return;
       }
-      console.log('zooming');
-      const model = tracker.currentWidget.model;
-      const selectedItems = model.localState?.selected.value;
 
+      const model = current.model;
+
+      // ----- PARAMETER MODE -----
+      if (filePath && layerId) {
+        console.log(`Zooming to layer: ${layerId}`);
+        model.centerOnPosition(layerId);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
+      const selectedItems = model.localState?.selected?.value;
       if (!selectedItems) {
         return;
       }
 
-      const layerId = Object.keys(selectedItems)[0];
-      model.centerOnPosition(layerId);
+      const selLayerId = Object.keys(selectedItems)[0];
+      console.log('zooming');
+      model.centerOnPosition(selLayerId);
     },
   });
 

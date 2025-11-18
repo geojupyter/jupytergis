@@ -8,7 +8,6 @@ import { downloadFile, getGeoJSONDataFromLayerSource } from '../tools';
 import { JupyterGISTracker } from '../types';
 
 export namespace DocumentActionCommandIDs {
-  export const zoomToLayerWithParams = 'jupytergis:zoomToLayerWithParams';
   export const downloadGeoJSONWithParams =
     'jupytergis:downloadGeoJSONWithParams';
   export const getGeolocationWithParams = 'jupytergis:getGeolocationWithParams';
@@ -20,38 +19,6 @@ export function addDocumentActionCommands(options: {
   trans: IRenderMime.TranslationBundle;
 }) {
   const { commands, tracker, trans } = options;
-
-  commands.addCommand(DocumentActionCommandIDs.zoomToLayerWithParams, {
-    label: trans.__('Zoom to layer from file name'),
-    isEnabled: () => true,
-    describedBy: {
-      args: {
-        type: 'object',
-        required: ['filePath', 'layerId'],
-        properties: {
-          filePath: {
-            type: 'string',
-            description: 'Path to the .jGIS file containing the layer',
-          },
-          layerId: {
-            type: 'string',
-            description: 'The ID of the layer to zoom to',
-          },
-        },
-      },
-    },
-    execute: ((args: { filePath: string; layerId: string }) => {
-      const { filePath, layerId } = args;
-      const current = tracker.find(w => w.model.filePath === filePath);
-
-      if (!current || !current.model.sharedModel.editable) {
-        return;
-      }
-
-      console.log(`Zooming to layer: ${layerId}`);
-      current.model.centerOnPosition(layerId);
-    }) as any,
-  });
 
   commands.addCommand(DocumentActionCommandIDs.downloadGeoJSONWithParams, {
     label: trans.__('Download layer as GeoJSON'),
