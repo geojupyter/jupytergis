@@ -135,10 +135,11 @@ export function addCommands(
         properties: {
           filePath: {
             type: 'string',
-            description: 'Optional .jGIS file path. If omitted, uses active widget.',
-          }
-        }
-      }
+            description:
+              'Optional .jGIS file path. If omitted, uses active widget.',
+          },
+        },
+      },
     },
     isEnabled: () => {
       return tracker.currentWidget
@@ -292,10 +293,10 @@ export function addCommands(
         properties: {
           filePath: {
             type: 'string',
-            description: 'Optional path to the .jGIS file'
-          }
-        }
-      }
+            description: 'Optional path to the .jGIS file',
+          },
+        },
+      },
     },
     isToggled: () => {
       return tracker.currentWidget?.model.isTemporalControllerActive || false;
@@ -667,18 +668,18 @@ export function addCommands(
         properties: {
           filePath: {
             type: 'string',
-            description: 'Optional path to the .jGIS file'
+            description: 'Optional path to the .jGIS file',
           },
           layerId: {
             type: 'string',
-            description: 'Optional ID of the layer to rename'
+            description: 'Optional ID of the layer to rename',
           },
           newName: {
             type: 'string',
-            description: 'Optional new name for the layer'
-          }
-        }
-      }
+            description: 'Optional new name for the layer',
+          },
+        },
+      },
     },
 
     execute: async (args?: {
@@ -721,14 +722,14 @@ export function addCommands(
         properties: {
           filePath: {
             type: 'string',
-            description: 'Optional path to the .jGIS file'
+            description: 'Optional path to the .jGIS file',
           },
           layerId: {
             type: 'string',
-            description: 'Optional ID of the layer to remove'
-          }
-        }
-      }
+            description: 'Optional ID of the layer to remove',
+          },
+        },
+      },
     },
 
     execute: (args?: { filePath?: string; layerId?: string }) => {
@@ -767,18 +768,18 @@ export function addCommands(
         properties: {
           filePath: {
             type: 'string',
-            description: 'Optional .jGIS file path'
+            description: 'Optional .jGIS file path',
           },
           oldName: {
             type: 'string',
-            description: 'Optional existing group name'
+            description: 'Optional existing group name',
           },
           newName: {
             type: 'string',
-            description: 'Optional new group name'
-          }
-        }
-      }
+            description: 'Optional new group name',
+          },
+        },
+      },
     },
 
     execute: async (args?: {
