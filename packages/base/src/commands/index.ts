@@ -1016,11 +1016,43 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        properties: {
+          filePath: { type: 'string' },
+          sourceId: { type: 'string' },
+          newName: { type: 'string' }
+        }
+      }
     },
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
+
+    execute: async (args?: {
+      filePath?: string;
+      sourceId?: string;
+      newName?: string;
+    }) => {
+      const { filePath, sourceId, newName } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && sourceId && newName) {
+        const source = model.getSource(sourceId);
+        if (!source) {
+          console.warn(`Source with ID ${sourceId} not found`);
+          return;
+        }
+
+        source.name = newName;
+        model.sharedModel.updateSource(sourceId, source);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       await Private.renameSelectedItem(model, 'source');
     },
   });
