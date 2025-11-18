@@ -40,3 +40,14 @@ declare global {
     jupytergisMaps: { [name: string]: Map };
   }
 }
+
+const classificationModes = [
+  'quantile',
+  'equal interval',
+  'jenks',
+  'pretty',
+  'logarithmic',
+  'continuous',
+] as const;
+
+export type ClassificationMode = (typeof classificationModes)[number];

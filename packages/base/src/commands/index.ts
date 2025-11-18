@@ -938,13 +938,7 @@ export function addCommands(
     },
     execute: async () => {
       const model = tracker.currentWidget?.model;
-      await Private.renameSelectedItem(model, 'source', (sourceId, newName) => {
-        const source = model?.getSource(sourceId);
-        if (source) {
-          source.name = newName;
-          model?.sharedModel.updateSource(sourceId, source);
-        }
-      });
+      await Private.renameSelectedItem(model, 'source');
     },
   });
 
@@ -1553,39 +1547,6 @@ namespace Private {
     };
   }
 
-  export async function getUserInputForRename(
-    text: HTMLElement,
-    input: HTMLInputElement,
-    original: string,
-  ): Promise<string> {
-    const parent = text.parentElement as HTMLElement;
-    parent.replaceChild(input, text);
-    input.value = original;
-    input.select();
-    input.focus();
-
-    return new Promise<string>(resolve => {
-      input.addEventListener('blur', () => {
-        parent.replaceChild(text, input);
-        resolve(input.value);
-      });
-
-      input.addEventListener('keydown', (event: KeyboardEvent) => {
-        if (event.key === 'Enter') {
-          event.stopPropagation();
-          event.preventDefault();
-          input.blur();
-        } else if (event.key === 'Escape') {
-          event.stopPropagation();
-          event.preventDefault();
-          input.value = original;
-          input.blur();
-          text.focus();
-        }
-      });
-    });
-  }
-
   export function removeSelectedItems(
     model: IJupyterGISModel | undefined,
     itemTypeToRemove: SelectionType,
@@ -1608,11 +1569,10 @@ namespace Private {
   export async function renameSelectedItem(
     model: IJupyterGISModel | undefined,
     itemType: SelectionType,
-    callback: (itemId: string, newName: string) => void,
   ) {
     const selectedItems = model?.localState?.selected.value;
 
-    if (!selectedItems) {
+    if (!selectedItems || !model) {
       console.error(`No ${itemType} selected`);
       return;
     }
@@ -1631,34 +1591,8 @@ namespace Private {
       return;
     }
 
-    const nodeId = selectedItems[itemId].selectedNodeId;
-    if (!nodeId) {
-      return;
-    }
-
-    const node = document.getElementById(nodeId);
-    if (!node) {
-      console.warn(`Node with ID ${nodeId} not found`);
-      return;
-    }
-
-    const edit = document.createElement('input');
-    edit.classList.add('jp-gis-left-panel-input');
-    const originalName = node.innerText;
-    const newName = await Private.getUserInputForRename(
-      node,
-      edit,
-      originalName,
-    );
-
-    if (!newName) {
-      console.warn('New name cannot be empty');
-      return;
-    }
-
-    if (newName !== originalName) {
-      callback(itemId, newName);
-    }
+    // Set editing state - component will show inline input
+    model.setEditingItem(itemType, itemId);
   }
 
   export function executeConsole(tracker: JupyterGISTracker): void {

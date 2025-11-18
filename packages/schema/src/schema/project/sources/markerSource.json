@@ -5,6 +5,10 @@
   "required": ["feature"],
   "additionalProperties": false,
   "properties": {
+    "color": {
+      "type": "string",
+      "description": "Color of the marker icon (hex, rgb, rgba, or named color)"
+    },
     "feature": {
       "type": "object",
       "description": "Info for the marker",
