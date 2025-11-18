@@ -664,16 +664,56 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Optional path to the .jGIS file'
+          },
+          layerId: {
+            type: 'string',
+            description: 'Optional ID of the layer to rename'
+          },
+          newName: {
+            type: 'string',
+            description: 'Optional new name for the layer'
+          }
+        }
+      }
     },
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
-      await Private.renameSelectedItem(model, 'layer', (layerId, newName) => {
-        const layer = model?.getLayer(layerId);
+
+    execute: async (args?: {
+      filePath?: string;
+      layerId?: string;
+      newName?: string;
+    }) => {
+      const { filePath, layerId, newName } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      // If all args are present, use them
+      if (filePath && layerId && newName) {
+        const layer = model.sharedModel.layers[layerId];
+        if (!layer) {
+          return;
+        }
+        layer.name = newName;
+        model.sharedModel.updateLayer(layerId, layer);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL BEHAVIOR ----
+      await Private.renameSelectedItem(model, 'layer', (id, name) => {
+        const layer = model.getLayer(id);
         if (layer) {
-          layer.name = newName;
-          model?.sharedModel.updateLayer(layerId, layer);
+          layer.name = name;
+          model.sharedModel.updateLayer(id, layer);
         }
       });
     },

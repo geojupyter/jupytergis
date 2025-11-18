@@ -9,7 +9,6 @@ import { downloadFile, getGeoJSONDataFromLayerSource } from '../tools';
 import { JupyterGISTracker } from '../types';
 
 export namespace DocumentActionCommandIDs {
-  export const renameLayerWithParams = 'jupytergis:renameLayerWithParams';
   export const removeLayerWithParams = 'jupytergis:removeLayerWithParams';
   export const renameGroupWithParams = 'jupytergis:renameGroupWithParams';
   export const removeGroupWithParams = 'jupytergis:removeGroupWithParams';
@@ -31,52 +30,6 @@ export function addDocumentActionCommands(options: {
   trans: IRenderMime.TranslationBundle;
 }) {
   const { commands, tracker, trans } = options;
-
-  commands.addCommand(DocumentActionCommandIDs.renameLayerWithParams, {
-    label: trans.__('Rename layer from file name'),
-    isEnabled: () => true,
-    describedBy: {
-      args: {
-        type: 'object',
-        required: ['filePath', 'layerId', 'newName'],
-        properties: {
-          filePath: {
-            type: 'string',
-            description: 'The path to the .jGIS file to be modified',
-          },
-          layerId: {
-            type: 'string',
-            description: 'The ID of the layer to be renamed',
-          },
-          newName: {
-            type: 'string',
-            description: 'The new name for the layer',
-          },
-        },
-      },
-    },
-    execute: (async (args: {
-      filePath: string;
-      layerId: string;
-      newName: string;
-    }) => {
-      const { filePath, layerId, newName } = args;
-      const current = tracker.find(w => w.model.filePath === filePath);
-
-      if (!current || !current.model.sharedModel.editable) {
-        return;
-      }
-
-      const sharedModel = current.model.sharedModel;
-      const layer = sharedModel.layers[layerId];
-      if (!layer) {
-        return;
-      }
-
-      layer.name = newName;
-      sharedModel.updateLayer(layerId, layer);
-    }) as any,
-  });
 
   commands.addCommand(DocumentActionCommandIDs.removeLayerWithParams, {
     label: trans.__('Remove layer from file name'),
