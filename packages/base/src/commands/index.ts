@@ -907,13 +907,50 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        properties: {
+          filePath: { type: 'string' },
+          groupName: { type: 'string' },
+          layerIds: {
+            type: 'array',
+            items: { type: 'string' }
+          }
+        }
+      }
     },
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
-      const selectedLayers = model?.localState?.selected?.value;
 
+    execute: async (args?: {
+      filePath?: string;
+      groupName?: string;
+      layerIds?: string[];
+    }) => {
+      const { filePath, groupName, layerIds } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && groupName && layerIds) {
+        const layerMap: { [key: string]: any } = {};
+        layerIds.forEach(id => {
+          layerMap[id] = { type: 'layer', selectedNodeId: id };
+        });
+
+        const newGroup: IJGISLayerGroup = {
+          name: groupName,
+          layers: layerIds
+        };
+
+        model.addNewLayerGroup(layerMap, newGroup);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
+      const selectedLayers = model.localState?.selected?.value;
       if (!selectedLayers) {
         return;
       }

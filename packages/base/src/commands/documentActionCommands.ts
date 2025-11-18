@@ -1,4 +1,4 @@
-import { IJGISLayerGroup, JgisCoordinates } from '@jupytergis/schema';
+import { JgisCoordinates } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IRenderMime } from '@jupyterlab/rendermime';
 import { CommandRegistry } from '@lumino/commands';
@@ -9,8 +9,6 @@ import { downloadFile, getGeoJSONDataFromLayerSource } from '../tools';
 import { JupyterGISTracker } from '../types';
 
 export namespace DocumentActionCommandIDs {
-  export const moveLayerToNewGroupWithParams =
-    'jupytergis:moveLayerToNewGroupWithParams';
   export const renameSourceWithParams = 'jupytergis:renameSourceWithParams';
   export const removeSourceWithParams = 'jupytergis:removeSourceWithParams';
   export const zoomToLayerWithParams = 'jupytergis:zoomToLayerWithParams';
@@ -25,55 +23,6 @@ export function addDocumentActionCommands(options: {
   trans: IRenderMime.TranslationBundle;
 }) {
   const { commands, tracker, trans } = options;
-
-  commands.addCommand(DocumentActionCommandIDs.moveLayerToNewGroupWithParams, {
-    label: trans.__('Move selected layers to new group from file name'),
-    isEnabled: () => true,
-    describedBy: {
-      args: {
-        type: 'object',
-        required: ['filePath', 'groupName', 'layerIds'],
-        properties: {
-          filePath: {
-            type: 'string',
-            description: 'The path to the .jGIS file to be modified',
-          },
-          groupName: {
-            type: 'string',
-            description: 'The name of the new layer group to create',
-          },
-          layerIds: {
-            type: 'array',
-            description: 'Array of layer IDs to move to the new group',
-            items: { type: 'string' },
-          },
-        },
-      },
-    },
-    execute: ((args: {
-      filePath: string;
-      groupName: string;
-      layerIds: string[];
-    }) => {
-      const { filePath, groupName, layerIds } = args;
-      const current = tracker.find(w => w.model.filePath === filePath);
-      if (!current || !current.model.sharedModel.editable) {
-        return;
-      }
-
-      const layerMap: { [key: string]: any } = {};
-      layerIds.forEach(id => {
-        layerMap[id] = { type: 'layer', selectedNodeId: id };
-      });
-
-      const newGroup: IJGISLayerGroup = {
-        name: groupName,
-        layers: layerIds,
-      };
-
-      current.model.addNewLayerGroup(layerMap, newGroup);
-    }) as any,
-  });
 
   commands.addCommand(DocumentActionCommandIDs.renameSourceWithParams, {
     label: trans.__('Rename source from file name'),
