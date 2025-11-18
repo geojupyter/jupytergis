@@ -724,11 +724,41 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Optional path to the .jGIS file'
+          },
+          layerId: {
+            type: 'string',
+            description: 'Optional ID of the layer to remove'
+          }
+        }
+      }
     },
-    execute: () => {
-      const model = tracker.currentWidget?.model;
+
+    execute: (args?: { filePath?: string; layerId?: string }) => {
+      const { filePath, layerId } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && layerId) {
+        const exists = model.sharedModel.layers[layerId];
+        if (!exists) {
+          return;
+        }
+        model.removeLayer(layerId);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL BEHAVIOR ----
       Private.removeSelectedItems(model, 'layer', selection => {
         model?.removeLayer(selection);
       });

@@ -9,7 +9,6 @@ import { downloadFile, getGeoJSONDataFromLayerSource } from '../tools';
 import { JupyterGISTracker } from '../types';
 
 export namespace DocumentActionCommandIDs {
-  export const removeLayerWithParams = 'jupytergis:removeLayerWithParams';
   export const renameGroupWithParams = 'jupytergis:renameGroupWithParams';
   export const removeGroupWithParams = 'jupytergis:removeGroupWithParams';
   export const moveLayersToGroupWithParams =
@@ -30,43 +29,6 @@ export function addDocumentActionCommands(options: {
   trans: IRenderMime.TranslationBundle;
 }) {
   const { commands, tracker, trans } = options;
-
-  commands.addCommand(DocumentActionCommandIDs.removeLayerWithParams, {
-    label: trans.__('Remove layer from file name'),
-    isEnabled: () => true,
-    describedBy: {
-      args: {
-        type: 'object',
-        required: ['filePath', 'layerId'],
-        properties: {
-          filePath: {
-            type: 'string',
-            description: 'The path to the .jGIS file to be modified',
-          },
-          layerId: {
-            type: 'string',
-            description: 'The ID of the layer to be removed',
-          },
-        },
-      },
-    },
-    execute: ((args: { filePath: string; layerId: string }) => {
-      const { filePath, layerId } = args;
-      const current = tracker.find(w => w.model.filePath === filePath);
-
-      if (!current || !current.model.sharedModel.editable) {
-        return;
-      }
-
-      const sharedModel = current.model.sharedModel;
-      const existing = sharedModel.layers[layerId];
-      if (!existing) {
-        return;
-      }
-
-      current.model.removeLayer(layerId);
-    }) as any,
-  });
 
   commands.addCommand(DocumentActionCommandIDs.renameGroupWithParams, {
     label: trans.__('Rename Group from file name'),
