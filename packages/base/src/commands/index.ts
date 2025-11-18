@@ -1254,7 +1254,7 @@ export function addCommands(
         return;
       }
 
-      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
+      // ----- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR -----
       const selectedItems = model.localState?.selected?.value;
       if (!selectedItems) {
         return;
@@ -1271,8 +1271,12 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        properties: {
+          filePath: { type: 'string' },
+          layerId: { type: 'string' },
+          exportFileName: { type: 'string' }
+        }
+      }
     },
     isEnabled: () => {
       const selectedLayer = getSingleSelectedLayer(tracker);
@@ -1280,7 +1284,54 @@ export function addCommands(
         ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
         : false;
     },
-    execute: async () => {
+
+    execute: async (args?: {
+      filePath?: string;
+      layerId?: string;
+      exportFileName?: string;
+    }) => {
+      const { filePath, layerId, exportFileName } = args ?? {};
+
+      // ----- PARAMETER MODE -----
+      if (filePath && layerId && exportFileName) {
+        const current = tracker.find(w => w.model.filePath === filePath);
+
+        if (!current || !current.model.sharedModel.editable) {
+          console.warn('Invalid or non-editable document');
+          return;
+        }
+
+        const model = current.model;
+        const layer = model.getLayer(layerId);
+
+        if (!layer || !['VectorLayer', 'ShapefileLayer'].includes(layer.type)) {
+          console.warn('Layer type not supported for GeoJSON export');
+          return;
+        }
+
+        const sources = model.sharedModel.sources ?? {};
+        const sourceId = layer.parameters?.source;
+        const source = sources[sourceId];
+        if (!source) {
+          console.warn('Source not found for selected layer');
+          return;
+        }
+
+        const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
+        if (!geojsonString) {
+          console.warn('Failed to generate GeoJSON data');
+          return;
+        }
+
+        downloadFile(
+          geojsonString,
+          `${exportFileName}.geojson`,
+          'application/geo+json'
+        );
+        return;
+      }
+
+      // ----- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR -----
       const selectedLayer = getSingleSelectedLayer(tracker);
       if (!selectedLayer) {
         return;
@@ -1315,7 +1366,7 @@ export function addCommands(
         return;
       }
 
-      const exportFileName = formValues.exportFileName;
+      const outName = formValues.exportFileName;
       const sourceId = selectedLayer.parameters.source;
       const source = sources[sourceId];
 
@@ -1326,7 +1377,7 @@ export function addCommands(
 
       downloadFile(
         geojsonString,
-        `${exportFileName}.geojson`,
+        `${outName}.geojson`,
         'application/geo+json',
       );
     },
