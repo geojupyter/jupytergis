@@ -1062,11 +1062,40 @@ export function addCommands(
     describedBy: {
       args: {
         type: 'object',
-        properties: {},
-      },
+        properties: {
+          filePath: { type: 'string' },
+          sourceId: { type: 'string' }
+        }
+      }
     },
-    execute: () => {
-      const model = tracker.currentWidget?.model;
+
+    execute: (args?: { filePath?: string; sourceId?: string }) => {
+      const { filePath, sourceId } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && sourceId) {
+        const layersUsingSource = model.getLayersBySource(sourceId);
+        if (layersUsingSource.length > 0) {
+          showErrorMessage(
+            'Remove source error',
+            'The source is used by a layer.'
+          );
+          return;
+        }
+
+        model.sharedModel.removeSource(sourceId);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       Private.removeSelectedItems(model, 'source', selection => {
         if (!(model?.getLayersBySource(selection).length ?? true)) {
           model?.sharedModel.removeSource(selection);
