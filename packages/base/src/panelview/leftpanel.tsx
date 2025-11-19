@@ -59,7 +59,8 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     };
   }, [props.model]);
 
-  // Process layer tree once to create both filtered and landmark trees
+  // Since landmarks are technically layers they are stored in the layer tree, so we separate them
+  // from regular layers. Process the tree once to build both filtered and landmark trees.
   const { filteredLayerTree, landmarkLayerTree } = React.useMemo(() => {
     const filtered: IJGISLayerTree = [];
     const landmarks: IJGISLayerTree = [];
@@ -121,11 +122,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     };
   }, [layerTree]);
 
-  /**
-   * ! TODO LOOK HERE
-   * If we want to support multiple stories then we need a way to assign landmarks to them
-   * Probably just wont do multiple stories then
-   */
   // Updates landmarks array based on layer tree array
   React.useEffect(() => {
     const { landmarkId, story } = props.model.getSelectedStory();
