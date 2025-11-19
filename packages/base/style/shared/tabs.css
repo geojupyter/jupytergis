@@ -1,7 +1,6 @@
 .jgis-panel-tabs {
   display: flex;
   flex-direction: column;
-  /* gap: 1rem; */
   justify-content: center;
   align-items: center;
   background-color: var(--jp-layout-color0);

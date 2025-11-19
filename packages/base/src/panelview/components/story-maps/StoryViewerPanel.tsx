@@ -15,7 +15,7 @@ interface IStoryViewerPanelProps {
 }
 
 function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
-  const [currentRankDisplayed, setCurrentRankDisplayed] = useState(0);
+  const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(0);
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(null);
 
   // Derive landmarks from story data
@@ -29,10 +29,10 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
       .filter((layer): layer is IJGISLayer => layer !== undefined);
   }, [storyData, model]);
 
-  // Derive current landmark from landmarks and currentRankDisplayed
+  // Derive current landmark from landmarks and currentIndexDisplayed
   const currentLandmark = useMemo(() => {
-    return landmarks[currentRankDisplayed];
-  }, [landmarks, currentRankDisplayed]);
+    return landmarks[currentIndexDisplayed];
+  }, [landmarks, currentIndexDisplayed]);
 
   // Derive active slide and layer name from current landmark
   const activeSlide = useMemo(() => {
@@ -45,15 +45,15 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
 
   // Derive landmark ID for zooming
   const currentLandmarkId = useMemo(() => {
-    return storyData?.landmarks?.[currentRankDisplayed];
-  }, [storyData, currentRankDisplayed]);
+    return storyData?.landmarks?.[currentIndexDisplayed];
+  }, [storyData, currentIndexDisplayed]);
 
   useEffect(() => {
     const updateStory = () => {
       const { story } = model.getSelectedStory();
       setStoryData(story ?? null);
       // Reset to first slide when story changes
-      setCurrentRankDisplayed(0);
+      setCurrentIndexDisplayed(0);
     };
 
     updateStory();
@@ -73,11 +73,11 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
   }, [currentLandmarkId, model]);
 
   // Listen for layer selection changes in unguided mode
-  // ! TODO refactor selection stuff
   useEffect(() => {
-    const handleAwarenessChange = (thig: any, more: any, extra: any) => {
+    // ! TODO this logic (getting a single selected layer) is also in the processing index.ts, move to tools
+    const handleSelectedLandmarkChange = (thig: any, more: any, extra: any) => {
       // This is just to update the displayed content
-      // So bail early if we don't need to do thath
+      // So bail early if we don't need to do that
       if (!storyData || storyData.storyType !== 'unguided') {
         return;
       }
@@ -105,13 +105,13 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
         return;
       }
 
-      setCurrentRankDisplayed(index);
+      setCurrentIndexDisplayed(index);
     };
 
-    model.sharedModel.awareness.on('change', handleAwarenessChange);
+    model.sharedModel.awareness.on('change', handleSelectedLandmarkChange);
 
     return () => {
-      model.sharedModel.awareness.off('change', handleAwarenessChange);
+      model.sharedModel.awareness.off('change', handleSelectedLandmarkChange);
     };
   }, [model, storyData]);
 
@@ -122,14 +122,14 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
   };
 
   const handlePrev = () => {
-    if (currentRankDisplayed > 0) {
-      setCurrentRankDisplayed(currentRankDisplayed - 1);
+    if (currentIndexDisplayed > 0) {
+      setCurrentIndexDisplayed(currentIndexDisplayed - 1);
     }
   };
 
   const handleNext = () => {
-    if (currentRankDisplayed < landmarks.length - 1) {
-      setCurrentRankDisplayed(currentRankDisplayed + 1);
+    if (currentIndexDisplayed < landmarks.length - 1) {
+      setCurrentIndexDisplayed(currentIndexDisplayed + 1);
     }
   };
 
@@ -175,7 +175,7 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
               textAlign: 'center',
             }}
           >
-            {`Slide ${currentRankDisplayed + 1} - ${layerName ? layerName : 'Landmark Name'}`}
+            {`Slide ${currentIndexDisplayed + 1} - ${layerName ? layerName : 'Landmark Name'}`}
           </h1>
         </div>
       ) : (
@@ -186,11 +186,6 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
           ? activeSlide.content.title
           : 'Slide Title'}
       </h2>
-      {/* <h3 style={{ paddingLeft: 2 }}>
-        {activeSlide?.content?.title
-          ? activeSlide.content.title
-          : 'Slide Title'}
-      </h3> */}
       {activeSlide?.content?.markdown && (
         <div className="jgis-story-viewer-content" style={{ paddingLeft: 16 }}>
           <Markdown>{activeSlide.content.markdown}</Markdown>
@@ -201,8 +196,8 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
         <StoryNavBar
           onPrev={handlePrev}
           onNext={handleNext}
-          hasPrev={currentRankDisplayed > 0}
-          hasNext={currentRankDisplayed < landmarks.length - 1}
+          hasPrev={currentIndexDisplayed > 0}
+          hasNext={currentIndexDisplayed < landmarks.length - 1}
         />
       )}
       <Button onClick={togglePreview}>Edit Story</Button>
