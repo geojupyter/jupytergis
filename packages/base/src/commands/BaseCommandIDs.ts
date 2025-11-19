@@ -67,4 +67,4 @@ export const showAnnotationsTab = 'jupytergis:showAnnotationsTab';
 export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 
 // Story maps
-export const addLandmark = 'jupytergis:addLandmark'
+export const addLandmark = 'jupytergis:addLandmark';
