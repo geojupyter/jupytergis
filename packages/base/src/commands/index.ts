@@ -1065,9 +1065,6 @@ export function addCommands(
         : false;
     },
     execute: args => {
-      console.log('addLandmark command executing');
-      // only want to use one story for now so hardcoding the id for now
-
       const storyMapId = UUID.uuid4();
       const newLandmarkId = UUID.uuid4();
       const current = tracker.currentWidget;
@@ -1077,7 +1074,7 @@ export function addCommands(
       const { zoom, extent } = current.model.getOptions();
 
       if (!zoom || !extent) {
-        console.log('shut up');
+        console.log('No extent or zoom found');
         return;
       }
 
@@ -1105,11 +1102,10 @@ export function addCommands(
 
         current.model.sharedModel.addStoryMap(storyMapId, storyMap);
       } else {
-        // else need to update tories
-        // get first story
-        const story = current.model.getSelectedStory().story;
+        // else need to update stories
+        const { story } = current.model.getSelectedStory();
         if (!story) {
-          console.log('brok');
+          console.log('No story found, something went wrong');
           return;
         }
         const newStory: IJGISStoryMap = {
@@ -1181,7 +1177,6 @@ namespace Private {
     return async () => {
       const current = tracker.currentWidget;
 
-      console.log('current', current);
       if (!current) {
         return;
       }

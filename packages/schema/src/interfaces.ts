@@ -132,7 +132,6 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   addSource(id: string, value: IJGISSource): void;
   updateSource(id: string, value: IJGISSource): void;
 
-  storyMapExists(id: string): boolean;
   getStoryMap(id: string): IJGISStoryMap | undefined;
   removeStoryMap(id: string): void;
   addStoryMap(id: string, value: IJGISStoryMap): void;
