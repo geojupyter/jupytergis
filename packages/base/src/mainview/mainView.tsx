@@ -2043,13 +2043,15 @@ export class MainView extends React.Component<IProps, IStates> {
     const layer = this.getLayer(id);
     const source = layer?.getSource();
 
+    // TODO: Landmark layers don't have an associated OL layer
+    // This could be better
     if (!layer) {
-      const jLayer = this._model.getLayer(id);
-      const p = jLayer?.parameters as ILandmarkLayer;
-      this._Map.getView().fit(p.extent!, {
+      const jgisLayer = this._model.getLayer(id);
+      const layerParams = jgisLayer?.parameters as ILandmarkLayer;
+      this._Map.getView().fit(layerParams.extent!, {
         size: this._Map.getSize(),
         duration: 500,
-        maxZoom: p.zoom!,
+        maxZoom: layerParams.zoom!,
       });
       return;
     }

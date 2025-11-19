@@ -300,10 +300,6 @@ export class JupyterGISDoc
     this.transact(() => this._sources.set(id, value));
   }
 
-  storyMapExists(id: string): boolean {
-    return Boolean(this._getStoryMapAsYMap(id));
-  }
-
   removeStoryMap(id: string): void {
     this.transact(() => {
       this._storiesMap.delete(id);
@@ -385,13 +381,6 @@ export class JupyterGISDoc
   private _getSourceAsYMap(id: string): Y.Map<any> | undefined {
     if (this._sources.has(id)) {
       return this._sources.get(id);
-    }
-    return undefined;
-  }
-
-  private _getStoryMapAsYMap(id: string): Y.Map<any> | undefined {
-    if (this._storiesMap.has(id)) {
-      return this._storiesMap.get(id);
     }
     return undefined;
   }
