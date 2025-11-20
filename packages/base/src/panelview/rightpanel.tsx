@@ -9,6 +9,9 @@ import Draggable from 'react-draggable';
 
 import { AnnotationsPanel } from './annotationPanel';
 import { IdentifyPanelComponent } from './components/identify-panel/IdentifyPanel';
+import { PreviewModeSwitch } from './components/story-maps/PreviewModeSwitch';
+import StoryEditorPanel from './components/story-maps/StoryEditorPanel';
+import StoryViewerPanel from './components/story-maps/StoryViewerPanel';
 import { ObjectPropertiesReact } from './objectproperties';
 import {
   PanelTabs,
@@ -16,8 +19,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '../shared/components/Tabs';
-import StoryEditorPanel from './components/story-maps/StoryEditorPanel';
-import StoryViewerPanel from './components/story-maps/StoryViewerPanel';
 
 interface IRightPanelProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
@@ -137,7 +138,11 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             </TabsContent>
           )}
 
-          <TabsContent value="storyPanel" className="jgis-panel-tab-content">
+          <TabsContent
+            value="storyPanel"
+            className="jgis-panel-tab-content"
+            style={{ paddingTop: 0 }}
+          >
             {settings.storyMapPresentation || !displayEditor ? (
               <StoryViewerPanel
                 model={props.model}
