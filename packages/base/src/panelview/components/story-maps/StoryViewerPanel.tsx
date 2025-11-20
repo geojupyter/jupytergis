@@ -175,9 +175,38 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
           >
             {`Slide ${currentIndexDisplayed + 1} - ${layerName ? layerName : 'Landmark Name'}`}
           </h1>
+          {/* if guided -> nav buttons */}
+          {storyData.storyType === 'guided' && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                width: '100%',
+              }}
+            >
+              <StoryNavBar
+                onPrev={handlePrev}
+                onNext={handleNext}
+                hasPrev={currentIndexDisplayed > 0}
+                hasNext={currentIndexDisplayed < landmarks.length - 1}
+              />
+            </div>
+          )}
         </div>
       ) : (
-        <h1 style={{ textAlign: 'center' }}>{storyData.title}</h1>
+        <>
+          <h1 style={{ textAlign: 'center' }}>{storyData.title}</h1>
+          {/* if guided -> nav buttons */}
+          {storyData.storyType === 'guided' && (
+            <StoryNavBar
+              onPrev={handlePrev}
+              onNext={handleNext}
+              hasPrev={currentIndexDisplayed > 0}
+              hasNext={currentIndexDisplayed < landmarks.length - 1}
+            />
+          )}
+        </>
       )}
       <h2 style={{ textAlign: 'center' }}>
         {activeSlide?.content?.title
@@ -188,15 +217,6 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
         <div className="jgis-story-viewer-content" style={{ paddingLeft: 16 }}>
           <Markdown>{activeSlide.content.markdown}</Markdown>
         </div>
-      )}
-      {/* if guided -> nav buttons */}
-      {storyData.storyType === 'guided' && (
-        <StoryNavBar
-          onPrev={handlePrev}
-          onNext={handleNext}
-          hasPrev={currentIndexDisplayed > 0}
-          hasNext={currentIndexDisplayed < landmarks.length - 1}
-        />
       )}
     </div>
   );
