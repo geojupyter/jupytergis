@@ -2,18 +2,17 @@ import { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import jgisSchema from '@jupytergis/schema/lib/schema/project/jgis.json';
 import React, { useMemo } from 'react';
 
-import { StoryEditorForm } from '@/src/formbuilder/objectform/StoryForm';
+import { BaseForm } from '@/src/formbuilder';
 import { deepCopy } from '@/src/tools';
 import { IDict } from '@/src/types';
 
 interface IStoryPanelProps {
   model: IJupyterGISModel;
-  togglePreview: () => void;
 }
 
 const storyMapSchema: IDict = deepCopy(jgisSchema.definitions.jGISStoryMap);
 
-export function StoryEditorPanel({ model, togglePreview }: IStoryPanelProps) {
+export function StoryEditorPanel({ model }: IStoryPanelProps) {
   const { landmarkId, story } = useMemo(() => {
     return model.getSelectedStory();
   }, [model, model.sharedModel.storiesMap]);
@@ -24,23 +23,21 @@ export function StoryEditorPanel({ model, togglePreview }: IStoryPanelProps) {
 
   if (!story) {
     return (
-      <div style={{ padding: '10px' }}>
+      <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
         <p>No story map available. Create one by adding a landmark.</p>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '10px' }}>
-      <h3>Story Map Properties</h3>
-      <StoryEditorForm
+    <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
+      <BaseForm
         formContext="update"
         sourceData={story}
         model={model}
         schema={storyMapSchema}
         syncData={syncStoryData}
         filePath={model.filePath}
-        togglePreview={togglePreview}
       />
     </div>
   );

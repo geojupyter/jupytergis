@@ -1,4 +1,3 @@
-import { Button } from '@jupyter/react-components';
 import {
   IJGISLayer,
   IJGISStoryMap,
@@ -11,10 +10,9 @@ import StoryNavBar from './StoryNavBar';
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
-  togglePreview: () => void;
 }
 
-function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
+function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(0);
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(null);
 
@@ -200,7 +198,6 @@ function StoryViewerPanel({ model, togglePreview }: IStoryViewerPanelProps) {
           hasNext={currentIndexDisplayed < landmarks.length - 1}
         />
       )}
-      <Button onClick={togglePreview}>Edit Story</Button>
     </div>
   );
 }
