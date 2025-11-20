@@ -2106,6 +2106,10 @@ export class MainView extends React.Component<IProps, IStates> {
     transitionType?: 'linear' | 'immediate' | 'smooth',
   ) {
     const view = this._Map.getView();
+
+    // Cancel any in-progress animations before starting new ones
+    view.cancelAnimations();
+
     const currentZoom = view.getZoom() || 0;
     const targetCenter: Coordinate = [center.x, center.y];
 
