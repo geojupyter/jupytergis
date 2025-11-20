@@ -20,7 +20,5 @@
     "types": ["node", "webpack-env"],
     "skipLibCheck": true,
     "lib": ["ES2019", "WebWorker", "DOM"]
-  },
-  "include": ["src/stacBrowser/components/catalogs.json"],
-  "files": ["src/stacBrowser/components/catalogs.json"]
+  }
 }

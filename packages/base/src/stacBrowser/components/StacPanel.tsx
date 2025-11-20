@@ -10,7 +10,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/src/shared/components/Tabs';
-import catalogsData from '@/src/stacBrowser/components/catalogs.json';
+import useStacIndex from '@/src/stacBrowser/hooks/useStacIndex';
 import useStacSearch from '@/src/stacBrowser/hooks/useStacSearch';
 import StacPanelFilters from './StacPanelFilters';
 import StacPanelResults from './StacPanelResults';
@@ -20,6 +20,8 @@ interface IStacViewProps {
 }
 const StacPanel = ({ model }: IStacViewProps) => {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const { catalogs } = useStacIndex(model);
 
   const {
     filterState,
@@ -45,7 +47,7 @@ const StacPanel = ({ model }: IStacViewProps) => {
   }
 
   const handleOpenDialog = async () => {
-    const widget = new URLInputWidget();
+    const widget = new URLInputWidget(catalogs);
     inputRef.current = widget.getInput();
 
     const dialog = new Dialog<boolean>({
@@ -108,9 +110,8 @@ export default StacPanel;
 class URLInputWidget extends Widget {
   private input: HTMLInputElement;
   private catalogInput: HTMLInputElement;
-  private dropdown: HTMLSelectElement;
 
-  constructor() {
+  constructor(catalogs: any[] = []) {
     const node = document.createElement('div');
     node.style.padding = '10px';
 
@@ -124,12 +125,7 @@ class URLInputWidget extends Widget {
     const input = document.createElement('input');
     input.type = 'url';
     input.placeholder = 'https://example.com';
-    input.style.width = '100%';
-    input.style.padding = '8px';
-    input.style.boxSizing = 'border-box';
-    input.style.border = '1px solid #ccc';
-    input.style.borderRadius = '4px';
-    input.style.marginBottom = '20px';
+    input.className = 'jgis-stac-url-input';
 
     // Second section: Select from catalog dropdown
     const catalogLabel = document.createElement('label');
@@ -151,7 +147,7 @@ class URLInputWidget extends Widget {
     defaultOption.textContent = 'Select a catalog...';
     dropdown.appendChild(defaultOption);
 
-    catalogsData.forEach((catalog: any) => {
+    catalogs.forEach((catalog: any) => {
       const option = document.createElement('option');
       option.value = catalog.url;
       option.textContent = catalog.title;
@@ -162,20 +158,13 @@ class URLInputWidget extends Widget {
     catalogInputLabel.textContent = 'Selected Catalog URL:';
     catalogInputLabel.style.display = 'block';
     catalogInputLabel.style.marginBottom = '8px';
-    catalogInputLabel.style.fontWeight = 'normal';
-    catalogInputLabel.style.fontSize = '0.9em';
-    catalogInputLabel.style.color = '#666';
+    catalogInputLabel.className = 'jgis-stac-catalog-input-label';
 
     const catalogInput = document.createElement('input');
     catalogInput.type = 'url';
     catalogInput.placeholder = 'Selected catalog URL will appear here';
-    catalogInput.style.width = '100%';
-    catalogInput.style.padding = '8px';
-    catalogInput.style.boxSizing = 'border-box';
-    catalogInput.style.border = '1px solid #ccc';
-    catalogInput.style.borderRadius = '4px';
+    catalogInput.className = 'jgis-stac-catalog-input';
     catalogInput.readOnly = true;
-    catalogInput.style.backgroundColor = '#f5f5f5';
 
     dropdown.addEventListener('change', e => {
       const selectedUrl = (e.target as HTMLSelectElement).value;
@@ -192,7 +181,6 @@ class URLInputWidget extends Widget {
     super({ node });
     this.input = input;
     this.catalogInput = catalogInput;
-    this.dropdown = dropdown;
   }
 
   getInput(): HTMLInputElement {

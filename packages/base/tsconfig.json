@@ -17,7 +17,6 @@
     "src/_interface/*.json",
     "src/*.json",
     "src/types/*",
-    "src/dialogs/symbology/components/color_ramp/cmocean.json",
-    "src/stacBrowser/components/catalogs.json"
+    "src/dialogs/symbology/components/color_ramp/cmocean.json"
   ]
 }
