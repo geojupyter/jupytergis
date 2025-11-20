@@ -19,10 +19,7 @@ export function StoryEditorPanel({ model, togglePreview }: IStoryPanelProps) {
   }, [model, model.sharedModel.storiesMap]);
 
   const syncStoryData = (properties: IDict) => {
-    const { title, storyType, landmarks } = properties;
-    const updatedStory: IJGISStoryMap = { title, storyType, landmarks };
-
-    model.sharedModel.updateStoryMap(landmarkId, updatedStory);
+    model.sharedModel.updateStoryMap(landmarkId, properties as IJGISStoryMap);
   };
 
   if (!story) {

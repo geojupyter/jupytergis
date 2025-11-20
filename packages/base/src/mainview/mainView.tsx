@@ -54,6 +54,7 @@ import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
+import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
 import { DragAndDrop, Select } from 'ol/interaction';
@@ -1664,7 +1665,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const { x, y } = remoteViewport.value.coordinates;
         const zoom = remoteViewport.value.zoom;
 
-        this._moveToPosition({ x, y }, zoom, 0);
+        this._flyToPosition({ x, y }, zoom, 0);
       }
     } else {
       // If we are unfollowing a remote user, we reset our center and zoom to their previous values
@@ -1676,7 +1677,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const viewportState = localState.viewportState?.value;
 
         if (viewportState) {
-          this._moveToPosition(viewportState.coordinates, viewportState.zoom);
+          this._flyToPosition(viewportState.coordinates, viewportState.zoom);
         }
       }
     }
@@ -1798,7 +1799,7 @@ export class MainView extends React.Component<IProps, IStates> {
         view.getProjection(),
       );
 
-      this._moveToPosition({ x: centerCoord[0], y: centerCoord[1] }, zoom || 0);
+      this._flyToPosition({ x: centerCoord[0], y: centerCoord[1] }, zoom || 0);
 
       // Save the extent if it does not exists, to allow proper export to qgis.
       if (!options.extent) {
@@ -2030,6 +2031,7 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
+  // TODO this and flyToPosition need a rework
   private _onZoomToPosition(_: IJupyterGISModel, id: string) {
     // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
@@ -2048,11 +2050,18 @@ export class MainView extends React.Component<IProps, IStates> {
     if (!layer) {
       const jgisLayer = this._model.getLayer(id);
       const layerParams = jgisLayer?.parameters as ILandmarkLayer;
-      this._Map.getView().fit(layerParams.extent!, {
-        size: this._Map.getSize(),
-        duration: 500,
-        maxZoom: layerParams.zoom!,
-      });
+      const coords = getCenter(layerParams.extent);
+
+      // TODO: Should pass args through signal??
+      const { story } = this._model.getSelectedStory();
+
+      this._flyToPosition(
+        { x: coords[0], y: coords[1] },
+        layerParams.zoom,
+        (story?.transition?.time ?? 1) * 1000, // second -> ms
+        story?.transition?.type,
+      );
+
       return;
     }
 
@@ -2090,33 +2099,51 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
-  private _moveToPosition(
-    center: { x: number; y: number },
-    zoom: number,
-    duration = 1000,
-  ) {
-    const view = this._Map.getView();
-
-    view.setZoom(zoom);
-    view.setCenter([center.x, center.y]);
-    // Zoom needs to be set before changing center
-    if (!view.animate === undefined) {
-      view.animate({ zoom, duration });
-      view.animate({
-        center: [center.x, center.y],
-        duration,
-      });
-    }
-  }
-
   private _flyToPosition(
     center: { x: number; y: number },
     zoom: number,
     duration = 1000,
+    transitionType?: 'linear' | 'immediate' | 'smooth',
   ) {
     const view = this._Map.getView();
-    view.animate({ zoom, duration });
-    view.animate({ center: [center.x, center.y], duration });
+    const currentZoom = view.getZoom() || 0;
+    const targetCenter: Coordinate = [center.x, center.y];
+
+    if (transitionType === 'immediate') {
+      view.setCenter(targetCenter);
+      view.setZoom(zoom);
+      return;
+    }
+
+    if (transitionType === 'smooth') {
+      // Smooth: zoom out, center, and zoom in
+      // Centering takes full duration, zoom out completes halfway, zoom in starts halfway
+      const zoomOutLevel = Math.min(currentZoom, zoom) - 1;
+
+      // Start centering (full duration) and zoom out (50% duration) simultaneously
+      view.animate({
+        center: targetCenter,
+        duration: duration,
+      });
+      // Chain zoom out -> zoom in (zoom in starts when zoom out completes)
+      view.animate(
+        {
+          zoom: zoomOutLevel,
+          duration: duration * 0.5,
+        },
+        {
+          zoom: zoom,
+          duration: duration * 0.5,
+        },
+      );
+    } else {
+      // Linear: direct zoom
+      view.animate({
+        center: targetCenter,
+        zoom: zoom,
+        duration,
+      });
+    }
   }
 
   private _onPointerMove(e: MouseEvent) {
