@@ -1,0 +1,63 @@
+.jgis-switch {
+  display: inline-flex;
+  height: 1.15rem;
+  width: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  border-radius: 9999px !important;
+  border: 1px solid transparent;
+  /* border: 1px solid var(--jp-brand-color3); */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  cursor: pointer;
+}
+
+.jgis-switch:focus-visible {
+  border-color: var(--jp-border-color0);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--jp-ui-font-color0), transparent 50%);
+}
+
+.jgis-switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.jgis-switch[data-state='checked'] {
+  background-color: var(--jp-accent-color0);
+}
+
+.jgis-switch[data-state='unchecked'] {
+  background-color: var(--jp-layout-color2);
+}
+
+.jgis-switch-thumb {
+  background-color: var(--jp-layout-color1);
+  pointer-events: none;
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  box-shadow: none;
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(0);
+}
+
+.jgis-switch-thumb[data-state='checked'] {
+  transform: translateX(calc(100% - 6px));
+}
+
+.jgis-switch-thumb[data-state='unchecked'] {
+  transform: translateX(-2px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .jgis-switch-thumb[data-state='unchecked'] {
+    background-color: var(--jp-ui-font-color0);
+  }
+
+  .jgis-switch-thumb[data-state='checked'] {
+    background-color: var(--jp-layout-color1);
+  }
+}
