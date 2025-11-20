@@ -1116,7 +1116,7 @@ export function addCommands(
         current.model.sharedModel.updateStoryMap(storyMapId, newStory);
       }
     },
-    ...icons.get(CommandIDs.addMarker),
+    ...icons.get(CommandIDs.addLandmark),
   });
 
   loadKeybindings(commands, keybindings);
