@@ -378,7 +378,8 @@ export class MainView extends React.Component<IProps, IStates> {
         const center = view.getCenter() || [0, 0];
         const zoom = view.getZoom() || 0;
 
-        const projection = view.getProjection();
+        const projection =
+          getProjection(currentOptions.projection) ?? view.getProjection();
         const latLng = toLonLat(center, projection);
         const bearing = view.getRotation();
         const resolution = view.getResolution();
@@ -435,12 +436,16 @@ export class MainView extends React.Component<IProps, IStates> {
         this._contextMenu.open(event);
       });
 
+      const projection =
+        getProjection(this._model.getOptions().projection) ??
+        view.getProjection();
+
       this.setState(old => ({
         ...old,
         loading: false,
         viewProjection: {
-          code: view.getProjection().getCode(),
-          units: view.getProjection().getUnits(),
+          code: projection.getCode(),
+          units: projection.getUnits(),
         },
       }));
     }
@@ -1774,12 +1779,22 @@ export class MainView extends React.Component<IProps, IStates> {
     if (projection !== undefined && currentProjection !== projection) {
       const newProjection = getProjection(projection);
       if (newProjection) {
+        this.setState(old => ({
+          viewProjection: {
+            ...old.viewProjection,
+            code: newProjection.getCode(),
+            units: newProjection.getUnits(),
+          },
+        }));
         view = new View({ projection: newProjection });
       } else {
         console.warn(`Invalid projection: ${projection}`);
         return;
       }
     }
+
+    view.setRotation(bearing || 0);
+    this._Map.setView(view);
 
     // Use the extent only if explicitly requested (QGIS files).
     if (useExtent && extent) {
@@ -1798,10 +1813,6 @@ export class MainView extends React.Component<IProps, IStates> {
         this._model.setOptions(options);
       }
     }
-
-    view.setRotation(bearing || 0);
-
-    this._Map.setView(view);
   }
 
   private _onViewChanged(
