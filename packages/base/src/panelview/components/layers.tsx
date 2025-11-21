@@ -24,7 +24,11 @@ import React, {
 
 import { CommandIDs, icons } from '@/src/constants';
 import { useGetSymbology } from '@/src/dialogs/symbology/hooks/useGetSymbology';
-import { nonVisibilityIcon, visibilityIcon } from '@/src/icons';
+import {
+  nonVisibilityIcon,
+  targetWithCenterIcon,
+  visibilityIcon,
+} from '@/src/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/panelview/leftpanel';
 import { LegendItem } from './legendItem';
 
@@ -41,13 +45,14 @@ interface IBodyProps {
   model: IJupyterGISModel;
   commands: CommandRegistry;
   state: IStateDB;
+  layerTree: IJGISLayerTree;
 }
 
 export const LayersBodyComponent: React.FC<IBodyProps> = props => {
   const model = props.model;
 
   const [layerTree, setLayerTree] = useState<IJGISLayerTree>(
-    model?.getLayerTree() || [],
+    props.layerTree || [],
   );
 
   const notifyCommands = () => {
@@ -150,7 +155,7 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     } else {
       // Check if new selection is the same type as previous selections
       const isSelectedSameType = Object.values(selectedValue).some(
-        selection => (selection as ISelection).type === type,
+        selection => selection.type === type,
       );
 
       if (!isSelectedSameType) {
@@ -181,46 +186,33 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     onSelect({ type, item, event });
   };
 
-  /**
-   * Listen to the layers and layer tree changes.
-   */
+  // Update layerTree when prop changes
   useEffect(() => {
-    const updateLayers = () => {
-      setLayerTree(model?.getLayerTree() || []);
-    };
-    model?.sharedModel.layersChanged.connect(updateLayers);
-    model?.sharedModel.layerTreeChanged.connect(updateLayers);
-
-    updateLayers();
-    return () => {
-      model?.sharedModel.layersChanged.disconnect(updateLayers);
-      model?.sharedModel.layerTreeChanged.disconnect(updateLayers);
-    };
-  }, [model]);
+    if (props.layerTree) {
+      setLayerTree(props.layerTree);
+    }
+  }, [props.layerTree]);
 
   return (
     <div id="jp-gis-layer-tree" onDrop={_onDrop} onDragOver={_onDragOver}>
-      {layerTree
-        .slice()
-        .reverse()
-        .map(layer =>
-          typeof layer === 'string' ? (
-            <LayerComponent
-              key={layer}
-              gisModel={model}
-              layerId={layer}
-              onClick={onItemClick}
-            />
-          ) : (
-            <LayerGroupComponent
-              key={layer.name}
-              gisModel={model}
-              group={layer}
-              onClick={onItemClick}
-              state={props.state}
-            />
-          ),
-        )}
+      {layerTree.map(layer =>
+        typeof layer === 'string' ? (
+          <LayerComponent
+            key={layer}
+            gisModel={model}
+            layerId={layer}
+            onClick={onItemClick}
+          />
+        ) : (
+          <LayerGroupComponent
+            key={layer.name}
+            gisModel={model}
+            group={layer}
+            onClick={onItemClick}
+            state={props.state}
+          />
+        ),
+      )}
     </div>
   );
 };
@@ -557,6 +549,26 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     }
   };
 
+  /**
+   * Set landmark layer to current map view.
+   */
+  const handleSetLandmarkToCurrentView = () => {
+    if (!gisModel) {
+      return;
+    }
+    const { zoom, extent } = gisModel.getOptions();
+    const updatedLayer = {
+      ...layer,
+      parameters: {
+        ...layer.parameters,
+        zoom,
+        extent,
+      },
+    };
+
+    gisModel.sharedModel.updateLayer(layerId, updatedLayer);
+  };
+
   return (
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
@@ -632,6 +644,20 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
             {name}
           </span>
+        )}
+
+        {layer.type === 'LandmarkLayer' && (
+          <Button
+            title={'Set landmark to current view'}
+            onClick={handleSetLandmarkToCurrentView}
+            minimal
+          >
+            <LabIcon.resolveReact
+              icon={targetWithCenterIcon}
+              className={LAYER_ICON_CLASS}
+              tag="span"
+            />
+          </Button>
         )}
       </div>
 

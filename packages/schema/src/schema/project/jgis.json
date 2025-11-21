@@ -41,7 +41,8 @@
         "WebGlLayer",
         "ImageLayer",
         "HeatmapLayer",
-        "StacLayer"
+        "StacLayer",
+        "LandmarkLayer"
       ]
     },
     "sourceType": {
@@ -135,6 +136,46 @@
           "$ref": "#/definitions/jGISLayerGroup"
         }
       ]
+    },
+    "jGISStoryMap": {
+      "title": "IJGISStoryMap",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the story map"
+        },
+        "storyType": {
+          "type": "string",
+          "enum": ["guided", "unguided"],
+          "description": "The type of story map"
+        },
+        "transition": {
+          "type": "object",
+          "description": "Transition configuration between landmarks",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["linear", "immediate", "smooth"],
+              "description": "Transition animation style"
+            },
+            "time": {
+              "type": "number",
+              "description": "The time in seconds for the transition"
+            }
+          },
+          "required": ["type", "time"]
+        },
+        "landmarks": {
+          "type": "array",
+          "default": [],
+          "description": "Array of landmarks for the story map",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "jGISLayers": {
       "title": "IJGISLayers",
