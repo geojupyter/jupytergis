@@ -2,7 +2,7 @@ import { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import jgisSchema from '@jupytergis/schema/lib/schema/project/jgis.json';
 import React, { useMemo } from 'react';
 
-import { BaseForm } from '@/src/formbuilder';
+import { StoryEditorPropertiesForm } from '@/src/formbuilder/objectform/StoryEditorForm';
 import { deepCopy } from '@/src/tools';
 import { IDict } from '@/src/types';
 
@@ -31,7 +31,7 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
 
   return (
     <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
-      <BaseForm
+      <StoryEditorPropertiesForm
         formContext="update"
         sourceData={story}
         model={model}
