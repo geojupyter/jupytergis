@@ -552,21 +552,8 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   /**
    * Set landmark layer to current map view.
    */
-  const handleSetLandmarkToCurrentView = () => {
-    if (!gisModel) {
-      return;
-    }
-    const { zoom, extent } = gisModel.getOptions();
-    const updatedLayer = {
-      ...layer,
-      parameters: {
-        ...layer.parameters,
-        zoom,
-        extent,
-      },
-    };
-
-    gisModel.sharedModel.updateLayer(layerId, updatedLayer);
+  const moveToExtent = () => {
+    gisModel?.centerOnPosition(layerId);
   };
 
   return (
@@ -646,19 +633,17 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           </span>
         )}
 
-        {layer.type === 'LandmarkLayer' && (
-          <Button
-            title={'Set landmark to current view'}
-            onClick={handleSetLandmarkToCurrentView}
-            minimal
-          >
-            <LabIcon.resolveReact
-              icon={targetWithCenterIcon}
-              className={LAYER_ICON_CLASS}
-              tag="span"
-            />
-          </Button>
-        )}
+        <Button
+          title={'Move map to the extent of the layer'}
+          onClick={moveToExtent}
+          minimal
+        >
+          <LabIcon.resolveReact
+            icon={targetWithCenterIcon}
+            className={LAYER_ICON_CLASS}
+            tag="span"
+          />
+        </Button>
       </div>
 
       {/* Show legend only if supported symbology */}
