@@ -3,7 +3,7 @@ import {
   IJGISStoryMap,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Markdown from 'react-markdown';
 
 import StoryNavBar from './StoryNavBar';
@@ -46,6 +46,26 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     return storyData?.landmarks?.[currentIndexDisplayed];
   }, [storyData, currentIndexDisplayed]);
 
+  const zoomToCurrentLayer = () => {
+    if (currentLandmarkId) {
+      model.centerOnPosition(currentLandmarkId);
+    }
+  };
+
+  const setSelectedLayerByIndex = useCallback(
+    (index: number) => {
+      const landmarkId = storyData?.landmarks?.[index];
+      if (landmarkId) {
+        model.selected = {
+          [landmarkId]: {
+            type: 'layer',
+          },
+        };
+      }
+    },
+    [storyData, model],
+  );
+
   useEffect(() => {
     const updateStory = () => {
       const { story } = model.getSelectedStory();
@@ -69,6 +89,13 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
       zoomToCurrentLayer();
     }
   }, [currentLandmarkId, model]);
+
+  // Set selected layer on initial render and when story data changes
+  useEffect(() => {
+    if (storyData?.landmarks && currentIndexDisplayed >= 0) {
+      setSelectedLayerByIndex(currentIndexDisplayed);
+    }
+  }, [storyData, currentIndexDisplayed, setSelectedLayerByIndex]);
 
   // Listen for layer selection changes in unguided mode
   useEffect(() => {
@@ -113,21 +140,17 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     };
   }, [model, storyData]);
 
-  const zoomToCurrentLayer = () => {
-    if (currentLandmarkId) {
-      model.centerOnPosition(currentLandmarkId);
-    }
-  };
-
   const handlePrev = () => {
     if (currentIndexDisplayed > 0) {
-      setCurrentIndexDisplayed(currentIndexDisplayed - 1);
+      const newIndex = currentIndexDisplayed - 1;
+      setCurrentIndexDisplayed(newIndex);
     }
   };
 
   const handleNext = () => {
     if (currentIndexDisplayed < landmarks.length - 1) {
-      setCurrentIndexDisplayed(currentIndexDisplayed + 1);
+      const newIndex = currentIndexDisplayed + 1;
+      setCurrentIndexDisplayed(newIndex);
     }
   };
 
@@ -140,51 +163,21 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   }
 
   return (
-    <div className="jgis-story-viewer-panel" style={{ overflow: 'hidden' }}>
+    <div className="jgis-story-viewer-panel">
       {/* Image container with title overlay */}
       {activeSlide?.content?.image ? (
-        <div style={{ position: 'relative', width: '100%', height: '30%' }}>
+        <div className="jgis-story-viewer-image-container">
           <img
             src={activeSlide.content.image}
             alt={activeSlide.content.title || 'Story map image'}
-            style={{
-              width: '100%',
-              height: '100%',
-              maxHeight: '240px',
-              objectFit: 'cover',
-              display: 'block',
-            }}
+            className="jgis-story-viewer-image"
           />
-          <h1
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              marginTop: 0,
-              marginBottom: 0,
-              marginLeft: 'auto',
-              marginRight: 'auto',
-              paddingTop: '1rem',
-              paddingBottom: '1rem',
-              color: 'white',
-              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              textAlign: 'center',
-            }}
-          >
+          <h1 className="jgis-story-viewer-image-title">
             {`Slide ${currentIndexDisplayed + 1} - ${layerName ? layerName : 'Landmark Name'}`}
           </h1>
           {/* if guided -> nav buttons */}
           {storyData.storyType === 'guided' && (
-            <div
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                width: '100%',
-              }}
-            >
+            <div className="jgis-story-viewer-nav-container">
               <StoryNavBar
                 onPrev={handlePrev}
                 onNext={handleNext}
@@ -196,7 +189,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
         </div>
       ) : (
         <>
-          <h1 style={{ textAlign: 'center' }}>{storyData.title}</h1>
+          <h1 className="jgis-story-viewer-title">{storyData.title}</h1>
           {/* if guided -> nav buttons */}
           {storyData.storyType === 'guided' && (
             <StoryNavBar
@@ -208,13 +201,13 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
           )}
         </>
       )}
-      <h2 style={{ textAlign: 'center' }}>
+      <h2 className="jgis-story-viewer-subtitle">
         {activeSlide?.content?.title
           ? activeSlide.content.title
           : 'Slide Title'}
       </h2>
       {activeSlide?.content?.markdown && (
-        <div className="jgis-story-viewer-content" style={{ paddingLeft: 16 }}>
+        <div className="jgis-story-viewer-content">
           <Markdown>{activeSlide.content.markdown}</Markdown>
         </div>
       )}
