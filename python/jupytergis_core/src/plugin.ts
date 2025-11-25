@@ -41,6 +41,7 @@ export const trackerPlugin: JupyterFrontEndPlugin<IJupyterGISTracker> = {
     const tracker = new WidgetTracker<IJupyterGISWidget>({
       namespace: NAME_SPACE,
     });
+    console.debug('jupytergis:core:tracker is activated!');
     return tracker;
   },
 };
@@ -79,6 +80,7 @@ export const layerBrowserRegistryPlugin: JupyterFrontEndPlugin<IJGISLayerBrowser
     requires: [],
     provides: IJGISLayerBrowserRegistryToken,
     activate: (app: JupyterFrontEnd) => {
+      console.debug('jupytergis:core:layer-browser-registry is activated');
       const registry = new JupyterGISLayerBrowserRegistry();
       return registry;
     },
