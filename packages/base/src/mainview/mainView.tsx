@@ -84,7 +84,7 @@ import {
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
-import { Circle, Fill, Stroke, Style } from 'ol/style';
+import { Circle, Fill, Icon, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
@@ -102,6 +102,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
 
 type OlLayerTypes =
@@ -836,6 +837,19 @@ export class MainView extends React.Component<IProps, IStates> {
           type: 'icon',
           geometry: point,
         });
+
+        // Replace color placeholder in SVG with the parameter color
+        const markerColor = parameters.color || '#3463a0';
+        const svgString = markerIcon.svgstr.replace('{{COLOR}}', markerColor);
+
+        const iconStyle = new Style({
+          image: new Icon({
+            src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`,
+            scale: 0.25,
+          }),
+        });
+
+        marker.setStyle(iconStyle);
 
         newSource = new VectorSource({
           features: [marker],
@@ -1841,15 +1855,13 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
     const layer = this.getLayer(id);
-    let nextIndex = index;
+
     // should not be undefined since the id exists above
     if (layer === undefined) {
       return;
     }
     this._Map.getLayers().removeAt(currentIndex);
-    if (currentIndex < index) {
-      nextIndex -= 1;
-    }
+
     // Adjust index to ensure it's within bounds
     const numLayers = this._Map.getLayers().getLength();
     const safeIndex = Math.min(index, numLayers);
@@ -2100,7 +2112,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.syncPointer(pointer);
   });
 
-  private _addMarker(e: MapBrowserEvent<any>) {
+  private async _addMarker(e: MapBrowserEvent<any>) {
     if (this._model.currentMode !== 'marking') {
       return;
     }
@@ -2132,11 +2144,11 @@ export class MainView extends React.Component<IProps, IStates> {
       parameters: layerParams,
     };
 
-    this.addSource(sourceId, sourceModel);
     this._model.sharedModel.addSource(sourceId, sourceModel);
+    await this.addSource(sourceId, sourceModel);
 
-    this.addLayer(layerId, layerModel, this.getLayerIDs().length);
     this._model.addLayer(layerId, layerModel);
+    await this.addLayer(layerId, layerModel, this.getLayerIDs().length);
   }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
@@ -2177,7 +2189,7 @@ export class MainView extends React.Component<IProps, IStates> {
           const fid = feature.getId?.() ?? rawProps?.fid;
 
           if (rawProps && Object.keys(rawProps).length > 1) {
-            const { geometry, ...clean } = rawProps;
+            const { ...clean } = rawProps;
             props = clean;
             if (fid !== null) {
               // TODO Clean the cache under some condition?
@@ -2359,7 +2371,24 @@ export class MainView extends React.Component<IProps, IStates> {
                 width: '100%',
                 height: '100%',
               }}
-            />
+            >
+              <div className="jgis-panels-wrapper">
+                {this._state && (
+                  <LeftPanel
+                    model={this._model}
+                    commands={this._mainViewModel.commands}
+                    state={this._state}
+                  ></LeftPanel>
+                )}
+                {this._formSchemaRegistry && this._annotationModel && (
+                  <RightPanel
+                    model={this._model}
+                    formSchemaRegistry={this._formSchemaRegistry}
+                    annotationModel={this._annotationModel}
+                  ></RightPanel>
+                )}
+              </div>
+            </div>
           </div>
           <StatusBar
             jgisModel={this._model}
@@ -2367,23 +2396,6 @@ export class MainView extends React.Component<IProps, IStates> {
             projection={this.state.viewProjection}
             scale={this.state.scale}
           />
-        </div>
-
-        <div className="jgis-panels-wrapper">
-          {this._state && (
-            <LeftPanel
-              model={this._model}
-              commands={this._mainViewModel.commands}
-              state={this._state}
-            ></LeftPanel>
-          )}
-          {this._formSchemaRegistry && this._annotationModel && (
-            <RightPanel
-              model={this._model}
-              formSchemaRegistry={this._formSchemaRegistry}
-              annotationModel={this._annotationModel}
-            ></RightPanel>
-          )}
         </div>
       </>
     );

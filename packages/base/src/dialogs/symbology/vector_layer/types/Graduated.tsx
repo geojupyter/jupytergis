@@ -3,9 +3,9 @@ import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { VectorClassifications } from '@/src/dialogs/symbology/classificationModes';
-import ColorRamp, {
-  ColorRampOptions,
-} from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import ColorRampControls, {
+  ColorRampControlsOptions,
+} from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import {
   IStopRow,
@@ -13,6 +13,8 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import { ClassificationMode } from '@/src/types';
+import { ColorRampName } from '../../colorRampUtils';
 
 const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -29,19 +31,19 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     'jenks',
     'pretty',
     'logarithmic',
-  ];
+  ] as const satisfies ClassificationMode[];
 
   const selectableAttributeRef = useRef<string>();
   const symbologyTabRef = useRef<string>();
   const colorStopRowsRef = useRef<IStopRow[]>([]);
   const radiusStopRowsRef = useRef<IStopRow[]>([]);
-  const colorRampOptionsRef = useRef<ColorRampOptions | undefined>();
+  const colorRampOptionsRef = useRef<ColorRampControlsOptions | undefined>();
 
   const [selectedAttribute, setSelectedAttribute] = useState('');
   const [colorStopRows, setColorStopRows] = useState<IStopRow[]>([]);
   const [radiusStopRows, setRadiusStopRows] = useState<IStopRow[]>([]);
   const [colorRampOptions, setColorRampOptions] = useState<
-    ColorRampOptions | undefined
+    ColorRampControlsOptions | undefined
   >();
   const [colorManualStyle, setColorManualStyle] = useState({
     strokeColor: '#3399CC',
@@ -206,9 +208,9 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   };
 
   const buildColorInfoFromClassification = (
-    selectedMode: string,
-    numberOfShades: string,
-    selectedRamp: string,
+    selectedMode: ClassificationMode,
+    numberOfShades: number,
+    selectedRamp: ColorRampName,
   ) => {
     setColorRampOptions({
       selectedRamp,
@@ -224,31 +226,31 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       case 'quantile':
         stops = VectorClassifications.calculateQuantileBreaks(
           values,
-          +numberOfShades,
+          numberOfShades,
         );
         break;
       case 'equal interval':
         stops = VectorClassifications.calculateEqualIntervalBreaks(
           values,
-          +numberOfShades,
+          numberOfShades,
         );
         break;
       case 'jenks':
         stops = VectorClassifications.calculateJenksBreaks(
           values,
-          +numberOfShades,
+          numberOfShades,
         );
         break;
       case 'pretty':
         stops = VectorClassifications.calculatePrettyBreaks(
           values,
-          +numberOfShades,
+          numberOfShades,
         );
         break;
       case 'logarithmic':
         stops = VectorClassifications.calculateLogarithmicBreaks(
           values,
-          +numberOfShades,
+          numberOfShades,
         );
         break;
       default:
@@ -262,7 +264,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
         : Utils.getValueColorPairs(
             stops,
             selectedRamp,
-            +numberOfShades,
+            numberOfShades,
             reverseRamp,
           );
 
@@ -381,7 +383,7 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
             </div>
           )}
 
-          <ColorRamp
+          <ColorRampControls
             layerParams={layer.parameters}
             modeOptions={modeOptions}
             classifyFunc={buildColorInfoFromClassification}

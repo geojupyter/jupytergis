@@ -3,7 +3,7 @@ import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useRef, useState } from 'react';
 
-import ColorRamp from '@/src/dialogs/symbology/components/color_ramp/ColorRamp';
+import ColorRampControls from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import StopContainer from '@/src/dialogs/symbology/components/color_stops/StopContainer';
 import {
   IStopRow,
@@ -11,7 +11,8 @@ import {
 } from '@/src/dialogs/symbology/symbologyDialog';
 import { Utils, VectorUtils } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
-import { SymbologyTab } from '@/src/types';
+import { SymbologyTab, ClassificationMode } from '@/src/types';
+import { ColorRampName } from '../../colorRampUtils';
 
 const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
@@ -117,16 +118,16 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   }, [selectedAttribute, stopRows, colorRampOptions]);
 
   const buildColorInfoFromClassification = (
-    selectedMode: string,
-    numberOfShades: string,
-    selectedRamp: string,
+    selectedMode: ClassificationMode,
+    numberOfShades: number,
+    selectedRamp: ColorRampName,
     setIsLoading: (isLoading: boolean) => void,
   ) => {
     setColorRampOptions({
       selectedFunction: '',
       selectedRamp,
-      numberOfShades: '',
-      selectedMode: '',
+      numberOfShades,
+      selectedMode,
     });
 
     const stops = Array.from(
@@ -330,7 +331,7 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
           )}
 
           <div className="jp-gis-layer-symbology-container">
-            <ColorRamp
+            <ColorRampControls
               layerParams={layer.parameters}
               modeOptions={[]}
               classifyFunc={buildColorInfoFromClassification}
