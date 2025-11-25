@@ -13,20 +13,10 @@ interface IStoryNavBarProps {
 function StoryNavBar({ onPrev, onNext, hasPrev, hasNext }: IStoryNavBarProps) {
   return (
     <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-      <Button
-        onClick={onPrev}
-        disabled={!hasPrev}
-        aria-label="Previous slide"
-        style={{ border: '1px solid var(--jp-layout-color0)' }}
-      >
+      <Button onClick={onPrev} disabled={!hasPrev} aria-label="Previous slide">
         <ChevronLeft />
       </Button>
-      <Button
-        onClick={onNext}
-        disabled={!hasNext}
-        aria-label="Next slide"
-        style={{ border: '1px solid var(--jp-layout-color0)' }}
-      >
+      <Button onClick={onNext} disabled={!hasNext} aria-label="Next slide">
         <ChevronRight />
       </Button>
     </div>
