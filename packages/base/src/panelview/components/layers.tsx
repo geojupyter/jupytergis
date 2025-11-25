@@ -40,6 +40,7 @@ const LAYER_CLASS = 'jp-gis-layer';
 const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
 const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
+const LAYER_SLIDE_NUMBER_CLASS = 'jp-gis-layerSlideNumber';
 
 interface IBodyProps {
   model: IJupyterGISModel;
@@ -416,6 +417,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
  * Properties of the layer component.
  */
 interface ILayerProps {
+  // ! todo this should never be undefined, like it's not possible in the parent, it will never be undef here
   gisModel: IJupyterGISModel | undefined;
   layerId: string;
   onClick: ({ type, item }: ILeftPanelClickHandlerParams) => void;
@@ -556,6 +558,22 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     gisModel?.centerOnPosition(layerId);
   };
 
+  const getSlideNumber = () => {
+    if (!gisModel) {
+      return;
+    }
+
+    const { story } = gisModel.getSelectedStory();
+
+    if (!story?.landmarks) {
+      return;
+    }
+
+    const slideNum = story.landmarks.indexOf(layerId) + 1;
+
+    return slideNum;
+  };
+
   return (
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}${selected ? ' jp-mod-selected' : ''}`}
@@ -589,18 +607,24 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           </Button>
         )}
 
-        {/* Visibility toggle */}
-        <Button
-          title={layer.visible ? 'Hide layer' : 'Show layer'}
-          onClick={toggleVisibility}
-          minimal
-        >
-          <LabIcon.resolveReact
-            icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
-            className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-gis-mod-hidden'}`}
-            tag="span"
-          />
-        </Button>
+        {/* Visibility toggle for normal layers, Slide number for landmarks */}
+        {layer.type === 'LandmarkLayer' ? (
+          <span className={LAYER_SLIDE_NUMBER_CLASS} title="Slide number">
+            {getSlideNumber()}
+          </span>
+        ) : (
+          <Button
+            title={layer.visible ? 'Hide layer' : 'Show layer'}
+            onClick={toggleVisibility}
+            minimal
+          >
+            <LabIcon.resolveReact
+              icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
+              className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-gis-mod-hidden'}`}
+              tag="span"
+            />
+          </Button>
+        )}
 
         {icons.has(layer.type) && (
           <LabIcon.resolveReact
