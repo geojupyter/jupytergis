@@ -1079,7 +1079,11 @@ export function addCommands(
         return;
       }
 
-      const layerParams: ILandmarkLayer = { extent, zoom };
+      const layerParams: ILandmarkLayer = {
+        extent,
+        zoom,
+        transition: { type: 'linear', time: 1 },
+      };
       const layerModel: IJGISLayer = {
         type: 'LandmarkLayer',
         visible: true,
