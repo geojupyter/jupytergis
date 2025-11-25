@@ -2053,13 +2053,13 @@ export class MainView extends React.Component<IProps, IStates> {
       const coords = getCenter(layerParams.extent);
 
       // TODO: Should pass args through signal??
-      const { story } = this._model.getSelectedStory();
+      // const { story } = this._model.getSelectedStory();
 
       this._flyToPosition(
         { x: coords[0], y: coords[1] },
         layerParams.zoom,
-        (story?.transition?.time ?? 1) * 1000, // second -> ms
-        story?.transition?.type,
+        (layerParams.transition.time ?? 1) * 1000, // seconds -> ms
+        layerParams.transition.type,
       );
 
       return;

@@ -3,7 +3,7 @@
   "description": "LandmarkLayer",
   "title": "ILandmarkLayer",
   "additionalProperties": false,
-  "required": ["zoom", "extent"],
+  "required": ["zoom", "extent", "transition"],
   "properties": {
     "content": {
       "type": "object",
@@ -32,6 +32,24 @@
       "items": {
         "type": "number"
       }
+    },
+    "transition": {
+      "type": "object",
+      "description": "Transition configuration between to this landmark",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["linear", "immediate", "smooth"],
+          "description": "Transition animation style",
+          "default": "linear"
+        },
+        "time": {
+          "type": "number",
+          "description": "The time in seconds for the transition",
+          "default": 1
+        }
+      },
+      "required": ["type", "time"]
     }
   }
 }

@@ -151,22 +151,6 @@
           "enum": ["guided", "unguided"],
           "description": "The type of story map"
         },
-        "transition": {
-          "type": "object",
-          "description": "Transition configuration between landmarks",
-          "properties": {
-            "type": {
-              "type": "string",
-              "enum": ["linear", "immediate", "smooth"],
-              "description": "Transition animation style"
-            },
-            "time": {
-              "type": "number",
-              "description": "The time in seconds for the transition"
-            }
-          },
-          "required": ["type", "time"]
-        },
         "landmarks": {
           "type": "array",
           "default": [],
