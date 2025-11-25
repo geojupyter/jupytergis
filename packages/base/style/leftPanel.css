@@ -141,6 +141,23 @@
   flex-grow: 1;
 }
 
+.jp-gis-layerSlideNumber {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  margin-right: 4px;
+  background-color: var(--jp-brand-color1);
+  color: var(--jp-ui-inverse-font-color1);
+  border-radius: 9999px;
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 600;
+  line-height: 1;
+}
+
 li .lm-Menu-itemLabel {
   text-transform: capitalize;
 }
