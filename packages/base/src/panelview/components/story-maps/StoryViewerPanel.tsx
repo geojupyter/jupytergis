@@ -14,7 +14,9 @@ interface IStoryViewerPanelProps {
 
 function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(0);
-  const [storyData, setStoryData] = useState<IJGISStoryMap | null>(null);
+  const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
+    model.getSelectedStory().story ?? null,
+  );
 
   // Derive landmarks from story data
   const landmarks = useMemo(() => {
