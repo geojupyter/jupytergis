@@ -5,6 +5,17 @@
   "additionalProperties": false,
   "required": ["zoom", "extent", "transition"],
   "properties": {
+    "zoom": {
+      "type": "number",
+      "default": 0
+    },
+    "extent": {
+      "type": "array",
+      "default": null,
+      "items": {
+        "type": "number"
+      }
+    },
     "content": {
       "type": "object",
       "additionalProperties": false,
@@ -20,17 +31,6 @@
           "type": "string",
           "description": "Markdown string representing the content of the story stop"
         }
-      }
-    },
-    "zoom": {
-      "type": "number",
-      "default": 0
-    },
-    "extent": {
-      "type": "array",
-      "default": null,
-      "items": {
-        "type": "number"
       }
     },
     "transition": {
