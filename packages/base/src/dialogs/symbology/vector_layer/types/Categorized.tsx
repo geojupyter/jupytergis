@@ -207,8 +207,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const newStyle = { ...layer.parameters.color };
 
     if (method === 'color') {
-      console.log('delecol');
-
       delete newStyle['fill-color'];
       delete newStyle['stroke-color'];
       delete newStyle['circle-fill-color'];
