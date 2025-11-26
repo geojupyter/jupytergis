@@ -1,5 +1,5 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import React from 'react';
+import React, { useState } from 'react';
 
 import {
   Tabs,
@@ -8,13 +8,18 @@ import {
   TabsTrigger,
 } from '@/src/shared/components/Tabs';
 import useStacSearch from '@/src/stacBrowser/hooks/useStacSearch';
-import StacPanelFilters from './StacPanelFilters';
+import StacGenericFilterPanel from './StacGenericFilterPanel';
 import StacPanelResults from './StacPanelResults';
+import StacGeodesFilterPanel from './geodes/StacGeodesFilterPanel';
 
 interface IStacViewProps {
   model?: IJupyterGISModel;
 }
 const StacPanel = ({ model }: IStacViewProps) => {
+  const [selectedUrl, setSelectedUrl] = useState<string>(
+    'https://stac.dataspace.copernicus.eu/v1/',
+  );
+
   const {
     filterState,
     filterSetters,
@@ -50,16 +55,35 @@ const StacPanel = ({ model }: IStacViewProps) => {
         >{`Results (${totalResults})`}</TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
-        <StacPanelFilters
-          filterState={filterState}
-          filterSetters={filterSetters}
-          startTime={startTime}
-          setStartTime={setStartTime}
-          endTime={endTime}
-          setEndTime={setEndTime}
-          useWorldBBox={useWorldBBox}
-          setUseWorldBBox={setUseWorldBBox}
-        />
+        <div style={{ marginBottom: '1rem' }}>
+          <select
+            style={{ width: '100%', padding: '0.5rem' }}
+            value={selectedUrl}
+            onChange={e => setSelectedUrl(e.target.value)}
+          >
+            <option value="https://stac.dataspace.copernicus.eu/v1/">
+              Copernicus
+            </option>
+            <option value="https://geodes-portal.cnes.fr/api/stac/search">
+              GEODES
+            </option>
+          </select>
+        </div>
+
+        {selectedUrl === 'https://geodes-portal.cnes.fr/api/stac/search' ? (
+          <StacGeodesFilterPanel
+            filterState={filterState}
+            filterSetters={filterSetters}
+            startTime={startTime}
+            setStartTime={setStartTime}
+            endTime={endTime}
+            setEndTime={setEndTime}
+            useWorldBBox={useWorldBBox}
+            setUseWorldBBox={setUseWorldBBox}
+          />
+        ) : (
+          <StacGenericFilterPanel model={model} />
+        )}
       </TabsContent>
       <TabsContent value="results">
         <StacPanelResults
