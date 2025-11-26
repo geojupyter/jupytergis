@@ -239,9 +239,9 @@ jobs:
       - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
       - uses: jupyterlab/maintainer-tools/.github/actions/check-links@v1
         with:
-          ignore_links: |
+          ignore_links: >-
             lite/
-            https://www.npmjs.com.*
+            https://www\.npmjs\.com.*
             ^/.*
             https://blog\.jupyter\.org/.*
 
