@@ -124,35 +124,36 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             ))}
           </TabsList>
 
-          {!settings.objectPropertiesDisabled && (
-            <TabsContent
-              value="objectProperties"
-              className="jgis-panel-tab-content"
-            >
-              <ObjectPropertiesReact
-                setSelectedObject={setSelectedObjectProperties}
-                selectedObject={selectedObjectProperties}
-                formSchemaRegistry={props.formSchemaRegistry}
-                model={props.model}
-              />
-            </TabsContent>
-          )}
+          {!settings.objectPropertiesDisabled &&
+            !settings.storyMapPresentation && (
+              <TabsContent
+                value="objectProperties"
+                className="jgis-panel-tab-content"
+              >
+                <ObjectPropertiesReact
+                  setSelectedObject={setSelectedObjectProperties}
+                  selectedObject={selectedObjectProperties}
+                  formSchemaRegistry={props.formSchemaRegistry}
+                  model={props.model}
+                />
+              </TabsContent>
+            )}
 
           <TabsContent
             value="storyPanel"
             className="jgis-panel-tab-content"
             style={{ paddingTop: 0 }}
           >
+            {!settings.storyMapPresentation && (
+              <PreviewModeSwitch
+                checked={!displayEditor}
+                onCheckedChange={toggleEditor}
+              />
+            )}
             {settings.storyMapPresentation || !displayEditor ? (
-              <StoryViewerPanel
-                model={props.model}
-                togglePreview={toggleEditor}
-              />
+              <StoryViewerPanel model={props.model} />
             ) : (
-              <StoryEditorPanel
-                model={props.model}
-                togglePreview={toggleEditor}
-              />
+              <StoryEditorPanel model={props.model} />
             )}
           </TabsContent>
 
