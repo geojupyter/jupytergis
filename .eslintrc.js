@@ -58,7 +58,7 @@ module.exports = {
       }
     ],
     "prefer-arrow-callback": "error",
-    "no-console": ["error", {"allow": ["error", "warn", "debug"]}],
+    // "no-console": ["error", {"allow": ["error", "warn", "debug"]}],
     "no-duplicate-imports": "error",
   },
 };

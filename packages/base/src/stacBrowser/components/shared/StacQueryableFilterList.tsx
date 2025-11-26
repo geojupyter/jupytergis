@@ -1,0 +1,103 @@
+import React, { useState } from 'react';
+
+import { RadioGroup, RadioGroupItem } from '@/src/shared/components/RadioGroup';
+import { QueryableCombo } from '../QueryableCombo';
+
+interface IStacQueryableFilterListProps {
+  queryableProps: [string, any][];
+}
+
+type FilterOperator = 'and' | 'or';
+
+const getInputBasedOnType = (val: any): React.ReactNode => {
+  switch (val.type) {
+    case 'string':
+      if (val.enum) {
+        return (
+          <select
+            style={{ maxWidth: '75px' }}
+            {...(val.pattern && { 'data-pattern': val.pattern })}
+          >
+            {val.enum.map((option: string) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        );
+      }
+      if (val.format === 'date-time') {
+        return (
+          <input
+            type="datetime-local"
+            style={{ maxWidth: '75px' }}
+            {...(val.pattern && { 'data-pattern': val.pattern })}
+          />
+        );
+      }
+      return (
+        <input
+          type="text"
+          style={{ maxWidth: '75px' }}
+          {...(val.pattern && { 'data-pattern': val.pattern })}
+        />
+      );
+    case 'number':
+      return (
+        <input
+          type="number"
+          style={{ maxWidth: '75px' }}
+          min={val.min !== undefined ? val.min : undefined}
+          max={val.max !== undefined ? val.max : undefined}
+          {...(val.pattern && { 'data-pattern': val.pattern })}
+        />
+      );
+    default:
+      return (
+        <input
+          type=""
+          style={{ maxWidth: '75px' }}
+          {...(val.pattern && { 'data-pattern': val.pattern })}
+        />
+      );
+  }
+};
+
+const StacQueryableFilterList: React.FC<IStacQueryableFilterListProps> = ({
+  queryableProps,
+}) => {
+  const [filterOperator, setFilterOperator] = useState<FilterOperator>('and');
+
+  return (
+    <div>
+      <div>
+        <span>Additional Filters</span>
+      </div>
+      <div>
+        <span>Match all filters (and) Match any filters (or)</span>
+        <RadioGroup
+          value={filterOperator}
+          onValueChange={(value: string) => {
+            if (value === 'and' || value === 'or') {
+              setFilterOperator(value);
+            }
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <RadioGroupItem value="and" id="filter-operator-and" />
+            <label htmlFor="filter-operator-and">Match all filters (and)</label>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <RadioGroupItem value="or" id="filter-operator-or" />
+            <label htmlFor="filter-operator-or">Match any filters (or)</label>
+          </div>
+        </RadioGroup>
+      </div>
+      <div>
+        <QueryableCombo queryables={queryableProps} />
+      </div>
+    </div>
+  );
+};
+
+export default StacQueryableFilterList;
