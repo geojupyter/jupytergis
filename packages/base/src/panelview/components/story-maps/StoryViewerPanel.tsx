@@ -158,7 +158,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
 
   if (!storyData) {
     return (
-      <div>
+      <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
         <p>No story map available. Create one in the Story Editor panel.</p>
       </div>
     );
