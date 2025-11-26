@@ -98,46 +98,61 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   };
 
   return (
-    <div
-      className="jgis-right-panel-container"
-      style={{ display: rightPanelVisible ? 'block' : 'none' }}
-    >
-      <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
-        <TabsList>
-          {tabInfo.map(tab => (
-            <TabsTrigger
-              className="jGIS-layer-browser-category"
-              key={tab.name}
-              value={tab.name}
-              onClick={() => {
-                if (curTab !== tab.name) {
-                  setCurTab(tab.name);
-                } else {
-                  setCurTab('');
-                }
-              }}
-            >
-              {tab.title}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+    <Draggable handle=".jgis-panel-tabs" bounds=".jGIS-Mainview-Container">
+      <div
+        className="jgis-right-panel-container"
+        style={{ display: rightPanelVisible ? 'block' : 'none' }}
+      >
+        <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
+          <TabsList>
+            {tabInfo.map(tab => (
+              <TabsTrigger
+                className="jGIS-layer-browser-category"
+                key={tab.name}
+                value={tab.name}
+                onClick={() => {
+                  if (curTab !== tab.name) {
+                    setCurTab(tab.name);
+                  } else {
+                    setCurTab('');
+                  }
+                }}
+              >
+                {tab.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
+          {!settings.objectPropertiesDisabled &&
+            !settings.storyMapPresentation && (
+              <TabsContent
+                value="objectProperties"
+                className="jgis-panel-tab-content"
+              >
+                <ObjectPropertiesReact
+                  setSelectedObject={setSelectedObjectProperties}
+                  selectedObject={selectedObjectProperties}
+                  formSchemaRegistry={props.formSchemaRegistry}
+                  model={props.model}
+                />
+              </TabsContent>
+            )}
 
           <TabsContent
             value="storyPanel"
             className="jgis-panel-tab-content"
             style={{ paddingTop: 0 }}
           >
+            {!settings.storyMapPresentation && (
+              <PreviewModeSwitch
+                checked={!displayEditor}
+                onCheckedChange={toggleEditor}
+              />
+            )}
             {settings.storyMapPresentation || !displayEditor ? (
-              <StoryViewerPanel
-                model={props.model}
-                togglePreview={toggleEditor}
-              />
+              <StoryViewerPanel model={props.model} />
             ) : (
-              <StoryEditorPanel
-                model={props.model}
-                togglePreview={toggleEditor}
-              />
+              <StoryEditorPanel model={props.model} />
             )}
 
           </TabsContent>
