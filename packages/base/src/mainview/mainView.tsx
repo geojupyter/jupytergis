@@ -1108,6 +1108,9 @@ export class MainView extends React.Component<IProps, IStates> {
           data: layerParameters.data,
           opacity: layerParameters.opacity,
           visible: layer.visible,
+          // ! is passing the entire assets too much?
+          // Ideally we could parse the metadata to add a full blown layer if possivle
+          // and only use this layer type for overviews
           assets: Object.keys(layerParameters.data.assets),
           extent: layerParameters.data.bbox,
         });

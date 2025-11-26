@@ -4,13 +4,13 @@ import React from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import { Calendar } from '@/src/shared/components/Calendar';
-import Checkbox from '@/src/shared/components/Checkbox';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
-import StacFilterSection from '@/src/stacBrowser/components/StacFilterSection';
+import StacFilterSection from '@/src/stacBrowser/components/geodes/StacFilterSection';
+import StacCheckboxWithLabel from '@/src/stacBrowser/components/shared/StacCheckboxWithLabel';
 import {
   datasets as datasetsList,
   platforms as platformsList,
@@ -32,7 +32,7 @@ interface IStacPanelFiltersProps {
   setUseWorldBBox: (val: boolean) => void;
 }
 
-const StacPanelFilters = ({
+const StacGeodesFilterPanel = ({
   filterState,
   filterSetters,
   startTime,
@@ -100,12 +100,11 @@ const StacPanelFilters = ({
 
   return (
     <div className="jgis-stac-browser-filters-panel">
-      <div>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Checkbox checked={useWorldBBox} onCheckedChange={setUseWorldBBox} />
-          Use whole world as bounding box
-        </span>
-      </div>
+      <StacCheckboxWithLabel
+        checked={useWorldBBox}
+        onCheckedChange={setUseWorldBBox}
+        label="Use whole world as bounding box"
+      />
       <div className="jgis-stac-browser-date-picker">
         <Popover>
           <PopoverTrigger asChild>
@@ -165,4 +164,4 @@ const StacPanelFilters = ({
     </div>
   );
 };
-export default StacPanelFilters;
+export default StacGeodesFilterPanel;
