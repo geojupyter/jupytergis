@@ -975,6 +975,7 @@ __metadata:
     "@radix-ui/react-checkbox": ^1.3.2
     "@radix-ui/react-dropdown-menu": ^2.1.15
     "@radix-ui/react-popover": ^1.1.14
+    "@radix-ui/react-radio-group": ^1.3.8
     "@radix-ui/react-slot": ^1.2.3
     "@radix-ui/react-switch": ^1.2.6
     "@radix-ui/react-tabs": ^1.1.12
@@ -3225,6 +3226,34 @@ __metadata:
     "@types/react-dom":
       optional: true
   checksum: 01f82e4bad76b57767198762c905e5bcea04f4f52129749791e31adfcb1b36f6fdc89c73c40017d812b6e25e4ac925d837214bb280cfeaa5dc383457ce6940b0
+  languageName: node
+  linkType: hard
+
+"@radix-ui/react-radio-group@npm:^1.3.8":
+  version: 1.3.8
+  resolution: "@radix-ui/react-radio-group@npm:1.3.8"
+  dependencies:
+    "@radix-ui/primitive": 1.1.3
+    "@radix-ui/react-compose-refs": 1.1.2
+    "@radix-ui/react-context": 1.1.2
+    "@radix-ui/react-direction": 1.1.1
+    "@radix-ui/react-presence": 1.1.5
+    "@radix-ui/react-primitive": 2.1.3
+    "@radix-ui/react-roving-focus": 1.1.11
+    "@radix-ui/react-use-controllable-state": 1.2.2
+    "@radix-ui/react-use-previous": 1.1.1
+    "@radix-ui/react-use-size": 1.1.1
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 5e35970ec8965f398f15ff9b7d52c74125119d4af303fe7cd0c91f95d00692e4630d3db01e068eba833669dfb813a14b06cd80587acde028bd4cd747cb2aff41
   languageName: node
   linkType: hard
 
