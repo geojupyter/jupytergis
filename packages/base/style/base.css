@@ -24,6 +24,7 @@
 @import url('./shared/radioGroup.css');
 @import url('./shared/dialog.css');
 @import url('./shared/switch.css');
+@import url('./shared/dialog.css');
 
 .errors {
   color: var(--jp-warn-color0);
