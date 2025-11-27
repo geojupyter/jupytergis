@@ -18,6 +18,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources,
+  IJGISStoryMap,
 } from './_interface/project/jgis';
 import { JupyterGISDoc } from './doc';
 import {
@@ -52,6 +53,7 @@ const DEFAULT_SETTINGS: IJupyterGISSettings = {
   objectPropertiesDisabled: false,
   annotationsDisabled: false,
   identifyDisabled: false,
+  storyMapPresentation: false,
 };
 
 export class JupyterGISModel implements IJupyterGISModel {
@@ -504,8 +506,28 @@ export class JupyterGISModel implements IJupyterGISModel {
     const source_id = layer?.parameters?.source;
 
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
-    this.sharedModel.removeLayer(layer_id);
-    this.sharedModel.removeSource(source_id);
+
+    if (layer?.type === 'LandmarkLayer') {
+      this.sharedModel.removeLayer(layer_id);
+
+      // remove this layer id from story maps
+      Object.entries(this.sharedModel.storiesMap).forEach(
+        ([storyMapId, storyMap]) => {
+          if (storyMap.landmarks?.includes(layer_id)) {
+            const updatedLandmarks = storyMap.landmarks.filter(
+              id => id !== layer_id,
+            );
+            this.sharedModel.updateStoryMap(storyMapId, {
+              ...storyMap,
+              landmarks: updatedLandmarks,
+            });
+          }
+        },
+      );
+    } else {
+      this.sharedModel.removeLayer(layer_id);
+      this.sharedModel.removeSource(source_id);
+    }
   }
 
   setOptions(value: IJGISOptions) {
@@ -581,6 +603,20 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getClientId(): number {
     return this.sharedModel.awareness.clientID;
+  }
+
+  /**
+   * Placeholder in case we eventually want to support multiple stories
+   * @returns First/only story
+   */
+  getSelectedStory(): { landmarkId: string; story: IJGISStoryMap | undefined } {
+    const stories = this.sharedModel.storiesMap;
+    const storyId = Object.keys(stories)[0];
+
+    return {
+      landmarkId: storyId,
+      story: this.sharedModel.getStoryMap(storyId),
+    };
   }
 
   /**
@@ -924,6 +960,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
+  storiesMap: Map<string, IJGISStoryMap> = new Map();
 }
 
 export namespace JupyterGISModel {
