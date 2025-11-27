@@ -22,6 +22,7 @@
 @import url('./shared/badge.css');
 @import url('./shared/checkbox.css');
 @import url('./shared/radioGroup.css');
+@import url('./shared/dialog.css');
 @import url('./shared/switch.css');
 
 .errors {
