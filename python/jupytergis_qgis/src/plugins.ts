@@ -1,7 +1,4 @@
-import {
-  ICollaborativeDrive,
-  SharedDocumentFactory,
-} from '@jupyter/collaborative-drive';
+import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import {
   JupyterGISDocumentWidget,
   logoMiniIcon,
@@ -37,6 +34,7 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { Widget } from '@lumino/widgets';
@@ -75,7 +73,7 @@ const activate = async (
   app: JupyterFrontEnd,
   tracker: WidgetTracker<IJupyterGISWidget>,
   themeManager: IThemeManager,
-  drive: ICollaborativeDrive,
+  drive: ICollaborativeContentProvider,
   externalCommandRegistry: IJGISExternalCommandRegistry,
   contentFactory: ConsolePanel.IContentFactory,
   editorServices: IEditorServices,
@@ -264,9 +262,11 @@ const activate = async (
 
         // Check if the file exists
         let fileExist = true;
-        await drive.get(absolutePath, { content: false }).catch(() => {
-          fileExist = false;
-        });
+        await app.serviceManager.contents
+          .get(absolutePath, { content: false })
+          .catch(() => {
+            fileExist = false;
+          });
         if (fileExist) {
           const overwrite = await showDialog({
             title: 'Export the project to QGZ file',
@@ -323,7 +323,7 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
   requires: [
     IJupyterGISDocTracker,
     IThemeManager,
-    ICollaborativeDrive,
+    ICollaborativeContentProvider,
     IJGISExternalCommandRegistryToken,
     ConsolePanel.IContentFactory,
     IEditorServices,
