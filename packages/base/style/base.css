@@ -20,6 +20,7 @@
 @import url('./shared/dropdownMenu.css');
 @import url('./shared/badge.css');
 @import url('./shared/checkbox.css');
+@import url('./shared/radioGroup.css');
 
 .errors {
   color: var(--jp-warn-color0);
