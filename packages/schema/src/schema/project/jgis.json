@@ -55,7 +55,8 @@
         "ImageSource",
         "ShapefileSource",
         "GeoTiffSource",
-        "GeoParquetSource"
+        "GeoParquetSource",
+        "MarkerSource"
       ]
     },
     "jGISLayer": {

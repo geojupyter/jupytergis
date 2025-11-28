@@ -15,7 +15,7 @@ Object.assign(colorScale, cmocean);
 
 export const COLOR_RAMP_NAMES = [
   'jet',
-  // 'hsv', 11 steps min
+  'hsv',
   'hot',
   'cool',
   'spring',
@@ -30,7 +30,7 @@ export const COLOR_RAMP_NAMES = [
   'YiOrRd',
   'bluered',
   'RdBu',
-  // 'picnic', 11 steps min
+  'picnic',
   'rainbow',
   'portland',
   'blackbody',
@@ -41,7 +41,7 @@ export const COLOR_RAMP_NAMES = [
   'magma',
   'plasma',
   'warm',
-  // 'rainbow-soft', 11 steps min
+  'rainbow-soft',
   'bathymetry',
   'cdom',
   'chlorophyll',
@@ -56,7 +56,7 @@ export const COLOR_RAMP_NAMES = [
   'turbidity',
   'velocity-blue',
   'velocity-green',
-  // 'cubehelix' 16 steps min
+  'cubehelix',
   'ice',
   'oxy',
   'matter',
@@ -70,6 +70,13 @@ export const COLOR_RAMP_NAMES = [
   'diff',
   'tarn',
 ] as const;
+
+export const COLOR_RAMP_DEFAULTS: Partial<Record<ColorRampName, number>> = {
+  hsv: 11,
+  picnic: 11,
+  'rainbow-soft': 11,
+  cubehelix: 16,
+} as const;
 
 export type ColorRampName = (typeof COLOR_RAMP_NAMES)[number];
 

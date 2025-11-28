@@ -111,7 +111,10 @@ export async function requestAPI<T>(
     try {
       data = JSON.parse(data);
     } catch (error) {
-      console.log('Not a JSON response body.', response);
+      console.error(
+        'Jupyter API request failed -- not a JSON response body:',
+        response,
+      );
     }
   }
 
@@ -663,7 +666,7 @@ export const loadFile = async (fileInfo: {
         if (typeof file.content === 'string') {
           const { toGeoJson } = await import('geoparquet');
 
-          const arrayBuffer = await stringToArrayBuffer(file.content as string);
+          const arrayBuffer = await stringToArrayBuffer(file.content);
 
           return await toGeoJson({ file: arrayBuffer, compressors });
         } else {
@@ -890,7 +893,7 @@ export const stringToArrayBuffer = async (
   return await base64Response.arrayBuffer();
 };
 
-const getFeatureAttributes = <T>(
+export const getFeatureAttributes = <T>(
   featureProperties: Record<string, Set<any>>,
   predicate: (key: string, value: any) => boolean = (key: string, value) =>
     true,
@@ -959,7 +962,7 @@ export async function getGeoJSONDataFromLayerSource(
 ): Promise<string | null> {
   const vectorSourceTypes: SourceType[] = ['GeoJSONSource', 'ShapefileSource'];
 
-  if (!vectorSourceTypes.includes(source.type as SourceType)) {
+  if (!vectorSourceTypes.includes(source.type)) {
     console.error(
       `Invalid source type '${source.type}'. Expected one of: ${vectorSourceTypes.join(', ')}`,
     );

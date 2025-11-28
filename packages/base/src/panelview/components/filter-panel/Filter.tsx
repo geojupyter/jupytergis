@@ -237,6 +237,7 @@ const FilterComponent: React.FC<IFilterComponentProps> = ({ model }) => {
               <Button
                 className="jp-Dialog-button jp-mod-accept jp-mod-styled"
                 onClick={addFilterRow}
+                data-testid="add-filter-button"
               >
                 Add
               </Button>

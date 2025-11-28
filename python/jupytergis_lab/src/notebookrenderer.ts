@@ -209,12 +209,12 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           );
         }
 
-        const sharedModel = drive!.sharedModelFactory.createNew({
+        const sharedModel = drive.sharedModelFactory.createNew({
           path: localPath,
           format: fileFormat,
           contentType,
           collaborative: true,
-        })!;
+        });
         this.jupyterGISModel = new JupyterGISModel({
           sharedModel: sharedModel as IJupyterGISDoc,
           settingRegistry,

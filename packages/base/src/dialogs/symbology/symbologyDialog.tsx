@@ -46,7 +46,8 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   cancel,
 }) => {
   const [selectedLayer, setSelectedLayer] = useState<string | null>(null);
-  const [componentToRender, setComponentToRender] = useState<any>(null);
+  const [componentToRender, setComponentToRender] =
+    useState<JSX.Element | null>(null);
 
   let LayerSymbology: React.JSX.Element;
 
