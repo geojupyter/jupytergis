@@ -2121,7 +2121,6 @@ export class MainView extends React.Component<IProps, IStates> {
     };
 
     const layerParams: IVectorLayer = {
-      opacity: 1.0,
       source: sourceId,
       symbologyState: { renderType: 'Single Symbol' },
     };
