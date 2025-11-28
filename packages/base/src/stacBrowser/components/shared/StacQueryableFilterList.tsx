@@ -9,59 +9,7 @@ interface IStacQueryableFilterListProps {
 
 type FilterOperator = 'and' | 'or';
 
-const getInputBasedOnType = (val: any): React.ReactNode => {
-  switch (val.type) {
-    case 'string':
-      if (val.enum) {
-        return (
-          <select
-            style={{ maxWidth: '75px' }}
-            {...(val.pattern && { 'data-pattern': val.pattern })}
-          >
-            {val.enum.map((option: string) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        );
-      }
-      if (val.format === 'date-time') {
-        return (
-          <input
-            type="datetime-local"
-            style={{ maxWidth: '75px' }}
-            {...(val.pattern && { 'data-pattern': val.pattern })}
-          />
-        );
-      }
-      return (
-        <input
-          type="text"
-          style={{ maxWidth: '75px' }}
-          {...(val.pattern && { 'data-pattern': val.pattern })}
-        />
-      );
-    case 'number':
-      return (
-        <input
-          type="number"
-          style={{ maxWidth: '75px' }}
-          min={val.min !== undefined ? val.min : undefined}
-          max={val.max !== undefined ? val.max : undefined}
-          {...(val.pattern && { 'data-pattern': val.pattern })}
-        />
-      );
-    default:
-      return (
-        <input
-          type=""
-          style={{ maxWidth: '75px' }}
-          {...(val.pattern && { 'data-pattern': val.pattern })}
-        />
-      );
-  }
-};
+
 
 const StacQueryableFilterList: React.FC<IStacQueryableFilterListProps> = ({
   queryableProps,
