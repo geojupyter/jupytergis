@@ -20,8 +20,9 @@ interface IStacViewProps {
 }
 const StacPanel = ({ model }: IStacViewProps) => {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const [selectedCatalog, setSelectedCatalog] = React.useState<string>('');
 
-  const { catalogs } = useStacIndex(model);
+  const { catalogs, isLoading: isIndexLoading, error } = useStacIndex(model);
 
   const {
     filterState,
@@ -46,6 +47,22 @@ const StacPanel = ({ model }: IStacViewProps) => {
     return null;
   }
 
+  if (isIndexLoading) {
+    return (
+      <div className="Select Catalog">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="Select Catalog">
+        <p>Error loading catalogs.</p>
+      </div>
+    );
+  }
+
   const handleOpenDialog = async () => {
     const widget = new URLInputWidget(catalogs);
     inputRef.current = widget.getInput();
@@ -53,19 +70,26 @@ const StacPanel = ({ model }: IStacViewProps) => {
     const dialog = new Dialog<boolean>({
       title: 'Add Catalog',
       body: widget,
-      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Add' })],
+      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Select' })],
     });
 
     const result = await dialog.launch();
     if (result.button.accept && inputRef.current) {
       const url = inputRef.current.value;
-      console.log('Catalog URL added:', url);
+      //console.log('Catalog URL added:', url);
+      setSelectedCatalog(url);
     }
   };
 
   return (
     <div className="Select Catalog">
       <Button onClick={handleOpenDialog}>Select a Catalog</Button>
+
+      {selectedCatalog && (
+        <div className="selected-catalog" style={{ marginTop: '10px' }}>
+          <strong>Selected Catalog:</strong> {selectedCatalog}
+        </div>
+      )}
 
       <Tabs defaultValue="filters" className="jgis-panel-tabs">
         <TabsList style={{ borderRadius: 0 }}>
@@ -109,7 +133,6 @@ export default StacPanel;
 
 class URLInputWidget extends Widget {
   private input: HTMLInputElement;
-  private catalogInput: HTMLInputElement;
 
   constructor(catalogs: any[] = []) {
     const node = document.createElement('div');
@@ -154,36 +177,21 @@ class URLInputWidget extends Widget {
       dropdown.appendChild(option);
     });
 
-    const catalogInputLabel = document.createElement('label');
-    catalogInputLabel.textContent = 'Selected Catalog URL:';
-    catalogInputLabel.style.display = 'block';
-    catalogInputLabel.style.marginBottom = '8px';
-    catalogInputLabel.className = 'jgis-stac-catalog-input-label';
-
-    const catalogInput = document.createElement('input');
-    catalogInput.type = 'url';
-    catalogInput.placeholder = 'Selected catalog URL will appear here';
-    catalogInput.className = 'jgis-stac-catalog-input';
-    catalogInput.readOnly = true;
-
     dropdown.addEventListener('change', e => {
       const selectedUrl = (e.target as HTMLSelectElement).value;
-      catalogInput.value = selectedUrl;
+      input.value = selectedUrl;
     });
 
     node.appendChild(label);
     node.appendChild(input);
     node.appendChild(catalogLabel);
     node.appendChild(dropdown);
-    node.appendChild(catalogInputLabel);
-    node.appendChild(catalogInput);
 
     super({ node });
     this.input = input;
-    this.catalogInput = catalogInput;
   }
 
   getInput(): HTMLInputElement {
-    return this.input.value ? this.input : this.catalogInput;
+    return this.input;
   }
 }
