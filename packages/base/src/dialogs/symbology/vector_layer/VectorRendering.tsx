@@ -5,6 +5,7 @@ import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
 import {
   getColorCodeFeatureAttributes,
+  getFeatureAttributes,
   getNumericFeatureAttributes,
   objectEntries,
 } from '@/src/tools';
@@ -53,7 +54,7 @@ const RENDER_TYPE_OPTIONS: RenderTypeOptions = {
   },
   Categorized: {
     component: Categorized,
-    attributeChecker: getNumericFeatureAttributes,
+    attributeChecker: getFeatureAttributes,
     supportedLayerTypes: ['VectorLayer', 'VectorTileLayer', 'HeatmapLayer'],
     isTabbed: true,
   },

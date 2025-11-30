@@ -35,10 +35,24 @@ import {
   JgisCoordinates,
   Pointer,
   IJupyterGISSettings,
+  SelectionType,
 } from './interfaces';
 import jgisSchema from './schema/project/jgis.json';
+import { Modes } from './types';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
+
+const DEFAULT_SETTINGS: IJupyterGISSettings = {
+  proxyUrl: 'https://corsproxy.io',
+  leftPanelDisabled: false,
+  rightPanelDisabled: false,
+  layersDisabled: false,
+  stacBrowserDisabled: false,
+  filtersDisabled: false,
+  objectPropertiesDisabled: false,
+  annotationsDisabled: false,
+  identifyDisabled: false,
+};
 
 export class JupyterGISModel implements IJupyterGISModel {
   constructor(options: JupyterGISModel.IOptions) {
@@ -60,17 +74,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
     this._settingsChanged = new Signal<JupyterGISModel, string>(this);
 
-    this._jgisSettings = {
-      proxyUrl: 'https://corsproxy.io',
-      leftPanelDisabled: false,
-      rightPanelDisabled: false,
-      layersDisabled: false,
-      stacBrowserDisabled: false,
-      filtersDisabled: false,
-      objectPropertiesDisabled: false,
-      annotationsDisabled: false,
-      identifyDisabled: false,
-    };
+    this._jgisSettings = { ...DEFAULT_SETTINGS };
 
     this.initSettings();
   }
@@ -91,17 +95,9 @@ export class JupyterGISModel implements IJupyterGISModel {
           this._updateLocalSettings();
           const newSettings = this._jgisSettings;
 
-          const keys: (keyof IJupyterGISSettings)[] = [
-            'proxyUrl',
-            'leftPanelDisabled',
-            'rightPanelDisabled',
-            'layersDisabled',
-            'stacBrowserDisabled',
-            'filtersDisabled',
-            'objectPropertiesDisabled',
-            'annotationsDisabled',
-            'identifyDisabled',
-          ];
+          const keys = Object.keys(
+            DEFAULT_SETTINGS,
+          ) as (keyof IJupyterGISSettings)[];
 
           keys.forEach(key => {
             if (oldSettings[key] !== newSettings[key]) {
@@ -111,17 +107,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         });
       } catch (error) {
         console.error(`Failed to load settings for ${SETTINGS_ID}:`, error);
-        this._jgisSettings = {
-          proxyUrl: 'https://corsproxy.io',
-          leftPanelDisabled: false,
-          rightPanelDisabled: false,
-          layersDisabled: false,
-          stacBrowserDisabled: false,
-          filtersDisabled: false,
-          objectPropertiesDisabled: false,
-          annotationsDisabled: false,
-          identifyDisabled: false,
-        };
+        this._jgisSettings = { ...DEFAULT_SETTINGS };
       }
     }
   }
@@ -129,18 +115,15 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _updateLocalSettings(): void {
     const composite = this._settings.composite;
 
-    this._jgisSettings = {
-      proxyUrl: (composite.proxyUrl as string) ?? 'https://corsproxy.io',
-      leftPanelDisabled: (composite.leftPanelDisabled as boolean) ?? false,
-      rightPanelDisabled: (composite.rightPanelDisabled as boolean) ?? false,
-      layersDisabled: (composite.layersDisabled as boolean) ?? false,
-      stacBrowserDisabled: (composite.stacBrowserDisabled as boolean) ?? false,
-      filtersDisabled: (composite.filtersDisabled as boolean) ?? false,
-      objectPropertiesDisabled:
-        (composite.objectPropertiesDisabled as boolean) ?? false,
-      annotationsDisabled: (composite.annotationsDisabled as boolean) ?? false,
-      identifyDisabled: (composite.identifyDisabled as boolean) ?? false,
-    };
+    this._jgisSettings = Object.entries(DEFAULT_SETTINGS).reduce(
+      (acc, [key, defaultValue]) => {
+        const typedKey = key as keyof IJupyterGISSettings;
+        const compositeValue = composite[typedKey];
+        (acc as any)[typedKey] = compositeValue ?? defaultValue;
+        return acc;
+      },
+      {} as typeof DEFAULT_SETTINGS,
+    );
   }
 
   get jgisSettings(): IJupyterGISSettings {
@@ -554,6 +537,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     });
   }
 
+  get selected(): { [key: string]: ISelection } | undefined {
+    return this.localState?.selected?.value;
+  }
+
+  set selected(value: { [key: string]: ISelection } | undefined) {
+    this.syncSelected(value || {}, this.getClientId().toString());
+  }
+
   syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void {
     this.sharedModel.awareness.setLocalStateField('identifiedFeatures', {
       value: features,
@@ -565,6 +556,27 @@ export class JupyterGISModel implements IJupyterGISModel {
     if (this._sharedModel) {
       this._sharedModel.awareness.setLocalStateField('remoteUser', userId);
     }
+  }
+
+  setEditingItem(type: SelectionType, itemId: string): void {
+    this._editing = { type, itemId };
+    this._editingChanged.emit(this._editing);
+  }
+
+  clearEditingItem(): void {
+    this._editing = null;
+    this._editingChanged.emit(null);
+  }
+
+  get editing(): { type: SelectionType; itemId: string } | null {
+    return this._editing;
+  }
+
+  get editingChanged(): ISignal<
+    this,
+    { type: SelectionType; itemId: string } | null
+  > {
+    return this._editingChanged;
   }
 
   getClientId(): number {
@@ -723,7 +735,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         layerTreeInfo.mainGroup,
       );
     } else {
-      console.log('Something went wrong when renaming layer');
+      console.error('Layer group rename failed -- could not get layer tree.');
     }
   }
 
@@ -758,19 +770,20 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
-  toggleIdentify() {
-    if (this._currentMode === 'identifying') {
-      this._currentMode = 'panning';
-    } else {
-      this._currentMode = 'identifying';
-    }
+  /**
+   * Toggle a map interaction mode on or off.
+   * Toggleing off sets the mode to 'panning'.
+   * @param mode The mode to be toggled
+   */
+  toggleMode(mode: Modes) {
+    this._currentMode = this._currentMode === mode ? 'panning' : mode;
   }
 
-  get currentMode(): 'panning' | 'identifying' {
+  get currentMode(): Modes {
     return this._currentMode;
   }
 
-  set currentMode(value: 'panning' | 'identifying') {
+  set currentMode(value: Modes) {
     this._currentMode = value;
   }
 
@@ -869,7 +882,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _settingsChanged: Signal<JupyterGISModel, string>;
   private _jgisSettings: IJupyterGISSettings;
 
-  private _currentMode: 'panning' | 'identifying';
+  private _currentMode: Modes;
 
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
@@ -899,6 +912,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _updateLayerSignal = new Signal<this, string>(this);
 
   private _isTemporalControllerActive = false;
+
+  private _editing: { type: SelectionType; itemId: string } | null = null;
+  private _editingChanged = new Signal<
+    this,
+    { type: SelectionType; itemId: string } | null
+  >(this);
 
   static worker: Worker;
 

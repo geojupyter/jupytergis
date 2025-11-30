@@ -28,14 +28,14 @@ test.describe('#filters', () => {
 
     await page.getByText('Filters').click();
     // Add first filter
-    await page.getByRole('button', { name: 'Add' }).click();
+    await page.getByTestId('add-filter-button').click();
     await page.locator('#jp-gis-feature-select-0').selectOption('mag');
     await page.locator('#jp-gis-operator-select-0').selectOption('>');
     await page.locator('#jp-gis-value-select-0').selectOption('2.73');
     await page.getByRole('button', { name: 'Submit' }).click();
 
     // Add second filter
-    await page.getByRole('button', { name: 'Add' }).click();
+    await page.getByTestId('add-filter-button').click();
     await page.locator('#jp-gis-feature-select-1').selectOption('felt');
     await page.locator('#jp-gis-operator-select-1').selectOption('>');
     await page.locator('#jp-gis-value-select-1').selectOption('10');

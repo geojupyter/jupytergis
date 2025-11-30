@@ -12,8 +12,6 @@ import {
   Toolbar,
   ToolbarButton,
   addIcon,
-  redoIcon,
-  undoIcon,
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { Widget } from '@lumino/widgets';
@@ -74,42 +72,12 @@ export class ToolbarWidget extends ReactiveToolbar {
     this.addClass('jGIS-toolbar-widget');
 
     if (options.commands) {
-      const undoButton = new CommandToolbarButton({
-        id: CommandIDs.undo,
-        label: '',
-        icon: undoIcon,
-        commands: options.commands,
-      });
-
-      this.addItem('undo', undoButton);
-      undoButton.node.dataset.testid = 'undo-button';
-
-      const redoButton = new CommandToolbarButton({
-        id: CommandIDs.redo,
-        label: '',
-        icon: redoIcon,
-        commands: options.commands,
-      });
-      this.addItem('redo', redoButton);
-
-      this.addItem('separator0', new Separator());
-
-      const toggleConsoleButton = new CommandToolbarButton({
-        id: CommandIDs.toggleConsole,
-        commands: options.commands,
-        label: '',
-        icon: terminalToolbarIcon,
-      });
-      this.addItem('Toggle console', toggleConsoleButton);
-      toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
-
-      this.addItem('separator1', new Separator());
-
       const openLayersBrowserButton = new CommandToolbarButton({
         id: CommandIDs.openLayerBrowser,
         label: '',
         commands: options.commands,
       });
+
       this.addItem('openLayerBrowser', openLayersBrowserButton);
       openLayersBrowserButton.node.dataset.testid = 'open-layers-browser';
 
@@ -138,17 +106,18 @@ export class ToolbarWidget extends ReactiveToolbar {
           NewSubMenu.open(bbox.x, bbox.bottom);
         },
       });
-      NewEntryButton.node.dataset.testid = 'new-entry-button';
 
       this.addItem('New', NewEntryButton);
+      NewEntryButton.node.dataset.testid = 'new-entry-button';
 
-      this.addItem('separator2', new Separator());
+      this.addItem('separator1', new Separator());
 
       const geolocationButton = new CommandToolbarButton({
         id: CommandIDs.getGeolocation,
         commands: options.commands,
         label: '',
       });
+
       this.addItem('Geolocation', geolocationButton);
       geolocationButton.node.dataset.testid = 'geolocation-button';
 
@@ -166,9 +135,30 @@ export class ToolbarWidget extends ReactiveToolbar {
         label: '',
         commands: options.commands,
       });
+
       this.addItem('temporalController', temporalControllerButton);
       temporalControllerButton.node.dataset.testid =
         'temporal-controller-button';
+
+      const addMarkerButton = new CommandToolbarButton({
+        id: CommandIDs.addMarker,
+        label: '',
+        commands: options.commands,
+      });
+
+      this.addItem('addMarker', addMarkerButton);
+      addMarkerButton.node.dataset.testid = 'add-marker-controller-button';
+
+      this.addItem('separator2', new Separator());
+
+      const toggleConsoleButton = new CommandToolbarButton({
+        id: CommandIDs.toggleConsole,
+        commands: options.commands,
+        label: '',
+        icon: terminalToolbarIcon,
+      });
+      this.addItem('Toggle console', toggleConsoleButton);
+      toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
 
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 

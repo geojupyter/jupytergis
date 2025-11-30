@@ -214,7 +214,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           format: fileFormat,
           contentType,
           collaborative: true,
-        })!;
+        });
         this.jupyterGISModel = new JupyterGISModel({
           sharedModel: sharedModel as IJupyterGISDoc,
           settingRegistry,

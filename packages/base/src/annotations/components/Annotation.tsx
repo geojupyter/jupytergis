@@ -71,6 +71,7 @@ const Annotation: React.FC<IAnnotationProps> = ({
       </div>
       <div className="jGIS-Annotation-Message">
         <textarea
+          data-id="annotation-textarea"
           rows={3}
           placeholder={'Ctrl+Enter to submit'}
           value={messageContent}

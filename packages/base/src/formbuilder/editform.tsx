@@ -1,6 +1,7 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISSource,
   IJupyterGISModel,
 } from '@jupytergis/schema';
@@ -46,8 +47,10 @@ export class EditForm extends React.Component<IEditFormProps, any> {
     let layerSchema: IDict | undefined = undefined;
     let LayerForm: typeof LayerPropertiesForm | undefined = undefined;
     let layerData: IDict | undefined = undefined;
+    let layer: IJGISLayer | undefined = undefined;
+
     if (this.props.layer) {
-      const layer = this.props.model.getLayer(this.props.layer);
+      layer = this.props.model.getLayer(this.props.layer);
       if (!layer) {
         return;
       }
@@ -92,6 +95,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
           <div>
             <h3 style={{ paddingLeft: '5px' }}>Layer Properties</h3>
             <LayerForm
+              key={`${this.props.layer}-${source?.type}`} // Force remount when source type changes
               formContext="update"
               sourceType={source?.type || 'RasterSource'}
               model={this.props.model}
@@ -108,6 +112,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
           <div>
             <h3 style={{ paddingLeft: '5px' }}>Source Properties</h3>
             <SourceForm
+              key={`${this.props.source}-${layer?.type}`} // Force remount when layer type changes
               formContext="update"
               model={this.props.model}
               filePath={this.props.model.filePath}
