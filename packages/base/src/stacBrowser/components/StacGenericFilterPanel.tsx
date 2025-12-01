@@ -5,7 +5,6 @@ import StacCheckboxWithLabel from './shared/StacCheckboxWithLabel';
 import StacQueryableFilterList from './shared/StacQueryableFilterList';
 import StacSearchDatePicker from './shared/StacSearchDatePicker';
 import { useStacGenericFilter } from '../hooks/useStacGenericFilter';
-import useStacSearch from '../hooks/useStacSearch';
 import { IStacCollection } from '../types/types';
 
 interface IStacBrowser2Props {
@@ -19,27 +18,19 @@ const API_URL = 'https://stac.dataspace.copernicus.eu/v1/';
 // This is a generic UI for apis that support filter extension
 function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   const {
+    queryableProps,
+    collections,
+    selectedCollection,
+    setSelectedCollection,
+    handleSubmit,
     startTime,
     endTime,
     setStartTime,
     setEndTime,
     useWorldBBox,
     setUseWorldBBox,
-  } = useStacSearch({
-    model,
-  });
-
-  const {
-    queryableProps,
-    collections,
-    selectedCollection,
-    setSelectedCollection,
-    handleSubmit,
   } = useStacGenericFilter({
     model,
-    startTime,
-    endTime,
-    useWorldBBox,
   });
 
   if (!model) {
