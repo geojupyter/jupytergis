@@ -21,7 +21,7 @@ interface IQueryableComboProps {
   queryables: [string, any][];
 }
 
-export function QueryableCombo({ queryables }: IQueryableComboProps) {
+export function QueryableComboBox({ queryables }: IQueryableComboProps) {
   const [open, setOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<[string, any][]>([]);
 

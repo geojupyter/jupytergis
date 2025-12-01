@@ -2,7 +2,7 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
 import StacCheckboxWithLabel from './shared/StacCheckboxWithLabel';
-import StacQueryableFilterList from './shared/StacQueryableFilterList';
+import StacQueryableFilters from './shared/StacQueryableFilters';
 import StacSearchDatePicker from './shared/StacSearchDatePicker';
 import { useStacGenericFilter } from '../hooks/useStacGenericFilter';
 import { IStacCollection } from '../types/types';
@@ -106,7 +106,7 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
         >
-          <StacQueryableFilterList queryableProps={queryableProps} />
+          <StacQueryableFilters queryableProps={queryableProps} />
         </div>
       )}
       {/* sort */}
