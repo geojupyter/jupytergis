@@ -75,6 +75,7 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
       handlersRef.current.formatResult,
     );
   }, [setPaginationHandlers]);
+
   const handleDatasetSelection = (dataset: string, collection: string) => {
     const collections = new Set(filterState.collections);
     const datasets = new Set(filterState.datasets);

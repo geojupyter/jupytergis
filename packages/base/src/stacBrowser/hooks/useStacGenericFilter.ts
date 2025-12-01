@@ -5,7 +5,12 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { fetchWithProxies } from '@/src/tools';
 import useStacSearch from './useStacSearch';
-import { IStacCollection, IStacItem, IStacSearchResult } from '../types/types';
+import {
+  IStacCollection,
+  IStacItem,
+  IStacLink,
+  IStacSearchResult,
+} from '../types/types';
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 
@@ -27,9 +32,13 @@ const API_URL = 'https://stac.dataspace.copernicus.eu/v1/';
 
 interface IUseStacGenericFilterProps {
   model?: IJupyterGISModel;
+  limit?: number;
 }
 
-export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
+export function useStacGenericFilter({
+  model,
+  limit = 12,
+}: IUseStacGenericFilterProps) {
   const {
     startTime,
     endTime,
@@ -56,6 +65,9 @@ export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
     Record<string, IQueryableFilter>
   >({});
   const [filterOperator, setFilterOperator] = useState<FilterOperator>('and');
+  const [paginationLinks, setPaginationLinks] = useState<
+    Array<IStacLink & { method?: string; body?: Record<string, any> }>
+  >([]);
 
   // for collections
   useEffect(() => {
@@ -174,6 +186,8 @@ export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
       return;
     }
 
+    setCurrentPage(1);
+
     const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
 
     const st = startTime
@@ -201,7 +215,7 @@ export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
       bbox: currentBBox,
       collections: [selectedCollection],
       datetime: `${st}/${et}`,
-      limit: 12,
+      limit,
       'filter-lang': 'cql2-json',
     };
 
@@ -276,6 +290,16 @@ export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
 
       console.log('hook data', data);
       setResults(data.features);
+
+      // Store pagination links for use in handlePaginationClick
+      if (data.links) {
+        setPaginationLinks(
+          data.links as Array<
+            IStacLink & { method?: string; body?: Record<string, any> }
+          >,
+        );
+      }
+
       // Handle context if available (STAC API extension)
       if (data.context) {
         const pages = data.context.matched / data.context.limit;
@@ -301,6 +325,170 @@ export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
     }
   };
 
+  /**
+   * Handles clicking on a result item
+   * @param id - ID of the clicked result
+   */
+  const handleResultClick = useCallback(
+    async (id: string): Promise<void> => {
+      if (!model) {
+        return;
+      }
+
+      const result = results.find((r: IStacItem) => r.id === id);
+      if (result) {
+        addToMap(result);
+      }
+    },
+    [results, model],
+  );
+
+  /**
+   * Fetches results using a STAC link (for pagination)
+   * @param link - STAC link object with href and optional body
+   */
+  const fetchUsingLink = useCallback(
+    async (
+      link: IStacLink & { method?: string; body?: Record<string, any> },
+    ) => {
+      if (!model) {
+        return;
+      }
+
+      const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
+
+      const options = {
+        method: (link.method || 'POST').toUpperCase(),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-XSRFToken': XSRF_TOKEN,
+          credentials: 'include',
+        },
+        body: link.body ? JSON.stringify(link.body) : undefined,
+      };
+
+      try {
+        setIsLoading(true);
+        const data = (await fetchWithProxies(
+          link.href,
+          model,
+          async response => await response.json(),
+          //@ts-expect-error Jupyter requires X-XSRFToken header
+          options,
+          'internal',
+        )) as IStacSearchResult;
+
+        if (!data) {
+          console.debug('STAC search failed -- no results found');
+          setResults([]);
+          setTotalPages(1);
+          setTotalResults(0);
+          return;
+        }
+
+        // Filter assets to only include items with 'overview' or 'thumbnail' roles
+        if (data.features && data.features.length > 0) {
+          data.features.forEach(feature => {
+            if (feature.assets) {
+              const originalAssets = feature.assets;
+              const filteredAssets: Record<string, any> = {};
+
+              for (const [key, asset] of Object.entries(originalAssets)) {
+                if (
+                  asset &&
+                  typeof asset === 'object' &&
+                  'roles' in asset &&
+                  Array.isArray(asset.roles)
+                ) {
+                  const roles = asset.roles;
+
+                  if (
+                    roles.includes('thumbnail') ||
+                    roles.includes('overview')
+                  ) {
+                    filteredAssets[key] = asset;
+                  }
+                }
+              }
+
+              feature.assets = filteredAssets;
+            }
+          });
+        }
+
+        console.log('hook data', data);
+        setResults(data.features);
+
+        // Store pagination links for next pagination
+        if (data.links) {
+          setPaginationLinks(
+            data.links as Array<
+              IStacLink & { method?: string; body?: Record<string, any> }
+            >,
+          );
+        }
+
+        // Handle context if available (STAC API extension)
+        if (data.context) {
+          const pages = data.context.matched / data.context.limit;
+          setTotalPages(Math.ceil(pages));
+          setTotalResults(data.context.matched);
+        } else {
+          // Fallback if context is not available
+          setTotalPages(1);
+          setTotalResults(data.features.length);
+        }
+      } catch (error) {
+        console.error('STAC search failed -- error fetching data:', error);
+        setResults([]);
+        setTotalPages(1);
+        setTotalResults(0);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [model],
+  );
+
+  /**
+   * Handles pagination clicks
+   * @param page - Page number to navigate to (used to determine next/previous direction)
+   */
+  const handlePaginationClick = useCallback(
+    async (page: number): Promise<void> => {
+      if (!model) {
+        return;
+      }
+
+      // Determine if we're going forward or backward based on page number
+      const isNext = page > currentPage;
+      const rel = isNext ? 'next' : 'previous';
+
+      // Find the appropriate link using the rel field
+      const link = paginationLinks.find(l => l.rel === rel);
+
+      if (link && link.body) {
+        // Use the link with its body (contains token) to fetch the page
+        await fetchUsingLink(link);
+        // Update current page after successful fetch
+        setCurrentPage(page);
+      } else {
+        // If no link found, we can't paginate
+        console.warn(`No ${rel} link available for pagination`);
+      }
+    },
+    [currentPage, paginationLinks, fetchUsingLink, model],
+  );
+
+  /**
+   * Formats a result item for display
+   * @param item - STAC item to format
+   * @returns Formatted string representation of the item
+   */
+  const formatResult = useCallback((item: IStacItem): string => {
+    return item.properties?.title ?? item.id;
+  }, []);
+
   return {
     queryableProps,
     collections,
@@ -312,6 +500,9 @@ export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
     totalPages,
     currentPage,
     totalResults,
+    handlePaginationClick,
+    handleResultClick,
+    formatResult,
     startTime,
     endTime,
     setStartTime,

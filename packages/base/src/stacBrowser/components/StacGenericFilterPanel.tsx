@@ -1,5 +1,5 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import React, { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 
 import { useStacResultsContext } from '../context/StacResultsContext';
 import StacCheckboxWithLabel from './shared/StacCheckboxWithLabel';
@@ -19,6 +19,7 @@ const API_URL = 'https://stac.dataspace.copernicus.eu/v1/';
 // This is a generic UI for apis that support filter extension
 function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   const { setResults, setPaginationHandlers } = useStacResultsContext();
+  const [limit, setLimit] = useState<number>(12);
 
   const {
     queryableProps,
@@ -31,6 +32,9 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     totalPages,
     currentPage,
     totalResults,
+    handlePaginationClick,
+    handleResultClick,
+    formatResult,
     startTime,
     endTime,
     setStartTime,
@@ -42,28 +46,8 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     setFilterOperator,
   } = useStacGenericFilter({
     model,
+    limit,
   });
-
-  // Create pagination handlers for generic filter
-  const handlePaginationClick = useCallback(async (page: number) => {
-    // TODO: Implement pagination for generic filter
-    console.log('Pagination not yet implemented for generic filter', page);
-  }, []);
-
-  const handleResultClick = useCallback(
-    async (id: string) => {
-      const result = results.find((r: IStacItem) => r.id === id);
-      if (result && model) {
-        // Add to map logic would go here
-        console.log('Result clicked:', id);
-      }
-    },
-    [results, model],
-  );
-
-  const formatResult = useCallback((item: IStacItem) => {
-    return item.properties?.title ?? item.id;
-  }, []);
 
   // Track handlers with refs to avoid infinite loops
   const handlersRef = useRef({
@@ -178,6 +162,30 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
       )}
       {/* sort */}
       {/* items per page */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+          Items per page
+        </label>
+        <input
+          type="number"
+          min="1"
+          max="1000"
+          value={limit}
+          onChange={e => {
+            const value = parseInt(e.target.value, 10);
+            if (!isNaN(value) && value > 0) {
+              setLimit(value);
+            }
+          }}
+          style={{
+            maxWidth: '200px',
+            padding: '0.5rem',
+            borderRadius: '0.25rem',
+            border: '1px solid var(--jp-border-color0)',
+          }}
+        />
+      </div>
+
       {/* buttons */}
       <div
         style={{
