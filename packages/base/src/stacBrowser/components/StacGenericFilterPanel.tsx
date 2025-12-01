@@ -1,11 +1,12 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import React from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 
+import { useStacResultsContext } from '../context/StacResultsContext';
 import StacCheckboxWithLabel from './shared/StacCheckboxWithLabel';
 import StacQueryableFilters from './shared/StacQueryableFilters';
 import StacSearchDatePicker from './shared/StacSearchDatePicker';
 import { useStacGenericFilter } from '../hooks/useStacGenericFilter';
-import { IStacCollection } from '../types/types';
+import { IStacCollection, IStacItem } from '../types/types';
 
 interface IStacBrowser2Props {
   model?: IJupyterGISModel;
@@ -17,13 +18,19 @@ const API_URL = 'https://stac.dataspace.copernicus.eu/v1/';
 
 // This is a generic UI for apis that support filter extension
 function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
-  // TODO use context instead to stop this drilling madness
+  const { setResults, setPaginationHandlers } = useStacResultsContext();
+
   const {
     queryableProps,
     collections,
     selectedCollection,
     setSelectedCollection,
     handleSubmit,
+    results,
+    isLoading,
+    totalPages,
+    currentPage,
+    totalResults,
     startTime,
     endTime,
     setStartTime,
@@ -36,6 +43,57 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   } = useStacGenericFilter({
     model,
   });
+
+  // Create pagination handlers for generic filter
+  const handlePaginationClick = useCallback(async (page: number) => {
+    // TODO: Implement pagination for generic filter
+    console.log('Pagination not yet implemented for generic filter', page);
+  }, []);
+
+  const handleResultClick = useCallback(
+    async (id: string) => {
+      const result = results.find((r: IStacItem) => r.id === id);
+      if (result && model) {
+        // Add to map logic would go here
+        console.log('Result clicked:', id);
+      }
+    },
+    [results, model],
+  );
+
+  const formatResult = useCallback((item: IStacItem) => {
+    return item.properties?.title ?? item.id;
+  }, []);
+
+  // Track handlers with refs to avoid infinite loops
+  const handlersRef = useRef({
+    handlePaginationClick,
+    handleResultClick,
+    formatResult,
+  });
+
+  // Update ref when handlers change
+  useEffect(() => {
+    handlersRef.current = {
+      handlePaginationClick,
+      handleResultClick,
+      formatResult,
+    };
+  }, [handlePaginationClick, handleResultClick, formatResult]);
+
+  // Sync results to context whenever they change
+  useEffect(() => {
+    setResults(results, isLoading, totalPages, currentPage, totalResults);
+  }, [results, isLoading, totalPages, currentPage, totalResults, setResults]);
+
+  // Sync handlers separately, only when they actually change
+  useEffect(() => {
+    setPaginationHandlers(
+      handlersRef.current.handlePaginationClick,
+      handlersRef.current.handleResultClick,
+      handlersRef.current.formatResult,
+    );
+  }, [setPaginationHandlers]);
 
   if (!model) {
     console.log('no model');
