@@ -1,6 +1,7 @@
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import { Calendar } from '@/src/shared/components/Calendar';
@@ -16,32 +17,64 @@ import {
   platforms as platformsList,
   products as productsList,
 } from '@/src/stacBrowser/constants';
-import {
-  StacFilterState,
-  StacFilterSetters,
-} from '@/src/stacBrowser/types/types';
+import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
+import useStacSearch from '@/src/stacBrowser/hooks/useStacSearch';
 
-interface IStacPanelFiltersProps {
-  filterState: StacFilterState;
-  filterSetters: StacFilterSetters;
-  startTime: Date | undefined;
-  setStartTime: (date: Date | undefined) => void;
-  endTime: Date | undefined;
-  setEndTime: (date: Date | undefined) => void;
-  useWorldBBox: boolean;
-  setUseWorldBBox: (val: boolean) => void;
+interface IStacGeodesFilterPanelProps {
+  model?: IJupyterGISModel;
 }
 
-const StacGeodesFilterPanel = ({
-  filterState,
-  filterSetters,
-  startTime,
-  setStartTime,
-  endTime,
-  setEndTime,
-  useWorldBBox,
-  setUseWorldBBox,
-}: IStacPanelFiltersProps) => {
+const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
+  const { setResults, setPaginationHandlers } = useStacResultsContext();
+
+  const {
+    filterState,
+    filterSetters,
+    results,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
+    totalPages,
+    currentPage,
+    totalResults,
+    handlePaginationClick,
+    handleResultClick,
+    formatResult,
+    isLoading,
+    useWorldBBox,
+    setUseWorldBBox,
+  } = useStacSearch({ model });
+
+  // Track handlers with refs to avoid infinite loops
+  const handlersRef = useRef({
+    handlePaginationClick,
+    handleResultClick,
+    formatResult,
+  });
+
+  // Update ref when handlers change
+  useEffect(() => {
+    handlersRef.current = {
+      handlePaginationClick,
+      handleResultClick,
+      formatResult,
+    };
+  }, [handlePaginationClick, handleResultClick, formatResult]);
+
+  // Sync results to context whenever they change
+  useEffect(() => {
+    setResults(results, isLoading, totalPages, currentPage, totalResults);
+  }, [results, isLoading, totalPages, currentPage, totalResults, setResults]);
+
+  // Sync handlers separately, only when they actually change
+  useEffect(() => {
+    setPaginationHandlers(
+      handlersRef.current.handlePaginationClick,
+      handlersRef.current.handleResultClick,
+      handlersRef.current.formatResult,
+    );
+  }, [setPaginationHandlers]);
   const handleDatasetSelection = (dataset: string, collection: string) => {
     const collections = new Set(filterState.collections);
     const datasets = new Set(filterState.datasets);
