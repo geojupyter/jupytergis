@@ -1,62 +1,97 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+
+import {
+  IQueryableFilter,
+  Operator,
+  UpdateQueryableFilter,
+} from '../hooks/useStacGenericFilter';
 
 interface IQueryableRowProps {
   qKey: string;
   qVal: any;
+  updateQueryableFilter: UpdateQueryableFilter;
 }
-
-type Operator = 'eq' | 'neq' | 'lt' | 'gt';
 
 interface IOperatorOption {
   value: Operator;
   label: string;
 }
 
-function QueryableRow({ qKey, qVal }: IQueryableRowProps) {
+function QueryableRow({
+  qKey,
+  qVal,
+  updateQueryableFilter,
+}: IQueryableRowProps) {
   const getOperatorsForType = (
     type: string,
     format?: string,
   ): IOperatorOption[] => {
     if (format === 'date-time') {
       return [
-        { value: 'lt', label: 'less than' },
-        { value: 'gt', label: 'greater than' },
+        { value: '<', label: 'less than' },
+        { value: '>', label: 'greater than' },
       ];
     }
 
     switch (type) {
       case 'string':
         return [
-          { value: 'eq', label: 'equal to' },
-          { value: 'neq', label: 'not equal to' },
+          { value: '=', label: 'equal to' },
+          { value: '!=', label: 'not equal to' },
         ];
       case 'number':
         return [
-          { value: 'eq', label: 'equal to' },
-          { value: 'neq', label: 'not equal to' },
-          { value: 'lt', label: 'less than' },
-          { value: 'gt', label: 'greater than' },
+          { value: '=', label: 'equal to' },
+          { value: '!=', label: 'not equal to' },
+          { value: '<', label: 'less than' },
+          { value: '>', label: 'greater than' },
         ];
       default:
         return [
-          { value: 'eq', label: 'equal to' },
-          { value: 'neq', label: 'not equal to' },
+          { value: '=', label: 'equal to' },
+          { value: '!=', label: 'not equal to' },
         ];
     }
   };
 
   const operators = getOperatorsForType(qVal.type, qVal.format);
-  const [selectedOperator, setSelectedOperator] = useState<Operator>(
-    operators[0]?.value || 'eq',
-  );
+
+  // Local state for UI, synced to parent via callback
+  const [localFilter, setLocalFilter] = useState<IQueryableFilter>({
+    operator: operators[0]?.value || '=',
+    inputValue: undefined,
+  });
+
+  // Sync local state to parent whenever it changes
+  useEffect(() => {
+    updateQueryableFilter(qKey, localFilter);
+  }, [qKey, localFilter, updateQueryableFilter]);
+
+  const handleInputChange = (value: string | number) => {
+    setLocalFilter(prev => ({
+      ...prev,
+      inputValue: value,
+    }));
+  };
+
+  const handleOperatorChange = (operator: Operator) => {
+    setLocalFilter(prev => ({
+      ...prev,
+      operator,
+    }));
+  };
 
   const getInputBasedOnType = (val: any): React.ReactNode => {
+    const currentValue = localFilter.inputValue;
+
     switch (val.type) {
       case 'string':
         if (val.enum) {
           return (
             <select
               style={{ maxWidth: '75px' }}
+              value={(currentValue as string) || ''}
+              onChange={e => handleInputChange(e.target.value)}
               {...(val.pattern && { 'data-pattern': val.pattern })}
             >
               {val.enum.map((option: string) => (
@@ -72,6 +107,8 @@ function QueryableRow({ qKey, qVal }: IQueryableRowProps) {
             <input
               type="datetime-local"
               style={{ maxWidth: '75px' }}
+              value={(currentValue as string) || ''}
+              onChange={e => handleInputChange(e.target.value)}
               {...(val.pattern && { 'data-pattern': val.pattern })}
             />
           );
@@ -80,6 +117,8 @@ function QueryableRow({ qKey, qVal }: IQueryableRowProps) {
           <input
             type="text"
             style={{ maxWidth: '75px' }}
+            value={(currentValue as string) || ''}
+            onChange={e => handleInputChange(e.target.value)}
             {...(val.pattern && { 'data-pattern': val.pattern })}
           />
         );
@@ -90,6 +129,8 @@ function QueryableRow({ qKey, qVal }: IQueryableRowProps) {
             style={{ maxWidth: '75px' }}
             min={val.min !== undefined ? val.min : undefined}
             max={val.max !== undefined ? val.max : undefined}
+            value={(currentValue as number) || ''}
+            onChange={e => handleInputChange(Number(e.target.value))}
             {...(val.pattern && { 'data-pattern': val.pattern })}
           />
         );
@@ -98,6 +139,8 @@ function QueryableRow({ qKey, qVal }: IQueryableRowProps) {
           <input
             type=""
             style={{ maxWidth: '75px' }}
+            value={(currentValue as string) || ''}
+            onChange={e => handleInputChange(e.target.value)}
             {...(val.pattern && { 'data-pattern': val.pattern })}
           />
         );
@@ -115,8 +158,8 @@ function QueryableRow({ qKey, qVal }: IQueryableRowProps) {
     >
       <span>{qVal.title}</span>
       <select
-        value={selectedOperator}
-        onChange={e => setSelectedOperator(e.target.value as Operator)}
+        value={localFilter.operator}
+        onChange={e => handleOperatorChange(e.target.value as Operator)}
         style={{
           padding: '0.25rem 0.5rem',
           borderRadius: '0.25rem',

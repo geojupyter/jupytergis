@@ -17,6 +17,7 @@ const API_URL = 'https://stac.dataspace.copernicus.eu/v1/';
 
 // This is a generic UI for apis that support filter extension
 function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
+  // TODO use context instead to stop this drilling madness
   const {
     queryableProps,
     collections,
@@ -29,6 +30,9 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     setEndTime,
     useWorldBBox,
     setUseWorldBBox,
+    updateQueryableFilter,
+    filterOperator,
+    setFilterOperator,
   } = useStacGenericFilter({
     model,
   });
@@ -106,7 +110,12 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
         >
-          <StacQueryableFilters queryableProps={queryableProps} />
+          <StacQueryableFilters
+            queryableProps={queryableProps}
+            updateQueryableFilter={updateQueryableFilter}
+            filterOperator={filterOperator}
+            setFilterOperator={setFilterOperator}
+          />
         </div>
       )}
       {/* sort */}
