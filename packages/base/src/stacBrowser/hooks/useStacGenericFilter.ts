@@ -1,13 +1,27 @@
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { endOfToday, startOfToday } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { fetchWithProxies } from '@/src/tools';
 import useStacSearch from './useStacSearch';
 import { IStacCollection, IStacItem, IStacSearchResult } from '../types/types';
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
+
+export type Operator = '=' | '!=' | '<' | '>';
+
+export type FilterOperator = 'and' | 'or';
+
+export interface IQueryableFilter {
+  operator: Operator;
+  inputValue: string | number | undefined;
+}
+
+export type UpdateQueryableFilter = (
+  qKey: string,
+  filter: IQueryableFilter,
+) => void;
 
 const API_URL = 'https://stac.dataspace.copernicus.eu/v1/';
 
@@ -38,6 +52,10 @@ export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
+  const [queryableFilters, setQueryableFilters] = useState<
+    Record<string, IQueryableFilter>
+  >({});
+  const [filterOperator, setFilterOperator] = useState<FilterOperator>('and');
 
   // for collections
   useEffect(() => {
@@ -141,6 +159,16 @@ export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
     model.addLayer(layerId, layerModel);
   };
 
+  const updateQueryableFilter = useCallback(
+    (qKey: string, filter: IQueryableFilter) => {
+      setQueryableFilters(prev => ({
+        ...prev,
+        [qKey]: filter,
+      }));
+    },
+    [],
+  );
+
   const handleSubmit = async () => {
     if (!model) {
       return;
@@ -154,14 +182,36 @@ export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
 
     const et = endTime ? endTime.toISOString() : endOfToday().toISOString();
 
-    const body = {
+    // Build filter object from queryableFilters
+    const filterConditions = Object.entries(queryableFilters)
+      .filter(([, filter]) => filter.inputValue !== undefined)
+      .map(([property, filter]) => {
+        return {
+          op: filter.operator,
+          args: [
+            {
+              property,
+            },
+            filter.inputValue,
+          ],
+        };
+      });
+
+    const body: Record<string, any> = {
       bbox: currentBBox,
       collections: [selectedCollection],
-      // really want this as a range? i guess it doesnt matter?
-      // should really just not have it if unset
       datetime: `${st}/${et}`,
       limit: 12,
+      'filter-lang': 'cql2-json',
     };
+
+    // Only add filter if there are any conditions
+    if (filterConditions.length > 0) {
+      body.filter = {
+        op: filterOperator,
+        args: filterConditions,
+      };
+    }
 
     console.log('body', body);
 
@@ -268,5 +318,9 @@ export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
     setEndTime,
     useWorldBBox,
     setUseWorldBBox,
+    queryableFilters,
+    updateQueryableFilter,
+    filterOperator,
+    setFilterOperator,
   };
 }
