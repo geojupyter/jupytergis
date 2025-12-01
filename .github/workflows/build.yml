@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -98,7 +98,7 @@ jobs:
             qgis
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install
         shell: bash -l {0}
@@ -152,7 +152,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -212,7 +212,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -235,7 +235,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
       - uses: jupyterlab/maintainer-tools/.github/actions/check-links@v1
         with:
@@ -252,7 +252,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -310,7 +310,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
