@@ -7,7 +7,10 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/src/shared/components/Tabs';
-import useStacSearch from '@/src/stacBrowser/hooks/useStacSearch';
+import {
+  StacResultsProvider,
+  useStacResultsContext,
+} from '@/src/stacBrowser/context/StacResultsContext';
 import StacGenericFilterPanel from './StacGenericFilterPanel';
 import StacPanelResults from './StacPanelResults';
 import StacGeodesFilterPanel from './geodes/StacGeodesFilterPanel';
@@ -15,29 +18,13 @@ import StacGeodesFilterPanel from './geodes/StacGeodesFilterPanel';
 interface IStacViewProps {
   model?: IJupyterGISModel;
 }
-const StacPanel = ({ model }: IStacViewProps) => {
+
+// Inner component that uses the context
+const StacPanelContent = ({ model }: IStacViewProps) => {
   const [selectedUrl, setSelectedUrl] = useState<string>(
     'https://stac.dataspace.copernicus.eu/v1/',
   );
-
-  const {
-    filterState,
-    filterSetters,
-    results,
-    startTime,
-    setStartTime,
-    endTime,
-    setEndTime,
-    totalPages,
-    currentPage,
-    totalResults,
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
-    isLoading,
-    useWorldBBox,
-    setUseWorldBBox,
-  } = useStacSearch({ model });
+  const { totalResults } = useStacResultsContext();
 
   if (!model) {
     return null;
@@ -71,32 +58,24 @@ const StacPanel = ({ model }: IStacViewProps) => {
         </div>
 
         {selectedUrl === 'https://geodes-portal.cnes.fr/api/stac/search' ? (
-          <StacGeodesFilterPanel
-            filterState={filterState}
-            filterSetters={filterSetters}
-            startTime={startTime}
-            setStartTime={setStartTime}
-            endTime={endTime}
-            setEndTime={setEndTime}
-            useWorldBBox={useWorldBBox}
-            setUseWorldBBox={setUseWorldBBox}
-          />
+          <StacGeodesFilterPanel model={model} />
         ) : (
           <StacGenericFilterPanel model={model} />
         )}
       </TabsContent>
       <TabsContent value="results">
-        <StacPanelResults
-          results={results}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          handlePaginationClick={handlePaginationClick}
-          handleResultClick={handleResultClick}
-          formatResult={formatResult}
-          isLoading={isLoading}
-        />
+        <StacPanelResults />
       </TabsContent>
     </Tabs>
+  );
+};
+
+// Outer component that provides the context
+const StacPanel = ({ model }: IStacViewProps) => {
+  return (
+    <StacResultsProvider>
+      <StacPanelContent model={model} />
+    </StacResultsProvider>
   );
 };
 

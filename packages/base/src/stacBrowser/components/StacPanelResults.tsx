@@ -10,17 +10,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/src/shared/components/Pagination';
-import { IStacItem } from '@/src/stacBrowser/types/types';
-
-interface IStacPanelResultsProps {
-  results: IStacItem[];
-  currentPage: number;
-  totalPages: number;
-  handlePaginationClick: (page: number) => void;
-  handleResultClick: (id: string) => void;
-  formatResult: (item: IStacItem) => string;
-  isLoading: boolean;
-}
+import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
 
 function getPageItems(
   currentPage: number,
@@ -50,15 +40,16 @@ function getPageItems(
   ];
 }
 
-const StacPanelResults = ({
-  results,
-  currentPage,
-  totalPages,
-  handlePaginationClick,
-  handleResultClick,
-  formatResult,
-  isLoading,
-}: IStacPanelResultsProps) => {
+const StacPanelResults = () => {
+  const {
+    results,
+    currentPage,
+    totalPages,
+    handlePaginationClick,
+    handleResultClick,
+    formatResult,
+    isLoading,
+  } = useStacResultsContext();
   return (
     <div className="jgis-stac-browser-filters-panel">
       <Pagination>
