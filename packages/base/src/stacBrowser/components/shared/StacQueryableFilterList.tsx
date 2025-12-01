@@ -24,6 +24,7 @@ const StacQueryableFilterList: React.FC<IStacQueryableFilterListProps> = ({
       <div>
         <span>Match all filters (and) Match any filters (or)</span>
         <RadioGroup
+          style={{ display: 'flex', gap: '0.5rem' }}
           value={filterOperator}
           onValueChange={(value: string) => {
             if (value === 'and' || value === 'or') {

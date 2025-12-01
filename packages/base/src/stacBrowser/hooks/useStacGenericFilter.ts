@@ -4,12 +4,8 @@ import { endOfToday, startOfToday } from 'date-fns';
 import { useEffect, useState } from 'react';
 
 import { fetchWithProxies } from '@/src/tools';
-import {
-  IStacAsset,
-  IStacCollection,
-  IStacItem,
-  IStacSearchResult,
-} from '../types/types';
+import useStacSearch from './useStacSearch';
+import { IStacCollection, IStacItem, IStacSearchResult } from '../types/types';
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 
@@ -17,17 +13,18 @@ const API_URL = 'https://stac.dataspace.copernicus.eu/v1/';
 
 interface IUseStacGenericFilterProps {
   model?: IJupyterGISModel;
-  startTime?: Date;
-  endTime?: Date;
-  useWorldBBox: boolean;
 }
 
-export function useStacGenericFilter({
-  model,
-  startTime,
-  endTime,
-  useWorldBBox,
-}: IUseStacGenericFilterProps) {
+export function useStacGenericFilter({ model }: IUseStacGenericFilterProps) {
+  const {
+    startTime,
+    endTime,
+    setStartTime,
+    setEndTime,
+    useWorldBBox,
+    setUseWorldBBox,
+  } = useStacSearch({ model });
+
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
   // ! temp
@@ -265,5 +262,11 @@ export function useStacGenericFilter({
     totalPages,
     currentPage,
     totalResults,
+    startTime,
+    endTime,
+    setStartTime,
+    setEndTime,
+    useWorldBBox,
+    setUseWorldBBox,
   };
 }
