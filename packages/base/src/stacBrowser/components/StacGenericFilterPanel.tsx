@@ -6,15 +6,13 @@ import StacCheckboxWithLabel from './shared/StacCheckboxWithLabel';
 import StacQueryableFilters from './shared/StacQueryableFilters';
 import StacSearchDatePicker from './shared/StacSearchDatePicker';
 import { useStacGenericFilter } from '../hooks/useStacGenericFilter';
-import { IStacCollection, IStacItem } from '../types/types';
+import { IStacCollection } from '../types/types';
 
 interface IStacBrowser2Props {
   model?: IJupyterGISModel;
 }
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
-
-const API_URL = 'https://stac.dataspace.copernicus.eu/v1/';
 
 // This is a generic UI for apis that support filter extension
 function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
@@ -93,19 +91,6 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
         gap: '1rem',
       }}
     >
-      {/* fake api choice */}
-      <div
-        style={{
-          paddingBottom: '0.5rem',
-          borderBottom: '1px solid var(--jp-border-color0)',
-        }}
-      >
-        <span
-          style={{ fontSize: '0.875rem', color: 'var(--jp-ui-font-color2)' }}
-        >
-          API: {API_URL}
-        </span>
-      </div>
       {/* temporal extent  */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <StacSearchDatePicker
