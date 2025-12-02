@@ -9,15 +9,7 @@
     0 4px 8px 0 rgba(0, 0, 0, 0.2),
     0 6px 20px 0 rgba(0, 0, 0, 0.19);
   border-radius: 5px;
-  cursor: grab;
-  user-select: none;
-  -webkit-user-drag: none;
 }
-
-.jgis-panel-tabs:active {
-  cursor: grabbing;
-}
-
 .jgis-tabs-list {
   display: inline-flex;
   height: 2.5rem;
