@@ -1,6 +1,6 @@
 # minimum needed to build jupytergis.
 datamodel-code-generator>=0.23.0
-hatchling>=1.5.0,<2
+hatchling>=1.5.0,<1.28.0
 jupyter-collaboration>=3,<4
 jupyter-collaboration-ui>=1,<2
 jupyter-docprovider>=1,<2
