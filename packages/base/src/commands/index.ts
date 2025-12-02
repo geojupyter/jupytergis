@@ -1058,7 +1058,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.addLandmark, {
-    label: trans.__('Add Landmark'),
+    label: trans.__('Add Landmark Here'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -1074,7 +1074,7 @@ export function addCommands(
       const { zoom, extent } = current.model.getOptions();
 
       if (!zoom || !extent) {
-        console.log('No extent or zoom found');
+        console.warn('No extent or zoom found');
         return;
       }
 
@@ -1109,7 +1109,7 @@ export function addCommands(
         // else need to update stories
         const { story } = current.model.getSelectedStory();
         if (!story) {
-          console.log('No story found, something went wrong');
+          console.warn('No story found, something went wrong');
           return;
         }
         const newStory: IJGISStoryMap = {
