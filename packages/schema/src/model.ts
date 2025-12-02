@@ -506,10 +506,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     const source_id = layer?.parameters?.source;
 
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
+    this.sharedModel.removeLayer(layer_id);
 
     if (layer?.type === 'LandmarkLayer') {
-      this.sharedModel.removeLayer(layer_id);
-
       // remove this layer id from story maps
       Object.entries(this.sharedModel.stories).forEach(
         ([storyMapId, storyMap]) => {
@@ -525,7 +524,6 @@ export class JupyterGISModel implements IJupyterGISModel {
         },
       );
     } else {
-      this.sharedModel.removeLayer(layer_id);
       this.sharedModel.removeSource(source_id);
     }
   }

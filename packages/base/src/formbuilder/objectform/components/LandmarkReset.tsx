@@ -35,7 +35,7 @@ function LandmarkReset({ model, layerId }: ILandmarkResetProps) {
   return (
     <div>
       <Button
-        title="Set landmark to current view"
+        title="Set landmark to current viewport"
         onClick={handleSetLandmarkToCurrentView}
       >
         <LabIcon.resolveReact
@@ -43,7 +43,7 @@ function LandmarkReset({ model, layerId }: ILandmarkResetProps) {
           className="jp-gis-layerIcon"
           tag="span"
         />
-        Reset Landmark Extent
+        Set Landmark Extent
       </Button>
     </div>
   );
