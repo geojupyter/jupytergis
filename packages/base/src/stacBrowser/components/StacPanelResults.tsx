@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -11,6 +11,7 @@ import {
   PaginationPrevious,
 } from '@/src/shared/components/Pagination';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
+import { IStacItem } from '@/src/stacBrowser/types/types';
 
 function getPageItems(
   currentPage: number,
@@ -40,7 +41,6 @@ function getPageItems(
   ];
 }
 
-
 // ! tues to do -- refactor this, total pages is based on context, which is an extension
 // so everythign here needs to be based on link rels instead
 const StacPanelResults = () => {
@@ -54,6 +54,28 @@ const StacPanelResults = () => {
     isLoading,
     paginationLinks,
   } = useStacResultsContext();
+
+  // Use a ref to track previous results and detect actual changes
+  const prevResultsRef = useRef<IStacItem[]>([]);
+  const resultsIdsRef = useRef<string>('');
+
+  useEffect(() => {
+    // Create a string of result IDs for comparison (more reliable than array reference)
+    const currentResultsIds = results.map(r => r.id).join(',');
+
+    // Only log if results actually changed (by ID comparison)
+    if (currentResultsIds !== resultsIdsRef.current) {
+      console.log('[StacPanelResults] Results updated:', {
+        count: results.length,
+        resultIds: results.map(r => r.id),
+        previousCount: prevResultsRef.current.length,
+      });
+
+      // Update refs
+      prevResultsRef.current = results;
+      resultsIdsRef.current = currentResultsIds;
+    }
+  }, [results]);
 
   const isNext = paginationLinks.some(link => link.rel === 'next');
   const isPrev = paginationLinks.some(link => link.rel === 'previous');
@@ -96,13 +118,16 @@ const StacPanelResults = () => {
           )}
           <PaginationItem>
             <PaginationNext
-              onClick={() => handlePaginationClick('previous')}
+              onClick={() => handlePaginationClick('next')}
               disabled={!isNext}
             />
           </PaginationItem>
         </PaginationContent>
       </Pagination>
-      <div className="jgis-stac-browser-results-list">
+      <div
+        className="jgis-stac-browser-results-list"
+        style={{ paddingLeft: '7rem' }}
+      >
         {isLoading ? (
           // TODO: Fancy spinner
           <div>Loading results...</div>
