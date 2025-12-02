@@ -6,7 +6,7 @@ import React, {
   ReactNode,
 } from 'react';
 
-import { IStacItem } from '../types/types';
+import { IStacItem, IStacLink } from '../types/types';
 
 interface IStacResultsContext {
   results: IStacItem[];
@@ -17,6 +17,9 @@ interface IStacResultsContext {
   handlePaginationClick: (page: number) => Promise<void>;
   handleResultClick: (id: string) => Promise<void>;
   formatResult: (item: IStacItem) => string;
+  paginationLinks: Array<
+    IStacLink & { method?: string; body?: Record<string, any> }
+  >;
   setResults: (
     results: IStacItem[],
     isLoading: boolean,
@@ -28,6 +31,9 @@ interface IStacResultsContext {
     handlePaginationClick: (page: number) => Promise<void>,
     handleResultClick: (id: string) => Promise<void>,
     formatResult: (item: IStacItem) => string,
+  ) => void;
+  setPaginationLinks: (
+    links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
 }
 
@@ -54,6 +60,9 @@ export function StacResultsProvider({ children }: IStacResultsProviderProps) {
   const [formatResult, setFormatResult] = useState<(item: IStacItem) => string>(
     () => (item: IStacItem) => item.id,
   );
+  const [paginationLinks, setPaginationLinksState] = useState<
+    Array<IStacLink & { method?: string; body?: Record<string, any> }>
+  >([]);
 
   const setResults = useCallback(
     (
@@ -85,6 +94,15 @@ export function StacResultsProvider({ children }: IStacResultsProviderProps) {
     [],
   );
 
+  const setPaginationLinks = useCallback(
+    (
+      links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
+    ) => {
+      setPaginationLinksState(links);
+    },
+    [],
+  );
+
   return (
     <StacResultsContext.Provider
       value={{
@@ -96,8 +114,10 @@ export function StacResultsProvider({ children }: IStacResultsProviderProps) {
         handlePaginationClick,
         handleResultClick,
         formatResult,
+        paginationLinks,
         setResults,
         setPaginationHandlers,
+        setPaginationLinks,
       }}
     >
       {children}

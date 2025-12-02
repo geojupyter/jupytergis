@@ -25,7 +25,8 @@ interface IStacGeodesFilterPanelProps {
 }
 
 const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
-  const { setResults, setPaginationHandlers } = useStacResultsContext();
+  const { setResults, setPaginationHandlers, setPaginationLinks } =
+    useStacResultsContext();
 
   const {
     filterState,
@@ -44,6 +45,7 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
     isLoading,
     useWorldBBox,
     setUseWorldBBox,
+    paginationLinks,
   } = useStacSearch({ model });
 
   // Track handlers with refs to avoid infinite loops
@@ -75,6 +77,11 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
       handlersRef.current.formatResult,
     );
   }, [setPaginationHandlers]);
+
+  // Sync pagination links to context whenever they change
+  useEffect(() => {
+    setPaginationLinks(paginationLinks);
+  }, [paginationLinks, setPaginationLinks]);
 
   const handleDatasetSelection = (dataset: string, collection: string) => {
     const collections = new Set(filterState.collections);

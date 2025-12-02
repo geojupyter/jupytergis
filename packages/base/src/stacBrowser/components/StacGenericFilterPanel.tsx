@@ -16,7 +16,8 @@ type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 
 // This is a generic UI for apis that support filter extension
 function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
-  const { setResults, setPaginationHandlers } = useStacResultsContext();
+  const { setResults, setPaginationHandlers, setPaginationLinks } =
+    useStacResultsContext();
   const [limit, setLimit] = useState<number>(12);
 
   const {
@@ -42,6 +43,7 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     updateQueryableFilter,
     filterOperator,
     setFilterOperator,
+    paginationLinks,
   } = useStacGenericFilter({
     model,
     limit,
@@ -76,6 +78,11 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
       handlersRef.current.formatResult,
     );
   }, [setPaginationHandlers]);
+
+  // Sync pagination links to context whenever they change
+  useEffect(() => {
+    setPaginationLinks(paginationLinks);
+  }, [paginationLinks, setPaginationLinks]);
 
   if (!model) {
     console.log('no model');
