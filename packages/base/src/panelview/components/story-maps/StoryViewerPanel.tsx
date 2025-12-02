@@ -17,6 +17,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
     model.getSelectedStory().story ?? null,
   );
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Derive landmarks from story data
   const landmarks = useMemo(() => {
@@ -84,6 +85,38 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
       model.sharedModel.storyMapsChanged.disconnect(updateStory);
     };
   }, [model]);
+
+  // Prefetch image when slide changes
+  useEffect(() => {
+    const imageUrl = activeSlide?.content?.image;
+
+    if (!imageUrl) {
+      setImageLoaded(false);
+      return;
+    }
+
+    // Reset state
+    setImageLoaded(false);
+
+    // Preload the image
+    const img = new Image();
+
+    img.onload = () => {
+      setImageLoaded(true);
+    };
+
+    img.onerror = () => {
+      setImageLoaded(false);
+    };
+
+    img.src = imageUrl;
+
+    // Cleanup: abort loading if component unmounts or slide changes
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [activeSlide?.content?.image]);
 
   // Auto-zoom when slide changes
   useEffect(() => {
@@ -167,7 +200,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   return (
     <div className="jgis-story-viewer-panel">
       {/* Image container with title overlay */}
-      {activeSlide?.content?.image ? (
+      {activeSlide?.content?.image && imageLoaded ? (
         <div className="jgis-story-viewer-image-container">
           <img
             src={activeSlide.content.image}
