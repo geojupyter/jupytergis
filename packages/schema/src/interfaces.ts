@@ -104,7 +104,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   options: IJGISOptions;
   layers: IJGISLayers;
   sources: IJGISSources;
-  storiesMap: IJGISStoryMaps;
+  stories: IJGISStoryMaps;
   layerTree: IJGISLayerTree;
   metadata: any;
 
@@ -207,7 +207,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   pathChanged: ISignal<IJupyterGISModel, string>;
 
-  storiesMap: Map<string, IJGISStoryMap>;
+  stories: Map<string, IJGISStoryMap>;
 
   getFeaturesForCurrentTile: ({
     sourceId,

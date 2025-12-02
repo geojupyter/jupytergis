@@ -511,7 +511,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this.sharedModel.removeLayer(layer_id);
 
       // remove this layer id from story maps
-      Object.entries(this.sharedModel.storiesMap).forEach(
+      Object.entries(this.sharedModel.stories).forEach(
         ([storyMapId, storyMap]) => {
           if (storyMap.landmarks?.includes(layer_id)) {
             const updatedLandmarks = storyMap.landmarks.filter(
@@ -610,7 +610,7 @@ export class JupyterGISModel implements IJupyterGISModel {
    * @returns First/only story
    */
   getSelectedStory(): { landmarkId: string; story: IJGISStoryMap | undefined } {
-    const stories = this.sharedModel.storiesMap;
+    const stories = this.sharedModel.stories;
     const storyId = Object.keys(stories)[0];
 
     return {
@@ -960,7 +960,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
-  storiesMap: Map<string, IJGISStoryMap> = new Map();
+  stories: Map<string, IJGISStoryMap> = new Map();
 }
 
 export namespace JupyterGISModel {

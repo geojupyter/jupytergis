@@ -36,18 +36,18 @@ export class JupyterGISDoc
     this._layers = this.ydoc.getMap<Y.Map<any>>('layers');
     this._layerTree = this.ydoc.getArray<IJGISLayerItem>('layerTree');
     this._sources = this.ydoc.getMap<Y.Map<any>>('sources');
-    this._storiesMap = this.ydoc.getMap<Y.Map<any>>('storiesMap');
+    this._stories = this.ydoc.getMap<Y.Map<any>>('stories');
     this._metadata = this.ydoc.getMap<string>('metadata');
 
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
-    this.undoManager.addToScope(this._storiesMap);
+    this.undoManager.addToScope(this._stories);
     this.undoManager.addToScope(this._layerTree);
 
     this._layers.observeDeep(this._layersObserver.bind(this));
     this._layerTree.observe(this._layerTreeObserver.bind(this));
     this._sources.observeDeep(this._sourcesObserver.bind(this));
-    this._storiesMap.observeDeep(this._storyMapsObserver.bind(this));
+    this._stories.observeDeep(this._storyMapsObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
     this._metadata.observe(this._metaObserver.bind(this));
   }
@@ -57,10 +57,10 @@ export class JupyterGISDoc
     const layerTree = this._layerTree.toJSON();
     const options = this._options.toJSON();
     const sources = this._sources.toJSON();
-    const storiesMap = this._storiesMap.toJSON();
+    const stories = this._stories.toJSON();
     const metadata = this._metadata.toJSON();
 
-    return { layers, layerTree, sources, storiesMap, options, metadata };
+    return { layers, layerTree, sources, stories, options, metadata };
   }
 
   setSource(value: JSONObject | string): void {
@@ -93,9 +93,9 @@ export class JupyterGISDoc
         this._sources.set(key, val),
       );
 
-      const storiesMap = value['storiesMap'] ?? {};
-      Object.entries(storiesMap).forEach(([key, val]) =>
-        this._storiesMap.set(key, val),
+      const stories = value['stories'] ?? {};
+      Object.entries(stories).forEach(([key, val]) =>
+        this._stories.set(key, val),
       );
 
       const metadata = value['metadata'] ?? {};
@@ -137,16 +137,16 @@ export class JupyterGISDoc
     return JSONExt.deepCopy(this._sources.toJSON());
   }
 
-  set storiesMap(storiesMap: IJGISStoryMaps) {
+  set stories(stories: IJGISStoryMaps) {
     this.transact(() => {
-      for (const [key, value] of Object.entries(storiesMap)) {
-        this._storiesMap.set(key, value);
+      for (const [key, value] of Object.entries(stories)) {
+        this._stories.set(key, value);
       }
     });
   }
 
-  get storiesMap(): IJGISStoryMaps {
-    return JSONExt.deepCopy(this._storiesMap.toJSON());
+  get stories(): IJGISStoryMaps {
+    return JSONExt.deepCopy(this._stories.toJSON());
   }
 
   get layerTree(): IJGISLayerTree {
@@ -302,25 +302,25 @@ export class JupyterGISDoc
 
   removeStoryMap(id: string): void {
     this.transact(() => {
-      this._storiesMap.delete(id);
+      this._stories.delete(id);
     });
   }
 
   addStoryMap(id: string, value: IJGISStoryMap): void {
     this.transact(() => {
-      this._storiesMap.set(id, value);
+      this._stories.set(id, value);
     });
   }
 
   updateStoryMap(id: string, value: any): void {
-    this.transact(() => this._storiesMap.set(id, value));
+    this.transact(() => this._stories.set(id, value));
   }
 
   getStoryMap(id: string): IJGISStoryMap | undefined {
-    if (!this._storiesMap.has(id)) {
+    if (!this._stories.has(id)) {
       return undefined;
     }
-    return JSONExt.deepCopy(this._storiesMap.get(id));
+    return JSONExt.deepCopy(this._stories.get(id));
   }
 
   getOption(key: keyof IJGISOptions): IDict | undefined {
@@ -472,7 +472,7 @@ export class JupyterGISDoc
   private _layers: Y.Map<any>;
   private _layerTree: Y.Array<IJGISLayerItem>;
   private _sources: Y.Map<any>;
-  private _storiesMap: Y.Map<any>;
+  private _stories: Y.Map<any>;
   private _options: Y.Map<any>;
   private _metadata: Y.Map<string>;
 
