@@ -46,6 +46,8 @@ export function useStacGenericFilter({
     setEndTime,
     useWorldBBox,
     setUseWorldBBox,
+    paginationLinks,
+    setPaginationLinks,
   } = useStacSearch({ model });
 
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
@@ -65,9 +67,6 @@ export function useStacGenericFilter({
     Record<string, IQueryableFilter>
   >({});
   const [filterOperator, setFilterOperator] = useState<FilterOperator>('and');
-  const [paginationLinks, setPaginationLinks] = useState<
-    Array<IStacLink & { method?: string; body?: Record<string, any> }>
-  >([]);
 
   // for collections
   useEffect(() => {

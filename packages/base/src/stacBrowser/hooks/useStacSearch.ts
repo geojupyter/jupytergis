@@ -1,12 +1,13 @@
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { startOfYesterday } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
 import { products } from '@/src/stacBrowser/constants';
 import {
   IStacItem,
+  IStacLink,
   IStacQueryBody,
   IStacSearchResult,
   StacFilterState,
@@ -37,6 +38,12 @@ interface IUseStacSearchReturn {
   isLoading: boolean;
   useWorldBBox: boolean;
   setUseWorldBBox: (val: boolean) => void;
+  paginationLinks: Array<
+    IStacLink & { method?: string; body?: Record<string, any> }
+  >;
+  setPaginationLinks: (
+    links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
+  ) => void;
 }
 
 const API_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
@@ -63,6 +70,9 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
     [number, number, number, number]
   >([-180, -90, 180, 90]);
   const [useWorldBBox, setUseWorldBBox] = useState(false);
+  const [paginationLinks, setPaginationLinks] = useState<
+    Array<IStacLink & { method?: string; body?: Record<string, any> }>
+  >([]);
   const [filterState, setFilterState] = useState<StacFilterState>({
     collections: new Set(),
     datasets: new Set(),
@@ -292,6 +302,8 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
     isLoading,
     useWorldBBox,
     setUseWorldBBox,
+    paginationLinks,
+    setPaginationLinks,
   };
 }
 
