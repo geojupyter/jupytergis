@@ -65,7 +65,7 @@ jobs:
         shell: bash -l {0}
         run: |
           set -eux
-          pip install hatch
+          pip install build
           yarn build:packages
 
       - name: Upload extension packages

@@ -24,7 +24,7 @@ build:
       - /bin/bash --login -c "micromamba self-update --version 2.0.7"
       # Create the isolated env for building JupyterGIS
       - /bin/bash --login -c "micromamba create -n jupytergis-build -c conda-forge nodejs hatch pip python=3.13"
-      - /bin/bash --login -c "micromamba run -n jupytergis-build pip install 'jupyterlab==4.3' 'datamodel-code-generator>=0.23.0'"
+      - /bin/bash --login -c "micromamba run -n jupytergis-build pip install build 'jupyterlab==4.3' 'datamodel-code-generator>=0.23.0'"
       # Build JupyterGIS Javascript packages; required for building the docs env
       - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm install"
       - /bin/bash --login -c "micromamba run -n jupytergis-build jlpm build"
