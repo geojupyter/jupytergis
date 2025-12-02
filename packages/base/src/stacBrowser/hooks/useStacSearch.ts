@@ -21,6 +21,7 @@ interface IUseStacSearchProps {
   model: IJupyterGISModel | undefined;
 }
 
+// ! TODO factor out common bits
 interface IUseStacSearchReturn {
   filterState: StacFilterState;
   filterSetters: StacFilterSetters;
@@ -32,7 +33,7 @@ interface IUseStacSearchReturn {
   totalPages: number;
   currentPage: number;
   totalResults: number;
-  handlePaginationClick: (page: number) => Promise<void>;
+  handlePaginationClick: (dir: 'next' | 'previous' | number) => Promise<void>;
   handleResultClick: (id: string) => Promise<void>;
   formatResult: (item: IStacItem) => string;
   isLoading: boolean;
@@ -269,11 +270,20 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
 
   /**
    * Handles pagination clicks
-   * @param page - Page number to navigate to
+   * @param dir - Direction ('next' | 'previous') or page number to navigate to
    */
-  const handlePaginationClick = async (page: number): Promise<void> => {
-    setCurrentPage(page);
-    model && fetchResults(page);
+  const handlePaginationClick = async (
+    dir: 'next' | 'previous' | number,
+  ): Promise<void> => {
+    if (typeof dir === 'number') {
+      setCurrentPage(dir);
+      model && fetchResults(dir);
+    } else {
+      // For 'next' or 'previous', calculate the page number
+      const newPage = dir === 'next' ? currentPage + 1 : currentPage - 1;
+      setCurrentPage(newPage);
+      model && fetchResults(newPage);
+    }
   };
 
   /**

@@ -451,17 +451,21 @@ export function useStacGenericFilter({
 
   /**
    * Handles pagination clicks
-   * @param page - Page number to navigate to (used to determine next/previous direction)
+   * @param dir - Direction ('next' | 'previous') or page number (for backward compatibility)
    */
   const handlePaginationClick = useCallback(
-    async (page: number): Promise<void> => {
+    async (dir: 'next' | 'previous' | number): Promise<void> => {
       if (!model) {
         return;
       }
 
-      // Determine if we're going forward or backward based on page number
-      const isNext = page > currentPage;
-      const rel = isNext ? 'next' : 'previous';
+      // If dir is a number, convert it to 'next' or 'previous' based on current page
+      let rel: 'next' | 'previous';
+      if (typeof dir === 'number') {
+        rel = dir > currentPage ? 'next' : 'previous';
+      } else {
+        rel = dir;
+      }
 
       // Find the appropriate link using the rel field
       const link = paginationLinks.find(l => l.rel === rel);
@@ -469,8 +473,10 @@ export function useStacGenericFilter({
       if (link && link.body) {
         // Use the link with its body (contains token) to fetch the page
         await fetchUsingLink(link);
-        // Update current page after successful fetch
-        setCurrentPage(page);
+        // Update current page after successful fetch if dir was a number
+        if (typeof dir === 'number') {
+          setCurrentPage(dir);
+        }
       } else {
         // If no link found, we can't paginate
         console.warn(`No ${rel} link available for pagination`);

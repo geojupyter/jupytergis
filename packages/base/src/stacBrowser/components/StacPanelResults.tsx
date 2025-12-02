@@ -40,6 +40,9 @@ function getPageItems(
   ];
 }
 
+
+// ! tues to do -- refactor this, total pages is based on context, which is an extension
+// so everythign here needs to be based on link rels instead
 const StacPanelResults = () => {
   const {
     results,
@@ -49,20 +52,26 @@ const StacPanelResults = () => {
     handleResultClick,
     formatResult,
     isLoading,
+    paginationLinks,
   } = useStacResultsContext();
+
+  const isNext = paginationLinks.some(link => link.rel === 'next');
+  const isPrev = paginationLinks.some(link => link.rel === 'previous');
+
   return (
     <div className="jgis-stac-browser-filters-panel">
       <Pagination>
         <PaginationContent style={{ marginTop: 0 }}>
           <PaginationItem>
             <PaginationPrevious
-              onClick={() =>
-                handlePaginationClick(Math.max(1, currentPage - 1))
+              onClick={
+                () => handlePaginationClick('previous')
+                // handlePaginationClick(Math.max(1, currentPage - 1))
               }
-              disabled={currentPage === 1}
+              disabled={!isPrev}
             />
           </PaginationItem>
-          {totalPages <= 0 ? (
+          {results.length === 0 ? (
             <div>No Matches Found</div>
           ) : (
             getPageItems(currentPage, totalPages).map(item => {
@@ -77,7 +86,7 @@ const StacPanelResults = () => {
                 <PaginationItem key={item}>
                   <PaginationLink
                     isActive={item === currentPage}
-                    onClick={() => handlePaginationClick(item)}
+                    onClick={() => handlePaginationClick('next')}
                   >
                     {item}
                   </PaginationLink>
@@ -87,10 +96,8 @@ const StacPanelResults = () => {
           )}
           <PaginationItem>
             <PaginationNext
-              onClick={() =>
-                handlePaginationClick(Math.min(totalPages, currentPage + 1))
-              }
-              disabled={currentPage === totalPages}
+              onClick={() => handlePaginationClick('previous')}
+              disabled={!isNext}
             />
           </PaginationItem>
         </PaginationContent>
