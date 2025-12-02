@@ -14,7 +14,7 @@ interface IStacResultsContext {
   totalPages: number;
   currentPage: number;
   totalResults: number;
-  handlePaginationClick: (page: number) => Promise<void>;
+  handlePaginationClick: (dir: 'next' | 'previous' | number) => Promise<void>;
   handleResultClick: (id: string) => Promise<void>;
   formatResult: (item: IStacItem) => string;
   paginationLinks: Array<
@@ -28,7 +28,7 @@ interface IStacResultsContext {
     totalResults: number,
   ) => void;
   setPaginationHandlers: (
-    handlePaginationClick: (page: number) => Promise<void>,
+    handlePaginationClick: (dir: 'next' | 'previous' | number) => Promise<void>,
     handleResultClick: (id: string) => Promise<void>,
     formatResult: (item: IStacItem) => string,
   ) => void;
@@ -52,7 +52,7 @@ export function StacResultsProvider({ children }: IStacResultsProviderProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const [handlePaginationClick, setHandlePaginationClick] = useState<
-    (page: number) => Promise<void>
+    (dir: 'next' | 'previous' | number) => Promise<void>
   >(async () => {});
   const [handleResultClick, setHandleResultClick] = useState<
     (id: string) => Promise<void>
@@ -83,7 +83,9 @@ export function StacResultsProvider({ children }: IStacResultsProviderProps) {
 
   const setPaginationHandlers = useCallback(
     (
-      newHandlePaginationClick: (page: number) => Promise<void>,
+      newHandlePaginationClick: (
+        dir: 'next' | 'previous' | number,
+      ) => Promise<void>,
       newHandleResultClick: (id: string) => Promise<void>,
       newFormatResult: (item: IStacItem) => string,
     ) => {
