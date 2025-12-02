@@ -512,5 +512,6 @@ export function useStacGenericFilter({
     updateQueryableFilter,
     filterOperator,
     setFilterOperator,
+    paginationLinks,
   };
 }
