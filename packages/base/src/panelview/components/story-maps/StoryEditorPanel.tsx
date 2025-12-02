@@ -15,7 +15,7 @@ const storyMapSchema: IDict = deepCopy(jgisSchema.definitions.jGISStoryMap);
 export function StoryEditorPanel({ model }: IStoryPanelProps) {
   const { landmarkId, story } = useMemo(() => {
     return model.getSelectedStory();
-  }, [model, model.sharedModel.storiesMap]);
+  }, [model, model.sharedModel.stories]);
 
   const syncStoryData = (properties: IDict) => {
     model.sharedModel.updateStoryMap(landmarkId, properties as IJGISStoryMap);

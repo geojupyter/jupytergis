@@ -1094,7 +1094,7 @@ export function addCommands(
 
       // check for stories
       const isStoriesExist =
-        Object.keys(current.model.sharedModel.storiesMap).length !== 0;
+        Object.keys(current.model.sharedModel.stories).length !== 0;
 
       // if not stories, then just add simple
       if (!isStoriesExist) {
