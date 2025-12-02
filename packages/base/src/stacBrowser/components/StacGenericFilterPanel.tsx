@@ -1,12 +1,12 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import React, { useEffect, useCallback, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useStacResultsContext } from '../context/StacResultsContext';
 import StacCheckboxWithLabel from './shared/StacCheckboxWithLabel';
 import StacQueryableFilters from './shared/StacQueryableFilters';
 import StacSearchDatePicker from './shared/StacSearchDatePicker';
 import { useStacGenericFilter } from '../hooks/useStacGenericFilter';
-import { IStacCollection } from '../types/types';
+import { IStacCollection, IStacItem } from '../types/types';
 
 interface IStacBrowser2Props {
   model?: IJupyterGISModel;
@@ -16,7 +16,7 @@ type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 
 // This is a generic UI for apis that support filter extension
 function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
-  const { setResults, setPaginationHandlers, setPaginationLinks } =
+  const { results, setResults, setPaginationHandlers, setPaginationLinks } =
     useStacResultsContext();
   const [limit, setLimit] = useState<number>(12);
 
@@ -26,7 +26,6 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     selectedCollection,
     setSelectedCollection,
     handleSubmit,
-    results,
     isLoading,
     totalPages,
     currentPage,
@@ -47,6 +46,8 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   } = useStacGenericFilter({
     model,
     limit,
+    setResults,
+    results,
   });
 
   // Track handlers with refs to avoid infinite loops
@@ -65,11 +66,6 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     };
   }, [handlePaginationClick, handleResultClick, formatResult]);
 
-  // Sync results to context whenever they change
-  useEffect(() => {
-    setResults(results, isLoading, totalPages, currentPage, totalResults);
-  }, [results, isLoading, totalPages, currentPage, totalResults, setResults]);
-
   // Sync handlers separately, only when they actually change
   useEffect(() => {
     setPaginationHandlers(
@@ -77,7 +73,12 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
       handlersRef.current.handleResultClick,
       handlersRef.current.formatResult,
     );
-  }, [setPaginationHandlers]);
+  }, [
+    setPaginationHandlers,
+    handlePaginationClick,
+    handleResultClick,
+    formatResult,
+  ]);
 
   // Sync pagination links to context whenever they change
   useEffect(() => {
