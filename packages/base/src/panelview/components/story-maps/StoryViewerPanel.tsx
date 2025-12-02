@@ -208,7 +208,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
             className="jgis-story-viewer-image"
           />
           <h1 className="jgis-story-viewer-image-title">
-            {`Slide ${currentIndexDisplayed + 1} - ${layerName ? layerName : 'Landmark Name'}`}
+            {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
           </h1>
           {/* if guided -> nav buttons */}
           {storyData.storyType === 'guided' && (
