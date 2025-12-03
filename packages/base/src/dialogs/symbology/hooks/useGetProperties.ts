@@ -25,11 +25,17 @@ async function getGeoJsonProperties({
 }): Promise<Record<string, Set<any>>> {
   const result: Record<string, Set<any>> = {};
 
-  const data = await loadFile({
-    filepath: source.parameters?.path,
-    type: 'GeoJSONSource',
-    model,
-  });
+  const data = await (async () => {
+    if (source.parameters?.path) {
+      return await loadFile({
+        filepath: source.parameters?.path,
+        type: 'GeoJSONSource',
+        model,
+      });
+    } else if (source.parameters?.data) {
+      return source.parameters.data;
+    }
+  })();
 
   if (!data) {
     throw new Error('Failed to read GeoJSON data');
