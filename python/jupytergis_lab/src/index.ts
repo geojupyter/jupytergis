@@ -209,6 +209,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
       submenu: newLayerSubMenu,
     });
 
+    app.contextMenu.addItem({
+      selector: '.jp-gis-layerPanel',
+      command: CommandIDs.addLandmark,
+      rank: 4,
+    });
+
     if (mainMenu) {
       populateMenus(mainMenu, isEnabled);
     }
