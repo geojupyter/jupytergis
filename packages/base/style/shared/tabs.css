@@ -9,13 +9,40 @@
     0 4px 8px 0 rgba(0, 0, 0, 0.2),
     0 6px 20px 0 rgba(0, 0, 0, 0.19);
   border-radius: 5px;
-  cursor: grab;
-  user-select: none;
-  -webkit-user-drag: none;
 }
 
-.jgis-panel-tabs:active {
+.jgis-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  cursor: grab;
+  color: var(--jp-ui-font-color2);
+  user-select: none;
+}
+
+.jgis-drag-handle:active {
   cursor: grabbing;
+}
+
+.jgis-drag-handle i {
+  pointer-events: none;
+}
+
+.jgis-drag-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.jgis-drag-icon svg {
+  width: 14px;
+  height: 14px;
+  color: var(--jp-ui-font-color2);
 }
 
 .jgis-tabs-list {

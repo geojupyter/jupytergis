@@ -5,6 +5,7 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
+import { dragIcon } from '../icons';
 import { LayersBodyComponent } from './components/layers';
 import {
   PanelTabs,
@@ -63,11 +64,14 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   );
 
   return (
-    <Draggable handle=".jgis-panel-tabs" bounds=".jGIS-Mainview-Container">
+    <Draggable handle=".jgis-drag-handle" bounds=".jGIS-Mainview-Container">
       <div
         className="jgis-left-panel-container"
         style={{ display: leftPanelVisible ? 'block' : 'none' }}
       >
+        <div className="jgis-drag-handle">
+          <dragIcon.react tag="div" className="jgis-drag-icon" />
+        </div>
         <PanelTabs curTab={curTab} className="jgis-panel-tabs">
           <TabsList>
             {tabInfo.map(tab => (
