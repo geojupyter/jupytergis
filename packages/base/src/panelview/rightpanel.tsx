@@ -29,7 +29,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [displayEditor, setDisplayEditor] = React.useState(true);
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
   const tabInfo = [
-    !settings.objectPropertiesDisabled
+    !settings.objectPropertiesDisabled && !settings.storyMapPresentation
       ? { name: 'objectProperties', title: 'Object Properties' }
       : false,
     {
@@ -123,20 +123,19 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             ))}
           </TabsList>
 
-          {!settings.objectPropertiesDisabled &&
-            !settings.storyMapPresentation && (
-              <TabsContent
-                value="objectProperties"
-                className="jgis-panel-tab-content"
-              >
-                <ObjectPropertiesReact
-                  setSelectedObject={setSelectedObjectProperties}
-                  selectedObject={selectedObjectProperties}
-                  formSchemaRegistry={props.formSchemaRegistry}
-                  model={props.model}
-                />
-              </TabsContent>
-            )}
+          {!settings.objectPropertiesDisabled && (
+            <TabsContent
+              value="objectProperties"
+              className="jgis-panel-tab-content"
+            >
+              <ObjectPropertiesReact
+                setSelectedObject={setSelectedObjectProperties}
+                selectedObject={selectedObjectProperties}
+                formSchemaRegistry={props.formSchemaRegistry}
+                model={props.model}
+              />
+            </TabsContent>
+          )}
 
           <TabsContent
             value="storyPanel"
