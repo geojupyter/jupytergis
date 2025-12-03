@@ -2111,7 +2111,6 @@ export class MainView extends React.Component<IProps, IStates> {
     // Cancel any in-progress animations before starting new ones
     view.cancelAnimations();
 
-    const currentZoom = view.getZoom() || 0;
     const targetCenter: Coordinate = [center.x, center.y];
 
     if (transitionType === 'linear') {
@@ -2128,7 +2127,8 @@ export class MainView extends React.Component<IProps, IStates> {
     if (transitionType === 'smooth') {
       // Smooth: zoom out, center, and zoom in
       // Centering takes full duration, zoom out completes halfway, zoom in starts halfway
-      const zoomOutLevel = Math.min(currentZoom, zoom) - 1;
+      // 3 shows most of the map
+      const zoomOutLevel = 3;
 
       // Start centering (full duration) and zoom out (50% duration) simultaneously
       view.animate({
