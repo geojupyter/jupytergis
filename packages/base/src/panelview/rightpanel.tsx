@@ -29,7 +29,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [displayEditor, setDisplayEditor] = React.useState(true);
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
   const tabInfo = [
-    !settings.objectPropertiesDisabled && !settings.storyMapPresentation
+    !settings.objectPropertiesDisabled && settings.storyMapPresentationDisabled
       ? { name: 'objectProperties', title: 'Object Properties' }
       : false,
     {
@@ -45,7 +45,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   ].filter(Boolean) as { name: string; title: string }[];
 
   const [curTab, setCurTab] = React.useState<string>(() => {
-    if (settings.storyMapPresentation) {
+    if (!settings.storyMapPresentationDisabled) {
       return 'storyPanel';
     }
     return tabInfo.length > 0 ? tabInfo[0].name : '';
@@ -142,13 +142,13 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             className="jgis-panel-tab-content"
             style={{ paddingTop: 0 }}
           >
-            {!settings.storyMapPresentation && (
+            {settings.storyMapPresentationDisabled && (
               <PreviewModeSwitch
                 checked={!displayEditor}
                 onCheckedChange={toggleEditor}
               />
             )}
-            {settings.storyMapPresentation || !displayEditor ? (
+            {!settings.storyMapPresentationDisabled || !displayEditor ? (
               <StoryViewerPanel model={props.model} />
             ) : (
               <StoryEditorPanel model={props.model} />

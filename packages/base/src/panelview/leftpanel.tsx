@@ -144,10 +144,10 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 
   const tabInfo = [
     !settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,
-    !settings.stacBrowserDisabled && !settings.storyMapPresentation
+    !settings.stacBrowserDisabled && settings.storyMapPresentationDisabled
       ? { name: 'stac', title: 'Stac Browser' }
       : false,
-    !settings.filtersDisabled && !settings.storyMapPresentation
+    !settings.filtersDisabled && settings.storyMapPresentationDisabled
       ? { name: 'filters', title: 'Filters' }
       : false,
     { name: 'landmarks', title: 'Landmarks' },
