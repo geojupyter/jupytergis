@@ -26,13 +26,13 @@ async function getGeoJsonProperties({
   const result: Record<string, Set<any>> = {};
 
   const data = await (async () => {
-    if (source.parameters?.path) {
+    if (source.parameters.path) {
       return await loadFile({
-        filepath: source.parameters?.path,
+        filepath: source.parameters.path,
         type: 'GeoJSONSource',
         model,
       });
-    } else if (source.parameters?.data) {
+    } else if (source.parameters.data) {
       return source.parameters.data;
     }
   })();
