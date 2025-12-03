@@ -2113,9 +2113,14 @@ export class MainView extends React.Component<IProps, IStates> {
     const currentZoom = view.getZoom() || 0;
     const targetCenter: Coordinate = [center.x, center.y];
 
-    if (transitionType === 'immediate') {
-      view.setCenter(targetCenter);
-      view.setZoom(zoom);
+    if (transitionType === 'linear') {
+      // Linear: direct zoom
+      view.animate({
+        center: targetCenter,
+        zoom: zoom,
+        duration,
+      });
+
       return;
     }
 
@@ -2140,14 +2145,13 @@ export class MainView extends React.Component<IProps, IStates> {
           duration: duration * 0.5,
         },
       );
-    } else {
-      // Linear: direct zoom
-      view.animate({
-        center: targetCenter,
-        zoom: zoom,
-        duration,
-      });
+
+      return;
     }
+
+    // Immediate move
+    view.setCenter(targetCenter);
+    view.setZoom(zoom);
   }
 
   private _onPointerMove(e: MouseEvent) {
