@@ -98,78 +98,60 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   };
 
   return (
-    <Draggable handle=".jgis-panel-tabs" bounds=".jGIS-Mainview-Container">
-      <div
-        className="jgis-right-panel-container"
-        style={{ display: rightPanelVisible ? 'block' : 'none' }}
-      >
-        <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
-          <TabsList>
-            {tabInfo.map(tab => (
-              <TabsTrigger
-                className="jGIS-layer-browser-category"
-                key={tab.name}
-                value={tab.name}
-                onClick={() => {
-                  if (curTab !== tab.name) {
-                    setCurTab(tab.name);
-                  } else {
-                    setCurTab('');
-                  }
-                }}
-              >
-                {tab.title}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {!settings.objectPropertiesDisabled && (
-            <TabsContent
-              value="objectProperties"
-              className="jgis-panel-tab-content"
+    <div
+      className="jgis-right-panel-container"
+      style={{ display: rightPanelVisible ? 'block' : 'none' }}
+    >
+      <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
+        <TabsList>
+          {tabInfo.map(tab => (
+            <TabsTrigger
+              className="jGIS-layer-browser-category"
+              key={tab.name}
+              value={tab.name}
+              onClick={() => {
+                if (curTab !== tab.name) {
+                  setCurTab(tab.name);
+                } else {
+                  setCurTab('');
+                }
+              }}
             >
-              <ObjectPropertiesReact
-                setSelectedObject={setSelectedObjectProperties}
-                selectedObject={selectedObjectProperties}
-                formSchemaRegistry={props.formSchemaRegistry}
-                model={props.model}
-              />
-            </TabsContent>
-          )}
+              {tab.title}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
+        {!settings.objectPropertiesDisabled && (
           <TabsContent
-            value="storyPanel"
+            value="objectProperties"
             className="jgis-panel-tab-content"
-            style={{ paddingTop: 0 }}
           >
-            {settings.storyMapPresentationDisabled && (
-              <PreviewModeSwitch
-                checked={!displayEditor}
-                onCheckedChange={toggleEditor}
-              />
-            )}
-            {!settings.storyMapPresentationDisabled || !displayEditor ? (
-              <StoryViewerPanel model={props.model} />
-            ) : (
-              <StoryEditorPanel model={props.model} />
-            )}
-
+            <ObjectPropertiesReact
+              setSelectedObject={setSelectedObjectProperties}
+              selectedObject={selectedObjectProperties}
+              formSchemaRegistry={props.formSchemaRegistry}
+              model={props.model}
+            />
           </TabsContent>
         )}
 
         <TabsContent
-          value="storyEditorPanel"
+          value="storyPanel"
           className="jgis-panel-tab-content"
+          style={{ paddingTop: 0 }}
         >
-          {/* switch to this panel when clicking create story */}
-          <StoryEditorPanel model={props.model}></StoryEditorPanel>
-        </TabsContent>
-
-        <TabsContent
-          value="storyViewerPanel"
-          className="jgis-panel-tab-content"
-        >
-          <StoryViewerPanel model={props.model}></StoryViewerPanel>
+          {settings.storyMapPresentationDisabled && (
+            <PreviewModeSwitch
+              checked={!displayEditor}
+              onCheckedChange={toggleEditor}
+            />
+          )}
+          {!settings.storyMapPresentationDisabled || !displayEditor ? (
+            <StoryViewerPanel model={props.model} />
+          ) : (
+            <StoryEditorPanel model={props.model} />
+          )}
         </TabsContent>
 
         {!settings.annotationsDisabled && (

@@ -182,19 +182,19 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
           ))}
         </TabsList>
 
-          {!settings.layersDisabled && (
-            <TabsContent
-              value="layers"
-              className="jgis-panel-tab-content jp-gis-layerPanel"
-            >
-              <LayersBodyComponent
-                model={props.model}
-                commands={props.commands}
-                state={props.state}
-                layerTree={filteredLayerTree}
-              ></LayersBodyComponent>
-            </TabsContent>
-          )}
+        {!settings.layersDisabled && (
+          <TabsContent
+            value="layers"
+            className="jgis-panel-tab-content jp-gis-layerPanel"
+          >
+            <LayersBodyComponent
+              model={props.model}
+              commands={props.commands}
+              state={props.state}
+              layerTree={filteredLayerTree}
+            ></LayersBodyComponent>
+          </TabsContent>
+        )}
 
         {!settings.stacBrowserDisabled && (
           <TabsContent value="stac" className="jgis-panel-tab-content">
@@ -202,22 +202,21 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
           </TabsContent>
         )}
 
-          {!settings.filtersDisabled && (
-            <TabsContent value="filters" className="jgis-panel-tab-content">
-              <FilterComponent model={props.model}></FilterComponent>
-            </TabsContent>
-          )}
-
-          <TabsContent value="landmarks" className="jgis-panel-tab-content">
-            <LayersBodyComponent
-              model={props.model}
-              commands={props.commands}
-              state={props.state}
-              layerTree={landmarkLayerTree}
-            ></LayersBodyComponent>
+        {!settings.filtersDisabled && (
+          <TabsContent value="filters" className="jgis-panel-tab-content">
+            <FilterComponent model={props.model}></FilterComponent>
           </TabsContent>
-        </PanelTabs>
-      </div>
-    </Draggable>
+        )}
+
+        <TabsContent value="landmarks" className="jgis-panel-tab-content">
+          <LayersBodyComponent
+            model={props.model}
+            commands={props.commands}
+            state={props.state}
+            layerTree={landmarkLayerTree}
+          ></LayersBodyComponent>
+        </TabsContent>
+      </PanelTabs>
+    </div>
   );
 };
