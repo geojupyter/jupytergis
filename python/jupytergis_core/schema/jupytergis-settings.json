@@ -44,10 +44,10 @@
       "title": "Disable Right Panel",
       "default": false
     },
-    "storyMapPresentation": {
+    "storyMapPresentationDisabled": {
       "type": "boolean",
-      "title": "Enable Story Map Presentations",
-      "default": false
+      "title": "Disable Story Map Presentations",
+      "default": true
     }
   }
 }
