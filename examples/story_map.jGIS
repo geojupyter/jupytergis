@@ -84,7 +84,7 @@
       "visible": true
     },
     "93080edc-815f-4364-a874-90fd53a60c35": {
-      "name": "Marker",
+      "name": "The Thinker",
       "parameters": {
         "opacity": 1.0,
         "source": "19ef5002-5670-4c17-b53f-44a48b739158",
@@ -135,16 +135,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -4815941.462745351,
-      -2628300.766556531,
-      -4803405.628608135,
-      -2624396.310646454
+      255874.06496440643,
+      6248688.604308756,
+      260496.085575599,
+      6252093.017728101
     ],
-    "latitude": -22.953105609744625,
-    "longitude": -43.20603257706749,
+    "latitude": 48.855574302496535,
+    "longitude": 2.319315992465925,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 14.080181481426658
+    "zoom": 15.230368389488868
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -206,7 +206,7 @@
         "bcd22241-e404-44b4-873b-81e6a4ccad84"
       ],
       "storyType": "guided",
-      "title": "New Story"
+      "title": "Famous Statues"
     },
     "3ee5537b-0cf6-4a23-b373-3d5c9cc29893": {
       "landmarks": [
