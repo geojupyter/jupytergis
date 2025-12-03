@@ -1058,7 +1058,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.addLandmark, {
-    label: trans.__('Add Landmark Here'),
+    label: trans.__('Add View as Landmark'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
