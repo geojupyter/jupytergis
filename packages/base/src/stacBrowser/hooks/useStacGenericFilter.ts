@@ -41,6 +41,16 @@ interface IUseStacGenericFilterProps {
     totalResults: number,
   ) => void;
   results: IStacItem[];
+  isLoading: boolean;
+  totalPages: number;
+  currentPage: number;
+  totalResults: number;
+  paginationLinks: Array<
+    IStacLink & { method?: string; body?: Record<string, any> }
+  >;
+  setPaginationLinks: (
+    links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
+  ) => void;
 }
 
 export function useStacGenericFilter({
@@ -48,6 +58,12 @@ export function useStacGenericFilter({
   limit = 12,
   setResults,
   results,
+  isLoading,
+  totalPages,
+  currentPage,
+  totalResults,
+  paginationLinks,
+  setPaginationLinks,
 }: IUseStacGenericFilterProps) {
   const {
     startTime,
@@ -56,15 +72,7 @@ export function useStacGenericFilter({
     setEndTime,
     useWorldBBox,
     setUseWorldBBox,
-    paginationLinks,
-    setPaginationLinks,
   } = useStacSearch({ model });
-
-  // Use a ref to always access the latest paginationLinks value
-  const paginationLinksRef = useRef(paginationLinks);
-  useEffect(() => {
-    paginationLinksRef.current = paginationLinks;
-  }, [paginationLinks]);
 
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
@@ -74,10 +82,6 @@ export function useStacGenericFilter({
   const [currentBBox, setCurrentBBox] = useState<
     [number, number, number, number]
   >([-180, -90, 180, 90]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [totalPages, setTotalPages] = useState(1);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalResults, setTotalResults] = useState(0);
   const [queryableFilters, setQueryableFilters] = useState<
     Record<string, IQueryableFilter>
   >({});
@@ -202,7 +206,8 @@ export function useStacGenericFilter({
       return;
     }
 
-    setCurrentPage(1);
+    // Reset to page 1
+    setResults(results, isLoading, totalPages, 1, totalResults);
 
     const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
 
@@ -256,7 +261,6 @@ export function useStacGenericFilter({
     };
 
     try {
-      setIsLoading(true);
       // Update context with loading state
       setResults(results, true, totalPages, currentPage, totalResults);
       const data = (await fetchWithProxies(
@@ -271,8 +275,6 @@ export function useStacGenericFilter({
       if (!data) {
         console.debug('STAC search failed -- no results found');
         setResults([], false, 1, currentPage, 0);
-        setTotalPages(1);
-        setTotalResults(0);
         return;
       }
 
@@ -321,9 +323,6 @@ export function useStacGenericFilter({
         calculatedTotalResults = data.context.matched;
       }
 
-      setTotalPages(calculatedTotalPages);
-      setTotalResults(calculatedTotalResults);
-
       // Update context with results
       setResults(
         sortedFeatures,
@@ -335,6 +334,7 @@ export function useStacGenericFilter({
 
       // Store pagination links for use in handlePaginationClick
       if (data.links) {
+        console.log('data.links', data.links);
         setPaginationLinks(
           data.links as Array<
             IStacLink & { method?: string; body?: Record<string, any> }
@@ -349,10 +349,6 @@ export function useStacGenericFilter({
     } catch (error) {
       console.error('STAC search failed -- error fetching data:', error);
       setResults([], false, 1, currentPage, 0);
-      setTotalPages(1);
-      setTotalResults(0);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -398,7 +394,6 @@ export function useStacGenericFilter({
     };
 
     try {
-      setIsLoading(true);
       // Update context with loading state
       setResults(results, true, totalPages, currentPage, totalResults);
       const data = (await fetchWithProxies(
@@ -413,8 +408,6 @@ export function useStacGenericFilter({
       if (!data) {
         console.debug('STAC search failed -- no results found');
         setResults([], false, 1, currentPage, 0);
-        setTotalPages(1);
-        setTotalResults(0);
         return;
       }
 
@@ -464,9 +457,6 @@ export function useStacGenericFilter({
         calculatedTotalResults = data.context.matched;
       }
 
-      setTotalPages(calculatedTotalPages);
-      setTotalResults(calculatedTotalResults);
-
       // Update context with results
       setResults(
         sortedFeatures,
@@ -478,6 +468,7 @@ export function useStacGenericFilter({
 
       // Store pagination links for next pagination
       if (data.links) {
+        console.log('data.links', data.links);
         setPaginationLinks(
           data.links as Array<
             IStacLink & { method?: string; body?: Record<string, any> }
@@ -487,10 +478,6 @@ export function useStacGenericFilter({
     } catch (error) {
       console.error('STAC search failed -- error fetching data:', error);
       setResults([], false, 1, currentPage, 0);
-      setTotalPages(1);
-      setTotalResults(0);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -504,7 +491,7 @@ export function useStacGenericFilter({
     console.log('[useStacGenericFilter] Pagination click:', {
       dir,
       currentPage,
-      availableLinks: paginationLinksRef.current.map(l => l.rel),
+      availableLinks: paginationLinks.map(l => l.rel),
     });
     if (!model) {
       return;
@@ -519,7 +506,7 @@ export function useStacGenericFilter({
     }
 
     // Use ref to get the latest paginationLinks value
-    const link = paginationLinksRef.current.find(l => l.rel === rel);
+    const link = paginationLinks.find(l => l.rel === rel);
 
     if (link && link.body) {
       console.log('[useStacGenericFilter] Found pagination link:', {
@@ -531,7 +518,7 @@ export function useStacGenericFilter({
       await fetchUsingLink(link);
       // Update current page after successful fetch if dir was a number
       if (typeof dir === 'number') {
-        setCurrentPage(dir);
+        setResults(results, isLoading, totalPages, dir, totalResults);
       }
     } else {
       // If no link found, we can't paginate
@@ -556,10 +543,6 @@ export function useStacGenericFilter({
     selectedCollection,
     setSelectedCollection,
     handleSubmit,
-    isLoading,
-    totalPages,
-    currentPage,
-    totalResults,
     handlePaginationClick,
     handleResultClick,
     formatResult,
@@ -573,6 +556,5 @@ export function useStacGenericFilter({
     updateQueryableFilter,
     filterOperator,
     setFilterOperator,
-    paginationLinks,
   };
 }
