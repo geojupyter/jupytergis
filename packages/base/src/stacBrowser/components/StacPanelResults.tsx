@@ -77,6 +77,10 @@ const StacPanelResults = () => {
     }
   }, [results]);
 
+  useEffect(() => {
+    console.log('links effect GOOO');
+  }, [paginationLinks]);
+
   const isNext = paginationLinks.some(link => link.rel === 'next');
   const isPrev = paginationLinks.some(link => link.rel === 'previous');
 
