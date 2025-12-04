@@ -1,4 +1,4 @@
-import { IColorRampDefinition } from '@/src/types';
+import { ColorRampName, IColorRampDefinition } from '@/src/types';
 
 export const COLOR_RAMP_DEFINITIONS = {
   'rainbow-soft': { type: 'Cyclic' },
@@ -57,3 +57,10 @@ export const COLOR_RAMP_DEFINITIONS = {
   diff: { type: 'Divergent', criticalValue: 0.5 },
   tarn: { type: 'Divergent', criticalValue: 0.5 },
 } as const satisfies { [key: string]: IColorRampDefinition };
+
+export const COLOR_RAMP_DEFAULTS: Partial<Record<ColorRampName, number>> = {
+  hsv: 11,
+  picnic: 11,
+  'rainbow-soft': 11,
+  cubehelix: 16,
+};

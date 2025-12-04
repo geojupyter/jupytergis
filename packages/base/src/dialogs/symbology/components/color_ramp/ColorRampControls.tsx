@@ -21,13 +21,12 @@ import { IDict } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useState } from 'react';
 
-import { COLOR_RAMP_DEFINITIONS } from '@/src/dialogs/symbology/colorRamps';
-import { LoadingIcon } from '@/src/shared/components/loading';
 import {
+  COLOR_RAMP_DEFINITIONS,
   COLOR_RAMP_DEFAULTS,
-  ColorRampName,
-  ClassificationMode,
-} from '@/src/types';
+} from '@/src/dialogs/symbology/colorRamps';
+import { LoadingIcon } from '@/src/shared/components/loading';
+import { ColorRampName, ClassificationMode } from '@/src/types';
 import ColorRampSelector from './ColorRampSelector';
 import { ColorRampValueControls } from './ColorRampValueControls';
 import ModeSelectRow from './ModeSelectRow';
@@ -43,7 +42,6 @@ interface IColorRampControlsProps {
     setIsLoading: (isLoading: boolean) => void,
     minValue: number,
     maxValue: number,
-    criticalValue?: number,
   ) => void;
   showModeRow: boolean;
   showRampSelector: boolean;
@@ -143,13 +141,8 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
     // Typeguard: This should never happen
     return;
   }
-  const scaledCritical =
-    rampDef.type === 'Divergent' &&
-    minValue !== undefined &&
-    maxValue !== undefined
-      ? minValue + rampDef.criticalValue * (maxValue - minValue)
-      : undefined;
 
+  // update shared model symbology state from component state
   useEffect(() => {
     if (renderType === 'Heatmap') {
       return;
@@ -247,7 +240,6 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
               setIsLoading,
               minValue,
               maxValue,
-              scaledCritical,
             );
           }}
         >

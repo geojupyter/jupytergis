@@ -71,6 +71,7 @@ const useGetSingleBandInfo = (
 
       if (dataMin === undefined || dataMax === undefined) {
         // 2. Try smallest overview if available
+        // A consequence of this method is that we will almost never find the **true** minimum and maximum for the whole raster, as overviews are aggregate data, averaging groups of grid cells to calculate lower-resolution grid cells. However, calculating the minimum and maximum from the entire dataset may be prohibitively expensive on CPU and memory!
         const overviewCount = await tiff.getImageCount();
         const targetImage =
           overviewCount > 1 ? await tiff.getImage(overviewCount - 1) : image;
