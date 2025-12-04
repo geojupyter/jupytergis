@@ -2,6 +2,59 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.10.0
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.9.2...557ee59b2e78f978ed0de7b6868d5b21b31e43ae))
+
+### Enhancements made
+
+- Remove undo/redo buttons [#984](https://github.com/geojupyter/jupytergis/pull/984) ([@gjmooney](https://github.com/gjmooney))
+- Make side panel tabs list scrollable [#970](https://github.com/geojupyter/jupytergis/pull/970) ([@gjmooney](https://github.com/gjmooney))
+- Allow adding markers to the map [#965](https://github.com/geojupyter/jupytergis/pull/965) ([@gjmooney](https://github.com/gjmooney)), [#986](https://github.com/geojupyter/jupytergis/pull/986) ([@gjmooney](https://github.com/gjmooney)), [#985](https://github.com/geojupyter/jupytergis/pull/985) ([@nakul-py](https://github.com/nakul-py))
+- Add labels for geoTiffSource 'normalize' and 'wrapX' options [#964](https://github.com/geojupyter/jupytergis/pull/964) ([@nakul-py](https://github.com/nakul-py))
+- Support legends for heatmaps [#956](https://github.com/geojupyter/jupytergis/pull/956) ([@nakul-py](https://github.com/nakul-py))
+- Support 'hsv', 'picnic', 'rainbow-soft', 'cubehelix' colormaps [#922](https://github.com/geojupyter/jupytergis/pull/922) ([@nakul-py](https://github.com/nakul-py))
+- Support non-numeric attributes in categorized rendering [#977](https://github.com/geojupyter/jupytergis/pull/977) ([@arjxn-py](https://github.com/arjxn-py))
+
+### Bugs fixed
+
+- Enable layers with embedded GeoJSON to use graduated, categorized, and canoncal symbology [#1020](https://github.com/geojupyter/jupytergis/pull/1020) ([@mfisher87](https://github.com/mfisher87))
+- Fix symbology for newly created layers [#1013](https://github.com/geojupyter/jupytergis/pull/1013) ([@martinRenou](https://github.com/martinRenou))
+- Fix bug causing layer selection to alter sources [#992](https://github.com/geojupyter/jupytergis/pull/992) ([@gjmooney](https://github.com/gjmooney))
+- Display side panels in full screen view [#979](https://github.com/geojupyter/jupytergis/pull/979) ([@gjmooney](https://github.com/gjmooney))
+- Resolve some browser errors [#971](https://github.com/geojupyter/jupytergis/pull/971) ([@gjmooney](https://github.com/gjmooney))
+- In graduated symbology mode, remove static fill color field and fix stroke color field [#952](https://github.com/geojupyter/jupytergis/pull/952) ([@nakul-py](https://github.com/nakul-py))
+- Fix color ramp gradient cut off, add labels [#950](https://github.com/geojupyter/jupytergis/pull/950) ([@nakul-py](https://github.com/nakul-py))
+
+### Maintenance and upkeep improvements
+
+- Fix hatchling build errors [#1010](https://github.com/geojupyter/jupytergis/pull/1010) ([@martinRenou](https://github.com/martinRenou))
+- CI: Quiet spurious errors caused by link check job [#1003](https://github.com/geojupyter/jupytergis/pull/1003) ([@arjxn-py](https://github.com/arjxn-py)), [#944](https://github.com/geojupyter/jupytergis/pull/944) ([@mfisher87](https://github.com/mfisher87)), [#943](https://github.com/geojupyter/jupytergis/pull/943) ([@mfisher87](https://github.com/mfisher87))
+- Remove duplicate `classificationModes.ts` file [#1000](https://github.com/geojupyter/jupytergis/pull/1000) ([@nakul-py](https://github.com/nakul-py))
+- Improve typing [#967](https://github.com/geojupyter/jupytergis/pull/967) ([@gaolinai8888](https://github.com/gaolinai8888)), [#937](https://github.com/geojupyter/jupytergis/pull/937) ([@nakul-py](https://github.com/nakul-py))
+- Rename files and add comments [#955](https://github.com/geojupyter/jupytergis/pull/955) ([@nakul-py](https://github.com/nakul-py))
+- Fix docs build warnings [#954](https://github.com/geojupyter/jupytergis/pull/954) ([@mfisher87](https://github.com/mfisher87)), [#953](https://github.com/geojupyter/jupytergis/pull/953) ([@arjxn-py](https://github.com/arjxn-py))
+- Security: Disable lifecycle scripts for Yarn [#932](https://github.com/geojupyter/jupytergis/pull/932) ([@mfisher87](https://github.com/mfisher87))
+- Add PR triage board & automation [#931](https://github.com/geojupyter/jupytergis/pull/931) ([@mfisher87](https://github.com/mfisher87)), [#930](https://github.com/geojupyter/jupytergis/pull/930) ([@mfisher87](https://github.com/mfisher87)), [#929](https://github.com/geojupyter/jupytergis/pull/929) ([@mfisher87](https://github.com/mfisher87)), [#924](https://github.com/geojupyter/jupytergis/pull/924) ([@mfisher87](https://github.com/mfisher87)), [#923](https://github.com/geojupyter/jupytergis/pull/923) ([@mfisher87](https://github.com/mfisher87))
+- Lint: Forbid unnecessary type assertions [#933](https://github.com/geojupyter/jupytergis/pull/933) ([@mfisher87](https://github.com/mfisher87))
+- Lint: Forbid `console.log` and `console.info` [#835](https://github.com/geojupyter/jupytergis/pull/835) ([@mfisher87](https://github.com/mfisher87))
+
+### Documentation improvements
+
+- Document how to deploy JupyterGIS with JupyterLite [#976](https://github.com/geojupyter/jupytergis/pull/976) ([@arjxn-py](https://github.com/arjxn-py))
+- Update development setup doc to require Micromamba installation [#962](https://github.com/geojupyter/jupytergis/pull/962) ([@gaolinai8888](https://github.com/gaolinai8888))
+- Create new top-level "overview" section in docs, note lack of collaboration support in JupyterLite [#921](https://github.com/geojupyter/jupytergis/pull/921) ([@mfisher87](https://github.com/mfisher87))
+- Exclude unsupported files from JupyterLite build in documentation site [#919](https://github.com/geojupyter/jupytergis/pull/919) ([@arjxn-py](https://github.com/arjxn-py))
+- Add contributor docs troubleshooting entry for `.yarn-state.yml` CI failure [#915](https://github.com/geojupyter/jupytergis/pull/915) ([@mfisher87](https://github.com/mfisher87))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-09-05&to=2025-12-04&type=c))
+
+[@agriyakhetarpal](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aagriyakhetarpal+updated%3A2025-09-05..2025-12-04&type=Issues) | [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-09-05..2025-12-04&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adependabot+updated%3A2025-09-05..2025-12-04&type=Issues) | [@gaolinai8888](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agaolinai8888+updated%3A2025-09-05..2025-12-04&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-09-05..2025-12-04&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2025-09-05..2025-12-04&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-09-05..2025-12-04&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-09-05..2025-12-04&type=Issues) | [@nakul-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2025-09-05..2025-12-04&type=Issues) | [@pre-commit-ci](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Apre-commit-ci+updated%3A2025-09-05..2025-12-04&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.9.2
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.9.1...fc35e76946d0fc9a0c53528531ee56de9e0c4987))
@@ -28,8 +81,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-08-27&to=2025-09-05&type=c))
 
 [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-08-27..2025-09-05&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adependabot+updated%3A2025-08-27..2025-09-05&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-08-27..2025-09-05&type=Issues) | [@mapninja](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amapninja+updated%3A2025-08-27..2025-09-05&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-08-27..2025-09-05&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-08-27..2025-09-05&type=Issues) | [@nakul-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2025-08-27..2025-09-05&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.9.1
 
