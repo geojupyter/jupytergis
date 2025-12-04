@@ -1,0 +1,55 @@
+.jgis-radio-group {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.jgis-radio-group-item {
+  aspect-ratio: 1 / 1;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  border-radius: 9999px !important;
+  border: 1px solid var(--jp-border-color0);
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color0);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition:
+    color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+  outline: none;
+  cursor: pointer;
+}
+
+.jgis-radio-group-item:focus-visible {
+  border-color: var(--jp-ui-font-color0);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--jp-ui-font-color0), transparent 50%);
+}
+
+.jgis-radio-group-item[aria-invalid='true'] {
+  border-color: var(--jp-error-color0, #dc2626);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--jp-error-color0, #dc2626), transparent 80%);
+}
+
+.jgis-radio-group-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.jgis-radio-group-indicator {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jgis-radio-group-indicator-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  transform: translate(-50%, -50%);
+  fill: currentColor;
+}
