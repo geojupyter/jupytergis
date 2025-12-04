@@ -35,9 +35,6 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     selectedCollection,
     setSelectedCollection,
     handleSubmit,
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
     startTime,
     endTime,
     setStartTime,
@@ -58,37 +55,8 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     totalResults,
     paginationLinks,
     setPaginationLinks,
-  });
-
-  // Track handlers with refs to avoid infinite loops
-  const handlersRef = useRef({
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
-  });
-
-  // Update ref when handlers change
-  useEffect(() => {
-    handlersRef.current = {
-      handlePaginationClick,
-      handleResultClick,
-      formatResult,
-    };
-  }, [handlePaginationClick, handleResultClick, formatResult]);
-
-  // Sync handlers separately, only when they actually change
-  useEffect(() => {
-    setPaginationHandlers(
-      handlersRef.current.handlePaginationClick,
-      handlersRef.current.handleResultClick,
-      handlersRef.current.formatResult,
-    );
-  }, [
     setPaginationHandlers,
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
-  ]);
+  });
 
 
   if (!model) {
