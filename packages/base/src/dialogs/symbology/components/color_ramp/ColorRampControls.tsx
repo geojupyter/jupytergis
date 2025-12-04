@@ -144,37 +144,6 @@ const ColorRampControls: React.FC<IColorRampControlsProps> = ({
     return;
   }
 
-  // update shared model symbology state from component state
-  useEffect(() => {
-    if (renderType === 'Heatmap') {
-      return;
-    }
-
-    if (!layerParams.symbologyState) {
-      layerParams.symbologyState = {};
-    }
-    layerParams.symbologyState = {
-      ...layerParams.symbologyState,
-      dataMin,
-      dataMax,
-      min: minValue,
-      max: maxValue,
-      colorRamp: selectedRamp,
-      reverse: reverseRamp,
-      nClasses: numberOfShades,
-      mode: selectedMode,
-    };
-  }, [
-    minValue,
-    maxValue,
-    selectedRamp,
-    reverseRamp,
-    selectedMode,
-    numberOfShades,
-    dataMin,
-    dataMax,
-  ]);
-
   return (
     <div className="jp-gis-color-ramp-container">
       {showRampSelector && (

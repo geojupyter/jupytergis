@@ -1,7 +1,7 @@
 import { Button } from '@jupyterlab/ui-components';
 import React from 'react';
 
-import { IColorRampDefinition } from '@/src/types';
+import { IColorRampDefinition, ClassificationMode } from '@/src/types';
 
 export interface IColorRampValueControlsProps {
   selectedMin: number | undefined;
@@ -16,7 +16,7 @@ export interface IColorRampValueControlsProps {
     | 'Singleband Pseudocolor';
   dataMin?: number;
   dataMax?: number;
-  selectedMode: string; // TODO: should be ClssificationMode (https://github.com/geojupyter/jupytergis/pull/937)
+  selectedMode: ClassificationMode;
 }
 export const ColorRampValueControls: React.FC<
   IColorRampValueControlsProps

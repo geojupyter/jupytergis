@@ -208,6 +208,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       mode: colorRampOptionsRef.current?.selectedMode,
       min: colorRampOptionsRef.current?.minValue,
       max: colorRampOptionsRef.current?.maxValue,
+      dataMin: colorRampOptionsRef.current?.dataMin,
+      dataMax: colorRampOptionsRef.current?.dataMax,
     };
 
     if (layer.type === 'HeatmapLayer') {
@@ -236,6 +238,8 @@ const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       minValue,
       maxValue,
       criticalValue,
+      dataMin,
+      dataMax,
     });
 
     let stops: number[];
