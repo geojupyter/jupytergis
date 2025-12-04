@@ -281,6 +281,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       mode: colorRampOptionsRef.current?.selectedMode,
       min: colorRampOptionsRef.current?.minValue,
       max: colorRampOptionsRef.current?.maxValue,
+      dataMin: colorRampOptionsRef.current?.dataMin,
+      dataMax: colorRampOptionsRef.current?.dataMax,
     };
 
     layer.parameters.symbologyState = symbologyState;
@@ -325,6 +327,8 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       selectedMode,
       minValue,
       maxValue,
+      dataMin,
+      dataMax,
     });
 
     let stops: number[] = [];

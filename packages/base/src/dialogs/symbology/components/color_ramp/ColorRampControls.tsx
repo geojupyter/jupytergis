@@ -62,6 +62,8 @@ export type ColorRampControlsOptions = {
   maxValue: number;
   criticalValue?: number;
   reverseRamp: boolean;
+  dataMin?: number;
+  dataMax?: number;
 };
 
 const isValidNumberOfShades = (value: number) => !isNaN(value) && value > 0;
