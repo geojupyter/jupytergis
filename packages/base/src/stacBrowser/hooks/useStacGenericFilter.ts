@@ -86,6 +86,12 @@ export function useStacGenericFilter({
     paginationLinksRef.current = paginationLinks;
   }, [paginationLinks]);
 
+  // Use a ref to always access the latest results value
+  const resultsRef = useRef(results);
+  useEffect(() => {
+    resultsRef.current = results;
+  }, [results]);
+
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
   // ! temp
@@ -179,6 +185,7 @@ export function useStacGenericFilter({
   }, [model, useWorldBBox]);
 
   const addToMap = (stacData: any) => {
+    console.log('add to amp');
     if (!model) {
       return;
     }
@@ -189,14 +196,14 @@ export function useStacGenericFilter({
       return;
     }
 
-    // const layerModel: IJGISLayer = {
-    //   type: 'StacLayer',
-    //   parameters: { data: stacData },
-    //   visible: true,
-    //   name: stacData.properties.title ?? stacData.id,
-    // };
+    const layerModel: IJGISLayer = {
+      type: 'StacLayer',
+      parameters: { data: stacData },
+      visible: true,
+      name: stacData.properties.title ?? stacData.id,
+    };
 
-    // model.addLayer(layerId, layerModel);
+    model.addLayer(layerId, layerModel);
   };
 
   const updateQueryableFilter = useCallback(
@@ -343,11 +350,6 @@ export function useStacGenericFilter({
         >;
         setPaginationLinks(typedLinks);
       }
-
-      // Add first result to map
-      if (data.features.length > 0) {
-        addToMap(data.features[0]);
-      }
     } catch (error) {
       setResults([], false, 1, currentPage, 0);
     }
@@ -359,16 +361,19 @@ export function useStacGenericFilter({
    */
   const handleResultClick = useCallback(
     async (id: string): Promise<void> => {
+      console.log('handle reuslt cliks');
       if (!model) {
         return;
       }
 
-      const result = results.find((r: IStacItem) => r.id === id);
+      // Always use ref to get the latest results value
+      const currentResults = resultsRef.current;
+      const result = currentResults.find((r: IStacItem) => r.id === id);
       if (result) {
         addToMap(result);
       }
     },
-    [results, model],
+    [model],
   );
 
   /**
