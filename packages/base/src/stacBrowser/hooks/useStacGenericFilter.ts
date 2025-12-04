@@ -84,12 +84,6 @@ export function useStacGenericFilter({
   const paginationLinksRef = useRef(paginationLinks);
   useEffect(() => {
     paginationLinksRef.current = paginationLinks;
-    const nextLink = paginationLinks.find(l => l.rel === 'next');
-    // eslint-disable-next-line no-console
-    console.log(
-      '[paginationLinks updated] Next link body token:',
-      nextLink?.body?.token,
-    );
   }, [paginationLinks]);
 
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
@@ -347,12 +341,6 @@ export function useStacGenericFilter({
         const typedLinks = data.links as Array<
           IStacLink & { method?: string; body?: Record<string, any> }
         >;
-        const nextLink = typedLinks.find(l => l.rel === 'next');
-        // eslint-disable-next-line no-console
-        console.log(
-          '[handleSubmit] Next link body token:',
-          nextLink?.body?.token,
-        );
         setPaginationLinks(typedLinks);
       }
 
@@ -382,15 +370,6 @@ export function useStacGenericFilter({
     },
     [results, model],
   );
-
-  // Log when handleResultClick is recreated
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('[handleResultClick] Function recreated, dependencies:', {
-      resultsLength: results.length,
-      model: !!model,
-    });
-  }, [handleResultClick, results, model]);
 
   /**
    * Fetches results using a STAC link (for pagination)
@@ -491,12 +470,7 @@ export function useStacGenericFilter({
           const typedLinks = data.links as Array<
             IStacLink & { method?: string; body?: Record<string, any> }
           >;
-          const nextLink = typedLinks.find(l => l.rel === 'next');
-          // eslint-disable-next-line no-console
-          console.log(
-            '[fetchUsingLink] Next link body token:',
-            nextLink?.body?.token,
-          );
+
           // Update ref synchronously before updating context
           paginationLinksRef.current = typedLinks;
           setPaginationLinks(typedLinks);
@@ -517,27 +491,6 @@ export function useStacGenericFilter({
     ],
   );
 
-  // Log when fetchUsingLink is recreated
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('[fetchUsingLink] Function recreated, dependencies:', {
-      model: !!model,
-      resultsLength: results.length,
-      isLoading,
-      totalPages,
-      currentPage,
-      totalResults,
-    });
-  }, [
-    fetchUsingLink,
-    model,
-    results,
-    isLoading,
-    totalPages,
-    currentPage,
-    totalResults,
-  ]);
-
   /**
    * Handles pagination clicks
    * @param dir - Direction ('next' | 'previous') or page number (for backward compatibility)
@@ -546,14 +499,6 @@ export function useStacGenericFilter({
     async (dir: 'next' | 'previous' | number): Promise<void> => {
       // Always use ref to get the latest paginationLinks value
       const currentLinks = paginationLinksRef.current;
-      const nextLink = currentLinks.find(l => l.rel === 'next');
-      // eslint-disable-next-line no-console
-      console.log(
-        '[handlePaginationClick] Next link body token (from ref):',
-        nextLink?.body?.token,
-        'ref length:',
-        currentLinks.length,
-      );
 
       if (!model) {
         return;
@@ -571,11 +516,6 @@ export function useStacGenericFilter({
       const link = currentLinks.find(l => l.rel === rel);
 
       if (link && link.body) {
-        // eslint-disable-next-line no-console
-        console.log(
-          '[handlePaginationClick] Using link with token:',
-          link.body.token,
-        );
         // Use the link with its body (contains token) to fetch the page
         await fetchUsingLink(link);
         // Update current page after successful fetch if dir was a number
@@ -596,29 +536,6 @@ export function useStacGenericFilter({
     ],
   );
 
-  // Log when handlePaginationClick is recreated
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('[handlePaginationClick] Function recreated, dependencies:', {
-      model: !!model,
-      currentPage,
-      resultsLength: results.length,
-      isLoading,
-      totalPages,
-      totalResults,
-      fetchUsingLinkChanged: true,
-    });
-  }, [
-    handlePaginationClick,
-    model,
-    currentPage,
-    results,
-    isLoading,
-    totalPages,
-    totalResults,
-    fetchUsingLink,
-  ]);
-
   /**
    * Formats a result item for display
    * @param item - STAC item to format
@@ -627,12 +544,6 @@ export function useStacGenericFilter({
   const formatResult = useCallback((item: IStacItem): string => {
     return item.properties?.title ?? item.id;
   }, []);
-
-  // Log when formatResult is recreated (should rarely happen since it has no deps)
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('[formatResult] Function recreated');
-  }, [formatResult]);
 
   // Sync handlers to context whenever they change
   // Also sync when paginationLinks change to ensure handler in context has latest links via ref
