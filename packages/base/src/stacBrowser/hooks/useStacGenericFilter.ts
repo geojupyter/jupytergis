@@ -51,6 +51,11 @@ interface IUseStacGenericFilterProps {
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
+  setPaginationHandlers: (
+    handlePaginationClick: (dir: 'next' | 'previous' | number) => Promise<void>,
+    handleResultClick: (id: string) => Promise<void>,
+    formatResult: (item: IStacItem) => string,
+  ) => void;
 }
 
 export function useStacGenericFilter({
@@ -64,6 +69,7 @@ export function useStacGenericFilter({
   totalResults,
   paginationLinks,
   setPaginationLinks,
+  setPaginationHandlers,
 }: IUseStacGenericFilterProps) {
   const {
     startTime,
@@ -73,6 +79,18 @@ export function useStacGenericFilter({
     useWorldBBox,
     setUseWorldBBox,
   } = useStacSearch({ model });
+
+  // Use a ref to always access the latest paginationLinks value
+  const paginationLinksRef = useRef(paginationLinks);
+  useEffect(() => {
+    paginationLinksRef.current = paginationLinks;
+    const nextLink = paginationLinks.find(l => l.rel === 'next');
+    // eslint-disable-next-line no-console
+    console.log(
+      '[paginationLinks updated] Next link body token:',
+      nextLink?.body?.token,
+    );
+  }, [paginationLinks]);
 
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
@@ -113,7 +131,6 @@ export function useStacGenericFilter({
           return titleA.localeCompare(titleB);
         });
 
-      console.log('collections', collections);
       setCollections(collections);
     };
 
@@ -175,11 +192,8 @@ export function useStacGenericFilter({
     const layerId = UUID.uuid4();
 
     if (!stacData) {
-      console.error('Result not found:');
       return;
     }
-
-    console.log('adding', layerId);
 
     // const layerModel: IJGISLayer = {
     //   type: 'StacLayer',
@@ -248,8 +262,6 @@ export function useStacGenericFilter({
       };
     }
 
-    console.log('body', body);
-
     const options = {
       method: 'POST',
       headers: {
@@ -273,7 +285,6 @@ export function useStacGenericFilter({
       )) as IStacSearchResult;
 
       if (!data) {
-        console.debug('STAC search failed -- no results found');
         setResults([], false, 1, currentPage, 0);
         return;
       }
@@ -308,7 +319,6 @@ export function useStacGenericFilter({
         });
       }
 
-      console.log('hook data', data);
       // Sort features by id before setting results
       const sortedFeatures = [...data.features].sort((a, b) =>
         a.id.localeCompare(b.id),
@@ -334,12 +344,16 @@ export function useStacGenericFilter({
 
       // Store pagination links for use in handlePaginationClick
       if (data.links) {
-        console.log('data.links', data.links);
-        setPaginationLinks(
-          data.links as Array<
-            IStacLink & { method?: string; body?: Record<string, any> }
-          >,
+        const typedLinks = data.links as Array<
+          IStacLink & { method?: string; body?: Record<string, any> }
+        >;
+        const nextLink = typedLinks.find(l => l.rel === 'next');
+        // eslint-disable-next-line no-console
+        console.log(
+          '[handleSubmit] Next link body token:',
+          nextLink?.body?.token,
         );
+        setPaginationLinks(typedLinks);
       }
 
       // Add first result to map
@@ -347,7 +361,6 @@ export function useStacGenericFilter({
         addToMap(data.features[0]);
       }
     } catch (error) {
-      console.error('STAC search failed -- error fetching data:', error);
       setResults([], false, 1, currentPage, 0);
     }
   };
@@ -370,163 +383,241 @@ export function useStacGenericFilter({
     [results, model],
   );
 
+  // Log when handleResultClick is recreated
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('[handleResultClick] Function recreated, dependencies:', {
+      resultsLength: results.length,
+      model: !!model,
+    });
+  }, [handleResultClick, results, model]);
+
   /**
    * Fetches results using a STAC link (for pagination)
    * @param link - STAC link object with href and optional body
    */
-  const fetchUsingLink = async (
-    link: IStacLink & { method?: string; body?: Record<string, any> },
-  ) => {
-    if (!model) {
-      return;
-    }
-
-    const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-
-    const options = {
-      method: (link.method || 'POST').toUpperCase(),
-      headers: {
-        'Content-Type': 'application/json',
-        'X-XSRFToken': XSRF_TOKEN,
-        credentials: 'include',
-      },
-      body: link.body ? JSON.stringify(link.body) : undefined,
-    };
-
-    try {
-      // Update context with loading state
-      setResults(results, true, totalPages, currentPage, totalResults);
-      const data = (await fetchWithProxies(
-        link.href,
-        model,
-        async response => await response.json(),
-        //@ts-expect-error Jupyter requires X-XSRFToken header
-        options,
-        'internal',
-      )) as IStacSearchResult;
-
-      if (!data) {
-        console.debug('STAC search failed -- no results found');
-        setResults([], false, 1, currentPage, 0);
+  const fetchUsingLink = useCallback(
+    async (
+      link: IStacLink & { method?: string; body?: Record<string, any> },
+    ) => {
+      if (!model) {
         return;
       }
 
-      // Filter assets to only include items with 'overview' or 'thumbnail' roles
-      if (data.features && data.features.length > 0) {
-        data.features.forEach(feature => {
-          if (feature.assets) {
-            const originalAssets = feature.assets;
-            const filteredAssets: Record<string, any> = {};
+      const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
 
-            for (const [key, asset] of Object.entries(originalAssets)) {
-              if (
-                asset &&
-                typeof asset === 'object' &&
-                'roles' in asset &&
-                Array.isArray(asset.roles)
-              ) {
-                const roles = asset.roles;
+      const options = {
+        method: (link.method || 'POST').toUpperCase(),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-XSRFToken': XSRF_TOKEN,
+          credentials: 'include',
+        },
+        body: link.body ? JSON.stringify(link.body) : undefined,
+      };
 
-                if (roles.includes('thumbnail') || roles.includes('overview')) {
-                  filteredAssets[key] = asset;
+      try {
+        // Update context with loading state
+        setResults(results, true, totalPages, currentPage, totalResults);
+        const data = (await fetchWithProxies(
+          link.href,
+          model,
+          async response => await response.json(),
+          //@ts-expect-error Jupyter requires X-XSRFToken header
+          options,
+          'internal',
+        )) as IStacSearchResult;
+
+        if (!data) {
+          setResults([], false, 1, currentPage, 0);
+          return;
+        }
+
+        // Filter assets to only include items with 'overview' or 'thumbnail' roles
+        if (data.features && data.features.length > 0) {
+          data.features.forEach(feature => {
+            if (feature.assets) {
+              const originalAssets = feature.assets;
+              const filteredAssets: Record<string, any> = {};
+
+              for (const [key, asset] of Object.entries(originalAssets)) {
+                if (
+                  asset &&
+                  typeof asset === 'object' &&
+                  'roles' in asset &&
+                  Array.isArray(asset.roles)
+                ) {
+                  const roles = asset.roles;
+
+                  if (
+                    roles.includes('thumbnail') ||
+                    roles.includes('overview')
+                  ) {
+                    filteredAssets[key] = asset;
+                  }
                 }
               }
+
+              feature.assets = filteredAssets;
             }
+          });
+        }
 
-            feature.assets = filteredAssets;
-          }
-        });
-      }
-
-      console.log('hook data link', data);
-      // Sort features by id before setting results
-      const sortedFeatures = [...data.features].sort((a, b) =>
-        a.id.localeCompare(b.id),
-      );
-      console.log('[useStacGenericFilter] Setting results from pagination:', {
-        featuresCount: sortedFeatures.length,
-        featureIds: sortedFeatures.map(f => f.id),
-      });
-
-      // Handle context if available (STAC API extension)
-      let calculatedTotalPages = 1;
-      let calculatedTotalResults = data.features.length;
-      if (data.context) {
-        const pages = data.context.matched / data.context.limit;
-        calculatedTotalPages = Math.ceil(pages);
-        calculatedTotalResults = data.context.matched;
-      }
-
-      // Update context with results
-      setResults(
-        sortedFeatures,
-        false,
-        calculatedTotalPages,
-        currentPage,
-        calculatedTotalResults,
-      );
-
-      // Store pagination links for next pagination
-      if (data.links) {
-        console.log('data.links', data.links);
-        setPaginationLinks(
-          data.links as Array<
-            IStacLink & { method?: string; body?: Record<string, any> }
-          >,
+        // Sort features by id before setting results
+        const sortedFeatures = [...data.features].sort((a, b) =>
+          a.id.localeCompare(b.id),
         );
+
+        // Handle context if available (STAC API extension)
+        let calculatedTotalPages = 1;
+        let calculatedTotalResults = data.features.length;
+        if (data.context) {
+          const pages = data.context.matched / data.context.limit;
+          calculatedTotalPages = Math.ceil(pages);
+          calculatedTotalResults = data.context.matched;
+        }
+
+        // Update context with results
+        setResults(
+          sortedFeatures,
+          false,
+          calculatedTotalPages,
+          currentPage,
+          calculatedTotalResults,
+        );
+
+        // Store pagination links for next pagination
+        if (data.links) {
+          const typedLinks = data.links as Array<
+            IStacLink & { method?: string; body?: Record<string, any> }
+          >;
+          const nextLink = typedLinks.find(l => l.rel === 'next');
+          // eslint-disable-next-line no-console
+          console.log(
+            '[fetchUsingLink] Next link body token:',
+            nextLink?.body?.token,
+          );
+          // Update ref synchronously before updating context
+          paginationLinksRef.current = typedLinks;
+          setPaginationLinks(typedLinks);
+        }
+      } catch (error) {
+        setResults([], false, 1, currentPage, 0);
       }
-    } catch (error) {
-      console.error('STAC search failed -- error fetching data:', error);
-      setResults([], false, 1, currentPage, 0);
-    }
-  };
+    },
+    [
+      model,
+      results,
+      isLoading,
+      totalPages,
+      currentPage,
+      totalResults,
+      setResults,
+      setPaginationLinks,
+    ],
+  );
+
+  // Log when fetchUsingLink is recreated
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('[fetchUsingLink] Function recreated, dependencies:', {
+      model: !!model,
+      resultsLength: results.length,
+      isLoading,
+      totalPages,
+      currentPage,
+      totalResults,
+    });
+  }, [
+    fetchUsingLink,
+    model,
+    results,
+    isLoading,
+    totalPages,
+    currentPage,
+    totalResults,
+  ]);
 
   /**
    * Handles pagination clicks
    * @param dir - Direction ('next' | 'previous') or page number (for backward compatibility)
    */
-  const handlePaginationClick = async (
-    dir: 'next' | 'previous' | number,
-  ): Promise<void> => {
-    console.log('[useStacGenericFilter] Pagination click:', {
-      dir,
-      currentPage,
-      availableLinks: paginationLinks.map(l => l.rel),
-    });
-    if (!model) {
-      return;
-    }
-
-    // If dir is a number, convert it to 'next' or 'previous' based on current page
-    let rel: 'next' | 'previous';
-    if (typeof dir === 'number') {
-      rel = dir > currentPage ? 'next' : 'previous';
-    } else {
-      rel = dir;
-    }
-
-    // Use ref to get the latest paginationLinks value
-    const link = paginationLinks.find(l => l.rel === rel);
-
-    if (link && link.body) {
-      console.log('[useStacGenericFilter] Found pagination link:', {
-        rel: link.rel,
-        href: link.href,
-        hasBody: !!link.body,
-      });
-      // Use the link with its body (contains token) to fetch the page
-      await fetchUsingLink(link);
-      // Update current page after successful fetch if dir was a number
-      if (typeof dir === 'number') {
-        setResults(results, isLoading, totalPages, dir, totalResults);
-      }
-    } else {
-      // If no link found, we can't paginate
-      console.warn(
-        `[useStacGenericFilter] No ${rel} link available for pagination`,
+  const handlePaginationClick = useCallback(
+    async (dir: 'next' | 'previous' | number): Promise<void> => {
+      // Always use ref to get the latest paginationLinks value
+      const currentLinks = paginationLinksRef.current;
+      const nextLink = currentLinks.find(l => l.rel === 'next');
+      // eslint-disable-next-line no-console
+      console.log(
+        '[handlePaginationClick] Next link body token (from ref):',
+        nextLink?.body?.token,
+        'ref length:',
+        currentLinks.length,
       );
-    }
-  };
+
+      if (!model) {
+        return;
+      }
+
+      // If dir is a number, convert it to 'next' or 'previous' based on current page
+      let rel: 'next' | 'previous';
+      if (typeof dir === 'number') {
+        rel = dir > currentPage ? 'next' : 'previous';
+      } else {
+        rel = dir;
+      }
+
+      // Find the pagination link using the ref
+      const link = currentLinks.find(l => l.rel === rel);
+
+      if (link && link.body) {
+        // eslint-disable-next-line no-console
+        console.log(
+          '[handlePaginationClick] Using link with token:',
+          link.body.token,
+        );
+        // Use the link with its body (contains token) to fetch the page
+        await fetchUsingLink(link);
+        // Update current page after successful fetch if dir was a number
+        if (typeof dir === 'number') {
+          setResults(results, isLoading, totalPages, dir, totalResults);
+        }
+      }
+    },
+    [
+      model,
+      currentPage,
+      results,
+      isLoading,
+      totalPages,
+      totalResults,
+      setResults,
+      fetchUsingLink,
+    ],
+  );
+
+  // Log when handlePaginationClick is recreated
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('[handlePaginationClick] Function recreated, dependencies:', {
+      model: !!model,
+      currentPage,
+      resultsLength: results.length,
+      isLoading,
+      totalPages,
+      totalResults,
+      fetchUsingLinkChanged: true,
+    });
+  }, [
+    handlePaginationClick,
+    model,
+    currentPage,
+    results,
+    isLoading,
+    totalPages,
+    totalResults,
+    fetchUsingLink,
+  ]);
 
   /**
    * Formats a result item for display
@@ -537,15 +628,34 @@ export function useStacGenericFilter({
     return item.properties?.title ?? item.id;
   }, []);
 
+  // Log when formatResult is recreated (should rarely happen since it has no deps)
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('[formatResult] Function recreated');
+  }, [formatResult]);
+
+  // Sync handlers to context whenever they change
+  // Also sync when paginationLinks change to ensure handler in context has latest links via ref
+  useEffect(() => {
+    setPaginationHandlers(
+      handlePaginationClick,
+      handleResultClick,
+      formatResult,
+    );
+  }, [
+    handlePaginationClick,
+    handleResultClick,
+    formatResult,
+    setPaginationHandlers,
+    paginationLinks, // Sync when links change so context gets updated handler
+  ]);
+
   return {
     queryableProps,
     collections,
     selectedCollection,
     setSelectedCollection,
     handleSubmit,
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
     startTime,
     endTime,
     setStartTime,
