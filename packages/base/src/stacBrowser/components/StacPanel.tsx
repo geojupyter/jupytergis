@@ -15,20 +15,31 @@ import StacGenericFilterPanel from './StacGenericFilterPanel';
 import StacPanelResults from './StacPanelResults';
 import StacGeodesFilterPanel from './geodes/StacGeodesFilterPanel';
 
+const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
+
+// URL to panel component mapping for extensibility
+// Add new entries here to support additional STAC providers
+const URL_TO_PANEL_MAP: Record<
+  string,
+  React.ComponentType<{ model?: IJupyterGISModel }>
+> = {
+  [GEODES_URL]: StacGeodesFilterPanel,
+};
+
 interface IStacViewProps {
   model?: IJupyterGISModel;
 }
 
 // Inner component that uses the context
 const StacPanelContent = ({ model }: IStacViewProps) => {
-  const [selectedUrl, setSelectedUrl] = useState<string>(
-    'https://stac.dataspace.copernicus.eu/v1/',
-  );
-  const { totalResults } = useStacResultsContext();
+  const { totalResults, selectedUrl, setSelectedUrl } = useStacResultsContext();
 
   if (!model) {
     return null;
   }
+
+  const PanelComponent =
+    URL_TO_PANEL_MAP[selectedUrl] ?? StacGenericFilterPanel;
 
   return (
     <Tabs defaultValue="filters" className="jgis-panel-tabs">
@@ -51,17 +62,11 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
             <option value="https://stac.dataspace.copernicus.eu/v1/">
               Copernicus
             </option>
-            <option value="https://geodes-portal.cnes.fr/api/stac/search">
-              GEODES
-            </option>
+            <option value={GEODES_URL}>GEODES</option>
           </select>
         </div>
 
-        {selectedUrl === 'https://geodes-portal.cnes.fr/api/stac/search' ? (
-          <StacGeodesFilterPanel model={model} />
-        ) : (
-          <StacGenericFilterPanel model={model} />
-        )}
+        <PanelComponent model={model} />
       </TabsContent>
       <TabsContent value="results">
         <StacPanelResults />
