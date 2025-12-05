@@ -18,7 +18,7 @@ import {
   products as productsList,
 } from '@/src/stacBrowser/constants';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
-import useStacSearch from '@/src/stacBrowser/hooks/useStacSearch';
+import useStacSearch from '@/src/stacBrowser/hooks/useGeodesSearch';
 
 interface IStacGeodesFilterPanelProps {
   model?: IJupyterGISModel;
