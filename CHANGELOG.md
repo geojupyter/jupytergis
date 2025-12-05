@@ -2,6 +2,26 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.10.1
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.10.0...0109921f4ec34eef5e56a386a157ac6c06551698))
+
+### Bugs fixed
+
+- Fix symbology bugs with GeoJSON layers added by Python API [#1023](https://github.com/geojupyter/jupytergis/pull/1023) ([@mfisher87](https://github.com/mfisher87))
+
+### Maintenance and upkeep improvements
+
+- Upper bound (exclusive) JupyterLab at 4.5.0 [#1019](https://github.com/geojupyter/jupytergis/pull/1019) ([@mfisher87](https://github.com/mfisher87))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-12-04&to=2025-12-05&type=c))
+
+[@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-12-04..2025-12-05&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.10.0
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.9.2...557ee59b2e78f978ed0de7b6868d5b21b31e43ae))
@@ -52,8 +72,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-09-05&to=2025-12-04&type=c))
 
 [@agriyakhetarpal](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aagriyakhetarpal+updated%3A2025-09-05..2025-12-04&type=Issues) | [@arjxn-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-09-05..2025-12-04&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Adependabot+updated%3A2025-09-05..2025-12-04&type=Issues) | [@gaolinai8888](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agaolinai8888+updated%3A2025-09-05..2025-12-04&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agithub-actions+updated%3A2025-09-05..2025-12-04&type=Issues) | [@gjmooney](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2025-09-05..2025-12-04&type=Issues) | [@martinRenou](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-09-05..2025-12-04&type=Issues) | [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-09-05..2025-12-04&type=Issues) | [@nakul-py](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2025-09-05..2025-12-04&type=Issues) | [@pre-commit-ci](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Apre-commit-ci+updated%3A2025-09-05..2025-12-04&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.9.2
 
