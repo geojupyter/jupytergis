@@ -48,35 +48,24 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
     paginationLinks,
   } = useStacSearch({ model });
 
-  // Track handlers with refs to avoid infinite loops
-  const handlersRef = useRef({
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
-  });
-
-  // Update ref when handlers change
-  useEffect(() => {
-    handlersRef.current = {
-      handlePaginationClick,
-      handleResultClick,
-      formatResult,
-    };
-  }, [handlePaginationClick, handleResultClick, formatResult]);
-
   // Sync results to context whenever they change
   useEffect(() => {
     setResults(results, isLoading, totalPages, currentPage, totalResults);
   }, [results, isLoading, totalPages, currentPage, totalResults, setResults]);
 
-  // Sync handlers separately, only when they actually change
+  // Sync handlers to context (GEODES has its own handlers)
   useEffect(() => {
     setPaginationHandlers(
-      handlersRef.current.handlePaginationClick,
-      handlersRef.current.handleResultClick,
-      handlersRef.current.formatResult,
+      handlePaginationClick,
+      handleResultClick,
+      formatResult,
     );
-  }, [setPaginationHandlers]);
+  }, [
+    handlePaginationClick,
+    handleResultClick,
+    formatResult,
+    setPaginationHandlers,
+  ]);
 
   // Sync pagination links to context whenever they change
   useEffect(() => {
