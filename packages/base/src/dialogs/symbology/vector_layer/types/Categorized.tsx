@@ -182,8 +182,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       renderType: 'Categorized',
       value: selectedAttributeRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
-      nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode,
       symbologyTab,
       reverse: reverseRamp,
     };
@@ -216,8 +214,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       // Reset color classification options
       if (layer.parameters.symbologyState) {
         layer.parameters.symbologyState.colorRamp = undefined;
-        layer.parameters.symbologyState.nClasses = undefined;
-        layer.parameters.symbologyState.mode = undefined;
       }
     }
 
