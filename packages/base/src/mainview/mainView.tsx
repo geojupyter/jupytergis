@@ -1348,7 +1348,6 @@ export class MainView extends React.Component<IProps, IStates> {
     mapLayer: Layer,
     oldLayer?: IDict,
   ): Promise<void> {
-
     layer.type !== 'LandmarkLayer' && mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
