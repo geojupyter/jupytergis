@@ -26,6 +26,7 @@ from jupytergis_core.schema import (
     IVectorLayer,
     IVectorTileLayer,
     IVectorTileSource,
+    IMarkerSource,
     IVideoSource,
     IWebGlLayer,
     LayerType,
@@ -303,6 +304,10 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "color": color_expr,
                 "opacity": opacity,
+                "symbologyState": {
+                    "renderType": "Single Symbol",
+                    "mode": "equal interval",
+                },
             },
             "filters": {
                 "appliedFilters": [
@@ -880,6 +885,7 @@ class JGISSource(BaseModel):
     parameters: (
         IRasterSource
         | IVectorTileSource
+        | IMarkerSource
         | IGeoJSONSource
         | IImageSource
         | IVideoSource
@@ -967,6 +973,7 @@ OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.HeatmapLayer, IHeatmapLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
+OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterSource, IRasterSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoJSONSource, IGeoJSONSource)
 OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)

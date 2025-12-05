@@ -29,6 +29,7 @@ import {
   SourceType,
 } from './_interface/project/jgis';
 import { IRasterSource } from './_interface/project/sources/rasterSource';
+import { Modes } from './types';
 export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 
 export type JgisCoordinates = { x: number; y: number };
@@ -69,7 +70,6 @@ export type SelectionType = 'layer' | 'source' | 'group';
 export interface ISelection {
   type: SelectionType;
   parent?: string;
-  selectedNodeId?: string;
 }
 
 export interface IJupyterGISClientState {
@@ -161,10 +161,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   geolocation: JgisCoordinates;
   localState: IJupyterGISClientState | null;
   annotationModel?: IAnnotationModel;
-
-  // TODO Add more modes: "annotating"
-  currentMode: 'panning' | 'identifying';
-
+  currentMode: Modes;
   themeChanged: Signal<
     IJupyterGISModel,
     IChangedArgs<string, string | null, string>
@@ -236,6 +233,14 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   syncViewport(viewport?: IViewPortState, emitter?: string): void;
   syncSelected(value: { [key: string]: ISelection }, emitter?: string): void;
+  selected: { [key: string]: ISelection } | undefined;
+  setEditingItem(type: SelectionType, itemId: string): void;
+  clearEditingItem(): void;
+  readonly editing: { type: SelectionType; itemId: string } | null;
+  editingChanged: ISignal<
+    IJupyterGISModel,
+    { type: SelectionType; itemId: string } | null
+  >;
   syncPointer(pointer?: Pointer, emitter?: string): void;
   syncIdentifiedFeatures(features: IDict<any>, emitter?: string): void;
   setUserToFollow(userId?: number): void;
@@ -246,7 +251,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   removeMetadata(key: string): void;
   centerOnPosition(id: string): void;
 
-  toggleIdentify(): void;
+  toggleMode(mode: Modes): void;
 
   isTemporalControllerActive: boolean;
   toggleTemporalController(): void;
@@ -261,8 +266,10 @@ export interface IUserData {
   userData: User.IIdentity;
 }
 
-export interface IJupyterGISDocumentWidget
-  extends IDocumentWidget<SplitPanel, IJupyterGISModel> {
+export interface IJupyterGISDocumentWidget extends IDocumentWidget<
+  SplitPanel,
+  IJupyterGISModel
+> {
   readonly model: IJupyterGISModel;
 }
 

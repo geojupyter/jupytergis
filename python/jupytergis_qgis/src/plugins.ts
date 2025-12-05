@@ -315,8 +315,7 @@ const activate = async (
       });
     }
   }
-
-  console.log('@jupytergis/jupytergis-qgis:qgisplugin is activated!');
+  console.debug('@jupytergis/jupytergis-qgis:qgisplugin is activated!');
 };
 
 export const qgisplugin: JupyterFrontEndPlugin<void> = {

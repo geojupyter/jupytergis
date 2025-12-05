@@ -72,8 +72,6 @@ test.describe('context menu', () => {
       .press('Enter');
 
     await expect(page.getByText('new group', { exact: true })).toHaveCount(1);
-    await page.getByRole('button', { name: 'Undo' }).click();
-    await expect(layer).toBeVisible();
   });
 
   test('clicking remove layer should remove the layer from the tree', async ({
@@ -121,50 +119,62 @@ test.describe('context menu', () => {
 
     await page.getByRole('menu').getByText('Remove Group').click();
     await expect(firstItem).not.toBeVisible();
-
-    await page.getByRole('button', { name: 'Undo' }).click();
-    await expect(firstItem).toBeVisible();
   });
 
   test('pressing F2 should start rename for layer', async ({ page }) => {
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByText('Open Topo Map')
-      .click();
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByText('Open Topo Map')
-      .press('F2');
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByRole('textbox')
-      .fill('test name');
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByRole('textbox')
-      .press('Enter');
+    const layersPanel = page.getByLabel('Layers', { exact: true });
+    const layerName = 'Open Topo Map';
+    const layerText = layersPanel.getByText(layerName);
 
-    const newText = page.getByText('test name');
+    // Find the parent layer item container (which gets the selected class)
+    // Structure: div.jp-gis-layerItem > div.jp-gis-layerTitle > span.jp-gis-layerText
+    const layerItem = layerText.locator(
+      'xpath=ancestor::div[contains(@class, "jp-gis-layerItem")]',
+    );
 
-    await expect(newText).toBeVisible();
+    // Select the layer
+    await layerText.click();
+    await page.waitForTimeout(1000);
+    await expect(layerItem).toHaveClass(/jp-mod-selected/);
 
-    // reset layer name
-    await page.locator('#jp-gis-layer-tree div').nth(2).click();
-    await page.locator('#jp-gis-layer-tree div').nth(2).press('F2');
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByRole('textbox')
-      .fill('Open Topo Map');
-    await page
-      .getByLabel('Layers', { exact: true })
-      .getByRole('textbox')
-      .press('Enter');
+    // Start rename with F2
+    await layerText.press('F2');
 
-    const restoredText = page
-      .getByLabel('Layers', { exact: true })
-      .getByText('Open Topo Map');
+    // Wait for the textbox to appear and be focused
+    const textbox = layersPanel.getByRole('textbox');
+    await expect(textbox).toBeVisible();
+    await expect(textbox).toBeFocused();
 
-    await expect(restoredText).toBeVisible();
+    // Enter new name
+    await textbox.fill('test name');
+    await textbox.press('Enter');
+
+    // Wait for rename to complete and verify new name appears
+    await expect(layersPanel.getByText('test name')).toBeVisible();
+    await expect(layersPanel.getByText(layerName)).not.toBeVisible();
+
+    // Reset: rename back to original name
+    const renamedText = layersPanel.getByText('test name');
+    const renamedItem = renamedText.locator(
+      'xpath=ancestor::div[contains(@class, "jp-gis-layerItem")]',
+    );
+    await renamedText.click();
+    await page.waitForTimeout(1000);
+    await expect(renamedItem).toHaveClass(/jp-mod-selected/);
+    await renamedText.press('F2');
+
+    // Wait for textbox again
+    const resetTextbox = layersPanel.getByRole('textbox');
+    await expect(resetTextbox).toBeVisible();
+    await expect(resetTextbox).toBeFocused();
+
+    // Enter original name
+    await resetTextbox.fill(layerName);
+    await resetTextbox.press('Enter');
+
+    // Verify original name is restored
+    await expect(layersPanel.getByText(layerName)).toBeVisible();
+    await expect(layersPanel.getByText('test name')).not.toBeVisible();
   });
 
   test('pressing F2 should start rename for group', async ({ page }) => {

@@ -32,7 +32,7 @@ export class AnnotationsPanel extends Component<IAnnotationPanelProps> {
 
     const annotations = annotationIds.map((id: string) => {
       return (
-        <div>
+        <div className="jgis-annotation-panel">
           <Annotation
             jgisModel={this._jgisModel}
             annotationModel={this._annotationModel}

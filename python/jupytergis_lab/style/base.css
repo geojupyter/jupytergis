@@ -687,7 +687,7 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   fill: var(--jp-inverse-layout-color3);
 }
 
-.jGIS-identify-tool {
+.jGIS-point-selection-tool {
   cursor: crosshair;
 }
 

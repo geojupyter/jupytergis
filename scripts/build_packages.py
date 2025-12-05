@@ -24,7 +24,7 @@ def build_packages():
     ]
 
     for py_package in python_packages:
-        execute("hatch build", cwd=root_path / python_package_prefix / py_package)
+        execute("python -m build", cwd=root_path / python_package_prefix / py_package)
 
 
 if __name__ == "__main__":

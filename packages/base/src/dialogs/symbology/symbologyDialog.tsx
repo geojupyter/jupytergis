@@ -17,8 +17,7 @@ export interface ISymbologyDialogProps {
   layerId?: string;
 }
 
-export interface ISymbologyDialogWithAttributesProps
-  extends ISymbologyDialogProps {
+export interface ISymbologyDialogWithAttributesProps extends ISymbologyDialogProps {
   selectableAttributesAndValues: Record<string, Set<any>>;
 }
 
@@ -46,7 +45,8 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   cancel,
 }) => {
   const [selectedLayer, setSelectedLayer] = useState<string | null>(null);
-  const [componentToRender, setComponentToRender] = useState<any>(null);
+  const [componentToRender, setComponentToRender] =
+    useState<JSX.Element | null>(null);
 
   let LayerSymbology: React.JSX.Element;
 
