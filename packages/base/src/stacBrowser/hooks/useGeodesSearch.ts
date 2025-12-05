@@ -1,5 +1,4 @@
-import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { startOfYesterday } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -9,59 +8,71 @@ import {
   IStacItem,
   IStacLink,
   IStacQueryBody,
-  IStacSearchResult,
   StacFilterState,
   StacFilterSetters,
   StacFilterStateStateDb,
 } from '@/src/stacBrowser/types/types';
 import { GlobalStateDbManager } from '@/src/store';
-import { fetchWithProxies } from '@/src/tools';
-import { useGeneric } from './useStacSearch';
+import { useStacSearch } from './useStacSearch';
 
-interface IUseStacSearchProps {
+interface IUseGeodesSearchProps {
   model: IJupyterGISModel | undefined;
+  apiUrl: string;
+  setResults: (
+    results: IStacItem[],
+    isLoading: boolean,
+    totalResults: number,
+  ) => void;
+  setPaginationLinks: (
+    links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
+  ) => void;
+  setPaginationHandlers: (
+    handlePaginationClick: (dir: 'next' | 'previous') => Promise<void>,
+    handleResultClick: (id: string) => Promise<void>,
+    formatResult: (item: IStacItem) => string,
+  ) => void;
+  registerAddToMap: (addFn: (stacData: IStacItem) => void) => void;
+  registerFetchUsingLink: (
+    fetchFn: (
+      link: IStacLink & { method?: string; body?: Record<string, any> },
+    ) => Promise<void>,
+  ) => void;
 }
 
-// ! TODO factor out common bits
-interface IUseStacSearchReturn {
+interface IUseGeodesSearchReturn {
   filterState: StacFilterState;
   filterSetters: StacFilterSetters;
-  results: IStacItem[];
   startTime: Date | undefined;
   setStartTime: (date: Date | undefined) => void;
   endTime: Date | undefined;
   setEndTime: (date: Date | undefined) => void;
-  totalPages: number;
-  currentPage: number;
-  totalResults: number;
-  handlePaginationClick: (dir: 'next' | 'previous' | number) => Promise<void>;
-  handleResultClick: (id: string) => Promise<void>;
-  formatResult: (item: IStacItem) => string;
-  isLoading: boolean;
   useWorldBBox: boolean;
   setUseWorldBBox: (val: boolean) => void;
-  paginationLinks: Array<
-    IStacLink & { method?: string; body?: Record<string, any> }
-  >;
-  setPaginationLinks: (
-    links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
-  ) => void;
+  handleSubmit: () => Promise<void>;
 }
 
-const API_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
-const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
 const STAC_FILTERS_KEY = 'jupytergis:stac-filters';
+const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
 
 /**
- * Custom hook for managing STAC search functionality
- * @param props - Configuration object containing datasets, platforms, products, and model
- * @returns Object containing state and handlers for STAC search
+ * Custom hook for managing GEODES-specific STAC search functionality
+ * Focuses on query building with GEODES-specific filters
+ * @param props - Configuration object containing model and context setters
+ * @returns Object containing filter state and temporal/spatial filters
  */
-function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
+function useGeodesSearch({
+  model,
+  apiUrl,
+  setResults,
+  setPaginationLinks,
+  setPaginationHandlers,
+  registerAddToMap,
+  registerFetchUsingLink,
+}: IUseGeodesSearchProps): IUseGeodesSearchReturn {
   const isFirstRender = useIsFirstRender();
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-  // Get generic state from useGeneric hook
+  // Get temporal/spatial filters and fetch functions from useStacSearch
   const {
     startTime,
     setStartTime,
@@ -70,16 +81,15 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
     currentBBox,
     useWorldBBox,
     setUseWorldBBox,
-  } = useGeneric({ model });
+    handleSubmit: handleSubmitFromGeneric,
+    fetchUsingLink,
+  } = useStacSearch({
+    model,
+    setResults,
+    setPaginationLinks,
+    registerAddToMap,
+  });
 
-  const [results, setResults] = useState<IStacItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [totalPages, setTotalPages] = useState(1);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalResults, setTotalResults] = useState(0);
-  const [paginationLinks, setPaginationLinks] = useState<
-    Array<IStacLink & { method?: string; body?: Record<string, any> }>
-  >([]);
   const [filterState, setFilterState] = useState<StacFilterState>({
     collections: new Set(),
     datasets: new Set(),
@@ -127,15 +137,10 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
     saveStacFilterStateToDb();
   }, [filterState, stateDb]);
 
-  // Handle search when filters change
-  useEffect(() => {
-    if (model && !isFirstRender && filterState.datasets.size > 0) {
-      setCurrentPage(1);
-      fetchResults(1);
-    }
-  }, [filterState, startTime, endTime, currentBBox]);
-
-  const fetchResults = async (page = 1) => {
+  /**
+   * Builds GEODES-specific query
+   */
+  const buildGeodesQuery = useCallback((): IStacQueryBody => {
     const processingLevel = new Set<string>();
     const productType = new Set<string>();
 
@@ -152,10 +157,9 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
         });
     });
 
-    const body: IStacQueryBody = {
+    return {
       bbox: currentBBox,
       limit: 12,
-      page,
       query: {
         latest: { eq: true },
         dataset: { in: Array.from(filterState.datasets) },
@@ -179,128 +183,95 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       },
       sortBy: [{ direction: 'desc', field: 'start_datetime' }],
     };
+  }, [filterState, currentBBox, startTime, endTime]);
 
-    try {
-      setIsLoading(true);
-      const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-XSRFToken': XSRF_TOKEN,
-          credentials: 'include',
-        },
-        body: JSON.stringify(body),
-      };
-
-      if (!model) {
-        return;
-      }
-
-      const data = (await fetchWithProxies(
-        API_URL,
-        model,
-        async response => await response.json(),
-        //@ts-expect-error Jupyter requires X-XSRFToken header
-        options,
-        'internal',
-      )) as IStacSearchResult;
-
-      if (!data) {
-        console.debug('STAC search failed -- no results found');
-        setResults([]);
-        setTotalPages(1);
-        setTotalResults(0);
-        return;
-      }
-
-      setResults(data.features);
-      const pages = data.context.matched / data.context.limit;
-      setTotalPages(Math.ceil(pages));
-      setTotalResults(data.context.matched);
-    } catch (error) {
-      console.error('STAC search failed -- error fetching data:', error);
-      setResults([]);
-      setTotalPages(1);
-      setTotalResults(0);
-    } finally {
-      setIsLoading(false);
+  /**
+   * Handles form submission - builds query and fetches results
+   */
+  const handleSubmit = useCallback(async () => {
+    if (!model) {
+      return;
     }
-  };
+
+    // Use handleSubmit from useStacSearch to initiate the query
+    await handleSubmitFromGeneric(buildGeodesQuery, apiUrl);
+  }, [model, buildGeodesQuery, handleSubmitFromGeneric, apiUrl]);
+
+  // Handle search when filters change
+  useEffect(() => {
+    if (model && !isFirstRender && filterState.datasets.size > 0) {
+      handleSubmit();
+    }
+  }, [
+    model,
+    isFirstRender,
+    filterState,
+    startTime,
+    endTime,
+    currentBBox,
+    handleSubmit,
+  ]);
 
   /**
    * Handles clicking on a result item
-   * @param id - ID of the clicked result
+   * This will be used by context, which will call addToMap via registerAddToMap
+   * @param id - ID of the clicked result (not used directly, context handles it)
    */
-  const handleResultClick = async (id: string): Promise<void> => {
-    if (!results) {
-      return;
-    }
-
-    const layerId = UUID.uuid4();
-    const stacData = results.find(item => item.id === id);
-
-    if (!stacData) {
-      console.error('Result not found:', id);
-      return;
-    }
-
-    const layerModel: IJGISLayer = {
-      type: 'StacLayer',
-      parameters: { data: stacData },
-      visible: true,
-      name: stacData.properties.title ?? stacData.id,
-    };
-
-    model && model.addLayer(layerId, layerModel);
-  };
+  const handleResultClick = useCallback(async (_id: string): Promise<void> => {
+    // Context will handle this using addToMapRef
+  }, []);
 
   /**
-   * Handles pagination clicks
-   * @param dir - Direction ('next' | 'previous') or page number to navigate to
+   * Handles pagination clicks (link-only, no page numbers)
+   * Uses fetchUsingLink from useStacSearch which is registered with context
+   * @param dir - Direction ('next' | 'previous')
    */
-  const handlePaginationClick = async (
-    dir: 'next' | 'previous' | number,
-  ): Promise<void> => {
-    if (typeof dir === 'number') {
-      setCurrentPage(dir);
-      model && fetchResults(dir);
-    } else {
-      // For 'next' or 'previous', calculate the page number
-      const newPage = dir === 'next' ? currentPage + 1 : currentPage - 1;
-      setCurrentPage(newPage);
-      model && fetchResults(newPage);
-    }
-  };
+  const handlePaginationClick = useCallback(
+    async (dir: 'next' | 'previous'): Promise<void> => {
+      // Context will handle this using fetchUsingLinkRef
+    },
+    [],
+  );
 
   /**
    * Formats a result item for display
    * @param item - STAC item to format
    * @returns Formatted string representation of the item
    */
-  const formatResult = (item: IStacItem): string => {
-    return item.properties.title ?? item.id;
-  };
+  const formatResult = useCallback((item: IStacItem): string => {
+    return item.properties?.title ?? item.id;
+  }, []);
+
+  // Register fetchUsingLink with context
+  useEffect(() => {
+    registerFetchUsingLink(fetchUsingLink);
+  }, [fetchUsingLink, registerFetchUsingLink]);
+
+  // Register handlers with context
+  useEffect(() => {
+    setPaginationHandlers(
+      handlePaginationClick,
+      handleResultClick,
+      formatResult,
+    );
+  }, [
+    handlePaginationClick,
+    handleResultClick,
+    formatResult,
+    setPaginationHandlers,
+  ]);
 
   return {
     filterState,
     filterSetters,
-    results,
     startTime,
     setStartTime,
     endTime,
     setEndTime,
-    totalPages,
-    currentPage,
-    totalResults,
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
-    isLoading,
     useWorldBBox,
     setUseWorldBBox,
-    paginationLinks,
-    setPaginationLinks,
+    handleSubmit,
   };
 }
 
-export default useStacSearch;
+export default useGeodesSearch;

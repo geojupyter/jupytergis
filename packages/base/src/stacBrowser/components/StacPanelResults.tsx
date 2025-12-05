@@ -46,8 +46,6 @@ function getPageItems(
 const StacPanelResults = () => {
   const {
     results,
-    currentPage,
-    totalPages,
     handlePaginationClick,
     handleResultClick,
     formatResult,
@@ -100,25 +98,34 @@ const StacPanelResults = () => {
           {results.length === 0 ? (
             <div>No Matches Found</div>
           ) : (
-            getPageItems(currentPage, totalPages).map(item => {
-              if (item === 'ellipsis') {
-                return (
-                  <PaginationItem key="ellipsis">
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                );
-              }
-              return (
-                <PaginationItem key={item}>
-                  <PaginationLink
-                    isActive={item === currentPage}
-                    onClick={() => handlePaginationClick('next')}
-                  >
-                    {item}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })
+            // getPageItems(currentPage, totalPages).map(item => {
+            //   if (item === 'ellipsis') {
+            //     return (
+            //       <PaginationItem key="ellipsis">
+            //         <PaginationEllipsis />
+            //       </PaginationItem>
+            //     );
+            //   }
+            //   return (
+            //     <PaginationItem key={item}>
+            //       <PaginationLink
+            //         isActive={item === currentPage}
+            //         onClick={() => handlePaginationClick('next')}
+            //       >
+            //         {item}
+            //       </PaginationLink>
+            //     </PaginationItem>
+            //   );
+            // })
+
+            <PaginationItem key="wwsew">
+              <PaginationLink
+                isActive={true}
+                onClick={() => handlePaginationClick('next')}
+              >
+                1
+              </PaginationLink>
+            </PaginationItem>
           )}
           <PaginationItem>
             <PaginationNext

@@ -1,15 +1,14 @@
-import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { endOfToday, startOfToday } from 'date-fns';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { fetchWithProxies } from '@/src/tools';
-import useStacSearch from './useGeodesSearch';
+import { useStacSearch } from './useStacSearch';
 import {
   IStacCollection,
   IStacItem,
   IStacLink,
-  IStacSearchResult,
+  IStacQueryBody,
 } from '../types/types';
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
@@ -28,26 +27,20 @@ export type UpdateQueryableFilter = (
   filter: IQueryableFilter,
 ) => void;
 
-const API_URL = 'https://stac.dataspace.copernicus.eu/v1/';
+// Helper to get search URL from base URL
+const getSearchUrl = (baseUrl: string): string => {
+  return baseUrl.endsWith('/') ? `${baseUrl}search` : `${baseUrl}/search`;
+};
 
 interface IUseStacGenericFilterProps {
   model?: IJupyterGISModel;
+  baseUrl: string;
   limit?: number;
   setResults: (
     results: IStacItem[],
     isLoading: boolean,
-    totalPages: number,
-    currentPage: number,
     totalResults: number,
   ) => void;
-  results: IStacItem[];
-  isLoading: boolean;
-  totalPages: number;
-  currentPage: number;
-  totalResults: number;
-  paginationLinks: Array<
-    IStacLink & { method?: string; body?: Record<string, any> }
-  >;
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
@@ -61,35 +54,36 @@ interface IUseStacGenericFilterProps {
 
 export function useStacGenericFilter({
   model,
+  baseUrl,
   limit = 12,
   setResults,
-  results,
-  isLoading,
-  totalPages,
-  currentPage,
-  totalResults,
-  paginationLinks,
   setPaginationLinks,
   registerFetchUsingLink,
   registerAddToMap,
 }: IUseStacGenericFilterProps) {
+  // Get temporal/spatial filters and fetch functions from useStacSearch
   const {
     startTime,
     endTime,
     setStartTime,
     setEndTime,
+    currentBBox,
     useWorldBBox,
     setUseWorldBBox,
-  } = useStacSearch({ model });
+    handleSubmit: handleSubmitFromGeneric,
+    fetchUsingLink,
+  } = useStacSearch({
+    model,
+    setResults,
+    setPaginationLinks,
+    registerAddToMap,
+  });
 
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
   // ! temp
   const [selectedCollection, setSelectedCollection] =
     useState('sentinel-2-l2a');
-  const [currentBBox, setCurrentBBox] = useState<
-    [number, number, number, number]
-  >([-180, -90, 180, 90]);
   const [queryableFilters, setQueryableFilters] = useState<
     Record<string, IQueryableFilter>
   >({});
@@ -102,8 +96,11 @@ export function useStacGenericFilter({
     }
 
     const fatch = async () => {
+      const collectionsUrl = baseUrl.endsWith('/')
+        ? `${baseUrl}collections`
+        : `${baseUrl}/collections`;
       const data = await fetchWithProxies(
-        API_URL + 'collections',
+        collectionsUrl,
         model,
         async response => await response.json(),
         undefined,
@@ -137,8 +134,11 @@ export function useStacGenericFilter({
     }
 
     const fatch = async () => {
+      const queryablesUrl = baseUrl.endsWith('/')
+        ? `${baseUrl}queryables`
+        : `${baseUrl}/queryables`;
       const data = await fetchWithProxies(
-        API_URL + 'queryables',
+        queryablesUrl,
         model,
         async response => await response.json(),
         undefined,
@@ -151,51 +151,6 @@ export function useStacGenericFilter({
     fatch();
   }, [model]);
 
-  useEffect(() => {
-    if (!model) {
-      return;
-    }
-
-    const listenToModel = (
-      sender: IJupyterGISModel,
-      bBoxIn4326: [number, number, number, number],
-    ) => {
-      if (useWorldBBox) {
-        setCurrentBBox([-180, -90, 180, 90]);
-      } else {
-        setCurrentBBox(bBoxIn4326);
-      }
-    };
-
-    model.updateBboxSignal.connect(listenToModel);
-
-    return () => {
-      model.updateBboxSignal.disconnect(listenToModel);
-    };
-  }, [model, useWorldBBox]);
-
-  const addToMap = (stacData: any) => {
-    console.log('add to amp');
-    if (!model) {
-      return;
-    }
-
-    const layerId = UUID.uuid4();
-
-    if (!stacData) {
-      return;
-    }
-
-    const layerModel: IJGISLayer = {
-      type: 'StacLayer',
-      parameters: { data: stacData },
-      visible: true,
-      name: stacData.properties.title ?? stacData.id,
-    };
-
-    model.addLayer(layerId, layerModel);
-  };
-
   const updateQueryableFilter = useCallback(
     (qKey: string, filter: IQueryableFilter) => {
       setQueryableFilters(prev => ({
@@ -206,16 +161,10 @@ export function useStacGenericFilter({
     [],
   );
 
-  const handleSubmit = async () => {
-    if (!model) {
-      return;
-    }
-
-    // Reset to page 1
-    setResults(results, isLoading, totalPages, 1, totalResults);
-
-    const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-
+  /**
+   * Builds Copernicus-specific query
+   */
+  const buildCopernicusQuery = useCallback((): IStacQueryBody => {
     const st = startTime
       ? startTime.toISOString()
       : startOfToday().toISOString();
@@ -253,224 +202,34 @@ export function useStacGenericFilter({
       };
     }
 
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-XSRFToken': XSRF_TOKEN,
-        credentials: 'include',
-      },
-      body: JSON.stringify(body),
-    };
-
-    try {
-      // Update context with loading state
-      setResults(results, true, totalPages, currentPage, totalResults);
-      const data = (await fetchWithProxies(
-        'https://stac.dataspace.copernicus.eu/v1/search',
-        model,
-        async response => await response.json(),
-        //@ts-expect-error Jupyter requires X-XSRFToken header
-        options,
-        'internal',
-      )) as IStacSearchResult;
-
-      if (!data) {
-        setResults([], false, 1, currentPage, 0);
-        return;
-      }
-
-      // Filter assets to only include items with 'overview' or 'thumbnail' roles
-      // ? is this a good idea??
-      if (data.features && data.features.length > 0) {
-        data.features.forEach(feature => {
-          if (feature.assets) {
-            const originalAssets = feature.assets;
-            const filteredAssets: Record<string, any> = {};
-
-            // Iterate through each asset in the assets object
-            for (const [key, asset] of Object.entries(originalAssets)) {
-              if (
-                asset &&
-                typeof asset === 'object' &&
-                'roles' in asset &&
-                Array.isArray(asset.roles)
-              ) {
-                const roles = asset.roles;
-
-                if (roles.includes('thumbnail') || roles.includes('overview')) {
-                  filteredAssets[key] = asset;
-                }
-              }
-            }
-
-            // Replace assets with filtered version
-            feature.assets = filteredAssets;
-          }
-        });
-      }
-
-      // Sort features by id before setting results
-      const sortedFeatures = [...data.features].sort((a, b) =>
-        a.id.localeCompare(b.id),
-      );
-
-      // Handle context if available (STAC API extension)
-      let calculatedTotalPages = 1;
-      let calculatedTotalResults = data.features.length;
-      if (data.context) {
-        const pages = data.context.matched / data.context.limit;
-        calculatedTotalPages = Math.ceil(pages);
-        calculatedTotalResults = data.context.matched;
-      }
-
-      // Update context with results
-      setResults(
-        sortedFeatures,
-        false,
-        calculatedTotalPages,
-        currentPage,
-        calculatedTotalResults,
-      );
-
-      // Store pagination links
-      if (data.links) {
-        const typedLinks = data.links as Array<
-          IStacLink & { method?: string; body?: Record<string, any> }
-        >;
-        setPaginationLinks(typedLinks);
-      }
-    } catch (error) {
-      setResults([], false, 1, currentPage, 0);
-    }
-  };
+    return body as IStacQueryBody;
+  }, [
+    startTime,
+    endTime,
+    currentBBox,
+    selectedCollection,
+    limit,
+    queryableFilters,
+    filterOperator,
+  ]);
 
   /**
-   * Fetches results using a STAC link (for pagination)
-   * @param link - STAC link object with href and optional body
+   * Handles form submission - builds query and fetches results
    */
-  const fetchUsingLink = useCallback(
-    async (
-      link: IStacLink & { method?: string; body?: Record<string, any> },
-    ) => {
-      if (!model) {
-        return;
-      }
+  const handleSubmit = useCallback(async () => {
+    if (!model) {
+      return;
+    }
 
-      const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
+    // Use handleSubmit from useStacSearch to initiate the query
+    const searchUrl = getSearchUrl(baseUrl);
+    await handleSubmitFromGeneric(buildCopernicusQuery, searchUrl);
+  }, [model, buildCopernicusQuery, handleSubmitFromGeneric, baseUrl]);
 
-      const options = {
-        method: (link.method || 'POST').toUpperCase(),
-        headers: {
-          'Content-Type': 'application/json',
-          'X-XSRFToken': XSRF_TOKEN,
-          credentials: 'include',
-        },
-        body: link.body ? JSON.stringify(link.body) : undefined,
-      };
-
-      try {
-        // Update context with loading state
-        setResults(results, true, totalPages, currentPage, totalResults);
-        const data = (await fetchWithProxies(
-          link.href,
-          model,
-          async response => await response.json(),
-          //@ts-expect-error Jupyter requires X-XSRFToken header
-          options,
-          'internal',
-        )) as IStacSearchResult;
-
-        if (!data) {
-          setResults([], false, 1, currentPage, 0);
-          return;
-        }
-
-        // Filter assets to only include items with 'overview' or 'thumbnail' roles
-        if (data.features && data.features.length > 0) {
-          data.features.forEach(feature => {
-            if (feature.assets) {
-              const originalAssets = feature.assets;
-              const filteredAssets: Record<string, any> = {};
-
-              for (const [key, asset] of Object.entries(originalAssets)) {
-                if (
-                  asset &&
-                  typeof asset === 'object' &&
-                  'roles' in asset &&
-                  Array.isArray(asset.roles)
-                ) {
-                  const roles = asset.roles;
-
-                  if (
-                    roles.includes('thumbnail') ||
-                    roles.includes('overview')
-                  ) {
-                    filteredAssets[key] = asset;
-                  }
-                }
-              }
-
-              feature.assets = filteredAssets;
-            }
-          });
-        }
-
-        // Sort features by id before setting results
-        const sortedFeatures = [...data.features].sort((a, b) =>
-          a.id.localeCompare(b.id),
-        );
-
-        // Handle context if available (STAC API extension)
-        let calculatedTotalPages = 1;
-        let calculatedTotalResults = data.features.length;
-        if (data.context) {
-          const pages = data.context.matched / data.context.limit;
-          calculatedTotalPages = Math.ceil(pages);
-          calculatedTotalResults = data.context.matched;
-        }
-
-        // Update context with results
-        setResults(
-          sortedFeatures,
-          false,
-          calculatedTotalPages,
-          currentPage,
-          calculatedTotalResults,
-        );
-
-        // Store pagination links for next pagination
-        if (data.links) {
-          const typedLinks = data.links as Array<
-            IStacLink & { method?: string; body?: Record<string, any> }
-          >;
-
-          setPaginationLinks(typedLinks);
-        }
-      } catch (error) {
-        setResults([], false, 1, currentPage, 0);
-      }
-    },
-    [
-      model,
-      results,
-      isLoading,
-      totalPages,
-      currentPage,
-      totalResults,
-      setResults,
-      setPaginationLinks,
-    ],
-  );
-
-  // Register functions with context so handlers can use them
+  // Register fetchUsingLink from useStacSearch with context so handlers can use it
   useEffect(() => {
     registerFetchUsingLink(fetchUsingLink);
   }, [fetchUsingLink, registerFetchUsingLink]);
-
-  useEffect(() => {
-    registerAddToMap(addToMap);
-  }, [addToMap, registerAddToMap]);
 
   return {
     queryableProps,
