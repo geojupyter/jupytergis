@@ -1,10 +1,13 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISLayerBrowserRegistry,
   IJGISLayerGroup,
   IJGISLayerItem,
+  IJGISStoryMap,
   IJupyterGISModel,
+  ILandmarkLayer,
   JgisCoordinates,
   LayerType,
   SelectionType,
@@ -16,7 +19,7 @@ import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
@@ -1052,6 +1055,72 @@ export function addCommands(
       commands.notifyCommandChanged(CommandIDs.addMarker);
     },
     ...icons.get(CommandIDs.addMarker),
+  });
+
+  commands.addCommand(CommandIDs.addLandmark, {
+    label: trans.__('Add View as Landmark'),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: args => {
+      const storyMapId = UUID.uuid4();
+      const newLandmarkId = UUID.uuid4();
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      const { zoom, extent } = current.model.getOptions();
+
+      if (!zoom || !extent) {
+        console.warn('No extent or zoom found');
+        return;
+      }
+
+      const layerParams: ILandmarkLayer = {
+        extent,
+        zoom,
+        transition: { type: 'linear', time: 1 },
+      };
+      const layerModel: IJGISLayer = {
+        type: 'LandmarkLayer',
+        visible: true,
+        name: 'Landmark',
+        parameters: layerParams,
+      };
+
+      current.model.addLayer(newLandmarkId, layerModel);
+
+      // check for stories
+      const isStoriesExist =
+        Object.keys(current.model.sharedModel.stories).length !== 0;
+
+      // if not stories, then just add simple
+      if (!isStoriesExist) {
+        const title = 'New Story';
+        const storyType = 'guided';
+        const landmarks = [newLandmarkId];
+
+        const storyMap: IJGISStoryMap = { title, storyType, landmarks };
+
+        current.model.sharedModel.addStoryMap(storyMapId, storyMap);
+      } else {
+        // else need to update stories
+        const { story } = current.model.getSelectedStory();
+        if (!story) {
+          console.warn('No story found, something went wrong');
+          return;
+        }
+        const newStory: IJGISStoryMap = {
+          ...story,
+          landmarks: [...(story.landmarks ?? []), newLandmarkId],
+        };
+
+        current.model.sharedModel.updateStoryMap(storyMapId, newStory);
+      }
+    },
+    ...icons.get(CommandIDs.addLandmark),
   });
 
   loadKeybindings(commands, keybindings);

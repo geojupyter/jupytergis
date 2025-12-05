@@ -11,6 +11,7 @@
 @import url('./statusBar.css');
 @import url('./temporalSlider.css');
 @import url('./tabPanel.css');
+@import url('./storyPanel.css');
 @import url('ol/ol.css');
 @import url('./shared/button.css');
 @import url('./shared/toggle.css');
@@ -20,6 +21,7 @@
 @import url('./shared/dropdownMenu.css');
 @import url('./shared/badge.css');
 @import url('./shared/checkbox.css');
+@import url('./shared/switch.css');
 
 .errors {
   color: var(--jp-warn-color0);

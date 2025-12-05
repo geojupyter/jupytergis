@@ -8,6 +8,9 @@ import * as React from 'react';
 
 import { AnnotationsPanel } from './annotationPanel';
 import { IdentifyPanelComponent } from './components/identify-panel/IdentifyPanel';
+import { PreviewModeSwitch } from './components/story-maps/PreviewModeSwitch';
+import StoryEditorPanel from './components/story-maps/StoryEditorPanel';
+import StoryViewerPanel from './components/story-maps/StoryViewerPanel';
 import { ObjectPropertiesReact } from './objectproperties';
 import {
   PanelTabs,
@@ -23,11 +26,16 @@ interface IRightPanelProps {
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
+  const [displayEditor, setDisplayEditor] = React.useState(true);
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
   const tabInfo = [
-    !settings.objectPropertiesDisabled
+    !settings.objectPropertiesDisabled && settings.storyMapPresentationDisabled
       ? { name: 'objectProperties', title: 'Object Properties' }
       : false,
+    {
+      name: 'storyPanel',
+      title: displayEditor ? 'Story Editor' : 'Story Map',
+    },
     !settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
       : false,
@@ -36,9 +44,12 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
       : false,
   ].filter(Boolean) as { name: string; title: string }[];
 
-  const [curTab, setCurTab] = React.useState<string | undefined>(
-    tabInfo.length > 0 ? tabInfo[0].name : undefined,
-  );
+  const [curTab, setCurTab] = React.useState<string>(() => {
+    if (!settings.storyMapPresentationDisabled) {
+      return 'storyPanel';
+    }
+    return tabInfo.length > 0 ? tabInfo[0].name : '';
+  });
 
   React.useEffect(() => {
     const onSettingsChanged = () => {
@@ -82,6 +93,10 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
 
+  const toggleEditor = () => {
+    setDisplayEditor(!displayEditor);
+  };
+
   return (
     <div
       className="jgis-right-panel-container"
@@ -120,6 +135,24 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             />
           </TabsContent>
         )}
+
+        <TabsContent
+          value="storyPanel"
+          className="jgis-panel-tab-content"
+          style={{ paddingTop: 0 }}
+        >
+          {settings.storyMapPresentationDisabled && (
+            <PreviewModeSwitch
+              checked={!displayEditor}
+              onCheckedChange={toggleEditor}
+            />
+          )}
+          {!settings.storyMapPresentationDisabled || !displayEditor ? (
+            <StoryViewerPanel model={props.model} />
+          ) : (
+            <StoryEditorPanel model={props.model} />
+          )}
+        </TabsContent>
 
         {!settings.annotationsDisabled && (
           <TabsContent value="annotations" className="jgis-panel-tab-content">
