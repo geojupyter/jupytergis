@@ -51,11 +51,12 @@ interface IUseStacGenericFilterProps {
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
-  setPaginationHandlers: (
-    handlePaginationClick: (dir: 'next' | 'previous' | number) => Promise<void>,
-    handleResultClick: (id: string) => Promise<void>,
-    formatResult: (item: IStacItem) => string,
+  registerFetchUsingLink: (
+    fetchFn: (
+      link: IStacLink & { method?: string; body?: Record<string, any> },
+    ) => Promise<void>,
   ) => void;
+  registerAddToMap: (addFn: (stacData: IStacItem) => void) => void;
 }
 
 export function useStacGenericFilter({
@@ -69,7 +70,8 @@ export function useStacGenericFilter({
   totalResults,
   paginationLinks,
   setPaginationLinks,
-  setPaginationHandlers,
+  registerFetchUsingLink,
+  registerAddToMap,
 }: IUseStacGenericFilterProps) {
   const {
     startTime,
@@ -79,18 +81,6 @@ export function useStacGenericFilter({
     useWorldBBox,
     setUseWorldBBox,
   } = useStacSearch({ model });
-
-  // Use a ref to always access the latest paginationLinks value
-  const paginationLinksRef = useRef(paginationLinks);
-  useEffect(() => {
-    paginationLinksRef.current = paginationLinks;
-  }, [paginationLinks]);
-
-  // Use a ref to always access the latest results value
-  const resultsRef = useRef(results);
-  useEffect(() => {
-    resultsRef.current = results;
-  }, [results]);
 
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
@@ -343,7 +333,7 @@ export function useStacGenericFilter({
         calculatedTotalResults,
       );
 
-      // Store pagination links for use in handlePaginationClick
+      // Store pagination links
       if (data.links) {
         const typedLinks = data.links as Array<
           IStacLink & { method?: string; body?: Record<string, any> }
@@ -354,27 +344,6 @@ export function useStacGenericFilter({
       setResults([], false, 1, currentPage, 0);
     }
   };
-
-  /**
-   * Handles clicking on a result item
-   * @param id - ID of the clicked result
-   */
-  const handleResultClick = useCallback(
-    async (id: string): Promise<void> => {
-      console.log('handle reuslt cliks');
-      if (!model) {
-        return;
-      }
-
-      // Always use ref to get the latest results value
-      const currentResults = resultsRef.current;
-      const result = currentResults.find((r: IStacItem) => r.id === id);
-      if (result) {
-        addToMap(result);
-      }
-    },
-    [model],
-  );
 
   /**
    * Fetches results using a STAC link (for pagination)
@@ -476,8 +445,6 @@ export function useStacGenericFilter({
             IStacLink & { method?: string; body?: Record<string, any> }
           >;
 
-          // Update ref synchronously before updating context
-          paginationLinksRef.current = typedLinks;
           setPaginationLinks(typedLinks);
         }
       } catch (error) {
@@ -496,75 +463,14 @@ export function useStacGenericFilter({
     ],
   );
 
-  /**
-   * Handles pagination clicks
-   * @param dir - Direction ('next' | 'previous') or page number (for backward compatibility)
-   */
-  const handlePaginationClick = useCallback(
-    async (dir: 'next' | 'previous' | number): Promise<void> => {
-      // Always use ref to get the latest paginationLinks value
-      const currentLinks = paginationLinksRef.current;
-
-      if (!model) {
-        return;
-      }
-
-      // If dir is a number, convert it to 'next' or 'previous' based on current page
-      let rel: 'next' | 'previous';
-      if (typeof dir === 'number') {
-        rel = dir > currentPage ? 'next' : 'previous';
-      } else {
-        rel = dir;
-      }
-
-      // Find the pagination link using the ref
-      const link = currentLinks.find(l => l.rel === rel);
-
-      if (link && link.body) {
-        // Use the link with its body (contains token) to fetch the page
-        await fetchUsingLink(link);
-        // Update current page after successful fetch if dir was a number
-        if (typeof dir === 'number') {
-          setResults(results, isLoading, totalPages, dir, totalResults);
-        }
-      }
-    },
-    [
-      model,
-      currentPage,
-      results,
-      isLoading,
-      totalPages,
-      totalResults,
-      setResults,
-      fetchUsingLink,
-    ],
-  );
-
-  /**
-   * Formats a result item for display
-   * @param item - STAC item to format
-   * @returns Formatted string representation of the item
-   */
-  const formatResult = useCallback((item: IStacItem): string => {
-    return item.properties?.title ?? item.id;
-  }, []);
-
-  // Sync handlers to context whenever they change
-  // Also sync when paginationLinks change to ensure handler in context has latest links via ref
+  // Register functions with context so handlers can use them
   useEffect(() => {
-    setPaginationHandlers(
-      handlePaginationClick,
-      handleResultClick,
-      formatResult,
-    );
-  }, [
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
-    setPaginationHandlers,
-    paginationLinks, // Sync when links change so context gets updated handler
-  ]);
+    registerFetchUsingLink(fetchUsingLink);
+  }, [fetchUsingLink, registerFetchUsingLink]);
+
+  useEffect(() => {
+    registerAddToMap(addToMap);
+  }, [addToMap, registerAddToMap]);
 
   return {
     queryableProps,

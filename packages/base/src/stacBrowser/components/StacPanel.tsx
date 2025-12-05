@@ -73,7 +73,7 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
 // Outer component that provides the context
 const StacPanel = ({ model }: IStacViewProps) => {
   return (
-    <StacResultsProvider>
+    <StacResultsProvider model={model}>
       <StacPanelContent model={model} />
     </StacResultsProvider>
   );
