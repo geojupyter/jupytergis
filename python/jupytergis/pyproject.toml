@@ -9,11 +9,10 @@ classifiers = [
   "Framework :: Jupyter :: JupyterLab :: 4",
   "Framework :: Jupyter :: JupyterLab :: Extensions",
   "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
+  "Topic :: Scientific/Engineering :: GIS",
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -28,11 +27,18 @@ dependencies = [
   "jupyter-collaboration-ui>=1,<2",
   "jupyterlab>=4.3,<4.5.0",
 ]
+description = "Collaborative GIS extension for JupyterLab"
 dynamic = ["version"]
 license = {file = "LICENSE"}
 name = "jupytergis"
 readme = "README.md"
 requires-python = ">=3.10"
+
+[project.urls]
+Homepage = "https://github.com/geojupyter/jupytergis"
+Documentation = "https://jupytergis.readthedocs.io"
+Repository = "https://github.com/geojupyter/jupytergis.git"
+Issues = "https://github.com/geojupyter/jupytergis/issues"
 
 
 [tool.hatch.version]
