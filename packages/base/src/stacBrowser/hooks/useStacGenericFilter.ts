@@ -4,7 +4,7 @@ import { endOfToday, startOfToday } from 'date-fns';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { fetchWithProxies } from '@/src/tools';
-import useStacSearch from './useStacSearch';
+import useStacSearch from './useGeodesSearch';
 import {
   IStacCollection,
   IStacItem,
