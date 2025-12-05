@@ -13,20 +13,18 @@ import { IStacItem, IStacLink } from '../types/types';
 interface IStacResultsContext {
   results: IStacItem[];
   isLoading: boolean;
-  totalPages: number;
-  currentPage: number;
   totalResults: number;
-  handlePaginationClick: (dir: 'next' | 'previous' | number) => Promise<void>;
+  handlePaginationClick: (dir: 'next' | 'previous') => Promise<void>;
   handleResultClick: (id: string) => Promise<void>;
   formatResult: (item: IStacItem) => string;
   paginationLinks: Array<
     IStacLink & { method?: string; body?: Record<string, any> }
   >;
+  selectedUrl: string;
+  setSelectedUrl: (url: string) => void;
   setResults: (
     results: IStacItem[],
     isLoading: boolean,
-    totalPages: number,
-    currentPage: number,
     totalResults: number,
   ) => void;
   setPaginationLinks: (
@@ -41,7 +39,7 @@ interface IStacResultsContext {
   registerAddToMap: (addFn: (stacData: IStacItem) => void) => void;
   // Set handlers from outside (for GEODES search)
   setPaginationHandlers: (
-    handlePaginationClick: (dir: 'next' | 'previous' | number) => Promise<void>,
+    handlePaginationClick: (dir: 'next' | 'previous') => Promise<void>,
     handleResultClick: (id: string) => Promise<void>,
     formatResult: (item: IStacItem) => string,
   ) => void;
@@ -62,14 +60,15 @@ export function StacResultsProvider({
 }: IStacResultsProviderProps) {
   const [results, setResultsState] = useState<IStacItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [totalPages, setTotalPages] = useState(1);
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const [paginationLinks, setPaginationLinksState] = useState<
     Array<IStacLink & { method?: string; body?: Record<string, any> }>
   >([]);
+  const [selectedUrl, setSelectedUrlState] = useState<string>(
+    'https://stac.dataspace.copernicus.eu/v1/',
+  );
   const [externalHandlers, setExternalHandlers] = useState<{
-    handlePaginationClick: (dir: 'next' | 'previous' | number) => Promise<void>;
+    handlePaginationClick: (dir: 'next' | 'previous') => Promise<void>;
     handleResultClick: (id: string) => Promise<void>;
     formatResult: (item: IStacItem) => string;
   } | null>(null);
@@ -87,14 +86,10 @@ export function StacResultsProvider({
     (
       newResults: IStacItem[],
       newIsLoading: boolean,
-      newTotalPages: number,
-      newCurrentPage: number,
       newTotalResults: number,
     ) => {
       setResultsState(newResults);
       setIsLoading(newIsLoading);
-      setTotalPages(newTotalPages);
-      setCurrentPage(newCurrentPage);
       setTotalResults(newTotalResults);
     },
     [],
@@ -108,6 +103,10 @@ export function StacResultsProvider({
     },
     [],
   );
+
+  const setSelectedUrl = useCallback((url: string) => {
+    setSelectedUrlState(url);
+  }, []);
 
   // Register functions from hooks
   const registerFetchUsingLink = useCallback(
@@ -130,9 +129,7 @@ export function StacResultsProvider({
 
   const setPaginationHandlers = useCallback(
     (
-      newHandlePaginationClick: (
-        dir: 'next' | 'previous' | number,
-      ) => Promise<void>,
+      newHandlePaginationClick: (dir: 'next' | 'previous') => Promise<void>,
       newHandleResultClick: (id: string) => Promise<void>,
       newFormatResult: (item: IStacItem) => string,
     ) => {
@@ -148,45 +145,23 @@ export function StacResultsProvider({
   // Handlers created in context - always read latest state directly
   // Use external handlers if provided, otherwise use context-created ones
   const handlePaginationClick = useCallback(
-    async (dir: 'next' | 'previous' | number): Promise<void> => {
+    async (dir: 'next' | 'previous'): Promise<void> => {
       if (!model) {
         return;
       }
 
       // Read directly from state - no closure issues!
       const currentLinks = paginationLinks;
-      const currentPageValue = currentPage;
 
-      // If dir is a number, convert it to 'next' or 'previous' based on current page
-      let rel: 'next' | 'previous';
-      if (typeof dir === 'number') {
-        rel = dir > currentPageValue ? 'next' : 'previous';
-      } else {
-        rel = dir;
-      }
-
-      // Find the pagination link
-      const link = currentLinks.find(l => l.rel === rel);
+      // Find the pagination link by rel
+      const link = currentLinks.find(l => l.rel === dir);
 
       if (link && link.body && fetchUsingLinkRef.current) {
         // Use the registered fetch function
         await fetchUsingLinkRef.current(link);
-        // Update current page after successful fetch if dir was a number
-        if (typeof dir === 'number') {
-          setResults(results, isLoading, totalPages, dir, totalResults);
-        }
       }
     },
-    [
-      model,
-      paginationLinks, // Direct dependency - no ref needed!
-      currentPage,
-      results,
-      isLoading,
-      totalPages,
-      totalResults,
-      setResults,
-    ],
+    [model, paginationLinks],
   );
 
   const handleResultClick = useCallback(
@@ -226,13 +201,13 @@ export function StacResultsProvider({
       value={{
         results,
         isLoading,
-        totalPages,
-        currentPage,
         totalResults,
         handlePaginationClick: finalHandlePaginationClick,
         handleResultClick: finalHandleResultClick,
         formatResult: finalFormatResult,
         paginationLinks,
+        selectedUrl,
+        setSelectedUrl,
         setResults,
         setPaginationLinks,
         registerFetchUsingLink,

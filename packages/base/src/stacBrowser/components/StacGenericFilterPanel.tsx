@@ -17,16 +17,11 @@ type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 // This is a generic UI for apis that support filter extension
 function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   const {
-    results,
     setResults,
-    isLoading,
-    totalPages,
-    currentPage,
-    totalResults,
     setPaginationLinks,
-    paginationLinks,
     registerFetchUsingLink,
     registerAddToMap,
+    selectedUrl,
   } = useStacResultsContext();
   const [limit, setLimit] = useState<number>(12);
 
@@ -47,14 +42,9 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     setFilterOperator,
   } = useStacGenericFilter({
     model,
+    baseUrl: selectedUrl,
     limit,
     setResults,
-    results,
-    isLoading,
-    totalPages,
-    currentPage,
-    totalResults,
-    paginationLinks,
     setPaginationLinks,
     registerFetchUsingLink,
     registerAddToMap,

@@ -1,7 +1,7 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import { Calendar } from '@/src/shared/components/Calendar';
@@ -10,67 +10,48 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
-import StacFilterSection from '@/src/stacBrowser/components/geodes/StacFilterSection';
-import StacCheckboxWithLabel from '@/src/stacBrowser/components/shared/StacCheckboxWithLabel';
 import {
   datasets as datasetsList,
   platforms as platformsList,
   products as productsList,
 } from '@/src/stacBrowser/constants';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
-import useStacSearch from '@/src/stacBrowser/hooks/useGeodesSearch';
+import useGeodesSearch from '@/src/stacBrowser/hooks/useGeodesSearch';
+import StacFilterSection from './StacFilterSection';
+import StacCheckboxWithLabel from '../shared/StacCheckboxWithLabel';
 
 interface IStacGeodesFilterPanelProps {
   model?: IJupyterGISModel;
 }
 
 const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
-  const { setResults, setPaginationHandlers, setPaginationLinks } =
-    useStacResultsContext();
+  const {
+    setResults,
+    setPaginationHandlers,
+    setPaginationLinks,
+    registerAddToMap,
+    registerFetchUsingLink,
+    selectedUrl,
+  } = useStacResultsContext();
 
   const {
     filterState,
     filterSetters,
-    results,
     startTime,
     setStartTime,
     endTime,
     setEndTime,
-    totalPages,
-    currentPage,
-    totalResults,
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
-    isLoading,
     useWorldBBox,
     setUseWorldBBox,
-    paginationLinks,
-  } = useStacSearch({ model });
-
-  // Sync results to context whenever they change
-  useEffect(() => {
-    setResults(results, isLoading, totalPages, currentPage, totalResults);
-  }, [results, isLoading, totalPages, currentPage, totalResults, setResults]);
-
-  // Sync handlers to context (GEODES has its own handlers)
-  useEffect(() => {
-    setPaginationHandlers(
-      handlePaginationClick,
-      handleResultClick,
-      formatResult,
-    );
-  }, [
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
+  } = useGeodesSearch({
+    model,
+    apiUrl: selectedUrl,
+    setResults,
+    setPaginationLinks,
     setPaginationHandlers,
-  ]);
-
-  // Sync pagination links to context whenever they change
-  useEffect(() => {
-    setPaginationLinks(paginationLinks);
-  }, [paginationLinks, setPaginationLinks]);
+    registerAddToMap,
+    registerFetchUsingLink,
+  });
 
   const handleDatasetSelection = (dataset: string, collection: string) => {
     const collections = new Set(filterState.collections);
