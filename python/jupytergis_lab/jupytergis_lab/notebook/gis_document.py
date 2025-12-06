@@ -146,6 +146,7 @@ class GISDocument(CommWidget):
         name: str = "Raster Layer",
         attribution: str = "",
         opacity: float = 1,
+        transient: bool = False,
     ):
         """
         Add a Raster Layer to the document.
@@ -158,6 +159,7 @@ class GISDocument(CommWidget):
         source = {
             "type": SourceType.RasterSource,
             "name": f"{name} Source",
+            "transient": transient,
             "parameters": {
                 "url": url,
                 "minZoom": 0,
@@ -176,6 +178,7 @@ class GISDocument(CommWidget):
             "type": LayerType.RasterLayer,
             "name": name,
             "visible": True,
+            "transient": transient,
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
@@ -923,7 +926,8 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
     ) -> Optional[JGISLayer]:
         object_type = data.get("type", None)
         name: str = data.get("name", None)
-        visible: str = data.get("visible", True)
+        visible: bool = data.get("visible", True)
+        transient: bool = data.get("transient", False)
         filters = data.get("filters", None)
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
@@ -936,6 +940,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
                 parent=parent,
                 name=name,
                 visible=visible,
+                transient=transient,
                 type=object_type,
                 parameters=obj_params,
                 filters=filters,
@@ -948,6 +953,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
     ) -> Optional[JGISSource]:
         object_type = data.get("type", None)
         name: str = data.get("name", None)
+        transient: bool = data.get("transient", False)
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
             args = {}
@@ -956,7 +962,11 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
                 args[field] = params.get(field, None)
             obj_params = Model(**args)
             return JGISSource(
-                parent=parent, name=name, type=object_type, parameters=obj_params
+                parent=parent,
+                name=name,
+                transient=transient,
+                type=object_type,
+                parameters=obj_params,
             )
 
         return None
