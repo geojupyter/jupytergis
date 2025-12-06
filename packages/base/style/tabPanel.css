@@ -89,3 +89,28 @@
     transparent 20%
   ) !important;
 }
+
+.jgis-stac-catalog-input-label {
+  font-weight: normal;
+  font-size: var(--jp-ui-font-size1);
+  color: var(--jp-ui-font-color1);
+}
+
+.jgis-stac-catalog-input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 4px;
+  background-color: var(--jp-input-background);
+  color: var(--jp-ui-font-color0);
+}
+
+.jgis-stac-url-input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
