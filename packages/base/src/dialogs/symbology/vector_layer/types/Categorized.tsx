@@ -201,8 +201,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       value: selectedAttributeRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       reverse: colorRampOptionsRef.current?.reverseRamp,
-      nClasses: colorRampOptionsRef.current?.numberOfShades,
-      mode: colorRampOptionsRef.current?.selectedMode,
       symbologyTab,
     };
 
@@ -225,8 +223,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
     const newStyle = { ...layer.parameters.color };
 
     if (method === 'color') {
-      console.log('delecol');
-
       delete newStyle['fill-color'];
       delete newStyle['stroke-color'];
       delete newStyle['circle-fill-color'];
@@ -236,8 +232,6 @@ const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
       // Reset color classification options
       if (layer.parameters.symbologyState) {
         layer.parameters.symbologyState.colorRamp = undefined;
-        layer.parameters.symbologyState.nClasses = undefined;
-        layer.parameters.symbologyState.mode = undefined;
       }
     }
 

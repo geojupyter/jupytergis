@@ -114,7 +114,10 @@ export async function requestAPI<T>(
     try {
       data = JSON.parse(data);
     } catch (error) {
-      console.log('Not a JSON response body.', response);
+      console.error(
+        'Jupyter API request failed -- not a JSON response body:',
+        response,
+      );
     }
   }
 

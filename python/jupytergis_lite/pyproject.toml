@@ -9,18 +9,17 @@ classifiers = [
   "Framework :: Jupyter :: JupyterLab :: 4",
   "Framework :: Jupyter :: JupyterLab :: Extensions",
   "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
+  "Topic :: Scientific/Engineering :: GIS",
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "jupytergis_core==0.9.2",
-  "jupytergis_lab==0.9.2",
+  "jupytergis_core==0.10.1",
+  "jupytergis_lab==0.10.1",
   "my-jupyter-shared-drive<0.2.0",
 ]
 dynamic = ["version"]
