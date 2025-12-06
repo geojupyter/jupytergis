@@ -934,8 +934,7 @@ export namespace JupyterGISModel {
     return Private.layerTreeRecursion(model.sharedModel.layerTree);
   }
 
-  export interface IOptions
-    extends DocumentRegistry.IModelOptions<IJupyterGISDoc> {
+  export interface IOptions extends DocumentRegistry.IModelOptions<IJupyterGISDoc> {
     annotationModel?: IAnnotationModel;
     settingRegistry?: ISettingRegistry;
   }

@@ -1,7 +1,7 @@
 import { IDict } from '@jupytergis/schema';
+import { ISubmitEvent } from '@rjsf/core';
 
 import { LayerPropertiesForm } from './layerform';
-import { ISubmitEvent } from '@rjsf/core';
 
 /**
  * The form to modify a hillshade layer.
