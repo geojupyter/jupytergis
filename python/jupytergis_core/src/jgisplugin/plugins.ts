@@ -67,11 +67,8 @@ const activate = async (
     window.jupytergisMaps = {};
   }
 
-  let settings: ISettingRegistry.ISettings | null = null;
-
   try {
-    settings = await settingRegistry.load(SETTINGS_ID);
-    console.log(`Loaded settings for ${SETTINGS_ID}`, settings);
+    await settingRegistry.load(SETTINGS_ID);
   } catch (error) {
     console.warn(`Failed to load settings for ${SETTINGS_ID}`, error);
   }
