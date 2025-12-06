@@ -17,8 +17,7 @@ export interface ISymbologyDialogProps {
   layerId?: string;
 }
 
-export interface ISymbologyDialogWithAttributesProps
-  extends ISymbologyDialogProps {
+export interface ISymbologyDialogWithAttributesProps extends ISymbologyDialogProps {
   selectableAttributesAndValues: Record<string, Set<any>>;
 }
 

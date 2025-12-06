@@ -304,6 +304,10 @@ class GISDocument(CommWidget):
             "parameters": {
                 "source": source_id,
                 "color": color_expr,
+                "symbologyState": {
+                    "renderType": "Single Symbol",
+                    "mode": "equal interval",
+                },
             },
             "filters": {
                 "appliedFilters": [

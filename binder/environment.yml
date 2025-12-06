@@ -8,7 +8,7 @@ dependencies:
   - yarn
 
   # Dependencies
-  - jupyterlab >=4.0.0,<5
+  - jupyterlab >=4.0.0,<4.5.0
 
   # Binder
   - jupyterlab-link-share=0.2

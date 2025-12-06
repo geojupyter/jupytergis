@@ -266,8 +266,10 @@ export interface IUserData {
   userData: User.IIdentity;
 }
 
-export interface IJupyterGISDocumentWidget
-  extends IDocumentWidget<SplitPanel, IJupyterGISModel> {
+export interface IJupyterGISDocumentWidget extends IDocumentWidget<
+  SplitPanel,
+  IJupyterGISModel
+> {
   readonly model: IJupyterGISModel;
 }
 
