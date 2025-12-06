@@ -4,33 +4,21 @@ import { useEffect, useState } from 'react';
 
 import { loadFile } from '@/src/tools';
 
-export interface IBandHistogram {
-  buckets: number[];
-  count: number;
-  max: number;
-  min: number;
-}
-
-export interface IBandRow {
+export interface IMultiBandRow {
   band: number;
   colorInterpretation?: string;
-  stats: {
-    minimum: number;
-    maximum: number;
-  };
 }
 
-const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
-  const [bandRows, setBandRows] = useState<IBandRow[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+const useGetMultiBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
+  const [bandRows, setBandRows] = useState<IMultiBandRow[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBandInfo = async () => {
+  const fetchBandList = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const bandsArr: IBandRow[] = [];
       const source = model.getSource(layer?.parameters?.source);
       const sourceInfo = source?.parameters?.urls[0];
 
@@ -67,29 +55,26 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
       const image = await tiff.getImage();
       const numberOfBands = image.getSamplesPerPixel();
 
+      const rows: IMultiBandRow[] = [];
       for (let i = 0; i < numberOfBands; i++) {
-        bandsArr.push({
+        rows.push({
           band: i,
-          stats: {
-            minimum: sourceInfo.min ?? 0,
-            maximum: sourceInfo.max ?? 100,
-          },
         });
       }
 
-      setBandRows(bandsArr);
+      setBandRows(rows);
     } catch (err: any) {
-      setError(`Error fetching band info: ${err.message}`);
+      setError(`Error fetching bands: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBandInfo();
+    fetchBandList();
   }, []);
 
   return { bandRows, setBandRows, loading, error };
 };
 
-export default useGetBandInfo;
+export default useGetMultiBandInfo;
