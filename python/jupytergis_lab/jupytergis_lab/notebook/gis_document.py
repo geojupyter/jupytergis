@@ -176,7 +176,8 @@ class GISDocument(CommWidget):
             "type": LayerType.RasterLayer,
             "name": name,
             "visible": True,
-            "parameters": {"source": source_id, "opacity": opacity},
+            "opacity": opacity,
+            "parameters": {"source": source_id},
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
@@ -225,11 +226,10 @@ class GISDocument(CommWidget):
             "type": LayerType.VectorTileLayer,
             "name": name,
             "visible": True,
+            "opacity": opacity,
             "parameters": {
                 "source": source_id,
-                "opacity": opacity,
                 "color": color_expr,
-                "opacity": opacity,
             },
             "filters": {
                 "appliedFilters": [
@@ -300,10 +300,10 @@ class GISDocument(CommWidget):
             "type": LayerType.VectorLayer,
             "name": name,
             "visible": True,
+            "opacity": opacity,
             "parameters": {
                 "source": source_id,
                 "color": color_expr,
-                "opacity": opacity,
                 "symbologyState": {
                     "renderType": "Single Symbol",
                     "mode": "equal interval",
@@ -350,7 +350,8 @@ class GISDocument(CommWidget):
             "type": LayerType.ImageLayer,
             "name": name,
             "visible": True,
-            "parameters": {"source": source_id, "opacity": opacity},
+            "opacity": opacity,
+            "parameters": {"source": source_id},
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
@@ -388,7 +389,8 @@ class GISDocument(CommWidget):
             "type": LayerType.RasterLayer,
             "name": name,
             "visible": True,
-            "parameters": {"source": source_id, "opacity": opacity},
+            "opacity": opacity,
+            "parameters": {"source": source_id},
         }
 
         return self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
@@ -433,9 +435,9 @@ class GISDocument(CommWidget):
             "type": LayerType.WebGlLayer,
             "name": name,
             "visible": True,
+            "opacity": opacity,
             "parameters": {
                 "source": source_id,
-                "opacity": opacity,
                 "color": color_expr,
             },
         }
@@ -537,11 +539,11 @@ class GISDocument(CommWidget):
             "type": LayerType.HeatmapLayer,
             "name": name,
             "visible": True,
+            "opacity": opacity,
             "parameters": {
                 "source": source_id,
                 "type": type,
                 "color": gradient,
-                "opacity": opacity,
                 "blur": blur,
                 "radius": radius,
                 "feature": feature,
@@ -588,10 +590,10 @@ class GISDocument(CommWidget):
             "type": LayerType.VectorLayer,
             "name": name,
             "visible": True,
+            "opacity": opacity,
             "parameters": {
                 "source": source_id,
                 "type": type,
-                "opacity": opacity,
                 "color": color_expr,
             },
             "filters": {

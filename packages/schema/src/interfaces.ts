@@ -122,9 +122,9 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   addLayerTreeItem(index: number, item: IJGISLayerItem): void;
   updateLayerTreeItem(index: number, item: IJGISLayerItem): void;
 
-  updateObjectParameters(
+  updateObject(
     id: string,
-    value: IJGISLayer['parameters'] | IJGISSource['parameters'],
+    value: Partial<IJGISLayer> | Partial<IJGISSource>,
   ): void;
   getObject(id: string): IJGISLayer | IJGISSource | undefined;
 
