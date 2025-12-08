@@ -122,7 +122,6 @@ const StacPanelResults = () => {
       </Pagination>
       <div
         className="jgis-stac-browser-results-list"
-        style={{ paddingLeft: '7rem' }}
       >
         {isLoading ? (
           // TODO: Fancy spinner
