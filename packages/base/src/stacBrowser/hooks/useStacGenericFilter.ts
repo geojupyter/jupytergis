@@ -70,7 +70,7 @@ export function useStacGenericFilter({
     currentBBox,
     useWorldBBox,
     setUseWorldBBox,
-    handleSubmit: handleSubmitFromGeneric,
+    executeQuery: executeQueryFromGeneric,
     fetchUsingLink,
   } = useStacSearch({
     model,
@@ -221,10 +221,10 @@ export function useStacGenericFilter({
       return;
     }
 
-    // Use handleSubmit from useStacSearch to initiate the query
+    // Use executeQuery from useStacSearch to initiate the query
     const searchUrl = getSearchUrl(baseUrl);
-    await handleSubmitFromGeneric(buildCopernicusQuery, searchUrl);
-  }, [model, buildCopernicusQuery, handleSubmitFromGeneric, baseUrl]);
+    await executeQueryFromGeneric(buildCopernicusQuery, searchUrl);
+  }, [model, buildCopernicusQuery, executeQueryFromGeneric, baseUrl]);
 
   // Register fetchUsingLink from useStacSearch with context so handlers can use it
   useEffect(() => {
