@@ -55,8 +55,6 @@ const StacPanelResults = () => {
     setCurrentPage,
   } = useStacResultsContext();
 
-
-
   useEffect(() => {
     console.log('current page in results', currentPage);
   }, [currentPage]);
@@ -71,8 +69,10 @@ const StacPanelResults = () => {
           <PaginationItem>
             <PaginationPrevious
               onClick={
-                () => handlePaginationClick('previous')
-                // handlePaginationClick(Math.max(1, currentPage - 1))
+                () => {
+                  setCurrentPage(Math.max(currentPage - 1, 1));
+                  handlePaginationClick('previous');
+                }
               }
               disabled={!isPrev}
             />
@@ -105,7 +105,7 @@ const StacPanelResults = () => {
                 isActive={true}
                 onClick={() => handlePaginationClick('next')}
               >
-                1
+                {currentPage}
               </PaginationLink>
             </PaginationItem>
           )}

@@ -94,8 +94,6 @@ export function StacResultsProvider({
     currentPageRef.current = currentPage;
   }, [currentPage]);
 
-  
-
   const setResults = useCallback(
     (
       newResults: IStacItem[],
