@@ -153,8 +153,10 @@ function useGeodesSearch({
 
   /**
    * Builds GEODES-specific query
+   * @param page - Page number for pagination (defaults to currentPageRef.current)
    */
-  const buildGeodesQuery = useCallback((): IStacQueryBody => {
+  const buildGeodesQuery = useCallback((page?: number): IStacQueryBody => {
+    const pageToUse = page ?? currentPageRef.current;
     const processingLevel = new Set<string>();
     const productType = new Set<string>();
 
@@ -174,6 +176,7 @@ function useGeodesSearch({
     return {
       bbox: currentBBox,
       limit: 12,
+      page: pageToUse,
       query: {
         latest: { eq: true },
         dataset: { in: Array.from(filterState.datasets) },
@@ -197,7 +200,7 @@ function useGeodesSearch({
       },
       sortBy: [{ direction: 'desc', field: 'start_datetime' }],
     };
-  }, [filterState, currentBBox, startTime, endTime]);
+  }, [filterState, currentBBox, startTime, endTime, currentPageRef]);
 
   /**
    * Handles form submission - builds query and fetches results
@@ -236,16 +239,25 @@ function useGeodesSearch({
   }, []);
 
   /**
-   * Handles pagination clicks (link-only, no page numbers)
-   * Uses fetchUsingLink from useStacSearch which is registered with context
+   * Handles pagination clicks for GEODES
+   * Rebuilds query with currentPageRef.current and executes it
    * @param dir - Direction ('next' | 'previous')
    */
   const handlePaginationClick = useCallback(
     async (dir: 'next' | 'previous'): Promise<void> => {
-      console.log('geodes page click', currentPage, currentPageRef.current)
-      // Context will handle this using fetchUsingLinkRef
+      if (!model) {
+        return;
+      }
+
+      console.log('geodes page click', dir, 'currentPage:', currentPage, 'currentPageRef.current:', currentPageRef.current);
+
+      // Rebuild query with the current page from ref
+      const queryWithPage = buildGeodesQuery(currentPageRef.current);
+      
+      // Execute the query
+      await executeQueryFromGeneric(() => queryWithPage, apiUrl);
     },
-    [],
+    [model, buildGeodesQuery, executeQueryFromGeneric, apiUrl, currentPage, currentPageRef],
   );
 
   /**
