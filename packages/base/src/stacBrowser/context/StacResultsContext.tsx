@@ -6,6 +6,7 @@ import React, {
   useCallback,
   ReactNode,
   useRef,
+  useEffect,
 } from 'react';
 
 import { IStacItem, IStacLink } from '../types/types';
@@ -22,6 +23,9 @@ interface IStacResultsContext {
   >;
   selectedUrl: string;
   setSelectedUrl: (url: string) => void;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
+  currentPageRef: React.MutableRefObject<number>;
   setResults: (
     results: IStacItem[],
     isLoading: boolean,
@@ -67,6 +71,8 @@ export function StacResultsProvider({
   const [selectedUrl, setSelectedUrlState] = useState<string>(
     'https://stac.dataspace.copernicus.eu/v1/',
   );
+  const [currentPage, setCurrentPageState] = useState<number>(1);
+  const currentPageRef = useRef<number>(1);
   const [externalHandlers, setExternalHandlers] = useState<{
     handlePaginationClick: (dir: 'next' | 'previous') => Promise<void>;
     handleResultClick: (id: string) => Promise<void>;
@@ -81,6 +87,14 @@ export function StacResultsProvider({
       ) => Promise<void>
     >();
   const addToMapRef = useRef<(stacData: IStacItem) => void>();
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    console.log('update curr page ref in context', currentPage)
+    currentPageRef.current = currentPage;
+  }, [currentPage]);
+
+  
 
   const setResults = useCallback(
     (
@@ -108,6 +122,11 @@ export function StacResultsProvider({
     setSelectedUrlState(url);
   }, []);
 
+  const setCurrentPage = useCallback((page: number) => {
+    setCurrentPageState(page);
+  }, []);
+
+  // ! this has got to go
   // Register functions from hooks
   const registerFetchUsingLink = useCallback(
     (
@@ -127,6 +146,7 @@ export function StacResultsProvider({
     [],
   );
 
+  // ! pagination should always be the same
   const setPaginationHandlers = useCallback(
     (
       newHandlePaginationClick: (dir: 'next' | 'previous') => Promise<void>,
@@ -146,6 +166,7 @@ export function StacResultsProvider({
   // Use external handlers if provided, otherwise use context-created ones
   const handlePaginationClick = useCallback(
     async (dir: 'next' | 'previous'): Promise<void> => {
+      console.log('context pgination click')
       if (!model) {
         return;
       }
@@ -178,7 +199,7 @@ export function StacResultsProvider({
         addToMapRef.current(result);
       }
     },
-    [model, results], // Direct dependency - no ref needed!
+    [model, results],
   );
 
   const formatResult = useCallback((item: IStacItem): string => {
@@ -208,6 +229,9 @@ export function StacResultsProvider({
         paginationLinks,
         selectedUrl,
         setSelectedUrl,
+        currentPage,
+        setCurrentPage,
+        currentPageRef,
         setResults,
         setPaginationLinks,
         registerFetchUsingLink,

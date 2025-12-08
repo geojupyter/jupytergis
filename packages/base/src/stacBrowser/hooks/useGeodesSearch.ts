@@ -14,6 +14,7 @@ import {
 } from '@/src/stacBrowser/types/types';
 import { GlobalStateDbManager } from '@/src/store';
 import { useStacSearch } from './useStacSearch';
+import { useStacResultsContext } from '../context/StacResultsContext';
 
 interface IUseGeodesSearchProps {
   model: IJupyterGISModel | undefined;
@@ -71,6 +72,19 @@ function useGeodesSearch({
 }: IUseGeodesSearchProps): IUseGeodesSearchReturn {
   const isFirstRender = useIsFirstRender();
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
+  const {
+    currentPage, currentPageRef
+  } = useStacResultsContext();
+
+  useEffect(() => {
+    console.log('current page', currentPage);
+    console.log('current page ref i think this one ', currentPageRef.current);
+
+  }, [currentPage]);
+
+  useEffect(() => {
+    console.log('current page ref', currentPageRef.current);
+  }, [currentPageRef.current]);
 
   // Get temporal/spatial filters and fetch functions from useStacSearch
   const {
@@ -81,7 +95,7 @@ function useGeodesSearch({
     currentBBox,
     useWorldBBox,
     setUseWorldBBox,
-    handleSubmit: handleSubmitFromGeneric,
+    executeQuery: executeQueryFromGeneric,
     fetchUsingLink,
   } = useStacSearch({
     model,
@@ -193,9 +207,9 @@ function useGeodesSearch({
       return;
     }
 
-    // Use handleSubmit from useStacSearch to initiate the query
-    await handleSubmitFromGeneric(buildGeodesQuery, apiUrl);
-  }, [model, buildGeodesQuery, handleSubmitFromGeneric, apiUrl]);
+    // Use executeQuery from useStacSearch to initiate the query
+    await executeQueryFromGeneric(buildGeodesQuery, apiUrl);
+  }, [model, buildGeodesQuery, executeQueryFromGeneric, apiUrl]);
 
   // Handle search when filters change
   useEffect(() => {
@@ -228,6 +242,7 @@ function useGeodesSearch({
    */
   const handlePaginationClick = useCallback(
     async (dir: 'next' | 'previous'): Promise<void> => {
+      console.log('geodes page click', currentPage, currentPageRef.current)
       // Context will handle this using fetchUsingLinkRef
     },
     [],

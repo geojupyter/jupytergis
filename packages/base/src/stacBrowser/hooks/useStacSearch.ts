@@ -34,7 +34,7 @@ interface IUseStacSearchReturn {
   useWorldBBox: boolean;
   setUseWorldBBox: (val: boolean) => void;
   // Core fetch functions
-  handleSubmit: (
+  executeQuery: (
     buildQuery: () => IStacQueryBody,
     apiUrl: string,
   ) => Promise<void>;
@@ -83,7 +83,7 @@ export function useStacSearch({
   }, [model, useWorldBBox]);
 
   // Core submit function - accepts a query builder function and initiates the query
-  const handleSubmit = useCallback(
+  const executeQuery = useCallback(
     async (buildQuery: () => IStacQueryBody, apiUrl: string) => {
       if (!model) {
         return;
@@ -312,7 +312,7 @@ export function useStacSearch({
     setCurrentBBox,
     useWorldBBox,
     setUseWorldBBox,
-    handleSubmit,
+    executeQuery,
     fetchUsingLink,
   };
 }
