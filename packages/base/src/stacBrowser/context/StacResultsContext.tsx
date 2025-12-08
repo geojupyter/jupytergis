@@ -41,11 +41,8 @@ interface IStacResultsContext {
     ) => Promise<void>,
   ) => void;
   registerAddToMap: (addFn: (stacData: IStacItem) => void) => void;
-  // Set handlers from outside (for GEODES search)
-  setPaginationHandlers: (
-    handlePaginationClick: (dir: 'next' | 'previous') => Promise<void>,
-    handleResultClick: (id: string) => Promise<void>,
-    formatResult: (item: IStacItem) => string,
+  registerHandlePaginationClick: (
+    handleFn: (dir: 'next' | 'previous') => Promise<void>,
   ) => void;
 }
 
@@ -73,11 +70,6 @@ export function StacResultsProvider({
   );
   const [currentPage, setCurrentPageState] = useState<number>(1);
   const currentPageRef = useRef<number>(1);
-  const [externalHandlers, setExternalHandlers] = useState<{
-    handlePaginationClick: (dir: 'next' | 'previous') => Promise<void>;
-    handleResultClick: (id: string) => Promise<void>;
-    formatResult: (item: IStacItem) => string;
-  } | null>(null);
 
   // Store hook-specific functions in refs (these are set by the hooks)
   const fetchUsingLinkRef =
@@ -87,6 +79,9 @@ export function StacResultsProvider({
       ) => Promise<void>
     >();
   const addToMapRef = useRef<(stacData: IStacItem) => void>();
+  const handlePaginationClickRef = useRef<
+    (dir: 'next' | 'previous') => Promise<void>
+  >();
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -144,27 +139,24 @@ export function StacResultsProvider({
     [],
   );
 
-  // ! pagination should always be the same
-  const setPaginationHandlers = useCallback(
-    (
-      newHandlePaginationClick: (dir: 'next' | 'previous') => Promise<void>,
-      newHandleResultClick: (id: string) => Promise<void>,
-      newFormatResult: (item: IStacItem) => string,
-    ) => {
-      setExternalHandlers({
-        handlePaginationClick: newHandlePaginationClick,
-        handleResultClick: newHandleResultClick,
-        formatResult: newFormatResult,
-      });
+  const registerHandlePaginationClick = useCallback(
+    (handleFn: (dir: 'next' | 'previous') => Promise<void>) => {
+      handlePaginationClickRef.current = handleFn;
     },
     [],
   );
 
   // Handlers created in context - always read latest state directly
-  // Use external handlers if provided, otherwise use context-created ones
+  // Use registered handler if provided, otherwise use context-created one
   const handlePaginationClick = useCallback(
     async (dir: 'next' | 'previous'): Promise<void> => {
-      console.log('context pgination click')
+      // Use registered handler if available (e.g., from GEODES)
+      if (handlePaginationClickRef.current) {
+        await handlePaginationClickRef.current(dir);
+        return;
+      }
+
+      // Default handler for generic STAC (Copernicus)
       if (!model) {
         return;
       }
@@ -193,6 +185,7 @@ export function StacResultsProvider({
       const currentResults = results;
       const result = currentResults.find((r: IStacItem) => r.id === id);
 
+      console.log('handler ersult click context')
       if (result && addToMapRef.current) {
         addToMapRef.current(result);
       }
@@ -204,26 +197,15 @@ export function StacResultsProvider({
     return item.properties?.title ?? item.id;
   }, []);
 
-  // Use external handlers if provided, otherwise use context-created ones
-  const finalHandlePaginationClick = externalHandlers
-    ? externalHandlers.handlePaginationClick
-    : handlePaginationClick;
-  const finalHandleResultClick = externalHandlers
-    ? externalHandlers.handleResultClick
-    : handleResultClick;
-  const finalFormatResult = externalHandlers
-    ? externalHandlers.formatResult
-    : formatResult;
-
   return (
     <StacResultsContext.Provider
       value={{
         results,
         isLoading,
         totalResults,
-        handlePaginationClick: finalHandlePaginationClick,
-        handleResultClick: finalHandleResultClick,
-        formatResult: finalFormatResult,
+        handlePaginationClick,
+        handleResultClick,
+        formatResult,
         paginationLinks,
         selectedUrl,
         setSelectedUrl,
@@ -234,7 +216,7 @@ export function StacResultsProvider({
         setPaginationLinks,
         registerFetchUsingLink,
         registerAddToMap,
-        setPaginationHandlers,
+        registerHandlePaginationClick,
       }}
     >
       {children}

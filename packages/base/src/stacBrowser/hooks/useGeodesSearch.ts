@@ -27,11 +27,6 @@ interface IUseGeodesSearchProps {
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
-  setPaginationHandlers: (
-    handlePaginationClick: (dir: 'next' | 'previous') => Promise<void>,
-    handleResultClick: (id: string) => Promise<void>,
-    formatResult: (item: IStacItem) => string,
-  ) => void;
   registerAddToMap: (addFn: (stacData: IStacItem) => void) => void;
   registerFetchUsingLink: (
     fetchFn: (
@@ -66,14 +61,15 @@ function useGeodesSearch({
   apiUrl,
   setResults,
   setPaginationLinks,
-  setPaginationHandlers,
   registerAddToMap,
   registerFetchUsingLink,
 }: IUseGeodesSearchProps): IUseGeodesSearchReturn {
   const isFirstRender = useIsFirstRender();
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
   const {
-    currentPage, currentPageRef
+    currentPage,
+    currentPageRef,
+    registerHandlePaginationClick,
   } = useStacResultsContext();
 
   useEffect(() => {
@@ -110,6 +106,8 @@ function useGeodesSearch({
     platforms: new Set(),
     products: new Set(),
   });
+
+  
 
   const filterSetters: StacFilterSetters = {
     collections: val =>
@@ -229,14 +227,6 @@ function useGeodesSearch({
     handleSubmit,
   ]);
 
-  /**
-   * Handles clicking on a result item
-   * This will be used by context, which will call addToMap via registerAddToMap
-   * @param id - ID of the clicked result (not used directly, context handles it)
-   */
-  const handleResultClick = useCallback(async (_id: string): Promise<void> => {
-    // Context will handle this using addToMapRef
-  }, []);
 
   /**
    * Handles pagination clicks for GEODES
@@ -253,40 +243,22 @@ function useGeodesSearch({
 
       // Rebuild query with the current page from ref
       const queryWithPage = buildGeodesQuery(currentPageRef.current);
-      
+
       // Execute the query
       await executeQueryFromGeneric(() => queryWithPage, apiUrl);
     },
     [model, buildGeodesQuery, executeQueryFromGeneric, apiUrl, currentPage, currentPageRef],
   );
 
-  /**
-   * Formats a result item for display
-   * @param item - STAC item to format
-   * @returns Formatted string representation of the item
-   */
-  const formatResult = useCallback((item: IStacItem): string => {
-    return item.properties?.title ?? item.id;
-  }, []);
-
   // Register fetchUsingLink with context
   useEffect(() => {
     registerFetchUsingLink(fetchUsingLink);
   }, [fetchUsingLink, registerFetchUsingLink]);
 
-  // Register handlers with context
+  // Register handlePaginationClick with context
   useEffect(() => {
-    setPaginationHandlers(
-      handlePaginationClick,
-      handleResultClick,
-      formatResult,
-    );
-  }, [
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
-    setPaginationHandlers,
-  ]);
+    registerHandlePaginationClick(handlePaginationClick);
+  }, [handlePaginationClick, registerHandlePaginationClick]);
 
   return {
     filterState,
