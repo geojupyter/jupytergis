@@ -143,3 +143,11 @@ export type StacFilterSetters = Record<
   StacFilterKey,
   (val: Set<string>) => void
 >;
+
+// Shared type for setResults function signature
+export type SetResultsFunction = (
+  results: IStacItem[],
+  isLoading: boolean,
+  totalResults: number,
+  totalPages: number,
+) => void;

@@ -40,6 +40,7 @@ interface IUseStacGenericFilterProps {
     results: IStacItem[],
     isLoading: boolean,
     totalResults: number,
+    totalPages: number,
   ) => void;
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,

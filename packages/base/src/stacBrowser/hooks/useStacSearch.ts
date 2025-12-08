@@ -8,15 +8,12 @@ import {
   IStacLink,
   IStacQueryBody,
   IStacSearchResult,
+  SetResultsFunction,
 } from '../types/types';
 
 interface IUseStacSearchProps {
   model: IJupyterGISModel | undefined;
-  setResults: (
-    results: IStacItem[],
-    isLoading: boolean,
-    totalResults: number,
-  ) => void;
+  setResults: SetResultsFunction;
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
@@ -104,7 +101,7 @@ export function useStacSearch({
 
       try {
         // Update context with loading state
-        setResults([], true, 0);
+        setResults([], true, 0, 0);
 
         const data = (await fetchWithProxies(
           apiUrl,
@@ -116,7 +113,7 @@ export function useStacSearch({
         )) as IStacSearchResult;
 
         if (!data) {
-          setResults([], false, 0);
+          setResults([], false, 0, 0);
           return;
         }
 
@@ -157,12 +154,17 @@ export function useStacSearch({
 
         // Calculate total results from context if available
         let totalResults = data.features.length;
+        let totalPages = 0;
         if (data.context) {
           totalResults = data.context.matched;
+          totalPages = Math.ceil(data.context.matched / data.context.limit);
+        } else if (sortedFeatures.length > 0) {
+          // If results found but no context, assume 1 page
+          totalPages = 1;
         }
 
-        // Update context with results (using 0 for totalPages/currentPage as placeholders)
-        setResults(sortedFeatures, false, totalResults);
+        // Update context with results
+        setResults(sortedFeatures, false, totalResults, totalPages);
 
         // Store pagination links
         if (data.links) {
@@ -172,7 +174,7 @@ export function useStacSearch({
           setPaginationLinks(typedLinks);
         }
       } catch (error) {
-        setResults([], false, 0);
+        setResults([], false, 0, 0);
       }
     },
     [model, setResults, setPaginationLinks],
@@ -201,7 +203,7 @@ export function useStacSearch({
 
       try {
         // Update context with loading state
-        setResults([], true, 0);
+        setResults([], true, 0, 0);
 
         const data = (await fetchWithProxies(
           link.href,
@@ -213,7 +215,7 @@ export function useStacSearch({
         )) as IStacSearchResult;
 
         if (!data) {
-          setResults([], false, 0);
+          setResults([], false, 0, 0);
           return;
         }
 
@@ -254,12 +256,17 @@ export function useStacSearch({
 
         // Calculate total results from context if available
         let totalResults = data.features.length;
+        let totalPages = 0;
         if (data.context) {
           totalResults = data.context.matched;
+          totalPages = Math.ceil(data.context.matched / data.context.limit);
+        } else if (sortedFeatures.length > 0) {
+          // If results found but no context, assume 1 page
+          totalPages = 1;
         }
 
-        // Update context with results (using 0 for totalPages/currentPage as placeholders)
-        setResults(sortedFeatures, false, totalResults);
+        // Update context with results
+        setResults(sortedFeatures, false, totalResults, totalPages);
 
         // Store pagination links
         if (data.links) {
@@ -269,7 +276,7 @@ export function useStacSearch({
           setPaginationLinks(typedLinks);
         }
       } catch (error) {
-        setResults([], false, 0);
+        setResults([], false, 0, 0);
       }
     },
     [model, setResults, setPaginationLinks],
