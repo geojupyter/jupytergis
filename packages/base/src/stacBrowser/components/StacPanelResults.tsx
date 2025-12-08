@@ -53,11 +53,13 @@ const StacPanelResults = () => {
     paginationLinks,
     currentPage,
     setCurrentPage,
+    totalPages
   } = useStacResultsContext();
 
   useEffect(() => {
     console.log('current page in results', currentPage);
-  }, [currentPage]);
+    console.log('totalPages', totalPages)
+  }, [currentPage, totalPages]);
 
   const isNext = paginationLinks.some(link => link.rel === 'next');
   const isPrev = paginationLinks.some(link => link.rel === 'previous');
@@ -80,34 +82,34 @@ const StacPanelResults = () => {
           {results.length === 0 ? (
             <div>No Matches Found</div>
           ) : (
-            // getPageItems(currentPage, totalPages).map(item => {
-            //   if (item === 'ellipsis') {
-            //     return (
-            //       <PaginationItem key="ellipsis">
-            //         <PaginationEllipsis />
-            //       </PaginationItem>
-            //     );
-            //   }
-            //   return (
-            //     <PaginationItem key={item}>
-            //       <PaginationLink
-            //         isActive={item === currentPage}
-            //         onClick={() => handlePaginationClick('next')}
-            //       >
-            //         {item}
-            //       </PaginationLink>
-            //     </PaginationItem>
-            //   );
-            // })
+            getPageItems(currentPage, totalPages).map(item => {
+              if (item === 'ellipsis') {
+                return (
+                  <PaginationItem key="ellipsis">
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                );
+              }
+              return (
+                <PaginationItem key={item}>
+                  <PaginationLink
+                    isActive={item === currentPage}
+                    onClick={() => handlePaginationClick('next')}
+                  >
+                    {item}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            })
 
-            <PaginationItem key="wwsew">
-              <PaginationLink
-                isActive={true}
-                onClick={() => handlePaginationClick('next')}
-              >
-                {currentPage}
-              </PaginationLink>
-            </PaginationItem>
+            // <PaginationItem key="wwsew">
+            //   <PaginationLink
+            //     isActive={true}
+            //     onClick={() => handlePaginationClick('next')}
+            //   >
+            //     {currentPage}
+            //   </PaginationLink>
+            // </PaginationItem>
           )}
           <PaginationItem>
             <PaginationNext
