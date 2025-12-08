@@ -51,33 +51,15 @@ const StacPanelResults = () => {
     formatResult,
     isLoading,
     paginationLinks,
+    currentPage,
+    setCurrentPage,
   } = useStacResultsContext();
 
-  // Use a ref to track previous results and detect actual changes
-  const prevResultsRef = useRef<IStacItem[]>([]);
-  const resultsIdsRef = useRef<string>('');
+
 
   useEffect(() => {
-    // Create a string of result IDs for comparison (more reliable than array reference)
-    const currentResultsIds = results.map(r => r.id).join(',');
-
-    // Only log if results actually changed (by ID comparison)
-    if (currentResultsIds !== resultsIdsRef.current) {
-      console.log('[StacPanelResults] Results updated:', {
-        count: results.length,
-        resultIds: results.map(r => r.id),
-        previousCount: prevResultsRef.current.length,
-      });
-
-      // Update refs
-      prevResultsRef.current = results;
-      resultsIdsRef.current = currentResultsIds;
-    }
-  }, [results]);
-
-  useEffect(() => {
-    console.log('links effect GOOO');
-  }, [paginationLinks]);
+    console.log('current page in results', currentPage);
+  }, [currentPage]);
 
   const isNext = paginationLinks.some(link => link.rel === 'next');
   const isPrev = paginationLinks.some(link => link.rel === 'previous');
@@ -129,7 +111,10 @@ const StacPanelResults = () => {
           )}
           <PaginationItem>
             <PaginationNext
-              onClick={() => handlePaginationClick('next')}
+              onClick={() => {
+                setCurrentPage(currentPage + 1);
+                handlePaginationClick('next');
+              }}
               disabled={!isNext}
             />
           </PaginationItem>
