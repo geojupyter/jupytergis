@@ -9,12 +9,13 @@ import React, {
   useEffect,
 } from 'react';
 
-import { IStacItem, IStacLink } from '../types/types';
+import { IStacItem, IStacLink, SetResultsFunction } from '../types/types';
 
 interface IStacResultsContext {
   results: IStacItem[];
   isLoading: boolean;
   totalResults: number;
+  totalPages: number;
   handlePaginationClick: (dir: 'next' | 'previous') => Promise<void>;
   handleResultClick: (id: string) => Promise<void>;
   formatResult: (item: IStacItem) => string;
@@ -26,11 +27,7 @@ interface IStacResultsContext {
   currentPage: number;
   setCurrentPage: (page: number) => void;
   currentPageRef: React.MutableRefObject<number>;
-  setResults: (
-    results: IStacItem[],
-    isLoading: boolean,
-    totalResults: number,
-  ) => void;
+  setResults: SetResultsFunction;
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
@@ -62,6 +59,7 @@ export function StacResultsProvider({
   const [results, setResultsState] = useState<IStacItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [paginationLinks, setPaginationLinksState] = useState<
     Array<IStacLink & { method?: string; body?: Record<string, any> }>
   >([]);
@@ -94,10 +92,12 @@ export function StacResultsProvider({
       newResults: IStacItem[],
       newIsLoading: boolean,
       newTotalResults: number,
+      newTotalPages: number,
     ) => {
       setResultsState(newResults);
       setIsLoading(newIsLoading);
       setTotalResults(newTotalResults);
+      setTotalPages(newTotalPages);
     },
     [],
   );
@@ -113,6 +113,16 @@ export function StacResultsProvider({
 
   const setSelectedUrl = useCallback((url: string) => {
     setSelectedUrlState(url);
+    // Clear handlers when provider changes to prevent stale handlers
+    handlePaginationClickRef.current = undefined;
+    fetchUsingLinkRef.current = undefined;
+    addToMapRef.current = undefined;
+    // Reset pagination state
+    setCurrentPageState(1);
+    setResultsState([]);
+    setPaginationLinksState([]);
+    setTotalResults(0);
+    setTotalPages(0);
   }, []);
 
   const setCurrentPage = useCallback((page: number) => {
@@ -203,6 +213,7 @@ export function StacResultsProvider({
         results,
         isLoading,
         totalResults,
+        totalPages,
         handlePaginationClick,
         handleResultClick,
         formatResult,

@@ -8,6 +8,7 @@ import {
   IStacItem,
   IStacLink,
   IStacQueryBody,
+  SetResultsFunction,
   StacFilterState,
   StacFilterSetters,
   StacFilterStateStateDb,
@@ -19,11 +20,7 @@ import { useStacResultsContext } from '../context/StacResultsContext';
 interface IUseGeodesSearchProps {
   model: IJupyterGISModel | undefined;
   apiUrl: string;
-  setResults: (
-    results: IStacItem[],
-    isLoading: boolean,
-    totalResults: number,
-  ) => void;
+  setResults: SetResultsFunction;
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
