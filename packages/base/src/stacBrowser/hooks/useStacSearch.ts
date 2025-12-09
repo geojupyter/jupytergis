@@ -30,7 +30,7 @@ interface IUseStacSearchReturn {
   setUseWorldBBox: (val: boolean) => void;
   // Core fetch functions
   executeQuery: (
-    buildQuery: () => IStacQueryBody,
+    body: IStacQueryBody,
     apiUrl: string,
   ) => Promise<void>;
   fetchUsingLink: (
@@ -76,15 +76,15 @@ export function useStacSearch({
     };
   }, [model, useWorldBBox]);
 
-  // Core submit function - accepts a query builder function and initiates the query
+  // Core submit function - accepts a query body and initiates the query
   const executeQuery = useCallback(
-    async (buildQuery: () => IStacQueryBody, apiUrl: string) => {
+    async (body: IStacQueryBody, apiUrl: string) => {
       if (!model) {
         return;
       }
 
       const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-      const queryBody = buildQuery();
+      const queryBody = body;
 
       const options = {
         method: 'POST',

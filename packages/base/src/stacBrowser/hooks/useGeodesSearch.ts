@@ -68,6 +68,7 @@ function useGeodesSearch({
     registerHandlePaginationClick,
     registerBuildQuery,
     executeQuery,
+    selectedUrl,
   } = useStacResultsContext();
 
   useEffect(() => {
@@ -209,9 +210,11 @@ function useGeodesSearch({
       return;
     }
 
-    // Use executeQuery from context to initiate the query
-    await executeQuery();
-  }, [model, executeQuery]);
+    const urlToUse = selectedUrl.endsWith('/') ? `${selectedUrl}search` : `${selectedUrl}/search`;
+    // Build query body and execute query
+    const queryBody = buildGeodesQuery();
+    await executeQuery(queryBody, urlToUse);
+  }, [model, executeQuery, buildGeodesQuery, selectedUrl]);
 
   // Handle search when filters change
   useEffect(() => {
@@ -244,14 +247,16 @@ function useGeodesSearch({
 
       // Calculate new page number
       const newPage = dir === 'next' ? currentPageRef.current + 1 : currentPageRef.current - 1;
-      
+
       // Update currentPage in context
       setCurrentPage(newPage);
+      const urlToUse = selectedUrl.endsWith('/') ? `${selectedUrl}search` : `${selectedUrl}/search`;
 
-      // Execute query with new page number
-      await executeQuery(newPage);
+      // Build query body with new page and execute query
+      const queryBody = buildGeodesQuery(newPage);
+      await executeQuery(queryBody, urlToUse);
     },
-    [model, executeQuery, setCurrentPage, currentPage, currentPageRef],
+    [model, executeQuery, setCurrentPage, currentPage, currentPageRef, buildGeodesQuery, selectedUrl],
   );
 
   // Register fetchUsingLink with context
