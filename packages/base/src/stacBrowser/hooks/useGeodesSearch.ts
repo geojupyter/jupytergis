@@ -24,11 +24,6 @@ interface IUseGeodesSearchProps {
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
-  registerFetchUsingLink: (
-    fetchFn: (
-      link: IStacLink & { method?: string; body?: Record<string, any> },
-    ) => Promise<void>,
-  ) => void;
 }
 
 interface IUseGeodesSearchReturn {
@@ -57,7 +52,6 @@ function useGeodesSearch({
   apiUrl,
   setResults,
   setPaginationLinks,
-  registerFetchUsingLink,
 }: IUseGeodesSearchProps): IUseGeodesSearchReturn {
   const isFirstRender = useIsFirstRender();
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
@@ -90,7 +84,6 @@ function useGeodesSearch({
     currentBBox,
     useWorldBBox,
     setUseWorldBBox,
-    fetchUsingLink,
   } = useStacSearch({
     model,
     setResults,
@@ -260,10 +253,6 @@ function useGeodesSearch({
     [model, executeQuery, setCurrentPage, currentPage, currentPageRef, buildGeodesQuery, selectedUrl],
   );
 
-  // Register fetchUsingLink with context
-  useEffect(() => {
-    registerFetchUsingLink(fetchUsingLink);
-  }, [fetchUsingLink, registerFetchUsingLink]);
 
   // Register handlePaginationClick with context
   useEffect(() => {
