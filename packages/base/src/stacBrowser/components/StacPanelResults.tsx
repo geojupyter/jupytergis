@@ -90,6 +90,10 @@ const StacPanelResults = () => {
                   </PaginationItem>
                 );
               }
+
+              // ! todo get this working
+              // thik of better implementtion to make it simpleer
+              // stop asking the ai
               return (
                 <PaginationItem key={item}>
                   <PaginationLink
