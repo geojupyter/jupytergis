@@ -94,11 +94,13 @@ const StacPanelResults = () => {
               // ! todo get this working
               // thik of better implementtion to make it simpleer
               // stop asking the ai
+              // also is active is fucked now
               return (
                 <PaginationItem key={item}>
                   <PaginationLink
                     isActive={item === currentPage}
                     onClick={() => handlePaginationClick('next')}
+                    disabled={totalPages === 1}
                   >
                     {item}
                   </PaginationLink>
