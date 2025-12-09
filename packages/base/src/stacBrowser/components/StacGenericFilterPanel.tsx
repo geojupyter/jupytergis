@@ -19,7 +19,6 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   const {
     setResults,
     setPaginationLinks,
-    registerFetchUsingLink,
     selectedUrl,
   } = useStacResultsContext();
   const [limit, setLimit] = useState<number>(12);
@@ -45,7 +44,6 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     limit,
     setResults,
     setPaginationLinks,
-    registerFetchUsingLink,
   });
 
 

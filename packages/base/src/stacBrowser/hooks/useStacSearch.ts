@@ -34,9 +34,6 @@ interface IUseStacSearchReturn {
     apiUrl: string,
     method?: string, //! not 100% sure I want this
   ) => Promise<void>;
-  fetchUsingLink: (
-    link: IStacLink & { method?: string; body?: Record<string, any> },
-  ) => Promise<void>;
 }
 
 /**
@@ -179,109 +176,6 @@ export function useStacSearch({
     [model, setResults, setPaginationLinks],
   );
 
-  // Fetch using pagination link
-  const fetchUsingLink = useCallback(
-    async (
-      link: IStacLink & { method?: string; body?: Record<string, any> },
-    ) => {
-      if (!model) {
-        return;
-      }
-
-      const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-
-      const options = {
-        method: (link.method || 'POST').toUpperCase(),
-        headers: {
-          'Content-Type': 'application/json',
-          'X-XSRFToken': XSRF_TOKEN,
-          credentials: 'include',
-        },
-        body: link.body ? JSON.stringify(link.body) : undefined,
-      };
-
-      try {
-        // Update context with loading state
-        setResults([], true, 0, 0);
-
-        const data = (await fetchWithProxies(
-          link.href,
-          model,
-          async response => await response.json(),
-          //@ts-expect-error Jupyter requires X-XSRFToken header
-          options,
-          'internal',
-        )) as IStacSearchResult;
-
-        if (!data) {
-          setResults([], false, 0, 0);
-          return;
-        }
-
-        // Filter assets to only include items with 'overview' or 'thumbnail' roles
-        if (data.features && data.features.length > 0) {
-          data.features.forEach(feature => {
-            if (feature.assets) {
-              const originalAssets = feature.assets;
-              const filteredAssets: Record<string, any> = {};
-
-              for (const [key, asset] of Object.entries(originalAssets)) {
-                if (
-                  asset &&
-                  typeof asset === 'object' &&
-                  'roles' in asset &&
-                  Array.isArray(asset.roles)
-                ) {
-                  const roles = asset.roles;
-
-                  if (
-                    roles.includes('thumbnail') ||
-                    roles.includes('overview')
-                  ) {
-                    filteredAssets[key] = asset;
-                  }
-                }
-              }
-
-              feature.assets = filteredAssets;
-            }
-          });
-        }
-
-        // Sort features by id before setting results
-        const sortedFeatures = [...data.features].sort((a, b) =>
-          a.id.localeCompare(b.id),
-        );
-
-        // Calculate total results from context if available
-        let totalResults = data.features.length;
-        let totalPages = 0;
-        if (data.context) {
-          totalResults = data.context.matched;
-          totalPages = Math.ceil(data.context.matched / data.context.limit);
-        } else if (sortedFeatures.length > 0) {
-          // If results found but no context, assume 1 page
-          totalPages = 1;
-        }
-
-        // Update context with results
-        setResults(sortedFeatures, false, totalResults, totalPages);
-
-        // Store pagination links
-        if (data.links) {
-          const typedLinks = data.links as Array<
-            IStacLink & { method?: string; body?: Record<string, any> }
-          >;
-          setPaginationLinks(typedLinks);
-        }
-      } catch (error) {
-        setResults([], false, 0, 0);
-      }
-    },
-    [model, setResults, setPaginationLinks],
-  );
-
-
   return {
     startTime,
     setStartTime,
@@ -292,6 +186,5 @@ export function useStacSearch({
     useWorldBBox,
     setUseWorldBBox,
     executeQuery,
-    fetchUsingLink,
   };
 }

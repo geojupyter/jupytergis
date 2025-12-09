@@ -41,11 +41,6 @@ interface IUseStacGenericFilterProps {
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
-  registerFetchUsingLink: (
-    fetchFn: (
-      link: IStacLink & { method?: string; body?: Record<string, any> },
-    ) => Promise<void>,
-  ) => void;
 }
 
 export function useStacGenericFilter({
@@ -54,7 +49,6 @@ export function useStacGenericFilter({
   limit = 12,
   setResults,
   setPaginationLinks,
-  registerFetchUsingLink,
 }: IUseStacGenericFilterProps) {
   // Get temporal/spatial filters and fetch functions from useStacSearch
   const {
@@ -65,7 +59,6 @@ export function useStacGenericFilter({
     currentBBox,
     useWorldBBox,
     setUseWorldBBox,
-    fetchUsingLink,
   } = useStacSearch({
     model,
     setResults,
@@ -247,10 +240,6 @@ export function useStacGenericFilter({
     await executeQuery(queryBody, searchUrl);
   }, [model, executeQuery, buildCopernicusQuery, baseUrl]);
 
-  // Register fetchUsingLink from useStacSearch with context so handlers can use it
-  useEffect(() => {
-    registerFetchUsingLink(fetchUsingLink);
-  }, [fetchUsingLink, registerFetchUsingLink]);
 
   return {
     queryableProps,

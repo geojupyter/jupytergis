@@ -40,11 +40,6 @@ interface IStacResultsContext {
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
   // Register hook-specific functions that handlers need (for generic filter)
-  registerFetchUsingLink: (
-    fetchFn: (
-      link: IStacLink & { method?: string; body?: Record<string, any> },
-    ) => Promise<void>,
-  ) => void;
   registerAddToMap: (addFn: (stacData: IStacItem) => void) => void;
   registerHandlePaginationClick: (
     handleFn: (dir: 'next' | 'previous') => Promise<void>,
@@ -85,12 +80,6 @@ export function StacResultsProvider({
   const currentPageRef = useRef<number>(1);
 
   // Store hook-specific functions in refs (these are set by the hooks)
-  const fetchUsingLinkRef =
-    useRef<
-      (
-        link: IStacLink & { method?: string; body?: Record<string, any> },
-      ) => Promise<void>
-    >();
   const addToMapRef = useRef<(stacData: IStacItem) => void>();
   const handlePaginationClickRef =
     useRef<(dir: 'next' | 'previous') => Promise<void>>();
@@ -131,7 +120,6 @@ export function StacResultsProvider({
     // Clear all registered handlers when provider changes to prevent stale handlers
     // Note: addToMapRef is cleared but defaultAddToMap is always available
     handlePaginationClickRef.current = undefined;
-    fetchUsingLinkRef.current = undefined;
     addToMapRef.current = undefined;
     buildQueryRef.current = undefined;
     // Reset all state
@@ -147,19 +135,6 @@ export function StacResultsProvider({
   const setCurrentPage = useCallback((page: number) => {
     setCurrentPageState(page);
   }, []);
-
-  // ! this has got to go
-  // Register functions from hooks
-  const registerFetchUsingLink = useCallback(
-    (
-      fetchFn: (
-        link: IStacLink & { method?: string; body?: Record<string, any> },
-      ) => Promise<void>,
-    ) => {
-      fetchUsingLinkRef.current = fetchFn;
-    },
-    [],
-  );
 
   const registerAddToMap = useCallback(
     (addFn: (stacData: IStacItem) => void) => {
@@ -419,7 +394,6 @@ export function StacResultsProvider({
         currentPageRef,
         setResults,
         setPaginationLinks,
-        registerFetchUsingLink,
         registerAddToMap,
         registerHandlePaginationClick,
         registerBuildQuery,
