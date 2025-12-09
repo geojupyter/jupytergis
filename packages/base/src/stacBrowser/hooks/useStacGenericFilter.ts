@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { fetchWithProxies } from '@/src/tools';
 import { useStacSearch } from './useStacSearch';
+import { useStacResultsContext } from '../context/StacResultsContext';
 import {
   IStacCollection,
   IStacItem,
@@ -26,11 +27,6 @@ export type UpdateQueryableFilter = (
   qKey: string,
   filter: IQueryableFilter,
 ) => void;
-
-// Helper to get search URL from base URL
-const getSearchUrl = (baseUrl: string): string => {
-  return baseUrl.endsWith('/') ? `${baseUrl}search` : `${baseUrl}/search`;
-};
 
 interface IUseStacGenericFilterProps {
   model?: IJupyterGISModel;
@@ -71,7 +67,6 @@ export function useStacGenericFilter({
     currentBBox,
     useWorldBBox,
     setUseWorldBBox,
-    executeQuery: executeQueryFromGeneric,
     fetchUsingLink,
   } = useStacSearch({
     model,
@@ -79,6 +74,8 @@ export function useStacGenericFilter({
     setPaginationLinks,
     registerAddToMap,
   });
+
+  const { registerBuildQuery, executeQuery } = useStacResultsContext();
 
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
@@ -217,15 +214,19 @@ export function useStacGenericFilter({
   /**
    * Handles form submission - builds query and fetches results
    */
+  // Register buildQuery with context
+  useEffect(() => {
+    registerBuildQuery(() => buildCopernicusQuery());
+  }, [registerBuildQuery, buildCopernicusQuery, baseUrl]);
+
   const handleSubmit = useCallback(async () => {
     if (!model) {
       return;
     }
 
-    // Use executeQuery from useStacSearch to initiate the query
-    const searchUrl = getSearchUrl(baseUrl);
-    await executeQueryFromGeneric(buildCopernicusQuery, searchUrl);
-  }, [model, buildCopernicusQuery, executeQueryFromGeneric, baseUrl]);
+    // Use executeQuery from context to initiate the query
+    await executeQuery();
+  }, [model, executeQuery]);
 
   // Register fetchUsingLink from useStacSearch with context so handlers can use it
   useEffect(() => {

@@ -66,7 +66,10 @@ function useGeodesSearch({
   const {
     currentPage,
     currentPageRef,
+    setCurrentPage,
     registerHandlePaginationClick,
+    registerBuildQuery,
+    executeQuery,
   } = useStacResultsContext();
 
   useEffect(() => {
@@ -88,7 +91,6 @@ function useGeodesSearch({
     currentBBox,
     useWorldBBox,
     setUseWorldBBox,
-    executeQuery: executeQueryFromGeneric,
     fetchUsingLink,
   } = useStacSearch({
     model,
@@ -197,6 +199,11 @@ function useGeodesSearch({
     };
   }, [filterState, currentBBox, startTime, endTime, currentPageRef]);
 
+  // Register buildQuery with context - always use currentPageRef for latest page
+  useEffect(() => {
+    registerBuildQuery(() => buildGeodesQuery(currentPageRef.current));
+  }, [registerBuildQuery, buildGeodesQuery, currentPageRef]);
+
   /**
    * Handles form submission - builds query and fetches results
    */
@@ -205,9 +212,9 @@ function useGeodesSearch({
       return;
     }
 
-    // Use executeQuery from useStacSearch to initiate the query
-    await executeQueryFromGeneric(buildGeodesQuery, apiUrl);
-  }, [model, buildGeodesQuery, executeQueryFromGeneric, apiUrl]);
+    // Use executeQuery from context to initiate the query
+    await executeQuery();
+  }, [model, executeQuery]);
 
   // Handle search when filters change
   useEffect(() => {
@@ -227,7 +234,7 @@ function useGeodesSearch({
 
   /**
    * Handles pagination clicks for GEODES
-   * Rebuilds query with currentPageRef.current and executes it
+   * Updates currentPage and executes query with new page number
    * @param dir - Direction ('next' | 'previous')
    */
   const handlePaginationClick = useCallback(
@@ -238,13 +245,16 @@ function useGeodesSearch({
 
       console.log('geodes page click', dir, 'currentPage:', currentPage, 'currentPageRef.current:', currentPageRef.current);
 
-      // Rebuild query with the current page from ref
-      const queryWithPage = buildGeodesQuery(currentPageRef.current);
+      // Calculate new page number
+      const newPage = dir === 'next' ? currentPageRef.current + 1 : currentPageRef.current - 1;
+      
+      // Update currentPage in context
+      setCurrentPage(newPage);
 
-      // Execute the query
-      await executeQueryFromGeneric(() => queryWithPage, apiUrl);
+      // Execute query with new page number
+      await executeQuery(newPage);
     },
-    [model, buildGeodesQuery, executeQueryFromGeneric, apiUrl, currentPage, currentPageRef],
+    [model, executeQuery, setCurrentPage, currentPage, currentPageRef],
   );
 
   // Register fetchUsingLink with context
