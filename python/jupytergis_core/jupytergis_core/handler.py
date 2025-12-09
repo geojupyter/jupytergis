@@ -40,6 +40,7 @@ def load_config() -> ProxyConfig:
                 "https://geodes.cnes.fr",
                 "https://gdh-portal-prod.cnes.fr",
                 "https://geodes-portal.cnes.fr/api/stac/",
+                # ! add copernicus ??
             },
         ),
     )
