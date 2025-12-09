@@ -1,5 +1,4 @@
-import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { endOfToday, startOfToday } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -47,7 +46,6 @@ interface IUseStacGenericFilterProps {
       link: IStacLink & { method?: string; body?: Record<string, any> },
     ) => Promise<void>,
   ) => void;
-  registerAddToMap: (addFn: (stacData: IStacItem) => void) => void;
 }
 
 export function useStacGenericFilter({
@@ -57,7 +55,6 @@ export function useStacGenericFilter({
   setResults,
   setPaginationLinks,
   registerFetchUsingLink,
-  registerAddToMap,
 }: IUseStacGenericFilterProps) {
   // Get temporal/spatial filters and fetch functions from useStacSearch
   const {
@@ -73,7 +70,6 @@ export function useStacGenericFilter({
     model,
     setResults,
     setPaginationLinks,
-    registerAddToMap,
   });
 
   const { registerBuildQuery, executeQuery } = useStacResultsContext();
@@ -251,33 +247,6 @@ export function useStacGenericFilter({
   useEffect(() => {
     registerFetchUsingLink(fetchUsingLink);
   }, [fetchUsingLink, registerFetchUsingLink]);
-
-  // Register addToMap function - useStacSearch registers it, but we need to ensure
-  // it's re-registered when URL changes (since addToMapRef gets cleared in setSelectedUrl)
-  // We create our own addToMap here to ensure it's always registered
-  const addToMap = useCallback(
-    (stacData: IStacItem): void => {
-      if (!model) {
-        return;
-      }
-
-      const layerId = UUID.uuid4();
-      const layerModel: IJGISLayer = {
-        type: 'StacLayer',
-        parameters: { data: stacData },
-        visible: true,
-        name: stacData.properties?.title ?? stacData.id,
-      };
-
-      model.addLayer(layerId, layerModel);
-    },
-    [model],
-  );
-
-  // Register addToMap with context
-  useEffect(() => {
-    registerAddToMap(addToMap);
-  }, [addToMap, registerAddToMap, baseUrl]);
 
   return {
     queryableProps,

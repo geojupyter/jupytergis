@@ -1,5 +1,4 @@
-import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { useCallback, useEffect, useState } from 'react';
 
 import { fetchWithProxies } from '@/src/tools';
@@ -17,7 +16,6 @@ interface IUseStacSearchProps {
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
-  registerAddToMap: (addFn: (stacData: IStacItem) => void) => void;
 }
 
 interface IUseStacSearchReturn {
@@ -50,7 +48,6 @@ export function useStacSearch({
   model,
   setResults,
   setPaginationLinks,
-  registerAddToMap,
 }: IUseStacSearchProps): IUseStacSearchReturn {
   const [startTime, setStartTime] = useState<Date | undefined>(undefined);
   const [endTime, setEndTime] = useState<Date | undefined>(undefined);
@@ -282,33 +279,6 @@ export function useStacSearch({
     [model, setResults, setPaginationLinks],
   );
 
-  /**
-   * Adds a STAC item to the map
-   * @param stacData - STAC item to add
-   */
-  const addToMap = useCallback(
-    (stacData: IStacItem): void => {
-      if (!model) {
-        return;
-      }
-
-      const layerId = UUID.uuid4();
-      const layerModel: IJGISLayer = {
-        type: 'StacLayer',
-        parameters: { data: stacData },
-        visible: true,
-        name: stacData.properties?.title ?? stacData.id,
-      };
-
-      model.addLayer(layerId, layerModel);
-    },
-    [model],
-  );
-
-  // Register addToMap with context
-  useEffect(() => {
-    registerAddToMap(addToMap);
-  }, [addToMap, registerAddToMap]);
 
   return {
     startTime,
