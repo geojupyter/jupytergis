@@ -1,4 +1,5 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
+import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 import { endOfToday, startOfToday } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -87,6 +88,19 @@ export function useStacGenericFilter({
   >({});
   const [filterOperator, setFilterOperator] = useState<FilterOperator>('and');
 
+  // Reset all state when URL changes
+  useEffect(() => {
+    setQueryableProps(undefined);
+    setCollections([]);
+    setSelectedCollection('sentinel-2-l2a');
+    setQueryableFilters({});
+    setFilterOperator('and');
+    // Reset temporal/spatial filters
+    setStartTime(undefined);
+    setEndTime(undefined);
+    setUseWorldBBox(false);
+  }, [baseUrl, setStartTime, setEndTime, setUseWorldBBox]);
+
   // for collections
   useEffect(() => {
     if (!model) {
@@ -117,10 +131,14 @@ export function useStacGenericFilter({
         });
 
       setCollections(collections);
+      // Set first collection as default if available
+      if (collections.length > 0) {
+        setSelectedCollection(collections[0].id);
+      }
     };
 
     fatch();
-  }, [model]);
+  }, [model, baseUrl]);
 
   // for queryables
   // should listen for colletion changes and requery
@@ -132,6 +150,7 @@ export function useStacGenericFilter({
     }
 
     const fatch = async () => {
+      console.log('hittin dem queries boiiii')
       const queryablesUrl = baseUrl.endsWith('/')
         ? `${baseUrl}queryables`
         : `${baseUrl}/queryables`;
@@ -147,7 +166,7 @@ export function useStacGenericFilter({
     };
 
     fatch();
-  }, [model]);
+  }, [model, baseUrl]);
 
   const updateQueryableFilter = useCallback(
     (qKey: string, filter: IQueryableFilter) => {
@@ -232,6 +251,33 @@ export function useStacGenericFilter({
   useEffect(() => {
     registerFetchUsingLink(fetchUsingLink);
   }, [fetchUsingLink, registerFetchUsingLink]);
+
+  // Register addToMap function - useStacSearch registers it, but we need to ensure
+  // it's re-registered when URL changes (since addToMapRef gets cleared in setSelectedUrl)
+  // We create our own addToMap here to ensure it's always registered
+  const addToMap = useCallback(
+    (stacData: IStacItem): void => {
+      if (!model) {
+        return;
+      }
+
+      const layerId = UUID.uuid4();
+      const layerModel: IJGISLayer = {
+        type: 'StacLayer',
+        parameters: { data: stacData },
+        visible: true,
+        name: stacData.properties?.title ?? stacData.id,
+      };
+
+      model.addLayer(layerId, layerModel);
+    },
+    [model],
+  );
+
+  // Register addToMap with context
+  useEffect(() => {
+    registerAddToMap(addToMap);
+  }, [addToMap, registerAddToMap, baseUrl]);
 
   return {
     queryableProps,
