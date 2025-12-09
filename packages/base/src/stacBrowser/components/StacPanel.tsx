@@ -15,7 +15,7 @@ import StacGenericFilterPanel from './StacGenericFilterPanel';
 import StacPanelResults from './StacPanelResults';
 import StacGeodesFilterPanel from './geodes/StacGeodesFilterPanel';
 
-const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
+const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/';
 
 // URL to panel component mapping for extensibility
 // Add new entries here to support additional STAC providers

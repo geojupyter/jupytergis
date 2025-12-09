@@ -53,7 +53,8 @@ const StacPanelResults = () => {
     paginationLinks,
     currentPage,
     setCurrentPage,
-    totalPages
+    totalPages,
+    executeQuery,
   } = useStacResultsContext();
 
   useEffect(() => {
@@ -91,15 +92,14 @@ const StacPanelResults = () => {
                 );
               }
 
-              // ! todo get this working
-              // thik of better implementtion to make it simpleer
-              // stop asking the ai
-              // also is active is fucked now
               return (
                 <PaginationItem key={item}>
                   <PaginationLink
                     isActive={item === currentPage}
-                    onClick={() => handlePaginationClick('next')}
+                    onClick={async () => {
+                      setCurrentPage(item);
+                      await executeQuery(item);
+                    }}
                     disabled={totalPages === 1}
                   >
                     {item}
