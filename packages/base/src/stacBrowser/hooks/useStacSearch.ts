@@ -32,6 +32,7 @@ interface IUseStacSearchReturn {
   executeQuery: (
     body: IStacQueryBody,
     apiUrl: string,
+    method?: string, //! not 100% sure I want this
   ) => Promise<void>;
   fetchUsingLink: (
     link: IStacLink & { method?: string; body?: Record<string, any> },
@@ -78,16 +79,17 @@ export function useStacSearch({
 
   // Core submit function - accepts a query body and initiates the query
   const executeQuery = useCallback(
-    async (body: IStacQueryBody, apiUrl: string) => {
+    async (body: IStacQueryBody, apiUrl: string, method?: string) => {
       if (!model) {
         return;
       }
 
       const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
       const queryBody = body;
+      const httpMethod = (method || 'POST').toUpperCase();
 
       const options = {
-        method: 'POST',
+        method: httpMethod,
         headers: {
           'Content-Type': 'application/json',
           'X-XSRFToken': XSRF_TOKEN,

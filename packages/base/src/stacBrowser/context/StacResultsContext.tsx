@@ -50,7 +50,11 @@ interface IStacResultsContext {
     handleFn: (dir: 'next' | 'previous') => Promise<void>,
   ) => void;
   registerBuildQuery: (buildQueryFn: () => IStacQueryBody) => void;
-  executeQuery: (body: IStacQueryBody, apiUrl?: string) => Promise<void>;
+  executeQuery: (
+    body: IStacQueryBody,
+    apiUrl?: string,
+    method?: string,
+  ) => Promise<void>;
   executeQueryWithPage: (pageNumber: number) => Promise<void>;
 }
 
@@ -185,7 +189,11 @@ export function StacResultsProvider({
 
   // Execute query using provided body
   const executeQuery = useCallback(
-    async (body: IStacQueryBody, apiUrl?: string): Promise<void> => {
+    async (
+      body: IStacQueryBody,
+      apiUrl?: string,
+      method?: string,
+    ): Promise<void> => {
       if (!model) {
         return;
       }
@@ -193,9 +201,10 @@ export function StacResultsProvider({
       const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
       const queryBody = body;
       const urlToUse = apiUrl || getSearchUrl(selectedUrl);
+      const httpMethod = (method || 'POST').toUpperCase();
 
       const options = {
-        method: 'POST',
+        method: httpMethod,
         headers: {
           'Content-Type': 'application/json',
           'X-XSRFToken': XSRF_TOKEN,
@@ -331,9 +340,15 @@ export function StacResultsProvider({
         return ['prev', 'previous'].includes(l.rel);
       });
 
-      if (link && link.body && fetchUsingLinkRef.current) {
-        // Use the registered fetch function
-        await fetchUsingLinkRef.current(link);
+
+      // ! this is nice, if no body then link href should have search params - update eventually
+      if (link && link.body) {
+        // Use executeQuery with the link's body, href, and method
+        await executeQuery(
+          link.body as IStacQueryBody,
+          link.href,
+          link.method,
+        );
       }
     },
     [model, paginationLinks],

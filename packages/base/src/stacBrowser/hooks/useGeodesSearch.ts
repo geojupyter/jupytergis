@@ -210,6 +210,7 @@ function useGeodesSearch({
       return;
     }
 
+    // ! someosmeosmesse urlTOUse
     const urlToUse = selectedUrl.endsWith('/') ? `${selectedUrl}search` : `${selectedUrl}/search`;
     // Build query body and execute query
     const queryBody = buildGeodesQuery();
