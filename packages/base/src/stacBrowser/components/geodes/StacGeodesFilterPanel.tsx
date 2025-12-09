@@ -28,7 +28,6 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
   const {
     setResults,
     setPaginationLinks,
-    registerAddToMap,
     registerFetchUsingLink,
     selectedUrl,
   } = useStacResultsContext();
@@ -47,7 +46,6 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
     apiUrl: selectedUrl,
     setResults,
     setPaginationLinks,
-    registerAddToMap,
     registerFetchUsingLink,
   });
 

@@ -1,4 +1,5 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
+import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 import React, {
   createContext,
   useContext,
@@ -123,6 +124,7 @@ export function StacResultsProvider({
   const setSelectedUrl = useCallback((url: string) => {
     setSelectedUrlState(url);
     // Clear all registered handlers when provider changes to prevent stale handlers
+    // Note: addToMapRef is cleared but defaultAddToMap is always available
     handlePaginationClickRef.current = undefined;
     fetchUsingLinkRef.current = undefined;
     addToMapRef.current = undefined;
@@ -321,6 +323,26 @@ export function StacResultsProvider({
     [model, paginationLinks],
   );
 
+  // Default addToMap implementation - always available
+  const defaultAddToMap = useCallback(
+    (stacData: IStacItem): void => {
+      if (!model) {
+        return;
+      }
+
+      const layerId = UUID.uuid4();
+      const layerModel: IJGISLayer = {
+        type: 'StacLayer',
+        parameters: { data: stacData },
+        visible: true,
+        name: stacData.properties?.title ?? stacData.id,
+      };
+
+      model.addLayer(layerId, layerModel);
+    },
+    [model],
+  );
+
   const handleResultClick = useCallback(
     async (id: string): Promise<void> => {
       if (!model) {
@@ -332,11 +354,16 @@ export function StacResultsProvider({
       const result = currentResults.find((r: IStacItem) => r.id === id);
 
       console.log('handler ersult click context');
-      if (result && addToMapRef.current) {
-        addToMapRef.current(result);
+      if (result) {
+        // Use registered override if available, otherwise use default
+        if (addToMapRef.current) {
+          addToMapRef.current(result);
+        } else {
+          defaultAddToMap(result);
+        }
       }
     },
-    [model, results],
+    [model, results, defaultAddToMap],
   );
 
   const formatResult = useCallback((item: IStacItem): string => {

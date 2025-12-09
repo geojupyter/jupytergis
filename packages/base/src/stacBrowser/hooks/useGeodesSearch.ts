@@ -24,7 +24,6 @@ interface IUseGeodesSearchProps {
   setPaginationLinks: (
     links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
   ) => void;
-  registerAddToMap: (addFn: (stacData: IStacItem) => void) => void;
   registerFetchUsingLink: (
     fetchFn: (
       link: IStacLink & { method?: string; body?: Record<string, any> },
@@ -58,7 +57,6 @@ function useGeodesSearch({
   apiUrl,
   setResults,
   setPaginationLinks,
-  registerAddToMap,
   registerFetchUsingLink,
 }: IUseGeodesSearchProps): IUseGeodesSearchReturn {
   const isFirstRender = useIsFirstRender();
@@ -96,7 +94,6 @@ function useGeodesSearch({
     model,
     setResults,
     setPaginationLinks,
-    registerAddToMap,
   });
 
   const [filterState, setFilterState] = useState<StacFilterState>({
