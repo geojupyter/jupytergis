@@ -9,7 +9,14 @@ import React, {
   useEffect,
 } from 'react';
 
-import { IStacItem, IStacLink, SetResultsFunction } from '../types/types';
+import { fetchWithProxies } from '@/src/tools';
+import {
+  IStacItem,
+  IStacLink,
+  IStacQueryBody,
+  IStacSearchResult,
+  SetResultsFunction,
+} from '../types/types';
 
 interface IStacResultsContext {
   results: IStacItem[];
@@ -41,6 +48,8 @@ interface IStacResultsContext {
   registerHandlePaginationClick: (
     handleFn: (dir: 'next' | 'previous') => Promise<void>,
   ) => void;
+  registerBuildQuery: (buildQueryFn: () => IStacQueryBody) => void;
+  executeQuery: (pageNumber?: number) => Promise<void>;
 }
 
 const StacResultsContext = createContext<IStacResultsContext | undefined>(
@@ -77,13 +86,13 @@ export function StacResultsProvider({
       ) => Promise<void>
     >();
   const addToMapRef = useRef<(stacData: IStacItem) => void>();
-  const handlePaginationClickRef = useRef<
-    (dir: 'next' | 'previous') => Promise<void>
-  >();
+  const handlePaginationClickRef =
+    useRef<(dir: 'next' | 'previous') => Promise<void>>();
+  const buildQueryRef = useRef<() => IStacQueryBody>();
 
   // Keep ref in sync with state
   useEffect(() => {
-    console.log('update curr page ref in context', currentPage)
+    console.log('update curr page ref in context', currentPage);
     currentPageRef.current = currentPage;
   }, [currentPage]);
 
@@ -113,12 +122,15 @@ export function StacResultsProvider({
 
   const setSelectedUrl = useCallback((url: string) => {
     setSelectedUrlState(url);
-    // Clear handlers when provider changes to prevent stale handlers
+    // Clear all registered handlers when provider changes to prevent stale handlers
     handlePaginationClickRef.current = undefined;
     fetchUsingLinkRef.current = undefined;
     addToMapRef.current = undefined;
-    // Reset pagination state
+    buildQueryRef.current = undefined;
+    // Reset all state
+    setIsLoading(false);
     setCurrentPageState(1);
+    currentPageRef.current = 1;
     setResultsState([]);
     setPaginationLinksState([]);
     setTotalResults(0);
@@ -154,6 +166,124 @@ export function StacResultsProvider({
       handlePaginationClickRef.current = handleFn;
     },
     [],
+  );
+
+  const registerBuildQuery = useCallback(
+    (buildQueryFn: () => IStacQueryBody) => {
+      buildQueryRef.current = buildQueryFn;
+    },
+    [],
+  );
+
+  // Helper to get search URL from base URL
+  const getSearchUrl = (baseUrl: string): string => {
+    return baseUrl.endsWith('/') ? `${baseUrl}search` : `${baseUrl}/search`;
+  };
+
+  // Execute query using registered buildQuery function
+  const executeQuery = useCallback(
+    async (pageNumber?: number): Promise<void> => {
+      if (!model || !buildQueryRef.current) {
+        return;
+      }
+
+      const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
+      let queryBody = buildQueryRef.current();
+
+      // If pageNumber is provided, inject it into the query (for GEODES)
+      if (pageNumber !== undefined && queryBody) {
+        queryBody = { ...queryBody, page: pageNumber };
+      }
+
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-XSRFToken': XSRF_TOKEN,
+          credentials: 'include',
+        },
+        body: JSON.stringify(queryBody),
+      };
+
+      try {
+        // Update context with loading state
+        setResults([], true, 0, 0);
+
+        const data = (await fetchWithProxies(
+          getSearchUrl(selectedUrl),
+          model,
+          async (response: Response) => await response.json(),
+          //@ts-expect-error Jupyter requires X-XSRFToken header
+          options,
+          'internal',
+        )) as IStacSearchResult;
+
+        if (!data) {
+          setResults([], false, 0, 0);
+          return;
+        }
+
+        // Filter assets to only include items with 'overview' or 'thumbnail' roles
+        if (data.features && data.features.length > 0) {
+          data.features.forEach((feature: IStacItem) => {
+            if (feature.assets) {
+              const originalAssets = feature.assets;
+              const filteredAssets: Record<string, any> = {};
+
+              for (const [key, asset] of Object.entries(originalAssets)) {
+                if (
+                  asset &&
+                  typeof asset === 'object' &&
+                  'roles' in asset &&
+                  Array.isArray(asset.roles)
+                ) {
+                  const roles = asset.roles;
+
+                  if (
+                    roles.includes('thumbnail') ||
+                    roles.includes('overview')
+                  ) {
+                    filteredAssets[key] = asset;
+                  }
+                }
+              }
+
+              feature.assets = filteredAssets;
+            }
+          });
+        }
+
+        // Sort features by id before setting results
+        const sortedFeatures = [...data.features].sort((a, b) =>
+          a.id.localeCompare(b.id),
+        );
+
+        // Calculate total results from context if available
+        let totalResults = data.features.length;
+        let totalPages = 0;
+        if (data.context) {
+          totalResults = data.context.matched;
+          totalPages = Math.ceil(data.context.matched / data.context.limit);
+        } else if (sortedFeatures.length > 0) {
+          // If results found but no context, assume 1 page
+          totalPages = 1;
+        }
+
+        // Update context with results
+        setResults(sortedFeatures, false, totalResults, totalPages);
+
+        // Store pagination links
+        if (data.links) {
+          const typedLinks = data.links as Array<
+            IStacLink & { method?: string; body?: Record<string, any> }
+          >;
+          setPaginationLinks(typedLinks);
+        }
+      } catch (error) {
+        setResults([], false, 0, 0);
+      }
+    },
+    [model, selectedUrl, setResults, setPaginationLinks],
   );
 
   // Handlers created in context - always read latest state directly
@@ -195,7 +325,7 @@ export function StacResultsProvider({
       const currentResults = results;
       const result = currentResults.find((r: IStacItem) => r.id === id);
 
-      console.log('handler ersult click context')
+      console.log('handler ersult click context');
       if (result && addToMapRef.current) {
         addToMapRef.current(result);
       }
@@ -228,6 +358,8 @@ export function StacResultsProvider({
         registerFetchUsingLink,
         registerAddToMap,
         registerHandlePaginationClick,
+        registerBuildQuery,
+        executeQuery,
       }}
     >
       {children}
