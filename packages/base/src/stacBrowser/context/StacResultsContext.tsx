@@ -50,7 +50,8 @@ interface IStacResultsContext {
     handleFn: (dir: 'next' | 'previous') => Promise<void>,
   ) => void;
   registerBuildQuery: (buildQueryFn: () => IStacQueryBody) => void;
-  executeQuery: (pageNumber?: number) => Promise<void>;
+  executeQuery: (body: IStacQueryBody, apiUrl?: string) => Promise<void>;
+  executeQueryWithPage: (pageNumber: number) => Promise<void>;
 }
 
 const StacResultsContext = createContext<IStacResultsContext | undefined>(
@@ -182,20 +183,16 @@ export function StacResultsProvider({
     return baseUrl.endsWith('/') ? `${baseUrl}search` : `${baseUrl}/search`;
   };
 
-  // Execute query using registered buildQuery function
+  // Execute query using provided body
   const executeQuery = useCallback(
-    async (pageNumber?: number): Promise<void> => {
-      if (!model || !buildQueryRef.current) {
+    async (body: IStacQueryBody, apiUrl?: string): Promise<void> => {
+      if (!model) {
         return;
       }
 
       const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-      let queryBody = buildQueryRef.current();
-
-      // If pageNumber is provided, inject it into the query (for GEODES)
-      if (pageNumber !== undefined && queryBody) {
-        queryBody = { ...queryBody, page: pageNumber };
-      }
+      const queryBody = body;
+      const urlToUse = apiUrl || getSearchUrl(selectedUrl);
 
       const options = {
         method: 'POST',
@@ -212,7 +209,7 @@ export function StacResultsProvider({
         setResults([], true, 0, 0);
 
         const data = (await fetchWithProxies(
-          getSearchUrl(selectedUrl),
+          urlToUse,
           model,
           async (response: Response) => await response.json(),
           //@ts-expect-error Jupyter requires X-XSRFToken header
@@ -286,6 +283,25 @@ export function StacResultsProvider({
       }
     },
     [model, selectedUrl, setResults, setPaginationLinks],
+  );
+
+  // Wrapper function that takes a page number, builds query, and executes it
+  const executeQueryWithPage = useCallback(
+    async (pageNumber: number): Promise<void> => {
+      if (!model || !buildQueryRef.current) {
+        return;
+      }
+
+      // Build query body
+      let queryBody = buildQueryRef.current();
+
+      // Inject page number into the query
+      queryBody = { ...queryBody, page: pageNumber };
+
+      // Execute query with the modified body
+      await executeQuery(queryBody);
+    },
+    [model, executeQuery],
   );
 
   // Handlers created in context - always read latest state directly
@@ -393,6 +409,7 @@ export function StacResultsProvider({
         registerHandlePaginationClick,
         registerBuildQuery,
         executeQuery,
+        executeQueryWithPage,
       }}
     >
       {children}
