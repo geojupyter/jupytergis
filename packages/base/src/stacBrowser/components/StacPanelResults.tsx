@@ -54,7 +54,7 @@ const StacPanelResults = () => {
     currentPage,
     setCurrentPage,
     totalPages,
-    executeQuery,
+    executeQueryWithPage,
   } = useStacResultsContext();
 
   useEffect(() => {
@@ -100,7 +100,7 @@ const StacPanelResults = () => {
                     isActive={item === currentPage}
                     onClick={async () => {
                       setCurrentPage(item);
-                      await executeQuery(item);
+                      await executeQueryWithPage(item);
                     }}
                     disabled={totalPages === 1}
                   >

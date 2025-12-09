@@ -72,7 +72,7 @@ export function useStacGenericFilter({
     setPaginationLinks,
   });
 
-  const { registerBuildQuery, executeQuery } = useStacResultsContext();
+  const { registerBuildQuery, executeQuery, selectedUrl } = useStacResultsContext();
 
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
@@ -239,9 +239,13 @@ export function useStacGenericFilter({
       return;
     }
 
-    // Use executeQuery from context to initiate the query
-    await executeQuery();
-  }, [model, executeQuery]);
+    // Build query body and execute query
+    const queryBody = buildCopernicusQuery();
+    const searchUrl = baseUrl.endsWith('/')
+      ? `${baseUrl}search`
+      : `${baseUrl}/search`;
+    await executeQuery(queryBody, searchUrl);
+  }, [model, executeQuery, buildCopernicusQuery, baseUrl]);
 
   // Register fetchUsingLink from useStacSearch with context so handlers can use it
   useEffect(() => {
