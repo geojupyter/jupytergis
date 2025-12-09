@@ -304,8 +304,14 @@ export function StacResultsProvider({
       // Read directly from state - no closure issues!
       const currentLinks = paginationLinks;
 
-      // Find the pagination link by rel
-      const link = currentLinks.find(l => l.rel === dir);
+      // Find the pagination link by rel (support both 'previous' and 'prev')
+      const link = currentLinks.find(l => {
+        if (dir === 'next') {
+          return l.rel === 'next';
+        }
+        // For 'previous', accept both 'previous' and 'prev'
+        return ['prev', 'previous'].includes(l.rel);
+      });
 
       if (link && link.body && fetchUsingLinkRef.current) {
         // Use the registered fetch function

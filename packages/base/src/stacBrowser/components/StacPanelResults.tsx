@@ -63,7 +63,9 @@ const StacPanelResults = () => {
   }, [currentPage, totalPages]);
 
   const isNext = paginationLinks.some(link => link.rel === 'next');
-  const isPrev = paginationLinks.some(link => link.rel === 'previous');
+  const isPrev = paginationLinks.some(link =>
+    ['prev', 'previous'].includes(link.rel),
+  );
 
   return (
     <div className="jgis-stac-browser-filters-panel">
