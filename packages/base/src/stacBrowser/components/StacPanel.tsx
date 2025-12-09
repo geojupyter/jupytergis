@@ -63,6 +63,9 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
               Copernicus
             </option>
             <option value={GEODES_URL}>GEODES</option>
+            <option value="https://api.stac.worldpop.org/">
+              WorldPop
+            </option>
           </select>
         </div>
 
