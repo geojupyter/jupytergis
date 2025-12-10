@@ -1,8 +1,11 @@
+import { faLink } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
 import jgisSchema from '@jupytergis/schema/lib/schema/project/jgis.json';
 import React, { useMemo } from 'react';
 
 import { StoryEditorPropertiesForm } from '@/src/formbuilder/objectform/StoryEditorForm';
+import { Button } from '@/src/shared/components/Button';
 import { deepCopy } from '@/src/tools';
 import { IDict } from '@/src/types';
 
@@ -23,13 +26,16 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
 
   if (!story) {
     return (
-      <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
+      <div>
         <p>No Story Map available.</p>
         <p>
           Add a Story Segment from the Add Layer menu. A segment captures the
           current map view. You can add markdown text and an image to each
           segment to tell your story.
         </p>
+        <Button>
+          <FontAwesomeIcon icon={faLink} /> Add Story Segment
+        </Button>
       </div>
     );
   }
@@ -44,6 +50,9 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
         syncData={syncStoryData}
         filePath={model.filePath}
       />
+       <Button>
+          <FontAwesomeIcon icon={faLink} /> Add Story Segment
+        </Button>
     </div>
   );
 }
