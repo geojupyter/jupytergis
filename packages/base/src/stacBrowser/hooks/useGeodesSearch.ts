@@ -68,7 +68,6 @@ function useGeodesSearch({
   useEffect(() => {
     console.log('current page', currentPage);
     console.log('current page ref i think this one ', currentPageRef.current);
-
   }, [currentPage]);
 
   useEffect(() => {
@@ -96,8 +95,6 @@ function useGeodesSearch({
     platforms: new Set(),
     products: new Set(),
   });
-
-  
 
   const filterSetters: StacFilterSetters = {
     collections: val =>
@@ -143,52 +140,55 @@ function useGeodesSearch({
    * Builds GEODES-specific query
    * @param page - Page number for pagination (defaults to currentPageRef.current)
    */
-  const buildGeodesQuery = useCallback((page?: number): IStacQueryBody => {
-    const pageToUse = page ?? currentPageRef.current;
-    const processingLevel = new Set<string>();
-    const productType = new Set<string>();
+  const buildGeodesQuery = useCallback(
+    (page?: number): IStacQueryBody => {
+      const pageToUse = page ?? currentPageRef.current;
+      const processingLevel = new Set<string>();
+      const productType = new Set<string>();
 
-    filterState.products.forEach(productCode => {
-      products
-        .filter(product => product.productCode === productCode)
-        .forEach(product => {
-          if (product.processingLevel) {
-            processingLevel.add(product.processingLevel);
-          }
-          if (product.productType) {
-            product.productType.forEach(type => productType.add(type));
-          }
-        });
-    });
+      filterState.products.forEach(productCode => {
+        products
+          .filter(product => product.productCode === productCode)
+          .forEach(product => {
+            if (product.processingLevel) {
+              processingLevel.add(product.processingLevel);
+            }
+            if (product.productType) {
+              product.productType.forEach(type => productType.add(type));
+            }
+          });
+      });
 
-    return {
-      bbox: currentBBox,
-      limit: 12,
-      page: pageToUse,
-      query: {
-        latest: { eq: true },
-        dataset: { in: Array.from(filterState.datasets) },
-        end_datetime: {
-          gte: startTime
-            ? startTime.toISOString()
-            : startOfYesterday().toISOString(),
+      return {
+        bbox: currentBBox,
+        limit: 12,
+        page: pageToUse,
+        query: {
+          latest: { eq: true },
+          dataset: { in: Array.from(filterState.datasets) },
+          end_datetime: {
+            gte: startTime
+              ? startTime.toISOString()
+              : startOfYesterday().toISOString(),
+          },
+          ...(endTime && {
+            start_datetime: { lte: endTime.toISOString() },
+          }),
+          ...(filterState.platforms.size > 0 && {
+            platform: { in: Array.from(filterState.platforms) },
+          }),
+          ...(processingLevel.size > 0 && {
+            'processing:level': { in: Array.from(processingLevel) },
+          }),
+          ...(productType.size > 0 && {
+            'product:type': { in: Array.from(productType) },
+          }),
         },
-        ...(endTime && {
-          start_datetime: { lte: endTime.toISOString() },
-        }),
-        ...(filterState.platforms.size > 0 && {
-          platform: { in: Array.from(filterState.platforms) },
-        }),
-        ...(processingLevel.size > 0 && {
-          'processing:level': { in: Array.from(processingLevel) },
-        }),
-        ...(productType.size > 0 && {
-          'product:type': { in: Array.from(productType) },
-        }),
-      },
-      sortBy: [{ direction: 'desc', field: 'start_datetime' }],
-    };
-  }, [filterState, currentBBox, startTime, endTime, currentPageRef]);
+        sortBy: [{ direction: 'desc', field: 'start_datetime' }],
+      };
+    },
+    [filterState, currentBBox, startTime, endTime, currentPageRef],
+  );
 
   // Register buildQuery with context - always use currentPageRef for latest page
   useEffect(() => {
@@ -204,7 +204,9 @@ function useGeodesSearch({
     }
 
     // ! someosmeosmesse urlTOUse
-    const urlToUse = selectedUrl.endsWith('/') ? `${selectedUrl}search` : `${selectedUrl}/search`;
+    const urlToUse = selectedUrl.endsWith('/')
+      ? `${selectedUrl}search`
+      : `${selectedUrl}/search`;
     // Build query body and execute query
     const queryBody = buildGeodesQuery();
     await executeQuery(queryBody, urlToUse);
@@ -225,7 +227,6 @@ function useGeodesSearch({
     handleSubmit,
   ]);
 
-
   /**
    * Handles pagination clicks for GEODES
    * Updates currentPage and executes query with new page number
@@ -237,22 +238,41 @@ function useGeodesSearch({
         return;
       }
 
-      console.log('geodes page click', dir, 'currentPage:', currentPage, 'currentPageRef.current:', currentPageRef.current);
+      console.log(
+        'geodes page click',
+        dir,
+        'currentPage:',
+        currentPage,
+        'currentPageRef.current:',
+        currentPageRef.current,
+      );
 
       // Calculate new page number
-      const newPage = dir === 'next' ? currentPageRef.current + 1 : currentPageRef.current - 1;
+      const newPage =
+        dir === 'next'
+          ? currentPageRef.current + 1
+          : currentPageRef.current - 1;
 
       // Update currentPage in context
       setCurrentPage(newPage);
-      const urlToUse = selectedUrl.endsWith('/') ? `${selectedUrl}search` : `${selectedUrl}/search`;
+      const urlToUse = selectedUrl.endsWith('/')
+        ? `${selectedUrl}search`
+        : `${selectedUrl}/search`;
 
       // Build query body with new page and execute query
       const queryBody = buildGeodesQuery(newPage);
       await executeQuery(queryBody, urlToUse);
     },
-    [model, executeQuery, setCurrentPage, currentPage, currentPageRef, buildGeodesQuery, selectedUrl],
+    [
+      model,
+      executeQuery,
+      setCurrentPage,
+      currentPage,
+      currentPageRef,
+      buildGeodesQuery,
+      selectedUrl,
+    ],
   );
-
 
   // Register handlePaginationClick with context
   useEffect(() => {

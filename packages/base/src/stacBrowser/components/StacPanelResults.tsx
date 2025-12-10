@@ -59,7 +59,7 @@ const StacPanelResults = () => {
 
   useEffect(() => {
     console.log('current page in results', currentPage);
-    console.log('totalPages', totalPages)
+    console.log('totalPages', totalPages);
   }, [currentPage, totalPages]);
 
   const isNext = paginationLinks.some(link => link.rel === 'next');
@@ -73,12 +73,10 @@ const StacPanelResults = () => {
         <PaginationContent style={{ marginTop: 0 }}>
           <PaginationItem>
             <PaginationPrevious
-              onClick={
-                () => {
-                  setCurrentPage(Math.max(currentPage - 1, 1));
-                  handlePaginationClick('previous');
-                }
-              }
+              onClick={() => {
+                setCurrentPage(Math.max(currentPage - 1, 1));
+                handlePaginationClick('previous');
+              }}
               disabled={!isPrev}
             />
           </PaginationItem>
@@ -130,9 +128,7 @@ const StacPanelResults = () => {
           </PaginationItem>
         </PaginationContent>
       </Pagination>
-      <div
-        className="jgis-stac-browser-results-list"
-      >
+      <div className="jgis-stac-browser-results-list">
         {isLoading ? (
           // TODO: Fancy spinner
           <div>Loading results...</div>
