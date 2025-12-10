@@ -189,10 +189,10 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     }
   };
 
-  if (!storyData) {
+  if (!storyData || storyData?.landmarks?.length === 0) {
     return (
       <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
-        <p>No story map available. Create one in the Story Editor panel.</p>
+        <p>No Segments available. Add one using the Add Layer menu.</p>
       </div>
     );
   }

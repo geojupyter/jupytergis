@@ -1058,7 +1058,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.addLandmark, {
-    label: trans.__('Add View as Landmark'),
+    label: trans.__('Add Story Segment'),
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable

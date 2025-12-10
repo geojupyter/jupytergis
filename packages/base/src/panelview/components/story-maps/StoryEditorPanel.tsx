@@ -24,7 +24,12 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
   if (!story) {
     return (
       <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
-        <p>No story map available. Create one by adding a landmark.</p>
+        <p>No Story Map available.</p>
+        <p>
+          Add a Story Segment from the Add Layer menu. A segment captures the
+          current map view. You can add markdown text and an image to each
+          segment to tell your story.
+        </p>
       </div>
     );
   }

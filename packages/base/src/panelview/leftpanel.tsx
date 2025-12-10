@@ -150,7 +150,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     !settings.filtersDisabled && settings.storyMapPresentationDisabled
       ? { name: 'filters', title: 'Filters' }
       : false,
-    { name: 'landmarks', title: 'Landmarks' },
+    { name: 'segments', title: 'Segments' },
   ].filter(Boolean) as { name: string; title: string }[];
 
   const [curTab, setCurTab] = React.useState<string | undefined>(
@@ -208,7 +208,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
           </TabsContent>
         )}
 
-        <TabsContent value="landmarks" className="jgis-panel-tab-content">
+        <TabsContent value="segments" className="jgis-panel-tab-content">
           <LayersBodyComponent
             model={props.model}
             commands={props.commands}
