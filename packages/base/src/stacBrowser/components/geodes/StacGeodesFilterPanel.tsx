@@ -25,11 +25,8 @@ interface IStacGeodesFilterPanelProps {
 }
 
 const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
-  const {
-    setResults,
-    setPaginationLinks,
-    selectedUrl,
-  } = useStacResultsContext();
+  const { setResults, setPaginationLinks, selectedUrl } =
+    useStacResultsContext();
 
   const {
     filterState,

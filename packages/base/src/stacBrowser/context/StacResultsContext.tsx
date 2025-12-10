@@ -315,15 +315,10 @@ export function StacResultsProvider({
         return ['prev', 'previous'].includes(l.rel);
       });
 
-
       // ! this is nice, if no body then link href should have search params - update eventually
       if (link && link.body) {
         // Use executeQuery with the link's body, href, and method
-        await executeQuery(
-          link.body as IStacQueryBody,
-          link.href,
-          link.method,
-        );
+        await executeQuery(link.body as IStacQueryBody, link.href, link.method);
       }
     },
     [model, paginationLinks],
