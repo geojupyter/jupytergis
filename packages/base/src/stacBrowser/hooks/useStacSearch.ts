@@ -1,10 +1,7 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import {  useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  IStacLink,
-  SetResultsFunction,
-} from '../types/types';
+import { IStacLink, SetResultsFunction } from '../types/types';
 
 interface IUseStacSearchProps {
   model: IJupyterGISModel | undefined;

@@ -16,9 +16,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '../shared/components/Tabs';
-// import StacPanel from '../stacBrowser/components/StacPanel';
 import FilterComponent from './components/filter-panel/Filter';
-import StacGenericFilterPanel from '../stacBrowser/components/StacGenericFilterPanel';
 import StacPanel from '../stacBrowser/components/StacPanel';
 
 export interface ILeftPanelClickHandlerParams {

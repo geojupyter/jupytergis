@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -12,7 +12,6 @@ import {
 } from '@/src/shared/components/Pagination';
 import { LoadingIcon } from '@/src/shared/components/loading';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
-import { IStacItem } from '@/src/stacBrowser/types/types';
 
 function getPageItems(
   currentPage: number,
@@ -56,11 +55,6 @@ const StacPanelResults = () => {
     executeQueryWithPage,
   } = useStacResultsContext();
 
-  useEffect(() => {
-    console.log('current page in results', currentPage);
-    console.log('totalPages', totalPages);
-  }, [currentPage, totalPages]);
-
   const isNext = paginationLinks.some(link => link.rel === 'next');
   const isPrev = paginationLinks.some(link =>
     ['prev', 'previous'].includes(link.rel),
@@ -79,49 +73,47 @@ const StacPanelResults = () => {
               disabled={!isPrev}
             />
           </PaginationItem>
-          {
-            totalPages === 1 ? (
-              // One page, display current page number and keep active
-              <PaginationItem>
-                <PaginationLink isActive={true}>{currentPage}</PaginationLink>
-              </PaginationItem>
-            ) : results.length !== 0 || isLoading ? (
-              // Multiple pages, display fancy pagination numbers
-              <>
-                {getPageItems(currentPage, totalPages).map(item => {
-                  if (item === 'ellipsis') {
-                    return (
-                      <PaginationItem key="ellipsis">
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    );
-                  }
-
+          {totalPages === 1 ? (
+            // One page, display current page number and keep active
+            <PaginationItem>
+              <PaginationLink isActive={true}>{currentPage}</PaginationLink>
+            </PaginationItem>
+          ) : results.length !== 0 || isLoading ? (
+            // Multiple pages, display fancy pagination numbers
+            <>
+              {getPageItems(currentPage, totalPages).map(item => {
+                if (item === 'ellipsis') {
                   return (
-                    <PaginationItem key={item}>
-                      <PaginationLink
-                        isActive={item === currentPage}
-                        onClick={async () => {
-                          setCurrentPage(item);
-                          await executeQueryWithPage(item);
-                        }}
-                        disabled={totalPages === 1}
-                      >
-                        {item}
-                      </PaginationLink>
+                    <PaginationItem key="ellipsis">
+                      <PaginationEllipsis />
                     </PaginationItem>
                   );
-                })}
-              </>
-            ) : (
-              // No results
-              <PaginationItem>
-                <PaginationLink isActive={true} disabled={true}>
-                  0
-                </PaginationLink>
-              </PaginationItem>
-            )
-          }
+                }
+
+                return (
+                  <PaginationItem key={item}>
+                    <PaginationLink
+                      isActive={item === currentPage}
+                      onClick={async () => {
+                        setCurrentPage(item);
+                        await executeQueryWithPage(item);
+                      }}
+                      disabled={totalPages === 1}
+                    >
+                      {item}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+            </>
+          ) : (
+            // No results
+            <PaginationItem>
+              <PaginationLink isActive={true} disabled={true}>
+                0
+              </PaginationLink>
+            </PaginationItem>
+          )}
           <PaginationItem>
             <PaginationNext
               onClick={() => {
@@ -135,7 +127,7 @@ const StacPanelResults = () => {
       </Pagination>
       <div className="jgis-stac-browser-results-list">
         {isLoading ? (
-          <LoadingIcon size='3x'/>
+          <LoadingIcon size="3x" />
         ) : (
           results.map(result => (
             <Button
