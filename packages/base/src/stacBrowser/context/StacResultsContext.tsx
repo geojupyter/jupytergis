@@ -190,7 +190,7 @@ export function StacResultsProvider({
 
       try {
         // Update context with loading state
-        setResults([], true, 0, 0);
+        setResults(results, true, totalResults, totalPages);
 
         const data = (await fetchWithProxies(
           urlToUse,
@@ -242,18 +242,18 @@ export function StacResultsProvider({
         );
 
         // Calculate total results from context if available
-        let totalResults = data.features.length;
-        let totalPages = 0;
+        let totalResultsFromQuery = data.features.length;
+        let totalPagesFromQuery = 0;
         if (data.context) {
-          totalResults = data.context.matched;
-          totalPages = Math.ceil(data.context.matched / data.context.limit);
+          totalResultsFromQuery = data.context.matched;
+          totalPagesFromQuery = Math.ceil(data.context.matched / data.context.limit);
         } else if (sortedFeatures.length > 0) {
           // If results found but no context, assume 1 page
-          totalPages = 1;
+          totalPagesFromQuery = 1;
         }
 
         // Update context with results
-        setResults(sortedFeatures, false, totalResults, totalPages);
+        setResults(sortedFeatures, false, totalResultsFromQuery, totalPagesFromQuery);
 
         // Store pagination links
         if (data.links) {
@@ -266,7 +266,7 @@ export function StacResultsProvider({
         setResults([], false, 0, 0);
       }
     },
-    [model, selectedUrl, setResults, setPaginationLinks],
+    [model, selectedUrl, setResults, setPaginationLinks, totalPages],
   );
 
   // Wrapper function that takes a page number, builds query, and executes it

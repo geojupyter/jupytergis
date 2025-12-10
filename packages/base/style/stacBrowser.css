@@ -22,6 +22,7 @@
   word-break: break-word;
   padding: 0.25rem;
   margin-right: 0.5rem;
+  align-self: center;
 }
 
 .jgis-stac-browser-date-picker {
@@ -32,6 +33,7 @@
 }
 
 .jgis-stac-browser-filters-panel {
+  min-height: 145px;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
