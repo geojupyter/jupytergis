@@ -65,7 +65,8 @@ export function useStacGenericFilter({
     setPaginationLinks,
   });
 
-  const { registerBuildQuery, executeQuery, selectedUrl } = useStacResultsContext();
+  const { registerBuildQuery, executeQuery, selectedUrl } =
+    useStacResultsContext();
 
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
@@ -139,7 +140,7 @@ export function useStacGenericFilter({
     }
 
     const fatch = async () => {
-      console.log('hittin dem queries boiiii')
+      console.log('hittin dem queries boiiii');
       const queryablesUrl = baseUrl.endsWith('/')
         ? `${baseUrl}queryables`
         : `${baseUrl}/queryables`;
@@ -239,7 +240,6 @@ export function useStacGenericFilter({
       : `${baseUrl}/search`;
     await executeQuery(queryBody, searchUrl);
   }, [model, executeQuery, buildCopernicusQuery, baseUrl]);
-
 
   return {
     queryableProps,
