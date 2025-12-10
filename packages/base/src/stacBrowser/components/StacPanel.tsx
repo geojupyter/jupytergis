@@ -42,7 +42,7 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
     URL_TO_PANEL_MAP[selectedUrl] ?? StacGenericFilterPanel;
 
   return (
-    <Tabs defaultValue="filters" className="jgis-panel-tabs">
+    <Tabs defaultValue="filters" className="jgis-panel-tabs" style={{boxShadow: 'none'}}>
       <TabsList style={{ borderRadius: 0 }}>
         <TabsTrigger className="jGIS-layer-browser-category" value="filters">
           Filters
