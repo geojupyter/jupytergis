@@ -57,12 +57,14 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
         >{`Results (${totalResults})`}</TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
-        <div style={{ marginBottom: '1rem' }}>
+        <div style={{ margin: '0 1rem 1rem 1rem' }}>
           <select
             style={{ width: '100%', padding: '0.5rem' }}
             value={selectedUrl}
             onChange={e => setSelectedUrl(e.target.value)}
           >
+            {/* // ! prob not it lol */}
+            <option></option>
             <option value="https://stac.dataspace.copernicus.eu/v1/">
               Copernicus
             </option>

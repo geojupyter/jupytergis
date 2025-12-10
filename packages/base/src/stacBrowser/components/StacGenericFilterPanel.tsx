@@ -104,6 +104,9 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
         >
+          <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+            Additional Filters
+          </label>
           <StacQueryableFilters
             queryableProps={queryableProps}
             updateQueryableFilter={updateQueryableFilter}
