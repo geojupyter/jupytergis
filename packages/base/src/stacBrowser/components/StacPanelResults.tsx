@@ -10,6 +10,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/src/shared/components/Pagination';
+import { LoadingIcon } from '@/src/shared/components/loading';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
 import { IStacItem } from '@/src/stacBrowser/types/types';
 
@@ -41,8 +42,6 @@ function getPageItems(
   ];
 }
 
-// ! tues to do -- refactor this, total pages is based on context, which is an extension
-// so everythign here needs to be based on link rels instead
 const StacPanelResults = () => {
   const {
     results,
@@ -80,43 +79,49 @@ const StacPanelResults = () => {
               disabled={!isPrev}
             />
           </PaginationItem>
-          {results.length === 0 ? (
-            <div>No Matches Found</div>
-          ) : (
-            getPageItems(currentPage, totalPages).map(item => {
-              if (item === 'ellipsis') {
-                return (
-                  <PaginationItem key="ellipsis">
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                );
-              }
+          {
+            totalPages === 1 ? (
+              // One page, display current page number and keep active
+              <PaginationItem>
+                <PaginationLink isActive={true}>{currentPage}</PaginationLink>
+              </PaginationItem>
+            ) : results.length !== 0 || isLoading ? (
+              // Multiple pages, display fancy pagination numbers
+              <>
+                {getPageItems(currentPage, totalPages).map(item => {
+                  if (item === 'ellipsis') {
+                    return (
+                      <PaginationItem key="ellipsis">
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
 
-              return (
-                <PaginationItem key={item}>
-                  <PaginationLink
-                    isActive={item === currentPage}
-                    onClick={async () => {
-                      setCurrentPage(item);
-                      await executeQueryWithPage(item);
-                    }}
-                    disabled={totalPages === 1}
-                  >
-                    {item}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })
-
-            // <PaginationItem key="wwsew">
-            //   <PaginationLink
-            //     isActive={true}
-            //     onClick={() => handlePaginationClick('next')}
-            //   >
-            //     {currentPage}
-            //   </PaginationLink>
-            // </PaginationItem>
-          )}
+                  return (
+                    <PaginationItem key={item}>
+                      <PaginationLink
+                        isActive={item === currentPage}
+                        onClick={async () => {
+                          setCurrentPage(item);
+                          await executeQueryWithPage(item);
+                        }}
+                        disabled={totalPages === 1}
+                      >
+                        {item}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+              </>
+            ) : (
+              // No results
+              <PaginationItem>
+                <PaginationLink isActive={true} disabled={true}>
+                  0
+                </PaginationLink>
+              </PaginationItem>
+            )
+          }
           <PaginationItem>
             <PaginationNext
               onClick={() => {
@@ -130,8 +135,7 @@ const StacPanelResults = () => {
       </Pagination>
       <div className="jgis-stac-browser-results-list">
         {isLoading ? (
-          // TODO: Fancy spinner
-          <div>Loading results...</div>
+          <LoadingIcon size='3x'/>
         ) : (
           results.map(result => (
             <Button

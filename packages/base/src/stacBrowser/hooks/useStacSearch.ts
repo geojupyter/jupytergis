@@ -1,12 +1,8 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import { useCallback, useEffect, useState } from 'react';
+import {  useEffect, useState } from 'react';
 
-import { fetchWithProxies } from '@/src/tools';
 import {
-  IStacItem,
   IStacLink,
-  IStacQueryBody,
-  IStacSearchResult,
   SetResultsFunction,
 } from '../types/types';
 
@@ -28,12 +24,6 @@ interface IUseStacSearchReturn {
   setCurrentBBox: (bbox: [number, number, number, number]) => void;
   useWorldBBox: boolean;
   setUseWorldBBox: (val: boolean) => void;
-  // Core fetch functions
-  executeQuery: (
-    body: IStacQueryBody,
-    apiUrl: string,
-    method?: string, //! not 100% sure I want this
-  ) => Promise<void>;
 }
 
 /**
@@ -44,8 +34,6 @@ interface IUseStacSearchReturn {
  */
 export function useStacSearch({
   model,
-  setResults,
-  setPaginationLinks,
 }: IUseStacSearchProps): IUseStacSearchReturn {
   const [startTime, setStartTime] = useState<Date | undefined>(undefined);
   const [endTime, setEndTime] = useState<Date | undefined>(undefined);
@@ -74,108 +62,6 @@ export function useStacSearch({
     };
   }, [model, useWorldBBox]);
 
-  // Core submit function - accepts a query body and initiates the query
-  const executeQuery = useCallback(
-    async (body: IStacQueryBody, apiUrl: string, method?: string) => {
-      if (!model) {
-        return;
-      }
-
-      const XSRF_TOKEN = document.cookie.match(/_xsrf=([^;]+)/)?.[1];
-      const queryBody = body;
-      const httpMethod = (method || 'POST').toUpperCase();
-
-      const options = {
-        method: httpMethod,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-XSRFToken': XSRF_TOKEN,
-          credentials: 'include',
-        },
-        body: JSON.stringify(queryBody),
-      };
-
-      try {
-        // Update context with loading state
-        setResults([], true, 0, 0);
-
-        const data = (await fetchWithProxies(
-          apiUrl,
-          model,
-          async response => await response.json(),
-          //@ts-expect-error Jupyter requires X-XSRFToken header
-          options,
-          'internal',
-        )) as IStacSearchResult;
-
-        if (!data) {
-          setResults([], false, 0, 0);
-          return;
-        }
-
-        // Filter assets to only include items with 'overview' or 'thumbnail' roles
-        if (data.features && data.features.length > 0) {
-          data.features.forEach(feature => {
-            if (feature.assets) {
-              const originalAssets = feature.assets;
-              const filteredAssets: Record<string, any> = {};
-
-              for (const [key, asset] of Object.entries(originalAssets)) {
-                if (
-                  asset &&
-                  typeof asset === 'object' &&
-                  'roles' in asset &&
-                  Array.isArray(asset.roles)
-                ) {
-                  const roles = asset.roles;
-
-                  if (
-                    roles.includes('thumbnail') ||
-                    roles.includes('overview')
-                  ) {
-                    filteredAssets[key] = asset;
-                  }
-                }
-              }
-
-              feature.assets = filteredAssets;
-            }
-          });
-        }
-
-        // Sort features by id before setting results
-        const sortedFeatures = [...data.features].sort((a, b) =>
-          a.id.localeCompare(b.id),
-        );
-
-        // Calculate total results from context if available
-        let totalResults = data.features.length;
-        let totalPages = 0;
-        if (data.context) {
-          totalResults = data.context.matched;
-          totalPages = Math.ceil(data.context.matched / data.context.limit);
-        } else if (sortedFeatures.length > 0) {
-          // If results found but no context, assume 1 page
-          totalPages = 1;
-        }
-
-        // Update context with results
-        setResults(sortedFeatures, false, totalResults, totalPages);
-
-        // Store pagination links
-        if (data.links) {
-          const typedLinks = data.links as Array<
-            IStacLink & { method?: string; body?: Record<string, any> }
-          >;
-          setPaginationLinks(typedLinks);
-        }
-      } catch (error) {
-        setResults([], false, 0, 0);
-      }
-    },
-    [model, setResults, setPaginationLinks],
-  );
-
   return {
     startTime,
     setStartTime,
@@ -185,6 +71,5 @@ export function useStacSearch({
     setCurrentBBox,
     useWorldBBox,
     setUseWorldBBox,
-    executeQuery,
   };
 }
