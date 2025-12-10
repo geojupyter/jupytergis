@@ -65,14 +65,12 @@ export function useStacGenericFilter({
     setPaginationLinks,
   });
 
-  const { registerBuildQuery, executeQuery, selectedUrl } =
-    useStacResultsContext();
+  const { registerBuildQuery, executeQuery } = useStacResultsContext();
 
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
   // ! temp
-  const [selectedCollection, setSelectedCollection] =
-    useState('sentinel-2-l2a');
+  const [selectedCollection, setSelectedCollection] = useState('');
   const [queryableFilters, setQueryableFilters] = useState<
     Record<string, IQueryableFilter>
   >({});
@@ -82,7 +80,7 @@ export function useStacGenericFilter({
   useEffect(() => {
     setQueryableProps(undefined);
     setCollections([]);
-    setSelectedCollection('sentinel-2-l2a');
+    setSelectedCollection('');
     setQueryableFilters({});
     setFilterOperator('and');
     // Reset temporal/spatial filters
@@ -97,7 +95,7 @@ export function useStacGenericFilter({
       return;
     }
 
-    const fatch = async () => {
+    const fetchCollections = async () => {
       const collectionsUrl = baseUrl.endsWith('/')
         ? `${baseUrl}collections`
         : `${baseUrl}/collections`;
@@ -127,7 +125,7 @@ export function useStacGenericFilter({
       }
     };
 
-    fatch();
+    fetchCollections();
   }, [model, baseUrl]);
 
   // for queryables
@@ -139,8 +137,7 @@ export function useStacGenericFilter({
       return;
     }
 
-    const fatch = async () => {
-      console.log('hittin dem queries boiiii');
+    const fetchQueryables = async () => {
       const queryablesUrl = baseUrl.endsWith('/')
         ? `${baseUrl}queryables`
         : `${baseUrl}/queryables`;
@@ -155,7 +152,7 @@ export function useStacGenericFilter({
       setQueryableProps(Object.entries(data.properties));
     };
 
-    fatch();
+    fetchQueryables();
   }, [model, baseUrl]);
 
   const updateQueryableFilter = useCallback(
