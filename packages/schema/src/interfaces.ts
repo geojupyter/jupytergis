@@ -281,6 +281,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   disposed: ISignal<any, void>;
   getSelectedStory(): { landmarkId: string; story: IJGISStoryMap | undefined };
+  addStorySegment(): { landmarkId: string; storyMapId: string } | null;
 }
 
 export interface IUserData {

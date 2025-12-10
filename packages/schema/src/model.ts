@@ -3,7 +3,7 @@ import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { PartialJSONObject } from '@lumino/coreutils';
+import { PartialJSONObject, UUID } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 import { FeatureLike } from 'ol/Feature';
@@ -20,6 +20,7 @@ import {
   IJGISSources,
   IJGISStoryMap,
 } from './_interface/project/jgis';
+import { ILandmarkLayer } from './_interface/project/layers/landmarkLayer';
 import { JupyterGISDoc } from './doc';
 import {
   IAnnotationModel,
@@ -615,6 +616,66 @@ export class JupyterGISModel implements IJupyterGISModel {
       landmarkId: storyId,
       story: this.sharedModel.getStoryMap(storyId),
     };
+  }
+
+  /**
+   * Adds a story segment (landmark layer) from the current map view
+   * @returns Object with landmarkId and storyMapId, or null if no extent/zoom found
+   */
+  addStorySegment(): { landmarkId: string; storyMapId: string } | null {
+    const { zoom, extent } = this.getOptions();
+
+    if (!zoom || !extent) {
+      console.warn('No extent or zoom found');
+      return null;
+    }
+
+    const storyMapId = UUID.uuid4();
+    const newLandmarkId = UUID.uuid4();
+
+    const layerParams: ILandmarkLayer = {
+      extent,
+      zoom,
+      transition: { type: 'linear', time: 1 },
+    };
+    const layerModel: IJGISLayer = {
+      type: 'LandmarkLayer',
+      visible: true,
+      name: 'Landmark',
+      parameters: layerParams,
+    };
+
+    this.addLayer(newLandmarkId, layerModel);
+
+    // check for stories
+    const isStoriesExist =
+      Object.keys(this.sharedModel.stories).length !== 0;
+
+    // if not stories, then just add simple
+    if (!isStoriesExist) {
+      const title = 'New Story';
+      const storyType = 'guided';
+      const landmarks = [newLandmarkId];
+
+      const storyMap: IJGISStoryMap = { title, storyType, landmarks };
+
+      this.sharedModel.addStoryMap(storyMapId, storyMap);
+    } else {
+      // else need to update stories
+      const { story } = this.getSelectedStory();
+      if (!story) {
+        console.warn('No story found, something went wrong');
+        return null;
+      }
+      const newStory: IJGISStoryMap = {
+        ...story,
+        landmarks: [...(story.landmarks ?? []), newLandmarkId],
+      };
+
+      this.sharedModel.updateStoryMap(storyMapId, newStory);
+    }
+
+    return { landmarkId: newLandmarkId, storyMapId };
   }
 
   /**

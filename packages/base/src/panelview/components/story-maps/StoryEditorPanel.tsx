@@ -15,6 +15,12 @@ interface IStoryPanelProps {
 
 const storyMapSchema: IDict = deepCopy(jgisSchema.definitions.jGISStoryMap);
 
+const AddStorySegmentButton = ({ model }: IStoryPanelProps) => (
+  <Button onClick={() => model.addStorySegment()}>
+    <FontAwesomeIcon icon={faLink} /> Add Story Segment
+  </Button>
+);
+
 export function StoryEditorPanel({ model }: IStoryPanelProps) {
   const { landmarkId, story } = useMemo(() => {
     return model.getSelectedStory();
@@ -33,9 +39,7 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
           current map view. You can add markdown text and an image to each
           segment to tell your story.
         </p>
-        <Button>
-          <FontAwesomeIcon icon={faLink} /> Add Story Segment
-        </Button>
+        <AddStorySegmentButton model={model} />
       </div>
     );
   }
@@ -50,9 +54,7 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
         syncData={syncStoryData}
         filePath={model.filePath}
       />
-       <Button>
-          <FontAwesomeIcon icon={faLink} /> Add Story Segment
-        </Button>
+      <AddStorySegmentButton model={model} />
     </div>
   );
 }
