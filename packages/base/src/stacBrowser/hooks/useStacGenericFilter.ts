@@ -2,6 +2,7 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import { endOfToday, startOfToday } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 
+import { GlobalStateDbManager } from '@/src/store';
 import { fetchWithProxies } from '@/src/tools';
 import { useStacSearch } from './useStacSearch';
 import { useStacResultsContext } from '../context/StacResultsContext';
@@ -27,6 +28,20 @@ export type UpdateQueryableFilter = (
   qKey: string,
   filter: IQueryableFilter,
 ) => void;
+
+interface IGenericFilterStateStateDb {
+  selectedCollection?: string;
+  queryableFilters?: Record<
+    string,
+    { operator: Operator; inputValue: string | number | null }
+  >;
+  filterOperator?: FilterOperator;
+  startTime?: string;
+  endTime?: string;
+  useWorldBBox?: boolean;
+}
+
+const GENERIC_STAC_FILTERS_KEY = 'jupytergis:generic-stac-filters';
 
 interface IUseStacGenericFilterProps {
   model?: IJupyterGISModel;
@@ -66,6 +81,7 @@ export function useStacGenericFilter({
   });
 
   const { registerBuildQuery, executeQuery } = useStacResultsContext();
+  const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
   const [queryableProps, setQueryableProps] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
@@ -75,6 +91,88 @@ export function useStacGenericFilter({
     Record<string, IQueryableFilter>
   >({});
   const [filterOperator, setFilterOperator] = useState<FilterOperator>('and');
+
+  // On mount, load saved filter state from StateDB (if present)
+  useEffect(() => {
+    async function loadGenericFilterStateFromDb() {
+      const savedFilterState = (await stateDb?.fetch(
+        GENERIC_STAC_FILTERS_KEY,
+      )) as IGenericFilterStateStateDb | undefined;
+
+      if (savedFilterState) {
+        if (savedFilterState.selectedCollection) {
+          setSelectedCollection(savedFilterState.selectedCollection);
+        }
+        if (savedFilterState.queryableFilters) {
+          // Convert null back to undefined for inputValue
+          const restoredFilters: Record<string, IQueryableFilter> = {};
+          Object.entries(savedFilterState.queryableFilters).forEach(
+            ([key, filter]) => {
+              restoredFilters[key] = {
+                operator: filter.operator,
+                inputValue:
+                  filter.inputValue === null ? undefined : filter.inputValue,
+              };
+            },
+          );
+          setQueryableFilters(restoredFilters);
+        }
+        if (savedFilterState.filterOperator) {
+          setFilterOperator(savedFilterState.filterOperator);
+        }
+        if (savedFilterState.startTime) {
+          setStartTime(new Date(savedFilterState.startTime));
+        }
+        if (savedFilterState.endTime) {
+          setEndTime(new Date(savedFilterState.endTime));
+        }
+        if (savedFilterState.useWorldBBox !== undefined) {
+          setUseWorldBBox(savedFilterState.useWorldBBox);
+        }
+      }
+    }
+
+    loadGenericFilterStateFromDb();
+  }, [stateDb, setStartTime, setEndTime, setUseWorldBBox]);
+
+  // Save filter state to StateDB on change
+  useEffect(() => {
+    async function saveGenericFilterStateToDb() {
+      // Clean queryableFilters to ensure JSON serialization works
+      const cleanedQueryableFilters: Record<
+        string,
+        { operator: Operator; inputValue: string | number | null }
+      > = {};
+      Object.entries(queryableFilters).forEach(([key, filter]) => {
+        cleanedQueryableFilters[key] = {
+          operator: filter.operator,
+          inputValue: filter.inputValue ?? null,
+        };
+      });
+
+      await stateDb?.save(GENERIC_STAC_FILTERS_KEY, {
+        selectedCollection: selectedCollection || undefined,
+        queryableFilters:
+          Object.keys(cleanedQueryableFilters).length > 0
+            ? cleanedQueryableFilters
+            : undefined,
+        filterOperator,
+        startTime: startTime?.toISOString(),
+        endTime: endTime?.toISOString(),
+        useWorldBBox,
+      });
+    }
+
+    saveGenericFilterStateToDb();
+  }, [
+    selectedCollection,
+    queryableFilters,
+    filterOperator,
+    startTime,
+    endTime,
+    useWorldBBox,
+    stateDb,
+  ]);
 
   // Reset all state when URL changes
   useEffect(() => {
