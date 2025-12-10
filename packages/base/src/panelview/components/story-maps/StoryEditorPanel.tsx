@@ -27,7 +27,10 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
   }, [model, model.sharedModel.stories]);
 
   const syncStoryData = (properties: IDict) => {
-    model.sharedModel.updateStoryMap(storySegmentId, properties as IJGISStoryMap);
+    model.sharedModel.updateStoryMap(
+      storySegmentId,
+      properties as IJGISStoryMap,
+    );
   };
 
   if (!story) {

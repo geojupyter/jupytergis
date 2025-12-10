@@ -67,7 +67,10 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 
     const processLayer = (
       layer: IJGISLayerItem,
-    ): { filtered: IJGISLayerItem | null; storySegment: IJGISLayerItem | null } => {
+    ): {
+      filtered: IJGISLayerItem | null;
+      storySegment: IJGISLayerItem | null;
+    } => {
       if (typeof layer === 'string') {
         const layerData = props.model.getLayer(layer);
         const isStorySegment = layerData?.type === 'StorySegmentLayer';

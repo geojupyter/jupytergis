@@ -171,7 +171,10 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     model.sharedModel.awareness.on('change', handleSelectedStorySegmentChange);
 
     return () => {
-      model.sharedModel.awareness.off('change', handleSelectedStorySegmentChange);
+      model.sharedModel.awareness.off(
+        'change',
+        handleSelectedStorySegmentChange,
+      );
     };
   }, [model, storyData]);
 

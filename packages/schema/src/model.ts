@@ -608,7 +608,10 @@ export class JupyterGISModel implements IJupyterGISModel {
    * Placeholder in case we eventually want to support multiple stories
    * @returns First/only story
    */
-  getSelectedStory(): { storySegmentId: string; story: IJGISStoryMap | undefined } {
+  getSelectedStory(): {
+    storySegmentId: string;
+    story: IJGISStoryMap | undefined;
+  } {
     const stories = this.sharedModel.stories;
     const storyId = Object.keys(stories)[0];
 
