@@ -1,5 +1,5 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import React, { useState } from 'react';
+import React from 'react';
 
 import {
   Tabs,
@@ -42,7 +42,11 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
     URL_TO_PANEL_MAP[selectedUrl] ?? StacGenericFilterPanel;
 
   return (
-    <Tabs defaultValue="filters" className="jgis-panel-tabs" style={{boxShadow: 'none'}}>
+    <Tabs
+      defaultValue="filters"
+      className="jgis-panel-tabs"
+      style={{ boxShadow: 'none' }}
+    >
       <TabsList style={{ borderRadius: 0 }}>
         <TabsTrigger className="jGIS-layer-browser-category" value="filters">
           Filters

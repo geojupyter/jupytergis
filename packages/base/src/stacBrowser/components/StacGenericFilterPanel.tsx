@@ -1,12 +1,12 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 
 import { useStacResultsContext } from '../context/StacResultsContext';
 import StacCheckboxWithLabel from './shared/StacCheckboxWithLabel';
 import StacQueryableFilters from './shared/StacQueryableFilters';
 import StacSearchDatePicker from './shared/StacSearchDatePicker';
 import { useStacGenericFilter } from '../hooks/useStacGenericFilter';
-import { IStacCollection, IStacItem } from '../types/types';
+import { IStacCollection } from '../types/types';
 
 interface IStacBrowser2Props {
   model?: IJupyterGISModel;
@@ -44,7 +44,7 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   });
 
   if (!model) {
-    console.log('no model');
+    console.warn('JupyterGIS model not found');
     return;
   }
 
@@ -75,6 +75,7 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
           label="Use entire world"
         />
       </div>
+
       {/* collections */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>
@@ -97,8 +98,8 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
           ))}
         </select>
       </div>
-      {/* items IDs */}
-      {/* additional filters - this is where queryables should end up */}
+
+      {/* Queryable filters */}
       {queryableProps && (
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
@@ -112,6 +113,8 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
         </div>
       )}
       {/* sort */}
+
+      {/* ! do i really want this? */}
       {/* items per page */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>

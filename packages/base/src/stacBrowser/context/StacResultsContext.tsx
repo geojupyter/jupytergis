@@ -73,9 +73,7 @@ export function StacResultsProvider({
   const [paginationLinks, setPaginationLinksState] = useState<
     Array<IStacLink & { method?: string; body?: Record<string, any> }>
   >([]);
-  const [selectedUrl, setSelectedUrlState] = useState<string>(
-    'https://stac.dataspace.copernicus.eu/v1/',
-  );
+  const [selectedUrl, setSelectedUrlState] = useState<string>('');
   const [currentPage, setCurrentPageState] = useState<number>(1);
   const currentPageRef = useRef<number>(1);
 
@@ -87,7 +85,6 @@ export function StacResultsProvider({
 
   // Keep ref in sync with state
   useEffect(() => {
-    console.log('update curr page ref in context', currentPage);
     currentPageRef.current = currentPage;
   }, [currentPage]);
 
@@ -246,14 +243,21 @@ export function StacResultsProvider({
         let totalPagesFromQuery = 0;
         if (data.context) {
           totalResultsFromQuery = data.context.matched;
-          totalPagesFromQuery = Math.ceil(data.context.matched / data.context.limit);
+          totalPagesFromQuery = Math.ceil(
+            data.context.matched / data.context.limit,
+          );
         } else if (sortedFeatures.length > 0) {
           // If results found but no context, assume 1 page
           totalPagesFromQuery = 1;
         }
 
         // Update context with results
-        setResults(sortedFeatures, false, totalResultsFromQuery, totalPagesFromQuery);
+        setResults(
+          sortedFeatures,
+          false,
+          totalResultsFromQuery,
+          totalPagesFromQuery,
+        );
 
         // Store pagination links
         if (data.links) {
@@ -354,7 +358,6 @@ export function StacResultsProvider({
       const currentResults = results;
       const result = currentResults.find((r: IStacItem) => r.id === id);
 
-      console.log('handler ersult click context');
       if (result) {
         // Use registered override if available, otherwise use default
         if (addToMapRef.current) {

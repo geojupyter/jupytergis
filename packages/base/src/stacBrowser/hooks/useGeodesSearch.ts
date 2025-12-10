@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from 'react';
 import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
 import { products } from '@/src/stacBrowser/constants';
 import {
-  IStacItem,
   IStacLink,
   IStacQueryBody,
   SetResultsFunction,
@@ -39,7 +38,6 @@ interface IUseGeodesSearchReturn {
 }
 
 const STAC_FILTERS_KEY = 'jupytergis:stac-filters';
-const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/search';
 
 /**
  * Custom hook for managing GEODES-specific STAC search functionality
@@ -64,15 +62,6 @@ function useGeodesSearch({
     executeQuery,
     selectedUrl,
   } = useStacResultsContext();
-
-  useEffect(() => {
-    console.log('current page', currentPage);
-    console.log('current page ref i think this one ', currentPageRef.current);
-  }, [currentPage]);
-
-  useEffect(() => {
-    console.log('current page ref', currentPageRef.current);
-  }, [currentPageRef.current]);
 
   // Get temporal/spatial filters and fetch functions from useStacSearch
   const {
@@ -237,15 +226,6 @@ function useGeodesSearch({
       if (!model) {
         return;
       }
-
-      console.log(
-        'geodes page click',
-        dir,
-        'currentPage:',
-        currentPage,
-        'currentPageRef.current:',
-        currentPageRef.current,
-      );
 
       // Calculate new page number
       const newPage =
