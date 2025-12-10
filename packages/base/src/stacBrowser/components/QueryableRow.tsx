@@ -14,7 +14,7 @@ interface IQueryableRowProps {
 
 interface IOperatorOption {
   value: Operator;
-  label: string;
+  label: string | React.ReactNode;
 }
 
 function QueryableRow({
@@ -28,28 +28,28 @@ function QueryableRow({
   ): IOperatorOption[] => {
     if (format === 'date-time') {
       return [
-        { value: '<', label: 'less than' },
-        { value: '>', label: 'greater than' },
+        { value: '<', label: '<' },
+        { value: '>', label: '>' },
       ];
     }
 
     switch (type) {
       case 'string':
         return [
-          { value: '=', label: 'equal to' },
-          { value: '!=', label: 'not equal to' },
+          { value: '=', label: '=' },
+          { value: '!=', label: '≠' },
         ];
       case 'number':
         return [
-          { value: '=', label: 'equal to' },
-          { value: '!=', label: 'not equal to' },
-          { value: '<', label: 'less than' },
-          { value: '>', label: 'greater than' },
+          { value: '=', label: '=' },
+          { value: '!=', label: '≠' },
+          { value: '<', label: '<' },
+          { value: '>', label: '>' },
         ];
       default:
         return [
-          { value: '=', label: 'equal to' },
-          { value: '!=', label: 'not equal to' },
+          { value: '=', label: '=' },
+          { value: '!=', label: '≠' },
         ];
     }
   };

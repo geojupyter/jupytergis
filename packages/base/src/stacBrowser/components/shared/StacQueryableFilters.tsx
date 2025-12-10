@@ -21,12 +21,8 @@ const StacQueryableFilters: React.FC<IStacQueryableFilterListProps> = ({
   setFilterOperator,
 }) => {
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
       <div>
-        <span>Additional Filters</span>
-      </div>
-      <div>
-        <span>Match all filters (and) Match any filters (or)</span>
         <RadioGroup
           style={{ display: 'flex', gap: '0.5rem' }}
           value={filterOperator}
@@ -46,12 +42,10 @@ const StacQueryableFilters: React.FC<IStacQueryableFilterListProps> = ({
           </div>
         </RadioGroup>
       </div>
-      <div>
-        <QueryableComboBox
-          queryables={queryableProps}
-          updateQueryableFilter={updateQueryableFilter}
-        />
-      </div>
+      <QueryableComboBox
+        queryables={queryableProps}
+        updateQueryableFilter={updateQueryableFilter}
+      />
     </div>
   );
 };
