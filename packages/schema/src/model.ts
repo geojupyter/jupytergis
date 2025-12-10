@@ -648,8 +648,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.addLayer(newLandmarkId, layerModel);
 
     // check for stories
-    const isStoriesExist =
-      Object.keys(this.sharedModel.stories).length !== 0;
+    const isStoriesExist = Object.keys(this.sharedModel.stories).length !== 0;
 
     // if not stories, then just add simple
     if (!isStoriesExist) {
