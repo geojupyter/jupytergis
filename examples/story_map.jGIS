@@ -57,7 +57,7 @@
         },
         "zoom": 14.080181481426658
       },
-      "type": "LandmarkLayer",
+      "type": "StorySegmentLayer",
       "visible": true
     },
     "8591b32f-11c0-4d70-a997-e94d258bb100": {
@@ -80,7 +80,7 @@
         },
         "zoom": 15.368058180489786
       },
-      "type": "LandmarkLayer",
+      "type": "StorySegmentLayer",
       "visible": true
     },
     "93080edc-815f-4364-a874-90fd53a60c35": {
@@ -127,7 +127,7 @@
         },
         "zoom": 15.230368389488868
       },
-      "type": "LandmarkLayer",
+      "type": "StorySegmentLayer",
       "visible": true
     }
   },
@@ -135,10 +135,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      255874.06496440643,
-      6248688.604308756,
-      260496.085575599,
-      6252093.017728101
+      256226.31587442243,
+      6249293.335639824,
+      260143.83466558298,
+      6251488.286397033
     ],
     "latitude": 48.855574302496535,
     "longitude": 2.319315992465925,
@@ -200,31 +200,8 @@
   },
   "stories": {
     "1b181980-a95a-4f23-8e5d-980c66ff93ea": {
-      "landmarks": [
-        "5f790e80-230b-4c00-8426-b3a9385937a5",
-        "8591b32f-11c0-4d70-a997-e94d258bb100",
-        "bcd22241-e404-44b4-873b-81e6a4ccad84"
-      ],
       "storyType": "guided",
       "title": "Famous Statues"
-    },
-    "3ee5537b-0cf6-4a23-b373-3d5c9cc29893": {
-      "landmarks": [
-        "5f790e80-230b-4c00-8426-b3a9385937a5",
-        "8591b32f-11c0-4d70-a997-e94d258bb100",
-        "bcd22241-e404-44b4-873b-81e6a4ccad84"
-      ],
-      "storyType": "guided",
-      "title": "New Story"
-    },
-    "a7522918-43ea-490b-a4f2-cdcfb33a13e3": {
-      "landmarks": [
-        "5f790e80-230b-4c00-8426-b3a9385937a5",
-        "8591b32f-11c0-4d70-a997-e94d258bb100",
-        "bcd22241-e404-44b4-873b-81e6a4ccad84"
-      ],
-      "storyType": "guided",
-      "title": "New Story"
     }
   }
 }

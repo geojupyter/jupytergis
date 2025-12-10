@@ -1054,7 +1054,7 @@ export function addCommands(
     ...icons.get(CommandIDs.addMarker),
   });
 
-  commands.addCommand(CommandIDs.addLandmark, {
+  commands.addCommand(CommandIDs.addStorySegment, {
     label: trans.__('Add Story Segment'),
     isEnabled: () => {
       return tracker.currentWidget
@@ -1068,7 +1068,7 @@ export function addCommands(
       }
       current.model.addStorySegment();
     },
-    ...icons.get(CommandIDs.addLandmark),
+    ...icons.get(CommandIDs.addStorySegment),
   });
 
   loadKeybindings(commands, keybindings);

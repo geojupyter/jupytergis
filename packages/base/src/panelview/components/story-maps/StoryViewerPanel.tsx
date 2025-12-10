@@ -19,48 +19,48 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   );
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Derive landmarks from story data
-  const landmarks = useMemo(() => {
-    if (!storyData?.landmarks) {
+  // Derive story segments from story data
+  const storySegments = useMemo(() => {
+    if (!storyData?.storySegments) {
       return [];
     }
 
-    return storyData.landmarks
-      .map(landmarkId => model.getLayer(landmarkId))
+    return storyData.storySegments
+      .map(storySegmentId => model.getLayer(storySegmentId))
       .filter((layer): layer is IJGISLayer => layer !== undefined);
   }, [storyData, model]);
 
-  // Derive current landmark from landmarks and currentIndexDisplayed
-  const currentLandmark = useMemo(() => {
-    return landmarks[currentIndexDisplayed];
-  }, [landmarks, currentIndexDisplayed]);
+  // Derive current story segment from story segments and currentIndexDisplayed
+  const currentStorySegment = useMemo(() => {
+    return storySegments[currentIndexDisplayed];
+  }, [storySegments, currentIndexDisplayed]);
 
-  // Derive active slide and layer name from current landmark
+  // Derive active slide and layer name from current story segment
   const activeSlide = useMemo(() => {
-    return currentLandmark?.parameters;
-  }, [currentLandmark]);
+    return currentStorySegment?.parameters;
+  }, [currentStorySegment]);
 
   const layerName = useMemo(() => {
-    return currentLandmark?.name ?? '';
-  }, [currentLandmark]);
+    return currentStorySegment?.name ?? '';
+  }, [currentStorySegment]);
 
-  // Derive landmark ID for zooming
-  const currentLandmarkId = useMemo(() => {
-    return storyData?.landmarks?.[currentIndexDisplayed];
+  // Derive story segment ID for zooming
+  const currentStorySegmentId = useMemo(() => {
+    return storyData?.storySegments?.[currentIndexDisplayed];
   }, [storyData, currentIndexDisplayed]);
 
   const zoomToCurrentLayer = () => {
-    if (currentLandmarkId) {
-      model.centerOnPosition(currentLandmarkId);
+    if (currentStorySegmentId) {
+      model.centerOnPosition(currentStorySegmentId);
     }
   };
 
   const setSelectedLayerByIndex = useCallback(
     (index: number) => {
-      const landmarkId = storyData?.landmarks?.[index];
-      if (landmarkId) {
+      const storySegmentId = storyData?.storySegments?.[index];
+      if (storySegmentId) {
         model.selected = {
-          [landmarkId]: {
+          [storySegmentId]: {
             type: 'layer',
           },
         };
@@ -120,14 +120,14 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
 
   // Auto-zoom when slide changes
   useEffect(() => {
-    if (currentLandmarkId) {
+    if (currentStorySegmentId) {
       zoomToCurrentLayer();
     }
-  }, [currentLandmarkId, model]);
+  }, [currentStorySegmentId, model]);
 
   // Set selected layer on initial render and when story data changes
   useEffect(() => {
-    if (storyData?.landmarks && currentIndexDisplayed >= 0) {
+    if (storyData?.storySegments && currentIndexDisplayed >= 0) {
       setSelectedLayerByIndex(currentIndexDisplayed);
     }
   }, [storyData, currentIndexDisplayed, setSelectedLayerByIndex]);
@@ -135,7 +135,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   // Listen for layer selection changes in unguided mode
   useEffect(() => {
     // ! TODO this logic (getting a single selected layer) is also in the processing index.ts, move to tools
-    const handleSelectedLandmarkChange = (thig: any, more: any, extra: any) => {
+    const handleSelectedStorySegmentChange = () => {
       // This is just to update the displayed content
       // So bail early if we don't need to do that
       if (!storyData || storyData.storyType !== 'unguided') {
@@ -156,11 +156,11 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
 
       const selectedLayerId = selectedLayers[0];
       const selectedLayer = model.getLayer(selectedLayerId);
-      if (!selectedLayer || selectedLayer.type !== 'LandmarkLayer') {
+      if (!selectedLayer || selectedLayer.type !== 'StorySegmentLayer') {
         return;
       }
 
-      const index = storyData.landmarks?.indexOf(selectedLayerId);
+      const index = storyData.storySegments?.indexOf(selectedLayerId);
       if (index === undefined || index === -1) {
         return;
       }
@@ -168,10 +168,10 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
       setCurrentIndexDisplayed(index);
     };
 
-    model.sharedModel.awareness.on('change', handleSelectedLandmarkChange);
+    model.sharedModel.awareness.on('change', handleSelectedStorySegmentChange);
 
     return () => {
-      model.sharedModel.awareness.off('change', handleSelectedLandmarkChange);
+      model.sharedModel.awareness.off('change', handleSelectedStorySegmentChange);
     };
   }, [model, storyData]);
 
@@ -183,13 +183,13 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   };
 
   const handleNext = () => {
-    if (currentIndexDisplayed < landmarks.length - 1) {
+    if (currentIndexDisplayed < storySegments.length - 1) {
       const newIndex = currentIndexDisplayed + 1;
       setCurrentIndexDisplayed(newIndex);
     }
   };
 
-  if (!storyData || storyData?.landmarks?.length === 0) {
+  if (!storyData || storyData?.storySegments?.length === 0) {
     return (
       <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
         <p>No Segments available. Add one using the Add Layer menu.</p>
@@ -217,7 +217,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
                 onPrev={handlePrev}
                 onNext={handleNext}
                 hasPrev={currentIndexDisplayed > 0}
-                hasNext={currentIndexDisplayed < landmarks.length - 1}
+                hasNext={currentIndexDisplayed < storySegments.length - 1}
               />
             </div>
           )}
@@ -231,7 +231,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
               onPrev={handlePrev}
               onNext={handleNext}
               hasPrev={currentIndexDisplayed > 0}
-              hasNext={currentIndexDisplayed < landmarks.length - 1}
+              hasNext={currentIndexDisplayed < storySegments.length - 1}
             />
           )}
         </>

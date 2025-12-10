@@ -1,7 +1,7 @@
 {
   "type": "object",
-  "description": "LandmarkLayer",
-  "title": "ILandmarkLayer",
+  "description": "StorySegmentLayer",
+  "title": "IStorySegmentLayer",
   "additionalProperties": false,
   "required": ["zoom", "extent", "transition"],
   "properties": {
@@ -35,7 +35,7 @@
     },
     "transition": {
       "type": "object",
-      "description": "Transition configuration between to this landmark",
+      "description": "Transition configuration between to this story segment",
       "properties": {
         "type": {
           "type": "string",

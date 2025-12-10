@@ -5,13 +5,13 @@ import React from 'react';
 import { targetWithCenterIcon } from '@/src/icons';
 import { Button } from '@/src/shared/components/Button';
 
-interface ILandmarkResetProps {
+interface IStorySegmentResetProps {
   model?: IJupyterGISModel;
   layerId?: string;
 }
 
-function LandmarkReset({ model, layerId }: ILandmarkResetProps) {
-  const handleSetLandmarkToCurrentView = () => {
+function StorySegmentReset({ model, layerId }: IStorySegmentResetProps) {
+  const handleSetStorySegmentToCurrentView = () => {
     if (!model || !layerId) {
       return;
     }
@@ -35,18 +35,18 @@ function LandmarkReset({ model, layerId }: ILandmarkResetProps) {
   return (
     <div>
       <Button
-        title="Set landmark to current viewport"
-        onClick={handleSetLandmarkToCurrentView}
+        title="Set story segment to current viewport"
+        onClick={handleSetStorySegmentToCurrentView}
       >
         <LabIcon.resolveReact
           icon={targetWithCenterIcon}
           className="jp-gis-layerIcon"
           tag="span"
         />
-        Set Landmark Extent
+        Set Story Segment Extent
       </Button>
     </div>
   );
 }
 
-export default LandmarkReset;
+export default StorySegmentReset;

@@ -211,7 +211,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     app.contextMenu.addItem({
       selector: '.jp-gis-layerPanel',
-      command: CommandIDs.addLandmark,
+      command: CommandIDs.addStorySegment,
       rank: 4,
     });
 

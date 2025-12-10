@@ -552,7 +552,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   };
 
   /**
-   * Set landmark layer to current map view.
+   * Set layer to current map view.
    */
   const moveToExtent = () => {
     gisModel?.centerOnPosition(layerId);
@@ -565,11 +565,11 @@ const LayerComponent: React.FC<ILayerProps> = props => {
 
     const { story } = gisModel.getSelectedStory();
 
-    if (!story?.landmarks) {
+    if (!story?.storySegments) {
       return;
     }
 
-    const slideNum = story.landmarks.indexOf(layerId) + 1;
+    const slideNum = story.storySegments.indexOf(layerId) + 1;
 
     return slideNum;
   };
@@ -607,8 +607,8 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           </Button>
         )}
 
-        {/* Visibility toggle for normal layers, Slide number for landmarks */}
-        {layer.type === 'LandmarkLayer' ? (
+        {/* Visibility toggle for normal layers, Slide number for story segments */}
+        {layer.type === 'StorySegmentLayer' ? (
           <span className={LAYER_SLIDE_NUMBER_CLASS} title="Slide number">
             {getSlideNumber()}
           </span>

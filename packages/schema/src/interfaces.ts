@@ -280,8 +280,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   triggerLayerUpdate(layerId: string, layer: IJGISLayer): void;
 
   disposed: ISignal<any, void>;
-  getSelectedStory(): { landmarkId: string; story: IJGISStoryMap | undefined };
-  addStorySegment(): { landmarkId: string; storyMapId: string } | null;
+  getSelectedStory(): { storySegmentId: string; story: IJGISStoryMap | undefined };
+  addStorySegment(): { storySegmentId: string; storyMapId: string } | null;
 }
 
 export interface IUserData {

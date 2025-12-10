@@ -33,7 +33,7 @@ import {
   JgisCoordinates,
   JupyterGISModel,
   IMarkerSource,
-  ILandmarkLayer,
+  IStorySegmentLayer,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -998,7 +998,7 @@ export class MainView extends React.Component<IProps, IStates> {
     let source: IJGISSource | undefined;
 
     // Sourceless layers
-    if (!['StacLayer', 'LandmarkLayer'].includes(layer.type)) {
+    if (!['StacLayer', 'StorySegmentLayer'].includes(layer.type)) {
       sourceId = layer.parameters?.source;
       if (!sourceId) {
         return;
@@ -1123,7 +1123,7 @@ export class MainView extends React.Component<IProps, IStates> {
         break;
       }
 
-      case 'LandmarkLayer': {
+      case 'StorySegmentLayer': {
         // Special layer not for this
         return;
       }
@@ -1348,7 +1348,7 @@ export class MainView extends React.Component<IProps, IStates> {
     mapLayer: Layer,
     oldLayer?: IDict,
   ): Promise<void> {
-    layer.type !== 'LandmarkLayer' && mapLayer.setVisible(layer.visible);
+    layer.type !== 'StorySegmentLayer' && mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
       case 'RasterLayer': {
@@ -2045,11 +2045,11 @@ export class MainView extends React.Component<IProps, IStates> {
     const layer = this.getLayer(id);
     const source = layer?.getSource();
 
-    // TODO: Landmark layers don't have an associated OL layer
+    // TODO: Story segment layers don't have an associated OL layer
     // This could be better
     if (!layer) {
       const jgisLayer = this._model.getLayer(id);
-      const layerParams = jgisLayer?.parameters as ILandmarkLayer;
+      const layerParams = jgisLayer?.parameters as IStorySegmentLayer;
       const coords = getCenter(layerParams.extent);
 
       // TODO: Should pass args through signal??

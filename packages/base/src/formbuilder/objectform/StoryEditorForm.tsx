@@ -12,6 +12,6 @@ export class StoryEditorPropertiesForm extends BaseForm {
     uiSchema: IDict,
   ) {
     super.processSchema(data, schema, uiSchema);
-    this.removeFormEntry('landmarks', data, schema, uiSchema);
+    this.removeFormEntry('storySegments', data, schema, uiSchema);
   }
 }

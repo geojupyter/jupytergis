@@ -3,9 +3,9 @@ import { FieldProps } from '@rjsf/core';
 import * as React from 'react';
 
 import { LayerPropertiesForm } from './layerform';
-import LandmarkReset from '../components/LandmarkReset';
+import StorySegmentReset from '../components/StorySegmentReset';
 
-export class LandmarkLayerPropertiesForm extends LayerPropertiesForm {
+export class StorySegmentLayerPropertiesForm extends LayerPropertiesForm {
   protected processSchema(
     data: IDict<any> | undefined,
     schema: IDict,
@@ -20,12 +20,11 @@ export class LandmarkLayerPropertiesForm extends LayerPropertiesForm {
     let layerId: string | undefined = undefined;
     const selectedKeys = Object.keys(this.props.model.selected);
 
-    // Find the first selected landmark
-    // TODO ! we still need to handle selections better, like there should at least be a getFirstSelected
-    // ! just do that
+    // Find the first selected story segment
+    // ! TODO we still need to handle selections better, like there should at least be a getFirstSelected
     for (const key of selectedKeys) {
       const layer = this.props.model.getLayer(key);
-      if (layer && layer.type === 'LandmarkLayer') {
+      if (layer && layer.type === 'StorySegmentLayer') {
         layerId = key;
         break;
       }
@@ -33,7 +32,7 @@ export class LandmarkLayerPropertiesForm extends LayerPropertiesForm {
 
     uiSchema['extent'] = {
       'ui:field': (props: FieldProps) =>
-        React.createElement(LandmarkReset, {
+        React.createElement(StorySegmentReset, {
           ...props,
           model: this.props.model,
           layerId,

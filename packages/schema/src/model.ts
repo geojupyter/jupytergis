@@ -20,7 +20,7 @@ import {
   IJGISSources,
   IJGISStoryMap,
 } from './_interface/project/jgis';
-import { ILandmarkLayer } from './_interface/project/layers/landmarkLayer';
+import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
 import { JupyterGISDoc } from './doc';
 import {
   IAnnotationModel,
@@ -509,17 +509,17 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
 
-    if (layer?.type === 'LandmarkLayer') {
+    if (layer?.type === 'StorySegmentLayer') {
       // remove this layer id from story maps
       Object.entries(this.sharedModel.stories).forEach(
         ([storyMapId, storyMap]) => {
-          if (storyMap.landmarks?.includes(layer_id)) {
-            const updatedLandmarks = storyMap.landmarks.filter(
+          if (storyMap.storySegments?.includes(layer_id)) {
+            const updatedStorySegments = storyMap.storySegments.filter(
               id => id !== layer_id,
             );
             this.sharedModel.updateStoryMap(storyMapId, {
               ...storyMap,
-              landmarks: updatedLandmarks,
+              storySegments: updatedStorySegments,
             });
           }
         },
@@ -608,21 +608,21 @@ export class JupyterGISModel implements IJupyterGISModel {
    * Placeholder in case we eventually want to support multiple stories
    * @returns First/only story
    */
-  getSelectedStory(): { landmarkId: string; story: IJGISStoryMap | undefined } {
+  getSelectedStory(): { storySegmentId: string; story: IJGISStoryMap | undefined } {
     const stories = this.sharedModel.stories;
     const storyId = Object.keys(stories)[0];
 
     return {
-      landmarkId: storyId,
+      storySegmentId: storyId,
       story: this.sharedModel.getStoryMap(storyId),
     };
   }
 
   /**
-   * Adds a story segment (landmark layer) from the current map view
-   * @returns Object with landmarkId and storyMapId, or null if no extent/zoom found
+   * Adds a story segment from the current map view
+   * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
    */
-  addStorySegment(): { landmarkId: string; storyMapId: string } | null {
+  addStorySegment(): { storySegmentId: string; storyMapId: string } | null {
     const { zoom, extent } = this.getOptions();
 
     if (!zoom || !extent) {
@@ -631,21 +631,21 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     const storyMapId = UUID.uuid4();
-    const newLandmarkId = UUID.uuid4();
+    const newStorySegmentId = UUID.uuid4();
 
-    const layerParams: ILandmarkLayer = {
+    const layerParams: IStorySegmentLayer = {
       extent,
       zoom,
       transition: { type: 'linear', time: 1 },
     };
     const layerModel: IJGISLayer = {
-      type: 'LandmarkLayer',
+      type: 'StorySegmentLayer',
       visible: true,
-      name: 'Landmark',
+      name: 'Story Segment',
       parameters: layerParams,
     };
 
-    this.addLayer(newLandmarkId, layerModel);
+    this.addLayer(newStorySegmentId, layerModel);
 
     // check for stories
     const isStoriesExist = Object.keys(this.sharedModel.stories).length !== 0;
@@ -654,9 +654,9 @@ export class JupyterGISModel implements IJupyterGISModel {
     if (!isStoriesExist) {
       const title = 'New Story';
       const storyType = 'guided';
-      const landmarks = [newLandmarkId];
+      const storySegments = [newStorySegmentId];
 
-      const storyMap: IJGISStoryMap = { title, storyType, landmarks };
+      const storyMap: IJGISStoryMap = { title, storyType, storySegments };
 
       this.sharedModel.addStoryMap(storyMapId, storyMap);
     } else {
@@ -668,13 +668,13 @@ export class JupyterGISModel implements IJupyterGISModel {
       }
       const newStory: IJGISStoryMap = {
         ...story,
-        landmarks: [...(story.landmarks ?? []), newLandmarkId],
+        storySegments: [...(story.storySegments ?? []), newStorySegmentId],
       };
 
       this.sharedModel.updateStoryMap(storyMapId, newStory);
     }
 
-    return { landmarkId: newLandmarkId, storyMapId };
+    return { storySegmentId: newStorySegmentId, storyMapId };
   }
 
   /**

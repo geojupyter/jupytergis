@@ -59,35 +59,35 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     };
   }, [props.model]);
 
-  // Since landmarks are technically layers they are stored in the layer tree, so we separate them
-  // from regular layers. Process the tree once to build both filtered and landmark trees.
-  const { filteredLayerTree, landmarkLayerTree } = React.useMemo(() => {
+  // Since story segments are technically layers they are stored in the layer tree, so we separate them
+  // from regular layers. Process the tree once to build both filtered and story segment trees.
+  const { filteredLayerTree, storySegmentLayerTree } = React.useMemo(() => {
     const filtered: IJGISLayerTree = [];
-    const landmarks: IJGISLayerTree = [];
+    const storySegments: IJGISLayerTree = [];
 
     const processLayer = (
       layer: IJGISLayerItem,
-    ): { filtered: IJGISLayerItem | null; landmark: IJGISLayerItem | null } => {
+    ): { filtered: IJGISLayerItem | null; storySegment: IJGISLayerItem | null } => {
       if (typeof layer === 'string') {
         const layerData = props.model.getLayer(layer);
-        const isLandmark = layerData?.type === 'LandmarkLayer';
+        const isStorySegment = layerData?.type === 'StorySegmentLayer';
         return {
-          filtered: isLandmark ? null : layer,
-          landmark: isLandmark ? layer : null,
+          filtered: isStorySegment ? null : layer,
+          storySegment: isStorySegment ? layer : null,
         };
       }
 
       // For layer groups, recursively process their layers
       const filteredGroupLayers: IJGISLayerItem[] = [];
-      const landmarkGroupLayers: IJGISLayerItem[] = [];
+      const storySegmentGroupLayers: IJGISLayerItem[] = [];
 
       for (const groupLayer of layer.layers) {
         const result = processLayer(groupLayer);
         if (result.filtered !== null) {
           filteredGroupLayers.push(result.filtered);
         }
-        if (result.landmark !== null) {
-          landmarkGroupLayers.push(result.landmark);
+        if (result.storySegment !== null) {
+          storySegmentGroupLayers.push(result.storySegment);
         }
       }
 
@@ -96,9 +96,9 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
           filteredGroupLayers.length > 0
             ? { ...layer, layers: filteredGroupLayers }
             : null,
-        landmark:
-          landmarkGroupLayers.length > 0
-            ? { ...layer, layers: landmarkGroupLayers }
+        storySegment:
+          storySegmentGroupLayers.length > 0
+            ? { ...layer, layers: storySegmentGroupLayers }
             : null,
       };
     };
@@ -108,8 +108,8 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
       if (result.filtered !== null) {
         filtered.push(result.filtered);
       }
-      if (result.landmark !== null) {
-        landmarks.push(result.landmark);
+      if (result.storySegment !== null) {
+        storySegments.push(result.storySegment);
       }
     }
 
@@ -118,22 +118,22 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 
     return {
       filteredLayerTree: filtered,
-      landmarkLayerTree: landmarks,
+      storySegmentLayerTree: storySegments,
     };
   }, [layerTree]);
 
-  // Updates landmarks array based on layer tree array
+  // Updates story segments array based on layer tree array
   React.useEffect(() => {
-    const { landmarkId, story } = props.model.getSelectedStory();
+    const { storySegmentId, story } = props.model.getSelectedStory();
 
     if (!story) {
       return;
     }
-    props.model.sharedModel.updateStoryMap(landmarkId, {
+    props.model.sharedModel.updateStoryMap(storySegmentId, {
       ...story,
-      landmarks: landmarkLayerTree as string[],
+      storySegments: storySegmentLayerTree as string[],
     });
-  }, [landmarkLayerTree]);
+  }, [storySegmentLayerTree]);
 
   const allLeftTabsDisabled =
     settings.layersDisabled &&
@@ -213,7 +213,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
             model={props.model}
             commands={props.commands}
             state={props.state}
-            layerTree={landmarkLayerTree}
+            layerTree={storySegmentLayerTree}
           ></LayersBodyComponent>
         </TabsContent>
       </PanelTabs>

@@ -42,7 +42,7 @@
         "ImageLayer",
         "HeatmapLayer",
         "StacLayer",
-        "LandmarkLayer"
+        "StorySegmentLayer"
       ]
     },
     "sourceType": {
@@ -151,10 +151,10 @@
           "enum": ["guided", "unguided"],
           "description": "The type of story map"
         },
-        "landmarks": {
+        "storySegments": {
           "type": "array",
           "default": [],
-          "description": "Array of landmarks for the story map",
+          "description": "Array of story segments for the story map",
           "items": {
             "type": "string"
           }
