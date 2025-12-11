@@ -4,18 +4,18 @@ import React, { useState } from 'react';
 import StacQueryableFilters from './StacQueryableFilters';
 import CheckboxWithLabel from '../../../shared/components/CheckboxWithLabel';
 import { useStacResultsContext } from '../../context/StacResultsContext';
-import { useStacGenericFilter } from '../../hooks/useStacGenericFilter';
+import { useStacFilterExtension } from '../../hooks/useStacFilterExtension';
 import { IStacCollection } from '../../types/types';
 import StacSearchDatePicker from '../shared/StacSearchDatePicker';
 
-interface IStacBrowser2Props {
+interface IStacFilterExtensionPanelProps {
   model?: IJupyterGISModel;
 }
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 
-function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
-  const { setResults, setPaginationLinks, selectedUrl } =
+function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
+  const {  selectedUrl } =
     useStacResultsContext();
   const [limit, setLimit] = useState<number>(12);
 
@@ -34,12 +34,10 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     updateSelectedQueryables,
     filterOperator,
     setFilterOperator,
-  } = useStacGenericFilter({
+  } = useStacFilterExtension({
     model,
     baseUrl: selectedUrl,
     limit,
-    setResults,
-    setPaginationLinks,
   });
 
   if (!model) {
@@ -48,9 +46,9 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   }
 
   return (
-    <div className="jgis-stac-generic-filter-panel">
+    <div className="jgis-stac-filter-extension-panel">
       {/* temporal extent  */}
-      <div className="jgis-stac-generic-filter-section">
+      <div className="jgis-stac-filter-extension-section">
         <StacSearchDatePicker
           startTime={startTime}
           endTime={endTime}
@@ -60,7 +58,7 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
       </div>
 
       {/* spatial extent  */}
-      <div className="jgis-stac-generic-filter-section">
+      <div className="jgis-stac-filter-extension-section">
         <CheckboxWithLabel
           checked={useWorldBBox}
           onCheckedChange={setUseWorldBBox}
@@ -69,10 +67,10 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
       </div>
 
       {/* collections */}
-      <div className="jgis-stac-generic-filter-section">
-        <label className="jgis-stac-generic-filter-label">Collection</label>
+      <div className="jgis-stac-filter-extension-section">
+        <label className="jgis-stac-filter-extension-label">Collection</label>
         <select
-          className="jgis-stac-generic-filter-select"
+          className="jgis-stac-filter-extension-select"
           value={selectedCollection}
           onChange={e => setSelectedCollection(e.target.value)}
         >
@@ -86,8 +84,8 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
 
       {/* Queryable filters */}
       {queryableFields && (
-        <div className="jgis-stac-generic-filter-section">
-          <label className="jgis-stac-generic-filter-label">
+        <div className="jgis-stac-filter-extension-section">
+          <label className="jgis-stac-filter-extension-label">
             Additional Filters
           </label>
           <StacQueryableFilters
@@ -101,8 +99,8 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
       {/* sort */}
 
       {/* items per page */}
-      <div className="jgis-stac-generic-filter-section">
-        <label className="jgis-stac-generic-filter-label">Items per page</label>
+      <div className="jgis-stac-filter-extension-section">
+        <label className="jgis-stac-filter-extension-label">Items per page</label>
         <input
           type="number"
           min="1"
@@ -114,15 +112,15 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
               setLimit(value);
             }
           }}
-          className="jgis-stac-generic-filter-input"
+          className="jgis-stac-filter-extension-input"
         />
       </div>
 
       {/* buttons */}
-      <div className="jgis-stac-generic-filter-button-container">
+      <div className="jgis-stac-filter-extension-button-container">
         <button
           onClick={handleSubmit}
-          className="jgis-stac-generic-filter-button"
+          className="jgis-stac-filter-extension-button"
         >
           Submit
         </button>
@@ -131,4 +129,4 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   );
 }
 
-export default StacGenericFilterPanel;
+export default StacFilterExtensionPanel;
