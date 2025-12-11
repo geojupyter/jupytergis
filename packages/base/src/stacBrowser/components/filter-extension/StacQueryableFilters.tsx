@@ -5,7 +5,7 @@ import { QueryableComboBox } from './QueryableComboBox';
 import {
   FilterOperator,
   UpdateSelectedQueryables,
-} from '../../hooks/useStacGenericFilter';
+} from '../../hooks/useStacFilterExtension';
 
 interface IStacQueryableFilterListProps {
   queryableFields: [string, any][];

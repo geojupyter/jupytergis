@@ -9,8 +9,6 @@ import { useStacResultsContext } from '../context/StacResultsContext';
 import {
   IStacCollection,
   IStacCollectionsReturn,
-  IStacItem,
-  IStacPaginationLink,
   IStacQueryBody,
 } from '../types/types';
 
@@ -30,7 +28,7 @@ export type UpdateSelectedQueryables = (
   filter: IQueryableFilter,
 ) => void;
 
-interface IGenericFilterStateStateDb {
+interface IStacFilterExtensionStateDb {
   selectedCollection?: string;
   queryableFilters?: Record<
     string,
@@ -42,28 +40,23 @@ interface IGenericFilterStateStateDb {
   useWorldBBox?: boolean;
 }
 
-const GENERIC_STAC_FILTERS_KEY = 'jupytergis:generic-stac-filters';
+const STAC_FILTER_EXTENSION_STATE_KEY = 'jupytergis:stac-filter-extension-state';
 
-interface IUseStacGenericFilterProps {
+interface IUseStacFilterExtensionProps {
   model?: IJupyterGISModel;
   baseUrl: string;
   limit?: number;
-  setResults: (
-    results: IStacItem[],
-    isLoading: boolean,
-    totalResults: number,
-    totalPages: number,
-  ) => void;
-  setPaginationLinks: (links: IStacPaginationLink[]) => void;
 }
 
-export function useStacGenericFilter({
+/**
+ * Hook for searching STAC catalogs that support the Filter Extension (CQL2-JSON).
+ * Fetches collections and queryables, and builds filter queries using the STAC Filter Extension.
+ */
+export function useStacFilterExtension({
   model,
   baseUrl,
   limit = 12,
-  setResults,
-  setPaginationLinks,
-}: IUseStacGenericFilterProps) {
+}: IUseStacFilterExtensionProps) {
   const { registerBuildQuery, executeQuery } = useStacResultsContext();
 
   // Get temporal/spatial filters from useStacSearch
@@ -91,10 +84,10 @@ export function useStacGenericFilter({
 
   // On mount, load saved filter state from StateDB (if present)
   useEffect(() => {
-    async function loadGenericFilterStateFromDb() {
+    async function loadFilterExtensionStateFromDb() {
       const savedFilterState = (await stateDb?.fetch(
-        GENERIC_STAC_FILTERS_KEY,
-      )) as IGenericFilterStateStateDb | undefined;
+        STAC_FILTER_EXTENSION_STATE_KEY,
+      )) as IStacFilterExtensionStateDb | undefined;
 
       if (savedFilterState) {
         if (savedFilterState.selectedCollection) {
@@ -129,12 +122,12 @@ export function useStacGenericFilter({
       }
     }
 
-    loadGenericFilterStateFromDb();
+    loadFilterExtensionStateFromDb();
   }, [stateDb, setStartTime, setEndTime, setUseWorldBBox]);
 
   // Save filter state to StateDB on change
   useEffect(() => {
-    async function saveGenericFilterStateToDb() {
+    async function saveFilterExtensionStateToDb() {
       // Clean queryableFilters to ensure JSON serialization works
       const cleanedQueryableFilters: Record<
         string,
@@ -147,7 +140,7 @@ export function useStacGenericFilter({
         };
       });
 
-      await stateDb?.save(GENERIC_STAC_FILTERS_KEY, {
+      await stateDb?.save(STAC_FILTER_EXTENSION_STATE_KEY, {
         selectedCollection: selectedCollection || undefined,
         queryableFilters:
           Object.keys(cleanedQueryableFilters).length > 0
@@ -160,7 +153,7 @@ export function useStacGenericFilter({
       });
     }
 
-    saveGenericFilterStateToDb();
+    saveFilterExtensionStateToDb();
   }, [
     selectedCollection,
     selectedQueryables,

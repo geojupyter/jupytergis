@@ -12,7 +12,7 @@ import {
   useStacResultsContext,
 } from '@/src/stacBrowser/context/StacResultsContext';
 import StacPanelResults from './shared/StacPanelResults';
-import StacGenericFilterPanel from './filter-extension/StacGenericFilterPanel';
+import StacFilterExtensionPanel from './filter-extension/StacFilterExtensionPanel';
 import StacGeodesFilterPanel from './geodes/StacGeodesFilterPanel';
 
 const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/';
@@ -40,7 +40,7 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
     return null;
   }
 
-  const ProviderPanel = URL_TO_PANEL_MAP[selectedUrl] ?? StacGenericFilterPanel;
+  const ProviderPanel = URL_TO_PANEL_MAP[selectedUrl] ?? StacFilterExtensionPanel;
 
   return (
     <Tabs
