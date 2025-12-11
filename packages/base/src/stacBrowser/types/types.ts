@@ -1,3 +1,8 @@
+export interface IStacCollectionsReturn {
+  collections: IStacCollection[];
+  links: IStacLink[]
+}
+
 export interface IStacCollection {
   // Core fields
   type: 'Collection';
@@ -51,6 +56,15 @@ export interface IStacLink {
   title?: string;
 }
 
+/**
+ * Extended STAC link with optional method and body for pagination.
+ * Used for pagination links that may include HTTP method and request body.
+ */
+export interface IStacPaginationLink extends IStacLink {
+  method?: string;
+  body?: Record<string, any>;
+}
+
 export interface IStacAsset {
   href: string;
   title?: string;
@@ -100,6 +114,7 @@ export interface IStacSearchResult {
   type: 'FeatureCollection';
 }
 
+// ! this is just for geodes -- move to hook
 export interface IStacQueryBody {
   bbox: [number, number, number, number];
   limit?: number;
