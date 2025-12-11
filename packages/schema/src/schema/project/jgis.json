@@ -226,6 +226,11 @@
         "useExtent": {
           "type": "boolean",
           "default": false
+        },
+        "storyMapPresentationMode": {
+          "type": "boolean",
+          "title": "Whether presentation mode is active",
+          "default": false
         }
       }
     },

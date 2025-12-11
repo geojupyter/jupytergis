@@ -424,5 +424,5 @@ export interface IJupyterGISSettings {
   identifyDisabled?: boolean;
 
   // Story maps
-  storyMapPresentationDisabled: boolean;
+  storyMapsDisabled: boolean;
 }
