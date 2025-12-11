@@ -237,7 +237,7 @@ export function StacResultsProvider({
             data.context.matched / data.context.limit,
           );
         } else if (sortedFeatures.length > 0) {
-          // If results found but no context, assume 1 page
+          // If results found but no context, use single page
           totalPagesFromQuery = 1;
         }
 
@@ -251,8 +251,7 @@ export function StacResultsProvider({
 
         // Store pagination links
         if (data.links) {
-          const typedLinks = data.links as IStacPaginationLink[];
-          setPaginationLinks(typedLinks);
+          setPaginationLinks(data.links);
         }
       } catch (error) {
         setResults([], false, 0, 0);
@@ -288,25 +287,17 @@ export function StacResultsProvider({
     [model, executeQuery],
   );
 
-  // Handlers created in context - always read latest state directly
   // Use registered handler if provided, otherwise use context-created one
   const handlePaginationClick = useCallback(
     async (dir: 'next' | 'previous'): Promise<void> => {
-      // Use registered handler if available (e.g., from GEODES)
       if (handlePaginationClickRef.current) {
         await handlePaginationClickRef.current(dir);
         return;
       }
 
-      // Default handler for generic STAC (Copernicus)
-      if (!model) {
-        return;
-      }
-
-      // Read directly from state - no closure issues!
       const currentLinks = paginationLinks;
 
-      // Find the pagination link by rel (support both 'previous' and 'prev')
+      // Find the pagination link by rel
       const link = currentLinks.find(l => {
         if (dir === 'next') {
           return l.rel === 'next';
@@ -316,6 +307,7 @@ export function StacResultsProvider({
       });
 
       // ! this is nice, if no body then link href should have search params - update eventually
+      // ! this actually doesny make sense
       if (link && link.body) {
         // Use executeQuery with the link's body, href, and method
         await executeQuery(link.body as IStacQueryBody, link.href, link.method);
@@ -324,7 +316,6 @@ export function StacResultsProvider({
     [model, paginationLinks, executeQuery],
   );
 
-  // Default addToMap implementation - always available
   const defaultAddToMap = useCallback(
     (stacData: IStacItem): void => {
       if (!model) {
@@ -350,7 +341,6 @@ export function StacResultsProvider({
         return;
       }
 
-      // Read directly from state - no closure issues!
       const currentResults = results;
       const result = currentResults.find((r: IStacItem) => r.id === id);
 
