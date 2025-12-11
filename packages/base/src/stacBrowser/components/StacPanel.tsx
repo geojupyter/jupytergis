@@ -16,6 +16,8 @@ import StacPanelResults from './StacPanelResults';
 import StacGeodesFilterPanel from './geodes/StacGeodesFilterPanel';
 
 const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/';
+const COPERNICUS_URL = 'https://stac.dataspace.copernicus.eu/v1/';
+const WORLDPOP_URL = 'https://api.stac.worldpop.org/';
 
 // URL to panel component mapping for extensibility
 // Add new entries here to support additional STAC providers
@@ -32,14 +34,13 @@ interface IStacViewProps {
 
 // Inner component that uses the context
 const StacPanelContent = ({ model }: IStacViewProps) => {
-  const { totalResults, selectedUrl, setSelectedUrl } = useStacResultsContext();
+  const { totalResults, selectedUrl, totalPages } = useStacResultsContext();
 
   if (!model) {
     return null;
   }
 
-  const PanelComponent =
-    URL_TO_PANEL_MAP[selectedUrl] ?? StacGenericFilterPanel;
+  const ProviderPanel = URL_TO_PANEL_MAP[selectedUrl] ?? StacGenericFilterPanel;
 
   return (
     <Tabs
@@ -54,26 +55,15 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
         <TabsTrigger
           className="jGIS-layer-browser-category"
           value="results"
-        >{`Results (${totalResults})`}</TabsTrigger>
+          // Total results will always be the the same as the limit if the
+          // provider doesn't support the context extension (where totalPages comes from)
+        >
+          {totalPages === 1 ? 'Results' : `Results (${totalResults})`}
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
-        <div style={{ margin: '0 1rem 1rem 1rem' }}>
-          <select
-            style={{ width: '100%', padding: '0.5rem' }}
-            value={selectedUrl}
-            onChange={e => setSelectedUrl(e.target.value)}
-          >
-            {/* // ! prob not it lol */}
-            <option></option>
-            <option value="https://stac.dataspace.copernicus.eu/v1/">
-              Copernicus
-            </option>
-            <option value={GEODES_URL}>GEODES</option>
-            <option value="https://api.stac.worldpop.org/">WorldPop</option>
-          </select>
-        </div>
-
-        <PanelComponent model={model} />
+        <StacPanel.ProviderSelect />
+        <ProviderPanel model={model} />
       </TabsContent>
       <TabsContent value="results">
         <StacPanelResults />
@@ -90,5 +80,35 @@ const StacPanel = ({ model }: IStacViewProps) => {
     </StacResultsProvider>
   );
 };
+
+/**
+ * Provider selector component for choosing STAC providers.
+ * Uses context to manage selected provider URL.
+ */
+function ProviderSelect() {
+  const { selectedUrl, setSelectedUrl } = useStacResultsContext();
+
+  return (
+    <div style={{ margin: '0 1rem 1rem 1rem' }}>
+      <select
+        style={{ width: '100%', padding: '0.5rem' }}
+        value={selectedUrl}
+        onChange={e => setSelectedUrl(e.target.value)}
+      >
+        <option value="" disabled>
+          Select a provider...
+        </option>
+        <option value={COPERNICUS_URL}>
+          Copernicus
+        </option>
+        <option value={GEODES_URL}>GEODES</option>
+        <option value={WORLDPOP_URL}>WorldPop</option>
+      </select>
+    </div>
+  );
+}
+
+// Attach ProviderSelect as a composable sub-component
+StacPanel.ProviderSelect = ProviderSelect;
 
 export default StacPanel;
