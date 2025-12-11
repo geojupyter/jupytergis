@@ -28,14 +28,19 @@ interface IRightPanelProps {
 export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [displayEditor, setDisplayEditor] = React.useState(true);
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
+  const [options, setOptions] = React.useState(props.model.getOptions());
+
+  const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
   const tabInfo = [
-    !settings.objectPropertiesDisabled && settings.storyMapPresentationDisabled
+    !settings.objectPropertiesDisabled && !storyMapPresentationMode
       ? { name: 'objectProperties', title: 'Object Properties' }
       : false,
-    {
-      name: 'storyPanel',
-      title: displayEditor ? 'Story Editor' : 'Story Map',
-    },
+    !settings.storyMapsDisabled
+      ? {
+          name: 'storyPanel',
+          title: displayEditor ? 'Story Editor' : 'Story Map',
+        }
+      : false,
     !settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
       : false,
@@ -45,7 +50,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   ].filter(Boolean) as { name: string; title: string }[];
 
   const [curTab, setCurTab] = React.useState<string>(() => {
-    if (!settings.storyMapPresentationDisabled) {
+    if (!settings.storyMapsDisabled) {
       return 'storyPanel';
     }
     return tabInfo.length > 0 ? tabInfo[0].name : '';
@@ -54,6 +59,9 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   React.useEffect(() => {
     const onSettingsChanged = () => {
       setSettings({ ...props.model.jgisSettings });
+    };
+    const onOptionsChanged = () => {
+      setOptions({ ...props.model.getOptions() });
     };
     let currentlyIdentifiedFeatures: any = undefined;
     const onAwerenessChanged = (
@@ -74,10 +82,12 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     };
 
     props.model.settingsChanged.connect(onSettingsChanged);
+    props.model.sharedOptionsChanged.connect(onOptionsChanged);
     props.model.clientStateChanged.connect(onAwerenessChanged);
 
     return () => {
       props.model.settingsChanged.disconnect(onSettingsChanged);
+      props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
       props.model.clientStateChanged.disconnect(onAwerenessChanged);
     };
   }, [props.model]);
@@ -136,25 +146,28 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           </TabsContent>
         )}
 
-        <TabsContent
-          value="storyPanel"
-          className="jgis-panel-tab-content"
-          style={{ paddingTop: 0 }}
-        >
-          <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
-            {settings.storyMapPresentationDisabled && (
-              <PreviewModeSwitch
-                checked={!displayEditor}
-                onCheckedChange={toggleEditor}
-              />
-            )}
-            {!settings.storyMapPresentationDisabled || !displayEditor ? (
-              <StoryViewerPanel model={props.model} />
-            ) : (
-              <StoryEditorPanel model={props.model} />
-            )}
-          </div>
-        </TabsContent>
+        {!settings.storyMapsDisabled && (
+          <TabsContent
+            value="storyPanel"
+            className="jgis-panel-tab-content"
+            style={{ paddingTop: 0 }}
+          >
+            <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
+              {/* Don't want to see the toggle switch in presentation mode */}
+              {!storyMapPresentationMode && (
+                <PreviewModeSwitch
+                  checked={!displayEditor}
+                  onCheckedChange={toggleEditor}
+                />
+              )}
+              {storyMapPresentationMode || !displayEditor ? (
+                <StoryViewerPanel model={props.model} />
+              ) : (
+                <StoryEditorPanel model={props.model} />
+              )}
+            </div>
+          </TabsContent>
+        )}
 
         {!settings.annotationsDisabled && (
           <TabsContent value="annotations" className="jgis-panel-tab-content">

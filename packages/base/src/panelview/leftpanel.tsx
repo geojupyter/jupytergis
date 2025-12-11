@@ -35,6 +35,8 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   props: ILeftPanelProps,
 ) => {
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
+  const [options, setOptions] = React.useState(props.model.getOptions());
+  const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
   const [layerTree, setLayerTree] = React.useState<IJGISLayerTree>(
     props.model.getLayerTree(),
   );
@@ -43,17 +45,22 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     const onSettingsChanged = () => {
       setSettings({ ...props.model.jgisSettings });
     };
+    const onOptionsChanged = () => {
+      setOptions({ ...props.model.getOptions() });
+    };
     const updateLayerTree = () => {
       setLayerTree(props.model.getLayerTree() || []);
     };
 
     props.model.settingsChanged.connect(onSettingsChanged);
+    props.model.sharedOptionsChanged.connect(onOptionsChanged);
     props.model.sharedModel.layersChanged.connect(updateLayerTree);
     props.model.sharedModel.layerTreeChanged.connect(updateLayerTree);
 
     updateLayerTree();
     return () => {
       props.model.settingsChanged.disconnect(onSettingsChanged);
+      props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
       props.model.sharedModel.layersChanged.disconnect(updateLayerTree);
       props.model.sharedModel.layerTreeChanged.disconnect(updateLayerTree);
     };
@@ -141,19 +148,22 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   const allLeftTabsDisabled =
     settings.layersDisabled &&
     settings.stacBrowserDisabled &&
-    settings.filtersDisabled;
+    settings.filtersDisabled &&
+    settings.storyMapsDisabled;
 
   const leftPanelVisible = !settings.leftPanelDisabled && !allLeftTabsDisabled;
 
   const tabInfo = [
     !settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,
-    !settings.stacBrowserDisabled && settings.storyMapPresentationDisabled
+    !settings.stacBrowserDisabled && !storyMapPresentationMode
       ? { name: 'stac', title: 'Stac Browser' }
       : false,
-    !settings.filtersDisabled && settings.storyMapPresentationDisabled
+    !settings.filtersDisabled && !storyMapPresentationMode
       ? { name: 'filters', title: 'Filters' }
       : false,
-    { name: 'segments', title: 'Segments' },
+    !settings.storyMapsDisabled
+      ? { name: 'segments', title: 'Segments' }
+      : false,
   ].filter(Boolean) as { name: string; title: string }[];
 
   const [curTab, setCurTab] = React.useState<string | undefined>(
@@ -211,14 +221,16 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
           </TabsContent>
         )}
 
-        <TabsContent value="segments" className="jgis-panel-tab-content">
-          <LayersBodyComponent
-            model={props.model}
-            commands={props.commands}
-            state={props.state}
-            layerTree={storySegmentLayerTree}
-          ></LayersBodyComponent>
-        </TabsContent>
+        {!settings.storyMapsDisabled && (
+          <TabsContent value="segments" className="jgis-panel-tab-content">
+            <LayersBodyComponent
+              model={props.model}
+              commands={props.commands}
+              state={props.state}
+              layerTree={storySegmentLayerTree}
+            ></LayersBodyComponent>
+          </TabsContent>
+        )}
       </PanelTabs>
     </div>
   );

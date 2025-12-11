@@ -1057,9 +1057,14 @@ export function addCommands(
   commands.addCommand(CommandIDs.addStorySegment, {
     label: trans.__('Add Story Segment'),
     isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+      return (
+        current.model.sharedModel.editable &&
+        !current.model.jgisSettings.storyMapsDisabled
+      );
     },
     execute: args => {
       const current = tracker.currentWidget;

@@ -64,6 +64,7 @@ function createUserIconRenderer(model: JupyterGISModel) {
 
 export class ToolbarWidget extends ReactiveToolbar {
   private _model: JupyterGISModel;
+  private _newSubMenu: MenuSvg | null = null;
 
   constructor(options: ToolbarWidget.IOptions) {
     super();
@@ -83,6 +84,7 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       const NewSubMenu = new MenuSvg({ commands: options.commands });
       NewSubMenu.title.label = 'Add Layer';
+      this._newSubMenu = NewSubMenu;
 
       NewSubMenu.addItem({
         type: 'submenu',
@@ -92,9 +94,11 @@ export class ToolbarWidget extends ReactiveToolbar {
         type: 'submenu',
         submenu: vectorSubMenu(options.commands),
       });
-      NewSubMenu.addItem({
-        command: CommandIDs.addStorySegment,
-      });
+
+      this._updateStorySegmentMenuItem();
+
+      // Listen for settings changes
+      this._model.settingsChanged.connect(this._onSettingsChanged, this);
 
       const NewEntryButton = new ToolbarButton({
         icon: addIcon,
@@ -174,6 +178,58 @@ export class ToolbarWidget extends ReactiveToolbar {
         ),
       );
     }
+  }
+
+  /**
+   * Updates the story segment menu item based on settings
+   */
+  private _updateStorySegmentMenuItem(): void {
+    if (!this._newSubMenu) {
+      return;
+    }
+
+    const shouldShow = !this._model.jgisSettings.storyMapsDisabled;
+
+    // Find if the item already exists by checking menu items
+    let itemIndex: number | null = null;
+    for (let i = 0; i < this._newSubMenu.items.length; i++) {
+      const item = this._newSubMenu.items[i];
+      if (
+        item.type === 'command' &&
+        item.command === CommandIDs.addStorySegment
+      ) {
+        itemIndex = i;
+        break;
+      }
+    }
+
+    const isCurrentlyAdded = itemIndex !== null;
+
+    if (shouldShow && !isCurrentlyAdded) {
+      this._newSubMenu.addItem({
+        command: CommandIDs.addStorySegment,
+      });
+    } else if (!shouldShow && isCurrentlyAdded) {
+      if (itemIndex !== null) {
+        this._newSubMenu.removeItemAt(itemIndex);
+      }
+    }
+  }
+
+  /**
+   * Handles settings changes
+   */
+  private _onSettingsChanged = (sender: JupyterGISModel, key: string): void => {
+    if (key === 'storyMapsDisabled') {
+      this._updateStorySegmentMenuItem();
+    }
+  };
+
+  dispose(): void {
+    if (this._model) {
+      this._model.settingsChanged.disconnect(this._onSettingsChanged, this);
+    }
+    super.dispose();
   }
 }
 
