@@ -5,10 +5,12 @@ import {
   IJupyterGISModel,
 } from '@jupytergis/schema';
 import * as React from 'react';
+import Draggable from 'react-draggable';
 
 import { AnnotationsPanel } from './annotationPanel';
 import { IdentifyPanelComponent } from './components/identify-panel/IdentifyPanel';
 import { ObjectPropertiesReact } from './objectproperties';
+import { dragIcon } from '../icons';
 import {
   PanelTabs,
   TabsContent,
@@ -83,61 +85,69 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     React.useState(undefined);
 
   return (
-    <div
-      className="jgis-right-panel-container"
-      style={{ display: rightPanelVisible ? 'block' : 'none' }}
-    >
-      <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
-        <TabsList>
-          {tabInfo.map(tab => (
-            <TabsTrigger
-              className="jGIS-layer-browser-category"
-              key={tab.name}
-              value={tab.name}
-              onClick={() => {
-                if (curTab !== tab.name) {
-                  setCurTab(tab.name);
-                } else {
-                  setCurTab('');
-                }
-              }}
+    <Draggable handle=".jgis-drag-handle" bounds=".jGIS-Mainview-Container">
+      <div
+        className="jgis-right-panel-container"
+        style={{ display: rightPanelVisible ? 'block' : 'none' }}
+      >
+        <div className="jgis-drag-handle">
+          <dragIcon.react tag="div" className="jgis-drag-icon" />
+        </div>
+        <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
+          <TabsList>
+            {tabInfo.map(tab => (
+              <TabsTrigger
+                className="jGIS-layer-browser-category"
+                key={tab.name}
+                value={tab.name}
+                onClick={() => {
+                  if (curTab !== tab.name) {
+                    setCurTab(tab.name);
+                  } else {
+                    setCurTab('');
+                  }
+                }}
+              >
+                {tab.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {!settings.objectPropertiesDisabled && (
+            <TabsContent
+              value="objectProperties"
+              className="jgis-panel-tab-content"
             >
-              {tab.title}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+              <ObjectPropertiesReact
+                setSelectedObject={setSelectedObjectProperties}
+                selectedObject={selectedObjectProperties}
+                formSchemaRegistry={props.formSchemaRegistry}
+                model={props.model}
+              />
+            </TabsContent>
+          )}
 
-        {!settings.objectPropertiesDisabled && (
-          <TabsContent
-            value="objectProperties"
-            className="jgis-panel-tab-content"
-          >
-            <ObjectPropertiesReact
-              setSelectedObject={setSelectedObjectProperties}
-              selectedObject={selectedObjectProperties}
-              formSchemaRegistry={props.formSchemaRegistry}
-              model={props.model}
-            />
-          </TabsContent>
-        )}
+          {!settings.annotationsDisabled && (
+            <TabsContent value="annotations" className="jgis-panel-tab-content">
+              <AnnotationsPanel
+                annotationModel={props.annotationModel}
+                jgisModel={props.model}
+              ></AnnotationsPanel>
+            </TabsContent>
+          )}
 
-        {!settings.annotationsDisabled && (
-          <TabsContent value="annotations" className="jgis-panel-tab-content">
-            <AnnotationsPanel
-              annotationModel={props.annotationModel}
-              jgisModel={props.model}
-            ></AnnotationsPanel>
-          </TabsContent>
-        )}
-
-        {!settings.identifyDisabled && (
-          <TabsContent value="identifyPanel" className="jgis-panel-tab-content">
-            <IdentifyPanelComponent
-              model={props.model}
-            ></IdentifyPanelComponent>
-          </TabsContent>
-        )}
-      </PanelTabs>
-    </div>
+          {!settings.identifyDisabled && (
+            <TabsContent
+              value="identifyPanel"
+              className="jgis-panel-tab-content"
+            >
+              <IdentifyPanelComponent
+                model={props.model}
+              ></IdentifyPanelComponent>
+            </TabsContent>
+          )}
+        </PanelTabs>
+      </div>
+    </Draggable>
   );
 };
