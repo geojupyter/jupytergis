@@ -73,7 +73,7 @@
 }
 
 .jgis-pagination-link[data-variant='outline'] {
-  border: 1px solid var(--jp-accent-color0);
+  border: 1px solid var(--jp-border-color0);
   background-color: var(--jp-layout-color2);
   transition:
     background-color 0.2s ease,
