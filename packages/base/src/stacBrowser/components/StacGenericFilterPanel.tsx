@@ -49,16 +49,9 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   }
 
   return (
-    <div
-      style={{
-        padding: '1rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-      }}
-    >
+    <div className="jgis-stac-generic-filter-panel">
       {/* temporal extent  */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div className="jgis-stac-generic-filter-section">
         <StacSearchDatePicker
           startTime={startTime}
           endTime={endTime}
@@ -68,7 +61,7 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
       </div>
 
       {/* spatial extent  */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div className="jgis-stac-generic-filter-section">
         <StacCheckboxWithLabel
           checked={useWorldBBox}
           onCheckedChange={setUseWorldBBox}
@@ -77,17 +70,12 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
       </div>
 
       {/* collections */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+      <div className="jgis-stac-generic-filter-section">
+        <label className="jgis-stac-generic-filter-label">
           Collection
         </label>
         <select
-          style={{
-            maxWidth: '200px',
-            padding: '0.5rem',
-            borderRadius: '0.25rem',
-            border: '1px solid var(--jp-border-color0)',
-          }}
+          className="jgis-stac-generic-filter-select"
           value={selectedCollection}
           onChange={e => setSelectedCollection(e.target.value)}
         >
@@ -101,10 +89,8 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
 
       {/* Queryable filters */}
       {queryableProps && (
-        <div
-          style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
-        >
-          <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+        <div className="jgis-stac-generic-filter-section">
+          <label className="jgis-stac-generic-filter-label">
             Additional Filters
           </label>
           <StacQueryableFilters
@@ -119,8 +105,8 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
 
       {/* ! do i really want this? */}
       {/* items per page */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+      <div className="jgis-stac-generic-filter-section">
+        <label className="jgis-stac-generic-filter-label">
           Items per page
         </label>
         <input
@@ -134,32 +120,15 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
               setLimit(value);
             }
           }}
-          style={{
-            maxWidth: '200px',
-            padding: '0.5rem',
-            borderRadius: '0.25rem',
-            border: '1px solid var(--jp-border-color0)',
-          }}
+          className="jgis-stac-generic-filter-input"
         />
       </div>
 
       {/* buttons */}
-      <div
-        style={{
-          paddingTop: '0.5rem',
-          borderTop: '1px solid var(--jp-border-color0)',
-        }}
-      >
+      <div className="jgis-stac-generic-filter-button-container">
         <button
           onClick={handleSubmit}
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: '0.25rem',
-            border: '1px solid var(--jp-border-color0)',
-            backgroundColor: 'var(--jp-layout-color0)',
-            color: 'var(--jp-ui-font-color0)',
-            cursor: 'pointer',
-          }}
+          className="jgis-stac-generic-filter-button"
         >
           Submit
         </button>
