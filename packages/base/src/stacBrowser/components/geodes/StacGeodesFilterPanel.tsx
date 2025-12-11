@@ -1,15 +1,8 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 
-import { Button } from '@/src/shared/components/Button';
-import { Calendar } from '@/src/shared/components/Calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/src/shared/components/Popover';
+import CheckboxWithLabel from '@/src/shared/components/CheckboxWithLabel';
+import StacSearchDatePicker from '@/src/stacBrowser/components/shared/StacSearchDatePicker';
 import {
   datasets as datasetsList,
   platforms as platformsList,
@@ -18,7 +11,6 @@ import {
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
 import useGeodesSearch from '@/src/stacBrowser/hooks/useGeodesSearch';
 import StacFilterSection from './StacFilterSection';
-import StacCheckboxWithLabel from '../shared/StacCheckboxWithLabel';
 
 interface IStacGeodesFilterPanelProps {
   model?: IJupyterGISModel;
@@ -57,6 +49,7 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
             entry.collection === collection && entry.datasets.includes(d),
         );
       });
+
       if (datasetsForCollection.length === 0) {
         collections.delete(collection);
 
@@ -102,45 +95,17 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
 
   return (
     <div className="jgis-stac-browser-filters-panel">
-      <StacCheckboxWithLabel
+      <CheckboxWithLabel
         checked={useWorldBBox}
         onCheckedChange={setUseWorldBBox}
         label="Use whole world as bounding box"
       />
-      <div className="jgis-stac-browser-date-picker">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button style={{ padding: '0 0.5rem' }} variant={'outline'}>
-              <CalendarIcon className="jgis-stac-datepicker-icon" />
-              {startTime ? format(startTime, 'PPP') : <span>Start Date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <Calendar
-              mode="single"
-              selected={startTime}
-              onSelect={setStartTime}
-              autoFocus
-            />
-          </PopoverContent>
-        </Popover>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button style={{ padding: '0 0.5rem' }} variant={'outline'}>
-              <CalendarIcon className="jgis-stac-datepicker-icon" />
-              {endTime ? format(endTime, 'PPP') : <span>End Date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <Calendar
-              mode="single"
-              selected={endTime}
-              onSelect={setEndTime}
-              autoFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
+      <StacSearchDatePicker
+        startTime={startTime}
+        setStartTime={setStartTime}
+        endTime={endTime}
+        setEndTime={setEndTime}
+      />
       <StacFilterSection
         section="Collection"
         data={datasetsList}

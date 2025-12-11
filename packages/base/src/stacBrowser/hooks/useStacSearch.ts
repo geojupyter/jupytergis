@@ -1,14 +1,12 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
 
-import { IStacLink, SetResultsFunction } from '../types/types';
+import { IStacPaginationLink, SetResultsFunction } from '../types/types';
 
 interface IUseStacSearchProps {
   model: IJupyterGISModel | undefined;
   setResults: SetResultsFunction;
-  setPaginationLinks: (
-    links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
-  ) => void;
+  setPaginationLinks: (links: IStacPaginationLink[]) => void;
 }
 
 interface IUseStacSearchReturn {

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
 import { products } from '@/src/stacBrowser/constants';
 import {
-  IStacLink,
+  IStacPaginationLink,
   IStacQueryBody,
   SetResultsFunction,
   StacFilterState,
@@ -20,9 +20,7 @@ interface IUseGeodesSearchProps {
   model: IJupyterGISModel | undefined;
   apiUrl: string;
   setResults: SetResultsFunction;
-  setPaginationLinks: (
-    links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
-  ) => void;
+  setPaginationLinks: (links: IStacPaginationLink[]) => void;
 }
 
 interface IUseGeodesSearchReturn {

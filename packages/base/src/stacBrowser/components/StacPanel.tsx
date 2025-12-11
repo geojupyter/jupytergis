@@ -11,8 +11,8 @@ import {
   StacResultsProvider,
   useStacResultsContext,
 } from '@/src/stacBrowser/context/StacResultsContext';
-import StacGenericFilterPanel from './StacGenericFilterPanel';
-import StacPanelResults from './StacPanelResults';
+import StacPanelResults from './shared/StacPanelResults';
+import StacGenericFilterPanel from './filter-extension/StacGenericFilterPanel';
 import StacGeodesFilterPanel from './geodes/StacGeodesFilterPanel';
 
 const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/';

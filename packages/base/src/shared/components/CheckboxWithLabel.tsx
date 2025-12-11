@@ -2,13 +2,13 @@ import React from 'react';
 
 import Checkbox from '@/src/shared/components/Checkbox';
 
-interface IStacCheckboxWithLabelProps {
+interface ICheckboxWithLabelProps {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   label: string;
 }
 
-const StacCheckboxWithLabel: React.FC<IStacCheckboxWithLabelProps> = ({
+const CheckboxWithLabel: React.FC<ICheckboxWithLabelProps> = ({
   checked,
   onCheckedChange,
   label,
@@ -23,4 +23,4 @@ const StacCheckboxWithLabel: React.FC<IStacCheckboxWithLabelProps> = ({
   );
 };
 
-export default StacCheckboxWithLabel;
+export default CheckboxWithLabel;
