@@ -7,8 +7,8 @@
   "layers": {
     "66198b90-5d1c-4637-a15d-450b17c4fcb6": {
       "name": "Radar",
+      "opacity": 1.0,
       "parameters": {
-        "opacity": 1.0,
         "source": "756b4c42-6ca0-40c1-9e3b-90c1f5f99fab"
       },
       "type": "ImageLayer",
@@ -16,8 +16,8 @@
     },
     "aae4466d-49da-4308-b73d-046e974f92a4": {
       "name": "Subset of Manhattan roads",
+      "opacity": 1.0,
       "parameters": {
-        "opacity": 1.0,
         "source": "d82b24cf-e43a-43aa-bc7b-2578adc7ef8a"
       },
       "type": "VectorLayer",
@@ -25,6 +25,7 @@
     },
     "f5e91204-3ce9-408e-b179-c6cf5f75f0f7": {
       "name": "OpenStreetMap.Mapnik Layer",
+      "opacity": 1.0,
       "parameters": {
         "source": "3bd6b874-a28a-4ef6-bef8-a7257bb35c51"
       },

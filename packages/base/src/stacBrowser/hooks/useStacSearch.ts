@@ -251,6 +251,7 @@ function useStacSearch({ model }: IUseStacSearchProps): IUseStacSearchReturn {
       type: 'StacLayer',
       parameters: { data: stacData },
       visible: true,
+      opacity: 1.0,
       name: stacData.properties.title ?? stacData.id,
     };
 
