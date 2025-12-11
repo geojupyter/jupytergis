@@ -92,7 +92,6 @@ function QueryableRow({
               style={{ maxWidth: '75px' }}
               value={(currentValue as string) || ''}
               onChange={e => handleInputChange(e.target.value)}
-              {...(val.pattern && { 'data-pattern': val.pattern })}
             >
               {val.enum.map((option: string) => (
                 <option key={option} value={option}>
@@ -109,7 +108,6 @@ function QueryableRow({
               style={{ maxWidth: '75px' }}
               value={(currentValue as string) || ''}
               onChange={e => handleInputChange(e.target.value)}
-              {...(val.pattern && { 'data-pattern': val.pattern })}
             />
           );
         }
@@ -119,7 +117,6 @@ function QueryableRow({
             style={{ maxWidth: '75px' }}
             value={(currentValue as string) || ''}
             onChange={e => handleInputChange(e.target.value)}
-            {...(val.pattern && { 'data-pattern': val.pattern })}
           />
         );
       case 'number':
@@ -131,7 +128,6 @@ function QueryableRow({
             max={val.max !== undefined ? val.max : undefined}
             value={(currentValue as number) || ''}
             onChange={e => handleInputChange(Number(e.target.value))}
-            {...(val.pattern && { 'data-pattern': val.pattern })}
           />
         );
       default:
@@ -141,7 +137,6 @@ function QueryableRow({
             style={{ maxWidth: '75px' }}
             value={(currentValue as string) || ''}
             onChange={e => handleInputChange(e.target.value)}
-            {...(val.pattern && { 'data-pattern': val.pattern })}
           />
         );
     }
