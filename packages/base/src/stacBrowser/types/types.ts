@@ -30,7 +30,7 @@ export interface IStacRange {
 }
 
 export interface IStacExtent {
-  spatial: IStacSpacialExtent;
+  spatial: IStacSpatialExtent;
   temporal: IStacTemporalExtent;
 }
 
@@ -38,7 +38,7 @@ export interface IStacTemporalExtent {
   interval: Array<[string | null, string | null]>; // Time intervals (start/end)
 }
 
-export interface IStacSpacialExtent {
+export interface IStacSpatialExtent {
   bbox: number[][]; // Array of bounding boxes ([west, south, east, north] or 3D)
 }
 

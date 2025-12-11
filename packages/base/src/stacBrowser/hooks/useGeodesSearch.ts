@@ -35,7 +35,7 @@ interface IUseGeodesSearchReturn {
   handleSubmit: () => Promise<void>;
 }
 
-const STAC_FILTERS_KEY = 'jupytergis:stac-filters';
+const GEODES_STAC_FILTERS_KEY = 'jupytergis:geodes-stac-filters';
 
 /**
  * Custom hook for managing GEODES-specific STAC search functionality
@@ -72,8 +72,7 @@ function useGeodesSearch({
     setUseWorldBBox,
   } = useStacSearch({
     model,
-    setResults,
-    setPaginationLinks,
+
   });
 
   const [filterState, setFilterState] = useState<StacFilterState>({
@@ -95,7 +94,7 @@ function useGeodesSearch({
   useEffect(() => {
     async function loadStacStateFromDb() {
       const savedFilterState = (await stateDb?.fetch(
-        STAC_FILTERS_KEY,
+        GEODES_STAC_FILTERS_KEY,
       )) as StacFilterStateStateDb;
 
       setFilterState({
@@ -112,7 +111,7 @@ function useGeodesSearch({
   // Save filterState to StateDB on change
   useEffect(() => {
     async function saveStacFilterStateToDb() {
-      await stateDb?.save(STAC_FILTERS_KEY, {
+      await stateDb?.save(GEODES_STAC_FILTERS_KEY, {
         collections: Array.from(filterState.collections),
         datasets: Array.from(filterState.datasets),
         platforms: Array.from(filterState.platforms),
@@ -190,13 +189,12 @@ function useGeodesSearch({
       return;
     }
 
-    // ! someosmeosmesse urlTOUse
-    const urlToUse = selectedUrl.endsWith('/')
+    const searchUrl = selectedUrl.endsWith('/')
       ? `${selectedUrl}search`
       : `${selectedUrl}/search`;
     // Build query body and execute query
     const queryBody = buildGeodesQuery();
-    await executeQuery(queryBody, urlToUse);
+    await executeQuery(queryBody, searchUrl);
   }, [model, executeQuery, buildGeodesQuery, selectedUrl]);
 
   // Handle search when filters change
@@ -233,13 +231,13 @@ function useGeodesSearch({
 
       // Update currentPage in context
       setCurrentPage(newPage);
-      const urlToUse = selectedUrl.endsWith('/')
+      const searchUrl = selectedUrl.endsWith('/')
         ? `${selectedUrl}search`
         : `${selectedUrl}/search`;
 
       // Build query body with new page and execute query
       const queryBody = buildGeodesQuery(newPage);
-      await executeQuery(queryBody, urlToUse);
+      await executeQuery(queryBody, searchUrl);
     },
     [
       model,
