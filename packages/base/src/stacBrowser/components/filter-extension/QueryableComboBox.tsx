@@ -16,16 +16,16 @@ import {
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
 import QueryableRow from './QueryableRow';
-import { UpdateQueryableFilter } from '../../hooks/useStacGenericFilter';
+import { UpdateSelectedQueryables } from '../../hooks/useStacGenericFilter';
 
 interface IQueryableComboProps {
   queryables: [string, any][];
-  updateQueryableFilter: UpdateQueryableFilter;
+  updateSelectedQueryables: UpdateSelectedQueryables;
 }
 
 export function QueryableComboBox({
   queryables,
-  updateQueryableFilter,
+  updateSelectedQueryables,
 }: IQueryableComboProps) {
   const [open, setOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<[string, any][]>([]);
@@ -120,7 +120,7 @@ export function QueryableComboBox({
           key={key}
           qKey={key}
           qVal={val}
-          updateQueryableFilter={updateQueryableFilter}
+          updateSelectedQueryables={updateSelectedQueryables}
         />
       ))}
     </div>

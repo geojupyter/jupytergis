@@ -3,13 +3,13 @@ import React, { useEffect, useState } from 'react';
 import {
   IQueryableFilter,
   Operator,
-  UpdateQueryableFilter,
+  UpdateSelectedQueryables,
 } from '../../hooks/useStacGenericFilter';
 
 interface IQueryableRowProps {
   qKey: string;
   qVal: any;
-  updateQueryableFilter: UpdateQueryableFilter;
+  updateSelectedQueryables: UpdateSelectedQueryables;
 }
 
 interface IOperatorOption {
@@ -20,7 +20,7 @@ interface IOperatorOption {
 function QueryableRow({
   qKey,
   qVal,
-  updateQueryableFilter,
+  updateSelectedQueryables,
 }: IQueryableRowProps) {
   const getOperatorsForType = (
     type: string,
@@ -64,8 +64,8 @@ function QueryableRow({
 
   // Sync local state to parent whenever it changes
   useEffect(() => {
-    updateQueryableFilter(qKey, localFilter);
-  }, [qKey, localFilter, updateQueryableFilter]);
+    updateSelectedQueryables(qKey, localFilter);
+  }, [qKey, localFilter, updateSelectedQueryables]);
 
   const handleInputChange = (value: string | number) => {
     setLocalFilter(prev => ({

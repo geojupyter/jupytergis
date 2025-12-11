@@ -25,7 +25,7 @@ export interface IQueryableFilter {
   inputValue: string | number | undefined;
 }
 
-export type UpdateQueryableFilter = (
+export type UpdateSelectedQueryables = (
   qKey: string,
   filter: IQueryableFilter,
 ) => void;
@@ -64,7 +64,9 @@ export function useStacGenericFilter({
   setResults,
   setPaginationLinks,
 }: IUseStacGenericFilterProps) {
-  // Get temporal/spatial filters and fetch functions from useStacSearch
+  const { registerBuildQuery, executeQuery } = useStacResultsContext();
+
+  // Get temporal/spatial filters from useStacSearch
   const {
     startTime,
     endTime,
@@ -79,17 +81,15 @@ export function useStacGenericFilter({
     setPaginationLinks,
   });
 
-  const { registerBuildQuery, executeQuery } = useStacResultsContext();
-  const stateDb = GlobalStateDbManager.getInstance().getStateDb();
-
-  const [queryableProps, setQueryableProps] = useState<[string, any][]>();
+  const [queryableFields, setQueryableFields] = useState<[string, any][]>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
-  // ! temp
   const [selectedCollection, setSelectedCollection] = useState('');
-  const [queryableFilters, setQueryableFilters] = useState<
+  const [selectedQueryables, setSelectedQueryables] = useState<
     Record<string, IQueryableFilter>
   >({});
   const [filterOperator, setFilterOperator] = useState<FilterOperator>('and');
+
+  const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
   // On mount, load saved filter state from StateDB (if present)
   useEffect(() => {
@@ -114,7 +114,7 @@ export function useStacGenericFilter({
               };
             },
           );
-          setQueryableFilters(restoredFilters);
+          setSelectedQueryables(restoredFilters);
         }
         if (savedFilterState.filterOperator) {
           setFilterOperator(savedFilterState.filterOperator);
@@ -142,7 +142,7 @@ export function useStacGenericFilter({
         string,
         { operator: Operator; inputValue: string | number | null }
       > = {};
-      Object.entries(queryableFilters).forEach(([key, filter]) => {
+      Object.entries(selectedQueryables).forEach(([key, filter]) => {
         cleanedQueryableFilters[key] = {
           operator: filter.operator,
           inputValue: filter.inputValue ?? null,
@@ -165,7 +165,7 @@ export function useStacGenericFilter({
     saveGenericFilterStateToDb();
   }, [
     selectedCollection,
-    queryableFilters,
+    selectedQueryables,
     filterOperator,
     startTime,
     endTime,
@@ -175,12 +175,11 @@ export function useStacGenericFilter({
 
   // Reset all state when URL changes
   useEffect(() => {
-    setQueryableProps(undefined);
+    setQueryableFields(undefined);
     setCollections([]);
     setSelectedCollection('');
-    setQueryableFilters({});
+    setSelectedQueryables({});
     setFilterOperator('and');
-    // Reset temporal/spatial filters
     setStartTime(undefined);
     setEndTime(undefined);
     setUseWorldBBox(false);
@@ -194,7 +193,7 @@ export function useStacGenericFilter({
 
     const fetchCollections = async () => {
       if (!baseUrl) {
-        return
+        return;
       }
 
       const collectionsUrl = baseUrl.endsWith('/')
@@ -230,9 +229,7 @@ export function useStacGenericFilter({
   }, [model, baseUrl]);
 
   // for queryables
-  // should listen for colletion changes and requery
-  // need a way to handle querying multiple collections without refetching everything
-  // collection id -> queryables map as a basic cache thing??
+  // ! TODO - support multiple collection selections
   useEffect(() => {
     if (!model) {
       return;
@@ -240,7 +237,7 @@ export function useStacGenericFilter({
 
     const fetchQueryables = async () => {
       if (!baseUrl) {
-        return
+        return;
       }
 
       const queryablesUrl = baseUrl.endsWith('/')
@@ -254,15 +251,15 @@ export function useStacGenericFilter({
         'internal',
       );
 
-      setQueryableProps(Object.entries(data.properties));
+      setQueryableFields(Object.entries(data.properties));
     };
 
     fetchQueryables();
   }, [model, baseUrl]);
 
-  const updateQueryableFilter = useCallback(
+  const updateSelectedQueryables = useCallback(
     (qKey: string, filter: IQueryableFilter) => {
-      setQueryableFilters(prev => ({
+      setSelectedQueryables(prev => ({
         ...prev,
         [qKey]: filter,
       }));
@@ -270,18 +267,16 @@ export function useStacGenericFilter({
     [],
   );
 
-  /**
-   * Builds Copernicus-specific query
-   */
-  const buildCopernicusQuery = useCallback((): IStacQueryBody => {
+  
+  const buildQuery = useCallback((): IStacQueryBody => {
     const st = startTime
       ? startTime.toISOString()
       : startOfToday().toISOString();
 
     const et = endTime ? endTime.toISOString() : endOfToday().toISOString();
 
-    // Build filter object from queryableFilters
-    const filterConditions = Object.entries(queryableFilters)
+    // Build filter object from selectedQueryables
+    const filterConditions = Object.entries(selectedQueryables)
       .filter(([, filter]) => filter.inputValue !== undefined)
       .map(([property, filter]) => {
         return {
@@ -318,17 +313,14 @@ export function useStacGenericFilter({
     currentBBox,
     selectedCollection,
     limit,
-    queryableFilters,
+    selectedQueryables,
     filterOperator,
   ]);
 
-  /**
-   * Handles form submission - builds query and fetches results
-   */
   // Register buildQuery with context
   useEffect(() => {
-    registerBuildQuery(() => buildCopernicusQuery());
-  }, [registerBuildQuery, buildCopernicusQuery, baseUrl]);
+    registerBuildQuery(() => buildQuery());
+  }, [registerBuildQuery, buildQuery, baseUrl]);
 
   const handleSubmit = useCallback(async () => {
     if (!model) {
@@ -336,15 +328,15 @@ export function useStacGenericFilter({
     }
 
     // Build query body and execute query
-    const queryBody = buildCopernicusQuery();
+    const queryBody = buildQuery();
     const searchUrl = baseUrl.endsWith('/')
       ? `${baseUrl}search`
       : `${baseUrl}/search`;
     await executeQuery(queryBody, searchUrl);
-  }, [model, executeQuery, buildCopernicusQuery, baseUrl]);
+  }, [model, executeQuery, buildQuery, baseUrl]);
 
   return {
-    queryableProps,
+    queryableFields,
     collections,
     selectedCollection,
     setSelectedCollection,
@@ -355,8 +347,8 @@ export function useStacGenericFilter({
     setEndTime,
     useWorldBBox,
     setUseWorldBBox,
-    queryableFilters,
-    updateQueryableFilter,
+    selectedQueryables,
+    updateSelectedQueryables,
     filterOperator,
     setFilterOperator,
   };

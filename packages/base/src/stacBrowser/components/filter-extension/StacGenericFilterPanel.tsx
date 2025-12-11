@@ -1,12 +1,12 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState } from 'react';
 
-import { useStacResultsContext } from '../../context/StacResultsContext';
 import StacQueryableFilters from './StacQueryableFilters';
-import StacSearchDatePicker from '../shared/StacSearchDatePicker';
 import CheckboxWithLabel from '../../../shared/components/CheckboxWithLabel';
+import { useStacResultsContext } from '../../context/StacResultsContext';
 import { useStacGenericFilter } from '../../hooks/useStacGenericFilter';
 import { IStacCollection } from '../../types/types';
+import StacSearchDatePicker from '../shared/StacSearchDatePicker';
 
 interface IStacBrowser2Props {
   model?: IJupyterGISModel;
@@ -20,7 +20,7 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   const [limit, setLimit] = useState<number>(12);
 
   const {
-    queryableProps,
+    queryableFields,
     collections,
     selectedCollection,
     setSelectedCollection,
@@ -31,7 +31,7 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
     setEndTime,
     useWorldBBox,
     setUseWorldBBox,
-    updateQueryableFilter,
+    updateSelectedQueryables,
     filterOperator,
     setFilterOperator,
   } = useStacGenericFilter({
@@ -85,14 +85,14 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
       </div>
 
       {/* Queryable filters */}
-      {queryableProps && (
+      {queryableFields && (
         <div className="jgis-stac-generic-filter-section">
           <label className="jgis-stac-generic-filter-label">
             Additional Filters
           </label>
           <StacQueryableFilters
-            queryableProps={queryableProps}
-            updateQueryableFilter={updateQueryableFilter}
+            queryableFields={queryableFields}
+            updateSelectedQueryables={updateSelectedQueryables}
             filterOperator={filterOperator}
             setFilterOperator={setFilterOperator}
           />
@@ -100,7 +100,6 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
       )}
       {/* sort */}
 
-      {/* // ! this should be in super generic part */}
       {/* items per page */}
       <div className="jgis-stac-generic-filter-section">
         <label className="jgis-stac-generic-filter-label">Items per page</label>
