@@ -76,9 +76,7 @@ export function useStacGenericFilter({
     useWorldBBox,
     setUseWorldBBox,
   } = useStacSearch({
-    model,
-    setResults,
-    setPaginationLinks,
+    model
   });
 
   const [queryableFields, setQueryableFields] = useState<[string, any][]>();
@@ -208,7 +206,7 @@ export function useStacGenericFilter({
       );
 
       const collections: FilteredCollection[] = data.collections
-        .map((collection: any) => ({
+        .map((collection: IStacCollection) => ({
           title: collection.title ?? collection.id,
           id: collection.id,
         }))

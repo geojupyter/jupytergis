@@ -1,16 +1,11 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
 
-import { IStacPaginationLink, SetResultsFunction } from '../types/types';
-
 interface IUseStacSearchProps {
   model: IJupyterGISModel | undefined;
-  setResults: SetResultsFunction;
-  setPaginationLinks: (links: IStacPaginationLink[]) => void;
 }
 
 interface IUseStacSearchReturn {
-  // Temporal and spatial filters
   startTime: Date | undefined;
   setStartTime: (date: Date | undefined) => void;
   endTime: Date | undefined;
@@ -22,10 +17,7 @@ interface IUseStacSearchReturn {
 }
 
 /**
- * Central hook for managing STAC search - handles temporal/spatial filters,
- * core fetching, pagination, and context management
- * @param props - Configuration object containing model and context setters
- * @returns Object containing filter state and core fetch functions
+ * Base hook for managing STAC search - handles temporal/spatial filters
  */
 export function useStacSearch({
   model,
