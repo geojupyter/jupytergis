@@ -12,7 +12,7 @@
 
 import React, { useEffect } from 'react';
 
-import { IColorMap } from '@/src/dialogs/symbology/colorRampUtils';
+import { IColorMap } from '@/src/types';
 
 interface IColorRampSelectorEntryProps {
   index: number;
@@ -58,7 +58,9 @@ const ColorRampSelectorEntry: React.FC<IColorRampSelectorEntryProps> = ({
       onClick={() => onClick(colorMap.name)}
       className="jp-gis-color-ramp-entry"
     >
-      <span className="jp-gis-color-label">{colorMap.name}</span>
+      <span className="jp-gis-color-label">
+        <strong>{colorMap.name}</strong> ({colorMap.definition.type})
+      </span>
       <canvas
         id={`cv-${index}`}
         width={canvasWidth}
