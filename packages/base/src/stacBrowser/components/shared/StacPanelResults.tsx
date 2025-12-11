@@ -78,11 +78,11 @@ const StacPanelResults = () => {
             <PaginationItem>
               <PaginationLink isActive={true}>{currentPage}</PaginationLink>
             </PaginationItem>
-          ) : results.length !== 0 || isLoading ? (
+          ) : results.length !== 0 ? (
             // Multiple pages, display fancy pagination numbers
             <>
-              {getPageItems(currentPage, totalPages).map(item => {
-                if (item === 'ellipsis') {
+              {getPageItems(currentPage, totalPages).map(pageNumber => {
+                if (pageNumber === 'ellipsis') {
                   return (
                     <PaginationItem key="ellipsis">
                       <PaginationEllipsis />
@@ -91,16 +91,16 @@ const StacPanelResults = () => {
                 }
 
                 return (
-                  <PaginationItem key={item}>
+                  <PaginationItem key={pageNumber}>
                     <PaginationLink
-                      isActive={item === currentPage}
+                      isActive={pageNumber === currentPage}
                       onClick={async () => {
-                        setCurrentPage(item);
-                        await executeQueryWithPage(item);
+                        setCurrentPage(pageNumber);
+                        await executeQueryWithPage(pageNumber);
                       }}
                       disabled={totalPages === 1}
                     >
-                      {item}
+                      {pageNumber}
                     </PaginationLink>
                   </PaginationItem>
                 );
@@ -143,4 +143,5 @@ const StacPanelResults = () => {
     </div>
   );
 };
+
 export default StacPanelResults;

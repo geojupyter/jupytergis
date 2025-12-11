@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
 import QueryableRow from './QueryableRow';
-import { UpdateQueryableFilter } from '../hooks/useStacGenericFilter';
+import { UpdateQueryableFilter } from '../../hooks/useStacGenericFilter';
 
 interface IQueryableComboProps {
   queryables: [string, any][];

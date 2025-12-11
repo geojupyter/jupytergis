@@ -13,7 +13,7 @@ import React, {
 import { fetchWithProxies } from '@/src/tools';
 import {
   IStacItem,
-  IStacLink,
+  IStacPaginationLink,
   IStacQueryBody,
   IStacSearchResult,
   SetResultsFunction,
@@ -27,19 +27,14 @@ interface IStacResultsContext {
   handlePaginationClick: (dir: 'next' | 'previous') => Promise<void>;
   handleResultClick: (id: string) => Promise<void>;
   formatResult: (item: IStacItem) => string;
-  paginationLinks: Array<
-    IStacLink & { method?: string; body?: Record<string, any> }
-  >;
+  paginationLinks: IStacPaginationLink[];
   selectedUrl: string;
   setSelectedUrl: (url: string) => void;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   currentPageRef: React.MutableRefObject<number>;
   setResults: SetResultsFunction;
-  setPaginationLinks: (
-    links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
-  ) => void;
-  // Register hook-specific functions that handlers need (for generic filter)
+  setPaginationLinks: (links: IStacPaginationLink[]) => void;
   registerAddToMap: (addFn: (stacData: IStacItem) => void) => void;
   registerHandlePaginationClick: (
     handleFn: (dir: 'next' | 'previous') => Promise<void>,
@@ -71,7 +66,7 @@ export function StacResultsProvider({
   const [totalResults, setTotalResults] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [paginationLinks, setPaginationLinksState] = useState<
-    Array<IStacLink & { method?: string; body?: Record<string, any> }>
+    IStacPaginationLink[]
   >([]);
   const [selectedUrl, setSelectedUrlState] = useState<string>('');
   const [currentPage, setCurrentPageState] = useState<number>(1);
@@ -103,22 +98,17 @@ export function StacResultsProvider({
     [],
   );
 
-  const setPaginationLinks = useCallback(
-    (
-      links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
-    ) => {
-      setPaginationLinksState(links);
-    },
-    [],
-  );
+  const setPaginationLinks = useCallback((links: IStacPaginationLink[]) => {
+    setPaginationLinksState(links);
+  }, []);
 
   const setSelectedUrl = useCallback((url: string) => {
     setSelectedUrlState(url);
     // Clear all registered handlers when provider changes to prevent stale handlers
-    // Note: addToMapRef is cleared but defaultAddToMap is always available
     handlePaginationClickRef.current = undefined;
     addToMapRef.current = undefined;
     buildQueryRef.current = undefined;
+
     // Reset all state
     setIsLoading(false);
     setCurrentPageState(1);
@@ -261,16 +251,22 @@ export function StacResultsProvider({
 
         // Store pagination links
         if (data.links) {
-          const typedLinks = data.links as Array<
-            IStacLink & { method?: string; body?: Record<string, any> }
-          >;
+          const typedLinks = data.links as IStacPaginationLink[];
           setPaginationLinks(typedLinks);
         }
       } catch (error) {
         setResults([], false, 0, 0);
       }
     },
-    [model, selectedUrl, setResults, setPaginationLinks, totalPages],
+    [
+      model,
+      selectedUrl,
+      setResults,
+      setPaginationLinks,
+      results,
+      totalResults,
+      totalPages,
+    ],
   );
 
   // Wrapper function that takes a page number, builds query, and executes it
@@ -325,7 +321,7 @@ export function StacResultsProvider({
         await executeQuery(link.body as IStacQueryBody, link.href, link.method);
       }
     },
-    [model, paginationLinks],
+    [model, paginationLinks, executeQuery],
   );
 
   // Default addToMap implementation - always available

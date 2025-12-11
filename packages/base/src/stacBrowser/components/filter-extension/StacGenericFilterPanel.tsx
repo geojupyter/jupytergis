@@ -1,12 +1,12 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState } from 'react';
 
-import { useStacResultsContext } from '../context/StacResultsContext';
-import StacCheckboxWithLabel from './shared/StacCheckboxWithLabel';
-import StacQueryableFilters from './shared/StacQueryableFilters';
-import StacSearchDatePicker from './shared/StacSearchDatePicker';
-import { useStacGenericFilter } from '../hooks/useStacGenericFilter';
-import { IStacCollection } from '../types/types';
+import { useStacResultsContext } from '../../context/StacResultsContext';
+import StacQueryableFilters from './StacQueryableFilters';
+import StacSearchDatePicker from '../shared/StacSearchDatePicker';
+import CheckboxWithLabel from '../../../shared/components/CheckboxWithLabel';
+import { useStacGenericFilter } from '../../hooks/useStacGenericFilter';
+import { IStacCollection } from '../../types/types';
 
 interface IStacBrowser2Props {
   model?: IJupyterGISModel;
@@ -14,7 +14,6 @@ interface IStacBrowser2Props {
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 
-// This is a generic UI for apis that support filter extension
 function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
   const { setResults, setPaginationLinks, selectedUrl } =
     useStacResultsContext();
@@ -62,7 +61,7 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
 
       {/* spatial extent  */}
       <div className="jgis-stac-generic-filter-section">
-        <StacCheckboxWithLabel
+        <CheckboxWithLabel
           checked={useWorldBBox}
           onCheckedChange={setUseWorldBBox}
           label="Use entire world"
@@ -71,9 +70,7 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
 
       {/* collections */}
       <div className="jgis-stac-generic-filter-section">
-        <label className="jgis-stac-generic-filter-label">
-          Collection
-        </label>
+        <label className="jgis-stac-generic-filter-label">Collection</label>
         <select
           className="jgis-stac-generic-filter-select"
           value={selectedCollection}
@@ -103,12 +100,10 @@ function StacGenericFilterPanel({ model }: IStacBrowser2Props) {
       )}
       {/* sort */}
 
-      {/* ! do i really want this? */}
+      {/* // ! this should be in super generic part */}
       {/* items per page */}
       <div className="jgis-stac-generic-filter-section">
-        <label className="jgis-stac-generic-filter-label">
-          Items per page
-        </label>
+        <label className="jgis-stac-generic-filter-label">Items per page</label>
         <input
           type="number"
           min="1"

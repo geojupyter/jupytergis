@@ -8,8 +8,9 @@ import { useStacSearch } from './useStacSearch';
 import { useStacResultsContext } from '../context/StacResultsContext';
 import {
   IStacCollection,
+  IStacCollectionsReturn,
   IStacItem,
-  IStacLink,
+  IStacPaginationLink,
   IStacQueryBody,
 } from '../types/types';
 
@@ -53,9 +54,7 @@ interface IUseStacGenericFilterProps {
     totalResults: number,
     totalPages: number,
   ) => void;
-  setPaginationLinks: (
-    links: Array<IStacLink & { method?: string; body?: Record<string, any> }>,
-  ) => void;
+  setPaginationLinks: (links: IStacPaginationLink[]) => void;
 }
 
 export function useStacGenericFilter({
@@ -194,10 +193,14 @@ export function useStacGenericFilter({
     }
 
     const fetchCollections = async () => {
+      if (!baseUrl) {
+        return
+      }
+
       const collectionsUrl = baseUrl.endsWith('/')
         ? `${baseUrl}collections`
         : `${baseUrl}/collections`;
-      const data = await fetchWithProxies(
+      const data: IStacCollectionsReturn = await fetchWithProxies(
         collectionsUrl,
         model,
         async response => await response.json(),
@@ -236,6 +239,10 @@ export function useStacGenericFilter({
     }
 
     const fetchQueryables = async () => {
+      if (!baseUrl) {
+        return
+      }
+
       const queryablesUrl = baseUrl.endsWith('/')
         ? `${baseUrl}queryables`
         : `${baseUrl}/queryables`;

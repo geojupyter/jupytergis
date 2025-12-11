@@ -4,7 +4,7 @@ import {
   IQueryableFilter,
   Operator,
   UpdateQueryableFilter,
-} from '../hooks/useStacGenericFilter';
+} from '../../hooks/useStacGenericFilter';
 
 interface IQueryableRowProps {
   qKey: string;
