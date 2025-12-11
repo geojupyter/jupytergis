@@ -1054,6 +1054,28 @@ export function addCommands(
     ...icons.get(CommandIDs.addMarker),
   });
 
+  commands.addCommand(CommandIDs.addStorySegment, {
+    label: trans.__('Add Story Segment'),
+    isEnabled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+      return (
+        current.model.sharedModel.editable &&
+        !current.model.jgisSettings.storyMapsDisabled
+      );
+    },
+    execute: args => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+      current.model.addStorySegment();
+    },
+    ...icons.get(CommandIDs.addStorySegment),
+  });
+
   loadKeybindings(commands, keybindings);
 }
 

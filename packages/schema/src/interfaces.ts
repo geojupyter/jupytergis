@@ -26,11 +26,16 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources,
+  IJGISStoryMap,
   SourceType,
 } from './_interface/project/jgis';
 import { IRasterSource } from './_interface/project/sources/rasterSource';
 import { Modes } from './types';
 export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
+
+export interface IJGISStoryMaps {
+  [k: string]: IJGISStoryMap;
+}
 
 export type JgisCoordinates = { x: number; y: number };
 
@@ -56,6 +61,13 @@ export interface IJGISLayerDocChange {
 
 export interface IJGISLayerTreeDocChange {
   layerTreeChange?: Delta<IJGISLayerItem[]>;
+}
+
+export interface IJGISStoryMapDocChange {
+  storyMapChange?: Array<{
+    id: string;
+    newValue: IJGISStoryMap | undefined;
+  }>;
 }
 
 export interface IJGISSourceDocChange {
@@ -92,6 +104,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   options: IJGISOptions;
   layers: IJGISLayers;
   sources: IJGISSources;
+  stories: IJGISStoryMaps;
   layerTree: IJGISLayerTree;
   metadata: any;
 
@@ -119,6 +132,11 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   addSource(id: string, value: IJGISSource): void;
   updateSource(id: string, value: IJGISSource): void;
 
+  getStoryMap(id: string): IJGISStoryMap | undefined;
+  removeStoryMap(id: string): void;
+  addStoryMap(id: string, value: IJGISStoryMap): void;
+  updateStoryMap(id: string, value: IJGISStoryMap): void;
+
   addLayerTreeItem(index: number, item: IJGISLayerItem): void;
   updateLayerTreeItem(index: number, item: IJGISLayerItem): void;
 
@@ -138,6 +156,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
+  storyMapsChanged: ISignal<IJupyterGISDoc, IJGISStoryMapDocChange>;
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
 }
@@ -187,6 +206,8 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   filePath: string;
 
   pathChanged: ISignal<IJupyterGISModel, string>;
+
+  stories: Map<string, IJGISStoryMap>;
 
   getFeaturesForCurrentTile: ({
     sourceId,
@@ -259,6 +280,11 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   triggerLayerUpdate(layerId: string, layer: IJGISLayer): void;
 
   disposed: ISignal<any, void>;
+  getSelectedStory(): {
+    storySegmentId: string;
+    story: IJGISStoryMap | undefined;
+  };
+  addStorySegment(): { storySegmentId: string; storyMapId: string } | null;
 }
 
 export interface IUserData {
@@ -396,4 +422,7 @@ export interface IJupyterGISSettings {
   objectPropertiesDisabled?: boolean;
   annotationsDisabled?: boolean;
   identifyDisabled?: boolean;
+
+  // Story maps
+  storyMapsDisabled: boolean;
 }

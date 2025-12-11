@@ -183,7 +183,7 @@ test.describe('context menu', () => {
       .getByText('level 1 group')
       .click({ button: 'right' });
 
-    await page.getByLabel('Layers', { exact: true }).press('Escape');
+    await page.keyboard.press('Escape');
     await page.getByText('level 1 group').press('F2');
     await page.getByRole('textbox').fill('test name');
     await page.getByRole('textbox').press('Enter');
@@ -197,7 +197,7 @@ test.describe('context menu', () => {
       .getByText('test name')
       .click({ button: 'right' });
 
-    await page.getByLabel('Layers', { exact: true }).press('Escape');
+    await page.keyboard.press('Escape');
     await page.getByText('test name').press('F2');
     await page.getByRole('textbox').fill('level 1 group');
     await page.getByRole('textbox').press('Enter');

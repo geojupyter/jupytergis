@@ -58,6 +58,7 @@ const iconObject = {
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
+  [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
 };
 
 /**

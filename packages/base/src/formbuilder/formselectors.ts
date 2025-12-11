@@ -3,6 +3,7 @@ import { LayerType, SourceType } from '@jupytergis/schema';
 import {
   HeatmapLayerPropertiesForm,
   HillshadeLayerPropertiesForm,
+  StorySegmentLayerPropertiesForm,
   LayerPropertiesForm,
   VectorLayerPropertiesForm,
   WebGlLayerPropertiesForm,
@@ -33,6 +34,11 @@ export function getLayerTypeForm(
       break;
     case 'HeatmapLayer':
       LayerForm = HeatmapLayerPropertiesForm;
+      break;
+    case 'StorySegmentLayer':
+      LayerForm = StorySegmentLayerPropertiesForm;
+      break;
+
     // ADD MORE FORM TYPES HERE
   }
 
