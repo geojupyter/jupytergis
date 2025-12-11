@@ -772,7 +772,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   /**
    * Toggle a map interaction mode on or off.
-   * Toggleing off sets the mode to 'panning'.
+   * Toggling off sets the mode to 'panning'.
    * @param mode The mode to be toggled
    */
   toggleMode(mode: Modes) {

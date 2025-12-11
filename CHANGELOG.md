@@ -38,7 +38,7 @@
 
 ### Bugs fixed
 
-- Enable layers with embedded GeoJSON to use graduated, categorized, and canoncal symbology [#1020](https://github.com/geojupyter/jupytergis/pull/1020) ([@mfisher87](https://github.com/mfisher87))
+- Enable layers with embedded GeoJSON to use graduated, categorized, and canonical symbology [#1020](https://github.com/geojupyter/jupytergis/pull/1020) ([@mfisher87](https://github.com/mfisher87))
 - Fix symbology for newly created layers [#1013](https://github.com/geojupyter/jupytergis/pull/1013) ([@martinRenou](https://github.com/martinRenou))
 - Fix bug causing layer selection to alter sources [#992](https://github.com/geojupyter/jupytergis/pull/992) ([@gjmooney](https://github.com/gjmooney))
 - Display side panels in full screen view [#979](https://github.com/geojupyter/jupytergis/pull/979) ([@gjmooney](https://github.com/gjmooney))
