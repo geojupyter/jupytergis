@@ -15,7 +15,7 @@ import { fetchWithProxies } from '@/src/tools';
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 
-export type Operator = '=' | '!=' | '<' | '>';
+export type Operator = '=' | '!=' | '<' | '<=' | '>' | '>=';
 
 export type FilterOperator = 'and' | 'or';
 
@@ -282,11 +282,23 @@ export function useStacFilterExtension({
     )
       .filter(([, filter]) => filter.inputValue !== undefined)
       .map(([property, filter]): IStacFilterCondition => {
+        // Check if this property is a datetime type
+        const queryableField = queryableFields?.find(([key]) => key === property);
+        const isDateTime =
+          queryableField &&
+          queryableField[1]?.type === 'string' &&
+          queryableField[1]?.format === 'date-time';
+
+        // For datetime values, wrap in timestamp object; otherwise use value directly
+        const value = isDateTime
+          ? { timestamp: filter.inputValue as string }
+          : filter.inputValue;
+
         const condition: IStacFilterCondition = {
           op: filter.operator,
-          args: [{ property }, filter.inputValue] as [
+          args: [{ property }, value] as [
             { property: string },
-            string | number,
+            string | number | { timestamp: string },
           ],
         };
 
@@ -318,6 +330,7 @@ export function useStacFilterExtension({
     limit,
     selectedQueryables,
     filterOperator,
+    queryableFields,
   ]);
 
   // Register buildQuery with context
