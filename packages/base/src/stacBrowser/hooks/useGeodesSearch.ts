@@ -29,7 +29,6 @@ interface IUseGeodesSearchReturn {
   handleSubmit: () => Promise<void>;
 }
 
-// ! this is just for geodes -- move to hook
 interface IStacQueryBody {
   bbox: [number, number, number, number];
   limit?: number;
