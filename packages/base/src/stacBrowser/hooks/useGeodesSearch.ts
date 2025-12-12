@@ -7,7 +7,6 @@ import { products } from '@/src/stacBrowser/constants';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
 import { useStacSearch } from '@/src/stacBrowser/hooks/useStacSearch';
 import {
-  IStacQueryBody,
   StacFilterState,
   StacFilterSetters,
   StacFilterStateStateDb,
@@ -28,6 +27,33 @@ interface IUseGeodesSearchReturn {
   useWorldBBox: boolean;
   setUseWorldBBox: (val: boolean) => void;
   handleSubmit: () => Promise<void>;
+}
+
+// ! this is just for geodes -- move to hook
+interface IStacQueryBody {
+  bbox: [number, number, number, number];
+  limit?: number;
+  page?: number;
+  query: {
+    dataset: {
+      in: string[];
+    };
+    end_datetime: {
+      gte: string;
+    };
+    latest: {
+      eq: true;
+    };
+    platform?: {
+      in: string[];
+    };
+  };
+  sortBy: [
+    {
+      direction: 'desc';
+      field: 'start_datetime';
+    },
+  ];
 }
 
 const GEODES_STAC_FILTERS_KEY = 'jupytergis:geodes-stac-filters';
