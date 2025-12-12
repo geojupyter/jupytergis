@@ -1,3 +1,4 @@
+import { formatISO } from 'date-fns';
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
@@ -27,6 +28,11 @@ interface IQueryableComboProps {
   updateSelectedQueryables: UpdateSelectedQueryables;
 }
 
+interface IOperatorOption {
+  value: '=' | '!=' | '<' | '<=' | '>' | '>=';
+  label: string | React.ReactNode;
+}
+
 export function QueryableComboBox({
   queryables,
   selectedQueryables,
@@ -47,43 +53,123 @@ export function QueryableComboBox({
       updateSelectedQueryables(key, null);
     } else {
       // Add if not selected - initialize with default filter
-      // We'll add it with a placeholder so it doesn't get removed immediately
       const operators = getOperatorsForType(val.type, val.format);
+
+      let initialInputValue: string | number | undefined = undefined;
+
+      // For enum types, set the first option since the UI looks like there's a selection
+      if (val.type === 'string' && val.enum && val.enum.length > 0) {
+        initialInputValue = val.enum[0];
+      }
+
       updateSelectedQueryables(key, {
         operator: operators[0]?.value || '=',
-        inputValue: undefined,
+        inputValue: initialInputValue,
       });
     }
 
     setOpen(false);
   };
 
-  const getOperatorsForType = (type: string, format?: string) => {
+  
+
+  const getOperatorsForType = (
+    type: string,
+    format?: string,
+  ): IOperatorOption[] => {
     if (format === 'date-time') {
       return [
-        { value: '<' as const, label: '<' },
-        { value: '>' as const, label: '>' },
+        { value: '<', label: '<' },
+        { value: '<=', label: '≤' },
+        { value: '>', label: '>' },
+        { value: '>=', label: '≥' },
       ];
     }
 
     switch (type) {
       case 'string':
         return [
-          { value: '=' as const, label: '=' },
-          { value: '!=' as const, label: '≠' },
+          { value: '=', label: '=' },
+          { value: '!=', label: '≠' },
         ];
       case 'number':
         return [
-          { value: '=' as const, label: '=' },
-          { value: '!=' as const, label: '≠' },
-          { value: '<' as const, label: '<' },
-          { value: '>' as const, label: '>' },
-        ];
+          { value: '=', label: '=' },
+          { value: '!=', label: '≠' },
+          { value: '<', label: '<' },
+        { value: '<=', label: '≤' },
+        { value: '>', label: '>' },
+        { value: '>=', label: '≥' },
+      ];
       default:
         return [
-          { value: '=' as const, label: '=' },
-          { value: '!=' as const, label: '≠' },
+          { value: '=', label: '=' },
+          { value: '!=', label: '≠' },
         ];
+    }
+  };
+
+  const getInputBasedOnType = (
+    val: any,
+    currentValue: string | number | undefined,
+    onChange: (value: string | number) => void,
+  ): React.ReactNode => {
+    switch (val.type) {
+      case 'string':
+        if (val.enum) {
+          return (
+            <select
+              style={{ maxWidth: '75px' }}
+              value={(currentValue as string) || ''}
+              onChange={e => onChange(e.target.value)}
+            >
+              {val.enum.map((option: string) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          );
+        }
+        if (val.format === 'date-time') {
+          // Store value in local time format, convert to UTC only when updating
+          return (
+            <input
+              type="datetime-local"
+              style={{ maxWidth: '75px' }}
+              value={formatISO(new Date())}
+              onChange={e => onChange(e.target.value)}
+            />
+          );
+        }
+        return (
+          <input
+            type="text"
+            style={{ maxWidth: '75px' }}
+            value={(currentValue as string) || ''}
+            onChange={e => onChange(e.target.value)}
+          />
+        );
+      case 'number':
+        return (
+          <input
+            type="number"
+            style={{ maxWidth: '75px' }}
+            min={val.min !== undefined ? val.min : undefined}
+            max={val.max !== undefined ? val.max : undefined}
+            value={(currentValue as number) || ''}
+            onChange={e => onChange(Number(e.target.value))}
+          />
+        );
+      default:
+        return (
+          <input
+            type=""
+            style={{ maxWidth: '75px' }}
+            value={(currentValue as string) || ''}
+            onChange={e => onChange(e.target.value)}
+          />
+        );
     }
   };
 
@@ -157,15 +243,61 @@ export function QueryableComboBox({
           </Command>
         </PopoverContent>
       </Popover>
-      {selectedItems.map(([key, val]) => (
-        <QueryableRow
-          key={key}
-          qKey={key}
-          qVal={val}
-          selectedQueryables={selectedQueryables}
-          updateSelectedQueryables={updateSelectedQueryables}
-        />
-      ))}
+      {selectedItems.map(([key, val]) => {
+        const operators = getOperatorsForType(val.type, val.format);
+        const currentFilter: IQueryableFilter = selectedQueryables[key] ?? {
+          operator: operators[0]?.value || '=',
+          inputValue: undefined,
+        };
+
+        const handleInputChange = (value: string | number) => {
+          // For datetime values, convert local time to UTC ISO string
+          let valueToStore: string | number = value;
+          if (
+            val.type === 'string' &&
+            val.format === 'date-time' &&
+            typeof value === 'string'
+          ) {
+            try {
+              // Parse local time and convert to UTC ISO string
+              const localDate = new Date(value);
+              valueToStore = localDate.toISOString();
+            } catch {
+              valueToStore = value;
+            }
+          }
+
+          updateSelectedQueryables(key, {
+            ...currentFilter,
+            inputValue: valueToStore,
+          });
+        };
+
+        const handleOperatorChange = (
+          operator: '=' | '!=' | '<' | '<=' | '>' | '>=',
+        ) => {
+          updateSelectedQueryables(key, {
+            ...currentFilter,
+            operator,
+          });
+        };
+
+        return (
+          <QueryableRow
+            key={key}
+            qKey={key}
+            qVal={val}
+            operators={operators}
+            currentFilter={currentFilter}
+            inputComponent={getInputBasedOnType(
+              val,
+              currentFilter.inputValue,
+              handleInputChange,
+            )}
+            onOperatorChange={handleOperatorChange}
+          />
+        );
+      })}
     </div>
   );
 }

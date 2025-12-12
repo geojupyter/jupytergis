@@ -116,10 +116,14 @@ export interface IStacSearchResult {
 
 /**
  * CQL2-JSON filter condition structure for STAC Filter Extension queries.
+ * For datetime values, the second argument is wrapped in a timestamp object.
  */
 export interface IStacFilterCondition {
-  op: '=' | '!=' | '<' | '>';
-  args: [{ property: string }, string | number];
+  op: '=' | '!=' | '<' | '<=' | '>' | '>=';
+  args: [
+    { property: string },
+    string | number | { timestamp: string },
+  ];
 }
 
 /**
