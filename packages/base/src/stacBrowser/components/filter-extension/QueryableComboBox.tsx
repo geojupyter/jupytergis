@@ -1,4 +1,4 @@
-import { formatISO } from 'date-fns';
+import { format } from 'date-fns';
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
@@ -61,6 +61,9 @@ export function QueryableComboBox({
       // For enum types, set the first option since the UI looks like there's a selection
       if (val.type === 'string' && val.enum && val.enum.length > 0) {
         initialInputValue = val.enum[0];
+      } else if (val.type === 'string' && val.format === 'date-time') {
+        // For datetime types, set to current UTC time
+        initialInputValue = new Date().toISOString();
       }
 
       updateSelectedQueryables(key, {
@@ -131,12 +134,25 @@ export function QueryableComboBox({
           );
         }
         if (val.format === 'date-time') {
-          // Store value in local time format, convert to UTC only when updating
+          // Convert UTC ISO string to local datetime format for display
+          // datetime-local expects format: YYYY-MM-DDTHH:mm
+          const formatForInput = (isoString: string | undefined): string => {
+            if (!isoString) {
+              return '';
+            }
+            try {
+              const date = new Date(isoString);
+              return format(date, "yyyy-MM-dd'T'HH:mm");
+            } catch {
+              return '';
+            }
+          };
+
           return (
             <input
               type="datetime-local"
               style={{ maxWidth: '75px' }}
-              value={formatISO(new Date())}
+              value={formatForInput(currentValue as string)}
               onChange={e => onChange(e.target.value)}
             />
           );
