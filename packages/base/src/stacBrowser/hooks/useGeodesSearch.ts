@@ -4,23 +4,18 @@ import { useCallback, useEffect, useState } from 'react';
 
 import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
 import { products } from '@/src/stacBrowser/constants';
+import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
+import { useStacSearch } from '@/src/stacBrowser/hooks/useStacSearch';
 import {
-  IStacPaginationLink,
   IStacQueryBody,
-  SetResultsFunction,
   StacFilterState,
   StacFilterSetters,
   StacFilterStateStateDb,
 } from '@/src/stacBrowser/types/types';
 import { GlobalStateDbManager } from '@/src/store';
-import { useStacSearch } from './useStacSearch';
-import { useStacResultsContext } from '../context/StacResultsContext';
 
 interface IUseGeodesSearchProps {
   model: IJupyterGISModel | undefined;
-  apiUrl: string;
-  setResults: SetResultsFunction;
-  setPaginationLinks: (links: IStacPaginationLink[]) => void;
 }
 
 interface IUseGeodesSearchReturn {
@@ -45,14 +40,10 @@ const GEODES_STAC_FILTERS_KEY = 'jupytergis:geodes-stac-filters';
  */
 function useGeodesSearch({
   model,
-  apiUrl,
-  setResults,
-  setPaginationLinks,
 }: IUseGeodesSearchProps): IUseGeodesSearchReturn {
   const isFirstRender = useIsFirstRender();
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
   const {
-    currentPage,
     currentPageRef,
     setCurrentPage,
     registerHandlePaginationClick,
@@ -72,7 +63,6 @@ function useGeodesSearch({
     setUseWorldBBox,
   } = useStacSearch({
     model,
-
   });
 
   const [filterState, setFilterState] = useState<StacFilterState>({
@@ -243,7 +233,6 @@ function useGeodesSearch({
       model,
       executeQuery,
       setCurrentPage,
-      currentPage,
       currentPageRef,
       buildGeodesQuery,
       selectedUrl,

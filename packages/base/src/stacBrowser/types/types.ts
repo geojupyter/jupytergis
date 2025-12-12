@@ -1,6 +1,6 @@
 export interface IStacCollectionsReturn {
   collections: IStacCollection[];
-  links: IStacLink[]
+  links: IStacLink[];
 }
 
 export interface IStacCollection {
