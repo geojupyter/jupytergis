@@ -5,29 +5,19 @@ import { useCallback, useEffect, useState } from 'react';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
 import { useStacSearch } from '@/src/stacBrowser/hooks/useStacSearch';
 import {
+  FilterOperator,
+  IQueryableFilter,
   IStacCollection,
   IStacCollectionsReturn,
   IStacFilterCondition,
   IStacFilterExtensionQueryBody,
+  Operator,
 } from '@/src/stacBrowser/types/types';
 import { GlobalStateDbManager } from '@/src/store';
 import { fetchWithProxies } from '@/src/tools';
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 
-export type Operator = '=' | '!=' | '<' | '<=' | '>' | '>=';
-
-export type FilterOperator = 'and' | 'or';
-
-export interface IQueryableFilter {
-  operator: Operator;
-  inputValue: string | number | undefined;
-}
-
-export type UpdateSelectedQueryables = (
-  qKey: string,
-  filter: IQueryableFilter | null,
-) => void;
 
 interface IStacFilterExtensionStateDb {
   selectedCollection?: string;
@@ -283,7 +273,9 @@ export function useStacFilterExtension({
       .filter(([, filter]) => filter.inputValue !== undefined)
       .map(([property, filter]): IStacFilterCondition => {
         // Check if this property is a datetime type
-        const queryableField = queryableFields?.find(([key]) => key === property);
+        const queryableField = queryableFields?.find(
+          ([key]) => key === property,
+        );
         const isDateTime =
           queryableField &&
           queryableField[1]?.type === 'string' &&

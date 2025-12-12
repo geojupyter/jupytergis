@@ -115,24 +115,39 @@ export interface IStacSearchResult {
 }
 
 /**
+ * Comparison operators for STAC filter conditions.
+ */
+export type Operator = '=' | '!=' | '<' | '<=' | '>' | '>=';
+
+/**
  * CQL2-JSON filter condition structure for STAC Filter Extension queries.
  * For datetime values, the second argument is wrapped in a timestamp object.
  */
 export interface IStacFilterCondition {
-  op: '=' | '!=' | '<' | '<=' | '>' | '>=';
-  args: [
-    { property: string },
-    string | number | { timestamp: string },
-  ];
+  op: Operator;
+  args: [{ property: string }, string | number | { timestamp: string }];
 }
+
+export type FilterOperator = 'and' | 'or';
+
 
 /**
  * CQL2-JSON filter structure for STAC Filter Extension queries.
  */
 export interface IStacCql2Filter {
-  op: 'and' | 'or';
+  op: FilterOperator;
   args: IStacFilterCondition[];
 }
+
+export interface IQueryableFilter {
+  operator: Operator;
+  inputValue: string | number | undefined;
+}
+
+export type UpdateSelectedQueryables = (
+  qKey: string,
+  filter: IQueryableFilter | null,
+) => void;
 
 /**
  * Query body for STAC catalogs that support the Filter Extension (CQL2-JSON).
@@ -145,7 +160,7 @@ export interface IStacFilterExtensionQueryBody {
   limit: number;
   'filter-lang': 'cql2-json';
   filter?: IStacCql2Filter;
-  page?: number;
+  token?: string;
 }
 
 // ! this is just for geodes -- move to hook
