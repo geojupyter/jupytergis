@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import {
   IQueryableFilter,
@@ -9,6 +9,7 @@ import {
 interface IQueryableRowProps {
   qKey: string;
   qVal: any;
+  selectedQueryables: Record<string, IQueryableFilter>;
   updateSelectedQueryables: UpdateSelectedQueryables;
 }
 
@@ -20,6 +21,7 @@ interface IOperatorOption {
 function QueryableRow({
   qKey,
   qVal,
+  selectedQueryables,
   updateSelectedQueryables,
 }: IQueryableRowProps) {
   const getOperatorsForType = (
@@ -56,33 +58,29 @@ function QueryableRow({
 
   const operators = getOperatorsForType(qVal.type, qVal.format);
 
-  // Local state for UI, synced to parent via callback
-  const [localFilter, setLocalFilter] = useState<IQueryableFilter>({
-    operator: operators[0]?.value || '=',
-    inputValue: undefined,
-  });
-
-  // Sync local state to parent whenever it changes
-  useEffect(() => {
-    updateSelectedQueryables(qKey, localFilter);
-  }, [qKey, localFilter, updateSelectedQueryables]);
+  // Get current filter from selectedQueryables, or use defaults
+  const currentFilter: IQueryableFilter =
+    selectedQueryables[qKey] ?? {
+      operator: operators[0]?.value || '=',
+      inputValue: undefined,
+    };
 
   const handleInputChange = (value: string | number) => {
-    setLocalFilter(prev => ({
-      ...prev,
+    updateSelectedQueryables(qKey, {
+      ...currentFilter,
       inputValue: value,
-    }));
+    });
   };
 
   const handleOperatorChange = (operator: Operator) => {
-    setLocalFilter(prev => ({
-      ...prev,
+    updateSelectedQueryables(qKey, {
+      ...currentFilter,
       operator,
-    }));
+    });
   };
 
   const getInputBasedOnType = (val: any): React.ReactNode => {
-    const currentValue = localFilter.inputValue;
+    const currentValue = currentFilter.inputValue;
 
     switch (val.type) {
       case 'string':
@@ -153,7 +151,7 @@ function QueryableRow({
     >
       <span>{qVal.title}</span>
       <select
-        value={localFilter.operator}
+        value={currentFilter.operator}
         onChange={e => handleOperatorChange(e.target.value as Operator)}
         style={{
           padding: '0.25rem 0.5rem',
