@@ -30,6 +30,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
     setEndTime,
     useWorldBBox,
     setUseWorldBBox,
+    selectedQueryables,
     updateSelectedQueryables,
     filterOperator,
     setFilterOperator,
@@ -89,6 +90,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
           </label>
           <StacQueryableFilters
             queryableFields={queryableFields}
+            selectedQueryables={selectedQueryables}
             updateSelectedQueryables={updateSelectedQueryables}
             filterOperator={filterOperator}
             setFilterOperator={setFilterOperator}
