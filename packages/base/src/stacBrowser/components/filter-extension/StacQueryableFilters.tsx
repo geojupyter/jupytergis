@@ -4,11 +4,13 @@ import { RadioGroup, RadioGroupItem } from '@/src/shared/components/RadioGroup';
 import { QueryableComboBox } from '@/src/stacBrowser/components/filter-extension/QueryableComboBox';
 import {
   FilterOperator,
+  IQueryableFilter,
   UpdateSelectedQueryables,
 } from '@/src/stacBrowser/hooks/useStacFilterExtension';
 
 interface IStacQueryableFilterListProps {
   queryableFields: [string, any][];
+  selectedQueryables: Record<string, IQueryableFilter>;
   updateSelectedQueryables: UpdateSelectedQueryables;
   filterOperator: FilterOperator;
   setFilterOperator: (operator: FilterOperator) => void;
@@ -16,6 +18,7 @@ interface IStacQueryableFilterListProps {
 
 const StacQueryableFilters: React.FC<IStacQueryableFilterListProps> = ({
   queryableFields,
+  selectedQueryables,
   updateSelectedQueryables,
   filterOperator,
   setFilterOperator,
@@ -44,6 +47,7 @@ const StacQueryableFilters: React.FC<IStacQueryableFilterListProps> = ({
       </div>
       <QueryableComboBox
         queryables={queryableFields}
+        selectedQueryables={selectedQueryables}
         updateSelectedQueryables={updateSelectedQueryables}
       />
     </div>

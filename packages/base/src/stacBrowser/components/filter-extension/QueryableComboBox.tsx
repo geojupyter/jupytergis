@@ -1,5 +1,5 @@
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -16,33 +16,75 @@ import {
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
 import QueryableRow from '@/src/stacBrowser/components/filter-extension/QueryableRow';
-import { UpdateSelectedQueryables } from '@/src/stacBrowser/hooks/useStacFilterExtension';
+import {
+  IQueryableFilter,
+  UpdateSelectedQueryables,
+} from '@/src/stacBrowser/hooks/useStacFilterExtension';
 
 interface IQueryableComboProps {
   queryables: [string, any][];
+  selectedQueryables: Record<string, IQueryableFilter>;
   updateSelectedQueryables: UpdateSelectedQueryables;
 }
 
 export function QueryableComboBox({
   queryables,
+  selectedQueryables,
   updateSelectedQueryables,
 }: IQueryableComboProps) {
   const [open, setOpen] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<[string, any][]>([]);
+
+  // Derive selected items from selectedQueryables
+  const selectedItems = useMemo(() => {
+    return queryables.filter(([key]) => key in selectedQueryables);
+  }, [queryables, selectedQueryables]);
 
   const handleSelect = (key: string, val: any) => {
-    setSelectedItems(prev => {
-      const existingIndex = prev.findIndex(([k]) => k === key);
-      if (existingIndex >= 0) {
-        // Remove if already selected
-        return prev.filter(([k]) => k !== key);
-      } else {
-        // Add if not selected
-        return [...prev, [key, val]];
-      }
-    });
+    const isCurrentlySelected = key in selectedQueryables;
+
+    if (isCurrentlySelected) {
+      // Remove if already selected - pass null to explicitly remove
+      updateSelectedQueryables(key, null);
+    } else {
+      // Add if not selected - initialize with default filter
+      // We'll add it with a placeholder so it doesn't get removed immediately
+      const operators = getOperatorsForType(val.type, val.format);
+      updateSelectedQueryables(key, {
+        operator: operators[0]?.value || '=',
+        inputValue: undefined,
+      });
+    }
 
     setOpen(false);
+  };
+
+  const getOperatorsForType = (type: string, format?: string) => {
+    if (format === 'date-time') {
+      return [
+        { value: '<' as const, label: '<' },
+        { value: '>' as const, label: '>' },
+      ];
+    }
+
+    switch (type) {
+      case 'string':
+        return [
+          { value: '=' as const, label: '=' },
+          { value: '!=' as const, label: '≠' },
+        ];
+      case 'number':
+        return [
+          { value: '=' as const, label: '=' },
+          { value: '!=' as const, label: '≠' },
+          { value: '<' as const, label: '<' },
+          { value: '>' as const, label: '>' },
+        ];
+      default:
+        return [
+          { value: '=' as const, label: '=' },
+          { value: '!=' as const, label: '≠' },
+        ];
+    }
   };
 
   const getButtonText = () => {
@@ -56,7 +98,7 @@ export function QueryableComboBox({
   };
 
   const isSelected = (key: string) => {
-    return selectedItems.some(([k]) => k === key);
+    return key in selectedQueryables;
   };
 
   return (
@@ -120,6 +162,7 @@ export function QueryableComboBox({
           key={key}
           qKey={key}
           qVal={val}
+          selectedQueryables={selectedQueryables}
           updateSelectedQueryables={updateSelectedQueryables}
         />
       ))}

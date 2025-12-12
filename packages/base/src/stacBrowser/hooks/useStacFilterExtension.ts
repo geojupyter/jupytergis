@@ -26,7 +26,7 @@ export interface IQueryableFilter {
 
 export type UpdateSelectedQueryables = (
   qKey: string,
-  filter: IQueryableFilter,
+  filter: IQueryableFilter | null,
 ) => void;
 
 interface IStacFilterExtensionStateDb {
@@ -251,11 +251,20 @@ export function useStacFilterExtension({
   }, [model, baseUrl]);
 
   const updateSelectedQueryables = useCallback(
-    (qKey: string, filter: IQueryableFilter) => {
-      setSelectedQueryables(prev => ({
-        ...prev,
-        [qKey]: filter,
-      }));
+    (qKey: string, filter: IQueryableFilter | null) => {
+      setSelectedQueryables(prev => {
+        // If filter is null, remove the key entirely
+        if (filter === null) {
+          const { [qKey]: _, ...rest } = prev;
+          return rest;
+        }
+        // If inputValue is undefined but filter exists, keep it (user might be entering value)
+        // Only remove if explicitly set to null
+        return {
+          ...prev,
+          [qKey]: filter,
+        };
+      });
     },
     [],
   );
