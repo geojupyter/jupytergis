@@ -7,7 +7,8 @@ import { useStacSearch } from '@/src/stacBrowser/hooks/useStacSearch';
 import {
   IStacCollection,
   IStacCollectionsReturn,
-  IStacQueryBody,
+  IStacFilterCondition,
+  IStacFilterExtensionQueryBody,
 } from '@/src/stacBrowser/types/types';
 import { GlobalStateDbManager } from '@/src/store';
 import { fetchWithProxies } from '@/src/tools';
@@ -259,7 +260,7 @@ export function useStacFilterExtension({
     [],
   );
 
-  const buildQuery = useCallback((): IStacQueryBody => {
+  const buildQuery = useCallback((): IStacFilterExtensionQueryBody => {
     const st = startTime
       ? startTime.toISOString()
       : startOfToday().toISOString();
@@ -267,21 +268,23 @@ export function useStacFilterExtension({
     const et = endTime ? endTime.toISOString() : endOfToday().toISOString();
 
     // Build filter object from selectedQueryables
-    const filterConditions = Object.entries(selectedQueryables)
+    const filterConditions: IStacFilterCondition[] = Object.entries(
+      selectedQueryables,
+    )
       .filter(([, filter]) => filter.inputValue !== undefined)
-      .map(([property, filter]) => {
-        return {
+      .map(([property, filter]): IStacFilterCondition => {
+        const condition: IStacFilterCondition = {
           op: filter.operator,
-          args: [
-            {
-              property,
-            },
-            filter.inputValue,
+          args: [{ property }, filter.inputValue] as [
+            { property: string },
+            string | number,
           ],
         };
+
+        return condition;
       });
 
-    const body: Record<string, any> = {
+    const body: IStacFilterExtensionQueryBody = {
       bbox: currentBBox,
       collections: [selectedCollection],
       datetime: `${st}/${et}`,
@@ -297,7 +300,7 @@ export function useStacFilterExtension({
       };
     }
 
-    return body as IStacQueryBody;
+    return body;
   }, [
     startTime,
     endTime,

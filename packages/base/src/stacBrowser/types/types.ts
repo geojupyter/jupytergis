@@ -62,7 +62,7 @@ export interface IStacLink {
  */
 export interface IStacPaginationLink extends IStacLink {
   method?: string;
-  body?: Record<string, any>;
+  body?: IStacQueryBodyUnion;
 }
 
 export interface IStacAsset {
@@ -114,6 +114,36 @@ export interface IStacSearchResult {
   type: 'FeatureCollection';
 }
 
+/**
+ * CQL2-JSON filter condition structure for STAC Filter Extension queries.
+ */
+export interface IStacFilterCondition {
+  op: '=' | '!=' | '<' | '>';
+  args: [{ property: string }, string | number];
+}
+
+/**
+ * CQL2-JSON filter structure for STAC Filter Extension queries.
+ */
+export interface IStacCql2Filter {
+  op: 'and' | 'or';
+  args: IStacFilterCondition[];
+}
+
+/**
+ * Query body for STAC catalogs that support the Filter Extension (CQL2-JSON).
+ * Used for generic STAC searches with filter extension support.
+ */
+export interface IStacFilterExtensionQueryBody {
+  bbox: [number, number, number, number];
+  collections: string[];
+  datetime: string; // ISO 8601 datetime range (e.g., "2023-01-01T00:00:00Z/2023-12-31T23:59:59Z")
+  limit: number;
+  'filter-lang': 'cql2-json';
+  filter?: IStacCql2Filter;
+  page?: number;
+}
+
 // ! this is just for geodes -- move to hook
 export interface IStacQueryBody {
   bbox: [number, number, number, number];
@@ -140,6 +170,14 @@ export interface IStacQueryBody {
     },
   ];
 }
+
+/**
+ * Union type for all STAC query body formats.
+ * Used in contexts that need to accept multiple query formats.
+ */
+export type IStacQueryBodyUnion =
+  | IStacQueryBody
+  | IStacFilterExtensionQueryBody;
 
 export type StacFilterKey =
   | 'collections'
