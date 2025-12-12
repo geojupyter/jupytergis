@@ -1,47 +1,34 @@
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-import { Button } from '@/src/shared/components/Button';
-import { Calendar } from '@/src/shared/components/Calendar';
-import Checkbox from '@/src/shared/components/Checkbox';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/src/shared/components/Popover';
-import StacFilterSection from '@/src/stacBrowser/components/StacFilterSection';
+import CheckboxWithLabel from '@/src/shared/components/CheckboxWithLabel';
+import StacFilterSection from '@/src/stacBrowser/components/geodes/StacFilterSection';
+import StacSearchDatePicker from '@/src/stacBrowser/components/shared/StacSearchDatePicker';
 import {
   datasets as datasetsList,
   platforms as platformsList,
   products as productsList,
 } from '@/src/stacBrowser/constants';
-import {
-  StacFilterState,
-  StacFilterSetters,
-} from '@/src/stacBrowser/types/types';
+import useGeodesSearch from '@/src/stacBrowser/hooks/useGeodesSearch';
 
-interface IStacPanelFiltersProps {
-  filterState: StacFilterState;
-  filterSetters: StacFilterSetters;
-  startTime: Date | undefined;
-  setStartTime: (date: Date | undefined) => void;
-  endTime: Date | undefined;
-  setEndTime: (date: Date | undefined) => void;
-  useWorldBBox: boolean;
-  setUseWorldBBox: (val: boolean) => void;
+interface IStacGeodesFilterPanelProps {
+  model?: IJupyterGISModel;
 }
 
-const StacPanelFilters = ({
-  filterState,
-  filterSetters,
-  startTime,
-  setStartTime,
-  endTime,
-  setEndTime,
-  useWorldBBox,
-  setUseWorldBBox,
-}: IStacPanelFiltersProps) => {
+const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
+  const {
+    filterState,
+    filterSetters,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
+    useWorldBBox,
+    setUseWorldBBox,
+  } = useGeodesSearch({
+    model,
+  });
+
   const handleDatasetSelection = (dataset: string, collection: string) => {
     const collections = new Set(filterState.collections);
     const datasets = new Set(filterState.datasets);
@@ -55,6 +42,7 @@ const StacPanelFilters = ({
             entry.collection === collection && entry.datasets.includes(d),
         );
       });
+
       if (datasetsForCollection.length === 0) {
         collections.delete(collection);
 
@@ -100,46 +88,17 @@ const StacPanelFilters = ({
 
   return (
     <div className="jgis-stac-browser-filters-panel">
-      <div>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Checkbox checked={useWorldBBox} onCheckedChange={setUseWorldBBox} />
-          Use whole world as bounding box
-        </span>
-      </div>
-      <div className="jgis-stac-browser-date-picker">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button style={{ padding: '0 0.5rem' }} variant={'outline'}>
-              <CalendarIcon className="jgis-stac-datepicker-icon" />
-              {startTime ? format(startTime, 'PPP') : <span>Start Date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <Calendar
-              mode="single"
-              selected={startTime}
-              onSelect={setStartTime}
-              autoFocus
-            />
-          </PopoverContent>
-        </Popover>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button style={{ padding: '0 0.5rem' }} variant={'outline'}>
-              <CalendarIcon className="jgis-stac-datepicker-icon" />
-              {endTime ? format(endTime, 'PPP') : <span>End Date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <Calendar
-              mode="single"
-              selected={endTime}
-              onSelect={setEndTime}
-              autoFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
+      <CheckboxWithLabel
+        checked={useWorldBBox}
+        onCheckedChange={setUseWorldBBox}
+        label="Use whole world as bounding box"
+      />
+      <StacSearchDatePicker
+        startTime={startTime}
+        setStartTime={setStartTime}
+        endTime={endTime}
+        setEndTime={setEndTime}
+      />
       <StacFilterSection
         section="Collection"
         data={datasetsList}
@@ -165,4 +124,4 @@ const StacPanelFilters = ({
     </div>
   );
 };
-export default StacPanelFilters;
+export default StacGeodesFilterPanel;

@@ -1,3 +1,8 @@
+export interface IStacCollectionsReturn {
+  collections: IStacCollection[];
+  links: IStacLink[];
+}
+
 export interface IStacCollection {
   // Core fields
   type: 'Collection';
@@ -25,7 +30,7 @@ export interface IStacRange {
 }
 
 export interface IStacExtent {
-  spatial: IStacSpacialExtent;
+  spatial: IStacSpatialExtent;
   temporal: IStacTemporalExtent;
 }
 
@@ -33,7 +38,7 @@ export interface IStacTemporalExtent {
   interval: Array<[string | null, string | null]>; // Time intervals (start/end)
 }
 
-export interface IStacSpacialExtent {
+export interface IStacSpatialExtent {
   bbox: number[][]; // Array of bounding boxes ([west, south, east, north] or 3D)
 }
 
@@ -49,6 +54,15 @@ export interface IStacLink {
   href: string;
   type?: string; // Media type
   title?: string;
+}
+
+/**
+ * Extended STAC link with optional method and body for pagination.
+ * Used for pagination links that may include HTTP method and request body.
+ */
+export interface IStacPaginationLink extends IStacLink {
+  method?: string;
+  body?: IStacQueryBodyUnion;
 }
 
 export interface IStacAsset {
@@ -100,7 +114,57 @@ export interface IStacSearchResult {
   type: 'FeatureCollection';
 }
 
-export interface IStacQueryBody {
+/**
+ * Comparison operators for STAC filter conditions.
+ */
+export type Operator = '=' | '!=' | '<' | '<=' | '>' | '>=';
+
+/**
+ * CQL2-JSON filter condition structure for STAC Filter Extension queries.
+ * For datetime values, the second argument is wrapped in a timestamp object.
+ */
+export interface IStacFilterCondition {
+  op: Operator;
+  args: [{ property: string }, string | number | { timestamp: string }];
+}
+
+export type FilterOperator = 'and' | 'or';
+
+
+/**
+ * CQL2-JSON filter structure for STAC Filter Extension queries.
+ */
+export interface IStacCql2Filter {
+  op: FilterOperator;
+  args: IStacFilterCondition[];
+}
+
+export interface IQueryableFilter {
+  operator: Operator;
+  inputValue: string | number | undefined;
+}
+
+export type UpdateSelectedQueryables = (
+  qKey: string,
+  filter: IQueryableFilter | null,
+) => void;
+
+/**
+ * Query body for STAC catalogs that support the Filter Extension (CQL2-JSON).
+ * Used for generic STAC searches with filter extension support.
+ */
+export interface IStacFilterExtensionQueryBody {
+  bbox: [number, number, number, number];
+  collections: string[];
+  datetime: string; // ISO 8601 datetime range (e.g., "2023-01-01T00:00:00Z/2023-12-31T23:59:59Z")
+  limit: number;
+  'filter-lang': 'cql2-json';
+  filter?: IStacCql2Filter;
+  token?: string;
+}
+
+// ! this is just for geodes -- move to hook
+export interface IStacGeodesQueryBody {
   bbox: [number, number, number, number];
   limit?: number;
   page?: number;
@@ -126,6 +190,14 @@ export interface IStacQueryBody {
   ];
 }
 
+/**
+ * Union type for all STAC query body formats.
+ * Used in contexts that need to accept multiple query formats.
+ */
+export type IStacQueryBodyUnion =
+  | IStacGeodesQueryBody
+  | IStacFilterExtensionQueryBody;
+
 export type StacFilterKey =
   | 'collections'
   | 'datasets'
@@ -143,3 +215,11 @@ export type StacFilterSetters = Record<
   StacFilterKey,
   (val: Set<string>) => void
 >;
+
+// Shared type for setResults function signature
+export type SetResultsFunction = (
+  results: IStacItem[],
+  isLoading: boolean,
+  totalResults: number,
+  totalPages: number,
+) => void;
