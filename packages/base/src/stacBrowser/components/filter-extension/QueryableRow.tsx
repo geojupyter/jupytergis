@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IQueryableFilter, Operator } from '@/src/stacBrowser/hooks/useStacFilterExtension';
+import { IQueryableFilter, Operator } from '@/src/stacBrowser/types/types';
 
 interface IOperatorOption {
   value: Operator;
@@ -24,7 +24,6 @@ function QueryableRow({
   inputComponent,
   onOperatorChange,
 }: IQueryableRowProps) {
-
   return (
     <div
       style={{

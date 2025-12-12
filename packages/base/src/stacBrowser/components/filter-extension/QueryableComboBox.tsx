@@ -19,8 +19,9 @@ import {
 import QueryableRow from '@/src/stacBrowser/components/filter-extension/QueryableRow';
 import {
   IQueryableFilter,
+  Operator,
   UpdateSelectedQueryables,
-} from '@/src/stacBrowser/hooks/useStacFilterExtension';
+} from '@/src/stacBrowser/types/types';
 
 interface IQueryableComboProps {
   queryables: [string, any][];
@@ -29,8 +30,8 @@ interface IQueryableComboProps {
 }
 
 interface IOperatorOption {
-  value: '=' | '!=' | '<' | '<=' | '>' | '>=';
-  label: string | React.ReactNode;
+  value: Operator;
+  label: string;
 }
 
 export function QueryableComboBox({
@@ -71,8 +72,6 @@ export function QueryableComboBox({
     setOpen(false);
   };
 
-  
-
   const getOperatorsForType = (
     type: string,
     format?: string,
@@ -97,10 +96,10 @@ export function QueryableComboBox({
           { value: '=', label: '=' },
           { value: '!=', label: '≠' },
           { value: '<', label: '<' },
-        { value: '<=', label: '≤' },
-        { value: '>', label: '>' },
-        { value: '>=', label: '≥' },
-      ];
+          { value: '<=', label: '≤' },
+          { value: '>', label: '>' },
+          { value: '>=', label: '≥' },
+        ];
       default:
         return [
           { value: '=', label: '=' },
@@ -273,9 +272,7 @@ export function QueryableComboBox({
           });
         };
 
-        const handleOperatorChange = (
-          operator: '=' | '!=' | '<' | '<=' | '>' | '>=',
-        ) => {
+        const handleOperatorChange = (operator: Operator) => {
           updateSelectedQueryables(key, {
             ...currentFilter,
             operator,
