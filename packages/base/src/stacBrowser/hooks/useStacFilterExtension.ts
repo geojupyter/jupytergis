@@ -2,15 +2,15 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import { endOfToday, startOfToday } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 
-import { GlobalStateDbManager } from '@/src/store';
-import { fetchWithProxies } from '@/src/tools';
-import { useStacSearch } from './useStacSearch';
-import { useStacResultsContext } from '../context/StacResultsContext';
+import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
+import { useStacSearch } from '@/src/stacBrowser/hooks/useStacSearch';
 import {
   IStacCollection,
   IStacCollectionsReturn,
   IStacQueryBody,
-} from '../types/types';
+} from '@/src/stacBrowser/types/types';
+import { GlobalStateDbManager } from '@/src/store';
+import { fetchWithProxies } from '@/src/tools';
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 
@@ -40,7 +40,8 @@ interface IStacFilterExtensionStateDb {
   useWorldBBox?: boolean;
 }
 
-const STAC_FILTER_EXTENSION_STATE_KEY = 'jupytergis:stac-filter-extension-state';
+const STAC_FILTER_EXTENSION_STATE_KEY =
+  'jupytergis:stac-filter-extension-state';
 
 interface IUseStacFilterExtensionProps {
   model?: IJupyterGISModel;
@@ -69,7 +70,7 @@ export function useStacFilterExtension({
     useWorldBBox,
     setUseWorldBBox,
   } = useStacSearch({
-    model
+    model,
   });
 
   const [queryableFields, setQueryableFields] = useState<[string, any][]>();
@@ -258,7 +259,6 @@ export function useStacFilterExtension({
     [],
   );
 
-  
   const buildQuery = useCallback((): IStacQueryBody => {
     const st = startTime
       ? startTime.toISOString()
