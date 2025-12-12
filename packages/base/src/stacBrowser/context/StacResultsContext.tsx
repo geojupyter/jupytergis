@@ -13,7 +13,7 @@ import React, {
 import {
   IStacItem,
   IStacPaginationLink,
-  IStacQueryBody,
+  IStacQueryBodyUnion,
   IStacSearchResult,
   SetResultsFunction,
 } from '@/src/stacBrowser/types/types';
@@ -39,9 +39,9 @@ interface IStacResultsContext {
   registerHandlePaginationClick: (
     handleFn: (dir: 'next' | 'previous') => Promise<void>,
   ) => void;
-  registerBuildQuery: (buildQueryFn: () => IStacQueryBody) => void;
+  registerBuildQuery: (buildQueryFn: () => IStacQueryBodyUnion) => void;
   executeQuery: (
-    body: IStacQueryBody,
+    body: IStacQueryBodyUnion,
     apiUrl?: string,
     method?: string,
   ) => Promise<void>;
@@ -76,7 +76,7 @@ export function StacResultsProvider({
   const addToMapRef = useRef<(stacData: IStacItem) => void>();
   const handlePaginationClickRef =
     useRef<(dir: 'next' | 'previous') => Promise<void>>();
-  const buildQueryRef = useRef<() => IStacQueryBody>();
+  const buildQueryRef = useRef<() => IStacQueryBodyUnion>();
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -138,7 +138,7 @@ export function StacResultsProvider({
   );
 
   const registerBuildQuery = useCallback(
-    (buildQueryFn: () => IStacQueryBody) => {
+    (buildQueryFn: () => IStacQueryBodyUnion) => {
       buildQueryRef.current = buildQueryFn;
     },
     [],
@@ -152,7 +152,7 @@ export function StacResultsProvider({
   // Execute query using provided body
   const executeQuery = useCallback(
     async (
-      body: IStacQueryBody,
+      body: IStacQueryBodyUnion,
       apiUrl?: string,
       method?: string,
     ): Promise<void> => {
@@ -310,7 +310,11 @@ export function StacResultsProvider({
       // ! this actually doesny make sense
       if (link && link.body) {
         // Use executeQuery with the link's body, href, and method
-        await executeQuery(link.body as IStacQueryBody, link.href, link.method);
+        await executeQuery(
+          link.body as IStacQueryBodyUnion,
+          link.href,
+          link.method,
+        );
       }
     },
     [model, paginationLinks, executeQuery],
