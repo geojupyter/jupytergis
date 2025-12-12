@@ -149,7 +149,7 @@ export interface IStacFilterExtensionQueryBody {
 }
 
 // ! this is just for geodes -- move to hook
-export interface IStacQueryBody {
+export interface IStacGeodesQueryBody {
   bbox: [number, number, number, number];
   limit?: number;
   page?: number;
@@ -180,7 +180,7 @@ export interface IStacQueryBody {
  * Used in contexts that need to accept multiple query formats.
  */
 export type IStacQueryBodyUnion =
-  | IStacQueryBody
+  | IStacGeodesQueryBody
   | IStacFilterExtensionQueryBody;
 
 export type StacFilterKey =
