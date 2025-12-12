@@ -2,24 +2,20 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
 import CheckboxWithLabel from '@/src/shared/components/CheckboxWithLabel';
+import StacFilterSection from '@/src/stacBrowser/components/geodes/StacFilterSection';
 import StacSearchDatePicker from '@/src/stacBrowser/components/shared/StacSearchDatePicker';
 import {
   datasets as datasetsList,
   platforms as platformsList,
   products as productsList,
 } from '@/src/stacBrowser/constants';
-import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
 import useGeodesSearch from '@/src/stacBrowser/hooks/useGeodesSearch';
-import StacFilterSection from './StacFilterSection';
 
 interface IStacGeodesFilterPanelProps {
   model?: IJupyterGISModel;
 }
 
 const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
-  const { setResults, setPaginationLinks, selectedUrl } =
-    useStacResultsContext();
-
   const {
     filterState,
     filterSetters,
@@ -31,9 +27,6 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
     setUseWorldBBox,
   } = useGeodesSearch({
     model,
-    apiUrl: selectedUrl,
-    setResults,
-    setPaginationLinks,
   });
 
   const handleDatasetSelection = (dataset: string, collection: string) => {

@@ -7,13 +7,13 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/src/shared/components/Tabs';
+import StacFilterExtensionPanel from '@/src/stacBrowser/components/filter-extension/StacFilterExtensionPanel';
+import StacGeodesFilterPanel from '@/src/stacBrowser/components/geodes/StacGeodesFilterPanel';
+import StacPanelResults from '@/src/stacBrowser/components/shared/StacPanelResults';
 import {
   StacResultsProvider,
   useStacResultsContext,
 } from '@/src/stacBrowser/context/StacResultsContext';
-import StacPanelResults from './shared/StacPanelResults';
-import StacFilterExtensionPanel from './filter-extension/StacFilterExtensionPanel';
-import StacGeodesFilterPanel from './geodes/StacGeodesFilterPanel';
 
 const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/';
 const COPERNICUS_URL = 'https://stac.dataspace.copernicus.eu/v1/';
@@ -40,7 +40,8 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
     return null;
   }
 
-  const ProviderPanel = URL_TO_PANEL_MAP[selectedUrl] ?? StacFilterExtensionPanel;
+  const ProviderPanel =
+    URL_TO_PANEL_MAP[selectedUrl] ?? StacFilterExtensionPanel;
 
   return (
     <Tabs
@@ -98,9 +99,7 @@ function ProviderSelect() {
         <option value="" disabled>
           Select a provider...
         </option>
-        <option value={COPERNICUS_URL}>
-          Copernicus
-        </option>
+        <option value={COPERNICUS_URL}>Copernicus</option>
         <option value={GEODES_URL}>GEODES</option>
         <option value={WORLDPOP_URL}>WorldPop</option>
       </select>

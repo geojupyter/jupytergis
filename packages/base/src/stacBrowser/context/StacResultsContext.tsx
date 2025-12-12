@@ -10,14 +10,14 @@ import React, {
   useEffect,
 } from 'react';
 
-import { fetchWithProxies } from '@/src/tools';
 import {
   IStacItem,
   IStacPaginationLink,
   IStacQueryBody,
   IStacSearchResult,
   SetResultsFunction,
-} from '../types/types';
+} from '@/src/stacBrowser/types/types';
+import { fetchWithProxies } from '@/src/tools';
 
 interface IStacResultsContext {
   results: IStacItem[];

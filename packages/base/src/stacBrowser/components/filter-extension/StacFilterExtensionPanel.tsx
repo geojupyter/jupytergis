@@ -1,12 +1,12 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState } from 'react';
 
-import StacQueryableFilters from './StacQueryableFilters';
-import CheckboxWithLabel from '../../../shared/components/CheckboxWithLabel';
-import { useStacResultsContext } from '../../context/StacResultsContext';
-import { useStacFilterExtension } from '../../hooks/useStacFilterExtension';
-import { IStacCollection } from '../../types/types';
-import StacSearchDatePicker from '../shared/StacSearchDatePicker';
+import CheckboxWithLabel from '@/src/shared/components/CheckboxWithLabel';
+import StacQueryableFilters from '@/src/stacBrowser/components/filter-extension/StacQueryableFilters';
+import StacSearchDatePicker from '@/src/stacBrowser/components/shared/StacSearchDatePicker';
+import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
+import { useStacFilterExtension } from '@/src/stacBrowser/hooks/useStacFilterExtension';
+import { IStacCollection } from '@/src/stacBrowser/types/types';
 
 interface IStacFilterExtensionPanelProps {
   model?: IJupyterGISModel;
@@ -15,8 +15,7 @@ interface IStacFilterExtensionPanelProps {
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 
 function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
-  const {  selectedUrl } =
-    useStacResultsContext();
+  const { selectedUrl } = useStacResultsContext();
   const [limit, setLimit] = useState<number>(12);
 
   const {
@@ -100,7 +99,9 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
 
       {/* items per page */}
       <div className="jgis-stac-filter-extension-section">
-        <label className="jgis-stac-filter-extension-label">Items per page</label>
+        <label className="jgis-stac-filter-extension-label">
+          Items per page
+        </label>
         <input
           type="number"
           min="1"
