@@ -25,10 +25,10 @@ const StacQueryableFilters: React.FC<IStacQueryableFilterListProps> = ({
   setFilterOperator,
 }) => {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+    <div className="jgis-stac-queryable-filters">
       <div>
         <RadioGroup
-          style={{ display: 'flex', gap: '0.5rem' }}
+          className="jgis-stac-queryable-filters-radio-group"
           value={filterOperator}
           onValueChange={(value: string) => {
             if (value === 'and' || value === 'or') {
@@ -36,11 +36,11 @@ const StacQueryableFilters: React.FC<IStacQueryableFilterListProps> = ({
             }
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="jgis-stac-queryable-filters-radio-item">
             <RadioGroupItem value="and" id="filter-operator-and" />
             <label htmlFor="filter-operator-and">Match all filters (and)</label>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="jgis-stac-queryable-filters-radio-item">
             <RadioGroupItem value="or" id="filter-operator-or" />
             <label htmlFor="filter-operator-or">Match any filters (or)</label>
           </div>

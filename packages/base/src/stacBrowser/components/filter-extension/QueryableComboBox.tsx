@@ -125,7 +125,7 @@ export function QueryableComboBox({
         if (val.enum) {
           return (
             <select
-              style={{ maxWidth: '75px' }}
+              className="jgis-queryable-combo-input"
               value={String(currentValue || '')}
               onChange={e => onChange(e.target.value)}
             >
@@ -155,7 +155,7 @@ export function QueryableComboBox({
           return (
             <input
               type="datetime-local"
-              style={{ maxWidth: '75px' }}
+              className="jgis-queryable-combo-input"
               value={formatForInput(currentValue as string)}
               onChange={e => onChange(e.target.value)}
             />
@@ -164,7 +164,7 @@ export function QueryableComboBox({
         return (
           <input
             type="text"
-            style={{ maxWidth: '75px' }}
+            className="jgis-queryable-combo-input"
             value={(currentValue as string) || ''}
             onChange={e => onChange(e.target.value)}
           />
@@ -174,7 +174,7 @@ export function QueryableComboBox({
         if (val.enum) {
           return (
             <select
-              style={{ maxWidth: '75px' }}
+              className="jgis-queryable-combo-input"
               value={String(currentValue || '')}
               onChange={e => onChange(Number(e.target.value))}
             >
@@ -189,7 +189,7 @@ export function QueryableComboBox({
         return (
           <input
             type="number"
-            style={{ maxWidth: '75px' }}
+            className="jgis-queryable-combo-input"
             min={val.minimum !== undefined ? val.minimum : undefined}
             max={val.maximum !== undefined ? val.maximum : undefined}
             value={(currentValue as number) || ''}
@@ -200,7 +200,7 @@ export function QueryableComboBox({
         return (
           <input
             type=""
-            style={{ maxWidth: '75px' }}
+            className="jgis-queryable-combo-input"
             value={(currentValue as string) || ''}
             onChange={e => onChange(e.target.value)}
           />
@@ -223,32 +223,20 @@ export function QueryableComboBox({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className="jgis-queryable-combo-container">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            style={{
-              width: '200px',
-              display: 'flex',
-              justifyContent: 'space-between',
-            }}
+            className="jgis-queryable-combo-button"
           >
             {getButtonText()}
-            <ChevronsUpDownIcon
-              style={{
-                marginLeft: '0.5rem',
-                height: '1rem',
-                width: '1rem',
-                flexShrink: 0,
-                opacity: 0.5,
-              }}
-            />
+            <ChevronsUpDownIcon className="jgis-queryable-combo-icon" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent style={{ width: '200px', padding: 0 }}>
+        <PopoverContent className="jgis-queryable-combo-popover">
           <Command>
             <CommandInput placeholder="Search queryable..." />
             <CommandList>
@@ -263,10 +251,8 @@ export function QueryableComboBox({
                     }}
                   >
                     <CheckIcon
+                      className="jgis-queryable-combo-check-icon"
                       style={{
-                        marginRight: '0.5rem',
-                        height: '1rem',
-                        width: '1rem',
                         opacity: isSelected(key) ? 1 : 0,
                       }}
                     />

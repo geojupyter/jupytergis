@@ -63,7 +63,7 @@ const StacPanelResults = () => {
   return (
     <div className="jgis-stac-browser-filters-panel">
       <Pagination>
-        <PaginationContent style={{ marginTop: 0 }}>
+        <PaginationContent className="jgis-stac-panel-results-pagination">
           <PaginationItem>
             <PaginationPrevious
               onClick={() => {

@@ -46,10 +46,9 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
   return (
     <Tabs
       defaultValue="filters"
-      className="jgis-panel-tabs"
-      style={{ boxShadow: 'none' }}
+      className="jgis-panel-tabs jgis-stac-panel-tabs"
     >
-      <TabsList style={{ borderRadius: 0 }}>
+      <TabsList className="jgis-stac-panel-tabs-list">
         <TabsTrigger className="jGIS-layer-browser-category" value="filters">
           Filters
         </TabsTrigger>
@@ -67,13 +66,7 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
         {selectedUrl ? (
           <ProviderPanel model={model} />
         ) : (
-          <div
-            style={{
-              padding: '1rem',
-              textAlign: 'center',
-              color: 'var(--jp-ui-font-color2)',
-            }}
-          >
+          <div className="jgis-stac-panel-placeholder">
             Please select a provider above
           </div>
         )}
@@ -102,9 +95,9 @@ function ProviderSelect() {
   const { selectedUrl, setSelectedUrl } = useStacResultsContext();
 
   return (
-    <div style={{ margin: '0 1rem 1rem 1rem' }}>
+    <div className="jgis-stac-panel-provider-select-container">
       <select
-        style={{ width: '100%', padding: '0.5rem' }}
+        className="jgis-stac-panel-provider-select"
         value={selectedUrl}
         onChange={e => setSelectedUrl(e.target.value)}
       >

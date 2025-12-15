@@ -131,3 +131,100 @@
   color: var(--jp-ui-font-color0);
   cursor: pointer;
 }
+
+/* StacPanel styles */
+.jgis-stac-panel-tabs {
+  box-shadow: none;
+}
+
+.jgis-stac-panel-tabs-list {
+  border-radius: 0;
+}
+
+.jgis-stac-panel-placeholder {
+  padding: 1rem;
+  text-align: center;
+  color: var(--jp-ui-font-color2);
+}
+
+.jgis-stac-panel-provider-select-container {
+  margin: 0 1rem 1rem 1rem;
+}
+
+.jgis-stac-panel-provider-select {
+  width: 100%;
+  padding: 0.5rem;
+}
+
+/* QueryableComboBox styles */
+.jgis-queryable-combo-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.jgis-queryable-combo-button {
+  width: 200px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.jgis-queryable-combo-icon {
+  margin-left: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.jgis-queryable-combo-popover {
+  width: 200px;
+  padding: 0;
+}
+
+.jgis-queryable-combo-check-icon {
+  margin-right: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+}
+
+.jgis-queryable-combo-input {
+  max-width: 75px;
+}
+
+/* QueryableRow styles */
+.jgis-queryable-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.jgis-queryable-row-select {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--jp-border-color0);
+  font-size: 0.875rem;
+}
+
+/* StacQueryableFilters styles */
+.jgis-stac-queryable-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.jgis-stac-queryable-filters-radio-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.jgis-stac-queryable-filters-radio-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* StacPanelResults styles */
+.jgis-stac-panel-results-pagination {
+  margin-top: 0;
+}
