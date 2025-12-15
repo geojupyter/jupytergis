@@ -68,9 +68,9 @@ export function StacResultsProvider({
   const [paginationLinks, setPaginationLinksState] = useState<
     IStacPaginationLink[]
   >([]);
-  const [selectedUrl, setSelectedUrlState] = useState<string>('');
-  const [currentPage, setCurrentPageState] = useState<number>(1);
-  const currentPageRef = useRef<number>(1);
+  const [selectedUrl, setSelectedUrlState] = useState('');
+  const [currentPage, setCurrentPageState] = useState(1);
+  const currentPageRef = useRef(1);
 
   // Store hook-specific functions in refs (these are set by the hooks)
   const addToMapRef = useRef<(stacData: IStacItem) => void>();
