@@ -12,6 +12,7 @@ import {
   IStacCollectionsReturn,
   IStacFilterCondition,
   IStacFilterExtensionQueryBody,
+  IStacQueryables,
   Operator,
 } from '@/src/stacBrowser/types/types';
 import { GlobalStateDbManager } from '@/src/store';
@@ -63,7 +64,7 @@ export function useStacFilterExtension({
     model,
   });
 
-  const [queryableFields, setQueryableFields] = useState<[string, any][]>();
+  const [queryableFields, setQueryableFields] = useState<IStacQueryables>();
   const [collections, setCollections] = useState<FilteredCollection[]>([]);
   const [selectedCollection, setSelectedCollection] = useState('');
   const [selectedQueryables, setSelectedQueryables] = useState<

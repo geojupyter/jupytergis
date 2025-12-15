@@ -2,10 +2,15 @@ import React from 'react';
 
 import { RadioGroup, RadioGroupItem } from '@/src/shared/components/RadioGroup';
 import { QueryableComboBox } from '@/src/stacBrowser/components/filter-extension/QueryableComboBox';
-import { IQueryableFilter, UpdateSelectedQueryables, FilterOperator } from '@/src/stacBrowser/types/types';
+import {
+  FilterOperator,
+  IQueryableFilter,
+  IStacQueryables,
+  UpdateSelectedQueryables,
+} from '@/src/stacBrowser/types/types';
 
 interface IStacQueryableFilterListProps {
-  queryableFields: [string, any][];
+  queryableFields: IStacQueryables;
   selectedQueryables: Record<string, IQueryableFilter>;
   updateSelectedQueryables: UpdateSelectedQueryables;
   filterOperator: FilterOperator;

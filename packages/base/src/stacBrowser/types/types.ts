@@ -150,6 +150,32 @@ export type UpdateSelectedQueryables = (
 ) => void;
 
 /**
+ * JSON Schema structure for STAC queryables.
+ * Based on the STAC Filter Extension queryables endpoint response.
+ * Different endpoints may have varying structures, so most fields are optional
+ * and we allow additional properties to accommodate variations.
+ */
+export interface IStacQueryableSchema {
+  type?: 'string' | 'number' | 'integer';
+  title?: string;
+  description?: string;
+  format?: string;
+  enum?: (string | number)[];
+  pattern?: string;
+  minLength?: number;
+  maximum?: number;
+  minimum?: number;
+  $ref?: string;
+  // Allow additional properties for endpoint-specific variations
+  [key: string]: unknown;
+}
+
+/**
+ * Type for queryables array: array of [propertyName, schema] tuples.
+ */
+export type IStacQueryables = [string, IStacQueryableSchema][];
+
+/**
  * Query body for STAC catalogs that support the Filter Extension (CQL2-JSON).
  * Used for generic STAC searches with filter extension support.
  */
