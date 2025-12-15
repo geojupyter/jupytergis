@@ -1665,7 +1665,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const { x, y } = remoteViewport.value.coordinates;
         const zoom = remoteViewport.value.zoom;
 
-        this._flyToPosition({ x, y }, zoom, 0);
+        this._moveToPosition({ x, y }, zoom, 0);
       }
     } else {
       // If we are unfollowing a remote user, we reset our center and zoom to their previous values
@@ -1677,7 +1677,7 @@ export class MainView extends React.Component<IProps, IStates> {
         const viewportState = localState.viewportState?.value;
 
         if (viewportState) {
-          this._flyToPosition(viewportState.coordinates, viewportState.zoom);
+          this._moveToPosition(viewportState.coordinates, viewportState.zoom);
         }
       }
     }
@@ -1799,7 +1799,7 @@ export class MainView extends React.Component<IProps, IStates> {
         view.getProjection(),
       );
 
-      this._flyToPosition({ x: centerCoord[0], y: centerCoord[1] }, zoom || 0);
+      this._moveToPosition({ x: centerCoord[0], y: centerCoord[1] }, zoom || 0);
 
       // Save the extent if it does not exists, to allow proper export to qgis.
       if (!options.extent) {
@@ -2097,6 +2097,25 @@ export class MainView extends React.Component<IProps, IStates> {
       size: this._Map.getSize(),
       duration: 500,
     });
+  }
+
+  private _moveToPosition(
+    center: { x: number; y: number },
+    zoom: number,
+    duration = 1000,
+  ) {
+    const view = this._Map.getView();
+
+    view.setZoom(zoom);
+    view.setCenter([center.x, center.y]);
+    // Zoom needs to be set before changing center
+    if (!view.animate === undefined) {
+      view.animate({ zoom, duration });
+      view.animate({
+        center: [center.x, center.y],
+        duration,
+      });
+    }
   }
 
   private _flyToPosition(
