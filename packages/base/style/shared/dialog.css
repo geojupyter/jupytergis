@@ -1,0 +1,177 @@
+@keyframes dialog-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dialog-zoom-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.jgis-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: color-mix(in srgb, black, transparent 50%);
+}
+
+.jgis-dialog-overlay[data-state='open'] {
+  animation: dialog-fade-in 0.2s ease-in-out;
+}
+
+.jgis-dialog-overlay[data-state='closed'] {
+  animation: dialog-fade-out 0.2s ease-in-out;
+}
+
+.jgis-dialog-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 50;
+  display: grid;
+  width: 100%;
+  max-width: calc(100% - 2rem);
+  transform: translate(-50%, -50%);
+  gap: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--jp-border-color0);
+  background-color: var(--jp-layout-color0);
+  padding: 1.5rem;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition-duration: 200ms;
+}
+
+@media (min-width: 640px) {
+  .jgis-dialog-content {
+    max-width: 32rem;
+  }
+}
+
+.jgis-dialog-content[data-state='open'] {
+  animation:
+    dialog-fade-in 0.2s ease-in-out,
+    dialog-zoom-in 0.2s ease-in-out;
+}
+
+.jgis-dialog-content[data-state='closed'] {
+  animation:
+    dialog-fade-out 0.2s ease-in-out,
+    dialog-zoom-out 0.2s ease-in-out;
+}
+
+.jgis-dialog-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  border-radius: 0.125rem;
+  opacity: 0.7;
+  transition: opacity 0.15s ease-in-out;
+  outline: none;
+}
+
+.jgis-dialog-close:hover {
+  opacity: 1;
+}
+
+.jgis-dialog-close:focus {
+  opacity: 1;
+  box-shadow: 0 0 0 2px var(--jp-ui-font-color0);
+  outline: none;
+}
+
+.jgis-dialog-close:disabled {
+  pointer-events: none;
+}
+
+.jgis-dialog-close[data-state='open'] {
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color2);
+}
+
+.jgis-dialog-close svg {
+  pointer-events: none;
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+}
+
+.jgis-dialog-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .jgis-dialog-header {
+    text-align: left;
+  }
+}
+
+.jgis-dialog-footer {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .jgis-dialog-footer {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+.jgis-dialog-title {
+  font-size: 1.125rem;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.jgis-dialog-description {
+  font-size: 0.875rem;
+  color: var(--jp-ui-font-color2);
+}
+
+.jgis-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
