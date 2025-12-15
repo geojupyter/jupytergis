@@ -26,9 +26,6 @@ interface IStacFilterExtensionStateDb {
     { operator: Operator; inputValue: string | number | null }
   >;
   filterOperator?: FilterOperator;
-  startTime?: string;
-  endTime?: string;
-  useWorldBBox?: boolean;
 }
 
 const STAC_FILTER_EXTENSION_STATE_KEY =
@@ -102,20 +99,11 @@ export function useStacFilterExtension({
         if (savedFilterState.filterOperator) {
           setFilterOperator(savedFilterState.filterOperator);
         }
-        if (savedFilterState.startTime) {
-          setStartTime(new Date(savedFilterState.startTime));
-        }
-        if (savedFilterState.endTime) {
-          setEndTime(new Date(savedFilterState.endTime));
-        }
-        if (savedFilterState.useWorldBBox !== undefined) {
-          setUseWorldBBox(savedFilterState.useWorldBBox);
-        }
       }
     }
 
     loadFilterExtensionStateFromDb();
-  }, [stateDb, setStartTime, setEndTime, setUseWorldBBox]);
+  }, [stateDb]);
 
   // Save filter state to StateDB on change
   useEffect(() => {
@@ -139,22 +127,11 @@ export function useStacFilterExtension({
             ? cleanedQueryableFilters
             : undefined,
         filterOperator,
-        startTime: startTime?.toISOString(),
-        endTime: endTime?.toISOString(),
-        useWorldBBox,
       });
     }
 
     saveFilterExtensionStateToDb();
-  }, [
-    selectedCollection,
-    selectedQueryables,
-    filterOperator,
-    startTime,
-    endTime,
-    useWorldBBox,
-    stateDb,
-  ]);
+  }, [selectedCollection, selectedQueryables, filterOperator, stateDb]);
 
   // Reset all state when URL changes
   useEffect(() => {
@@ -163,10 +140,7 @@ export function useStacFilterExtension({
     setSelectedCollection('');
     setSelectedQueryables({});
     setFilterOperator('and');
-    setStartTime(undefined);
-    setEndTime(undefined);
-    setUseWorldBBox(false);
-  }, [baseUrl, setStartTime, setEndTime, setUseWorldBBox]);
+  }, [baseUrl]);
 
   // for collections
   useEffect(() => {
