@@ -50,7 +50,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   ].filter(Boolean) as { name: string; title: string }[];
 
   const [curTab, setCurTab] = React.useState<string>(() => {
-    if (!settings.storyMapsDisabled) {
+    if (storyMapPresentationMode) {
       return 'storyPanel';
     }
     return tabInfo.length > 0 ? tabInfo[0].name : '';
