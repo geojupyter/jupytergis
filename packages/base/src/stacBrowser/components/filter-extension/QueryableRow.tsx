@@ -29,24 +29,12 @@ function QueryableRow({
   onOperatorChange,
 }: IQueryableRowProps) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        padding: '0.5rem 0',
-      }}
-    >
+    <div className="jgis-queryable-row">
       <span>{qVal.title || qKey}</span>
       <select
+        className="jgis-queryable-row-select"
         value={currentFilter.operator}
         onChange={e => onOperatorChange(e.target.value as Operator)}
-        style={{
-          padding: '0.25rem 0.5rem',
-          borderRadius: '0.25rem',
-          border: '1px solid var(--jp-border-color0)',
-          fontSize: '0.875rem',
-        }}
       >
         {operators.map(operator => (
           <option key={operator.value} value={operator.value}>
