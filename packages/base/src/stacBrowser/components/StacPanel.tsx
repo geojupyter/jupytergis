@@ -34,7 +34,7 @@ interface IStacViewProps {
 
 // Inner component that uses the context
 const StacPanelContent = ({ model }: IStacViewProps) => {
-  const { totalResults, selectedUrl, totalPages } = useStacResultsContext();
+  const { totalResults, selectedUrl } = useStacResultsContext();
 
   if (!model) {
     return null;
@@ -59,7 +59,7 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
           // Total results will always be the the same as the limit if the
           // provider doesn't support the context extension (where totalPages comes from)
         >
-          {totalPages === 1 ? 'Results' : `Results (${totalResults})`}
+          {`Results (${totalResults})`}
         </TabsTrigger>
       </TabsList>
       <TabsContent value="filters">

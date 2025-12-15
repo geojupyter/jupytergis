@@ -19,12 +19,14 @@ import {
 import QueryableRow from '@/src/stacBrowser/components/filter-extension/QueryableRow';
 import {
   IQueryableFilter,
+  IStacQueryableSchema,
+  IStacQueryables,
   Operator,
   UpdateSelectedQueryables,
 } from '@/src/stacBrowser/types/types';
 
 interface IQueryableComboProps {
-  queryables: [string, any][];
+  queryables: IStacQueryables;
   selectedQueryables: Record<string, IQueryableFilter>;
   updateSelectedQueryables: UpdateSelectedQueryables;
 }
@@ -46,7 +48,7 @@ export function QueryableComboBox({
     return queryables.filter(([key]) => key in selectedQueryables);
   }, [queryables, selectedQueryables]);
 
-  const handleSelect = (key: string, val: any) => {
+  const handleSelect = (key: string, val: IStacQueryableSchema) => {
     const isCurrentlySelected = key in selectedQueryables;
 
     if (isCurrentlySelected) {
@@ -59,8 +61,9 @@ export function QueryableComboBox({
       let initialInputValue: string | number | undefined = undefined;
 
       // For enum types, set the first option since the UI looks like there's a selection
-      if (val.type === 'string' && val.enum && val.enum.length > 0) {
-        initialInputValue = val.enum[0];
+      if (val.enum && val.enum.length > 0) {
+        initialInputValue =
+          typeof val.enum[0] === 'number' ? val.enum[0] : val.enum[0];
       } else if (val.type === 'string' && val.format === 'date-time') {
         // For datetime types, set to current UTC time
         initialInputValue = new Date().toISOString();
@@ -76,7 +79,7 @@ export function QueryableComboBox({
   };
 
   const getOperatorsForType = (
-    type: string,
+    type: string | undefined,
     format?: string,
   ): IOperatorOption[] => {
     if (format === 'date-time') {
@@ -95,6 +98,7 @@ export function QueryableComboBox({
           { value: '!=', label: '≠' },
         ];
       case 'number':
+      case 'integer':
         return [
           { value: '=', label: '=' },
           { value: '!=', label: '≠' },
@@ -112,7 +116,7 @@ export function QueryableComboBox({
   };
 
   const getInputBasedOnType = (
-    val: any,
+    val: IStacQueryableSchema,
     currentValue: string | number | undefined,
     onChange: (value: string | number) => void,
   ): React.ReactNode => {
@@ -122,12 +126,12 @@ export function QueryableComboBox({
           return (
             <select
               style={{ maxWidth: '75px' }}
-              value={(currentValue as string) || ''}
+              value={String(currentValue || '')}
               onChange={e => onChange(e.target.value)}
             >
-              {val.enum.map((option: string) => (
-                <option key={option} value={option}>
-                  {option}
+              {val.enum.map(option => (
+                <option key={String(option)} value={String(option)}>
+                  {String(option)}
                 </option>
               ))}
             </select>
@@ -166,12 +170,28 @@ export function QueryableComboBox({
           />
         );
       case 'number':
+      case 'integer':
+        if (val.enum) {
+          return (
+            <select
+              style={{ maxWidth: '75px' }}
+              value={String(currentValue || '')}
+              onChange={e => onChange(Number(e.target.value))}
+            >
+              {val.enum.map(option => (
+                <option key={String(option)} value={String(option)}>
+                  {String(option)}
+                </option>
+              ))}
+            </select>
+          );
+        }
         return (
           <input
             type="number"
             style={{ maxWidth: '75px' }}
-            min={val.min !== undefined ? val.min : undefined}
-            max={val.max !== undefined ? val.max : undefined}
+            min={val.minimum !== undefined ? val.minimum : undefined}
+            max={val.maximum !== undefined ? val.maximum : undefined}
             value={(currentValue as number) || ''}
             onChange={e => onChange(Number(e.target.value))}
           />
@@ -193,7 +213,7 @@ export function QueryableComboBox({
       return 'Select queryable...';
     }
     if (selectedItems.length === 1) {
-      return selectedItems[0][1].title || selectedItems[0][0];
+      return selectedItems[0][1].title || selectedItems[0][0] || 'Queryable';
     }
     return `${selectedItems.length} selected`;
   };
@@ -237,7 +257,7 @@ export function QueryableComboBox({
                 {queryables.map(([key, val]) => (
                   <CommandItem
                     key={key}
-                    value={val.title}
+                    value={val.title || key}
                     onSelect={() => {
                       handleSelect(key, val);
                     }}
@@ -250,7 +270,7 @@ export function QueryableComboBox({
                         opacity: isSelected(key) ? 1 : 0,
                       }}
                     />
-                    {val.title}
+                    {val.title || key}
                   </CommandItem>
                 ))}
               </CommandGroup>

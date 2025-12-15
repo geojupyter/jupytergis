@@ -1,6 +1,10 @@
 import React from 'react';
 
-import { IQueryableFilter, Operator } from '@/src/stacBrowser/types/types';
+import {
+  IQueryableFilter,
+  IStacQueryableSchema,
+  Operator,
+} from '@/src/stacBrowser/types/types';
 
 interface IOperatorOption {
   value: Operator;
@@ -9,7 +13,7 @@ interface IOperatorOption {
 
 interface IQueryableRowProps {
   qKey: string;
-  qVal: any;
+  qVal: IStacQueryableSchema;
   operators: IOperatorOption[];
   currentFilter: IQueryableFilter;
   inputComponent: React.ReactNode;
@@ -33,7 +37,7 @@ function QueryableRow({
         padding: '0.5rem 0',
       }}
     >
-      <span>{qVal.title}</span>
+      <span>{qVal.title || qKey}</span>
       <select
         value={currentFilter.operator}
         onChange={e => onOperatorChange(e.target.value as Operator)}

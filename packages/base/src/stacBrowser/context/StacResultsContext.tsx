@@ -11,6 +11,7 @@ import React, {
 } from 'react';
 
 import {
+  IStacAsset,
   IStacItem,
   IStacPaginationLink,
   IStacQueryBodyUnion,
@@ -198,7 +199,7 @@ export function StacResultsProvider({
           data.features.forEach((feature: IStacItem) => {
             if (feature.assets) {
               const originalAssets = feature.assets;
-              const filteredAssets: Record<string, any> = {};
+              const filteredAssets: Record<string, IStacAsset> = {};
 
               for (const [key, asset] of Object.entries(originalAssets)) {
                 if (
