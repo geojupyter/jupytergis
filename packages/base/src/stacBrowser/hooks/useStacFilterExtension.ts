@@ -202,8 +202,8 @@ export function useStacFilterExtension({
         });
 
       setCollections(collections);
-      // Set first collection as default if available
-      if (collections.length > 0) {
+      // Set first collection as default if one isn't loaded
+      if (collections.length > 0 && !(selectedCollection === '')) {
         setSelectedCollection(collections[0].id);
       }
     };
