@@ -2,6 +2,7 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import { endOfToday, startOfToday } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 
+import useIsFirstRender from '@/src/shared/hooks/useIsFirstRender';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
 import { useStacSearch } from '@/src/stacBrowser/hooks/useStacSearch';
 import {
@@ -46,6 +47,7 @@ export function useStacFilterExtension({
   baseUrl,
   limit = 12,
 }: IUseStacFilterExtensionProps) {
+  const isFirstRender = useIsFirstRender();
   const { registerBuildQuery, executeQuery } = useStacResultsContext();
 
   // Get temporal/spatial filters from useStacSearch
@@ -316,6 +318,29 @@ export function useStacFilterExtension({
       : `${baseUrl}/search`;
     await executeQuery(queryBody, searchUrl);
   }, [model, executeQuery, buildQuery, baseUrl]);
+
+  // Handle search when filters change
+  useEffect(() => {
+    if (model && !isFirstRender && selectedCollection !== '') {
+      const queryBody = buildQuery();
+      const searchUrl = baseUrl.endsWith('/')
+        ? `${baseUrl}search`
+        : `${baseUrl}/search`;
+      executeQuery(queryBody, searchUrl);
+    }
+  }, [
+    model,
+    isFirstRender,
+    selectedCollection,
+    selectedQueryables,
+    filterOperator,
+    startTime,
+    endTime,
+    currentBBox,
+    buildQuery,
+    executeQuery,
+    baseUrl,
+  ]);
 
   return {
     queryableFields,
