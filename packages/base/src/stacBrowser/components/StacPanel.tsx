@@ -64,7 +64,19 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
       </TabsList>
       <TabsContent value="filters">
         <StacPanel.ProviderSelect />
-        <ProviderPanel model={model} />
+        {selectedUrl ? (
+          <ProviderPanel model={model} />
+        ) : (
+          <div
+            style={{
+              padding: '1rem',
+              textAlign: 'center',
+              color: 'var(--jp-ui-font-color2)',
+            }}
+          >
+            Please select a provider above
+          </div>
+        )}
       </TabsContent>
       <TabsContent value="results">
         <StacPanelResults />
