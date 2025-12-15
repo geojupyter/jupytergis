@@ -33,6 +33,7 @@ import {
   JgisCoordinates,
   JupyterGISModel,
   IMarkerSource,
+  IStorySegmentLayer,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -53,6 +54,7 @@ import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
+import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
 import { DragAndDrop, Select } from 'ol/interaction';
@@ -995,7 +997,8 @@ export class MainView extends React.Component<IProps, IStates> {
     let sourceId: string | undefined;
     let source: IJGISSource | undefined;
 
-    if (layer.type !== 'StacLayer') {
+    // Sourceless layers
+    if (!['StacLayer', 'StorySegmentLayer'].includes(layer.type)) {
       sourceId = layer.parameters?.source;
       if (!sourceId) {
         return;
@@ -1119,6 +1122,11 @@ export class MainView extends React.Component<IProps, IStates> {
 
         break;
       }
+
+      case 'StorySegmentLayer': {
+        // Special layer not for this
+        return;
+      }
     }
 
     // OpenLayers doesn't have name/id field so add it
@@ -1200,7 +1208,6 @@ export class MainView extends React.Component<IProps, IStates> {
           item => item.id === id && item.error === error.message,
         )
       ) {
-        this._loadingLayers.delete(id);
         return;
       }
 
@@ -1214,7 +1221,9 @@ export class MainView extends React.Component<IProps, IStates> {
         error: error.message || 'invalid file path',
         index,
       });
+    } finally {
       this._loadingLayers.delete(id);
+      this.setState(old => ({ ...old, loadingLayer: false }));
     }
   }
 
@@ -1339,7 +1348,7 @@ export class MainView extends React.Component<IProps, IStates> {
     mapLayer: Layer,
     oldLayer?: IDict,
   ): Promise<void> {
-    mapLayer.setVisible(layer.visible);
+    layer.type !== 'StorySegmentLayer' && mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
       case 'RasterLayer': {
@@ -2022,6 +2031,7 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
+  // TODO this and flyToPosition need a rework
   private _onZoomToPosition(_: IJupyterGISModel, id: string) {
     // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
@@ -2034,6 +2044,26 @@ export class MainView extends React.Component<IProps, IStates> {
     let extent;
     const layer = this.getLayer(id);
     const source = layer?.getSource();
+
+    // TODO: Story segment layers don't have an associated OL layer
+    // This could be better
+    if (!layer) {
+      const jgisLayer = this._model.getLayer(id);
+      const layerParams = jgisLayer?.parameters as IStorySegmentLayer;
+      const coords = getCenter(layerParams.extent);
+
+      // TODO: Should pass args through signal??
+      // const { story } = this._model.getSelectedStory();
+
+      this._flyToPosition(
+        { x: coords[0], y: coords[1] },
+        layerParams.zoom,
+        (layerParams.transition.time ?? 1) * 1000, // seconds -> ms
+        layerParams.transition.type,
+      );
+
+      return;
+    }
 
     if (source instanceof VectorSource) {
       extent = source.getExtent();
@@ -2092,10 +2122,55 @@ export class MainView extends React.Component<IProps, IStates> {
     center: { x: number; y: number },
     zoom: number,
     duration = 1000,
+    transitionType?: 'linear' | 'immediate' | 'smooth',
   ) {
     const view = this._Map.getView();
-    view.animate({ zoom, duration });
-    view.animate({ center: [center.x, center.y], duration });
+
+    // Cancel any in-progress animations before starting new ones
+    view.cancelAnimations();
+
+    const targetCenter: Coordinate = [center.x, center.y];
+
+    if (transitionType === 'linear') {
+      // Linear: direct zoom
+      view.animate({
+        center: targetCenter,
+        zoom: zoom,
+        duration,
+      });
+
+      return;
+    }
+
+    if (transitionType === 'smooth') {
+      // Smooth: zoom out, center, and zoom in
+      // Centering takes full duration, zoom out completes halfway, zoom in starts halfway
+      // 3 shows most of the map
+      const zoomOutLevel = 3;
+
+      // Start centering (full duration) and zoom out (50% duration) simultaneously
+      view.animate({
+        center: targetCenter,
+        duration: duration,
+      });
+      // Chain zoom out -> zoom in (zoom in starts when zoom out completes)
+      view.animate(
+        {
+          zoom: zoomOutLevel,
+          duration: duration * 0.5,
+        },
+        {
+          zoom: zoom,
+          duration: duration * 0.5,
+        },
+      );
+
+      return;
+    }
+
+    // Immediate move
+    view.setCenter(targetCenter);
+    view.setZoom(zoom);
   }
 
   private _onPointerMove(e: MouseEvent) {

@@ -10,7 +10,7 @@
   background-color: var(--jp-layout-color0);
   color: var(--jp-ui-font-color0);
   border: 0.0375rem solid
-    color-mix(in srgb, var(--jp-accent-color0), transparent 20%);
+    color-mix(in srgb, var(--jp-border-color1), transparent 20%);
   transition: background-color 0.2s ease;
   height: 2.5rem;
   padding-left: 1rem;
