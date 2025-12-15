@@ -219,7 +219,6 @@ export type StacFilterSetters = Record<
 // Shared type for setResults function signature
 export type SetResultsFunction = (
   results: IStacItem[],
-  isLoading: boolean,
   totalResults: number,
   totalPages: number,
 ) => void;

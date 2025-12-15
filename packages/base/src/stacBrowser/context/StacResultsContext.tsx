@@ -34,6 +34,7 @@ interface IStacResultsContext {
   setCurrentPage: (page: number) => void;
   currentPageRef: React.MutableRefObject<number>;
   setResults: SetResultsFunction;
+  setIsLoading: (isLoading: boolean) => void;
   setPaginationLinks: (links: IStacPaginationLink[]) => void;
   registerAddToMap: (addFn: (stacData: IStacItem) => void) => void;
   registerHandlePaginationClick: (
@@ -86,12 +87,10 @@ export function StacResultsProvider({
   const setResults = useCallback(
     (
       newResults: IStacItem[],
-      newIsLoading: boolean,
       newTotalResults: number,
       newTotalPages: number,
     ) => {
       setResultsState(newResults);
-      setIsLoading(newIsLoading);
       setTotalResults(newTotalResults);
       setTotalPages(newTotalPages);
     },
@@ -177,7 +176,7 @@ export function StacResultsProvider({
 
       try {
         // Update context with loading state
-        setResults(results, true, totalResults, totalPages);
+        setIsLoading(true);
 
         const data = (await fetchWithProxies(
           urlToUse,
@@ -189,7 +188,8 @@ export function StacResultsProvider({
         )) as IStacSearchResult;
 
         if (!data) {
-          setResults([], false, 0, 0);
+          setResults([], 0, 0);
+          setIsLoading(false);
           return;
         }
 
@@ -244,7 +244,6 @@ export function StacResultsProvider({
         // Update context with results
         setResults(
           sortedFeatures,
-          false,
           totalResultsFromQuery,
           totalPagesFromQuery,
         );
@@ -253,19 +252,14 @@ export function StacResultsProvider({
         if (data.links) {
           setPaginationLinks(data.links);
         }
+
+        setIsLoading(false);
       } catch (error) {
-        setResults([], false, 0, 0);
+        setResults([], 0, 0);
+        setIsLoading(false);
       }
     },
-    [
-      model,
-      selectedUrl,
-      setResults,
-      setPaginationLinks,
-      results,
-      totalResults,
-      totalPages,
-    ],
+    [model, selectedUrl, setResults, setPaginationLinks],
   );
 
   // Wrapper function that takes a page number, builds query, and executes it
@@ -381,6 +375,7 @@ export function StacResultsProvider({
         setCurrentPage,
         currentPageRef,
         setResults,
+        setIsLoading,
         setPaginationLinks,
         registerAddToMap,
         registerHandlePaginationClick,

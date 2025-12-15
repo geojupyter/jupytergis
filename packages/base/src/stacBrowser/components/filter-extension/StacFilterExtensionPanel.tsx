@@ -23,7 +23,6 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
     collections,
     selectedCollection,
     setSelectedCollection,
-    handleSubmit,
     startTime,
     endTime,
     setStartTime,
@@ -117,16 +116,6 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
           }}
           className="jgis-stac-filter-extension-input"
         />
-      </div>
-
-      {/* buttons */}
-      <div className="jgis-stac-filter-extension-button-container">
-        <button
-          onClick={handleSubmit}
-          className="jgis-stac-filter-extension-button"
-        >
-          Submit
-        </button>
       </div>
     </div>
   );
