@@ -122,7 +122,8 @@ const activate = async (
   const jGISSharedModelFactory: SharedDocumentFactory = () => {
     return new JupyterGISDoc();
   };
-  if (drive && drive.sharedModelFactory) {
+
+  if (drive?.sharedModelFactory?.registerDocumentFactory) {
     drive.sharedModelFactory.registerDocumentFactory(
       CONTENT_TYPE,
       jGISSharedModelFactory,

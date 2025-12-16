@@ -169,21 +169,20 @@ const activate = async (
     icon: logoMiniIconQGZ,
   });
 
-  if (!drive.sharedModelFactory) {
-    throw new Error('Cannot initialize JupyterGIS QGIS Document handler with a sharedModelFactory');
-  }
-
   const QGISSharedModelFactory: SharedDocumentFactory = () => {
     return new JupyterGISDoc();
   };
-  drive.sharedModelFactory.registerDocumentFactory(
-    'QGS',
-    QGISSharedModelFactory,
-  );
-  drive.sharedModelFactory.registerDocumentFactory(
-    'QGZ',
-    QGISSharedModelFactory,
-  );
+
+  if (drive.sharedModelFactory?.registerDocumentFactory) {
+    drive.sharedModelFactory.registerDocumentFactory(
+      'QGS',
+      QGISSharedModelFactory,
+    );
+    drive.sharedModelFactory.registerDocumentFactory(
+      'QGZ',
+      QGISSharedModelFactory,
+    );
+  }
 
   const widgetCreatedCallback = (
     sender: any,
