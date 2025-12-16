@@ -127,8 +127,9 @@ const activate = async (
     return new JupyterGISDoc();
   };
 
-  if (drive?.sharedModelFactory?.registerDocumentFactory) {
-    drive.sharedModelFactory.registerDocumentFactory(
+  const provider = drive?.contentProviderRegistry?.getProvider('rtc');
+  if (provider?.sharedModelFactory?.registerDocumentFactory) {
+    provider.sharedModelFactory.registerDocumentFactory(
       CONTENT_TYPE,
       jGISSharedModelFactory,
     );

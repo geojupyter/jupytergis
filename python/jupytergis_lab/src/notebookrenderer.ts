@@ -208,13 +208,18 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           );
         }
 
-        if (!drive.sharedModelFactory) {
+        const sharedFactory = app.serviceManager.contents.getSharedModelFactory(
+          localPath,
+          { contentProviderId: 'rtd' }
+        );
+
+        if (!sharedFactory) {
           throw new Error(
             'Cannot initialize JupyterGIS notebook renderer without a sharedModelFactory',
           );
         }
 
-        const sharedModel = drive.sharedModelFactory.createNew({
+        const sharedModel = sharedFactory.createNew({
           path: localPath,
           format: fileFormat,
           contentType,
