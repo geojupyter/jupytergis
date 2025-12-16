@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 
+import { Combobox } from '@/src/shared/components/Combobox';
+import { CommandItem } from '@/src/shared/components/Command';
 import {
   IQueryableFilter,
   IStacQueryableSchema,
@@ -28,20 +30,37 @@ function QueryableRow({
   inputComponent,
   onOperatorChange,
 }: IQueryableRowProps) {
+  const [operatorComboboxOpen, setOperatorComboboxOpen] = useState(false);
+
+  const currentOperator = operators.find(
+    op => op.value === currentFilter.operator,
+  );
+  const buttonText = currentOperator?.label || 'Select operator...';
+
   return (
     <div className="jgis-queryable-row">
       <span>{qVal.title || qKey}</span>
-      <select
-        className="jgis-queryable-row-select"
-        value={currentFilter.operator}
-        onChange={e => onOperatorChange(e.target.value as Operator)}
+      <Combobox
+        buttonText={String(buttonText)}
+        emptyText="No operator found."
+        buttonClassName="jgis-queryable-row-select"
+        open={operatorComboboxOpen}
+        onOpenChange={setOperatorComboboxOpen}
+        showSearch={false}
       >
         {operators.map(operator => (
-          <option key={operator.value} value={operator.value}>
+          <CommandItem
+            key={operator.value}
+            value={String(operator.label)}
+            onSelect={() => {
+              onOperatorChange(operator.value);
+              setOperatorComboboxOpen(false);
+            }}
+          >
             {operator.label}
-          </option>
+          </CommandItem>
         ))}
-      </select>
+      </Combobox>
       {inputComponent}
     </div>
   );
