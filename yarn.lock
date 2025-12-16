@@ -871,25 +871,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyter/collaboration@npm:^3.1.0":
-  version: 3.1.2
-  resolution: "@jupyter/collaboration@npm:3.1.2"
+"@jupyter/collaboration@npm:^4":
+  version: 4.2.0
+  resolution: "@jupyter/collaboration@npm:4.2.0"
   dependencies:
     "@codemirror/state": ^6.2.0
     "@codemirror/view": ^6.7.0
-    "@jupyterlab/apputils": ^4.0.5
-    "@jupyterlab/coreutils": ^6.0.5
-    "@jupyterlab/docregistry": ^4.0.5
-    "@jupyterlab/services": ^7.0.5
-    "@jupyterlab/ui-components": ^4.0.5
-    "@lumino/coreutils": ^2.1.0
-    "@lumino/signaling": ^2.0.0
-    "@lumino/virtualdom": ^2.0.0
-    "@lumino/widgets": ^2.1.0
+    "@jupyterlab/apputils": ^4.5.0
+    "@jupyterlab/coreutils": ^6.5.0
+    "@jupyterlab/docregistry": ^4.5.0
+    "@jupyterlab/rendermime-interfaces": ^3.12.0
+    "@jupyterlab/services": ^7.5.0
+    "@jupyterlab/ui-components": ^4.5.0
+    "@lumino/coreutils": ^2.2.1
+    "@lumino/signaling": ^2.1.4
+    "@lumino/virtualdom": ^2.0.3
+    "@lumino/widgets": ^2.7.0
     react: ^18.2.0
     y-protocols: ^1.0.5
     yjs: ^13.5.40
-  checksum: fc79ac496959b6dd5fdabd79ca5fba10c95ea2793e353966c08b2989df359451567beaf5c4eba2044d9e180519e9aca0f6c378d6faf4782ffd83243dafe8664b
+  checksum: 4302bb06331ebb44d619b943863e57d27116665b154cb49c2f4e15495f2d87f202c741cfa7dc4e4b3e95f1fc468e5cbe1dfc99296ee37b7b30632d690b94f216
   languageName: node
   linkType: hard
 
@@ -949,7 +950,7 @@ __metadata:
     "@fortawesome/fontawesome-svg-core": ^6.5.2
     "@fortawesome/free-solid-svg-icons": ^6.5.2
     "@fortawesome/react-fontawesome": ">=0.2.6 <3.0.0"
-    "@jupyter/collaboration": ^3.1.0
+    "@jupyter/collaboration": ^4
     "@jupyter/react-components": ^0.16.6
     "@jupyter/ydoc": ^2.0.0 || ^3.0.0
     "@jupytergis/schema": ^0.10.1
@@ -1433,7 +1434,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/coreutils@npm:^6.0.0, @jupyterlab/coreutils@npm:^6.0.5, @jupyterlab/coreutils@npm:^6.3.0, @jupyterlab/coreutils@npm:^6.5.0":
+"@jupyterlab/coreutils@npm:^6.0.0, @jupyterlab/coreutils@npm:^6.3.0, @jupyterlab/coreutils@npm:^6.5.0":
   version: 6.5.0
   resolution: "@jupyterlab/coreutils@npm:6.5.0"
   dependencies:
@@ -1473,7 +1474,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/docregistry@npm:^4.0.5, @jupyterlab/docregistry@npm:^4.3.0, @jupyterlab/docregistry@npm:^4.5.0":
+"@jupyterlab/docregistry@npm:^4.3.0, @jupyterlab/docregistry@npm:^4.5.0":
   version: 4.5.0
   resolution: "@jupyterlab/docregistry@npm:4.5.0"
   dependencies:
@@ -1718,6 +1719,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@jupyterlab/rendermime-interfaces@npm:^3.12.0":
+  version: 3.13.1
+  resolution: "@jupyterlab/rendermime-interfaces@npm:3.13.1"
+  dependencies:
+    "@lumino/coreutils": ^1.11.0 || ^2.2.2
+    "@lumino/widgets": ^1.37.2 || ^2.7.2
+  checksum: a92c464f8e12d6861e0a5a1cbcc9e4fef45d6ca43cdf855b171c7b48fb6fddf47691701c258b9acc69c644d5e036ad6aceff9a2b0db5d0603e1fbb06eba97af3
+  languageName: node
+  linkType: hard
+
 "@jupyterlab/rendermime-interfaces@npm:^3.13.0":
   version: 3.13.0
   resolution: "@jupyterlab/rendermime-interfaces@npm:3.13.0"
@@ -1851,7 +1862,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/ui-components@npm:^4.0.5, @jupyterlab/ui-components@npm:^4.3.0, @jupyterlab/ui-components@npm:^4.3.1, @jupyterlab/ui-components@npm:^4.5.0":
+"@jupyterlab/ui-components@npm:^4.3.0, @jupyterlab/ui-components@npm:^4.3.1, @jupyterlab/ui-components@npm:^4.5.0":
   version: 4.5.0
   resolution: "@jupyterlab/ui-components@npm:4.5.0"
   dependencies:
@@ -2228,7 +2239,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lumino/signaling@npm:^1.10.0 || ^2.0.0, @lumino/signaling@npm:^2.0.0, @lumino/signaling@npm:^2.1.1, @lumino/signaling@npm:^2.1.5":
+"@lumino/signaling@npm:^1.10.0 || ^2.0.0, @lumino/signaling@npm:^2.0.0, @lumino/signaling@npm:^2.1.1, @lumino/signaling@npm:^2.1.4, @lumino/signaling@npm:^2.1.5":
   version: 2.1.5
   resolution: "@lumino/signaling@npm:2.1.5"
   dependencies:
@@ -2238,7 +2249,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lumino/virtualdom@npm:^2.0.0, @lumino/virtualdom@npm:^2.0.4":
+"@lumino/virtualdom@npm:^2.0.3, @lumino/virtualdom@npm:^2.0.4":
   version: 2.0.4
   resolution: "@lumino/virtualdom@npm:2.0.4"
   dependencies:
@@ -2247,7 +2258,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lumino/widgets@npm:^1.37.2 || ^2.7.2, @lumino/widgets@npm:^2.0.0, @lumino/widgets@npm:^2.1.0, @lumino/widgets@npm:^2.1.1, @lumino/widgets@npm:^2.7.2":
+"@lumino/widgets@npm:^1.37.2 || ^2.7.2, @lumino/widgets@npm:^2.0.0, @lumino/widgets@npm:^2.1.1, @lumino/widgets@npm:^2.7.0, @lumino/widgets@npm:^2.7.2":
   version: 2.7.2
   resolution: "@lumino/widgets@npm:2.7.2"
   dependencies:
