@@ -209,7 +209,9 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         }
 
         if (!drive.sharedModelFactory) {
-          throw new Error('Cannot initialize JupyterGIS notebook renderer without a sharedModelFactory');
+          throw new Error(
+            'Cannot initialize JupyterGIS notebook renderer without a sharedModelFactory',
+          );
         }
 
         const sharedModel = drive.sharedModelFactory.createNew({

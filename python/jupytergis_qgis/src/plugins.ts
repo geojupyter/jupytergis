@@ -33,7 +33,11 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { Contents, IDefaultDrive, SharedDocumentFactory } from '@jupyterlab/services';
+import {
+  Contents,
+  IDefaultDrive,
+  SharedDocumentFactory,
+} from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { Widget } from '@lumino/widgets';
