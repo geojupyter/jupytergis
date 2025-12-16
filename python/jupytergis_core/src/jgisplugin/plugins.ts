@@ -1,7 +1,3 @@
-import {
-  ICollaborativeDrive,
-  SharedDocumentFactory,
-} from '@jupyter/collaborative-drive';
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import {
   IAnnotationModel,
@@ -37,6 +33,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 
 import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
+import { Contents, IDefaultDrive, SharedDocumentFactory } from '@jupyterlab/services';
 
 const FACTORY = 'JupyterGIS .jgis Viewer';
 const CONTENT_TYPE = 'jgis';
@@ -60,7 +57,7 @@ const activate = async (
   state: IStateDB,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
-  drive: ICollaborativeDrive | null,
+  drive: Contents.IDrive | null,
 ): Promise<void> => {
   formSchemaRegistry && state;
   if (PageConfig.getOption('jgis_expose_maps')) {
@@ -125,7 +122,7 @@ const activate = async (
   const jGISSharedModelFactory: SharedDocumentFactory = () => {
     return new JupyterGISDoc();
   };
-  if (drive) {
+  if (drive && drive.sharedModelFactory) {
     drive.sharedModelFactory.registerDocumentFactory(
       CONTENT_TYPE,
       jGISSharedModelFactory,
@@ -270,7 +267,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IJGISFormSchemaRegistryToken,
     IStateDB,
   ],
-  optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
+  optional: [ILauncher, ICommandPalette, IDefaultDrive],
   autoStart: true,
   activate,
 };

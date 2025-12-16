@@ -1,8 +1,4 @@
 import {
-  ICollaborativeDrive,
-  SharedDocumentFactory,
-} from '@jupyter/collaborative-drive';
-import {
   JupyterGISDocumentWidget,
   logoMiniIcon,
   logoMiniIconQGZ,
@@ -37,6 +33,7 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 import { ConsolePanel, IConsoleTracker } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { Contents, IDefaultDrive, SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { Widget } from '@lumino/widgets';
@@ -75,7 +72,7 @@ const activate = async (
   app: JupyterFrontEnd,
   tracker: WidgetTracker<IJupyterGISWidget>,
   themeManager: IThemeManager,
-  drive: ICollaborativeDrive,
+  drive: Contents.IDrive,
   externalCommandRegistry: IJGISExternalCommandRegistry,
   contentFactory: ConsolePanel.IContentFactory,
   editorServices: IEditorServices,
@@ -171,6 +168,10 @@ const activate = async (
     contentType: 'QGZ',
     icon: logoMiniIconQGZ,
   });
+
+  if (!drive.sharedModelFactory) {
+    throw new Error('Cannot initialize JupyterGIS QGIS Document handler with a sharedModelFactory');
+  }
 
   const QGISSharedModelFactory: SharedDocumentFactory = () => {
     return new JupyterGISDoc();
@@ -323,7 +324,7 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
   requires: [
     IJupyterGISDocTracker,
     IThemeManager,
-    ICollaborativeDrive,
+    IDefaultDrive,
     IJGISExternalCommandRegistryToken,
     ConsolePanel.IContentFactory,
     IEditorServices,
