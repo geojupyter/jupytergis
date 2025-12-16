@@ -26,7 +26,6 @@ const StacQueryableFilters: React.FC<IStacQueryableFilterListProps> = ({
 }) => {
   return (
     <div className="jgis-stac-queryable-filters">
-      <div>
         <RadioGroup
           className="jgis-stac-queryable-filters-radio-group"
           value={filterOperator}
@@ -45,7 +44,6 @@ const StacQueryableFilters: React.FC<IStacQueryableFilterListProps> = ({
             <label htmlFor="filter-operator-or">Match any filters (or)</label>
           </div>
         </RadioGroup>
-      </div>
       <QueryableComboBox
         queryables={queryableFields}
         selectedQueryables={selectedQueryables}
