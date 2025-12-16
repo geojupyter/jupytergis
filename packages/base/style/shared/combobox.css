@@ -1,11 +1,14 @@
 /* Combobox Button */
 .jgis-combobox-button {
-  width: 200px;
+  /* width: 200px; */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: auto;
+  /* height: auto; */
   white-space: preserve-breaks;
+  padding: 0.25rem;
+  box-sizing: content-box;
+  height: 1.125rem;
 }
 
 .jgis-combobox-button-text {

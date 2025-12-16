@@ -2,6 +2,7 @@ import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
+import { Combobox } from '@/src/shared/components/Combobox';
 import {
   Command,
   CommandEmpty,
@@ -10,6 +11,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/src/shared/components/Command';
+import { Input } from '@/src/shared/components/Input';
 import {
   Popover,
   PopoverContent,
@@ -123,18 +125,30 @@ export function QueryableComboBox({
     switch (val.type) {
       case 'string':
         if (val.enum) {
+          const selectedOption = val.enum.find(
+            opt => String(opt) === String(currentValue),
+          );
+          const buttonText = selectedOption
+            ? String(selectedOption)
+            : 'Select option...';
+
           return (
-            <select
-              className="jgis-queryable-combo-input"
-              value={String(currentValue || '')}
-              onChange={e => onChange(e.target.value)}
+            <Combobox
+              buttonText={buttonText}
+              emptyText="No option found."
+              buttonClassName="jgis-queryable-combo-input"
+              showSearch={false}
             >
               {val.enum.map(option => (
-                <option key={String(option)} value={String(option)}>
+                <CommandItem
+                  key={String(option)}
+                  value={String(option)}
+                  onSelect={() => onChange(String(option))}
+                >
                   {String(option)}
-                </option>
+                </CommandItem>
               ))}
-            </select>
+            </Combobox>
           );
         }
         if (val.format === 'date-time') {
@@ -164,16 +178,17 @@ export function QueryableComboBox({
               date={parseDate(currentValue as string | undefined)}
               onDateChange={handleDateChange}
               dateFormat='P'
-              showIcon={false}
+              showIcon={true}
               placeholder="Select date"
-              className="jgis-queryable-combo-input"
+              className="jgis-queryable-combo-input jgis-queryable-combo-input-date-picker"
             />
           );
         }
         return (
-          <input
+          <Input
             type="text"
             className="jgis-queryable-combo-input"
+            style={{borderRadius: 0}}
             value={(currentValue as string) || ''}
             onChange={e => onChange(e.target.value)}
           />
@@ -181,22 +196,34 @@ export function QueryableComboBox({
       case 'number':
       case 'integer':
         if (val.enum) {
+          const selectedOption = val.enum.find(
+            opt => Number(opt) === Number(currentValue),
+          );
+          const buttonText = selectedOption
+            ? String(selectedOption)
+            : 'Select option...';
+
           return (
-            <select
-              className="jgis-queryable-combo-input"
-              value={String(currentValue || '')}
-              onChange={e => onChange(Number(e.target.value))}
+            <Combobox
+              buttonText={buttonText}
+              emptyText="No option found."
+              buttonClassName="jgis-queryable-combo-input"
+              showSearch={false}
             >
               {val.enum.map(option => (
-                <option key={String(option)} value={String(option)}>
+                <CommandItem
+                  key={String(option)}
+                  value={String(option)}
+                  onSelect={() => onChange(Number(option))}
+                >
                   {String(option)}
-                </option>
+                </CommandItem>
               ))}
-            </select>
+            </Combobox>
           );
         }
         return (
-          <input
+          <Input
             type="number"
             className="jgis-queryable-combo-input"
             min={val.minimum !== undefined ? val.minimum : undefined}
@@ -207,8 +234,8 @@ export function QueryableComboBox({
         );
       default:
         return (
-          <input
-            type=""
+          <Input
+            type="text"
             className="jgis-queryable-combo-input"
             value={(currentValue as string) || ''}
             onChange={e => onChange(e.target.value)}

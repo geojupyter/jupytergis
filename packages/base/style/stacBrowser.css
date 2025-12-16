@@ -169,7 +169,10 @@
 }
 
 .jgis-queryable-combo-button {
-  width: 200px;
+  width: 100%;
+  box-sizing: content-box;
+  padding: 0.5rem 0.25rem;
+  height: 1.5rem;
   justify-content: space-between !important;
 }
 
@@ -194,6 +197,12 @@
 
 .jgis-queryable-combo-input {
   max-width: 75px;
+}
+
+.jgis-queryable-combo-input-date-picker {
+  padding: 0.25rem !important;
+  height: 1.125rem !important;
+  box-sizing: content-box;
 }
 
 /* QueryableRow styles */
