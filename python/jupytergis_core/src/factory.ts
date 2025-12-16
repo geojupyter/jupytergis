@@ -40,7 +40,7 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
 > {
   constructor(private options: IOptions) {
     const { backendCheck, externalCommandRegistry, ...rest } = options;
-    super({...rest, contentProviderId: 'rtc'});
+    super({ ...rest, contentProviderId: 'rtc' });
     this._backendCheck = backendCheck;
     this._commands = options.commands;
     this._externalCommandRegistry = externalCommandRegistry;
