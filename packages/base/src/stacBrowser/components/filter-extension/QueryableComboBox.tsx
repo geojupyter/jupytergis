@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
@@ -24,6 +23,7 @@ import {
   Operator,
   UpdateSelectedQueryables,
 } from '@/src/stacBrowser/types/types';
+import SingleDatePicker from '../shared/SingleDatePicker';
 
 interface IQueryableComboProps {
   queryables: IStacQueryables;
@@ -138,26 +138,35 @@ export function QueryableComboBox({
           );
         }
         if (val.format === 'date-time') {
-          // Convert UTC ISO string to local datetime format for display
-          // datetime-local expects format: YYYY-MM-DDTHH:mm
-          const formatForInput = (isoString: string | undefined): string => {
+          // Convert UTC ISO string to Date object for SingleDatePicker
+          const parseDate = (isoString: string | undefined): Date | undefined => {
             if (!isoString) {
-              return '';
+              return undefined;
             }
             try {
-              const date = new Date(isoString);
-              return format(date, "yyyy-MM-dd'T'HH:mm");
+              return new Date(isoString);
             } catch {
-              return '';
+              return undefined;
+            }
+          };
+
+          // Convert Date object back to ISO string for storage
+          const handleDateChange = (date: Date | undefined) => {
+            if (date) {
+              onChange(date.toISOString());
+            } else {
+              onChange('');
             }
           };
 
           return (
-            <input
-              type="datetime-local"
+            <SingleDatePicker
+              date={parseDate(currentValue as string | undefined)}
+              onDateChange={handleDateChange}
+              dateFormat='P'
+              showIcon={false}
+              placeholder="Select date"
               className="jgis-queryable-combo-input"
-              value={formatForInput(currentValue as string)}
-              onChange={e => onChange(e.target.value)}
             />
           );
         }
@@ -238,7 +247,10 @@ export function QueryableComboBox({
         </PopoverTrigger>
         <PopoverContent className="jgis-queryable-combo-popover">
           <Command>
-            <CommandInput placeholder="Search queryable..." style={{height: '1rem'}}/>
+            <CommandInput
+              placeholder="Search queryable..."
+              style={{ height: '1rem' }}
+            />
             <CommandList>
               <CommandEmpty>No queryable found.</CommandEmpty>
               <CommandGroup>
