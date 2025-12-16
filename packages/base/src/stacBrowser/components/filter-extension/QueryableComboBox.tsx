@@ -238,7 +238,7 @@ export function QueryableComboBox({
         </PopoverTrigger>
         <PopoverContent className="jgis-queryable-combo-popover">
           <Command>
-            <CommandInput placeholder="Search queryable..." />
+            <CommandInput placeholder="Search queryable..." style={{height: '1rem'}}/>
             <CommandList>
               <CommandEmpty>No queryable found.</CommandEmpty>
               <CommandGroup>

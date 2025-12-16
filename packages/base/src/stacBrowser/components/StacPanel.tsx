@@ -46,7 +46,8 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
   return (
     <Tabs
       defaultValue="filters"
-      className="jgis-panel-tabs jgis-stac-panel-tabs"
+      className="jgis-panel-tabs"
+      style={{boxShadow: 'none'}}
     >
       <TabsList className="jgis-stac-panel-tabs-list">
         <TabsTrigger className="jGIS-layer-browser-category" value="filters">

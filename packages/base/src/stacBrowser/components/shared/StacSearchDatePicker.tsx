@@ -27,7 +27,10 @@ function StacSearchDatePicker({
     <div className="jgis-stac-browser-date-picker">
       <Popover>
         <PopoverTrigger asChild>
-          <Button style={{ padding: '0 0.5rem' }} variant={'outline'}>
+          <Button
+            className="jgis-stac-datepicker-button"
+            variant={'outline'}
+          >
             <CalendarIcon className="jgis-stac-datepicker-icon" />
             {startTime ? format(startTime, 'PPP') : <span>Start Date</span>}
           </Button>
@@ -43,7 +46,10 @@ function StacSearchDatePicker({
       </Popover>
       <Popover>
         <PopoverTrigger asChild>
-          <Button style={{ padding: '0 0.5rem' }} variant={'outline'}>
+          <Button
+            className="jgis-stac-datepicker-button"
+            variant={'outline'}
+          >
             <CalendarIcon className="jgis-stac-datepicker-icon" />
             {endTime ? format(endTime, 'PPP') : <span>End Date</span>}
           </Button>
