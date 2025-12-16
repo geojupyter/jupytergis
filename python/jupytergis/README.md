@@ -10,7 +10,7 @@
 [jupytergis-badge]: https://labextensions.dev/api/badge/jupytergis?metric=downloads&leftColor=%23555&rightColor=%23F37620&style=flat
 [marketplace]: https://labextensions.dev/extensions/jupytergis
 
-![jupytergis](https://github.com/geojupyter/jupytergis/blob/main/jupytergis.png)
+![jupytergis](https://raw.githubusercontent.com/geojupyter/jupytergis/main/jupytergis.png)
 
 ## Features
 
