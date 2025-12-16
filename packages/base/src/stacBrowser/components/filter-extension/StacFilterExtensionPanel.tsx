@@ -2,6 +2,8 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState } from 'react';
 
 import CheckboxWithLabel from '@/src/shared/components/CheckboxWithLabel';
+import { Combobox } from '@/src/shared/components/Combobox';
+import { CommandItem } from '@/src/shared/components/Command';
 import StacQueryableFilters from '@/src/stacBrowser/components/filter-extension/StacQueryableFilters';
 import StacSearchDatePicker from '@/src/stacBrowser/components/shared/StacSearchDatePicker';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
@@ -17,6 +19,7 @@ type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
   const { selectedUrl } = useStacResultsContext();
   const [limit, setLimit] = useState<number>(12);
+  const [collectionComboboxOpen, setCollectionComboboxOpen] = useState(false);
 
   const {
     queryableFields,
@@ -68,17 +71,32 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
       {/* collections */}
       <div className="jgis-stac-filter-extension-section">
         <label className="jgis-stac-filter-extension-label">Collection</label>
-        <select
-          className="jgis-stac-filter-extension-select"
-          value={selectedCollection}
-          onChange={e => setSelectedCollection(e.target.value)}
+        <Combobox
+          showSearch={false}
+          buttonText={
+            selectedCollection
+              ? collections.find(c => c.id === selectedCollection)?.title ||
+                'Select a collection...'
+              : 'Select a collection...'
+          }
+          emptyText="No collection found."
+          buttonClassName="jgis-stac-filter-extension-select"
+          open={collectionComboboxOpen}
+          onOpenChange={setCollectionComboboxOpen}
         >
           {collections.map((option: FilteredCollection) => (
-            <option key={option.id} value={option.id}>
+            <CommandItem
+              key={option.id}
+              value={option.title}
+              onSelect={() => {
+                setSelectedCollection(option.id);
+                setCollectionComboboxOpen(false);
+              }}
+            >
               {option.title}
-            </option>
+            </CommandItem>
           ))}
-        </select>
+        </Combobox>
       </div>
 
       {/* Queryable filters */}

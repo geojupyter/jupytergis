@@ -27,6 +27,7 @@
 @import url('./shared/switch.css');
 @import url('./shared/popover.css');
 @import url('./shared/command.css');
+@import url('./shared/combobox.css');
 
 .errors {
   color: var(--jp-warn-color0);
