@@ -210,7 +210,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
 
         const sharedFactory = app.serviceManager.contents.getSharedModelFactory(
           localPath,
-          { contentProviderId: 'rtd' }
+          { contentProviderId: 'rtd' },
         );
 
         if (!sharedFactory) {
