@@ -3,6 +3,7 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
+@import url('ol/ol.css');
 @import url('./dialog.css');
 @import url('./layerBrowser.css');
 @import url('./leftPanel.css');
@@ -13,7 +14,6 @@
 @import url('./tabPanel.css');
 @import url('./stacBrowser.css');
 @import url('./storyPanel.css');
-@import url('ol/ol.css');
 @import url('./shared/button.css');
 @import url('./shared/toggle.css');
 @import url('./shared/tabs.css');
@@ -25,7 +25,6 @@
 @import url('./shared/radioGroup.css');
 @import url('./shared/dialog.css');
 @import url('./shared/switch.css');
-@import url('./shared/dialog.css');
 @import url('./shared/popover.css');
 
 .errors {
