@@ -1,3 +1,4 @@
+import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import {
   JupyterGISDocumentWidget,
   logoMiniIcon,
@@ -44,7 +45,6 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { Widget } from '@lumino/widgets';
 
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
-import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 
 /**
  * The command IDs used by the qgis plugin.
@@ -89,7 +89,7 @@ const activate = async (
   formSchemaRegistry: IJGISFormSchemaRegistry,
   state: IStateDB,
   commandPalette: ICommandPalette | null,
-  collaborativeContentProvider: ICollaborativeContentProvider | null
+  collaborativeContentProvider: ICollaborativeContentProvider | null,
 ): Promise<void> => {
   const fcCheck = await requestAPI<{ installed: boolean }>(
     'jupytergis_qgis/backend-check',

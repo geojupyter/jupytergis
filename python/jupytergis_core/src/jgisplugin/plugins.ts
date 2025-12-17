@@ -1,8 +1,5 @@
-import {
-  CommandIDs,
-  logoIcon,
-  logoMiniIcon,
-} from '@jupytergis/base';
+import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
+import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import {
   IAnnotationModel,
   IAnnotationToken,
@@ -16,7 +13,6 @@ import {
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
 } from '@jupytergis/schema';
-import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
@@ -62,7 +58,7 @@ const activate = async (
   state: IStateDB,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
-  collaborativeContentProvider: ICollaborativeContentProvider | null
+  collaborativeContentProvider: ICollaborativeContentProvider | null,
 ): Promise<void> => {
   formSchemaRegistry && state;
   if (PageConfig.getOption('jgis_expose_maps')) {
