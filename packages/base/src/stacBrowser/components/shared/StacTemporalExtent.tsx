@@ -1,22 +1,23 @@
 import React from 'react';
 
-import SingleDatePicker from './SingleDatePicker';
+import SingleDatePicker from '../../../shared/components/SingleDatePicker';
 
-interface IStacSearchDatePickerProps {
+interface IStacTemporalExtentProps {
   startTime: Date | undefined;
   setStartTime: (date: Date | undefined) => void;
   endTime: Date | undefined;
   setEndTime: (date: Date | undefined) => void;
 }
 
-function StacSearchDatePicker({
+function StacTemporalExtent({
   startTime,
   endTime,
   setStartTime,
   setEndTime,
-}: IStacSearchDatePickerProps) {
+}: IStacTemporalExtentProps) {
   return (
-    <div className="jgis-stac-browser-date-picker">
+    <div className="jgis-stac-filter-extension-section">
+      <label className="jgis-stac-filter-extension-label">Temporal Extent</label>
       <SingleDatePicker
         date={startTime}
         onDateChange={setStartTime}
@@ -31,4 +32,4 @@ function StacSearchDatePicker({
   );
 }
 
-export default StacSearchDatePicker;
+export default StacTemporalExtent;

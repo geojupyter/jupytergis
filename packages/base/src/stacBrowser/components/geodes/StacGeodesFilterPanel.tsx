@@ -1,9 +1,9 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-import CheckboxWithLabel from '@/src/shared/components/CheckboxWithLabel';
 import StacFilterSection from '@/src/stacBrowser/components/geodes/StacFilterSection';
-import StacSearchDatePicker from '@/src/stacBrowser/components/shared/StacSearchDatePicker';
+import StacSpatialExtent from '@/src/stacBrowser/components/shared/StacSpatialExtent';
+import StacTemporalExtent from '@/src/stacBrowser/components/shared/StacTemporalExtent';
 import {
   datasets as datasetsList,
   platforms as platformsList,
@@ -88,12 +88,12 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
 
   return (
     <div className="jgis-stac-browser-filters-panel">
-      <CheckboxWithLabel
+      <StacSpatialExtent
         checked={useWorldBBox}
         onCheckedChange={setUseWorldBBox}
         label="Use whole world as bounding box"
       />
-      <StacSearchDatePicker
+      <StacTemporalExtent
         startTime={startTime}
         setStartTime={setStartTime}
         endTime={endTime}

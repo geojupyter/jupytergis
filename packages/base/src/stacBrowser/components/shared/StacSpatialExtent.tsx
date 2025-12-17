@@ -2,25 +2,26 @@ import React from 'react';
 
 import Checkbox from '@/src/shared/components/Checkbox';
 
-interface ICheckboxWithLabelProps {
+interface IStacSpatialExtentProps {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   label: string;
 }
 
-const CheckboxWithLabel: React.FC<ICheckboxWithLabelProps> = ({
+const StacSpatialExtent: React.FC<IStacSpatialExtentProps> = ({
   checked,
   onCheckedChange,
   label,
 }) => {
   return (
-    <div>
+    <>
+      <label className="jgis-stac-filter-extension-label">Spatial Extent</label>
       <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <Checkbox checked={checked} onCheckedChange={onCheckedChange} />
         {label}
       </span>
-    </div>
+    </>
   );
 };
 
-export default CheckboxWithLabel;
+export default StacSpatialExtent;

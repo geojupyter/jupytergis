@@ -25,7 +25,7 @@ import {
   Operator,
   UpdateSelectedQueryables,
 } from '@/src/stacBrowser/types/types';
-import SingleDatePicker from '../shared/SingleDatePicker';
+import SingleDatePicker from '../../../shared/components/SingleDatePicker';
 
 interface IQueryableComboProps {
   queryables: IStacQueryables;

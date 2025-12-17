@@ -1,12 +1,12 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState } from 'react';
 
-import CheckboxWithLabel from '@/src/shared/components/CheckboxWithLabel';
 import { Combobox } from '@/src/shared/components/Combobox';
 import { CommandItem } from '@/src/shared/components/Command';
 import { Input } from '@/src/shared/components/Input';
 import StacQueryableFilters from '@/src/stacBrowser/components/filter-extension/StacQueryableFilters';
-import StacSearchDatePicker from '@/src/stacBrowser/components/shared/StacSearchDatePicker';
+import StacSpatialExtent from '@/src/stacBrowser/components/shared/StacSpatialExtent';
+import StacTemporalExtent from '@/src/stacBrowser/components/shared/StacTemporalExtent';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
 import { useStacFilterExtension } from '@/src/stacBrowser/hooks/useStacFilterExtension';
 import { IStacCollection } from '@/src/stacBrowser/types/types';
@@ -52,8 +52,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
     <>
       {/* temporal extent  */}
       <div className="jgis-stac-filter-extension-section">
-        <label className="jgis-stac-filter-extension-label">Temporal Extent</label>
-        <StacSearchDatePicker
+        <StacTemporalExtent
           startTime={startTime}
           endTime={endTime}
           setStartTime={setStartTime}
@@ -63,8 +62,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
 
       {/* spatial extent  */}
       <div className="jgis-stac-filter-extension-section">
-        <label className="jgis-stac-filter-extension-label">Spatial Extent</label>
-        <CheckboxWithLabel
+        <StacSpatialExtent
           checked={useWorldBBox}
           onCheckedChange={setUseWorldBBox}
           label="Use entire world"
