@@ -4,7 +4,6 @@ import {
   logoMiniIcon,
   logoMiniIconQGZ,
   requestAPI,
-  waitForCondition,
 } from '@jupytergis/base';
 import { JupyterGISDocumentWidgetFactory } from '@jupytergis/jupytergis-core';
 import {
