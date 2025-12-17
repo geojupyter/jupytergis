@@ -130,7 +130,6 @@ export interface IStacFilterCondition {
 
 export type FilterOperator = 'and' | 'or';
 
-
 /**
  * CQL2-JSON filter structure for STAC Filter Extension queries.
  */

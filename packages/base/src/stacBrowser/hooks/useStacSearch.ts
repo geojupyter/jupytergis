@@ -44,9 +44,9 @@ export function useStacSearch({
   // Load saved state from StateDB on mount
   useEffect(() => {
     async function loadStacSearchStateFromDb() {
-      const savedState = (await stateDb?.fetch(
-        STAC_SEARCH_STATE_KEY,
-      )) as IStacSearchStateDb | undefined;
+      const savedState = (await stateDb?.fetch(STAC_SEARCH_STATE_KEY)) as
+        | IStacSearchStateDb
+        | undefined;
 
       if (savedState) {
         if (savedState.startTime) {

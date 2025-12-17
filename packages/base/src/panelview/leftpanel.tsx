@@ -210,7 +210,10 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
         )}
 
         {!settings.stacBrowserDisabled && (
-          <TabsContent value="stac" className="jgis-panel-tab-content jgis-panel-tab-content-stac-panel" >
+          <TabsContent
+            value="stac"
+            className="jgis-panel-tab-content jgis-panel-tab-content-stac-panel"
+          >
             <StacPanel model={props.model} />
           </TabsContent>
         )}
