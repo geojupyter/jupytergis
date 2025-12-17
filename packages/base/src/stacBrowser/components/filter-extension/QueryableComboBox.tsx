@@ -303,7 +303,8 @@ export function QueryableComboBox({
           </Command>
         </PopoverContent>
       </Popover>
-      {selectedItems.map(([key, val]) => {
+      <div className="jgis-queryable-rows-container">
+        {selectedItems.map(([key, val]) => {
         const operators = getOperatorsForType(val.type, val.format);
         const currentFilter: IQueryableFilter = selectedQueryables[key] ?? {
           operator: operators[0]?.value || '=',
@@ -340,6 +341,8 @@ export function QueryableComboBox({
           });
         };
 
+
+       
         return (
           <QueryableRow
             key={key}
@@ -355,7 +358,8 @@ export function QueryableComboBox({
             onOperatorChange={handleOperatorChange}
           />
         );
-      })}
+        })}
+      </div>
     </div>
   );
 }
