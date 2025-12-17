@@ -166,6 +166,7 @@
 .jgis-queryable-combo-container {
   display: flex !important;
   flex-direction: column !important;
+  gap: 1rem;
 }
 
 .jgis-queryable-combo-button {
@@ -205,12 +206,17 @@
   box-sizing: content-box;
 }
 
-/* QueryableRow styles */
-.jgis-queryable-row {
-  display: flex;
+/* QueryableRows container */
+.jgis-queryable-rows-container {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0;
+}
+
+/* QueryableRow styles */
+.jgis-queryable-row {
+  display: contents;
 }
 
 .jgis-queryable-row-select {
