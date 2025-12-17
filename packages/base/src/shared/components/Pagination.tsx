@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import * as React from 'react';
 
 import { Button, ButtonProps } from './Button';
+import { cn } from './utils';
 
 const Pagination: React.FC<React.ComponentProps<'nav'>> = ({ ...props }) => (
   <nav
@@ -16,8 +17,8 @@ Pagination.displayName = 'Pagination';
 const PaginationContent = React.forwardRef<
   HTMLUListElement,
   React.ComponentProps<'ul'>
->(({ ...props }, ref) => (
-  <ul ref={ref} className={'jgis-pagination-content'} {...props} />
+>(({ className, ...props }, ref) => (
+  <ul ref={ref} className={cn('jgis-pagination-content', className)} {...props} />
 ));
 PaginationContent.displayName = 'PaginationContent';
 
