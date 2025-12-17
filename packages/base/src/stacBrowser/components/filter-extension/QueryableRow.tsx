@@ -43,7 +43,6 @@ function QueryableRow({
       <Combobox
         buttonText={String(buttonText)}
         emptyText="No operator found."
-        buttonClassName="jgis-queryable-row-select"
         open={operatorComboboxOpen}
         onOpenChange={setOperatorComboboxOpen}
         showSearch={false}
