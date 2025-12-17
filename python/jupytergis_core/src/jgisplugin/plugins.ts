@@ -2,7 +2,6 @@ import {
   CommandIDs,
   logoIcon,
   logoMiniIcon,
-  waitForCondition,
 } from '@jupytergis/base';
 import {
   IAnnotationModel,
@@ -17,6 +16,7 @@ import {
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
 } from '@jupytergis/schema';
+import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
@@ -33,11 +33,7 @@ import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import {
-  Contents,
-  IDefaultDrive,
-  SharedDocumentFactory,
-} from '@jupyterlab/services';
+import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 
@@ -66,7 +62,7 @@ const activate = async (
   state: IStateDB,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
-  drive: Contents.IDrive | null,
+  collaborativeContentProvider: ICollaborativeContentProvider | null
 ): Promise<void> => {
   formSchemaRegistry && state;
   if (PageConfig.getOption('jgis_expose_maps')) {
@@ -132,25 +128,11 @@ const activate = async (
     return new JupyterGISDoc();
   };
 
-  if (drive?.contentProviderRegistry) {
-    const registry = drive?.contentProviderRegistry;
-
-    await waitForCondition(() => {
-      try {
-        registry.getProvider('rtc');
-        return true;
-      } catch (_) {
-        return false;
-      }
-    });
-
-    const provider = registry.getProvider('rtc');
-    if (provider?.sharedModelFactory?.registerDocumentFactory) {
-      provider.sharedModelFactory.registerDocumentFactory(
-        CONTENT_TYPE,
-        jGISSharedModelFactory,
-      );
-    }
+  if (collaborativeContentProvider) {
+    collaborativeContentProvider.sharedModelFactory.registerDocumentFactory(
+      CONTENT_TYPE,
+      jGISSharedModelFactory,
+    );
   }
 
   widgetFactory.widgetCreated.connect((sender, widget) => {
@@ -291,7 +273,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IJGISFormSchemaRegistryToken,
     IStateDB,
   ],
-  optional: [ILauncher, ICommandPalette, IDefaultDrive],
+  optional: [ILauncher, ICommandPalette, ICollaborativeContentProvider],
   autoStart: true,
   activate,
 };

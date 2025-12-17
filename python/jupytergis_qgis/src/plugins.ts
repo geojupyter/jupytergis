@@ -44,6 +44,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { Widget } from '@lumino/widgets';
 
 import { QGSModelFactory, QGZModelFactory } from './modelfactory';
+import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 
 /**
  * The command IDs used by the qgis plugin.
@@ -88,6 +89,7 @@ const activate = async (
   formSchemaRegistry: IJGISFormSchemaRegistry,
   state: IStateDB,
   commandPalette: ICommandPalette | null,
+  collaborativeContentProvider: ICollaborativeContentProvider | null
 ): Promise<void> => {
   const fcCheck = await requestAPI<{ installed: boolean }>(
     'jupytergis_qgis/backend-check',
@@ -178,29 +180,15 @@ const activate = async (
     return new JupyterGISDoc();
   };
 
-  if (drive?.contentProviderRegistry) {
-    const registry = drive?.contentProviderRegistry;
-
-    await waitForCondition(() => {
-      try {
-        registry.getProvider('rtc');
-        return true;
-      } catch (_) {
-        return false;
-      }
-    });
-
-    const provider = registry.getProvider('rtc');
-    if (provider?.sharedModelFactory?.registerDocumentFactory) {
-      provider.sharedModelFactory.registerDocumentFactory(
-        'QGS',
-        QGISSharedModelFactory,
-      );
-      provider.sharedModelFactory.registerDocumentFactory(
-        'QGZ',
-        QGISSharedModelFactory,
-      );
-    }
+  if (collaborativeContentProvider) {
+    collaborativeContentProvider.sharedModelFactory.registerDocumentFactory(
+      'QGS',
+      QGISSharedModelFactory,
+    );
+    collaborativeContentProvider.sharedModelFactory.registerDocumentFactory(
+      'QGZ',
+      QGISSharedModelFactory,
+    );
   }
 
   const widgetCreatedCallback = (
@@ -353,7 +341,7 @@ export const qgisplugin: JupyterFrontEndPlugin<void> = {
     IJGISFormSchemaRegistryToken,
     IStateDB,
   ],
-  optional: [ICommandPalette],
+  optional: [ICommandPalette, ICollaborativeContentProvider],
   autoStart: true,
   activate,
 };

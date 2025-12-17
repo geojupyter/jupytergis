@@ -894,15 +894,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyter/collaborative-drive@npm:^3.0.0":
-  version: 3.1.2
-  resolution: "@jupyter/collaborative-drive@npm:3.1.2"
+"@jupyter/collaborative-drive@npm:^4.1.2":
+  version: 4.2.0
+  resolution: "@jupyter/collaborative-drive@npm:4.2.0"
   dependencies:
     "@jupyter/ydoc": ^2.1.3 || ^3.0.0
-    "@jupyterlab/services": ^7.2.0
-    "@lumino/coreutils": ^2.1.0
-    "@lumino/disposable": ^2.1.0
-  checksum: 394523c8b69f367c4d58888b30ea1bf0856594a5a08d088c1147f583eb969aaacb0e7672b97ea840661e476eaf547f58218be219a59a28531b27ad7680e9f89b
+    "@jupyterlab/services": ^7.5.0
+    "@lumino/coreutils": ^2.2.1
+    "@lumino/disposable": ^2.1.4
+  checksum: 0711b95dd8767a8e048080aa82a6d5f3178de2cee44befa26a32c265d314050c387c2d8dff83f0c168227f98d4a98404ff190ee355f7585a54e684c3be32d82d
   languageName: node
   linkType: hard
 
@@ -1029,7 +1029,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-core@workspace:python/jupytergis_core"
   dependencies:
-    "@jupyter/collaborative-drive": ^3.0.0
+    "@jupyter/collaborative-drive": ^4.1.2
     "@jupytergis/base": ^0.10.1
     "@jupytergis/schema": ^0.10.1
     "@jupyterlab/application": ^4.3.0
@@ -1063,7 +1063,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-lab@workspace:python/jupytergis_lab"
   dependencies:
-    "@jupyter/collaborative-drive": ^3.0.0
+    "@jupyter/collaborative-drive": ^4.1.2
     "@jupytergis/base": ^0.10.1
     "@jupytergis/schema": ^0.10.1
     "@jupyterlab/application": ^4.3.0
@@ -1095,7 +1095,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@jupytergis/jupytergis-qgis@workspace:python/jupytergis_qgis"
   dependencies:
-    "@jupyter/collaborative-drive": ^3.0.0
+    "@jupyter/collaborative-drive": ^4.1.2
     "@jupytergis/base": ^0.10.1
     "@jupytergis/jupytergis-core": ^0.10.1
     "@jupytergis/schema": ^0.10.1
@@ -2168,7 +2168,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lumino/disposable@npm:^1.10.0 || ^2.0.0, @lumino/disposable@npm:^2.1.0, @lumino/disposable@npm:^2.1.5":
+"@lumino/disposable@npm:^1.10.0 || ^2.0.0, @lumino/disposable@npm:^2.1.4, @lumino/disposable@npm:^2.1.5":
   version: 2.1.5
   resolution: "@lumino/disposable@npm:2.1.5"
   dependencies:

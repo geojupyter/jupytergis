@@ -52,39 +52,6 @@ export function throttle<T extends (...args: any[]) => void>(
   } as T;
 }
 
-export async function waitForCondition(
-  fn: () => boolean | Promise<boolean>,
-  timeout?: number,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    let checkTimer: NodeJS.Timeout | null = null;
-    let timeoutTimer: NodeJS.Timeout | null = null;
-    const check = async () => {
-      checkTimer = null;
-      if (await Promise.resolve(fn())) {
-        if (timeoutTimer) {
-          clearTimeout(timeoutTimer);
-        }
-        resolve();
-      } else {
-        checkTimer = setTimeout(check, 50);
-      }
-    };
-
-    void check();
-
-    if (timeout) {
-      timeoutTimer = setTimeout(() => {
-        timeoutTimer = null;
-        if (checkTimer) {
-          clearTimeout(checkTimer);
-        }
-        reject(new Error('Timed out waiting for condition to be fulfilled.'));
-      }, timeout);
-    }
-  });
-}
-
 export function getElementFromProperty(
   filePath?: string | null,
   prop?: string | null,
