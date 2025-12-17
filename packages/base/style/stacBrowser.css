@@ -29,13 +29,6 @@
   width: 100%;
 }
 
-.jgis-stac-browser-date-picker {
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
 .jgis-stac-datepicker-button {
   padding: 0 0.5rem;
   width: 100%;
