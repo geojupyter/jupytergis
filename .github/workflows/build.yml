@@ -158,7 +158,7 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.12
-            jupyterlab=4
+            jupyterlab
             ipywidgets
             qgis
 

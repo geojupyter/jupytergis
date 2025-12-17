@@ -3,6 +3,7 @@ import {
   logoMiniIcon,
   logoMiniIconQGZ,
   requestAPI,
+  waitForCondition,
 } from '@jupytergis/base';
 import { JupyterGISDocumentWidgetFactory } from '@jupytergis/jupytergis-core';
 import {
@@ -177,16 +178,29 @@ const activate = async (
     return new JupyterGISDoc();
   };
 
-  const provider = drive.contentProviderRegistry?.getProvider('rtc');
-  if (provider?.sharedModelFactory?.registerDocumentFactory) {
-    provider.sharedModelFactory.registerDocumentFactory(
-      'QGS',
-      QGISSharedModelFactory,
-    );
-    provider.sharedModelFactory.registerDocumentFactory(
-      'QGZ',
-      QGISSharedModelFactory,
-    );
+  if (drive?.contentProviderRegistry) {
+    const registry = drive?.contentProviderRegistry;
+
+    await waitForCondition(() => {
+      try {
+        registry.getProvider('rtc');
+        return true;
+      } catch (_) {
+        return false;
+      }
+    });
+
+    const provider = registry.getProvider('rtc');
+    if (provider?.sharedModelFactory?.registerDocumentFactory) {
+      provider.sharedModelFactory.registerDocumentFactory(
+        'QGS',
+        QGISSharedModelFactory,
+      );
+      provider.sharedModelFactory.registerDocumentFactory(
+        'QGZ',
+        QGISSharedModelFactory,
+      );
+    }
   }
 
   const widgetCreatedCallback = (

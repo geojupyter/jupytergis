@@ -1,4 +1,9 @@
-import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
+import {
+  CommandIDs,
+  logoIcon,
+  logoMiniIcon,
+  waitForCondition,
+} from '@jupytergis/base';
 import {
   IAnnotationModel,
   IAnnotationToken,
@@ -127,12 +132,25 @@ const activate = async (
     return new JupyterGISDoc();
   };
 
-  const provider = drive?.contentProviderRegistry?.getProvider('rtc');
-  if (provider?.sharedModelFactory?.registerDocumentFactory) {
-    provider.sharedModelFactory.registerDocumentFactory(
-      CONTENT_TYPE,
-      jGISSharedModelFactory,
-    );
+  if (drive?.contentProviderRegistry) {
+    const registry = drive?.contentProviderRegistry;
+
+    await waitForCondition(() => {
+      try {
+        registry.getProvider('rtc');
+        return true;
+      } catch (_) {
+        return false;
+      }
+    });
+
+    const provider = registry.getProvider('rtc');
+    if (provider?.sharedModelFactory?.registerDocumentFactory) {
+      provider.sharedModelFactory.registerDocumentFactory(
+        CONTENT_TYPE,
+        jGISSharedModelFactory,
+      );
+    }
   }
 
   widgetFactory.widgetCreated.connect((sender, widget) => {
