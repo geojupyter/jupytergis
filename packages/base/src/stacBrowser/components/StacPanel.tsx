@@ -1,6 +1,8 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
+import { Combobox } from '@/src/shared/components/Combobox';
+import { CommandItem } from '@/src/shared/components/Command';
 import {
   Tabs,
   TabsContent,
@@ -18,6 +20,18 @@ import {
 const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/';
 const COPERNICUS_URL = 'https://stac.dataspace.copernicus.eu/v1/';
 const WORLDPOP_URL = 'https://api.stac.worldpop.org/';
+
+// Provider configuration - in the future this will come from STAC index
+interface IProvider {
+  url: string;
+  name: string;
+}
+
+const PROVIDERS: IProvider[] = [
+  { url: COPERNICUS_URL, name: 'Copernicus' },
+  { url: GEODES_URL, name: 'GEODES' },
+  { url: WORLDPOP_URL, name: 'WorldPop' },
+];
 
 // URL to panel component mapping for extensibility
 // Add new entries here to support additional STAC providers
@@ -63,14 +77,16 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
         </TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
-        <StacPanel.ProviderSelect />
-        {selectedUrl ? (
-          <ProviderPanel model={model} />
-        ) : (
-          <div className="jgis-stac-panel-placeholder">
-            Please select a provider above
-          </div>
-        )}
+        <div className="jgis-stac-filter-extension-panel">
+          <StacPanel.ProviderSelect />
+          {selectedUrl ? (
+            <ProviderPanel model={model} />
+          ) : (
+            <div className="jgis-stac-panel-placeholder">
+              Please select a provider above
+            </div>
+          )}
+        </div>
       </TabsContent>
       <TabsContent value="results">
         <StacPanelResults />
@@ -95,20 +111,28 @@ const StacPanel = ({ model }: IStacViewProps) => {
 function ProviderSelect() {
   const { selectedUrl, setSelectedUrl } = useStacResultsContext();
 
+  const selectedProvider = PROVIDERS.find(provider => provider.url === selectedUrl);
+  const buttonText = selectedProvider?.name || 'Select a provider...';
+
   return (
-    <div className="jgis-stac-panel-provider-select-container">
-      <select
-        className="jgis-stac-panel-provider-select"
-        value={selectedUrl}
-        onChange={e => setSelectedUrl(e.target.value)}
+    <div className="jgis-stac-filter-extension-section">
+        <label className="jgis-stac-filter-extension-label">Provider</label>
+        <Combobox
+        buttonText={buttonText}
+        emptyText="No provider found."
+        buttonClassName="jgis-stac-filter-extension-select"
+        showSearch={false}
       >
-        <option value="" disabled>
-          Select a provider...
-        </option>
-        <option value={COPERNICUS_URL}>Copernicus</option>
-        <option value={GEODES_URL}>GEODES</option>
-        <option value={WORLDPOP_URL}>WorldPop</option>
-      </select>
+        {PROVIDERS.map(provider => (
+          <CommandItem
+            key={provider.url}
+            value={provider.name}
+            onSelect={() => setSelectedUrl(provider.url)}
+          >
+            {provider.name}
+          </CommandItem>
+        ))}
+      </Combobox>
     </div>
   );
 }

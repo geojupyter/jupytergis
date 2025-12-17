@@ -25,6 +25,10 @@
   align-self: center;
 }
 
+.jgis-stac-datepicker-full-width {
+  width: 100%;
+}
+
 .jgis-stac-browser-date-picker {
   display: flex;
   justify-content: space-around;
@@ -92,8 +96,7 @@
 }
 
 .jgis-stac-filter-extension-panel {
-  padding: 1rem;
-  padding-bottom: 0;
+  padding: 0 1rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -115,13 +118,18 @@
   padding: 0.5rem;
   border-radius: 0.25rem;
   border: 1px solid var(--jp-border-color0);
+  height: auto !important;
 }
 
 .jgis-stac-filter-extension-input {
-  max-width: 200px;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  border: 1px solid var(--jp-border-color0);
+  padding: 0.5rem 1rem !important;
+  border-radius: 0 !important;
+  width: auto !important;
+  box-sizing: content-box;
+}
+
+.jgis-stac-filter-extension-input [data-slot='input'] {
+  width: auto;
 }
 
 .jgis-stac-filter-extension-button-container {
@@ -137,11 +145,6 @@
   color: var(--jp-ui-font-color0);
   cursor: pointer;
 }
-
-/* StacPanel styles */
-/* .jgis-stac-panel-tabs {
-  box-shadow: none !important;
-} */
 
 .jgis-stac-panel-tabs-list {
   border-radius: 0 !important;
@@ -171,9 +174,6 @@
 
 .jgis-queryable-combo-button {
   width: 100%;
-  box-sizing: content-box;
-  padding: 0.5rem 0.25rem;
-  height: 1.5rem;
   justify-content: space-between !important;
 }
 
@@ -197,16 +197,17 @@
 }
 
 .jgis-queryable-combo-input {
-  max-width: 75px;
+  border-radius: 0 !important;
+  padding: 0.25rem 1rem !important;
+  justify-content: space-between !important;
 }
 
 .jgis-queryable-combo-input-date-picker {
-  padding: 0.25rem !important;
   height: 1.125rem !important;
   box-sizing: content-box;
+  justify-content: flex-start !important;
 }
 
-/* QueryableRows container */
 .jgis-queryable-rows-container {
   display: grid;
   grid-template-columns: auto auto 1fr;
@@ -214,19 +215,10 @@
   gap: 0.5rem;
 }
 
-/* QueryableRow styles */
 .jgis-queryable-row {
   display: contents;
 }
 
-.jgis-queryable-row-select {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  border: 1px solid var(--jp-border-color0);
-  font-size: 0.875rem;
-}
-
-/* StacQueryableFilters styles */
 .jgis-stac-queryable-filters {
   display: flex;
   flex-direction: column;

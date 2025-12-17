@@ -17,8 +17,16 @@ function StacSearchDatePicker({
 }: IStacSearchDatePickerProps) {
   return (
     <div className="jgis-stac-browser-date-picker">
-      <SingleDatePicker date={startTime} onDateChange={setStartTime} />
-      <SingleDatePicker date={endTime} onDateChange={setEndTime} />
+      <SingleDatePicker
+        date={startTime}
+        onDateChange={setStartTime}
+        className="jgis-stac-datepicker-full-width"
+      />
+      <SingleDatePicker
+        date={endTime}
+        onDateChange={setEndTime}
+        className="jgis-stac-datepicker-full-width"
+      />
     </div>
   );
 }

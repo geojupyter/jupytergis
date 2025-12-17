@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import CheckboxWithLabel from '@/src/shared/components/CheckboxWithLabel';
 import { Combobox } from '@/src/shared/components/Combobox';
 import { CommandItem } from '@/src/shared/components/Command';
+import { Input } from '@/src/shared/components/Input';
 import StacQueryableFilters from '@/src/stacBrowser/components/filter-extension/StacQueryableFilters';
 import StacSearchDatePicker from '@/src/stacBrowser/components/shared/StacSearchDatePicker';
 import { useStacResultsContext } from '@/src/stacBrowser/context/StacResultsContext';
@@ -48,9 +49,10 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
   }
 
   return (
-    <div className="jgis-stac-filter-extension-panel">
+    <>
       {/* temporal extent  */}
       <div className="jgis-stac-filter-extension-section">
+        <label className="jgis-stac-filter-extension-label">Temporal Extent</label>
         <StacSearchDatePicker
           startTime={startTime}
           endTime={endTime}
@@ -61,6 +63,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
 
       {/* spatial extent  */}
       <div className="jgis-stac-filter-extension-section">
+        <label className="jgis-stac-filter-extension-label">Spatial Extent</label>
         <CheckboxWithLabel
           checked={useWorldBBox}
           onCheckedChange={setUseWorldBBox}
@@ -121,7 +124,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
         <label className="jgis-stac-filter-extension-label">
           Items per page
         </label>
-        <input
+        <Input
           type="number"
           min="1"
           max="1000"
@@ -135,7 +138,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
           className="jgis-stac-filter-extension-input"
         />
       </div>
-    </div>
+    </>
   );
 }
 
