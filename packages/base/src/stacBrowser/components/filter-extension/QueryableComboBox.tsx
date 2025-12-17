@@ -153,7 +153,9 @@ export function QueryableComboBox({
         }
         if (val.format === 'date-time') {
           // Convert UTC ISO string to Date object for SingleDatePicker
-          const parseDate = (isoString: string | undefined): Date | undefined => {
+          const parseDate = (
+            isoString: string | undefined,
+          ): Date | undefined => {
             if (!isoString) {
               return undefined;
             }
@@ -177,7 +179,7 @@ export function QueryableComboBox({
             <SingleDatePicker
               date={parseDate(currentValue as string | undefined)}
               onDateChange={handleDateChange}
-              dateFormat='P'
+              dateFormat="P"
               showIcon={true}
               placeholder="Select date"
               className="jgis-queryable-combo-input jgis-queryable-combo-input-date-picker"
@@ -305,59 +307,57 @@ export function QueryableComboBox({
       </Popover>
       <div className="jgis-queryable-rows-container">
         {selectedItems.map(([key, val]) => {
-        const operators = getOperatorsForType(val.type, val.format);
-        const currentFilter: IQueryableFilter = selectedQueryables[key] ?? {
-          operator: operators[0]?.value || '=',
-          inputValue: undefined,
-        };
+          const operators = getOperatorsForType(val.type, val.format);
+          const currentFilter: IQueryableFilter = selectedQueryables[key] ?? {
+            operator: operators[0]?.value || '=',
+            inputValue: undefined,
+          };
 
-        const handleInputChange = (value: string | number) => {
-          // For datetime values, convert local time to UTC ISO string
-          let valueToStore: string | number = value;
-          if (
-            val.type === 'string' &&
-            val.format === 'date-time' &&
-            typeof value === 'string'
-          ) {
-            try {
-              // Parse local time and convert to UTC ISO string
-              const localDate = new Date(value);
-              valueToStore = localDate.toISOString();
-            } catch {
-              valueToStore = value;
+          const handleInputChange = (value: string | number) => {
+            // For datetime values, convert local time to UTC ISO string
+            let valueToStore: string | number = value;
+            if (
+              val.type === 'string' &&
+              val.format === 'date-time' &&
+              typeof value === 'string'
+            ) {
+              try {
+                // Parse local time and convert to UTC ISO string
+                const localDate = new Date(value);
+                valueToStore = localDate.toISOString();
+              } catch {
+                valueToStore = value;
+              }
             }
-          }
 
-          updateSelectedQueryables(key, {
-            ...currentFilter,
-            inputValue: valueToStore,
-          });
-        };
+            updateSelectedQueryables(key, {
+              ...currentFilter,
+              inputValue: valueToStore,
+            });
+          };
 
-        const handleOperatorChange = (operator: Operator) => {
-          updateSelectedQueryables(key, {
-            ...currentFilter,
-            operator,
-          });
-        };
+          const handleOperatorChange = (operator: Operator) => {
+            updateSelectedQueryables(key, {
+              ...currentFilter,
+              operator,
+            });
+          };
 
-
-       
-        return (
-          <QueryableRow
-            key={key}
-            qKey={key}
-            qVal={val}
-            operators={operators}
-            currentFilter={currentFilter}
-            inputComponent={getInputBasedOnType(
-              val,
-              currentFilter.inputValue,
-              handleInputChange,
-            )}
-            onOperatorChange={handleOperatorChange}
-          />
-        );
+          return (
+            <QueryableRow
+              key={key}
+              qKey={key}
+              qVal={val}
+              operators={operators}
+              currentFilter={currentFilter}
+              inputComponent={getInputBasedOnType(
+                val,
+                currentFilter.inputValue,
+                handleInputChange,
+              )}
+              onOperatorChange={handleOperatorChange}
+            />
+          );
         })}
       </div>
     </div>

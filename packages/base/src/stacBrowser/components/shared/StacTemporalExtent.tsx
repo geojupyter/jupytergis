@@ -17,7 +17,9 @@ function StacTemporalExtent({
 }: IStacTemporalExtentProps) {
   return (
     <div className="jgis-stac-filter-extension-section">
-      <label className="jgis-stac-filter-extension-label">Temporal Extent</label>
+      <label className="jgis-stac-filter-extension-label">
+        Temporal Extent
+      </label>
       <SingleDatePicker
         date={startTime}
         onDateChange={setStartTime}

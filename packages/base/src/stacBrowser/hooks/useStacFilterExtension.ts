@@ -20,7 +20,6 @@ import { fetchWithProxies } from '@/src/tools';
 
 type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 
-
 interface IStacFilterExtensionStateDb {
   selectedCollection?: string;
   queryableFilters?: Record<

@@ -47,9 +47,7 @@ function CommandDialog({
         className={cn(className)}
         showCloseButton={showCloseButton}
       >
-        <Command>
-          {children}
-        </Command>
+        <Command>{children}</Command>
       </DialogContent>
     </Dialog>
   );
@@ -81,7 +79,7 @@ function CommandList({
   return (
     <CommandPrimitive.List
       data-slot="command-list"
-        className={cn('jgis-command-list', className)}
+      className={cn('jgis-command-list', className)}
       {...props}
     />
   );
@@ -106,7 +104,7 @@ function CommandGroup({
   return (
     <CommandPrimitive.Group
       data-slot="command-group"
-        className={cn('jgis-command-group', className)}
+      className={cn('jgis-command-group', className)}
       {...props}
     />
   );
@@ -132,7 +130,7 @@ function CommandItem({
   return (
     <CommandPrimitive.Item
       data-slot="command-item"
-        className={cn('jgis-command-item', className)}
+      className={cn('jgis-command-item', className)}
       {...props}
     />
   );
@@ -145,7 +143,7 @@ function CommandShortcut({
   return (
     <span
       data-slot="command-shortcut"
-        className={cn('jgis-command-shortcut', className)}
+      className={cn('jgis-command-shortcut', className)}
       {...props}
     />
   );

@@ -61,7 +61,7 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
     <Tabs
       defaultValue="filters"
       className="jgis-panel-tabs"
-      style={{boxShadow: 'none'}}
+      style={{ boxShadow: 'none' }}
     >
       <TabsList className="jgis-stac-panel-tabs-list">
         <TabsTrigger className="jGIS-layer-browser-category" value="filters">
@@ -111,13 +111,15 @@ const StacPanel = ({ model }: IStacViewProps) => {
 function ProviderSelect() {
   const { selectedUrl, setSelectedUrl } = useStacResultsContext();
 
-  const selectedProvider = PROVIDERS.find(provider => provider.url === selectedUrl);
+  const selectedProvider = PROVIDERS.find(
+    provider => provider.url === selectedUrl,
+  );
   const buttonText = selectedProvider?.name || 'Select a provider...';
 
   return (
     <div className="jgis-stac-filter-extension-section">
-        <label className="jgis-stac-filter-extension-label">Provider</label>
-        <Combobox
+      <label className="jgis-stac-filter-extension-label">Provider</label>
+      <Combobox
         buttonText={buttonText}
         emptyText="No provider found."
         buttonClassName="jgis-stac-filter-extension-select"

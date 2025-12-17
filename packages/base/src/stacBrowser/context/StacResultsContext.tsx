@@ -243,11 +243,7 @@ export function StacResultsProvider({
         }
 
         // Update context with results
-        setResults(
-          sortedFeatures,
-          totalResultsFromQuery,
-          totalPagesFromQuery,
-        );
+        setResults(sortedFeatures, totalResultsFromQuery, totalPagesFromQuery);
 
         // Store pagination links
         if (data.links) {
