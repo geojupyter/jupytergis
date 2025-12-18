@@ -87,41 +87,51 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
   };
 
   return (
-    <div className="jgis-stac-browser-filters-panel">
-      <StacSpatialExtent
-        checked={useWorldBBox}
-        onCheckedChange={setUseWorldBBox}
-        label="Use whole world as bounding box"
-      />
-      <StacTemporalExtent
-        startTime={startTime}
-        setStartTime={setStartTime}
-        endTime={endTime}
-        setEndTime={setEndTime}
-      />
-      <StacFilterSection
-        section="Collection"
-        data={datasetsList}
-        selectedCollections={Array.from(filterState.collections)}
-        selectedData={Array.from(filterState.datasets)}
-        handleCheckedChange={handleDatasetSelection}
-      />
-      <StacFilterSection
-        section="Platform"
-        data={platformsList}
-        selectedCollections={Array.from(filterState.collections)}
-        selectedData={Array.from(filterState.platforms)}
-        handleCheckedChange={platform => handleToggle('platforms', platform)}
-      />
-      <StacFilterSection
-        section="Data / Product"
-        data={productsList}
-        selectedCollections={Array.from(filterState.collections)}
-        selectedData={Array.from(filterState.products)}
-        handleCheckedChange={product => handleToggle('products', product)}
-      />
+    <>
+      <div className="jgis-stac-filter-extension-section">
+        <StacSpatialExtent
+          checked={useWorldBBox}
+          onCheckedChange={setUseWorldBBox}
+          label="Use whole world as bounding box"
+        />
+      </div>
+      <div className="jgis-stac-filter-extension-section">
+        <StacTemporalExtent
+          startTime={startTime}
+          setStartTime={setStartTime}
+          endTime={endTime}
+          setEndTime={setEndTime}
+        />
+      </div>
+      <div className="jgis-stac-filter-extension-section">
+        <StacFilterSection
+          section="Collection"
+          data={datasetsList}
+          selectedCollections={Array.from(filterState.collections)}
+          selectedData={Array.from(filterState.datasets)}
+          handleCheckedChange={handleDatasetSelection}
+        />
+      </div>
+      <div className="jgis-stac-filter-extension-section">
+        <StacFilterSection
+          section="Platform"
+          data={platformsList}
+          selectedCollections={Array.from(filterState.collections)}
+          selectedData={Array.from(filterState.platforms)}
+          handleCheckedChange={platform => handleToggle('platforms', platform)}
+        />
+      </div>
+      <div className="jgis-stac-filter-extension-section">
+        <StacFilterSection
+          section="Data / Product"
+          data={productsList}
+          selectedCollections={Array.from(filterState.collections)}
+          selectedData={Array.from(filterState.products)}
+          handleCheckedChange={product => handleToggle('products', product)}
+        />
+      </div>
       {/* <div>cloud cover</div> */}
-    </div>
+    </>
   );
 };
 export default StacGeodesFilterPanel;
