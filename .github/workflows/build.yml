@@ -125,11 +125,15 @@ jobs:
         with:
           environment-name: gis
           create-args: >-
+            pip
             jupyterlab=4
             yarn=3
 
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Install build deps
+        uses: pip install -r requirements-build.txt
 
       - name: Build with a fresh yarn
         shell: bash -l {0}
