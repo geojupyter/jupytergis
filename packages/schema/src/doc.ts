@@ -1,4 +1,9 @@
-import { convertYMapEventToMapChange, Delta, MapChange, YDocument } from '@jupyter/ydoc';
+import {
+  convertYMapEventToMapChange,
+  Delta,
+  MapChange,
+  YDocument,
+} from '@jupyter/ydoc';
 import { JSONExt, JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import * as Y from 'yjs';
