@@ -2,6 +2,38 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.11.0
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.10.1...2896ba993d49e66bda70e7aae50490c4a4524ced))
+
+### Enhancements made
+
+- Update jupyter-collaboration [#1040](https://github.com/geojupyter/jupytergis/pull/1040) ([@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Add radio and dialog components [#1005](https://github.com/geojupyter/jupytergis/pull/1005) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Add story maps [#994](https://github.com/geojupyter/jupytergis/pull/994) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+
+### Bugs fixed
+
+- Remove `nclasses` and `mode` from `symbologyState` for categorized symbology [#1029](https://github.com/geojupyter/jupytergis/pull/1029) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
+
+### Maintenance and upkeep improvements
+
+- Add CI test run for fresh yarn lock [#1041](https://github.com/geojupyter/jupytergis/pull/1041) ([@martinRenou](https://github.com/martinRenou))
+- Using raw github url for image [#1039](https://github.com/geojupyter/jupytergis/pull/1039) ([@nakul-py](https://github.com/nakul-py), [@arjxn-py](https://github.com/arjxn-py))
+- Correct spelling mistakes [#1036](https://github.com/geojupyter/jupytergis/pull/1036) ([@EdwardBetts](https://github.com/EdwardBetts), [@mfisher87](https://github.com/mfisher87))
+- Improve PyPI metadata and classifiers [#1032](https://github.com/geojupyter/jupytergis/pull/1032) ([@ktaletsk](https://github.com/ktaletsk), [@mfisher87](https://github.com/mfisher87))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-12-05&to=2025-12-18&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-12-05..2025-12-18&type=Issues)) | @EdwardBetts ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AEdwardBetts+updated%3A2025-12-05..2025-12-18&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2025-12-05..2025-12-18&type=Issues)) | @krassowski ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Akrassowski+updated%3A2025-12-05..2025-12-18&type=Issues)) | @ktaletsk ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aktaletsk+updated%3A2025-12-05..2025-12-18&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-12-05..2025-12-18&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-12-05..2025-12-18&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2025-12-05..2025-12-18&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.10.1
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.10.0...0109921f4ec34eef5e56a386a157ac6c06551698))
@@ -19,8 +51,6 @@
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-12-04&to=2025-12-05&type=c))
 
 [@mfisher87](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-12-04..2025-12-05&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.10.0
 
