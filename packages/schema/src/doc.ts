@@ -1,4 +1,4 @@
-import { Delta, MapChange, YDocument } from '@jupyter/ydoc';
+import { convertYMapEventToMapChange, Delta, MapChange, YDocument } from '@jupyter/ydoc';
 import { JSONExt, JSONObject } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import * as Y from 'yjs';
@@ -462,11 +462,11 @@ export class JupyterGISDoc
   }
 
   private _optionsObserver = (event: Y.YMapEvent<Y.Map<string>>): void => {
-    this._optionsChanged.emit(event.keys);
+    this._optionsChanged.emit(convertYMapEventToMapChange(event));
   };
 
   private _metaObserver = (event: Y.YMapEvent<string>): void => {
-    this._metadataChanged.emit(event.keys);
+    this._metadataChanged.emit(convertYMapEventToMapChange(event));
   };
 
   private _layers: Y.Map<any>;
