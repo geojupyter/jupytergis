@@ -18,7 +18,11 @@ const PaginationContent = React.forwardRef<
   HTMLUListElement,
   React.ComponentProps<'ul'>
 >(({ className, ...props }, ref) => (
-  <ul ref={ref} className={cn('jgis-pagination-content', className)} {...props} />
+  <ul
+    ref={ref}
+    className={cn('jgis-pagination-content', className)}
+    {...props}
+  />
 ));
 PaginationContent.displayName = 'PaginationContent';
 
