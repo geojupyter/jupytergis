@@ -133,7 +133,8 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Install build deps
-        uses: pip install -r requirements-build.txt
+        shell: bash -l {0}
+        run: pip install -r requirements-build.txt
 
       - name: Build with a fresh yarn
         shell: bash -l {0}
