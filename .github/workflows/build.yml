@@ -116,6 +116,28 @@ jobs:
         shell: bash -l {0}
         run: pytest --color=yes -v python/jupytergis_lab/
 
+  fresh_yarn_lock_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: gis
+          create-args: >-
+            jupyterlab=4
+            yarn=3
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build with a fresh yarn
+        shell: bash -l {0}
+        run: |
+          rm yarn.lock
+          jlpm
+          jlpm run build:prod
+
   test_isolated:
     needs: build
     runs-on: ubuntu-latest
