@@ -1,4 +1,3 @@
-import { ICollaborativeDrive } from '@jupyter/collaborative-drive';
 import {
   JupyterGISOutputWidget,
   JupyterGISPanel,
@@ -24,7 +23,7 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { ConsolePanel } from '@jupyterlab/console';
 import { PathExt } from '@jupyterlab/coreutils';
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { Contents } from '@jupyterlab/services';
+import { Contents, IDefaultDrive } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { Toolbar } from '@jupyterlab/ui-components';
@@ -140,7 +139,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     IJGISExternalCommandRegistryToken,
     IJupyterGISDocTracker,
     IJupyterYWidgetManager,
-    ICollaborativeDrive,
+    IDefaultDrive,
     IStateDB,
     IAnnotationToken,
     ISettingRegistry,
@@ -151,7 +150,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
     externalCommandRegistry?: IJGISExternalCommandRegistry,
     jgisTracker?: JupyterGISTracker,
     yWidgetManager?: IJupyterYWidgetManager,
-    drive?: ICollaborativeDrive,
+    drive?: Contents.IDrive,
     state?: IStateDB,
     annotationModel?: IAnnotationModel,
     settingRegistry?: ISettingRegistry,
@@ -209,7 +208,18 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           );
         }
 
-        const sharedModel = drive.sharedModelFactory.createNew({
+        const sharedFactory = app.serviceManager.contents.getSharedModelFactory(
+          localPath,
+          { contentProviderId: 'rtc' },
+        );
+
+        if (!sharedFactory) {
+          throw new Error(
+            'Cannot initialize JupyterGIS notebook renderer without a sharedModelFactory',
+          );
+        }
+
+        const sharedModel = sharedFactory.createNew({
           path: localPath,
           format: fileFormat,
           contentType,

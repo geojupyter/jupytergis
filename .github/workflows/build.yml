@@ -134,13 +134,10 @@ jobs:
           sudo rm -rf $(which node)
 
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl "jupyterlab==4.4.2"
+          python -m pip install jupytergis*.whl "jupyterlab==4.5.1"
 
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -ie "jupytergis.*OK"
-          # jupyterlab.browser_check will fail due to the core extension jupyterlab_pygments.
-          # It does not support lab v4.0.0
-          #python -m jupyterlab.browser_check --no-chrome-test
 
   integration-tests:
     name: Integration tests
@@ -161,7 +158,7 @@ jobs:
           environment-name: gis
           create-args: >-
             python=3.12
-            jupyterlab=4
+            jupyterlab
             ipywidgets
             qgis
 
@@ -175,7 +172,7 @@ jobs:
         run: |
           set -eux
           cp ./jupytergis/dist/jupytergis*.whl ./jupytergis_core/dist/jupytergis*.whl ./jupytergis_lab/dist/jupytergis*.whl ./jupytergis_qgis/dist/jupytergis*.whl .
-          python -m pip install jupytergis*.whl "jupyter-collaboration>=3,<4" "jupyterlab==4.4.2"
+          python -m pip install jupytergis*.whl "jupyter-collaboration>=4,<5" "jupyterlab==4.5.1"
 
       - name: Install
         shell: bash -l {0}
