@@ -84,6 +84,8 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
           }
           emptyText="No collection found."
           buttonClassName="jgis-stac-filter-extension-select"
+          showSearch={true}
+          searchPlaceholder="Search collections..."
         />
       </div>
 
