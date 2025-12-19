@@ -4,15 +4,15 @@
 }
 
 .jgis-stac-browser-section-item {
-  border-radius: 1rem !important;
+  border-radius: 1rem;
   cursor: pointer;
 }
 
 .jgis-stac-browser-results-item {
-  border-radius: 1rem !important;
+  border-radius: 1rem;
   cursor: pointer;
-  white-space: normal !important;
-  height: auto !important;
+  white-space: normal;
+  height: auto;
 }
 
 .jgis-stac-browser-results-list {
@@ -77,7 +77,7 @@
 
 .jgis-stac-badge {
   gap: 0.25rem;
-  padding-right: 0.3rem !important;
+  padding-right: 0.3rem;
 }
 
 .jgis-stac-badge-icon:hover {
@@ -85,7 +85,7 @@
     in srgb,
     var(--jp-error-color0),
     transparent 20%
-  ) !important;
+  );
 }
 
 .jgis-stac-filter-extension-panel {
@@ -106,23 +106,16 @@
   font-weight: 500;
 }
 
+/* Modifier for filter extension select - uses shared combobox base */
 .jgis-stac-filter-extension-select {
   max-width: 200px;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  border: 1px solid var(--jp-border-color0);
-  height: auto !important;
 }
 
-.jgis-stac-filter-extension-input {
-  padding: 0.5rem 1rem !important;
-  border-radius: 0 !important;
-  width: auto !important;
-  box-sizing: content-box;
-}
+
 
 .jgis-stac-filter-extension-input [data-slot='input'] {
-  width: auto;
+  /* width: auto; */
+  height: 2.25rem;
 }
 
 .jgis-stac-filter-extension-button-container {
@@ -132,15 +125,16 @@
 
 .jgis-stac-filter-extension-button {
   padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
+  border-radius: var(--jp-border-radius, 0.375rem);
   border: 1px solid var(--jp-border-color0);
   background-color: var(--jp-layout-color0);
   color: var(--jp-ui-font-color0);
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .jgis-stac-panel-tabs-list {
-  border-radius: 0 !important;
+  border-radius: 0;
 }
 
 .jgis-stac-panel-placeholder {
@@ -160,45 +154,42 @@
 
 /* QueryableComboBox styles */
 .jgis-queryable-combo-container {
-  display: flex !important;
-  flex-direction: column !important;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
+/* Modifiers for queryable combo - uses shared combobox base */
 .jgis-queryable-combo-button {
   width: 100%;
-  justify-content: space-between !important;
 }
 
-.jgis-queryable-combo-icon {
-  margin-left: 0.5rem;
-  height: 1rem;
-  width: 1rem;
-  flex-shrink: 0;
-  opacity: 0.5;
+/* More specific selector to override [data-slot="input"] styles for Input components */
+.jgis-queryable-combo-input[data-slot='input'] {
+  padding: 0.25rem;
+  padding-left: 1rem;
+  height: 1.5rem;
 }
 
-.jgis-queryable-combo-popover {
-  width: 200px;
-  padding: 0;
+/* More specific selector to override button base styles for Select/SingleDatePicker buttons */
+.jgis-button.jgis-queryable-combo-input {
+  padding: 0.25rem;
+  padding-left: 1rem;
+  height: 1.5rem;
+  /* border-radius: 0; */
 }
 
-.jgis-queryable-combo-check-icon {
-  margin-right: 0.5rem;
-  height: 1rem;
-  width: 1rem;
+/* More specific selector to override button base styles */
+.jgis-button.jgis-queryable-combo-input-date-picker {
+  /* height: 1.125rem; */
+  justify-content: flex-start;
+  /* padding-top: 0.25rem; */
+  /* padding-bottom: 0.25rem; */
 }
 
-.jgis-queryable-combo-input {
-  border-radius: 0 !important;
-  padding: 0.25rem 1rem !important;
-  justify-content: space-between !important;
-}
-
-.jgis-queryable-combo-input-date-picker {
-  height: 1.125rem !important;
-  box-sizing: content-box;
-  justify-content: flex-start !important;
+.jgis-queryable-combo-input.jgis-combobox-button-text {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .jgis-queryable-rows-container {
@@ -235,6 +226,7 @@
 }
 
 .jgis-panel-tab-content-stac-panel {
-  padding-top: 0 !important;
+  padding-top: 0;
   border-top: 1px solid var(--jp-border-color0);
 }
+

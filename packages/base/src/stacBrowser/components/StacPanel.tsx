@@ -1,8 +1,10 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-import { Combobox } from '@/src/shared/components/Combobox';
-import { CommandItem } from '@/src/shared/components/Command';
+import {
+	Select,
+	type ISelectItem,
+} from '@/src/shared/components/Select';
 import {
   Tabs,
   TabsContent,
@@ -116,25 +118,21 @@ function ProviderSelect() {
   );
   const buttonText = selectedProvider?.name || 'Select a provider...';
 
+  const items: ISelectItem[] = PROVIDERS.map(provider => ({
+    value: provider.url,
+    label: provider.name,
+    onSelect: () => setSelectedUrl(provider.url),
+  }));
+
   return (
     <div className="jgis-stac-filter-extension-section">
       <label className="jgis-stac-filter-extension-label">Provider</label>
-      <Combobox
+      <Select
+        items={items}
         buttonText={buttonText}
         emptyText="No provider found."
         buttonClassName="jgis-stac-filter-extension-select"
-        showSearch={false}
-      >
-        {PROVIDERS.map(provider => (
-          <CommandItem
-            key={provider.url}
-            value={provider.name}
-            onSelect={() => setSelectedUrl(provider.url)}
-          >
-            {provider.name}
-          </CommandItem>
-        ))}
-      </Combobox>
+      />
     </div>
   );
 }

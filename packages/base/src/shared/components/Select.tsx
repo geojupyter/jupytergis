@@ -1,4 +1,4 @@
-import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
+import { ChevronsUpDownIcon } from 'lucide-react';
 import React, { useState } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
@@ -6,7 +6,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from '@/src/shared/components/Command';
@@ -17,43 +16,37 @@ import {
 } from '@/src/shared/components/Popover';
 import { cn } from './utils';
 
-export interface IComboboxItem {
+export interface ISelectItem {
   value: string;
   label: string;
   onSelect?: () => void;
-  selected?: boolean;
-  showCheckIcon?: boolean;
 }
 
-interface IComboboxProps {
-  items: IComboboxItem[];
+interface ISelectProps {
+  items: ISelectItem[];
   buttonText: string;
-  searchPlaceholder?: string;
   emptyText?: string;
   className?: string;
   buttonClassName?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  showSearch?: boolean;
 }
 
-export function Combobox({
+export function Select({
   items,
   buttonText,
-  searchPlaceholder = 'Search...',
   emptyText = 'No option found.',
   className,
   buttonClassName,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
-  showSearch = true,
-}: IComboboxProps) {
+}: ISelectProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
 
-  const handleSelect = (item: IComboboxItem) => {
-    // Don't close automatically - allow multi-select
+  const handleSelect = (item: ISelectItem) => {
+    setOpen(false);
     if (item.onSelect) {
       item.onSelect();
     }
@@ -72,9 +65,8 @@ export function Combobox({
           <ChevronsUpDownIcon className="jgis-combobox-icon" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className={cn('jgis-combobox-popover', className)}>
+      <PopoverContent className={cn('jgis-select-popover', className)}>
         <Command>
-          {showSearch && <CommandInput placeholder={searchPlaceholder} />}
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
@@ -84,14 +76,6 @@ export function Combobox({
                   value={item.label}
                   onSelect={() => handleSelect(item)}
                 >
-                  {item.showCheckIcon && (
-                    <CheckIcon
-                      className="jgis-combobox-check-icon"
-                      style={{
-                        opacity: item.selected ? 1 : 0,
-                      }}
-                    />
-                  )}
                   {item.label}
                 </CommandItem>
               ))}
