@@ -1,22 +1,8 @@
-import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 
-import { Button } from '@/src/shared/components/Button';
 import { Combobox } from '@/src/shared/components/Combobox';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/src/shared/components/Command';
 import { Input } from '@/src/shared/components/Input';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/src/shared/components/Popover';
+import { Select } from '@/src/shared/components/Select';
 import QueryableRow from '@/src/stacBrowser/components/filter-extension/QueryableRow';
 import {
   IQueryableFilter,
@@ -43,8 +29,6 @@ export function QueryableComboBox({
   selectedQueryables,
   updateSelectedQueryables,
 }: IQueryableComboProps) {
-  const [open, setOpen] = useState(false);
-
   // Derive selected items from selectedQueryables
   const selectedItems = useMemo(() => {
     return queryables.filter(([key]) => key in selectedQueryables);
@@ -76,8 +60,6 @@ export function QueryableComboBox({
         inputValue: initialInputValue,
       });
     }
-
-    setOpen(false);
   };
 
   const getOperatorsForType = (
@@ -133,22 +115,16 @@ export function QueryableComboBox({
             : 'Select option...';
 
           return (
-            <Combobox
+            <Select
+              items={val.enum.map(option => ({
+                value: String(option),
+                label: String(option),
+                onSelect: () => onChange(String(option)),
+              }))}
               buttonText={buttonText}
               emptyText="No option found."
               buttonClassName="jgis-queryable-combo-input"
-              showSearch={false}
-            >
-              {val.enum.map(option => (
-                <CommandItem
-                  key={String(option)}
-                  value={String(option)}
-                  onSelect={() => onChange(String(option))}
-                >
-                  {String(option)}
-                </CommandItem>
-              ))}
-            </Combobox>
+            />
           );
         }
         if (val.format === 'date-time') {
@@ -206,22 +182,16 @@ export function QueryableComboBox({
             : 'Select option...';
 
           return (
-            <Combobox
+            <Select
+              items={val.enum.map(option => ({
+                value: String(option),
+                label: String(option),
+                onSelect: () => onChange(Number(option)),
+              }))}
               buttonText={buttonText}
               emptyText="No option found."
               buttonClassName="jgis-queryable-combo-input"
-              showSearch={false}
-            >
-              {val.enum.map(option => (
-                <CommandItem
-                  key={String(option)}
-                  value={String(option)}
-                  onSelect={() => onChange(Number(option))}
-                >
-                  {String(option)}
-                </CommandItem>
-              ))}
-            </Combobox>
+            />
           );
         }
         return (
@@ -260,51 +230,23 @@ export function QueryableComboBox({
     return key in selectedQueryables;
   };
 
+  const items = queryables.map(([key, val]) => ({
+    value: key,
+    label: val.title || key,
+    selected: isSelected(key),
+    showCheckIcon: true,
+    onSelect: () => handleSelect(key, val),
+  }));
+
   return (
     <div className="jgis-queryable-combo-container">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="jgis-queryable-combo-button"
-          >
-            {getButtonText()}
-            <ChevronsUpDownIcon className="jgis-queryable-combo-icon" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="jgis-queryable-combo-popover">
-          <Command>
-            <CommandInput
-              placeholder="Search queryable..."
-              style={{ height: '1rem' }}
-            />
-            <CommandList>
-              <CommandEmpty>No queryable found.</CommandEmpty>
-              <CommandGroup>
-                {queryables.map(([key, val]) => (
-                  <CommandItem
-                    key={key}
-                    value={val.title || key}
-                    onSelect={() => {
-                      handleSelect(key, val);
-                    }}
-                  >
-                    <CheckIcon
-                      className="jgis-queryable-combo-check-icon"
-                      style={{
-                        opacity: isSelected(key) ? 1 : 0,
-                      }}
-                    />
-                    {val.title || key}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      <Combobox
+        items={items}
+        buttonText={getButtonText()}
+        searchPlaceholder="Search queryable..."
+        emptyText="No queryable found."
+        buttonClassName="jgis-queryable-combo-button jgis-combobox-button--full-width"
+      />
       <div className="jgis-queryable-rows-container">
         {selectedItems.map(([key, val]) => {
           const operators = getOperatorsForType(val.type, val.format);

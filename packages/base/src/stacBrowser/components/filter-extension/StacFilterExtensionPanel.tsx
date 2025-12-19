@@ -1,9 +1,8 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useState } from 'react';
 
-import { Combobox } from '@/src/shared/components/Combobox';
-import { CommandItem } from '@/src/shared/components/Command';
 import { Input } from '@/src/shared/components/Input';
+import { Select } from '@/src/shared/components/Select';
 import StacQueryableFilters from '@/src/stacBrowser/components/filter-extension/StacQueryableFilters';
 import StacSpatialExtent from '@/src/stacBrowser/components/shared/StacSpatialExtent';
 import StacTemporalExtent from '@/src/stacBrowser/components/shared/StacTemporalExtent';
@@ -20,7 +19,6 @@ type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
 function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
   const { selectedUrl } = useStacResultsContext();
   const [limit, setLimit] = useState<number>(12);
-  const [collectionComboboxOpen, setCollectionComboboxOpen] = useState(false);
 
   const {
     queryableFields,
@@ -72,8 +70,12 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
       {/* collections */}
       <div className="jgis-stac-filter-extension-section">
         <label className="jgis-stac-filter-extension-label">Collection</label>
-        <Combobox
-          showSearch={false}
+        <Select
+          items={collections.map((option: FilteredCollection) => ({
+            value: option.id,
+            label: option.title || option.id,
+            onSelect: () => setSelectedCollection(option.id),
+          }))}
           buttonText={
             selectedCollection
               ? collections.find(c => c.id === selectedCollection)?.title ||
@@ -82,22 +84,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
           }
           emptyText="No collection found."
           buttonClassName="jgis-stac-filter-extension-select"
-          open={collectionComboboxOpen}
-          onOpenChange={setCollectionComboboxOpen}
-        >
-          {collections.map((option: FilteredCollection) => (
-            <CommandItem
-              key={option.id}
-              value={option.title}
-              onSelect={() => {
-                setSelectedCollection(option.id);
-                setCollectionComboboxOpen(false);
-              }}
-            >
-              {option.title}
-            </CommandItem>
-          ))}
-        </Combobox>
+        />
       </div>
 
       {/* Queryable filters */}
