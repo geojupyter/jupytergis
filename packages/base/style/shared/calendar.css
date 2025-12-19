@@ -272,3 +272,9 @@
   height: 2.5rem;
   align-items: center;
 }
+
+/* Unset width and border when popover contains calendar */
+.jgis-popover-content:has(> .jgis-calendar-container) {
+  width: unset;
+  border: unset;
+}
