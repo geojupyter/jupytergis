@@ -35,7 +35,9 @@
 }
 
 .jgis-command [cmdk-input] {
-  height: 3rem;
+	height: 1.5rem;
+	box-sizing: border-box;
+	padding: 1rem 0.5rem;
 }
 
 .jgis-command [cmdk-item] {

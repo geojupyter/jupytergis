@@ -107,9 +107,9 @@
   max-width: 200px;
 }
 
-.jgis-stac-filter-extension-input [data-slot='input'] {
-  /* width: auto; */
-  height: 2.25rem;
+.jgis-stac-filter-extension-input[data-slot='input'] {
+  height: 1.5rem;
+  padding: 1rem 0.5rem;
 }
 
 .jgis-stac-filter-extension-button-container {
@@ -160,8 +160,8 @@
 
 /* More specific selector to override [data-slot="input"] styles for Input components */
 .jgis-queryable-combo-input[data-slot='input'] {
-  padding: 0.25rem;
-  padding-left: 1rem;
+  padding: 0.5rem;
+  /* padding-left: 1rem; */
   height: 1.5rem;
 }
 
@@ -174,10 +174,9 @@
 /* Include jgis-combobox-button to increase specificity for Select components */
 .jgis-button.jgis-combobox-button.jgis-queryable-combo-input,
 .jgis-button.jgis-queryable-combo-input {
-  padding: 0.25rem;
-  padding-left: 1rem;
+  padding: 0.5rem;
+  /* padding-left: 1rem; */
   height: 1.5rem;
-  /* justify-content: flex-start; */
 }
 
 .jgis-button.jgis-combobox-button.jgis-queryable-combo-input > .jgis-combobox-button-text {
@@ -227,7 +226,11 @@
   margin-top: 0;
 }
 
-.jgis-panel-tab-content-stac-panel {
+.jgis-panel-tab-content.jgis-panel-tab-content-stac-panel {
   padding-top: 0;
   border-top: 1px solid var(--jp-border-color0);
+}
+
+.jgis-panel-tab-content.jgis-panel-tab-content-stac-panel .jgis-stac-panel-tabs-list {
+  border-radius: 0;
 }
