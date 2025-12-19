@@ -179,7 +179,8 @@
   height: 1.5rem;
 }
 
-.jgis-button.jgis-combobox-button.jgis-queryable-combo-input > .jgis-combobox-button-text {
+.jgis-button.jgis-combobox-button.jgis-queryable-combo-input
+  > .jgis-combobox-button-text {
   text-align: left;
 }
 
@@ -231,6 +232,7 @@
   border-top: 1px solid var(--jp-border-color0);
 }
 
-.jgis-panel-tab-content.jgis-panel-tab-content-stac-panel .jgis-stac-panel-tabs-list {
+.jgis-panel-tab-content.jgis-panel-tab-content-stac-panel
+  .jgis-stac-panel-tabs-list {
   border-radius: 0;
 }

@@ -1,10 +1,7 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-import {
-	Select,
-	type ISelectItem,
-} from '@/src/shared/components/Select';
+import { Select, type ISelectItem } from '@/src/shared/components/Select';
 import {
   Tabs,
   TabsContent,
