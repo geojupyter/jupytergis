@@ -6,6 +6,7 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
   CommandList,
 } from '@/src/shared/components/Command';
@@ -30,6 +31,8 @@ interface ISelectProps {
   buttonClassName?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  showSearch?: boolean;
+  searchPlaceholder?: string;
 }
 
 export function Select({
@@ -40,6 +43,8 @@ export function Select({
   buttonClassName,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
+  showSearch = false,
+  searchPlaceholder = 'Search...',
 }: ISelectProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -67,6 +72,7 @@ export function Select({
       </PopoverTrigger>
       <PopoverContent className={cn('jgis-select-popover', className)}>
         <Command>
+          {showSearch && <CommandInput placeholder={searchPlaceholder} />}
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
