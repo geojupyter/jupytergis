@@ -6,7 +6,7 @@
   justify-content: space-between;
   align-items: center;
   white-space: preserve-breaks;
-  padding: 0.25rem;
+  padding: 1rem 0.5rem;
   box-sizing: border-box;
   border-radius: var(--jp-border-radius, 0.375rem);
   border: 1px solid var(--jp-border-color0);

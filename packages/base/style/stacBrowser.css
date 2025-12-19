@@ -171,7 +171,14 @@
   height: 1.5rem;
 }
 
+/* More specific selector to override combobox button styles for operator Select */
+.jgis-button.jgis-combobox-button.jgis-queryable-combo-operator {
+  padding: 0.25rem;
+}
+
 /* More specific selector to override button base styles for Select/SingleDatePicker buttons */
+/* Include jgis-combobox-button to increase specificity for Select components */
+.jgis-button.jgis-combobox-button.jgis-queryable-combo-input,
 .jgis-button.jgis-queryable-combo-input {
   padding: 0.25rem;
   padding-left: 1rem;
@@ -181,10 +188,7 @@
 
 /* More specific selector to override button base styles */
 .jgis-button.jgis-queryable-combo-input-date-picker {
-  /* height: 1.125rem; */
   justify-content: flex-start;
-  /* padding-top: 0.25rem; */
-  /* padding-bottom: 0.25rem; */
 }
 
 .jgis-queryable-combo-input.jgis-combobox-button-text {

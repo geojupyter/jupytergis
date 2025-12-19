@@ -50,6 +50,7 @@ function QueryableRow({
         items={items}
         buttonText={String(buttonText)}
         emptyText="No operator found."
+        buttonClassName='jgis-queryable-combo-operator'
       />
       {inputComponent}
     </div>
