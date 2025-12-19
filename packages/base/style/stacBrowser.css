@@ -81,11 +81,7 @@
 }
 
 .jgis-stac-badge-icon:hover {
-  background-color: color-mix(
-    in srgb,
-    var(--jp-error-color0),
-    transparent 20%
-  );
+  background-color: color-mix(in srgb, var(--jp-error-color0), transparent 20%);
 }
 
 .jgis-stac-filter-extension-panel {
@@ -110,8 +106,6 @@
 .jgis-stac-filter-extension-select {
   max-width: 200px;
 }
-
-
 
 .jgis-stac-filter-extension-input [data-slot='input'] {
   /* width: auto; */
@@ -183,7 +177,11 @@
   padding: 0.25rem;
   padding-left: 1rem;
   height: 1.5rem;
-  /* border-radius: 0; */
+  /* justify-content: flex-start; */
+}
+
+.jgis-button.jgis-combobox-button.jgis-queryable-combo-input > .jgis-combobox-button-text {
+  text-align: left;
 }
 
 /* More specific selector to override button base styles */
@@ -233,4 +231,3 @@
   padding-top: 0;
   border-top: 1px solid var(--jp-border-color0);
 }
-
