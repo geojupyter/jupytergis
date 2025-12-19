@@ -1,9 +1,6 @@
 import React from 'react';
 
-import {
-	Select,
-	type ISelectItem,
-} from '@/src/shared/components/Select';
+import { Select, type ISelectItem } from '@/src/shared/components/Select';
 import {
   IQueryableFilter,
   IStacQueryableSchema,
@@ -50,7 +47,7 @@ function QueryableRow({
         items={items}
         buttonText={String(buttonText)}
         emptyText="No operator found."
-        buttonClassName='jgis-queryable-combo-operator'
+        buttonClassName="jgis-queryable-combo-operator"
       />
       {inputComponent}
     </div>
