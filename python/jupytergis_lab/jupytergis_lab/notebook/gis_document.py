@@ -323,10 +323,10 @@ class GISDocument(CommWidget):
     def add_image_layer(
         self,
         url: str,
-        coordinates = None,
+        coordinates=None,
         name: str = "Image Layer",
         opacity: float = 1,
-        world: str=None
+        world: str = None,
     ):
         """
         Add a Image Layer to the document.
@@ -340,30 +340,37 @@ class GISDocument(CommWidget):
 
         if url is None:
             raise ValueError("URL is required")
-        
+
         if coordinates is None and world is None:
             raise ValueError("Coordinates or world file is required")
-        
-        if coordinates is None:
 
+        if coordinates is None:
             ext = Path(world).suffix.lower()
-            if ext not in {".wld", ".jgw", ".jpgw", ".pgw", ".tfw", ".gfw", ".bpw", ".blw"}:
+            if ext not in {
+                ".wld",
+                ".jgw",
+                ".jpgw",
+                ".pgw",
+                ".tfw",
+                ".gfw",
+                ".bpw",
+                ".blw",
+            }:
                 raise ValueError(f"Unrecognized world file extension: {ext}")
 
             try:
-                with open(world, 'r') as file:
+                with open(world, "r") as file:
                     lines = file.readlines()
 
                     if len(lines) != 6:
                         raise ValueError("Invalid world file format")
-                    
+
                     world_A = float(lines[0].strip())  # pixel size x
                     world_D = float(lines[1].strip())  # rotation / row term
                     world_B = float(lines[2].strip())  # rotation / column term
                     world_E = float(lines[3].strip())  # pixel size y (often negative)
                     world_C = float(lines[4].strip())  # x of center of upper-left pixel
                     world_F = float(lines[5].strip())  # y of center of upper-left pixel
-
 
                     with Image.open(url) as img:
                         width, height = img.size
@@ -372,14 +379,15 @@ class GISDocument(CommWidget):
                         x_prime = world_A * col + world_B * row + world_C
                         y_prime = world_D * col + world_E * row + world_F
                         return [x_prime, y_prime]
-                
-                    coordinates = [world_affine(0,0),
-                                   world_affine(width,0),
-                                   world_affine(width,height),
-                                   world_affine(0,height)]
+
+                    coordinates = [
+                        world_affine(0, 0),
+                        world_affine(width, 0),
+                        world_affine(width, height),
+                        world_affine(0, height),
+                    ]
             except:
                 raise ValueError("Failed to read world file or generate coordinates")
-            
 
         source = {
             "type": SourceType.ImageSource,
