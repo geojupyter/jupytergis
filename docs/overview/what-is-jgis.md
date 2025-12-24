@@ -42,5 +42,5 @@ While QGIS serves this need very well, the friction and mental context switching
 introduced by working in two disjoint applications presents a definite challenge.
 
 With these lessons in mind, we feel that our primary focus on JupyterGIS should _not_ be
-on reimplimenting "geoprocessing" toolboxes, and that we should instead focus on utility
+on reimplementing "geoprocessing" toolboxes, and that we should instead focus on utility
 functionality that **supports and streamlines** analysis done in a Notebook environment.

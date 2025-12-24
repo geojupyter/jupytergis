@@ -45,7 +45,7 @@ The elements shown in the figure above are:
 1. Application Launcher: Where you select which application you want to start - e.g. a Notebook, a Console, another application such as a Terminal, or open a GIS file (which can be either a JupyterGIS file or a QGIS file).
 2. Left Sidebar: Contains a file browser, panels that show a list of open tabs in the main work space and for running kernels and terminals, collaboration features, the table of contents (for notebooks or other files with headers), the extension manager, and the JupyterGIS extension which allows you to see the GIS layers list.
 3. GIS Layers List / Browser Panel.
-4. Right Sidebar: Contains the property inspector (active in notebooks), kernal usage, the debugger, and GIS object properties, annotation and filters.
+4. Right Sidebar: Contains the property inspector (active in notebooks), kernel usage, the debugger, and GIS object properties, annotation and filters.
 5. The GIS object properties, annotations and filters of a selected GIS layer.
 6. The Jupyter Toolbar Menu: Used with Jupyter Notebooks.
 7. The Log Console: Used for debugging.
