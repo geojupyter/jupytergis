@@ -173,7 +173,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   );
 
   return (
-    <Draggable handle=".jgis-drag-handle" bounds=".jGIS-Mainview-Container">
+    <Draggable handle=".jgis-drag-handle" bounds=".jGIS-Mainview">
       <div
         className="jgis-left-panel-container"
         style={{ display: leftPanelVisible ? 'block' : 'none' }}

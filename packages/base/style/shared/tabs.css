@@ -17,31 +17,39 @@
   width: 20px;
   height: 20px;
   cursor: grab;
-  color: var(--jp-ui-font-color2);
+  color: var(--jp-ui-font-color1);
   user-select: none;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+  background-color: var(--jp-layout-color2, rgba(0, 0, 0, 0.05));
+  border-radius: 2px;
+}
+
+.jgis-drag-handle:hover {
+  outline: 2px solid var(--jp-brand-color1, rgb(22, 147, 248));
+  outline-offset: -1px;
+  border-radius: 2px;
 }
 
 .jgis-drag-handle:active {
   cursor: grabbing;
 }
 
-.jgis-drag-handle i {
-  pointer-events: none;
-}
-
 .jgis-drag-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow:
-    0 4px 8px 0 rgba(0, 0, 0, 0.2),
-    0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.2s ease;
 }
 
 .jgis-drag-icon svg {
   width: 14px;
   height: 14px;
-  color: var(--jp-ui-font-color2);
+  fill: currentColor;
+  pointer-events: none;
 }
 
 .jgis-tabs-list {
