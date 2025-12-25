@@ -110,7 +110,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   };
 
   return (
-    <Draggable handle=".jgis-drag-handle" bounds=".jGIS-Mainview">
+    <Draggable handle=".jgis-drag-handle" bounds="#jp-main-dock-panel">
       <div
         className="jgis-right-panel-container"
         style={{ display: rightPanelVisible ? 'block' : 'none' }}

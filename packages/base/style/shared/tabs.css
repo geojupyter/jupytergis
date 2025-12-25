@@ -26,7 +26,8 @@
   border-radius: 2px;
 }
 
-.jgis-drag-handle:hover {
+.jgis-drag-handle:hover,
+.jgis-drag-handle:active {
   outline: 2px solid var(--jp-brand-color1, rgb(22, 147, 248));
   outline-offset: -1px;
   border-radius: 2px;
