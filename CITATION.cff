@@ -1,0 +1,74 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it using the metadata from this file.
+
+title: "JupyterGIS"
+url: "https://jupytergis.readthedocs.io"
+repository-code: "https://github.com/geojupyter/jupytergis"
+# doi: "TODO"
+abstract: >-
+  JupyterGIS is a collaborative Geographical Information System (GIS)
+  environment in JupyterLab.
+
+type: "software"
+license: ["BSD-3-Clause"]
+keywords:
+  - "Jupyter"
+  - "GIS"
+  - "Python"
+
+contact:
+  - name: "The GeoJupyter Community"
+    website: "https://geojupyter.org"
+  - name: "The GeoJupyter Community Chat"
+    website: "https://jupyter.zulipchat.com"
+
+version: "0.11.1"
+date-released: "2025-12-18"
+
+# TODO: More comprehensive authors list. Initialized from the JOSS paper.
+authors:
+  - name: "The GeoJupyter Community"
+  - family-names: "Renou"
+    given-names: "Martin"
+    orcid: "https://orcid.org/0009-0002-3422-9156"
+    affiliation: "QuantStack, France"
+  - family-names: "Verma"
+    given-names: "Arjun"
+    orcid: "https://orcid.org/0009-0007-3278-9607"
+    affiliation: "QuantStack, France"
+  - family-names: "Fisher"
+    given-names: "Matt"
+    orcid: "https://orcid.org/0000-0003-3260-5445"
+    affiliation: "Eric and Wendy Schmidt Center for Data Science & Environment at UC Berkeley, United States"
+  - family-names: "Mooney"
+    given-names:  "Gregory"
+    affiliation: "QuantStack, France"
+  - family-names: "Brichet"
+    given-names: "Nicolas"
+    orcid: "https://orcid.org/0009-0009-2649-1809"
+    affiliation: "QuantStack, France"
+  - family-names: "Brochart"
+    given-names: "David"
+    orcid: "https://orcid.org/0009-0007-2318-0285"
+    affiliation: "QuantStack, France"
+  - family-names: "Fouilloux"
+    given-names: "Anne"
+    orcid: "https://orcid.org/0000-0002-1784-2920"
+    affiliation: "LifeWatch ERIC, Spain"
+  - family-names: "Corlay"
+    given-names: "Sylvain"
+    orcid: "https://orcid.org/0009-0007-2816-4102"
+    affiliation: "QuantStack, France"
+
+
+# TODO: Fill in grant numbers. Are there more grants?
+# references:
+#   - type: "grant"
+#     intitution:
+#       name: "European Space Agency"
+#     number: "TODO"
+#   - type: "grant"
+#     institution:
+#       name: "Centre national d'études spatiales"
+#     number: "TODO"
