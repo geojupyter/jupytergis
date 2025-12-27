@@ -43,6 +43,7 @@ authors:
     affiliation: "Eric and Wendy Schmidt Center for Data Science & Environment at UC Berkeley, United States"
   - family-names: "Mooney"
     given-names:  "Gregory"
+    orcid: "https://orcid.org/0009-0007-5501-6471"
     affiliation: "QuantStack, France"
   - family-names: "Brichet"
     given-names: "Nicolas"
