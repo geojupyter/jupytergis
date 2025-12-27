@@ -6,8 +6,8 @@
   "layers": {
     "a82ef521-e727-4209-a5a0-145d66f18a06": {
       "name": "OpenStreetMap.Mapnik Layer",
+      "opacity": 1.0,
       "parameters": {
-        "opacity": 1.0,
         "source": "ceef4036-b757-44bf-8a21-42c6c99dab72"
       },
       "type": "RasterLayer",
@@ -15,6 +15,7 @@
     },
     "f12a8dfe-4674-43e7-a649-cd49ee83eb34": {
       "name": "Custom Hillshade Layer",
+      "opacity": 1.0,
       "parameters": {
         "shadowColor": "#473B24",
         "source": "e87bb91a-ff2a-485b-bf0e-14b3b848955a"

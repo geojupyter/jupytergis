@@ -9,14 +9,6 @@
       "type": "string",
       "description": "The id of the source"
     },
-    "opacity": {
-      "type": "number",
-      "description": "The opacity of the source",
-      "default": 1,
-      "multipleOf": 0.1,
-      "minimum": 0,
-      "maximum": 1
-    },
     "radius": {
       "type": "number",
       "description": "Radius size in pixels",
