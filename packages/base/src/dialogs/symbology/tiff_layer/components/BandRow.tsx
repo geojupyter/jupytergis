@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-import { IBandRow } from '@/src/dialogs/symbology/hooks/useGetBandInfo';
+import { IBandRow } from '@/src/dialogs/symbology/hooks/useGetMultiBandInfo';
 
 interface IBandRowProps {
   label: string;
@@ -8,7 +8,7 @@ interface IBandRowProps {
   bandRow: IBandRow;
   bandRows: IBandRow[];
   setSelectedBand: (band: number) => void;
-  setBandRows: (bandRows: IBandRow[]) => void;
+  setBandRows?: (bandRows: IBandRow[]) => void;
   isMultibandColor?: boolean;
 }
 
@@ -28,33 +28,8 @@ const BandRow: React.FC<IBandRowProps> = ({
   bandRow,
   bandRows,
   setSelectedBand,
-  setBandRows,
   isMultibandColor,
 }) => {
-  const [minValue, setMinValue] = useState(bandRow?.stats.minimum);
-  const [maxValue, setMaxValue] = useState(bandRow?.stats.maximum);
-
-  const handleMinValueChange = (event: {
-    target: { value: string | number };
-  }) => {
-    setMinValue(+event.target.value);
-    setNewBands();
-  };
-
-  const handleMaxValueChange = (event: {
-    target: { value: string | number };
-  }) => {
-    setMaxValue(+event.target.value);
-    setNewBands();
-  };
-
-  const setNewBands = () => {
-    const newBandRows = [...bandRows];
-    newBandRows[index].stats.minimum = minValue;
-    newBandRows[index].stats.maximum = maxValue;
-    setBandRows(newBandRows);
-  };
-
   return (
     <>
       <div className="jp-gis-symbology-row">
@@ -90,48 +65,6 @@ const BandRow: React.FC<IBandRowProps> = ({
           </select>
         </div>
       </div>
-      {isMultibandColor ? null : (
-        <div className="jp-gis-symbology-row" style={{ gap: '0.5rem' }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              width: '50%',
-            }}
-          >
-            <label htmlFor="band-min" style={{ alignSelf: 'center' }}>
-              Min
-            </label>
-            <input
-              type="number"
-              className="jp-mod-styled"
-              style={{ marginRight: 15 }}
-              value={minValue}
-              onChange={handleMinValueChange}
-            />
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              width: '50%',
-              paddingRight: '2px',
-            }}
-          >
-            <label htmlFor="band-max" style={{ alignSelf: 'center' }}>
-              Max
-            </label>
-            <input
-              type="number"
-              className="jp-mod-styled"
-              // defaultValue={bandRow.stats.maximum}
-              value={maxValue}
-              onChange={handleMaxValueChange}
-              onBlur={setNewBands}
-            />
-          </div>
-        </div>
-      )}
     </>
   );
 };

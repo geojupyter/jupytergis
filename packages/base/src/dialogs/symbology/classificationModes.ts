@@ -47,26 +47,13 @@ export namespace VectorClassifications {
   };
 
   export const calculateEqualIntervalBreaks = (
-    values: number[],
     nClasses: number,
-  ) => {
-    const minimum = Math.min(...values);
-    const maximum = Math.max(...values);
-
-    const breaks: number[] = [];
-    const step = (maximum - minimum) / nClasses;
-
-    let value = minimum;
-
-    for (let i = 0; i < nClasses; i++) {
-      value += step;
-      breaks.push(value);
-    }
-
-    breaks[nClasses - 1] = maximum;
-
-    return breaks;
-  };
+    minimum: number,
+    maximum: number,
+  ): number[] =>
+    Array.from({ length: nClasses }, (_, i) => {
+      return minimum + (i / (nClasses - 1)) * (maximum - minimum);
+    });
 
   export const calculateJenksBreaks = (values: number[], nClasses: number) => {
     const maximum = Math.max(...values);
