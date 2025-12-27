@@ -16,6 +16,7 @@ authors:
     orcid: 0000-0003-3260-5445
     affiliation: 2
   - name: Gregory Mooney
+    orcid: 0009-0007-5501-6471
     affiliation: 1
   - name: Nicolas Brichet
     orcid: 0009-0009-2649-1809
