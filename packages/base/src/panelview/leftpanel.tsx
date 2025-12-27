@@ -16,8 +16,8 @@ import {
   TabsList,
   TabsTrigger,
 } from '../shared/components/Tabs';
-import StacPanel from '../stacBrowser/components/StacPanel';
 import FilterComponent from './components/filter-panel/Filter';
+import StacPanel from '../stacBrowser/components/StacPanel';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
@@ -210,7 +210,10 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
         )}
 
         {!settings.stacBrowserDisabled && (
-          <TabsContent value="stac" className="jgis-panel-tab-content">
+          <TabsContent
+            value="stac"
+            className="jgis-panel-tab-content jgis-panel-tab-content-stac-panel"
+          >
             <StacPanel model={props.model} />
           </TabsContent>
         )}

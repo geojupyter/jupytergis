@@ -1,0 +1,178 @@
+/* Command Root */
+.jgis-command {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  background-color: var(--jp-layout-color0);
+  color: var(--jp-ui-font-color0);
+}
+
+/* Command Dialog specific styles */
+.jgis-command [cmdk-group-heading] {
+  color: var(--jp-ui-font-color2);
+  padding: 0 0.5rem;
+  font-weight: 500;
+}
+
+.jgis-command [data-slot='command-input-wrapper'] {
+  height: 3rem;
+}
+
+.jgis-command [cmdk-group] {
+  padding: 0 0.5rem;
+}
+
+.jgis-command [cmdk-group]:not([hidden]) ~ [cmdk-group] {
+  padding-top: 0;
+}
+
+.jgis-command [cmdk-input-wrapper] svg {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.jgis-command [cmdk-input] {
+  height: 1.5rem;
+  box-sizing: border-box;
+  padding: 1rem 0.5rem;
+}
+
+.jgis-command [cmdk-item] {
+  padding: 0 0.5rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.jgis-command [cmdk-item] svg {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+/* Command Input Wrapper */
+.jgis-command-input-wrapper {
+  display: flex;
+  height: 2.25rem;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--jp-border-color0);
+  padding: 0.25rem 0.75rem;
+}
+
+.jgis-command-input-wrapper .size-4 {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+/* Command Input */
+.jgis-command-input {
+  display: flex;
+  height: 1rem;
+  width: 100%;
+  border-radius: 0.375rem;
+  background-color: transparent;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.jgis-command-input::placeholder {
+  color: var(--jp-ui-font-color2);
+}
+
+.jgis-command-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Command List */
+.jgis-command-list {
+  max-height: 300px;
+  scroll-padding: 0.25rem 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Command Empty */
+.jgis-command-empty {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+/* Command Group */
+.jgis-command-group {
+  color: var(--jp-ui-font-color0);
+  overflow: hidden;
+  padding: 0.25rem;
+}
+
+.jgis-command-group [cmdk-group-heading] {
+  color: var(--jp-ui-font-color2);
+  padding: 0 0.5rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Command Separator */
+.jgis-command-separator {
+  background-color: var(--jp-border-color0);
+  margin: 0 -0.25rem;
+  height: 1px;
+}
+
+/* Command Item */
+.jgis-command-item {
+  position: relative;
+  display: flex;
+  cursor: default;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.125rem;
+  padding: 0 0.5rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
+  user-select: none;
+}
+
+.jgis-command-item[data-selected='true'] {
+  background-color: var(--jp-layout-color1);
+  color: var(--jp-ui-font-color0);
+}
+
+.jgis-command-item svg:not([class*='text-']) {
+  color: var(--jp-ui-font-color2);
+}
+
+.jgis-command-item svg {
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.jgis-command-item svg:not([class*='size-']) {
+  width: 1rem;
+  height: 1rem;
+}
+
+.jgis-command-item[data-disabled='true'] {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Command Shortcut */
+.jgis-command-shortcut {
+  color: var(--jp-ui-font-color2);
+  margin-left: auto;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
