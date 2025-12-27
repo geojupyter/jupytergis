@@ -783,7 +783,7 @@ def jgis_layer_to_qgis(
         geometry_type = layer.get("parameters", {}).get("type")
         layer_params = layer.get("parameters", {})
 
-        if geometry_type == "circle":
+        if geometry_type == "points":
             symbol = QgsMarkerSymbol()
             color_params = layer_params.get("color", {})
             opacity = layer_params.get("opacity", 1.0)
@@ -811,7 +811,7 @@ def jgis_layer_to_qgis(
                     symbology_state, geometry_type, color_params, symbol
                 )
 
-        elif geometry_type == "line":
+        elif geometry_type == "lines":
             symbol = QgsLineSymbol()
             symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
             color_params = layer_params.get("color", {})
@@ -840,7 +840,7 @@ def jgis_layer_to_qgis(
                     symbology_state, geometry_type, color_params, symbol
                 )
 
-        elif geometry_type == "fill":
+        elif geometry_type == "polygons":
             symbol = QgsFillSymbol()
             symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
             color_params = layer_params.get("color", {})
