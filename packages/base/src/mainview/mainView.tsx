@@ -295,6 +295,7 @@ export class MainView extends React.Component<IProps, IStates> {
         }),
         controls: [new ScaleLine(), new FullScreen()],
       });
+      this._focusMapOnClick();
 
       // Add map interactions
       const dragAndDropInteraction = new DragAndDrop({
@@ -2391,6 +2392,16 @@ export class MainView extends React.Component<IProps, IStates> {
   private _handleWindowResize = (): void => {
     // TODO SOMETHING
   };
+
+  private _focusMapOnClick() {
+    const viewport = this._Map.getViewport();
+
+    viewport.setAttribute('tabindex', '0');
+
+    viewport.addEventListener('mousedown', () => {
+      viewport.focus();
+    });
+  }
 
   render(): JSX.Element {
     return (
