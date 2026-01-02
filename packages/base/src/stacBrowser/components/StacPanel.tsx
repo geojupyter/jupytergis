@@ -2,172 +2,222 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { Widget } from '@lumino/widgets';
 import React from 'react';
-
 import { Button } from '@/src/shared/components/Button';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/src/shared/components/Tabs';
 import useStacIndex from '@/src/stacBrowser/hooks/useStacIndex';
 import useStacSearch from '@/src/stacBrowser/hooks/useStacSearch';
 import StacPanelFilters from './StacPanelFilters';
 import StacPanelResults from './StacPanelResults';
+import CollectionBrowser from './CollectionBrowser';
+import useGenericStacSearch from '@/src/stacBrowser/hooks/useGenericStacSearch';
 
 interface IStacViewProps {
   model?: IJupyterGISModel;
 }
+
 const StacPanel = ({ model }: IStacViewProps) => {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
+
   const [selectedCatalog, setSelectedCatalog] = React.useState<string>('');
+  const [genericCollectionData, setGenericCollectionData] =
+    React.useState<any>(null);
 
-  const { catalogs, isLoading: isIndexLoading, error } = useStacIndex(model);
+  const { catalogs } = useStacIndex(model);
 
-  const {
-    filterState,
-    filterSetters,
-    results,
-    startTime,
-    setStartTime,
-    endTime,
-    setEndTime,
-    totalPages,
-    currentPage,
-    totalResults,
-    handlePaginationClick,
-    handleResultClick,
-    formatResult,
-    isLoading,
-    useWorldBBox,
-    setUseWorldBBox,
-  } = useStacSearch({ model });
+  // 1. Legacy Search (GEODES)
+  const geodesSearch = useStacSearch({ model });
 
-  if (!model) {
-    return null;
-  }
+  // 2. Generic Search
+  const genericSearch = useGenericStacSearch({
+    model,
+    collectionUrl: genericCollectionData?.url,
+    collectionData: genericCollectionData,
+  });
 
-  if (isIndexLoading) {
-    return (
-      <div className="Select Catalog">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="Select Catalog">
-        <p>Error loading catalogs.</p>
-      </div>
-    );
-  }
+  const isGenericMode = !!selectedCatalog;
 
   const handleOpenDialog = async () => {
     const widget = new URLInputWidget(catalogs);
     inputRef.current = widget.getInput();
 
     const dialog = new Dialog<boolean>({
-      title: 'Add Catalog',
+      title: 'Select STAC Catalog',
       body: widget,
       buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Select' })],
     });
 
     const result = await dialog.launch();
-    if (result.button.accept && inputRef.current) {
-      const url = inputRef.current.value;
-      //console.log('Catalog URL added:', url);
-      setSelectedCatalog(url);
+
+    if (result.button.accept && inputRef.current?.value) {
+      setSelectedCatalog(inputRef.current.value);
+      setGenericCollectionData(null);
     }
   };
 
+  const handleResetCatalog = () => {
+    setSelectedCatalog('');
+    setGenericCollectionData(null);
+  };
+
+  const activeResults = isGenericMode
+    ? genericSearch.results
+    : geodesSearch.results;
+  const activeTotalResults = isGenericMode
+    ? genericSearch.totalResults
+    : geodesSearch.totalResults;
+  const activeIsLoading = isGenericMode
+    ? genericSearch.isLoading
+    : geodesSearch.isLoading;
+  const activePagination = isGenericMode
+    ? genericSearch.handlePaginationClick
+    : geodesSearch.handlePaginationClick;
+  const activeResultClick = isGenericMode
+    ? genericSearch.handleResultClick
+    : geodesSearch.handleResultClick;
+  const activeFormat = isGenericMode
+    ? genericSearch.formatResult
+    : geodesSearch.formatResult;
+  const activeCurrentPage = isGenericMode
+    ? genericSearch.currentPage
+    : geodesSearch.currentPage;
+  const activeTotalPages = isGenericMode
+    ? genericSearch.totalPages
+    : geodesSearch.totalPages;
+
+  const showResults = isGenericMode
+    ? !!genericCollectionData
+    : geodesSearch.filterState.datasets.size > 0;
+
+  if (!model) return null;
+
   return (
-    <div className="Select Catalog">
-      <Button onClick={handleOpenDialog}>Select a Catalog</Button>
-
-      {selectedCatalog && (
-        <div className="selected-catalog" style={{ marginTop: '10px' }}>
-          <strong>Selected Catalog:</strong> {selectedCatalog}
+    <div className="flex flex-col h-full bg-white">
+      {/* Catalog Header */}
+      <div className="flex-none px-3 py-2 border-b border-gray-200 bg-gray-50">
+        <div className="text-xs font-semibold text-gray-700 mb-1">
+          {isGenericMode
+            ? genericCollectionData?.title || 'STAC Catalog'
+            : 'Earth Search'}
         </div>
-      )}
+        <div className="flex items-center gap-2">
+          <div className="flex-1 text-xs text-gray-500 truncate">
+            {isGenericMode
+              ? `A STAC API of ${genericCollectionData?.title || 'public datasets'}`
+              : 'A STAC API of public datasets on AWS'}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={isGenericMode ? handleResetCatalog : handleOpenDialog}
+            className="text-xs h-7 px-2"
+          >
+            {isGenericMode ? 'reset' : 'change'}
+          </Button>
+        </div>
+      </div>
 
-      <Tabs defaultValue="filters" className="jgis-panel-tabs">
-        <TabsList style={{ borderRadius: 0 }}>
-          <TabsTrigger className="jGIS-layer-browser-category" value="filters">
-            Filters
-          </TabsTrigger>
-          <TabsTrigger
-            className="jGIS-layer-browser-category"
-            value="results"
-          >{`Results (${totalResults})`}</TabsTrigger>
-        </TabsList>
-        <TabsContent value="filters">
-          <StacPanelFilters
-            filterState={filterState}
-            filterSetters={filterSetters}
-            startTime={startTime}
-            setStartTime={setStartTime}
-            endTime={endTime}
-            setEndTime={setEndTime}
-            useWorldBBox={useWorldBBox}
-            setUseWorldBBox={setUseWorldBBox}
-          />
-        </TabsContent>
-        <TabsContent value="results">
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        {showResults ? (
           <StacPanelResults
-            results={results}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            handlePaginationClick={handlePaginationClick}
-            handleResultClick={handleResultClick}
-            formatResult={formatResult}
-            isLoading={isLoading}
+            results={activeResults}
+            currentPage={activeCurrentPage}
+            totalPages={activeTotalPages}
+            totalResults={activeTotalResults}
+            handlePaginationClick={activePagination}
+            handleResultClick={activeResultClick}
+            formatResult={activeFormat}
+            isLoading={activeIsLoading}
           />
-        </TabsContent>
-      </Tabs>
+        ) : (
+          <div className="p-3">
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold mb-3">Filters</h3>
+
+              {isGenericMode ? (
+                <CollectionBrowser
+                  model={model}
+                  catalogUrl={selectedCatalog}
+                  onCollectionSelect={setGenericCollectionData}
+                />
+              ) : (
+                <StacPanelFilters
+                  filterState={geodesSearch.filterState}
+                  filterSetters={geodesSearch.filterSetters}
+                  startTime={geodesSearch.startTime}
+                  setStartTime={geodesSearch.setStartTime}
+                  endTime={geodesSearch.endTime}
+                  setEndTime={geodesSearch.setEndTime}
+                  useWorldBBox={geodesSearch.useWorldBBox}
+                  setUseWorldBBox={geodesSearch.setUseWorldBBox}
+                />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default StacPanel;
 
+// --- URL Input Widget for Dialog ---
 class URLInputWidget extends Widget {
   private input: HTMLInputElement;
 
   constructor(catalogs: any[] = []) {
     const node = document.createElement('div');
-    node.style.padding = '10px';
+    node.style.padding = '20px';
+    node.style.minWidth = '400px';
 
-    // First section: Manual URL entry
+    const header = document.createElement('div');
+    header.textContent = 'Connect to a STAC Catalog';
+    header.style.fontSize = '14px';
+    header.style.fontWeight = '600';
+    header.style.marginBottom = '16px';
+    header.style.color = '#111827';
+
     const label = document.createElement('label');
-    label.textContent = 'Enter Catalog URL:';
+    label.textContent = 'Catalog URL';
     label.style.display = 'block';
-    label.style.marginBottom = '8px';
-    label.style.fontWeight = 'bold';
+    label.style.fontSize = '13px';
+    label.style.fontWeight = '500';
+    label.style.marginBottom = '6px';
+    label.style.color = '#374151';
 
     const input = document.createElement('input');
     input.type = 'url';
-    input.placeholder = 'https://example.com';
-    input.className = 'jgis-stac-url-input';
+    input.placeholder = 'https://example.com/stac/catalog.json';
+    input.style.width = '100%';
+    input.style.padding = '8px 12px';
+    input.style.border = '1px solid #d1d5db';
+    input.style.borderRadius = '6px';
+    input.style.marginBottom = '16px';
+    input.style.boxSizing = 'border-box';
+    input.style.fontSize = '13px';
+    input.style.fontFamily = 'inherit';
 
-    // Second section: Select from catalog dropdown
     const catalogLabel = document.createElement('label');
-    catalogLabel.textContent = 'Or select a catalog:';
+    catalogLabel.textContent = 'Or select from recommended catalogs';
     catalogLabel.style.display = 'block';
-    catalogLabel.style.marginBottom = '8px';
-    catalogLabel.style.fontWeight = 'bold';
+    catalogLabel.style.fontSize = '13px';
+    catalogLabel.style.fontWeight = '500';
+    catalogLabel.style.marginBottom = '6px';
+    catalogLabel.style.color = '#374151';
 
     const dropdown = document.createElement('select');
     dropdown.style.width = '100%';
-    dropdown.style.padding = '8px';
+    dropdown.style.padding = '8px 12px';
+    dropdown.style.border = '1px solid #d1d5db';
+    dropdown.style.borderRadius = '6px';
+    dropdown.style.backgroundColor = '#fff';
     dropdown.style.boxSizing = 'border-box';
-    dropdown.style.border = '1px solid #ccc';
-    dropdown.style.borderRadius = '4px';
-    dropdown.style.marginBottom = '10px';
+    dropdown.style.fontSize = '13px';
+    dropdown.style.fontFamily = 'inherit';
 
     const defaultOption = document.createElement('option');
     defaultOption.value = '';
-    defaultOption.textContent = 'Select a catalog...';
+    defaultOption.textContent = '-- Select a catalog --';
     dropdown.appendChild(defaultOption);
 
     catalogs.forEach((catalog: any) => {
@@ -178,10 +228,11 @@ class URLInputWidget extends Widget {
     });
 
     dropdown.addEventListener('change', e => {
-      const selectedUrl = (e.target as HTMLSelectElement).value;
-      input.value = selectedUrl;
+      const val = (e.target as HTMLSelectElement).value;
+      if (val) input.value = val;
     });
 
+    node.appendChild(header);
     node.appendChild(label);
     node.appendChild(input);
     node.appendChild(catalogLabel);
@@ -191,7 +242,7 @@ class URLInputWidget extends Widget {
     this.input = input;
   }
 
-  getInput(): HTMLInputElement {
+  getInput() {
     return this.input;
   }
 }
