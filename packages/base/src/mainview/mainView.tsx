@@ -288,6 +288,7 @@ export class MainView extends React.Component<IProps, IStates> {
     if (this.divRef.current) {
       this._Map = new OlMap({
         target: this.divRef.current,
+        keyboardEventTarget: document,
         layers: [],
         view: new View({
           center,
@@ -295,7 +296,6 @@ export class MainView extends React.Component<IProps, IStates> {
         }),
         controls: [new ScaleLine(), new FullScreen()],
       });
-      this._focusMapOnClick();
 
       // Add map interactions
       const dragAndDropInteraction = new DragAndDrop({
@@ -2393,16 +2393,6 @@ export class MainView extends React.Component<IProps, IStates> {
     // TODO SOMETHING
   };
 
-  private _focusMapOnClick() {
-    const viewport = this._Map.getViewport();
-
-    viewport.setAttribute('tabindex', '0');
-
-    viewport.addEventListener('mousedown', () => {
-      viewport.focus();
-    });
-  }
-
   render(): JSX.Element {
     return (
       <>
@@ -2440,7 +2430,7 @@ export class MainView extends React.Component<IProps, IStates> {
           )}
           <div
             className="jGIS-Mainview data-jgis-keybinding"
-            tabIndex={-2}
+            tabIndex={0}
             style={{
               border: this.state.remoteUser
                 ? `solid 3px ${this.state.remoteUser.color}`
