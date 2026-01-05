@@ -92,14 +92,13 @@ export function StacResultsProvider({
   // Load saved selected URL from StateDB on mount
   useEffect(() => {
     async function loadStacSelectedUrlFromDb() {
-      const savedState = (await stateDb?.fetch(
-        STAC_SELECTED_URL_STATE_KEY,
-      )) as IStacSelectedUrlStateDb | undefined;
+      const savedState = (await stateDb?.fetch(STAC_SELECTED_URL_STATE_KEY)) as
+        | IStacSelectedUrlStateDb
+        | undefined;
 
       if (savedState?.selectedUrl) {
         setSelectedUrlState(savedState.selectedUrl);
       }
-
     }
 
     loadStacSelectedUrlFromDb();

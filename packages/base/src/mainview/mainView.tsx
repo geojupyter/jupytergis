@@ -1512,8 +1512,8 @@ export class MainView extends React.Component<IProps, IStates> {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
-        featureProjection: this._Map.getView().getProjection(),
-      });
+          featureProjection: this._Map.getView().getProjection(),
+        });
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
