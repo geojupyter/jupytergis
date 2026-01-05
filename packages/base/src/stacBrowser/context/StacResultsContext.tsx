@@ -362,6 +362,7 @@ export function StacResultsProvider({
       };
 
       model.addLayer(layerId, layerModel);
+      model.centerOnPosition(layerId);
     },
     [model],
   );

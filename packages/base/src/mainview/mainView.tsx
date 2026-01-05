@@ -1512,8 +1512,8 @@ export class MainView extends React.Component<IProps, IStates> {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
-          featureProjection: this._Map.getView().getProjection(),
-        });
+        featureProjection: this._Map.getView().getProjection(),
+      });
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
@@ -2045,25 +2045,56 @@ export class MainView extends React.Component<IProps, IStates> {
     let extent;
     const layer = this.getLayer(id);
     const source = layer?.getSource();
+    const jgisLayer = this._model.getLayer(id);
 
-    // TODO: Story segment layers don't have an associated OL layer
-    // This could be better
+    /**
+     * Layer may be undefined in two cases:
+     * 1. StorySegmentLayer: These layers don't have an associated OpenLayers layer
+     * 2. StacLayer: When centerOnPosition is called immediately after adding the layer,
+     *    the OpenLayers layer hasn't been created yet, so we use the bbox from the
+     *    layer model's STAC data directly.
+     */
     if (!layer) {
-      const jgisLayer = this._model.getLayer(id);
-      const layerParams = jgisLayer?.parameters as IStorySegmentLayer;
-      const coords = getCenter(layerParams.extent);
+      // Handle StacLayer that hasn't been added to the map yet
+      if (jgisLayer?.type === 'StacLayer') {
+        const layerParams = jgisLayer.parameters as IStacLayer;
+        const stacBbox = layerParams.data?.bbox;
 
-      // TODO: Should pass args through signal??
-      // const { story } = this._model.getSelectedStory();
+        if (stacBbox && stacBbox.length === 4) {
+          // STAC bbox format: [west, south, east, north] in EPSG:4326
+          const [west, south, east, north] = stacBbox;
+          const bboxExtent = [west, south, east, north];
 
-      this._flyToPosition(
-        { x: coords[0], y: coords[1] },
-        layerParams.zoom,
-        (layerParams.transition.time ?? 1) * 1000, // seconds -> ms
-        layerParams.transition.type,
-      );
+          // Convert from EPSG:4326 to view projection
+          const viewProjection = this._Map.getView().getProjection();
+          const transformedExtent =
+            viewProjection.getCode() !== 'EPSG:4326'
+              ? transformExtent(bboxExtent, 'EPSG:4326', viewProjection)
+              : bboxExtent;
 
-      return;
+          this._Map.getView().fit(transformedExtent, {
+            size: this._Map.getSize(),
+            duration: 500,
+            padding: [250, 250, 250, 250],
+          });
+          return;
+        }
+      }
+
+      // Handle StorySegmentLayer
+      if (jgisLayer?.type === 'StorySegmentLayer') {
+        const layerParams = jgisLayer.parameters as IStorySegmentLayer;
+        const coords = getCenter(layerParams.extent);
+
+        this._flyToPosition(
+          { x: coords[0], y: coords[1] },
+          layerParams.zoom,
+          (layerParams.transition.time ?? 1) * 1000, // seconds -> ms
+          layerParams.transition.type,
+        );
+
+        return;
+      }
     }
 
     if (source instanceof VectorSource) {
