@@ -1076,6 +1076,46 @@ export function addCommands(
     ...icons.get(CommandIDs.addStorySegment),
   });
 
+  commands.addCommand(CommandIDs.toggleStoryPresentationMode, {
+    label: trans.__('Toggle Story Presentation Mode'),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      const { storyMapPresentationMode } = current.model.getOptions()
+
+      return storyMapPresentationMode ?? false;
+    },
+    isEnabled: () => {
+      if (tracker.currentWidget?.model.jgisSettings.storyMapsDisabled) {
+        return false;
+      }
+
+      return true
+    },
+    execute: args => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const currentOptions = current.model.getOptions()
+
+      current.model.setOptions({
+        ...currentOptions,
+        storyMapPresentationMode: !currentOptions.storyMapPresentationMode
+      })
+
+      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
+
+
+
+    },
+    ...icons.get(CommandIDs.toggleStoryPresentationMode),
+  });
+
   loadKeybindings(commands, keybindings);
 }
 
