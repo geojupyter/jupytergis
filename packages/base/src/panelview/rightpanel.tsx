@@ -50,7 +50,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     !settings.storyMapsDisabled
       ? {
         name: 'storyPanel',
-        title: displayEditor ? 'Story Editor' : 'Story Map',
+        title: storyPanelTitle,
       }
       : false,
     !settings.annotationsDisabled
