@@ -162,7 +162,10 @@ export class ToolbarWidget extends ReactiveToolbar {
         commands: options.commands,
       });
 
-      this.addItem('toggleStoryPresentationMode', storyModePresentationToggleButton);
+      this.addItem(
+        'toggleStoryPresentationMode',
+        storyModePresentationToggleButton,
+      );
       identifyButton.node.dataset.testid = 'toggleStoryPresentationMode-button';
 
       this.addItem('separator2', new Separator());
