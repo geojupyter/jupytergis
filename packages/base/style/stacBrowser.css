@@ -8,8 +8,8 @@
   cursor: pointer;
 }
 
-.jgis-stac-browser-results-item {
-  border-radius: 1rem;
+.jgis-button.jgis-stac-browser-results-item {
+  border-radius: var(--jp-border-radius);
   cursor: pointer;
   white-space: normal;
   height: auto;
