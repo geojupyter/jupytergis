@@ -1084,7 +1084,7 @@ export function addCommands(
         return false;
       }
 
-      const { storyMapPresentationMode } = current.model.getOptions()
+      const { storyMapPresentationMode } = current.model.getOptions();
 
       return storyMapPresentationMode ?? false;
     },
@@ -1093,7 +1093,7 @@ export function addCommands(
         return false;
       }
 
-      return true
+      return true;
     },
     execute: args => {
       const current = tracker.currentWidget;
@@ -1101,17 +1101,14 @@ export function addCommands(
         return;
       }
 
-      const currentOptions = current.model.getOptions()
+      const currentOptions = current.model.getOptions();
 
       current.model.setOptions({
         ...currentOptions,
-        storyMapPresentationMode: !currentOptions.storyMapPresentationMode
-      })
+        storyMapPresentationMode: !currentOptions.storyMapPresentationMode,
+      });
 
       commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
-
-
-
     },
     ...icons.get(CommandIDs.toggleStoryPresentationMode),
   });
