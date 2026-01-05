@@ -28,9 +28,8 @@ interface IRightPanelProps {
 export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [editorMode, setEditorMode] = React.useState(true);
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
-  const [storyMapPresentationMode, setStoryMapPresentationMode] = React.useState(
-    props.model.getOptions().storyMapPresentationMode ?? false,
-  );
+  const [storyMapPresentationMode, setStoryMapPresentationMode] =
+    React.useState(props.model.getOptions().storyMapPresentationMode ?? false);
 
   // Only show editor when not in presentation mode and editorMode is true
   const showEditor = !storyMapPresentationMode && editorMode;
@@ -48,9 +47,9 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
       : false,
     !settings.storyMapsDisabled
       ? {
-        name: 'storyPanel',
-        title: storyPanelTitle,
-      }
+          name: 'storyPanel',
+          title: storyPanelTitle,
+        }
       : false,
     !settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
