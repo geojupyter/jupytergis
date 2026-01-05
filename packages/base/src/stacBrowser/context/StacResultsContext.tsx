@@ -18,6 +18,7 @@ import {
   IStacSearchResult,
   SetResultsFunction,
 } from '@/src/stacBrowser/types/types';
+import { GlobalStateDbManager } from '@/src/store';
 import { fetchWithProxies } from '@/src/tools';
 
 interface IStacResultsContext {
@@ -59,6 +60,12 @@ interface IStacResultsProviderProps {
   model?: IJupyterGISModel;
 }
 
+interface IStacSelectedUrlStateDb {
+  selectedUrl?: string;
+}
+
+const STAC_SELECTED_URL_STATE_KEY = 'jupytergis:stac-selected-url';
+
 export function StacResultsProvider({
   children,
   model,
@@ -79,6 +86,35 @@ export function StacResultsProvider({
   const handlePaginationClickRef =
     useRef<(dir: 'next' | 'previous') => Promise<void>>();
   const buildQueryRef = useRef<() => IStacQueryBodyUnion>();
+
+  const stateDb = GlobalStateDbManager.getInstance().getStateDb();
+
+  // Load saved selected URL from StateDB on mount
+  useEffect(() => {
+    async function loadStacSelectedUrlFromDb() {
+      const savedState = (await stateDb?.fetch(
+        STAC_SELECTED_URL_STATE_KEY,
+      )) as IStacSelectedUrlStateDb | undefined;
+
+      if (savedState?.selectedUrl) {
+        setSelectedUrlState(savedState.selectedUrl);
+      }
+
+    }
+
+    loadStacSelectedUrlFromDb();
+  }, [stateDb]);
+
+  // Save selected URL to StateDB on change
+  useEffect(() => {
+    async function saveStacSelectedUrlToDb() {
+      await stateDb?.save(STAC_SELECTED_URL_STATE_KEY, {
+        selectedUrl,
+      });
+    }
+
+    saveStacSelectedUrlToDb();
+  }, [selectedUrl, stateDb]);
 
   // Keep ref in sync with state
   useEffect(() => {
