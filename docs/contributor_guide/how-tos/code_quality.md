@@ -1,7 +1,7 @@
 # Check code quality
 
 ```{seealso}
-Complete [dev install](../development_setup) instructions before continuing.
+Complete [dev install](/contributor_guide/development_setup) instructions before continuing.
 ```
 
 We have several tools configured for checking code quality:

@@ -1,26 +1,40 @@
+/**
+ * @module ColorRampSelector
+ *
+ * Dropdown component for selecting a color ramp.
+ * - Displays the currently selected ramp as a preview on a canvas.
+ * - Expands to show a list of available ramps (`ColorRampSelectorEntry`).
+ * - Updates the preview and notifies parent via `setSelected` when a ramp is chosen.
+ *
+ * Props:
+ * - `selectedRamp`: Name of the currently selected color ramp.
+ * - `setSelected`: Callback fired with the new ramp when selected.
+ */
+
 import { Button } from '@jupyterlab/ui-components';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useColorMapList } from '@/src/dialogs/symbology/colorRampUtils';
-import ColorRampEntry from './ColorRampEntry';
+import {
+  ColorRampName,
+  useColorMapList,
+  IColorMap,
+} from '@/src/dialogs/symbology/colorRampUtils';
+import ColorRampSelectorEntry from './ColorRampSelectorEntry';
 
-export interface IColorMap {
-  name: string;
-  colors: string[];
-}
-
-interface ICanvasSelectComponentProps {
-  selectedRamp: string;
+interface IColorRampSelectorProps {
+  selectedRamp: ColorRampName;
   setSelected: (item: any) => void;
 }
 
-const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
+const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   selectedRamp,
   setSelected,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
+  const canvasWidth = 512;
+  const canvasHeight = 30;
 
   useColorMapList(setColorMaps);
 
@@ -64,13 +78,16 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
 
     const ramp = colorMaps.filter(c => c.name === rampName);
 
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
     for (let i = 0; i <= 255; i++) {
       ctx.beginPath();
 
       const color = ramp[0].colors[i];
       ctx.fillStyle = color;
 
-      ctx.fillRect(i * 2, 0, 2, 50);
+      ctx.fillRect(i * 2, 0, 2, canvasHeight);
     }
     canvas.style.visibility = 'initial';
   };
@@ -89,21 +106,29 @@ const CanvasSelectComponent: React.FC<ICanvasSelectComponentProps> = ({
         onClick={toggleDropdown}
         className="jp-Dialog-button jp-gis-canvas-button"
       >
-        <canvas
-          id="cv"
-          className="jp-gis-color-canvas-display"
-          height="30"
-        ></canvas>
+        <div className="jp-gis-color-ramp-entry jp-gis-selected-entry">
+          <span className="jp-gis-color-label">{selectedRamp}</span>
+          <canvas
+            id="cv"
+            className="jp-gis-color-canvas-display"
+            width={canvasWidth}
+            height={canvasHeight}
+          ></canvas>
+        </div>
       </Button>
       <div
         className={`jp-gis-color-ramp-dropdown ${isOpen ? 'jp-gis-open' : ''}`}
       >
         {colorMaps.map((item, index) => (
-          <ColorRampEntry index={index} colorMap={item} onClick={selectItem} />
+          <ColorRampSelectorEntry
+            index={index}
+            colorMap={item}
+            onClick={selectItem}
+          />
         ))}
       </div>
     </div>
   );
 };
 
-export default CanvasSelectComponent;
+export default ColorRampSelector;

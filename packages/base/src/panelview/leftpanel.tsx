@@ -1,4 +1,9 @@
-import { IJupyterGISModel, SelectionType } from '@jupytergis/schema';
+import {
+  IJupyterGISModel,
+  IJGISLayerItem,
+  IJGISLayerTree,
+  SelectionType,
+} from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { MouseEvent as ReactMouseEvent } from 'react';
@@ -17,7 +22,6 @@ import FilterComponent from './components/filter-panel/Filter';
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
   item: string;
-  nodeId?: string;
   event: ReactMouseEvent;
 }
 
@@ -31,31 +35,135 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   props: ILeftPanelProps,
 ) => {
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
+  const [options, setOptions] = React.useState(props.model.getOptions());
+  const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
+  const [layerTree, setLayerTree] = React.useState<IJGISLayerTree>(
+    props.model.getLayerTree(),
+  );
 
   React.useEffect(() => {
     const onSettingsChanged = () => {
       setSettings({ ...props.model.jgisSettings });
     };
+    const onOptionsChanged = () => {
+      setOptions({ ...props.model.getOptions() });
+    };
+    const updateLayerTree = () => {
+      setLayerTree(props.model.getLayerTree() || []);
+    };
 
     props.model.settingsChanged.connect(onSettingsChanged);
+    props.model.sharedOptionsChanged.connect(onOptionsChanged);
+    props.model.sharedModel.layersChanged.connect(updateLayerTree);
+    props.model.sharedModel.layerTreeChanged.connect(updateLayerTree);
+
+    updateLayerTree();
     return () => {
       props.model.settingsChanged.disconnect(onSettingsChanged);
+      props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
+      props.model.sharedModel.layersChanged.disconnect(updateLayerTree);
+      props.model.sharedModel.layerTreeChanged.disconnect(updateLayerTree);
     };
   }, [props.model]);
+
+  // Since story segments are technically layers they are stored in the layer tree, so we separate them
+  // from regular layers. Process the tree once to build both filtered and story segment trees.
+  const { filteredLayerTree, storySegmentLayerTree } = React.useMemo(() => {
+    const filtered: IJGISLayerTree = [];
+    const storySegments: IJGISLayerTree = [];
+
+    const processLayer = (
+      layer: IJGISLayerItem,
+    ): {
+      filtered: IJGISLayerItem | null;
+      storySegment: IJGISLayerItem | null;
+    } => {
+      if (typeof layer === 'string') {
+        const layerData = props.model.getLayer(layer);
+        const isStorySegment = layerData?.type === 'StorySegmentLayer';
+        return {
+          filtered: isStorySegment ? null : layer,
+          storySegment: isStorySegment ? layer : null,
+        };
+      }
+
+      // For layer groups, recursively process their layers
+      const filteredGroupLayers: IJGISLayerItem[] = [];
+      const storySegmentGroupLayers: IJGISLayerItem[] = [];
+
+      for (const groupLayer of layer.layers) {
+        const result = processLayer(groupLayer);
+        if (result.filtered !== null) {
+          filteredGroupLayers.push(result.filtered);
+        }
+        if (result.storySegment !== null) {
+          storySegmentGroupLayers.push(result.storySegment);
+        }
+      }
+
+      return {
+        filtered:
+          filteredGroupLayers.length > 0
+            ? { ...layer, layers: filteredGroupLayers }
+            : null,
+        storySegment:
+          storySegmentGroupLayers.length > 0
+            ? { ...layer, layers: storySegmentGroupLayers }
+            : null,
+      };
+    };
+
+    for (const layer of layerTree) {
+      const result = processLayer(layer);
+      if (result.filtered !== null) {
+        filtered.push(result.filtered);
+      }
+      if (result.storySegment !== null) {
+        storySegments.push(result.storySegment);
+      }
+    }
+
+    // Reverse filteredLayerTree before returning
+    filtered.reverse();
+
+    return {
+      filteredLayerTree: filtered,
+      storySegmentLayerTree: storySegments,
+    };
+  }, [layerTree]);
+
+  // Updates story segments array based on layer tree array
+  React.useEffect(() => {
+    const { storySegmentId, story } = props.model.getSelectedStory();
+
+    if (!story) {
+      return;
+    }
+    props.model.sharedModel.updateStoryMap(storySegmentId, {
+      ...story,
+      storySegments: storySegmentLayerTree as string[],
+    });
+  }, [storySegmentLayerTree]);
 
   const allLeftTabsDisabled =
     settings.layersDisabled &&
     settings.stacBrowserDisabled &&
-    settings.filtersDisabled;
+    settings.filtersDisabled &&
+    settings.storyMapsDisabled;
 
   const leftPanelVisible = !settings.leftPanelDisabled && !allLeftTabsDisabled;
 
   const tabInfo = [
     !settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,
-    !settings.stacBrowserDisabled
+    !settings.stacBrowserDisabled && !storyMapPresentationMode
       ? { name: 'stac', title: 'Stac Browser' }
       : false,
-    !settings.filtersDisabled ? { name: 'filters', title: 'Filters' } : false,
+    !settings.filtersDisabled && !storyMapPresentationMode
+      ? { name: 'filters', title: 'Filters' }
+      : false,
+    !settings.storyMapsDisabled
+      ? { name: 'segments', title: 'Segments' }
+      : false,
   ].filter(Boolean) as { name: string; title: string }[];
 
   const [curTab, setCurTab] = React.useState<string | undefined>(
@@ -69,19 +177,20 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     >
       <PanelTabs curTab={curTab} className="jgis-panel-tabs">
         <TabsList>
-          {tabInfo.map(e => (
+          {tabInfo.map(tab => (
             <TabsTrigger
               className="jGIS-layer-browser-category"
-              value={e.name}
+              key={tab.name}
+              value={tab.name}
               onClick={() => {
-                if (curTab !== e.name) {
-                  setCurTab(e.name);
+                if (curTab !== tab.name) {
+                  setCurTab(tab.name);
                 } else {
                   setCurTab('');
                 }
               }}
             >
-              {e.title}
+              {tab.title}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -95,6 +204,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
               model={props.model}
               commands={props.commands}
               state={props.state}
+              layerTree={filteredLayerTree}
             ></LayersBodyComponent>
           </TabsContent>
         )}
@@ -108,6 +218,17 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
         {!settings.filtersDisabled && (
           <TabsContent value="filters" className="jgis-panel-tab-content">
             <FilterComponent model={props.model}></FilterComponent>
+          </TabsContent>
+        )}
+
+        {!settings.storyMapsDisabled && (
+          <TabsContent value="segments" className="jgis-panel-tab-content">
+            <LayersBodyComponent
+              model={props.model}
+              commands={props.commands}
+              state={props.state}
+              layerTree={storySegmentLayerTree}
+            ></LayersBodyComponent>
           </TabsContent>
         )}
       </PanelTabs>

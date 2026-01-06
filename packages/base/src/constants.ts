@@ -10,6 +10,7 @@ import {
   moundIcon,
   rasterIcon,
   vectorSquareIcon,
+  markerIcon,
 } from './icons';
 
 /**
@@ -56,6 +57,8 @@ const iconObject = {
   [CommandIDs.symbology]: { iconClass: 'fa fa-brush' },
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
+  [CommandIDs.addMarker]: { icon: markerIcon },
+  [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
 };
 
 /**

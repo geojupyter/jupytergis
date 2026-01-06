@@ -1,5 +1,4 @@
 export * from './annotations';
-export * from './classificationModes';
 export * from './commands/index';
 export * from './constants';
 export * from './dialogs/layerCreationFormDialog';

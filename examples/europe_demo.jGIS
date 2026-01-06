@@ -1,0 +1,160 @@
+{
+  "layerTree": [
+    "9b6eb933-a1d8-4f75-8c1a-e4570b6e5a0a",
+    "cbc57272-9ee1-416f-aca9-16ea5b7542a1"
+  ],
+  "layers": {
+    "9b6eb933-a1d8-4f75-8c1a-e4570b6e5a0a": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "6145807b-4ff1-495d-b79b-8a13ea238812"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "cbc57272-9ee1-416f-aca9-16ea5b7542a1": {
+      "name": "FCM_Europe_demo",
+      "parameters": {
+        "color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "band",
+            1.0
+          ],
+          0.0,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          0.0,
+          [
+            68.0,
+            1.0,
+            84.0,
+            1.0
+          ],
+          0.125,
+          [
+            71.0,
+            44.0,
+            122.0,
+            1.0
+          ],
+          0.25,
+          [
+            59.0,
+            81.0,
+            139.0,
+            1.0
+          ],
+          0.375,
+          [
+            44.0,
+            113.0,
+            142.0,
+            1.0
+          ],
+          0.5,
+          [
+            33.0,
+            144.0,
+            141.0,
+            1.0
+          ],
+          0.625,
+          [
+            39.0,
+            173.0,
+            129.0,
+            1.0
+          ],
+          0.75,
+          [
+            92.0,
+            200.0,
+            99.0,
+            1.0
+          ],
+          0.875,
+          [
+            170.0,
+            220.0,
+            50.0,
+            1.0
+          ],
+          1.0,
+          [
+            253.0,
+            231.0,
+            37.0,
+            1.0
+          ]
+        ],
+        "opacity": 1.0,
+        "source": "dfb0ef0a-5ab2-4793-80ed-58772fceb742",
+        "symbologyState": {
+          "band": 1.0,
+          "colorRamp": "viridis",
+          "interpolation": "linear",
+          "mode": "equal interval",
+          "nClasses": 9.0,
+          "renderType": "Singleband Pseudocolor"
+        }
+      },
+      "type": "WebGlLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -3711723.1909691924,
+      4160165.801028913,
+      6441453.923139445,
+      8656013.507726118
+    ],
+    "latitude": 49.77899719137724,
+    "longitude": 12.260794191196549,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 4.584398222422671
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "6145807b-4ff1-495d-b79b-8a13ea238812": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "dfb0ef0a-5ab2-4793-80ed-58772fceb742": {
+      "name": "Custom GeoTiff Source",
+      "parameters": {
+        "interpolate": false,
+        "normalize": true,
+        "urls": [
+          {
+            "max": 240.0,
+            "min": 0.0,
+            "url": "https://eoresults.esa.int/d/FCM-AGB-100m/2023/01/01/FCM-AGB-100m-2023/FCM_Europe_demo_2023_AGB.tif"
+          }
+        ],
+        "wrapX": false
+      },
+      "type": "GeoTiffSource"
+    }
+  },
+  "stories": {}
+}

@@ -12,8 +12,6 @@ import {
   Toolbar,
   ToolbarButton,
   addIcon,
-  redoIcon,
-  undoIcon,
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { Widget } from '@lumino/widgets';
@@ -66,6 +64,7 @@ function createUserIconRenderer(model: JupyterGISModel) {
 
 export class ToolbarWidget extends ReactiveToolbar {
   private _model: JupyterGISModel;
+  private _newSubMenu: MenuSvg | null = null;
 
   constructor(options: ToolbarWidget.IOptions) {
     super();
@@ -74,47 +73,18 @@ export class ToolbarWidget extends ReactiveToolbar {
     this.addClass('jGIS-toolbar-widget');
 
     if (options.commands) {
-      const undoButton = new CommandToolbarButton({
-        id: CommandIDs.undo,
-        label: '',
-        icon: undoIcon,
-        commands: options.commands,
-      });
-
-      this.addItem('undo', undoButton);
-      undoButton.node.dataset.testid = 'undo-button';
-
-      const redoButton = new CommandToolbarButton({
-        id: CommandIDs.redo,
-        label: '',
-        icon: redoIcon,
-        commands: options.commands,
-      });
-      this.addItem('redo', redoButton);
-
-      this.addItem('separator0', new Separator());
-
-      const toggleConsoleButton = new CommandToolbarButton({
-        id: CommandIDs.toggleConsole,
-        commands: options.commands,
-        label: '',
-        icon: terminalToolbarIcon,
-      });
-      this.addItem('Toggle console', toggleConsoleButton);
-      toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
-
-      this.addItem('separator1', new Separator());
-
       const openLayersBrowserButton = new CommandToolbarButton({
         id: CommandIDs.openLayerBrowser,
         label: '',
         commands: options.commands,
       });
+
       this.addItem('openLayerBrowser', openLayersBrowserButton);
       openLayersBrowserButton.node.dataset.testid = 'open-layers-browser';
 
       const NewSubMenu = new MenuSvg({ commands: options.commands });
       NewSubMenu.title.label = 'Add Layer';
+      this._newSubMenu = NewSubMenu;
 
       NewSubMenu.addItem({
         type: 'submenu',
@@ -124,6 +94,11 @@ export class ToolbarWidget extends ReactiveToolbar {
         type: 'submenu',
         submenu: vectorSubMenu(options.commands),
       });
+
+      this._updateStorySegmentMenuItem();
+
+      // Listen for settings changes
+      this._model.settingsChanged.connect(this._onSettingsChanged, this);
 
       const NewEntryButton = new ToolbarButton({
         icon: addIcon,
@@ -138,17 +113,18 @@ export class ToolbarWidget extends ReactiveToolbar {
           NewSubMenu.open(bbox.x, bbox.bottom);
         },
       });
-      NewEntryButton.node.dataset.testid = 'new-entry-button';
 
       this.addItem('New', NewEntryButton);
+      NewEntryButton.node.dataset.testid = 'new-entry-button';
 
-      this.addItem('separator2', new Separator());
+      this.addItem('separator1', new Separator());
 
       const geolocationButton = new CommandToolbarButton({
         id: CommandIDs.getGeolocation,
         commands: options.commands,
         label: '',
       });
+
       this.addItem('Geolocation', geolocationButton);
       geolocationButton.node.dataset.testid = 'geolocation-button';
 
@@ -166,9 +142,30 @@ export class ToolbarWidget extends ReactiveToolbar {
         label: '',
         commands: options.commands,
       });
+
       this.addItem('temporalController', temporalControllerButton);
       temporalControllerButton.node.dataset.testid =
         'temporal-controller-button';
+
+      const addMarkerButton = new CommandToolbarButton({
+        id: CommandIDs.addMarker,
+        label: '',
+        commands: options.commands,
+      });
+
+      this.addItem('addMarker', addMarkerButton);
+      addMarkerButton.node.dataset.testid = 'add-marker-controller-button';
+
+      this.addItem('separator2', new Separator());
+
+      const toggleConsoleButton = new CommandToolbarButton({
+        id: CommandIDs.toggleConsole,
+        commands: options.commands,
+        label: '',
+        icon: terminalToolbarIcon,
+      });
+      this.addItem('Toggle console', toggleConsoleButton);
+      toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
 
       this.addItem('spacer', ReactiveToolbar.createSpacerItem());
 
@@ -181,6 +178,58 @@ export class ToolbarWidget extends ReactiveToolbar {
         ),
       );
     }
+  }
+
+  /**
+   * Updates the story segment menu item based on settings
+   */
+  private _updateStorySegmentMenuItem(): void {
+    if (!this._newSubMenu) {
+      return;
+    }
+
+    const shouldShow = !this._model.jgisSettings.storyMapsDisabled;
+
+    // Find if the item already exists by checking menu items
+    let itemIndex: number | null = null;
+    for (let i = 0; i < this._newSubMenu.items.length; i++) {
+      const item = this._newSubMenu.items[i];
+      if (
+        item.type === 'command' &&
+        item.command === CommandIDs.addStorySegment
+      ) {
+        itemIndex = i;
+        break;
+      }
+    }
+
+    const isCurrentlyAdded = itemIndex !== null;
+
+    if (shouldShow && !isCurrentlyAdded) {
+      this._newSubMenu.addItem({
+        command: CommandIDs.addStorySegment,
+      });
+    } else if (!shouldShow && isCurrentlyAdded) {
+      if (itemIndex !== null) {
+        this._newSubMenu.removeItemAt(itemIndex);
+      }
+    }
+  }
+
+  /**
+   * Handles settings changes
+   */
+  private _onSettingsChanged = (sender: JupyterGISModel, key: string): void => {
+    if (key === 'storyMapsDisabled') {
+      this._updateStorySegmentMenuItem();
+    }
+  };
+
+  dispose(): void {
+    if (this._model) {
+      this._model.settingsChanged.disconnect(this._onSettingsChanged, this);
+    }
+    super.dispose();
   }
 }
 

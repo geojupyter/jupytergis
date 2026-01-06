@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional
 from uuid import uuid4
 import requests
 
@@ -26,8 +26,10 @@ from jupytergis_core.schema import (
     IVectorLayer,
     IVectorTileLayer,
     IVectorTileSource,
+    IMarkerSource,
     IVideoSource,
     IWebGlLayer,
+    IStorySegmentLayer,
     LayerType,
     SourceType,
 )
@@ -50,7 +52,7 @@ class GISDocument(CommWidget):
 
     def __init__(
         self,
-        path: Optional[str | Path] = None,
+        path: str | Path | None = None,
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
         zoom: Optional[float] = None,
@@ -192,7 +194,7 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, float, float] | None = None,
+        value: str | float | float | None = None,
     ):
         """
         Add a Vector Tile Layer to the document.
@@ -249,7 +251,7 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, int, float] | None = None,
+        value: str | int | float | None = None,
         color_expr=None,
     ):
         """
@@ -303,6 +305,10 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "color": color_expr,
                 "opacity": opacity,
+                "symbologyState": {
+                    "renderType": "Single Symbol",
+                    "mode": "equal interval",
+                },
             },
             "filters": {
                 "appliedFilters": [
@@ -554,7 +560,7 @@ class GISDocument(CommWidget):
         logical_op: str | None = None,
         feature: str | None = None,
         operator: str | None = None,
-        value: Union[str, int, float] | None = None,
+        value: str | int | float | None = None,
         color_expr=None,
     ):
         """
@@ -688,7 +694,7 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, int, float],
+        value: str | int | float,
     ):
         """
         Add a filter to a layer
@@ -734,7 +740,7 @@ class GISDocument(CommWidget):
         logical_op: str,
         feature: str,
         operator: str,
-        value: Union[str, int, float],
+        value: str | int | float,
     ):
         """
         Update a filter applied to a layer
@@ -854,15 +860,16 @@ class JGISLayer(BaseModel):
     name: str
     type: LayerType
     visible: bool
-    parameters: Union[
-        IRasterLayer,
-        IVectorLayer,
-        IVectorTileLayer,
-        IHillshadeLayer,
-        IImageLayer,
-        IWebGlLayer,
-        IHeatmapLayer,
-    ]
+    parameters: (
+        IRasterLayer
+        | IVectorLayer
+        | IVectorTileLayer
+        | IHillshadeLayer
+        | IImageLayer
+        | IWebGlLayer
+        | IHeatmapLayer
+        | IStorySegmentLayer
+    )
     _parent = Optional[GISDocument]
 
     def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
@@ -877,16 +884,17 @@ class JGISSource(BaseModel):
 
     name: str
     type: SourceType
-    parameters: Union[
-        IRasterSource,
-        IVectorTileSource,
-        IGeoJSONSource,
-        IImageSource,
-        IVideoSource,
-        IGeoTiffSource,
-        IRasterDemSource,
-        IGeoParquetSource,
-    ]
+    parameters: (
+        IRasterSource
+        | IVectorTileSource
+        | IMarkerSource
+        | IGeoJSONSource
+        | IImageSource
+        | IVideoSource
+        | IGeoTiffSource
+        | IRasterDemSource
+        | IGeoParquetSource
+    )
     _parent = Optional[GISDocument]
 
     def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
@@ -965,8 +973,10 @@ OBJECT_FACTORY.register_factory(LayerType.HillshadeLayer, IHillshadeLayer)
 OBJECT_FACTORY.register_factory(LayerType.WebGlLayer, IWebGlLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.HeatmapLayer, IHeatmapLayer)
+OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
+OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
 OBJECT_FACTORY.register_factory(SourceType.RasterSource, IRasterSource)
 OBJECT_FACTORY.register_factory(SourceType.GeoJSONSource, IGeoJSONSource)
 OBJECT_FACTORY.register_factory(SourceType.ImageSource, IImageSource)

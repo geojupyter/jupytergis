@@ -32,6 +32,8 @@ import {
   IWebGlLayer,
   JgisCoordinates,
   JupyterGISModel,
+  IMarkerSource,
+  IStorySegmentLayer,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -52,6 +54,7 @@ import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
+import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
 import { DragAndDrop, Select } from 'ol/interaction';
@@ -83,7 +86,7 @@ import {
 } from 'ol/source';
 import Static from 'ol/source/ImageStatic';
 import { TileSourceEvent } from 'ol/source/Tile';
-import { Circle, Fill, Stroke, Style } from 'ol/style';
+import { Circle, Fill, Icon, Stroke, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
 //@ts-expect-error no types for ol-pmtiles
 import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
@@ -101,6 +104,7 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
 
 type OlLayerTypes =
@@ -284,6 +288,7 @@ export class MainView extends React.Component<IProps, IStates> {
     if (this.divRef.current) {
       this._Map = new OlMap({
         target: this.divRef.current,
+        keyboardEventTarget: document,
         layers: [],
         view: new View({
           center,
@@ -411,6 +416,7 @@ export class MainView extends React.Component<IProps, IStates> {
       });
 
       this._Map.on('click', this._identifyFeature.bind(this));
+      this._Map.on('click', this._addMarker.bind(this));
 
       this._Map
         .getViewport()
@@ -825,6 +831,33 @@ export class MainView extends React.Component<IProps, IStates> {
         });
         break;
       }
+
+      case 'MarkerSource': {
+        const parameters = source.parameters as IMarkerSource;
+
+        const point = new Point(parameters.feature.coords);
+        const marker = new Feature({
+          type: 'icon',
+          geometry: point,
+        });
+
+        // Replace color placeholder in SVG with the parameter color
+        const markerColor = parameters.color || '#3463a0';
+        const svgString = markerIcon.svgstr.replace('{{COLOR}}', markerColor);
+
+        const iconStyle = new Style({
+          image: new Icon({
+            src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`,
+            scale: 0.25,
+          }),
+        });
+
+        marker.setStyle(iconStyle);
+
+        newSource = new VectorSource({
+          features: [marker],
+        });
+      }
     }
 
     newSource.set('id', id);
@@ -965,7 +998,8 @@ export class MainView extends React.Component<IProps, IStates> {
     let sourceId: string | undefined;
     let source: IJGISSource | undefined;
 
-    if (layer.type !== 'StacLayer') {
+    // Sourceless layers
+    if (!['StacLayer', 'StorySegmentLayer'].includes(layer.type)) {
       sourceId = layer.parameters?.source;
       if (!sourceId) {
         return;
@@ -1089,6 +1123,11 @@ export class MainView extends React.Component<IProps, IStates> {
 
         break;
       }
+
+      case 'StorySegmentLayer': {
+        // Special layer not for this
+        return;
+      }
     }
 
     // OpenLayers doesn't have name/id field so add it
@@ -1170,7 +1209,6 @@ export class MainView extends React.Component<IProps, IStates> {
           item => item.id === id && item.error === error.message,
         )
       ) {
-        this._loadingLayers.delete(id);
         return;
       }
 
@@ -1184,7 +1222,9 @@ export class MainView extends React.Component<IProps, IStates> {
         error: error.message || 'invalid file path',
         index,
       });
+    } finally {
       this._loadingLayers.delete(id);
+      this.setState(old => ({ ...old, loadingLayer: false }));
     }
   }
 
@@ -1309,7 +1349,7 @@ export class MainView extends React.Component<IProps, IStates> {
     mapLayer: Layer,
     oldLayer?: IDict,
   ): Promise<void> {
-    mapLayer.setVisible(layer.visible);
+    layer.type !== 'StorySegmentLayer' && mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
       case 'RasterLayer': {
@@ -1825,15 +1865,13 @@ export class MainView extends React.Component<IProps, IStates> {
       return;
     }
     const layer = this.getLayer(id);
-    let nextIndex = index;
+
     // should not be undefined since the id exists above
     if (layer === undefined) {
       return;
     }
     this._Map.getLayers().removeAt(currentIndex);
-    if (currentIndex < index) {
-      nextIndex -= 1;
-    }
+
     // Adjust index to ensure it's within bounds
     const numLayers = this._Map.getLayers().getLength();
     const safeIndex = Math.min(index, numLayers);
@@ -1994,6 +2032,7 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
+  // TODO this and flyToPosition need a rework
   private _onZoomToPosition(_: IJupyterGISModel, id: string) {
     // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
@@ -2006,6 +2045,26 @@ export class MainView extends React.Component<IProps, IStates> {
     let extent;
     const layer = this.getLayer(id);
     const source = layer?.getSource();
+
+    // TODO: Story segment layers don't have an associated OL layer
+    // This could be better
+    if (!layer) {
+      const jgisLayer = this._model.getLayer(id);
+      const layerParams = jgisLayer?.parameters as IStorySegmentLayer;
+      const coords = getCenter(layerParams.extent);
+
+      // TODO: Should pass args through signal??
+      // const { story } = this._model.getSelectedStory();
+
+      this._flyToPosition(
+        { x: coords[0], y: coords[1] },
+        layerParams.zoom,
+        (layerParams.transition.time ?? 1) * 1000, // seconds -> ms
+        layerParams.transition.type,
+      );
+
+      return;
+    }
 
     if (source instanceof VectorSource) {
       extent = source.getExtent();
@@ -2064,10 +2123,55 @@ export class MainView extends React.Component<IProps, IStates> {
     center: { x: number; y: number },
     zoom: number,
     duration = 1000,
+    transitionType?: 'linear' | 'immediate' | 'smooth',
   ) {
     const view = this._Map.getView();
-    view.animate({ zoom, duration });
-    view.animate({ center: [center.x, center.y], duration });
+
+    // Cancel any in-progress animations before starting new ones
+    view.cancelAnimations();
+
+    const targetCenter: Coordinate = [center.x, center.y];
+
+    if (transitionType === 'linear') {
+      // Linear: direct zoom
+      view.animate({
+        center: targetCenter,
+        zoom: zoom,
+        duration,
+      });
+
+      return;
+    }
+
+    if (transitionType === 'smooth') {
+      // Smooth: zoom out, center, and zoom in
+      // Centering takes full duration, zoom out completes halfway, zoom in starts halfway
+      // 3 shows most of the map
+      const zoomOutLevel = 3;
+
+      // Start centering (full duration) and zoom out (50% duration) simultaneously
+      view.animate({
+        center: targetCenter,
+        duration: duration,
+      });
+      // Chain zoom out -> zoom in (zoom in starts when zoom out completes)
+      view.animate(
+        {
+          zoom: zoomOutLevel,
+          duration: duration * 0.5,
+        },
+        {
+          zoom: zoom,
+          duration: duration * 0.5,
+        },
+      );
+
+      return;
+    }
+
+    // Immediate move
+    view.setCenter(targetCenter);
+    view.setZoom(zoom);
   }
 
   private _onPointerMove(e: MouseEvent) {
@@ -2083,6 +2187,45 @@ export class MainView extends React.Component<IProps, IStates> {
     };
     this._model.syncPointer(pointer);
   });
+
+  private async _addMarker(e: MapBrowserEvent<any>) {
+    if (this._model.currentMode !== 'marking') {
+      return;
+    }
+
+    const coordinate = this._Map.getCoordinateFromPixel(e.pixel);
+    const sourceId = UUID.uuid4();
+    const layerId = UUID.uuid4();
+
+    const sourceParameters: IMarkerSource = {
+      feature: { coords: [coordinate[0], coordinate[1]] },
+    };
+
+    const layerParams: IVectorLayer = {
+      opacity: 1.0,
+      source: sourceId,
+      symbologyState: { renderType: 'Single Symbol' },
+    };
+
+    const sourceModel: IJGISSource = {
+      type: 'MarkerSource',
+      name: 'Marker',
+      parameters: sourceParameters,
+    };
+
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      visible: true,
+      name: 'Marker',
+      parameters: layerParams,
+    };
+
+    this._model.sharedModel.addSource(sourceId, sourceModel);
+    await this.addSource(sourceId, sourceModel);
+
+    this._model.addLayer(layerId, layerModel);
+    await this.addLayer(layerId, layerModel, this.getLayerIDs().length);
+  }
 
   private _identifyFeature(e: MapBrowserEvent<any>) {
     if (this._model.currentMode !== 'identifying') {
@@ -2122,7 +2265,7 @@ export class MainView extends React.Component<IProps, IStates> {
           const fid = feature.getId?.() ?? rawProps?.fid;
 
           if (rawProps && Object.keys(rawProps).length > 1) {
-            const { geometry, ...clean } = rawProps;
+            const { ...clean } = rawProps;
             props = clean;
             if (fid !== null) {
               // TODO Clean the cache under some condition?
@@ -2203,7 +2346,7 @@ export class MainView extends React.Component<IProps, IStates> {
     const olLayer = this.getLayer(layerId);
 
     if (!jgisLayer || !olLayer) {
-      console.log('Layer not found');
+      console.error('Failed to update layer -- layer not found');
       return;
     }
 
@@ -2287,7 +2430,7 @@ export class MainView extends React.Component<IProps, IStates> {
           )}
           <div
             className="jGIS-Mainview data-jgis-keybinding"
-            tabIndex={-2}
+            tabIndex={0}
             style={{
               border: this.state.remoteUser
                 ? `solid 3px ${this.state.remoteUser.color}`
@@ -2304,7 +2447,24 @@ export class MainView extends React.Component<IProps, IStates> {
                 width: '100%',
                 height: '100%',
               }}
-            />
+            >
+              <div className="jgis-panels-wrapper">
+                {this._state && (
+                  <LeftPanel
+                    model={this._model}
+                    commands={this._mainViewModel.commands}
+                    state={this._state}
+                  ></LeftPanel>
+                )}
+                {this._formSchemaRegistry && this._annotationModel && (
+                  <RightPanel
+                    model={this._model}
+                    formSchemaRegistry={this._formSchemaRegistry}
+                    annotationModel={this._annotationModel}
+                  ></RightPanel>
+                )}
+              </div>
+            </div>
           </div>
           <StatusBar
             jgisModel={this._model}
@@ -2312,23 +2472,6 @@ export class MainView extends React.Component<IProps, IStates> {
             projection={this.state.viewProjection}
             scale={this.state.scale}
           />
-        </div>
-
-        <div className="jgis-panels-wrapper">
-          {this._state && (
-            <LeftPanel
-              model={this._model}
-              commands={this._mainViewModel.commands}
-              state={this._state}
-            ></LeftPanel>
-          )}
-          {this._formSchemaRegistry && this._annotationModel && (
-            <RightPanel
-              model={this._model}
-              formSchemaRegistry={this._formSchemaRegistry}
-              annotationModel={this._annotationModel}
-            ></RightPanel>
-          )}
         </div>
       </>
     );

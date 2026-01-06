@@ -18,7 +18,11 @@ export function processingFormToParam(
     e => e.description === processingType,
   );
 
-  const params = processingElement!.operationParams;
+  if (!processingElement) {
+    return;
+  }
+
+  const params = processingElement.operationParams;
 
   const out: IDict = {};
 

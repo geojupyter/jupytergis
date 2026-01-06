@@ -28,8 +28,7 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
 /**
  * Wrapper component to handle OK button state
  */
-export interface IProcessingFormWrapperProps
-  extends IProcessingFormDialogOptions {
+export interface IProcessingFormWrapperProps extends IProcessingFormDialogOptions {
   okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
   formErrorSignalPromise?: PromiseDelegate<Signal<Dialog<any>, boolean>>;
 }
@@ -45,11 +44,11 @@ const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = props => {
     props.formErrorSignalPromise?.promise,
   ]).then(([ok, formChanged]) => {
     okSignal.current = ok;
-    formErrorSignal.current = formChanged;
+    formErrorSignal.current = formChanged || undefined;
     setReady(true);
   });
 
-  let FormComponent;
+  let FormComponent: React.ComponentType<any>;
   switch (props.processingType) {
     case 'Dissolve':
       FormComponent = DissolveForm;
@@ -65,7 +64,6 @@ const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = props => {
         filePath={props.model.filePath}
         model={props.model}
         ok={okSignal.current}
-        cancel={props.cancel}
         sourceData={props.sourceData}
         schema={props.schema}
         syncData={props.syncData}
@@ -183,5 +181,5 @@ export class ProcessingFormDialog extends Dialog<IDict> {
     }
   }
 
-  private okSignal: Signal<Dialog<any>, number>;
+  private okSignal: Signal<Dialog<IDict>, number>;
 }

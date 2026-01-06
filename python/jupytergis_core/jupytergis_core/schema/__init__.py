@@ -7,8 +7,10 @@ from .interfaces.project.layers.hillshadeLayer import IHillshadeLayer  # noqa
 from .interfaces.project.layers.imageLayer import IImageLayer  # noqa
 from .interfaces.project.layers.webGlLayer import IWebGlLayer  # noqa
 from .interfaces.project.layers.heatmapLayer import IHeatmapLayer  # noqa
+from .interfaces.project.layers.storySegmentLayer import IStorySegmentLayer  # noqa
 
 from .interfaces.project.sources.vectorTileSource import IVectorTileSource  # noqa
+from .interfaces.project.sources.markerSource import IMarkerSource  # noqa
 from .interfaces.project.sources.rasterSource import IRasterSource  # noqa
 from .interfaces.project.sources.geoJsonSource import IGeoJSONSource  # noqa
 from .interfaces.project.sources.videoSource import IVideoSource  # noqa
