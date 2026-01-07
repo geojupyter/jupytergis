@@ -10,9 +10,10 @@ import StoryNavBar from './StoryNavBar';
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
+  isSpecta: boolean;
 }
 
-function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
+function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
   const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(0);
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
     model.getSelectedStory().story ?? null,
@@ -21,6 +22,7 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
 
   // Derive story segments from story data
   const storySegments = useMemo(() => {
+    console.log('wettrdfdfdff', storyData);
     if (!storyData?.storySegments) {
       return [];
     }
@@ -201,7 +203,10 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   }
 
   return (
-    <div className="jgis-story-viewer-panel">
+    <div
+      className={`jgis-story-viewer-panel ${isSpecta ? 'jgis-story-viewer-panel-specta-mod' : ''}`}
+      style={{ width: '300px' }}
+    >
       {/* Image container with title overlay */}
       {activeSlide?.content?.image && imageLoaded ? (
         <div className="jgis-story-viewer-image-container">
