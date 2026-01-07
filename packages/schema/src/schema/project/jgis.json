@@ -20,6 +20,9 @@
     "options": {
       "$ref": "#/definitions/jGISOptions"
     },
+    "stories": {
+      "$ref": "#/definitions/jGISStoryMap"
+    },
     "metadata": {
       "type": "object",
       "patternProperties": {
@@ -140,7 +143,7 @@
     "jGISStoryMap": {
       "title": "IJGISStoryMap",
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "title": {
           "type": "string",

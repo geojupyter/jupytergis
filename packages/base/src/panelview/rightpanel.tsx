@@ -179,7 +179,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
                   commands={props.commands}
                 />
               ) : (
-                <StoryViewerPanel model={props.model} />
+                <StoryViewerPanel model={props.model} isSpecta={false} />
               )}
             </div>
           </TabsContent>

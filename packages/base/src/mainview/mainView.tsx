@@ -106,6 +106,7 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
+import StoryViewerPanel from '../panelview/components/story-maps/StoryViewerPanel';
 
 type OlLayerTypes =
   | TileLayer
@@ -234,6 +235,9 @@ export class MainView extends React.Component<IProps, IStates> {
       displayTemporalController: false,
       filterStates: {},
     };
+
+    this._isSpecta = window.location.pathname.includes('specta');
+    console.log('isSpecta', this._isSpecta);
 
     this._sources = [];
     this._loadingLayers = new Set();
@@ -1519,8 +1523,8 @@ export class MainView extends React.Component<IProps, IStates> {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
-          featureProjection: this._Map.getView().getProjection(),
-        });
+        featureProjection: this._Map.getView().getProjection(),
+      });
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
@@ -2449,6 +2453,8 @@ export class MainView extends React.Component<IProps, IStates> {
     // TODO SOMETHING
   };
 
+  // ! move this
+
   render(): JSX.Element {
     return (
       <>
@@ -2505,20 +2511,52 @@ export class MainView extends React.Component<IProps, IStates> {
               }}
             >
               <div className="jgis-panels-wrapper">
-                {this._state && (
-                  <LeftPanel
-                    model={this._model}
-                    commands={this._mainViewModel.commands}
-                    state={this._state}
-                  ></LeftPanel>
-                )}
-                {this._formSchemaRegistry && this._annotationModel && (
-                  <RightPanel
-                    model={this._model}
-                    commands={this._mainViewModel.commands}
-                    formSchemaRegistry={this._formSchemaRegistry}
-                    annotationModel={this._annotationModel}
-                  ></RightPanel>
+                {!this._isSpecta ? (
+                  <>
+                    {this._state && (
+                      <LeftPanel
+                        model={this._model}
+                        commands={this._mainViewModel.commands}
+                        state={this._state}
+                      />
+                    )}
+                    {this._formSchemaRegistry && this._annotationModel && (
+                      <RightPanel
+                        model={this._model}
+                        commands={this._mainViewModel.commands}
+                        formSchemaRegistry={this._formSchemaRegistry}
+                        annotationModel={this._annotationModel}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {this._state &&
+                      this._formSchemaRegistry &&
+                      this._annotationModel && (
+                        <>
+                          <LeftPanel
+                            model={this._model}
+                            commands={this._mainViewModel.commands}
+                            state={this._state}
+                          />
+                          <RightPanel
+                            model={this._model}
+                            commands={this._mainViewModel.commands}
+                            formSchemaRegistry={this._formSchemaRegistry}
+                            annotationModel={this._annotationModel}
+                          />
+                        </>
+                      )}
+                    <div className="jgis-right-panel-container jgis-specta-right-panel-container-mod">
+                      <div className="jgis-specta-story-panel-container">
+                        <StoryViewerPanel
+                          model={this._model}
+                          isSpecta={this._isSpecta}
+                        />
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -2555,4 +2593,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _featurePropertyCache: Map<string | number, any> = new Map();
+  private _isSpecta: boolean;
 }

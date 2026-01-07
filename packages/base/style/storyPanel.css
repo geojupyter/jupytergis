@@ -66,3 +66,38 @@
 .jgis-story-viewer-content > ul {
   padding-left: 1rem;
 }
+
+.jgis-story-viewer-specta-right-panel-mod {
+  scale: 1.5;
+  top: 3.5rem !important;
+  right: 5.5rem !important;
+  font-size: var(--jp-ui-font-size2);
+}
+
+.jgis-panel-tab-content-mod {
+  background-color: plum;
+}
+
+.jgis-specta-right-panel-container-mod {
+  width: 40%;
+  height: 100%;
+}
+
+.jgis-specta-story-panel-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background: linear-gradient(
+    to left,
+    rgba(221, 160, 221, 0.9) 70%,
+    transparent
+  );
+  /* background: radial-gradient(ellipse 100% 90% at right, plum 60%, transparent 100%); */
+}
+
+.jgis-story-viewer-panel-specta-mod {
+  width: 70%;
+  font-size: var(--jp-ui-font-size3);
+}
