@@ -289,6 +289,12 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   async generateMap(center: number[], zoom: number): Promise<void> {
+    const scaleLine = new ScaleLine({
+      target: this.controlsToolbarRef.current || undefined,
+    });
+    const fullScreen = new FullScreen({
+      target: this.controlsToolbarRef.current || undefined,
+    });
     if (this.divRef.current) {
       this._Map = new OlMap({
         target: this.divRef.current,
@@ -298,7 +304,7 @@ export class MainView extends React.Component<IProps, IStates> {
           center,
           zoom,
         }),
-        controls: [new ScaleLine(), new FullScreen()],
+        controls: [scaleLine, fullScreen],
       });
 
       // Add map interactions
@@ -2474,7 +2480,7 @@ export class MainView extends React.Component<IProps, IStates> {
                   </>
                 ) : (
                   <>
-                    {this._state &&
+                    {/* {this._state &&
                       this._formSchemaRegistry &&
                       this._annotationModel && (
                         <>
@@ -2489,8 +2495,8 @@ export class MainView extends React.Component<IProps, IStates> {
                             annotationModel={this._annotationModel}
                           />
                         </>
-                      )}
-                    <div className="jgis-right-panel-container jgis-specta-right-panel-container-mod">
+                      )} */}
+                    <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
                       <div className="jgis-specta-story-panel-container">
                         <StoryViewerPanel
                           model={this._model}
@@ -2501,6 +2507,10 @@ export class MainView extends React.Component<IProps, IStates> {
                   </>
                 )}
               </div>
+              <div
+                ref={this.controlsToolbarRef}
+                className="jgis-controls-toolbar"
+              ></div>
             </div>
           </div>
           <StatusBar
@@ -2518,6 +2528,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _commands: CommandRegistry;
   private _isPositionInitialized = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
+  private controlsToolbarRef = React.createRef<HTMLDivElement>();
   private _Map: OlMap;
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
