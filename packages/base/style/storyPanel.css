@@ -18,6 +18,7 @@
   max-height: 240px;
   object-fit: cover;
   display: block;
+  border-radius: var(--jp-border-radius);
 }
 
 .jgis-story-viewer-image-title {
