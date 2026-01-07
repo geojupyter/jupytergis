@@ -45,6 +45,8 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
     this._commands = options.commands;
     this._externalCommandRegistry = externalCommandRegistry;
     this._contentsManager = options.manager?.contents;
+
+    this._isSpecta = window.location.pathname.includes('specta');
   }
 
   /**
@@ -88,6 +90,9 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       model,
       externalCommands: this._externalCommandRegistry.getCommands(),
     });
+    
+    toolbar.setHidden(this._isSpecta);
+    
     return new JupyterGISDocumentWidget({
       context,
       content,
@@ -95,6 +100,7 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
     });
   }
 
+  private _isSpecta: boolean
   private _commands: CommandRegistry;
   private _externalCommandRegistry: IJGISExternalCommandRegistry;
   private _backendCheck?: () => boolean;
