@@ -237,7 +237,6 @@ export class MainView extends React.Component<IProps, IStates> {
     };
 
     this._isSpecta = window.location.pathname.includes('specta');
-    console.log('isSpecta', this._isSpecta);
 
     this._sources = [];
     this._loadingLayers = new Set();
@@ -2536,33 +2535,14 @@ export class MainView extends React.Component<IProps, IStates> {
                     )}
                   </>
                 ) : (
-                  <>
-                    {/* {this._state &&
-                      this._formSchemaRegistry &&
-                      this._annotationModel && (
-                        <>
-                          <LeftPanel
-                            model={this._model}
-                            commands={this._mainViewModel.commands}
-                            state={this._state}
-                          />
-                          <RightPanel
-                            model={this._model}
-                            commands={this._mainViewModel.commands}
-                            formSchemaRegistry={this._formSchemaRegistry}
-                            annotationModel={this._annotationModel}
-                          />
-                        </>
-                      )} */}
-                    <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
-                      <div className="jgis-specta-story-panel-container">
-                        <StoryViewerPanel
-                          model={this._model}
-                          isSpecta={this._isSpecta}
-                        />
-                      </div>
+                  <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
+                    <div className="jgis-specta-story-panel-container">
+                      <StoryViewerPanel
+                        model={this._model}
+                        isSpecta={this._isSpecta}
+                      />
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
               <div

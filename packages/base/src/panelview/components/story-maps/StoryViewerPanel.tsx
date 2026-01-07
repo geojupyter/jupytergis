@@ -22,7 +22,6 @@ function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
 
   // Derive story segments from story data
   const storySegments = useMemo(() => {
-    console.log('wettrdfdfdff', storyData);
     if (!storyData?.storySegments) {
       return [];
     }
