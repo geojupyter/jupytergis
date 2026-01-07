@@ -103,4 +103,5 @@
   width: 70%;
   font-size: var(--jp-ui-font-size3);
   padding-right: 0.5rem;
+  color: var(--jp-ui-inverse-font-color1);
 }
