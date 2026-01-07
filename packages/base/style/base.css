@@ -106,8 +106,8 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jgis-left-panel-container {
   position: absolute;
-  width: 275px;
-  top: 30px;
+  width: 250px;
+  /* top: 30px; */
   left: 0px;
   margin: 5px;
   z-index: 40;
@@ -115,6 +115,28 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jgis-icon-adjust {
   padding-top: 5px;
+}
+
+.jgis-controls-toolbar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+  position: absolute;
+  bottom: 8px;
+  z-index: 1000;
+}
+
+.jgis-controls-toolbar .ol-control,
+.jgis-controls-toolbar .ol-scale-line,
+.jgis-controls-toolbar .ol-full-screen {
+  position: relative;
+  top: unset;
+  bottom: unset;
+  left: unset;
+  right: unset;
+  margin: 0;
 }
 
 @media (max-width: 768px) {
