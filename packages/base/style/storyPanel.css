@@ -78,9 +78,11 @@
   background-color: plum;
 }
 
-.jgis-specta-right-panel-container-mod {
+.jgis-right-panel-container.jgis-specta-right-panel-container-mod {
   width: 40%;
   height: 100%;
+  margin: unset;
+  top: unset;
 }
 
 .jgis-specta-story-panel-container {
@@ -100,4 +102,5 @@
 .jgis-story-viewer-panel-specta-mod {
   width: 70%;
   font-size: var(--jp-ui-font-size3);
+  padding-right: 0.5rem;
 }

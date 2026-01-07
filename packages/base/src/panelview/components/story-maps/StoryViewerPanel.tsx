@@ -205,7 +205,6 @@ function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
   return (
     <div
       className={`jgis-story-viewer-panel ${isSpecta ? 'jgis-story-viewer-panel-specta-mod' : ''}`}
-      style={{ width: '300px' }}
     >
       {/* Image container with title overlay */}
       {activeSlide?.content?.image && imageLoaded ? (
