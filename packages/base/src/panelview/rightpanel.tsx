@@ -174,7 +174,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
               {showEditor ? (
                 <StoryEditorPanel model={props.model} />
               ) : (
-                <StoryViewerPanel model={props.model} />
+                <StoryViewerPanel model={props.model} isSpecta={false} />
               )}
             </div>
           </TabsContent>
