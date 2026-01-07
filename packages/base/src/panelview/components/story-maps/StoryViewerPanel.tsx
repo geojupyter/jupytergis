@@ -207,27 +207,36 @@ function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
     >
       {/* Image container with title overlay */}
       {activeSlide?.content?.image && imageLoaded ? (
-        <div className="jgis-story-viewer-image-container">
-          <img
-            src={activeSlide.content.image}
-            alt={activeSlide.content.title || 'Story map image'}
-            className="jgis-story-viewer-image"
-          />
-          <h1 className="jgis-story-viewer-image-title">
-            {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
-          </h1>
-          {/* if guided -> nav buttons */}
-          {storyData.storyType === 'guided' && (
-            <div className="jgis-story-viewer-nav-container">
-              <StoryNavBar
-                onPrev={handlePrev}
-                onNext={handleNext}
-                hasPrev={currentIndexDisplayed > 0}
-                hasNext={currentIndexDisplayed < storySegments.length - 1}
-              />
-            </div>
+        <>
+          {isSpecta && (
+            <h1 className="jgis-story-viewer-title">
+              {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
+            </h1>
           )}
-        </div>
+          <div className="jgis-story-viewer-image-container">
+            <img
+              src={activeSlide.content.image}
+              alt={activeSlide.content.title || 'Story map image'}
+              className="jgis-story-viewer-image"
+            />
+            {!isSpecta && (
+              <h1 className="jgis-story-viewer-image-title">
+                {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
+              </h1>
+            )}
+            {/* if guided -> nav buttons */}
+            {storyData.storyType === 'guided' && (
+              <div className="jgis-story-viewer-nav-container">
+                <StoryNavBar
+                  onPrev={handlePrev}
+                  onNext={handleNext}
+                  hasPrev={currentIndexDisplayed > 0}
+                  hasNext={currentIndexDisplayed < storySegments.length - 1}
+                />
+              </div>
+            )}
+          </div>
+        </>
       ) : (
         <>
           <h1 className="jgis-story-viewer-title">{storyData.title}</h1>
