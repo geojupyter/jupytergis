@@ -24,7 +24,7 @@ import { fetchWithProxies } from '@/src/tools';
 interface IStacResultsContext {
   results: IStacItem[];
   isLoading: boolean;
-  totalResults: number;
+  totalResults: string;
   totalPages: number;
   handlePaginationClick: (dir: 'next' | 'previous') => Promise<void>;
   handleResultClick: (id: string) => Promise<void>;
@@ -72,7 +72,7 @@ export function StacResultsProvider({
 }: IStacResultsProviderProps) {
   const [results, setResultsState] = useState<IStacItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [totalResults, setTotalResults] = useState(0);
+  const [totalResults, setTotalResults] = useState('0');
   const [totalPages, setTotalPages] = useState(0);
   const [paginationLinks, setPaginationLinksState] = useState<
     IStacPaginationLink[]
@@ -123,7 +123,7 @@ export function StacResultsProvider({
   const setResults = useCallback(
     (
       newResults: IStacItem[],
-      newTotalResults: number,
+      newTotalResults: string,
       newTotalPages: number,
     ) => {
       setResultsState(newResults);
@@ -150,7 +150,7 @@ export function StacResultsProvider({
     currentPageRef.current = 1;
     setResultsState([]);
     setPaginationLinksState([]);
-    setTotalResults(0);
+    setTotalResults('0');
     setTotalPages(0);
   }, []);
 
@@ -224,7 +224,7 @@ export function StacResultsProvider({
         )) as IStacSearchResult;
 
         if (!data) {
-          setResults([], 0, 0);
+          setResults([], '0', 0);
           setIsLoading(false);
           return;
         }
@@ -265,16 +265,28 @@ export function StacResultsProvider({
         );
 
         // Calculate total results from context if available
-        let totalResultsFromQuery = data.features.length;
+        let totalResultsFromQuery: string;
         let totalPagesFromQuery = 0;
         if (data.context) {
-          totalResultsFromQuery = data.context.matched;
+          totalResultsFromQuery = String(data.context.matched);
           totalPagesFromQuery = Math.ceil(
             data.context.matched / data.context.limit,
           );
-        } else if (sortedFeatures.length > 0) {
-          // If results found but no context, use single page
-          totalPagesFromQuery = 1;
+        } else {
+          // If no context, check pagination links to determine if there are more results
+          const hasNext =
+            data.links?.some(link => link.rel === 'next') ?? false;
+          const featuresCount = data.features.length;
+
+          // If there are more results, show the number of results and a +
+          totalResultsFromQuery = hasNext
+            ? `${featuresCount}+`
+            : String(featuresCount);
+
+          if (sortedFeatures.length > 0) {
+            // If results found but no context, use single page
+            totalPagesFromQuery = 1;
+          }
         }
 
         // Update context with results
@@ -287,7 +299,7 @@ export function StacResultsProvider({
 
         setIsLoading(false);
       } catch (error) {
-        setResults([], 0, 0);
+        setResults([], '0', 0);
         setIsLoading(false);
       }
     },
