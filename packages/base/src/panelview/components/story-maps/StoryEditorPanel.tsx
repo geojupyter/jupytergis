@@ -48,7 +48,7 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
   }
 
   return (
-    <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
+    <div className="jgis-story-editor-panel">
       <StoryEditorPropertiesForm
         formContext="update"
         sourceData={story}
@@ -57,7 +57,9 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
         syncData={syncStoryData}
         filePath={model.filePath}
       />
-      <AddStorySegmentButton model={model} />
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <AddStorySegmentButton model={model} />
+      </div>
     </div>
   );
 }
