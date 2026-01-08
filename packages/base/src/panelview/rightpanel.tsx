@@ -165,23 +165,18 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             className="jgis-panel-tab-content"
             style={{ paddingTop: 0 }}
           >
-            <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
-              {/* Only show switch when NOT in presentation mode */}
-              {!storyMapPresentationMode && (
-                <PreviewModeSwitch
-                  checked={!editorMode}
-                  onCheckedChange={toggleEditor}
-                />
-              )}
-              {showEditor ? (
-                <StoryEditorPanel
-                  model={props.model}
-                  commands={props.commands}
-                />
-              ) : (
-                <StoryViewerPanel model={props.model} isSpecta={false} />
-              )}
-            </div>
+            {/* Only show switch when NOT in presentation mode */}
+            {!storyMapPresentationMode && (
+              <PreviewModeSwitch
+                checked={!editorMode}
+                onCheckedChange={toggleEditor}
+              />
+            )}
+            {showEditor ? (
+              <StoryEditorPanel model={props.model} commands={props.commands} />
+            ) : (
+              <StoryViewerPanel model={props.model} isSpecta={false} />
+            )}
           </TabsContent>
         )}
 
