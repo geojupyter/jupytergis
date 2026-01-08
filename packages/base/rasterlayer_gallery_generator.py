@@ -39,7 +39,6 @@ def create_thumbnail(
     Create a thumbnail for the specified location and zoom level.
     """
     x, y = latlng_to_tile(lat, lng, zoom)
-    
 
     # Fetch the tiles (2x2 grid for the thumbnail)
     tiles = []
@@ -148,7 +147,7 @@ raster_provider_gallery = {}
 # Create thumbnail dir if needed
 if not os.path.exists(THUMBNAILS_LOCATION):
     os.makedirs(THUMBNAILS_LOCATION)
-    
+
 custom_providers = providers.copy()
 
 custom_providers["MacroStrat"] = {
@@ -156,9 +155,9 @@ custom_providers["MacroStrat"] = {
         name="MacroStrat.CartoRaster",
         url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
         attribution="© Geologic data © <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC‑BY 4.0)",
-        max_zoom=18
+        max_zoom=18,
     ),
-}    
+}
 
 # Fetch thumbnails and populate the dictionary
 for provider in thumbnails_providers_positions.keys():
@@ -233,7 +232,7 @@ for provider in thumbnails_providers_positions.keys():
 
         except Exception as e:
             print("Failed...", e)
-        
+
 # Save JSON repr
 with open(f"{THUMBNAILS_LOCATION}/raster_layer_gallery.json", "w") as f:
     json.dump(raster_provider_gallery, f)
