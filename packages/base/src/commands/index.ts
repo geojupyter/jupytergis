@@ -71,6 +71,41 @@ export function addCommands(
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
+  const isSpecta = window.location.pathname.includes('specta');
+
+  /**
+   * Wraps a command definition to automatically disable it in Specta mode
+   */
+  const createSpectaAwareCommand = (
+    command: CommandRegistry.ICommandOptions,
+  ): CommandRegistry.ICommandOptions => {
+    const originalIsEnabled = command.isEnabled;
+
+    return {
+      ...command,
+      isEnabled: (args?: ReadonlyPartialJSONObject) => {
+        // First check if we're in Specta mode
+        if (isSpecta) {
+          return false;
+        }
+        // Then check the original isEnabled if it exists
+        if (originalIsEnabled) {
+          return originalIsEnabled(args ?? {});
+        }
+        // Default to enabled if no original check
+        return true;
+      },
+    };
+  };
+
+  // Override addCommand to automatically wrap all commands
+  const originalAddCommand = commands.addCommand.bind(commands);
+  commands.addCommand = (
+    id: string,
+    options: CommandRegistry.ICommandOptions,
+  ) => {
+    return originalAddCommand(id, createSpectaAwareCommand(options));
+  };
 
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
