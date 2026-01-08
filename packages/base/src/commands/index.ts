@@ -71,7 +71,6 @@ export function addCommands(
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
-  const isSpecta = window.location.pathname.includes('specta');
 
   /**
    * Wraps a command definition to automatically disable it in Specta mode
@@ -85,7 +84,8 @@ export function addCommands(
       ...command,
       isEnabled: (args?: ReadonlyPartialJSONObject) => {
         // First check if we're in Specta mode
-        if (isSpecta) {
+        const currentModel = tracker.currentWidget?.model;
+        if (currentModel?.isSpectaMode()) {
           return false;
         }
         // Then check the original isEnabled if it exists
