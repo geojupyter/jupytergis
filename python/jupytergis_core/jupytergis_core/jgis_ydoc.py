@@ -13,6 +13,7 @@ class YJGIS(YBaseDoc):
         super().__init__(*args, **kwargs)
         self._ydoc["layers"] = self._ylayers = Map()
         self._ydoc["sources"] = self._ysources = Map()
+        self._ydoc["stories"] = self._ystories = Map()
         self._ydoc["options"] = self._yoptions = Map()
         self._ydoc["layerTree"] = self._ylayerTree = Array()
         self._ydoc["metadata"] = self._ymetadata = Map()
@@ -28,6 +29,7 @@ class YJGIS(YBaseDoc):
         """
         layers = self._ylayers.to_py()
         sources = self._ysources.to_py()
+        stories_map = self._ystories.to_py()
         options = self._yoptions.to_py()
         meta = self._ymetadata.to_py()
         layers_tree = self._ylayerTree.to_py()
@@ -36,6 +38,7 @@ class YJGIS(YBaseDoc):
                 schemaVersion=SCHEMA_VERSION,
                 layers=layers,
                 sources=sources,
+                stories=stories_map,
                 options=options,
                 layerTree=layers_tree,
                 metadata=meta,
@@ -68,6 +71,9 @@ class YJGIS(YBaseDoc):
             self._ysources.clear()
             self._ysources.update(valueDict.get("sources", {}))
 
+            self._ystories.clear()
+            self._ystories.update(valueDict.get("stories", {}))
+
             self._yoptions.clear()
             self._yoptions.update(valueDict.get("options", {}))
 
@@ -87,6 +93,9 @@ class YJGIS(YBaseDoc):
         )
         self._subscriptions[self._ysources] = self._ysources.observe_deep(
             partial(callback, "sources")
+        )
+        self._subscriptions[self._ystories] = self._ystories.observe_deep(
+            partial(callback, "stories")
         )
         self._subscriptions[self._yoptions] = self._yoptions.observe_deep(
             partial(callback, "options")

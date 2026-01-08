@@ -28,8 +28,7 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
 /**
  * Wrapper component to handle OK button state
  */
-export interface IProcessingFormWrapperProps
-  extends IProcessingFormDialogOptions {
+export interface IProcessingFormWrapperProps extends IProcessingFormDialogOptions {
   okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
   formErrorSignalPromise?: PromiseDelegate<Signal<Dialog<any>, boolean>>;
 }

@@ -916,7 +916,7 @@ def jgis_layer_to_qgis(
             # check logical operator to choose discrete or exact
             op = layer_colors[3][0]
 
-            # skip the last value in both cases, thats the fallback and not used by qgis
+            # skip the last value in both cases, that's the fallback and not used by qgis
             if op == "<=":
                 # skip the second to last pair because that needs special handling
                 color_ramp_shader.setColorRampType(QgsColorRampShader.Discrete)

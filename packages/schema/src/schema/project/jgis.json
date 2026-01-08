@@ -41,7 +41,8 @@
         "WebGlLayer",
         "ImageLayer",
         "HeatmapLayer",
-        "StacLayer"
+        "StacLayer",
+        "StorySegmentLayer"
       ]
     },
     "sourceType": {
@@ -136,6 +137,30 @@
         }
       ]
     },
+    "jGISStoryMap": {
+      "title": "IJGISStoryMap",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the story map"
+        },
+        "storyType": {
+          "type": "string",
+          "enum": ["guided", "unguided"],
+          "description": "The type of story map"
+        },
+        "storySegments": {
+          "type": "array",
+          "default": [],
+          "description": "Array of story segments for the story map",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "jGISLayers": {
       "title": "IJGISLayers",
       "type": "object",
@@ -200,6 +225,11 @@
         },
         "useExtent": {
           "type": "boolean",
+          "default": false
+        },
+        "storyMapPresentationMode": {
+          "type": "boolean",
+          "title": "Whether presentation mode is active",
           "default": false
         }
       }

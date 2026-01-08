@@ -1,5 +1,5 @@
 import { IDict, IGeoJSONSource, IHeatmapLayer } from '@jupytergis/schema';
-import { IChangeEvent } from '@rjsf/core';
+import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
 import { loadFile } from '@/src/tools';
 import { ILayerProps, LayerPropertiesForm } from './layerform';
@@ -23,6 +23,12 @@ export class HeatmapLayerPropertiesForm extends LayerPropertiesForm {
         }
       });
     }
+  }
+
+  protected onFormSubmit(e: ISubmitEvent<any>): void {
+    e.formData.symbologyState = {};
+
+    return super.onFormSubmit(e);
   }
 
   protected onFormChange(e: IChangeEvent): void {

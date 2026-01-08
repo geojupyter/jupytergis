@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/jupytergis-core",
-  "version": "0.9.2",
+  "version": "0.11.1",
   "description": "JupyterGIS core extension",
   "keywords": [
     "jupyter",
@@ -53,9 +53,9 @@
     "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
-    "@jupyter/collaborative-drive": "^3.0.0",
-    "@jupytergis/base": "^0.9.2",
-    "@jupytergis/schema": "^0.9.2",
+    "@jupyter/collaborative-drive": "^4.1.2",
+    "@jupytergis/base": "^0.11.1",
+    "@jupytergis/schema": "^0.11.1",
     "@jupyterlab/application": "^4.3.0",
     "@jupyterlab/apputils": "^4.3.0",
     "@jupyterlab/docregistry": "^4.3.0",

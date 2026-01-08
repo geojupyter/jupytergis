@@ -1,0 +1,55 @@
+{
+  "type": "object",
+  "description": "StorySegmentLayer",
+  "title": "IStorySegmentLayer",
+  "additionalProperties": false,
+  "required": ["zoom", "extent", "transition"],
+  "properties": {
+    "zoom": {
+      "type": "number",
+      "default": 0
+    },
+    "extent": {
+      "type": "array",
+      "default": null,
+      "items": {
+        "type": "number"
+      }
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string",
+          "description": "Link to image for the story"
+        },
+        "markdown": {
+          "type": "string",
+          "description": "Markdown string representing the content of the story stop"
+        }
+      }
+    },
+    "transition": {
+      "type": "object",
+      "description": "Transition configuration between to this story segment",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["linear", "immediate", "smooth"],
+          "description": "Transition animation style",
+          "default": "linear"
+        },
+        "time": {
+          "type": "number",
+          "description": "The time in seconds for the transition",
+          "default": 1
+        }
+      },
+      "required": ["type", "time"]
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import { IDict, IVectorLayer } from '@jupytergis/schema';
-import { IChangeEvent } from '@rjsf/core';
+import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
 
 import { ILayerProps, LayerPropertiesForm } from './layerform';
 
@@ -12,6 +12,12 @@ export class VectorLayerPropertiesForm extends LayerPropertiesForm {
 
   constructor(props: ILayerProps) {
     super(props);
+  }
+
+  protected onFormSubmit(e: ISubmitEvent<any>): void {
+    e.formData.symbologyState = {};
+
+    return super.onFormSubmit(e);
   }
 
   protected onFormChange(e: IChangeEvent): void {

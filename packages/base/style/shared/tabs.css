@@ -1,7 +1,6 @@
 .jgis-panel-tabs {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   justify-content: center;
   align-items: center;
   background-color: var(--jp-layout-color0);
@@ -9,15 +8,7 @@
     0 4px 8px 0 rgba(0, 0, 0, 0.2),
     0 6px 20px 0 rgba(0, 0, 0, 0.19);
   border-radius: 5px;
-  cursor: grab;
-  user-select: none;
-  -webkit-user-drag: none;
 }
-
-.jgis-panel-tabs:active {
-  cursor: grabbing;
-}
-
 .jgis-tabs-list {
   display: inline-flex;
   height: 2.5rem;
@@ -28,7 +19,8 @@
   gap: 1rem;
   width: 100%;
   font-size: 9px;
-  border-radius: 5px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
   overflow-x: scroll;
 }
 
@@ -70,6 +62,7 @@
   width: 100%;
   overflow-y: scroll;
   max-height: 480px;
+  padding-top: 1rem;
 }
 
 .jgis-tabs-content:focus-visible {

@@ -10,9 +10,7 @@ import {
  * @class JupyterGISLayerBrowserRegistry
  * @implements IJGISLayerBrowserRegistry
  */
-export class JupyterGISLayerBrowserRegistry
-  implements IJGISLayerBrowserRegistry
-{
+export class JupyterGISLayerBrowserRegistry implements IJGISLayerBrowserRegistry {
   private _registry: IRasterLayerGalleryEntry[];
 
   constructor() {
