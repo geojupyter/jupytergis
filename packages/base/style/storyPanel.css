@@ -97,7 +97,6 @@
     rgba(221, 160, 221, 0.9) 70%,
     transparent
   );
-  /* background: radial-gradient(ellipse 100% 90% at right, plum 60%, transparent 100%); */
 }
 
 .jgis-story-viewer-panel-specta-mod {
@@ -105,4 +104,17 @@
   font-size: var(--jp-ui-font-size3);
   padding-right: 0.5rem;
   color: var(--jp-ui-inverse-font-color1);
+}
+
+.jGIS-property-panel
+  .jp-FormGroup-content
+  fieldset
+  .jp-inputFieldWrapper
+  > input#root_presentaionBgColor,
+.jGIS-property-panel
+  .jp-FormGroup-content
+  fieldset
+  .jp-inputFieldWrapper
+  > input#root_presrevertnTextColor {
+  height: revert;
 }

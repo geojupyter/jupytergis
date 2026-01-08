@@ -13,5 +13,13 @@ export class StoryEditorPropertiesForm extends BaseForm {
   ) {
     super.processSchema(data, schema, uiSchema);
     this.removeFormEntry('storySegments', data, schema, uiSchema);
+
+    uiSchema['presentaionBgColor'] = {
+      'ui:widget': 'color',
+    };
+
+    uiSchema['presentaionTextColor'] = {
+      'ui:widget': 'color',
+    };
   }
 }

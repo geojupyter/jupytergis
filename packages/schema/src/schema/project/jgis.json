@@ -147,10 +147,12 @@
       "properties": {
         "title": {
           "type": "string",
+          "title": "Title",
           "description": "The title of the story map"
         },
         "storyType": {
           "type": "string",
+          "title": "Story Type",
           "enum": ["guided", "unguided"],
           "description": "The type of story map"
         },
@@ -161,6 +163,16 @@
           "items": {
             "type": "string"
           }
+        },
+        "presentaionBgColor": {
+          "type": "string",
+          "title": "Presentation Background Color",
+          "description": "The background color of the story map"
+        },
+        "presentaionTextColor": {
+          "type": "string",
+          "title": "Presentation Text Color",
+          "description": "The text color of the story map"
         }
       }
     },
