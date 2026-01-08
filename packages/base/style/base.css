@@ -92,7 +92,6 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jgis-right-panel-container {
   width: 330px;
-  top: 30px;
   right: 0px;
   position: absolute;
   margin: 5px;
@@ -102,7 +101,6 @@ button.jp-mod-styled.jp-mod-reject {
 .jgis-left-panel-container {
   position: absolute;
   width: 250px;
-  /* top: 30px; */
   left: 0px;
   margin: 5px;
   z-index: 40;
