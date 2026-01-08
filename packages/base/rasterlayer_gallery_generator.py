@@ -6,7 +6,7 @@ import os
 import requests
 from PIL import Image
 import mercantile
-from xyzservices import providers
+from xyzservices import providers, TileProvider
 
 THUMBNAILS_LOCATION = "rasterlayer_gallery"
 
@@ -39,6 +39,7 @@ def create_thumbnail(
     Create a thumbnail for the specified location and zoom level.
     """
     x, y = latlng_to_tile(lat, lng, zoom)
+    
 
     # Fetch the tiles (2x2 grid for the thumbnail)
     tiles = []
@@ -123,6 +124,12 @@ thumbnails_providers_positions = {
         "Special Rules": {},
         "Default": san_francisco,
     },
+    "MacroStrat": {
+        "Special Rules": {
+            "CartoRaster": france,
+        },
+        "Default": france,
+    },
 }
 
 
@@ -141,10 +148,21 @@ raster_provider_gallery = {}
 # Create thumbnail dir if needed
 if not os.path.exists(THUMBNAILS_LOCATION):
     os.makedirs(THUMBNAILS_LOCATION)
+    
+custom_providers = providers.copy()
+
+custom_providers["MacroStrat"] = {
+    "CartoRaster": TileProvider(
+        name="MacroStrat.CartoRaster",
+        url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
+        attribution="© Geologic data © <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC‑BY 4.0)",
+        max_zoom=18
+    ),
+}    
 
 # Fetch thumbnails and populate the dictionary
 for provider in thumbnails_providers_positions.keys():
-    xyzprovider = providers[provider]
+    xyzprovider = custom_providers[provider]
 
     if "url" in xyzprovider.keys():
         print(f"Process {provider}")
@@ -215,7 +233,7 @@ for provider in thumbnails_providers_positions.keys():
 
         except Exception as e:
             print("Failed...", e)
-
+        
 # Save JSON repr
 with open(f"{THUMBNAILS_LOCATION}/raster_layer_gallery.json", "w") as f:
     json.dump(raster_provider_gallery, f)
