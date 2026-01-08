@@ -107,6 +107,7 @@ import { MainViewModel } from './mainviewmodel';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
 import StoryViewerPanel from '../panelview/components/story-maps/StoryViewerPanel';
+import { hexToRgb } from '../dialogs/symbology/colorRampUtils';
 
 type OlLayerTypes =
   | TileLayer
@@ -138,6 +139,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
+  isSpecta: boolean;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -196,7 +198,7 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
     this._model.sharedModel.storyMapsChanged.connect(
-      this._onSpectaModeChanged,
+      this._onStoryMapsChanged,
       this,
     );
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
@@ -238,9 +240,8 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
+      isSpecta: this._model.isSpectaMode(),
     };
-
-    this._isSpecta = this._model.isSpectaMode();
 
     this._sources = [];
     this._loadingLayers = new Set();
@@ -290,7 +291,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
     this._model.sharedModel.storyMapsChanged.disconnect(
-      this._onSpectaModeChanged,
+      this._onStoryMapsChanged,
       this,
     );
 
@@ -2016,10 +2017,55 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   };
 
-  private _onSpectaModeChanged = (): void => {
+  /**
+   * Handler for when story maps change in the model.
+   * Updates specta state and presentation colors when story data becomes available.
+   */
+  private _onStoryMapsChanged = (): void => {
     const newSpectaMode = this._model.isSpectaMode();
-    if (this._isSpecta !== newSpectaMode) {
-      this._isSpecta = newSpectaMode;
+    if (this.state.isSpecta !== newSpectaMode) {
+      this.setState({ isSpecta: newSpectaMode }, () => {
+        this._updateSpectaPresentationColors();
+      });
+    } else {
+      // Specta mode didn't change, but story data might have
+      this._updateSpectaPresentationColors();
+    }
+  };
+
+  private _updateSpectaPresentationColors = (): void => {
+    // Only update if we're in specta mode
+    if (!this.state.isSpecta) {
+      return;
+    }
+
+    // Try ref first, fallback to querySelector if ref not available yet
+    const container =
+      this.spectaContainerRef.current ||
+      (this.divRef.current?.querySelector(
+        '.jgis-specta-story-panel-container',
+      ) as HTMLDivElement);
+
+    if (!container) {
+      return;
+    }
+
+    const story = this._model.getSelectedStory().story;
+    const bgColor = story?.presentaionBgColor;
+    const textColor = story?.presentaionTextColor;
+
+    // Set background color
+    if (bgColor) {
+      const rgb = hexToRgb(bgColor);
+      container.style.setProperty(
+        '--jgis-specta-bg-color',
+        `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.9)`,
+      );
+    }
+
+    // Set text color
+    if (textColor) {
+      container.style.setProperty('--jgis-specta-text-color', textColor);
     }
   };
 
@@ -2531,7 +2577,7 @@ export class MainView extends React.Component<IProps, IStates> {
               }}
             >
               <div className="jgis-panels-wrapper">
-                {!this._isSpecta ? (
+                {!this.state.isSpecta ? (
                   <>
                     {this._state && (
                       <LeftPanel
@@ -2551,10 +2597,13 @@ export class MainView extends React.Component<IProps, IStates> {
                   </>
                 ) : (
                   <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
-                    <div className="jgis-specta-story-panel-container">
+                    <div
+                      ref={this.spectaContainerRef}
+                      className="jgis-specta-story-panel-container"
+                    >
                       <StoryViewerPanel
                         model={this._model}
-                        isSpecta={this._isSpecta}
+                        isSpecta={this.state.isSpecta}
                       />
                     </div>
                   </div>
@@ -2582,6 +2631,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _isPositionInitialized = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
   private controlsToolbarRef = React.createRef<HTMLDivElement>();
+  private spectaContainerRef = React.createRef<HTMLDivElement>();
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
@@ -2599,5 +2649,4 @@ export class MainView extends React.Component<IProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _featurePropertyCache: Map<string | number, any> = new Map();
-  private _isSpecta: boolean;
 }
