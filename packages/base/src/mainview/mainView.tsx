@@ -195,6 +195,10 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
+    this._model.sharedModel.storyMapsChanged.connect(
+      this._onSpectaModeChanged,
+      this,
+    );
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
     this._model.sharedMetadataChanged.connect(
       this._onSharedMetadataChanged,
@@ -236,7 +240,7 @@ export class MainView extends React.Component<IProps, IStates> {
       filterStates: {},
     };
 
-    this._isSpecta = window.location.pathname.includes('specta');
+    this._isSpecta = this._model.isSpectaMode();
 
     this._sources = [];
     this._loadingLayers = new Set();
@@ -283,6 +287,10 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._model.clientStateChanged.disconnect(
       this._onClientSharedStateChanged,
+      this,
+    );
+    this._model.sharedModel.storyMapsChanged.disconnect(
+      this._onSpectaModeChanged,
       this,
     );
 
@@ -2005,6 +2013,13 @@ export class MainView extends React.Component<IProps, IStates> {
       if (window.jupytergisMaps !== undefined) {
         window.jupytergisMaps[this._documentPath] = this._Map;
       }
+    }
+  };
+
+  private _onSpectaModeChanged = (): void => {
+    const newSpectaMode = this._model.isSpectaMode();
+    if (this._isSpecta !== newSpectaMode) {
+      this._isSpecta = newSpectaMode;
     }
   };
 
