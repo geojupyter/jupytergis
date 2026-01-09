@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import ColorRampSelector from '@/src/dialogs/symbology/components/color_ramp/ColorRampSelector';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
-import { ColorRampName } from '../../colorRampUtils';
+import { ColorRampName } from '@/src/types';
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
   model,
@@ -31,7 +31,7 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
     radius: 8,
     blur: 15,
   });
-  const reverseRampRef = useRef(false);
+  const reverseRampRef = useRef(false); // Do we need these refs here? Why not directly use the state?
 
   useEffect(() => {
     populateOptions();
@@ -103,17 +103,9 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
         <ColorRampSelector
           selectedRamp={selectedRamp}
           setSelected={setSelectedRamp}
+          reverse={reverseRamp}
+          setReverse={setReverseRamp}
         />
-      </div>
-      <div className="jp-gis-symbology-row">
-        <label>
-          <input
-            type="checkbox"
-            checked={reverseRamp}
-            onChange={e => setReverseRamp(e.target.checked)}
-          />
-          Reverse Color Ramp
-        </label>
       </div>
       <div className="jp-gis-symbology-row">
         <label htmlFor={'vector-value-select'}>Radius:</label>
