@@ -88,7 +88,7 @@ export class JupyterGISDocumentWidgetFactory extends ABCWidgetFactory<
       model,
       externalCommands: this._externalCommandRegistry.getCommands(),
     });
-    
+
     return new JupyterGISDocumentWidget({
       context,
       content,
