@@ -30,10 +30,13 @@ export function StoryEditorPanel({ model, commands }: IStoryPanelProps) {
   }, [model, model.sharedModel.stories]);
 
   const syncStoryData = (properties: IDict) => {
-    model.sharedModel.updateStoryMap(
-      storySegmentId,
-      properties as IJGISStoryMap,
-    );
+    // Preserve storySegments when updating, since the form removes it from the UI
+    const updatedStory: IJGISStoryMap = {
+      ...story,
+      ...properties,
+      storySegments: story?.storySegments ?? [],
+    };
+    model.sharedModel.updateStoryMap(storySegmentId, updatedStory);
   };
 
   if (!story) {
