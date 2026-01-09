@@ -52,6 +52,7 @@ import {
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
 import { FullScreen, ScaleLine } from 'ol/control';
+import Zoom from 'ol/control/Zoom';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
@@ -294,7 +295,7 @@ export class MainView extends React.Component<IProps, IStates> {
           center,
           zoom,
         }),
-        controls: [new ScaleLine(), new FullScreen()],
+        controls: [new ScaleLine(), new FullScreen(), new Zoom()],
       });
 
       // Add map interactions
