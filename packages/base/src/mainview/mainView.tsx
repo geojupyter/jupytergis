@@ -104,10 +104,10 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import { hexToRgb } from '../dialogs/symbology/colorRampUtils';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
 import StoryViewerPanel from '../panelview/components/story-maps/StoryViewerPanel';
-import { hexToRgb } from '../dialogs/symbology/colorRampUtils';
 
 type OlLayerTypes =
   | TileLayer
