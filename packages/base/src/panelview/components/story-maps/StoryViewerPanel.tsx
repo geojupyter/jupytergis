@@ -3,10 +3,17 @@ import {
   IJGISStoryMap,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Markdown from 'react-markdown';
 
 import StoryNavBar from './StoryNavBar';
+import { throttle } from '@/src/tools';
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
@@ -19,6 +26,7 @@ function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
     model.getSelectedStory().story ?? null,
   );
   const [imageLoaded, setImageLoaded] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Derive story segments from story data
   const storySegments = useMemo(() => {
@@ -179,19 +187,56 @@ function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
     };
   }, [model, storyData]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (currentIndexDisplayed > 0) {
       const newIndex = currentIndexDisplayed - 1;
       setCurrentIndexDisplayed(newIndex);
     }
-  };
+  }, [currentIndexDisplayed]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (currentIndexDisplayed < storySegments.length - 1) {
       const newIndex = currentIndexDisplayed + 1;
       setCurrentIndexDisplayed(newIndex);
     }
-  };
+  }, [currentIndexDisplayed, storySegments.length]);
+
+  // Handle scroll events to navigate between slides
+  useEffect(() => {
+    // Only enable scroll navigation for guided mode
+    if (!storyData || storyData.storyType !== 'guided') {
+      return;
+    }
+
+    // let lastScrollTime = 0;
+    const scrollThrottle = 500; // Minimum time between scroll-triggered navigation (ms)
+
+    const handleScroll = (e: WheelEvent) => {
+      e.preventDefault();
+
+      // Scroll down (positive deltaY) = next slide
+      // Scroll up (negative deltaY) = previous slide
+      if (e.deltaY > 0) {
+        handleNext();
+      } else if (e.deltaY < 0) {
+        handlePrev();
+      }
+    };
+
+    throttle(handleScroll, scrollThrottle);
+
+    // Attach wheel event listener to the panel container
+    const panelElement = panelRef.current;
+    if (panelElement) {
+      panelElement.addEventListener('wheel', handleScroll, { passive: false });
+    }
+
+    return () => {
+      if (panelElement) {
+        panelElement.removeEventListener('wheel', handleScroll);
+      }
+    };
+  }, [storyData, handlePrev, handleNext]);
 
   if (!storyData || storyData?.storySegments?.length === 0) {
     return (
@@ -203,6 +248,7 @@ function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
 
   return (
     <div
+      ref={panelRef}
       className={`jgis-story-viewer-panel ${isSpecta ? 'jgis-story-viewer-panel-specta-mod' : ''}`}
     >
       {/* Image container with title overlay */}
