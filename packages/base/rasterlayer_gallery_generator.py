@@ -6,7 +6,7 @@ import os
 import requests
 from PIL import Image
 import mercantile
-from xyzservices import providers
+from xyzservices import providers, TileProvider
 
 THUMBNAILS_LOCATION = "rasterlayer_gallery"
 
@@ -123,6 +123,12 @@ thumbnails_providers_positions = {
         "Special Rules": {},
         "Default": san_francisco,
     },
+    "MacroStrat": {
+        "Special Rules": {
+            "CartoRaster": france,
+        },
+        "Default": france,
+    },
 }
 
 
@@ -142,9 +148,20 @@ raster_provider_gallery = {}
 if not os.path.exists(THUMBNAILS_LOCATION):
     os.makedirs(THUMBNAILS_LOCATION)
 
+custom_providers = providers.copy()
+
+custom_providers["MacroStrat"] = {
+    "CartoRaster": TileProvider(
+        name="MacroStrat.CartoRaster",
+        url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
+        attribution="© Geologic data © <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC‑BY 4.0)",
+        max_zoom=18,
+    ),
+}
+
 # Fetch thumbnails and populate the dictionary
 for provider in thumbnails_providers_positions.keys():
-    xyzprovider = providers[provider]
+    xyzprovider = custom_providers[provider]
 
     if "url" in xyzprovider.keys():
         print(f"Process {provider}")
