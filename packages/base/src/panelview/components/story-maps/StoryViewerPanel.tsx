@@ -3,21 +3,30 @@ import {
   IJGISStoryMap,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Markdown from 'react-markdown';
 
+import { throttle } from '@/src/tools';
 import StoryNavBar from './StoryNavBar';
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
+  isSpecta: boolean;
 }
 
-function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
+function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
   const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(0);
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
     model.getSelectedStory().story ?? null,
   );
   const [imageLoaded, setImageLoaded] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Derive story segments from story data
   const storySegments = useMemo(() => {
@@ -178,19 +187,56 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     };
   }, [model, storyData]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (currentIndexDisplayed > 0) {
       const newIndex = currentIndexDisplayed - 1;
       setCurrentIndexDisplayed(newIndex);
     }
-  };
+  }, [currentIndexDisplayed]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (currentIndexDisplayed < storySegments.length - 1) {
       const newIndex = currentIndexDisplayed + 1;
       setCurrentIndexDisplayed(newIndex);
     }
-  };
+  }, [currentIndexDisplayed, storySegments.length]);
+
+  // Handle scroll events to navigate between slides
+  useEffect(() => {
+    // Only enable scroll navigation for guided mode
+    if (!storyData || storyData.storyType !== 'guided') {
+      return;
+    }
+
+    // let lastScrollTime = 0;
+    const scrollThrottle = 500; // Minimum time between scroll-triggered navigation (ms)
+
+    const handleScroll = (e: WheelEvent) => {
+      e.preventDefault();
+
+      // Scroll down (positive deltaY) = next slide
+      // Scroll up (negative deltaY) = previous slide
+      if (e.deltaY > 0) {
+        handleNext();
+      } else if (e.deltaY < 0) {
+        handlePrev();
+      }
+    };
+
+    throttle(handleScroll, scrollThrottle);
+
+    // Attach wheel event listener to the panel container
+    const panelElement = panelRef.current;
+    if (panelElement) {
+      panelElement.addEventListener('wheel', handleScroll, { passive: false });
+    }
+
+    return () => {
+      if (panelElement) {
+        panelElement.removeEventListener('wheel', handleScroll);
+      }
+    };
+  }, [storyData, handlePrev, handleNext]);
 
   if (!storyData || storyData?.storySegments?.length === 0) {
     return (
@@ -201,30 +247,42 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
   }
 
   return (
-    <div className="jgis-story-viewer-panel">
+    <div
+      ref={panelRef}
+      className={`jgis-story-viewer-panel ${isSpecta ? 'jgis-story-viewer-panel-specta-mod' : ''}`}
+    >
       {/* Image container with title overlay */}
       {activeSlide?.content?.image && imageLoaded ? (
-        <div className="jgis-story-viewer-image-container">
-          <img
-            src={activeSlide.content.image}
-            alt={activeSlide.content.title || 'Story map image'}
-            className="jgis-story-viewer-image"
-          />
-          <h1 className="jgis-story-viewer-image-title">
-            {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
-          </h1>
-          {/* if guided -> nav buttons */}
-          {storyData.storyType === 'guided' && (
-            <div className="jgis-story-viewer-nav-container">
-              <StoryNavBar
-                onPrev={handlePrev}
-                onNext={handleNext}
-                hasPrev={currentIndexDisplayed > 0}
-                hasNext={currentIndexDisplayed < storySegments.length - 1}
-              />
-            </div>
+        <>
+          {isSpecta && (
+            <h1 className="jgis-story-viewer-title">
+              {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
+            </h1>
           )}
-        </div>
+          <div className="jgis-story-viewer-image-container">
+            <img
+              src={activeSlide.content.image}
+              alt={activeSlide.content.title || 'Story map image'}
+              className="jgis-story-viewer-image"
+            />
+            {!isSpecta && (
+              <h1 className="jgis-story-viewer-image-title">
+                {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
+              </h1>
+            )}
+            {/* if guided -> nav buttons */}
+            {storyData.storyType === 'guided' && (
+              <div className="jgis-story-viewer-nav-container">
+                <StoryNavBar
+                  onPrev={handlePrev}
+                  onNext={handleNext}
+                  hasPrev={currentIndexDisplayed > 0}
+                  hasNext={currentIndexDisplayed < storySegments.length - 1}
+                />
+              </div>
+            )}
+          </div>
+        </>
       ) : (
         <>
           <h1 className="jgis-story-viewer-title">{storyData.title}</h1>

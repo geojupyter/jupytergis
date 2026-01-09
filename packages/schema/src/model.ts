@@ -333,6 +333,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this.sharedModel.sources = jsonData.sources ?? {};
       this.sharedModel.layers = jsonData.layers ?? {};
       this.sharedModel.layerTree = jsonData.layerTree ?? [];
+      this.sharedModel.stories = jsonData.stories ?? {};
       this.sharedModel.options = jsonData.options ?? {
         latitude: 0,
         longitude: 0,
@@ -602,6 +603,19 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getClientId(): number {
     return this.sharedModel.awareness.clientID;
+  }
+
+  /**
+   * Check if the application is running in Specta mode.
+   * Specta mode is enabled when the URL contains 'specta' AND the model has stories.
+   *
+   * @returns True if running in Specta mode
+   */
+  isSpectaMode(): boolean {
+    const hasStories = Object.keys(this.sharedModel.stories).length > 0;
+    const urlContainsSpecta = window.location.pathname.includes('specta');
+
+    return urlContainsSpecta && hasStories;
   }
 
   /**

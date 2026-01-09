@@ -27,10 +27,13 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
   }, [model, model.sharedModel.stories]);
 
   const syncStoryData = (properties: IDict) => {
-    model.sharedModel.updateStoryMap(
-      storySegmentId,
-      properties as IJGISStoryMap,
-    );
+    // Preserve storySegments when updating, since the form removes it from the UI
+    const updatedStory: IJGISStoryMap = {
+      ...story,
+      ...properties,
+      storySegments: story?.storySegments ?? [],
+    };
+    model.sharedModel.updateStoryMap(storySegmentId, updatedStory);
   };
 
   if (!story) {
@@ -48,7 +51,7 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
   }
 
   return (
-    <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
+    <div className="jgis-story-editor-panel">
       <StoryEditorPropertiesForm
         formContext="update"
         sourceData={story}
@@ -57,7 +60,9 @@ export function StoryEditorPanel({ model }: IStoryPanelProps) {
         syncData={syncStoryData}
         filePath={model.filePath}
       />
-      <AddStorySegmentButton model={model} />
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <AddStorySegmentButton model={model} />
+      </div>
     </div>
   );
 }

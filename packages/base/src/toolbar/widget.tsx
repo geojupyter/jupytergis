@@ -100,6 +100,14 @@ export class ToolbarWidget extends ReactiveToolbar {
       // Listen for settings changes
       this._model.settingsChanged.connect(this._onSettingsChanged, this);
 
+      // Listen for story changes to update Specta mode visibility
+      this._model.sharedModel.storyMapsChanged.connect(
+        this._onSpectaModeChanged,
+        this,
+      );
+      // Set initial visibility
+      this.setHidden(this._model.isSpectaMode());
+
       const NewEntryButton = new ToolbarButton({
         icon: addIcon,
         noFocusOnClick: false,
@@ -155,6 +163,18 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       this.addItem('addMarker', addMarkerButton);
       addMarkerButton.node.dataset.testid = 'add-marker-controller-button';
+
+      const storyModePresentationToggleButton = new CommandToolbarButton({
+        id: CommandIDs.toggleStoryPresentationMode,
+        label: '',
+        commands: options.commands,
+      });
+
+      this.addItem(
+        'toggleStoryPresentationMode',
+        storyModePresentationToggleButton,
+      );
+      identifyButton.node.dataset.testid = 'toggleStoryPresentationMode-button';
 
       this.addItem('separator2', new Separator());
 
@@ -225,9 +245,20 @@ export class ToolbarWidget extends ReactiveToolbar {
     }
   };
 
+  /**
+   * Handles story changes to update Specta mode visibility
+   */
+  private _onSpectaModeChanged = (): void => {
+    this.setHidden(this._model.isSpectaMode());
+  };
+
   dispose(): void {
     if (this._model) {
       this._model.settingsChanged.disconnect(this._onSettingsChanged, this);
+      this._model.sharedModel.storyMapsChanged.disconnect(
+        this._onSpectaModeChanged,
+        this,
+      );
     }
     super.dispose();
   }

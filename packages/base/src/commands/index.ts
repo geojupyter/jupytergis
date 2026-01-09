@@ -72,6 +72,41 @@ export function addCommands(
   const trans = translator.load('jupyterlab');
   const { commands } = app;
 
+  /**
+   * Wraps a command definition to automatically disable it in Specta mode
+   */
+  const createSpectaAwareCommand = (
+    command: CommandRegistry.ICommandOptions,
+  ): CommandRegistry.ICommandOptions => {
+    const originalIsEnabled = command.isEnabled;
+
+    return {
+      ...command,
+      isEnabled: (args?: ReadonlyPartialJSONObject) => {
+        // First check if we're in Specta mode
+        const currentModel = tracker.currentWidget?.model;
+        if (currentModel?.isSpectaMode()) {
+          return false;
+        }
+        // Then check the original isEnabled if it exists
+        if (originalIsEnabled) {
+          return originalIsEnabled(args ?? {});
+        }
+        // Default to enabled if no original check
+        return true;
+      },
+    };
+  };
+
+  // Override addCommand to automatically wrap all commands
+  const originalAddCommand = commands.addCommand.bind(commands);
+  commands.addCommand = (
+    id: string,
+    options: CommandRegistry.ICommandOptions,
+  ) => {
+    return originalAddCommand(id, createSpectaAwareCommand(options));
+  };
+
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
     isEnabled: () => {
@@ -1074,6 +1109,43 @@ export function addCommands(
       current.model.addStorySegment();
     },
     ...icons.get(CommandIDs.addStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.toggleStoryPresentationMode, {
+    label: trans.__('Toggle Story Presentation Mode'),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      const { storyMapPresentationMode } = current.model.getOptions();
+
+      return storyMapPresentationMode ?? false;
+    },
+    isEnabled: () => {
+      if (tracker.currentWidget?.model.jgisSettings.storyMapsDisabled) {
+        return false;
+      }
+
+      return true;
+    },
+    execute: args => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const currentOptions = current.model.getOptions();
+
+      current.model.setOptions({
+        ...currentOptions,
+        storyMapPresentationMode: !currentOptions.storyMapPresentationMode,
+      });
+
+      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
+    },
+    ...icons.get(CommandIDs.toggleStoryPresentationMode),
   });
 
   loadKeybindings(commands, keybindings);

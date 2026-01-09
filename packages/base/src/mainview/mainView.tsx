@@ -104,8 +104,10 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import { hexToRgb } from '../dialogs/symbology/colorRampUtils';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
+import StoryViewerPanel from '../panelview/components/story-maps/StoryViewerPanel';
 
 type OlLayerTypes =
   | TileLayer
@@ -137,6 +139,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
+  isSpecta: boolean;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -194,6 +197,10 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
+    this._model.sharedModel.storyMapsChanged.connect(
+      this._onStoryMapsChanged,
+      this,
+    );
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
     this._model.sharedMetadataChanged.connect(
       this._onSharedMetadataChanged,
@@ -232,6 +239,7 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
+      isSpecta: this._model.isSpectaMode(),
     };
 
     this._sources = [];
@@ -280,11 +288,21 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onClientSharedStateChanged,
       this,
     );
+    this._model.sharedModel.storyMapsChanged.disconnect(
+      this._onStoryMapsChanged,
+      this,
+    );
 
     this._mainViewModel.dispose();
   }
 
   async generateMap(center: number[], zoom: number): Promise<void> {
+    const scaleLine = new ScaleLine({
+      target: this.controlsToolbarRef.current || undefined,
+    });
+    const fullScreen = new FullScreen({
+      target: this.controlsToolbarRef.current || undefined,
+    });
     if (this.divRef.current) {
       this._Map = new OlMap({
         target: this.divRef.current,
@@ -294,7 +312,7 @@ export class MainView extends React.Component<IProps, IStates> {
           center,
           zoom,
         }),
-        controls: [new ScaleLine(), new FullScreen()],
+        controls: [scaleLine, fullScreen],
       });
 
       // Add map interactions
@@ -1974,6 +1992,58 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   };
 
+  /**
+   * Handler for when story maps change in the model.
+   * Updates specta state and presentation colors when story data becomes available.
+   */
+  private _onStoryMapsChanged = (): void => {
+    const newSpectaMode = this._model.isSpectaMode();
+    if (this.state.isSpecta !== newSpectaMode) {
+      this.setState({ isSpecta: newSpectaMode }, () => {
+        this._updateSpectaPresentationColors();
+      });
+    } else {
+      // Specta mode didn't change, but story data might have
+      this._updateSpectaPresentationColors();
+    }
+  };
+
+  private _updateSpectaPresentationColors = (): void => {
+    // Only update if we're in specta mode
+    if (!this.state.isSpecta) {
+      return;
+    }
+
+    // Try ref first, fallback to querySelector if ref not available yet
+    const container =
+      this.spectaContainerRef.current ||
+      (this.divRef.current?.querySelector(
+        '.jgis-specta-story-panel-container',
+      ) as HTMLDivElement);
+
+    if (!container) {
+      return;
+    }
+
+    const story = this._model.getSelectedStory().story;
+    const bgColor = story?.presentaionBgColor;
+    const textColor = story?.presentaionTextColor;
+
+    // Set background color
+    if (bgColor) {
+      const rgb = hexToRgb(bgColor);
+      container.style.setProperty(
+        '--jgis-specta-bg-color',
+        `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.9)`,
+      );
+    }
+
+    // Set text color
+    if (textColor) {
+      container.style.setProperty('--jgis-specta-text-color', textColor);
+    }
+  };
+
   private _onSharedMetadataChanged = (
     _: IJupyterGISModel,
     changes: MapChange,
@@ -2393,6 +2463,8 @@ export class MainView extends React.Component<IProps, IStates> {
     // TODO SOMETHING
   };
 
+  // ! move this
+
   render(): JSX.Element {
     return (
       <>
@@ -2449,21 +2521,41 @@ export class MainView extends React.Component<IProps, IStates> {
               }}
             >
               <div className="jgis-panels-wrapper">
-                {this._state && (
-                  <LeftPanel
-                    model={this._model}
-                    commands={this._mainViewModel.commands}
-                    state={this._state}
-                  ></LeftPanel>
-                )}
-                {this._formSchemaRegistry && this._annotationModel && (
-                  <RightPanel
-                    model={this._model}
-                    formSchemaRegistry={this._formSchemaRegistry}
-                    annotationModel={this._annotationModel}
-                  ></RightPanel>
+                {!this.state.isSpecta ? (
+                  <>
+                    {this._state && (
+                      <LeftPanel
+                        model={this._model}
+                        commands={this._mainViewModel.commands}
+                        state={this._state}
+                      />
+                    )}
+                    {this._formSchemaRegistry && this._annotationModel && (
+                      <RightPanel
+                        model={this._model}
+                        formSchemaRegistry={this._formSchemaRegistry}
+                        annotationModel={this._annotationModel}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
+                    <div
+                      ref={this.spectaContainerRef}
+                      className="jgis-specta-story-panel-container"
+                    >
+                      <StoryViewerPanel
+                        model={this._model}
+                        isSpecta={this.state.isSpecta}
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
+              <div
+                ref={this.controlsToolbarRef}
+                className="jgis-controls-toolbar"
+              ></div>
             </div>
           </div>
           <StatusBar
@@ -2481,6 +2573,8 @@ export class MainView extends React.Component<IProps, IStates> {
   private _commands: CommandRegistry;
   private _isPositionInitialized = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
+  private controlsToolbarRef = React.createRef<HTMLDivElement>();
+  private spectaContainerRef = React.createRef<HTMLDivElement>();
   private _Map: OlMap;
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
