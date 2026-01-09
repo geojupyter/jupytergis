@@ -220,7 +220,6 @@ export function StacResultsProvider({
           async (response: Response) => await response.json(),
           //@ts-expect-error Jupyter requires X-XSRFToken header
           options,
-          'internal',
         )) as IStacSearchResult;
 
         if (!data) {

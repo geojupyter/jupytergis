@@ -163,7 +163,6 @@ export function useStacFilterExtension({
         model,
         async response => await response.json(),
         undefined,
-        'internal',
       );
 
       const collections: FilteredCollection[] = data.collections
@@ -207,7 +206,6 @@ export function useStacFilterExtension({
         model,
         async response => await response.json(),
         undefined,
-        'internal',
       );
 
       setQueryableFields(Object.entries(data.properties));
