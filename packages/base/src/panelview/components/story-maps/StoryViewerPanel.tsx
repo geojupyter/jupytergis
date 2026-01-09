@@ -12,8 +12,8 @@ import React, {
 } from 'react';
 import Markdown from 'react-markdown';
 
-import StoryNavBar from './StoryNavBar';
 import { throttle } from '@/src/tools';
+import StoryNavBar from './StoryNavBar';
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
