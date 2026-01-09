@@ -28,7 +28,7 @@ repos:
 
   # Autoformat: Python code
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.3
+    rev: v0.14.10
     hooks:
       - id: ruff
         args: ['--fix']
@@ -39,3 +39,9 @@ repos:
     hooks:
       - id: rstcheck
         args: ['--ignore-directives=jupyterlite,tabs,toctree,autoclass,cssclass,include', '--report-level=warning']
+
+  # Validate citation metadata
+  - repo: https://github.com/citation-file-format/cffconvert
+    rev: "b6045d78aac9e02b039703b030588d54d53262ac"
+    hooks:
+      - id: validate-cff

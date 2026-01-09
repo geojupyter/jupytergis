@@ -3,7 +3,7 @@ import { IChangedArgs } from '@jupyterlab/coreutils';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { PartialJSONObject } from '@lumino/coreutils';
+import { PartialJSONObject, UUID } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 import Ajv from 'ajv';
 import { FeatureLike } from 'ol/Feature';
@@ -18,7 +18,9 @@ import {
   IJGISOptions,
   IJGISSource,
   IJGISSources,
+  IJGISStoryMap,
 } from './_interface/project/jgis';
+import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
 import { JupyterGISDoc } from './doc';
 import {
   IAnnotationModel,
@@ -52,6 +54,7 @@ const DEFAULT_SETTINGS: IJupyterGISSettings = {
   objectPropertiesDisabled: false,
   annotationsDisabled: false,
   identifyDisabled: false,
+  storyMapsDisabled: false,
 };
 
 export class JupyterGISModel implements IJupyterGISModel {
@@ -505,7 +508,25 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
-    this.sharedModel.removeSource(source_id);
+
+    if (layer?.type === 'StorySegmentLayer') {
+      // remove this layer id from story maps
+      Object.entries(this.sharedModel.stories).forEach(
+        ([storyMapId, storyMap]) => {
+          if (storyMap.storySegments?.includes(layer_id)) {
+            const updatedStorySegments = storyMap.storySegments.filter(
+              id => id !== layer_id,
+            );
+            this.sharedModel.updateStoryMap(storyMapId, {
+              ...storyMap,
+              storySegments: updatedStorySegments,
+            });
+          }
+        },
+      );
+    } else {
+      this.sharedModel.removeSource(source_id);
+    }
   }
 
   setOptions(value: IJGISOptions) {
@@ -581,6 +602,82 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   getClientId(): number {
     return this.sharedModel.awareness.clientID;
+  }
+
+  /**
+   * Placeholder in case we eventually want to support multiple stories
+   * @returns First/only story
+   */
+  getSelectedStory(): {
+    storySegmentId: string;
+    story: IJGISStoryMap | undefined;
+  } {
+    const stories = this.sharedModel.stories;
+    const storyId = Object.keys(stories)[0];
+
+    return {
+      storySegmentId: storyId,
+      story: this.sharedModel.getStoryMap(storyId),
+    };
+  }
+
+  /**
+   * Adds a story segment from the current map view
+   * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
+   */
+  addStorySegment(): { storySegmentId: string; storyMapId: string } | null {
+    const { zoom, extent } = this.getOptions();
+
+    if (!zoom || !extent) {
+      console.warn('No extent or zoom found');
+      return null;
+    }
+
+    const storyMapId = UUID.uuid4();
+    const newStorySegmentId = UUID.uuid4();
+
+    const layerParams: IStorySegmentLayer = {
+      extent,
+      zoom,
+      transition: { type: 'linear', time: 1 },
+    };
+    const layerModel: IJGISLayer = {
+      type: 'StorySegmentLayer',
+      visible: true,
+      name: 'Story Segment',
+      parameters: layerParams,
+    };
+
+    this.addLayer(newStorySegmentId, layerModel);
+
+    // check for stories
+    const isStoriesExist = Object.keys(this.sharedModel.stories).length !== 0;
+
+    // if not stories, then just add simple
+    if (!isStoriesExist) {
+      const title = 'New Story';
+      const storyType = 'guided';
+      const storySegments = [newStorySegmentId];
+
+      const storyMap: IJGISStoryMap = { title, storyType, storySegments };
+
+      this.sharedModel.addStoryMap(storyMapId, storyMap);
+    } else {
+      // else need to update stories
+      const { story } = this.getSelectedStory();
+      if (!story) {
+        console.warn('No story found, something went wrong');
+        return null;
+      }
+      const newStory: IJGISStoryMap = {
+        ...story,
+        storySegments: [...(story.storySegments ?? []), newStorySegmentId],
+      };
+
+      this.sharedModel.updateStoryMap(storyMapId, newStory);
+    }
+
+    return { storySegmentId: newStorySegmentId, storyMapId };
   }
 
   /**
@@ -772,7 +869,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   /**
    * Toggle a map interaction mode on or off.
-   * Toggleing off sets the mode to 'panning'.
+   * Toggling off sets the mode to 'panning'.
    * @param mode The mode to be toggled
    */
   toggleMode(mode: Modes) {
@@ -924,6 +1021,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
+  stories: Map<string, IJGISStoryMap> = new Map();
 }
 
 export namespace JupyterGISModel {

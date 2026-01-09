@@ -15,7 +15,7 @@
     "test:debug": "PWDEBUG=1 npx playwright test --workers 1"
   },
   "devDependencies": {
-    "@jupyterlab/galata": "^5.3.4",
+    "@jupyterlab/galata": "^5.5.1",
     "@playwright/test": "^1.48.0",
     "@types/klaw-sync": "^6.0.1"
   },
