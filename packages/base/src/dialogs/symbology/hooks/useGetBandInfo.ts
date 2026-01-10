@@ -4,21 +4,33 @@ import { useEffect, useState } from 'react';
 
 import { loadFile } from '@/src/tools';
 
-export interface IMultiBandRow {
-  band: number;
-  colorInterpretation?: string;
+export interface IBandHistogram {
+  buckets: number[];
+  count: number;
+  max: number;
+  min: number;
 }
 
-const useGetMultiBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
-  const [bandRows, setBandRows] = useState<IMultiBandRow[]>([]);
-  const [loading, setLoading] = useState(false);
+export interface IBandRow {
+  band: number;
+  colorInterpretation?: string;
+  stats: {
+    minimum: number;
+    maximum: number;
+  };
+}
+
+const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
+  const [bandRows, setBandRows] = useState<IBandRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBandList = async () => {
+  const fetchBandInfo = async () => {
     setLoading(true);
     setError(null);
 
     try {
+      const bandsArr: IBandRow[] = [];
       const source = model.getSource(layer?.parameters?.source);
       const sourceInfo = source?.parameters?.urls[0];
 
@@ -55,26 +67,29 @@ const useGetMultiBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
       const image = await tiff.getImage();
       const numberOfBands = image.getSamplesPerPixel();
 
-      const rows: IMultiBandRow[] = [];
       for (let i = 0; i < numberOfBands; i++) {
-        rows.push({
+        bandsArr.push({
           band: i,
+          stats: {
+            minimum: sourceInfo.min ?? 0,
+            maximum: sourceInfo.max ?? 100,
+          },
         });
       }
 
-      setBandRows(rows);
+      setBandRows(bandsArr);
     } catch (err: any) {
-      setError(`Error fetching bands: ${err.message}`);
+      setError(`Error fetching band info: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBandList();
+    fetchBandInfo();
   }, []);
 
   return { bandRows, setBandRows, loading, error };
 };
 
-export default useGetMultiBandInfo;
+export default useGetBandInfo;

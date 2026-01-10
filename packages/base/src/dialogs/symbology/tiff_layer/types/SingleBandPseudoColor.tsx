@@ -9,9 +9,9 @@ import ColorRampControls, {
   ColorRampControlsOptions,
 } from '@/src/dialogs/symbology/components/color_ramp/ColorRampControls';
 import StopRow from '@/src/dialogs/symbology/components/color_stops/StopRow';
-import useGetSingleBandInfo, {
-  ISingleBandRow,
-} from '@/src/dialogs/symbology/hooks/useGetSingleBandInfo';
+import useGetBandInfo, {
+  IBandRow,
+} from '@/src/dialogs/symbology/hooks/useGetBandInfo';
 import {
   IStopRow,
   ISymbologyDialogProps,
@@ -48,7 +48,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-  const { bandRows, setBandRows, loading } = useGetSingleBandInfo(model, layer);
+  const { bandRows, setBandRows, loading } = useGetBandInfo(model, layer);
 
   const [layerState, setLayerState] = useState<ReadonlyJSONObject>();
   const [selectedBand, setSelectedBand] = useState(1);
@@ -60,7 +60,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   >();
 
   const stopRowsRef = useRef<IStopRow[]>();
-  const bandRowsRef = useRef<ISingleBandRow[]>([]);
+  const bandRowsRef = useRef<IBandRow[]>([]);
   const selectedFunctionRef = useRef<InterpolationType>();
   const colorRampOptionsRef = useRef<ColorRampControlsOptions | undefined>();
   const selectedBandRef = useRef<number>();

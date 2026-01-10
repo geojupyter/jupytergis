@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 
-import { IMultiBandRow } from '@/src/dialogs/symbology/hooks/useGetMultiBandInfo';
-import { ISingleBandRow } from '@/src/dialogs/symbology/hooks/useGetSingleBandInfo';
-
-type BandRowType = ISingleBandRow | IMultiBandRow;
+import { IBandRow } from '@/src/dialogs/symbology/hooks/useGetBandInfo';
 
 interface IBandRowProps {
   label: string;
   index: number;
-  bandRow: BandRowType;
-  bandRows: BandRowType[];
+  bandRow: IBandRow;
+  bandRows: IBandRow[];
   setSelectedBand: (band: number) => void;
-  setBandRows: (bandRows: ISingleBandRow[]) => void;
+  setBandRows: (bandRows: IBandRow[]) => void;
   isMultibandColor?: boolean;
 }
 
@@ -34,15 +31,8 @@ const BandRow: React.FC<IBandRowProps> = ({
   setBandRows,
   isMultibandColor,
 }) => {
-  const isSingle = !isMultibandColor;
-
-  const [minValue, setMinValue] = useState(
-    isSingle ? (bandRow as ISingleBandRow)?.stats.minimum : 0,
-  );
-
-  const [maxValue, setMaxValue] = useState(
-    isSingle ? (bandRow as ISingleBandRow)?.stats.maximum : 100,
-  );
+  const [minValue, setMinValue] = useState(bandRow?.stats.minimum);
+  const [maxValue, setMaxValue] = useState(bandRow?.stats.maximum);
 
   const handleMinValueChange = (event: {
     target: { value: string | number };
@@ -59,7 +49,7 @@ const BandRow: React.FC<IBandRowProps> = ({
   };
 
   const setNewBands = () => {
-    const newBandRows = [...bandRows] as ISingleBandRow[];
+    const newBandRows = [...bandRows];
     newBandRows[index].stats.minimum = minValue;
     newBandRows[index].stats.maximum = maxValue;
     setBandRows(newBandRows);
