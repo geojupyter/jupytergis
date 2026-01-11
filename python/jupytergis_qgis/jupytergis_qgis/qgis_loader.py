@@ -9,6 +9,7 @@ from typing import Any
 from urllib.parse import unquote
 from uuid import uuid4
 
+
 # Add QGIS path for different platforms
 def _add_qgis_to_path():
     """Add QGIS Python path for different platforms."""
@@ -21,50 +22,75 @@ def _add_qgis_to_path():
         qgis_paths.append("/usr/local/share/qgis/python/")
     elif system == "linux":
         # Common Linux paths
-        qgis_paths.extend([
-            "/usr/share/qgis/python/",
-            "/usr/local/share/qgis/python/",
-            # Path for some distributions (maybe incomplete)
-            *[p for p in [
-                f"/usr/lib/qgis/python" if os.path.exists("/usr/lib/qgis/python") else None,
-                f"/usr/lib/x86_64-linux-gnu/qgis/python" if os.path.exists("/usr/lib/x86_64-linux-gnu/qgis/python") else None,
-                f"/usr/lib/aarch64-linux-gnu/qgis/python" if os.path.exists("/usr/lib/aarch64-linux-gnu/qgis/python") else None,
-            ] if p]
-        ])
+        qgis_paths.extend(
+            [
+                "/usr/share/qgis/python/",
+                "/usr/local/share/qgis/python/",
+                # Path for some distributions (maybe incomplete)
+                *[
+                    p
+                    for p in [
+                        f"/usr/lib/qgis/python"
+                        if os.path.exists("/usr/lib/qgis/python")
+                        else None,
+                        f"/usr/lib/x86_64-linux-gnu/qgis/python"
+                        if os.path.exists("/usr/lib/x86_64-linux-gnu/qgis/python")
+                        else None,
+                        f"/usr/lib/aarch64-linux-gnu/qgis/python"
+                        if os.path.exists("/usr/lib/aarch64-linux-gnu/qgis/python")
+                        else None,
+                    ]
+                    if p
+                ],
+            ]
+        )
     elif system == "darwin":  # macOS
-        qgis_paths.extend([
-            "/Applications/QGIS.app/Contents/Resources/python/",
-            "/usr/local/share/qgis/python/",
-            "/opt/homebrew/share/qgis/python/",
-            "/usr/local/opt/qgis/share/qgis/python/",
-        ])
+        qgis_paths.extend(
+            [
+                "/Applications/QGIS.app/Contents/Resources/python/",
+                "/usr/local/share/qgis/python/",
+                "/opt/homebrew/share/qgis/python/",
+                "/usr/local/opt/qgis/share/qgis/python/",
+            ]
+        )
     elif system == "windows":
         # Common Windows paths (for various QGIS installations)
         import winreg
+
         try:
-            reg_path = winreg.QueryValue(winreg.HKEY_CURRENT_USER, "Software\\QGIS\\QGIS3\\bin")
+            reg_path = winreg.QueryValue(
+                winreg.HKEY_CURRENT_USER, "Software\\QGIS\\QGIS3\\bin"
+            )
             if reg_path:
                 qgis_paths.append(os.path.join(reg_path, "python"))
-        except:
+        except (OSError, FileNotFoundError):
             pass
 
         # Standard installation paths
-        qgis_paths.extend([
-            "C:\\Program Files\\QGIS\\apps\\qgis-ltr\\python\\",
-            "C:\\Program Files\\QGIS\\apps\\qgis\\python\\",
-            "C:\\OSGeo4W64\\apps\\qgis-ltr\\python\\",
-            "C:\\OSGeo4W64\\apps\\qgis\\python\\",
-        ])
+        qgis_paths.extend(
+            [
+                "C:\\Program Files\\QGIS\\apps\\qgis-ltr\\python\\",
+                "C:\\Program Files\\QGIS\\apps\\qgis\\python\\",
+                "C:\\OSGeo4W64\\apps\\qgis-ltr\\python\\",
+                "C:\\OSGeo4W64\\apps\\qgis\\python\\",
+            ]
+        )
 
     # Add paths that exist and are not already in sys.path
     for qgis_path in qgis_paths:
         if qgis_path and os.path.exists(qgis_path) and qgis_path not in sys.path:
             sys.path.insert(0, qgis_path)
 
+
 # Add QGIS path before importing
 _add_qgis_to_path()
 
-from qgis.PyQt.QtGui import QColor
+try:
+    from qgis.PyQt.QtGui import QColor
+except ImportError as e:
+    print(f"Error importing QColor from qgis.PyQt.QtGui: {e}")
+    print("Make sure QGIS is properly installed and the Python path is set correctly.")
+    raise
 
 # Import QGIS modules dynamically to handle potential import errors gracefully
 try:
