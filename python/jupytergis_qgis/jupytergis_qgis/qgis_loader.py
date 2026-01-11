@@ -64,8 +64,7 @@ def _add_qgis_to_path():
 # Add QGIS path before importing
 _add_qgis_to_path()
 
-# Import PyQt5 and QGIS after adding the path
-from PyQt5.QtGui import QColor
+from qgis.PyQt.QtGui import QColor
 
 # Import QGIS modules dynamically to handle potential import errors gracefully
 try:
