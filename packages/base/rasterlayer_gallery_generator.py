@@ -33,11 +33,14 @@ def latlng_to_tile(lat, lng, zoom):
 
 
 def create_thumbnail(
-    url_template, lat, lng, zoom, tile_size=256, thumbnail_size=(512, 512)
+    url_template, lat, lng, zoom, thumbnail_path, tile_size=256, thumbnail_size=(512, 512)
 ):
     """
     Create a thumbnail for the specified location and zoom level.
     """
+     # Skip if thumbnail already exists
+    if os.path.exists(thumbnail_path):
+        return Image.open(thumbnail_path)
     x, y = latlng_to_tile(lat, lng, zoom)
     
 
@@ -136,7 +139,7 @@ thumbnails_providers_positions = {
 def download_thumbnail(url_template, name, position, tile_size):
     file_path = f"{THUMBNAILS_LOCATION}/{name}.png"
     thumbnail = create_thumbnail(
-        url_template, position["lat"], position["lng"], position["zoom"], tile_size
+        url_template, position["lat"], position["lng"], position["zoom"], file_path, tile_size
     )
     thumbnail.save(file_path)
     return file_path
@@ -157,7 +160,7 @@ custom_providers["MacroStrat"] = {
         url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
         attribution="© Geologic data © <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC‑BY 4.0)",
         max_zoom=18
-    ),
+    )
 }    
 
 # Fetch thumbnails and populate the dictionary
