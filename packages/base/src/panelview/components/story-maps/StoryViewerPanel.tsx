@@ -13,7 +13,10 @@ import React, {
 import Markdown from 'react-markdown';
 
 import { throttle } from '@/src/tools';
-import StoryNavBar from './StoryNavBar';
+import StoryContentSection from './sections/StoryContentSection';
+import StoryImageSection from './sections/StoryImageSection';
+import StorySubtitleSection from './sections/StorySubtitleSection';
+import StoryTitleSection from './sections/StoryTitleSection';
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
@@ -246,82 +249,45 @@ function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
     );
   }
 
+  const navProps = {
+    onPrev: handlePrev,
+    onNext: handleNext,
+    hasPrev: currentIndexDisplayed > 0,
+    hasNext: currentIndexDisplayed < storySegments.length - 1,
+  };
+
   return (
     <div
       ref={panelRef}
       className={`jgis-story-viewer-panel ${isSpecta ? 'jgis-story-viewer-panel-specta-mod' : ''}`}
     >
-      {/* Image container with title overlay */}
+      <h1 className="jgis-story-viewer-title">
+        {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
+      </h1>
       {activeSlide?.content?.image && imageLoaded ? (
-        <>
-          {isSpecta && (
-            <h1 className="jgis-story-viewer-title">
-              {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
-            </h1>
-          )}
-          <div className="jgis-story-viewer-image-container">
-            <img
-              src={activeSlide.content.image}
-              alt={activeSlide.content.title || 'Story map image'}
-              className="jgis-story-viewer-image"
-            />
-            {!isSpecta && (
-              <h1 className="jgis-story-viewer-image-title">
-                {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
-              </h1>
-            )}
-            {/* if guided -> nav buttons */}
-            {!isSpecta && storyData.storyType === 'guided' && (
-              <div className="jgis-story-viewer-nav-container">
-                <StoryNavBar
-                  onPrev={handlePrev}
-                  onNext={handleNext}
-                  hasPrev={currentIndexDisplayed > 0}
-                  hasNext={currentIndexDisplayed < storySegments.length - 1}
-                  isSpecta={isSpecta}
-                />
-              </div>
-            )}
-          </div>
-        </>
+        <StoryImageSection
+          imageUrl={activeSlide.content.image}
+          imageLoaded={imageLoaded}
+          layerName={layerName ?? ''}
+          slideNumber={currentIndexDisplayed}
+          isSpecta={isSpecta}
+          storyType={storyData.storyType ?? 'guided'}
+          {...navProps}
+        />
       ) : (
-        <>
-          <h1 className="jgis-story-viewer-title">{storyData.title}</h1>
-          {/* if guided -> nav buttons */}
-          {!isSpecta && storyData.storyType === 'guided' && (
-            <StoryNavBar
-              onPrev={handlePrev}
-              onNext={handleNext}
-              hasPrev={currentIndexDisplayed > 0}
-              hasNext={currentIndexDisplayed < storySegments.length - 1}
-              isSpecta={isSpecta}
-            />
-          )}
-        </>
+        <StoryTitleSection
+          title={storyData.title ?? ''}
+          isSpecta={isSpecta}
+          storyType={storyData.storyType ?? 'guided'}
+          {...navProps}
+        />
       )}
-      <div className="jgis-story-viewer-subtitle-container">
-        <h2 className="jgis-story-viewer-subtitle">
-          {activeSlide?.content?.title
-            ? activeSlide.content.title
-            : 'Slide jhefhjsdgfed'}
-        </h2>
-        {isSpecta && (
-          <div className="jgis-story-viewer-nav-container-specta-mod">
-            <StoryNavBar
-              onPrev={handlePrev}
-              onNext={handleNext}
-              hasPrev={currentIndexDisplayed > 0}
-              hasNext={currentIndexDisplayed < storySegments.length - 1}
-              isSpecta={isSpecta}
-            />
-          </div>
-        )}
-      </div>
-      {activeSlide?.content?.markdown && (
-        <div className="jgis-story-viewer-content">
-          <Markdown>{activeSlide.content.markdown}</Markdown>
-        </div>
-      )}
+      <StorySubtitleSection
+        title={activeSlide?.content?.title ?? ''}
+        isSpecta={isSpecta}
+        {...navProps}
+      />
+      <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
     </div>
   );
 }
