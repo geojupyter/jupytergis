@@ -242,8 +242,9 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
-      isSpecta: this._model.isSpectaMode(),
+      isSpecta: !!document.querySelector('meta[name="specta-config"]'),
     };
+    console.log('ispecta', this.state.isSpecta);
 
     this._sources = [];
     this._loadingLayers = new Set();
@@ -271,7 +272,8 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     // Check for specta mode setup after map is ready
-    this._checkAndSetupSpectaMode();
+    // this._setupSpectaMode();
+    this._updateSpectaPresentationColors();
   }
 
   componentWillUnmount(): void {
@@ -2029,44 +2031,34 @@ export class MainView extends React.Component<IProps, IStates> {
    * Handler for when story maps change in the model.
    * Updates specta state and presentation colors when story data becomes available.
    */
-  private _checkAndSetupSpectaMode = (): void => {
-    const spectaMode = this._model.isSpectaMode();
-
-    if (spectaMode && !this._spectaModeInitialized) {
-      // Remove MouseWheelZoom interaction
-      const interactions = this._Map.getInteractions();
-      const mouseWheelZoom = interactions
-        .getArray()
-        .find(
-          (interaction): interaction is MouseWheelZoom =>
-            interaction instanceof MouseWheelZoom,
-        );
-      if (mouseWheelZoom) {
-        this._Map.removeInteraction(mouseWheelZoom);
-      }
-
-      // Set up scroll listener for story navigation
-      this._setupStoryScrollListener();
-
-      // Update colors CSS variables with colors from story
-      this._updateSpectaPresentationColors();
-
-      this._spectaModeInitialized = true;
-      this.setState({ isSpecta: spectaMode });
+  private _setupSpectaMode = (): void => {
+    // Remove MouseWheelZoom interaction
+    const interactions = this._Map.getInteractions();
+    const mouseWheelZoom = interactions
+      .getArray()
+      .find(
+        (interaction): interaction is MouseWheelZoom =>
+          interaction instanceof MouseWheelZoom,
+      );
+    if (mouseWheelZoom) {
+      this._Map.removeInteraction(mouseWheelZoom);
     }
+
+    // Set up scroll listener for story navigation
+    this._setupStoryScrollListener();
+
+    // Update colors CSS variables with colors from story
+    this._updateSpectaPresentationColors();
   };
 
   private _onStoryMapsChanged = (): void => {
-    // Check if specta mode needs to be set up (only runs once)
-    this._checkAndSetupSpectaMode();
+    // Set up Specta mode
+    if (this.state.isSpecta) {
+      this._setupSpectaMode();
+    }
   };
 
   private _updateSpectaPresentationColors = (): void => {
-    // Only update if we're in specta mode
-    if (!this.state.isSpecta) {
-      return;
-    }
-
     // Try ref first, fallback to querySelector if ref not available yet
     const container =
       this.spectaContainerRef.current ||
@@ -2709,7 +2701,6 @@ export class MainView extends React.Component<IProps, IStates> {
   private controlsToolbarRef = React.createRef<HTMLDivElement>();
   private spectaContainerRef = React.createRef<HTMLDivElement>();
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
-  private _spectaModeInitialized = false;
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
