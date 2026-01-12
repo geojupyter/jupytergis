@@ -51,12 +51,39 @@
   padding-bottom: 0.25rem;
 }
 
+.jgis-panels-wrapper .jgis-story-viewer-nav-container-specta-mod {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  z-index: 1000;
+}
+
+.jgis-story-navbar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.jgis-story-viewer-subtitle-container {
+  display: flex;
+  align-items: center;
+  /* justify-content: space-between; */
+  /* gap: 1rem; */
+  padding-top: 1rem;
+}
+
+.jgis-story-navbar.jgis-story-navbar-specta-mod {
+  justify-content: space-between;
+}
+
 .jgis-story-viewer-title {
   text-align: center;
 }
 
 .jgis-story-viewer-subtitle {
   text-align: center;
+  margin: 0 auto;
 }
 
 .jgis-story-viewer-content {
