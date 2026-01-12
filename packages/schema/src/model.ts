@@ -625,14 +625,14 @@ export class JupyterGISModel implements IJupyterGISModel {
    * @returns First/only story
    */
   getSelectedStory(): {
-    storySegmentId: string;
+    storyId: string;
     story: IJGISStoryMap | undefined;
   } {
     const stories = this.sharedModel.stories;
     const storyId = Object.keys(stories)[0];
 
     return {
-      storySegmentId: storyId,
+      storyId: storyId,
       story: this.sharedModel.getStoryMap(storyId),
     };
   }

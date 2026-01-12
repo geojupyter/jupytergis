@@ -25,7 +25,7 @@ const AddStorySegmentButton = ({ model, commands }: IStoryPanelProps) => (
 );
 
 export function StoryEditorPanel({ model, commands }: IStoryPanelProps) {
-  const { storySegmentId, story } = useMemo(() => {
+  const { storyId, story } = useMemo(() => {
     return model.getSelectedStory();
   }, [model, model.sharedModel.stories]);
 
@@ -36,7 +36,7 @@ export function StoryEditorPanel({ model, commands }: IStoryPanelProps) {
       ...properties,
       storySegments: story?.storySegments ?? [],
     };
-    model.sharedModel.updateStoryMap(storySegmentId, updatedStory);
+    model.sharedModel.updateStoryMap(storyId, updatedStory);
   };
 
   if (!story) {
