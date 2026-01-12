@@ -615,8 +615,9 @@ export class JupyterGISModel implements IJupyterGISModel {
   isSpectaMode(): boolean {
     const hasStories = Object.keys(this.sharedModel.stories).length > 0;
     const isSpecta = !!document.querySelector('meta[name="specta-config"]');
+    const guidedMode = this.getSelectedStory().story?.storyType === 'guided';
 
-    return isSpecta && hasStories;
+    return isSpecta && hasStories && guidedMode;
   }
 
   /**
