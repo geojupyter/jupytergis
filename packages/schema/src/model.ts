@@ -614,9 +614,9 @@ export class JupyterGISModel implements IJupyterGISModel {
    */
   isSpectaMode(): boolean {
     const hasStories = Object.keys(this.sharedModel.stories).length > 0;
-    const urlContainsSpecta = window.location.pathname.includes('specta');
+    const isSpecta = !!document.querySelector('meta[name="specta-config"]');
 
-    return urlContainsSpecta && hasStories;
+    return isSpecta && hasStories;
   }
 
   /**
