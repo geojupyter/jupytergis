@@ -641,15 +641,15 @@ export class JupyterGISModel implements IJupyterGISModel {
    * Adds a story segment from the current map view
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
    */
-  addStorySegment(): { storySegmentId: string; storyMapId: string } | null {
+  addStorySegment(): { storySegmentId: string; storyId: string } | null {
     const { zoom, extent } = this.getOptions();
+    const { storyId } = this.getSelectedStory();
 
     if (!zoom || !extent) {
       console.warn('No extent or zoom found');
       return null;
     }
 
-    const storyMapId = UUID.uuid4();
     const newStorySegmentId = UUID.uuid4();
 
     const layerParams: IStorySegmentLayer = {
@@ -666,20 +666,20 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this.addLayer(newStorySegmentId, layerModel);
 
-    // check for stories
-    const isStoriesExist = Object.keys(this.sharedModel.stories).length !== 0;
+    // if story doesn't exist then add one
+    if (!storyId) {
+      const storyId = UUID.uuid4();
 
-    // if not stories, then just add simple
-    if (!isStoriesExist) {
       const title = 'New Story';
       const storyType = 'guided';
       const storySegments = [newStorySegmentId];
 
       const storyMap: IJGISStoryMap = { title, storyType, storySegments };
 
-      this.sharedModel.addStoryMap(storyMapId, storyMap);
+      this.sharedModel.addStoryMap(storyId, storyMap);
+      return { storySegmentId: newStorySegmentId, storyId };
     } else {
-      // else need to update stories
+      // else need to update story
       const { story } = this.getSelectedStory();
       if (!story) {
         console.warn('No story found, something went wrong');
@@ -690,10 +690,9 @@ export class JupyterGISModel implements IJupyterGISModel {
         storySegments: [...(story.storySegments ?? []), newStorySegmentId],
       };
 
-      this.sharedModel.updateStoryMap(storyMapId, newStory);
+      this.sharedModel.updateStoryMap(storyId, newStory);
+      return { storySegmentId: newStorySegmentId, storyId };
     }
-
-    return { storySegmentId: newStorySegmentId, storyMapId };
   }
 
   /**
