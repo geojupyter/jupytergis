@@ -221,7 +221,7 @@ const StoryViewerPanel = forwardRef<
     () => ({
       handlePrev,
       handleNext,
-      canNavigate: storyData?.storyType === 'guided' && isSpecta,
+      canNavigate: isSpecta,
     }),
     [handlePrev, handleNext, storyData, isSpecta],
   );
