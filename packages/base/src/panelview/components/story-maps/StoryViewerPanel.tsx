@@ -228,7 +228,7 @@ const StoryViewerPanel = forwardRef<
 
   if (!storyData || storyData?.storySegments?.length === 0) {
     return (
-      <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
+      <div style={{ padding: '1rem' }}>
         <p>No Segments available. Add one using the Add Layer menu.</p>
       </div>
     );

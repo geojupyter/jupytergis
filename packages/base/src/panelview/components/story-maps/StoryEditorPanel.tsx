@@ -18,10 +18,12 @@ interface IStoryPanelProps {
 
 const storyMapSchema: IDict = deepCopy(jgisSchema.definitions.jGISStoryMap);
 
-const AddStorySegmentButton = ({ model, commands }: IStoryPanelProps) => (
-  <Button onClick={() => commands.execute(CommandIDs.addStorySegment)}>
-    <FontAwesomeIcon icon={faLink} /> Add Story Segment
-  </Button>
+const AddStorySegmentButton = ({ model }: IStoryPanelProps) => (
+  <div style={{ display: 'flex', justifyContent: 'center' }}>
+    <Button onClick={() => commands.execute(CommandIDs.addStorySegment)}>
+      <FontAwesomeIcon icon={faLink} /> Add Story Segment
+    </Button>
+  </div>
 );
 
 export function StoryEditorPanel({ model, commands }: IStoryPanelProps) {
@@ -41,7 +43,7 @@ export function StoryEditorPanel({ model, commands }: IStoryPanelProps) {
 
   if (!story) {
     return (
-      <div>
+      <div style={{ padding: '1rem' }}>
         <p>No Story Map available.</p>
         <p>
           Add a Story Segment from the Add Layer menu. A segment captures the
@@ -63,9 +65,7 @@ export function StoryEditorPanel({ model, commands }: IStoryPanelProps) {
         syncData={syncStoryData}
         filePath={model.filePath}
       />
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <AddStorySegmentButton model={model} commands={commands} />
-      </div>
+      <AddStorySegmentButton model={model} commands={commands} />
     </div>
   );
 }
