@@ -85,15 +85,9 @@ def _add_qgis_to_path():
 # Add QGIS path before importing
 _add_qgis_to_path()
 
-try:
-    from qgis.PyQt.QtGui import QColor
-except ImportError as e:
-    print(f"Error importing QColor from qgis.PyQt.QtGui: {e}")
-    print("Make sure QGIS is properly installed and the Python path is set correctly.")
-    raise
-
 # Import QGIS modules dynamically to handle potential import errors gracefully
 try:
+    from qgis.PyQt.QtGui import QColor
     from qgis.core import (
         QgsApplication,
         QgsColorRampShader,
