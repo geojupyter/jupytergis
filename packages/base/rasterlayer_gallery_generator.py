@@ -6,7 +6,7 @@ import os
 import requests
 from PIL import Image
 import mercantile
-from xyzservices import providers
+from xyzservices import providers, TileProvider
 
 THUMBNAILS_LOCATION = "rasterlayer_gallery"
 
@@ -33,11 +33,20 @@ def latlng_to_tile(lat, lng, zoom):
 
 
 def create_thumbnail(
-    url_template, lat, lng, zoom, tile_size=256, thumbnail_size=(512, 512)
+    url_template,
+    lat,
+    lng,
+    zoom,
+    thumbnail_path,
+    tile_size=256,
+    thumbnail_size=(512, 512),
 ):
     """
     Create a thumbnail for the specified location and zoom level.
     """
+    # Skip if thumbnail already exists
+    if os.path.exists(thumbnail_path):
+        return Image.open(thumbnail_path)
     x, y = latlng_to_tile(lat, lng, zoom)
 
     # Fetch the tiles (2x2 grid for the thumbnail)
@@ -123,13 +132,24 @@ thumbnails_providers_positions = {
         "Special Rules": {},
         "Default": san_francisco,
     },
+    "MacroStrat": {
+        "Special Rules": {
+            "CartoRaster": france,
+        },
+        "Default": france,
+    },
 }
 
 
 def download_thumbnail(url_template, name, position, tile_size):
     file_path = f"{THUMBNAILS_LOCATION}/{name}.png"
     thumbnail = create_thumbnail(
-        url_template, position["lat"], position["lng"], position["zoom"], tile_size
+        url_template,
+        position["lat"],
+        position["lng"],
+        position["zoom"],
+        file_path,
+        tile_size,
     )
     thumbnail.save(file_path)
     return file_path
@@ -142,9 +162,20 @@ raster_provider_gallery = {}
 if not os.path.exists(THUMBNAILS_LOCATION):
     os.makedirs(THUMBNAILS_LOCATION)
 
+custom_providers = providers.copy()
+
+custom_providers["MacroStrat"] = {
+    "CartoRaster": TileProvider(
+        name="MacroStrat.CartoRaster",
+        url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
+        attribution="© Geologic data © <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC‑BY 4.0)",
+        max_zoom=18,
+    )
+}
+
 # Fetch thumbnails and populate the dictionary
 for provider in thumbnails_providers_positions.keys():
-    xyzprovider = providers[provider]
+    xyzprovider = custom_providers[provider]
 
     if "url" in xyzprovider.keys():
         print(f"Process {provider}")
