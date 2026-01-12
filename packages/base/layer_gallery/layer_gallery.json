@@ -1,0 +1,348 @@
+{
+  "OpenStreetMap": {
+    "Mapnik": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-Mapnik.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      "max_zoom": 19,
+      "html_attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
+      "attribution": "(C) OpenStreetMap contributors",
+      "name": "OpenStreetMap.Mapnik"
+    },
+    "DE": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-DE.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://tile.openstreetmap.de/{z}/{x}/{y}.png",
+      "max_zoom": 18,
+      "html_attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
+      "attribution": "(C) OpenStreetMap contributors",
+      "name": "OpenStreetMap.DE"
+    },
+    "CH": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-CH.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://tile.osm.ch/switzerland/{z}/{x}/{y}.png",
+      "max_zoom": 18,
+      "html_attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
+      "attribution": "(C) OpenStreetMap contributors",
+      "bounds": [
+        [45, 5],
+        [48, 11]
+      ],
+      "name": "OpenStreetMap.CH"
+    },
+    "France": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-France.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png",
+      "max_zoom": 20,
+      "html_attribution": "&copy; OpenStreetMap France | &copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
+      "attribution": "(C) OpenStreetMap France | (C) OpenStreetMap contributors",
+      "name": "OpenStreetMap.France"
+    },
+    "HOT": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-HOT.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+      "max_zoom": 19,
+      "html_attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, Tiles style by <a href=\"https://www.hotosm.org/\" target=\"_blank\">Humanitarian OpenStreetMap Team</a> hosted by <a href=\"https://openstreetmap.fr/\" target=\"_blank\">OpenStreetMap France</a>",
+      "attribution": "(C) OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team hosted by OpenStreetMap France",
+      "name": "OpenStreetMap.HOT"
+    },
+    "BZH": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-BZH.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://tile.openstreetmap.bzh/br/{z}/{x}/{y}.png",
+      "max_zoom": 19,
+      "html_attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, Tiles courtesy of <a href=\"http://www.openstreetmap.bzh/\" target=\"_blank\">Breton OpenStreetMap Team</a>",
+      "attribution": "(C) OpenStreetMap contributors, Tiles courtesy of Breton OpenStreetMap Team",
+      "bounds": [
+        [46.2, -5.5],
+        [50, 0.7]
+      ],
+      "name": "OpenStreetMap.BZH"
+    },
+    "CAT": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-CAT.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://tile.openstreetmap.bzh/ca/{z}/{x}/{y}.png",
+      "max_zoom": 19,
+      "html_attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, Tiles courtesy of <a href=\"https://www.openstreetmap.cat\" target=\"_blank\">Breton OpenStreetMap Team</a>",
+      "attribution": "(C) OpenStreetMap contributors, Tiles courtesy of Breton OpenStreetMap Team",
+      "name": "OpenStreetMap.CAT"
+    }
+  },
+  "NASAGIBS": {
+    "ASTER_GDEM_Greyscale_Shaded_Relief": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ASTER_GDEM_Greyscale_Shaded_Relief.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/ASTER_GDEM_Greyscale_Shaded_Relief/default/GoogleMapsCompatible_Level12/{z}/{y}/{x}.jpg",
+      "max_zoom": 12,
+      "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+      "html_attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (<a href=\"https://earthdata.nasa.gov\">ESDIS</a>) with funding provided by NASA/HQ.",
+      "name": "NASAGIBS.ASTER_GDEM_Greyscale_Shaded_Relief"
+    }
+  },
+  "USGS": {
+    "USTopo": {
+      "thumbnailPath": "layer_gallery/USGS-USTopo.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}",
+      "max_zoom": 20,
+      "html_attribution": "Tiles courtesy of the <a href=\"https://usgs.gov/\">U.S. Geological Survey</a>",
+      "attribution": "Tiles courtesy of the U.S. Geological Survey",
+      "name": "USGS.USTopo"
+    },
+    "USImagery": {
+      "thumbnailPath": "layer_gallery/USGS-USImagery.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}",
+      "max_zoom": 20,
+      "html_attribution": "Tiles courtesy of the <a href=\"https://usgs.gov/\">U.S. Geological Survey</a>",
+      "attribution": "Tiles courtesy of the U.S. Geological Survey",
+      "name": "USGS.USImagery"
+    },
+    "USImageryTopo": {
+      "thumbnailPath": "layer_gallery/USGS-USImageryTopo.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}",
+      "max_zoom": 20,
+      "html_attribution": "Tiles courtesy of the <a href=\"https://usgs.gov/\">U.S. Geological Survey</a>",
+      "attribution": "Tiles courtesy of the U.S. Geological Survey",
+      "name": "USGS.USImageryTopo"
+    }
+  },
+  "Gaode": {
+    "Normal": {
+      "thumbnailPath": "layer_gallery/Gaode-Normal.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}",
+      "max_zoom": 19,
+      "attribution": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>",
+      "html_attribution": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>",
+      "name": "Gaode.Normal"
+    },
+    "Satellite": {
+      "thumbnailPath": "layer_gallery/Gaode-Satellite.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "http://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}",
+      "max_zoom": 19,
+      "attribution": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>",
+      "html_attribution": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>",
+      "name": "Gaode.Satellite"
+    }
+  },
+  "Strava": {
+    "All": {
+      "thumbnailPath": "layer_gallery/Strava-All.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://heatmap-external-a.strava.com/tiles/all/hot/{z}/{x}/{y}.png",
+      "max_zoom": 15,
+      "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+      "html_attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+      "name": "Strava.All"
+    },
+    "Ride": {
+      "thumbnailPath": "layer_gallery/Strava-Ride.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://heatmap-external-a.strava.com/tiles/ride/hot/{z}/{x}/{y}.png",
+      "max_zoom": 15,
+      "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+      "html_attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+      "name": "Strava.Ride"
+    },
+    "Run": {
+      "thumbnailPath": "layer_gallery/Strava-Run.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://heatmap-external-a.strava.com/tiles/run/bluered/{z}/{x}/{y}.png",
+      "max_zoom": 15,
+      "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+      "html_attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+      "name": "Strava.Run"
+    },
+    "Water": {
+      "thumbnailPath": "layer_gallery/Strava-Water.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://heatmap-external-a.strava.com/tiles/water/blue/{z}/{x}/{y}.png",
+      "max_zoom": 15,
+      "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+      "html_attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+      "name": "Strava.Water"
+    },
+    "Winter": {
+      "thumbnailPath": "layer_gallery/Strava-Winter.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://heatmap-external-a.strava.com/tiles/winter/hot/{z}/{x}/{y}.png",
+      "max_zoom": 15,
+      "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+      "html_attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+      "name": "Strava.Winter"
+    }
+  },
+  "OPNVKarte": {
+    "thumbnailPath": "layer_gallery/OPNVKarte.png",
+    "layerType": "RasterLayer",
+    "sourceType": "RasterSource",
+    "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
+    "max_zoom": 18,
+    "html_attribution": "Map <a href=\"https://memomaps.de/\">memomaps.de</a> <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, map data &copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
+    "attribution": "Map memomaps.de CC-BY-SA, map data (C) OpenStreetMap contributors",
+    "name": "OPNVKarte"
+  },
+  "OpenTopoMap": {
+    "thumbnailPath": "layer_gallery/OpenTopoMap.png",
+    "layerType": "RasterLayer",
+    "sourceType": "RasterSource",
+    "url": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    "max_zoom": 17,
+    "html_attribution": "Map data: &copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, <a href=\"http://viewfinderpanoramas.org\">SRTM</a> | Map style: &copy; <a href=\"https://opentopomap.org\">OpenTopoMap</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-BY-SA</a>)",
+    "attribution": "Map data: (C) OpenStreetMap contributors, SRTM | Map style: (C) OpenTopoMap (CC-BY-SA)",
+    "name": "OpenTopoMap"
+  },
+  "OpenRailwayMap": {
+    "thumbnailPath": "layer_gallery/OpenRailwayMap.png",
+    "layerType": "RasterLayer",
+    "sourceType": "RasterSource",
+    "url": "https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png",
+    "max_zoom": 19,
+    "html_attribution": "Map data: &copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors | Map style: &copy; <a href=\"https://www.OpenRailwayMap.org\">OpenRailwayMap</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-BY-SA</a>)",
+    "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) OpenRailwayMap (CC-BY-SA)",
+    "name": "OpenRailwayMap"
+  },
+  "Esri": {
+    "WorldStreetMap": {
+      "thumbnailPath": "layer_gallery/Esri-WorldStreetMap.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+      "variant": "World_Street_Map",
+      "html_attribution": "Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012",
+      "attribution": "Tiles (C) Esri -- Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012",
+      "name": "Esri.WorldStreetMap"
+    },
+    "WorldTopoMap": {
+      "thumbnailPath": "layer_gallery/Esri-WorldTopoMap.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+      "variant": "World_Topo_Map",
+      "html_attribution": "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community",
+      "attribution": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community",
+      "name": "Esri.WorldTopoMap"
+    },
+    "WorldImagery": {
+      "thumbnailPath": "layer_gallery/Esri-WorldImagery.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+      "variant": "World_Imagery",
+      "html_attribution": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+      "attribution": "Tiles (C) Esri -- Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+      "name": "Esri.WorldImagery"
+    },
+    "WorldTerrain": {
+      "thumbnailPath": "layer_gallery/Esri-WorldTerrain.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+      "variant": "World_Terrain_Base",
+      "html_attribution": "Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS",
+      "attribution": "Tiles (C) Esri -- Source: USGS, Esri, TANA, DeLorme, and NPS",
+      "max_zoom": 13,
+      "name": "Esri.WorldTerrain"
+    },
+    "WorldShadedRelief": {
+      "thumbnailPath": "layer_gallery/Esri-WorldShadedRelief.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+      "variant": "World_Shaded_Relief",
+      "html_attribution": "Tiles &copy; Esri &mdash; Source: Esri",
+      "attribution": "Tiles (C) Esri -- Source: Esri",
+      "max_zoom": 13,
+      "name": "Esri.WorldShadedRelief"
+    },
+    "WorldPhysical": {
+      "thumbnailPath": "layer_gallery/Esri-WorldPhysical.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+      "variant": "World_Physical_Map",
+      "html_attribution": "Tiles &copy; Esri &mdash; Source: US National Park Service",
+      "attribution": "Tiles (C) Esri -- Source: US National Park Service",
+      "max_zoom": 8,
+      "name": "Esri.WorldPhysical"
+    },
+    "OceanBasemap": {
+      "thumbnailPath": "layer_gallery/Esri-OceanBasemap.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+      "variant": "Ocean/World_Ocean_Base",
+      "html_attribution": "Tiles &copy; Esri &mdash; Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri",
+      "attribution": "Tiles (C) Esri -- Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri",
+      "max_zoom": 13,
+      "name": "Esri.OceanBasemap"
+    },
+    "NatGeoWorldMap": {
+      "thumbnailPath": "layer_gallery/Esri-NatGeoWorldMap.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+      "variant": "NatGeo_World_Map",
+      "html_attribution": "Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC",
+      "attribution": "Tiles (C) Esri -- National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC",
+      "max_zoom": 16,
+      "name": "Esri.NatGeoWorldMap"
+    },
+    "WorldGrayCanvas": {
+      "thumbnailPath": "layer_gallery/Esri-WorldGrayCanvas.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+      "variant": "Canvas/World_Light_Gray_Base",
+      "html_attribution": "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ",
+      "attribution": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ",
+      "max_zoom": 16,
+      "name": "Esri.WorldGrayCanvas"
+    }
+  },
+  "MacroStrat": {
+    "CartoRaster": {
+      "thumbnailPath": "layer_gallery/MacroStrat-CartoRaster.png",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "name": "MacroStrat.CartoRaster",
+      "url": "https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
+      "attribution": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC\u2011BY 4.0)",
+      "max_zoom": 18
+    },
+    "CartoVector": {
+      "thumbnailPath": "layer_gallery/MacroStrat-CartoVector.png",
+      "layerType": "VectorLayer",
+      "sourceType": "VectorTileSource",
+      "name": "MacroStrat.CartoVector",
+      "url": "https://tiles.macrostrat.org/carto/{z}/{x}/{y}.mvt",
+      "attribution": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC\u2011BY 4.0)",
+      "max_zoom": 18
+    }
+  }
+}

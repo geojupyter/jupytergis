@@ -355,17 +355,19 @@ export interface IJGISExternalCommandRegistry {
  * Each entry consists of a name, a thumbnail URL, and source information.
  * The source information is expected to conform to the IRasterSource interface.
  *
- * @interface IRasterLayerGalleryEntry
+ * @interface ILayerGalleryEntry
  */
-export interface IRasterLayerGalleryEntry {
+export interface ILayerGalleryEntry {
   name: string;
   thumbnail: string;
   source: IRasterSource;
+  sourceType: any;
+  layerType: any;
 }
 
 export interface IJGISLayerBrowserRegistry {
-  getRegistryLayers(): IRasterLayerGalleryEntry[];
-  addRegistryLayer(data: IRasterLayerGalleryEntry): void;
+  getRegistryLayers(): ILayerGalleryEntry[];
+  addRegistryLayer(data: ILayerGalleryEntry): void;
   removeRegistryLayer(name: string): void;
   clearRegistry(): void;
 }

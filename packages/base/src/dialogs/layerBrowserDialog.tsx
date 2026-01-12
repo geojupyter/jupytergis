@@ -7,7 +7,7 @@ import {
   IJGISLayerDocChange,
   IJGISSource,
   IJupyterGISModel,
-  IRasterLayerGalleryEntry,
+  ILayerGalleryEntry,
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
@@ -15,11 +15,11 @@ import { Signal } from '@lumino/signaling';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 
 import { CreationFormWrapper } from './layerCreationFormDialog';
-import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
+import CUSTOM_RASTER_IMAGE from '../../layer_gallery/custom_raster.png';
 
 interface ILayerBrowserDialogProps {
   model: IJupyterGISModel;
-  registry: IRasterLayerGalleryEntry[];
+  registry: ILayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
   okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
   cancel: () => void;
@@ -39,9 +39,9 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   const [creatingCustomRaster, setCreatingCustomRaster] = useState(false);
 
   const [galleryWithCategory, setGalleryWithCategory] =
-    useState<IRasterLayerGalleryEntry[]>(registry);
+    useState<ILayerGalleryEntry[]>(registry);
 
-  const providers = [...new Set(registry.map(item => item.source.provider))];
+  const providers = [...new Set(registry.map(item => item.source?.provider))];
 
   const filteredGallery = galleryWithCategory.filter(item =>
     item.name.toLowerCase().includes(searchTerm),
@@ -81,7 +81,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
     const filteredGallery = sameAsOld
       ? registry
       : registry.filter(item =>
-          item.source.provider?.includes(categoryTab.innerText),
+          item.source?.provider?.includes(categoryTab.innerText),
         );
 
     setGalleryWithCategory(filteredGallery);
@@ -97,17 +97,17 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
    * Add tile layer and source to model
    * @param tile Tile to add
    */
-  const handleTileClick = (tile: IRasterLayerGalleryEntry) => {
+  const handleTileClick = (tile: ILayerGalleryEntry) => {
     const sourceId = UUID.uuid4();
 
     const sourceModel: IJGISSource = {
-      type: 'RasterSource',
+      type: tile.sourceType,
       name: tile.name,
       parameters: tile.source,
     };
 
     const layerModel: IJGISLayer = {
-      type: 'RasterLayer',
+      type: tile.layerType,
       parameters: {
         source: sourceId,
       },
@@ -132,8 +132,8 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
           formSchemaRegistry={formSchemaRegistry}
           createLayer={true}
           createSource={true}
-          layerType={'RasterLayer'}
-          sourceType={'RasterSource'}
+          layerType={'VectorLayer'}
+          sourceType={'VectorTileSource'}
           layerData={{
             name: 'Custom Raster',
           }}
@@ -244,7 +244,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
 
 export interface ILayerBrowserOptions {
   model: IJupyterGISModel;
-  registry: IRasterLayerGalleryEntry[];
+  registry: ILayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
 }
 
