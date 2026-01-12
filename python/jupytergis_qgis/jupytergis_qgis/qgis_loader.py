@@ -79,7 +79,7 @@ def _add_qgis_to_path():
     # Add paths that exist and are not already in sys.path
     for qgis_path in qgis_paths:
         if qgis_path and os.path.exists(qgis_path) and qgis_path not in sys.path:
-            sys.path.insert(0, qgis_path)
+            sys.path.append(qgis_path)
 
 
 # Add QGIS path before importing
