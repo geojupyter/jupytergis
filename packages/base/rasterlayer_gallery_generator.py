@@ -33,16 +33,21 @@ def latlng_to_tile(lat, lng, zoom):
 
 
 def create_thumbnail(
-    url_template, lat, lng, zoom, thumbnail_path, tile_size=256, thumbnail_size=(512, 512)
+    url_template,
+    lat,
+    lng,
+    zoom,
+    thumbnail_path,
+    tile_size=256,
+    thumbnail_size=(512, 512),
 ):
     """
     Create a thumbnail for the specified location and zoom level.
     """
-     # Skip if thumbnail already exists
+    # Skip if thumbnail already exists
     if os.path.exists(thumbnail_path):
         return Image.open(thumbnail_path)
     x, y = latlng_to_tile(lat, lng, zoom)
-    
 
     # Fetch the tiles (2x2 grid for the thumbnail)
     tiles = []
@@ -139,7 +144,12 @@ thumbnails_providers_positions = {
 def download_thumbnail(url_template, name, position, tile_size):
     file_path = f"{THUMBNAILS_LOCATION}/{name}.png"
     thumbnail = create_thumbnail(
-        url_template, position["lat"], position["lng"], position["zoom"], file_path, tile_size
+        url_template,
+        position["lat"],
+        position["lng"],
+        position["zoom"],
+        file_path,
+        tile_size,
     )
     thumbnail.save(file_path)
     return file_path
@@ -151,7 +161,7 @@ raster_provider_gallery = {}
 # Create thumbnail dir if needed
 if not os.path.exists(THUMBNAILS_LOCATION):
     os.makedirs(THUMBNAILS_LOCATION)
-    
+
 custom_providers = providers.copy()
 
 custom_providers["MacroStrat"] = {
@@ -159,9 +169,9 @@ custom_providers["MacroStrat"] = {
         name="MacroStrat.CartoRaster",
         url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
         attribution="© Geologic data © <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC‑BY 4.0)",
-        max_zoom=18
+        max_zoom=18,
     )
-}    
+}
 
 # Fetch thumbnails and populate the dictionary
 for provider in thumbnails_providers_positions.keys():
@@ -236,7 +246,7 @@ for provider in thumbnails_providers_positions.keys():
 
         except Exception as e:
             print("Failed...", e)
-        
+
 # Save JSON repr
 with open(f"{THUMBNAILS_LOCATION}/raster_layer_gallery.json", "w") as f:
     json.dump(raster_provider_gallery, f)
