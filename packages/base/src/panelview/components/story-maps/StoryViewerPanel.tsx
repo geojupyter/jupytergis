@@ -4,8 +4,10 @@ import {
   IJupyterGISModel,
 } from '@jupytergis/schema';
 import React, {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -23,7 +25,16 @@ interface IStoryViewerPanelProps {
   isSpecta: boolean;
 }
 
-function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
+export interface IStoryViewerPanelHandle {
+  handlePrev: () => void;
+  handleNext: () => void;
+  canNavigate: boolean;
+}
+
+const StoryViewerPanel = forwardRef<
+  IStoryViewerPanelHandle,
+  IStoryViewerPanelProps
+>(({ model, isSpecta }, ref) => {
   const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(0);
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
     model.getSelectedStory().story ?? null,
@@ -204,42 +215,16 @@ function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
     }
   }, [currentIndexDisplayed, storySegments.length]);
 
-  // Handle scroll events to navigate between slides
-  useEffect(() => {
-    // Only enable scroll navigation for guided mode
-    if (!storyData || storyData.storyType !== 'guided') {
-      return;
-    }
-
-    // let lastScrollTime = 0;
-    const scrollThrottle = 500; // Minimum time between scroll-triggered navigation (ms)
-
-    const handleScroll = (e: WheelEvent) => {
-      e.preventDefault();
-
-      // Scroll down (positive deltaY) = next slide
-      // Scroll up (negative deltaY) = previous slide
-      if (e.deltaY > 0) {
-        handleNext();
-      } else if (e.deltaY < 0) {
-        handlePrev();
-      }
-    };
-
-    throttle(handleScroll, scrollThrottle);
-
-    // Attach wheel event listener to the panel container
-    const panelElement = panelRef.current;
-    if (panelElement) {
-      panelElement.addEventListener('wheel', handleScroll, { passive: false });
-    }
-
-    return () => {
-      if (panelElement) {
-        panelElement.removeEventListener('wheel', handleScroll);
-      }
-    };
-  }, [storyData, handlePrev, handleNext]);
+  // Expose methods via ref for parent component to use
+  useImperativeHandle(
+    ref,
+    () => ({
+      handlePrev,
+      handleNext,
+      canNavigate: storyData?.storyType === 'guided' && isSpecta,
+    }),
+    [handlePrev, handleNext, storyData, isSpecta],
+  );
 
   if (!storyData || storyData?.storySegments?.length === 0) {
     return (
@@ -290,6 +275,8 @@ function StoryViewerPanel({ model, isSpecta }: IStoryViewerPanelProps) {
       <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
     </div>
   );
-}
+});
+
+StoryViewerPanel.displayName = 'StoryViewerPanel';
 
 export default StoryViewerPanel;

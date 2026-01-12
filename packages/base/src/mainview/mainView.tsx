@@ -57,7 +57,7 @@ import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
-import { DragAndDrop, Select } from 'ol/interaction';
+import { DragAndDrop, MouseWheelZoom, Select } from 'ol/interaction';
 import {
   Heatmap as HeatmapLayer,
   Image as ImageLayer,
@@ -107,7 +107,9 @@ import { MainViewModel } from './mainviewmodel';
 import { hexToRgb } from '../dialogs/symbology/colorRampUtils';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
-import StoryViewerPanel from '../panelview/components/story-maps/StoryViewerPanel';
+import StoryViewerPanel, {
+  IStoryViewerPanelHandle,
+} from '../panelview/components/story-maps/StoryViewerPanel';
 
 type OlLayerTypes =
   | TileLayer
@@ -267,6 +269,9 @@ export class MainView extends React.Component<IProps, IStates> {
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
     }
+
+    // Check for specta mode setup after map is ready
+    this._checkAndSetupSpectaMode();
   }
 
   componentWillUnmount(): void {
@@ -294,6 +299,9 @@ export class MainView extends React.Component<IProps, IStates> {
       this._onStoryMapsChanged,
       this,
     );
+
+    // Clean up story scroll listener
+    this._cleanupStoryScrollListener();
 
     this._mainViewModel.dispose();
   }
@@ -2021,16 +2029,36 @@ export class MainView extends React.Component<IProps, IStates> {
    * Handler for when story maps change in the model.
    * Updates specta state and presentation colors when story data becomes available.
    */
-  private _onStoryMapsChanged = (): void => {
-    const newSpectaMode = this._model.isSpectaMode();
-    if (this.state.isSpecta !== newSpectaMode) {
-      this.setState({ isSpecta: newSpectaMode }, () => {
-        this._updateSpectaPresentationColors();
-      });
-    } else {
-      // Specta mode didn't change, but story data might have
+  private _checkAndSetupSpectaMode = (): void => {
+    const spectaMode = this._model.isSpectaMode();
+
+    if (spectaMode && !this._spectaModeInitialized) {
+      // Remove MouseWheelZoom interaction
+      const interactions = this._Map.getInteractions();
+      const mouseWheelZoom = interactions
+        .getArray()
+        .find(
+          (interaction): interaction is MouseWheelZoom =>
+            interaction instanceof MouseWheelZoom,
+        );
+      if (mouseWheelZoom) {
+        this._Map.removeInteraction(mouseWheelZoom);
+      }
+
+      // Set up scroll listener for story navigation
+      this._setupStoryScrollListener();
+
+      // Update colors CSS variables with colors from story
       this._updateSpectaPresentationColors();
+
+      this._spectaModeInitialized = true;
+      this.setState({ isSpecta: spectaMode });
     }
+  };
+
+  private _onStoryMapsChanged = (): void => {
+    // Check if specta mode needs to be set up (only runs once)
+    this._checkAndSetupSpectaMode();
   };
 
   private _updateSpectaPresentationColors = (): void => {
@@ -2515,11 +2543,58 @@ export class MainView extends React.Component<IProps, IStates> {
     this.setState(old => ({ ...old, lightTheme }));
   };
 
+  private _storyScrollHandler: ((e: Event) => void) | null = null;
+
+  private _setupStoryScrollListener = (): void => {
+    const scrollThrottle = 500; // Minimum time between scroll-triggered navigation (ms)
+
+    const handleScroll = (e: Event) => {
+      const panelHandle = this.storyViewerPanelRef.current;
+
+      // Only handle scroll if navigation is enabled
+      if (!panelHandle || !panelHandle.canNavigate) {
+        return;
+      }
+
+      const wheelEvent = e as WheelEvent;
+      wheelEvent.preventDefault();
+
+      // Scroll down (positive deltaY) = next slide
+      // Scroll up (negative deltaY) = previous slide
+      if (wheelEvent.deltaY > 0) {
+        panelHandle.handleNext();
+      } else if (wheelEvent.deltaY < 0) {
+        panelHandle.handlePrev();
+      }
+    };
+
+    const throttledHandler = throttle(handleScroll, scrollThrottle);
+    this._storyScrollHandler = throttledHandler;
+
+    // Attach wheel event listener to the main container
+    const containerElement = document.querySelector('.jGIS-Mainview-Container');
+    if (containerElement) {
+      containerElement.addEventListener('wheel', throttledHandler, {
+        passive: false,
+      });
+    }
+  };
+
+  private _cleanupStoryScrollListener = (): void => {
+    if (this._storyScrollHandler) {
+      const containerElement = document.querySelector(
+        '.jGIS-Mainview-Container',
+      );
+      if (containerElement) {
+        containerElement.removeEventListener('wheel', this._storyScrollHandler);
+      }
+      this._storyScrollHandler = null;
+    }
+  };
+
   private _handleWindowResize = (): void => {
     // TODO SOMETHING
   };
-
-  // ! move this
 
   render(): JSX.Element {
     return (
@@ -2602,6 +2677,7 @@ export class MainView extends React.Component<IProps, IStates> {
                       className="jgis-specta-story-panel-container"
                     >
                       <StoryViewerPanel
+                        ref={this.storyViewerPanelRef}
                         model={this._model}
                         isSpecta={this.state.isSpecta}
                       />
@@ -2632,6 +2708,8 @@ export class MainView extends React.Component<IProps, IStates> {
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
   private controlsToolbarRef = React.createRef<HTMLDivElement>();
   private spectaContainerRef = React.createRef<HTMLDivElement>();
+  private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
+  private _spectaModeInitialized = false;
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
