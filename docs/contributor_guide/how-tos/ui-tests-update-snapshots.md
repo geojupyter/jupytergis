@@ -16,7 +16,7 @@ of snapshot testing.
 Please **do not run snapshot tests locally** and instead rely on CI (GitHub Actions).
 ```
 
-See {doc}`/contributor_guide/explanation/ui-testing` for more background.
+See {doc}`Explanation: UI testing </contributor_guide/explanation/ui-testing>` for more background.
 
 ## Procedure to update expected/golden snapshots
 
@@ -29,12 +29,12 @@ repository because either:
 
 **This procedure is only for the latter case.**
 
-If you're dealing with the former case, see {doc}`./ui-tests-debug-failures`.
+If you're dealing with the former case, see {doc}`How to: Debug failures in UI tests <./ui-tests-debug-failures>`.
 
 ### 1) Download the test report
 
 First, complete the "Download the test report" steps from
-{doc}`./ui-tests-debug-failures`.
+{doc}`How to: Debug failures in UI tests <./ui-tests-debug-failures>`.
 
 For each failing test, this test reports includes the actual and expected snapshots and
 an interface for comparing them.
@@ -43,7 +43,7 @@ an interface for comparing them.
 
 First, **find the "actual" snapshots from the failing tests that you wish to update**.
 You may wish to use the Playwright report viewer as desribed in
-{doc}`./ui-tests-debug-failures`.
+{doc}`How to: Debug failures in UI tests <./ui-tests-debug-failures>`.
 
 **Ensure the changes in the snapshot are as you expect them**.
 
