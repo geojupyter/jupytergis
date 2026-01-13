@@ -14,20 +14,15 @@ defaults:
 
 jobs:
   update-snapshots:
-    if: >
-      (
-        github.event.comment.author_association == 'OWNER' ||
-        github.event.comment.author_association == 'COLLABORATOR' ||
-        github.event.comment.author_association == 'MEMBER'
-      ) && github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
     runs-on: ubuntu-latest
 
+    # Only run on issue comments
+    if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
+
     steps:
-      - name: React to the triggering comment
-        run: |
-          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions --raw-field 'content=+1'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: martinRenou/maintainer-tools/.github/actions/update-snapshots-check-permission@check_perm
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout
         uses: actions/checkout@v6

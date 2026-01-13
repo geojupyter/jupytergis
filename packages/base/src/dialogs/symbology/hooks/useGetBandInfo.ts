@@ -4,13 +4,6 @@ import { useEffect, useState } from 'react';
 
 import { loadFile } from '@/src/tools';
 
-export interface IBandHistogram {
-  buckets: number[];
-  count: number;
-  max: number;
-  min: number;
-}
-
 export interface IBandRow {
   band: number;
   colorInterpretation?: string;
@@ -30,7 +23,6 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
     setError(null);
 
     try {
-      const bandsArr: IBandRow[] = [];
       const source = model.getSource(layer?.parameters?.source);
       const sourceInfo = source?.parameters?.urls[0];
 
@@ -67,9 +59,10 @@ const useGetBandInfo = (model: IJupyterGISModel, layer: IJGISLayer) => {
       const image = await tiff.getImage();
       const numberOfBands = image.getSamplesPerPixel();
 
+      const bandsArr: IBandRow[] = [];
       for (let i = 0; i < numberOfBands; i++) {
         bandsArr.push({
-          band: i,
+          band: i + 1,
           stats: {
             minimum: sourceInfo.min ?? 0,
             maximum: sourceInfo.max ?? 100,
