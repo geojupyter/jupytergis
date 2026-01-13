@@ -141,7 +141,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
-  isSpecta: boolean;
+  isSpectaPresentation: boolean;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -199,10 +199,6 @@ export class MainView extends React.Component<IProps, IStates> {
     this._model.sharedLayersChanged.connect(this._onLayersChanged, this);
     this._model.sharedLayerTreeChanged.connect(this._onLayerTreeChange, this);
     this._model.sharedSourcesChanged.connect(this._onSourcesChange, this);
-    this._model.sharedModel.storyMapsChanged.connect(
-      this._onStoryMapsChanged,
-      this,
-    );
     this._model.sharedModel.changed.connect(this._onSharedModelStateChange);
     this._model.sharedMetadataChanged.connect(
       this._onSharedMetadataChanged,
@@ -242,9 +238,8 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
-      isSpecta: !!document.querySelector('meta[name="specta-config"]'),
+      isSpectaPresentation: false,
     };
-    console.log('ispecta', this.state.isSpecta);
 
     this._sources = [];
     this._loadingLayers = new Set();
@@ -270,10 +265,17 @@ export class MainView extends React.Component<IProps, IStates> {
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
     }
+  }
 
-    // Check for specta mode setup after map is ready
-    // this._setupSpectaMode();
-    this._updateSpectaPresentationColors();
+  componentDidUpdate(prevProps: IProps, prevState: IStates): void {
+    // Run setup when isSpectaPresentation changes from false/undefined to true
+    if (
+      this.state.isSpectaPresentation &&
+      !this._isSpectaPresentationInitialized
+    ) {
+      this._setupSpectaMode();
+      this._isSpectaPresentationInitialized = true;
+    }
   }
 
   componentWillUnmount(): void {
@@ -295,10 +297,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
     this._model.clientStateChanged.disconnect(
       this._onClientSharedStateChanged,
-      this,
-    );
-    this._model.sharedModel.storyMapsChanged.disconnect(
-      this._onStoryMapsChanged,
       this,
     );
 
@@ -1795,6 +1793,16 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _onSharedOptionsChanged(): void {
+    // ! would prefer a model ready signal or something, this feels hacky
+    const enableSpectaPresentation = this._model.isSpectaMode();
+
+    if (enableSpectaPresentation && !this._isSpectaPresentationInitialized) {
+      // _setupSpectaMode will be called in componentDidUpdate when state changes
+      this.setState(old => ({ ...old, isSpectaPresentation: true }));
+    } else {
+      this._isSpectaPresentationInitialized = true;
+    }
+
     if (!this._isPositionInitialized) {
       const options = this._model.getOptions();
       this.updateOptions(options);
@@ -2049,13 +2057,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
     // Update colors CSS variables with colors from story
     this._updateSpectaPresentationColors();
-  };
-
-  private _onStoryMapsChanged = (): void => {
-    // Set up Specta mode
-    if (this.state.isSpecta) {
-      this._setupSpectaMode();
-    }
   };
 
   private _updateSpectaPresentationColors = (): void => {
@@ -2644,7 +2645,7 @@ export class MainView extends React.Component<IProps, IStates> {
               }}
             >
               <div className="jgis-panels-wrapper">
-                {!this.state.isSpecta ? (
+                {!this.state.isSpectaPresentation ? (
                   <>
                     {this._state && (
                       <LeftPanel
@@ -2671,7 +2672,7 @@ export class MainView extends React.Component<IProps, IStates> {
                       <StoryViewerPanel
                         ref={this.storyViewerPanelRef}
                         model={this._model}
-                        isSpecta={this.state.isSpecta}
+                        isSpecta={this.state.isSpectaPresentation}
                       />
                     </div>
                   </div>
@@ -2718,4 +2719,5 @@ export class MainView extends React.Component<IProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _featurePropertyCache: Map<string | number, any> = new Map();
+  private _isSpectaPresentationInitialized = false;
 }
