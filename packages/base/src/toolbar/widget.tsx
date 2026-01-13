@@ -65,12 +65,20 @@ function createUserIconRenderer(model: JupyterGISModel) {
 export class ToolbarWidget extends ReactiveToolbar {
   private _model: JupyterGISModel;
   private _newSubMenu: MenuSvg | null = null;
+  private _hasSetSpectaVisibility = false;
 
   constructor(options: ToolbarWidget.IOptions) {
     super();
 
     this._model = options.model;
     this.addClass('jGIS-toolbar-widget');
+
+    // Listen for options change because it's the dependable signal
+    // Update Specta mode visibility
+    this._model.sharedModel.optionsChanged.connect(
+      this._onSpectaModeChanged,
+      this,
+    );
 
     if (options.commands) {
       const openLayersBrowserButton = new CommandToolbarButton({
@@ -97,16 +105,9 @@ export class ToolbarWidget extends ReactiveToolbar {
 
       this._updateStorySegmentMenuItem();
 
+      // ! move this lol
       // Listen for settings changes
       this._model.settingsChanged.connect(this._onSettingsChanged, this);
-
-      // Listen for story changes to update Specta mode visibility
-      this._model.sharedModel.storyMapsChanged.connect(
-        this._onSpectaModeChanged,
-        this,
-      );
-      // Set initial visibility
-      this.setHidden(this._model.isSpectaMode());
 
       const NewEntryButton = new ToolbarButton({
         icon: addIcon,
@@ -248,8 +249,11 @@ export class ToolbarWidget extends ReactiveToolbar {
   /**
    * Handles story changes to update Specta mode visibility
    */
-  private _onSpectaModeChanged = (): void => {
-    this.setHidden(this._model.isSpectaMode());
+  private _onSpectaModeChanged = (args: any): void => {
+    if (!this._hasSetSpectaVisibility) {
+      this.setHidden(this._model.isSpectaMode());
+      this._hasSetSpectaVisibility = true;
+    }
   };
 
   dispose(): void {
