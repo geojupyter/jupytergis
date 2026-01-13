@@ -75,7 +75,7 @@ It will immediately open a new browser tab displaying the test report
 :::{warning}
 Using `npx` may be significantly less safe than using `pnpm dlx`.
 
-See {doc}`/contributor-guide/explanation/security-and-dependencies` for more.
+See {doc}`/contributor-guide/explanation/security-and-npm-dependencies` for more.
 :::
 
 ### Working with the Playwright test report
