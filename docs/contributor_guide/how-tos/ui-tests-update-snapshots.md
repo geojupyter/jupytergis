@@ -1,12 +1,16 @@
 # UI tests: Update snapshots
 
-## Background
+We use "snapshot" (screenshot) testing to verify that the UI appears as expected when
+certain actions are performed.
 
-Previously, we used a bot to update snapshots by commenting `bot please update
-snapshots` in pull requests.
-**This functionality is now disabled for security reasons**.
-See [GitHub issue #1065](https://github.com/geojupyter/jupytergis/issues/1065) for more
-detail.
+When we intentionally change the UI, often our "expected" snapshots need to be updated
+to prevent tests from failing!
+This doc will help you do that.
+
+If you're dealing with a case where the snapshots differ **unintentionally**, see
+{doc}`How to: Debug failures in UI tests <./ui-tests-debug-failures>`.
+
+See {doc}`Explanation: UI testing </contributor_guide/explanation/ui-testing>` for more background.
 
 ```{warning}
 Snapshot (screenshot) comparison depends strongly on the system used to generate the
@@ -16,20 +20,22 @@ of snapshot testing.
 Please **do not run snapshot tests locally** and instead rely on CI (GitHub Actions).
 ```
 
-See {doc}`Explanation: UI testing </contributor_guide/explanation/ui-testing>` for more background.
+## Automatic method (recommended)
 
-## Procedure to update expected/golden snapshots
+In a PR which requires snapshot updates, add a comment containing the text:
 
-When integration testing fails due to mismatching snapshots there are two possibilities.
-The PR produces an "actual" snapshot that differs from the "expected" snapshot in the
-repository because either:
+```
+please update snapshots
+```
 
-- There is a flaw or bug in the PR's code, **or**
-- An intentional improvement has been made
+The bot will react with a thumbs-up 👍 to indicate that it's started the task.
+If the user requesting the snapshot updates doesn't have the correct permissions, the
+bot will react with a thumbs-down 👎.
 
-**This procedure is only for the latter case.**
+This workflow is powered by a
+[currently-unreleased reusable workflow from the `jupyterlab/maintainer-tools` repository](https://github.com/jupyterlab/maintainer-tools/pull/268).
 
-If you're dealing with the former case, see {doc}`How to: Debug failures in UI tests <./ui-tests-debug-failures>`.
+## Manual method (for emergencies)
 
 ### 1) Download the test report
 
@@ -77,7 +83,7 @@ cp /tmp/my-playwright-report/test-results/tests-geojson-layers--geoJSONLayer-Add
 Please carefully verify in the GitHub Pull Request interface that the snapshot changes
 are as expected before merging!
 
-# Alternative: Claude Code plugin
+### Alternative: Claude Code plugin
 
 Try
 [Jeremy Tuloup's Claude Code plugin for maintaining repos in the Jupyter ecosystem](https://github.com/jtpio/jp-claude-plugin/).
