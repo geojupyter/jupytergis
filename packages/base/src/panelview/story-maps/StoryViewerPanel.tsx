@@ -13,10 +13,10 @@ import React, {
   useState,
 } from 'react';
 
-import StoryContentSection from './sections/StoryContentSection';
-import StoryImageSection from './sections/StoryImageSection';
-import StorySubtitleSection from './sections/StorySubtitleSection';
-import StoryTitleSection from './sections/StoryTitleSection';
+import StoryContentSection from './components/StoryContentSection';
+import StoryImageSection from './components/StoryImageSection';
+import StorySubtitleSection from './components/StorySubtitleSection';
+import StoryTitleSection from './components/StoryTitleSection';
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
