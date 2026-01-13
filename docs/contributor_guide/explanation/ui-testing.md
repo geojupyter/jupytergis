@@ -17,7 +17,7 @@ This includes two types of tests:
   Interact with the application programmatically and verify the resulting rendered
   content ("actual"/"golden" snapshots) match the expected snapshots in this repository.
   When snapshot tests fail, new snapshots can be generated programmatically.
-  See: {doc}`How to: update UI test snapshots </contributor-guide/how-tos/ui-tests-update-snapshots.md>`.
+  See: {doc}`How to: update UI test snapshots </contributor_guide/how-tos/ui-tests-update-snapshots>`.
 
   ```{warning}
   Snapshot (screenshot) comparison depends strongly on
@@ -29,5 +29,5 @@ This includes two types of tests:
 
 For more, see:
 
-- {doc}`How to: debug UI test failures </contributor-guide/how-tos/ui-tests-debug-failures.md>`
-- {doc}`How to: update UI test snapshots </contributor-guide/how-tos/ui-tests-update-snapshots.md>`
+- {doc}`How to: debug UI test failures </contributor_guide/how-tos/ui-tests-debug-failures>`
+- {doc}`How to: update UI test snapshots </contributor_guide/how-tos/ui-tests-update-snapshots>`

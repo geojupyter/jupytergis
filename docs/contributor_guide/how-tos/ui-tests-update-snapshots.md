@@ -20,7 +20,7 @@ of snapshot testing.
 Please **do not run snapshot tests locally** and instead rely on CI (GitHub Actions).
 ```
 
-See {doc}`Explanation: UI testing </contributor-guide/explanation/ui-testing>` for more
+See {doc}`Explanation: UI testing </contributor_guide/explanation/ui-testing>` for more
 background.
 
 ## Procedure to update expected/golden snapshots
@@ -34,12 +34,12 @@ repository because either:
 
 **This procedure is only for the latter case.**
 
-If you're dealing with the former case, see {doc}`../ui-tests-debug-failures.md`.
+If you're dealing with the former case, see {doc}`./ui-tests-debug-failures`.
 
 ### 1) Download the test report
 
 First, complete the "Download the test report" steps from
-{doc}`./ui-tests-debug-failures.md`.
+{doc}`./ui-tests-debug-failures`.
 
 For each failing test, this test reports includes the actual and expected snapshots and
 an interface for comparing them.

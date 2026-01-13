@@ -42,4 +42,4 @@ We have several tools configured for checking code quality:
   jlpm run test:local      # Or, to test in jupyterlite, run `test:locallite`
   ```
 
-  For more, see {doc}`/contributor-guide/explanation/ui-testing.md`.
+  For more, see {doc}`/contributor_guide/explanation/ui-testing`.
