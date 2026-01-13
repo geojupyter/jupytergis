@@ -1,7 +1,3 @@
----
-title: 'Explanation: Security & NPM dependencies'
----
-
 # Security & NPM dependencies
 
 In late 2025, there were at least 4 major supply-chain attacks against NPM packages.

@@ -1,7 +1,3 @@
----
-title: 'How to: update UI test snapshots'
----
-
 # UI tests: Update snapshots
 
 ## Background

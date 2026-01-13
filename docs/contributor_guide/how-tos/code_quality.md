@@ -1,7 +1,3 @@
----
-title: 'How to: check code quality'
----
-
 # Check code quality
 
 ```{seealso}

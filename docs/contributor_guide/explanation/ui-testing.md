@@ -1,7 +1,3 @@
----
-title: 'Explanation: UI testing'
----
-
 # UI testing
 
 JupyterGIS includes automated **user interface testing**, powered by

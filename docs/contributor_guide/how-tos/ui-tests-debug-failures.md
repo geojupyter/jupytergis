@@ -1,13 +1,8 @@
----
-title: 'How to: debug UI test failures'
----
-
 # UI tests: Debug failures
 
 It can be difficult to debug failures in UI tests from the logs alone.
 [Playwright](https://playwright.dev/) offers a rich visual reporting interface that you
 can use to make this easier.
-
 
 ## Download the test report
 
