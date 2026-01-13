@@ -12,9 +12,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import Markdown from 'react-markdown';
 
-import { throttle } from '@/src/tools';
 import StoryContentSection from './sections/StoryContentSection';
 import StoryImageSection from './sections/StoryImageSection';
 import StorySubtitleSection from './sections/StorySubtitleSection';
