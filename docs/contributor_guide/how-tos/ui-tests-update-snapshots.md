@@ -1,5 +1,5 @@
 ---
-title: "How to: update UI test snapshots"
+title: 'How to: update UI test snapshots'
 ---
 
 # UI tests: Update snapshots
@@ -23,20 +23,18 @@ Please **do not run snapshot tests locally** and instead rely on CI (GitHub Acti
 See :doc:`Explanation: UI testing </contributor-guide/explanation/ui-testing>` for more
 background.
 
-
 ## Procedure to update expected/golden snapshots
 
 When integration testing fails due to mismatching snapshots there are two possibilities.
 The PR produces an "actual" snapshot that differs from the "expected" snapshot in the
 repository because either:
 
-* There is a flaw or bug in the PR's code, **or**
-* An intentional improvement has been made
+- There is a flaw or bug in the PR's code, **or**
+- An intentional improvement has been made
 
 **This procedure is only for the latter case.**
 
 If you're dealing with the former case, see :doc:`../ui-tests-debug-failures.md`.
-
 
 ### 1) Download the test report
 
@@ -45,7 +43,6 @@ First, complete the "Download the test report" steps from
 
 For each failing test, this test reports includes the actual and expected snapshots and
 an interface for comparing them.
-
 
 ### 2) Copy the desired "actual" snapshots to replace the "expected" snapshots in the repo
 
@@ -80,12 +77,10 @@ To replace it, you might run a command like:
 cp /tmp/my-playwright-report/test-results/tests-geojson-layers--geoJSONLayer-Add-a-GeoJSON-layer-chromium/geoJSON-layer-actual.png ui-tests/tests/geojson-layers.spec.ts-snapshots/geoJSON-layer-chromium-linux.png
 ```
 
-
 ### 3) Verify
 
 Please carefully verify in the GitHub Pull Request interface that the snapshot changes
 are as expected before merging!
-
 
 # Alternative: Claude Code plugin
 

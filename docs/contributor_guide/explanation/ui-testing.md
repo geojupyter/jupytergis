@@ -1,5 +1,5 @@
 ---
-title: "Explanation: UI testing"
+title: 'Explanation: UI testing'
 ---
 
 # UI testing
@@ -29,5 +29,5 @@ This includes two types of tests:
 
 For more, see:
 
-* :doc:`How to: debug UI test failures </contributor-guide/how-tos/ui-tests-debug-failures.md>`
-* :doc:`How to: update UI test snapshots </contributor-guide/how-tos/ui-tests-update-snapshots.md>`
+- :doc:`How to: debug UI test failures </contributor-guide/how-tos/ui-tests-debug-failures.md>`
+- :doc:`How to: update UI test snapshots </contributor-guide/how-tos/ui-tests-update-snapshots.md>`

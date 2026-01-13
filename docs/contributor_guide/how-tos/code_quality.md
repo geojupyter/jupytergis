@@ -1,5 +1,5 @@
 ---
-title: "How to: check code quality"
+title: 'How to: check code quality'
 ---
 
 # Check code quality

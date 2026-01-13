@@ -1,5 +1,5 @@
 ---
-title: "How to: debug UI test failures"
+title: 'How to: debug UI test failures'
 ---
 
 # UI tests: Debug failures
@@ -7,7 +7,6 @@ title: "How to: debug UI test failures"
 It can be difficult to debug failures in UI tests from the logs alone.
 [Playwright](https://playwright.dev/) offers a rich visual reporting interface that you
 can use to make this easier.
-
 
 ## Procedure
 
@@ -27,14 +26,12 @@ the failure occurred.
 **Close the currently open step** (you should see a collapsible section header at the
 top of the screen, with a red X (❌) icon).
 
-
 #### 2) View the "Upload playwright test report" step
 
 The "Upload playwright test report" step will be downstream (below) the failed step.
 It should have a checkmark (✔️) icon.
 
 **Click the collapsible header to open it**.
-
 
 #### 3) Download the test report
 
@@ -47,7 +44,6 @@ Artifact download URL: https://github.com/geojupyter/jupytergis/actions/runs/{so
 
 **Click on the URL to download the test report**.
 Your browser will download a zip file named `jupytergis-playwright-tests.zip`.
-
 
 #### 4) Unzip the test report
 
@@ -65,7 +61,6 @@ unzip jupytergis-playwright-tests.zip
 
 You should see a `playwright-report` and `test-results` directory are extracted.
 
-
 ### Open the test report with Playwright
 
 From the directory where you unzipped, run:
@@ -82,7 +77,6 @@ Using `npx` may be significantly less safe than using `pnpm dlx`.
 
 See :doc:`/contributor-guide/explanation/security-and-dependencies` for more.
 :::
-
 
 ### Working with the Playwright test report
 

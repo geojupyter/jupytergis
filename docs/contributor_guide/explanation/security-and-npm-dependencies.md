@@ -1,5 +1,5 @@
 ---
-title: "Explanation: Security & NPM dependencies"
+title: 'Explanation: Security & NPM dependencies'
 ---
 
 # Security & NPM dependencies
@@ -30,7 +30,6 @@ Those credentials are exfiltrated to the attacker.
 NPM credentials can be used to infect additional packages, enabling an infection to
 self-replicate and impact more users.
 
-
 ## Prevention
 
 There are two main weaknesses in (some) package management tools that facilitate infection:
@@ -41,13 +40,11 @@ The NPM CLI and Yarn will both run post-install scripts by default.
 Most users expect that installation doesn't include running untrusted code, so this is
 extremely unsafe and can result in end-users being infected without knowing it.
 
-
 #### NPM CLI prevention
 
 ```bash
 npm config set ignore-scripts true
 ```
-
 
 #### Yarn prevention
 
@@ -55,12 +52,10 @@ npm config set ignore-scripts true
 yarn config set ignore-scripts true --global
 ```
 
-
 #### PNPM prevention
 
 PNPM is safer by default!
 Lifecycle scripts are disabled by default in PNPM.
-
 
 ### Installation of freshly-released packages
 
@@ -73,24 +68,20 @@ protect users from many known supply-chain attacks.**
 
 Read more:
 
-* [We should all be using dependency cooldowns](https://blog.yossarian.net/2025/11/21/We-should-all-be-using-dependency-cooldowns)
-* [Dependency cooldowns, redux](https://blog.yossarian.net/2025/12/13/cooldowns-redux)
-
+- [We should all be using dependency cooldowns](https://blog.yossarian.net/2025/11/21/We-should-all-be-using-dependency-cooldowns)
+- [Dependency cooldowns, redux](https://blog.yossarian.net/2025/12/13/cooldowns-redux)
 
 #### NPM CLI prevention
 
 No known method.
 
-
 #### Yarn prevention
 
 [Yarn 4.10 introduced a feature that can prevent installation of freshly-released packages](https://medium.com/@roman_fedyskyi/yarn-4-10-adds-a-release-age-gate-for-safer-dependency-management-765c2d18149a).
 
-
 #### PNPM prevention
 
 [PNPM 10.16.0 introduced a feature that can prevent installation of freshly-released packages](https://pnpm.io/settings#minimumreleaseage)
-
 
 ### On JupyterGIS and `jlpm`
 
@@ -103,12 +94,11 @@ We can (should?) migrate JupyterGIS to use `pnpm` as a preventative measure.
 
 See:
 
-* [A discussion about the current practice of vendoring an old version of Yarn in JupyterLab](https://github.com/jupyterlab/jupyterlab/issues/17913)
-
+- [A discussion about the current practice of vendoring an old version of Yarn in JupyterLab](https://github.com/jupyterlab/jupyterlab/issues/17913)
 
 ## Zulip discussions
 
-* [Nx has been compromised](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/Nx.20has.20been.20compromised/with/536440000)
-* [Several more npm packages compromised](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/Several.20more.20npm.20packages.20compromised/with/538474626)
-* [A 3rd NPM attack in 3 weeks](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/A.203rd.20NPM.20attack.20in.203.20weeks/with/542327672)
-* [NPM attach #4 (Shai Hulud returns)](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/NPM.20attack.20.234.20.28Shai.20Hulud.20returns.29/with/559102856)
+- [Nx has been compromised](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/Nx.20has.20been.20compromised/with/536440000)
+- [Several more npm packages compromised](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/Several.20more.20npm.20packages.20compromised/with/538474626)
+- [A 3rd NPM attack in 3 weeks](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/A.203rd.20NPM.20attack.20in.203.20weeks/with/542327672)
+- [NPM attach #4 (Shai Hulud returns)](https://jupyter.zulipchat.com/#narrow/channel/471314-geojupyter/topic/NPM.20attack.20.234.20.28Shai.20Hulud.20returns.29/with/559102856)
