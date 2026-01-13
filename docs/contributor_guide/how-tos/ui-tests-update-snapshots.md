@@ -20,8 +20,7 @@ of snapshot testing.
 Please **do not run snapshot tests locally** and instead rely on CI (GitHub Actions).
 ```
 
-See {doc}`Explanation: UI testing </contributor_guide/explanation/ui-testing>` for more
-background.
+See {doc}`/contributor_guide/explanation/ui-testing` for more background.
 
 ## Procedure to update expected/golden snapshots
 
