@@ -73,6 +73,9 @@ export class ToolbarWidget extends ReactiveToolbar {
     this._model = options.model;
     this.addClass('jGIS-toolbar-widget');
 
+    // Listen for settings changes
+    this._model.settingsChanged.connect(this._onSettingsChanged, this);
+
     // Listen for options change because it's the dependable signal
     // Update Specta mode visibility
     this._model.sharedModel.optionsChanged.connect(
@@ -104,10 +107,6 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
 
       this._updateStorySegmentMenuItem();
-
-      // ! move this lol
-      // Listen for settings changes
-      this._model.settingsChanged.connect(this._onSettingsChanged, this);
 
       const NewEntryButton = new ToolbarButton({
         icon: addIcon,
