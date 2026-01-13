@@ -14,15 +14,30 @@ defaults:
 
 jobs:
   update-snapshots:
-    if: >
-      (
-        github.event.comment.author_association == 'OWNER' ||
-        github.event.comment.author_association == 'COLLABORATOR' ||
-        github.event.comment.author_association == 'MEMBER'
-      ) && github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
     runs-on: ubuntu-latest
 
+    # Only run on issue comments
+    if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
+
     steps:
+      - name: Get commenter association
+        id: association
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          association=$(gh api \
+            repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }} \
+            --jq '.author_association')
+
+          echo "association=$association" >> $GITHUB_OUTPUT
+
+      - name: Fail if user is not authorized
+        if: |
+          !contains(fromJSON('["OWNER","COLLABORATOR","MEMBER"]'), steps.association.outputs.association)
+        run: |
+          echo "User not authorized to update snapshots"
+          exit 1
+
       - name: React to the triggering comment
         run: |
           gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions --raw-field 'content=+1'
