@@ -9,10 +9,10 @@ import * as React from 'react';
 
 import { AnnotationsPanel } from './annotationPanel';
 import { IdentifyPanelComponent } from './identify-panel/IdentifyPanel';
+import { ObjectPropertiesReact } from './objectproperties';
 import { PreviewModeSwitch } from './story-maps/PreviewModeSwitch';
 import StoryEditorPanel from './story-maps/StoryEditorPanel';
 import StoryViewerPanel from './story-maps/StoryViewerPanel';
-import { ObjectPropertiesReact } from './objectproperties';
 import {
   PanelTabs,
   TabsContent,

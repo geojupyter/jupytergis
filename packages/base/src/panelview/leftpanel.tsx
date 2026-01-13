@@ -10,6 +10,7 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
 
 import { LayersBodyComponent } from './components/layers';
+import FilterComponent from './filter-panel/Filter';
 import {
   PanelTabs,
   TabsContent,
@@ -17,7 +18,6 @@ import {
   TabsTrigger,
 } from '../shared/components/Tabs';
 import StacPanel from '../stacBrowser/components/StacPanel';
-import FilterComponent from './filter-panel/Filter';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
