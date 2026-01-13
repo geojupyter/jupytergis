@@ -109,7 +109,7 @@ import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
 import StoryViewerPanel, {
   IStoryViewerPanelHandle,
-} from '../panelview/components/story-maps/StoryViewerPanel';
+} from '../panelview/story-maps/StoryViewerPanel';
 
 type OlLayerTypes =
   | TileLayer
