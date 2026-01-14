@@ -2550,6 +2550,14 @@ export class MainView extends React.Component<IProps, IStates> {
       }
 
       const wheelEvent = e as WheelEvent;
+      const target = wheelEvent.target as HTMLElement;
+
+      // Don't handle wheel if it's coming from the story viewer panel (let it scroll its content)
+      if (target.closest('.jgis-story-viewer-panel')) {
+        return;
+      }
+
+      // Prevent default scrolling on the container
       wheelEvent.preventDefault();
 
       // Scroll down (positive deltaY) = next slide
