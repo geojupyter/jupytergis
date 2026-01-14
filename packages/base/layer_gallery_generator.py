@@ -134,7 +134,7 @@ providers_types = {
                 "sourceType": "RasterSource"
         },
             "CartoVector":{
-                "layerType": "VectorLayer",
+                "layerType": "VectorTileLayer",
                 "sourceType": "VectorTileSource"
         },
     },
