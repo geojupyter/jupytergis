@@ -298,6 +298,8 @@ def qgis_layer_to_jgis(
         if symbol:
             # Opacity handling
             opacity = symbol.opacity()
+            layer_parameters["opacity"] = opacity
+
             alpha = hex(int(opacity * 255))[2:].zfill(2)
 
             if isinstance(symbol, QgsMarkerSymbol):
@@ -390,13 +392,13 @@ def qgis_layer_to_jgis(
         source_name = f"{layer_name} Source"
 
     layer_parameters["source"] = source_id
-    layer_parameters["opacity"] = layer.opacity()
 
     layers[layer_id] = {
         "name": layer_name,
         "parameters": layer_parameters,
         "type": layer_type,
         "visible": is_visible,
+        "opacity": layer.opacity(),
     }
     sources[source_id] = {
         "name": source_name,
@@ -517,6 +519,9 @@ def import_project_from_qgis(path: str | Path):
 
 def get_base_symbol(geometry_type, color_params, opacity):
     """Returns a base symbol based on geometry type."""
+    if opacity is None:
+        opacity = 1.0
+
     if geometry_type == "circle":
         symbol = QgsMarkerSymbol()
     elif geometry_type == "line":
@@ -786,7 +791,7 @@ def jgis_layer_to_qgis(
         if geometry_type == "circle":
             symbol = QgsMarkerSymbol()
             color_params = layer_params.get("color", {})
-            opacity = layer_params.get("opacity", 1.0)
+            opacity = layer.get("opacity", 1.0)
             symbology_state = layer_params.get("symbologyState", {})
             render_type = symbology_state.get("renderType", "Single Symbol")
 
@@ -816,7 +821,7 @@ def jgis_layer_to_qgis(
             symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
             color_params = layer_params.get("color", {})
 
-            opacity = layer_params.get("opacity")
+            opacity = layer.get("opacity")
 
             symbology_state = layer_params.get("symbologyState", {})
             render_type = symbology_state.get("renderType", "Single Symbol")
@@ -844,7 +849,7 @@ def jgis_layer_to_qgis(
             symbol = QgsFillSymbol()
             symbol.setOutputUnit(Qgis.RenderUnit.Pixels)
             color_params = layer_params.get("color", {})
-            opacity = layer_params.get("opacity", 1.0)
+            opacity = layer.get("opacity", 1.0)
 
             symbology_state = layer_params.get("symbologyState", {})
             render_type = symbology_state.get("renderType", "Single Symbol")
@@ -985,7 +990,7 @@ def jgis_layer_to_qgis(
         return
 
     map_layer.setId(layer_id)
-    map_layer.setOpacity(layer.get("parameters", {}).get("opacity", 1.0))
+    map_layer.setOpacity(layer.get("opacity", 1.0))
 
     # Map the source id/name to the layer
     layerSourceMap = settings.value("layerSourceMap", {})

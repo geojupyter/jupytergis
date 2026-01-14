@@ -111,6 +111,14 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
       layerSchema['required'] = ['name', ...layerSchema['required']];
       layerSchema['properties'] = {
         name: { type: 'string', description: 'The name of the layer' },
+        opacity: {
+          type: 'number',
+          description: 'The opacity of the object',
+          default: 1,
+          multipleOf: 0.1,
+          minimum: 0,
+          maximum: 1,
+        },
         ...layerSchema['properties'],
       };
     }
@@ -173,7 +181,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
       if (this.props.createLayer) {
         let actualName = '';
 
-        const { name, ...layerData } =
+        const { name, opacity, ...layerData } =
           (await layerCreationPromise?.promise) as IDict;
 
         actualName =
@@ -184,6 +192,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
           type: this.props.layerType || 'RasterLayer',
           parameters: layerData,
           visible: true,
+          opacity: opacity ?? 1,
           name: actualName,
         };
 

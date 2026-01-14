@@ -7,8 +7,8 @@
   "layers": {
     "0bfee293-9e2f-4434-8c5a-c90d19836bab": {
       "name": "WaymarkedTrails.hiking Layer",
+      "opacity": 1.0,
       "parameters": {
-        "opacity": 0.6,
         "source": "82691e55-f9e2-43be-8a07-3ae0409af7b4"
       },
       "type": "RasterLayer",
@@ -16,8 +16,8 @@
     },
     "4a0703b3-ed56-4158-8a2e-e008c3d0fee2": {
       "name": "OpenStreetMap.Mapnik Layer",
+      "opacity": 1.0,
       "parameters": {
-        "opacity": 1.0,
         "source": "60da082e-8b70-4fa2-b2f0-48524468fea0"
       },
       "type": "RasterLayer",
@@ -25,8 +25,8 @@
     },
     "7db81237-a579-4daa-938f-5e61fdfb17e7": {
       "name": "NASAGIBS.ModisTerraTrueColorCR Layer",
+      "opacity": 1.0,
       "parameters": {
-        "opacity": 0.3,
         "source": "52252f5d-3cb7-45a8-a724-5793bf9950ec"
       },
       "type": "RasterLayer",
