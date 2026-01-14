@@ -2552,7 +2552,7 @@ export class MainView extends React.Component<IProps, IStates> {
       const wheelEvent = e as WheelEvent;
       const target = wheelEvent.target as HTMLElement;
 
-      // Don't handle wheel if it's coming from the story viewer panel (let it scroll its content)
+      // Check if the event is coming from the story viewer panel
       const storyViewerPanel = target.closest(
         '.jgis-story-viewer-panel',
       ) as HTMLElement;
@@ -2561,6 +2561,30 @@ export class MainView extends React.Component<IProps, IStates> {
         const hasOverflow =
           storyViewerPanel.scrollHeight > storyViewerPanel.clientHeight;
         if (hasOverflow) {
+          const scrollTop = storyViewerPanel.scrollTop;
+          const scrollHeight = storyViewerPanel.scrollHeight;
+          const clientHeight = storyViewerPanel.clientHeight;
+          const threshold = 10; // Small threshold to account for rounding
+
+          const isAtBottom =
+            scrollTop + clientHeight >= scrollHeight - threshold;
+          const isAtTop = scrollTop <= threshold;
+
+          // If scrolling down at the bottom, go to next segment
+          if (wheelEvent.deltaY > 0 && isAtBottom) {
+            wheelEvent.preventDefault();
+            panelHandle.handleNext();
+            return;
+          }
+
+          // If scrolling up at the top, go to previous segment
+          if (wheelEvent.deltaY < 0 && isAtTop) {
+            wheelEvent.preventDefault();
+            panelHandle.handlePrev();
+            return;
+          }
+
+          // Otherwise, let the panel scroll its content
           return;
         }
       }
