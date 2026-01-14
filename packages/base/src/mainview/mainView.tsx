@@ -2512,11 +2512,23 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _setupStoryScrollListener = (): void => {
-    const SCROLL_EDGE_THRESHOLD = 0; // Pixels from top/bottom to trigger segment change
+    const segmentNavigationThrottle = 500; // Minimum time between segment changes (ms)
+    const SCROLL_EDGE_THRESHOLD = 10; // Pixels from top/bottom to trigger segment change
+
+    // Create throttled functions that call the current panel handle dynamically
+    const throttledHandleNext = throttle(() => {
+      const panelHandle = this.storyViewerPanelRef.current;
+      panelHandle?.handleNext();
+    }, segmentNavigationThrottle);
+
+    const throttledHandlePrev = throttle(() => {
+      const panelHandle = this.storyViewerPanelRef.current;
+      panelHandle?.handlePrev();
+    }, segmentNavigationThrottle);
 
     const handleScroll = (e: Event) => {
-      const panelHandle = this.storyViewerPanelRef.current;
-      if (!panelHandle || !panelHandle.canNavigate) {
+      const currentPanelHandle = this.storyViewerPanelRef.current;
+      if (!currentPanelHandle || !currentPanelHandle.canNavigate) {
         return;
       }
 
@@ -2531,9 +2543,7 @@ export class MainView extends React.Component<IProps, IStates> {
       // If no panel found, change segments normally
       if (!storyViewerPanel) {
         wheelEvent.preventDefault();
-        wheelEvent.deltaY > 0
-          ? panelHandle.handleNext()
-          : panelHandle.handlePrev();
+        wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
         return;
       }
 
@@ -2543,9 +2553,7 @@ export class MainView extends React.Component<IProps, IStates> {
       // If panel has no overflow, change segments normally
       if (!hasOverflow) {
         wheelEvent.preventDefault();
-        wheelEvent.deltaY > 0
-          ? panelHandle.handleNext()
-          : panelHandle.handlePrev();
+        wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
         return;
       }
 
@@ -2562,7 +2570,7 @@ export class MainView extends React.Component<IProps, IStates> {
       // At edges: change segments
       if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
         wheelEvent.preventDefault();
-        isScrollingDown ? panelHandle.handleNext() : panelHandle.handlePrev();
+        isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
         return;
       }
 
@@ -2571,7 +2579,7 @@ export class MainView extends React.Component<IProps, IStates> {
         return;
       }
 
-      // Scrolling outside the panel: forward scroll to panel
+      // Scrolling outside the panel: forward scroll to panel (no throttling for smooth scrolling)
       wheelEvent.preventDefault();
       const newScrollTop = Math.max(
         0,
