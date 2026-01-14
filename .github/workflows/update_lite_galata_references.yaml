@@ -20,7 +20,7 @@ jobs:
     if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
 
     steps:
-      - uses: martinRenou/maintainer-tools/.github/actions/update-snapshots-checkout@check_perm
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
