@@ -16,8 +16,7 @@
 .jgis-story-viewer-image {
   width: 100%;
   height: 100%;
-  max-height: 33%;
-  /* max-height: 240px; */
+  max-height: 50vh;
   object-fit: cover;
   display: block;
   border-radius: var(--jp-border-radius);
@@ -120,6 +119,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  overflow: auto;
   background: linear-gradient(
     to left,
     var(--jgis-specta-bg-color, rgba(221, 160, 221, 0.9)) 70%,
@@ -132,6 +132,8 @@
   font-size: var(--jp-ui-font-size3);
   padding-right: 0.5rem;
   color: var(--jgis-specta-text-color, var(--jp-ui-inverse-font-color1));
+  overflow-y: auto;
+  max-height: 100%;
 }
 
 .jGIS-property-panel
