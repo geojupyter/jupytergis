@@ -2553,8 +2553,16 @@ export class MainView extends React.Component<IProps, IStates> {
       const target = wheelEvent.target as HTMLElement;
 
       // Don't handle wheel if it's coming from the story viewer panel (let it scroll its content)
-      if (target.closest('.jgis-story-viewer-panel')) {
-        return;
+      const storyViewerPanel = target.closest(
+        '.jgis-story-viewer-panel',
+      ) as HTMLElement;
+      if (storyViewerPanel) {
+        // Only allow panel to handle scroll if it has overflow (needs scrolling)
+        const hasOverflow =
+          storyViewerPanel.scrollHeight > storyViewerPanel.clientHeight;
+        if (hasOverflow) {
+          return;
+        }
       }
 
       // Prevent default scrolling on the container
