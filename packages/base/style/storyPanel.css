@@ -122,13 +122,13 @@
   align-items: center;
   background: linear-gradient(
     to left,
-    var(--jgis-specta-bg-color, rgba(221, 160, 221, 0.9)) 60%,
+    var(--jgis-specta-bg-color, rgba(221, 160, 221, 0.9)) 70%,
     transparent
   );
 }
 
 .jgis-story-viewer-panel-specta-mod {
-  width: 75%;
+  width: 70%;
   font-size: var(--jp-ui-font-size3);
   padding-right: 0.5rem;
   color: var(--jgis-specta-text-color, var(--jp-ui-inverse-font-color1));
