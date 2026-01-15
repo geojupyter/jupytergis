@@ -74,23 +74,23 @@ const StacPanel = ({ model }: IStacViewProps) => {
           </Button>
         </div>
       </div>
-      {/* Tabs */}
+      
       <Tabs
+        defaultValue="filters"
         value={activeTab}
         onValueChange={setActiveTab}
-        className="flex-1 flex flex-col overflow-hidden"
+        className="jgis-panel-tabs"
       >
-        <TabsList className="w-full grid grid-cols-2 mb-2 px-2 mt-2">
-          <TabsTrigger value="filters" className="text-xs">
+        <TabsList style={{ borderRadius: 0 }}>
+          <TabsTrigger value="filters" className="jGIS-layer-browser-category">
             {isGenericMode ? 'Browser' : 'Filters'}
           </TabsTrigger>
-          <TabsTrigger value="results" className="text-xs">
+          <TabsTrigger value="results" className="jGIS-layer-browser-category">
             Results ({activeSearch.totalResults})
           </TabsTrigger>
         </TabsList>
         <TabsContent
           value="filters"
-          className="flex-1 overflow-hidden flex flex-col h-full px-2"
         >
           {isGenericMode ? (
             <CollectionBrowser
