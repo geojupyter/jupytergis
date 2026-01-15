@@ -70,7 +70,14 @@
 }
 
 .jgis-story-navbar.jgis-story-navbar-specta-mod {
+  position: fixed;
+  top: 50%;
+  width: 100%;
   justify-content: space-between;
+}
+
+.jgis-story-navbar-specta-mod > .jgis-button {
+  padding: 0;
 }
 
 .jgis-story-viewer-title {
@@ -142,7 +149,7 @@
 .jgis-story-viewer-panel-specta-mod {
   width: 50%;
   font-size: var(--jp-ui-font-size3);
-  padding-right: 0.5rem;
+  padding-right: 1.7rem;
   color: var(--jgis-specta-text-color, var(--jp-ui-inverse-font-color1));
   overflow-y: auto;
   max-height: 100%;
