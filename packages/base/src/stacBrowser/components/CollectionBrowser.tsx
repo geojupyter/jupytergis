@@ -63,17 +63,14 @@ const CollectionBrowser = ({
   }, [model, currentUrl]);
 
   useEffect(() => {
-    if (currentNode && isCollection(currentNode)) {
+    if (currentNode && (  
+      currentNode.type === 'Collection'  
+      || currentNode.links.some(l => l.rel === 'item' || l.rel === 'items')  
+    )) {  
       onCollectionSelect({ ...currentNode, url: currentUrl });
     }
   }, [currentNode, currentUrl, onCollectionSelect]);
 
-  const isCollection = (node: IStacNode) => {
-    if (node.type === 'Collection') return true;
-    if (node.links.some(l => l.rel === 'item' || l.rel === 'items'))
-      return true;
-    return false;
-  };
 
   const handleNavigate = (link: IStacLink) => {
     const targetUrl = new URL(link.href, currentUrl).toString();
