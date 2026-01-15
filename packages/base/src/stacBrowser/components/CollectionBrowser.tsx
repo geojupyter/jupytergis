@@ -63,10 +63,10 @@ const CollectionBrowser = ({
   }, [model, currentUrl]);
 
   useEffect(() => {
-    if (currentNode && (  
-      currentNode.type === 'Collection'  
-      || currentNode.links.some(l => l.rel === 'item' || l.rel === 'items')  
-    )) {  
+    if (currentNode && (
+      currentNode.type === 'Collection'
+      || currentNode.links.some(l => l.rel === 'item' || l.rel === 'items')
+    )) {
       onCollectionSelect({ ...currentNode, url: currentUrl });
     }
   }, [currentNode, currentUrl, onCollectionSelect]);
