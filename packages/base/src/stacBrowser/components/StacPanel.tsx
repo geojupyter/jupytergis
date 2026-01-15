@@ -61,13 +61,9 @@ const StacPanel = ({ model }: IStacViewProps) => {
       {/* Catalog Header */}
       <div className="flex-none px-3 py-2 border-b border-gray-200 bg-gray-50">
         <div className="text-xs font-semibold text-gray-700 mb-1">
-          {/* CHANGED: Default title to "No catalog selected" */}
           {isGenericMode ? catalogTitle : 'No catalog selected'}
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex-1 text-xs text-gray-500 truncate">
-            {/* Description removed for default state */}
-          </div>
           <Button
             variant="outline"
             size="sm"
