@@ -74,7 +74,7 @@ const StacPanel = ({ model }: IStacViewProps) => {
           </Button>
         </div>
       </div>
-      
+
       <Tabs
         defaultValue="filters"
         value={activeTab}
