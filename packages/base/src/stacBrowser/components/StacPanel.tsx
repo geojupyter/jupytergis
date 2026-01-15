@@ -34,7 +34,7 @@ const StacPanel = ({ model }: IStacViewProps) => {
   const isGenericMode = !!selectedCatalog;
   const activeCatalog = catalogs.find(c => c.url === selectedCatalog);
   const catalogTitle = activeCatalog?.title || 'Custom Catalog';
-  const handleOpenDialog = async () => {
+  const handleOpenSelectCatalogDialog = async () => {
     const widget = new URLInputWidget(catalogs);
     inputRef.current = widget.getInput();
     const dialog = new Dialog<boolean>({
@@ -94,7 +94,7 @@ const StacPanel = ({ model }: IStacViewProps) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={isGenericMode ? handleResetCatalog : handleOpenDialog}
+            onClick={isGenericMode ? handleResetCatalog : handleOpenSelectCatalogDialog}
             className="text-xs h-7 px-2 bg-white"
           >
             {isGenericMode ? 'Reset' : 'Change'}
