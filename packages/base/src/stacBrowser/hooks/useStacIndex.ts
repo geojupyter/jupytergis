@@ -38,7 +38,7 @@ const useStacIndex = (
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCatalogs = async () => {
+    (async () => {
       if (!model) {
         setIsLoading(false);
         return;
@@ -66,9 +66,7 @@ const useStacIndex = (
       } finally {
         setIsLoading(false);
       }
-    };
-
-    fetchCatalogs();
+    })();
   }, [model]);
 
   return { catalogs, isLoading, error };
