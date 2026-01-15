@@ -44,8 +44,8 @@ const CollectionBrowser = ({
   }, [catalogUrl]);
 
   useEffect(() => {
-    const fetchNode = async () => {
-      if (!model || !currentUrl) return;
+    if (!model || !currentUrl) return;
+    (async () => {
       setIsLoading(true);
       setError(null);
       try {
@@ -59,8 +59,7 @@ const CollectionBrowser = ({
       } finally {
         setIsLoading(false);
       }
-    };
-    fetchNode();
+    })();
   }, [model, currentUrl]);
 
   useEffect(() => {
