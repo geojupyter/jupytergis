@@ -57,7 +57,19 @@ import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
-import { DragAndDrop, MouseWheelZoom, Select } from 'ol/interaction';
+import {
+  DragAndDrop,
+  DragPan,
+  DragRotate,
+  DragZoom,
+  KeyboardPan,
+  KeyboardZoom,
+  MouseWheelZoom,
+  PinchRotate,
+  PinchZoom,
+  DoubleClickZoom,
+  Select,
+} from 'ol/interaction';
 import {
   Heatmap as HeatmapLayer,
   Image as ImageLayer,
@@ -260,7 +272,6 @@ export class MainView extends React.Component<IProps, IStates> {
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(center, zoom);
-    this.addContextMenu();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
@@ -1796,9 +1807,15 @@ export class MainView extends React.Component<IProps, IStates> {
     // ! would prefer a model ready signal or something, this feels hacky
     const enableSpectaPresentation = this._model.isSpectaMode();
 
-    if (enableSpectaPresentation && !this._isSpectaPresentationInitialized) {
-      // _setupSpectaMode will be called in componentDidUpdate when state changes
-      this.setState(old => ({ ...old, isSpectaPresentation: true }));
+    // Handle initialization based on specta presentation state
+    if (!this._isSpectaPresentationInitialized) {
+      if (enableSpectaPresentation) {
+        // _setupSpectaMode will be called in componentDidUpdate when state changes
+        this.setState(old => ({ ...old, isSpectaPresentation: true }));
+      } else {
+        // Add context menu when not in specta mode
+        this.addContextMenu();
+      }
     } else {
       this._isSpectaPresentationInitialized = true;
     }
@@ -2040,23 +2057,142 @@ export class MainView extends React.Component<IProps, IStates> {
    * Updates specta state and presentation colors when story data becomes available.
    */
   private _setupSpectaMode = (): void => {
-    // Remove MouseWheelZoom interaction
-    const interactions = this._Map.getInteractions();
-    const mouseWheelZoom = interactions
-      .getArray()
-      .find(
-        (interaction): interaction is MouseWheelZoom =>
-          interaction instanceof MouseWheelZoom,
-      );
-    if (mouseWheelZoom) {
-      this._Map.removeInteraction(mouseWheelZoom);
-    }
+    this._removeAllInteractions();
 
-    // Set up scroll listener for story navigation
     this._setupStoryScrollListener();
 
     // Update colors CSS variables with colors from story
     this._updateSpectaPresentationColors();
+  };
+
+  private _removeAllInteractions = (): void => {
+    // Remove all default interactions
+    const interactions = this._Map.getInteractions();
+    const interactionArray = interactions.getArray();
+
+    // Remove each interaction type
+    const interactionsToRemove = [
+      DragPan,
+      DragRotate,
+      DragZoom,
+      KeyboardPan,
+      KeyboardZoom,
+      MouseWheelZoom,
+      PinchRotate,
+      PinchZoom,
+      DoubleClickZoom,
+      DragAndDrop,
+      Select,
+    ];
+
+    interactionsToRemove.forEach(InteractionClass => {
+      const interaction = interactionArray.find(
+        interaction => interaction instanceof InteractionClass,
+      );
+      if (interaction) {
+        this._Map.removeInteraction(interaction);
+      }
+    });
+  };
+
+  private _setupStoryScrollListener = (): void => {
+    const segmentNavigationThrottle = 500; // Minimum time between segment changes (ms)
+    const SCROLL_EDGE_THRESHOLD = 10; // Pixels from top/bottom to trigger segment change
+
+    // Create throttled functions that call the current panel handle dynamically
+    const throttledHandleNext = throttle(() => {
+      const panelHandle = this.storyViewerPanelRef.current;
+      panelHandle?.handleNext();
+    }, segmentNavigationThrottle);
+
+    const throttledHandlePrev = throttle(() => {
+      const panelHandle = this.storyViewerPanelRef.current;
+      panelHandle?.handlePrev();
+    }, segmentNavigationThrottle);
+
+    const handleScroll = (e: Event) => {
+      const currentPanelHandle = this.storyViewerPanelRef.current;
+      if (!currentPanelHandle || !currentPanelHandle.canNavigate) {
+        return;
+      }
+
+      const wheelEvent = e as WheelEvent;
+      const target = wheelEvent.target as HTMLElement;
+
+      // Find the story viewer panel
+      const storyViewerPanel = document.querySelector(
+        '.jgis-story-viewer-panel',
+      ) as HTMLElement;
+
+      // If no panel found, change segments normally
+      if (!storyViewerPanel) {
+        wheelEvent.preventDefault();
+        wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
+        return;
+      }
+
+      const hasOverflow =
+        storyViewerPanel.scrollHeight > storyViewerPanel.clientHeight;
+
+      // If panel has no overflow, change segments normally
+      if (!hasOverflow) {
+        wheelEvent.preventDefault();
+        wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
+        return;
+      }
+
+      // Panel has overflow - handle scroll forwarding and edge detection
+      const scrollTop = storyViewerPanel.scrollTop;
+      const scrollHeight = storyViewerPanel.scrollHeight;
+      const clientHeight = storyViewerPanel.clientHeight;
+      const isAtBottom =
+        scrollTop + clientHeight >= scrollHeight - SCROLL_EDGE_THRESHOLD;
+      const isAtTop = scrollTop <= SCROLL_EDGE_THRESHOLD;
+      const isScrollingDown = wheelEvent.deltaY > 0;
+      const isScrollingUp = wheelEvent.deltaY < 0;
+
+      // At edges: change segments
+      if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
+        wheelEvent.preventDefault();
+        isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
+        return;
+      }
+
+      // If scrolling inside the panel, let it scroll naturally
+      if (target.closest('.jgis-story-viewer-panel')) {
+        return;
+      }
+
+      // Scrolling outside the panel: forward scroll to panel (no throttling for smooth scrolling)
+      wheelEvent.preventDefault();
+      const newScrollTop = Math.max(
+        0,
+        Math.min(scrollHeight - clientHeight, scrollTop + wheelEvent.deltaY),
+      );
+      storyViewerPanel.scrollTop = newScrollTop;
+    };
+
+    this._storyScrollHandler = handleScroll;
+
+    // Attach wheel event listener to the main container
+    const containerElement = document.querySelector('.jGIS-Mainview-Container');
+    if (containerElement) {
+      containerElement.addEventListener('wheel', handleScroll, {
+        passive: false,
+      });
+    }
+  };
+
+  private _cleanupStoryScrollListener = (): void => {
+    if (this._storyScrollHandler) {
+      const containerElement = document.querySelector(
+        '.jGIS-Mainview-Container',
+      );
+      if (containerElement) {
+        containerElement.removeEventListener('wheel', this._storyScrollHandler);
+      }
+      this._storyScrollHandler = null;
+    }
   };
 
   private _updateSpectaPresentationColors = (): void => {
@@ -2534,106 +2670,6 @@ export class MainView extends React.Component<IProps, IStates> {
     // TODO SOMETHING
 
     this.setState(old => ({ ...old, lightTheme }));
-  };
-
-  private _setupStoryScrollListener = (): void => {
-    const segmentNavigationThrottle = 500; // Minimum time between segment changes (ms)
-    const SCROLL_EDGE_THRESHOLD = 10; // Pixels from top/bottom to trigger segment change
-
-    // Create throttled functions that call the current panel handle dynamically
-    const throttledHandleNext = throttle(() => {
-      const panelHandle = this.storyViewerPanelRef.current;
-      panelHandle?.handleNext();
-    }, segmentNavigationThrottle);
-
-    const throttledHandlePrev = throttle(() => {
-      const panelHandle = this.storyViewerPanelRef.current;
-      panelHandle?.handlePrev();
-    }, segmentNavigationThrottle);
-
-    const handleScroll = (e: Event) => {
-      const currentPanelHandle = this.storyViewerPanelRef.current;
-      if (!currentPanelHandle || !currentPanelHandle.canNavigate) {
-        return;
-      }
-
-      const wheelEvent = e as WheelEvent;
-      const target = wheelEvent.target as HTMLElement;
-
-      // Find the story viewer panel
-      const storyViewerPanel = document.querySelector(
-        '.jgis-story-viewer-panel',
-      ) as HTMLElement;
-
-      // If no panel found, change segments normally
-      if (!storyViewerPanel) {
-        wheelEvent.preventDefault();
-        wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
-        return;
-      }
-
-      const hasOverflow =
-        storyViewerPanel.scrollHeight > storyViewerPanel.clientHeight;
-
-      // If panel has no overflow, change segments normally
-      if (!hasOverflow) {
-        wheelEvent.preventDefault();
-        wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
-        return;
-      }
-
-      // Panel has overflow - handle scroll forwarding and edge detection
-      const scrollTop = storyViewerPanel.scrollTop;
-      const scrollHeight = storyViewerPanel.scrollHeight;
-      const clientHeight = storyViewerPanel.clientHeight;
-      const isAtBottom =
-        scrollTop + clientHeight >= scrollHeight - SCROLL_EDGE_THRESHOLD;
-      const isAtTop = scrollTop <= SCROLL_EDGE_THRESHOLD;
-      const isScrollingDown = wheelEvent.deltaY > 0;
-      const isScrollingUp = wheelEvent.deltaY < 0;
-
-      // At edges: change segments
-      if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
-        wheelEvent.preventDefault();
-        isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
-        return;
-      }
-
-      // If scrolling inside the panel, let it scroll naturally
-      if (target.closest('.jgis-story-viewer-panel')) {
-        return;
-      }
-
-      // Scrolling outside the panel: forward scroll to panel (no throttling for smooth scrolling)
-      wheelEvent.preventDefault();
-      const newScrollTop = Math.max(
-        0,
-        Math.min(scrollHeight - clientHeight, scrollTop + wheelEvent.deltaY),
-      );
-      storyViewerPanel.scrollTop = newScrollTop;
-    };
-
-    this._storyScrollHandler = handleScroll;
-
-    // Attach wheel event listener to the main container
-    const containerElement = document.querySelector('.jGIS-Mainview-Container');
-    if (containerElement) {
-      containerElement.addEventListener('wheel', handleScroll, {
-        passive: false,
-      });
-    }
-  };
-
-  private _cleanupStoryScrollListener = (): void => {
-    if (this._storyScrollHandler) {
-      const containerElement = document.querySelector(
-        '.jGIS-Mainview-Container',
-      );
-      if (containerElement) {
-        containerElement.removeEventListener('wheel', this._storyScrollHandler);
-      }
-      this._storyScrollHandler = null;
-    }
   };
 
   private _handleWindowResize = (): void => {
