@@ -16,7 +16,7 @@ def fetch_tile(url_template, x, y, z, s="a"):
     Fetch a tile from the given URL template.
     """
     url = url_template.format(x=x, y=y, z=z, s=s)
-    #print(f"   Fetch {url}")
+    # print(f"   Fetch {url}")
     response = requests.get(
         url, headers={"Content-Type": "application/json", "User-Agent": "JupyterGIS"}
     )
@@ -83,59 +83,22 @@ middle_europe = {"lat": 48.63290858589535, "lng": -350.068359375, "zoom": 4}
 france = {"lat": 47.040182144806664, "lng": 1.2963867187500002, "zoom": 5}
 
 providers_types = {
-    "OpenStreetMap":{
-        "layerType": "RasterLayer",
-        "sourceType": "RasterSource"
-        },
-       
-        "NASAGIBS": {
-            "layerType": "RasterLayer",
-            "sourceType": "RasterSource"
-        },
-        "USGS": {
-            "layerType": "RasterLayer",
-            "sourceType": "RasterSource"
-        },
-        "WaymarkedTrails": {
-            "layerType": "RasterLayer",
-            "sourceType": "RasterSource"
-        },
-        "Gaode": {
-            "layerType": "RasterLayer",
-            "sourceType": "RasterSource"
-        },
-        "Strava": {
-            "layerType": "RasterLayer",
-            "sourceType": "RasterSource"
-        },
-        "OPNVKarte": {
-            "layerType": "RasterLayer",
-            "sourceType": "RasterSource"
-        },
-        "OpenTopoMap": {
-            "layerType": "RasterLayer",
-            "sourceType": "RasterSource"
-        },
-        "OpenRailwayMap": {
-            "layerType": "RasterLayer",
-            "sourceType": "RasterSource"
-        },
-        "Esri": {
-            "layerType": "RasterLayer",
-            "sourceType": "RasterSource"
-    },
-        "MacroStrat": {
-            "CartoRaster":{
-                "layerType": "RasterLayer",
-                "sourceType": "RasterSource"
-        },
-            "CartoRaster":{
-                "layerType": "RasterLayer",
-                "sourceType": "RasterSource"
-        },
-            "CartoVector":{
-                "layerType": "VectorTileLayer",
-                "sourceType": "VectorTileSource"
+    "OpenStreetMap": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+    "NASAGIBS": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+    "USGS": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+    "WaymarkedTrails": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+    "Gaode": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+    "Strava": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+    "OPNVKarte": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+    "OpenTopoMap": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+    "OpenRailwayMap": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+    "Esri": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+    "MacroStrat": {
+        "CartoRaster": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+        "CartoRaster": {"layerType": "RasterLayer", "sourceType": "RasterSource"},
+        "CartoVector": {
+            "layerType": "VectorTileLayer",
+            "sourceType": "VectorTileSource",
         },
     },
 }
@@ -190,7 +153,7 @@ thumbnails_providers_positions = {
         "Special Rules": {},
         "Default": san_francisco,
     },
-        "MacroStrat": {
+    "MacroStrat": {
         "Special Rules": {
             "CartoRaster": france,
             "CartoVector": france,
@@ -218,23 +181,23 @@ def get_layer_types(provider, map_name=None):
     """
     Returns (layerType, sourceType) or (None, None)
     """
-    #print("get_layer_types is called")
-    print ("provider:", provider)
+    # print("get_layer_types is called")
+    print("provider:", provider)
     if provider not in providers_types:
         return None, None
-  
+
     provider_entry = providers_types[provider]
     print("provider_entry:", provider_entry)
 
     if "layerType" in provider_entry:
-        print('layerType is:', provider_entry["layerType"])
+        print("layerType is:", provider_entry["layerType"])
         return (
             provider_entry["layerType"],
             provider_entry["sourceType"],
         )
 
     if map_name and map_name in provider_entry:
-        print('layerType is:', provider_entry[map_name]["layerType"])
+        print("layerType is:", provider_entry[map_name]["layerType"])
         return (
             provider_entry[map_name]["layerType"],
             provider_entry[map_name]["sourceType"],
@@ -246,7 +209,7 @@ def get_layer_types(provider, map_name=None):
 # Create thumbnail dir if needed
 if not os.path.exists(THUMBNAILS_LOCATION):
     os.makedirs(THUMBNAILS_LOCATION)
-    
+
 # This is the JSON we'll generate for the gallery
 provider_gallery = {}
 
@@ -273,7 +236,6 @@ for provider in thumbnails_providers_positions.keys():
 
     if "url" in xyzprovider.keys():
         print(f"Process {provider}")
-       
 
         try:
             name = provider
@@ -298,7 +260,7 @@ for provider in thumbnails_providers_positions.keys():
                 "sourceType": source_type,
                 **xyzprovider,
             }
-            
+
             if "time" in provider_gallery[name]:
                 provider_gallery[name]["time"] = yesterday
 
@@ -309,7 +271,7 @@ for provider in thumbnails_providers_positions.keys():
 
     providers_maps = {}
     for map_name in xyzprovider.keys():
-        #print(f"Process {provider} {map_name}")
+        # print(f"Process {provider} {map_name}")
 
         try:
             if (
@@ -323,8 +285,8 @@ for provider in thumbnails_providers_positions.keys():
                 position = thumbnails_providers_positions[provider]["Default"]
 
             tile_provider = xyzprovider[map_name]
-            #print('tileprovider url:', tile_provider["url"])
-            url_template =  tile_provider["url"]
+            # print('tileprovider url:', tile_provider["url"])
+            url_template = tile_provider["url"]
 
             if "crs" in tile_provider or "apikey" in tile_provider:
                 # TODO Support other projections once we have another viewer than maplibre
@@ -332,7 +294,7 @@ for provider in thumbnails_providers_positions.keys():
                 continue
 
             name = tile_provider["name"].replace(".", "-")
-            
+
             tile_size = thumbnails_providers_positions[provider].get("TileSize", 256)
 
             file_path = download_thumbnail(url_template, name, position, tile_size)
