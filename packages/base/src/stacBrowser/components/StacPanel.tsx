@@ -54,7 +54,7 @@ const StacPanel = ({ model }: IStacViewProps) => {
     setGenericCollectionData(null);
     setActiveTab('filters');
   };
-  const activeSearch = isGenericMode ? genericSearch : geodesSearch 
+  const activeSearch = isGenericMode ? genericSearch : geodesSearch
   if (!model) return null;
   return (
     <div className="flex flex-col h-full bg-white overflow-hidden">
