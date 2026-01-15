@@ -2096,8 +2096,8 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _setupStoryScrollListener = (): void => {
-    const segmentNavigationThrottle = 500; // Minimum time between segment changes (ms)
-    const SCROLL_EDGE_THRESHOLD = 10; // Pixels from top/bottom to trigger segment change
+    const segmentNavigationThrottle = 750; // Minimum time between segment changes (ms)
+    const SCROLL_EDGE_THRESHOLD = 0; // Pixels from top/bottom to trigger segment change
 
     // Create throttled functions that call the current panel handle dynamically
     const throttledHandleNext = throttle(() => {
