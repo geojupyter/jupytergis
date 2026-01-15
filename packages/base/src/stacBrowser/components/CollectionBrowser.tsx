@@ -23,7 +23,7 @@ interface IStacNode {
   title?: string;
   description?: string;
   links: IStacLink[];
-  type?: string; // 'Catalog' or 'Collection'
+  type?: 'Catalog' | 'Collection';
 }
 
 const CollectionBrowser = ({
