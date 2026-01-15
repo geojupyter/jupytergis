@@ -57,18 +57,16 @@ const StacPanel = ({ model }: IStacViewProps) => {
   const activeSearch = isGenericMode ? genericSearch : geodesSearch
   if (!model) return null;
   return (
-    <div className="flex flex-col h-full bg-white overflow-hidden">
-      {/* Catalog Header */}
-      <div className="flex-none px-3 py-2 border-b border-gray-200 bg-gray-50">
-        <div className="text-xs font-semibold text-gray-700 mb-1">
+    <div>
+      <div>
+        <div>
           {isGenericMode ? catalogTitle : 'No catalog selected'}
         </div>
-        <div className="flex items-center gap-2">
+        <div>
           <Button
             variant="outline"
             size="sm"
             onClick={isGenericMode ? handleResetCatalog : handleOpenSelectCatalogDialog}
-            className="text-xs h-7 px-2 bg-white"
           >
             {isGenericMode ? 'Reset' : 'Change'}
           </Button>
@@ -113,12 +111,11 @@ const StacPanel = ({ model }: IStacViewProps) => {
         </TabsContent>
         <TabsContent
           value="results"
-          className="flex-1 overflow-y-auto h-full px-2"
         >
           {isGenericMode && !genericCollectionData ? (
-            <div className="flex flex-col items-center justify-center h-48 text-gray-400 italic text-center border-2 border-dashed border-gray-100 rounded m-2">
-              <span className="mb-2 font-semibold">No Collection Selected</span>
-              <span className="text-xs px-4">
+            <div>
+              <span>No Collection Selected</span>
+              <span>
                 Please go to the <strong>Browser</strong> tab and select a
                 dataset to view items.
               </span>
@@ -140,7 +137,7 @@ const StacPanel = ({ model }: IStacViewProps) => {
   );
 };
 export default StacPanel;
-// --- URL Input Widget for Dialog ---
+
 class URLInputWidget extends Widget {
   private input: HTMLInputElement;
   constructor(catalogs: any[] = []) {
