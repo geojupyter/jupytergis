@@ -1,6 +1,22 @@
 .jgis-story-viewer-panel {
   padding: 1rem;
   overflow: hidden;
+  position: relative;
+}
+
+.jgis-story-segment-container {
+  width: 100%;
+  animation: fadeIn 0.3s ease;
+  /* animation-duration is set dynamically via inline style from segment.transition.time */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .jgis-story-viewer-panel * {

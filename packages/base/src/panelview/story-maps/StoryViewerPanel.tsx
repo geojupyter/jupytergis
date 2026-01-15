@@ -239,38 +239,49 @@ const StoryViewerPanel = forwardRef<
     hasNext: currentIndexDisplayed < storySegments.length - 1,
   };
 
+  // Get transition time from current segment, default to 0.3s
+  const transitionTime = activeSlide?.transition?.time ?? 0.3;
+
   return (
     <div
       ref={panelRef}
       className={`jgis-story-viewer-panel ${isSpecta ? 'jgis-story-viewer-panel-specta-mod' : ''}`}
     >
-      <h1 className="jgis-story-viewer-title">
-        {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
-      </h1>
-      {activeSlide?.content?.image && imageLoaded ? (
-        <StoryImageSection
-          imageUrl={activeSlide.content.image}
-          imageLoaded={imageLoaded}
-          layerName={layerName ?? ''}
-          slideNumber={currentIndexDisplayed}
+      <div
+        key={currentIndexDisplayed}
+        className="jgis-story-segment-container"
+        style={{
+          animationDuration: `${transitionTime}s`,
+        }}
+      >
+        <h1 className="jgis-story-viewer-title">
+          {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
+        </h1>
+        {activeSlide?.content?.image && imageLoaded ? (
+          <StoryImageSection
+            imageUrl={activeSlide.content.image}
+            imageLoaded={imageLoaded}
+            layerName={layerName ?? ''}
+            slideNumber={currentIndexDisplayed}
+            isSpecta={isSpecta}
+            storyType={storyData.storyType ?? 'guided'}
+            {...navProps}
+          />
+        ) : (
+          <StoryTitleSection
+            title={storyData.title ?? ''}
+            isSpecta={isSpecta}
+            storyType={storyData.storyType ?? 'guided'}
+            {...navProps}
+          />
+        )}
+        <StorySubtitleSection
+          title={activeSlide?.content?.title ?? ''}
           isSpecta={isSpecta}
-          storyType={storyData.storyType ?? 'guided'}
           {...navProps}
         />
-      ) : (
-        <StoryTitleSection
-          title={storyData.title ?? ''}
-          isSpecta={isSpecta}
-          storyType={storyData.storyType ?? 'guided'}
-          {...navProps}
-        />
-      )}
-      <StorySubtitleSection
-        title={activeSlide?.content?.title ?? ''}
-        isSpecta={isSpecta}
-        {...navProps}
-      />
-      <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
+        <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
+      </div>
     </div>
   );
 });
