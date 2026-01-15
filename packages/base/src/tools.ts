@@ -210,6 +210,12 @@ export function createDefaultLayerRegistry(
       urlParameters.format = layerProvider.format;
     }
 
+    if (!layerProvider.layerType || !layerProvider.sourceType) {
+      throw new Error(
+        `Invalid layer_gallery entry "${entry}": missing layerType or sourceType`,
+      );
+    }
+
     return {
       name: entry,
       thumbnail: LAYER_THUMBNAILS[layerProvider['name'].replace('.', '-')],
@@ -221,8 +227,8 @@ export function createDefaultLayerRegistry(
         provider: provider ?? entry,
         urlParameters,
       },
-      sourceType: layerProvider['source'],
-      layerType: layerProvider['layer'],
+      sourceType: layerProvider['sourceType'],
+      layerType: layerProvider['layerType'],
     };
   }
 }

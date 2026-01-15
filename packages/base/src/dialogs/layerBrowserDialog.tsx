@@ -25,6 +25,56 @@ interface ILayerBrowserDialogProps {
   cancel: () => void;
 }
 
+function buildSourceParameters(tile: ILayerGalleryEntry) {
+  switch (tile.sourceType) {
+    case 'RasterSource':
+      return {
+        url: tile.source.url,
+        minZoom: tile.source.minZoom ?? 0,
+        maxZoom: tile.source.maxZoom ?? 24,
+        attribution: tile.source.attribution,
+        htmlAttribution: tile.source.htmlAttribution,
+        provider: tile.source.provider,
+        bounds: tile.source.bounds,
+        urlParameters: tile.source.urlParameters,
+        interpolate: tile.source.interpolate,
+      };
+
+    case 'VectorTileSource':
+      return {
+        url: tile.source.url,
+        minZoom: tile.source.minZoom ?? 0,
+        maxZoom: tile.source.maxZoom ?? 14,
+        attribution: tile.source.attribution,
+        provider: tile.source.provider,
+        urlParameters: tile.source.urlParameters,
+      };
+  }
+}
+
+function buildLayerParameters(sourceID: string, tile: ILayerGalleryEntry) {
+  switch (tile.layerType) {
+    case 'RasterLayer':
+      return {
+        source: sourceID,
+        opacity: 1,
+        visible: true,
+      };
+    case 'VectorTileLayer':
+      return {
+        source: sourceID,
+        opacity: 1,
+        color: {
+          fill: '#cccccc',
+          stroke: '#333333',
+          strokeWidth: 1,
+        },
+        visible: true,
+      };
+    default:
+      throw new Error(`Unsupported layer type: ${tile.layerType}`);
+  }
+}
 export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   model,
   registry,
@@ -100,17 +150,17 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   const handleTileClick = (tile: ILayerGalleryEntry) => {
     const sourceId = UUID.uuid4();
 
+    console.log('Gallery tile clicked:', tile);
+
     const sourceModel: IJGISSource = {
       type: tile.sourceType,
       name: tile.name,
-      parameters: tile.source,
+      parameters: buildSourceParameters(tile),
     };
 
     const layerModel: IJGISLayer = {
       type: tile.layerType,
-      parameters: {
-        source: sourceId,
-      },
+      parameters: buildLayerParameters(sourceId, tile),
       visible: true,
       name: tile.name + ' Layer',
     };
@@ -132,8 +182,8 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
           formSchemaRegistry={formSchemaRegistry}
           createLayer={true}
           createSource={true}
-          layerType={'VectorLayer'}
-          sourceType={'VectorTileSource'}
+          layerType={'RasterLayer'}
+          sourceType={'RasterSource'}
           layerData={{
             name: 'Custom Raster',
           }}

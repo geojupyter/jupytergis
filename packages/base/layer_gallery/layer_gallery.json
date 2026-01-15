@@ -337,7 +337,7 @@
     },
     "CartoVector": {
       "thumbnailPath": "layer_gallery/MacroStrat-CartoVector.png",
-      "layerType": "VectorLayer",
+      "layerType": "VectorTileLayer",
       "sourceType": "VectorTileSource",
       "name": "MacroStrat.CartoVector",
       "url": "https://tiles.macrostrat.org/carto/{z}/{x}/{y}.mvt",
