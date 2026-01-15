@@ -54,30 +54,7 @@ const StacPanel = ({ model }: IStacViewProps) => {
     setGenericCollectionData(null);
     setActiveTab('filters');
   };
-  const activeResults = isGenericMode
-    ? genericSearch.results
-    : geodesSearch.results;
-  const activeTotalResults = isGenericMode
-    ? genericSearch.totalResults
-    : geodesSearch.totalResults;
-  const activeIsLoading = isGenericMode
-    ? genericSearch.isLoading
-    : geodesSearch.isLoading;
-  const activePagination = isGenericMode
-    ? genericSearch.handlePaginationClick
-    : geodesSearch.handlePaginationClick;
-  const activeResultClick = isGenericMode
-    ? genericSearch.handleResultClick
-    : geodesSearch.handleResultClick;
-  const activeFormat = isGenericMode
-    ? genericSearch.formatResult
-    : geodesSearch.formatResult;
-  const activeCurrentPage = isGenericMode
-    ? genericSearch.currentPage
-    : geodesSearch.currentPage;
-  const activeTotalPages = isGenericMode
-    ? genericSearch.totalPages
-    : geodesSearch.totalPages;
+  const activeSearch = isGenericMode ? genericSearch : geodesSearch 
   if (!model) return null;
   return (
     <div className="flex flex-col h-full bg-white overflow-hidden">
@@ -112,7 +89,7 @@ const StacPanel = ({ model }: IStacViewProps) => {
             {isGenericMode ? 'Browser' : 'Filters'}
           </TabsTrigger>
           <TabsTrigger value="results" className="text-xs">
-            Results ({activeTotalResults})
+            Results ({activeSearch.totalResults})
           </TabsTrigger>
         </TabsList>
         <TabsContent
@@ -152,13 +129,13 @@ const StacPanel = ({ model }: IStacViewProps) => {
             </div>
           ) : (
             <StacPanelResults
-              results={activeResults}
-              currentPage={activeCurrentPage}
-              totalPages={activeTotalPages}
-              handlePaginationClick={activePagination}
-              handleResultClick={activeResultClick}
-              formatResult={activeFormat}
-              isLoading={activeIsLoading}
+              results={activeSearch.results}
+              currentPage={activeSearch.currentPage}
+              totalPages={activeSearch.totalPages}
+              handlePaginationClick={activeSearch.handlePaginationClick}
+              handleResultClick={activeSearch.handleResultClick}
+              formatResult={activeSearch.formatResult}
+              isLoading={activeSearch.isLoading}
             />
           )}
         </TabsContent>
