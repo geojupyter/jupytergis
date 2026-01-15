@@ -1815,9 +1815,8 @@ export class MainView extends React.Component<IProps, IStates> {
       } else {
         // Add context menu when not in specta mode
         this.addContextMenu();
+        this._isSpectaPresentationInitialized = true;
       }
-    } else {
-      this._isSpectaPresentationInitialized = true;
     }
 
     if (!this._isPositionInitialized) {
