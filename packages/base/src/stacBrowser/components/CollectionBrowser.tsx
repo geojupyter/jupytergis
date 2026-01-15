@@ -107,7 +107,6 @@ const CollectionBrowser = ({
 
   return (
     <div>
-      {/* Breadcrumb Header */}
       <div>
         {history.length > 0 && (
           <Button
@@ -132,9 +131,7 @@ const CollectionBrowser = ({
         </div>
       </div>
 
-      {/* Description REMOVED per request */}
 
-      {/* Sub-collection Selector or "No sub-collections" text */}
       <div>
         {children.length > 0 ? (
           <>
