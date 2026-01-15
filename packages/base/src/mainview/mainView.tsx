@@ -2080,7 +2080,7 @@ export class MainView extends React.Component<IProps, IStates> {
       const rgb = hexToRgb(bgColor);
       container.style.setProperty(
         '--jgis-specta-bg-color',
-        `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.9)`,
+        `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`,
       );
     }
 

@@ -107,7 +107,7 @@
 }
 
 .jgis-right-panel-container.jgis-specta-right-panel-container-mod {
-  width: 40%;
+  width: 55%;
   height: 100%;
   margin: unset;
   top: unset;
@@ -122,13 +122,25 @@
   overflow: auto;
   background: linear-gradient(
     to left,
-    var(--jgis-specta-bg-color, rgba(221, 160, 221, 0.9)) 70%,
-    transparent
+    var(--jgis-specta-bg-color, rgba(221, 160, 221, 0.9)) 49%,
+    color-mix(
+        in srgb,
+        var(--jgis-specta-bg-color, rgba(221, 160, 221, 0.9)) 60%,
+        transparent
+      )
+      65%,
+    color-mix(
+        in srgb,
+        var(--jgis-specta-bg-color, rgba(221, 160, 221, 0.9)) 50%,
+        transparent
+      )
+      70%,
+    transparent 100%
   );
 }
 
 .jgis-story-viewer-panel-specta-mod {
-  width: 70%;
+  width: 50%;
   font-size: var(--jp-ui-font-size3);
   padding-right: 0.5rem;
   color: var(--jgis-specta-text-color, var(--jp-ui-inverse-font-color1));
