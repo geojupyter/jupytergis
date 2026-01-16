@@ -110,7 +110,11 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
       }
       layerSchema['required'] = ['name', ...layerSchema['required']];
       layerSchema['properties'] = {
-        name: { type: 'string', description: 'The name of the layer', 'ui:autofocus':true },
+        name: {
+          type: 'string',
+          description: 'The name of the layer',
+          'ui:autofocus': true,
+        },
         ...layerSchema['properties'],
       };
     }
@@ -132,7 +136,11 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
       if (!this.props.createLayer) {
         sourceSchema['required'] = ['name', ...sourceSchema['required']];
         sourceSchema['properties'] = {
-          name: { type: 'string', description: 'The name of the source' , 'ui:autofocus':true},
+          name: { 
+            type: 'string',
+            description: 'The name of the source',
+            'ui:autofocus': true
+          },
           ...sourceSchema['properties'],
         };
       }
