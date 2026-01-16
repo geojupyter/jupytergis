@@ -136,7 +136,7 @@ export class CreationForm extends React.Component<ICreationFormProps, any> {
       if (!this.props.createLayer) {
         sourceSchema['required'] = ['name', ...sourceSchema['required']];
         sourceSchema['properties'] = {
-          name: { 
+          name: {
             type: 'string',
             description: 'The name of the source',
             'ui:autofocus': true
