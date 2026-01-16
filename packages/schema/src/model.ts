@@ -55,6 +55,7 @@ const DEFAULT_SETTINGS: IJupyterGISSettings = {
   annotationsDisabled: false,
   identifyDisabled: false,
   storyMapsDisabled: false,
+  zoomButtonsDisabled: true,
 };
 
 export class JupyterGISModel implements IJupyterGISModel {
