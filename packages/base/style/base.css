@@ -113,6 +113,10 @@ button.jp-mod-styled.jp-mod-reject {
   z-index: 40;
 }
 
+.jgis-icon-adjust {
+  padding-top: 5px;
+}
+
 @media (max-width: 768px) {
   .jgis-panels-wrapper {
     position: fixed;
