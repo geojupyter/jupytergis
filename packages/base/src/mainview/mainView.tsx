@@ -106,6 +106,7 @@ import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
+
 type OlLayerTypes =
   | TileLayer
   | VectorLayer
