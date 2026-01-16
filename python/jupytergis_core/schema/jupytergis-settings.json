@@ -49,11 +49,11 @@
       "title": "Disable Story Maps",
       "default": false
     },
-    "zoomButtonsDisabled": {
+    "zoomButtonsEnabled": {
       "type": "boolean",
-      "title": "Disable Zoom Buttons",
-      "description": "Disable + / − zoom buttons on the map.",
-      "default": true
+      "title": "Enable Zoom Buttons",
+      "description": "Enable + / − zoom buttons on the map.",
+      "default": false
     }
   }
 }

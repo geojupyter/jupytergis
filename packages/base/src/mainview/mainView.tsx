@@ -289,8 +289,9 @@ export class MainView extends React.Component<IProps, IStates> {
   async generateMap(center: number[], zoom: number): Promise<void> {
     if (this.divRef.current) {
       const controls: Control[] = [new ScaleLine(), new FullScreen()];
-      if (!this._model.jgisSettings.zoomButtonsDisabled) {
-        controls.push(new Zoom());
+      if (this._model.jgisSettings.zoomButtonsEnabled) {
+        this._zoomControl = new Zoom();
+        controls.push(this._zoomControl);
       }
       this._Map = new OlMap({
         target: this.divRef.current,
@@ -1774,18 +1775,18 @@ export class MainView extends React.Component<IProps, IStates> {
   }
 
   private _onSettingsChanged(sender: IJupyterGISModel, key: string): void {
-    if (key !== 'zoomButtonsDisabled' || !this._Map) {
+    if (key !== 'zoomButtonsEnabled' || !this._Map) {
       return;
     }
 
-    const disabled = this._model.jgisSettings.zoomButtonsDisabled;
+    const enabled = this._model.jgisSettings.zoomButtonsEnabled;
 
-    if (disabled && this._zoomControl) {
+    if (!enabled && this._zoomControl) {
       this._Map.removeControl(this._zoomControl);
       this._zoomControl = undefined;
     }
 
-    if (!disabled && !this._zoomControl) {
+    if (enabled && !this._zoomControl) {
       this._zoomControl = new Zoom();
       this._Map.addControl(this._zoomControl);
     }
