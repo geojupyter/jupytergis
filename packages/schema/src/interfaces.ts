@@ -29,8 +29,8 @@ import {
   IJGISStoryMap,
   SourceType,
 } from './_interface/project/jgis';
-import { IRasterSource } from './_interface/project/sources/rasterSource';
-import { Modes } from './types';
+
+import { IRasterSource, IVectorTileSource, Modes } from './types';
 export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 
 export interface IJGISStoryMaps {
@@ -351,21 +351,49 @@ export interface IJGISExternalCommandRegistry {
 }
 
 /**
- * Defines the structure for entries in a raster layer gallery.
- * Each entry consists of a name, a thumbnail URL, and source information.
- * The source information is expected to conform to the IRasterSource interface.
+ * Defines the base structure for entries in the layer gallery.
+ * Each entry consists of a name, a thumbnail URL, and a layer type information.
  *
- * @interface IRasterLayerGalleryEntry
+ * @interface IBaseGalleryEntry
  */
-export interface IRasterLayerGalleryEntry {
+interface IBaseGalleryEntry {
   name: string;
   thumbnail: string;
+  layerType: 'RasterLayer' | 'VectorTileLayer';
+}
+/**
+ * Defines the structure for entries of raster layers in the gallery.
+ * It extends IBaseGalleryEntry by providing a RasterSource type and a source expected to conform to the RasterSource interface.
+ *
+ * @interface IRasterGalleryEntry
+ */
+
+export interface IRasterGalleryEntry extends IBaseGalleryEntry {
+  sourceType: 'RasterSource';
   source: IRasterSource;
 }
 
+/**
+ * Defines the structure for entries of vector tile layers in the gallery.
+ * It extends IBaseGalleryEntry by providing a VectorTileSource type and a source expected to conform to the VectorTileSource interface.
+ *
+ * @interface IRasterGalleryEntry
+ */
+export interface IVectorTileGalleryEntry extends IBaseGalleryEntry {
+  sourceType: 'VectorTileSource';
+  source: IVectorTileSource;
+}
+
+/**
+ * Defines the structure for entries in a layer gallery.
+ *
+ * @interface ILayerGalleryEntry
+ */
+export type ILayerGalleryEntry = IRasterGalleryEntry | IVectorTileGalleryEntry;
+
 export interface IJGISLayerBrowserRegistry {
-  getRegistryLayers(): IRasterLayerGalleryEntry[];
-  addRegistryLayer(data: IRasterLayerGalleryEntry): void;
+  getRegistryLayers(): ILayerGalleryEntry[];
+  addRegistryLayer(data: ILayerGalleryEntry): void;
   removeRegistryLayer(name: string): void;
   clearRegistry(): void;
 }

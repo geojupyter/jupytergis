@@ -7,7 +7,7 @@ import {
   IJGISLayerDocChange,
   IJGISSource,
   IJupyterGISModel,
-  IRasterLayerGalleryEntry,
+  ILayerGalleryEntry,
 } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
@@ -15,16 +15,66 @@ import { Signal } from '@lumino/signaling';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 
 import { CreationFormWrapper } from './layerCreationFormDialog';
-import CUSTOM_RASTER_IMAGE from '../../rasterlayer_gallery/custom_raster.png';
+import CUSTOM_RASTER_IMAGE from '../../layer_gallery/custom_raster.png';
 
 interface ILayerBrowserDialogProps {
   model: IJupyterGISModel;
-  registry: IRasterLayerGalleryEntry[];
+  registry: ILayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
   okSignalPromise: PromiseDelegate<Signal<Dialog<any>, number>>;
   cancel: () => void;
 }
 
+function buildSourceParameters(tile: ILayerGalleryEntry) {
+  switch (tile.sourceType) {
+    case 'RasterSource':
+      return {
+        url: tile.source.url,
+        minZoom: tile.source.minZoom ?? 0,
+        maxZoom: tile.source.maxZoom ?? 24,
+        attribution: tile.source.attribution,
+        htmlAttribution: tile.source.htmlAttribution,
+        provider: tile.source.provider,
+        bounds: tile.source.bounds,
+        urlParameters: tile.source.urlParameters,
+        interpolate: tile.source.interpolate,
+      };
+
+    case 'VectorTileSource':
+      return {
+        url: tile.source.url,
+        minZoom: tile.source.minZoom ?? 0,
+        maxZoom: tile.source.maxZoom ?? 14,
+        attribution: tile.source.attribution,
+        provider: tile.source.provider,
+        urlParameters: tile.source.urlParameters,
+      };
+  }
+}
+
+function buildLayerParameters(sourceID: string, tile: ILayerGalleryEntry) {
+  switch (tile.layerType) {
+    case 'RasterLayer':
+      return {
+        source: sourceID,
+        opacity: 1,
+        visible: true,
+      };
+    case 'VectorTileLayer':
+      return {
+        source: sourceID,
+        opacity: 1,
+        color: {
+          fill: '#cccccc',
+          stroke: '#333333',
+          strokeWidth: 1,
+        },
+        visible: true,
+      };
+    default:
+      throw new Error(`Unsupported layer type: ${tile.layerType}`);
+  }
+}
 export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   model,
   registry,
@@ -39,9 +89,9 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   const [creatingCustomRaster, setCreatingCustomRaster] = useState(false);
 
   const [galleryWithCategory, setGalleryWithCategory] =
-    useState<IRasterLayerGalleryEntry[]>(registry);
+    useState<ILayerGalleryEntry[]>(registry);
 
-  const providers = [...new Set(registry.map(item => item.source.provider))];
+  const providers = [...new Set(registry.map(item => item.source?.provider))];
 
   const filteredGallery = galleryWithCategory.filter(item =>
     item.name.toLowerCase().includes(searchTerm),
@@ -81,7 +131,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
     const filteredGallery = sameAsOld
       ? registry
       : registry.filter(item =>
-          item.source.provider?.includes(categoryTab.innerText),
+          item.source?.provider?.includes(categoryTab.innerText),
         );
 
     setGalleryWithCategory(filteredGallery);
@@ -97,20 +147,20 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
    * Add tile layer and source to model
    * @param tile Tile to add
    */
-  const handleTileClick = (tile: IRasterLayerGalleryEntry) => {
+  const handleTileClick = (tile: ILayerGalleryEntry) => {
     const sourceId = UUID.uuid4();
 
+    console.log('Gallery tile clicked:', tile);
+
     const sourceModel: IJGISSource = {
-      type: 'RasterSource',
+      type: tile.sourceType,
       name: tile.name,
-      parameters: tile.source,
+      parameters: buildSourceParameters(tile),
     };
 
     const layerModel: IJGISLayer = {
-      type: 'RasterLayer',
-      parameters: {
-        source: sourceId,
-      },
+      type: tile.layerType,
+      parameters: buildLayerParameters(sourceId, tile),
       visible: true,
       name: tile.name + ' Layer',
     };
@@ -244,7 +294,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
 
 export interface ILayerBrowserOptions {
   model: IJupyterGISModel;
-  registry: IRasterLayerGalleryEntry[];
+  registry: ILayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
 }
 
