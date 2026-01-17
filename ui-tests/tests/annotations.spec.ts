@@ -29,8 +29,8 @@ test.describe('#annotations', () => {
     await page.getByText('Annotations').click();
 
     // Right-click on the map canvas to open context menu
-    const canvas = page.locator('canvas').first();
-    await canvas.click({ button: 'right', position: { x: 10, y: 10 } });
+    const canvas = page.locator('canvas');
+    await canvas.click({ button: 'right', position: { x: 348, y: 348 } });
 
     // Click "Add annotation" from context menu
     await page.getByText('Add annotation').click();

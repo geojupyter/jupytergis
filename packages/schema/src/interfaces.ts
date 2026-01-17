@@ -281,10 +281,11 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
 
   disposed: ISignal<any, void>;
   getSelectedStory(): {
-    storySegmentId: string;
+    storyId: string;
     story: IJGISStoryMap | undefined;
   };
-  addStorySegment(): { storySegmentId: string; storyMapId: string } | null;
+  addStorySegment(): { storySegmentId: string; storyId: string } | null;
+  isSpectaMode(): boolean;
 }
 
 export interface IUserData {
