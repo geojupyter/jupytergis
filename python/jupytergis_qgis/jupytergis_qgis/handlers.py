@@ -13,7 +13,8 @@ class BackendCheckHandler(APIHandler):
         body = self.get_json_body()
         qgis_installed = True
         try:
-            import qgis  # noqa
+            # Import qgis through the qgis_loader to ensure proper path setup
+            from .qgis_loader import QgsApplication  # noqa
         except ImportError:
             qgis_installed = False
         self.finish(json.dumps({"installed": qgis_installed}))
