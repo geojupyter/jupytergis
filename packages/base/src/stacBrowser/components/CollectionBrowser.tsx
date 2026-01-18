@@ -2,7 +2,6 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import { ArrowLeft } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
-
 import { Button } from '@/src/shared/components/Button';
 import { LoadingIcon } from '@/src/shared/components/loading';
 import { fetchWithProxies } from '@/src/tools';
@@ -46,7 +45,9 @@ const CollectionBrowser = ({
   }, [catalogUrl]);
 
   useEffect(() => {
-    if (!model || !currentUrl) {return;}
+    if (!model || !currentUrl) {
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
