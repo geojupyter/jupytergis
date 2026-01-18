@@ -80,7 +80,9 @@ const CollectionBrowser = ({
   };
 
   const handleBack = () => {
-    if (history.length === 0) return;
+    if (history.length === 0) {
+      return;
+    }
     const previous = history[history.length - 1];
     setHistory(prev => prev.slice(0, -1));
     setCurrentUrl(previous.url);
