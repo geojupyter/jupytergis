@@ -45,24 +45,22 @@ const CollectionBrowser = ({
   }, [catalogUrl]);
 
   useEffect(() => {
-    if (!model || !currentUrl) {
-      return;
-    }
-    (async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await fetchWithProxies(currentUrl, model, async r =>
-          r.json(),
-        );
+    if (!model || !currentUrl) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    fetchWithProxies(currentUrl, model, async r => r.json())
+      .then(data => {
         setCurrentNode(data);
-      } catch (err) {
+      })
+      .catch(err => {
         console.error('Failed to fetch STAC node:', err);
         setError('Failed to load catalog.');
-      } finally {
+      })
+      .finally(() => {
         setIsLoading(false);
-      }
-    })();
+      });
   }, [model, currentUrl]);
 
   useEffect(() => {
