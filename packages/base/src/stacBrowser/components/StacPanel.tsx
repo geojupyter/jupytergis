@@ -198,7 +198,9 @@ class URLInputWidget extends Widget {
     });
     dropdown.addEventListener('change', e => {
       const val = (e.target as HTMLSelectElement).value;
-      if (val) input.value = val;
+      if (val) {
+        input.value = val;
+      }
     });
     node.appendChild(header);
     node.appendChild(label);
