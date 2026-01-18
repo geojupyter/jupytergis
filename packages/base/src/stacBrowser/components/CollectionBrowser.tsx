@@ -45,7 +45,9 @@ const CollectionBrowser = ({
   }, [catalogUrl]);
 
   useEffect(() => {
-    if (!model || !currentUrl) return;
+    if (!model || !currentUrl) {
+      return;
+    }
     (async () => {
       setIsLoading(true);
       setError(null);
