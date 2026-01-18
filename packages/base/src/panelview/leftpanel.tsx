@@ -42,6 +42,16 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   );
 
   React.useEffect(() => {
+    const syncFromSettingsRegistry = async () => {
+      const registry = await props.model.getSettings();
+      const composite = registry?.composite;
+      if (composite) {
+        setSettings(prev => ({
+          ...prev,
+          ...composite,
+        }));
+      }
+    };
     const onSettingsChanged = () => {
       setSettings({ ...props.model.jgisSettings });
     };
@@ -51,6 +61,8 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     const updateLayerTree = () => {
       setLayerTree(props.model.getLayerTree() || []);
     };
+
+    Promise.resolve().then(syncFromSettingsRegistry);
 
     props.model.settingsChanged.connect(onSettingsChanged);
     props.model.sharedOptionsChanged.connect(onOptionsChanged);

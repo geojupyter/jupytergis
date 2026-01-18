@@ -57,6 +57,16 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   });
 
   React.useEffect(() => {
+    const syncFromSettingsRegistry = async () => {
+      const register = await props.model.getSettings();
+      const composite = register?.composite;
+      if (composite) {
+        setSettings(prev => ({
+          ...prev,
+          ...composite,
+        }));
+      }
+    };
     const onSettingsChanged = () => {
       setSettings({ ...props.model.jgisSettings });
     };
@@ -80,6 +90,8 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
         setCurTab('identifyPanel');
       }
     };
+
+    Promise.resolve().then(syncFromSettingsRegistry);
 
     props.model.settingsChanged.connect(onSettingsChanged);
     props.model.sharedOptionsChanged.connect(onOptionsChanged);
