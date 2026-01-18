@@ -1,7 +1,9 @@
-import { IJupyterGISModel, IJGISLayer } from '@jupytergis/schema';
-import { UUID } from '@lumino/coreutils';
 import { useEffect, useState } from 'react';
+import { UUID } from '@lumino/coreutils';
+
+import { IJupyterGISModel, IJGISLayer } from '@jupytergis/schema';
 import { fetchWithProxies } from '@/src/tools';
+
 import { IStacItem } from '../types/types';
 
 interface IUseGenericStacSearchProps {
