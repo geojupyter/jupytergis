@@ -35,7 +35,9 @@ export const useGenericStacSearch = ({
   }, [collectionUrl]);
 
   useEffect(() => {
-    if (!model || !collectionUrl || !collectionData) return;
+    if (!model || !collectionUrl || !collectionData) {
+      return;
+    }
 
     const fetchItems = async () => {
       setIsLoading(true);
