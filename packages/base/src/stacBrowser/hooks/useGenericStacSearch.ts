@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { UUID } from '@lumino/coreutils';
-
 import { IJupyterGISModel, IJGISLayer } from '@jupytergis/schema';
-import { fetchWithProxies } from '@/src/tools';
+import { UUID } from '@lumino/coreutils';
+import { useEffect, useState } from 'react';
 
+
+import { fetchWithProxies } from '@/src/tools';
 import { IStacItem } from '../types/types';
 
 interface IUseGenericStacSearchProps {
@@ -112,9 +112,9 @@ export const useGenericStacSearch = ({
 
   const handleResultClick = async (id: string) => {
     const item = results.find(r => r.id === id);
-   if (!item || !model) {
-     return;
-   }
+    if (!item || !model) {
+      return;
+    }
 
     const layerId = UUID.uuid4();
     const layerModel: IJGISLayer = {

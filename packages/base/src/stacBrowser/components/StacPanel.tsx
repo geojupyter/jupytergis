@@ -1,7 +1,8 @@
-import React from 'react';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { Widget } from '@lumino/widgets';
-import { IJupyterGISModel } from '@jupytergis/schema';
+import React from 'react';
+
 import { Button } from '@/src/shared/components/Button';
 import {
   Tabs,
@@ -9,12 +10,12 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/src/shared/components/Tabs';
+import useGenericStacSearch from '@/src/stacBrowser/hooks/useGenericStacSearch';
 import useStacIndex from '@/src/stacBrowser/hooks/useStacIndex';
 import useStacSearch from '@/src/stacBrowser/hooks/useStacSearch';
+import CollectionBrowser from './CollectionBrowser';
 import StacPanelFilters from './StacPanelFilters';
 import StacPanelResults from './StacPanelResults';
-import CollectionBrowser from './CollectionBrowser';
-import useGenericStacSearch from '@/src/stacBrowser/hooks/useGenericStacSearch';
 interface IStacViewProps {
   model?: IJupyterGISModel;
 }
@@ -54,21 +55,21 @@ const StacPanel = ({ model }: IStacViewProps) => {
     setGenericCollectionData(null);
     setActiveTab('filters');
   };
-  const activeSearch = isGenericMode ? genericSearch : geodesSearch
+  const activeSearch = isGenericMode ? genericSearch : geodesSearch;
   if (!model) {
     return null;
   }
   return (
     <div>
       <div>
-        <div>
-          {isGenericMode ? catalogTitle : 'No catalog selected'}
-        </div>
+        <div>{isGenericMode ? catalogTitle : 'No catalog selected'}</div>
         <div>
           <Button
             variant="outline"
             size="sm"
-            onClick={isGenericMode ? handleResetCatalog : handleOpenSelectCatalogDialog}
+            onClick={
+              isGenericMode ? handleResetCatalog : handleOpenSelectCatalogDialog
+            }
           >
             {isGenericMode ? 'Reset' : 'Change'}
           </Button>
@@ -89,9 +90,7 @@ const StacPanel = ({ model }: IStacViewProps) => {
             Results ({activeSearch.totalResults})
           </TabsTrigger>
         </TabsList>
-        <TabsContent
-          value="filters"
-        >
+        <TabsContent value="filters">
           {isGenericMode ? (
             <CollectionBrowser
               model={model}
@@ -111,9 +110,7 @@ const StacPanel = ({ model }: IStacViewProps) => {
             />
           )}
         </TabsContent>
-        <TabsContent
-          value="results"
-        >
+        <TabsContent value="results">
           {isGenericMode && !genericCollectionData ? (
             <div>
               <span>No Collection Selected</span>

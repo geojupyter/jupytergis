@@ -46,7 +46,9 @@ const useStacIndex = (
     setIsLoading(true);
     setError(null);
 
-    fetchWithProxies('https://stacindex.org/api/catalogs', model, async r => r.json())
+    fetchWithProxies('https://stacindex.org/api/catalogs', model, async r =>
+      r.json(),
+    )
       .then(data => {
         setCatalogs(data);
       })

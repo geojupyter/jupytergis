@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
-
 import { IJupyterGISModel } from '@jupytergis/schema';
+import { ArrowLeft } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+
+
 import { Button } from '@/src/shared/components/Button';
 import { LoadingIcon } from '@/src/shared/components/loading';
 import { fetchWithProxies } from '@/src/tools';
@@ -45,7 +46,7 @@ const CollectionBrowser = ({
   }, [catalogUrl]);
 
   useEffect(() => {
-    if (!model || !currentUrl) return;
+    if (!model || !currentUrl) {return;}
 
     setIsLoading(true);
     setError(null);
@@ -64,14 +65,14 @@ const CollectionBrowser = ({
   }, [model, currentUrl]);
 
   useEffect(() => {
-    if (currentNode && (
-      currentNode.type === 'Collection'
-      || currentNode.links.some(l => l.rel === 'item' || l.rel === 'items')
-    )) {
+    if (
+      currentNode &&
+      (currentNode.type === 'Collection' ||
+        currentNode.links.some(l => l.rel === 'item' || l.rel === 'items'))
+    ) {
       onCollectionSelect({ ...currentNode, url: currentUrl });
     }
   }, [currentNode, currentUrl, onCollectionSelect]);
-
 
   const handleNavigate = (link: IStacLink) => {
     const targetUrl = new URL(link.href, currentUrl).toString();
@@ -126,23 +127,16 @@ const CollectionBrowser = ({
         <div>
           <span>Collection:</span>
           {history.map((h, i) => (
-            <span key={i}>
-              {h.title} &gt;{' '}
-            </span>
+            <span key={i}>{h.title} &gt; </span>
           ))}
-          <span>
-            {currentNode.title || currentNode.id}
-          </span>
+          <span>{currentNode.title || currentNode.id}</span>
         </div>
       </div>
-
 
       <div>
         {children.length > 0 ? (
           <>
-            <label>
-              Navigate to Sub-collection:
-            </label>
+            <label>Navigate to Sub-collection:</label>
             <select
               onChange={e => {
                 const index = parseInt(e.target.value, 10);
@@ -163,9 +157,7 @@ const CollectionBrowser = ({
             </select>
           </>
         ) : (
-          <div>
-            No sub-collections found
-          </div>
+          <div>No sub-collections found</div>
         )}
       </div>
     </div>
