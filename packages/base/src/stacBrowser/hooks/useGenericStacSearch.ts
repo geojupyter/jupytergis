@@ -112,7 +112,9 @@ export const useGenericStacSearch = ({
 
   const handleResultClick = async (id: string) => {
     const item = results.find(r => r.id === id);
-    if (!item || !model) return;
+   if (!item || !model) {
+     return;
+   }
 
     const layerId = UUID.uuid4();
     const layerModel: IJGISLayer = {
