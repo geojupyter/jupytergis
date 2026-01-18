@@ -1,9 +1,10 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
+
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { Button } from '@/src/shared/components/Button';
 import { LoadingIcon } from '@/src/shared/components/loading';
 import { fetchWithProxies } from '@/src/tools';
-import { ArrowLeft } from 'lucide-react';
 
 interface ICollectionBrowserProps {
   model?: IJupyterGISModel;
