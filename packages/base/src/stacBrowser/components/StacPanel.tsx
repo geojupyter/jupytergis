@@ -1,7 +1,7 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
+import React from 'react';
 import { Dialog } from '@jupyterlab/apputils';
 import { Widget } from '@lumino/widgets';
-import React from 'react';
+
 import { Button } from '@/src/shared/components/Button';
 import {
   Tabs,
