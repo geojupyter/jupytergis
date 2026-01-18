@@ -38,35 +38,25 @@ const useStacIndex = (
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      if (!model) {
+    if (!model) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    fetchWithProxies('https://stacindex.org/api/catalogs', model, async r => r.json())
+      .then(data => {
+        setCatalogs(data);
+      })
+      .catch(err => {
+        console.error(err);
+        setError('Failed to load catalogs.');
+      })
+      .finally(() => {
         setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const data = (await fetchWithProxies(
-          'https://stacindex.org/api/catalogs',
-          model,
-          async response => await response.json(),
-          undefined,
-          'internal',
-        )) as IStacIndexCatalogs;
-
-        setCatalogs(data || []);
-      } catch (error) {
-        console.error('Error fetching STAC catalogs:', error);
-        setError(
-          error instanceof Error ? error.message : 'Failed to fetch catalogs',
-        );
-        setCatalogs([]);
-      } finally {
-        setIsLoading(false);
-      }
-    })();
+      });
   }, [model]);
 
   return { catalogs, isLoading, error };
