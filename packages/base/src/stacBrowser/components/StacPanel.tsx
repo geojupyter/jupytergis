@@ -55,7 +55,9 @@ const StacPanel = ({ model }: IStacViewProps) => {
     setActiveTab('filters');
   };
   const activeSearch = isGenericMode ? genericSearch : geodesSearch
-  if (!model) return null;
+  if (!model) {
+    return null;
+  }
   return (
     <div>
       <div>
