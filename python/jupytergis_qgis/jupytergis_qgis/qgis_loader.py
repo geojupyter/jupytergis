@@ -3,97 +3,40 @@ from __future__ import annotations
 import atexit
 import os
 import sys
-import platform
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote
 from uuid import uuid4
 
 
-# Add QGIS path for different platforms
 def _add_qgis_to_path():
-    """Add QGIS Python path for different platforms."""
-    system = platform.system().lower()
+    """Add custom QGIS Python path if JGIS_QGIS_PATH is set.
 
-    # Common QGIS paths for different systems
-    qgis_paths = []
+    This function only modifies sys.path if the environment variable
+    JGIS_QGIS_PATH is explicitly set.
 
-    if system == "freebsd":
-        qgis_paths.append("/usr/local/share/qgis/python/")
-    elif system == "linux":
-        # Common Linux paths
-        qgis_paths.extend(
-            [
-                "/usr/share/qgis/python/",
-                "/usr/local/share/qgis/python/",
-                # Path for some distributions (maybe incomplete)
-                *[
-                    p
-                    for p in [
-                        f"/usr/lib/qgis/python"
-                        if os.path.exists("/usr/lib/qgis/python")
-                        else None,
-                        f"/usr/lib/x86_64-linux-gnu/qgis/python"
-                        if os.path.exists("/usr/lib/x86_64-linux-gnu/qgis/python")
-                        else None,
-                        f"/usr/lib/aarch64-linux-gnu/qgis/python"
-                        if os.path.exists("/usr/lib/aarch64-linux-gnu/qgis/python")
-                        else None,
-                    ]
-                    if p
-                ],
-            ]
-        )
-    elif system == "darwin":  # macOS
-        qgis_paths.extend(
-            [
-                "/Applications/QGIS.app/Contents/Resources/python/",
-                "/usr/local/share/qgis/python/",
-                "/opt/homebrew/share/qgis/python/",
-                "/usr/local/opt/qgis/share/qgis/python/",
-            ]
-        )
-    elif system == "windows":
-        # Common Windows paths (for various QGIS installations)
-        import winreg
+    Example:
+        export JGIS_QGIS_PATH=/usr/local/share/qgis/python
+    """
+    qgis_path = os.environ.get("JGIS_QGIS_PATH")
 
-        try:
-            reg_path = winreg.QueryValue(
-                winreg.HKEY_CURRENT_USER, "Software\\QGIS\\QGIS3\\bin"
-            )
-            if reg_path:
-                qgis_paths.append(os.path.join(reg_path, "python"))
-        except (OSError, FileNotFoundError):
-            pass
-
-        # Standard installation paths
-        qgis_paths.extend(
-            [
-                "C:\\Program Files\\QGIS\\apps\\qgis-ltr\\python\\",
-                "C:\\Program Files\\QGIS\\apps\\qgis\\python\\",
-                "C:\\OSGeo4W64\\apps\\qgis-ltr\\python\\",
-                "C:\\OSGeo4W64\\apps\\qgis\\python\\",
-            ]
-        )
-
-    # Add paths that exist and are not already in sys.path
-    for qgis_path in qgis_paths:
-        if qgis_path and os.path.exists(qgis_path) and qgis_path not in sys.path:
-            sys.path.append(qgis_path)
+    if qgis_path and os.path.exists(qgis_path) and qgis_path not in sys.path:
+        sys.path.append(qgis_path)
 
 
 # Add QGIS path before importing
 _add_qgis_to_path()
 
-# Import QGIS modules dynamically to handle potential import errors gracefully
 try:
-    from qgis.PyQt.QtGui import QColor
     from qgis.core import (
-        QgsApplication,
+        Qgis,
+        QgsApplication,  # noqa: E402
+        QgsCategorizedSymbolRenderer,
         QgsColorRampShader,
         QgsCoordinateReferenceSystem,
         QgsDataSourceUri,
         QgsFillSymbol,
+        QgsGraduatedSymbolRenderer,
         QgsLayerTreeGroup,
         QgsLayerTreeLayer,
         QgsLineSymbol,
@@ -104,21 +47,20 @@ try:
         QgsRasterShader,
         QgsRectangle,
         QgsReferencedRectangle,
+        QgsRendererCategory,
+        QgsRendererRange,
         QgsSettings,
         QgsSingleBandPseudoColorRenderer,
+        QgsSingleSymbolRenderer,
         QgsVectorLayer,
         QgsVectorTileLayer,
-        QgsSingleSymbolRenderer,
-        QgsCategorizedSymbolRenderer,
-        QgsRendererCategory,
-        QgsGraduatedSymbolRenderer,
-        QgsRendererRange,
-        Qgis,
     )
+    from qgis.PyQt.QtGui import QColor  # noqa: E402
 except ImportError as e:
-    print(f"Error importing QGIS modules: {e}")
-    print("Make sure QGIS is properly installed and the Python path is set correctly.")
-    raise
+    raise ImportError(
+        f"Failed to import QGIS modules: {e}. "
+        "Ensure QGIS is installed or set JGIS_QGIS_PATH to your QGIS Python path."
+    ) from e
 
 # Prevent any Qt application and event loop to spawn when
 # using the QGIS Python app
