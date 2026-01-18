@@ -101,7 +101,9 @@ const CollectionBrowser = ({
     return <div>{error}</div>;
   }
 
-  if (!currentNode) return null;
+  if (!currentNode) {
+    return null;
+  }
 
   const children = currentNode.links.filter(
     link =>
