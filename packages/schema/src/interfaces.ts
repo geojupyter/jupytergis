@@ -425,4 +425,7 @@ export interface IJupyterGISSettings {
 
   // Story maps
   storyMapsDisabled: boolean;
+
+  // Map controls
+  zoomButtonsEnabled?: boolean;
 }
