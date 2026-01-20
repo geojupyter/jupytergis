@@ -132,3 +132,10 @@ button.jp-mod-styled.jp-mod-reject {
     margin: 0;
   }
 }
+
+.ol-zoom {
+  top: auto;
+  left: auto;
+  right: 5px;
+  bottom: 5px;
+}
