@@ -61,7 +61,7 @@
     "identifyDisabled": {
       "type": "boolean",
       "title": "Disable Identify Features",
-      "description": "Disable Identify Features tab from the Right Panel, also Disble the Identify command toolbar button.",
+      "description": "Disable Identify Features tab from the Right Panel and Identify command toolbar button.",
       "default": false
     },
     "zoomButtonsEnabled": {
