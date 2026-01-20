@@ -321,15 +321,20 @@ export class MainView extends React.Component<IProps, IStates> {
     const scaleLine = new ScaleLine({
       target: this.controlsToolbarRef.current || undefined,
     });
+
     const fullScreen = new FullScreen({
       target: this.controlsToolbarRef.current || undefined,
     });
+
+    this._zoomControl = new Zoom({ target: this.controlsToolbarRef.current || undefined });
+
+    const controls: Control[] = [scaleLine, fullScreen];
+
+    if (this._model.jgisSettings.zoomButtonsEnabled) {
+      controls.push(this._zoomControl);
+    }
+
     if (this.divRef.current) {
-      const controls: Control[] = [new ScaleLine(), new FullScreen()];
-      if (this._model.jgisSettings.zoomButtonsEnabled) {
-        this._zoomControl = new Zoom();
-        controls.push(this._zoomControl);
-      }
       this._Map = new OlMap({
         target: this.divRef.current,
         keyboardEventTarget: document,
@@ -1839,7 +1844,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     if (enabled && !this._zoomControl) {
-      this._zoomControl = new Zoom();
+      this._zoomControl = new Zoom({ target: this.controlsToolbarRef.current || undefined });
       this._Map.addControl(this._zoomControl);
     }
   }
@@ -2083,6 +2088,8 @@ export class MainView extends React.Component<IProps, IStates> {
       DragAndDrop,
       Select,
     ];
+
+    this._zoomControl && this._Map.removeControl(this._zoomControl);
 
     interactionsToRemove.forEach(InteractionClass => {
       const interaction = interactionArray.find(

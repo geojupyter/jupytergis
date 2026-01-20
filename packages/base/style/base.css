@@ -119,11 +119,12 @@ button.jp-mod-styled.jp-mod-reject {
   width: 100%;
   display: flex;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.5rem;
   position: absolute;
-  bottom: 8px;
+  bottom: 0.125rem;
   z-index: 1000;
+  padding: 0 .125rem;
 }
 
 .jgis-controls-toolbar .ol-control,
@@ -135,6 +136,11 @@ button.jp-mod-styled.jp-mod-reject {
   left: unset;
   right: unset;
   margin: 0;
+}
+
+.jgis-controls-toolbar .ol-zoom {
+  position: fixed;
+  right: 0.125rem;
 }
 
 @media (max-width: 768px) {
@@ -155,11 +161,4 @@ button.jp-mod-styled.jp-mod-reject {
     position: relative;
     margin: 0;
   }
-}
-
-.ol-zoom {
-  top: auto;
-  left: auto;
-  right: 5px;
-  bottom: 5px;
 }
