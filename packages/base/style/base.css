@@ -124,7 +124,7 @@ button.jp-mod-styled.jp-mod-reject {
   position: absolute;
   bottom: 0.125rem;
   z-index: 1000;
-  padding: 0 .125rem;
+  padding: 0 0.125rem;
 }
 
 .jgis-controls-toolbar .ol-control,

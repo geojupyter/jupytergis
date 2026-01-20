@@ -326,7 +326,9 @@ export class MainView extends React.Component<IProps, IStates> {
       target: this.controlsToolbarRef.current || undefined,
     });
 
-    this._zoomControl = new Zoom({ target: this.controlsToolbarRef.current || undefined });
+    this._zoomControl = new Zoom({
+      target: this.controlsToolbarRef.current || undefined,
+    });
 
     const controls: Control[] = [scaleLine, fullScreen];
 
@@ -1561,8 +1563,8 @@ export class MainView extends React.Component<IProps, IStates> {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
-        featureProjection: this._Map.getView().getProjection(),
-      });
+          featureProjection: this._Map.getView().getProjection(),
+        });
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
@@ -1844,7 +1846,9 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     if (enabled && !this._zoomControl) {
-      this._zoomControl = new Zoom({ target: this.controlsToolbarRef.current || undefined });
+      this._zoomControl = new Zoom({
+        target: this.controlsToolbarRef.current || undefined,
+      });
       this._Map.addControl(this._zoomControl);
     }
   }
