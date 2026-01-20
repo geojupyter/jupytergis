@@ -63,6 +63,12 @@
       "title": "Disable Identify Features",
       "description": "Disable Identify Features tab from the Right Panel.",
       "default": false
+    },
+    "zoomButtonsEnabled": {
+      "type": "boolean",
+      "title": "Enable Zoom Buttons",
+      "description": "Enable + / − zoom buttons on the map.",
+      "default": false
     }
   }
 }
