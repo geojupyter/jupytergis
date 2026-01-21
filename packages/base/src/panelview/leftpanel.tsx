@@ -3,6 +3,7 @@ import {
   IJGISLayerItem,
   IJGISLayerTree,
   SelectionType,
+  IJupyterGISSettings,
 } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
@@ -29,12 +30,13 @@ interface ILeftPanelProps {
   model: IJupyterGISModel;
   state: IStateDB;
   commands: CommandRegistry;
+  settings: IJupyterGISSettings;
 }
 
 export const LeftPanel: React.FC<ILeftPanelProps> = (
   props: ILeftPanelProps,
 ) => {
-  const [settings, setSettings] = React.useState(props.model.jgisSettings);
+  const { settings } = props;
   const [options, setOptions] = React.useState(props.model.getOptions());
   const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
   const [layerTree, setLayerTree] = React.useState<IJGISLayerTree>(
@@ -42,19 +44,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   );
 
   React.useEffect(() => {
-    const syncFromSettingsRegistry = async () => {
-      const registry = await props.model.getSettings();
-      const composite = registry?.composite;
-      if (composite) {
-        setSettings(prev => ({
-          ...prev,
-          ...composite,
-        }));
-      }
-    };
-    const onSettingsChanged = () => {
-      setSettings({ ...props.model.jgisSettings });
-    };
     const onOptionsChanged = () => {
       setOptions({ ...props.model.getOptions() });
     };
@@ -62,16 +51,12 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
       setLayerTree(props.model.getLayerTree() || []);
     };
 
-    Promise.resolve().then(syncFromSettingsRegistry);
-
-    props.model.settingsChanged.connect(onSettingsChanged);
     props.model.sharedOptionsChanged.connect(onOptionsChanged);
     props.model.sharedModel.layersChanged.connect(updateLayerTree);
     props.model.sharedModel.layerTreeChanged.connect(updateLayerTree);
 
     updateLayerTree();
     return () => {
-      props.model.settingsChanged.disconnect(onSettingsChanged);
       props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
       props.model.sharedModel.layersChanged.disconnect(updateLayerTree);
       props.model.sharedModel.layerTreeChanged.disconnect(updateLayerTree);

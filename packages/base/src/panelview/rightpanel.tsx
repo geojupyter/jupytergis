@@ -3,6 +3,7 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISClientState,
   IJupyterGISModel,
+  IJupyterGISSettings,
 } from '@jupytergis/schema';
 import * as React from 'react';
 
@@ -23,11 +24,12 @@ interface IRightPanelProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
   annotationModel: IAnnotationModel;
   model: IJupyterGISModel;
+  settings: IJupyterGISSettings;
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
+  const { settings } = props;
   const [displayEditor, setDisplayEditor] = React.useState(true);
-  const [settings, setSettings] = React.useState(props.model.jgisSettings);
   const [options, setOptions] = React.useState(props.model.getOptions());
 
   const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
@@ -57,19 +59,6 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   });
 
   React.useEffect(() => {
-    const syncFromSettingsRegistry = async () => {
-      const register = await props.model.getSettings();
-      const composite = register?.composite;
-      if (composite) {
-        setSettings(prev => ({
-          ...prev,
-          ...composite,
-        }));
-      }
-    };
-    const onSettingsChanged = () => {
-      setSettings({ ...props.model.jgisSettings });
-    };
     const onOptionsChanged = () => {
       setOptions({ ...props.model.getOptions() });
     };
@@ -91,14 +80,10 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
       }
     };
 
-    Promise.resolve().then(syncFromSettingsRegistry);
-
-    props.model.settingsChanged.connect(onSettingsChanged);
     props.model.sharedOptionsChanged.connect(onOptionsChanged);
     props.model.clientStateChanged.connect(onAwerenessChanged);
 
     return () => {
-      props.model.settingsChanged.disconnect(onSettingsChanged);
       props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
       props.model.clientStateChanged.disconnect(onAwerenessChanged);
     };
