@@ -51,7 +51,7 @@ import {
   getUid,
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
-import { FullScreen, ScaleLine } from 'ol/control';
+import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
@@ -200,6 +200,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
+    this._model.settingsChanged.connect(this._onSettingsChanged, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
     this._model.geolocationChanged.connect(
@@ -271,6 +272,7 @@ export class MainView extends React.Component<IProps, IStates> {
     );
 
     this._model.themeChanged.disconnect(this._handleThemeChange, this);
+    this._model.settingsChanged.disconnect(this._onSettingsChanged, this);
     this._model.sharedOptionsChanged.disconnect(
       this._onSharedOptionsChanged,
       this,
@@ -286,6 +288,11 @@ export class MainView extends React.Component<IProps, IStates> {
 
   async generateMap(center: number[], zoom: number): Promise<void> {
     if (this.divRef.current) {
+      const controls: Control[] = [new ScaleLine(), new FullScreen()];
+      if (this._model.jgisSettings.zoomButtonsEnabled) {
+        this._zoomControl = new Zoom();
+        controls.push(this._zoomControl);
+      }
       this._Map = new OlMap({
         target: this.divRef.current,
         keyboardEventTarget: document,
@@ -294,7 +301,7 @@ export class MainView extends React.Component<IProps, IStates> {
           center,
           zoom,
         }),
-        controls: [new ScaleLine(), new FullScreen()],
+        controls,
       });
 
       // Add map interactions
@@ -1767,6 +1774,24 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
+  private _onSettingsChanged(sender: IJupyterGISModel, key: string): void {
+    if (key !== 'zoomButtonsEnabled' || !this._Map) {
+      return;
+    }
+
+    const enabled = this._model.jgisSettings.zoomButtonsEnabled;
+
+    if (!enabled && this._zoomControl) {
+      this._Map.removeControl(this._zoomControl);
+      this._zoomControl = undefined;
+    }
+
+    if (enabled && !this._zoomControl) {
+      this._zoomControl = new Zoom();
+      this._Map.addControl(this._zoomControl);
+    }
+  }
+
   private async updateOptions(options: IJGISOptions): Promise<void> {
     const {
       projection,
@@ -2513,6 +2538,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _isPositionInitialized = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
   private _Map: OlMap;
+  private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;
