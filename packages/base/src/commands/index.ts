@@ -519,6 +519,8 @@ export function addCommands(
       Private.removeSelectedItems(model, 'layer', selection => {
         model?.removeLayer(selection);
       });
+
+      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     },
   });
 
@@ -1072,6 +1074,7 @@ export function addCommands(
         return;
       }
       current.model.addStorySegment();
+      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     },
     ...icons.get(CommandIDs.addStorySegment),
   });
@@ -1089,7 +1092,14 @@ export function addCommands(
       return storyMapPresentationMode ?? false;
     },
     isEnabled: () => {
-      if (tracker.currentWidget?.model.jgisSettings.storyMapsDisabled) {
+      const storySegments =
+        tracker.currentWidget?.model.getSelectedStory().story?.storySegments;
+
+      if (
+        tracker.currentWidget?.model.jgisSettings.storyMapsDisabled ||
+        !storySegments ||
+        storySegments.length < 1
+      ) {
         return false;
       }
 

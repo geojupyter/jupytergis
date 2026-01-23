@@ -4,6 +4,7 @@ import {
   IJupyterGISClientState,
   IJupyterGISModel,
 } from '@jupytergis/schema';
+import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 
 import { AnnotationsPanel } from './annotationPanel';
@@ -23,6 +24,7 @@ interface IRightPanelProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
   annotationModel: IAnnotationModel;
   model: IJupyterGISModel;
+  commands: CommandRegistry;
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
@@ -172,7 +174,10 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
                 />
               )}
               {showEditor ? (
-                <StoryEditorPanel model={props.model} />
+                <StoryEditorPanel
+                  model={props.model}
+                  commands={props.commands}
+                />
               ) : (
                 <StoryViewerPanel model={props.model} />
               )}
