@@ -256,7 +256,4 @@ with open(f"{THUMBNAILS_LOCATION}/raster_layer_gallery.json", "w") as f:
 # compress images
 cmd = f"shopt -s globstar && mogrify -resize 50% {THUMBNAILS_LOCATION}/*.png && optipng {THUMBNAILS_LOCATION}/*.png"
 
-subprocess.run(
-    ["bash", "-lc", cmd],
-    check=True
-)
+subprocess.run(["bash", "-lc", cmd], check=True)
