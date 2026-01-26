@@ -34,6 +34,7 @@ import {
   JupyterGISModel,
   IMarkerSource,
   IStorySegmentLayer,
+  IJupyterGISSettings,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -137,6 +138,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
+  jgisSettings: IJupyterGISSettings;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -214,6 +216,10 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
 
+    Promise.resolve().then(() => {
+      this._syncSettingsFromRegistry();
+    });
+
     // Watch isIdentifying and clear the highlight when Identify Tool is turned off
     this._model.sharedModel.awareness.on('change', () => {
       if (this._model.currentMode !== 'identifying' && this._highlightLayer) {
@@ -233,6 +239,7 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
+      jgisSettings: this._model.jgisSettings,
     };
 
     this._sources = [];
@@ -1774,8 +1781,18 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
-  private _onSettingsChanged(sender: IJupyterGISModel, key: string): void {
-    if (key !== 'zoomButtonsEnabled' || !this._Map) {
+  private async _syncSettingsFromRegistry() {
+    const composite = this._model.jgisSettings;
+    if (composite) {
+      this.setState({ jgisSettings: composite });
+      this._onSettingsChanged();
+    }
+  }
+
+  private _onSettingsChanged(): void {
+    this.setState({ jgisSettings: this._model.jgisSettings });
+
+    if (!this._Map) {
       return;
     }
 
@@ -2510,6 +2527,7 @@ export class MainView extends React.Component<IProps, IStates> {
                     model={this._model}
                     commands={this._mainViewModel.commands}
                     state={this._state}
+                    settings={this.state.jgisSettings}
                   ></LeftPanel>
                 )}
                 {this._formSchemaRegistry && this._annotationModel && (
@@ -2517,6 +2535,7 @@ export class MainView extends React.Component<IProps, IStates> {
                     model={this._model}
                     formSchemaRegistry={this._formSchemaRegistry}
                     annotationModel={this._annotationModel}
+                    settings={this.state.jgisSettings}
                   ></RightPanel>
                 )}
               </div>
