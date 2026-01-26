@@ -49,7 +49,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     translator?: ITranslator,
     completionProviderManager?: ICompletionProviderManager,
   ): void => {
-    console.log('jupytergis:lab:main-menu is activated!');
+    console.debug('jupytergis:lab:main-menu is activated!');
     translator = translator ?? nullTranslator;
     const isEnabled = (): boolean => {
       return (
@@ -207,6 +207,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
       selector: '.jp-gis-layerPanel',
       rank: 3,
       submenu: newLayerSubMenu,
+    });
+
+    app.contextMenu.addItem({
+      selector: '.jp-gis-layerPanel',
+      command: CommandIDs.addStorySegment,
+      rank: 4,
     });
 
     if (mainMenu) {

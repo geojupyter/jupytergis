@@ -33,6 +33,7 @@ import {
   JgisCoordinates,
   JupyterGISModel,
   IMarkerSource,
+  IStorySegmentLayer,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
@@ -50,9 +51,10 @@ import {
   getUid,
 } from 'ol';
 import Feature, { FeatureLike } from 'ol/Feature';
-import { FullScreen, ScaleLine } from 'ol/control';
+import { FullScreen, ScaleLine, Zoom, Control } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { singleClick } from 'ol/events/condition';
+import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
 import { DragAndDrop, Select } from 'ol/interaction';
@@ -198,6 +200,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
     this._model.zoomToPositionSignal.connect(this._onZoomToPosition, this);
+    this._model.settingsChanged.connect(this._onSettingsChanged, this);
     this._model.updateLayerSignal.connect(this._triggerLayerUpdate, this);
     this._model.addFeatureAsMsSignal.connect(this._convertFeatureToMs, this);
     this._model.geolocationChanged.connect(
@@ -269,6 +272,7 @@ export class MainView extends React.Component<IProps, IStates> {
     );
 
     this._model.themeChanged.disconnect(this._handleThemeChange, this);
+    this._model.settingsChanged.disconnect(this._onSettingsChanged, this);
     this._model.sharedOptionsChanged.disconnect(
       this._onSharedOptionsChanged,
       this,
@@ -284,14 +288,20 @@ export class MainView extends React.Component<IProps, IStates> {
 
   async generateMap(center: number[], zoom: number): Promise<void> {
     if (this.divRef.current) {
+      const controls: Control[] = [new ScaleLine(), new FullScreen()];
+      if (this._model.jgisSettings.zoomButtonsEnabled) {
+        this._zoomControl = new Zoom();
+        controls.push(this._zoomControl);
+      }
       this._Map = new OlMap({
         target: this.divRef.current,
+        keyboardEventTarget: document,
         layers: [],
         view: new View({
           center,
           zoom,
         }),
-        controls: [new ScaleLine(), new FullScreen()],
+        controls,
       });
 
       // Add map interactions
@@ -1001,7 +1011,8 @@ export class MainView extends React.Component<IProps, IStates> {
     let sourceId: string | undefined;
     let source: IJGISSource | undefined;
 
-    if (layer.type !== 'StacLayer') {
+    // Sourceless layers
+    if (!['StacLayer', 'StorySegmentLayer'].includes(layer.type)) {
       sourceId = layer.parameters?.source;
       if (!sourceId) {
         return;
@@ -1125,6 +1136,11 @@ export class MainView extends React.Component<IProps, IStates> {
 
         break;
       }
+
+      case 'StorySegmentLayer': {
+        // Special layer not for this
+        return;
+      }
     }
 
     // OpenLayers doesn't have name/id field so add it
@@ -1206,7 +1222,6 @@ export class MainView extends React.Component<IProps, IStates> {
           item => item.id === id && item.error === error.message,
         )
       ) {
-        this._loadingLayers.delete(id);
         return;
       }
 
@@ -1220,7 +1235,9 @@ export class MainView extends React.Component<IProps, IStates> {
         error: error.message || 'invalid file path',
         index,
       });
+    } finally {
       this._loadingLayers.delete(id);
+      this.setState(old => ({ ...old, loadingLayer: false }));
     }
   }
 
@@ -1345,7 +1362,7 @@ export class MainView extends React.Component<IProps, IStates> {
     mapLayer: Layer,
     oldLayer?: IDict,
   ): Promise<void> {
-    mapLayer.setVisible(layer.visible);
+    layer.type !== 'StorySegmentLayer' && mapLayer.setVisible(layer.visible);
 
     switch (layer.type) {
       case 'RasterLayer': {
@@ -1763,6 +1780,24 @@ export class MainView extends React.Component<IProps, IStates> {
     }
   }
 
+  private _onSettingsChanged(sender: IJupyterGISModel, key: string): void {
+    if (key !== 'zoomButtonsEnabled' || !this._Map) {
+      return;
+    }
+
+    const enabled = this._model.jgisSettings.zoomButtonsEnabled;
+
+    if (!enabled && this._zoomControl) {
+      this._Map.removeControl(this._zoomControl);
+      this._zoomControl = undefined;
+    }
+
+    if (enabled && !this._zoomControl) {
+      this._zoomControl = new Zoom();
+      this._Map.addControl(this._zoomControl);
+    }
+  }
+
   private async updateOptions(options: IJGISOptions): Promise<void> {
     const {
       projection,
@@ -2028,6 +2063,7 @@ export class MainView extends React.Component<IProps, IStates> {
     });
   }
 
+  // TODO this and flyToPosition need a rework
   private _onZoomToPosition(_: IJupyterGISModel, id: string) {
     // Check if the id is an annotation
     const annotation = this._model.annotationModel?.getAnnotation(id);
@@ -2040,6 +2076,57 @@ export class MainView extends React.Component<IProps, IStates> {
     let extent;
     const layer = this.getLayer(id);
     const source = layer?.getSource();
+    const jgisLayer = this._model.getLayer(id);
+
+    /**
+     * Layer may be undefined in two cases:
+     * 1. StorySegmentLayer: These layers don't have an associated OpenLayers layer
+     * 2. StacLayer: When centerOnPosition is called immediately after adding the layer,
+     *    the OpenLayers layer hasn't been created yet, so we use the bbox from the
+     *    layer model's STAC data directly.
+     */
+    if (!layer) {
+      // Handle StacLayer that hasn't been added to the map yet
+      if (jgisLayer?.type === 'StacLayer') {
+        const layerParams = jgisLayer.parameters as IStacLayer;
+        const stacBbox = layerParams.data?.bbox;
+
+        if (stacBbox && stacBbox.length === 4) {
+          // STAC bbox format: [west, south, east, north] in EPSG:4326
+          const [west, south, east, north] = stacBbox;
+          const bboxExtent = [west, south, east, north];
+
+          // Convert from EPSG:4326 to view projection
+          const viewProjection = this._Map.getView().getProjection();
+          const transformedExtent =
+            viewProjection.getCode() !== 'EPSG:4326'
+              ? transformExtent(bboxExtent, 'EPSG:4326', viewProjection)
+              : bboxExtent;
+
+          this._Map.getView().fit(transformedExtent, {
+            size: this._Map.getSize(),
+            duration: 500,
+            padding: [250, 250, 250, 250],
+          });
+          return;
+        }
+      }
+
+      // Handle StorySegmentLayer
+      if (jgisLayer?.type === 'StorySegmentLayer') {
+        const layerParams = jgisLayer.parameters as IStorySegmentLayer;
+        const coords = getCenter(layerParams.extent);
+
+        this._flyToPosition(
+          { x: coords[0], y: coords[1] },
+          layerParams.zoom,
+          (layerParams.transition.time ?? 1) * 1000, // seconds -> ms
+          layerParams.transition.type,
+        );
+
+        return;
+      }
+    }
 
     if (source instanceof VectorSource) {
       extent = source.getExtent();
@@ -2098,10 +2185,55 @@ export class MainView extends React.Component<IProps, IStates> {
     center: { x: number; y: number },
     zoom: number,
     duration = 1000,
+    transitionType?: 'linear' | 'immediate' | 'smooth',
   ) {
     const view = this._Map.getView();
-    view.animate({ zoom, duration });
-    view.animate({ center: [center.x, center.y], duration });
+
+    // Cancel any in-progress animations before starting new ones
+    view.cancelAnimations();
+
+    const targetCenter: Coordinate = [center.x, center.y];
+
+    if (transitionType === 'linear') {
+      // Linear: direct zoom
+      view.animate({
+        center: targetCenter,
+        zoom: zoom,
+        duration,
+      });
+
+      return;
+    }
+
+    if (transitionType === 'smooth') {
+      // Smooth: zoom out, center, and zoom in
+      // Centering takes full duration, zoom out completes halfway, zoom in starts halfway
+      // 3 shows most of the map
+      const zoomOutLevel = 3;
+
+      // Start centering (full duration) and zoom out (50% duration) simultaneously
+      view.animate({
+        center: targetCenter,
+        duration: duration,
+      });
+      // Chain zoom out -> zoom in (zoom in starts when zoom out completes)
+      view.animate(
+        {
+          zoom: zoomOutLevel,
+          duration: duration * 0.5,
+        },
+        {
+          zoom: zoom,
+          duration: duration * 0.5,
+        },
+      );
+
+      return;
+    }
+
+    // Immediate move
+    view.setCenter(targetCenter);
+    view.setZoom(zoom);
   }
 
   private _onPointerMove(e: MouseEvent) {
@@ -2276,7 +2408,7 @@ export class MainView extends React.Component<IProps, IStates> {
     const olLayer = this.getLayer(layerId);
 
     if (!jgisLayer || !olLayer) {
-      console.log('Layer not found');
+      console.error('Failed to update layer -- layer not found');
       return;
     }
 
@@ -2360,7 +2492,7 @@ export class MainView extends React.Component<IProps, IStates> {
           )}
           <div
             className="jGIS-Mainview data-jgis-keybinding"
-            tabIndex={-2}
+            tabIndex={0}
             style={{
               border: this.state.remoteUser
                 ? `solid 3px ${this.state.remoteUser.color}`
@@ -2412,6 +2544,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _isPositionInitialized = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
   private _Map: OlMap;
+  private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;

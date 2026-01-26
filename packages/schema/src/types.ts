@@ -15,6 +15,7 @@ export * from './_interface/project/sources/markerSource';
 // Layers
 export * from './_interface/project/layers/heatmapLayer';
 export * from './_interface/project/layers/hillshadeLayer';
+export * from './_interface/project/layers/storySegmentLayer';
 export * from './_interface/project/layers/rasterLayer';
 export * from './_interface/project/layers/vectorLayer';
 export * from './_interface/project/layers/imageLayer';

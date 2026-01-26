@@ -3,6 +3,7 @@
 | Distributed under the terms of the Modified BSD License.
 |---------------------------------------------------------------------------- */
 
+@import url('ol/ol.css');
 @import url('./dialog.css');
 @import url('./layerBrowser.css');
 @import url('./leftPanel.css');
@@ -11,7 +12,8 @@
 @import url('./statusBar.css');
 @import url('./temporalSlider.css');
 @import url('./tabPanel.css');
-@import url('ol/ol.css');
+@import url('./stacBrowser.css');
+@import url('./storyPanel.css');
 @import url('./shared/button.css');
 @import url('./shared/toggle.css');
 @import url('./shared/tabs.css');
@@ -20,6 +22,13 @@
 @import url('./shared/dropdownMenu.css');
 @import url('./shared/badge.css');
 @import url('./shared/checkbox.css');
+@import url('./shared/radioGroup.css');
+@import url('./shared/dialog.css');
+@import url('./shared/switch.css');
+@import url('./shared/popover.css');
+@import url('./shared/command.css');
+@import url('./shared/combobox.css');
+@import url('./shared/input.css');
 
 .errors {
   color: var(--jp-warn-color0);
@@ -97,7 +106,7 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jgis-left-panel-container {
   position: absolute;
-  width: 250px;
+  width: 275px;
   top: 30px;
   left: 0px;
   margin: 5px;
@@ -122,4 +131,11 @@ button.jp-mod-styled.jp-mod-reject {
     position: relative;
     margin: 0;
   }
+}
+
+.ol-zoom {
+  top: auto;
+  left: auto;
+  right: 5px;
+  bottom: 5px;
 }

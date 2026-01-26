@@ -1,7 +1,4 @@
-import {
-  ICollaborativeDrive,
-  SharedDocumentFactory,
-} from '@jupyter/collaborative-drive';
+import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import {
   IAnnotationModel,
@@ -32,6 +29,7 @@ import { MimeDocumentFactory } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 
@@ -60,18 +58,15 @@ const activate = async (
   state: IStateDB,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
-  drive: ICollaborativeDrive | null,
+  collaborativeContentProvider: ICollaborativeContentProvider | null,
 ): Promise<void> => {
   formSchemaRegistry && state;
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
   }
 
-  let settings: ISettingRegistry.ISettings | null = null;
-
   try {
-    settings = await settingRegistry.load(SETTINGS_ID);
-    console.log(`Loaded settings for ${SETTINGS_ID}`, settings);
+    await settingRegistry.load(SETTINGS_ID);
   } catch (error) {
     console.warn(`Failed to load settings for ${SETTINGS_ID}`, error);
   }
@@ -128,8 +123,9 @@ const activate = async (
   const jGISSharedModelFactory: SharedDocumentFactory = () => {
     return new JupyterGISDoc();
   };
-  if (drive) {
-    drive.sharedModelFactory.registerDocumentFactory(
+
+  if (collaborativeContentProvider) {
+    collaborativeContentProvider.sharedModelFactory.registerDocumentFactory(
       CONTENT_TYPE,
       jGISSharedModelFactory,
     );
@@ -289,7 +285,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     IJGISFormSchemaRegistryToken,
     IStateDB,
   ],
-  optional: [ILauncher, ICommandPalette, ICollaborativeDrive],
+  optional: [ILauncher, ICommandPalette, ICollaborativeContentProvider],
   autoStart: true,
   activate,
 };

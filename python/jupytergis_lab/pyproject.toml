@@ -2,7 +2,7 @@
 build-backend = "hatchling.build"
 requires = [
   "hatchling>=1.5.0",
-  "jupyterlab>=4.0.0,<5",
+  "jupyterlab>=4.5.1",
   "hatch-nodejs-version>=0.3.2",
 ]
 
@@ -13,14 +13,15 @@ classifiers = [
   "Framework :: Jupyter :: JupyterLab :: 4",
   "Framework :: Jupyter :: JupyterLab :: Extensions",
   "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
+  "Topic :: Scientific/Engineering :: GIS",
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
   "requests",
@@ -79,7 +80,7 @@ version_cmd = "hatch version"
 
 [tool.jupyter-releaser.hooks]
 before-build-npm = [
-  "python -m pip install 'jupyterlab>=4.0.0,<5'",
+  "python -m pip install 'jupyterlab>=4.5.1'",
   "jlpm",
   "jlpm build:prod",
 ]

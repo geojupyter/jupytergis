@@ -111,7 +111,10 @@ export async function requestAPI<T>(
     try {
       data = JSON.parse(data);
     } catch (error) {
-      console.log('Not a JSON response body.', response);
+      console.error(
+        'Jupyter API request failed -- not a JSON response body:',
+        response,
+      );
     }
   }
 
@@ -181,7 +184,7 @@ export function createDefaultLayerRegistry(
 
   // TODO: These need better names
   /**
-   * Parse tile information from providers to be useable in the layer registry
+   * Parse tile information from providers to be usable in the layer registry
    *
    * @param entry - The name of the entry, which may also serve as the default provider name if none is specified.
    * @param xyzprovider - An object containing the XYZ provider's details, including name, URL, zoom levels, attribution, and possibly other properties relevant to the provider.

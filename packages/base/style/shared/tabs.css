@@ -1,7 +1,6 @@
 .jgis-panel-tabs {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   justify-content: center;
   align-items: center;
   background-color: var(--jp-layout-color0);
@@ -20,7 +19,8 @@
   gap: 1rem;
   width: 100%;
   font-size: 9px;
-  border-radius: 5px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
   overflow-x: scroll;
 }
 
@@ -62,6 +62,7 @@
   width: 100%;
   overflow-y: scroll;
   max-height: 480px;
+  padding-top: 1rem;
 }
 
 .jgis-tabs-content:focus-visible {

@@ -3,9 +3,7 @@ import {
   IJGISExternalCommandRegistry,
 } from '@jupytergis/schema';
 
-export class JupyterGISExternalCommandRegistry
-  implements IJGISExternalCommandRegistry
-{
+export class JupyterGISExternalCommandRegistry implements IJGISExternalCommandRegistry {
   constructor() {
     this._registry = new Set();
   }

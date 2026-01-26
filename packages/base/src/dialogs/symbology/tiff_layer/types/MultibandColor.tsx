@@ -129,10 +129,10 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
         <LoadingOverlay loading={loading} />
         <BandRow
           label="Red Band"
-          index={selectedBands.red - 1}
+          index={selectedBands.red - 1} // IMPORTANT: Bands are 1-indexed
           bandRow={bandRows[selectedBands.red - 1]}
           bandRows={bandRows}
-          setSelectedBand={val => updateBand('red', val >= 0 ? val + 1 : 0)}
+          setSelectedBand={val => updateBand('red', val >= 0 ? val : 0)}
           setBandRows={setBandRows}
           isMultibandColor={true}
         />
@@ -142,7 +142,7 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
           index={selectedBands.green - 1}
           bandRow={bandRows[selectedBands.green - 1]}
           bandRows={bandRows}
-          setSelectedBand={val => updateBand('green', val >= 0 ? val + 1 : 0)}
+          setSelectedBand={val => updateBand('green', val >= 0 ? val : 0)}
           setBandRows={setBandRows}
           isMultibandColor={true}
         />
@@ -152,7 +152,7 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
           index={selectedBands.blue - 1}
           bandRow={bandRows[selectedBands.blue - 1]}
           bandRows={bandRows}
-          setSelectedBand={val => updateBand('blue', val >= 0 ? val + 1 : 0)}
+          setSelectedBand={val => updateBand('blue', val >= 0 ? val : 0)}
           setBandRows={setBandRows}
           isMultibandColor={true}
         />
@@ -162,7 +162,7 @@ const MultibandColor: React.FC<ISymbologyDialogProps> = ({
           index={selectedBands.alpha - 1}
           bandRow={bandRows[selectedBands.alpha - 1]}
           bandRows={bandRows}
-          setSelectedBand={val => updateBand('alpha', val >= 0 ? val + 1 : 0)}
+          setSelectedBand={val => updateBand('alpha', val >= 0 ? val : 0)}
           setBandRows={setBandRows}
           isMultibandColor={true}
         />

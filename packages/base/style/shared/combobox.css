@@ -1,0 +1,75 @@
+/* Shared base styles for Select and Combobox buttons */
+/* More specific selector to override button base styles */
+.jgis-button.jgis-combobox-button,
+.jgis-button.jgis-select-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  white-space: preserve-breaks;
+  padding: 1rem 0.5rem;
+  box-sizing: border-box;
+  border-radius: var(--jp-border-radius, 0.375rem);
+  border: 1px solid var(--jp-border-color0);
+  background-color: var(--jp-layout-color0);
+  color: var(--jp-ui-font-color0);
+  font-size: 0.875rem;
+  /* min-height: 1.125rem; */
+  height: 1.5rem;
+  max-width: none;
+  gap: 0;
+}
+
+.jgis-combobox-button-text,
+.jgis-select-button-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.jgis-combobox-icon,
+.jgis-select-icon {
+  margin-left: 0.5rem;
+  margin-top: 0.125rem;
+  height: 1rem;
+  width: 1rem;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+/* Shared Popover styles */
+.jgis-combobox-popover,
+.jgis-select-popover {
+  width: 200px;
+  padding: 0;
+  border-radius: var(--jp-border-radius, 0.375rem);
+}
+
+/* Check icon for Combobox (multi-select) */
+.jgis-combobox-check-icon {
+  margin-right: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+  flex-shrink: 0;
+}
+
+/* Modifier classes - use higher specificity to override base */
+.jgis-button.jgis-combobox-button--full-width,
+.jgis-button.jgis-select-button--full-width {
+  width: 100%;
+}
+
+.jgis-button.jgis-combobox-button--max-width-200,
+.jgis-button.jgis-select-button--max-width-200 {
+  max-width: 200px;
+}
+
+.jgis-button.jgis-combobox-button--no-radius,
+.jgis-button.jgis-select-button--no-radius {
+  border-radius: 0;
+}
+
+.jgis-button.jgis-combobox-button--queryable-input,
+.jgis-button.jgis-select-button--queryable-input {
+  padding: 0.25rem 1rem;
+  border-radius: 0;
+}

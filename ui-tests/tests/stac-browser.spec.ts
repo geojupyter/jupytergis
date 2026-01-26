@@ -72,6 +72,8 @@ test.describe('#stac-browser', () => {
 
     await page.getByText('Stac Browser').click();
 
+    await page.getByRole('combobox').click();
+    await page.getByRole('option', { name: 'GEODES' }).click();
     await page.getByRole('button', { name: 'Collection' }).click();
     await page.getByRole('menuitem', { name: 'Sentinel 2' }).hover();
     await page.getByRole('menuitemcheckbox', { name: 'PEPS_S2_L1C' }).click();

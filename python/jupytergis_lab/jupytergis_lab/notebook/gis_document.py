@@ -29,6 +29,7 @@ from jupytergis_core.schema import (
     IMarkerSource,
     IVideoSource,
     IWebGlLayer,
+    IStorySegmentLayer,
     LayerType,
     SourceType,
 )
@@ -304,6 +305,10 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "color": color_expr,
                 "opacity": opacity,
+                "symbologyState": {
+                    "renderType": "Single Symbol",
+                    "mode": "equal interval",
+                },
             },
             "filters": {
                 "appliedFilters": [
@@ -863,6 +868,7 @@ class JGISLayer(BaseModel):
         | IImageLayer
         | IWebGlLayer
         | IHeatmapLayer
+        | IStorySegmentLayer
     )
     _parent = Optional[GISDocument]
 
@@ -967,6 +973,7 @@ OBJECT_FACTORY.register_factory(LayerType.HillshadeLayer, IHillshadeLayer)
 OBJECT_FACTORY.register_factory(LayerType.WebGlLayer, IWebGlLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.HeatmapLayer, IHeatmapLayer)
+OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
