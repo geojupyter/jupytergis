@@ -65,7 +65,10 @@ When your colleagues join using the link, their usernames appear in the top righ
 
 When you add a new layer to your GIS file, the new layer appears immediately for all collaborators in your session. You can experiment by adding a layer from the layer browser or from the add layer menu, and customizing its symbology, such as changing the opacity or color. Observe that each change is instantly visible to your collaborators. You can check the [Getting Started with JupyterGIS](/user_guide/tutorials/01-intro/index.md) tutorial for more details on how to customize the layer appearance.
 
-<video src="images/add_layers.mp4" controls></video>
+<video controls width="700">
+  <source src="_static/images/add_layers.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ### Tracking Collaborators with Cursors
 
@@ -83,7 +86,10 @@ Follow mode allows you to track another userâ€™s activity in the document in rea
 
 To activate the follow mode, click on a collaborator's user icon in the upper right corner. Observe that the document will then have a frame in their assigned color. You can click on the user icon again to exit follow mode.
 
-<video src="images/follow_mode.mp4" controls></video>
+<video controls width="700">
+  <source src="_static/images/follow_mode.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ````{exercise} 1
 :label: enable-follow-mode
@@ -126,7 +132,10 @@ In order to create annotations, you can right-click anywhere on your GIS file to
 
 Once you add an annotation, you can click on it to type your comment. You can open the right sidebar to view all annotations and comments in the document, and click on the middle button to locate the annotation.
 
-<video src="images/annotation.mp4" controls></video>
+<video controls width="700">
+  <source src="_static/images/annotation.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ```{exercise} 2
 :label: add-annotations
@@ -167,7 +176,10 @@ Once a notebook is created, it is automatically accessible to all collaboratorsâ
 
 As you write or execute code, every change is visible to your team instantly. Multiple users can write, edit, and run code in the same notebook at the same time for a dynamic, interactive coding experience.
 
-<video src="images/notebook.mp4" controls></video>
+<video controls width="700">
+  <source src="_static/images/notebook.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ```{exercise} 3
 :label: notebook-collaboration
