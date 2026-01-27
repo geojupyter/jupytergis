@@ -9,6 +9,7 @@ dependencies:
   - jupyterlite-core
   - jupyterlite-xeus
   - jupyterlite-sphinx
+  - jupytext =1.19.0
   - sphinx ~=8.2.3
   - sphinx-tabs
   - pydata-sphinx-theme
