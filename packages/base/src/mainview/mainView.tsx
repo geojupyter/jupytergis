@@ -2515,6 +2515,7 @@ export class MainView extends React.Component<IProps, IStates> {
                 {this._formSchemaRegistry && this._annotationModel && (
                   <RightPanel
                     model={this._model}
+                    commands={this._mainViewModel.commands}
                     formSchemaRegistry={this._formSchemaRegistry}
                     annotationModel={this._annotationModel}
                   ></RightPanel>

@@ -4,6 +4,7 @@ import {
   IJupyterGISClientState,
   IJupyterGISModel,
 } from '@jupytergis/schema';
+import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 
 import { AnnotationsPanel } from './annotationPanel';
@@ -23,14 +24,25 @@ interface IRightPanelProps {
   formSchemaRegistry: IJGISFormSchemaRegistry;
   annotationModel: IAnnotationModel;
   model: IJupyterGISModel;
+  commands: CommandRegistry;
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
-  const [displayEditor, setDisplayEditor] = React.useState(true);
+  const [editorMode, setEditorMode] = React.useState(true);
   const [settings, setSettings] = React.useState(props.model.jgisSettings);
-  const [options, setOptions] = React.useState(props.model.getOptions());
+  const [storyMapPresentationMode, setStoryMapPresentationMode] =
+    React.useState(props.model.getOptions().storyMapPresentationMode ?? false);
 
-  const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
+  // Only show editor when not in presentation mode and editorMode is true
+  const showEditor = !storyMapPresentationMode && editorMode;
+
+  // Tab title: "Story Map" in presentation mode, otherwise based on editorMode
+  const storyPanelTitle = storyMapPresentationMode
+    ? 'Story Map'
+    : editorMode
+      ? 'Story Editor'
+      : 'Story Map';
+
   const tabInfo = [
     !settings.objectPropertiesDisabled && !storyMapPresentationMode
       ? { name: 'objectProperties', title: 'Object Properties' }
@@ -38,7 +50,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     !settings.storyMapsDisabled
       ? {
           name: 'storyPanel',
-          title: displayEditor ? 'Story Editor' : 'Story Map',
+          title: storyPanelTitle,
         }
       : false,
     !settings.annotationsDisabled
@@ -61,7 +73,8 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
       setSettings({ ...props.model.jgisSettings });
     };
     const onOptionsChanged = () => {
-      setOptions({ ...props.model.getOptions() });
+      const { storyMapPresentationMode } = props.model.getOptions();
+      setStoryMapPresentationMode(storyMapPresentationMode ?? false);
     };
     let currentlyIdentifiedFeatures: any = undefined;
     const onAwerenessChanged = (
@@ -104,7 +117,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     React.useState(undefined);
 
   const toggleEditor = () => {
-    setDisplayEditor(!displayEditor);
+    setEditorMode(!editorMode);
   };
 
   return (
@@ -117,7 +130,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           {tabInfo.map(tab => (
             <TabsTrigger
               className="jGIS-layer-browser-category"
-              key={tab.name}
+              key={`${tab.name}-${tab.title}`}
               value={tab.name}
               onClick={() => {
                 if (curTab !== tab.name) {
@@ -153,17 +166,20 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             style={{ paddingTop: 0 }}
           >
             <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
-              {/* Don't want to see the toggle switch in presentation mode */}
+              {/* Only show switch when NOT in presentation mode */}
               {!storyMapPresentationMode && (
                 <PreviewModeSwitch
-                  checked={!displayEditor}
+                  checked={!editorMode}
                   onCheckedChange={toggleEditor}
                 />
               )}
-              {storyMapPresentationMode || !displayEditor ? (
-                <StoryViewerPanel model={props.model} />
+              {showEditor ? (
+                <StoryEditorPanel
+                  model={props.model}
+                  commands={props.commands}
+                />
               ) : (
-                <StoryEditorPanel model={props.model} />
+                <StoryViewerPanel model={props.model} />
               )}
             </div>
           </TabsContent>

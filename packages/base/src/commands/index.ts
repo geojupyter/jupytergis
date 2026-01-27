@@ -519,6 +519,8 @@ export function addCommands(
       Private.removeSelectedItems(model, 'layer', selection => {
         model?.removeLayer(selection);
       });
+
+      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     },
   });
 
@@ -1072,8 +1074,53 @@ export function addCommands(
         return;
       }
       current.model.addStorySegment();
+      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
     },
     ...icons.get(CommandIDs.addStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.toggleStoryPresentationMode, {
+    label: trans.__('Toggle Story Presentation Mode'),
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      const { storyMapPresentationMode } = current.model.getOptions();
+
+      return storyMapPresentationMode ?? false;
+    },
+    isEnabled: () => {
+      const storySegments =
+        tracker.currentWidget?.model.getSelectedStory().story?.storySegments;
+
+      if (
+        tracker.currentWidget?.model.jgisSettings.storyMapsDisabled ||
+        !storySegments ||
+        storySegments.length < 1
+      ) {
+        return false;
+      }
+
+      return true;
+    },
+    execute: args => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const currentOptions = current.model.getOptions();
+
+      current.model.setOptions({
+        ...currentOptions,
+        storyMapPresentationMode: !currentOptions.storyMapPresentationMode,
+      });
+
+      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
+    },
+    ...icons.get(CommandIDs.toggleStoryPresentationMode),
   });
 
   loadKeybindings(commands, keybindings);
