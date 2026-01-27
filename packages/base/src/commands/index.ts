@@ -32,6 +32,8 @@ import { addProcessingCommands } from '../processing/processingCommands';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import { JupyterGISTracker } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
+import { addLayerCreationCommands } from './operationCommands';
+import { addProcessingCommandsFromParams } from './processingCommandsFromParams';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
@@ -72,8 +74,21 @@ export function addCommands(
   const trans = translator.load('jupyterlab');
   const { commands } = app;
 
+  addLayerCreationCommands({ tracker, commands, trans });
+
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          selected: {
+            type: 'object',
+            description: 'Currently selected layer(s) in the map view',
+          },
+        },
+      },
+    },
     isEnabled: () => {
       const model = tracker.currentWidget?.model;
       const localState = model?.sharedModel.awareness.getLocalState();
@@ -112,13 +127,29 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.redo, {
     label: trans.__('Redo'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: {
+            type: 'string',
+            description:
+              'Optional .jGIS file path. If omitted, uses active widget.',
+          },
+        },
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
-    execute: () => {
-      const current = tracker.currentWidget;
+    execute: (args?: { filePath?: string }) => {
+      const filePath = args?.filePath;
+
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
 
       if (current) {
         return current.model.sharedModel.redo();
@@ -129,13 +160,30 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.undo, {
     label: trans.__('Undo'),
+    describedBy: {
+      args: {
+        type: 'object',
+        required: [],
+        properties: {
+          filePath: {
+            type: 'string',
+            description:
+              'Optional .jGIS file path. If omitted, uses active widget.',
+          },
+        },
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
         : false;
     },
-    execute: () => {
-      const current = tracker.currentWidget;
+    execute: (args: { filePath?: string }) => {
+      const filePath = args?.filePath;
+
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
 
       if (current) {
         return current.model.sharedModel.undo();
@@ -146,6 +194,20 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.identify, {
     label: trans.__('Identify'),
+    describedBy: {
+      args: {
+        type: 'object',
+        required: [],
+        properties: {
+          filePath: {
+            type: 'string',
+            description:
+              'Optional .jGIS file path. If omitted, uses active widget.',
+          },
+        },
+      },
+    },
+
     isToggled: () => {
       const current = tracker.currentWidget;
       if (!current) {
@@ -156,6 +218,7 @@ export function addCommands(
       if (!selectedLayer) {
         return false;
       }
+
       const canIdentify = [
         'VectorLayer',
         'ShapefileLayer',
@@ -186,8 +249,14 @@ export function addCommands(
         'VectorTileLayer',
       ].includes(selectedLayer.type);
     },
+
     execute: args => {
-      const current = tracker.currentWidget;
+      const filePath = args?.filePath;
+
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
+
       if (!current) {
         return;
       }
@@ -216,6 +285,17 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.temporalController, {
     label: trans.__('Temporal Controller'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Optional path to the .jGIS file',
+          },
+        },
+      },
+    },
     isToggled: () => {
       return tracker.currentWidget?.model.isTemporalControllerActive || false;
     },
@@ -251,8 +331,14 @@ export function addCommands(
 
       return true;
     },
-    execute: () => {
-      const current = tracker.currentWidget;
+
+    execute: (args?: { filePath?: string }) => {
+      const filePath = args?.filePath;
+
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
+
       if (!current) {
         return;
       }
@@ -268,6 +354,12 @@ export function addCommands(
    */
   commands.addCommand(CommandIDs.openLayerBrowser, {
     label: trans.__('Open Layer Browser'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -284,8 +376,14 @@ export function addCommands(
   /**
    * Source and layers
    */
-  commands.addCommand(CommandIDs.newRasterEntry, {
-    label: trans.__('New Raster Tile Layer'),
+  commands.addCommand(CommandIDs.opeNewRasterDialog, {
+    label: trans.__('Open New Raster Tile Dialog'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -305,11 +403,17 @@ export function addCommands(
       sourceType: 'RasterSource',
       layerType: 'RasterLayer',
     }),
-    ...icons.get(CommandIDs.newRasterEntry),
+    ...icons.get(CommandIDs.opeNewRasterDialog),
   });
 
-  commands.addCommand(CommandIDs.newVectorTileEntry, {
-    label: trans.__('New Vector Tile Layer'),
+  commands.addCommand(CommandIDs.openNewVectorTileDialog, {
+    label: trans.__('Open New Vector Tile Dialog'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -326,11 +430,17 @@ export function addCommands(
       sourceType: 'VectorTileSource',
       layerType: 'VectorTileLayer',
     }),
-    ...icons.get(CommandIDs.newVectorTileEntry),
+    ...icons.get(CommandIDs.openNewVectorTileDialog),
   });
 
-  commands.addCommand(CommandIDs.newGeoParquetEntry, {
-    label: trans.__('New GeoParquet Layer'),
+  commands.addCommand(CommandIDs.openNewGeoParquetDialog, {
+    label: trans.__('Open New GeoParquet Dialog'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -347,11 +457,17 @@ export function addCommands(
       sourceType: 'GeoParquetSource',
       layerType: 'VectorLayer',
     }),
-    ...icons.get(CommandIDs.newGeoParquetEntry),
+    ...icons.get(CommandIDs.openNewGeoParquetDialog),
   });
 
-  commands.addCommand(CommandIDs.newGeoJSONEntry, {
-    label: trans.__('New GeoJSON layer'),
+  commands.addCommand(CommandIDs.openNewGeoJSONDialog, {
+    label: trans.__('Open New GeoJSON Dialog'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -367,14 +483,28 @@ export function addCommands(
       sourceType: 'GeoJSONSource',
       layerType: 'VectorLayer',
     }),
-    ...icons.get(CommandIDs.newGeoJSONEntry),
+    ...icons.get(CommandIDs.openNewGeoJSONDialog),
   });
 
   //Add processing commands
   addProcessingCommands(app, commands, tracker, trans, formSchemaRegistry);
+  addProcessingCommandsFromParams({
+    app,
+    commands,
+    tracker,
+    trans,
+    formSchemaRegistry,
+    processingSchemas: Object.fromEntries(formSchemaRegistry.getSchemas()),
+  });
 
-  commands.addCommand(CommandIDs.newHillshadeEntry, {
-    label: trans.__('New Hillshade layer'),
+  commands.addCommand(CommandIDs.openNewHillshadeDialog, {
+    label: trans.__('Open New Hillshade Dialog'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -390,11 +520,17 @@ export function addCommands(
       sourceType: 'RasterDemSource',
       layerType: 'HillshadeLayer',
     }),
-    ...icons.get(CommandIDs.newHillshadeEntry),
+    ...icons.get(CommandIDs.openNewHillshadeDialog),
   });
 
-  commands.addCommand(CommandIDs.newImageEntry, {
-    label: trans.__('New Image layer'),
+  commands.addCommand(CommandIDs.openNewImageDialog, {
+    label: trans.__('Open New Image Dialog'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -420,11 +556,17 @@ export function addCommands(
       sourceType: 'ImageSource',
       layerType: 'ImageLayer',
     }),
-    ...icons.get(CommandIDs.newImageEntry),
+    ...icons.get(CommandIDs.openNewImageDialog),
   });
 
-  commands.addCommand(CommandIDs.newVideoEntry, {
-    label: trans.__('New Video layer'),
+  commands.addCommand(CommandIDs.openNewVideoDialog, {
+    label: trans.__('Open New Video Dialog'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -453,11 +595,17 @@ export function addCommands(
       sourceType: 'VideoSource',
       layerType: 'RasterLayer',
     }),
-    ...icons.get(CommandIDs.newVideoEntry),
+    ...icons.get(CommandIDs.openNewVideoDialog),
   });
 
-  commands.addCommand(CommandIDs.newGeoTiffEntry, {
-    label: trans.__('New GeoTiff layer'),
+  commands.addCommand(CommandIDs.openNewGeoTiffDialog, {
+    label: trans.__('Open New GeoTiff Dialog'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -477,11 +625,17 @@ export function addCommands(
       sourceType: 'GeoTiffSource',
       layerType: 'WebGlLayer',
     }),
-    ...icons.get(CommandIDs.newGeoTiffEntry),
+    ...icons.get(CommandIDs.openNewGeoTiffDialog),
   });
 
-  commands.addCommand(CommandIDs.newShapefileEntry, {
-    label: trans.__('New Shapefile Layer'),
+  commands.addCommand(CommandIDs.openNewShapefileDialog, {
+    label: trans.__('Open New Shapefile Dialog'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => {
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
@@ -498,7 +652,7 @@ export function addCommands(
       sourceType: 'ShapefileSource',
       layerType: 'VectorLayer',
     }),
-    ...icons.get(CommandIDs.newShapefileEntry),
+    ...icons.get(CommandIDs.openNewShapefileDialog),
   });
 
   /**
@@ -506,16 +660,98 @@ export function addCommands(
    */
   commands.addCommand(CommandIDs.renameLayer, {
     label: trans.__('Rename Layer'),
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Optional path to the .jGIS file',
+          },
+          layerId: {
+            type: 'string',
+            description: 'Optional ID of the layer to rename',
+          },
+          newName: {
+            type: 'string',
+            description: 'Optional new name for the layer',
+          },
+        },
+      },
+    },
+
+    execute: async (args?: {
+      filePath?: string;
+      layerId?: string;
+      newName?: string;
+    }) => {
+      const { filePath, layerId, newName } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      // If all args are present, use them
+      if (filePath && layerId && newName) {
+        const layer = model.sharedModel.layers[layerId];
+        if (!layer) {
+          return;
+        }
+        layer.name = newName;
+        model.sharedModel.updateLayer(layerId, layer);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       await Private.renameSelectedItem(model, 'layer');
     },
   });
 
   commands.addCommand(CommandIDs.removeLayer, {
     label: trans.__('Remove Layer'),
-    execute: () => {
-      const model = tracker.currentWidget?.model;
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Optional path to the .jGIS file',
+          },
+          layerId: {
+            type: 'string',
+            description: 'Optional ID of the layer to remove',
+          },
+        },
+      },
+    },
+
+    execute: (args?: { filePath?: string; layerId?: string }) => {
+      const { filePath, layerId } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && layerId) {
+        const exists = model.sharedModel.layers[layerId];
+        if (!exists) {
+          return;
+        }
+        model.removeLayer(layerId);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       Private.removeSelectedItems(model, 'layer', selection => {
         model?.removeLayer(selection);
       });
@@ -526,17 +762,89 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.renameGroup, {
     label: trans.__('Rename Group'),
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Optional .jGIS file path',
+          },
+          oldName: {
+            type: 'string',
+            description: 'Optional existing group name',
+          },
+          newName: {
+            type: 'string',
+            description: 'Optional new group name',
+          },
+        },
+      },
+    },
+
+    execute: async (args?: {
+      filePath?: string;
+      oldName?: string;
+      newName?: string;
+    }) => {
+      const { filePath, oldName, newName } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && oldName && newName) {
+        model.renameLayerGroup(oldName, newName);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       await Private.renameSelectedItem(model, 'group');
     },
   });
 
   commands.addCommand(CommandIDs.removeGroup, {
     label: trans.__('Remove Group'),
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
-      Private.removeSelectedItems(model, 'group', selection => {
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: {
+            type: 'string',
+            description: 'Optional .jGIS file path',
+          },
+          groupName: {
+            type: 'string',
+            description: 'Optional group name to remove',
+          },
+        },
+      },
+    },
+
+    execute: async (args?: { filePath?: string; groupName?: string }) => {
+      const { filePath, groupName } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && groupName) {
+        model.removeLayerGroup(groupName);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
+      await Private.removeSelectedItems(model, 'group', selection => {
         model?.removeLayerGroup(selection);
       });
     },
@@ -545,26 +853,104 @@ export function addCommands(
   commands.addCommand(CommandIDs.moveLayersToGroup, {
     label: args =>
       args['label'] ? (args['label'] as string) : trans.__('Move to Root'),
-    execute: args => {
-      const model = tracker.currentWidget?.model;
-      const groupName = args['label'] as string;
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          label: { type: 'string' },
+          filePath: { type: 'string' },
+          layerIds: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+          groupName: { type: 'string' },
+        },
+      },
+    },
 
-      const selectedLayers = model?.localState?.selected?.value;
+    execute: (args?: {
+      filePath?: string;
+      layerIds?: string[];
+      groupName?: string;
+      label?: string;
+    }) => {
+      const { filePath, layerIds, groupName } = args ?? {};
 
+      // Resolve model based on filePath or current widget
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && layerIds && groupName !== undefined) {
+        model.moveItemsToGroup(layerIds, groupName);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
+      const selectedLayers = model.localState?.selected?.value;
       if (!selectedLayers) {
         return;
       }
 
-      model.moveItemsToGroup(Object.keys(selectedLayers), groupName);
+      const targetGroup = args?.label as string;
+      model.moveItemsToGroup(Object.keys(selectedLayers), targetGroup);
     },
   });
 
   commands.addCommand(CommandIDs.moveLayerToNewGroup, {
     label: trans.__('Move Selected Layers to New Group'),
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
-      const selectedLayers = model?.localState?.selected?.value;
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          groupName: { type: 'string' },
+          layerIds: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+      },
+    },
 
+    execute: async (args?: {
+      filePath?: string;
+      groupName?: string;
+      layerIds?: string[];
+    }) => {
+      const { filePath, groupName, layerIds } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && groupName && layerIds) {
+        const layerMap: { [key: string]: any } = {};
+        layerIds.forEach(id => {
+          layerMap[id] = { type: 'layer', selectedNodeId: id };
+        });
+
+        const newGroup: IJGISLayerGroup = {
+          name: groupName,
+          layers: layerIds,
+        };
+
+        model.addNewLayerGroup(layerMap, newGroup);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
+      const selectedLayers = model.localState?.selected?.value;
       if (!selectedLayers) {
         return;
       }
@@ -627,16 +1013,89 @@ export function addCommands(
    */
   commands.addCommand(CommandIDs.renameSource, {
     label: trans.__('Rename Source'),
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          sourceId: { type: 'string' },
+          newName: { type: 'string' },
+        },
+      },
+    },
+
+    execute: async (args?: {
+      filePath?: string;
+      sourceId?: string;
+      newName?: string;
+    }) => {
+      const { filePath, sourceId, newName } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && sourceId && newName) {
+        const source = model.getSource(sourceId);
+        if (!source) {
+          console.warn(`Source with ID ${sourceId} not found`);
+          return;
+        }
+
+        source.name = newName;
+        model.sharedModel.updateSource(sourceId, source);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       await Private.renameSelectedItem(model, 'source');
     },
   });
 
   commands.addCommand(CommandIDs.removeSource, {
     label: trans.__('Remove Source'),
-    execute: () => {
-      const model = tracker.currentWidget?.model;
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          sourceId: { type: 'string' },
+        },
+      },
+    },
+
+    execute: (args?: { filePath?: string; sourceId?: string }) => {
+      const { filePath, sourceId } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable) {
+        return;
+      }
+
+      // ---- PARAMETER MODE ----
+      if (filePath && sourceId) {
+        const layersUsingSource = model.getLayersBySource(sourceId);
+        if (layersUsingSource.length > 0) {
+          showErrorMessage(
+            'Remove source error',
+            'The source is used by a layer.',
+          );
+          return;
+        }
+
+        model.sharedModel.removeSource(sourceId);
+        return;
+      }
+
+      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
       Private.removeSelectedItems(model, 'source', selection => {
         if (!(model?.getLayersBySource(selection).length ?? true)) {
           model?.sharedModel.removeSource(selection);
@@ -653,6 +1112,12 @@ export function addCommands(
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
@@ -671,8 +1136,15 @@ export function addCommands(
       commands.notifyCommandChanged(CommandIDs.toggleConsole);
     },
   });
+
   commands.addCommand(CommandIDs.executeConsole, {
     label: trans.__('Execute console'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
@@ -681,8 +1153,15 @@ export function addCommands(
     },
     execute: () => Private.executeConsole(tracker),
   });
+
   commands.addCommand(CommandIDs.removeConsole, {
     label: trans.__('Remove console'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     isEnabled: () => {
       return tracker.currentWidget
@@ -694,6 +1173,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.invokeCompleter, {
     label: trans.__('Display the completion helper.'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     execute: () => {
       const currentWidget = tracker.currentWidget;
@@ -713,6 +1198,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.selectCompleter, {
     label: trans.__('Select the completion suggestion.'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isVisible: () => tracker.currentWidget instanceof JupyterGISDocumentWidget,
     execute: () => {
       const currentWidget = tracker.currentWidget;
@@ -732,32 +1223,118 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.zoomToLayer, {
     label: trans.__('Zoom to Layer'),
-    execute: () => {
-      const currentWidget = tracker.currentWidget;
-      if (!currentWidget || !completionProviderManager) {
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          layerId: { type: 'string' },
+        },
+      },
+    },
+
+    execute: (args?: { filePath?: string; layerId?: string }) => {
+      const { filePath, layerId } = args ?? {};
+
+      // Determine model from provided file path or fallback to current widget
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
+
+      if (!current || !current.model.sharedModel.editable) {
         return;
       }
-      const model = tracker.currentWidget.model;
-      const selectedItems = model.localState?.selected.value;
 
+      const model = current.model;
+
+      // ----- PARAMETER MODE -----
+      if (filePath && layerId) {
+        console.log(`Zooming to layer: ${layerId}`);
+        model.centerOnPosition(layerId);
+        return;
+      }
+
+      // ----- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR -----
+      const selectedItems = model.localState?.selected?.value;
       if (!selectedItems) {
         return;
       }
 
-      const layerId = Object.keys(selectedItems)[0];
-      model.centerOnPosition(layerId);
+      const selLayerId = Object.keys(selectedItems)[0];
+      console.log('zooming');
+      model.centerOnPosition(selLayerId);
     },
   });
 
   commands.addCommand(CommandIDs.downloadGeoJSON, {
     label: trans.__('Download as GeoJSON'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          layerId: { type: 'string' },
+          exportFileName: { type: 'string' },
+        },
+      },
+    },
     isEnabled: () => {
       const selectedLayer = getSingleSelectedLayer(tracker);
       return selectedLayer
         ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
         : false;
     },
-    execute: async () => {
+
+    execute: async (args?: {
+      filePath?: string;
+      layerId?: string;
+      exportFileName?: string;
+    }) => {
+      const { filePath, layerId, exportFileName } = args ?? {};
+
+      // ----- PARAMETER MODE -----
+      if (filePath && layerId && exportFileName) {
+        const current = tracker.find(w => w.model.filePath === filePath);
+
+        if (!current || !current.model.sharedModel.editable) {
+          console.warn('Invalid or non-editable document');
+          return;
+        }
+
+        const model = current.model;
+        const layer = model.getLayer(layerId);
+
+        if (!layer || !['VectorLayer', 'ShapefileLayer'].includes(layer.type)) {
+          console.warn('Layer type not supported for GeoJSON export');
+          return;
+        }
+
+        const sources = model.sharedModel.sources ?? {};
+        const sourceId = layer.parameters?.source;
+        const source = sources[sourceId];
+        if (!source) {
+          console.warn('Source not found for selected layer');
+          return;
+        }
+
+        const geojsonString = await getGeoJSONDataFromLayerSource(
+          source,
+          model,
+        );
+        if (!geojsonString) {
+          console.warn('Failed to generate GeoJSON data');
+          return;
+        }
+
+        downloadFile(
+          geojsonString,
+          `${exportFileName}.geojson`,
+          'application/geo+json',
+        );
+        return;
+      }
+
+      // ----- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR -----
       const selectedLayer = getSingleSelectedLayer(tracker);
       if (!selectedLayer) {
         return;
@@ -792,7 +1369,7 @@ export function addCommands(
         return;
       }
 
-      const exportFileName = formValues.exportFileName;
+      const outName = formValues.exportFileName;
       const sourceId = selectedLayer.parameters.source;
       const source = sources[sourceId];
 
@@ -801,17 +1378,62 @@ export function addCommands(
         return;
       }
 
-      downloadFile(
-        geojsonString,
-        `${exportFileName}.geojson`,
-        'application/geo+json',
-      );
+      downloadFile(geojsonString, `${outName}.geojson`, 'application/geo+json');
     },
   });
 
   commands.addCommand(CommandIDs.getGeolocation, {
     label: trans.__('Center on Geolocation'),
-    execute: async () => {
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+        },
+      },
+    },
+
+    execute: async (args?: { filePath?: string }) => {
+      const { filePath } = args ?? {};
+
+      // ----- PARAMETER MODE -----
+      if (filePath) {
+        const current = tracker.find(w => w.model.filePath === filePath);
+        if (!current) {
+          console.warn('No document found for provided filePath');
+          return;
+        }
+
+        const viewModel = current.model;
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        };
+
+        const success = (pos: GeolocationPosition) => {
+          const location: Coordinate = fromLonLat([
+            pos.coords.longitude,
+            pos.coords.latitude,
+          ]);
+
+          const jgisLocation: JgisCoordinates = {
+            x: location[0],
+            y: location[1],
+          };
+
+          viewModel.geolocationChanged.emit(jgisLocation);
+        };
+
+        const error = (err: GeolocationPositionError) => {
+          console.warn(`Geolocation error (${err.code}): ${err.message}`);
+        };
+
+        navigator.geolocation.getCurrentPosition(success, error, options);
+        return;
+      }
+
+      // ----- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR -----
       const viewModel = tracker.currentWidget?.model;
       const options = {
         enableHighAccuracy: true,
@@ -842,6 +1464,12 @@ export function addCommands(
   // Panel visibility commands
   commands.addCommand(CommandIDs.toggleLeftPanel, {
     label: trans.__('Toggle Left Panel'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
@@ -869,6 +1497,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.toggleRightPanel, {
     label: trans.__('Toggle Right Panel'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () => {
       const current = tracker.currentWidget;
@@ -897,6 +1531,12 @@ export function addCommands(
   // Left panel tabs
   commands.addCommand(CommandIDs.showLayersTab, {
     label: trans.__('Show Layers Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget
@@ -919,6 +1559,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showStacBrowserTab, {
     label: trans.__('Show STAC Browser Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget
@@ -941,6 +1587,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showFiltersTab, {
     label: trans.__('Show Filters Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget
@@ -964,6 +1616,12 @@ export function addCommands(
   // Right panel tabs
   commands.addCommand(CommandIDs.showObjectPropertiesTab, {
     label: trans.__('Show Object Properties Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget
@@ -986,6 +1644,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showAnnotationsTab, {
     label: trans.__('Show Annotations Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget
@@ -1008,6 +1672,12 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.showIdentifyPanelTab, {
     label: trans.__('Show Identify Panel Tab'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
     isEnabled: () => Boolean(tracker.currentWidget),
     isToggled: () =>
       tracker.currentWidget
