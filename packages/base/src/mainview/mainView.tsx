@@ -57,7 +57,19 @@ import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
 import { Geometry, Point } from 'ol/geom';
-import { DragAndDrop, Select } from 'ol/interaction';
+import {
+  DragAndDrop,
+  DragPan,
+  DragRotate,
+  DragZoom,
+  KeyboardPan,
+  KeyboardZoom,
+  MouseWheelZoom,
+  PinchRotate,
+  PinchZoom,
+  DoubleClickZoom,
+  Select,
+} from 'ol/interaction';
 import {
   Heatmap as HeatmapLayer,
   Image as ImageLayer,
@@ -104,8 +116,12 @@ import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
 import { FollowIndicator } from './FollowIndicator';
 import TemporalSlider from './TemporalSlider';
 import { MainViewModel } from './mainviewmodel';
+import { hexToRgb } from '../dialogs/symbology/colorRampUtils';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
+import StoryViewerPanel, {
+  IStoryViewerPanelHandle,
+} from '../panelview/story-maps/StoryViewerPanel';
 
 type OlLayerTypes =
   | TileLayer
@@ -137,6 +153,7 @@ interface IStates {
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
+  isSpectaPresentation: boolean;
 }
 
 export class MainView extends React.Component<IProps, IStates> {
@@ -233,6 +250,7 @@ export class MainView extends React.Component<IProps, IStates> {
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
+      isSpectaPresentation: false,
     };
 
     this._sources = [];
@@ -254,10 +272,20 @@ export class MainView extends React.Component<IProps, IStates> {
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(center, zoom);
-    this.addContextMenu();
     this._mainViewModel.initSignal();
     if (window.jupytergisMaps !== undefined && this._documentPath) {
       window.jupytergisMaps[this._documentPath] = this._Map;
+    }
+  }
+
+  componentDidUpdate(prevProps: IProps, prevState: IStates): void {
+    // Run setup when isSpectaPresentation changes from false/undefined to true
+    if (
+      this.state.isSpectaPresentation &&
+      !this._isSpectaPresentationInitialized
+    ) {
+      this._setupSpectaMode();
+      this._isSpectaPresentationInitialized = true;
     }
   }
 
@@ -283,16 +311,32 @@ export class MainView extends React.Component<IProps, IStates> {
       this,
     );
 
+    // Clean up story scroll listener
+    this._cleanupStoryScrollListener();
+
     this._mainViewModel.dispose();
   }
 
   async generateMap(center: number[], zoom: number): Promise<void> {
+    const scaleLine = new ScaleLine({
+      target: this.controlsToolbarRef.current || undefined,
+    });
+
+    const fullScreen = new FullScreen({
+      target: this.controlsToolbarRef.current || undefined,
+    });
+
+    this._zoomControl = new Zoom({
+      target: this.controlsToolbarRef.current || undefined,
+    });
+
+    const controls: Control[] = [scaleLine, fullScreen];
+
+    if (this._model.jgisSettings.zoomButtonsEnabled) {
+      controls.push(this._zoomControl);
+    }
+
     if (this.divRef.current) {
-      const controls: Control[] = [new ScaleLine(), new FullScreen()];
-      if (this._model.jgisSettings.zoomButtonsEnabled) {
-        this._zoomControl = new Zoom();
-        controls.push(this._zoomControl);
-      }
       this._Map = new OlMap({
         target: this.divRef.current,
         keyboardEventTarget: document,
@@ -1767,6 +1811,21 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _onSharedOptionsChanged(): void {
+    // ! would prefer a model ready signal or something, this feels hacky
+    const enableSpectaPresentation = this._model.isSpectaMode();
+
+    // Handle initialization based on specta presentation state
+    if (!this._isSpectaPresentationInitialized) {
+      if (enableSpectaPresentation) {
+        // _setupSpectaMode will be called in componentDidUpdate when state changes
+        this.setState(old => ({ ...old, isSpectaPresentation: true }));
+      } else {
+        // Add context menu when not in specta mode
+        this.addContextMenu();
+        this._isSpectaPresentationInitialized = true;
+      }
+    }
+
     if (!this._isPositionInitialized) {
       const options = this._model.getOptions();
       this.updateOptions(options);
@@ -1787,7 +1846,9 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     if (enabled && !this._zoomControl) {
-      this._zoomControl = new Zoom();
+      this._zoomControl = new Zoom({
+        target: this.controlsToolbarRef.current || undefined,
+      });
       this._Map.addControl(this._zoomControl);
     }
   }
@@ -1996,6 +2057,182 @@ export class MainView extends React.Component<IProps, IStates> {
       if (window.jupytergisMaps !== undefined) {
         window.jupytergisMaps[this._documentPath] = this._Map;
       }
+    }
+  };
+
+  /**
+   * Handler for when story maps change in the model.
+   * Updates specta state and presentation colors when story data becomes available.
+   */
+  private _setupSpectaMode = (): void => {
+    this._removeAllInteractions();
+
+    this._setupStoryScrollListener();
+
+    // Update colors CSS variables with colors from story
+    this._updateSpectaPresentationColors();
+  };
+
+  private _removeAllInteractions = (): void => {
+    // Remove all default interactions
+    const interactions = this._Map.getInteractions();
+    const interactionArray = interactions.getArray();
+
+    // Remove each interaction type
+    const interactionsToRemove = [
+      DragPan,
+      DragRotate,
+      DragZoom,
+      KeyboardPan,
+      KeyboardZoom,
+      MouseWheelZoom,
+      PinchRotate,
+      PinchZoom,
+      DoubleClickZoom,
+      DragAndDrop,
+      Select,
+    ];
+
+    this._zoomControl && this._Map.removeControl(this._zoomControl);
+
+    interactionsToRemove.forEach(InteractionClass => {
+      const interaction = interactionArray.find(
+        interaction => interaction instanceof InteractionClass,
+      );
+      if (interaction) {
+        this._Map.removeInteraction(interaction);
+      }
+    });
+  };
+
+  private _setupStoryScrollListener = (): void => {
+    const segmentNavigationThrottle = 750; // Minimum time between segment changes (ms)
+    const SCROLL_EDGE_THRESHOLD = 0; // Pixels from top/bottom to trigger segment change
+
+    // Create throttled functions that call the current panel handle dynamically
+    const throttledHandleNext = throttle(() => {
+      const panelHandle = this.storyViewerPanelRef.current;
+      panelHandle?.handleNext();
+    }, segmentNavigationThrottle);
+
+    const throttledHandlePrev = throttle(() => {
+      const panelHandle = this.storyViewerPanelRef.current;
+      panelHandle?.handlePrev();
+    }, segmentNavigationThrottle);
+
+    const handleScroll = (e: Event) => {
+      const currentPanelHandle = this.storyViewerPanelRef.current;
+      if (!currentPanelHandle || !currentPanelHandle.canNavigate) {
+        return;
+      }
+
+      const wheelEvent = e as WheelEvent;
+      const target = wheelEvent.target as HTMLElement;
+
+      // Find the story viewer panel
+      const storyViewerPanel = document.querySelector(
+        '.jgis-story-viewer-panel',
+      ) as HTMLElement;
+
+      // If no panel found, change segments normally
+      if (!storyViewerPanel) {
+        wheelEvent.preventDefault();
+        wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
+        return;
+      }
+
+      const hasOverflow =
+        storyViewerPanel.scrollHeight > storyViewerPanel.clientHeight;
+
+      // If panel has no overflow, change segments normally
+      if (!hasOverflow) {
+        wheelEvent.preventDefault();
+        wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
+        return;
+      }
+
+      // Panel has overflow - handle scroll forwarding and edge detection
+      const scrollTop = storyViewerPanel.scrollTop;
+      const scrollHeight = storyViewerPanel.scrollHeight;
+      const clientHeight = storyViewerPanel.clientHeight;
+      const isAtBottom =
+        scrollTop + clientHeight >= scrollHeight - SCROLL_EDGE_THRESHOLD;
+      const isAtTop = scrollTop <= SCROLL_EDGE_THRESHOLD;
+      const isScrollingDown = wheelEvent.deltaY > 0;
+      const isScrollingUp = wheelEvent.deltaY < 0;
+
+      // At edges: change segments
+      if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
+        wheelEvent.preventDefault();
+        isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
+        return;
+      }
+
+      // If scrolling inside the panel, let it scroll naturally
+      if (target.closest('.jgis-story-viewer-panel')) {
+        return;
+      }
+
+      // Scrolling outside the panel: forward scroll to panel (no throttling for smooth scrolling)
+      wheelEvent.preventDefault();
+      const newScrollTop = Math.max(
+        0,
+        Math.min(scrollHeight - clientHeight, scrollTop + wheelEvent.deltaY),
+      );
+      storyViewerPanel.scrollTop = newScrollTop;
+    };
+
+    this._storyScrollHandler = handleScroll;
+
+    // Attach wheel event listener to the main container
+    const containerElement = document.querySelector('.jGIS-Mainview-Container');
+    if (containerElement) {
+      containerElement.addEventListener('wheel', handleScroll, {
+        passive: false,
+      });
+    }
+  };
+
+  private _cleanupStoryScrollListener = (): void => {
+    if (this._storyScrollHandler) {
+      const containerElement = document.querySelector(
+        '.jGIS-Mainview-Container',
+      );
+      if (containerElement) {
+        containerElement.removeEventListener('wheel', this._storyScrollHandler);
+      }
+      this._storyScrollHandler = null;
+    }
+  };
+
+  private _updateSpectaPresentationColors = (): void => {
+    // Try ref first, fallback to querySelector if ref not available yet
+    const container =
+      this.spectaContainerRef.current ||
+      (this.divRef.current?.querySelector(
+        '.jgis-specta-story-panel-container',
+      ) as HTMLDivElement);
+
+    if (!container) {
+      return;
+    }
+
+    const story = this._model.getSelectedStory().story;
+    const bgColor = story?.presentaionBgColor;
+    const textColor = story?.presentaionTextColor;
+
+    // Set background color
+    if (bgColor) {
+      const rgb = hexToRgb(bgColor);
+      container.style.setProperty(
+        '--jgis-specta-bg-color',
+        `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`,
+      );
+    }
+
+    // Set text color
+    if (textColor) {
+      container.style.setProperty('--jgis-specta-text-color', textColor);
     }
   };
 
@@ -2505,22 +2742,43 @@ export class MainView extends React.Component<IProps, IStates> {
               }}
             >
               <div className="jgis-panels-wrapper">
-                {this._state && (
-                  <LeftPanel
-                    model={this._model}
-                    commands={this._mainViewModel.commands}
-                    state={this._state}
-                  ></LeftPanel>
-                )}
-                {this._formSchemaRegistry && this._annotationModel && (
-                  <RightPanel
-                    model={this._model}
-                    commands={this._mainViewModel.commands}
-                    formSchemaRegistry={this._formSchemaRegistry}
-                    annotationModel={this._annotationModel}
-                  ></RightPanel>
+                {!this.state.isSpectaPresentation ? (
+                  <>
+                    {this._state && (
+                      <LeftPanel
+                        model={this._model}
+                        commands={this._mainViewModel.commands}
+                        state={this._state}
+                      />
+                    )}
+                    {this._formSchemaRegistry && this._annotationModel && (
+                      <RightPanel
+                        model={this._model}
+                        commands={this._mainViewModel.commands}
+                        formSchemaRegistry={this._formSchemaRegistry}
+                        annotationModel={this._annotationModel}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
+                    <div
+                      ref={this.spectaContainerRef}
+                      className="jgis-specta-story-panel-container"
+                    >
+                      <StoryViewerPanel
+                        ref={this.storyViewerPanelRef}
+                        model={this._model}
+                        isSpecta={this.state.isSpectaPresentation}
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
+              <div
+                ref={this.controlsToolbarRef}
+                className="jgis-controls-toolbar"
+              ></div>
             </div>
           </div>
           <StatusBar
@@ -2538,6 +2796,9 @@ export class MainView extends React.Component<IProps, IStates> {
   private _commands: CommandRegistry;
   private _isPositionInitialized = false;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
+  private controlsToolbarRef = React.createRef<HTMLDivElement>();
+  private spectaContainerRef = React.createRef<HTMLDivElement>();
+  private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
   private _Map: OlMap;
   private _zoomControl?: Zoom;
   private _model: IJupyterGISModel;
@@ -2555,4 +2816,6 @@ export class MainView extends React.Component<IProps, IStates> {
   private _formSchemaRegistry?: IJGISFormSchemaRegistry;
   private _annotationModel?: IAnnotationModel;
   private _featurePropertyCache: Map<string | number, any> = new Map();
+  private _isSpectaPresentationInitialized = false;
+  private _storyScrollHandler: ((e: Event) => void) | null = null;
 }

@@ -29,7 +29,7 @@ class YJGIS(YBaseDoc):
         """
         layers = self._ylayers.to_py()
         sources = self._ysources.to_py()
-        stories_map = self._ystories.to_py()
+        stories = self._ystories.to_py()
         options = self._yoptions.to_py()
         meta = self._ymetadata.to_py()
         layers_tree = self._ylayerTree.to_py()
@@ -38,7 +38,7 @@ class YJGIS(YBaseDoc):
                 schemaVersion=SCHEMA_VERSION,
                 layers=layers,
                 sources=sources,
-                stories=stories_map,
+                stories=stories,
                 options=options,
                 layerTree=layers_tree,
                 metadata=meta,

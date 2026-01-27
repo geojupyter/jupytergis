@@ -3,21 +3,42 @@ import {
   IJGISStoryMap,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import Markdown from 'react-markdown';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
-import StoryNavBar from './StoryNavBar';
+import StoryContentSection from './components/StoryContentSection';
+import StoryImageSection from './components/StoryImageSection';
+import StorySubtitleSection from './components/StorySubtitleSection';
+import StoryTitleSection from './components/StoryTitleSection';
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
+  isSpecta: boolean;
 }
 
-function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
+export interface IStoryViewerPanelHandle {
+  handlePrev: () => void;
+  handleNext: () => void;
+  canNavigate: boolean;
+}
+
+const StoryViewerPanel = forwardRef<
+  IStoryViewerPanelHandle,
+  IStoryViewerPanelProps
+>(({ model, isSpecta }, ref) => {
   const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(0);
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
     model.getSelectedStory().story ?? null,
   );
   const [imageLoaded, setImageLoaded] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Derive story segments from story data
   const storySegments = useMemo(() => {
@@ -178,79 +199,93 @@ function StoryViewerPanel({ model }: IStoryViewerPanelProps) {
     };
   }, [model, storyData]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (currentIndexDisplayed > 0) {
       const newIndex = currentIndexDisplayed - 1;
       setCurrentIndexDisplayed(newIndex);
     }
-  };
+  }, [currentIndexDisplayed]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (currentIndexDisplayed < storySegments.length - 1) {
       const newIndex = currentIndexDisplayed + 1;
       setCurrentIndexDisplayed(newIndex);
     }
-  };
+  }, [currentIndexDisplayed, storySegments.length]);
+
+  // Expose methods via ref for parent component to use
+  useImperativeHandle(
+    ref,
+    () => ({
+      handlePrev,
+      handleNext,
+      canNavigate: isSpecta,
+    }),
+    [handlePrev, handleNext, storyData, isSpecta],
+  );
 
   if (!storyData || storyData?.storySegments?.length === 0) {
     return (
-      <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
+      <div style={{ padding: '1rem' }}>
         <p>No Segments available. Add one using the Add Layer menu.</p>
       </div>
     );
   }
 
+  const navProps = {
+    onPrev: handlePrev,
+    onNext: handleNext,
+    hasPrev: currentIndexDisplayed > 0,
+    hasNext: currentIndexDisplayed < storySegments.length - 1,
+  };
+
+  // Get transition time from current segment, default to 0.3s
+  const transitionTime = activeSlide?.transition?.time ?? 0.3;
+
   return (
-    <div className="jgis-story-viewer-panel">
-      {/* Image container with title overlay */}
-      {activeSlide?.content?.image && imageLoaded ? (
-        <div className="jgis-story-viewer-image-container">
-          <img
-            src={activeSlide.content.image}
-            alt={activeSlide.content.title || 'Story map image'}
-            className="jgis-story-viewer-image"
+    <div
+      ref={panelRef}
+      className={`jgis-story-viewer-panel ${isSpecta ? 'jgis-story-viewer-panel-specta-mod' : ''}`}
+    >
+      <div
+        key={currentIndexDisplayed}
+        className="jgis-story-segment-container"
+        style={{
+          animationDuration: `${transitionTime}s`,
+        }}
+      >
+        <h1 className="jgis-story-viewer-title">
+          {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
+        </h1>
+        {activeSlide?.content?.image && imageLoaded ? (
+          <StoryImageSection
+            imageUrl={activeSlide.content.image}
+            imageLoaded={imageLoaded}
+            layerName={layerName ?? ''}
+            slideNumber={currentIndexDisplayed}
+            isSpecta={isSpecta}
+            storyType={storyData.storyType ?? 'guided'}
+            {...navProps}
           />
-          <h1 className="jgis-story-viewer-image-title">
-            {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
-          </h1>
-          {/* if guided -> nav buttons */}
-          {storyData.storyType === 'guided' && (
-            <div className="jgis-story-viewer-nav-container">
-              <StoryNavBar
-                onPrev={handlePrev}
-                onNext={handleNext}
-                hasPrev={currentIndexDisplayed > 0}
-                hasNext={currentIndexDisplayed < storySegments.length - 1}
-              />
-            </div>
-          )}
-        </div>
-      ) : (
-        <>
-          <h1 className="jgis-story-viewer-title">{storyData.title}</h1>
-          {/* if guided -> nav buttons */}
-          {storyData.storyType === 'guided' && (
-            <StoryNavBar
-              onPrev={handlePrev}
-              onNext={handleNext}
-              hasPrev={currentIndexDisplayed > 0}
-              hasNext={currentIndexDisplayed < storySegments.length - 1}
-            />
-          )}
-        </>
-      )}
-      <h2 className="jgis-story-viewer-subtitle">
-        {activeSlide?.content?.title
-          ? activeSlide.content.title
-          : 'Slide Title'}
-      </h2>
-      {activeSlide?.content?.markdown && (
-        <div className="jgis-story-viewer-content">
-          <Markdown>{activeSlide.content.markdown}</Markdown>
-        </div>
-      )}
+        ) : (
+          <StoryTitleSection
+            title={storyData.title ?? ''}
+            isSpecta={isSpecta}
+            storyType={storyData.storyType ?? 'guided'}
+            {...navProps}
+          />
+        )}
+        <StorySubtitleSection
+          title={activeSlide?.content?.title ?? ''}
+          isSpecta={isSpecta}
+          {...navProps}
+        />
+        <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
+      </div>
     </div>
   );
-}
+});
+
+StoryViewerPanel.displayName = 'StoryViewerPanel';
 
 export default StoryViewerPanel;

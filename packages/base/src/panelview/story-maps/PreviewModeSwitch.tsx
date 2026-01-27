@@ -17,7 +17,8 @@ export function PreviewModeSwitch({
         display: 'flex',
         alignItems: 'center',
         gap: '0.5rem',
-        padding: '1rem 1rem 1rem 0',
+        padding: '1rem',
+        paddingBottom: '0',
       }}
     >
       <label htmlFor="preview-mode-switch" style={{ fontSize: '0.875rem' }}>

@@ -19,26 +19,31 @@ interface IStoryPanelProps {
 const storyMapSchema: IDict = deepCopy(jgisSchema.definitions.jGISStoryMap);
 
 const AddStorySegmentButton = ({ model, commands }: IStoryPanelProps) => (
-  <Button onClick={() => commands.execute(CommandIDs.addStorySegment)}>
-    <FontAwesomeIcon icon={faLink} /> Add Story Segment
-  </Button>
+  <div style={{ display: 'flex', justifyContent: 'center' }}>
+    <Button onClick={() => commands.execute(CommandIDs.addStorySegment)}>
+      <FontAwesomeIcon icon={faLink} /> Add Story Segment
+    </Button>
+  </div>
 );
 
 export function StoryEditorPanel({ model, commands }: IStoryPanelProps) {
-  const { storySegmentId, story } = useMemo(() => {
+  const { storyId, story } = useMemo(() => {
     return model.getSelectedStory();
   }, [model, model.sharedModel.stories]);
 
   const syncStoryData = (properties: IDict) => {
-    model.sharedModel.updateStoryMap(
-      storySegmentId,
-      properties as IJGISStoryMap,
-    );
+    // Preserve storySegments when updating, since the form removes it from the UI
+    const updatedStory: IJGISStoryMap = {
+      ...story,
+      ...properties,
+      storySegments: story?.storySegments ?? [],
+    };
+    model.sharedModel.updateStoryMap(storyId, updatedStory);
   };
 
   if (!story) {
     return (
-      <div>
+      <div style={{ padding: '1rem' }}>
         <p>No Story Map available.</p>
         <p>
           Add a Story Segment from the Add Layer menu. A segment captures the
@@ -51,7 +56,7 @@ export function StoryEditorPanel({ model, commands }: IStoryPanelProps) {
   }
 
   return (
-    <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
+    <div className="jgis-story-editor-panel">
       <StoryEditorPropertiesForm
         formContext="update"
         sourceData={story}

@@ -8,11 +8,11 @@ import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 
 import { AnnotationsPanel } from './annotationPanel';
-import { IdentifyPanelComponent } from './components/identify-panel/IdentifyPanel';
-import { PreviewModeSwitch } from './components/story-maps/PreviewModeSwitch';
-import StoryEditorPanel from './components/story-maps/StoryEditorPanel';
-import StoryViewerPanel from './components/story-maps/StoryViewerPanel';
+import { IdentifyPanelComponent } from './identify-panel/IdentifyPanel';
 import { ObjectPropertiesReact } from './objectproperties';
+import { PreviewModeSwitch } from './story-maps/PreviewModeSwitch';
+import StoryEditorPanel from './story-maps/StoryEditorPanel';
+import StoryViewerPanel from './story-maps/StoryViewerPanel';
 import {
   PanelTabs,
   TabsContent,
@@ -165,23 +165,18 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             className="jgis-panel-tab-content"
             style={{ paddingTop: 0 }}
           >
-            <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
-              {/* Only show switch when NOT in presentation mode */}
-              {!storyMapPresentationMode && (
-                <PreviewModeSwitch
-                  checked={!editorMode}
-                  onCheckedChange={toggleEditor}
-                />
-              )}
-              {showEditor ? (
-                <StoryEditorPanel
-                  model={props.model}
-                  commands={props.commands}
-                />
-              ) : (
-                <StoryViewerPanel model={props.model} />
-              )}
-            </div>
+            {/* Only show switch when NOT in presentation mode */}
+            {!storyMapPresentationMode && (
+              <PreviewModeSwitch
+                checked={!editorMode}
+                onCheckedChange={toggleEditor}
+              />
+            )}
+            {showEditor ? (
+              <StoryEditorPanel model={props.model} commands={props.commands} />
+            ) : (
+              <StoryViewerPanel model={props.model} isSpecta={false} />
+            )}
           </TabsContent>
         )}
 

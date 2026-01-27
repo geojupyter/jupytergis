@@ -334,6 +334,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this.sharedModel.sources = jsonData.sources ?? {};
       this.sharedModel.layers = jsonData.layers ?? {};
       this.sharedModel.layerTree = jsonData.layerTree ?? [];
+      this.sharedModel.stories = jsonData.stories ?? {};
       this.sharedModel.options = jsonData.options ?? {
         latitude: 0,
         longitude: 0,
@@ -606,18 +607,32 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
+   * Check if the application is running in Specta mode.
+   * Specta mode is enabled when the URL contains 'specta' AND the model has stories.
+   *
+   * @returns True if running in Specta mode
+   */
+  isSpectaMode(): boolean {
+    const hasStories = Object.keys(this.sharedModel.stories).length > 0;
+    const isSpecta = !!document.querySelector('meta[name="specta-config"]');
+    const guidedMode = this.getSelectedStory().story?.storyType === 'guided';
+
+    return isSpecta && hasStories && guidedMode;
+  }
+
+  /**
    * Placeholder in case we eventually want to support multiple stories
    * @returns First/only story
    */
   getSelectedStory(): {
-    storySegmentId: string;
+    storyId: string;
     story: IJGISStoryMap | undefined;
   } {
     const stories = this.sharedModel.stories;
     const storyId = Object.keys(stories)[0];
 
     return {
-      storySegmentId: storyId,
+      storyId: storyId,
       story: this.sharedModel.getStoryMap(storyId),
     };
   }
@@ -626,15 +641,15 @@ export class JupyterGISModel implements IJupyterGISModel {
    * Adds a story segment from the current map view
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
    */
-  addStorySegment(): { storySegmentId: string; storyMapId: string } | null {
+  addStorySegment(): { storySegmentId: string; storyId: string } | null {
     const { zoom, extent } = this.getOptions();
+    const { storyId } = this.getSelectedStory();
 
     if (!zoom || !extent) {
       console.warn('No extent or zoom found');
       return null;
     }
 
-    const storyMapId = UUID.uuid4();
     const newStorySegmentId = UUID.uuid4();
 
     const layerParams: IStorySegmentLayer = {
@@ -651,20 +666,20 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this.addLayer(newStorySegmentId, layerModel);
 
-    // check for stories
-    const isStoriesExist = Object.keys(this.sharedModel.stories).length !== 0;
+    // if story doesn't exist then add one
+    if (!storyId) {
+      const storyId = UUID.uuid4();
 
-    // if not stories, then just add simple
-    if (!isStoriesExist) {
       const title = 'New Story';
       const storyType = 'guided';
       const storySegments = [newStorySegmentId];
 
       const storyMap: IJGISStoryMap = { title, storyType, storySegments };
 
-      this.sharedModel.addStoryMap(storyMapId, storyMap);
+      this.sharedModel.addStoryMap(storyId, storyMap);
+      return { storySegmentId: newStorySegmentId, storyId };
     } else {
-      // else need to update stories
+      // else need to update story
       const { story } = this.getSelectedStory();
       if (!story) {
         console.warn('No story found, something went wrong');
@@ -675,10 +690,9 @@ export class JupyterGISModel implements IJupyterGISModel {
         storySegments: [...(story.storySegments ?? []), newStorySegmentId],
       };
 
-      this.sharedModel.updateStoryMap(storyMapId, newStory);
+      this.sharedModel.updateStoryMap(storyId, newStory);
+      return { storySegmentId: newStorySegmentId, storyId };
     }
-
-    return { storySegmentId: newStorySegmentId, storyMapId };
   }
 
   /**
