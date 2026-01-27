@@ -622,19 +622,42 @@ export const loadFile = async (fileInfo: {
 
     switch (type) {
       case 'GeoJSONSource': {
-        return typeof file.content === 'string'
-          ? JSON.parse(file.content)
-          : file.content;
+        switch (file.format) {
+          case 'base64': {
+            return JSON.parse(atob(file.content));
+          }
+          case 'text': {
+            return JSON.parse(file.content);
+          }
+          case 'json': {
+            return file.content;
+          }
+        }
+        break;
       }
 
       case 'ShapefileSource': {
-        const arrayBuffer = await stringToArrayBuffer(file.content as string);
-        const geojson = await shp(arrayBuffer);
+        let buffer: ArrayBuffer;
+        switch (file.format) {
+          case 'base64': {
+            buffer = await base64ToArrayBuffer(file.content);
+            break;
+          }
+          case 'text': {
+            buffer = await stringToArrayBuffer(file.content);
+            break;
+          }
+          case 'json':
+          default: {
+            throw new Error(`Invalid Shapefile format: ${file.format}.`);
+          }
+        }
+        const geojson = await shp(buffer);
         return geojson;
       }
 
       case 'ImageSource': {
-        if (typeof file.content === 'string') {
+        if (file.format === 'base64') {
           const mimeType = getMimeType(filepath);
           if (!mimeType.startsWith('image/')) {
             throw new Error(`Invalid image file. MIME type: ${mimeType}`);
@@ -663,15 +686,25 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoParquetSource': {
-        if (typeof file.content === 'string') {
-          const { toGeoJson } = await import('geoparquet');
-
-          const arrayBuffer = await stringToArrayBuffer(file.content);
-
-          return await toGeoJson({ file: arrayBuffer, compressors });
-        } else {
-          throw new Error('Invalid file format for GeoParquet content.');
+        let buffer: ArrayBuffer;
+        switch (file.format) {
+          case 'base64': {
+            buffer = await base64ToArrayBuffer(file.content);
+            break;
+          }
+          case 'text': {
+            buffer = await stringToArrayBuffer(file.content);
+            break;
+          }
+          case 'json':
+          default: {
+            throw new Error(`Invalid Geoparquet format: ${file.format}.`);
+          }
         }
+
+        const { toGeoJson } = await import('geoparquet');
+
+        return await toGeoJson({ file: buffer, compressors });
       }
 
       default: {
@@ -884,13 +917,21 @@ export const getMimeType = (filename: string): string => {
  * @param content - File content as a base64 string.
  * @returns An ArrayBuffer.
  */
-export const stringToArrayBuffer = async (
-  content: string,
-): Promise<ArrayBuffer> => {
+const base64ToArrayBuffer = async (content: string): Promise<ArrayBuffer> => {
   const base64Response = await fetch(
     `data:application/octet-stream;base64,${content}`,
   );
   return await base64Response.arrayBuffer();
+};
+
+/**
+ * Helper to convert a raw string to ArrayBuffer.
+ *
+ * @param content - Raw string content.
+ * @returns An ArrayBuffer.
+ */
+const stringToArrayBuffer = async (content: string): Promise<ArrayBuffer> => {
+  return new TextEncoder().encode(content).buffer;
 };
 
 export const getFeatureAttributes = <T>(
