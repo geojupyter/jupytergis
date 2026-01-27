@@ -18,7 +18,7 @@ interface IStoryPanelProps {
 
 const storyMapSchema: IDict = deepCopy(jgisSchema.definitions.jGISStoryMap);
 
-const AddStorySegmentButton = ({ model }: IStoryPanelProps) => (
+const AddStorySegmentButton = ({ model, commands }: IStoryPanelProps) => (
   <div style={{ display: 'flex', justifyContent: 'center' }}>
     <Button onClick={() => commands.execute(CommandIDs.addStorySegment)}>
       <FontAwesomeIcon icon={faLink} /> Add Story Segment
