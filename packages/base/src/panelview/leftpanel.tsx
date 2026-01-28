@@ -18,6 +18,7 @@ import {
   TabsTrigger,
 } from '../shared/components/Tabs';
 import StacPanel from '../stacBrowser/components/StacPanel';
+import { CommandIDs } from '../constants';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
@@ -67,6 +68,9 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     };
     const updateLayerTree = () => {
       setLayerTree(props.model.getLayerTree() || []);
+
+      // Need to let command know when segments get populated
+      props.commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode)
     };
 
     const onSegmentAdded = (
