@@ -8,34 +8,59 @@ from typing import Any
 from urllib.parse import unquote
 from uuid import uuid4
 
-from PyQt5.QtGui import QColor
-from qgis.core import (
-    QgsApplication,
-    QgsColorRampShader,
-    QgsCoordinateReferenceSystem,
-    QgsDataSourceUri,
-    QgsFillSymbol,
-    QgsLayerTreeGroup,
-    QgsLayerTreeLayer,
-    QgsLineSymbol,
-    QgsMapLayer,
-    QgsMarkerSymbol,
-    QgsProject,
-    QgsRasterLayer,
-    QgsRasterShader,
-    QgsRectangle,
-    QgsReferencedRectangle,
-    QgsSettings,
-    QgsSingleBandPseudoColorRenderer,
-    QgsVectorLayer,
-    QgsVectorTileLayer,
-    QgsSingleSymbolRenderer,
-    QgsCategorizedSymbolRenderer,
-    QgsRendererCategory,
-    QgsGraduatedSymbolRenderer,
-    QgsRendererRange,
-    Qgis,
-)
+
+def _add_qgis_to_path():
+    """Add custom QGIS Python path if JGIS_QGIS_PATH is set.
+
+    This function only modifies sys.path if the environment variable
+    JGIS_QGIS_PATH is explicitly set.
+
+    Example:
+        export JGIS_QGIS_PATH=/usr/local/share/qgis/python
+    """
+    qgis_path = os.environ.get("JGIS_QGIS_PATH")
+
+    if qgis_path and os.path.exists(qgis_path) and qgis_path not in sys.path:
+        sys.path.append(qgis_path)
+
+
+# Add QGIS path before importing
+_add_qgis_to_path()
+
+try:
+    from qgis.core import (
+        Qgis,
+        QgsApplication,  # noqa: E402
+        QgsCategorizedSymbolRenderer,
+        QgsColorRampShader,
+        QgsCoordinateReferenceSystem,
+        QgsDataSourceUri,
+        QgsFillSymbol,
+        QgsGraduatedSymbolRenderer,
+        QgsLayerTreeGroup,
+        QgsLayerTreeLayer,
+        QgsLineSymbol,
+        QgsMapLayer,
+        QgsMarkerSymbol,
+        QgsProject,
+        QgsRasterLayer,
+        QgsRasterShader,
+        QgsRectangle,
+        QgsReferencedRectangle,
+        QgsRendererCategory,
+        QgsRendererRange,
+        QgsSettings,
+        QgsSingleBandPseudoColorRenderer,
+        QgsSingleSymbolRenderer,
+        QgsVectorLayer,
+        QgsVectorTileLayer,
+    )
+    from qgis.PyQt.QtGui import QColor  # noqa: E402
+except ImportError as e:
+    raise ImportError(
+        f"Failed to import QGIS modules: {e}. "
+        "Ensure QGIS is installed or set JGIS_QGIS_PATH to your QGIS Python path."
+    ) from e
 
 # Prevent any Qt application and event loop to spawn when
 # using the QGIS Python app

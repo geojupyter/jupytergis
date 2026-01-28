@@ -59,6 +59,11 @@ authors:
     affiliation: "QuantStack, France"
 
   # All contributors sorted alphabetically
+  - given-names: "Loïc"
+    family-names: "Bartoletti"
+    alias: "lbartoletti"
+    website: "https://lbartoletti.github.io/"
+    affiliation: "Oslandia, France"
   - given-names: "Edward"
     family-names: "Betts"
     alias: "EdwardBetts"
