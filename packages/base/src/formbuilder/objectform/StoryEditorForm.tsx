@@ -40,13 +40,19 @@ export class StoryEditorPropertiesForm extends BaseForm {
 
     // Set default values from theme CSS variables when not already in data
     const schemaProps = schema.properties as IDict | undefined;
-    if (schemaProps?.presentaionBgColor && data?.presentaionBgColor === undefined) {
+    if (
+      schemaProps?.presentaionBgColor &&
+      data?.presentaionBgColor === undefined
+    ) {
       const defaultBg = getCssVarAsColor('--jp-layout-color0');
       if (defaultBg) {
         schemaProps.presentaionBgColor.default = defaultBg;
       }
     }
-    if (schemaProps?.presentaionTextColor && data?.presentaionTextColor === undefined) {
+    if (
+      schemaProps?.presentaionTextColor &&
+      data?.presentaionTextColor === undefined
+    ) {
       const defaultText = getCssVarAsColor('--jp-ui-font-color0');
       if (defaultText) {
         schemaProps.presentaionTextColor.default = defaultText;

@@ -9,6 +9,7 @@ import { CommandRegistry } from '@lumino/commands';
 import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
 
+import { CommandIDs } from '../constants';
 import { LayersBodyComponent } from './components/layers';
 import FilterComponent from './filter-panel/Filter';
 import {
@@ -18,7 +19,6 @@ import {
   TabsTrigger,
 } from '../shared/components/Tabs';
 import StacPanel from '../stacBrowser/components/StacPanel';
-import { CommandIDs } from '../constants';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
@@ -70,7 +70,9 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
       setLayerTree(props.model.getLayerTree() || []);
 
       // Need to let command know when segments get populated
-      props.commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode)
+      props.commands.notifyCommandChanged(
+        CommandIDs.toggleStoryPresentationMode,
+      );
     };
 
     const onSegmentAdded = (
@@ -82,7 +84,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
         props.model.getClientId().toString(),
       );
 
-      setCurTab('segments')
+      setCurTab('segments');
     };
 
     props.model.settingsChanged.connect(onSettingsChanged);
