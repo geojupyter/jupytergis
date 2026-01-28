@@ -4,7 +4,7 @@ import {
   IJGISOptions,
   IJGISSource,
   IJupyterGISModel,
-  IRasterLayerGalleryEntry,
+  ILayerGalleryEntry,
   SourceType,
 } from '@jupytergis/schema';
 import { showErrorMessage } from '@jupyterlab/apputils';
@@ -15,7 +15,7 @@ import { compressors } from 'hyparquet-compressors';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
-import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
+import LAYER_GALLERY from '@/layer_gallery/layer_gallery.json';
 
 export const debounce = (
   func: CallableFunction,
@@ -151,7 +151,7 @@ export function deepCopy<T = IDict<any>>(value: T): T {
 export function createDefaultLayerRegistry(
   layerBrowserRegistry: IJGISLayerBrowserRegistry,
 ): void {
-  const RASTER_THUMBNAILS: { [key: string]: string } = {};
+  const LAYER_THUMBNAILS: { [key: string]: string } = {};
 
   /**
    * Generate object to hold thumbnail URLs
@@ -159,28 +159,30 @@ export function createDefaultLayerRegistry(
   const importAll = (r: __WebpackModuleApi.RequireContext) => {
     r.keys().forEach(key => {
       const imageName = key.replace('./', '').replace(/\.\w+$/, '');
-      RASTER_THUMBNAILS[imageName] = r(key);
+      LAYER_THUMBNAILS[imageName] = r(key);
     });
   };
 
   const context = require.context(
-    '../rasterlayer_gallery',
+    '../layer_gallery',
     false,
     /\.(png|jpe?g|gif|svg)$/,
   );
   importAll(context);
 
-  for (const entry of Object.keys(RASTER_LAYER_GALLERY)) {
-    const xyzprovider: any = (RASTER_LAYER_GALLERY as any)[entry];
+  for (const entry of Object.keys(LAYER_GALLERY)) {
+    const layerProvider: any = (LAYER_GALLERY as any)[entry];
 
-    if ('url' in xyzprovider) {
-      const tile = convertToRegistryEntry(entry, xyzprovider);
+    if ('thumbnailPath' in layerProvider) {
+      /*flat layer provider*/
+      const tile = convertToRegistryEntry(entry, layerProvider);
       layerBrowserRegistry.addRegistryLayer(tile);
     } else {
-      Object.keys(xyzprovider).forEach(mapName => {
+      /* nested layer provider */
+      Object.keys(layerProvider).forEach(mapName => {
         const tile = convertToRegistryEntry(
-          xyzprovider[mapName]['name'],
-          xyzprovider[mapName],
+          layerProvider[mapName]['name'],
+          layerProvider[mapName],
           entry,
         );
 
@@ -194,40 +196,44 @@ export function createDefaultLayerRegistry(
    * Parse tile information from providers to be usable in the layer registry
    *
    * @param entry - The name of the entry, which may also serve as the default provider name if none is specified.
-   * @param xyzprovider - An object containing the XYZ provider's details, including name, URL, zoom levels, attribution, and possibly other properties relevant to the provider.
+   * @param layerProvider - An object containing the provider's details, including name, URL, zoom levels, attribution, and possibly other properties relevant to the provider.
    * @param provider - Optional. Specifies the provider name. If not provided, the `entry` parameter is used as the default provider name.
    * @returns - An object representing the registry entry
    */
   function convertToRegistryEntry(
     entry: string,
-    xyzprovider: { [x: string]: any },
+    layerProvider: { [x: string]: any },
     provider?: string | undefined,
-  ): IRasterLayerGalleryEntry {
+  ): ILayerGalleryEntry {
     const urlParameters: any = {};
-    if (xyzprovider.time) {
-      urlParameters.time = xyzprovider.time;
+
+    if (layerProvider.time) {
+      urlParameters.time = layerProvider.time;
     }
-    if (xyzprovider.variant) {
-      urlParameters.variant = xyzprovider.variant;
+    if (layerProvider.variant) {
+      urlParameters.variant = layerProvider.variant;
     }
-    if (xyzprovider.tilematrixset) {
-      urlParameters.tilematrixset = xyzprovider.tilematrixset;
+    if (layerProvider.tilematrixset) {
+      urlParameters.tilematrixset = layerProvider.tilematrixset;
     }
-    if (xyzprovider.format) {
-      urlParameters.format = xyzprovider.format;
+    if (layerProvider.format) {
+      urlParameters.format = layerProvider.format;
+    }
+
+    if (!layerProvider.layerType || !layerProvider.sourceType) {
+      throw new Error(
+        `Invalid layer_gallery entry "${entry}": missing layerType or sourceType`,
+      );
     }
 
     return {
       name: entry,
-      thumbnail: RASTER_THUMBNAILS[xyzprovider['name'].replace('.', '-')],
-      source: {
-        url: xyzprovider['url'],
-        minZoom: xyzprovider['min_zoom'] || 0,
-        maxZoom: xyzprovider['max_zoom'] || 24,
-        attribution: xyzprovider['attribution'] || '',
-        provider: provider ?? entry,
-        urlParameters,
-      },
+      thumbnail: LAYER_THUMBNAILS[layerProvider['name'].replace('.', '-')],
+      sourceType: layerProvider['sourceType'],
+      layerType: layerProvider['layerType'],
+      sourceParameters: layerProvider['sourceParameters'],
+      layerParameters: layerProvider['layerParameters'],
+      provider: provider ?? entry.split('.', 1)[0],
     };
   }
 }

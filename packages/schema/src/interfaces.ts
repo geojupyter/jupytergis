@@ -27,10 +27,17 @@ import {
   IJGISSource,
   IJGISSources,
   IJGISStoryMap,
+  LayerType,
   SourceType,
 } from './_interface/project/jgis';
-import { IRasterSource } from './_interface/project/sources/rasterSource';
-import { Modes } from './types';
+
+import {
+  IRasterLayer,
+  IRasterSource,
+  IVectorTileLayer,
+  IVectorTileSource,
+  Modes,
+} from './types';
 export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 
 export interface IJGISStoryMaps {
@@ -356,21 +363,24 @@ export interface IJGISExternalCommandRegistry {
 }
 
 /**
- * Defines the structure for entries in a raster layer gallery.
- * Each entry consists of a name, a thumbnail URL, and source information.
- * The source information is expected to conform to the IRasterSource interface.
+ * Defines the structure for entries in a layer gallery.
  *
- * @interface IRasterLayerGalleryEntry
+ * @interface ILayerGalleryEntry
  */
-export interface IRasterLayerGalleryEntry {
+
+export type ILayerGalleryEntry = {
   name: string;
   thumbnail: string;
-  source: IRasterSource;
-}
+  layerType: LayerType;
+  layerParameters: IVectorTileLayer | IRasterLayer;
+  sourceType: SourceType;
+  sourceParameters: IVectorTileSource | IRasterSource;
+  provider: string;
+};
 
 export interface IJGISLayerBrowserRegistry {
-  getRegistryLayers(): IRasterLayerGalleryEntry[];
-  addRegistryLayer(data: IRasterLayerGalleryEntry): void;
+  getRegistryLayers(): ILayerGalleryEntry[];
+  addRegistryLayer(data: ILayerGalleryEntry): void;
   removeRegistryLayer(name: string): void;
   clearRegistry(): void;
 }
