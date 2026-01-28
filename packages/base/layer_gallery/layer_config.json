@@ -56,7 +56,7 @@
                 "Default": {"lat": 47.040182144806664, "lng": 1.2963867187500002, "zoom": 5}
             }
         }
-    },               
+    },
     "NASAGIBS": {
         "ModisTerraTrueColorCR" :{
             "layerType": "RasterLayer",
@@ -114,7 +114,7 @@
                 "Default": {"lat": 47.040182144806664, "lng": 1.2963867187500002, "zoom": 5}
             }
         },
-        
+
         "ModisTerraBands721CR" :{
             "layerType": "RasterLayer",
             "sourceType": "RasterSource",
@@ -154,7 +154,7 @@
                 "Special Rules": {},
                 "Default": {"lat": 47.040182144806664, "lng": 1.2963867187500002, "zoom": 5}
             }
-        }  
+        }
     },
     "USGS": {
         "layerType": "RasterLayer",

@@ -17,8 +17,10 @@ with open("layer_gallery/layer_config.json", "r", encoding="utf-8") as f:
 
 THUMBNAILS_LOCATION = "layer_gallery"
 
+
 def placeholder_tile(size):
     return Image.new("RGB", size, (220, 220, 220))
+
 
 def extract_placeholders(url_template):
     """
@@ -30,6 +32,7 @@ def extract_placeholders(url_template):
         for _, field_name, _, _ in formatter.parse(url_template)
         if field_name
     }
+
 
 def build_url_parameters(tile_provider):
     """
@@ -46,13 +49,14 @@ def build_url_parameters(tile_provider):
     for name in placeholders - reserved:
         if name in tile_provider and tile_provider[name] is not None:
             kwargs[name] = tile_provider[name]
-            if (name == "time" and tile_provider['time']==''):
-                kwargs['time']= yesterday
+            if name == "time" and tile_provider["time"] == "":
+                kwargs["time"] = yesterday
         else:
             raise KeyError(
                 f"Placeholder '{name}' not found in TileProvider '{tile_provider.get('name')}'"
             )
     return kwargs
+
 
 def fetch_tile(url_template, x, y, z, s="a", **kwargs):
     """
@@ -71,13 +75,13 @@ def fetch_tile(url_template, x, y, z, s="a", **kwargs):
         print(f"⚠️ Tile fetch failed: {e}")
         return None
 
+
 def latlng_to_tile(lat, lng, zoom):
     """
     Convert latitude/longitude to tile coordinates.
     """
     tile = mercantile.tile(lng, lat, zoom, True)
     return tile.x, tile.y
-    
 
 
 def create_thumbnail(
@@ -129,7 +133,7 @@ san_francisco = {"lat": 37.7749, "lng": -122.4194, "zoom": 5}
 ##middle_europe = {"lat": 48.63290858589535, "lng": -350.068359375, "zoom": 4}
 
 # Default
-#france = {"lat": 47.040182144806664, "lng": 1.2963867187500002, "zoom": 5}
+# france = {"lat": 47.040182144806664, "lng": 1.2963867187500002, "zoom": 5}
 
 
 #
@@ -155,7 +159,7 @@ def download_thumbnail(url_template, name, position, tile_size, **url_parameters
 # Create thumbnail dir if needed
 if not os.path.exists(THUMBNAILS_LOCATION):
     os.makedirs(THUMBNAILS_LOCATION)
-    
+
 # This is the JSON we'll generate for the gallery
 provider_gallery = {}
 
@@ -178,45 +182,45 @@ custom_providers["MacroStrat"] = {
 
 # Fetch thumbnails and populate the dictionary
 for provider_key, provider_value in provider_config.items():
-
     xyzprovider = custom_providers[provider_key]
     config_is_flat = "layerType" in provider_value
-    xyz_is_flat = "url" in xyzprovider  
-    
+    xyz_is_flat = "url" in xyzprovider
+
     if config_is_flat and xyz_is_flat:
         tile_provider = xyzprovider
-       
+
         url_template = tile_provider["url"]
         url_parameters = build_url_parameters(tile_provider)
 
         thumbnail_config = provider_value["thumbnail"]
-        position = thumbnail_config["Special Rules"].get(provider_key, thumbnail_config["Default"])
+        position = thumbnail_config["Special Rules"].get(
+            provider_key, thumbnail_config["Default"]
+        )
         tile_size = thumbnail_config.get("TileSize", 256)
-        file_path = download_thumbnail(url_template, provider_key, position, tile_size, **url_parameters)
-     
+        file_path = download_thumbnail(
+            url_template, provider_key, position, tile_size, **url_parameters
+        )
 
         provider_gallery[provider_key] = {
-                        "thumbnailPath": file_path,
-                        "name": provider_key,
-                        "layerType": provider_value["layerType"],
-                        "sourceType": provider_value["sourceType"],
-                        "sourceParameters": {
-                                "url": url_template,
-                                "attribution": xyzprovider.get("attribution"),
-                                "maxZoom": xyzprovider.get("max_zoom"),
-                                "minZoom": xyzprovider.get("min_zoom"), 
-                        },
-                        "layerParameters": {"opacity": 1}
-        
-    }
-    
+            "thumbnailPath": file_path,
+            "name": provider_key,
+            "layerType": provider_value["layerType"],
+            "sourceType": provider_value["sourceType"],
+            "sourceParameters": {
+                "url": url_template,
+                "attribution": xyzprovider.get("attribution"),
+                "maxZoom": xyzprovider.get("max_zoom"),
+                "minZoom": xyzprovider.get("min_zoom"),
+            },
+            "layerParameters": {"opacity": 1},
+        }
+
     elif config_is_flat and not xyz_is_flat:
         providers_maps = {}
 
         for map_name, tile_provider in xyzprovider.items():
             url_template = tile_provider["url"]
             url_parameters = build_url_parameters(tile_provider)
-           
 
             thumbnail_config = provider_value["thumbnail"]
             position = thumbnail_config["Special Rules"].get(
@@ -232,19 +236,19 @@ for provider_key, provider_value in provider_config.items():
 
             providers_maps[map_name] = {
                 "thumbnailPath": file_path,
-                "name": provider_key +"."+ map_name,
+                "name": provider_key + "." + map_name,
                 "layerType": provider_value["layerType"],
                 "sourceType": provider_value["sourceType"],
                 "sourceParameters": {
                     "url": url_template,
                     "attribution": tile_provider.get("attribution"),
-                    "maxZoom": tile_provider.get("max_zoom")
+                    "maxZoom": tile_provider.get("max_zoom"),
                 },
-                "layerParameters": {"opacity": 1}
+                "layerParameters": {"opacity": 1},
             }
 
-        provider_gallery[provider_key] = providers_maps    
-                
+        provider_gallery[provider_key] = providers_maps
+
     elif not config_is_flat and not xyz_is_flat:
         providers_maps = {}
         for map_name, map_config in provider_value.items():
@@ -266,14 +270,14 @@ for provider_key, provider_value in provider_config.items():
 
             providers_maps[map_name] = {
                 "thumbnailPath": file_path,
-                "name": provider_key +"."+ map_name,
+                "name": provider_key + "." + map_name,
                 "layerType": map_config["layerType"],
                 "sourceType": map_config["sourceType"],
                 "sourceParameters": {
                     "url": url_template,
                     "attribution": tile_provider.get("attribution"),
                     "maxZoom": tile_provider.get("max_zoom"),
-                    "minZoom": tile_provider.get("min_zoom")
+                    "minZoom": tile_provider.get("min_zoom"),
                 },
                 "layerParameters": {"opacity": 1},
             }
@@ -281,9 +285,7 @@ for provider_key, provider_value in provider_config.items():
         provider_gallery[provider_key] = providers_maps
 
     else:
-        raise ValueError(
-            f"Inconsistent config for provider '{provider_key}'"
-        )
+        raise ValueError(f"Inconsistent config for provider '{provider_key}'")
 
 """
 # compress each images of THUMBNAILS_LOCATION
@@ -295,7 +297,7 @@ try:
 except subprocess.CalledProcessError as e:
     print("⚠️ Image compression skipped:", e)
 """
-    
+
 
 """
 # compress a single image of THUMBNAILS_LOCATION
@@ -308,5 +310,4 @@ subprocess.run(["bash", "-lc", cmd], check=True)
 """
 
 with open(f"{THUMBNAILS_LOCATION}/layer_gallery.json", "w") as f:
-        json.dump(provider_gallery, f)
-
+    json.dump(provider_gallery, f)
