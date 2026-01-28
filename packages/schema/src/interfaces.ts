@@ -285,6 +285,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     story: IJGISStoryMap | undefined;
   };
   addStorySegment(): { storySegmentId: string; storyId: string } | null;
+  segmentAdded: ISignal<
+    IJupyterGISModel,
+    { storySegmentId: string; storyId: string }
+  >;
   isSpectaMode(): boolean;
 }
 
