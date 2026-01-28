@@ -677,6 +677,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       const storyMap: IJGISStoryMap = { title, storyType, storySegments };
 
       this.sharedModel.addStoryMap(storyId, storyMap);
+      this._segmentAdded.emit({
+        storySegmentId: newStorySegmentId,
+        storyId,
+      });
       return { storySegmentId: newStorySegmentId, storyId };
     } else {
       // else need to update story
@@ -691,8 +695,19 @@ export class JupyterGISModel implements IJupyterGISModel {
       };
 
       this.sharedModel.updateStoryMap(storyId, newStory);
+      this._segmentAdded.emit({
+        storySegmentId: newStorySegmentId,
+        storyId,
+      });
       return { storySegmentId: newStorySegmentId, storyId };
     }
+  }
+
+  get segmentAdded(): ISignal<
+    this,
+    { storySegmentId: string; storyId: string }
+  > {
+    return this._segmentAdded;
   }
 
   /**
@@ -1020,6 +1035,11 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);
+
+  private _segmentAdded = new Signal<
+    this,
+    { storySegmentId: string; storyId: string }
+  >(this);
 
   private _updateLayerSignal = new Signal<this, string>(this);
 
