@@ -2,14 +2,8 @@
   "id": "2201960183087520",
   "lockVersion": "1.0.2",
   "platform": "emscripten-wasm32",
-  "specs": [
-    "xeus-python",
-    "jupytergis-lite"
-  ],
-  "channels": [
-    "emscripten-forge",
-    "conda-forge"
-  ],
+  "specs": ["xeus-python", "jupytergis-lite"],
+  "channels": ["emscripten-forge", "conda-forge"],
   "channelInfo": {
     "emscripten-forge": [
       {
