@@ -30,7 +30,7 @@ export class StoryEditorPropertiesForm extends BaseForm {
     super.processSchema(data, schema, uiSchema);
     this.removeFormEntry('storySegments', data, schema, uiSchema);
 
-    uiSchema.presentaionBgColor = {
+    uiSchema.presentationBgColor = {
       'ui:widget': 'color',
     };
 
@@ -41,12 +41,12 @@ export class StoryEditorPropertiesForm extends BaseForm {
     // Set default values from theme CSS variables when not already in data
     const schemaProps = schema.properties as IDict | undefined;
     if (
-      schemaProps?.presentaionBgColor &&
-      data?.presentaionBgColor === undefined
+      schemaProps?.presentationBgColor &&
+      data?.presentationBgColor === undefined
     ) {
       const defaultBg = getCssVarAsColor('--jp-layout-color0');
       if (defaultBg) {
-        schemaProps.presentaionBgColor.default = defaultBg;
+        schemaProps.presentationBgColor.default = defaultBg;
       }
     }
     if (

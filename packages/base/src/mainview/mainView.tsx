@@ -1563,8 +1563,8 @@ export class MainView extends React.Component<IProps, IStates> {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
-          featureProjection: this._Map.getView().getProjection(),
-        });
+        featureProjection: this._Map.getView().getProjection(),
+      });
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
@@ -2218,7 +2218,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     const story = this._model.getSelectedStory().story;
-    const bgColor = story?.presentaionBgColor;
+    const bgColor = story?.presentationBgColor;
     const textColor = story?.presentaionTextColor;
 
     // Set background color
