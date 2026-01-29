@@ -76,11 +76,19 @@ export function nearest(n: number, tol: number): number {
   }
 }
 
-export function getCSSVariableColor(name: string): string {
-  const color =
-    window.getComputedStyle(document.body).getPropertyValue(name) || '#ffffff';
+/** Read a CSS variable from the document root and return the value. */
+export function getCssVarAsColor(cssVar: string): string {
+  if (typeof document === 'undefined') {
+    return '';
+  }
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(cssVar)
+    .trim();
+  if (!value) {
+    return '';
+  }
 
-  return d3Color.rgb(color).formatHex();
+  return value;
 }
 
 /**
@@ -376,9 +384,9 @@ export const getFromIndexedDB = async (key: string) => {
   const db = await openDatabase();
   return new Promise<
     | {
-        file: any;
-        metadata?: any | undefined;
-      }
+      file: any;
+      metadata?: any | undefined;
+    }
     | undefined
   >((resolve, reject) => {
     const transaction = db.transaction('files', 'readonly');
