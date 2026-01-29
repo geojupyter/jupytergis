@@ -2,21 +2,7 @@ import { IDict } from '@jupytergis/schema';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 
 import { BaseForm } from './baseform';
-
-/** Read a CSS variable from the document root and return the value. */
-function getCssVarAsColor(cssVar: string): string {
-  if (typeof document === 'undefined') {
-    return '';
-  }
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue(cssVar)
-    .trim();
-  if (!value) {
-    return '';
-  }
-
-  return value;
-}
+import { getCssVarAsColor } from '@/src/tools';
 
 /**
  * The form to modify story map properties.
