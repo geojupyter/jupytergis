@@ -49,17 +49,17 @@
       },
       "size": 379059
     },
-    "jupytergis-lite-0.11.1-pyhd8ed1ab_1.conda": {
+    "jupytergis-lite-0.12.0-pyhd8ed1ab_0.conda": {
       "name": "jupytergis-lite",
-      "build": "pyhd8ed1ab_1",
-      "version": "0.11.1",
+      "build": "pyhd8ed1ab_0",
+      "version": "0.12.0",
       "subdir": "noarch",
       "channel": "conda-forge",
       "hash": {
-        "md5": "b089ed9f9ca864c4a819bd6f5756de27",
-        "sha256": "7d3462596c016cc8b4cb717dd4bf6787d04361ac63d8315f8d9eea08d1f5077a"
+        "md5": "2d7bafa08b961fefa9ff908efe4ac92f",
+        "sha256": "9e9196a98fe6b533bf8b2a925f94cb2fb632c5674fa2a54c300ff5938dc67b33"
       },
-      "size": 10159
+      "size": 10434
     },
     "my-jupyter-shared-drive-0.2.2-pyhd8ed1ab_0.conda": {
       "name": "my-jupyter-shared-drive",
@@ -72,6 +72,42 @@
         "sha256": "dd6b27d432a2b6992ce6a1683e469b4d106b3b685735def02f4571ba9d1d06d8"
       },
       "size": 19253
+    },
+    "jupytergis-lab-0.12.0-pyhd8ed1ab_0.conda": {
+      "name": "jupytergis-lab",
+      "build": "pyhd8ed1ab_0",
+      "version": "0.12.0",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "137ac0b119af8bf70de53b23c78013b5",
+        "sha256": "b4ce64891f03e77a4bd85a59a84196d741bede83d8bb750ffc84bc32edfdc4a7"
+      },
+      "size": 44207
+    },
+    "jupytergis-core-0.12.0-pyhd8ed1ab_0.conda": {
+      "name": "jupytergis-core",
+      "build": "pyhd8ed1ab_0",
+      "version": "0.12.0",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "c6940aae4e4cdac79ec40b9a2e6bc726",
+        "sha256": "df71ed803561f3b01917bcfa7285d138fcf51fd263729ad2168535ab7d7332f5"
+      },
+      "size": 13106499
+    },
+    "yjs-widgets-0.4.0-pyhd8ed1ab_0.conda": {
+      "name": "yjs-widgets",
+      "build": "pyhd8ed1ab_0",
+      "version": "0.4.0",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "879c55bca00674dadb16376818c1cb33",
+        "sha256": "398a3fc17dbeb999cce55e0557134d046c51eed9997b2475953985e9426e721f"
+      },
+      "size": 22051
     },
     "python-3.13.1-h_c8de616_5_cp313.tar.bz2": {
       "name": "python",
@@ -176,42 +212,6 @@
         "sha256": "2a909594ca78843258e4bda36e43d165cda844743329838a29402823c8f20dec"
       },
       "size": 4335
-    },
-    "jupytergis-core-0.11.1-pyhd8ed1ab_1.conda": {
-      "name": "jupytergis-core",
-      "build": "pyhd8ed1ab_1",
-      "version": "0.11.1",
-      "subdir": "noarch",
-      "channel": "conda-forge",
-      "hash": {
-        "md5": "ecb40636e6018bceaa0fdf524713f2e1",
-        "sha256": "20e0a423a3903a9888a0c0335e132675713010ff716fe7810487f0e1c4693b4a"
-      },
-      "size": 22049082
-    },
-    "jupytergis-lab-0.11.1-pyhd8ed1ab_1.conda": {
-      "name": "jupytergis-lab",
-      "build": "pyhd8ed1ab_1",
-      "version": "0.11.1",
-      "subdir": "noarch",
-      "channel": "conda-forge",
-      "hash": {
-        "md5": "300bd15ea7ebd5753b0c594aa0749084",
-        "sha256": "0095105b0d62845a8116273c82885ebf164c78f5bb93a934d9d1caf434d58e7c"
-      },
-      "size": 41759
-    },
-    "yjs-widgets-0.4.0-pyhd8ed1ab_0.conda": {
-      "name": "yjs-widgets",
-      "build": "pyhd8ed1ab_0",
-      "version": "0.4.0",
-      "subdir": "noarch",
-      "channel": "conda-forge",
-      "hash": {
-        "md5": "879c55bca00674dadb16376818c1cb33",
-        "sha256": "398a3fc17dbeb999cce55e0557134d046c51eed9997b2475953985e9426e721f"
-      },
-      "size": 22051
     },
     "packaging-26.0-pyhcf101f3_0.conda": {
       "name": "packaging",
@@ -451,17 +451,17 @@
       },
       "size": 11018
     },
-    "wcwidth-0.2.14-pyhd8ed1ab_0.conda": {
+    "wcwidth-0.5.0-pyhd8ed1ab_0.conda": {
       "name": "wcwidth",
       "build": "pyhd8ed1ab_0",
-      "version": "0.2.14",
+      "version": "0.5.0",
       "subdir": "noarch",
       "channel": "conda-forge",
       "hash": {
-        "md5": "7e1e5ff31239f9cd5855714df8a3783d",
-        "sha256": "e311b64e46c6739e2a35ab8582c20fa30eb608da130625ed379f4467219d4813"
+        "md5": "7ad8004c0115a5e73b65e0b8b94a8d75",
+        "sha256": "6186c0db018297419727ad390bd1678a5a82bb6b254e414aa2c0de610a6cf342"
       },
-      "size": 33670
+      "size": 69904
     },
     "asttokens-3.0.1-pyhd8ed1ab_0.conda": {
       "name": "asttokens",
