@@ -11,7 +11,6 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
-import * as d3Color from 'd3-color';
 import { compressors } from 'hyparquet-compressors';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
@@ -384,9 +383,9 @@ export const getFromIndexedDB = async (key: string) => {
   const db = await openDatabase();
   return new Promise<
     | {
-      file: any;
-      metadata?: any | undefined;
-    }
+        file: any;
+        metadata?: any | undefined;
+      }
     | undefined
   >((resolve, reject) => {
     const transaction = db.transaction('files', 'readonly');

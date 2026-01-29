@@ -1,10 +1,7 @@
 {
   "type": "object",
   "title": "IJGISContent",
-  "required": [
-    "layers",
-    "sources"
-  ],
+  "required": ["layers", "sources"],
   "additionalProperties": false,
   "properties": {
     "schemaVersion": {
@@ -70,11 +67,7 @@
       "title": "IJGISLayer",
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "name",
-        "type",
-        "visible"
-      ],
+      "required": ["name", "type", "visible"],
       "properties": {
         "name": {
           "type": "string"
@@ -98,10 +91,7 @@
       "title": "IJGISSource",
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "name",
-        "type"
-      ],
+      "required": ["name", "type"],
       "properties": {
         "name": {
           "type": "string"
@@ -118,10 +108,7 @@
       "title": "IJGISLayerGroup",
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "name",
-        "layers"
-      ],
+      "required": ["name", "layers"],
       "properties": {
         "name": {
           "type": "string"
@@ -166,10 +153,7 @@
         "storyType": {
           "type": "string",
           "title": "Story Type",
-          "enum": [
-            "guided",
-            "unguided"
-          ],
+          "enum": ["guided", "unguided"],
           "description": "The type of story map"
         },
         "storySegments": {
@@ -269,24 +253,12 @@
       "title": "IJGISFilterItem",
       "type": "object",
       "default": {},
-      "required": [
-        "operator",
-        "feature",
-        "value"
-      ],
+      "required": ["operator", "feature", "value"],
       "additionalProperties": false,
       "properties": {
         "operator": {
           "type": "string",
-          "enum": [
-            "==",
-            "!=",
-            ">",
-            "<",
-            ">=",
-            "<=",
-            "between"
-          ],
+          "enum": ["==", "!=", ">", "<", ">=", "<=", "between"],
           "default": "=="
         },
         "feature": {
@@ -294,30 +266,20 @@
           "default": ""
         },
         "value": {
-          "type": [
-            "string",
-            "number"
-          ]
+          "type": ["string", "number"]
         },
         "betweenMin": {
-          "type": [
-            "number"
-          ]
+          "type": ["number"]
         },
         "betweenMax": {
-          "type": [
-            "number"
-          ]
+          "type": ["number"]
         }
       }
     },
     "jGISFilter": {
       "title": "IJGISFilter",
       "type": "object",
-      "required": [
-        "logicalOp",
-        "appliedFilters"
-      ],
+      "required": ["logicalOp", "appliedFilters"],
       "additionalProperties": false,
       "properties": {
         "logicalOp": {
