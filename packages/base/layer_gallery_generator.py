@@ -124,15 +124,12 @@ def create_thumbnail(
 yesterday = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 
 # San Francisco
-san_francisco = {"lat": 37.7749, "lng": -122.4194, "zoom": 5}
+#san_francisco = {"lat": 37.7749, "lng": -122.4194, "zoom": 5}
 
 ##middle_europe = {"lat": 48.63290858589535, "lng": -350.068359375, "zoom": 4}
 
 # Default
 #france = {"lat": 47.040182144806664, "lng": 1.2963867187500002, "zoom": 5}
-
-
-#
 
 
 def download_thumbnail(url_template, name, position, tile_size, **url_parameters):
@@ -204,7 +201,8 @@ for provider_key, provider_value in provider_config.items():
                                 "url": url_template,
                                 "attribution": xyzprovider.get("attribution"),
                                 "maxZoom": xyzprovider.get("max_zoom"),
-                                "minZoom": xyzprovider.get("min_zoom"), 
+                                "minZoom": xyzprovider.get("min_zoom") or 0
+, 
                         },
                         "layerParameters": {"opacity": 1}
         
@@ -217,7 +215,6 @@ for provider_key, provider_value in provider_config.items():
             url_template = tile_provider["url"]
             url_parameters = build_url_parameters(tile_provider)
            
-
             thumbnail_config = provider_value["thumbnail"]
             position = thumbnail_config["Special Rules"].get(
                 map_name, thumbnail_config["Default"]
@@ -229,7 +226,7 @@ for provider_key, provider_value in provider_config.items():
             file_path = download_thumbnail(
                 url_template, name, position, tile_size, **url_parameters
             )
-
+            
             providers_maps[map_name] = {
                 "thumbnailPath": file_path,
                 "name": provider_key +"."+ map_name,
@@ -238,7 +235,8 @@ for provider_key, provider_value in provider_config.items():
                 "sourceParameters": {
                     "url": url_template,
                     "attribution": tile_provider.get("attribution"),
-                    "maxZoom": tile_provider.get("max_zoom")
+                    "maxZoom": tile_provider.get("max_zoom"),
+                    "minZoom": tile_provider.get("min_zoom") or 0
                 },
                 "layerParameters": {"opacity": 1}
             }
@@ -263,7 +261,7 @@ for provider_key, provider_value in provider_config.items():
             file_path = download_thumbnail(
                 url_template, name, position, tile_size, **url_parameters
             )
-
+          
             providers_maps[map_name] = {
                 "thumbnailPath": file_path,
                 "name": provider_key +"."+ map_name,
@@ -273,7 +271,7 @@ for provider_key, provider_value in provider_config.items():
                     "url": url_template,
                     "attribution": tile_provider.get("attribution"),
                     "maxZoom": tile_provider.get("max_zoom"),
-                    "minZoom": tile_provider.get("min_zoom")
+                    "minZoom": tile_provider.get("min_zoom") or 0
                 },
                 "layerParameters": {"opacity": 1},
             }
