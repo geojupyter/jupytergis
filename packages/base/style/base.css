@@ -24,6 +24,8 @@
 @import url('./shared/checkbox.css');
 @import url('./shared/radioGroup.css');
 @import url('./shared/dialog.css');
+@import url('./shared/drawer.css');
+@import url('./shared/sheet.css');
 @import url('./shared/switch.css');
 @import url('./shared/popover.css');
 @import url('./shared/command.css');
@@ -169,4 +171,9 @@ button.jp-mod-styled.jp-mod-reject {
     position: relative;
     margin: 0;
   }
+}
+
+/* Fix for map in mobile specta view */
+body[data-notebook='specta'] #main.jp-ThemedContainer {
+  overflow: visible;
 }

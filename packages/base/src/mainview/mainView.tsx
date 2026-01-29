@@ -109,6 +109,7 @@ import proj4list from 'proj4-list';
 import * as React from 'react';
 
 import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
+import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
 import StatusBar from '@/src/statusbar/StatusBar';
@@ -120,6 +121,7 @@ import { MainViewModel } from './mainviewmodel';
 import { hexToRgb } from '../dialogs/symbology/colorRampUtils';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
+import { MobileSpectaPanel } from '../panelview/story-maps/MobileSpectaPanel';
 import StoryViewerPanel, {
   IStoryViewerPanelHandle,
 } from '../panelview/story-maps/StoryViewerPanel';
@@ -138,6 +140,8 @@ interface IProps {
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
+  /** True when viewport matches (max-width: 768px). Injected by MainViewWithMediaQuery. */
+  isMobile?: boolean;
 }
 
 interface IStates {
@@ -294,6 +298,8 @@ export class MainView extends React.Component<IProps, IStates> {
       this._setupSpectaMode();
       this._isSpectaPresentationInitialized = true;
     }
+
+    console.log('mobile', this.props.isMobile);
   }
 
   componentWillUnmount(): void {
@@ -2778,6 +2784,8 @@ export class MainView extends React.Component<IProps, IStates> {
                       />
                     )}
                   </>
+                ) : this.props.isMobile ? (
+                  <MobileSpectaPanel model={this._model} />
                 ) : (
                   <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
                     <div
@@ -2788,6 +2796,7 @@ export class MainView extends React.Component<IProps, IStates> {
                         ref={this.storyViewerPanelRef}
                         model={this._model}
                         isSpecta={this.state.isSpectaPresentation}
+                        className="jgis-story-viewer-panel-specta-mod"
                       />
                     </div>
                   </div>
@@ -2837,3 +2846,12 @@ export class MainView extends React.Component<IProps, IStates> {
   private _isSpectaPresentationInitialized = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
 }
+
+// ! TODO make mainview a modern react component instead of class nonsense
+/** Thin wrapper that injects isMobile from useMediaQuery so MainView can use it in JSX. */
+function MainViewWithMediaQuery(props: IProps) {
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  return <MainView {...props} isMobile={isMobile} />;
+}
+
+export { MainViewWithMediaQuery };

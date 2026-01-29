@@ -17,10 +17,12 @@ import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
+import { cn } from '@/src/shared/components/utils';
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
+  className?: string;
 }
 
 export interface IStoryViewerPanelHandle {
@@ -32,7 +34,7 @@ export interface IStoryViewerPanelHandle {
 const StoryViewerPanel = forwardRef<
   IStoryViewerPanelHandle,
   IStoryViewerPanelProps
->(({ model, isSpecta }, ref) => {
+>(({ model, isSpecta, className }, ref) => {
   const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(0);
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
     model.getSelectedStory().story ?? null,
@@ -245,7 +247,8 @@ const StoryViewerPanel = forwardRef<
   return (
     <div
       ref={panelRef}
-      className={`jgis-story-viewer-panel ${isSpecta ? 'jgis-story-viewer-panel-specta-mod' : ''}`}
+      // className={`jgis-story-viewer-panel ${isSpecta ? 'jgis-story-viewer-panel-specta-mod' : ''}`}
+      className={cn('jgis-story-viewer-panel', className)}
     >
       <div
         key={currentIndexDisplayed}
