@@ -15,6 +15,8 @@ import React, {
 
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
+import StoryNavBar from './StoryNavBar';
+import StoryNavBarContainer from './components/StoryNavBarContainer';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
 import { cn } from '@/src/shared/components/utils';
@@ -29,6 +31,34 @@ export interface IStoryViewerPanelHandle {
   handlePrev: () => void;
   handleNext: () => void;
   canNavigate: boolean;
+}
+
+/**
+ * Where the story nav bar should be rendered in the viewer layout.
+ * - below-title: normal mode, guided, no image (under the title)
+ * - over-image: normal mode, guided, with image (over the image)
+ * - subtitle-specta: specta mode (desktop or mobile, next to subtitle)
+ */
+export type StoryNavPlacement =
+  | 'below-title'
+  | 'over-image'
+  | 'subtitle-specta';
+
+/**
+ * Returns which section should render the nav bar, or null if nav should be hidden.
+ */
+function getStoryNavPlacement(
+  isSpecta: boolean,
+  hasImage: boolean,
+  storyType: string,
+): StoryNavPlacement | null {
+  if (isSpecta) {
+    return 'subtitle-specta';
+  }
+  if (storyType !== 'guided') {
+    return null;
+  }
+  return hasImage ? 'over-image' : 'below-title';
 }
 
 const StoryViewerPanel = forwardRef<
@@ -241,6 +271,17 @@ const StoryViewerPanel = forwardRef<
     hasNext: currentIndexDisplayed < storySegments.length - 1,
   };
 
+  const hasImage = !!(activeSlide?.content?.image && imageLoaded);
+  const storyType = storyData.storyType ?? 'guided';
+  const navPlacement = getStoryNavPlacement(isSpecta, hasImage, storyType);
+
+  const navSlot =
+    navPlacement !== null ? (
+      <StoryNavBarContainer placement={navPlacement}>
+        <StoryNavBar {...navProps} isSpecta={isSpecta} />
+      </StoryNavBarContainer>
+    ) : null;
+
   // Get transition time from current segment, default to 0.3s
   const transitionTime = activeSlide?.transition?.time ?? 0.3;
 
@@ -266,22 +307,17 @@ const StoryViewerPanel = forwardRef<
             imageLoaded={imageLoaded}
             layerName={layerName ?? ''}
             slideNumber={currentIndexDisplayed}
-            isSpecta={isSpecta}
-            storyType={storyData.storyType ?? 'guided'}
-            {...navProps}
+            navSlot={navPlacement === 'over-image' ? navSlot : null}
           />
         ) : (
           <StoryTitleSection
             title={storyData.title ?? ''}
-            isSpecta={isSpecta}
-            storyType={storyData.storyType ?? 'guided'}
-            {...navProps}
+            navSlot={navPlacement === 'below-title' ? navSlot : null}
           />
         )}
         <StorySubtitleSection
           title={activeSlide?.content?.title ?? ''}
-          isSpecta={isSpecta}
-          {...navProps}
+          navSlot={navPlacement === 'subtitle-specta' ? navSlot : null}
         />
         <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
       </div>
