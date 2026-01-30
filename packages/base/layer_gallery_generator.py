@@ -11,13 +11,36 @@ from xyzservices import providers, TileProvider
 import string
 from requests.exceptions import RequestException
 
-with open("layer_gallery/layer_config.json", "r", encoding="utf-8") as f:
+with open("layer_gallery/thumbnail_config.json", "r", encoding="utf-8") as f:
     provider_config = json.load(f)
-
 
 THUMBNAILS_LOCATION = "layer_gallery"
 
+def snake_to_camel(s):
+    """
+    Convect snake case strings into camel case ones
+    """
+    parts = s.split("_")
+    return parts[0] + "".join(word.capitalize() for word in parts[1:])
+
+def dict_keys_to_camel(obj):
+    """
+    Convect keys of a dict from snake case to camel case
+    """
+    if isinstance(obj, dict):
+        return {
+            snake_to_camel(k): dict_keys_to_camel(v)
+            for k, v in obj.items()
+        }
+    elif isinstance(obj, list):
+        return [dict_keys_to_camel(item) for item in obj]
+    else:
+        return obj
+
 def placeholder_tile(size):
+    """
+    Provide a white empty placeholder image
+    """
     return Image.new("RGB", size, (220, 220, 220))
 
 def extract_placeholders(url_template):
@@ -78,8 +101,6 @@ def latlng_to_tile(lat, lng, zoom):
     tile = mercantile.tile(lng, lat, zoom, True)
     return tile.x, tile.y
     
-
-
 def create_thumbnail(
     url_template,
     lat,
@@ -148,7 +169,6 @@ def download_thumbnail(url_template, name, position, tile_size, **url_parameters
     thumbnail.save(file_path)
     return file_path
 
-
 # Create thumbnail dir if needed
 if not os.path.exists(THUMBNAILS_LOCATION):
     os.makedirs(THUMBNAILS_LOCATION)
@@ -170,12 +190,11 @@ custom_providers["MacroStrat"] = {
         url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.mvt",
         attribution="© Geologic data © <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC‑BY 4.0)",
         max_zoom=18,
-    ),
+    )
 }
 
 # Fetch thumbnails and populate the dictionary
 for provider_key, provider_value in provider_config.items():
-
     xyzprovider = custom_providers[provider_key]
     config_is_flat = "layerType" in provider_value
     xyz_is_flat = "url" in xyzprovider  
@@ -191,7 +210,6 @@ for provider_key, provider_value in provider_config.items():
         tile_size = thumbnail_config.get("TileSize", 256)
         file_path = download_thumbnail(url_template, provider_key, position, tile_size, **url_parameters)
      
-
         provider_gallery[provider_key] = {
                         "thumbnailPath": file_path,
                         "name": provider_key,
@@ -204,8 +222,8 @@ for provider_key, provider_value in provider_config.items():
                                 "minZoom": xyzprovider.get("min_zoom") or 0
 , 
                         },
-                        "layerParameters": {"opacity": 1}
-        
+                        "layerParameters": {"opacity": 1},
+                        "urlParameters": dict_keys_to_camel(url_template)
     }
     
     elif config_is_flat and not xyz_is_flat:
@@ -226,7 +244,7 @@ for provider_key, provider_value in provider_config.items():
             file_path = download_thumbnail(
                 url_template, name, position, tile_size, **url_parameters
             )
-            
+                
             providers_maps[map_name] = {
                 "thumbnailPath": file_path,
                 "name": provider_key +"."+ map_name,
@@ -238,7 +256,9 @@ for provider_key, provider_value in provider_config.items():
                     "maxZoom": tile_provider.get("max_zoom"),
                     "minZoom": tile_provider.get("min_zoom") or 0
                 },
-                "layerParameters": {"opacity": 1}
+                "layerParameters": {"opacity": 1},
+                "urlParameters": dict_keys_to_camel(url_parameters),
+                "description": tile_provider.get("attribution")
             }
 
         provider_gallery[provider_key] = providers_maps    
@@ -261,7 +281,7 @@ for provider_key, provider_value in provider_config.items():
             file_path = download_thumbnail(
                 url_template, name, position, tile_size, **url_parameters
             )
-          
+         
             providers_maps[map_name] = {
                 "thumbnailPath": file_path,
                 "name": provider_key +"."+ map_name,
@@ -274,10 +294,12 @@ for provider_key, provider_value in provider_config.items():
                     "minZoom": tile_provider.get("min_zoom") or 0
                 },
                 "layerParameters": {"opacity": 1},
+                "urlParameters": dict_keys_to_camel(url_parameters),
+                "description": tile_provider.get("attribution")
             }
 
         provider_gallery[provider_key] = providers_maps
-
+        
     else:
         raise ValueError(
             f"Inconsistent config for provider '{provider_key}'"
@@ -293,11 +315,10 @@ try:
 except subprocess.CalledProcessError as e:
     print("⚠️ Image compression skipped:", e)
 """
-    
 
 """
 # compress a single image of THUMBNAILS_LOCATION
-image_name = "MacroStrat-CartoVector.png"
+image_name = "NaturalEarth-Countries.png"
 cmd = (
     f'mogrify -resize 50% "{THUMBNAILS_LOCATION}/{image_name}" && '
     f'optipng "{THUMBNAILS_LOCATION}/{image_name}"'
@@ -305,6 +326,6 @@ cmd = (
 subprocess.run(["bash", "-lc", cmd], check=True)
 """
 
-with open(f"{THUMBNAILS_LOCATION}/layer_gallery.json", "w") as f:
+with open(f"layer_gallery.json", "w") as f:
         json.dump(provider_gallery, f)
 

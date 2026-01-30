@@ -44,7 +44,11 @@
       "layerType": "RasterLayer",
       "sourceType": "RasterSource",
       "thumbnail": {
-        "Special Rules": { "lat": 46.8182, "lng": 8.2275, "zoom": 8 },
+        "Special Rules": {
+          "lat": 46.8182,
+          "lng": 8.2275,
+          "zoom": 8
+        },
         "Default": {
           "lat": 47.040182144806664,
           "lng": 1.2963867187500002,
@@ -56,7 +60,11 @@
       "layerType": "RasterLayer",
       "sourceType": "RasterSource",
       "thumbnail": {
-        "Special Rules": { "lat": 51.1657, "lng": 10.4515, "zoom": 8 },
+        "Special Rules": {
+          "lat": 51.1657,
+          "lng": 10.4515,
+          "zoom": 8
+        },
         "Default": {
           "lat": 47.040182144806664,
           "lng": 1.2963867187500002,
@@ -174,7 +182,6 @@
         }
       }
     },
-
     "ModisTerraBands721CR": {
       "layerType": "RasterLayer",
       "sourceType": "RasterSource",
@@ -241,16 +248,23 @@
     "sourceType": "RasterSource",
     "thumbnail": {
       "Special Rules": {},
-      "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+      "Default": {
+        "lat": 37.7749,
+        "lng": -122.4194,
+        "zoom": 5
+      }
     }
   },
-
   "Gaode": {
     "layerType": "RasterLayer",
     "sourceType": "RasterSource",
     "thumbnail": {
       "Special Rules": {},
-      "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+      "Default": {
+        "lat": 37.7749,
+        "lng": -122.4194,
+        "zoom": 5
+      }
     }
   },
   "Strava": {
@@ -266,13 +280,16 @@
       "TileSize": 512
     }
   },
-
   "OPNVKarte": {
     "layerType": "RasterLayer",
     "sourceType": "RasterSource",
     "thumbnail": {
       "Special Rules": {},
-      "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+      "Default": {
+        "lat": 37.7749,
+        "lng": -122.4194,
+        "zoom": 5
+      }
     }
   },
   "OpenTopoMap": {
@@ -280,7 +297,11 @@
     "sourceType": "RasterSource",
     "thumbnail": {
       "Special Rules": {},
-      "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+      "Default": {
+        "lat": 37.7749,
+        "lng": -122.4194,
+        "zoom": 5
+      }
     }
   },
   "OpenRailwayMap": {
@@ -288,7 +309,11 @@
     "sourceType": "RasterSource",
     "thumbnail": {
       "Special Rules": {},
-      "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 },
+      "Default": {
+        "lat": 37.7749,
+        "lng": -122.4194,
+        "zoom": 5
+      },
       "TileSize": 512
     }
   },
@@ -298,7 +323,11 @@
       "sourceType": "RasterSource",
       "thumbnail": {
         "Special Rules": {},
-        "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+        "Default": {
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "zoom": 5
+        }
       }
     },
     "WorldTopoMap": {
@@ -306,7 +335,11 @@
       "sourceType": "RasterSource",
       "thumbnail": {
         "Special Rules": {},
-        "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+        "Default": {
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "zoom": 5
+        }
       }
     },
     "WorldImagery": {
@@ -314,7 +347,11 @@
       "sourceType": "RasterSource",
       "thumbnail": {
         "Special Rules": {},
-        "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+        "Default": {
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "zoom": 5
+        }
       }
     },
     "WorldTerrain": {
@@ -322,7 +359,11 @@
       "sourceType": "RasterSource",
       "thumbnail": {
         "Special Rules": {},
-        "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+        "Default": {
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "zoom": 5
+        }
       }
     },
     "WorldShadedRelief": {
@@ -330,7 +371,11 @@
       "sourceType": "RasterSource",
       "thumbnail": {
         "Special Rules": {},
-        "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+        "Default": {
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "zoom": 5
+        }
       }
     },
     "WorldPhysical": {
@@ -338,7 +383,11 @@
       "sourceType": "RasterSource",
       "thumbnail": {
         "Special Rules": {},
-        "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+        "Default": {
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "zoom": 5
+        }
       }
     },
     "OceanBasemap": {
@@ -346,7 +395,11 @@
       "sourceType": "RasterSource",
       "thumbnail": {
         "Special Rules": {},
-        "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+        "Default": {
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "zoom": 5
+        }
       }
     },
     "NatGeoWorldMap": {
@@ -354,7 +407,11 @@
       "sourceType": "RasterSource",
       "thumbnail": {
         "Special Rules": {},
-        "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+        "Default": {
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "zoom": 5
+        }
       }
     },
     "WorldGrayCanvas": {
@@ -362,7 +419,11 @@
       "sourceType": "RasterSource",
       "thumbnail": {
         "Special Rules": {},
-        "Default": { "lat": 37.7749, "lng": -122.4194, "zoom": 5 }
+        "Default": {
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "zoom": 5
+        }
       }
     }
   },

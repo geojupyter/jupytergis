@@ -15,7 +15,7 @@ import { compressors } from 'hyparquet-compressors';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
-import LAYER_GALLERY from '@/layer_gallery/layer_gallery.json';
+import LAYER_GALLERY from '@/layer_gallery.json';
 
 export const debounce = (
   func: CallableFunction,
@@ -205,20 +205,6 @@ export function createDefaultLayerRegistry(
     layerProvider: { [x: string]: any },
     provider?: string | undefined,
   ): ILayerGalleryEntry {
-    const urlParameters: any = {};
-
-    if (layerProvider.time) {
-      urlParameters.time = layerProvider.time;
-    }
-    if (layerProvider.variant) {
-      urlParameters.variant = layerProvider.variant;
-    }
-    if (layerProvider.tilematrixset) {
-      urlParameters.tilematrixset = layerProvider.tilematrixset;
-    }
-    if (layerProvider.format) {
-      urlParameters.format = layerProvider.format;
-    }
 
     if (!layerProvider.layerType || !layerProvider.sourceType) {
       throw new Error(
@@ -234,6 +220,8 @@ export function createDefaultLayerRegistry(
       sourceParameters: layerProvider['sourceParameters'],
       layerParameters: layerProvider['layerParameters'],
       provider: provider ?? entry.split('.', 1)[0],
+      urlParameters: layerProvider['urlParameters'],
+      description: layerProvider['description']
     };
   }
 }
@@ -389,9 +377,9 @@ export const getFromIndexedDB = async (key: string) => {
   const db = await openDatabase();
   return new Promise<
     | {
-        file: any;
-        metadata?: any | undefined;
-      }
+      file: any;
+      metadata?: any | undefined;
+    }
     | undefined
   >((resolve, reject) => {
     const transaction = db.transaction('files', 'readonly');

@@ -32,10 +32,25 @@ import {
 } from './_interface/project/jgis';
 
 import {
+  IGeoJSONSource,
+  IGeoParquetSource,
+  IGeoTiffSource,
+  IHeatmapLayer,
+  IHillshadeLayer,
+  IImageLayer,
+  IImageSource,
+  IMarkerSource,
+  IRasterDemSource,
   IRasterLayer,
   IRasterSource,
+  IShapefileSource,
+  IStacLayer,
+  IStorySegmentLayer,
+  IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
+  IVideoSource,
+  IWebGlLayer,
   Modes,
 } from './types';
 export { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
@@ -372,10 +387,12 @@ export type ILayerGalleryEntry = {
   name: string;
   thumbnail: string;
   layerType: LayerType;
-  layerParameters: IVectorTileLayer | IRasterLayer;
+  layerParameters: IHeatmapLayer | IHillshadeLayer | IImageLayer | IRasterLayer | IStacLayer | IStorySegmentLayer | IVectorLayer | IVectorTileLayer | IWebGlLayer;
   sourceType: SourceType;
-  sourceParameters: IVectorTileSource | IRasterSource;
+  sourceParameters: IGeoJSONSource | IGeoParquetSource | IGeoTiffSource | IImageSource | IMarkerSource | IRasterDemSource | IRasterSource | IShapefileSource | IVectorTileSource | IVideoSource;
   provider: string;
+  urlParameters: IDict<string>;
+  description: string
 };
 
 export interface IJGISLayerBrowserRegistry {

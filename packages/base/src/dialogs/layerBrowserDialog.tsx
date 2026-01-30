@@ -228,7 +228,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
                 </p> */}
               </div>
               <p className="jGIS-layer-browser-text-general jGIS-layer-browser-text-source">
-                {tile.sourceParameters.attribution}
+                {tile.description}
               </p>
             </div>
           </div>
