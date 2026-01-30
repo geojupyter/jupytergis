@@ -1,6 +1,7 @@
 .jgis-story-viewer-panel {
   padding: 1rem;
-  overflow: hidden;
+  overflow: auto;
+  /* overflow: hidden; */
   position: relative;
 }
 
@@ -77,6 +78,19 @@
   justify-content: center;
 }
 
+.jgis-story-navbar .jgis-button.jgis-story-navbar-button {
+  color: var(--jp-ui-inverse-font-color0);
+  background-color: var(--jp-inverse-layout-color0);
+}
+
+.jgis-story-viewer-image-container
+  .jgis-story-viewer-nav-container
+  .jgis-story-navbar
+  .jgis-story-navbar-button {
+  color: var(--jp-ui-font-color0);
+  background-color: var(--jp-layout-color0);
+}
+
 .jgis-story-viewer-subtitle-container {
   display: flex;
   align-items: center;
@@ -87,6 +101,8 @@
   position: absolute;
   left: 0;
   width: 100%;
+  padding: 0 1rem;
+  /* padding: 0 0.125rem; */
 }
 
 .jgis-story-viewer-nav-container-specta-mobile .jgis-story-navbar {

@@ -40,11 +40,17 @@ function StoryNavBar({
           <Button
             onClick={onPrev}
             disabled={!hasPrev}
+            className="jgis-story-navbar-button"
             aria-label="Previous slide"
           >
             <ChevronLeft />
           </Button>
-          <Button onClick={onNext} disabled={!hasNext} aria-label="Next slide">
+          <Button
+            onClick={onNext}
+            disabled={!hasNext}
+            className="jgis-story-navbar-button"
+            aria-label="Next slide"
+          >
             <ChevronRight />
           </Button>
         </>

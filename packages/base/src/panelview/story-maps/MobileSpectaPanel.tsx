@@ -1,5 +1,5 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import * as React from 'react';
+import React, { CSSProperties, useEffect, useState } from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -13,10 +13,29 @@ interface IMobileSpectaPanelProps {
   model: IJupyterGISModel;
 }
 
-export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
-  const [container, setContainer] = React.useState<HTMLElement | null>(null);
+function getSpectaPresentationStyle(model: IJupyterGISModel): CSSProperties {
+  const story = model.getSelectedStory().story;
+  const bgColor = story?.presentationBgColor;
+  const textColor = story?.presentaionTextColor;
 
-  React.useEffect(() => {
+  const style: CSSProperties = {};
+  if (bgColor) {
+    (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
+    style.backgroundColor = bgColor;
+  }
+  if (textColor) {
+    (style as Record<string, string>)['--jgis-specta-text-color'] = textColor;
+    style.color = textColor;
+  }
+  return style;
+}
+
+export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+
+  const presentationStyle = getSpectaPresentationStyle(model);
+
+  useEffect(() => {
     setContainer(document.getElementById('main'));
   }, []);
 
@@ -26,7 +45,7 @@ export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
         <DrawerTrigger asChild>
           <Button>Open Story Panel</Button>
         </DrawerTrigger>
-        <DrawerContent>
+        <DrawerContent style={presentationStyle}>
           <StoryViewerPanel isSpecta={true} isMobile={true} model={model} />
         </DrawerContent>
       </Drawer>
