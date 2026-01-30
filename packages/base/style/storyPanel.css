@@ -80,9 +80,17 @@
 .jgis-story-viewer-subtitle-container {
   display: flex;
   align-items: center;
-  /* justify-content: space-between; */
-  /* gap: 1rem; */
   padding-top: 1rem;
+}
+
+.jgis-story-viewer-nav-container-specta-mobile {
+  position: absolute;
+  left: 0;
+  width: 100%;
+}
+
+.jgis-story-viewer-nav-container-specta-mobile .jgis-story-navbar {
+  justify-content: space-between;
 }
 
 .jgis-story-navbar.jgis-story-navbar-specta-mod {
@@ -184,4 +192,12 @@
   .jp-inputFieldWrapper
   > input#root_presentaionTextColor {
   height: revert;
+}
+
+.jgis-mobile-specta-trigger-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  position: fixed;
+  bottom: 1.25rem;
 }

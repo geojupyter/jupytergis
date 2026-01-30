@@ -7,31 +7,9 @@
     "5862186d-0cae-4cee-be39-18951e31030f",
     "aabaa10b-4a6f-4a24-9ead-6f17bb7f2f7d",
     "93080edc-815f-4364-a874-90fd53a60c35",
-    "1ed95adf-0f7c-479d-9d8c-f1a378626c34"
+    "f719554a-3a4e-42c8-9c58-f3686ec03ef7"
   ],
   "layers": {
-    "1ed95adf-0f7c-479d-9d8c-f1a378626c34": {
-      "name": "Blank",
-      "parameters": {
-        "content": {
-          "markdown": "** nothing here bro **",
-          "title": "Blank"
-        },
-        "extent": [
-          259746.7888421545,
-          6248882.036889399,
-          268876.80664858065,
-          6258989.3982611885
-        ],
-        "transition": {
-          "time": 1.0,
-          "type": "linear"
-        },
-        "zoom": 14.230368389488868
-      },
-      "type": "StorySegmentLayer",
-      "visible": true
-    },
     "5862186d-0cae-4cee-be39-18951e31030f": {
       "name": "The Redeemer",
       "parameters": {
@@ -152,22 +130,44 @@
       },
       "type": "StorySegmentLayer",
       "visible": true
+    },
+    "f719554a-3a4e-42c8-9c58-f3686ec03ef7": {
+      "name": "blank",
+      "parameters": {
+        "content": {
+          "markdown": "aint shit",
+          "title": "ballala"
+        },
+        "extent": [
+          263007.15301348566,
+          6250376.621588729,
+          271408.4826489442,
+          6259677.290703451
+        ],
+        "transition": {
+          "time": 1.0,
+          "type": "linear"
+        },
+        "zoom": 14.350368389488867
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
     }
   },
   "metadata": {},
   "options": {
     "bearing": 0.0,
     "extent": [
-      259746.7888421545,
-      6248882.036889399,
-      268876.80664858065,
-      6258989.3982611885
+      263007.15301348566,
+      6252006.674394895,
+      271408.4826489442,
+      6258047.237897285
     ],
-    "latitude": 48.87652226303334,
-    "longitude": 2.3743532768777134,
+    "latitude": 48.88296896761565,
+    "longitude": 2.4003686679400515,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 14.230368389488868
+    "zoom": 14.350368389488867
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -224,12 +224,13 @@
   "stories": {
     "1b181980-a95a-4f23-8e5d-980c66ff93ea": {
       "presentaionTextColor": "#b1bdd6",
-      "presentationBgColor": "#171b2c",
+      "presentationBgColor": "#171B2C",
+      "presentationTextColor": "#AEBAD3",
       "storySegments": [
         "5f790e80-230b-4c00-8426-b3a9385937a5",
         "8591b32f-11c0-4d70-a997-e94d258bb100",
         "bcd22241-e404-44b4-873b-81e6a4ccad84",
-        "1ed95adf-0f7c-479d-9d8c-f1a378626c34"
+        "f719554a-3a4e-42c8-9c58-f3686ec03ef7"
       ],
       "storyType": "guided",
       "title": "Famous Statues"

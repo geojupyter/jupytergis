@@ -13,17 +13,17 @@ import React, {
   useState,
 } from 'react';
 
+import { cn } from '@/src/shared/components/utils';
+import StoryNavBar from './StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
-import StoryNavBar from './StoryNavBar';
-import StoryNavBarContainer from './components/StoryNavBarContainer';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
-import { cn } from '@/src/shared/components/utils';
 
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
+  isMobile?: boolean;
   className?: string;
 }
 
@@ -37,12 +37,14 @@ export interface IStoryViewerPanelHandle {
  * Where the story nav bar should be rendered in the viewer layout.
  * - below-title: normal mode, guided, no image (under the title)
  * - over-image: normal mode, guided, with image (over the image)
- * - subtitle-specta: specta mode (desktop or mobile, next to subtitle)
+ * - subtitle-specta: specta mode desktop (next to subtitle, fixed centered)
+ * - subtitle-specta-mobile: specta mode mobile (in line with subtitle)
  */
 export type StoryNavPlacement =
   | 'below-title'
   | 'over-image'
-  | 'subtitle-specta';
+  | 'subtitle-specta'
+  | 'subtitle-specta-mobile';
 
 /**
  * Returns which section should render the nav bar, or null if nav should be hidden.
@@ -51,9 +53,10 @@ function getStoryNavPlacement(
   isSpecta: boolean,
   hasImage: boolean,
   storyType: string,
+  isMobile: boolean,
 ): StoryNavPlacement | null {
   if (isSpecta) {
-    return 'subtitle-specta';
+    return isMobile ? 'subtitle-specta-mobile' : 'subtitle-specta';
   }
   if (storyType !== 'guided') {
     return null;
@@ -64,7 +67,7 @@ function getStoryNavPlacement(
 const StoryViewerPanel = forwardRef<
   IStoryViewerPanelHandle,
   IStoryViewerPanelProps
->(({ model, isSpecta, className }, ref) => {
+>(({ model, isSpecta, isMobile = false, className }, ref) => {
   const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(0);
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
     model.getSelectedStory().story ?? null,
@@ -273,13 +276,16 @@ const StoryViewerPanel = forwardRef<
 
   const hasImage = !!(activeSlide?.content?.image && imageLoaded);
   const storyType = storyData.storyType ?? 'guided';
-  const navPlacement = getStoryNavPlacement(isSpecta, hasImage, storyType);
+  const navPlacement = getStoryNavPlacement(
+    isSpecta,
+    hasImage,
+    storyType,
+    isMobile,
+  );
 
   const navSlot =
     navPlacement !== null ? (
-      <StoryNavBarContainer placement={navPlacement}>
-        <StoryNavBar {...navProps} isSpecta={isSpecta} />
-      </StoryNavBarContainer>
+      <StoryNavBar placement={navPlacement} {...navProps} />
     ) : null;
 
   // Get transition time from current segment, default to 0.3s
@@ -317,7 +323,12 @@ const StoryViewerPanel = forwardRef<
         )}
         <StorySubtitleSection
           title={activeSlide?.content?.title ?? ''}
-          navSlot={navPlacement === 'subtitle-specta' ? navSlot : null}
+          navSlot={
+            navPlacement === 'subtitle-specta' ||
+            navPlacement === 'subtitle-specta-mobile'
+              ? navSlot
+              : null
+          }
         />
         <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
       </div>
