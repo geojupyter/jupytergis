@@ -1,1 +1,715 @@
-{"OpenStreetMap": {"Mapnik": {"thumbnailPath": "layer_gallery/OpenStreetMap-Mapnik.png", "name": "OpenStreetMap.Mapnik", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png", "attribution": "(C) OpenStreetMap contributors", "maxZoom": 19, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "(C) OpenStreetMap contributors"}, "BZH": {"thumbnailPath": "layer_gallery/OpenStreetMap-BZH.png", "name": "OpenStreetMap.BZH", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://tile.openstreetmap.bzh/br/{z}/{x}/{y}.png", "attribution": "(C) OpenStreetMap contributors, Tiles courtesy of Breton OpenStreetMap Team", "maxZoom": 19, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "(C) OpenStreetMap contributors, Tiles courtesy of Breton OpenStreetMap Team"}, "CAT": {"thumbnailPath": "layer_gallery/OpenStreetMap-CAT.png", "name": "OpenStreetMap.CAT", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://tile.openstreetmap.bzh/ca/{z}/{x}/{y}.png", "attribution": "(C) OpenStreetMap contributors, Tiles courtesy of Breton OpenStreetMap Team", "maxZoom": 19, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "(C) OpenStreetMap contributors, Tiles courtesy of Breton OpenStreetMap Team"}, "CH": {"thumbnailPath": "layer_gallery/OpenStreetMap-CH.png", "name": "OpenStreetMap.CH", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://tile.osm.ch/switzerland/{z}/{x}/{y}.png", "attribution": "(C) OpenStreetMap contributors", "maxZoom": 18, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "(C) OpenStreetMap contributors"}, "DE": {"thumbnailPath": "layer_gallery/OpenStreetMap-DE.png", "name": "OpenStreetMap.DE", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://tile.openstreetmap.de/{z}/{x}/{y}.png", "attribution": "(C) OpenStreetMap contributors", "maxZoom": 18, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "(C) OpenStreetMap contributors"}, "France": {"thumbnailPath": "layer_gallery/OpenStreetMap-France.png", "name": "OpenStreetMap.France", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png", "attribution": "(C) OpenStreetMap France | (C) OpenStreetMap contributors", "maxZoom": 20, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "(C) OpenStreetMap France | (C) OpenStreetMap contributors"}, "HOT": {"thumbnailPath": "layer_gallery/OpenStreetMap-HOT.png", "name": "OpenStreetMap.HOT", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", "attribution": "(C) OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team hosted by OpenStreetMap France", "maxZoom": 19, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "(C) OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team hosted by OpenStreetMap France"}}, "NASAGIBS": {"ModisTerraTrueColorCR": {"thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraTrueColorCR.png", "name": "NASAGIBS.ModisTerraTrueColorCR", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 9, "minZoom": 1}, "layerParameters": {"opacity": 1}, "urlParameters": {"tilematrixset": "GoogleMapsCompatible_Level", "format": "jpg", "time": "2026-01-29", "maxZoom": 9, "variant": "MODIS_Terra_CorrectedReflectance_TrueColor"}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}, "ModisTerraBands367CR": {"thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraBands367CR.png", "name": "NASAGIBS.ModisTerraBands367CR", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 9, "minZoom": 1}, "layerParameters": {"opacity": 1}, "urlParameters": {"tilematrixset": "GoogleMapsCompatible_Level", "format": "jpg", "time": "2026-01-29", "maxZoom": 9, "variant": "MODIS_Terra_CorrectedReflectance_Bands367"}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}, "ViirsEarthAtNight2012": {"thumbnailPath": "layer_gallery/NASAGIBS-ViirsEarthAtNight2012.png", "name": "NASAGIBS.ViirsEarthAtNight2012", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 8, "minZoom": 1}, "layerParameters": {"opacity": 1}, "urlParameters": {"tilematrixset": "GoogleMapsCompatible_Level", "format": "jpg", "time": "2026-01-29", "maxZoom": 8, "variant": "VIIRS_CityLights_2012"}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}, "ModisTerraLSTDay": {"thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraLSTDay.png", "name": "NASAGIBS.ModisTerraLSTDay", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 7, "minZoom": 1}, "layerParameters": {"opacity": 1}, "urlParameters": {"tilematrixset": "GoogleMapsCompatible_Level", "format": "png", "time": "2026-01-29", "maxZoom": 7, "variant": "MODIS_Terra_Land_Surface_Temp_Day"}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}, "ModisTerraSnowCover": {"thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraSnowCover.png", "name": "NASAGIBS.ModisTerraSnowCover", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 8, "minZoom": 1}, "layerParameters": {"opacity": 1}, "urlParameters": {"tilematrixset": "GoogleMapsCompatible_Level", "format": "png", "time": "2026-01-29", "maxZoom": 8, "variant": "MODIS_Terra_NDSI_Snow_Cover"}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}, "ModisTerraAOD": {"thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraAOD.png", "name": "NASAGIBS.ModisTerraAOD", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 6, "minZoom": 1}, "layerParameters": {"opacity": 1}, "urlParameters": {"tilematrixset": "GoogleMapsCompatible_Level", "format": "png", "time": "2026-01-29", "maxZoom": 6, "variant": "MODIS_Terra_Aerosol"}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}, "ModisTerraChlorophyll": {"thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraChlorophyll.png", "name": "NASAGIBS.ModisTerraChlorophyll", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 7, "minZoom": 1}, "layerParameters": {"opacity": 1}, "urlParameters": {"tilematrixset": "GoogleMapsCompatible_Level", "format": "png", "time": "2026-01-29", "maxZoom": 7, "variant": "MODIS_Terra_L2_Chlorophyll_A"}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}, "ModisTerraBands721CR": {"thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraBands721CR.png", "name": "NASAGIBS.ModisTerraBands721CR", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_Bands721/default/{time}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 9, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"time": "2026-01-29"}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}, "ModisAquaTrueColorCR": {"thumbnailPath": "layer_gallery/NASAGIBS-ModisAquaTrueColorCR.png", "name": "NASAGIBS.ModisAquaTrueColorCR", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_CorrectedReflectance_TrueColor/default/{time}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 9, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"time": "2026-01-29"}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}, "ModisAquaBands721CR": {"thumbnailPath": "layer_gallery/NASAGIBS-ModisAquaBands721CR.png", "name": "NASAGIBS.ModisAquaBands721CR", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_CorrectedReflectance_Bands721/default/{time}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 9, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"time": "2026-01-29"}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}, "ViirsTrueColorCR": {"thumbnailPath": "layer_gallery/NASAGIBS-ViirsTrueColorCR.png", "name": "NASAGIBS.ViirsTrueColorCR", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/{time}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 9, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"time": "2026-01-29"}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}, "ASTER_GDEM_Greyscale_Shaded_Relief": {"thumbnailPath": "layer_gallery/NASAGIBS-ASTER_GDEM_Greyscale_Shaded_Relief.png", "name": "NASAGIBS.ASTER_GDEM_Greyscale_Shaded_Relief", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/ASTER_GDEM_Greyscale_Shaded_Relief/default/GoogleMapsCompatible_Level12/{z}/{y}/{x}.jpg", "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.", "maxZoom": 12, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."}}, "USGS": {"USTopo": {"thumbnailPath": "layer_gallery/USGS-USTopo.png", "name": "USGS.USTopo", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles courtesy of the U.S. Geological Survey", "maxZoom": 20, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "Tiles courtesy of the U.S. Geological Survey"}, "USImagery": {"thumbnailPath": "layer_gallery/USGS-USImagery.png", "name": "USGS.USImagery", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles courtesy of the U.S. Geological Survey", "maxZoom": 20, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "Tiles courtesy of the U.S. Geological Survey"}, "USImageryTopo": {"thumbnailPath": "layer_gallery/USGS-USImageryTopo.png", "name": "USGS.USImageryTopo", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles courtesy of the U.S. Geological Survey", "maxZoom": 20, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "Tiles courtesy of the U.S. Geological Survey"}}, "Gaode": {"Normal": {"thumbnailPath": "layer_gallery/Gaode-Normal.png", "name": "Gaode.Normal", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}", "attribution": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>", "maxZoom": 19, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>"}, "Satellite": {"thumbnailPath": "layer_gallery/Gaode-Satellite.png", "name": "Gaode.Satellite", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "http://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}", "attribution": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>", "maxZoom": 19, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>"}}, "Strava": {"All": {"thumbnailPath": "layer_gallery/Strava-All.png", "name": "Strava.All", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://heatmap-external-a.strava.com/tiles/all/hot/{z}/{x}/{y}.png", "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>", "maxZoom": 15, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>"}, "Ride": {"thumbnailPath": "layer_gallery/Strava-Ride.png", "name": "Strava.Ride", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://heatmap-external-a.strava.com/tiles/ride/hot/{z}/{x}/{y}.png", "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>", "maxZoom": 15, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>"}, "Run": {"thumbnailPath": "layer_gallery/Strava-Run.png", "name": "Strava.Run", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://heatmap-external-a.strava.com/tiles/run/bluered/{z}/{x}/{y}.png", "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>", "maxZoom": 15, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>"}, "Water": {"thumbnailPath": "layer_gallery/Strava-Water.png", "name": "Strava.Water", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://heatmap-external-a.strava.com/tiles/water/blue/{z}/{x}/{y}.png", "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>", "maxZoom": 15, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>"}, "Winter": {"thumbnailPath": "layer_gallery/Strava-Winter.png", "name": "Strava.Winter", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://heatmap-external-a.strava.com/tiles/winter/hot/{z}/{x}/{y}.png", "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>", "maxZoom": 15, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>"}}, "OPNVKarte": {"thumbnailPath": "layer_gallery/OPNVKarte.png", "name": "OPNVKarte", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png", "attribution": "Map memomaps.de CC-BY-SA, map data (C) OpenStreetMap contributors", "maxZoom": 18, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png"}, "OpenTopoMap": {"thumbnailPath": "layer_gallery/OpenTopoMap.png", "name": "OpenTopoMap", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", "attribution": "Map data: (C) OpenStreetMap contributors, SRTM | Map style: (C) OpenTopoMap (CC-BY-SA)", "maxZoom": 17, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"}, "OpenRailwayMap": {"thumbnailPath": "layer_gallery/OpenRailwayMap.png", "name": "OpenRailwayMap", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png", "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) OpenRailwayMap (CC-BY-SA)", "maxZoom": 19, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": "https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png"}, "Esri": {"WorldStreetMap": {"thumbnailPath": "layer_gallery/Esri-WorldStreetMap.png", "name": "Esri.WorldStreetMap", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles (C) Esri -- Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012", "maxZoom": null, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"variant": "World_Street_Map"}, "description": "Tiles (C) Esri -- Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"}, "WorldTopoMap": {"thumbnailPath": "layer_gallery/Esri-WorldTopoMap.png", "name": "Esri.WorldTopoMap", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community", "maxZoom": null, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"variant": "World_Topo_Map"}, "description": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community"}, "WorldImagery": {"thumbnailPath": "layer_gallery/Esri-WorldImagery.png", "name": "Esri.WorldImagery", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles (C) Esri -- Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community", "maxZoom": null, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"variant": "World_Imagery"}, "description": "Tiles (C) Esri -- Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"}, "WorldTerrain": {"thumbnailPath": "layer_gallery/Esri-WorldTerrain.png", "name": "Esri.WorldTerrain", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles (C) Esri -- Source: USGS, Esri, TANA, DeLorme, and NPS", "maxZoom": 13, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"variant": "World_Terrain_Base"}, "description": "Tiles (C) Esri -- Source: USGS, Esri, TANA, DeLorme, and NPS"}, "WorldShadedRelief": {"thumbnailPath": "layer_gallery/Esri-WorldShadedRelief.png", "name": "Esri.WorldShadedRelief", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles (C) Esri -- Source: Esri", "maxZoom": 13, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"variant": "World_Shaded_Relief"}, "description": "Tiles (C) Esri -- Source: Esri"}, "WorldPhysical": {"thumbnailPath": "layer_gallery/Esri-WorldPhysical.png", "name": "Esri.WorldPhysical", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles (C) Esri -- Source: US National Park Service", "maxZoom": 8, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"variant": "World_Physical_Map"}, "description": "Tiles (C) Esri -- Source: US National Park Service"}, "OceanBasemap": {"thumbnailPath": "layer_gallery/Esri-OceanBasemap.png", "name": "Esri.OceanBasemap", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles (C) Esri -- Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri", "maxZoom": 13, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"variant": "Ocean/World_Ocean_Base"}, "description": "Tiles (C) Esri -- Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri"}, "NatGeoWorldMap": {"thumbnailPath": "layer_gallery/Esri-NatGeoWorldMap.png", "name": "Esri.NatGeoWorldMap", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles (C) Esri -- National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC", "maxZoom": 16, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"variant": "NatGeo_World_Map"}, "description": "Tiles (C) Esri -- National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC"}, "WorldGrayCanvas": {"thumbnailPath": "layer_gallery/Esri-WorldGrayCanvas.png", "name": "Esri.WorldGrayCanvas", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}", "attribution": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ", "maxZoom": 16, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {"variant": "Canvas/World_Light_Gray_Base"}, "description": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ"}}, "MacroStrat": {"CartoRaster": {"thumbnailPath": "layer_gallery/MacroStrat-CartoRaster.png", "name": "MacroStrat.CartoRaster", "layerType": "RasterLayer", "sourceType": "RasterSource", "sourceParameters": {"url": "https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png", "attribution": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC\u2011BY 4.0)", "maxZoom": 18, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC\u2011BY 4.0)"}, "CartoVector": {"thumbnailPath": "layer_gallery/MacroStrat-CartoVector.png", "name": "MacroStrat.CartoVector", "layerType": "VectorTileLayer", "sourceType": "VectorTileSource", "sourceParameters": {"url": "https://tiles.macrostrat.org/carto/{z}/{x}/{y}.mvt", "attribution": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC\u2011BY 4.0)", "maxZoom": 18, "minZoom": 0}, "layerParameters": {"opacity": 1}, "urlParameters": {}, "description": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC\u2011BY 4.0)"}}, "NaturalEarth": {"Countries": {"name": "NaturalEarth.Countries", "thumbnailPath": "/layer_gallery/NaturalEarth-Countries.png", "layerType": "VectorLayer", "layerParameters": {"opacity": 1, "symbologyState": {}}, "sourceType": "GeoJSONSource", "sourceParameters": {"path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"}, "provider": "NaturalEarth", "urlParameters": {}, "description": "Vector country boundaries from the Natural Earth dataset (1:110m scale). Public-domain geographic data intended for small-scale cartography, theming, and global map display."}}}
+{
+  "OpenStreetMap": {
+    "Mapnik": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-Mapnik.png",
+      "name": "OpenStreetMap.Mapnik",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "(C) OpenStreetMap contributors"
+    },
+    "BZH": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-BZH.png",
+      "name": "OpenStreetMap.BZH",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tile.openstreetmap.bzh/br/{z}/{x}/{y}.png",
+        "attribution": "(C) OpenStreetMap contributors, Tiles courtesy of Breton OpenStreetMap Team",
+        "maxZoom": 19,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "(C) OpenStreetMap contributors, Tiles courtesy of Breton OpenStreetMap Team"
+    },
+    "CAT": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-CAT.png",
+      "name": "OpenStreetMap.CAT",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tile.openstreetmap.bzh/ca/{z}/{x}/{y}.png",
+        "attribution": "(C) OpenStreetMap contributors, Tiles courtesy of Breton OpenStreetMap Team",
+        "maxZoom": 19,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "(C) OpenStreetMap contributors, Tiles courtesy of Breton OpenStreetMap Team"
+    },
+    "CH": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-CH.png",
+      "name": "OpenStreetMap.CH",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tile.osm.ch/switzerland/{z}/{x}/{y}.png",
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 18,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "(C) OpenStreetMap contributors"
+    },
+    "DE": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-DE.png",
+      "name": "OpenStreetMap.DE",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tile.openstreetmap.de/{z}/{x}/{y}.png",
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 18,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "(C) OpenStreetMap contributors"
+    },
+    "France": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-France.png",
+      "name": "OpenStreetMap.France",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png",
+        "attribution": "(C) OpenStreetMap France | (C) OpenStreetMap contributors",
+        "maxZoom": 20,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "(C) OpenStreetMap France | (C) OpenStreetMap contributors"
+    },
+    "HOT": {
+      "thumbnailPath": "layer_gallery/OpenStreetMap-HOT.png",
+      "name": "OpenStreetMap.HOT",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+        "attribution": "(C) OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team hosted by OpenStreetMap France",
+        "maxZoom": 19,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "(C) OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team hosted by OpenStreetMap France"
+    }
+  },
+  "NASAGIBS": {
+    "ModisTerraTrueColorCR": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraTrueColorCR.png",
+      "name": "NASAGIBS.ModisTerraTrueColorCR",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 9,
+        "minZoom": 1
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {
+        "tilematrixset": "GoogleMapsCompatible_Level",
+        "format": "jpg",
+        "time": "2026-01-29",
+        "maxZoom": 9,
+        "variant": "MODIS_Terra_CorrectedReflectance_TrueColor"
+      },
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    },
+    "ModisTerraBands367CR": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraBands367CR.png",
+      "name": "NASAGIBS.ModisTerraBands367CR",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 9,
+        "minZoom": 1
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {
+        "tilematrixset": "GoogleMapsCompatible_Level",
+        "format": "jpg",
+        "time": "2026-01-29",
+        "maxZoom": 9,
+        "variant": "MODIS_Terra_CorrectedReflectance_Bands367"
+      },
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    },
+    "ViirsEarthAtNight2012": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ViirsEarthAtNight2012.png",
+      "name": "NASAGIBS.ViirsEarthAtNight2012",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 8,
+        "minZoom": 1
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {
+        "tilematrixset": "GoogleMapsCompatible_Level",
+        "format": "jpg",
+        "time": "2026-01-29",
+        "maxZoom": 8,
+        "variant": "VIIRS_CityLights_2012"
+      },
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    },
+    "ModisTerraLSTDay": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraLSTDay.png",
+      "name": "NASAGIBS.ModisTerraLSTDay",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 7,
+        "minZoom": 1
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {
+        "tilematrixset": "GoogleMapsCompatible_Level",
+        "format": "png",
+        "time": "2026-01-29",
+        "maxZoom": 7,
+        "variant": "MODIS_Terra_Land_Surface_Temp_Day"
+      },
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    },
+    "ModisTerraSnowCover": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraSnowCover.png",
+      "name": "NASAGIBS.ModisTerraSnowCover",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 8,
+        "minZoom": 1
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {
+        "tilematrixset": "GoogleMapsCompatible_Level",
+        "format": "png",
+        "time": "2026-01-29",
+        "maxZoom": 8,
+        "variant": "MODIS_Terra_NDSI_Snow_Cover"
+      },
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    },
+    "ModisTerraAOD": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraAOD.png",
+      "name": "NASAGIBS.ModisTerraAOD",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 6,
+        "minZoom": 1
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {
+        "tilematrixset": "GoogleMapsCompatible_Level",
+        "format": "png",
+        "time": "2026-01-29",
+        "maxZoom": 6,
+        "variant": "MODIS_Terra_Aerosol"
+      },
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    },
+    "ModisTerraChlorophyll": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraChlorophyll.png",
+      "name": "NASAGIBS.ModisTerraChlorophyll",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://map1.vis.earthdata.nasa.gov/wmts-webmerc/{variant}/default/{time}/{tilematrixset}{max_zoom}/{z}/{y}/{x}.{format}",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 7,
+        "minZoom": 1
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {
+        "tilematrixset": "GoogleMapsCompatible_Level",
+        "format": "png",
+        "time": "2026-01-29",
+        "maxZoom": 7,
+        "variant": "MODIS_Terra_L2_Chlorophyll_A"
+      },
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    },
+    "ModisTerraBands721CR": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ModisTerraBands721CR.png",
+      "name": "NASAGIBS.ModisTerraBands721CR",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_Bands721/default/{time}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 9,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "time": "2026-01-29" },
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    },
+    "ModisAquaTrueColorCR": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ModisAquaTrueColorCR.png",
+      "name": "NASAGIBS.ModisAquaTrueColorCR",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_CorrectedReflectance_TrueColor/default/{time}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 9,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "time": "2026-01-29" },
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    },
+    "ModisAquaBands721CR": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ModisAquaBands721CR.png",
+      "name": "NASAGIBS.ModisAquaBands721CR",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_CorrectedReflectance_Bands721/default/{time}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 9,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "time": "2026-01-29" },
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    },
+    "ViirsTrueColorCR": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ViirsTrueColorCR.png",
+      "name": "NASAGIBS.ViirsTrueColorCR",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/{time}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 9,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "time": "2026-01-29" },
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    },
+    "ASTER_GDEM_Greyscale_Shaded_Relief": {
+      "thumbnailPath": "layer_gallery/NASAGIBS-ASTER_GDEM_Greyscale_Shaded_Relief.png",
+      "name": "NASAGIBS.ASTER_GDEM_Greyscale_Shaded_Relief",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/ASTER_GDEM_Greyscale_Shaded_Relief/default/GoogleMapsCompatible_Level12/{z}/{y}/{x}.jpg",
+        "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "maxZoom": 12,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    }
+  },
+  "USGS": {
+    "USTopo": {
+      "thumbnailPath": "layer_gallery/USGS-USTopo.png",
+      "name": "USGS.USTopo",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles courtesy of the U.S. Geological Survey",
+        "maxZoom": 20,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "Tiles courtesy of the U.S. Geological Survey"
+    },
+    "USImagery": {
+      "thumbnailPath": "layer_gallery/USGS-USImagery.png",
+      "name": "USGS.USImagery",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles courtesy of the U.S. Geological Survey",
+        "maxZoom": 20,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "Tiles courtesy of the U.S. Geological Survey"
+    },
+    "USImageryTopo": {
+      "thumbnailPath": "layer_gallery/USGS-USImageryTopo.png",
+      "name": "USGS.USImageryTopo",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles courtesy of the U.S. Geological Survey",
+        "maxZoom": 20,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "Tiles courtesy of the U.S. Geological Survey"
+    }
+  },
+  "Gaode": {
+    "Normal": {
+      "thumbnailPath": "layer_gallery/Gaode-Normal.png",
+      "name": "Gaode.Normal",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}",
+        "attribution": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>",
+        "maxZoom": 19,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>"
+    },
+    "Satellite": {
+      "thumbnailPath": "layer_gallery/Gaode-Satellite.png",
+      "name": "Gaode.Satellite",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "http://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}",
+        "attribution": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>",
+        "maxZoom": 19,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "&copy; <a href=\"http://www.gaode.com/\">Gaode.com</a>"
+    }
+  },
+  "Strava": {
+    "All": {
+      "thumbnailPath": "layer_gallery/Strava-All.png",
+      "name": "Strava.All",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://heatmap-external-a.strava.com/tiles/all/hot/{z}/{x}/{y}.png",
+        "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+        "maxZoom": 15,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>"
+    },
+    "Ride": {
+      "thumbnailPath": "layer_gallery/Strava-Ride.png",
+      "name": "Strava.Ride",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://heatmap-external-a.strava.com/tiles/ride/hot/{z}/{x}/{y}.png",
+        "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+        "maxZoom": 15,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>"
+    },
+    "Run": {
+      "thumbnailPath": "layer_gallery/Strava-Run.png",
+      "name": "Strava.Run",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://heatmap-external-a.strava.com/tiles/run/bluered/{z}/{x}/{y}.png",
+        "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+        "maxZoom": 15,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>"
+    },
+    "Water": {
+      "thumbnailPath": "layer_gallery/Strava-Water.png",
+      "name": "Strava.Water",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://heatmap-external-a.strava.com/tiles/water/blue/{z}/{x}/{y}.png",
+        "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+        "maxZoom": 15,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>"
+    },
+    "Winter": {
+      "thumbnailPath": "layer_gallery/Strava-Winter.png",
+      "name": "Strava.Winter",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://heatmap-external-a.strava.com/tiles/winter/hot/{z}/{x}/{y}.png",
+        "attribution": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>",
+        "maxZoom": 15,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "Map tiles by <a href=\"https://labs.strava.com/heatmap\">Strava 2021</a>"
+    }
+  },
+  "OPNVKarte": {
+    "thumbnailPath": "layer_gallery/OPNVKarte.png",
+    "name": "OPNVKarte",
+    "layerType": "RasterLayer",
+    "sourceType": "RasterSource",
+    "sourceParameters": {
+      "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
+      "attribution": "Map memomaps.de CC-BY-SA, map data (C) OpenStreetMap contributors",
+      "maxZoom": 18,
+      "minZoom": 0
+    },
+    "layerParameters": { "opacity": 1 },
+    "urlParameters": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png"
+  },
+  "OpenTopoMap": {
+    "thumbnailPath": "layer_gallery/OpenTopoMap.png",
+    "name": "OpenTopoMap",
+    "layerType": "RasterLayer",
+    "sourceType": "RasterSource",
+    "sourceParameters": {
+      "url": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+      "attribution": "Map data: (C) OpenStreetMap contributors, SRTM | Map style: (C) OpenTopoMap (CC-BY-SA)",
+      "maxZoom": 17,
+      "minZoom": 0
+    },
+    "layerParameters": { "opacity": 1 },
+    "urlParameters": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+  },
+  "OpenRailwayMap": {
+    "thumbnailPath": "layer_gallery/OpenRailwayMap.png",
+    "name": "OpenRailwayMap",
+    "layerType": "RasterLayer",
+    "sourceType": "RasterSource",
+    "sourceParameters": {
+      "url": "https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png",
+      "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) OpenRailwayMap (CC-BY-SA)",
+      "maxZoom": 19,
+      "minZoom": 0
+    },
+    "layerParameters": { "opacity": 1 },
+    "urlParameters": "https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png"
+  },
+  "Esri": {
+    "WorldStreetMap": {
+      "thumbnailPath": "layer_gallery/Esri-WorldStreetMap.png",
+      "name": "Esri.WorldStreetMap",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles (C) Esri -- Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012",
+        "maxZoom": null,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "World_Street_Map" },
+      "description": "Tiles (C) Esri -- Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
+    },
+    "WorldTopoMap": {
+      "thumbnailPath": "layer_gallery/Esri-WorldTopoMap.png",
+      "name": "Esri.WorldTopoMap",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community",
+        "maxZoom": null,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "World_Topo_Map" },
+      "description": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community"
+    },
+    "WorldImagery": {
+      "thumbnailPath": "layer_gallery/Esri-WorldImagery.png",
+      "name": "Esri.WorldImagery",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles (C) Esri -- Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+        "maxZoom": null,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "World_Imagery" },
+      "description": "Tiles (C) Esri -- Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+    },
+    "WorldTerrain": {
+      "thumbnailPath": "layer_gallery/Esri-WorldTerrain.png",
+      "name": "Esri.WorldTerrain",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles (C) Esri -- Source: USGS, Esri, TANA, DeLorme, and NPS",
+        "maxZoom": 13,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "World_Terrain_Base" },
+      "description": "Tiles (C) Esri -- Source: USGS, Esri, TANA, DeLorme, and NPS"
+    },
+    "WorldShadedRelief": {
+      "thumbnailPath": "layer_gallery/Esri-WorldShadedRelief.png",
+      "name": "Esri.WorldShadedRelief",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles (C) Esri -- Source: Esri",
+        "maxZoom": 13,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "World_Shaded_Relief" },
+      "description": "Tiles (C) Esri -- Source: Esri"
+    },
+    "WorldPhysical": {
+      "thumbnailPath": "layer_gallery/Esri-WorldPhysical.png",
+      "name": "Esri.WorldPhysical",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles (C) Esri -- Source: US National Park Service",
+        "maxZoom": 8,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "World_Physical_Map" },
+      "description": "Tiles (C) Esri -- Source: US National Park Service"
+    },
+    "OceanBasemap": {
+      "thumbnailPath": "layer_gallery/Esri-OceanBasemap.png",
+      "name": "Esri.OceanBasemap",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles (C) Esri -- Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri",
+        "maxZoom": 13,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "Ocean/World_Ocean_Base" },
+      "description": "Tiles (C) Esri -- Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri"
+    },
+    "NatGeoWorldMap": {
+      "thumbnailPath": "layer_gallery/Esri-NatGeoWorldMap.png",
+      "name": "Esri.NatGeoWorldMap",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles (C) Esri -- National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC",
+        "maxZoom": 16,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "NatGeo_World_Map" },
+      "description": "Tiles (C) Esri -- National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC"
+    },
+    "WorldGrayCanvas": {
+      "thumbnailPath": "layer_gallery/Esri-WorldGrayCanvas.png",
+      "name": "Esri.WorldGrayCanvas",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+        "attribution": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ",
+        "maxZoom": 16,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "Canvas/World_Light_Gray_Base" },
+      "description": "Tiles (C) Esri -- Esri, DeLorme, NAVTEQ"
+    }
+  },
+  "MacroStrat": {
+    "CartoRaster": {
+      "thumbnailPath": "layer_gallery/MacroStrat-CartoRaster.png",
+      "name": "MacroStrat.CartoRaster",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
+        "attribution": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC\u2011BY 4.0)",
+        "maxZoom": 18,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC\u2011BY 4.0)"
+    },
+    "CartoVector": {
+      "thumbnailPath": "layer_gallery/MacroStrat-CartoVector.png",
+      "name": "MacroStrat.CartoVector",
+      "layerType": "VectorTileLayer",
+      "sourceType": "VectorTileSource",
+      "sourceParameters": {
+        "url": "https://tiles.macrostrat.org/carto/{z}/{x}/{y}.mvt",
+        "attribution": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC\u2011BY 4.0)",
+        "maxZoom": 18,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": {},
+      "description": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC\u2011BY 4.0)"
+    }
+  },
+  "NaturalEarth": {
+    "Countries": {
+      "name": "NaturalEarth.Countries",
+      "thumbnailPath": "/layer_gallery/NaturalEarth-Countries.png",
+      "layerType": "VectorLayer",
+      "layerParameters": { "opacity": 1, "symbologyState": {} },
+      "sourceType": "GeoJSONSource",
+      "sourceParameters": {
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+      },
+      "provider": "NaturalEarth",
+      "urlParameters": {},
+      "description": "Vector country boundaries from the Natural Earth dataset (1:110m scale). Public-domain geographic data intended for small-scale cartography, theming, and global map display."
+    }
+  }
+}

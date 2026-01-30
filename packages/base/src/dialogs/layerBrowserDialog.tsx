@@ -227,6 +227,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
                   placeholder
                 </p> */}
               </div>
+              <div>{tile.sourceType}</div>
               <p className="jGIS-layer-browser-text-general jGIS-layer-browser-text-source">
                 {tile.description}
               </p>

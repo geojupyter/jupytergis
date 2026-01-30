@@ -387,12 +387,31 @@ export type ILayerGalleryEntry = {
   name: string;
   thumbnail: string;
   layerType: LayerType;
-  layerParameters: IHeatmapLayer | IHillshadeLayer | IImageLayer | IRasterLayer | IStacLayer | IStorySegmentLayer | IVectorLayer | IVectorTileLayer | IWebGlLayer;
+  layerParameters:
+    | IHeatmapLayer
+    | IHillshadeLayer
+    | IImageLayer
+    | IRasterLayer
+    | IStacLayer
+    | IStorySegmentLayer
+    | IVectorLayer
+    | IVectorTileLayer
+    | IWebGlLayer;
   sourceType: SourceType;
-  sourceParameters: IGeoJSONSource | IGeoParquetSource | IGeoTiffSource | IImageSource | IMarkerSource | IRasterDemSource | IRasterSource | IShapefileSource | IVectorTileSource | IVideoSource;
+  sourceParameters:
+    | IGeoJSONSource
+    | IGeoParquetSource
+    | IGeoTiffSource
+    | IImageSource
+    | IMarkerSource
+    | IRasterDemSource
+    | IRasterSource
+    | IShapefileSource
+    | IVectorTileSource
+    | IVideoSource;
   provider: string;
   urlParameters: IDict<string>;
-  description: string
+  description: string;
 };
 
 export interface IJGISLayerBrowserRegistry {

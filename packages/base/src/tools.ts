@@ -205,7 +205,6 @@ export function createDefaultLayerRegistry(
     layerProvider: { [x: string]: any },
     provider?: string | undefined,
   ): ILayerGalleryEntry {
-
     if (!layerProvider.layerType || !layerProvider.sourceType) {
       throw new Error(
         `Invalid layer_gallery entry "${entry}": missing layerType or sourceType`,
@@ -221,7 +220,7 @@ export function createDefaultLayerRegistry(
       layerParameters: layerProvider['layerParameters'],
       provider: provider ?? entry.split('.', 1)[0],
       urlParameters: layerProvider['urlParameters'],
-      description: layerProvider['description']
+      description: layerProvider['description'],
     };
   }
 }
@@ -377,9 +376,9 @@ export const getFromIndexedDB = async (key: string) => {
   const db = await openDatabase();
   return new Promise<
     | {
-      file: any;
-      metadata?: any | undefined;
-    }
+        file: any;
+        metadata?: any | undefined;
+      }
     | undefined
   >((resolve, reject) => {
     const transaction = db.transaction('files', 'readonly');
