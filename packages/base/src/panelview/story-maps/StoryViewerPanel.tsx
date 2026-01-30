@@ -68,12 +68,22 @@ const StoryViewerPanel = forwardRef<
   IStoryViewerPanelHandle,
   IStoryViewerPanelProps
 >(({ model, isSpecta, isMobile = false, className }, ref) => {
-  const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(0);
+  const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(() =>
+    model.getCurrentSlideIndex(),
+  );
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
     model.getSelectedStory().story ?? null,
   );
   const [imageLoaded, setImageLoaded] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const setIndex = useCallback(
+    (index: number) => {
+      model.setCurrentSlideIndex(index);
+      setCurrentIndexDisplayed(index);
+    },
+    [model],
+  );
 
   // Derive story segments from story data
   const storySegments = useMemo(() => {
@@ -130,7 +140,7 @@ const StoryViewerPanel = forwardRef<
       const { story } = model.getSelectedStory();
       setStoryData(story ?? null);
       // Reset to first slide when story changes
-      setCurrentIndexDisplayed(0);
+      setIndex(model.getCurrentSlideIndex() ?? 0);
     };
 
     updateStory();
@@ -140,7 +150,7 @@ const StoryViewerPanel = forwardRef<
     return () => {
       model.sharedModel.storyMapsChanged.disconnect(updateStory);
     };
-  }, [model]);
+  }, [model, setIndex]);
 
   // Prefetch image when slide changes
   useEffect(() => {
@@ -221,7 +231,7 @@ const StoryViewerPanel = forwardRef<
         return;
       }
 
-      setCurrentIndexDisplayed(index);
+      setIndex(index);
     };
 
     model.sharedModel.awareness.on('change', handleSelectedStorySegmentChange);
@@ -232,21 +242,19 @@ const StoryViewerPanel = forwardRef<
         handleSelectedStorySegmentChange,
       );
     };
-  }, [model, storyData]);
+  }, [model, storyData, setIndex]);
 
   const handlePrev = useCallback(() => {
     if (currentIndexDisplayed > 0) {
-      const newIndex = currentIndexDisplayed - 1;
-      setCurrentIndexDisplayed(newIndex);
+      setIndex(currentIndexDisplayed - 1);
     }
-  }, [currentIndexDisplayed]);
+  }, [currentIndexDisplayed, setIndex]);
 
   const handleNext = useCallback(() => {
     if (currentIndexDisplayed < storySegments.length - 1) {
-      const newIndex = currentIndexDisplayed + 1;
-      setCurrentIndexDisplayed(newIndex);
+      setIndex(currentIndexDisplayed + 1);
     }
-  }, [currentIndexDisplayed, storySegments.length]);
+  }, [currentIndexDisplayed, storySegments.length, setIndex]);
 
   // Expose methods via ref for parent component to use
   useImperativeHandle(

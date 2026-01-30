@@ -284,6 +284,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     storyId: string;
     story: IJGISStoryMap | undefined;
   };
+  /** Current slide index for the selected story (0-based). Clamped to valid range. */
+  getCurrentSlideIndex(): number;
+  /** Set current slide index for the selected story. */
+  setCurrentSlideIndex(index: number): void;
   addStorySegment(): { storySegmentId: string; storyId: string } | null;
   segmentAdded: ISignal<
     IJupyterGISModel,
