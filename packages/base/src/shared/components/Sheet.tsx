@@ -2,7 +2,6 @@ import { XIcon } from 'lucide-react';
 import { Dialog as SheetPrimitive } from 'radix-ui';
 import * as React from 'react';
 
-
 import { Button } from './Button';
 import { cn } from './utils';
 

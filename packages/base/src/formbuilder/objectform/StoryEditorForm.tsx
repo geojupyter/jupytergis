@@ -1,6 +1,7 @@
 import { IDict } from '@jupytergis/schema';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 
+import { getCssVarAsColor } from '@/src/tools';
 import { BaseForm } from './baseform';
 import { getCssVarAsColor } from '@/src/tools';
 

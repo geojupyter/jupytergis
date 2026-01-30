@@ -17,16 +17,9 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": false,
     "target": "es2017",
-    "types": [
-      "node",
-      "webpack-env"
-    ],
+    "types": ["node", "webpack-env"],
     "skipLibCheck": true,
-    "lib": [
-      "ES2019",
-      "WebWorker",
-      "DOM"
-    ]
+    "lib": ["ES2019", "WebWorker", "DOM"]
   },
   "esModuleInterop": true,
   "resolveJsonModule": true

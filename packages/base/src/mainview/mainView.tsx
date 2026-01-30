@@ -109,9 +109,9 @@ import proj4list from 'proj4-list';
 import * as React from 'react';
 
 import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
-import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
+import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
 import StatusBar from '@/src/statusbar/StatusBar';
 import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
@@ -2369,6 +2369,16 @@ export class MainView extends React.Component<IProps, IStates> {
       if (jgisLayer?.type === 'StorySegmentLayer') {
         const layerParams = jgisLayer.parameters as IStorySegmentLayer;
         const coords = getCenter(layerParams.extent);
+
+        // Don't move map if we're already centered on the segment
+        const viewCenter = this._Map.getView().getCenter();
+        const centersEqual =
+          viewCenter !== undefined &&
+          Math.abs(viewCenter[0] - coords[0]) < 1e-9 &&
+          Math.abs(viewCenter[1] - coords[1]) < 1e-9;
+        if (centersEqual) {
+          return;
+        }
 
         this._flyToPosition(
           { x: coords[0], y: coords[1] },

@@ -312,32 +312,34 @@ const StoryViewerPanel = forwardRef<
           animationDuration: `${transitionTime}s`,
         }}
       >
-        <h1 className="jgis-story-viewer-title">
-          {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
-        </h1>
-        {activeSlide?.content?.image && imageLoaded ? (
-          <StoryImageSection
-            imageUrl={activeSlide.content.image}
-            imageLoaded={imageLoaded}
-            layerName={layerName ?? ''}
-            slideNumber={currentIndexDisplayed}
-            navSlot={navPlacement === 'over-image' ? navSlot : null}
+        <div id="above-the-fold">
+          <h1 className="jgis-story-viewer-title">
+            {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
+          </h1>
+          {activeSlide?.content?.image && imageLoaded ? (
+            <StoryImageSection
+              imageUrl={activeSlide.content.image}
+              imageLoaded={imageLoaded}
+              layerName={layerName ?? ''}
+              slideNumber={currentIndexDisplayed}
+              navSlot={navPlacement === 'over-image' ? navSlot : null}
+            />
+          ) : (
+            <StoryTitleSection
+              title={storyData.title ?? ''}
+              navSlot={navPlacement === 'below-title' ? navSlot : null}
+            />
+          )}
+          <StorySubtitleSection
+            title={activeSlide?.content?.title ?? ''}
+            navSlot={
+              navPlacement === 'subtitle-specta' ||
+              navPlacement === 'subtitle-specta-mobile'
+                ? navSlot
+                : null
+            }
           />
-        ) : (
-          <StoryTitleSection
-            title={storyData.title ?? ''}
-            navSlot={navPlacement === 'below-title' ? navSlot : null}
-          />
-        )}
-        <StorySubtitleSection
-          title={activeSlide?.content?.title ?? ''}
-          navSlot={
-            navPlacement === 'subtitle-specta' ||
-            navPlacement === 'subtitle-specta-mobile'
-              ? navSlot
-              : null
-          }
-        />
+        </div>
         <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
       </div>
     </div>
