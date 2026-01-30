@@ -2808,12 +2808,14 @@ export class MainView extends React.Component<IProps, IStates> {
               ></div>
             </div>
           </div>
-          <StatusBar
-            jgisModel={this._model}
-            loading={this.state.loadingLayer}
-            projection={this.state.viewProjection}
-            scale={this.state.scale}
-          />
+          {!this.state.isSpectaPresentation && (
+            <StatusBar
+              jgisModel={this._model}
+              loading={this.state.loadingLayer}
+              projection={this.state.viewProjection}
+              scale={this.state.scale}
+            />
+          )}
         </div>
       </>
     );
