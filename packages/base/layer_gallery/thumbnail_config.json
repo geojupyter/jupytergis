@@ -243,6 +243,80 @@
       }
     }
   },
+  "WaymarkedTrails": {
+    "hiking": {
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "thumbnail": {
+        "Special Rules": {},
+        "Default": {
+          "lat": 47.040182144806664,
+          "lng": 1.2963867187500002,
+          "zoom": 5
+        }
+      }
+    },
+    "cycling": {
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "thumbnail": {
+        "Special Rules": {},
+        "Default": {
+          "lat": 47.040182144806664,
+          "lng": 1.2963867187500002,
+          "zoom": 5
+        }
+      }
+    },
+    "mtb": {
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "thumbnail": {
+        "Special Rules": {},
+        "Default": {
+          "lat": 47.040182144806664,
+          "lng": 1.2963867187500002,
+          "zoom": 5
+        }
+      }
+    },
+    "slopes": {
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "thumbnail": {
+        "Special Rules": {},
+        "Default": {
+          "lat": 47.040182144806664,
+          "lng": 1.2963867187500002,
+          "zoom": 5
+        }
+      }
+    },
+    "riding": {
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "thumbnail": {
+        "Special Rules": {},
+        "Default": {
+          "lat": 47.040182144806664,
+          "lng": 1.2963867187500002,
+          "zoom": 5
+        }
+      }
+    },
+    "skating": {
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "thumbnail": {
+        "Special Rules": {},
+        "Default": {
+          "lat": 47.040182144806664,
+          "lng": 1.2963867187500002,
+          "zoom": 5
+        }
+      }
+    }
+  },
   "USGS": {
     "layerType": "RasterLayer",
     "sourceType": "RasterSource",

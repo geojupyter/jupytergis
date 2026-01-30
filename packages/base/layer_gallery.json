@@ -120,11 +120,11 @@
       },
       "layerParameters": { "opacity": 1 },
       "urlParameters": {
-        "tilematrixset": "GoogleMapsCompatible_Level",
-        "format": "jpg",
-        "time": "2026-01-29",
         "maxZoom": 9,
-        "variant": "MODIS_Terra_CorrectedReflectance_TrueColor"
+        "format": "jpg",
+        "variant": "MODIS_Terra_CorrectedReflectance_TrueColor",
+        "time": "2026-01-29",
+        "tilematrixset": "GoogleMapsCompatible_Level"
       },
       "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
     },
@@ -141,11 +141,11 @@
       },
       "layerParameters": { "opacity": 1 },
       "urlParameters": {
-        "tilematrixset": "GoogleMapsCompatible_Level",
-        "format": "jpg",
-        "time": "2026-01-29",
         "maxZoom": 9,
-        "variant": "MODIS_Terra_CorrectedReflectance_Bands367"
+        "format": "jpg",
+        "variant": "MODIS_Terra_CorrectedReflectance_Bands367",
+        "time": "2026-01-29",
+        "tilematrixset": "GoogleMapsCompatible_Level"
       },
       "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
     },
@@ -162,11 +162,11 @@
       },
       "layerParameters": { "opacity": 1 },
       "urlParameters": {
-        "tilematrixset": "GoogleMapsCompatible_Level",
-        "format": "jpg",
-        "time": "2026-01-29",
         "maxZoom": 8,
-        "variant": "VIIRS_CityLights_2012"
+        "format": "jpg",
+        "variant": "VIIRS_CityLights_2012",
+        "time": "2026-01-29",
+        "tilematrixset": "GoogleMapsCompatible_Level"
       },
       "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
     },
@@ -183,11 +183,11 @@
       },
       "layerParameters": { "opacity": 1 },
       "urlParameters": {
-        "tilematrixset": "GoogleMapsCompatible_Level",
-        "format": "png",
-        "time": "2026-01-29",
         "maxZoom": 7,
-        "variant": "MODIS_Terra_Land_Surface_Temp_Day"
+        "format": "png",
+        "variant": "MODIS_Terra_Land_Surface_Temp_Day",
+        "time": "2026-01-29",
+        "tilematrixset": "GoogleMapsCompatible_Level"
       },
       "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
     },
@@ -204,11 +204,11 @@
       },
       "layerParameters": { "opacity": 1 },
       "urlParameters": {
-        "tilematrixset": "GoogleMapsCompatible_Level",
-        "format": "png",
-        "time": "2026-01-29",
         "maxZoom": 8,
-        "variant": "MODIS_Terra_NDSI_Snow_Cover"
+        "format": "png",
+        "variant": "MODIS_Terra_NDSI_Snow_Cover",
+        "time": "2026-01-29",
+        "tilematrixset": "GoogleMapsCompatible_Level"
       },
       "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
     },
@@ -225,11 +225,11 @@
       },
       "layerParameters": { "opacity": 1 },
       "urlParameters": {
-        "tilematrixset": "GoogleMapsCompatible_Level",
-        "format": "png",
-        "time": "2026-01-29",
         "maxZoom": 6,
-        "variant": "MODIS_Terra_Aerosol"
+        "format": "png",
+        "variant": "MODIS_Terra_Aerosol",
+        "time": "2026-01-29",
+        "tilematrixset": "GoogleMapsCompatible_Level"
       },
       "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
     },
@@ -246,11 +246,11 @@
       },
       "layerParameters": { "opacity": 1 },
       "urlParameters": {
-        "tilematrixset": "GoogleMapsCompatible_Level",
-        "format": "png",
-        "time": "2026-01-29",
         "maxZoom": 7,
-        "variant": "MODIS_Terra_L2_Chlorophyll_A"
+        "format": "png",
+        "variant": "MODIS_Terra_L2_Chlorophyll_A",
+        "time": "2026-01-29",
+        "tilematrixset": "GoogleMapsCompatible_Level"
       },
       "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
     },
@@ -328,6 +328,98 @@
       "layerParameters": { "opacity": 1 },
       "urlParameters": {},
       "description": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ."
+    }
+  },
+  "WaymarkedTrails": {
+    "hiking": {
+      "thumbnailPath": "layer_gallery/WaymarkedTrails-hiking.png",
+      "name": "WaymarkedTrails.hiking",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tile.waymarkedtrails.org/{variant}/{z}/{x}/{y}.png",
+        "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)",
+        "maxZoom": 18,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "hiking" },
+      "description": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)"
+    },
+    "cycling": {
+      "thumbnailPath": "layer_gallery/WaymarkedTrails-cycling.png",
+      "name": "WaymarkedTrails.cycling",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tile.waymarkedtrails.org/{variant}/{z}/{x}/{y}.png",
+        "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)",
+        "maxZoom": 18,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "cycling" },
+      "description": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)"
+    },
+    "mtb": {
+      "thumbnailPath": "layer_gallery/WaymarkedTrails-mtb.png",
+      "name": "WaymarkedTrails.mtb",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tile.waymarkedtrails.org/{variant}/{z}/{x}/{y}.png",
+        "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)",
+        "maxZoom": 18,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "mtb" },
+      "description": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)"
+    },
+    "slopes": {
+      "thumbnailPath": "layer_gallery/WaymarkedTrails-slopes.png",
+      "name": "WaymarkedTrails.slopes",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tile.waymarkedtrails.org/{variant}/{z}/{x}/{y}.png",
+        "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)",
+        "maxZoom": 18,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "slopes" },
+      "description": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)"
+    },
+    "riding": {
+      "thumbnailPath": "layer_gallery/WaymarkedTrails-riding.png",
+      "name": "WaymarkedTrails.riding",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tile.waymarkedtrails.org/{variant}/{z}/{x}/{y}.png",
+        "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)",
+        "maxZoom": 18,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "riding" },
+      "description": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)"
+    },
+    "skating": {
+      "thumbnailPath": "layer_gallery/WaymarkedTrails-skating.png",
+      "name": "WaymarkedTrails.skating",
+      "layerType": "RasterLayer",
+      "sourceType": "RasterSource",
+      "sourceParameters": {
+        "url": "https://tile.waymarkedtrails.org/{variant}/{z}/{x}/{y}.png",
+        "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)",
+        "maxZoom": 18,
+        "minZoom": 0
+      },
+      "layerParameters": { "opacity": 1 },
+      "urlParameters": { "variant": "skating" },
+      "description": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)"
     }
   },
   "USGS": {
@@ -695,21 +787,6 @@
       "layerParameters": { "opacity": 1 },
       "urlParameters": {},
       "description": "\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat vector layer</a> (CC\u2011BY 4.0)"
-    }
-  },
-  "NaturalEarth": {
-    "Countries": {
-      "name": "NaturalEarth.Countries",
-      "thumbnailPath": "/layer_gallery/NaturalEarth-Countries.png",
-      "layerType": "VectorLayer",
-      "layerParameters": { "opacity": 1, "symbologyState": {} },
-      "sourceType": "GeoJSONSource",
-      "sourceParameters": {
-        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
-      },
-      "provider": "NaturalEarth",
-      "urlParameters": {},
-      "description": "Vector country boundaries from the Natural Earth dataset (1:110m scale). Public-domain geographic data intended for small-scale cartography, theming, and global map display."
     }
   }
 }
