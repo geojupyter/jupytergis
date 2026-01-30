@@ -147,10 +147,13 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     props.settings.filtersDisabled &&
     props.settings.storyMapsDisabled;
 
-  const leftPanelVisible = !props.settings.leftPanelDisabled && !allLeftTabsDisabled;
+  const leftPanelVisible =
+    !props.settings.leftPanelDisabled && !allLeftTabsDisabled;
 
   const tabInfo = [
-    !props.settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,
+    !props.settings.layersDisabled
+      ? { name: 'layers', title: 'Layers' }
+      : false,
     !props.settings.stacBrowserDisabled && !storyMapPresentationMode
       ? { name: 'stac', title: 'Stac Browser' }
       : false,
