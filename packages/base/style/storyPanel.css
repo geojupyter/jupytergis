@@ -134,6 +134,8 @@
   height: 100%;
   margin: unset;
   top: unset;
+  box-shadow: unset;
+  max-height: unset;
 }
 
 .jgis-specta-story-panel-container {
@@ -163,7 +165,7 @@
 }
 
 .jgis-story-viewer-panel-specta-mod {
-  width: 50%;
+  width: 45%;
   font-size: var(--jp-ui-font-size3);
   padding-right: 1.7rem;
   color: var(--jgis-specta-text-color, var(--jp-ui-inverse-font-color1));
