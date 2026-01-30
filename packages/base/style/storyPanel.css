@@ -211,9 +211,7 @@
 }
 
 .jgis-mobile-specta-trigger-wrapper {
-  display: flex;
-  justify-content: center;
-  width: 100%;
   position: fixed;
-  bottom: 1.25rem;
+  bottom: 0.125rem;
+  right: 0.125rem;
 }
