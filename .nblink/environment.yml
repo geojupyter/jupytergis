@@ -1,0 +1,7 @@
+name: gis-nblink-environment
+channels:
+  - emscripten-forge
+  - conda-forge
+dependencies:
+  - xeus-python
+  - jupytergis-lite

@@ -2,6 +2,7 @@ from datetime import date, timedelta
 import json
 from io import BytesIO
 import os
+import subprocess
 
 import requests
 from PIL import Image
@@ -250,3 +251,9 @@ for provider in thumbnails_providers_positions.keys():
 # Save JSON repr
 with open(f"{THUMBNAILS_LOCATION}/raster_layer_gallery.json", "w") as f:
     json.dump(raster_provider_gallery, f)
+
+
+# compress images
+cmd = f"shopt -s globstar && mogrify -resize 50% {THUMBNAILS_LOCATION}/*.png && optipng {THUMBNAILS_LOCATION}/*.png"
+
+subprocess.run(["bash", "-lc", cmd], check=True)

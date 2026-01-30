@@ -18,11 +18,11 @@
 - **QGIS File Support**: Load, visualize, and manipulate QGIS project files (`.qgs`, `.qgz`), and other GIS data formats.
 - **Interactive Maps**: Render interactive maps and geospatial visualizations within Jupyter notebooks using the JupyterGIS Python API.
 
-## [🪄 Try JupyterGIS now! ✨](https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html?path=france_hiking.jGIS)
+## [🪄 Try JupyterGIS now in Notebook.link! ✨](https://notebook.link/github/geojupyter/jupytergis/lab/?path=examples%2Ffrance_hiking.jGIS)
 
-This demo runs a JupyterLab instance entirely in your browser with WebAssembly! 🤯
+This demo runs a JupyterLite instance entirely in your browser with WebAssembly! 🤯
 
-Powered by [JupyterLite](https://jupyterlite.readthedocs.io/en/stable/?badge=latest).
+Powered by [Notebook.link](https://notebook.link) and [JupyterLite](https://jupyterlite.readthedocs.io/en/stable/?badge=latest).
 Please note that [JupyterGIS' real-time collaboration features are not yet supported in JupyterLite](https://jupyterlite.readthedocs.io/en/latest/howto/configure/rtc.html).
 
 ## Installation

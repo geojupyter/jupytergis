@@ -105,7 +105,7 @@
   outline: none;
   width: 100%;
   overflow-y: scroll;
-  max-height: 480px;
+  /* max-height: 480px; */
   padding-top: 1rem;
 }
 
