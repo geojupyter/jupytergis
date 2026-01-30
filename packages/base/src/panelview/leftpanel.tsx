@@ -11,13 +11,13 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
 
 import { LayersBodyComponent } from './components/layers';
+import FilterComponent from './filter-panel/Filter';
 import {
   PanelTabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '../shared/components/Tabs';
-import FilterComponent from './components/filter-panel/Filter';
 import StacPanel from '../stacBrowser/components/StacPanel';
 
 export interface ILeftPanelClickHandlerParams {
@@ -131,12 +131,12 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 
   // Updates story segments array based on layer tree array
   React.useEffect(() => {
-    const { storySegmentId, story } = props.model.getSelectedStory();
+    const { storyId, story } = props.model.getSelectedStory();
 
     if (!story) {
       return;
     }
-    props.model.sharedModel.updateStoryMap(storySegmentId, {
+    props.model.sharedModel.updateStoryMap(storyId, {
       ...story,
       storySegments: storySegmentLayerTree as string[],
     });

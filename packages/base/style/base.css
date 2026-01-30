@@ -97,7 +97,6 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jgis-right-panel-container {
   width: 330px;
-  top: 30px;
   right: 0px;
   position: absolute;
   margin: 5px;
@@ -106,11 +105,42 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jgis-left-panel-container {
   position: absolute;
-  width: 275px;
-  top: 30px;
+  width: 250px;
   left: 0px;
   margin: 5px;
   z-index: 40;
+}
+
+.jgis-icon-adjust {
+  padding-top: 5px;
+}
+
+.jgis-controls-toolbar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-end;
+  gap: 0.5rem;
+  position: absolute;
+  bottom: 0.125rem;
+  z-index: 1000;
+  padding: 0 0.125rem;
+}
+
+.jgis-controls-toolbar .ol-control,
+.jgis-controls-toolbar .ol-scale-line,
+.jgis-controls-toolbar .ol-full-screen {
+  position: relative;
+  top: unset;
+  bottom: unset;
+  left: unset;
+  right: unset;
+  margin: 0;
+}
+
+.jgis-controls-toolbar .ol-zoom {
+  position: fixed;
+  right: 0.125rem;
 }
 
 @media (max-width: 768px) {
@@ -131,11 +161,4 @@ button.jp-mod-styled.jp-mod-reject {
     position: relative;
     margin: 0;
   }
-}
-
-.ol-zoom {
-  top: auto;
-  left: auto;
-  right: 5px;
-  bottom: 5px;
 }

@@ -2,11 +2,71 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.12.0
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.11.1...e21aa20bbf8ac0ec87b886828d77b1e634c2056f))
+
+### Enhancements made
+
+- Make the repository Notebook.link ready [#1090](https://github.com/geojupyter/jupytergis/pull/1090) ([@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Add Disable Layers setting and improve settings. [#1085](https://github.com/geojupyter/jupytergis/pull/1085) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
+- Add icon for JupyterGIS setting [#1082](https://github.com/geojupyter/jupytergis/pull/1082) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
+- Add a Story Map presentation mode for Specta [#1061](https://github.com/geojupyter/jupytergis/pull/1061) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou), [@trungleduc](https://github.com/trungleduc))
+- Add MacroStrat tile layer to the layer browser [#1060](https://github.com/geojupyter/jupytergis/pull/1060) ([@HaudinFlorence](https://github.com/HaudinFlorence), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Adding manual buttons for zoom-in or zoom-out [#1055](https://github.com/geojupyter/jupytergis/pull/1055) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
+- Move JOSS paper to standard directory [#1049](https://github.com/geojupyter/jupytergis/pull/1049) ([@SylvainCorlay](https://github.com/SylvainCorlay))
+- Add ORCID for Greg [#1048](https://github.com/geojupyter/jupytergis/pull/1048) ([@SylvainCorlay](https://github.com/SylvainCorlay))
+- Add content for JOSS submission [#1045](https://github.com/geojupyter/jupytergis/pull/1045) ([@SylvainCorlay](https://github.com/SylvainCorlay), [@mfisher87](https://github.com/mfisher87))
+- Support STAC spec filter extension [#1035](https://github.com/geojupyter/jupytergis/pull/1035) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+
+### Bugs fixed
+
+- Add Story mode presentation toggle button to toolbar [#1056](https://github.com/geojupyter/jupytergis/pull/1056) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Fix Zooming in or out with keys. [#1051](https://github.com/geojupyter/jupytergis/pull/1051) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
+- Fix SingleBand pseudocolor band selector bug, index bands from 1 [#998](https://github.com/geojupyter/jupytergis/pull/998) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
+
+### Maintenance and upkeep improvements
+
+- Pin jupytext in docs build: bring back our icons [#1092](https://github.com/geojupyter/jupytergis/pull/1092) ([@martinRenou](https://github.com/martinRenou))
+- Fix file loading [#1091](https://github.com/geojupyter/jupytergis/pull/1091) ([@martinRenou](https://github.com/martinRenou), [@gjmooney](https://github.com/gjmooney))
+- Divide image sizes per two [#1089](https://github.com/geojupyter/jupytergis/pull/1089) ([@martinRenou](https://github.com/martinRenou))
+- Optimize pngs in the repository and remove GIFs [#1088](https://github.com/geojupyter/jupytergis/pull/1088) ([@martinRenou](https://github.com/martinRenou))
+- Remove unused geotiff example file [#1087](https://github.com/geojupyter/jupytergis/pull/1087) ([@martinRenou](https://github.com/martinRenou))
+- Pin sphinx to 8.x to fix docs build [#1086](https://github.com/geojupyter/jupytergis/pull/1086) ([@mfisher87](https://github.com/mfisher87), [@nakul-py](https://github.com/nakul-py))
+- Bot: Use official jupyterlab/maintainer-tools action [#1076](https://github.com/geojupyter/jupytergis/pull/1076) ([@martinRenou](https://github.com/martinRenou))
+- Bot: Reuse more action steps from maintainer tools [#1074](https://github.com/geojupyter/jupytergis/pull/1074) ([@martinRenou](https://github.com/martinRenou))
+- Bot: Reusable workflow for checking permissions [#1072](https://github.com/geojupyter/jupytergis/pull/1072) ([@martinRenou](https://github.com/martinRenou))
+- Bot: Missing token [#1070](https://github.com/geojupyter/jupytergis/pull/1070) ([@martinRenou](https://github.com/martinRenou))
+- Bot: provide negative response if the user has no permission [#1069](https://github.com/geojupyter/jupytergis/pull/1069) ([@martinRenou](https://github.com/martinRenou))
+- Fix bot permission handling [#1067](https://github.com/geojupyter/jupytergis/pull/1067) ([@martinRenou](https://github.com/martinRenou))
+- Focus on map without click on map while zooming [#1053](https://github.com/geojupyter/jupytergis/pull/1053) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
+- Bump the gha-dependencies group across 1 directory with 5 updates [#1052](https://github.com/geojupyter/jupytergis/pull/1052) ([@mfisher87](https://github.com/mfisher87))
+- Add GitHub action checking build of JOSS paper [#1050](https://github.com/geojupyter/jupytergis/pull/1050) ([@SylvainCorlay](https://github.com/SylvainCorlay))
+- Add CITATION.cff for citing JupyterGIS and auto-minting Zenodo DOIs for each release [#1046](https://github.com/geojupyter/jupytergis/pull/1046) ([@mfisher87](https://github.com/mfisher87), [@arjxn-py](https://github.com/arjxn-py), [@matthewfeickert](https://github.com/matthewfeickert), [@pblottiere](https://github.com/pblottiere))
+
+### Documentation improvements
+
+- Add UI testing how-tos and explanation [#1066](https://github.com/geojupyter/jupytergis/pull/1066) ([@mfisher87](https://github.com/mfisher87), [@nakul-py](https://github.com/nakul-py))
+- Add Europe Demo example [#1043](https://github.com/geojupyter/jupytergis/pull/1043) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+
+### Other merged PRs
+
+- Bot: More reusable action steps [#1075](https://github.com/geojupyter/jupytergis/pull/1075) ([@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2025-12-18&to=2026-01-28&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2025-12-18..2026-01-28&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2025-12-18..2026-01-28&type=Issues)) | @HaudinFlorence ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AHaudinFlorence+updated%3A2025-12-18..2026-01-28&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2025-12-18..2026-01-28&type=Issues)) | @matthewfeickert ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amatthewfeickert+updated%3A2025-12-18..2026-01-28&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2025-12-18..2026-01-28&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2025-12-18..2026-01-28&type=Issues)) | @pblottiere ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Apblottiere+updated%3A2025-12-18..2026-01-28&type=Issues)) | @SylvainCorlay ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3ASylvainCorlay+updated%3A2025-12-18..2026-01-28&type=Issues)) | @trungleduc ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Atrungleduc+updated%3A2025-12-18..2026-01-28&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.11.1
 
 No merged PRs
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.11.0
 

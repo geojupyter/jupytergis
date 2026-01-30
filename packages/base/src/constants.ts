@@ -59,6 +59,9 @@ const iconObject = {
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
+  [CommandIDs.toggleStoryPresentationMode]: {
+    iconClass: 'fa fa-book jgis-icon-adjust',
+  },
 };
 
 /**
