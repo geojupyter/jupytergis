@@ -164,7 +164,7 @@
             "type": "string"
           }
         },
-        "presentaionBgColor": {
+        "presentationBgColor": {
           "type": "string",
           "title": "Presentation Background Color",
           "description": "The background color of the story map"

@@ -95,20 +95,28 @@ button.jp-mod-styled.jp-mod-reject {
   border-width: 0;
 }
 
+/* Height constrained to 0.5rem less than .jGIS-Mainview-Container */
+.jgis-right-panel-container,
+.jgis-left-panel-container {
+  position: absolute;
+  margin: 0.25rem;
+  z-index: 40;
+  max-height: calc(100% - 0.5rem);
+  overflow-y: auto;
+  border-radius: 8px;
+  box-shadow:
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
 .jgis-right-panel-container {
   width: 330px;
-  right: 0px;
-  position: absolute;
-  margin: 5px;
-  z-index: 40;
+  right: 0;
 }
 
 .jgis-left-panel-container {
-  position: absolute;
   width: 250px;
-  left: 0px;
-  margin: 5px;
-  z-index: 40;
+  left: 0;
 }
 
 .jgis-icon-adjust {

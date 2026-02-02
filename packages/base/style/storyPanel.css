@@ -134,6 +134,8 @@
   height: 100%;
   margin: unset;
   top: unset;
+  box-shadow: unset;
+  max-height: unset;
 }
 
 .jgis-specta-story-panel-container {
@@ -145,16 +147,16 @@
   overflow: auto;
   background: linear-gradient(
     to left,
-    var(--jgis-specta-bg-color, rgba(221, 160, 221, 0.9)) 49%,
+    var(--jgis-specta-bg-color, --jp-layout-color0) 49%,
     color-mix(
         in srgb,
-        var(--jgis-specta-bg-color, rgba(221, 160, 221, 0.9)) 60%,
+        var(--jgis-specta-bg-color, --jp-layout-color0) 60%,
         transparent
       )
       65%,
     color-mix(
         in srgb,
-        var(--jgis-specta-bg-color, rgba(221, 160, 221, 0.9)) 50%,
+        var(--jgis-specta-bg-color, --jp-layout-color0) 50%,
         transparent
       )
       70%,
@@ -163,7 +165,7 @@
 }
 
 .jgis-story-viewer-panel-specta-mod {
-  width: 50%;
+  width: 45%;
   font-size: var(--jp-ui-font-size3);
   padding-right: 1.7rem;
   color: var(--jgis-specta-text-color, var(--jp-ui-inverse-font-color1));
@@ -175,7 +177,7 @@
   .jp-FormGroup-content
   fieldset
   .jp-inputFieldWrapper
-  > input#root_presentaionBgColor,
+  > input#root_presentationBgColor,
 .jGIS-property-panel
   .jp-FormGroup-content
   fieldset

@@ -11,7 +11,6 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { PathExt, URLExt } from '@jupyterlab/coreutils';
 import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
-import * as d3Color from 'd3-color';
 import { compressors } from 'hyparquet-compressors';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
@@ -76,11 +75,19 @@ export function nearest(n: number, tol: number): number {
   }
 }
 
-export function getCSSVariableColor(name: string): string {
-  const color =
-    window.getComputedStyle(document.body).getPropertyValue(name) || '#ffffff';
+/** Read a CSS variable from the document root and return the value. */
+export function getCssVarAsColor(cssVar: string): string {
+  if (typeof document === 'undefined') {
+    return '';
+  }
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(cssVar)
+    .trim();
+  if (!value) {
+    return '';
+  }
 
-  return d3Color.rgb(color).formatHex();
+  return value;
 }
 
 /**

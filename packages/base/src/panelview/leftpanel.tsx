@@ -10,6 +10,7 @@ import { CommandRegistry } from '@lumino/commands';
 import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
 
+import { CommandIDs } from '../constants';
 import { LayersBodyComponent } from './components/layers';
 import FilterComponent from './filter-panel/Filter';
 import {
@@ -42,23 +43,59 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     props.model.getLayerTree(),
   );
 
+  const tabInfo = [
+    !props.settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,
+    !props.settings.stacBrowserDisabled && !storyMapPresentationMode
+      ? { name: 'stac', title: 'Stac Browser' }
+      : false,
+    !props.settings.filtersDisabled && !storyMapPresentationMode
+      ? { name: 'filters', title: 'Filters' }
+      : false,
+    !props.settings.storyMapsDisabled
+      ? { name: 'segments', title: 'Segments' }
+      : false,
+  ].filter(Boolean) as { name: string; title: string }[];
+
+  const [curTab, setCurTab] = React.useState<string | undefined>(
+    tabInfo.length > 0 ? tabInfo[0].name : undefined,
+  );
+
   React.useEffect(() => {
     const onOptionsChanged = () => {
       setOptions({ ...props.model.getOptions() });
     };
     const updateLayerTree = () => {
       setLayerTree(props.model.getLayerTree() || []);
+
+      // Need to let command know when segments get populated
+      props.commands.notifyCommandChanged(
+        CommandIDs.toggleStoryPresentationMode,
+      );
+    };
+
+    const onSegmentAdded = (
+      _sender: IJupyterGISModel,
+      payload: { storySegmentId: string; storyId: string },
+    ) => {
+      props.model.syncSelected(
+        { [payload.storySegmentId]: { type: 'layer' } },
+        props.model.getClientId().toString(),
+      );
+
+      setCurTab('segments');
     };
 
     props.model.sharedOptionsChanged.connect(onOptionsChanged);
     props.model.sharedModel.layersChanged.connect(updateLayerTree);
     props.model.sharedModel.layerTreeChanged.connect(updateLayerTree);
+    props.model.segmentAdded.connect(onSegmentAdded);
 
     updateLayerTree();
     return () => {
       props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
       props.model.sharedModel.layersChanged.disconnect(updateLayerTree);
       props.model.sharedModel.layerTreeChanged.disconnect(updateLayerTree);
+      props.model.segmentAdded.disconnect(onSegmentAdded);
     };
   }, [props.model]);
 
@@ -149,25 +186,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 
   const leftPanelVisible =
     !props.settings.leftPanelDisabled && !allLeftTabsDisabled;
-
-  const tabInfo = [
-    !props.settings.layersDisabled
-      ? { name: 'layers', title: 'Layers' }
-      : false,
-    !props.settings.stacBrowserDisabled && !storyMapPresentationMode
-      ? { name: 'stac', title: 'Stac Browser' }
-      : false,
-    !props.settings.filtersDisabled && !storyMapPresentationMode
-      ? { name: 'filters', title: 'Filters' }
-      : false,
-    !props.settings.storyMapsDisabled
-      ? { name: 'segments', title: 'Segments' }
-      : false,
-  ].filter(Boolean) as { name: string; title: string }[];
-
-  const [curTab, setCurTab] = React.useState<string | undefined>(
-    tabInfo.length > 0 ? tabInfo[0].name : undefined,
-  );
 
   return (
     <div

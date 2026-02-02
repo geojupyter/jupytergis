@@ -333,13 +333,12 @@ export class MainView extends React.Component<IProps, IStates> {
       target: this.controlsToolbarRef.current || undefined,
     });
 
-    this._zoomControl = new Zoom({
-      target: this.controlsToolbarRef.current || undefined,
-    });
-
     const controls: Control[] = [scaleLine, fullScreen];
 
     if (this._model.jgisSettings.zoomButtonsEnabled) {
+      this._zoomControl = new Zoom({
+        target: this.controlsToolbarRef.current || undefined,
+      });
       controls.push(this._zoomControl);
     }
 
@@ -2235,7 +2234,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     const story = this._model.getSelectedStory().story;
-    const bgColor = story?.presentaionBgColor;
+    const bgColor = story?.presentationBgColor;
     const textColor = story?.presentaionTextColor;
 
     // Set background color
