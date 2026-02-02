@@ -2217,7 +2217,7 @@ export class MainView extends React.Component<IProps, IStates> {
     }
 
     const story = this._model.getSelectedStory().story;
-    const bgColor = story?.presentaionBgColor;
+    const bgColor = story?.presentationBgColor;
     const textColor = story?.presentaionTextColor;
 
     // Set background color

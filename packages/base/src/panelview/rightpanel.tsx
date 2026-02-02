@@ -75,6 +75,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
     const onOptionsChanged = () => {
       const { storyMapPresentationMode } = props.model.getOptions();
       setStoryMapPresentationMode(storyMapPresentationMode ?? false);
+      storyMapPresentationMode && setCurTab('storyPanel');
     };
     let currentlyIdentifiedFeatures: any = undefined;
     const onAwerenessChanged = (
