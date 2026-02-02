@@ -44,7 +44,9 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   );
 
   const tabInfo = [
-    !props.settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,
+    !props.settings.layersDisabled
+      ? { name: 'layers', title: 'Layers' }
+      : false,
     !props.settings.stacBrowserDisabled && !storyMapPresentationMode
       ? { name: 'stac', title: 'Stac Browser' }
       : false,
