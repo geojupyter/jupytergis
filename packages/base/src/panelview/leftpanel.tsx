@@ -3,6 +3,7 @@ import {
   IJGISLayerItem,
   IJGISLayerTree,
   SelectionType,
+  IJupyterGISSettings,
 } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
@@ -30,12 +31,12 @@ interface ILeftPanelProps {
   model: IJupyterGISModel;
   state: IStateDB;
   commands: CommandRegistry;
+  settings: IJupyterGISSettings;
 }
 
 export const LeftPanel: React.FC<ILeftPanelProps> = (
   props: ILeftPanelProps,
 ) => {
-  const [settings, setSettings] = React.useState(props.model.jgisSettings);
   const [options, setOptions] = React.useState(props.model.getOptions());
   const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
   const [layerTree, setLayerTree] = React.useState<IJGISLayerTree>(
@@ -43,14 +44,16 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   );
 
   const tabInfo = [
-    !settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,
-    !settings.stacBrowserDisabled && !storyMapPresentationMode
+    !props.settings.layersDisabled
+      ? { name: 'layers', title: 'Layers' }
+      : false,
+    !props.settings.stacBrowserDisabled && !storyMapPresentationMode
       ? { name: 'stac', title: 'Stac Browser' }
       : false,
-    !settings.filtersDisabled && !storyMapPresentationMode
+    !props.settings.filtersDisabled && !storyMapPresentationMode
       ? { name: 'filters', title: 'Filters' }
       : false,
-    !settings.storyMapsDisabled
+    !props.settings.storyMapsDisabled
       ? { name: 'segments', title: 'Segments' }
       : false,
   ].filter(Boolean) as { name: string; title: string }[];
@@ -60,9 +63,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   );
 
   React.useEffect(() => {
-    const onSettingsChanged = () => {
-      setSettings({ ...props.model.jgisSettings });
-    };
     const onOptionsChanged = () => {
       setOptions({ ...props.model.getOptions() });
     };
@@ -87,7 +87,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
       setCurTab('segments');
     };
 
-    props.model.settingsChanged.connect(onSettingsChanged);
     props.model.sharedOptionsChanged.connect(onOptionsChanged);
     props.model.sharedModel.layersChanged.connect(updateLayerTree);
     props.model.sharedModel.layerTreeChanged.connect(updateLayerTree);
@@ -95,7 +94,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
 
     updateLayerTree();
     return () => {
-      props.model.settingsChanged.disconnect(onSettingsChanged);
       props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
       props.model.sharedModel.layersChanged.disconnect(updateLayerTree);
       props.model.sharedModel.layerTreeChanged.disconnect(updateLayerTree);
@@ -183,12 +181,13 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   }, [storySegmentLayerTree]);
 
   const allLeftTabsDisabled =
-    settings.layersDisabled &&
-    settings.stacBrowserDisabled &&
-    settings.filtersDisabled &&
-    settings.storyMapsDisabled;
+    props.settings.layersDisabled &&
+    props.settings.stacBrowserDisabled &&
+    props.settings.filtersDisabled &&
+    props.settings.storyMapsDisabled;
 
-  const leftPanelVisible = !settings.leftPanelDisabled && !allLeftTabsDisabled;
+  const leftPanelVisible =
+    !props.settings.leftPanelDisabled && !allLeftTabsDisabled;
 
   return (
     <div
@@ -215,7 +214,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
           ))}
         </TabsList>
 
-        {!settings.layersDisabled && (
+        {!props.settings.layersDisabled && (
           <TabsContent
             value="layers"
             className="jgis-panel-tab-content jp-gis-layerPanel"
@@ -229,7 +228,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
           </TabsContent>
         )}
 
-        {!settings.stacBrowserDisabled && (
+        {!props.settings.stacBrowserDisabled && (
           <TabsContent
             value="stac"
             className="jgis-panel-tab-content jgis-panel-tab-content-stac-panel"
@@ -238,13 +237,13 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
           </TabsContent>
         )}
 
-        {!settings.filtersDisabled && (
+        {!props.settings.filtersDisabled && (
           <TabsContent value="filters" className="jgis-panel-tab-content">
             <FilterComponent model={props.model}></FilterComponent>
           </TabsContent>
         )}
 
-        {!settings.storyMapsDisabled && (
+        {!props.settings.storyMapsDisabled && (
           <TabsContent value="segments" className="jgis-panel-tab-content">
             <LayersBodyComponent
               model={props.model}

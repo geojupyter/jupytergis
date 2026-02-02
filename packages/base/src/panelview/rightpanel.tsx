@@ -3,6 +3,7 @@ import {
   IJGISFormSchemaRegistry,
   IJupyterGISClientState,
   IJupyterGISModel,
+  IJupyterGISSettings,
 } from '@jupytergis/schema';
 import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
@@ -25,11 +26,11 @@ interface IRightPanelProps {
   annotationModel: IAnnotationModel;
   model: IJupyterGISModel;
   commands: CommandRegistry;
+  settings: IJupyterGISSettings;
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [editorMode, setEditorMode] = React.useState(true);
-  const [settings, setSettings] = React.useState(props.model.jgisSettings);
   const [storyMapPresentationMode, setStoryMapPresentationMode] =
     React.useState(props.model.getOptions().storyMapPresentationMode ?? false);
 
@@ -44,19 +45,19 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
       : 'Story Map';
 
   const tabInfo = [
-    !settings.objectPropertiesDisabled && !storyMapPresentationMode
+    !props.settings.objectPropertiesDisabled && !storyMapPresentationMode
       ? { name: 'objectProperties', title: 'Object Properties' }
       : false,
-    !settings.storyMapsDisabled
+    !props.settings.storyMapsDisabled
       ? {
           name: 'storyPanel',
           title: storyPanelTitle,
         }
       : false,
-    !settings.annotationsDisabled
+    !props.settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
       : false,
-    !settings.identifyDisabled
+    !props.settings.identifyDisabled
       ? { name: 'identifyPanel', title: 'Identified Features' }
       : false,
   ].filter(Boolean) as { name: string; title: string }[];
@@ -69,9 +70,6 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   });
 
   React.useEffect(() => {
-    const onSettingsChanged = () => {
-      setSettings({ ...props.model.jgisSettings });
-    };
     const onOptionsChanged = () => {
       const { storyMapPresentationMode } = props.model.getOptions();
       setStoryMapPresentationMode(storyMapPresentationMode ?? false);
@@ -95,24 +93,22 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
       }
     };
 
-    props.model.settingsChanged.connect(onSettingsChanged);
     props.model.sharedOptionsChanged.connect(onOptionsChanged);
     props.model.clientStateChanged.connect(onAwerenessChanged);
 
     return () => {
-      props.model.settingsChanged.disconnect(onSettingsChanged);
       props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
       props.model.clientStateChanged.disconnect(onAwerenessChanged);
     };
   }, [props.model]);
 
   const allRightTabsDisabled =
-    settings.objectPropertiesDisabled &&
-    settings.annotationsDisabled &&
-    settings.identifyDisabled;
+    props.settings.objectPropertiesDisabled &&
+    props.settings.annotationsDisabled &&
+    props.settings.identifyDisabled;
 
   const rightPanelVisible =
-    !settings.rightPanelDisabled && !allRightTabsDisabled;
+    !props.settings.rightPanelDisabled && !allRightTabsDisabled;
 
   const [selectedObjectProperties, setSelectedObjectProperties] =
     React.useState(undefined);
@@ -146,7 +142,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           ))}
         </TabsList>
 
-        {!settings.objectPropertiesDisabled && (
+        {!props.settings.objectPropertiesDisabled && (
           <TabsContent
             value="objectProperties"
             className="jgis-panel-tab-content"
@@ -160,7 +156,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           </TabsContent>
         )}
 
-        {!settings.storyMapsDisabled && (
+        {!props.settings.storyMapsDisabled && (
           <TabsContent
             value="storyPanel"
             className="jgis-panel-tab-content"
@@ -181,7 +177,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           </TabsContent>
         )}
 
-        {!settings.annotationsDisabled && (
+        {!props.settings.annotationsDisabled && (
           <TabsContent value="annotations" className="jgis-panel-tab-content">
             <AnnotationsPanel
               annotationModel={props.annotationModel}
@@ -190,7 +186,7 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
           </TabsContent>
         )}
 
-        {!settings.identifyDisabled && (
+        {!props.settings.identifyDisabled && (
           <TabsContent value="identifyPanel" className="jgis-panel-tab-content">
             <IdentifyPanelComponent
               model={props.model}
