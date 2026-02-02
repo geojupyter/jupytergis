@@ -304,6 +304,7 @@ const StoryViewerPanel = forwardRef<
       ref={panelRef}
       // className={`jgis-story-viewer-panel ${isSpecta ? 'jgis-story-viewer-panel-specta-mod' : ''}`}
       className={cn('jgis-story-viewer-panel', className)}
+      id="the-fold"
     >
       <div
         key={currentIndexDisplayed}
@@ -340,7 +341,11 @@ const StoryViewerPanel = forwardRef<
             }
           />
         </div>
-        <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
+        <div id="below-the-fold">
+          <StoryContentSection
+            markdown={activeSlide?.content?.markdown ?? ''}
+          />
+        </div>
       </div>
     </div>
   );

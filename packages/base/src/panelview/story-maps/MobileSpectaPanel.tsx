@@ -10,46 +10,42 @@ import {
 import StoryViewerPanel from './StoryViewerPanel';
 
 const MAIN_ID = 'jp-main-content-panel';
-// const MAIN_ID = 'main';
+const THE_FOLD_ID = 'the-fold';
 const ABOVE_THE_FOLD_ID = 'above-the-fold';
 
 const SNAP_FIRST_MIN = 0.15;
 const SNAP_FIRST_MAX = 0.95;
 const SNAP_FIRST_DEFAULT = 0.4;
+/** Offset (px) for above-the-fold height: margins from p and h1 in story content */
+const ABOVE_THE_FOLD_OFFSET_PX = 16.8 * 2 + 18.76;
 
 interface IMobileSpectaPanelProps {
   model: IJupyterGISModel;
 }
 
 /**
- * Compute the first snap point so that vaul's transform offset (the amount
- * the drawer is pushed down) equals TARGET_OFFSET_PX. For a bottom drawer,
- * offset = mainHeight * (1 - snapPoint), so snapPoint = (mainHeight - offset) / mainHeight.
+ * Compute the first snap point so that vaul's --snap-point-height (the
+ * transform offset) equals #the-fold height minus #above-the-fold height.
+ * For a bottom drawer, offset = mainHeight * (1 - snapPoint), so
+ * snapPoint = (mainHeight - offset) / mainHeight.
  */
-const TARGET_OFFSET_PX = 153;
-
 function getFirstSnapFromAboveTheFold(
   mainEl: HTMLElement,
-  _aboveTheFoldEl: HTMLElement,
+  theFoldEl: HTMLElement,
+  aboveTheFoldEl: HTMLElement,
 ): number {
   const mainHeight = mainEl.getBoundingClientRect().height;
+  const theFoldHeight = theFoldEl.getBoundingClientRect().height;
+  const aboveTheFoldHeight = aboveTheFoldEl.getBoundingClientRect().height;
+  const offsetPx =
+    theFoldHeight - aboveTheFoldHeight - ABOVE_THE_FOLD_OFFSET_PX;
+
   if (mainHeight <= 0) {
-    console.log(
-      '[MobileSpectaPanel] main height <= 0, using default',
-      SNAP_FIRST_DEFAULT,
-    );
     return SNAP_FIRST_DEFAULT;
   }
-  const fraction = (mainHeight - TARGET_OFFSET_PX) / mainHeight;
+
+  const fraction = (mainHeight - offsetPx) / mainHeight;
   const clamped = Math.max(SNAP_FIRST_MIN, Math.min(SNAP_FIRST_MAX, fraction));
-  const resultingOffsetPx = mainHeight * (1 - clamped);
-  console.log('[MobileSpectaPanel] getFirstSnapFromAboveTheFold', {
-    mainHeight,
-    targetOffsetPx: TARGET_OFFSET_PX,
-    fraction: fraction.toFixed(3),
-    clamped: clamped.toFixed(3),
-    resultingOffsetPx: resultingOffsetPx.toFixed(1),
-  });
   return clamped;
 }
 
@@ -77,17 +73,9 @@ export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
     1,
   ]);
 
-  useEffect(() => {
-    console.log('[MobileSpectaPanel] snapPoints', snapPoints);
-  }, [snapPoints]);
-
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0]);
 
   const presentationStyle = getSpectaPresentationStyle(model);
-
-  useEffect(() => {
-    console.log('snapPoints', snapPoints);
-  }, [snapPoints]);
 
   // Vaul uses activeSnapPointIndex = snapPoints.indexOf(activeSnapPoint) and
   // sets --snap-point-height from snapPointsOffset[activeSnapPointIndex]. If
@@ -108,54 +96,55 @@ export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
   }, [snapPoints, snap]);
 
   useEffect(() => {
-    setContainer(document.getElementById(MAIN_ID));
-  }, []);
-
-  useEffect(() => {
-    const mainEl = document.getElementById(MAIN_ID);
+    const mainEl = document.getElementById(MAIN_ID) as HTMLElement | null;
     if (!mainEl) return;
+    setContainer(mainEl);
 
     const updateFirstSnap = () => {
+      const theFoldEl = document.getElementById(THE_FOLD_ID);
       const aboveTheFoldEl = document.getElementById(ABOVE_THE_FOLD_ID);
-      if (aboveTheFoldEl) {
-        const firstSnap = getFirstSnapFromAboveTheFold(mainEl, aboveTheFoldEl);
-        setSnapPoints([0.3, firstSnap, 1]);
-      } else {
-        console.log(
-          '[MobileSpectaPanel] updateFirstSnap: #above-the-fold not found',
+      if (theFoldEl && aboveTheFoldEl) {
+        const firstSnap = getFirstSnapFromAboveTheFold(
+          mainEl,
+          theFoldEl as HTMLElement,
+          aboveTheFoldEl as HTMLElement,
         );
+        setSnapPoints([firstSnap, 1]);
       }
     };
 
-    console.log(
-      '[MobileSpectaPanel] setting up observers, #main found',
-      !!mainEl,
-    );
-    updateFirstSnap();
-
+    // #the-fold contains #above-the-fold, so observing it alone catches content resizes.
     const resizeObserver = new ResizeObserver(() => {
-      console.log('[MobileSpectaPanel] ResizeObserver fired');
       updateFirstSnap();
     });
-    resizeObserver.observe(mainEl);
 
-    let aboveTheFoldObserved = false;
-    const observeAboveTheFold = (el: HTMLElement | null) => {
-      if (el && !aboveTheFoldObserved) {
-        resizeObserver.observe(el);
-        aboveTheFoldObserved = true;
-        console.log('[MobileSpectaPanel] now observing #above-the-fold');
+    /** Currently observed #the-fold element; re-attach when DOM identity changes (e.g. drawer reopen). */
+    let observedFoldEl: HTMLElement | null = null;
+
+    const syncFoldObserver = () => {
+      const theFoldEl = document.getElementById(THE_FOLD_ID);
+      const aboveTheFoldEl = document.getElementById(ABOVE_THE_FOLD_ID);
+      if (!theFoldEl || !aboveTheFoldEl) return;
+
+      const foldEl = theFoldEl as HTMLElement;
+      if (foldEl === observedFoldEl) return;
+
+      if (observedFoldEl) {
+        resizeObserver.unobserve(observedFoldEl);
       }
+      resizeObserver.observe(foldEl);
+      // unobserve mutation here?
+      observedFoldEl = foldEl;
+      updateFirstSnap();
     };
 
-    const aboveTheFoldEl = document.getElementById(ABOVE_THE_FOLD_ID);
-    observeAboveTheFold(aboveTheFoldEl);
+    syncFoldObserver();
 
     const mutationObserver = new MutationObserver(() => {
-      observeAboveTheFold(document.getElementById(ABOVE_THE_FOLD_ID));
-      updateFirstSnap();
+      syncFoldObserver();
     });
-    mutationObserver.observe(document.body, {
+
+    mutationObserver.observe(mainEl, {
       childList: true,
       subtree: true,
     });
