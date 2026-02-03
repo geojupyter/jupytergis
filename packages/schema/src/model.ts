@@ -643,7 +643,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
-   * Current slide index for the selected story (0-based). Clamped to valid range.
+   * Current slide index for the selected story (0-based).
    */
   getCurrentSlideIndex(): number {
     return this._currentSegmentIndex;

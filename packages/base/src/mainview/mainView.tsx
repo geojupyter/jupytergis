@@ -298,8 +298,6 @@ export class MainView extends React.Component<IProps, IStates> {
       this._setupSpectaMode();
       this._isSpectaPresentationInitialized = true;
     }
-
-    console.log('mobile', this.props.isMobile);
   }
 
   componentWillUnmount(): void {
@@ -2859,7 +2857,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _storyScrollHandler: ((e: Event) => void) | null = null;
 }
 
-// ! TODO make mainview a modern react component instead of class nonsense
+// ! TODO make mainview a modern react component instead of a class
 /** Thin wrapper that injects isMobile from useMediaQuery so MainView can use it in JSX. */
 function MainViewWithMediaQuery(props: IProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');

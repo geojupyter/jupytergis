@@ -1,7 +1,6 @@
 .jgis-story-viewer-panel {
   padding: 1rem;
   overflow: auto;
-  /* overflow: hidden; */
   position: relative;
 }
 
@@ -102,7 +101,6 @@
   left: 0;
   width: 100%;
   padding: 0 1rem;
-  /* padding: 0 0.125rem; */
 }
 
 .jgis-story-viewer-nav-container-specta-mobile .jgis-story-navbar {

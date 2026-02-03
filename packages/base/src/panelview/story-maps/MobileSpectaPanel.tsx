@@ -10,14 +10,14 @@ import {
 import StoryViewerPanel from './StoryViewerPanel';
 
 const MAIN_ID = 'jp-main-content-panel';
-const THE_FOLD_ID = 'the-fold';
-const ABOVE_THE_FOLD_ID = 'above-the-fold';
+const SEGMENT_PANEL_ID = 'jgis-story-segment-panel';
+const SEGMENT_HEADER_ID = 'jgis-story-segment-header';
 
 const SNAP_FIRST_MIN = 0.3;
 const SNAP_FIRST_MAX = 0.95;
 const SNAP_FIRST_DEFAULT = 0.7;
-/** Offset (px) for above-the-fold height: margins from p and h1 in story content */
-const ABOVE_THE_FOLD_OFFSET_PX = 16.8 * 2 + 18.76;
+/** Offset (px) for segment header height: margins from p and h1 in story content */
+const SEGMENT_HEADER_OFFSET_PX = 16.8 * 2 + 18.76;
 
 interface IMobileSpectaPanelProps {
   model: IJupyterGISModel;
@@ -25,20 +25,20 @@ interface IMobileSpectaPanelProps {
 
 /**
  * Compute the first snap point so that vaul's --snap-point-height (the
- * transform offset) equals #the-fold height minus #above-the-fold height.
+ * transform offset) equals #jgis-story-segment-panel height minus #jgis-story-segment-header height.
  * For a bottom drawer, offset = mainHeight * (1 - snapPoint), so
  * snapPoint = (mainHeight - offset) / mainHeight.
  */
-function getFirstSnapFromAboveTheFold(
+function getFirstSnapFromSegmentHeader(
   mainEl: HTMLElement,
-  theFoldEl: HTMLElement,
-  aboveTheFoldEl: HTMLElement,
+  segmentPanelEl: HTMLElement,
+  segmentHeaderEl: HTMLElement,
 ): number {
   const mainHeight = mainEl.getBoundingClientRect().height;
-  const theFoldHeight = theFoldEl.getBoundingClientRect().height;
-  const aboveTheFoldHeight = aboveTheFoldEl.getBoundingClientRect().height;
+  const segmentPanelHeight = segmentPanelEl.getBoundingClientRect().height;
+  const segmentHeaderHeight = segmentHeaderEl.getBoundingClientRect().height;
   const offsetPx =
-    theFoldHeight - aboveTheFoldHeight - ABOVE_THE_FOLD_OFFSET_PX;
+    segmentPanelHeight - segmentHeaderHeight - SEGMENT_HEADER_OFFSET_PX;
 
   if (mainHeight <= 0) {
     return SNAP_FIRST_DEFAULT;
@@ -91,7 +91,7 @@ export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
     }
   }, [snapPoints, snap]);
 
-  // Observe #the-fold (and re-attach when drawer reopens).
+  // Observe #jgis-story-segment-panel (and re-attach when drawer reopens).
   useEffect(() => {
     const mainEl = document.getElementById(MAIN_ID);
     setContainer(mainEl);
@@ -101,45 +101,45 @@ export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
     }
 
     const updateFirstSnap = () => {
-      const theFoldEl = document.getElementById(THE_FOLD_ID);
-      const aboveTheFoldEl = document.getElementById(ABOVE_THE_FOLD_ID);
-      if (theFoldEl && aboveTheFoldEl) {
-        const firstSnap = getFirstSnapFromAboveTheFold(
+      const segmentPanelEl = document.getElementById(SEGMENT_PANEL_ID);
+      const segmentHeaderEl = document.getElementById(SEGMENT_HEADER_ID);
+
+      if (segmentPanelEl && segmentHeaderEl) {
+        const firstSnap = getFirstSnapFromSegmentHeader(
           mainEl,
-          theFoldEl,
-          aboveTheFoldEl,
+          segmentPanelEl,
+          segmentHeaderEl,
         );
         setSnapPoints([firstSnap, 1]);
       }
     };
 
     const resizeObserver = new ResizeObserver(() => updateFirstSnap());
-    let observedFoldEl: HTMLElement | null = null;
+    let observedPanelEl: HTMLElement | null = null;
 
-    const syncFoldObserver = () => {
-      const theFoldEl = document.getElementById(THE_FOLD_ID);
-      const aboveTheFoldEl = document.getElementById(ABOVE_THE_FOLD_ID);
+    const syncHeaderObserver = () => {
+      const segmentPanelEl = document.getElementById(SEGMENT_PANEL_ID);
+      const segmentHeaderEl = document.getElementById(SEGMENT_HEADER_ID);
 
-      if (!theFoldEl || !aboveTheFoldEl) {
+      if (
+        !segmentPanelEl ||
+        !segmentHeaderEl ||
+        segmentPanelEl === observedPanelEl
+      ) {
         return;
       }
 
-      const foldEl = theFoldEl;
-      if (foldEl === observedFoldEl) {
-        return;
+      if (observedPanelEl) {
+        resizeObserver.unobserve(observedPanelEl);
       }
-
-      if (observedFoldEl) {
-        resizeObserver.unobserve(observedFoldEl);
-      }
-      resizeObserver.observe(foldEl);
-      observedFoldEl = foldEl;
+      resizeObserver.observe(segmentPanelEl);
+      observedPanelEl = segmentPanelEl;
       updateFirstSnap();
     };
 
-    syncFoldObserver();
+    syncHeaderObserver();
 
-    const mutationObserver = new MutationObserver(syncFoldObserver);
+    const mutationObserver = new MutationObserver(syncHeaderObserver);
     mutationObserver.observe(mainEl, {
       childList: true,
       subtree: true,
