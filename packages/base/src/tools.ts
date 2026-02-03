@@ -16,6 +16,7 @@ import Protobuf from 'pbf';
 import shp from 'shpjs';
 
 import RASTER_LAYER_GALLERY from '@/rasterlayer_gallery/raster_layer_gallery.json';
+import { getGdal } from './gdal';
 
 export const debounce = (
   func: CallableFunction,
@@ -496,8 +497,18 @@ export const loadGeoTiff = async (
     fileBlob = await base64ToBlob(file.content, mimeType);
   }
 
+  const geotiff = new File([fileBlob], 'loaded.tif');
+  const gdal = await getGdal();
+  const result = await gdal.open(geotiff);
+  const tifDataset = result.datasets[0];
+  const metadata = await gdal.gdalinfo(tifDataset, ['-stats']);
+  gdal.close(tifDataset);
+
+  await saveToIndexedDB(url, fileBlob, metadata);
+
   return {
     file: fileBlob,
+    metadata,
     sourceUrl: url,
   };
 };
