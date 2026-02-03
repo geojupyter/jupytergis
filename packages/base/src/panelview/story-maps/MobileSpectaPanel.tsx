@@ -4,8 +4,8 @@ import React, { CSSProperties, useEffect, useState } from 'react';
 import { Button } from '@/src/shared/components/Button';
 import {
   Drawer,
-  DrawerTrigger,
   DrawerContent,
+  DrawerTrigger,
 } from '@/src/shared/components/Drawer';
 import StoryViewerPanel from './StoryViewerPanel';
 
@@ -13,9 +13,9 @@ const MAIN_ID = 'jp-main-content-panel';
 const THE_FOLD_ID = 'the-fold';
 const ABOVE_THE_FOLD_ID = 'above-the-fold';
 
-const SNAP_FIRST_MIN = 0.15;
+const SNAP_FIRST_MIN = 0.3;
 const SNAP_FIRST_MAX = 0.95;
-const SNAP_FIRST_DEFAULT = 0.4;
+const SNAP_FIRST_DEFAULT = 0.7;
 /** Offset (px) for above-the-fold height: margins from p and h1 in story content */
 const ABOVE_THE_FOLD_OFFSET_PX = 16.8 * 2 + 18.76;
 
@@ -49,6 +49,7 @@ function getFirstSnapFromAboveTheFold(
   return clamped;
 }
 
+/** Build inline styles for specta presentation (bg and text color from story). */
 function getSpectaPresentationStyle(model: IJupyterGISModel): CSSProperties {
   const story = model.getSelectedStory().story;
   const bgColor = story?.presentationBgColor;
@@ -72,16 +73,11 @@ export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
     SNAP_FIRST_DEFAULT,
     1,
   ]);
-
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0]);
 
   const presentationStyle = getSpectaPresentationStyle(model);
 
-  // Vaul uses activeSnapPointIndex = snapPoints.indexOf(activeSnapPoint) and
-  // sets --snap-point-height from snapPointsOffset[activeSnapPointIndex]. If
-  // activeSnapPoint is not in snapPoints (e.g. after firstSnapPoint updates),
-  // index is -1 and the CSS var becomes undefined. Keep snap in sync so it
-  // always matches a value in snapPoints.
+  // Keep active snap in sync with snapPoints so Vaul's --snap-point-height stays defined.
   useEffect(() => {
     const isInSnapPoints = snapPoints.some(
       p =>
@@ -95,10 +91,14 @@ export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
     }
   }, [snapPoints, snap]);
 
+  // Observe #the-fold (and re-attach when drawer reopens).
   useEffect(() => {
-    const mainEl = document.getElementById(MAIN_ID) as HTMLElement | null;
-    if (!mainEl) return;
+    const mainEl = document.getElementById(MAIN_ID);
     setContainer(mainEl);
+
+    if (!mainEl) {
+      return;
+    }
 
     const updateFirstSnap = () => {
       const theFoldEl = document.getElementById(THE_FOLD_ID);
@@ -106,44 +106,40 @@ export function MobileSpectaPanel({ model }: IMobileSpectaPanelProps) {
       if (theFoldEl && aboveTheFoldEl) {
         const firstSnap = getFirstSnapFromAboveTheFold(
           mainEl,
-          theFoldEl as HTMLElement,
-          aboveTheFoldEl as HTMLElement,
+          theFoldEl,
+          aboveTheFoldEl,
         );
         setSnapPoints([firstSnap, 1]);
       }
     };
 
-    // #the-fold contains #above-the-fold, so observing it alone catches content resizes.
-    const resizeObserver = new ResizeObserver(() => {
-      updateFirstSnap();
-    });
-
-    /** Currently observed #the-fold element; re-attach when DOM identity changes (e.g. drawer reopen). */
+    const resizeObserver = new ResizeObserver(() => updateFirstSnap());
     let observedFoldEl: HTMLElement | null = null;
 
     const syncFoldObserver = () => {
       const theFoldEl = document.getElementById(THE_FOLD_ID);
       const aboveTheFoldEl = document.getElementById(ABOVE_THE_FOLD_ID);
-      if (!theFoldEl || !aboveTheFoldEl) return;
 
-      const foldEl = theFoldEl as HTMLElement;
-      if (foldEl === observedFoldEl) return;
+      if (!theFoldEl || !aboveTheFoldEl) {
+        return;
+      }
+
+      const foldEl = theFoldEl;
+      if (foldEl === observedFoldEl) {
+        return;
+      }
 
       if (observedFoldEl) {
         resizeObserver.unobserve(observedFoldEl);
       }
       resizeObserver.observe(foldEl);
-      // unobserve mutation here?
       observedFoldEl = foldEl;
       updateFirstSnap();
     };
 
     syncFoldObserver();
 
-    const mutationObserver = new MutationObserver(() => {
-      syncFoldObserver();
-    });
-
+    const mutationObserver = new MutationObserver(syncFoldObserver);
     mutationObserver.observe(mainEl, {
       childList: true,
       subtree: true,
