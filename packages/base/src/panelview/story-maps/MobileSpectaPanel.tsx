@@ -53,7 +53,7 @@ function getFirstSnapFromAboveTheFold(
 function getSpectaPresentationStyle(model: IJupyterGISModel): CSSProperties {
   const story = model.getSelectedStory().story;
   const bgColor = story?.presentationBgColor;
-  const textColor = story?.presentaionTextColor;
+  const textColor = story?.presentationTextColor;
 
   const style: CSSProperties = {};
   if (bgColor) {

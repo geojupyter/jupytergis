@@ -206,7 +206,7 @@
   .jp-FormGroup-content
   fieldset
   .jp-inputFieldWrapper
-  > input#root_presentaionTextColor {
+  > input#root_presentationTextColor {
   height: revert;
 }
 

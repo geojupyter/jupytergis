@@ -169,7 +169,7 @@
           "title": "Presentation Background Color",
           "description": "The background color of the story map"
         },
-        "presentaionTextColor": {
+        "presentationTextColor": {
           "type": "string",
           "title": "Presentation Text Color",
           "description": "The text color of the story map"

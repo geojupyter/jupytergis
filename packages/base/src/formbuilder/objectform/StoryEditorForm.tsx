@@ -3,7 +3,6 @@ import { RJSFSchema, UiSchema } from '@rjsf/utils';
 
 import { getCssVarAsColor } from '@/src/tools';
 import { BaseForm } from './baseform';
-import { getCssVarAsColor } from '@/src/tools';
 
 /**
  * The form to modify story map properties.
@@ -21,7 +20,7 @@ export class StoryEditorPropertiesForm extends BaseForm {
       'ui:widget': 'color',
     };
 
-    uiSchema.presentaionTextColor = {
+    uiSchema.presentationTextColor = {
       'ui:widget': 'color',
     };
 
@@ -37,12 +36,12 @@ export class StoryEditorPropertiesForm extends BaseForm {
       }
     }
     if (
-      schemaProps?.presentaionTextColor &&
-      data?.presentaionTextColor === undefined
+      schemaProps?.presentationTextColor &&
+      data?.presentationTextColor === undefined
     ) {
       const defaultText = getCssVarAsColor('--jp-ui-font-color0');
       if (defaultText) {
-        schemaProps.presentaionTextColor.default = defaultText;
+        schemaProps.presentationTextColor.default = defaultText;
       }
     }
   }
