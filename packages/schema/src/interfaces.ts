@@ -410,7 +410,6 @@ export type ILayerGalleryEntry = {
     | IVectorTileSource
     | IVideoSource;
   provider: string;
-  urlParameters: IDict<string>;
   description: string;
 };
 

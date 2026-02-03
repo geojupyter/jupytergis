@@ -219,11 +219,12 @@ for provider_key, provider_value in provider_config.items():
                                 "url": url_template,
                                 "attribution": xyzprovider.get("attribution"),
                                 "maxZoom": xyzprovider.get("max_zoom"),
-                                "minZoom": xyzprovider.get("min_zoom") or 0
+                                "minZoom": xyzprovider.get("min_zoom") or 0,
+                                "urlParameters": dict_keys_to_camel(url_template)
 , 
                         },
                         "layerParameters": {"opacity": 1},
-                        "urlParameters": dict_keys_to_camel(url_template)
+                        
     }
     
     elif config_is_flat and not xyz_is_flat:
@@ -254,10 +255,10 @@ for provider_key, provider_value in provider_config.items():
                     "url": url_template,
                     "attribution": tile_provider.get("attribution"),
                     "maxZoom": tile_provider.get("max_zoom"),
-                    "minZoom": tile_provider.get("min_zoom") or 0
+                    "minZoom": tile_provider.get("min_zoom") or 0,
+                    "urlParameters": dict_keys_to_camel(url_parameters),
                 },
                 "layerParameters": {"opacity": 1},
-                "urlParameters": dict_keys_to_camel(url_parameters),
                 "description": tile_provider.get("attribution")
             }
 
@@ -291,10 +292,10 @@ for provider_key, provider_value in provider_config.items():
                     "url": url_template,
                     "attribution": tile_provider.get("attribution"),
                     "maxZoom": tile_provider.get("max_zoom"),
-                    "minZoom": tile_provider.get("min_zoom") or 0
+                    "minZoom": tile_provider.get("min_zoom") or 0,
+                    "urlParameters": dict_keys_to_camel(url_parameters),
                 },
                 "layerParameters": {"opacity": 1},
-                "urlParameters": dict_keys_to_camel(url_parameters),
                 "description": tile_provider.get("attribution")
             }
 

@@ -205,12 +205,6 @@ export function createDefaultLayerRegistry(
     layerProvider: { [x: string]: any },
     provider?: string | undefined,
   ): ILayerGalleryEntry {
-    if (!layerProvider.layerType || !layerProvider.sourceType) {
-      throw new Error(
-        `Invalid layer_gallery entry "${entry}": missing layerType or sourceType`,
-      );
-    }
-
     return {
       name: entry,
       thumbnail: LAYER_THUMBNAILS[layerProvider['name'].replace('.', '-')],
@@ -219,7 +213,6 @@ export function createDefaultLayerRegistry(
       sourceParameters: layerProvider['sourceParameters'],
       layerParameters: layerProvider['layerParameters'],
       provider: provider ?? entry.split('.', 1)[0],
-      urlParameters: layerProvider['urlParameters'],
       description: layerProvider['description'],
     };
   }
