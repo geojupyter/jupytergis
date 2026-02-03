@@ -86,23 +86,25 @@ test.describe('context menu', () => {
     await page.getByText('New Raster Tile Layer', { exact: true }).click();
 
     await page
+      .getByRole('dialog')
       .locator('input#root_url')
-      .type(
+      .fill(
         'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.pbf',
       );
 
     await page.getByRole('dialog').getByRole('button', { name: 'Ok' }).click();
 
     const layerTitle = 'Custom Raster Tile Layer';
-    expect(page.getByText(layerTitle)).toBeVisible();
+    const layerInTree = page.getByText(layerTitle, { exact: true });
+    expect(layerInTree).toBeVisible();
 
-    await page.getByText(layerTitle).click({
+    await layerInTree.click({
       button: 'right',
     });
 
     await page.getByRole('menu').getByText('Remove Layer').click();
 
-    expect(page.getByText(layerTitle)).not.toBeVisible();
+    expect(layerInTree).not.toBeVisible();
   });
 
   test('clicking remove group should remove the group from the tree', async ({

@@ -502,6 +502,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     this._addLayerTreeItem(id, groupName, position);
+
+    this.syncSelected(
+      { [id]: { type: 'layer' } },
+      this.getClientId().toString(),
+    );
   }
 
   removeLayer(layer_id: string) {

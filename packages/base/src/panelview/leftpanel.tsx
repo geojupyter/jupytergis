@@ -43,6 +43,8 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     props.model.getLayerTree(),
   );
 
+  const hasSyncedInitialSelectionRef = React.useRef(false);
+
   const tabInfo = [
     !props.settings.layersDisabled
       ? { name: 'layers', title: 'Layers' }
@@ -67,7 +69,22 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
       setOptions({ ...props.model.getOptions() });
     };
     const updateLayerTree = () => {
-      setLayerTree(props.model.getLayerTree() || []);
+      const freshTree = props.model.getLayerTree() || [];
+      setLayerTree(freshTree);
+
+      // Sync selected to top layer/group only the first time the tree has items
+      if (!hasSyncedInitialSelectionRef.current && freshTree.length > 0) {
+        hasSyncedInitialSelectionRef.current = true;
+        const lastItem = freshTree[freshTree.length - 1];
+        const lastId = typeof lastItem === 'string' ? lastItem : lastItem?.name;
+        const lastType = typeof lastItem === 'string' ? 'layer' : 'group';
+        if (lastId) {
+          props.model.syncSelected(
+            { [lastId]: { type: lastType } },
+            props.model.getClientId().toString(),
+          );
+        }
+      }
 
       // Need to let command know when segments get populated
       props.commands.notifyCommandChanged(
@@ -93,6 +110,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     props.model.segmentAdded.connect(onSegmentAdded);
 
     updateLayerTree();
+
     return () => {
       props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
       props.model.sharedModel.layersChanged.disconnect(updateLayerTree);

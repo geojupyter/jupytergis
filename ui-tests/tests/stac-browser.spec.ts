@@ -72,7 +72,10 @@ test.describe('#stac-browser', () => {
 
     await page.getByText('Stac Browser').click();
 
-    await page.getByRole('combobox').click();
+    await page
+      .getByRole('tabpanel', { name: 'Filters' })
+      .getByRole('combobox')
+      .click();
     await page.getByRole('option', { name: 'GEODES' }).click();
     await page.getByRole('button', { name: 'Collection' }).click();
     await page.getByRole('menuitem', { name: 'Sentinel 2' }).hover();
