@@ -111,6 +111,7 @@ import * as React from 'react';
 import AnnotationFloater from '@/src/annotations/components/AnnotationFloater';
 import { CommandIDs } from '@/src/constants';
 import { LoadingOverlay } from '@/src/shared/components/loading';
+import useMediaQuery from '@/src/shared/hooks/useMediaQuery';
 import StatusBar from '@/src/statusbar/StatusBar';
 import { debounce, isLightTheme, loadFile, throttle } from '@/src/tools';
 import CollaboratorPointers, { ClientPointer } from './CollaboratorPointers';
@@ -120,6 +121,7 @@ import { MainViewModel } from './mainviewmodel';
 import { hexToRgb } from '../dialogs/symbology/colorRampUtils';
 import { markerIcon } from '../icons';
 import { LeftPanel, RightPanel } from '../panelview';
+import { MobileSpectaPanel } from '../panelview/story-maps/MobileSpectaPanel';
 import StoryViewerPanel, {
   IStoryViewerPanelHandle,
 } from '../panelview/story-maps/StoryViewerPanel';
@@ -138,6 +140,8 @@ interface IProps {
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
+  /** True when viewport matches (max-width: 768px). Injected by MainViewWithMediaQuery. */
+  isMobile?: boolean;
 }
 
 interface IStates {
@@ -2235,7 +2239,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
     const story = this._model.getSelectedStory().story;
     const bgColor = story?.presentationBgColor;
-    const textColor = story?.presentaionTextColor;
+    const textColor = story?.presentationTextColor;
 
     // Set background color
     if (bgColor) {
@@ -2363,6 +2367,16 @@ export class MainView extends React.Component<IProps, IStates> {
       if (jgisLayer?.type === 'StorySegmentLayer') {
         const layerParams = jgisLayer.parameters as IStorySegmentLayer;
         const coords = getCenter(layerParams.extent);
+
+        // Don't move map if we're already centered on the segment
+        const viewCenter = this._Map.getView().getCenter();
+        const centersEqual =
+          viewCenter !== undefined &&
+          Math.abs(viewCenter[0] - coords[0]) < 1e-9 &&
+          Math.abs(viewCenter[1] - coords[1]) < 1e-9;
+        if (centersEqual) {
+          return;
+        }
 
         this._flyToPosition(
           { x: coords[0], y: coords[1] },
@@ -2778,6 +2792,8 @@ export class MainView extends React.Component<IProps, IStates> {
                       />
                     )}
                   </>
+                ) : this.props.isMobile ? (
+                  <MobileSpectaPanel model={this._model} />
                 ) : (
                   <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
                     <div
@@ -2788,6 +2804,7 @@ export class MainView extends React.Component<IProps, IStates> {
                         ref={this.storyViewerPanelRef}
                         model={this._model}
                         isSpecta={this.state.isSpectaPresentation}
+                        className="jgis-story-viewer-panel-specta-mod"
                       />
                     </div>
                   </div>
@@ -2799,12 +2816,14 @@ export class MainView extends React.Component<IProps, IStates> {
               ></div>
             </div>
           </div>
-          <StatusBar
-            jgisModel={this._model}
-            loading={this.state.loadingLayer}
-            projection={this.state.viewProjection}
-            scale={this.state.scale}
-          />
+          {!this.state.isSpectaPresentation && (
+            <StatusBar
+              jgisModel={this._model}
+              loading={this.state.loadingLayer}
+              projection={this.state.viewProjection}
+              scale={this.state.scale}
+            />
+          )}
         </div>
       </>
     );
@@ -2837,3 +2856,12 @@ export class MainView extends React.Component<IProps, IStates> {
   private _isSpectaPresentationInitialized = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
 }
+
+// ! TODO make mainview a modern react component instead of a class
+/** Thin wrapper that injects isMobile from useMediaQuery so MainView can use it in JSX. */
+function MainViewWithMediaQuery(props: IProps) {
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  return <MainView {...props} isMobile={isMobile} />;
+}
+
+export { MainViewWithMediaQuery };

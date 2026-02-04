@@ -1,6 +1,6 @@
 .jgis-story-viewer-panel {
   padding: 1rem;
-  overflow: hidden;
+  overflow: auto;
   position: relative;
 }
 
@@ -77,12 +77,34 @@
   justify-content: center;
 }
 
+.jgis-story-navbar .jgis-button.jgis-story-navbar-button {
+  color: var(--jp-ui-inverse-font-color0);
+  background-color: var(--jp-inverse-layout-color0);
+}
+
+.jgis-story-viewer-image-container
+  .jgis-story-viewer-nav-container
+  .jgis-story-navbar
+  .jgis-story-navbar-button {
+  color: var(--jp-ui-font-color0);
+  background-color: var(--jp-layout-color0);
+}
+
 .jgis-story-viewer-subtitle-container {
   display: flex;
   align-items: center;
-  /* justify-content: space-between; */
-  /* gap: 1rem; */
   padding-top: 1rem;
+}
+
+.jgis-story-viewer-nav-container-specta-mobile {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.jgis-story-viewer-nav-container-specta-mobile .jgis-story-navbar {
+  justify-content: space-between;
 }
 
 .jgis-story-navbar.jgis-story-navbar-specta-mod {
@@ -182,6 +204,12 @@
   .jp-FormGroup-content
   fieldset
   .jp-inputFieldWrapper
-  > input#root_presentaionTextColor {
+  > input#root_presentationTextColor {
   height: revert;
+}
+
+.jgis-mobile-specta-trigger-wrapper {
+  position: fixed;
+  bottom: 0.125rem;
+  right: 0.125rem;
 }

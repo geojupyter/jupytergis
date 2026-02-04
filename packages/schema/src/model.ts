@@ -643,6 +643,20 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
+   * Current slide index for the selected story (0-based).
+   */
+  getCurrentSegmentIndex(): number {
+    return this._currentSegmentIndex;
+  }
+
+  /**
+   * Set current slide index for the selected story.
+   */
+  setCurrentSegmentIndex(index: number): void {
+    this._currentSegmentIndex = index;
+  }
+
+  /**
    * Adds a story segment from the current map view
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
    */
@@ -1061,6 +1075,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
+  private _currentSegmentIndex: number;
   stories: Map<string, IJGISStoryMap> = new Map();
 }
 

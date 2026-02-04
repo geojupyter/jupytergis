@@ -13,6 +13,8 @@ import React, {
   useState,
 } from 'react';
 
+import { cn } from '@/src/shared/components/utils';
+import StoryNavBar from './StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
 import StorySubtitleSection from './components/StorySubtitleSection';
@@ -21,6 +23,8 @@ import StoryTitleSection from './components/StoryTitleSection';
 interface IStoryViewerPanelProps {
   model: IJupyterGISModel;
   isSpecta: boolean;
+  isMobile?: boolean;
+  className?: string;
 }
 
 export interface IStoryViewerPanelHandle {
@@ -29,16 +33,57 @@ export interface IStoryViewerPanelHandle {
   canNavigate: boolean;
 }
 
+/**
+ * Where the story nav bar should be rendered in the viewer layout.
+ * - below-title: normal mode, guided, no image (under the title)
+ * - over-image: normal mode, guided, with image (over the image)
+ * - subtitle-specta: specta mode desktop (next to subtitle, fixed centered)
+ * - subtitle-specta-mobile: specta mode mobile (in line with subtitle)
+ */
+export type StoryNavPlacement =
+  | 'below-title'
+  | 'over-image'
+  | 'subtitle-specta'
+  | 'subtitle-specta-mobile';
+
+/**
+ * Returns which section should render the nav bar, or null if nav should be hidden.
+ */
+function getStoryNavPlacement(
+  isSpecta: boolean,
+  hasImage: boolean,
+  storyType: string,
+  isMobile: boolean,
+): StoryNavPlacement | null {
+  if (isSpecta) {
+    return isMobile ? 'subtitle-specta-mobile' : 'subtitle-specta';
+  }
+  if (storyType !== 'guided') {
+    return null;
+  }
+  return hasImage ? 'over-image' : 'below-title';
+}
+
 const StoryViewerPanel = forwardRef<
   IStoryViewerPanelHandle,
   IStoryViewerPanelProps
->(({ model, isSpecta }, ref) => {
-  const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(0);
+>(({ model, isSpecta, isMobile = false, className }, ref) => {
+  const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(() =>
+    model.getCurrentSegmentIndex(),
+  );
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
     model.getSelectedStory().story ?? null,
   );
   const [imageLoaded, setImageLoaded] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const setIndex = useCallback(
+    (index: number) => {
+      model.setCurrentSegmentIndex(index);
+      setCurrentIndexDisplayed(index);
+    },
+    [model],
+  );
 
   // Derive story segments from story data
   const storySegments = useMemo(() => {
@@ -95,7 +140,7 @@ const StoryViewerPanel = forwardRef<
       const { story } = model.getSelectedStory();
       setStoryData(story ?? null);
       // Reset to first slide when story changes
-      setCurrentIndexDisplayed(0);
+      setIndex(model.getCurrentSegmentIndex() ?? 0);
     };
 
     updateStory();
@@ -105,7 +150,7 @@ const StoryViewerPanel = forwardRef<
     return () => {
       model.sharedModel.storyMapsChanged.disconnect(updateStory);
     };
-  }, [model]);
+  }, [model, setIndex]);
 
   // Prefetch image when slide changes
   useEffect(() => {
@@ -186,7 +231,7 @@ const StoryViewerPanel = forwardRef<
         return;
       }
 
-      setCurrentIndexDisplayed(index);
+      setIndex(index);
     };
 
     model.sharedModel.awareness.on('change', handleSelectedStorySegmentChange);
@@ -197,21 +242,19 @@ const StoryViewerPanel = forwardRef<
         handleSelectedStorySegmentChange,
       );
     };
-  }, [model, storyData]);
+  }, [model, storyData, setIndex]);
 
   const handlePrev = useCallback(() => {
     if (currentIndexDisplayed > 0) {
-      const newIndex = currentIndexDisplayed - 1;
-      setCurrentIndexDisplayed(newIndex);
+      setIndex(currentIndexDisplayed - 1);
     }
-  }, [currentIndexDisplayed]);
+  }, [currentIndexDisplayed, setIndex]);
 
   const handleNext = useCallback(() => {
     if (currentIndexDisplayed < storySegments.length - 1) {
-      const newIndex = currentIndexDisplayed + 1;
-      setCurrentIndexDisplayed(newIndex);
+      setIndex(currentIndexDisplayed + 1);
     }
-  }, [currentIndexDisplayed, storySegments.length]);
+  }, [currentIndexDisplayed, storySegments.length, setIndex]);
 
   // Expose methods via ref for parent component to use
   useImperativeHandle(
@@ -239,13 +282,28 @@ const StoryViewerPanel = forwardRef<
     hasNext: currentIndexDisplayed < storySegments.length - 1,
   };
 
+  const hasImage = !!(activeSlide?.content?.image && imageLoaded);
+  const storyType = storyData.storyType ?? 'guided';
+  const navPlacement = getStoryNavPlacement(
+    isSpecta,
+    hasImage,
+    storyType,
+    isMobile,
+  );
+
+  const navSlot =
+    navPlacement !== null ? (
+      <StoryNavBar placement={navPlacement} {...navProps} />
+    ) : null;
+
   // Get transition time from current segment, default to 0.3s
   const transitionTime = activeSlide?.transition?.time ?? 0.3;
 
   return (
     <div
       ref={panelRef}
-      className={`jgis-story-viewer-panel ${isSpecta ? 'jgis-story-viewer-panel-specta-mod' : ''}`}
+      className={cn('jgis-story-viewer-panel', className)}
+      id="jgis-story-segment-panel"
     >
       <div
         key={currentIndexDisplayed}
@@ -254,33 +312,39 @@ const StoryViewerPanel = forwardRef<
           animationDuration: `${transitionTime}s`,
         }}
       >
-        <h1 className="jgis-story-viewer-title">
-          {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
-        </h1>
-        {activeSlide?.content?.image && imageLoaded ? (
-          <StoryImageSection
-            imageUrl={activeSlide.content.image}
-            imageLoaded={imageLoaded}
-            layerName={layerName ?? ''}
-            slideNumber={currentIndexDisplayed}
-            isSpecta={isSpecta}
-            storyType={storyData.storyType ?? 'guided'}
-            {...navProps}
+        <div id="jgis-story-segment-header">
+          <h1 className="jgis-story-viewer-title">
+            {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
+          </h1>
+          {activeSlide?.content?.image && imageLoaded ? (
+            <StoryImageSection
+              imageUrl={activeSlide.content.image}
+              imageLoaded={imageLoaded}
+              layerName={layerName ?? ''}
+              slideNumber={currentIndexDisplayed}
+              navSlot={navPlacement === 'over-image' ? navSlot : null}
+            />
+          ) : (
+            <StoryTitleSection
+              title={storyData.title ?? ''}
+              navSlot={navPlacement === 'below-title' ? navSlot : null}
+            />
+          )}
+          <StorySubtitleSection
+            title={activeSlide?.content?.title ?? ''}
+            navSlot={
+              navPlacement === 'subtitle-specta' ||
+              navPlacement === 'subtitle-specta-mobile'
+                ? navSlot
+                : null
+            }
           />
-        ) : (
-          <StoryTitleSection
-            title={storyData.title ?? ''}
-            isSpecta={isSpecta}
-            storyType={storyData.storyType ?? 'guided'}
-            {...navProps}
+        </div>
+        <div id="jgis-story-segment-content">
+          <StoryContentSection
+            markdown={activeSlide?.content?.markdown ?? ''}
           />
-        )}
-        <StorySubtitleSection
-          title={activeSlide?.content?.title ?? ''}
-          isSpecta={isSpecta}
-          {...navProps}
-        />
-        <StoryContentSection markdown={activeSlide?.content?.markdown ?? ''} />
+        </div>
       </div>
     </div>
   );
