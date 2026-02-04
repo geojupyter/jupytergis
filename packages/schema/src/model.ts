@@ -645,14 +645,14 @@ export class JupyterGISModel implements IJupyterGISModel {
   /**
    * Current slide index for the selected story (0-based).
    */
-  getCurrentSlideIndex(): number {
+  getCurrentSegmentIndex(): number {
     return this._currentSegmentIndex;
   }
 
   /**
    * Set current slide index for the selected story.
    */
-  setCurrentSlideIndex(index: number): void {
+  setCurrentSegmentIndex(index: number): void {
     this._currentSegmentIndex = index;
   }
 

@@ -69,7 +69,7 @@ const StoryViewerPanel = forwardRef<
   IStoryViewerPanelProps
 >(({ model, isSpecta, isMobile = false, className }, ref) => {
   const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(() =>
-    model.getCurrentSlideIndex(),
+    model.getCurrentSegmentIndex(),
   );
   const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
     model.getSelectedStory().story ?? null,
@@ -79,7 +79,7 @@ const StoryViewerPanel = forwardRef<
 
   const setIndex = useCallback(
     (index: number) => {
-      model.setCurrentSlideIndex(index);
+      model.setCurrentSegmentIndex(index);
       setCurrentIndexDisplayed(index);
     },
     [model],
@@ -140,7 +140,7 @@ const StoryViewerPanel = forwardRef<
       const { story } = model.getSelectedStory();
       setStoryData(story ?? null);
       // Reset to first slide when story changes
-      setIndex(model.getCurrentSlideIndex() ?? 0);
+      setIndex(model.getCurrentSegmentIndex() ?? 0);
     };
 
     updateStory();
