@@ -20,9 +20,9 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "jupytergis_core==0.12.1",
-  "jupytergis_lab==0.12.1",
-  "jupytergis_qgis==0.12.1",
+  "jupytergis_core==0.12.2",
+  "jupytergis_lab==0.12.2",
+  "jupytergis_qgis==0.12.2",
   "jupyter-collaboration>=4,<5",
   "jupyter-docprovider>=2,<3",
   "jupyter-server-ydoc>=2,<3",
