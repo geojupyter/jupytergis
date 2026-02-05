@@ -1,7 +1,6 @@
 import { IDict } from '@jupytergis/schema';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 
-import { getCssVarAsColor } from '@/src/tools';
 import { BaseForm } from './baseform';
 
 /**
@@ -23,26 +22,5 @@ export class StoryEditorPropertiesForm extends BaseForm {
     uiSchema.presentationTextColor = {
       'ui:widget': 'color',
     };
-
-    // Set default values from theme CSS variables when not already in data
-    const schemaProps = schema.properties as IDict | undefined;
-    if (
-      schemaProps?.presentationBgColor &&
-      data?.presentationBgColor === undefined
-    ) {
-      const defaultBg = getCssVarAsColor('--jp-layout-color0');
-      if (defaultBg) {
-        schemaProps.presentationBgColor.default = defaultBg;
-      }
-    }
-    if (
-      schemaProps?.presentationTextColor &&
-      data?.presentationTextColor === undefined
-    ) {
-      const defaultText = getCssVarAsColor('--jp-ui-font-color0');
-      if (defaultText) {
-        schemaProps.presentationTextColor.default = defaultText;
-      }
-    }
   }
 }
