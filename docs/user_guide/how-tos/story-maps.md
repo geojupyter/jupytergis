@@ -2,13 +2,18 @@
 
 # Create and Edit Story Maps
 
-Story maps let you present a sequence of map views (segments) with optional text and images. This guide explains how to create a story, add and edit segments, use the Story Editor, and preview the story.
+<video controls width="700">
+  <source src="https://github.com/user-attachments/assets/0bfac878-9915-4c04-82c0-361783f96628" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+Story maps let you present a sequence of map views (segments) with optional text and images. This guide explains how to create a story, edit segments, use the Story Editor, and preview the story.
 
 ## Creating a story
 
 A story is created when you add the first **Story Segment** layer:
 
-1. Open the **Add Layer** menu from the toolbar.
+1. Open the **+** menu from the toolbar.
 2. Add **Story Segment**. The new layer captures the current map view (zoom and extent) and becomes the first segment of a new story map.
 3. The right panel will show the **Story Editor** so you can set story-level options and add more segments.
 
