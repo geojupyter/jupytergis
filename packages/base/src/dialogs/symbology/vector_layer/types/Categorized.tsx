@@ -1,3 +1,4 @@
+import { IVectorLayer } from '@jupytergis/schema';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
@@ -20,7 +21,6 @@ import { useLatest } from '@/src/shared/hooks/useLatest';
 import { SymbologyTab, ClassificationMode } from '@/src/types';
 import { ColorRampName } from '../../colorRampUtils';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
-import { IVectorLayer } from '@jupytergis/schema';
 
 const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,

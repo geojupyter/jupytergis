@@ -1,3 +1,4 @@
+import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
 import React, { useEffect, useState } from 'react';
 
@@ -22,7 +23,6 @@ import { useLatest } from '@/src/shared/hooks/useLatest';
 import { ClassificationMode } from '@/src/types';
 import { ColorRampName } from '../../colorRampUtils';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
-import { IVectorLayer } from '@jupytergis/schema';
 
 const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,

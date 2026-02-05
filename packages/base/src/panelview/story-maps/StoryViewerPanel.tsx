@@ -4,6 +4,7 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 import React, {
   forwardRef,
   useCallback,
@@ -14,10 +15,8 @@ import React, {
   useState,
 } from 'react';
 
-import { UUID } from '@lumino/coreutils';
-
-import StoryNavBar from './StoryNavBar';
 import { cn } from '@/src/shared/components/utils';
+import StoryNavBar from './StoryNavBar';
 import StoryContentSection from './components/StoryContentSection';
 import StoryImageSection from './components/StoryImageSection';
 import StorySubtitleSection from './components/StorySubtitleSection';

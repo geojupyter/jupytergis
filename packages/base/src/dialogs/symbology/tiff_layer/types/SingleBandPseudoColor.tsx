@@ -1,3 +1,4 @@
+import { IWebGlLayer } from '@jupytergis/schema';
 import { Button } from '@jupyterlab/ui-components';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { ExpressionValue } from 'ol/expr/expression';
@@ -26,7 +27,6 @@ import { GlobalStateDbManager } from '@/src/store';
 import { ClassificationMode } from '@/src/types';
 import { ColorRampName } from '../../colorRampUtils';
 import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
-import { IWebGlLayer } from '@jupytergis/schema';
 
 export type InterpolationType = 'discrete' | 'linear' | 'exact';
 
@@ -242,7 +242,7 @@ const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
       interpolation: selectedFunctionRef.current,
       colorRamp: colorRampOptionsRef.current?.selectedRamp,
       nClasses:
-        colorRampOptionsRef.current?.numberOfShades != null
+        colorRampOptionsRef.current?.numberOfShades !== undefined
           ? String(colorRampOptionsRef.current.numberOfShades)
           : undefined,
       mode: colorRampOptionsRef.current?.selectedMode,
