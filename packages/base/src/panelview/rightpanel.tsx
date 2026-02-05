@@ -36,6 +36,8 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [editorMode, setEditorMode] = React.useState(true);
   const [storyMapPresentationMode, setStoryMapPresentationMode] =
     React.useState(props.model.getOptions().storyMapPresentationMode ?? false);
+  const [selectedObjectProperties, setSelectedObjectProperties] =
+    React.useState(undefined);
 
   // Only show editor when not in presentation mode and editorMode is true
   const showEditor = !storyMapPresentationMode && editorMode;
@@ -113,9 +115,6 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const rightPanelVisible =
     !props.settings.rightPanelDisabled && !allRightTabsDisabled;
 
-  const [selectedObjectProperties, setSelectedObjectProperties] =
-    React.useState(undefined);
-
   const toggleEditor = () => {
     setEditorMode(!editorMode);
   };
@@ -173,14 +172,14 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
               />
             )}
             {showEditor ? (
-              <StoryEditorPanel
+              <StoryEditorPanel model={props.model} commands={props.commands} />
+            ) : (
+              <StoryViewerPanel
                 model={props.model}
-                commands={props.commands}
+                isSpecta={false}
                 addLayer={props.addLayer}
                 removeLayer={props.removeLayer}
               />
-            ) : (
-              <StoryViewerPanel model={props.model} isSpecta={false} />
             )}
           </TabsContent>
         )}
