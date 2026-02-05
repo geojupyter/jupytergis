@@ -89,6 +89,9 @@ const WrappedFormComponent: React.FC<any> = props => {
  * It will be up to the user of this class to actually perform the creation/edit using syncdata.
  */
 export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
+  /** Skip syncData for the initial onChange (RJSF populating form), only sync on user edits. */
+  private isInitialLoadRef = true;
+
   constructor(props: IBaseFormProps) {
     super(props);
     this.currentFormData = deepCopy(this.props.sourceData);
@@ -106,6 +109,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       this.currentFormData = deepCopy(this.props.sourceData);
       const schema = deepCopy(this.props.schema);
       this.setState(old => ({ ...old, schema }));
+      this.isInitialLoadRef = true;
     }
   }
 
@@ -287,7 +291,11 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       this.props.formErrorSignal.emit(extraErrors);
     }
     if (this.props.formContext === 'update') {
-      this.syncData(this.currentFormData);
+      if (!this.isInitialLoadRef) {
+        this.syncData(this.currentFormData);
+      } else {
+        this.isInitialLoadRef = false;
+      }
     }
   }
 
