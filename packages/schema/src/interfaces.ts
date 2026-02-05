@@ -30,7 +30,6 @@ import {
   LayerType,
   SourceType,
 } from './_interface/project/jgis';
-
 import {
   IGeoJSONSource,
   IGeoParquetSource,
