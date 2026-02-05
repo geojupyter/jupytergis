@@ -169,16 +169,16 @@
   overflow: auto;
   background: linear-gradient(
     to left,
-    var(--jgis-specta-bg-color, --jp-layout-color0) 49%,
+    var(--jgis-specta-bg-color, var(--jp-layout-color0)) 49%,
     color-mix(
         in srgb,
-        var(--jgis-specta-bg-color, --jp-layout-color0) 60%,
+        var(--jgis-specta-bg-color, var(--jp-layout-color0)) 60%,
         transparent
       )
       65%,
     color-mix(
         in srgb,
-        var(--jgis-specta-bg-color, --jp-layout-color0) 50%,
+        var(--jgis-specta-bg-color, var(--jp-layout-color0)) 50%,
         transparent
       )
       70%,
@@ -190,7 +190,7 @@
   width: 45%;
   font-size: var(--jp-ui-font-size3);
   padding-right: 1.7rem;
-  color: var(--jgis-specta-text-color, var(--jp-ui-inverse-font-color1));
+  color: var(--jgis-specta-text-color, var(--jp-ui-font-color1));
   overflow-y: auto;
   max-height: 100%;
 }
