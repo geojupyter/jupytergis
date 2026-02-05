@@ -14,9 +14,7 @@ import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyPa
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
   model,
-  state,
   okSignalPromise,
-  resolveDialog,
   layerId,
   isStorySegmentOverride,
   segmentId,

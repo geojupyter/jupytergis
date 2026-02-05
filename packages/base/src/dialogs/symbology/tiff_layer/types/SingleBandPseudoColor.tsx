@@ -33,7 +33,6 @@ export type InterpolationType = 'discrete' | 'linear' | 'exact';
 const SingleBandPseudoColor: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
-  resolveDialog,
   layerId,
   isStorySegmentOverride,
   segmentId,

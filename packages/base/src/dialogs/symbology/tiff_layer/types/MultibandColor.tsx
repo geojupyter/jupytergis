@@ -26,7 +26,6 @@ type rgbEnum = keyof ISelectedBands;
 const MultibandColor: React.FC<ISymbologyDialogProps> = ({
   model,
   okSignalPromise,
-  resolveDialog,
   layerId,
   isStorySegmentOverride,
   segmentId,

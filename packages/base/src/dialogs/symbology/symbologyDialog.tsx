@@ -11,9 +11,7 @@ import VectorRendering from './vector_layer/VectorRendering';
 
 export interface ISymbologyDialogProps {
   model: IJupyterGISModel;
-  state: IStateDB;
   okSignalPromise: PromiseDelegate<Signal<SymbologyWidget, null>>;
-  resolveDialog: (index: number) => void;
   layerId?: string;
   isStorySegmentOverride?: boolean;
   segmentId?: string;
@@ -44,9 +42,7 @@ export interface IStopRow {
 
 const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   model,
-  state,
   okSignalPromise,
-  resolveDialog,
   isStorySegmentOverride,
   segmentId,
 }) => {
@@ -96,9 +92,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
         LayerSymbology = (
           <VectorRendering
             model={model}
-            state={state}
             okSignalPromise={okSignalPromise}
-            resolveDialog={resolveDialog}
             layerId={selectedLayer}
             isStorySegmentOverride={isStorySegmentOverride}
             segmentId={segmentId}
@@ -109,9 +103,7 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
         LayerSymbology = (
           <TiffRendering
             model={model}
-            state={state}
             okSignalPromise={okSignalPromise}
-            resolveDialog={resolveDialog}
             layerId={selectedLayer}
             isStorySegmentOverride={isStorySegmentOverride}
             segmentId={segmentId}
@@ -131,10 +123,6 @@ export class SymbologyWidget extends Dialog<boolean> {
   private okSignal: Signal<SymbologyWidget, null>;
 
   constructor(options: ISymbologyWidgetOptions) {
-    const resolveDialog = (index: number) => {
-      this.resolve(index);
-    };
-
     const okSignalPromise = new PromiseDelegate<
       Signal<SymbologyWidget, null>
     >();
@@ -143,8 +131,6 @@ export class SymbologyWidget extends Dialog<boolean> {
       <SymbologyDialog
         model={options.model}
         okSignalPromise={okSignalPromise}
-        resolveDialog={resolveDialog}
-        state={options.state}
         isStorySegmentOverride={options.isStorySegmentOverride}
         segmentId={options.segmentId}
       />

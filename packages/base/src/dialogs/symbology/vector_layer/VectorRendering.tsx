@@ -90,9 +90,7 @@ const getSelectableRenderTypes = (
 
 const VectorRendering: React.FC<ISymbologyDialogProps> = ({
   model,
-  state,
   okSignalPromise,
-  resolveDialog,
   layerId,
   isStorySegmentOverride = false,
   segmentId,
@@ -203,9 +201,7 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
 
       <selectedRenderTypeProps.component
         model={model}
-        state={state}
         okSignalPromise={okSignalPromise}
-        resolveDialog={resolveDialog}
         layerId={layerId}
         isStorySegmentOverride={isStorySegmentOverride}
         segmentId={segmentId}

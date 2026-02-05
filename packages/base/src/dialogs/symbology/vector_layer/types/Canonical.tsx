@@ -10,9 +10,7 @@ import { ISymbologyDialogWithAttributesProps } from '../../symbologyDialog';
 
 const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
   model,
-  state,
   okSignalPromise,
-  resolveDialog,
   layerId,
   selectableAttributesAndValues,
   isStorySegmentOverride,

@@ -13,9 +13,7 @@ import { IParsedStyle, parseColor } from '@/src/tools';
 
 const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
   model,
-  state,
   okSignalPromise,
-  resolveDialog,
   layerId,
   symbologyTab,
   isStorySegmentOverride,

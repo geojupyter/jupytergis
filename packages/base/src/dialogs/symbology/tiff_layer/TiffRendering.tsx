@@ -6,9 +6,7 @@ import SingleBandPseudoColor from './types/SingleBandPseudoColor';
 
 const TiffRendering: React.FC<ISymbologyDialogProps> = ({
   model,
-  state,
   okSignalPromise,
-  resolveDialog,
   layerId,
   isStorySegmentOverride,
   segmentId,
@@ -38,9 +36,7 @@ const TiffRendering: React.FC<ISymbologyDialogProps> = ({
         RenderComponent = (
           <SingleBandPseudoColor
             model={model}
-            state={state}
             okSignalPromise={okSignalPromise}
-            resolveDialog={resolveDialog}
             layerId={layerId}
             isStorySegmentOverride={isStorySegmentOverride}
             segmentId={segmentId}
@@ -51,9 +47,7 @@ const TiffRendering: React.FC<ISymbologyDialogProps> = ({
         RenderComponent = (
           <MultibandColor
             model={model}
-            state={state}
             okSignalPromise={okSignalPromise}
-            resolveDialog={resolveDialog}
             layerId={layerId}
             isStorySegmentOverride={isStorySegmentOverride}
             segmentId={segmentId}

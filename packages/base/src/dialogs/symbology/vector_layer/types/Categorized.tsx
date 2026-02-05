@@ -24,9 +24,7 @@ import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyPa
 
 const Categorized: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
-  state,
   okSignalPromise,
-  resolveDialog,
   layerId,
   symbologyTab,
   selectableAttributesAndValues,

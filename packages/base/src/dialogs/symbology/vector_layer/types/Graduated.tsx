@@ -26,9 +26,7 @@ import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyPa
 
 const Graduated: React.FC<ISymbologyTabbedDialogWithAttributesProps> = ({
   model,
-  state,
   okSignalPromise,
-  resolveDialog,
   layerId,
   symbologyTab,
   selectableAttributesAndValues,
