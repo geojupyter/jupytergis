@@ -121,6 +121,27 @@ JupyterGIS is published to:
 Release assets are also available on GitHub. For example for
 [`0.3.0`](https://github.com/geojupyter/jupytergis/releases/tag/v0.3.0):
 
+## Update the Notebook.link lock
+
+Once the release is out, the lock file for Notebook.link should be updated. This can be achieved by install `mambajs` with pip or conda
+
+```bash
+pip install mambajs
+
+# OR
+
+conda install -c conda-forge mambajs
+```
+
+Then regenerating the lock:
+
+```bash
+# From the root of the repository
+mambajs create-lock .nblink/environment.yml .nblink/nblink-lock.json
+
+# Then create a branch, commit the changes and open a pull request to the JupyterGIS repository
+```
+
 ## Troubleshooting
 
 ### "Step 2: Publish release" fails to build a package with a version like `minor`
