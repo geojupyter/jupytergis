@@ -569,12 +569,6 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   padding: 0;
 }
 
-/* .jGIS-property-panel .jp-objectFieldWrapper,
-.jGIS-property-panel .jp-arrayFieldWrapper {
-  padding-left: var(--jp-notebook-padding);
-  border-left: solid 4px var(--jp-border-color3);
-} */
-
 .jGIS-property-panel .array-item {
   border: none;
 }
