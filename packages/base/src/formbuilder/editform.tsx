@@ -95,7 +95,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
           <div>
             <h3 style={{ paddingLeft: '5px' }}>Layer Properties</h3>
             <LayerForm
-              key={`${this.props.layer}-${source?.type}`} // Force remount when source type changes
+              key={`${this.props.layer}-${source?.type}`}
               formContext="update"
               sourceType={source?.type || 'RasterSource'}
               model={this.props.model}
@@ -112,7 +112,7 @@ export class EditForm extends React.Component<IEditFormProps, any> {
           <div>
             <h3 style={{ paddingLeft: '5px' }}>Source Properties</h3>
             <SourceForm
-              key={`${this.props.source}-${layer?.type}`} // Force remount when layer type changes
+              key={`${this.props.source}-${layer?.type}`}
               formContext="update"
               model={this.props.model}
               filePath={this.props.model.filePath}
