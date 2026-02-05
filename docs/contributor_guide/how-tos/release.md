@@ -138,6 +138,7 @@ Then regenerating the lock:
 ```bash
 # From the root of the repository
 mambajs create-lock .nblink/environment.yml .nblink/nblink-lock.json
+jlpm run lint  # The lock file may not respect the linter rules
 
 # Then create a branch, commit the changes and open a pull request to the JupyterGIS repository
 ```
