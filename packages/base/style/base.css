@@ -68,6 +68,14 @@
   flex-direction: column;
 }
 
+.jGIS-symbology-override-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: solid 1px var(--jp-border-color0);
+}
+
 .jp-gis-text-label {
   margin: 0;
   padding: 0;

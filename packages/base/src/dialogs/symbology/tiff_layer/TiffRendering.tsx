@@ -8,8 +8,10 @@ const TiffRendering: React.FC<ISymbologyDialogProps> = ({
   model,
   state,
   okSignalPromise,
-  cancel,
+  resolveDialog,
   layerId,
+  isStorySegmentOverride,
+  segmentId,
 }) => {
   const renderTypes = ['Singleband Pseudocolor', 'Multiband Color'];
   const [selectedRenderType, setSelectedRenderType] = useState<string>();
@@ -38,8 +40,10 @@ const TiffRendering: React.FC<ISymbologyDialogProps> = ({
             model={model}
             state={state}
             okSignalPromise={okSignalPromise}
-            cancel={cancel}
+            resolveDialog={resolveDialog}
             layerId={layerId}
+            isStorySegmentOverride={isStorySegmentOverride}
+            segmentId={segmentId}
           />
         );
         break;
@@ -49,8 +53,10 @@ const TiffRendering: React.FC<ISymbologyDialogProps> = ({
             model={model}
             state={state}
             okSignalPromise={okSignalPromise}
-            cancel={cancel}
+            resolveDialog={resolveDialog}
             layerId={layerId}
+            isStorySegmentOverride={isStorySegmentOverride}
+            segmentId={segmentId}
           />
         );
         break;

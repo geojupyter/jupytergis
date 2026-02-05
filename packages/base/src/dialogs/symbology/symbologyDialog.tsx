@@ -13,8 +13,10 @@ export interface ISymbologyDialogProps {
   model: IJupyterGISModel;
   state: IStateDB;
   okSignalPromise: PromiseDelegate<Signal<SymbologyWidget, null>>;
-  cancel: () => void;
+  resolveDialog: (index: number) => void;
   layerId?: string;
+  isStorySegmentOverride?: boolean;
+  segmentId?: string;
 }
 
 export interface ISymbologyDialogWithAttributesProps extends ISymbologyDialogProps {
@@ -31,6 +33,8 @@ export type ISymbologyTabbedDialogWithAttributesProps =
 export interface ISymbologyWidgetOptions {
   model: IJupyterGISModel;
   state: IStateDB;
+  isStorySegmentOverride?: boolean;
+  segmentId?: string;
 }
 
 export interface IStopRow {
@@ -42,7 +46,9 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
   model,
   state,
   okSignalPromise,
-  cancel,
+  resolveDialog,
+  isStorySegmentOverride,
+  segmentId,
 }) => {
   const [selectedLayer, setSelectedLayer] = useState<string | null>(null);
   const [componentToRender, setComponentToRender] =
@@ -92,8 +98,10 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
             model={model}
             state={state}
             okSignalPromise={okSignalPromise}
-            cancel={cancel}
+            resolveDialog={resolveDialog}
             layerId={selectedLayer}
+            isStorySegmentOverride={isStorySegmentOverride}
+            segmentId={segmentId}
           />
         );
         break;
@@ -103,8 +111,10 @@ const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
             model={model}
             state={state}
             okSignalPromise={okSignalPromise}
-            cancel={cancel}
+            resolveDialog={resolveDialog}
             layerId={selectedLayer}
+            isStorySegmentOverride={isStorySegmentOverride}
+            segmentId={segmentId}
           />
         );
         break;
@@ -121,8 +131,8 @@ export class SymbologyWidget extends Dialog<boolean> {
   private okSignal: Signal<SymbologyWidget, null>;
 
   constructor(options: ISymbologyWidgetOptions) {
-    const cancelCallback = () => {
-      this.resolve(0);
+    const resolveDialog = (index: number) => {
+      this.resolve(index);
     };
 
     const okSignalPromise = new PromiseDelegate<
@@ -133,29 +143,30 @@ export class SymbologyWidget extends Dialog<boolean> {
       <SymbologyDialog
         model={options.model}
         okSignalPromise={okSignalPromise}
-        cancel={cancelCallback}
+        resolveDialog={resolveDialog}
         state={options.state}
+        isStorySegmentOverride={options.isStorySegmentOverride}
+        segmentId={options.segmentId}
       />
     );
 
     super({ title: 'Symbology', body });
 
     this.id = 'jupytergis::symbologyWidget';
-
     this.okSignal = new Signal(this);
+
     okSignalPromise.resolve(this.okSignal);
 
     this.addClass('jp-gis-symbology-dialog');
   }
 
   resolve(index: number): void {
-    if (index === 0) {
-      super.resolve(index);
-    }
-
     if (index === 1) {
+      // Emit signal to let symbology components save
       this.okSignal.emit(null);
     }
+
+    super.resolve(index);
   }
 }
 

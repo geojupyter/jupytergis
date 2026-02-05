@@ -1105,6 +1105,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
+          visible: layer.visible,
           source: this._sources[layerParameters.source],
           style: this.vectorLayerStyleRuleBuilder(layer),
         });
@@ -1116,6 +1117,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new WebGlTileLayer({
           opacity: 0.3,
+          visible: layer.visible,
           source: this._sources[layerParameters.source],
           style: {
             color: ['color', this.hillshadeMath()],
@@ -1129,6 +1131,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new ImageLayer({
           opacity: layerParameters.opacity,
+          visible: layer.visible,
           source: this._sources[layerParameters.source],
         });
 
@@ -1140,6 +1143,7 @@ export class MainView extends React.Component<IProps, IStates> {
         // This is to handle python sending a None for the color
         const layerOptions: any = {
           opacity: layerParameters.opacity,
+          visible: layer.visible,
           source: this._sources[layerParameters.source],
         };
 
@@ -1157,6 +1161,7 @@ export class MainView extends React.Component<IProps, IStates> {
 
         newMapLayer = new HeatmapLayer({
           opacity: layerParameters.opacity,
+          visible: layer.visible,
           source: this._sources[layerParameters.source],
           blur: layerParameters.blur ?? 15,
           radius: layerParameters.radius ?? 8,
@@ -2788,6 +2793,8 @@ export class MainView extends React.Component<IProps, IStates> {
                         commands={this._mainViewModel.commands}
                         formSchemaRegistry={this._formSchemaRegistry}
                         annotationModel={this._annotationModel}
+                        addLayer={this.addLayer.bind(this)}
+                        removeLayer={this.removeLayer.bind(this)}
                         settings={this.state.jgisSettings}
                       />
                     )}

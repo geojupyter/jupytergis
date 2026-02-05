@@ -1,13 +1,14 @@
-import { IDict } from '@jupytergis/schema';
+import { IDict, IStorySegmentLayer } from '@jupytergis/schema';
 import { FieldProps } from '@rjsf/core';
 import * as React from 'react';
 
 import { LayerPropertiesForm } from './layerform';
+import { ArrayFieldTemplate } from '../components/SegmentFormSymbology';
 import StorySegmentReset from '../components/StorySegmentReset';
 
 export class StorySegmentLayerPropertiesForm extends LayerPropertiesForm {
   protected processSchema(
-    data: IDict<any> | undefined,
+    data: IStorySegmentLayer | undefined,
     schema: IDict,
     uiSchema: IDict,
   ) {
@@ -48,6 +49,31 @@ export class StorySegmentLayerPropertiesForm extends LayerPropertiesForm {
         },
       },
     };
+
+    uiSchema['symbologyOverride'] = {
+      ...uiSchema['symbologyOverride'],
+      items: {
+        'ui:title': '',
+        targetLayer: {
+          'ui:field': 'layerSelect',
+        },
+        opacity: {
+          'ui:field': 'opacity',
+        },
+      },
+      'ui:options': {
+        orderable: false,
+      },
+      'ui:ArrayFieldTemplate': ArrayFieldTemplate,
+    };
+
+    // Remove properties that should not be displayed in the form
+    const symbologyOverrideItems =
+      schema.properties?.symbologyOverride?.items?.properties;
+    if (symbologyOverrideItems) {
+      delete symbologyOverrideItems.color;
+      delete symbologyOverrideItems.symbologyState;
+    }
 
     this.removeFormEntry('zoom', data, schema, uiSchema);
   }

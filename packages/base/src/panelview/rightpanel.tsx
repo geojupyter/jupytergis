@@ -1,6 +1,7 @@
 import {
   IAnnotationModel,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJupyterGISClientState,
   IJupyterGISModel,
   IJupyterGISSettings,
@@ -27,6 +28,8 @@ interface IRightPanelProps {
   model: IJupyterGISModel;
   commands: CommandRegistry;
   settings: IJupyterGISSettings;
+  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
+  removeLayer?: (id: string) => void;
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
@@ -170,7 +173,12 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
               />
             )}
             {showEditor ? (
-              <StoryEditorPanel model={props.model} commands={props.commands} />
+              <StoryEditorPanel
+                model={props.model}
+                commands={props.commands}
+                addLayer={props.addLayer}
+                removeLayer={props.removeLayer}
+              />
             ) : (
               <StoryViewerPanel model={props.model} isSpecta={false} />
             )}

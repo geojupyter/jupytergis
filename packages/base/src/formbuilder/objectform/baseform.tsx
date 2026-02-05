@@ -1,15 +1,21 @@
-import { Slider } from '@jupyter/react-components';
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { FormComponent } from '@jupyterlab/ui-components';
 import { Signal } from '@lumino/signaling';
 import { IChangeEvent, ISubmitEvent } from '@rjsf/core';
-import { RJSFSchema, UiSchema } from '@rjsf/utils';
+import { RegistryFieldsType, RJSFSchema, UiSchema } from '@rjsf/utils';
 import validatorAjv8 from '@rjsf/validator-ajv8';
 import * as React from 'react';
 
 import { deepCopy } from '@/src/tools';
 import { IDict } from '@/src/types';
+import { LayerSelect } from './components/LayerSelect';
+import OpacitySlider from './components/OpacitySlider';
+
+export interface IJupyterGISFormContext<TFormData = IDict | undefined> {
+  model: IJupyterGISModel;
+  formData: TFormData;
+}
 
 export interface IBaseFormStates {
   schema?: RJSFSchema;
@@ -71,7 +77,13 @@ export interface IBaseFormProps {
 }
 
 const WrappedFormComponent: React.FC<any> = props => {
-  const { fields, ...rest } = props;
+  const { ...rest } = props;
+
+  const fields: RegistryFieldsType = {
+    opacity: OpacitySlider,
+    layerSelect: LayerSelect,
+  };
+
   return (
     <FormComponent
       {...rest}
@@ -162,70 +174,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
 
       if (k === 'opacity') {
         uiSchema[k] = {
-          'ui:field': (props: any) => {
-            const [inputValue, setInputValue] = React.useState(
-              props.formData.toFixed(1),
-            );
-
-            React.useEffect(() => {
-              setInputValue(props.formData.toFixed(1));
-            }, [props.formData]);
-
-            const handleSliderChange = (event: CustomEvent) => {
-              const target = event.target as any;
-              if (target && '_value' in target) {
-                const sliderValue = parseFloat(target._value); // Slider value is in 0–10 range
-                const normalizedValue = sliderValue / 10; // Normalize to 0.1–1 range
-                props.onChange(normalizedValue);
-              }
-            };
-
-            const handleInputChange = (
-              event: React.ChangeEvent<HTMLInputElement>,
-            ) => {
-              const value = event.target.value;
-              setInputValue(value);
-
-              const parsedValue = parseFloat(value);
-              if (
-                !isNaN(parsedValue) &&
-                parsedValue >= 0.1 &&
-                parsedValue <= 1
-              ) {
-                props.onChange(parsedValue);
-              }
-            };
-
-            return (
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-              >
-                <Slider
-                  min={1}
-                  max={10}
-                  step={1}
-                  valueAsNumber={props.formData * 10}
-                  onChange={handleSliderChange}
-                ></Slider>
-                <input
-                  type="number"
-                  value={inputValue}
-                  step={0.1}
-                  min={0.1}
-                  max={1}
-                  onChange={handleInputChange}
-                  style={{
-                    width: '50px',
-                    textAlign: 'center',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    padding: '4px',
-                    marginBottom: '5px',
-                  }}
-                />
-              </div>
-            );
-          },
+          'ui:field': 'opacity',
         };
       }
 
@@ -340,6 +289,12 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
               schema={schema}
               uiSchema={uiSchema}
               formData={formData}
+              formContext={
+                {
+                  model: this.props.model,
+                  formData,
+                } satisfies IJupyterGISFormContext
+              }
               onSubmit={this.onFormSubmit.bind(this)}
               onChange={this.onFormChange.bind(this)}
               onBlur={this.onFormBlur.bind(this)}

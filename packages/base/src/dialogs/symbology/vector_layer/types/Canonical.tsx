@@ -1,20 +1,25 @@
 import { IVectorLayer } from '@jupytergis/schema';
 import { ExpressionValue } from 'ol/expr/expression';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
+import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
+import { saveSymbology } from '@/src/dialogs/symbology/symbologyUtils';
 import ValueSelect from '@/src/dialogs/symbology/vector_layer/components/ValueSelect';
+import { useLatest } from '@/src/shared/hooks/useLatest';
 import { ISymbologyDialogWithAttributesProps } from '../../symbologyDialog';
 
 const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
   model,
   state,
   okSignalPromise,
-  cancel,
+  resolveDialog,
   layerId,
   selectableAttributesAndValues,
+  isStorySegmentOverride,
+  segmentId,
 }) => {
-  const selectedValueRef = useRef<string>();
   const [selectedValue, setSelectedValue] = useState('');
+  const selectedValueRef = useLatest(selectedValue);
 
   if (!layerId) {
     return;
@@ -25,18 +30,6 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
   }
 
   useEffect(() => {
-    okSignalPromise.promise.then(okSignal => {
-      okSignal.connect(handleOk, this);
-    });
-
-    return () => {
-      okSignalPromise.promise.then(okSignal => {
-        okSignal.disconnect(handleOk, this);
-      });
-    };
-  }, [selectedValue]);
-
-  useEffect(() => {
     const layerParams = layer.parameters as IVectorLayer;
     const value =
       layerParams.symbologyState?.value ??
@@ -45,16 +38,12 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
     setSelectedValue(value);
   }, [selectableAttributesAndValues]);
 
-  useEffect(() => {
-    selectedValueRef.current = selectedValue;
-  }, [selectedValue]);
-
   const handleOk = () => {
     if (!layer.parameters) {
       return;
     }
 
-    const colorExpr: ExpressionValue[] = ['get', selectedValue];
+    const colorExpr: ExpressionValue[] = ['get', selectedValueRef.current];
     const newStyle = { ...layer.parameters.color };
     newStyle['fill-color'] = colorExpr;
     newStyle['stroke-color'] = colorExpr;
@@ -65,15 +54,24 @@ const Canonical: React.FC<ISymbologyDialogWithAttributesProps> = ({
       value: selectedValueRef.current,
     };
 
-    layer.parameters.symbologyState = symbologyState;
-    layer.parameters.color = newStyle;
-    if (layer.type === 'HeatmapLayer') {
-      layer.type = 'VectorLayer';
-    }
-
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+    saveSymbology({
+      model,
+      layerId,
+      isStorySegmentOverride,
+      segmentId,
+      payload: {
+        symbologyState,
+        color: newStyle,
+      },
+      mutateLayerBeforeSave: targetLayer => {
+        if (targetLayer.type === 'HeatmapLayer') {
+          targetLayer.type = 'VectorLayer';
+        }
+      },
+    });
   };
+
+  useOkSignal(okSignalPromise, handleOk);
 
   const body = (() => {
     if (Object.keys(selectableAttributesAndValues)?.length === 0) {

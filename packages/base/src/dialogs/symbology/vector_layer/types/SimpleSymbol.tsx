@@ -1,19 +1,26 @@
 import { FlatStyle } from 'ol/style/flat';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
+import { useEffectiveSymbologyParams } from '@/src/dialogs/symbology/hooks/useEffectiveSymbologyParams';
+import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import { ISymbologyTabbedDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import {
+  saveSymbology,
+  VectorSymbologyParams,
+} from '@/src/dialogs/symbology/symbologyUtils';
+import { useLatest } from '@/src/shared/hooks/useLatest';
 import { IParsedStyle, parseColor } from '@/src/tools';
 
 const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
   model,
   state,
   okSignalPromise,
-  cancel,
+  resolveDialog,
   layerId,
   symbologyTab,
+  isStorySegmentOverride,
+  segmentId,
 }) => {
-  const styleRef = useRef<IParsedStyle>();
-
   const [style, setStyle] = useState<IParsedStyle>({
     fillColor: '#3399CC',
     joinStyle: 'round',
@@ -22,58 +29,31 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
     strokeWidth: 1.25,
     radius: 5,
   });
+  const styleRef = useLatest(style);
 
-  const joinStyleOptions = ['bevel', 'round', 'miter'];
-  const capStyleOptions = ['butt', 'round', 'square'];
-
-  if (!layerId) {
-    return;
-  }
-  const layer = model.getLayer(layerId);
-  if (!layer) {
-    return;
-  }
+  const layer = layerId !== undefined ? model.getLayer(layerId) : null;
+  const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
+    model,
+    layerId: layerId,
+    layer,
+    isStorySegmentOverride,
+    segmentId,
+  });
 
   useEffect(() => {
-    if (!layer.parameters) {
+    if (!params) {
       return;
     }
-
-    const initStyle = async () => {
-      if (!layer.parameters) {
-        return;
+    if (params.symbologyState?.renderType === 'Single Symbol' && params.color) {
+      const parsed = parseColor(params.color);
+      if (parsed) {
+        setStyle(parsed);
       }
-
-      const renderType = layer.parameters?.symbologyState.renderType;
-
-      if (renderType === 'Single Symbol') {
-        // Parse with fallback logic inside
-        const parsedStyle = parseColor(layer.parameters.color);
-
-        if (parsedStyle) {
-          setStyle(parsedStyle);
-        }
-      }
-    };
-    initStyle();
-
-    okSignalPromise.promise.then(okSignal => {
-      okSignal.connect(handleOk, this);
-    });
-
-    return () => {
-      okSignalPromise.promise.then(okSignal => {
-        okSignal.disconnect(handleOk, this);
-      });
-    };
-  }, []);
-
-  useEffect(() => {
-    styleRef.current = style;
-  }, [style]);
+    }
+  }, [params]);
 
   const handleOk = () => {
-    if (!layer.parameters) {
+    if (!layerId || !layer?.parameters) {
       return;
     }
 
@@ -95,15 +75,31 @@ const SimpleSymbol: React.FC<ISymbologyTabbedDialogProps> = ({
       renderType: 'Single Symbol',
     };
 
-    layer.parameters.symbologyState = symbologyState;
-    layer.parameters.color = styleExpr;
-    if (layer.type === 'HeatmapLayer') {
-      layer.type = 'VectorLayer';
-    }
-
-    model.sharedModel.updateLayer(layerId, layer);
-    cancel();
+    saveSymbology({
+      model,
+      layerId,
+      isStorySegmentOverride,
+      segmentId,
+      payload: {
+        symbologyState,
+        color: styleExpr,
+      },
+      mutateLayerBeforeSave: targetLayer => {
+        if (targetLayer.type === 'HeatmapLayer') {
+          targetLayer.type = 'VectorLayer';
+        }
+      },
+    });
   };
+
+  useOkSignal(okSignalPromise, handleOk);
+
+  const joinStyleOptions = ['bevel', 'round', 'miter'];
+  const capStyleOptions = ['butt', 'round', 'square'];
+
+  if (!layerId || !layer) {
+    return null;
+  }
 
   const renderColorTab = () => (
     <>
