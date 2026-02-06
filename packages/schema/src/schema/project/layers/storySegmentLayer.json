@@ -2,7 +2,6 @@
   "type": "object",
   "description": "StorySegmentLayer",
   "title": "IStorySegmentLayer",
-  "additionalProperties": false,
   "required": ["zoom", "extent", "transition"],
   "properties": {
     "zoom": {
@@ -18,9 +17,11 @@
     },
     "content": {
       "type": "object",
+      "title": "Segment Content",
       "additionalProperties": false,
       "properties": {
         "title": {
+          "title": "Segment Title",
           "type": "string"
         },
         "image": {
@@ -50,6 +51,47 @@
         }
       },
       "required": ["type", "time"]
+    },
+    "layerOverride": {
+      "type": "array",
+      "title": "Symbology Override",
+      "description": "Symbology overrides to apply to target layers when this story segment is active",
+      "items": {
+        "type": "object",
+        "properties": {
+          "targetLayer": {
+            "type": "string",
+            "title": "Target Layer",
+            "description": "The name of the layer to apply a symbology override to when this story segment is active",
+            "default": ""
+          },
+          "visible": {
+            "type": "boolean",
+            "title": "Visibility",
+            "default": true,
+            "description": "Override the target layer visibility while this story segment is active"
+          },
+          "opacity": {
+            "type": "number",
+            "title": "Opacity",
+            "description": "Override the target layer opacity while this story segment is active",
+            "minimum": 0,
+            "maximum": 1,
+            "multipleOf": 0.1,
+            "default": 1.0
+          },
+          "symbologyState": {
+            "type": "object",
+            "description": "The symbology state override (renderType, value, method, etc.)",
+            "default": {}
+          },
+          "color": {
+            "type": "object",
+            "description": "The color/style override",
+            "default": {}
+          }
+        }
+      }
     }
   }
 }

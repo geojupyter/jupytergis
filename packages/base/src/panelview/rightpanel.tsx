@@ -1,6 +1,7 @@
 import {
   IAnnotationModel,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJupyterGISClientState,
   IJupyterGISModel,
   IJupyterGISSettings,
@@ -27,12 +28,16 @@ interface IRightPanelProps {
   model: IJupyterGISModel;
   commands: CommandRegistry;
   settings: IJupyterGISSettings;
+  addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
+  removeLayer?: (id: string) => void;
 }
 
 export const RightPanel: React.FC<IRightPanelProps> = props => {
   const [editorMode, setEditorMode] = React.useState(true);
   const [storyMapPresentationMode, setStoryMapPresentationMode] =
     React.useState(props.model.getOptions().storyMapPresentationMode ?? false);
+  const [selectedObjectProperties, setSelectedObjectProperties] =
+    React.useState(undefined);
 
   // Only show editor when not in presentation mode and editorMode is true
   const showEditor = !storyMapPresentationMode && editorMode;
@@ -110,9 +115,6 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   const rightPanelVisible =
     !props.settings.rightPanelDisabled && !allRightTabsDisabled;
 
-  const [selectedObjectProperties, setSelectedObjectProperties] =
-    React.useState(undefined);
-
   const toggleEditor = () => {
     setEditorMode(!editorMode);
   };
@@ -172,7 +174,12 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
             {showEditor ? (
               <StoryEditorPanel model={props.model} commands={props.commands} />
             ) : (
-              <StoryViewerPanel model={props.model} isSpecta={false} />
+              <StoryViewerPanel
+                model={props.model}
+                isSpecta={false}
+                addLayer={props.addLayer}
+                removeLayer={props.removeLayer}
+              />
             )}
           </TabsContent>
         )}

@@ -30,7 +30,7 @@ import keybindings from '../keybindings.json';
 import { getSingleSelectedLayer } from '../processing/index';
 import { addProcessingCommands } from '../processing/processingCommands';
 import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
-import { JupyterGISTracker } from '../types';
+import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
@@ -131,12 +131,7 @@ export function addCommands(
         return false;
       }
 
-      const isValidLayer = [
-        'VectorLayer',
-        'VectorTileLayer',
-        'WebGlLayer',
-        'HeatmapLayer',
-      ].includes(layer.type);
+      const isValidLayer = SYMBOLOGY_VALID_LAYER_TYPES.includes(layer.type);
 
       return isValidLayer;
     },

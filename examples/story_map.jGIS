@@ -51,6 +51,7 @@
           -4804544.428248574,
           -2622570.615984798
         ],
+        "layerOverride": [],
         "transition": {
           "time": 2.0,
           "type": "smooth"
@@ -74,6 +75,7 @@
           -8240146.493537257,
           4967973.433151666
         ],
+        "layerOverride": [],
         "transition": {
           "time": 2.0,
           "type": "smooth"
@@ -121,6 +123,7 @@
           261009.190947415,
           6252093.017728101
         ],
+        "layerOverride": [],
         "transition": {
           "time": 2.0,
           "type": "smooth"
