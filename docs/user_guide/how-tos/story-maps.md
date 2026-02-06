@@ -70,3 +70,71 @@ At the top of the Story panel (right panel, when the Story Editor tab is active)
 - **Preview Mode on**: The panel shows the **Story Map** viewer: the same step-through experience as in full presentation mode (previous/next, segment content, map updates), but still inside the main JupyterGIS window.
 
 Use Preview Mode to check how the story will look and behave without entering full-screen presentation. The switch is hidden when you are already in presentation mode.
+
+## Share story maps with a JupyterLite deployment
+
+You can share a story map (or a whole JupyterGIS project) as a small, browser-only site so others can open it without installing anything or running a server. Use the [JupyterLite xeus-lite-demo template](https://github.com/jupyterlite/xeus-lite-demo) to create a deployment that includes JupyterGIS.
+
+**Step 1: Create a repo from the template**
+
+1. Open [xeus-lite-demo](https://github.com/jupyterlite/xeus-lite-demo) and click **Use this template**.
+2. Choose a name (e.g. `my-story-map`) and create the repository.
+
+**Step 2: Add JupyterGIS to the environment**
+
+1. In your new repo, edit `environment.yml`.
+2. Under `dependencies`, add `jupytergis-lite`. For example:
+
+   ```yaml
+   name: xeus-kernel
+   channels:
+     - https://repo.prefix.dev/emscripten-forge-dev
+     - https://repo.prefix.dev/conda-forge
+   dependencies:
+     - xeus-python
+     - jupytergis-lite
+   ```
+
+**Step 3: Add your story map and data**
+
+1. Put your `.jGIS` file(s) and any other assets in the **content/** directory.
+2. Those files will be available in the file browser when the Lite site runs.
+
+:::{admonition} File paths and structure
+:class: attention
+If your story map or project references other files (e.g. GeoJSON, images, or raster sources), either keep the same folder structure inside **content/** as in your original project, or update the paths in the layer/source settings so they point to the correct locations in the Lite deployment.
+:::
+
+**Step 4: Enable GitHub Pages**
+
+1. In the repo: **Settings → Pages**.
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+3. After the workflow finishes, the site will be at `https://<username>.github.io/<repo-name>/`. Open a `.jGIS` file there to view or present the story map.
+
+**Step 5 (optional): Enable Specta**
+
+[Specta](https://github.com/trungleduc/specta) with JupyterGIS is a full-screen story map presentation mode (minimal UI, previous/next navigation, segment content). To enable it in your JupyterLite deployment, add `specta` to the **dependencies** in `.github/build-environment.yml`, alongside the existing JupyterLite packages. For example:
+
+```yaml
+# .github/build-environment.yml
+name: build-env
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - pip
+  - jupyter_server
+  - jupyterlite-core >=0.7
+  - jupyterlite-xeus >=4.3
+  - notebook >=7.5
+  - specta
+```
+
+After the next build, opening a `.jGIS` file with a story map can use Specta for presentation. For a live example, see [Specta with a story map](https://geojupyter.github.io/jupytergis-specta/specta/?path=story_map_specta.jgis).
+
+:::{admonition} Collaboration in JupyterLite
+:class: note
+Real-time collaboration is not supported in JupyterLite; the deployment is read-only for visitors. It is intended for sharing and presenting story maps, not for simultaneous editing.
+:::
+
+For more options (e.g. extra JupyterLite plugins), see the [xeus-lite-demo README](https://github.com/jupyterlite/xeus-lite-demo#-how-to-install-other-jupyterlite-plugins) and the [JupyterLite xeus environment docs](https://jupyterlite-xeus.readthedocs.io/en/latest/environment.html).
