@@ -54,15 +54,15 @@
     },
     "layerOverride": {
       "type": "array",
-      "title": "Symbology Override",
-      "description": "Symbology overrides to apply to target layers when this story segment is active",
+      "title": "Layer Override",
+      "description": "Layer overrides to apply to target layers when this story segment is active",
       "items": {
         "type": "object",
         "properties": {
           "targetLayer": {
             "type": "string",
             "title": "Target Layer",
-            "description": "The name of the layer to apply a symbology override to when this story segment is active",
+            "description": "The name of the layer to apply a layer override to when this story segment is active",
             "default": ""
           },
           "visible": {

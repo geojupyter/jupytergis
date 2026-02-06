@@ -22,7 +22,7 @@ import StoryImageSection from './components/StoryImageSection';
 import StorySubtitleSection from './components/StorySubtitleSection';
 import StoryTitleSection from './components/StoryTitleSection';
 
-/** Entry for a layer affected by symbology override: remove (added clone) or restore (modified existing). */
+/** Entry for a layer affected by layer override: remove (added clone) or restore (modified existing). */
 interface IOverrideLayerEntry {
   layerId: string;
   action: 'remove' | 'restore';
@@ -99,7 +99,7 @@ const StoryViewerPanel = forwardRef<
       [model],
     );
 
-    /** Layers affected by symbology override
+    /** Layers affected by layer override
      * We want to remove added layers (ie Heatmap)
      * and Restore the original symbology for modified layers
      */
@@ -320,7 +320,7 @@ const StoryViewerPanel = forwardRef<
       };
     }, [model, storyData, setIndex]);
 
-    // Apply symbology overrides for the segment at the given index
+    // Apply layer overrides for the segment at the given index
     const overrideSymbology = (index: number) => {
       if (index < 0 || !storySegments[index]) {
         return;
@@ -334,7 +334,7 @@ const StoryViewerPanel = forwardRef<
         return;
       }
 
-      // Apply all symbology overrides for this segment
+      // Apply all layer overrides for this segment
       layerOverrides.forEach(override => {
         const {
           color,
