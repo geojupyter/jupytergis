@@ -219,7 +219,10 @@ for provider_key, provider_value in provider_config.items():
         file_path = download_thumbnail(
             url_template, provider_key, position, tile_size, **url_parameters
         )
-
+        if provider_value["layerType"] == "VectorTileLayer":
+            layerParameters = {"opacity": 1, "symbologyState": {}}
+        else:
+            layerParameters = {"opacity": 1}
         provider_gallery[provider_key] = {
             "thumbnailPath": file_path,
             "name": provider_key,
@@ -232,7 +235,7 @@ for provider_key, provider_value in provider_config.items():
                 "minZoom": xyzprovider.get("min_zoom") or 0,
                 "urlParameters": dict_keys_to_camel(url_template),
             },
-            "layerParameters": {"opacity": 1},
+            "layerParameters": layerParameters,
         }
 
     elif config_is_flat and not xyz_is_flat:
@@ -254,6 +257,11 @@ for provider_key, provider_value in provider_config.items():
                 url_template, name, position, tile_size, **url_parameters
             )
 
+            if provider_value["layerType"] == "VectorTileLayer":
+                layerParameters = {"opacity": 1, "symbologyState": {}}
+            else:
+                layerParameters = {"opacity": 1}
+
             providers_maps[map_name] = {
                 "thumbnailPath": file_path,
                 "name": provider_key + "." + map_name,
@@ -266,7 +274,7 @@ for provider_key, provider_value in provider_config.items():
                     "minZoom": tile_provider.get("min_zoom") or 0,
                     "urlParameters": dict_keys_to_camel(url_parameters),
                 },
-                "layerParameters": {"opacity": 1},
+                "layerParameters": layerParameters,
                 "description": tile_provider.get("attribution"),
             }
 
@@ -291,6 +299,11 @@ for provider_key, provider_value in provider_config.items():
                 url_template, name, position, tile_size, **url_parameters
             )
 
+            if map_config["layerType"] == "VectorTileLayer":
+                layerParameters = {"opacity": 1, "symbologyState": {}}
+            else:
+                layerParameters = {"opacity": 1}
+
             providers_maps[map_name] = {
                 "thumbnailPath": file_path,
                 "name": provider_key + "." + map_name,
@@ -303,7 +316,7 @@ for provider_key, provider_value in provider_config.items():
                     "minZoom": tile_provider.get("min_zoom") or 0,
                     "urlParameters": dict_keys_to_camel(url_parameters),
                 },
-                "layerParameters": {"opacity": 1},
+                "layerParameters": layerParameters,
                 "description": tile_provider.get("attribution"),
             }
 
