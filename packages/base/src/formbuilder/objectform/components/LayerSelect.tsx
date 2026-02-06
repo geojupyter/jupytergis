@@ -2,8 +2,6 @@ import { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 import { FieldProps } from '@rjsf/utils';
 import React from 'react';
 
-import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
-
 function extractSymbologyOverrideIndex(idSchema: {
   $id?: string;
 }): number | undefined {
@@ -53,9 +51,7 @@ export function LayerSelect(props: FieldProps) {
 
   const availableLayers = model.getLayers();
   const optionsList = Object.entries(availableLayers).filter(
-    ([layerId, layer]) =>
-      SYMBOLOGY_VALID_LAYER_TYPES.includes(layer.type) &&
-      !usedTargetLayerIds.has(layerId),
+    ([layerId]) => !usedTargetLayerIds.has(layerId),
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
