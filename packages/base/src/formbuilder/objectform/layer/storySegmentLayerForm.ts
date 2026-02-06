@@ -50,8 +50,8 @@ export class StorySegmentLayerPropertiesForm extends LayerPropertiesForm {
       },
     };
 
-    uiSchema['symbologyOverride'] = {
-      ...uiSchema['symbologyOverride'],
+    uiSchema['layerOverride'] = {
+      ...uiSchema['layerOverride'],
       items: {
         'ui:title': '',
         targetLayer: {
@@ -68,11 +68,11 @@ export class StorySegmentLayerPropertiesForm extends LayerPropertiesForm {
     };
 
     // Remove properties that should not be displayed in the form
-    const symbologyOverrideItems =
-      schema.properties?.symbologyOverride?.items?.properties;
-    if (symbologyOverrideItems) {
-      delete symbologyOverrideItems.color;
-      delete symbologyOverrideItems.symbologyState;
+    const layerOverrideItems =
+      schema.properties?.layerOverride?.items?.properties;
+    if (layerOverrideItems) {
+      delete layerOverrideItems.color;
+      delete layerOverrideItems.symbologyState;
     }
 
     this.removeFormEntry('zoom', data, schema, uiSchema);

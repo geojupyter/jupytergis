@@ -179,7 +179,7 @@ const StoryViewerPanel = forwardRef<
         clearOverrideLayers();
         storyData?.storySegments?.forEach(segmentId => {
           const segment = model.getLayer(segmentId);
-          const overrides = segment?.parameters?.symbologyOverride;
+          const overrides = segment?.parameters?.layerOverride;
           if (Array.isArray(overrides)) {
             overrides.forEach((override: any) => {
               const targetLayerId = override.targetLayer;
@@ -327,15 +327,15 @@ const StoryViewerPanel = forwardRef<
       }
 
       const segment = storySegments[index];
-      const symbologyOverrides: IStorySegmentLayer['symbologyOverride'] =
-        segment.parameters?.symbologyOverride;
+      const layerOverrides: IStorySegmentLayer['layerOverride'] =
+        segment.parameters?.layerOverride;
 
-      if (!Array.isArray(symbologyOverrides)) {
+      if (!Array.isArray(layerOverrides)) {
         return;
       }
 
       // Apply all symbology overrides for this segment
-      symbologyOverrides.forEach(override => {
+      layerOverrides.forEach(override => {
         const {
           color,
           opacity,

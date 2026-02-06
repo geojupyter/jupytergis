@@ -64,7 +64,7 @@ export function getEffectiveSymbologyParams(
     return null;
   }
   const segment = model.getLayer(segmentId);
-  const override = segment?.parameters?.symbologyOverride?.find(
+  const override = segment?.parameters?.layerOverride?.find(
     (override: { targetLayer?: string }) => override.targetLayer === layerId,
   );
 
@@ -109,8 +109,8 @@ export function saveSymbology(options: ISaveSymbologyOptions): void {
     return;
   }
 
-  if (!segment.parameters.symbologyOverride) {
-    segment.parameters.symbologyOverride = [];
+  if (!segment.parameters.layerOverride) {
+    segment.parameters.layerOverride = [];
   }
 
   // Find the override for the target layer (from the selected layer in the dialog)
@@ -125,7 +125,7 @@ export function saveSymbology(options: ISaveSymbologyOptions): void {
     return;
   }
 
-  const overrides = segment.parameters.symbologyOverride;
+  const overrides = segment.parameters.layerOverride;
   let override = overrides.find(
     (override: any) => override.targetLayer === targetLayerId,
   );

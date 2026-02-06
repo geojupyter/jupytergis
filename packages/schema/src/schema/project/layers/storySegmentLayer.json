@@ -52,7 +52,7 @@
       },
       "required": ["type", "time"]
     },
-    "symbologyOverride": {
+    "layerOverride": {
       "type": "array",
       "title": "Symbology Override",
       "description": "Symbology overrides to apply to target layers when this story segment is active",

@@ -2,11 +2,11 @@ import { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 import { FieldProps } from '@rjsf/utils';
 import React from 'react';
 
-function extractSymbologyOverrideIndex(idSchema: {
+function extractlayerOverrideIndex(idSchema: {
   $id?: string;
 }): number | undefined {
   const id = idSchema?.$id ?? '';
-  const match = id.match(/symbologyOverride_(\d+)/);
+  const match = id.match(/layerOverride_(\d+)/);
   return match ? parseInt(match[1], 10) : undefined;
 }
 
@@ -17,7 +17,7 @@ interface ILayerSelectFormContext {
 
 /**
  * Simple select populated with layers (valid types only).
- * Used as the targetLayer field inside symbologyOverride array items.
+ * Used as the targetLayer field inside layerOverride array items.
  */
 export function LayerSelect(props: FieldProps) {
   const { idSchema, formContext, formData, onChange } = props;
@@ -25,24 +25,24 @@ export function LayerSelect(props: FieldProps) {
   const model = context?.model;
   const fullFormData = context?.formData ?? (formData as IStorySegmentLayer);
 
-  const arrayIndex = extractSymbologyOverrideIndex(idSchema ?? {});
+  const arrayIndex = extractlayerOverrideIndex(idSchema ?? {});
   const value =
-    arrayIndex !== undefined && fullFormData?.symbologyOverride?.[arrayIndex]
-      ? (fullFormData.symbologyOverride[arrayIndex].targetLayer ?? '')
+    arrayIndex !== undefined && fullFormData?.layerOverride?.[arrayIndex]
+      ? (fullFormData.layerOverride[arrayIndex].targetLayer ?? '')
       : '';
 
   if (!model) {
     return null;
   }
 
-  const symbologyOverride = fullFormData?.symbologyOverride ?? [];
+  const layerOverride = fullFormData?.layerOverride ?? [];
   const currentTargetLayer =
     arrayIndex !== undefined
-      ? fullFormData?.symbologyOverride?.[arrayIndex]?.targetLayer
+      ? fullFormData?.layerOverride?.[arrayIndex]?.targetLayer
       : undefined;
 
   const usedTargetLayerIds = new Set(
-    symbologyOverride
+    layerOverride
       .filter((_: unknown, i: number) => i !== arrayIndex)
       .map(override => override.targetLayer)
       .filter(id => id !== undefined && id !== '')

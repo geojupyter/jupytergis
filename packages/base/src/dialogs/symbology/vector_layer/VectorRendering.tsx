@@ -114,7 +114,7 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
       if (!segment) {
         return;
       }
-      const override = segment.parameters?.symbologyOverride?.find(
+      const override = segment.parameters?.layerOverride?.find(
         (override: { targetLayer?: string }) =>
           override.targetLayer === layerId,
       );

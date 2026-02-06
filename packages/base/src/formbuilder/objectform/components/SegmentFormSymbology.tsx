@@ -8,24 +8,21 @@ import { GlobalStateDbManager } from '@/src/store';
 import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
 import type { IJupyterGISFormContext } from '../baseform';
 
-interface ISymbologyOverrideItemProps {
+interface ILayerOverrideItemProps {
   item: ArrayFieldTemplateProps['items'][0];
   formContext: IJupyterGISFormContext<IStorySegmentLayer | undefined>;
 }
 
 const SELECTION_SETTLE_MS = 100;
 
-function SymbologyOverrideItem({
-  item,
-  formContext,
-}: ISymbologyOverrideItemProps) {
+function LayerOverrideItem({ item, formContext }: ILayerOverrideItemProps) {
   const model = formContext?.model;
   if (!model) {
     return null;
   }
 
   const state = GlobalStateDbManager.getInstance().getStateDb();
-  const currentItem = formContext?.formData?.symbologyOverride?.[item.index];
+  const currentItem = formContext?.formData?.layerOverride?.[item.index];
   const targetLayerId = currentItem?.targetLayer;
   const selectedLayer = targetLayerId
     ? model.getLayer(targetLayerId)
@@ -100,7 +97,7 @@ export function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
         }}
       >
         {props.items.map(item => (
-          <SymbologyOverrideItem
+          <LayerOverrideItem
             key={item.key}
             item={item}
             formContext={props.formContext}
