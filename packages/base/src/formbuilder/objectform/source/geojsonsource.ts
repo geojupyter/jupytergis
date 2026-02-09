@@ -29,7 +29,6 @@ export class GeoJSONSourcePropertiesForm extends PathBasedSourcePropertiesForm {
     this.removeFormEntry('data', data, schema, uiSchema);
 
     if (this.props.formContext === 'create') {
-
       schema.properties.path.description =
         'The local path to a GeoJSON file. (If no path/url is provided, an empty GeoJSON is created.)';
     }
