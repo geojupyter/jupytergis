@@ -133,11 +133,51 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
     this.isInitialLoadRef = false;
   }
 
+  /**
+   * Fills null/undefined values in data with schema defaults (mutates data).
+   */
+  protected applySchemaDefaults(
+    data: IDict<any> | undefined,
+    schema: RJSFSchema,
+  ): void {
+    if (!data || !schema.properties) {
+      return;
+    }
+    const props = schema.properties as IDict;
+    for (const [key, propSchema] of Object.entries(props)) {
+      if (
+        propSchema === null ||
+        propSchema === undefined ||
+        typeof propSchema !== 'object'
+      ) {
+        continue;
+      }
+      const val = data[key];
+      if (val === null || val === undefined) {
+        if (
+          'default' in propSchema &&
+          (propSchema as IDict).default !== undefined
+        ) {
+          data[key] = deepCopy((propSchema as IDict).default);
+        }
+      } else if (
+        propSchema.type === 'object' &&
+        typeof val === 'object' &&
+        val !== null &&
+        !Array.isArray(val) &&
+        (propSchema as IDict).properties
+      ) {
+        this.applySchemaDefaults(val as IDict, propSchema as RJSFSchema);
+      }
+    }
+  }
+
   protected processSchema(
     data: IDict<any> | undefined,
     schema: RJSFSchema,
     uiSchema: UiSchema,
   ): void {
+    this.applySchemaDefaults(data, schema);
     if (!schema['properties']) {
       return;
     }
