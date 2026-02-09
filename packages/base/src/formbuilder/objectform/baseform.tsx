@@ -107,6 +107,15 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   constructor(props: IBaseFormProps) {
     super(props);
     this.currentFormData = deepCopy(this.props.sourceData);
+    if (props.schema) {
+      const applied = this.applySchemaDefaults(
+        this.currentFormData,
+        props.schema as RJSFSchema,
+      );
+      if (applied) {
+        props.syncData(this.currentFormData ?? {});
+      }
+    }
     this.state = {
       schema: props.schema,
       extraErrors: {},
@@ -119,6 +128,15 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   ): void {
     if (prevProps.sourceData !== this.props.sourceData) {
       this.currentFormData = deepCopy(this.props.sourceData);
+      // if (this.props.schema) {
+      //   const applied = this.applySchemaDefaults(
+      //     this.currentFormData,
+      //     this.props.schema as RJSFSchema,
+      //   );
+      //   if (applied) {
+      //     this.props.syncData(this.currentFormData ?? {});
+      //   }
+      // }
       const schema = deepCopy(this.props.schema);
       this.setState(old => ({ ...old, schema }));
     }
@@ -135,14 +153,16 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
 
   /**
    * Fills null/undefined values in data with schema defaults (mutates data).
+   * @returns true if any null/undefined was replaced by a default
    */
   protected applySchemaDefaults(
     data: IDict<any> | undefined,
     schema: RJSFSchema,
-  ): void {
+  ): boolean {
     if (!data || !schema.properties) {
-      return;
+      return false;
     }
+    let applied = false;
     const props = schema.properties as IDict;
     for (const [key, propSchema] of Object.entries(props)) {
       if (
@@ -159,6 +179,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
           (propSchema as IDict).default !== undefined
         ) {
           data[key] = deepCopy((propSchema as IDict).default);
+          applied = true;
         }
       } else if (
         propSchema.type === 'object' &&
@@ -167,9 +188,12 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
         !Array.isArray(val) &&
         (propSchema as IDict).properties
       ) {
-        this.applySchemaDefaults(val as IDict, propSchema as RJSFSchema);
+        if (this.applySchemaDefaults(val as IDict, propSchema as RJSFSchema)) {
+          applied = true;
+        }
       }
     }
+    return applied;
   }
 
   protected processSchema(
@@ -177,7 +201,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
     schema: RJSFSchema,
     uiSchema: UiSchema,
   ): void {
-    this.applySchemaDefaults(data, schema);
     if (!schema['properties']) {
       return;
     }
