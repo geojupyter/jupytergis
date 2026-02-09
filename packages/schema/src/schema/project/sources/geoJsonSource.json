@@ -18,7 +18,8 @@
     "valid": {
       "type": "boolean",
       "description": "Whether the data are valid or not",
-      "readOnly": true
+      "readOnly": true,
+      "default": false
     }
   }
 }
