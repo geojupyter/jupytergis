@@ -285,6 +285,8 @@ class GISDocument(CommWidget):
                 # The front-end would have no way of finding the file reliably
                 with open(path, "r") as fobj:
                     parameters["data"] = json.load(fobj)
+                    # This is just to make rjsf happy
+                    parameters["path"] = ""
 
         if data is not None:
             parameters["data"] = data
