@@ -75,6 +75,7 @@ def test_qgis_loader():
                     "_bccce044_998d_45f9_bf6b_fe1472681cc3",
                 ],
                 "name": "group0",
+                "visible": True,
             },
         ],
     )
