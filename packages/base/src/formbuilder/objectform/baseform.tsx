@@ -121,7 +121,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       this.currentFormData = deepCopy(this.props.sourceData);
       const schema = deepCopy(this.props.schema);
       this.setState(old => ({ ...old, schema }));
-      this.isInitialLoadRef = true;
     }
   }
 
@@ -131,6 +130,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       this.setState(old => ({ ...old, ...this.state.extraErrors }));
       this.props.formErrorSignal.emit(extraErrors);
     }
+    this.isInitialLoadRef = false;
   }
 
   protected processSchema(
