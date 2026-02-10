@@ -303,8 +303,8 @@ def test_qgis_saver():
                     "source": source_ids[6],
                     "symbologyState": {
                         "colorRamp": "viridis",
-                        "mode": "",
-                        "nClasses": "",
+                        "mode": "equal interval",
+                        "nClasses": 9,
                         "renderType": "Categorized",
                         "value": "min_label",
                     },
@@ -322,6 +322,7 @@ def test_qgis_saver():
                     layer_ids[3],
                 ],
                 "name": "group0",
+                "visible": True,
             },
             layer_ids[4],
             layer_ids[5],

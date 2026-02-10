@@ -9,7 +9,7 @@ from urllib.parse import unquote
 from uuid import uuid4
 
 from PyQt5.QtGui import QColor
-from qgis.core import (
+from qgis.core import (  # type: ignore[import-untyped]
     QgsApplication,
     QgsColorRampShader,
     QgsCoordinateReferenceSystem,
@@ -213,8 +213,8 @@ def qgis_layer_to_jgis(
 
             layer_parameters["symbologyState"] = {
                 "colorRamp": "viridis",
-                "mode": "",
-                "nClasses": "",
+                "mode": "equal interval",
+                "nClasses": 9,
                 "renderType": "Categorized",
                 "value": field_name,
             }
@@ -470,6 +470,7 @@ def qgis_layer_tree_to_jgis(
             group = {
                 "layers": _layer_tree,
                 "name": child.name(),
+                "visible": child.isVisible(),
             }
             layer_tree.append(group)
             qgis_layer_tree_to_jgis(child, _layer_tree, layers, sources, settings)
