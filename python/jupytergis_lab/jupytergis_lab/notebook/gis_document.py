@@ -540,12 +540,12 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "type": type,
                 "color": gradient,
                 "opacity": opacity,
                 "blur": blur,
                 "radius": radius,
                 "feature": feature,
+                "symbologyState": {"renderType": "Heatmap"},
             },
         }
 
