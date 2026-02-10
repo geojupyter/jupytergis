@@ -8,6 +8,82 @@
       "name": "World",
       "parameters": {
         "color": {
+          "circle-fill-color": [
+            "interpolate",
+            [
+              "linear"
+            ],
+            [
+              "get",
+              "POP_RANK"
+            ],
+            2.888888888888889,
+            [
+              125.0,
+              0.0,
+              179.0,
+              1.0
+            ],
+            4.777777777777778,
+            [
+              116.0,
+              0.0,
+              218.0,
+              1.0
+            ],
+            6.666666666666666,
+            [
+              98.0,
+              74.0,
+              237.0,
+              1.0
+            ],
+            8.555555555555555,
+            [
+              68.0,
+              146.0,
+              231.0,
+              1.0
+            ],
+            10.444444444444445,
+            [
+              0.0,
+              204.0,
+              197.0,
+              1.0
+            ],
+            12.333333333333334,
+            [
+              0.0,
+              247.0,
+              146.0,
+              1.0
+            ],
+            14.222222222222223,
+            [
+              0.0,
+              255.0,
+              88.0,
+              1.0
+            ],
+            16.11111111111111,
+            [
+              40.0,
+              255.0,
+              8.0,
+              1.0
+            ],
+            18.0,
+            [
+              147.0,
+              255.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#3399CC",
+          "circle-stroke-width": 1.25,
           "fill-color": [
             "interpolate",
             [
@@ -80,7 +156,9 @@
               0.0,
               1.0
             ]
-          ]
+          ],
+          "stroke-color": "#3399CC",
+          "stroke-width": 1.25
         },
         "opacity": 1.0,
         "source": "b4287bea-e217-443c-b527-58f7559c824c",
@@ -88,8 +166,9 @@
           "colorRamp": "cool",
           "method": "color",
           "mode": "equal interval",
-          "nClasses": "9",
+          "nClasses": 9.0,
           "renderType": "Graduated",
+          "reverse": false,
           "value": "POP_RANK"
         },
         "type": "fill"
@@ -101,8 +180,14 @@
       "name": "France",
       "parameters": {
         "color": {
-          "fill-color": "#ff0000",
-          "stroke-color": "#3399CC",
+          "circle-fill-color": "#c01c28",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#1c71d8",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#c01c28",
+          "stroke-color": "#1c71d8",
           "stroke-line-cap": "round",
           "stroke-line-join": "round",
           "stroke-width": 1.25
@@ -122,32 +207,35 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -19065470.770224873,
-      -8769327.524723822,
-      21009545.915353607,
-      10612866.079810677
+      -17238619.618066136,
+      -10522992.120943824,
+      22836397.06751236,
+      15740612.906038145
     ],
-    "latitude": 8.251719751227498,
-    "longitude": 8.731962081730105,
+    "latitude": 22.807954061050197,
+    "longitude": 25.142845199685663,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 2.634811050171718
+    "zoom": 1.8360503550580693
   },
   "schemaVersion": "0.5.0",
   "sources": {
     "5970d6c9-26be-4cc6-84c9-16593dd3edfe": {
       "name": "France",
       "parameters": {
-        "path": "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_FRA_1.json"
+        "path": "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_FRA_1.json",
+        "valid": false
       },
       "type": "GeoJSONSource"
     },
     "b4287bea-e217-443c-b527-58f7559c824c": {
       "name": "World",
       "parameters": {
-        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
+        "valid": false
       },
       "type": "GeoJSONSource"
     }
-  }
+  },
+  "stories": {}
 }

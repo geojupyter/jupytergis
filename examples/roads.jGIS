@@ -7490,5 +7490,6 @@
       },
       "type": "GeoJSONSource"
     }
-  }
+  },
+  "stories": {}
 }

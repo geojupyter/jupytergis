@@ -16,7 +16,7 @@
     "f12a8dfe-4674-43e7-a649-cd49ee83eb34": {
       "name": "Custom Hillshade Layer",
       "parameters": {
-        "shadowColor": "#473B24",
+        "shadowColor": "#473b24",
         "source": "e87bb91a-ff2a-485b-bf0e-14b3b848955a"
       },
       "type": "HillshadeLayer",
@@ -27,10 +27,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      1243848.3593370197,
-      5969949.2382145105,
-      1302647.7414816194,
-      5998387.429956145
+      1256347.8506356832,
+      5973092.601410921,
+      1290148.250182956,
+      5995244.066759734
     ],
     "latitude": 47.25726805100891,
     "longitude": 11.437781841580746,
@@ -44,6 +44,8 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "bounds": [],
+        "htmlAttribution": "",
         "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
@@ -56,6 +58,7 @@
     "e87bb91a-ff2a-485b-bf0e-14b3b848955a": {
       "name": "Custom Hillshade Layer Source",
       "parameters": {
+        "attribution": "",
         "encoding": "mapbox",
         "interpolate": false,
         "tileSize": 512.0,
@@ -64,5 +67,6 @@
       },
       "type": "RasterDemSource"
     }
-  }
+  },
+  "stories": {}
 }
