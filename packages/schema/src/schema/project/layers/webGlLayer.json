@@ -97,7 +97,18 @@
         }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {
+        "renderType": "Single Symbol",
+        "band": 1,
+        "redBand": 1,
+        "greenBand": 2,
+        "blueBand": 3,
+        "alphaBand": 4,
+        "interpolation": "linear",
+        "colorRamp": "viridis",
+        "nClasses": "9",
+        "mode": "equal interval"
+      }
     }
   }
 }
