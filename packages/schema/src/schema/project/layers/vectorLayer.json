@@ -62,7 +62,14 @@
         }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {
+        "renderType": "Single Symbol",
+        "value": "",
+        "method": "color",
+        "colorRamp": "viridis",
+        "nClasses": "9",
+        "mode": "equal interval"
+      }
     }
   }
 }
