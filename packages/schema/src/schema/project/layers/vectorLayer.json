@@ -50,7 +50,7 @@
           "default": 9.0
         },
         "reverse": {
-          "type" : "boolean",
+          "type": "boolean",
           "default": false
         },
         "mode": {
