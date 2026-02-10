@@ -308,7 +308,6 @@ def test_qgis_saver():
                         "renderType": "Categorized",
                         "value": "min_label",
                     },
-                    "type": "line",
                 },
                 "type": "VectorLayer",
                 "visible": True,
