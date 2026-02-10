@@ -23,9 +23,13 @@
         "opacity": 1.0,
         "source": "7a7ee6fd-c1e2-4c5d-a4e2-a7974db138a4",
         "symbologyState": {
-          "renderType": "Single Symbol"
-        },
-        "type": "fill"
+          "colorRamp": "viridis",
+          "method": "color",
+          "mode": "equal interval",
+          "nClasses": "9",
+          "renderType": "Single Symbol",
+          "value": ""
+        }
       },
       "type": "VectorTileLayer",
       "visible": true

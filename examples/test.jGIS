@@ -44,8 +44,7 @@
         "source": "7d082e75-69d5-447a-82d8-b05cca5945ba",
         "symbologyState": {
           "renderType": "Single Symbol"
-        },
-        "type": "line"
+        }
       },
       "type": "VectorLayer",
       "visible": true

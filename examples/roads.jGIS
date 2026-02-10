@@ -7455,12 +7455,13 @@
         "source": "b9e30ab1-864e-4395-9071-cddb6ac813e5",
         "symbologyState": {
           "colorRamp": "rainbow",
-          "mode": "",
-          "nClasses": "",
+          "method": "color",
+          "mode": "quantile",
+          "nClasses": 11.0,
           "renderType": "Categorized",
+          "reverse": false,
           "value": "length_km"
-        },
-        "type": "line"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -7470,10 +7471,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -35940117.55484148,
-      -9691096.80226725,
-      4134899.130737001,
-      9691096.80226725
+      -27421025.957529828,
+      -7548721.696434438,
+      -4384192.46657465,
+      7548721.696434436
     ],
     "latitude": 0.0,
     "longitude": -142.85556912566426,
@@ -7486,7 +7487,8 @@
     "b9e30ab1-864e-4395-9071-cddb6ac813e5": {
       "name": "Custom GeoJSON Layer Source",
       "parameters": {
-        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson"
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson",
+        "valid": false
       },
       "type": "GeoJSONSource"
     }

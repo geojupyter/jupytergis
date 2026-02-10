@@ -59,9 +59,7 @@
       "name": "Custom Hillshade Layer Source",
       "parameters": {
         "attribution": "",
-        "encoding": "mapbox",
         "interpolate": false,
-        "tileSize": 512.0,
         "url": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
         "urlParameters": {}
       },

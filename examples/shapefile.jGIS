@@ -18,13 +18,13 @@
       "name": "Subset of Manhattan roads",
       "parameters": {
         "color": {
-          "circle-fill-color": "#5c677a",
+          "circle-fill-color": "#dc8add",
           "circle-radius": 5.0,
           "circle-stroke-color": "#5c677a",
           "circle-stroke-line-cap": "round",
           "circle-stroke-line-join": "round",
           "circle-stroke-width": 1.25,
-          "fill-color": "#5c677a",
+          "fill-color": "#dc8add",
           "stroke-color": "#5c677a",
           "stroke-line-cap": "round",
           "stroke-line-join": "round",
@@ -33,12 +33,7 @@
         "opacity": 1.0,
         "source": "c3215d81-4b47-4b93-ae1c-5eb0fe8a68a8",
         "symbologyState": {
-          "colorRamp": "viridis",
-          "method": "color",
-          "mode": "equal interval",
-          "nClasses": "9",
-          "renderType": "Single Symbol",
-          "value": ""
+          "renderType": "Single Symbol"
         }
       },
       "type": "VectorLayer",
@@ -63,14 +58,8 @@
         "opacity": 1.0,
         "source": "eb4b68da-eab6-44a1-8e75-ca9c871d2755",
         "symbologyState": {
-          "colorRamp": "viridis",
-          "method": "color",
-          "mode": "equal interval",
-          "nClasses": "9",
-          "renderType": "Single Symbol",
-          "value": ""
-        },
-        "type": "line"
+          "renderType": "Single Symbol"
+        }
       },
       "type": "VectorLayer",
       "visible": true

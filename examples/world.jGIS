@@ -170,8 +170,7 @@
           "renderType": "Graduated",
           "reverse": false,
           "value": "POP_RANK"
-        },
-        "type": "fill"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -196,8 +195,7 @@
         "source": "5970d6c9-26be-4cc6-84c9-16593dd3edfe",
         "symbologyState": {
           "renderType": "Single Symbol"
-        },
-        "type": "line"
+        }
       },
       "type": "VectorLayer",
       "visible": true
