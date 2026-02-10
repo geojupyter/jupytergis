@@ -58,7 +58,7 @@ Select a Story Segment layer in the left panel (under the **Segments** tab). The
   - **Immediate** jumps there with no animation.
   - **Linear** animates directly to the segment’s view.
   - **Smooth** zooms out, pans to the segment, then zooms back in.
-- **Symbology Override**: Optional overrides for other layers when this segment is active (e.g. visibility, opacity, or opening the symbology dialog for a target layer to set style). Add an override by choosing a target layer and configuring the options.
+- **Layer Override**: Optional overrides for other layers when this segment is active (e.g. visibility, opacity, or opening the symbology dialog for a target layer to set style). Add an override by choosing a target layer and configuring the options.
 
 Changes are saved as you edit; no separate “Save” step is required.
 

@@ -62,7 +62,7 @@ function LayerOverrideItem({ item, formContext }: ILayerOverrideItemProps) {
       <div style={{ flex: 1 }}>{item.children}</div>
       <div style={{ display: 'flex', gap: '1rem' }}>
         <Button
-          title="Edit symbology override for the target layer"
+          title="Edit layer override for the target layer"
           onClick={handleOpenSymbology}
           style={{ width: '100%' }}
           disabled={!canOpenSymbology}
@@ -104,7 +104,7 @@ export function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
           />
         ))}
         {props.canAdd && (
-          <Button onClick={props.onAddClick}>Add Symbology Override</Button>
+          <Button onClick={props.onAddClick}>Add Layer Override</Button>
         )}
       </div>
     </>
