@@ -46,8 +46,12 @@
           "default": "viridis"
         },
         "nClasses": {
-          "type": "string",
-          "default": "9"
+          "type": "number",
+          "default": 9.0
+        },
+        "reverse": {
+          "type" : "boolean",
+          "default": false
         },
         "mode": {
           "type": "string",
