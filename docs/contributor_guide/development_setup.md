@@ -22,8 +22,7 @@ cd jupytergis
 
 ### Create a virtual environment
 
-```````{tabs}
-``````{group-tab} Micromamba (Recommended)
+````{tab} Micromamba (Recommended)
 ```{note}
 Micromamba is a lightweight package manager compatible with conda environments.
 It is recommended for setting up the JupyterGIS development environment. If you don’t have it installed, please follow the official documentation: [Micromamba Installation Guide](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html)
@@ -36,9 +35,9 @@ micromamba create --name jupytergis_dev -c conda-forge pip "nodejs<22" qgis
 
 # Activate it
 micromamba activate jupytergis_dev
-``````
+````
 
-``````{group-tab} Plain python
+````{tab} Plain python
 ```{note}
 You may need to install some non-Python dependencies (e.g. QGIS,
 Node.js) separately when using this method.
@@ -51,8 +50,7 @@ python -m venv .venv
 # Activate it
 source .venv/bin/activate
 ```
-``````
-```````
+````
 
 ### Install dependencies and build
 
