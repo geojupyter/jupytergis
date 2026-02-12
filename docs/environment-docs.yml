@@ -3,14 +3,14 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python=3.13
+  - python
 
   # Build docs & JupyterLite
   - jupyterlite-core
   - jupyterlite-xeus
   - jupyterlite-sphinx
   - jupytext =1.19.0
-  - sphinx ~=8.2.3
+  - sphinx
   - sphinx-tabs
   - pydata-sphinx-theme
   - sphinx-autodoc-typehints
