@@ -1,6 +1,6 @@
 # Installing JupyterGIS
 
-```````{tab} Mamba (recommended)
+``````{tab} Mamba (recommended)
 
 :::{note}
 It is best to install JupyterGIS using `mamba`, `conda`, `micromamba`, or `pixi` since you'll be able to install `qgis` at the same time, allowing you to open `.qgz` files.

@@ -4,7 +4,6 @@ channels:
   - nodefaults
 dependencies:
   - python
-  - setuptools
 
   # Build docs & JupyterLite
   - jupyterlite-core
