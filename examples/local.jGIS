@@ -17,8 +17,24 @@
     "aae4466d-49da-4308-b73d-046e974f92a4": {
       "name": "Subset of Manhattan roads",
       "parameters": {
+        "color": {
+          "circle-fill-color": "#dc8add",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#dc8add",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#dc8add",
+          "stroke-color": "#dc8add",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
-        "source": "d82b24cf-e43a-43aa-bc7b-2578adc7ef8a"
+        "source": "d82b24cf-e43a-43aa-bc7b-2578adc7ef8a",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -26,6 +42,7 @@
     "f5e91204-3ce9-408e-b179-c6cf5f75f0f7": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
+        "opacity": 1.0,
         "source": "3bd6b874-a28a-4ef6-bef8-a7257bb35c51"
       },
       "type": "RasterLayer",
@@ -36,16 +53,16 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8703718.385476297,
-      4845264.714813822,
-      -8189138.675329441,
-      5581105.222898616
+      -8972736.91962154,
+      4683585.719389745,
+      -7464003.855616447,
+      5672350.604881049
     ],
-    "latitude": 42.34755800727709,
-    "longitude": -75.87555845084086,
+    "latitude": 42.11331192359168,
+    "longitude": -73.82687729753417,
     "pitch": 0.0,
     "projection": "EPSG:3857",
-    "zoom": 7.528717444291546
+    "zoom": 6.567343994630387
   },
   "schemaVersion": "0.5.0",
   "sources": {
@@ -53,6 +70,9 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "bounds": [],
+        "htmlAttribution": "",
+        "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
@@ -90,6 +110,7 @@
     "d82b24cf-e43a-43aa-bc7b-2578adc7ef8a": {
       "name": "Custom Shapefile Source",
       "parameters": {
+        "additionalFiles": {},
         "attribution": "",
         "encoding": "UTF-8",
         "path": "data/nyc/nyc.zip",
@@ -97,5 +118,6 @@
       },
       "type": "ShapefileSource"
     }
-  }
+  },
+  "stories": {}
 }

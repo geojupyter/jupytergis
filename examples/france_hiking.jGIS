@@ -37,10 +37,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -1758562.2264582724,
-      4833787.226784039,
-      3704101.498072755,
-      7114345.535233745
+      -382516.64112580917,
+      5085864.543062618,
+      2328055.912740292,
+      6862268.218955172
     ],
     "latitude": 47.195641286772855,
     "longitude": 8.738538317730255,
@@ -54,6 +54,8 @@
       "name": "NASAGIBS.ModisTerraTrueColorCR",
       "parameters": {
         "attribution": "Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (ESDIS) with funding provided by NASA/HQ.",
+        "bounds": [],
+        "htmlAttribution": "",
         "interpolate": false,
         "maxZoom": 9.0,
         "minZoom": 1.0,
@@ -72,6 +74,8 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "bounds": [],
+        "htmlAttribution": "",
         "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
@@ -85,6 +89,8 @@
       "name": "WaymarkedTrails.hiking",
       "parameters": {
         "attribution": "Map data: (C) OpenStreetMap contributors | Map style: (C) waymarkedtrails.org (CC-BY-SA)",
+        "bounds": [],
+        "htmlAttribution": "",
         "interpolate": false,
         "maxZoom": 18.0,
         "minZoom": 0.0,
@@ -96,5 +102,6 @@
       },
       "type": "RasterSource"
     }
-  }
+  },
+  "stories": {}
 }
