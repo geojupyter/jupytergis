@@ -8,7 +8,8 @@
     "path": {
       "type": "string",
       "readOnly": true,
-      "description": "Path that points to an image"
+      "description": "Path that points to an image",
+      "default": ""
     },
     "coordinates": {
       "type": "array",

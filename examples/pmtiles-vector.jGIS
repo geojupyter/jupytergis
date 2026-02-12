@@ -7,6 +7,7 @@
     "93077483-0e49-4135-aa1d-244e29e5cf97": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
+        "opacity": 1.0,
         "source": "c42d25fc-ca10-4447-ba00-ba22b0367739"
       },
       "type": "RasterLayer",
@@ -15,10 +16,29 @@
     "95523f4c-27ef-42db-b755-a226ca017a94": {
       "name": "Buildings",
       "parameters": {
-        "color": "#FF0000",
+        "color": {
+          "circle-fill-color": "#613583",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#613583",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#613583",
+          "stroke-color": "#613583",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
         "source": "e52daf20-9b57-4a14-9521-70eabbe4cda2",
-        "type": "line"
+        "symbologyState": {
+          "colorRamp": "viridis",
+          "method": "color",
+          "mode": "equal interval",
+          "nClasses": "9",
+          "renderType": "Single Symbol",
+          "value": ""
+        }
       },
       "type": "VectorTileLayer",
       "visible": true
@@ -28,10 +48,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      19451927.052515075,
-      -4423234.886693547,
-      19456950.20748795,
-      -4420805.448848173
+      19452994.86784893,
+      -4422966.3532516,
+      19455882.392154094,
+      -4421073.98229012
     ],
     "latitude": -36.877317290655995,
     "longitude": 174.762195652956,
@@ -45,6 +65,9 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "bounds": [],
+        "htmlAttribution": "",
+        "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
@@ -56,11 +79,15 @@
     "e52daf20-9b57-4a14-9521-70eabbe4cda2": {
       "name": "Custom Vector Tile Layer Source",
       "parameters": {
-        "maxZoom": 24.0,
-        "minZoom": 0.0,
-        "url": "https://r2-public.protomaps.com/protomaps-sample-datasets/nz-buildings-v3.pmtiles"
+        "attribution": "",
+        "maxZoom": 23.0,
+        "minZoom": 1.0,
+        "provider": "",
+        "url": "https://r2-public.protomaps.com/protomaps-sample-datasets/nz-buildings-v3.pmtiles",
+        "urlParameters": {}
       },
       "type": "VectorTileSource"
     }
-  }
+  },
+  "stories": {}
 }

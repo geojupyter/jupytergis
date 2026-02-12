@@ -16,6 +16,7 @@
     "3d4563da-904d-4026-a06b-1e8cffbf536f": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
+        "opacity": 1.0,
         "source": "d76035d6-9fb2-41db-ad32-ea4d34268dc9"
       },
       "type": "RasterLayer",
@@ -26,10 +27,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -23812263.203224268,
-      -5492745.08424724,
-      16262753.482354213,
-      13889448.52028726
+      -15293171.605912616,
+      -3350369.9784144275,
+      7743661.885042561,
+      11747073.414454447
     ],
     "latitude": 35.25326049393334,
     "longitude": -33.90919984933236,
@@ -49,7 +50,8 @@
         "maxZoom": 24.0,
         "minZoom": 0.0,
         "provider": "",
-        "url": "https://r2-public.protomaps.com/protomaps-sample-datasets/terrarium_z9.pmtiles"
+        "url": "https://r2-public.protomaps.com/protomaps-sample-datasets/terrarium_z9.pmtiles",
+        "urlParameters": {}
       },
       "type": "RasterSource"
     },
@@ -57,6 +59,9 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "bounds": [],
+        "htmlAttribution": "",
+        "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
@@ -65,5 +70,6 @@
       },
       "type": "RasterSource"
     }
-  }
+  },
+  "stories": {}
 }

@@ -7,7 +7,8 @@
   "properties": {
     "path": {
       "type": "string",
-      "description": "The local path to a GeoJSON file"
+      "description": "The local path to a GeoJSON file",
+      "default": ""
     },
     "data": {
       "type": "object",
@@ -17,7 +18,8 @@
     "valid": {
       "type": "boolean",
       "description": "Whether the data are valid or not",
-      "readOnly": true
+      "readOnly": true,
+      "default": false
     }
   }
 }

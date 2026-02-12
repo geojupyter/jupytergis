@@ -4,10 +4,6 @@
   justify-content: center;
   align-items: center;
   background-color: var(--jp-layout-color0);
-  box-shadow:
-    0 4px 8px 0 rgba(0, 0, 0, 0.2),
-    0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  border-radius: 5px;
 }
 .jgis-tabs-list {
   display: inline-flex;
@@ -19,8 +15,6 @@
   gap: 1rem;
   width: 100%;
   font-size: 9px;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
   overflow-x: scroll;
 }
 
@@ -61,7 +55,7 @@
   outline: none;
   width: 100%;
   overflow-y: scroll;
-  max-height: 480px;
+  /* max-height: 480px; */
   padding-top: 1rem;
 }
 

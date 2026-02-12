@@ -24,15 +24,8 @@
     "5d10a9ba-eeef-486d-9761-33ff1ba4106e": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
-        "extent": [
-          -7248097.58721681,
-          -743268.1554684378,
-          -6334954.257801768,
-          -303993.91946789756
-        ],
         "opacity": 1.0,
-        "source": "32431800-9aad-4702-926b-52fcdce5530e",
-        "zoom": 7.604194565762505
+        "source": "32431800-9aad-4702-926b-52fcdce5530e"
       },
       "type": "RasterLayer",
       "visible": true
@@ -51,6 +44,7 @@
           -4804544.428248574,
           -2622570.615984798
         ],
+        "layerOverride": [],
         "transition": {
           "time": 2.0,
           "type": "smooth"
@@ -74,6 +68,7 @@
           -8240146.493537257,
           4967973.433151666
         ],
+        "layerOverride": [],
         "transition": {
           "time": 2.0,
           "type": "smooth"
@@ -121,6 +116,7 @@
           261009.190947415,
           6252093.017728101
         ],
+        "layerOverride": [],
         "transition": {
           "time": 2.0,
           "type": "smooth"
@@ -135,10 +131,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      256226.31587442243,
-      6249293.335639825,
-      260143.83466558298,
-      6251488.286397034
+      255902.57081839617,
+      6247863.970675482,
+      260467.57972160925,
+      6252917.651361377
     ],
     "latitude": 48.855574302496535,
     "longitude": 2.319315992465925,
@@ -200,6 +196,8 @@
   },
   "stories": {
     "1b181980-a95a-4f23-8e5d-980c66ff93ea": {
+      "presentationBgColor": "#171B2C",
+      "presentationTextColor": "#AEBAD3",
       "storySegments": [
         "5f790e80-230b-4c00-8426-b3a9385937a5",
         "8591b32f-11c0-4d70-a997-e94d258bb100",

@@ -7,7 +7,8 @@
   "properties": {
     "url": {
       "type": "string",
-      "description": "The url to the tile provider"
+      "description": "The url to the tile provider",
+      "default": ""
     },
     "minZoom": {
       "type": "number",

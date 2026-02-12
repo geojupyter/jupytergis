@@ -11,18 +11,23 @@
         "type": "object",
         "properties": {
           "url": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "min": {
-            "type": "number"
+            "type": "number",
+            "default": null
           },
           "max": {
-            "type": "number"
+            "type": "number",
+            "default": null
           }
-        }
+        },
+        "default": {}
       },
       "minItems": 1,
-      "description": "URLs"
+      "description": "URLs",
+      "default": []
     },
     "normalize": {
       "type": "boolean",

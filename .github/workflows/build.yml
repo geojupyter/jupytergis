@@ -80,6 +80,30 @@ jobs:
             python/jupytergis_lite/dist/jupytergis*
           if-no-files-found: error
 
+  validate-examples:
+    name: Validate example .jGIS files
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: gis
+          create-args: >-
+            python=3.12
+            yarn=3
+
+      - name: Install dependencies
+        shell: bash -l {0}
+        run: yarn install
+
+      - name: Validate example .jGIS files against schema
+        shell: bash -l {0}
+        run: node packages/schema/scripts/validate-examples.js
+
   python_tests:
     runs-on: ubuntu-latest
     strategy:

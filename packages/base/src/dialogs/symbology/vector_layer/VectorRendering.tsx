@@ -1,4 +1,4 @@
-import { LayerType, IJGISLayer } from '@jupytergis/schema';
+import { LayerType } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
 import { useGetProperties } from '@/src/dialogs/symbology/hooks/useGetProperties';
@@ -88,54 +88,67 @@ const getSelectableRenderTypes = (
   return Object.fromEntries(entries);
 };
 
-const useLayerRenderType = (
-  layer: IJGISLayer,
-  setSelectedRenderType: React.Dispatch<
-    React.SetStateAction<VectorRenderType | undefined>
-  >,
-) =>
-  useEffect(() => {
-    let renderType = layer.parameters?.symbologyState?.renderType;
-    if (!renderType) {
-      renderType = layer.type === 'HeatmapLayer' ? 'Heatmap' : 'Single Symbol';
-    }
-    setSelectedRenderType(renderType);
-  }, []);
-
 const VectorRendering: React.FC<ISymbologyDialogProps> = ({
   model,
-  state,
   okSignalPromise,
-  cancel,
   layerId,
+  isStorySegmentOverride = false,
+  segmentId,
 }) => {
+  const [symbologyTab, setSymbologyTab] = useState<SymbologyTab>('color');
   const [selectedRenderType, setSelectedRenderType] = useState<
     VectorRenderType | undefined
   >();
-  const [symbologyTab, setSymbologyTab] = useState<SymbologyTab>('color');
 
-  if (!layerId) {
-    return;
-  }
-  const layer = model.getLayer(layerId);
-  if (!layer?.parameters) {
-    return;
-  }
+  const layer = layerId !== undefined ? model.getLayer(layerId) : null;
+
+  useEffect(() => {
+    if (!layer) {
+      return;
+    }
+
+    let renderType: VectorRenderType | undefined;
+
+    if (isStorySegmentOverride) {
+      const segment = segmentId ? model.getLayer(segmentId) : undefined;
+      if (!segment) {
+        return;
+      }
+      const override = segment.parameters?.layerOverride?.find(
+        (override: { targetLayer?: string }) =>
+          override.targetLayer === layerId,
+      );
+      if (!override) {
+        return;
+      }
+
+      renderType = override.symbologyState?.renderType;
+    } else {
+      renderType = layer.parameters?.symbologyState?.renderType;
+    }
+
+    if (!renderType) {
+      renderType = layer.type === 'HeatmapLayer' ? 'Heatmap' : 'Single Symbol';
+    }
+
+    setSelectedRenderType(renderType);
+  }, []);
 
   const { featureProperties, isLoading: featuresLoading } = useGetProperties({
     layerId,
     model: model,
   });
 
-  useLayerRenderType(layer, setSelectedRenderType);
+  if (!layerId || !layer?.parameters) {
+    return null;
+  }
 
   if (featuresLoading) {
     return <p>Loading...</p>;
   }
 
   if (selectedRenderType === undefined) {
-    // typeguard
-    return;
+    return null;
   }
 
   const selectableRenderTypes = getSelectableRenderTypes(
@@ -188,10 +201,10 @@ const VectorRendering: React.FC<ISymbologyDialogProps> = ({
 
       <selectedRenderTypeProps.component
         model={model}
-        state={state}
         okSignalPromise={okSignalPromise}
-        cancel={cancel}
         layerId={layerId}
+        isStorySegmentOverride={isStorySegmentOverride}
+        segmentId={segmentId}
         {...(selectedRenderTypeProps.isTabbed ? { symbologyTab } : {})}
         {...(selectedRenderTypeProps.selectableAttributesAndValues
           ? {

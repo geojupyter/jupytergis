@@ -2,7 +2,6 @@
   "type": "object",
   "description": "StorySegmentLayer",
   "title": "IStorySegmentLayer",
-  "additionalProperties": false,
   "required": ["zoom", "extent", "transition"],
   "properties": {
     "zoom": {
@@ -18,20 +17,26 @@
     },
     "content": {
       "type": "object",
+      "title": "Segment Content",
       "additionalProperties": false,
       "properties": {
         "title": {
-          "type": "string"
+          "title": "Segment Title",
+          "type": "string",
+          "default": ""
         },
         "image": {
           "type": "string",
-          "description": "Link to image for the story"
+          "description": "Link to image for the story",
+          "default": ""
         },
         "markdown": {
           "type": "string",
-          "description": "Markdown string representing the content of the story stop"
+          "description": "Markdown string representing the content of the story stop",
+          "default": ""
         }
-      }
+      },
+      "default": {}
     },
     "transition": {
       "type": "object",
@@ -49,7 +54,50 @@
           "default": 1
         }
       },
-      "required": ["type", "time"]
+      "required": ["type", "time"],
+      "default": { "type": "linear", "time": 1 }
+    },
+    "layerOverride": {
+      "type": "array",
+      "title": "Layer Override",
+      "description": "Layer overrides to apply to target layers when this story segment is active",
+      "items": {
+        "type": "object",
+        "properties": {
+          "targetLayer": {
+            "type": "string",
+            "title": "Target Layer",
+            "description": "The name of the layer to apply a layer override to when this story segment is active",
+            "default": ""
+          },
+          "visible": {
+            "type": "boolean",
+            "title": "Visibility",
+            "default": true,
+            "description": "Override the target layer visibility while this story segment is active"
+          },
+          "opacity": {
+            "type": "number",
+            "title": "Opacity",
+            "description": "Override the target layer opacity while this story segment is active",
+            "minimum": 0,
+            "maximum": 1,
+            "multipleOf": 0.1,
+            "default": 1.0
+          },
+          "symbologyState": {
+            "type": "object",
+            "description": "The symbology state override (renderType, value, method, etc.)",
+            "default": {}
+          },
+          "color": {
+            "type": "object",
+            "description": "The color/style override",
+            "default": {}
+          }
+        }
+      },
+      "default": []
     }
   }
 }

@@ -3,7 +3,7 @@ import { ReactWidget } from '@jupyterlab/apputils';
 import { IStateDB } from '@jupyterlab/statedb';
 import * as React from 'react';
 
-import { MainView } from './mainView';
+import { MainViewWithMediaQuery } from './mainView';
 import { MainViewModel } from './mainviewmodel';
 
 export interface IOptions {
@@ -26,7 +26,7 @@ export class JupyterGISMainViewPanel extends ReactWidget {
 
   render(): JSX.Element {
     return (
-      <MainView
+      <MainViewWithMediaQuery
         state={this._state}
         viewModel={this._options.mainViewModel}
         formSchemaRegistry={this._options.formSchemaRegistry}

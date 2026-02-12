@@ -27,10 +27,24 @@
     "57ef55ef-facb-48a2-ae1d-c9c824be3e8a": {
       "name": "Regions France",
       "parameters": {
-        "color": "#e66100",
+        "color": {
+          "circle-fill-color": "#3399CC",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#0300ad",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#3399CC",
+          "stroke-color": "#0300ad",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 0.6,
         "source": "7d082e75-69d5-447a-82d8-b05cca5945ba",
-        "type": "line"
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -49,10 +63,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -6347115.289224999,
-      -4906624.321802844,
-      4757649.530882997,
-      10973006.425896894
+      -9155321.878823973,
+      -2446013.3361281725,
+      7565856.120481972,
+      8512395.440222222
     ],
     "latitude": 26.275081528154047,
     "longitude": -7.139206921516233,
@@ -65,20 +79,30 @@
     "5fd42e3b-4681-4607-b15d-65c3a3e89b32": {
       "name": "Open Topo Map",
       "parameters": {
+        "attribution": "",
+        "bounds": [],
+        "htmlAttribution": "",
         "interpolate": false,
         "maxZoom": 24.0,
         "minZoom": 0.0,
-        "url": "https://tile.opentopomap.org/{z}/{x}/{y}.png "
+        "provider": "",
+        "url": "https://tile.opentopomap.org/{z}/{x}/{y}.png ",
+        "urlParameters": {}
       },
       "type": "RasterSource"
     },
     "699facc9-e7c4-4f38-acf1-1fd7f02d9f36": {
       "name": "Open Street Map",
       "parameters": {
+        "attribution": "",
+        "bounds": [],
+        "htmlAttribution": "",
         "interpolate": false,
         "maxZoom": 24.0,
         "minZoom": 0.0,
-        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        "provider": "",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
       },
       "type": "RasterSource"
     },
@@ -90,5 +114,6 @@
       },
       "type": "GeoJSONSource"
     }
-  }
+  },
+  "stories": {}
 }

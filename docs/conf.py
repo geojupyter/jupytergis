@@ -17,7 +17,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinxcontrib.mermaid",
-    "sphinx_tabs.tabs",
+    "sphinx_inline_tabs",
     "sphinx_exercise",
     "sphinx_togglebutton",
     "myst_parser",
