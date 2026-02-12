@@ -136,7 +136,6 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
       //   if (applied) {
       //     this.props.syncData(this.currentFormData ?? {});
       //   }
-      // }
       const schema = deepCopy(this.props.schema);
       this.setState(old => ({ ...old, schema }));
     }
