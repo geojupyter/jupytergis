@@ -12,7 +12,7 @@ dependencies:
   - jupyterlite-sphinx
   - jupytext =1.19.0
   - sphinx
-  - sphinx-tabs
+  - sphinx-inline-tabs
   - pydata-sphinx-theme
   - sphinx-autodoc-typehints
   - sphinx-exercise
