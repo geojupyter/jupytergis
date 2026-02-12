@@ -540,12 +540,12 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "type": type,
                 "color": gradient,
                 "opacity": opacity,
                 "blur": blur,
                 "radius": radius,
                 "feature": feature,
+                "symbologyState": {"renderType": "Heatmap"},
             },
         }
 
@@ -555,7 +555,6 @@ class GISDocument(CommWidget):
         self,
         path: str,
         name: str = "GeoParquetLayer",
-        type: "circle" | "fill" | "line" = "line",
         opacity: float = 1,
         logical_op: str | None = None,
         feature: str | None = None,
@@ -568,7 +567,6 @@ class GISDocument(CommWidget):
 
         :param path: The path to the GeoParquet file to embed into the jGIS file.
         :param name: The name that will be used for the object in the document.
-        :param type: The type of the vector layer to create.
         :param opacity: The opacity, between 0 and 1.
         :param logical_op: The logical combination to apply to filters. Must be "any" or "all"
         :param feature: The feature to be filtered on
@@ -591,7 +589,6 @@ class GISDocument(CommWidget):
             "visible": True,
             "parameters": {
                 "source": source_id,
-                "type": type,
                 "opacity": opacity,
                 "color": color_expr,
             },
@@ -929,10 +926,9 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         filters = data.get("filters", None)
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
-            args = {}
             params = data["parameters"]
-            for field in Model.__fields__:
-                args[field] = params.get(field, None)
+            # Only pass params that are present so Pydantic uses schema defaults for the rest
+            args = {k: params[k] for k in Model.model_fields if k in params}
             obj_params = Model(**args)
             return JGISLayer(
                 parent=parent,
@@ -952,10 +948,9 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         name: str = data.get("name", None)
         if object_type and object_type in self._factories:
             Model = self._factories[object_type]
-            args = {}
             params = data["parameters"]
-            for field in Model.__fields__:
-                args[field] = params.get(field, None)
+            # Only pass params that are present so Pydantic uses schema defaults for the rest
+            args = {k: params[k] for k in Model.model_fields if k in params}
             obj_params = Model(**args)
             return JGISSource(
                 parent=parent, name=name, type=object_type, parameters=obj_params

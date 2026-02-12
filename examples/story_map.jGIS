@@ -24,15 +24,8 @@
     "5d10a9ba-eeef-486d-9761-33ff1ba4106e": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
-        "extent": [
-          -7248097.58721681,
-          -743268.1554684378,
-          -6334954.257801768,
-          -303993.91946789756
-        ],
         "opacity": 1.0,
-        "source": "32431800-9aad-4702-926b-52fcdce5530e",
-        "zoom": 7.604194565762505
+        "source": "32431800-9aad-4702-926b-52fcdce5530e"
       },
       "type": "RasterLayer",
       "visible": true

@@ -11,7 +11,8 @@
     },
     "color": {
       "type": "object",
-      "description": "The color of the the object"
+      "description": "The color of the the object",
+      "default": {}
     },
     "opacity": {
       "type": "number",
@@ -28,14 +29,17 @@
       "properties": {
         "renderType": {
           "type": "string",
-          "enum": ["Single Symbol", "Graduated", "Categorized"]
+          "enum": ["Single Symbol", "Graduated", "Categorized"],
+          "default": "Single Symbol"
         },
         "value": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "method": {
           "type": "string",
-          "enum": ["color", "radius"]
+          "enum": ["color", "radius"],
+          "default": "color"
         },
         "colorRamp": {
           "type": "string",
@@ -57,7 +61,8 @@
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "default": {}
     }
   }
 }

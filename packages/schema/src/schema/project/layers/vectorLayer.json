@@ -11,7 +11,8 @@
     },
     "color": {
       "type": "object",
-      "description": "The color of the the object"
+      "description": "The color of the the object",
+      "default": {}
     },
     "opacity": {
       "type": "number",
@@ -28,22 +29,29 @@
       "properties": {
         "renderType": {
           "type": "string",
-          "enum": ["Single Symbol", "Graduated", "Categorized"]
+          "enum": ["Single Symbol", "Graduated", "Categorized"],
+          "default": "Single Symbol"
         },
         "value": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "method": {
           "type": "string",
-          "enum": ["color", "radius"]
+          "enum": ["color", "radius"],
+          "default": "color"
         },
         "colorRamp": {
           "type": "string",
           "default": "viridis"
         },
         "nClasses": {
-          "type": "string",
-          "default": "9"
+          "type": "number",
+          "default": 9.0
+        },
+        "reverse": {
+          "type": "boolean",
+          "default": false
         },
         "mode": {
           "type": "string",
@@ -57,7 +65,15 @@
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "default": {
+        "renderType": "Single Symbol",
+        "value": "",
+        "method": "color",
+        "colorRamp": "viridis",
+        "nClasses": "9",
+        "mode": "equal interval"
+      }
     }
   }
 }

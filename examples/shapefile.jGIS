@@ -8,6 +8,7 @@
     "54e0ea1f-32fd-4ff2-90fb-ad449a38f902": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
+        "opacity": 1.0,
         "source": "780c4234-ba6d-4da2-9731-739f6c4d8033"
       },
       "type": "RasterLayer",
@@ -16,8 +17,24 @@
     "df947252-afb1-489f-8bce-7057318a50e3": {
       "name": "Subset of Manhattan roads",
       "parameters": {
+        "color": {
+          "circle-fill-color": "#dc8add",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#5c677a",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#dc8add",
+          "stroke-color": "#5c677a",
+          "stroke-line-cap": "round",
+          "stroke-line-join": "round",
+          "stroke-width": 1.25
+        },
         "opacity": 1.0,
-        "source": "c3215d81-4b47-4b93-ae1c-5eb0fe8a68a8"
+        "source": "c3215d81-4b47-4b93-ae1c-5eb0fe8a68a8",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -26,7 +43,13 @@
       "name": "Administrative boundaries",
       "parameters": {
         "color": {
-          "fill-color": "#eaa4e7",
+          "circle-fill-color": "#b78cc3",
+          "circle-radius": 5.0,
+          "circle-stroke-color": "#3399CC",
+          "circle-stroke-line-cap": "round",
+          "circle-stroke-line-join": "round",
+          "circle-stroke-width": 1.25,
+          "fill-color": "#b78cc3",
           "stroke-color": "#3399CC",
           "stroke-line-cap": "round",
           "stroke-line-join": "round",
@@ -36,8 +59,7 @@
         "source": "eb4b68da-eab6-44a1-8e75-ca9c871d2755",
         "symbologyState": {
           "renderType": "Single Symbol"
-        },
-        "type": "line"
+        }
       },
       "type": "VectorLayer",
       "visible": true
@@ -47,10 +69,10 @@
   "options": {
     "bearing": 0.0,
     "extent": [
-      -8150520.166876536,
-      -10915042.527657213,
-      11341094.519137997,
-      16957645.359427817
+      -13079618.77363639,
+      -6596060.360822033,
+      16270193.12589785,
+      12638663.19259264
     ],
     "latitude": 26.179270968888744,
     "longitude": 14.330708528781068,
@@ -64,6 +86,9 @@
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
+        "bounds": [],
+        "htmlAttribution": "",
+        "interpolate": false,
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
@@ -75,6 +100,7 @@
     "c3215d81-4b47-4b93-ae1c-5eb0fe8a68a8": {
       "name": "Custom Shapefile Source",
       "parameters": {
+        "additionalFiles": {},
         "attribution": "",
         "encoding": "UTF-8",
         "path": "data/nyc/nyc.zip",
@@ -85,6 +111,7 @@
     "eb4b68da-eab6-44a1-8e75-ca9c871d2755": {
       "name": "Custom Shapefile Source",
       "parameters": {
+        "additionalFiles": {},
         "attribution": "",
         "encoding": "UTF-8",
         "path": "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/world-administrative-boundaries/exports/shp",
@@ -92,5 +119,6 @@
       },
       "type": "ShapefileSource"
     }
-  }
+  },
+  "stories": {}
 }
