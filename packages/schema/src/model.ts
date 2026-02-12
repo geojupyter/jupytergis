@@ -502,6 +502,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
 
     this._addLayerTreeItem(id, groupName, position);
+
+    this.syncSelected(
+      { [id]: { type: 'layer' } },
+      this.getClientId().toString(),
+    );
   }
 
   removeLayer(layer_id: string) {
@@ -638,6 +643,20 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   /**
+   * Current slide index for the selected story (0-based).
+   */
+  getCurrentSegmentIndex(): number {
+    return this._currentSegmentIndex;
+  }
+
+  /**
+   * Set current slide index for the selected story.
+   */
+  setCurrentSegmentIndex(index: number): void {
+    this._currentSegmentIndex = index;
+  }
+
+  /**
    * Adds a story segment from the current map view
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
    */
@@ -677,6 +696,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       const storyMap: IJGISStoryMap = { title, storyType, storySegments };
 
       this.sharedModel.addStoryMap(storyId, storyMap);
+      this._segmentAdded.emit({
+        storySegmentId: newStorySegmentId,
+        storyId,
+      });
       return { storySegmentId: newStorySegmentId, storyId };
     } else {
       // else need to update story
@@ -691,8 +714,19 @@ export class JupyterGISModel implements IJupyterGISModel {
       };
 
       this.sharedModel.updateStoryMap(storyId, newStory);
+      this._segmentAdded.emit({
+        storySegmentId: newStorySegmentId,
+        storyId,
+      });
       return { storySegmentId: newStorySegmentId, storyId };
     }
+  }
+
+  get segmentAdded(): ISignal<
+    this,
+    { storySegmentId: string; storyId: string }
+  > {
+    return this._segmentAdded;
   }
 
   /**
@@ -1021,6 +1055,11 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);
 
+  private _segmentAdded = new Signal<
+    this,
+    { storySegmentId: string; storyId: string }
+  >(this);
+
   private _updateLayerSignal = new Signal<this, string>(this);
 
   private _isTemporalControllerActive = false;
@@ -1036,6 +1075,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
+  private _currentSegmentIndex: number;
   stories: Map<string, IJGISStoryMap> = new Map();
 }
 

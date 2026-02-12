@@ -1,18 +1,11 @@
 import React from 'react';
 
-import StoryNavBar from '../StoryNavBar';
-
 interface IStoryImageSectionProps {
   imageUrl: string;
   imageLoaded: boolean;
   layerName: string;
   slideNumber: number;
-  isSpecta: boolean;
-  storyType: string;
-  onPrev: () => void;
-  onNext: () => void;
-  hasPrev: boolean;
-  hasNext: boolean;
+  navSlot?: React.ReactNode;
 }
 
 function StoryImageSection({
@@ -20,12 +13,7 @@ function StoryImageSection({
   imageLoaded,
   layerName,
   slideNumber,
-  isSpecta,
-  storyType,
-  onPrev,
-  onNext,
-  hasPrev,
-  hasNext,
+  navSlot,
 }: IStoryImageSectionProps) {
   if (!imageLoaded) {
     return null;
@@ -39,17 +27,7 @@ function StoryImageSection({
           alt="Story map image"
           className="jgis-story-viewer-image"
         />
-        {!isSpecta && storyType === 'guided' && (
-          <div className="jgis-story-viewer-nav-container">
-            <StoryNavBar
-              onPrev={onPrev}
-              onNext={onNext}
-              hasPrev={hasPrev}
-              hasNext={hasNext}
-              isSpecta={isSpecta}
-            />
-          </div>
-        )}
+        {navSlot}
       </div>
     </div>
   );

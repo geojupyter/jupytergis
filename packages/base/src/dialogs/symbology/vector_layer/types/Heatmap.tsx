@@ -1,24 +1,41 @@
 import colormap from 'colormap';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import ColorRampSelector from '@/src/dialogs/symbology/components/color_ramp/ColorRampSelector';
+import { useOkSignal } from '@/src/dialogs/symbology/hooks/useOkSignal';
 import { ISymbologyDialogProps } from '@/src/dialogs/symbology/symbologyDialog';
+import {
+  saveSymbology,
+  VectorSymbologyParams,
+} from '@/src/dialogs/symbology/symbologyUtils';
+import { useLatest } from '@/src/shared/hooks/useLatest';
 import { ColorRampName } from '../../colorRampUtils';
+import { useEffectiveSymbologyParams } from '../../hooks/useEffectiveSymbologyParams';
 
 const Heatmap: React.FC<ISymbologyDialogProps> = ({
   model,
-  state,
   okSignalPromise,
-  cancel,
   layerId,
+  isStorySegmentOverride,
+  segmentId,
 }) => {
   if (!layerId) {
     return;
   }
   const layer = model.getLayer(layerId);
-  if (!layer?.parameters) {
+
+  const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
+    model,
+    layerId: layerId,
+    layer,
+    isStorySegmentOverride,
+    segmentId,
+  });
+
+  if (!params) {
     return;
   }
+
   const [selectedRamp, setSelectedRamp] = useState<ColorRampName>('viridis');
   const [heatmapOptions, setHetamapOptions] = useState({
     radius: 8,
@@ -26,48 +43,25 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
   });
   const [reverseRamp, setReverseRamp] = useState(false);
 
-  const selectedRampRef = useRef('viridis');
-  const heatmapOptionsRef = useRef({
-    radius: 8,
-    blur: 15,
-  });
-  const reverseRampRef = useRef(false);
+  const selectedRampRef = useLatest(selectedRamp);
+  const heatmapOptionsRef = useLatest(heatmapOptions);
+  const reverseRampRef = useLatest(reverseRamp);
 
   useEffect(() => {
     populateOptions();
-
-    okSignalPromise.promise.then(okSignal => {
-      okSignal.connect(handleOk, this);
-    });
-
-    return () => {
-      okSignalPromise.promise.then(okSignal => {
-        okSignal.disconnect(handleOk, this);
-      });
-    };
   }, []);
-
-  useEffect(() => {
-    selectedRampRef.current = selectedRamp;
-    heatmapOptionsRef.current = heatmapOptions;
-    reverseRampRef.current = reverseRamp;
-  }, [selectedRamp, heatmapOptions, reverseRamp]);
 
   const populateOptions = async () => {
     let colorRamp;
 
-    if (layer.parameters?.symbologyState) {
-      colorRamp = layer.parameters.symbologyState.colorRamp;
+    if (params.symbologyState?.colorRamp) {
+      colorRamp = params.symbologyState.colorRamp as ColorRampName;
     }
 
     setSelectedRamp(colorRamp ? colorRamp : 'viridis');
   };
 
   const handleOk = () => {
-    if (!layer.parameters) {
-      return;
-    }
-
     let colorMap = colormap({
       colormap: selectedRampRef.current,
       nshades: 9,
@@ -84,16 +78,24 @@ const Heatmap: React.FC<ISymbologyDialogProps> = ({
       reverse: reverseRampRef.current,
     };
 
-    layer.parameters.symbologyState = symbologyState;
-    layer.parameters.color = colorMap;
-    layer.parameters.blur = heatmapOptionsRef.current.blur;
-    layer.parameters.radius = heatmapOptionsRef.current.radius;
-    layer.type = 'HeatmapLayer';
-
-    model.sharedModel.updateLayer(layerId, layer);
-
-    cancel();
+    saveSymbology({
+      model,
+      layerId,
+      isStorySegmentOverride,
+      segmentId,
+      payload: {
+        symbologyState,
+        color: colorMap,
+      },
+      mutateLayerBeforeSave: targetLayer => {
+        targetLayer.parameters.blur = heatmapOptionsRef.current.blur;
+        targetLayer.parameters.radius = heatmapOptionsRef.current.radius;
+        targetLayer.type = 'HeatmapLayer';
+      },
+    });
   };
+
+  useOkSignal(okSignalPromise, handleOk);
 
   return (
     <div className="jp-gis-layer-symbology-container">

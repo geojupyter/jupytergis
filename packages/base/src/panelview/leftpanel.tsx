@@ -3,6 +3,7 @@ import {
   IJGISLayerItem,
   IJGISLayerTree,
   SelectionType,
+  IJupyterGISSettings,
 } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
@@ -10,6 +11,7 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
+import { CommandIDs } from '../constants';
 import { dragIcon } from '../icons';
 import { LayersBodyComponent } from './components/layers';
 import FilterComponent from './filter-panel/Filter';
@@ -31,40 +33,91 @@ interface ILeftPanelProps {
   model: IJupyterGISModel;
   state: IStateDB;
   commands: CommandRegistry;
+  settings: IJupyterGISSettings;
 }
 
 export const LeftPanel: React.FC<ILeftPanelProps> = (
   props: ILeftPanelProps,
 ) => {
-  const [settings, setSettings] = React.useState(props.model.jgisSettings);
   const [options, setOptions] = React.useState(props.model.getOptions());
   const storyMapPresentationMode = options.storyMapPresentationMode ?? false;
   const [layerTree, setLayerTree] = React.useState<IJGISLayerTree>(
     props.model.getLayerTree(),
   );
 
+  const hasSyncedInitialSelectionRef = React.useRef(false);
+
+  const tabInfo = [
+    !props.settings.layersDisabled
+      ? { name: 'layers', title: 'Layers' }
+      : false,
+    !props.settings.stacBrowserDisabled && !storyMapPresentationMode
+      ? { name: 'stac', title: 'Stac Browser' }
+      : false,
+    !props.settings.filtersDisabled && !storyMapPresentationMode
+      ? { name: 'filters', title: 'Filters' }
+      : false,
+    !props.settings.storyMapsDisabled
+      ? { name: 'segments', title: 'Segments' }
+      : false,
+  ].filter(Boolean) as { name: string; title: string }[];
+
+  const [curTab, setCurTab] = React.useState<string | undefined>(
+    tabInfo.length > 0 ? tabInfo[0].name : undefined,
+  );
+
   React.useEffect(() => {
-    const onSettingsChanged = () => {
-      setSettings({ ...props.model.jgisSettings });
-    };
     const onOptionsChanged = () => {
       setOptions({ ...props.model.getOptions() });
     };
     const updateLayerTree = () => {
-      setLayerTree(props.model.getLayerTree() || []);
+      const freshTree = props.model.getLayerTree() || [];
+      setLayerTree(freshTree);
+
+      // Sync selected to top layer/group only the first time the tree has items
+      if (!hasSyncedInitialSelectionRef.current && freshTree.length > 0) {
+        hasSyncedInitialSelectionRef.current = true;
+        const lastItem = freshTree[freshTree.length - 1];
+        const lastId = typeof lastItem === 'string' ? lastItem : lastItem?.name;
+        const lastType = typeof lastItem === 'string' ? 'layer' : 'group';
+        if (lastId) {
+          props.model.syncSelected(
+            { [lastId]: { type: lastType } },
+            props.model.getClientId().toString(),
+          );
+        }
+      }
+
+      // Need to let command know when segments get populated
+      props.commands.notifyCommandChanged(
+        CommandIDs.toggleStoryPresentationMode,
+      );
     };
 
-    props.model.settingsChanged.connect(onSettingsChanged);
+    const onSegmentAdded = (
+      _sender: IJupyterGISModel,
+      payload: { storySegmentId: string; storyId: string },
+    ) => {
+      props.model.syncSelected(
+        { [payload.storySegmentId]: { type: 'layer' } },
+        props.model.getClientId().toString(),
+      );
+
+      setCurTab('segments');
+    };
+
     props.model.sharedOptionsChanged.connect(onOptionsChanged);
     props.model.sharedModel.layersChanged.connect(updateLayerTree);
     props.model.sharedModel.layerTreeChanged.connect(updateLayerTree);
+    props.model.segmentAdded.connect(onSegmentAdded);
 
     updateLayerTree();
+
     return () => {
-      props.model.settingsChanged.disconnect(onSettingsChanged);
       props.model.sharedOptionsChanged.disconnect(onOptionsChanged);
       props.model.sharedModel.layersChanged.disconnect(updateLayerTree);
       props.model.sharedModel.layerTreeChanged.disconnect(updateLayerTree);
+      props.model.segmentAdded.disconnect(onSegmentAdded);
     };
   }, [props.model]);
 
@@ -148,29 +201,13 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
   }, [storySegmentLayerTree]);
 
   const allLeftTabsDisabled =
-    settings.layersDisabled &&
-    settings.stacBrowserDisabled &&
-    settings.filtersDisabled &&
-    settings.storyMapsDisabled;
+    props.settings.layersDisabled &&
+    props.settings.stacBrowserDisabled &&
+    props.settings.filtersDisabled &&
+    props.settings.storyMapsDisabled;
 
-  const leftPanelVisible = !settings.leftPanelDisabled && !allLeftTabsDisabled;
-
-  const tabInfo = [
-    !settings.layersDisabled ? { name: 'layers', title: 'Layers' } : false,
-    !settings.stacBrowserDisabled && !storyMapPresentationMode
-      ? { name: 'stac', title: 'Stac Browser' }
-      : false,
-    !settings.filtersDisabled && !storyMapPresentationMode
-      ? { name: 'filters', title: 'Filters' }
-      : false,
-    !settings.storyMapsDisabled
-      ? { name: 'segments', title: 'Segments' }
-      : false,
-  ].filter(Boolean) as { name: string; title: string }[];
-
-  const [curTab, setCurTab] = React.useState<string | undefined>(
-    tabInfo.length > 0 ? tabInfo[0].name : undefined,
-  );
+  const leftPanelVisible =
+    !props.settings.leftPanelDisabled && !allLeftTabsDisabled;
 
   return (
     <Draggable handle=".jgis-drag-handle" bounds="#jp-main-dock-panel">
@@ -201,7 +238,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
             ))}
           </TabsList>
 
-          {!settings.layersDisabled && (
+          {!props.settings.layersDisabled && (
             <TabsContent
               value="layers"
               className="jgis-panel-tab-content jp-gis-layerPanel"
@@ -215,13 +252,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
             </TabsContent>
           )}
 
-          {!settings.stacBrowserDisabled && (
-            <TabsContent value="stac" className="jgis-panel-tab-content">
-              <StacPanel model={props.model} />
-            </TabsContent>
-          )}
-
-          {!settings.stacBrowserDisabled && (
+          {!props.settings.stacBrowserDisabled && (
             <TabsContent
               value="stac"
               className="jgis-panel-tab-content jgis-panel-tab-content-stac-panel"
@@ -230,13 +261,13 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
             </TabsContent>
           )}
 
-          {!settings.filtersDisabled && (
+          {!props.settings.filtersDisabled && (
             <TabsContent value="filters" className="jgis-panel-tab-content">
               <FilterComponent model={props.model}></FilterComponent>
             </TabsContent>
           )}
 
-          {!settings.storyMapsDisabled && (
+          {!props.settings.storyMapsDisabled && (
             <TabsContent value="segments" className="jgis-panel-tab-content">
               <LayersBodyComponent
                 model={props.model}
