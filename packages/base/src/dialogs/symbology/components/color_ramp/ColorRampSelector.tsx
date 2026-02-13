@@ -39,7 +39,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   useColorMapList(setColorMaps);
 
   useEffect(() => {
-    if (colorMaps.length > 0 && selectedRamp) {
+    if (colorMaps.length > 0) {
       updateCanvas(selectedRamp);
     }
   }, [selectedRamp, colorMaps]);
