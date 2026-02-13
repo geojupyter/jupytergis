@@ -9,6 +9,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
+import Draggable from 'react-draggable';
 
 import { CommandIDs } from '../constants';
 import { LayersBodyComponent } from './components/layers';
@@ -208,70 +209,76 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     !props.settings.leftPanelDisabled && !allLeftTabsDisabled;
 
   return (
-    <div
-      className="jgis-left-panel-container"
-      style={{ display: leftPanelVisible ? 'block' : 'none' }}
+    <Draggable
+      handle=".jgis-tabs-list"
+      cancel=".jgis-tabs-trigger"
+      bounds=".jGIS-Mainview-Container"
     >
-      <PanelTabs curTab={curTab} className="jgis-panel-tabs">
-        <TabsList>
-          {tabInfo.map(tab => (
-            <TabsTrigger
-              className="jGIS-layer-browser-category"
-              key={tab.name}
-              value={tab.name}
-              onClick={() => {
-                if (curTab !== tab.name) {
-                  setCurTab(tab.name);
-                } else {
-                  setCurTab('');
-                }
-              }}
+      <div
+        className="jgis-left-panel-container"
+        style={{ display: leftPanelVisible ? 'block' : 'none' }}
+      >
+        <PanelTabs curTab={curTab} className="jgis-panel-tabs">
+          <TabsList>
+            {tabInfo.map(tab => (
+              <TabsTrigger
+                className="jGIS-layer-browser-category"
+                key={tab.name}
+                value={tab.name}
+                onClick={() => {
+                  if (curTab !== tab.name) {
+                    setCurTab(tab.name);
+                  } else {
+                    setCurTab('');
+                  }
+                }}
+              >
+                {tab.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {!props.settings.layersDisabled && (
+            <TabsContent
+              value="layers"
+              className="jgis-panel-tab-content jp-gis-layerPanel"
             >
-              {tab.title}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+              <LayersBodyComponent
+                model={props.model}
+                commands={props.commands}
+                state={props.state}
+                layerTree={filteredLayerTree}
+              ></LayersBodyComponent>
+            </TabsContent>
+          )}
 
-        {!props.settings.layersDisabled && (
-          <TabsContent
-            value="layers"
-            className="jgis-panel-tab-content jp-gis-layerPanel"
-          >
-            <LayersBodyComponent
-              model={props.model}
-              commands={props.commands}
-              state={props.state}
-              layerTree={filteredLayerTree}
-            ></LayersBodyComponent>
-          </TabsContent>
-        )}
+          {!props.settings.stacBrowserDisabled && (
+            <TabsContent
+              value="stac"
+              className="jgis-panel-tab-content jgis-panel-tab-content-stac-panel"
+            >
+              <StacPanel model={props.model} />
+            </TabsContent>
+          )}
 
-        {!props.settings.stacBrowserDisabled && (
-          <TabsContent
-            value="stac"
-            className="jgis-panel-tab-content jgis-panel-tab-content-stac-panel"
-          >
-            <StacPanel model={props.model} />
-          </TabsContent>
-        )}
+          {!props.settings.filtersDisabled && (
+            <TabsContent value="filters" className="jgis-panel-tab-content">
+              <FilterComponent model={props.model}></FilterComponent>
+            </TabsContent>
+          )}
 
-        {!props.settings.filtersDisabled && (
-          <TabsContent value="filters" className="jgis-panel-tab-content">
-            <FilterComponent model={props.model}></FilterComponent>
-          </TabsContent>
-        )}
-
-        {!props.settings.storyMapsDisabled && (
-          <TabsContent value="segments" className="jgis-panel-tab-content">
-            <LayersBodyComponent
-              model={props.model}
-              commands={props.commands}
-              state={props.state}
-              layerTree={storySegmentLayerTree}
-            ></LayersBodyComponent>
-          </TabsContent>
-        )}
-      </PanelTabs>
-    </div>
+          {!props.settings.storyMapsDisabled && (
+            <TabsContent value="segments" className="jgis-panel-tab-content">
+              <LayersBodyComponent
+                model={props.model}
+                commands={props.commands}
+                state={props.state}
+                layerTree={storySegmentLayerTree}
+              ></LayersBodyComponent>
+            </TabsContent>
+          )}
+        </PanelTabs>
+      </div>
+    </Draggable>
   );
 };
