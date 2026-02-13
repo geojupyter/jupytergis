@@ -13,7 +13,7 @@
   justify-content: space-evenly;
   background-color: var(--jp-layout-color2);
   color: var(--jp-ui-font-color0);
-  cursor: move;
+  cursor: grab;
   gap: 1rem;
   width: 100%;
   font-size: 9px;
@@ -21,7 +21,7 @@
 }
 
 .jgis-tabs-list:active {
-  cursor: grab;
+  cursor: grabbing;
 }
 
 .jgis-tabs-trigger {
