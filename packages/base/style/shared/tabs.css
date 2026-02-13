@@ -21,7 +21,7 @@
 }
 
 .jgis-tabs-list:active {
-  cursor: move;
+  cursor: grab;
 }
 
 .jgis-tabs-trigger {
