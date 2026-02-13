@@ -13,7 +13,6 @@ import Draggable from 'react-draggable';
 import { AnnotationsPanel } from './annotationPanel';
 import { IdentifyPanelComponent } from './identify-panel/IdentifyPanel';
 import { ObjectPropertiesReact } from './objectproperties';
-import { dragIcon } from '../icons';
 import { PreviewModeSwitch } from './story-maps/PreviewModeSwitch';
 import StoryEditorPanel from './story-maps/StoryEditorPanel';
 import StoryViewerPanel from './story-maps/StoryViewerPanel';
@@ -122,14 +121,15 @@ export const RightPanel: React.FC<IRightPanelProps> = props => {
   };
 
   return (
-    <Draggable handle=".jgis-drag-handle" bounds="#jp-main-dock-panel">
+    <Draggable
+      handle=".jgis-tabs-list"
+      cancel=".jgis-tabs-trigger"
+      bounds=".jGIS-Mainview-Container"
+    >
       <div
         className="jgis-right-panel-container"
         style={{ display: rightPanelVisible ? 'block' : 'none' }}
       >
-        <div className="jgis-drag-handle">
-          <dragIcon.react tag="div" className="jgis-drag-icon" />
-        </div>
         <PanelTabs className="jgis-panel-tabs" curTab={curTab}>
           <TabsList>
             {tabInfo.map(tab => (

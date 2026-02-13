@@ -12,7 +12,6 @@ import * as React from 'react';
 import Draggable from 'react-draggable';
 
 import { CommandIDs } from '../constants';
-import { dragIcon } from '../icons';
 import { LayersBodyComponent } from './components/layers';
 import FilterComponent from './filter-panel/Filter';
 import {
@@ -210,14 +209,15 @@ export const LeftPanel: React.FC<ILeftPanelProps> = (
     !props.settings.leftPanelDisabled && !allLeftTabsDisabled;
 
   return (
-    <Draggable handle=".jgis-drag-handle" bounds="#jp-main-dock-panel">
+    <Draggable
+      handle=".jgis-tabs-list"
+      cancel=".jgis-tabs-trigger"
+      bounds=".jGIS-Mainview-Container"
+    >
       <div
         className="jgis-left-panel-container"
         style={{ display: leftPanelVisible ? 'block' : 'none' }}
       >
-        <div className="jgis-drag-handle">
-          <dragIcon.react tag="div" className="jgis-drag-icon" />
-        </div>
         <PanelTabs curTab={curTab} className="jgis-panel-tabs">
           <TabsList>
             {tabInfo.map(tab => (

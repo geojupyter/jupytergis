@@ -9,7 +9,6 @@ import { LabIcon } from '@jupyterlab/ui-components';
 
 import bookOpenSvgStr from '../style/icons/book_open.svg';
 import clockSvgStr from '../style/icons/clock-solid.svg';
-import dragSvgStr from '../style/icons/drag.svg';
 import geoJsonSvgStr from '../style/icons/geojson.svg';
 import geolocationSvgStr from '../style/icons/geolocation.svg';
 import infoSvgStr from '../style/icons/info-solid.svg';
@@ -115,9 +114,4 @@ export const targetWithCenterIcon = new LabIcon({
 export const markerIcon = new LabIcon({
   name: 'jupytergis::marker',
   svgstr: markerSvgStr,
-});
-
-export const dragIcon = new LabIcon({
-  name: 'jupytergis::drag',
-  svgstr: dragSvgStr,
 });

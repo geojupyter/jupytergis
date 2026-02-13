@@ -6,49 +6,6 @@
   background-color: var(--jp-layout-color0);
 }
 
-.jgis-drag-handle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  cursor: grab;
-  color: var(--jp-ui-font-color1);
-  user-select: none;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
-  background-color: var(--jp-layout-color2, rgba(0, 0, 0, 0.05));
-  border-radius: 2px;
-}
-
-.jgis-drag-handle:hover,
-.jgis-drag-handle:active {
-  outline: 2px solid var(--jp-brand-color1, rgb(22, 147, 248));
-  outline-offset: -1px;
-  border-radius: 2px;
-}
-
-.jgis-drag-handle:active {
-  cursor: grabbing;
-}
-
-.jgis-drag-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    transform 0.1s ease,
-    box-shadow 0.2s ease;
-}
-
-.jgis-drag-icon svg {
-  width: 14px;
-  height: 14px;
-  fill: currentColor;
-  pointer-events: none;
-}
-
 .jgis-tabs-list {
   display: inline-flex;
   height: 2.5rem;
@@ -56,10 +13,15 @@
   justify-content: space-evenly;
   background-color: var(--jp-layout-color2);
   color: var(--jp-ui-font-color0);
+  cursor: move;
   gap: 1rem;
   width: 100%;
   font-size: 9px;
   overflow-x: scroll;
+}
+
+.jgis-tabs-list:active {
+  cursor: move;
 }
 
 .jgis-tabs-trigger {
