@@ -22,17 +22,21 @@
       "properties": {
         "title": {
           "title": "Segment Title",
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "image": {
           "type": "string",
-          "description": "Link to image for the story"
+          "description": "Link to image for the story",
+          "default": ""
         },
         "markdown": {
           "type": "string",
-          "description": "Markdown string representing the content of the story stop"
+          "description": "Markdown string representing the content of the story stop",
+          "default": ""
         }
-      }
+      },
+      "default": {}
     },
     "transition": {
       "type": "object",
@@ -50,7 +54,8 @@
           "default": 1
         }
       },
-      "required": ["type", "time"]
+      "required": ["type", "time"],
+      "default": { "type": "linear", "time": 1 }
     },
     "layerOverride": {
       "type": "array",
@@ -91,7 +96,8 @@
             "default": {}
           }
         }
-      }
+      },
+      "default": []
     }
   }
 }

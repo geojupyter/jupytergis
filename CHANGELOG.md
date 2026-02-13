@@ -2,6 +2,32 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.13.1
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.13.0...afc359c45c00ef8e31ba27af4e7e47f93ba72855))
+
+### Bugs fixed
+
+- UI changes not reflected in file bug fix [#1114](https://github.com/geojupyter/jupytergis/pull/1114) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- UI related bug fixes and examples update [#1110](https://github.com/geojupyter/jupytergis/pull/1110) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Missed some renames [#1108](https://github.com/geojupyter/jupytergis/pull/1108) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou), [@nakul-py](https://github.com/nakul-py))
+
+### Documentation improvements
+
+- Fix docs build [#1115](https://github.com/geojupyter/jupytergis/pull/1115) ([@martinRenou](https://github.com/martinRenou), [@nakul-py](https://github.com/nakul-py))
+- Add story map sharing section to docs [#1107](https://github.com/geojupyter/jupytergis/pull/1107) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-02-06&to=2026-02-12&type=c))
+
+@gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-02-06..2026-02-12&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-02-06..2026-02-12&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-02-06..2026-02-12&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-02-06..2026-02-12&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.13.0
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.12.2...e1850c15360674f0bfe65fd5c0775d12f8f82501))
@@ -28,8 +54,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-02-04&to=2026-02-06&type=c))
 
 @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-02-04..2026-02-06&type=Issues)) | @HaudinFlorence ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AHaudinFlorence+updated%3A2026-02-04..2026-02-06&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-02-04..2026-02-06&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.12.2
 

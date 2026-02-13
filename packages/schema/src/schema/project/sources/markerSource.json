@@ -7,7 +7,8 @@
   "properties": {
     "color": {
       "type": "string",
-      "description": "Color of the marker icon (hex, rgb, rgba, or named color)"
+      "description": "Color of the marker icon (hex, rgb, rgba, or named color)",
+      "default": ""
     },
     "feature": {
       "type": "object",
@@ -20,9 +21,11 @@
           "maxItems": 2,
           "items": {
             "type": "number"
-          }
+          },
+          "default": [0, 0]
         }
-      }
+      },
+      "default": { "coords": [0, 0] }
     }
   }
 }
