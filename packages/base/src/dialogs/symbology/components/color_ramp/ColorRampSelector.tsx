@@ -42,7 +42,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
     if (colorMaps.length > 0) {
       updateCanvas(selectedRamp);
     }
-  }, [selectedRamp]);
+  }, [selectedRamp, colorMaps]);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
