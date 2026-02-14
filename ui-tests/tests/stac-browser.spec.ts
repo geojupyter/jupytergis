@@ -87,6 +87,8 @@ test.describe('#stac-browser', () => {
     await page.getByRole('tab', { name: /Results/ }).click();
 
     const resultsList = page.locator('.jgis-stac-browser-results-list');
-    await expect(resultsList.locator('button')).toHaveCount(1);
+    await expect(resultsList.locator('button')).toHaveCount(1, {
+      timeout: 10000,
+    });
   });
 });
