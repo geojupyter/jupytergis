@@ -10,7 +10,16 @@ test.describe('context menu', () => {
       '/testDir',
     );
   });
-  test.beforeEach(async ({ page }) => {
+
+  test.beforeEach(async ({ page, request }) => {
+    const content = galata.newContentsHelper(request);
+    // Ensure clean state
+    await content.deleteFile('/testDir/context-test.jGIS').catch(() => {});
+    // Upload fresh copy for every test
+    await content.uploadFile(
+      path.resolve(__dirname, './gis-files/context-test.jGIS'),
+      '/testDir/context-test.jGIS',
+    );
     await page.filebrowser.open('testDir/context-test.jGIS');
   });
 
@@ -136,7 +145,6 @@ test.describe('context menu', () => {
 
     // Select the layer
     await layerText.click();
-    await page.waitForTimeout(1000);
     await expect(layerItem).toHaveClass(/jp-mod-selected/);
 
     // Start rename with F2
