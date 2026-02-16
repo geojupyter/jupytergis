@@ -2131,177 +2131,134 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _setupStoryScrollListener = (): void => {
-    const segmentNavigationThrottle = 750; // Minimum time between segment changes (ms)
+    // Story scroll: rAF coalescing (one decision per frame), edge state from
+    // IntersectionObserver (no layout reads), throttle on segment changes.
+    const segmentNavigationThrottle = 750; // ms between segment changes
 
-    // Guard: don't allow wheel-driven segment change until segment transition has ended
-    let lastSegmentChangeScrollHeight: number | null = null;
-    let lastSegmentChangeScrollTop: number | null = null;
-
+    // Guard: block wheel-driven segment change until transition has ended
+    let segmentChangeInProgress = false;
     const clearGuard = (): void => {
-      lastSegmentChangeScrollHeight = null;
-      lastSegmentChangeScrollTop = null;
-      console.log('[story-scroll] guard cleared (transition ended)');
+      segmentChangeInProgress = false;
+      // console.log('[story-scroll] guard cleared (transition ended)');
     };
     this._clearStoryScrollGuard = clearGuard;
 
-    // Create throttled functions that call the current panel handle dynamically
     const throttledHandleNext = throttle(() => {
-      const panelHandle = this.storyViewerPanelRef.current;
-      panelHandle?.handleNext();
+      this.storyViewerPanelRef.current?.handleNext();
     }, segmentNavigationThrottle);
 
     const throttledHandlePrev = throttle(() => {
-      const panelHandle = this.storyViewerPanelRef.current;
-      panelHandle?.handlePrev();
+      this.storyViewerPanelRef.current?.handlePrev();
     }, segmentNavigationThrottle);
 
-    // rAF coalescing: one layout read and one decision per frame
     let accumulatedDeltaY = 0;
 
     const flushStoryScroll = (): void => {
       this._pendingStoryScrollRafId = null;
+
       const currentPanelHandle = this.storyViewerPanelRef.current;
-      if (!currentPanelHandle || !currentPanelHandle.canNavigate) {
+      if (!currentPanelHandle?.canNavigate) {
         accumulatedDeltaY = 0;
         return;
       }
 
       const storyViewerPanel = document.querySelector(
         '.jgis-story-viewer-panel',
-      ) as HTMLElement;
+      ) as HTMLElement | null;
       if (!storyViewerPanel) {
         accumulatedDeltaY = 0;
         return;
       }
 
-      // Edge state from IntersectionObserver (no layout read for at-top/at-bottom)
       const isAtTop = currentPanelHandle.getAtTop();
       const isAtBottom = currentPanelHandle.getAtBottom();
-
       const deltaY = accumulatedDeltaY;
       accumulatedDeltaY = 0;
 
-      // Layout read only for hasOverflow and scroll application
-      const scrollTop = storyViewerPanel.scrollTop;
-      const scrollHeight = storyViewerPanel.scrollHeight;
-      const clientHeight = storyViewerPanel.clientHeight;
-
-      const hasOverflow = scrollHeight > clientHeight;
+      const hasOverflow = !(isAtTop && isAtBottom);
       const isScrollingDown = deltaY > 0;
       const isScrollingUp = deltaY < 0;
 
-      console.log('hasOverflow', hasOverflow);
+      // console.log('[story-scroll] flush', {
+      //   isAtTop,
+      //   isAtBottom,
+      //   deltaY,
+      //   hasOverflow,
+      //   hasPrev: currentPanelHandle.hasPrev,
+      //   hasNext: currentPanelHandle.hasNext,
+      // });
 
-      // No overflow: segment change per scroll direction
       if (!hasOverflow) {
         if (isScrollingDown && !currentPanelHandle.hasNext) {
+          // console.log(
+          //   '[story-scroll] no-op (no overflow, last segment, scroll down)',
+          // );
           return;
         }
         if (isScrollingUp && !currentPanelHandle.hasPrev) {
+          // console.log(
+          //   '[story-scroll] no-op (no overflow, first segment, scroll up)',
+          // );
           return;
         }
-        if (
-          lastSegmentChangeScrollHeight !== null &&
-          lastSegmentChangeScrollTop !== null
-        ) {
-          console.log(
-            '[story-scroll] block segment change (no overflow, guard active)',
-            {
-              stored: {
-                scrollHeight: lastSegmentChangeScrollHeight,
-                scrollTop: lastSegmentChangeScrollTop,
-              },
-              current: { scrollHeight, scrollTop },
-            },
-          );
+        if (segmentChangeInProgress) {
+          // console.log(
+          //   '[story-scroll] block segment change (no overflow, guard active)',
+          // );
           return;
         }
-        console.log('[story-scroll] set guard + segment change (no overflow)', {
-          scrollHeight,
-          scrollTop,
-        });
-        lastSegmentChangeScrollHeight = scrollHeight;
-        lastSegmentChangeScrollTop = scrollTop;
+        // console.log('[story-scroll] segment change (no overflow)', {
+        //   direction: isScrollingDown ? 'next' : 'prev',
+        // });
+        segmentChangeInProgress = true;
         isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
         return;
       }
 
-      // Overflow: at edges change segment, else forward scroll
       if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
         if (isScrollingDown && isAtBottom && !currentPanelHandle.hasNext) {
+          // console.log('[story-scroll] no-op (at bottom, last segment)');
           return;
         }
         if (isScrollingUp && isAtTop && !currentPanelHandle.hasPrev) {
+          // console.log('[story-scroll] no-op (at top, first segment)');
           return;
         }
-        if (
-          lastSegmentChangeScrollHeight !== null &&
-          lastSegmentChangeScrollTop !== null
-        ) {
-          console.log(
-            '[story-scroll] block segment change (at edge, guard active)',
-            {
-              atBottom: isAtBottom,
-              atTop: isAtTop,
-              stored: {
-                scrollHeight: lastSegmentChangeScrollHeight,
-                scrollTop: lastSegmentChangeScrollTop,
-              },
-              current: { scrollHeight, scrollTop },
-            },
-          );
+        if (segmentChangeInProgress) {
+          // console.log(
+          //   '[story-scroll] block segment change (at edge, guard active)',
+          // );
           return;
         }
-        console.log('[story-scroll] set guard + segment change (at edge)', {
-          atBottom: isAtBottom,
-          atTop: isAtTop,
-          scrollHeight,
-          scrollTop,
-        });
-        lastSegmentChangeScrollHeight = scrollHeight;
-        lastSegmentChangeScrollTop = scrollTop;
+        // console.log('[story-scroll] segment change (at edge)', {
+        //   atBottom: isAtBottom,
+        //   atTop: isAtTop,
+        //   direction: isScrollingDown ? 'next' : 'prev',
+        // });
+        segmentChangeInProgress = true;
         isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
         return;
       }
 
-      // Not at edge: apply accumulated scroll to panel
-      const newScrollTop = Math.max(
-        0,
-        Math.min(scrollHeight - clientHeight, scrollTop + deltaY),
-      );
-      storyViewerPanel.scrollTop = newScrollTop;
+      console.log('[story-scroll] scroll panel', { deltaY });
+      storyViewerPanel.scrollBy({ top: deltaY });
     };
 
     const handleScroll = (e: Event) => {
-      const currentPanelHandle = this.storyViewerPanelRef.current;
-      if (!currentPanelHandle || !currentPanelHandle.canNavigate) {
+      if (!this.storyViewerPanelRef.current?.canNavigate) {
         return;
       }
-
-      const storyViewerPanel = document.querySelector(
-        '.jgis-story-viewer-panel',
-      ) as HTMLElement;
-      if (!storyViewerPanel) {
-        return;
-      }
-
-      const wheelEvent = e as WheelEvent;
-      wheelEvent.preventDefault();
-      accumulatedDeltaY += wheelEvent.deltaY;
-
+      (e as WheelEvent).preventDefault();
+      accumulatedDeltaY += (e as WheelEvent).deltaY;
       if (this._pendingStoryScrollRafId === null) {
         this._pendingStoryScrollRafId = requestAnimationFrame(flushStoryScroll);
       }
     };
 
     this._storyScrollHandler = handleScroll;
-
-    // Attach wheel event listener to the main container
-    const containerElement = document.querySelector('.jGIS-Mainview-Container');
-    if (containerElement) {
-      containerElement.addEventListener('wheel', handleScroll, {
-        passive: false,
-      });
+    const container = document.querySelector('.jGIS-Mainview-Container');
+    if (container) {
+      container.addEventListener('wheel', handleScroll, { passive: false });
     }
   };
 
