@@ -45,6 +45,8 @@ export interface IStoryViewerPanelHandle {
   canNavigate: boolean;
   hasPrev: boolean;
   hasNext: boolean;
+  getAtTop: () => boolean;
+  getAtBottom: () => boolean;
 }
 
 /**
@@ -103,6 +105,10 @@ const StoryViewerPanel = forwardRef<
     const [imageLoaded, setImageLoaded] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
     const segmentContainerRef = useRef<HTMLDivElement>(null);
+    const topSentinelRef = useRef<HTMLDivElement>(null);
+    const bottomSentinelRef = useRef<HTMLDivElement>(null);
+    const atTopRef = useRef(false);
+    const atBottomRef = useRef(false);
 
     const setIndex = useCallback(
       (index: number) => {
@@ -427,6 +433,31 @@ const StoryViewerPanel = forwardRef<
       hasNext,
     };
 
+    // IntersectionObserver for at-top/at-bottom (avoids layout reads in scroll path)
+    useEffect(() => {
+      const root = panelRef.current;
+      const topEl = topSentinelRef.current;
+      const bottomEl = bottomSentinelRef.current;
+      if (!root || !topEl || !bottomEl) {
+        return;
+      }
+      const observer = new IntersectionObserver(
+        (entries: IntersectionObserverEntry[]) => {
+          for (const entry of entries) {
+            if (entry.target === topEl) {
+              atTopRef.current = entry.isIntersecting;
+            } else if (entry.target === bottomEl) {
+              atBottomRef.current = entry.isIntersecting;
+            }
+          }
+        },
+        { root, threshold: 0, rootMargin: '0px' },
+      );
+      observer.observe(topEl);
+      observer.observe(bottomEl);
+      return () => observer.disconnect();
+    }, [currentIndexDisplayed]);
+
     // Expose methods via ref for parent component to use
     useImperativeHandle(
       ref,
@@ -436,6 +467,8 @@ const StoryViewerPanel = forwardRef<
         canNavigate: isSpecta,
         hasPrev,
         hasNext,
+        getAtTop: () => atTopRef.current,
+        getAtBottom: () => atBottomRef.current,
       }),
       [handlePrev, handleNext, storyData, isSpecta, hasPrev, hasNext],
     );
@@ -480,6 +513,12 @@ const StoryViewerPanel = forwardRef<
         id="jgis-story-segment-panel"
       >
         <div
+          ref={topSentinelRef}
+          aria-hidden
+          data-story-scroll-sentinel="top"
+          style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
+        />
+        <div
           ref={segmentContainerRef}
           key={currentIndexDisplayed}
           className="jgis-story-segment-container"
@@ -521,6 +560,12 @@ const StoryViewerPanel = forwardRef<
             />
           </div>
         </div>
+        <div
+          ref={bottomSentinelRef}
+          aria-hidden
+          data-story-scroll-sentinel="bottom"
+          style={{ height: 1, minHeight: 1, pointerEvents: 'none' }}
+        />
       </div>
     );
   },

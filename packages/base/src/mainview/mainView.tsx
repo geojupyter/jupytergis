@@ -2132,7 +2132,6 @@ export class MainView extends React.Component<IProps, IStates> {
 
   private _setupStoryScrollListener = (): void => {
     const segmentNavigationThrottle = 750; // Minimum time between segment changes (ms)
-    const SCROLL_EDGE_THRESHOLD = 0; // Pixels from top/bottom to trigger segment change
 
     // Guard: don't allow wheel-driven segment change until segment transition has ended
     let lastSegmentChangeScrollHeight: number | null = null;
@@ -2175,17 +2174,19 @@ export class MainView extends React.Component<IProps, IStates> {
         return;
       }
 
-      // Single layout read per frame
-      const scrollTop = storyViewerPanel.scrollTop;
-      const scrollHeight = storyViewerPanel.scrollHeight;
-      const clientHeight = storyViewerPanel.clientHeight;
+      // Edge state from IntersectionObserver (no layout read for at-top/at-bottom)
+      const isAtTop = currentPanelHandle.getAtTop();
+      const isAtBottom = currentPanelHandle.getAtBottom();
+
       const deltaY = accumulatedDeltaY;
       accumulatedDeltaY = 0;
 
+      // Layout read only for hasOverflow and scroll application
+      const scrollTop = storyViewerPanel.scrollTop;
+      const scrollHeight = storyViewerPanel.scrollHeight;
+      const clientHeight = storyViewerPanel.clientHeight;
+
       const hasOverflow = scrollHeight > clientHeight;
-      const isAtBottom =
-        scrollTop + clientHeight >= scrollHeight - SCROLL_EDGE_THRESHOLD;
-      const isAtTop = scrollTop <= SCROLL_EDGE_THRESHOLD;
       const isScrollingDown = deltaY > 0;
       const isScrollingUp = deltaY < 0;
 
