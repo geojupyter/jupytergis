@@ -433,7 +433,10 @@ const StoryViewerPanel = forwardRef<
       hasNext,
     };
 
-    // IntersectionObserver for at-top/at-bottom (avoids layout reads in scroll path)
+    // IntersectionObserver for at-top/at-bottom (avoids layout reads in scroll path).
+    // Updates are debounced so we don't use transient state on slow hardware.
+    const EDGE_UPDATE_DELAY_MS = 1000;
+
     useEffect(() => {
       const root = panelRef.current;
       const topEl = topSentinelRef.current;
@@ -441,21 +444,41 @@ const StoryViewerPanel = forwardRef<
       if (!root || !topEl || !bottomEl) {
         return;
       }
+
+      let latestTop = atTopRef.current;
+      let latestBottom = atBottomRef.current;
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+      const applyPending = (): void => {
+        atTopRef.current = latestTop;
+        atBottomRef.current = latestBottom;
+        timeoutId = null;
+      };
+
       const observer = new IntersectionObserver(
         (entries: IntersectionObserverEntry[]) => {
           for (const entry of entries) {
             if (entry.target === topEl) {
-              atTopRef.current = entry.isIntersecting;
+              latestTop = entry.isIntersecting;
             } else if (entry.target === bottomEl) {
-              atBottomRef.current = entry.isIntersecting;
+              latestBottom = entry.isIntersecting;
             }
           }
+          if (timeoutId !== null) {
+            clearTimeout(timeoutId);
+          }
+          timeoutId = setTimeout(applyPending, EDGE_UPDATE_DELAY_MS);
         },
         { root, threshold: 0, rootMargin: '0px' },
       );
       observer.observe(topEl);
       observer.observe(bottomEl);
-      return () => observer.disconnect();
+      return () => {
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+        observer.disconnect();
+      };
     }, [currentIndexDisplayed]);
 
     // Expose methods via ref for parent component to use
