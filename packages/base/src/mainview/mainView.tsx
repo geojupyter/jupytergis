@@ -2134,14 +2134,28 @@ export class MainView extends React.Component<IProps, IStates> {
     const segmentNavigationThrottle = 750; // Minimum time between segment changes (ms)
     const SCROLL_EDGE_THRESHOLD = 0; // Pixels from top/bottom to trigger segment change
 
+    // Guard: don't allow wheel-driven segment change until segment transition has ended
+    let lastSegmentChangeScrollHeight: number | null = null;
+    let lastSegmentChangeScrollTop: number | null = null;
+
+    const clearGuard = (): void => {
+      lastSegmentChangeScrollHeight = null;
+      lastSegmentChangeScrollTop = null;
+      console.log('[story-scroll] guard cleared (transition ended)');
+    };
+    this._clearStoryScrollGuard = clearGuard;
+
     // Create throttled functions that call the current panel handle dynamically
     const throttledHandleNext = throttle(() => {
       const panelHandle = this.storyViewerPanelRef.current;
+      // console.log('panelHandle next', panelHandle);
       panelHandle?.handleNext();
     }, segmentNavigationThrottle);
 
     const throttledHandlePrev = throttle(() => {
       const panelHandle = this.storyViewerPanelRef.current;
+      // console.log('panelHandle prev', panelHandle);
+
       panelHandle?.handlePrev();
     }, segmentNavigationThrottle);
 
@@ -2159,35 +2173,98 @@ export class MainView extends React.Component<IProps, IStates> {
         '.jgis-story-viewer-panel',
       ) as HTMLElement;
 
-      // If no panel found, change segments normally
       if (!storyViewerPanel) {
-        wheelEvent.preventDefault();
-        wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
         return;
       }
 
-      const hasOverflow =
-        storyViewerPanel.scrollHeight > storyViewerPanel.clientHeight;
+      const scrollTop = storyViewerPanel.scrollTop;
+      const scrollHeight = storyViewerPanel.scrollHeight;
+      const clientHeight = storyViewerPanel.clientHeight;
+
+      const hasOverflow = scrollHeight > clientHeight;
+
+      console.log('hasOverflow', hasOverflow);
 
       // If panel has no overflow, change segments normally
       if (!hasOverflow) {
+        // Don't set guard or navigate when already at first/last segment
+        if (wheelEvent.deltaY > 0 && !currentPanelHandle.hasNext) {
+          return;
+        }
+        if (wheelEvent.deltaY < 0 && !currentPanelHandle.hasPrev) {
+          return;
+        }
+        if (
+          lastSegmentChangeScrollHeight !== null &&
+          lastSegmentChangeScrollTop !== null
+        ) {
+          console.log(
+            '[story-scroll] block segment change (no overflow, guard active)',
+            {
+              stored: {
+                scrollHeight: lastSegmentChangeScrollHeight,
+                scrollTop: lastSegmentChangeScrollTop,
+              },
+              current: { scrollHeight, scrollTop },
+            },
+          );
+          wheelEvent.preventDefault();
+          return;
+        }
+        console.log('[story-scroll] set guard + segment change (no overflow)', {
+          scrollHeight,
+          scrollTop,
+        });
+        lastSegmentChangeScrollHeight = scrollHeight;
+        lastSegmentChangeScrollTop = scrollTop;
         wheelEvent.preventDefault();
         wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
         return;
       }
 
       // Panel has overflow - handle scroll forwarding and edge detection
-      const scrollTop = storyViewerPanel.scrollTop;
-      const scrollHeight = storyViewerPanel.scrollHeight;
-      const clientHeight = storyViewerPanel.clientHeight;
       const isAtBottom =
         scrollTop + clientHeight >= scrollHeight - SCROLL_EDGE_THRESHOLD;
       const isAtTop = scrollTop <= SCROLL_EDGE_THRESHOLD;
       const isScrollingDown = wheelEvent.deltaY > 0;
       const isScrollingUp = wheelEvent.deltaY < 0;
 
-      // At edges: change segments
+      // At edges: change segments (only when layout has settled from previous change)
       if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
+        // Don't set guard or navigate when already at first/last segment
+        if (isScrollingDown && isAtBottom && !currentPanelHandle.hasNext) {
+          return;
+        }
+        if (isScrollingUp && isAtTop && !currentPanelHandle.hasPrev) {
+          return;
+        }
+        if (
+          lastSegmentChangeScrollHeight !== null &&
+          lastSegmentChangeScrollTop !== null
+        ) {
+          console.log(
+            '[story-scroll] block segment change (at edge, guard active)',
+            {
+              atBottom: isAtBottom,
+              atTop: isAtTop,
+              stored: {
+                scrollHeight: lastSegmentChangeScrollHeight,
+                scrollTop: lastSegmentChangeScrollTop,
+              },
+              current: { scrollHeight, scrollTop },
+            },
+          );
+          wheelEvent.preventDefault();
+          return;
+        }
+        console.log('[story-scroll] set guard + segment change (at edge)', {
+          atBottom: isAtBottom,
+          atTop: isAtTop,
+          scrollHeight,
+          scrollTop,
+        });
+        lastSegmentChangeScrollHeight = scrollHeight;
+        lastSegmentChangeScrollTop = scrollTop;
         wheelEvent.preventDefault();
         isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
         return;
@@ -2812,6 +2889,9 @@ export class MainView extends React.Component<IProps, IStates> {
                         model={this._model}
                         isSpecta={this.state.isSpectaPresentation}
                         className="jgis-story-viewer-panel-specta-mod"
+                        onSegmentTransitionEnd={() =>
+                          this._clearStoryScrollGuard()
+                        }
                       />
                     </div>
                   </div>
@@ -2862,6 +2942,7 @@ export class MainView extends React.Component<IProps, IStates> {
   private _featurePropertyCache: Map<string | number, any> = new Map();
   private _isSpectaPresentationInitialized = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
+  private _clearStoryScrollGuard: () => void = () => {};
 }
 
 // ! TODO make mainview a modern react component instead of a class

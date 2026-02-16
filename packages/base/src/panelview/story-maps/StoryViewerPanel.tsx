@@ -35,12 +35,16 @@ interface IStoryViewerPanelProps {
   className?: string;
   addLayer?: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer?: (id: string) => void;
+  /** Called when the segment transition animation has finished (e.g. for scroll-guard cleanup). */
+  onSegmentTransitionEnd?: () => void;
 }
 
 export interface IStoryViewerPanelHandle {
   handlePrev: () => void;
   handleNext: () => void;
   canNavigate: boolean;
+  hasPrev: boolean;
+  hasNext: boolean;
 }
 
 /**
@@ -79,7 +83,15 @@ const StoryViewerPanel = forwardRef<
   IStoryViewerPanelProps
 >(
   (
-    { model, isSpecta, isMobile = false, className, addLayer, removeLayer },
+    {
+      model,
+      isSpecta,
+      isMobile = false,
+      className,
+      addLayer,
+      removeLayer,
+      onSegmentTransitionEnd,
+    },
     ref,
   ) => {
     const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(() =>
@@ -90,6 +102,7 @@ const StoryViewerPanel = forwardRef<
     );
     const [imageLoaded, setImageLoaded] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
+    const segmentContainerRef = useRef<HTMLDivElement>(null);
 
     const setIndex = useCallback(
       (index: number) => {
@@ -421,8 +434,10 @@ const StoryViewerPanel = forwardRef<
         handlePrev,
         handleNext,
         canNavigate: isSpecta,
+        hasPrev,
+        hasNext,
       }),
-      [handlePrev, handleNext, storyData, isSpecta],
+      [handlePrev, handleNext, storyData, isSpecta, hasPrev, hasNext],
     );
 
     const hasImage = !!(activeSlide?.content?.image && imageLoaded);
@@ -442,6 +457,22 @@ const StoryViewerPanel = forwardRef<
     // Get transition time from current segment, default to 0.3s
     const transitionTime = activeSlide?.transition?.time ?? 0.3;
 
+    // Notify parent when segment transition animation ends (e.g. for scroll-guard cleanup)
+    useEffect(() => {
+      const el = segmentContainerRef.current;
+      if (!el || !onSegmentTransitionEnd) {
+        return;
+      }
+      const handleAnimationEnd = (e: AnimationEvent) => {
+        if (e.animationName === 'fadeIn') {
+          el.removeEventListener('animationend', handleAnimationEnd);
+          onSegmentTransitionEnd();
+        }
+      };
+      el.addEventListener('animationend', handleAnimationEnd);
+      return () => el.removeEventListener('animationend', handleAnimationEnd);
+    }, [currentIndexDisplayed, onSegmentTransitionEnd]);
+
     return (
       <div
         ref={panelRef}
@@ -449,6 +480,7 @@ const StoryViewerPanel = forwardRef<
         id="jgis-story-segment-panel"
       >
         <div
+          ref={segmentContainerRef}
           key={currentIndexDisplayed}
           className="jgis-story-segment-container"
           style={{
