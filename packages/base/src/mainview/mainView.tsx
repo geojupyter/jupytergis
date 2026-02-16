@@ -2187,10 +2187,18 @@ export class MainView extends React.Component<IProps, IStates> {
       const wantSegmentChange = canGoInDirection && (!hasOverflow || atEdge);
 
       if (wantSegmentChange) {
-        // if (segmentChangeInProgress) {
-        //   return;
-        // }
-        // segmentChangeInProgress = true;
+        console.log('[story-scroll] segment change', {
+          isAtTop,
+          isAtBottom,
+          atEdge,
+          hasOverflow,
+          canGoInDirection,
+          deltaY,
+          direction: isScrollingDown ? 'next' : 'prev',
+          hasNext: currentPanelHandle.hasNext,
+          hasPrev: currentPanelHandle.hasPrev,
+        });
+        segmentChangeInProgress = true;
         isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
         return;
       }
