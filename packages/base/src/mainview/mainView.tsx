@@ -2179,37 +2179,17 @@ export class MainView extends React.Component<IProps, IStates> {
       const isScrollingDown = deltaY > 0;
       const isScrollingUp = deltaY < 0;
 
-      // console.log('[story-scroll] flush', {
-      //   isAtTop,
-      //   isAtBottom,
-      //   deltaY,
-      //   hasOverflow,
-      //   hasPrev: currentPanelHandle.hasPrev,
-      //   hasNext: currentPanelHandle.hasNext,
-      // });
-
       if (!hasOverflow) {
         if (isScrollingDown && !currentPanelHandle.hasNext) {
-          // console.log(
-          //   '[story-scroll] no-op (no overflow, last segment, scroll down)',
-          // );
           return;
         }
         if (isScrollingUp && !currentPanelHandle.hasPrev) {
-          // console.log(
-          //   '[story-scroll] no-op (no overflow, first segment, scroll up)',
-          // );
           return;
         }
         if (segmentChangeInProgress) {
-          // console.log(
-          //   '[story-scroll] block segment change (no overflow, guard active)',
-          // );
           return;
         }
-        // console.log('[story-scroll] segment change (no overflow)', {
-        //   direction: isScrollingDown ? 'next' : 'prev',
-        // });
+
         segmentChangeInProgress = true;
         isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
         return;
@@ -2217,30 +2197,20 @@ export class MainView extends React.Component<IProps, IStates> {
 
       if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
         if (isScrollingDown && isAtBottom && !currentPanelHandle.hasNext) {
-          // console.log('[story-scroll] no-op (at bottom, last segment)');
           return;
         }
         if (isScrollingUp && isAtTop && !currentPanelHandle.hasPrev) {
-          // console.log('[story-scroll] no-op (at top, first segment)');
           return;
         }
         if (segmentChangeInProgress) {
-          // console.log(
-          //   '[story-scroll] block segment change (at edge, guard active)',
-          // );
           return;
         }
-        // console.log('[story-scroll] segment change (at edge)', {
-        //   atBottom: isAtBottom,
-        //   atTop: isAtTop,
-        //   direction: isScrollingDown ? 'next' : 'prev',
-        // });
+
         segmentChangeInProgress = true;
         isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
         return;
       }
 
-      console.log('[story-scroll] scroll panel', { deltaY });
       storyViewerPanel.scrollBy({ top: deltaY });
     };
 
