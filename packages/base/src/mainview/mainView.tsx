@@ -2179,33 +2179,17 @@ export class MainView extends React.Component<IProps, IStates> {
       const isScrollingDown = deltaY > 0;
       const isScrollingUp = deltaY < 0;
 
-      if (!hasOverflow) {
-        if (isScrollingDown && !currentPanelHandle.hasNext) {
-          return;
-        }
-        if (isScrollingUp && !currentPanelHandle.hasPrev) {
-          return;
-        }
+      const canGoInDirection =
+        (isScrollingDown && currentPanelHandle.hasNext) ||
+        (isScrollingUp && currentPanelHandle.hasPrev);
+      const atEdge =
+        (isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop);
+      const wantSegmentChange = canGoInDirection && (!hasOverflow || atEdge);
+
+      if (wantSegmentChange) {
         if (segmentChangeInProgress) {
           return;
         }
-
-        segmentChangeInProgress = true;
-        isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
-        return;
-      }
-
-      if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
-        if (isScrollingDown && isAtBottom && !currentPanelHandle.hasNext) {
-          return;
-        }
-        if (isScrollingUp && isAtTop && !currentPanelHandle.hasPrev) {
-          return;
-        }
-        if (segmentChangeInProgress) {
-          return;
-        }
-
         segmentChangeInProgress = true;
         isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
         return;
