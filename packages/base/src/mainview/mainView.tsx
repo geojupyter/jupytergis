@@ -2139,7 +2139,6 @@ export class MainView extends React.Component<IProps, IStates> {
     let segmentChangeInProgress = false;
     const clearGuard = (): void => {
       segmentChangeInProgress = false;
-      // console.log('[story-scroll] guard cleared (transition ended)');
     };
     this._clearStoryScrollGuard = clearGuard;
 
@@ -2157,7 +2156,7 @@ export class MainView extends React.Component<IProps, IStates> {
       this._pendingStoryScrollRafId = null;
 
       const currentPanelHandle = this.storyViewerPanelRef.current;
-      if (!currentPanelHandle?.canNavigate) {
+      if (!currentPanelHandle?.spectaMode) {
         accumulatedDeltaY = 0;
         return;
       }
@@ -2165,20 +2164,21 @@ export class MainView extends React.Component<IProps, IStates> {
       const storyViewerPanel = document.querySelector(
         '.jgis-story-viewer-panel',
       ) as HTMLElement | null;
+
       if (!storyViewerPanel) {
         accumulatedDeltaY = 0;
         return;
       }
 
-      const isAtTop = currentPanelHandle.getAtTop();
-      const isAtBottom = currentPanelHandle.getAtBottom();
       const deltaY = accumulatedDeltaY;
       accumulatedDeltaY = 0;
 
-      const hasOverflow = !(isAtTop && isAtBottom);
-      const isScrollingDown = deltaY > 0;
       const isScrollingUp = deltaY < 0;
+      const isScrollingDown = deltaY > 0;
+      const isAtTop = currentPanelHandle.getAtTop();
+      const isAtBottom = currentPanelHandle.getAtBottom();
 
+      const hasOverflow = !(isAtTop && isAtBottom);
       const canGoInDirection =
         (isScrollingDown && currentPanelHandle.hasNext) ||
         (isScrollingUp && currentPanelHandle.hasPrev);
@@ -2199,7 +2199,7 @@ export class MainView extends React.Component<IProps, IStates> {
     };
 
     const handleScroll = (e: Event) => {
-      if (!this.storyViewerPanelRef.current?.canNavigate) {
+      if (!this.storyViewerPanelRef.current?.spectaMode) {
         return;
       }
       (e as WheelEvent).preventDefault();
