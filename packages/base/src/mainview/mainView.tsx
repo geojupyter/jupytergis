@@ -2187,10 +2187,10 @@ export class MainView extends React.Component<IProps, IStates> {
       const wantSegmentChange = canGoInDirection && (!hasOverflow || atEdge);
 
       if (wantSegmentChange) {
-        if (segmentChangeInProgress) {
-          return;
-        }
-        segmentChangeInProgress = true;
+        // if (segmentChangeInProgress) {
+        //   return;
+        // }
+        // segmentChangeInProgress = true;
         isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
         return;
       }
@@ -2814,9 +2814,9 @@ export class MainView extends React.Component<IProps, IStates> {
                         model={this._model}
                         isSpecta={this.state.isSpectaPresentation}
                         className="jgis-story-viewer-panel-specta-mod"
-                        onSegmentTransitionEnd={() =>
-                          this._clearStoryScrollGuard()
-                        }
+                        // onSegmentTransitionEnd={() =>
+                        //   this._clearStoryScrollGuard()
+                        // }
                       />
                     </div>
                   </div>

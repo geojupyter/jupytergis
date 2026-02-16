@@ -42,7 +42,7 @@ interface IStoryViewerPanelProps {
 export interface IStoryViewerPanelHandle {
   handlePrev: () => void;
   handleNext: () => void;
-  canNavigate: boolean;
+  spectaMode: boolean;
   hasPrev: boolean;
   hasNext: boolean;
   getAtTop: () => boolean;
@@ -464,7 +464,7 @@ const StoryViewerPanel = forwardRef<
       () => ({
         handlePrev,
         handleNext,
-        canNavigate: isSpecta,
+        spectaMode: isSpecta,
         hasPrev,
         hasNext,
         getAtTop: () => atTopRef.current,
