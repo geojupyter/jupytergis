@@ -1,0 +1,619 @@
+{
+  "layerTree": [
+    "b0656048-c437-4d4d-9e74-12b388be5974",
+    "d2824080-b126-4463-91f5-05401b45b47c",
+    "3d122208-bd46-49a5-971f-23662ec0b78e",
+    "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e01",
+    "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e02",
+    "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e03",
+    "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e04",
+    "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e05"
+  ],
+  "layers": {
+    "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e01": {
+      "name": "Global seismicity",
+      "parameters": {
+        "content": {
+          "image": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Eq-prob.jpg",
+          "markdown": "Earthquakes are not randomly scattered. At a global scale they cluster along long, narrow belts that trace **tectonic plate boundaries**.\n\nIn this segment we size and color earthquakes by magnitude to reveal the global pattern at a glance.",
+          "title": "Global seismicity follows plate boundaries"
+        },
+        "extent": [
+          -20037508.34278924,
+          -14567268.565207776,
+          20037508.34278924,
+          14567268.565207776
+        ],
+        "layerOverride": [
+          {
+            "color": {
+              "circle-fill-color": [
+                "interpolate",
+                [
+                  "linear"
+                ],
+                [
+                  "get",
+                  "mag"
+                ],
+                0.0,
+                [
+                  68.0,
+                  1.0,
+                  84.0,
+                  0.85
+                ],
+                2.0,
+                [
+                  59.0,
+                  82.0,
+                  139.0,
+                  0.85
+                ],
+                4.0,
+                [
+                  33.0,
+                  145.0,
+                  140.0,
+                  0.9
+                ],
+                6.0,
+                [
+                  94.0,
+                  201.0,
+                  98.0,
+                  0.95
+                ],
+                8.0,
+                [
+                  253.0,
+                  231.0,
+                  37.0,
+                  1.0
+                ]
+              ],
+              "circle-radius": [
+                "interpolate",
+                [
+                  "linear"
+                ],
+                [
+                  "get",
+                  "mag"
+                ],
+                0.0,
+                2.0,
+                2.0,
+                3.5,
+                4.0,
+                6.0,
+                6.0,
+                9.0,
+                8.0,
+                13.0
+              ],
+              "circle-stroke-color": "#111827",
+              "circle-stroke-width": 0.6,
+              "fill-color": [
+                "interpolate",
+                [
+                  "linear"
+                ],
+                [
+                  "get",
+                  "mag"
+                ],
+                0.0,
+                [
+                  68.0,
+                  1.0,
+                  84.0,
+                  0.85
+                ],
+                2.0,
+                [
+                  59.0,
+                  82.0,
+                  139.0,
+                  0.85
+                ],
+                4.0,
+                [
+                  33.0,
+                  145.0,
+                  140.0,
+                  0.9
+                ],
+                6.0,
+                [
+                  94.0,
+                  201.0,
+                  98.0,
+                  0.95
+                ],
+                8.0,
+                [
+                  253.0,
+                  231.0,
+                  37.0,
+                  1.0
+                ]
+              ],
+              "stroke-color": "#111827",
+              "stroke-width": 0.6
+            },
+            "opacity": 0.9,
+            "symbologyState": {
+              "colorRamp": "viridis",
+              "method": "color",
+              "mode": "quantile",
+              "nClasses": "9",
+              "renderType": "Graduated",
+              "reverse": false,
+              "value": "mag"
+            },
+            "targetLayer": "3d122208-bd46-49a5-971f-23662ec0b78e",
+            "visible": true
+          }
+        ],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 1.9657842846620874
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e02": {
+      "name": "Fault lines",
+      "parameters": {
+        "content": {
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Kluft-photo-Carrizo-Plain-Nov-2007-Img_0327.jpg/2560px-Kluft-photo-Carrizo-Plain-Nov-2007-Img_0327.jpg",
+          "markdown": "Active faults are the surface expression of plate motion and stress accumulation.\n\nHere we emphasize **mapped active faults** so you can compare their geometry with the earthquake belts from the previous segment.",
+          "title": "Fault lines: where strain is released"
+        },
+        "extent": [
+          -20037508.34278924,
+          -14567268.565207776,
+          20037508.34278924,
+          14567268.565207776
+        ],
+        "layerOverride": [
+          {
+            "color": {
+              "stroke-color": "#ff3b30",
+              "stroke-line-cap": "round",
+              "stroke-line-join": "round",
+              "stroke-width": 2.5
+            },
+            "opacity": 0.9,
+            "symbologyState": {
+              "renderType": "Single Symbol"
+            },
+            "targetLayer": "d2824080-b126-4463-91f5-05401b45b47c",
+            "visible": true
+          }
+        ],
+        "transition": {
+          "time": 1.5,
+          "type": "linear"
+        },
+        "zoom": 2.1
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e03": {
+      "name": "California earthquakes",
+      "parameters": {
+        "content": {
+          "image": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Eq-prob.jpg",
+          "markdown": "Zooming in on California, we can see dense clusters of small events along major structures.\n\nIn this view, **larger magnitudes stand out** more aggressively using a warmer ramp and a stronger size scaling.",
+          "title": "California: magnitudes that pop"
+        },
+        "extent": [
+          -14026256.878,
+          3503549.844,
+          -12579102.409,
+          5311971.847
+        ],
+        "layerOverride": [
+          {
+            "color": {
+              "circle-fill-color": [
+                "interpolate",
+                [
+                  "linear"
+                ],
+                [
+                  "get",
+                  "mag"
+                ],
+                0.0,
+                [
+                  255.0,
+                  255.0,
+                  255.0,
+                  0.35
+                ],
+                2.0,
+                [
+                  255.0,
+                  204.0,
+                  128.0,
+                  0.7
+                ],
+                4.0,
+                [
+                  255.0,
+                  152.0,
+                  0.0,
+                  0.85
+                ],
+                6.0,
+                [
+                  244.0,
+                  67.0,
+                  54.0,
+                  0.95
+                ],
+                8.0,
+                [
+                  183.0,
+                  28.0,
+                  28.0,
+                  1.0
+                ]
+              ],
+              "circle-radius": [
+                "interpolate",
+                [
+                  "linear"
+                ],
+                [
+                  "get",
+                  "mag"
+                ],
+                0.0,
+                2.0,
+                1.0,
+                4.0,
+                2.0,
+                7.0,
+                3.0,
+                10.0,
+                4.0,
+                14.0,
+                5.0,
+                19.0,
+                6.0,
+                25.0,
+                7.0,
+                32.0,
+                8.0,
+                40.0
+              ],
+              "circle-stroke-color": "#0b0f19",
+              "circle-stroke-width": 0.8,
+              "fill-color": [
+                "interpolate",
+                [
+                  "linear"
+                ],
+                [
+                  "get",
+                  "mag"
+                ],
+                0.0,
+                [
+                  255.0,
+                  255.0,
+                  255.0,
+                  0.35
+                ],
+                2.0,
+                [
+                  255.0,
+                  204.0,
+                  128.0,
+                  0.7
+                ],
+                4.0,
+                [
+                  255.0,
+                  152.0,
+                  0.0,
+                  0.85
+                ],
+                6.0,
+                [
+                  244.0,
+                  67.0,
+                  54.0,
+                  0.95
+                ],
+                8.0,
+                [
+                  183.0,
+                  28.0,
+                  28.0,
+                  1.0
+                ]
+              ],
+              "stroke-color": "#0b0f19",
+              "stroke-width": 0.8
+            },
+            "opacity": 1.0,
+            "symbologyState": {
+              "colorRamp": "cool",
+              "method": "color",
+              "mode": "quantile",
+              "nClasses": "9",
+              "renderType": "Graduated",
+              "reverse": false,
+              "value": "mag"
+            },
+            "targetLayer": "3d122208-bd46-49a5-971f-23662ec0b78e"
+          }
+        ],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 5.5
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e04": {
+      "name": "Himalaya faults",
+      "parameters": {
+        "content": {
+          "image": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Himalaya_annotated.jpg",
+          "markdown": "The Himalayan front is a classic example of **continental collision**.\n\nWe highlight faults here with a saturated color and thicker stroke so the major structures remain legible on top of the basemap and earthquake points.",
+          "title": "Himalaya: structure at a continental collision"
+        },
+        "extent": [
+          7380770.16604481,
+          1378104.3016433143,
+          13000167.839775614,
+          5463406.410445608
+        ],
+        "layerOverride": [
+          {
+            "color": {
+              "stroke-color": "#7c3aed",
+              "stroke-line-cap": "round",
+              "stroke-line-join": "round",
+              "stroke-width": 3.0
+            },
+            "opacity": 1.0,
+            "symbologyState": {
+              "renderType": "Single Symbol"
+            },
+            "targetLayer": "d2824080-b126-4463-91f5-05401b45b47c",
+            "visible": true
+          }
+        ],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 4.8
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e05": {
+      "name": "Tsunami-capable events",
+      "parameters": {
+        "content": {
+          "image": "https://upload.wikimedia.org/wikipedia/commons/7/7d/2011_T%C5%8Dhoku_earthquake_and_tsunami_damage_Matsushima%2C_Miyagi.JPG",
+          "markdown": "Not every earthquake produces a tsunami. In this segment we focus on events flagged as **tsunami-capable** in the dataset.\n\nThese are shown in red so the hazardous subset is immediately obvious.",
+          "title": "Tsunami-capable earthquakes (flagged subset)"
+        },
+        "extent": [
+          9470489.210433519,
+          -2564881.8278375873,
+          28018074.099065267,
+          10919212.386197694
+        ],
+        "layerOverride": [
+          {
+            "color": {
+              "circle-fill-color": [
+                "case",
+                [
+                  "==",
+                  [
+                    "get",
+                    "tsunami"
+                  ],
+                  1.0
+                ],
+                [
+                  255.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              ],
+              "circle-radius": [
+                "case",
+                [
+                  "==",
+                  [
+                    "get",
+                    "tsunami"
+                  ],
+                  1.0
+                ],
+                8.0,
+                2.0
+              ],
+              "circle-stroke-color": "#111827",
+              "circle-stroke-width": 0.8,
+              "fill-color": [
+                "case",
+                [
+                  "==",
+                  [
+                    "get",
+                    "tsunami"
+                  ],
+                  1.0
+                ],
+                [
+                  255.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              ],
+              "stroke-color": "#111827",
+              "stroke-width": 0.8
+            },
+            "opacity": 1.0,
+            "symbologyState": {
+              "renderType": "Categorized",
+              "reverse": false,
+              "symbologyTab": "color",
+              "value": "tsunami"
+            },
+            "targetLayer": "3d122208-bd46-49a5-971f-23662ec0b78e",
+            "visible": true
+          }
+        ],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 3.077256062326248
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "3d122208-bd46-49a5-971f-23662ec0b78e": {
+      "name": "Earth Quakes",
+      "parameters": {
+        "color": {},
+        "opacity": 1.0,
+        "source": "a0caa844-4a02-450f-8836-935b822f376e",
+        "symbologyState": {
+          "colorRamp": "viridis",
+          "method": "color",
+          "mode": "equal interval",
+          "nClasses": 9.0,
+          "renderType": "Single Symbol",
+          "reverse": false,
+          "value": ""
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "b0656048-c437-4d4d-9e74-12b388be5974": {
+      "name": "Esri.WorldImagery Layer",
+      "parameters": {
+        "source": "52564d40-096a-44ee-b1a3-a15a2f538d32"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "d2824080-b126-4463-91f5-05401b45b47c": {
+      "name": "Active Faults",
+      "parameters": {
+        "color": {},
+        "opacity": 1.0,
+        "source": "3c84762a-9c11-449d-aca3-5373b9a85fcc",
+        "symbologyState": {
+          "colorRamp": "viridis",
+          "method": "color",
+          "mode": "equal interval",
+          "nClasses": 9.0,
+          "renderType": "Single Symbol",
+          "reverse": false,
+          "value": ""
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -15201750.262877513,
+      2261361.3567500063,
+      -11403609.024122488,
+      6554160.334249996
+    ],
+    "latitude": 36.77478359623204,
+    "longitude": -119.50000443501676,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 5.5
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "3c84762a-9c11-449d-aca3-5373b9a85fcc": {
+      "name": "Active Faults Source",
+      "parameters": {
+        "path": "data/gem_active_faults.geojson",
+        "valid": false
+      },
+      "type": "GeoJSONSource"
+    },
+    "52564d40-096a-44ee-b1a3-a15a2f538d32": {
+      "name": "Esri.WorldImagery",
+      "parameters": {
+        "attribution": "Tiles (C) Esri -- Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+        "maxZoom": 24.0,
+        "minZoom": 0.0,
+        "provider": "Esri",
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}",
+        "urlParameters": {
+          "variant": "World_Imagery"
+        }
+      },
+      "type": "RasterSource"
+    },
+    "a0caa844-4a02-450f-8836-935b822f376e": {
+      "name": "Earth Quakes Source",
+      "parameters": {
+        "path": "data/eq.geojson",
+        "valid": false
+      },
+      "type": "GeoJSONSource"
+    }
+  },
+  "stories": {
+    "e1b7c3a2-4d0b-4f73-a1c0-2c5b8e6d9f10": {
+      "presentationBgColor": "#111",
+      "presentationTextColor": "rgba(255, 255, 255, 1)",
+      "storySegments": [
+        "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e01",
+        "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e02",
+        "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e03",
+        "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e04",
+        "0f6b4d6c-1d31-4e1d-9a3a-1c4a8c6d7e05"
+      ],
+      "storyType": "guided",
+      "title": "Earthquakes & Fault Lines"
+    }
+  }
+}
