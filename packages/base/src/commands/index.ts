@@ -534,11 +534,22 @@ export function addCommands(
   /**
    * LAYERS and LAYER GROUP actions.
    */
-  commands.addCommand(CommandIDs.renameLayer, {
-    label: trans.__('Rename Layer'),
+  commands.addCommand(CommandIDs.renameSelected, {
+    label: trans.__('Rename Item'),
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+      return !!selected && Object.keys(selected).length === 1;
+    },
     execute: async () => {
       const model = tracker.currentWidget?.model;
-      await Private.renameSelectedItem(model, 'layer');
+      const selected = model?.localState?.selected?.value;
+
+      if (!model || !selected) {
+        return;
+      }
+
+      await Private.renameSelectedItem(model);
     },
   });
 
@@ -551,14 +562,6 @@ export function addCommands(
       });
 
       commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
-    },
-  });
-
-  commands.addCommand(CommandIDs.renameGroup, {
-    label: trans.__('Rename Group'),
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
-      await Private.renameSelectedItem(model, 'group');
     },
   });
 
@@ -659,7 +662,7 @@ export function addCommands(
     label: trans.__('Rename Source'),
     execute: async () => {
       const model = tracker.currentWidget?.model;
-      await Private.renameSelectedItem(model, 'source');
+      await Private.renameSelectedItem(model);
     },
   });
 
@@ -1251,31 +1254,27 @@ namespace Private {
 
   export async function renameSelectedItem(
     model: IJupyterGISModel | undefined,
-    itemType: SelectionType,
   ) {
-    const selectedItems = model?.localState?.selected.value;
+    const selectedItems = model?.localState?.selected?.value;
 
     if (!selectedItems || !model) {
-      console.error(`No ${itemType} selected`);
+      console.error('No item selected');
       return;
     }
 
-    let itemId = '';
-
-    // If more then one item is selected, only rename the first
-    for (const id in selectedItems) {
-      if (selectedItems[id].type === itemType) {
-        itemId = id;
-        break;
-      }
-    }
-
-    if (!itemId) {
+    const ids = Object.keys(selectedItems);
+    if (ids.length === 0) {
       return;
     }
 
-    // Set editing state - component will show inline input
-    model.setEditingItem(itemType, itemId);
+    const itemId = ids[0];
+    const item = selectedItems[itemId];
+
+    if (!item.type) {
+      return;
+    }
+
+    model.setEditingItem(item.type, itemId);
   }
 
   export function executeConsole(tracker: JupyterGISTracker): void {

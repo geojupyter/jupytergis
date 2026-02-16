@@ -105,7 +105,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     app.contextMenu.addItem({
-      command: CommandIDs.renameLayer,
+      command: CommandIDs.renameSelected,
       selector: '.jp-gis-layerItem',
       rank: 2,
     });
@@ -177,7 +177,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     app.contextMenu.addItem({
-      command: CommandIDs.renameGroup,
+      command: CommandIDs.renameSelected,
       selector: '.jp-gis-layerGroupHeader',
       rank: 2,
     });
