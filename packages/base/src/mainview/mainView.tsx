@@ -2134,10 +2134,25 @@ export class MainView extends React.Component<IProps, IStates> {
     // Story scroll: rAF coalescing (one decision per frame), edge state from
     // IntersectionObserver (no layout reads), throttle on segment changes.
     const segmentNavigationThrottle = 750; // ms between segment changes
+    const MIN_GUARD_MS = 400; // min time before guard clears (prevents one scroll → multiple segment changes)
 
-    // Guard: block wheel-driven segment change until transition has ended
+    // Guard: block wheel-driven segment change until transition has ended + min duration
     let segmentChangeInProgress = false;
+    let lastSegmentChangeTime = 0;
+
     const clearGuard = (): void => {
+      if (this._storyScrollGuardClearTimeoutId !== null) {
+        clearTimeout(this._storyScrollGuardClearTimeoutId);
+        this._storyScrollGuardClearTimeoutId = null;
+      }
+      const elapsed = Date.now() - lastSegmentChangeTime;
+      if (elapsed < MIN_GUARD_MS && lastSegmentChangeTime > 0) {
+        this._storyScrollGuardClearTimeoutId = setTimeout(
+          clearGuard,
+          MIN_GUARD_MS - elapsed,
+        );
+        return;
+      }
       segmentChangeInProgress = false;
     };
     this._clearStoryScrollGuard = clearGuard;
@@ -2199,6 +2214,7 @@ export class MainView extends React.Component<IProps, IStates> {
           hasPrev: currentPanelHandle.hasPrev,
         });
         segmentChangeInProgress = true;
+        lastSegmentChangeTime = Date.now();
         isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
         return;
       }
@@ -2228,6 +2244,10 @@ export class MainView extends React.Component<IProps, IStates> {
     if (this._pendingStoryScrollRafId !== null) {
       cancelAnimationFrame(this._pendingStoryScrollRafId);
       this._pendingStoryScrollRafId = null;
+    }
+    if (this._storyScrollGuardClearTimeoutId !== null) {
+      clearTimeout(this._storyScrollGuardClearTimeoutId);
+      this._storyScrollGuardClearTimeoutId = null;
     }
     if (this._storyScrollHandler) {
       const containerElement = document.querySelector(
@@ -2877,6 +2897,9 @@ export class MainView extends React.Component<IProps, IStates> {
   private _storyScrollHandler: ((e: Event) => void) | null = null;
   private _clearStoryScrollGuard: () => void = () => {};
   private _pendingStoryScrollRafId: number | null = null;
+  private _storyScrollGuardClearTimeoutId: ReturnType<
+    typeof setTimeout
+  > | null = null;
 }
 
 // ! TODO make mainview a modern react component instead of a class
