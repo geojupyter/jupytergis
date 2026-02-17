@@ -30,8 +30,7 @@ export const newGeoParquetEntry = 'jupytergis:newGeoParquetEntry';
 
 // Layer and group actions
 export const renameSelected = 'jupytergis:renameSelected';
-export const removeLayer = 'jupytergis:removeLayer';
-export const removeGroup = 'jupytergis:removeGroup';
+export const removeSelected = 'jupytergis:removeSelected';
 export const moveLayersToGroup = 'jupytergis:moveLayersToGroup';
 export const moveLayerToNewGroup = 'jupytergis:moveLayerToNewGroup';
 

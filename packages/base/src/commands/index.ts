@@ -7,7 +7,6 @@ import {
   IJupyterGISModel,
   JgisCoordinates,
   LayerType,
-  SelectionType,
   SourceType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -553,25 +552,22 @@ export function addCommands(
     },
   });
 
-  commands.addCommand(CommandIDs.removeLayer, {
-    label: trans.__('Remove Layer'),
-    execute: () => {
+  commands.addCommand(CommandIDs.removeSelected, {
+    label: trans.__('Remove Item'),
+    isEnabled: () => {
       const model = tracker.currentWidget?.model;
-      Private.removeSelectedItems(model, 'layer', selection => {
-        model?.removeLayer(selection);
-      });
-
-      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
+      const selected = model?.localState?.selected?.value;
+      return !!selected && Object.keys(selected).length > 0;
     },
-  });
-
-  commands.addCommand(CommandIDs.removeGroup, {
-    label: trans.__('Remove Group'),
     execute: async () => {
       const model = tracker.currentWidget?.model;
-      Private.removeSelectedItems(model, 'group', selection => {
-        model?.removeLayerGroup(selection);
-      });
+      const selected = model?.localState?.selected?.value;
+
+      if (!model || !selected) {
+        return;
+      }
+
+      await Private.removeSelectedItems(model);
     },
   });
 
@@ -670,16 +666,7 @@ export function addCommands(
     label: trans.__('Remove Source'),
     execute: () => {
       const model = tracker.currentWidget?.model;
-      Private.removeSelectedItems(model, 'source', selection => {
-        if (!(model?.getLayersBySource(selection).length ?? true)) {
-          model?.sharedModel.removeSource(selection);
-        } else {
-          showErrorMessage(
-            'Remove source error',
-            'The source is used by a layer.',
-          );
-        }
-      });
+      Private.removeSelectedSources(model);
     },
   });
 
@@ -1233,21 +1220,24 @@ namespace Private {
     };
   }
 
-  export function removeSelectedItems(
-    model: IJupyterGISModel | undefined,
-    itemTypeToRemove: SelectionType,
-    removeFunction: (id: string) => void,
-  ) {
+  export function removeSelectedItems(model: IJupyterGISModel | undefined) {
     const selected = model?.localState?.selected?.value;
 
-    if (!selected) {
+    if (!selected || !model) {
       console.error('Failed to remove selected item -- nothing selected');
       return;
     }
 
-    for (const selection in selected) {
-      if (selected[selection].type === itemTypeToRemove) {
-        removeFunction(selection);
+    for (const id of Object.keys(selected)) {
+      const item = selected[id];
+
+      switch (item.type) {
+        case 'layer':
+          model.removeLayer(id);
+          break;
+        case 'group':
+          model.removeLayerGroup(id);
+          break;
       }
     }
   }
@@ -1275,6 +1265,26 @@ namespace Private {
     }
 
     model.setEditingItem(item.type, itemId);
+  }
+
+  export function removeSelectedSources(model: IJupyterGISModel | undefined) {
+    const selected = model?.localState?.selected?.value;
+
+    if (!selected || !model) {
+      return;
+    }
+
+    for (const id of Object.keys(selected)) {
+      if (model.getLayersBySource(id).length > 0) {
+        showErrorMessage(
+          'Remove source error',
+          'The source is used by a layer.',
+        );
+        continue;
+      }
+
+      model.sharedModel.removeSource(id);
+    }
   }
 
   export function executeConsole(tracker: JupyterGISTracker): void {

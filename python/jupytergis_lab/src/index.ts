@@ -99,7 +99,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     app.contextMenu.addItem({
-      command: CommandIDs.removeLayer,
+      command: CommandIDs.removeSelected,
       selector: '.jp-gis-layerItem',
       rank: 2,
     });
@@ -171,7 +171,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     );
 
     app.contextMenu.addItem({
-      command: CommandIDs.removeGroup,
+      command: CommandIDs.removeSelected,
       selector: '.jp-gis-layerGroupHeader',
       rank: 2,
     });
