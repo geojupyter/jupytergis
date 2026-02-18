@@ -1,0 +1,214 @@
+{
+  "layerTree": [
+    "5d10a9ba-eeef-486d-9761-33ff1ba4106e",
+    "5f790e80-230b-4c00-8426-b3a9385937a5",
+    "8591b32f-11c0-4d70-a997-e94d258bb100",
+    "bcd22241-e404-44b4-873b-81e6a4ccad84",
+    "5862186d-0cae-4cee-be39-18951e31030f",
+    "aabaa10b-4a6f-4a24-9ead-6f17bb7f2f7d",
+    "93080edc-815f-4364-a874-90fd53a60c35"
+  ],
+  "layers": {
+    "5862186d-0cae-4cee-be39-18951e31030f": {
+      "name": "The Redeemer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "a7e1fc1e-1ab9-461f-89cb-2010c790062f",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "5d10a9ba-eeef-486d-9761-33ff1ba4106e": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "extent": [
+          -7248097.58721681,
+          -743268.1554684378,
+          -6334954.257801768,
+          -303993.91946789756
+        ],
+        "opacity": 1.0,
+        "source": "32431800-9aad-4702-926b-52fcdce5530e",
+        "zoom": 7.604194565762505
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "5f790e80-230b-4c00-8426-b3a9385937a5": {
+      "name": "Cristo Redentor",
+      "parameters": {
+        "content": {
+          "image": "https://images.pexels.com/photos/2771080/pexels-photo-2771080.jpeg",
+          "markdown": "**Christ the Redeemer** (Portuguese: *Cristo Redentor*, standard Brazilian Portuguese: [\u02c8k\u027eistu \u0281ed\u1ebd\u02c8to\u0281]) is an Art Deco statue of Jesus in Rio de Janeiro, Brazil, created by French-Polish sculptor Paul Landowski and built by Brazilian engineer Heitor da Silva Costa, in collaboration with French engineer Albert Caquot.",
+          "title": "The Redeemer"
+        },
+        "extent": [
+          -4814802.663104911,
+          -2630126.461218188,
+          -4804544.428248574,
+          -2622570.615984798
+        ],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 14.080181481426658
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "8591b32f-11c0-4d70-a997-e94d258bb100": {
+      "name": "La Libert\u00e9 \u00e9clairant le monde",
+      "parameters": {
+        "content": {
+          "image": "https://images.pexels.com/photos/356844/pexels-photo-356844.jpeg",
+          "markdown": "**The Statue of Liberty** (Liberty Enlightening the World; French: *La Libert\u00e9 \u00e9clairant le monde*) is a colossal neoclassical sculpture of a robed and crowned female on Liberty Island in New York Harbor, within New York City.",
+          "title": "The Statue of Liberty"
+        },
+        "extent": [
+          -8244347.787989774,
+          4964878.911422763,
+          -8240146.493537257,
+          4967973.433151666
+        ],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 15.368058180489786
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    },
+    "93080edc-815f-4364-a874-90fd53a60c35": {
+      "name": "The Thinker",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "19ef5002-5670-4c17-b53f-44a48b739158",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "aabaa10b-4a6f-4a24-9ead-6f17bb7f2f7d": {
+      "name": "Statue of Liberty",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "660bb0bb-e0ce-4692-a7c7-119829d6e0d1",
+        "symbologyState": {
+          "renderType": "Single Symbol"
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    },
+    "bcd22241-e404-44b4-873b-81e6a4ccad84": {
+      "name": "Le Penseur",
+      "parameters": {
+        "content": {
+          "image": "https://images.pexels.com/photos/6486115/pexels-photo-6486115.jpeg",
+          "markdown": "**The Thinker** (French: *Le Penseur*), by Auguste Rodin, is a bronze sculpture depicting a nude male figure of heroic size, seated on a large rock, leaning forward, his right elbow placed upon his left thigh, with the back of his right hand supporting his chin in a posture evocative of deep thought and contemplation.",
+          "title": "The Thinker"
+        },
+        "extent": [
+          255360.959592592,
+          6248688.604308756,
+          261009.190947415,
+          6252093.017728101
+        ],
+        "transition": {
+          "time": 2.0,
+          "type": "smooth"
+        },
+        "zoom": 15.230368389488868
+      },
+      "type": "StorySegmentLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      255902.57081839617,
+      6247863.970675482,
+      260467.57972160925,
+      6252917.651361377
+    ],
+    "latitude": 48.855574302496535,
+    "longitude": 2.319315992465925,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 15.230368389488868
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "19ef5002-5670-4c17-b53f-44a48b739158": {
+      "name": "Marker",
+      "parameters": {
+        "feature": {
+          "coords": [
+            257771.740387152,
+            6250219.77589449
+          ]
+        }
+      },
+      "type": "MarkerSource"
+    },
+    "32431800-9aad-4702-926b-52fcdce5530e": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "interpolate": false,
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "660bb0bb-e0ce-4692-a7c7-119829d6e0d1": {
+      "name": "Marker",
+      "parameters": {
+        "feature": {
+          "coords": [
+            -8242685.709008398,
+            4966710.369862526
+          ]
+        }
+      },
+      "type": "MarkerSource"
+    },
+    "a7e1fc1e-1ab9-461f-89cb-2010c790062f": {
+      "name": "Marker",
+      "parameters": {
+        "feature": {
+          "coords": [
+            -4810184.197896464,
+            -2626176.8148461888
+          ]
+        }
+      },
+      "type": "MarkerSource"
+    }
+  },
+  "stories": {
+    "1b181980-a95a-4f23-8e5d-980c66ff93ea": {
+      "presentationBgColor": "#171B2C",
+      "presentationTextColor": "#AEBAD3",
+      "storySegments": [
+        "5f790e80-230b-4c00-8426-b3a9385937a5",
+        "8591b32f-11c0-4d70-a997-e94d258bb100",
+        "bcd22241-e404-44b4-873b-81e6a4ccad84"
+      ],
+      "storyType": "guided",
+      "title": "Famous Statues"
+    }
+  }
+}
