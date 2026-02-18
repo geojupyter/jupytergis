@@ -2131,94 +2131,90 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _setupStoryScrollListener = (): void => {
-    const segmentNavigationThrottle = 750; // Minimum time between segment changes (ms)
-    const SCROLL_EDGE_THRESHOLD = 0; // Pixels from top/bottom to trigger segment change
+    // Guard: block wheel-driven segment change until transition has ended
+    let segmentChangeInProgress = false;
+    const clearGuard = (): void => {
+      segmentChangeInProgress = false;
+    };
+    this._clearStoryScrollGuard = clearGuard;
 
-    // Create throttled functions that call the current panel handle dynamically
-    const throttledHandleNext = throttle(() => {
-      const panelHandle = this.storyViewerPanelRef.current;
-      panelHandle?.handleNext();
-    }, segmentNavigationThrottle);
+    let accumulatedDeltaY = 0;
+    let scrollContainer: HTMLDivElement | null =
+      this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
 
-    const throttledHandlePrev = throttle(() => {
-      const panelHandle = this.storyViewerPanelRef.current;
-      panelHandle?.handlePrev();
-    }, segmentNavigationThrottle);
+    const processStoryScrollFrame = (): void => {
+      this._pendingStoryScrollRafId = null;
 
-    const handleScroll = (e: Event) => {
       const currentPanelHandle = this.storyViewerPanelRef.current;
-      if (!currentPanelHandle || !currentPanelHandle.canNavigate) {
+      if (!currentPanelHandle || !scrollContainer) {
+        accumulatedDeltaY = 0;
         return;
       }
 
-      const wheelEvent = e as WheelEvent;
-      const target = wheelEvent.target as HTMLElement;
+      const deltaY = accumulatedDeltaY;
+      accumulatedDeltaY = 0;
 
-      // Find the story viewer panel
-      const storyViewerPanel = document.querySelector(
-        '.jgis-story-viewer-panel',
-      ) as HTMLElement;
+      const isScrollingUp = deltaY < 0;
+      const isScrollingDown = deltaY > 0;
+      const isAtTop = currentPanelHandle.getAtTop();
+      const isAtBottom = currentPanelHandle.getAtBottom();
 
-      // If no panel found, change segments normally
-      if (!storyViewerPanel) {
-        wheelEvent.preventDefault();
-        wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
+      const hasOverflow = !(isAtTop && isAtBottom);
+      const canGoInDirection =
+        (isScrollingDown && currentPanelHandle.hasNext) ||
+        (isScrollingUp && currentPanelHandle.hasPrev);
+      const atEdge =
+        (isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop);
+      const wantSegmentChange = canGoInDirection && (!hasOverflow || atEdge);
+
+      if (wantSegmentChange) {
+        if (segmentChangeInProgress) {
+          return;
+        }
+        segmentChangeInProgress = true;
+        isScrollingDown
+          ? currentPanelHandle.handleNext()
+          : currentPanelHandle.handlePrev();
         return;
       }
 
-      const hasOverflow =
-        storyViewerPanel.scrollHeight > storyViewerPanel.clientHeight;
+      scrollContainer.scrollBy({ top: deltaY });
+    };
 
-      // If panel has no overflow, change segments normally
-      if (!hasOverflow) {
-        wheelEvent.preventDefault();
-        wheelEvent.deltaY > 0 ? throttledHandleNext() : throttledHandlePrev();
+    const handleScroll = (event: Event) => {
+      event.preventDefault();
+
+      if (!scrollContainer || !document.contains(scrollContainer)) {
+        scrollContainer =
+          this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+      }
+      if (!scrollContainer) {
         return;
       }
-
-      // Panel has overflow - handle scroll forwarding and edge detection
-      const scrollTop = storyViewerPanel.scrollTop;
-      const scrollHeight = storyViewerPanel.scrollHeight;
-      const clientHeight = storyViewerPanel.clientHeight;
-      const isAtBottom =
-        scrollTop + clientHeight >= scrollHeight - SCROLL_EDGE_THRESHOLD;
-      const isAtTop = scrollTop <= SCROLL_EDGE_THRESHOLD;
-      const isScrollingDown = wheelEvent.deltaY > 0;
-      const isScrollingUp = wheelEvent.deltaY < 0;
-
-      // At edges: change segments
-      if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
-        wheelEvent.preventDefault();
-        isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
-        return;
+      // One physical scroll tick often fires ~4 wheel events (sometimes across
+      // frames on slow hardware). We accumulate deltaY and run flush once per
+      // frame via rAF—the frame boundary batches events without adding delay.
+      // So one scroll means one segment/scroll decision.
+      accumulatedDeltaY += (event as WheelEvent).deltaY;
+      if (this._pendingStoryScrollRafId === null) {
+        this._pendingStoryScrollRafId = requestAnimationFrame(
+          processStoryScrollFrame,
+        );
       }
-
-      // If scrolling inside the panel, let it scroll naturally
-      if (target.closest('.jgis-story-viewer-panel')) {
-        return;
-      }
-
-      // Scrolling outside the panel: forward scroll to panel (no throttling for smooth scrolling)
-      wheelEvent.preventDefault();
-      const newScrollTop = Math.max(
-        0,
-        Math.min(scrollHeight - clientHeight, scrollTop + wheelEvent.deltaY),
-      );
-      storyViewerPanel.scrollTop = newScrollTop;
     };
 
     this._storyScrollHandler = handleScroll;
-
-    // Attach wheel event listener to the main container
-    const containerElement = document.querySelector('.jGIS-Mainview-Container');
-    if (containerElement) {
-      containerElement.addEventListener('wheel', handleScroll, {
-        passive: false,
-      });
+    const container = document.querySelector('.jGIS-Mainview-Container');
+    if (container) {
+      container.addEventListener('wheel', handleScroll, { passive: false });
     }
   };
 
   private _cleanupStoryScrollListener = (): void => {
+    if (this._pendingStoryScrollRafId !== null) {
+      cancelAnimationFrame(this._pendingStoryScrollRafId);
+      this._pendingStoryScrollRafId = null;
+    }
     if (this._storyScrollHandler) {
       const containerElement = document.querySelector(
         '.jGIS-Mainview-Container',
@@ -2812,6 +2808,9 @@ export class MainView extends React.Component<IProps, IStates> {
                         model={this._model}
                         isSpecta={this.state.isSpectaPresentation}
                         className="jgis-story-viewer-panel-specta-mod"
+                        onSegmentTransitionEnd={() =>
+                          this._clearStoryScrollGuard()
+                        }
                       />
                     </div>
                   </div>
@@ -2862,6 +2861,8 @@ export class MainView extends React.Component<IProps, IStates> {
   private _featurePropertyCache: Map<string | number, any> = new Map();
   private _isSpectaPresentationInitialized = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
+  private _clearStoryScrollGuard: () => void;
+  private _pendingStoryScrollRafId: number | null = null;
 }
 
 // ! TODO make mainview a modern react component instead of a class
