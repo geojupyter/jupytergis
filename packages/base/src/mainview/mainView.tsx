@@ -2131,59 +2131,22 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _setupStoryScrollListener = (): void => {
-    // Story scroll: rAF coalescing (one decision per frame), edge state from
-    // IntersectionObserver (no layout reads), throttle on segment changes.
-    // One physical tick fires ~4 wheel events, sometimes across frames. Use a
-    // short debounce so we run flush once per burst (one tick → one decision).
-    const segmentNavigationThrottle = 750; // ms between segment changes
-    const FLUSH_DEBOUNCE_MS = 32; // ms after last wheel before flushing
-    const MIN_GUARD_MS = 400; // min time before guard clears (prevents one scroll → multiple segment changes)
-
-    // Guard: block wheel-driven segment change until transition has ended + min duration
+    // Guard: block wheel-driven segment change until transition has ended
     let segmentChangeInProgress = false;
-    let lastSegmentChangeTime = 0;
-
     const clearGuard = (): void => {
-      if (this._storyScrollGuardClearTimeoutId !== null) {
-        clearTimeout(this._storyScrollGuardClearTimeoutId);
-        this._storyScrollGuardClearTimeoutId = null;
-      }
-      const elapsed = Date.now() - lastSegmentChangeTime;
-      if (elapsed < MIN_GUARD_MS && lastSegmentChangeTime > 0) {
-        this._storyScrollGuardClearTimeoutId = setTimeout(
-          clearGuard,
-          MIN_GUARD_MS - elapsed,
-        );
-        return;
-      }
       segmentChangeInProgress = false;
     };
     this._clearStoryScrollGuard = clearGuard;
 
-    const throttledHandleNext = throttle(() => {
-      this.storyViewerPanelRef.current?.handleNext();
-    }, segmentNavigationThrottle);
-
-    const throttledHandlePrev = throttle(() => {
-      this.storyViewerPanelRef.current?.handlePrev();
-    }, segmentNavigationThrottle);
-
     let accumulatedDeltaY = 0;
+    let scrollContainer: HTMLDivElement | null =
+      this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
 
-    const flushStoryScroll = (): void => {
-      this._pendingStoryScrollFlushId = null;
+    const processStoryScrollFrame = (): void => {
+      this._pendingStoryScrollRafId = null;
 
       const currentPanelHandle = this.storyViewerPanelRef.current;
-      if (!currentPanelHandle?.spectaMode) {
-        accumulatedDeltaY = 0;
-        return;
-      }
-
-      const storyViewerPanel = document.querySelector(
-        '.jgis-story-viewer-panel',
-      ) as HTMLElement | null;
-
-      if (!storyViewerPanel) {
+      if (!currentPanelHandle || !scrollContainer) {
         accumulatedDeltaY = 0;
         return;
       }
@@ -2205,41 +2168,39 @@ export class MainView extends React.Component<IProps, IStates> {
       const wantSegmentChange = canGoInDirection && (!hasOverflow || atEdge);
 
       if (wantSegmentChange) {
-        console.log('[story-scroll] segment change', {
-          isAtTop,
-          isAtBottom,
-          atEdge,
-          hasOverflow,
-          canGoInDirection,
-          deltaY,
-          direction: isScrollingDown ? 'next' : 'prev',
-          hasNext: currentPanelHandle.hasNext,
-          hasPrev: currentPanelHandle.hasPrev,
-        });
+        if (segmentChangeInProgress) {
+          return;
+        }
         segmentChangeInProgress = true;
-        lastSegmentChangeTime = Date.now();
-        isScrollingDown ? throttledHandleNext() : throttledHandlePrev();
+        isScrollingDown
+          ? currentPanelHandle.handleNext()
+          : currentPanelHandle.handlePrev();
         return;
       }
-      console.log('[story-scroll] no segment change');
 
-      storyViewerPanel.scrollBy({ top: deltaY });
+      scrollContainer.scrollBy({ top: deltaY });
     };
 
-    const handleScroll = (e: Event) => {
-      console.log('handle scroll');
-      if (!this.storyViewerPanelRef.current?.spectaMode) {
+    const handleScroll = (event: Event) => {
+      event.preventDefault();
+
+      if (!scrollContainer || !document.contains(scrollContainer)) {
+        scrollContainer =
+          this.storyViewerPanelRef.current?.getScrollContainer() ?? null;
+      }
+      if (!scrollContainer) {
         return;
       }
-      (e as WheelEvent).preventDefault();
-      accumulatedDeltaY += (e as WheelEvent).deltaY;
-      if (this._pendingStoryScrollFlushId !== null) {
-        clearTimeout(this._pendingStoryScrollFlushId);
+      // One physical scroll tick often fires ~4 wheel events (sometimes across
+      // frames on slow hardware). We accumulate deltaY and run flush once per
+      // frame via rAF—the frame boundary batches events without adding delay.
+      // So one scroll means one segment/scroll decision.
+      accumulatedDeltaY += (event as WheelEvent).deltaY;
+      if (this._pendingStoryScrollRafId === null) {
+        this._pendingStoryScrollRafId = requestAnimationFrame(
+          processStoryScrollFrame,
+        );
       }
-      this._pendingStoryScrollFlushId = setTimeout(() => {
-        this._pendingStoryScrollFlushId = null;
-        flushStoryScroll();
-      }, FLUSH_DEBOUNCE_MS);
     };
 
     this._storyScrollHandler = handleScroll;
@@ -2250,13 +2211,9 @@ export class MainView extends React.Component<IProps, IStates> {
   };
 
   private _cleanupStoryScrollListener = (): void => {
-    if (this._pendingStoryScrollFlushId !== null) {
-      clearTimeout(this._pendingStoryScrollFlushId);
-      this._pendingStoryScrollFlushId = null;
-    }
-    if (this._storyScrollGuardClearTimeoutId !== null) {
-      clearTimeout(this._storyScrollGuardClearTimeoutId);
-      this._storyScrollGuardClearTimeoutId = null;
+    if (this._pendingStoryScrollRafId !== null) {
+      cancelAnimationFrame(this._pendingStoryScrollRafId);
+      this._pendingStoryScrollRafId = null;
     }
     if (this._storyScrollHandler) {
       const containerElement = document.querySelector(
@@ -2904,12 +2861,8 @@ export class MainView extends React.Component<IProps, IStates> {
   private _featurePropertyCache: Map<string | number, any> = new Map();
   private _isSpectaPresentationInitialized = false;
   private _storyScrollHandler: ((e: Event) => void) | null = null;
-  private _clearStoryScrollGuard: () => void = () => {};
-  private _pendingStoryScrollFlushId: ReturnType<typeof setTimeout> | null =
-    null;
-  private _storyScrollGuardClearTimeoutId: ReturnType<
-    typeof setTimeout
-  > | null = null;
+  private _clearStoryScrollGuard: () => void;
+  private _pendingStoryScrollRafId: number | null = null;
 }
 
 // ! TODO make mainview a modern react component instead of a class

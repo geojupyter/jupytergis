@@ -47,6 +47,8 @@ export interface IStoryViewerPanelHandle {
   hasNext: boolean;
   getAtTop: () => boolean;
   getAtBottom: () => boolean;
+  /** The scrollable panel DOM element (same instance for all segments). */
+  getScrollContainer: () => HTMLDivElement | null;
 }
 
 /**
@@ -433,10 +435,7 @@ const StoryViewerPanel = forwardRef<
       hasNext,
     };
 
-    // IntersectionObserver for at-top/at-bottom (avoids layout reads in scroll path).
-    // Updates are debounced so we don't use transient state on slow hardware.
-    const EDGE_UPDATE_DELAY_MS = 1000;
-
+    // IntersectionObserver for at-top/at-bottom (avoids layout reads in scroll path)
     useEffect(() => {
       const root = panelRef.current;
       const topEl = topSentinelRef.current;
@@ -444,41 +443,21 @@ const StoryViewerPanel = forwardRef<
       if (!root || !topEl || !bottomEl) {
         return;
       }
-
-      let latestTop = atTopRef.current;
-      let latestBottom = atBottomRef.current;
-      let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-      const applyPending = (): void => {
-        atTopRef.current = latestTop;
-        atBottomRef.current = latestBottom;
-        timeoutId = null;
-      };
-
       const observer = new IntersectionObserver(
         (entries: IntersectionObserverEntry[]) => {
           for (const entry of entries) {
             if (entry.target === topEl) {
-              latestTop = entry.isIntersecting;
+              atTopRef.current = entry.isIntersecting;
             } else if (entry.target === bottomEl) {
-              latestBottom = entry.isIntersecting;
+              atBottomRef.current = entry.isIntersecting;
             }
           }
-          if (timeoutId !== null) {
-            clearTimeout(timeoutId);
-          }
-          timeoutId = setTimeout(applyPending, EDGE_UPDATE_DELAY_MS);
         },
         { root, threshold: 0, rootMargin: '0px' },
       );
       observer.observe(topEl);
       observer.observe(bottomEl);
-      return () => {
-        if (timeoutId !== null) {
-          clearTimeout(timeoutId);
-        }
-        observer.disconnect();
-      };
+      return () => observer.disconnect();
     }, [currentIndexDisplayed]);
 
     // Expose methods via ref for parent component to use
@@ -492,6 +471,7 @@ const StoryViewerPanel = forwardRef<
         hasNext,
         getAtTop: () => atTopRef.current,
         getAtBottom: () => atBottomRef.current,
+        getScrollContainer: () => panelRef.current,
       }),
       [handlePrev, handleNext, storyData, isSpecta, hasPrev, hasNext],
     );
