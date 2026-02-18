@@ -24,14 +24,14 @@ test.describe('context menu', () => {
       .getByText('Open Topo Map')
       .click({ button: 'right' });
 
-    const text = page.getByRole('menu').getByText('Remove Layer');
+    const text = page.getByRole('menu').getByText('Remove');
     await expect(text).toBeVisible();
   });
 
   test('right click on group should open group menu', async ({ page }) => {
     await page.getByText('level 1 group').click({ button: 'right' });
 
-    const text = page.getByRole('menu').getByText('Remove Group');
+    const text = page.getByRole('menu').getByText('Remove');
     await expect(text).toBeVisible();
   });
 
@@ -74,7 +74,7 @@ test.describe('context menu', () => {
     await expect(page.getByText('new group', { exact: true })).toHaveCount(1);
   });
 
-  test('clicking remove layer should remove the layer from the tree', async ({
+  test('clicking remove should remove the layer from the tree', async ({
     page,
   }) => {
     // Create new layer first
@@ -102,12 +102,12 @@ test.describe('context menu', () => {
       button: 'right',
     });
 
-    await page.getByRole('menu').getByText('Remove Layer').click();
+    await page.getByRole('menu').getByText('Remove').click();
 
     expect(layerInTree).not.toBeVisible();
   });
 
-  test('clicking remove group should remove the group from the tree', async ({
+  test('clicking remove should remove the group from the tree', async ({
     page,
   }) => {
     const firstItem = page
@@ -119,7 +119,7 @@ test.describe('context menu', () => {
       .getByText('level 1 group')
       .click({ button: 'right' });
 
-    await page.getByRole('menu').getByText('Remove Group').click();
+    await page.getByRole('menu').getByText('Remove').click();
     await expect(firstItem).not.toBeVisible();
   });
 
