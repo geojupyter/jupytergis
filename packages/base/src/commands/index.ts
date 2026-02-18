@@ -534,7 +534,7 @@ export function addCommands(
    * LAYERS and LAYER GROUP actions.
    */
   commands.addCommand(CommandIDs.renameSelected, {
-    label: trans.__('Rename Item'),
+    label: trans.__('Rename'),
     isEnabled: () => {
       const model = tracker.currentWidget?.model;
       const selected = model?.localState?.selected?.value;
@@ -553,7 +553,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.removeSelected, {
-    label: trans.__('Remove Item'),
+    label: trans.__('Remove'),
     isEnabled: () => {
       const model = tracker.currentWidget?.model;
       const selected = model?.localState?.selected?.value;
