@@ -25,6 +25,16 @@ import {
   IJupyterGISDocChange,
 } from './interfaces';
 
+const INITIAL_SYNC_KEYS = [
+  'layers',
+  'layerTree',
+  'sources',
+  'stories',
+  'options',
+] as const;
+
+type InitialSyncKey = (typeof INITIAL_SYNC_KEYS)[number];
+
 export class JupyterGISDoc
   extends YDocument<IJupyterGISDocChange>
   implements IJupyterGISDoc
@@ -44,12 +54,32 @@ export class JupyterGISDoc
     this.undoManager.addToScope(this._stories);
     this.undoManager.addToScope(this._layerTree);
 
+    this._initialSyncReadyPromise = new Promise<void>(resolve => {
+      this._initialSyncReadyResolve = resolve;
+    });
+
     this._layers.observeDeep(this._layersObserver.bind(this));
     this._layerTree.observe(this._layerTreeObserver.bind(this));
     this._sources.observeDeep(this._sourcesObserver.bind(this));
     this._stories.observeDeep(this._storyMapsObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
     this._metadata.observe(this._metaObserver.bind(this));
+  }
+
+  get initialSyncReady(): Promise<void> {
+    return this._initialSyncReadyPromise;
+  }
+
+  private _markInitialSyncFired(key: InitialSyncKey): void {
+    if (this._initialSyncResolved) {
+      return;
+    }
+    this._initialSyncFired.add(key);
+    if (this._initialSyncFired.size === INITIAL_SYNC_KEYS.length) {
+      this._initialSyncResolved = true;
+
+      this._initialSyncReadyResolve();
+    }
   }
 
   getSource(): JSONObject {
@@ -408,11 +438,13 @@ export class JupyterGISDoc
     if (needEmit) {
       this._layersChanged.emit({ layerChange: changes });
     }
+    this._markInitialSyncFired('layers');
   }
 
   private _layerTreeObserver(event: Y.YArrayEvent<IJGISLayerItem>): void {
     const layerTreeChanges = event.delta as Delta<IJGISLayerItem[]>;
     this._layerTreeChanged.emit({ layerTreeChange: layerTreeChanges });
+    this._markInitialSyncFired('layerTree');
   }
 
   private _sourcesObserver(events: Y.YEvent<any>[]): void {
@@ -436,6 +468,7 @@ export class JupyterGISDoc
     if (needEmit) {
       this._sourcesChanged.emit({ sourceChange: changes });
     }
+    this._markInitialSyncFired('sources');
   }
 
   private _storyMapsObserver(events: Y.YEvent<any>[]): void {
@@ -459,6 +492,7 @@ export class JupyterGISDoc
     if (needEmit) {
       this._storyMapsChanged.emit({ storyMapChange: changes });
     }
+    this._markInitialSyncFired('stories');
   }
 
   private _optionsObserver = (event: Y.YMapEvent<Y.Map<string>>): void => {
@@ -471,6 +505,7 @@ export class JupyterGISDoc
       });
     });
     this._optionsChanged.emit(changes);
+    this._markInitialSyncFired('options');
   };
 
   private _metaObserver = (event: Y.YMapEvent<string>): void => {
@@ -508,4 +543,9 @@ export class JupyterGISDoc
     IJGISStoryMapDocChange
   >(this);
   private _metadataChanged = new Signal<IJupyterGISDoc, MapChange>(this);
+
+  private _initialSyncReadyPromise: Promise<void>;
+  private _initialSyncReadyResolve: () => void;
+  private _initialSyncFired = new Set<InitialSyncKey>();
+  private _initialSyncResolved = false;
 }

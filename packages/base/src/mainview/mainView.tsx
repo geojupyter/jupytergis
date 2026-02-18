@@ -261,7 +261,7 @@ export class MainView extends React.Component<IProps, IStates> {
       displayTemporalController: false,
       filterStates: {},
       jgisSettings: this._model.jgisSettings,
-      isSpectaPresentation: false,
+      isSpectaPresentation: this._model.isSpectaMode(),
     };
 
     this._sources = [];
