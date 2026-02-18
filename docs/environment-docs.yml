@@ -19,7 +19,7 @@ dependencies:
   - sphinxcontrib-mermaid
   - myst-parser
   - xeus-python # TODO: Do we need this?
-
+  - specta
   - pip
   - pip:
       # Install JupyterGIS so we can autodoc.

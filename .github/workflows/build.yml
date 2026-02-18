@@ -314,6 +314,7 @@ jobs:
             jupyterlite-core
             jupyterlite-xeus
             jupyter_server
+            specta
 
       - name: Download extension package
         uses: actions/download-artifact@v7
