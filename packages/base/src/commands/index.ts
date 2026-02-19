@@ -550,6 +550,7 @@ export function addCommands(
 
       await Private.renameSelectedItem(model);
     },
+    ...icons.get(CommandIDs.renameSelected),
   });
 
   commands.addCommand(CommandIDs.removeSelected, {
@@ -569,6 +570,7 @@ export function addCommands(
 
       await Private.removeSelectedItems(model);
     },
+    ...icons.get(CommandIDs.removeSelected),
   });
 
   commands.addCommand(CommandIDs.moveLayersToGroup, {
