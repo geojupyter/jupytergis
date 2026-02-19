@@ -2,6 +2,43 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.13.2
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.13.1...4028ebad33e66c9fb4fbe7a77a9589cd77e3a595))
+
+### Enhancements made
+
+- Zoom to layer on double-click [#1116](https://github.com/geojupyter/jupytergis/pull/1116) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+- Make embedded side panels draggable [#1014](https://github.com/geojupyter/jupytergis/pull/1014) ([@nakul-py](https://github.com/nakul-py), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+
+### Bugs fixed
+
+- Scrollytelling fix [#1128](https://github.com/geojupyter/jupytergis/pull/1128) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Simplify and improve Rename/Remove logic for layers and layer groups [#1123](https://github.com/geojupyter/jupytergis/pull/1123) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+- Increase timeout for STAC browser results viewer integration test [#1120](https://github.com/geojupyter/jupytergis/pull/1120) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
+- Fixing default colorRamp display bug [#1117](https://github.com/geojupyter/jupytergis/pull/1117) ([@nakul-py](https://github.com/nakul-py), [@mfisher87](https://github.com/mfisher87))
+
+### Maintenance and upkeep improvements
+
+- Fix openjournals/openjournals-draft-action action version [#1125](https://github.com/geojupyter/jupytergis/pull/1125) ([@martinRenou](https://github.com/martinRenou))
+- Enable manually running the build workflow [#1122](https://github.com/geojupyter/jupytergis/pull/1122) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+- Fix tests flakiness. [#1121](https://github.com/geojupyter/jupytergis/pull/1121) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+
+### Documentation improvements
+
+- Expand JupyterGIS JOSS submission to follow the updated guidelines [#1109](https://github.com/geojupyter/jupytergis/pull/1109) ([@SylvainCorlay](https://github.com/SylvainCorlay), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-02-12&to=2026-02-18&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-02-12..2026-02-18&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-02-12..2026-02-18&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-02-12..2026-02-18&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-02-12..2026-02-18&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-02-12..2026-02-18&type=Issues)) | @SylvainCorlay ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3ASylvainCorlay+updated%3A2026-02-12..2026-02-18&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.13.1
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.13.0...afc359c45c00ef8e31ba27af4e7e47f93ba72855))
@@ -25,8 +62,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-02-06&to=2026-02-12&type=c))
 
 @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-02-06..2026-02-12&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-02-06..2026-02-12&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-02-06..2026-02-12&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-02-06..2026-02-12&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.13.0
 
