@@ -291,6 +291,22 @@ const StoryViewerPanel = forwardRef<
       }
     }, [storyData, currentIndexDisplayed, setSelectedLayerByIndex]);
 
+    // Apply story presentation colors (specta) to panel root
+    useEffect(() => {
+      if (!isSpecta || !panelRef.current) {
+        return;
+      }
+      const container = panelRef.current;
+      const bgColor = storyData?.presentationBgColor;
+      const textColor = storyData?.presentationTextColor;
+      if (bgColor) {
+        container.style.setProperty('--jgis-specta-bg-color', bgColor);
+      }
+      if (textColor) {
+        container.style.setProperty('--jgis-specta-text-color', textColor);
+      }
+    }, []);
+
     // Listen for layer selection changes in unguided mode
     useEffect(() => {
       // ! TODO this logic (getting a single selected layer) is also in the processing index.ts, move to tools
