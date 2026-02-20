@@ -17,8 +17,12 @@ async function getOpenLayerIds(
   page: IJupyterLabPageFixture,
 ): Promise<string[]> {
   return await page.evaluate(() => {
-    const olMap = Object.values(window.jupytergisMaps)[0];
-    console.log(jupytergisMaps);
+    const maps = window.jupytergisMaps;
+    if (!maps || Object.keys(maps).length === 0) {
+      return [];
+    }
+    const olMap = Object.values(maps)[0];
+    if (!olMap) return [];
     return olMap
       .getLayers()
       .getArray()
@@ -30,7 +34,10 @@ async function getOpenLayerVisibility(
   page: IJupyterLabPageFixture,
 ): Promise<boolean[]> {
   return await page.evaluate(() => {
-    const olMap = Object.values(window.jupytergisMaps)[0];
+    const maps = window.jupytergisMaps;
+    if (!maps || Object.keys(maps).length === 0) return [];
+    const olMap = Object.values(maps)[0];
+    if (!olMap) return [];
     return olMap
       .getLayers()
       .getArray()
