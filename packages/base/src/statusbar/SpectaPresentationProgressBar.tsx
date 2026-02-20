@@ -35,7 +35,8 @@ function SpectaPresentationProgressBar({
   return (
     <div className="jgis-specta-progress">
       <div className="jgis-specta-progress-bar bar">
-        {Array.from({ length: safeCount }, (_, n) => (
+        {Array.from({ length: safeCount }, (_, i) => safeCount - 1 - i).map(
+          (n) => (
           <React.Fragment key={n}>
             <input
               type="radio"
@@ -57,7 +58,8 @@ function SpectaPresentationProgressBar({
               />
             </div>
           </React.Fragment>
-        ))}
+          ),
+        )}
       </div>
     </div>
   );

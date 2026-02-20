@@ -26,6 +26,8 @@
   left: -9999px;
 }
 
+/* All segments up to and including current are filled (~ = all following siblings).
+   With reversed DOM order, "following" = indices 0..currentIndex = left of current. */
 .jgis-specta-progress .bar-input:checked ~ .bar-view::after {
   transform: scaleX(1);
 }
@@ -35,61 +37,7 @@
   opacity: 1;
 }
 
-.jgis-specta-progress .bar-input:checked ~ .bar-view:nth-child(2)::after {
-  transition-delay: 0.35s;
-}
-
-.jgis-specta-progress
-  .bar-input:checked
-  ~ .bar-view:nth-child(2)
-  .bar-button::before {
-  transition-delay: 0.41s;
-}
-
-.jgis-specta-progress .bar-input:checked ~ .bar-view:nth-child(4)::after {
-  transition-delay: 0.25s;
-}
-
-.jgis-specta-progress
-  .bar-input:checked
-  ~ .bar-view:nth-child(4)
-  .bar-button::before {
-  transition-delay: 0.31s;
-}
-
-.jgis-specta-progress .bar-input:checked ~ .bar-view:nth-child(6)::after {
-  transition-delay: 0.15s;
-}
-
-.jgis-specta-progress
-  .bar-input:checked
-  ~ .bar-view:nth-child(6)
-  .bar-button::before {
-  transition-delay: 0.21s;
-}
-
-.jgis-specta-progress .bar-input:checked ~ .bar-view:nth-child(8)::after {
-  transition-delay: 0.05s;
-}
-
-.jgis-specta-progress
-  .bar-input:checked
-  ~ .bar-view:nth-child(8)
-  .bar-button::before {
-  transition-delay: 0.11s;
-}
-
-.jgis-specta-progress .bar-input:checked ~ .bar-view:nth-child(10)::after {
-  transition-delay: -0.05s;
-}
-
-.jgis-specta-progress
-  .bar-input:checked
-  ~ .bar-view:nth-child(10)
-  .bar-button::before {
-  transition-delay: 0.01s;
-}
-
+/* Bouncing arrow only on the current segment (+ = immediate next). */
 .jgis-specta-progress .bar-input:checked + .bar-view .bar-button::after {
   opacity: 1;
   animation: jgis-specta-bouncing 0.6s cubic-bezier(0, 0, 0.74, 1.04) infinite;
