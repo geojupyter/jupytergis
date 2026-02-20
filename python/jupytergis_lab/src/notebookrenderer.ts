@@ -5,6 +5,7 @@ import {
   ToolbarWidget,
 } from '@jupytergis/base';
 import {
+  DEFAULT_JGIS_DOCUMENT_CONTENT,
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
   IJupyterGISDoc,
@@ -196,7 +197,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
             await app.serviceManager.contents.get(localPath);
           } catch (e) {
             await app.serviceManager.contents.save(localPath, {
-              content: btoa('{}'),
+              content: btoa(DEFAULT_JGIS_DOCUMENT_CONTENT),
               format: 'base64',
             });
           }
