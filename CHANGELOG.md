@@ -2,6 +2,26 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.13.3
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.13.2...253446019d0c8f93e14ca679abdacb7bc82b4dea))
+
+### Enhancements made
+
+- Add initialSyncReady promise and defer main view until model is populated [#1130](https://github.com/geojupyter/jupytergis/pull/1130) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Add icons for removing and renaming layers in context menu [#1129](https://github.com/geojupyter/jupytergis/pull/1129) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-02-18&to=2026-02-20&type=c))
+
+@gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-02-18..2026-02-20&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-02-18..2026-02-20&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-02-18..2026-02-20&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.13.2
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.13.1...4028ebad33e66c9fb4fbe7a77a9589cd77e3a595))
@@ -36,8 +56,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-02-12&to=2026-02-18&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-02-12..2026-02-18&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-02-12..2026-02-18&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-02-12..2026-02-18&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-02-12..2026-02-18&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-02-12..2026-02-18&type=Issues)) | @SylvainCorlay ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3ASylvainCorlay+updated%3A2026-02-12..2026-02-18&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.13.1
 
