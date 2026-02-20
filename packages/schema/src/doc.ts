@@ -25,6 +25,16 @@ import {
   IJupyterGISDocChange,
 } from './interfaces';
 
+/** Default JSON content for a new JupyterGIS document. */
+export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
+	"schemaVersion": "${SCHEMA_VERSION}",
+	"layers": {},
+	"sources": {},
+	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},
+	"layerTree": [],
+	"metadata": {}
+}`;
+
 export class JupyterGISDoc
   extends YDocument<IJupyterGISDocChange>
   implements IJupyterGISDoc
@@ -44,12 +54,28 @@ export class JupyterGISDoc
     this.undoManager.addToScope(this._stories);
     this.undoManager.addToScope(this._layerTree);
 
+    this._initialSyncReadyPromise = new Promise<void>(resolve => {
+      this._initialSyncReadyResolve = resolve;
+    });
+
     this._layers.observeDeep(this._layersObserver.bind(this));
     this._layerTree.observe(this._layerTreeObserver.bind(this));
     this._sources.observeDeep(this._sourcesObserver.bind(this));
     this._stories.observeDeep(this._storyMapsObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
     this._metadata.observe(this._metaObserver.bind(this));
+  }
+
+  get initialSyncReady(): Promise<void> {
+    return this._initialSyncReadyPromise;
+  }
+
+  private _onOptionsObserverFired(): void {
+    if (this._initialSyncResolved) {
+      return;
+    }
+    this._initialSyncResolved = true;
+    this._initialSyncReadyResolve();
   }
 
   getSource(): JSONObject {
@@ -471,6 +497,7 @@ export class JupyterGISDoc
       });
     });
     this._optionsChanged.emit(changes);
+    this._onOptionsObserverFired();
   };
 
   private _metaObserver = (event: Y.YMapEvent<string>): void => {
@@ -508,4 +535,8 @@ export class JupyterGISDoc
     IJGISStoryMapDocChange
   >(this);
   private _metadataChanged = new Signal<IJupyterGISDoc, MapChange>(this);
+
+  private _initialSyncReadyPromise: Promise<void>;
+  private _initialSyncReadyResolve: () => void;
+  private _initialSyncResolved = false;
 }
