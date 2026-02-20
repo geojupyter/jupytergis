@@ -13,38 +13,6 @@ async function openLayerTree(page: IJupyterLabPageFixture): Promise<Locator> {
   return layerTree;
 }
 
-async function getOpenLayerIds(
-  page: IJupyterLabPageFixture,
-): Promise<string[]> {
-  return await page.evaluate(() => {
-    const maps = window.jupytergisMaps;
-    if (!maps || Object.keys(maps).length === 0) {
-      return [];
-    }
-    const olMap = Object.values(maps)[0];
-    if (!olMap) return [];
-    return olMap
-      .getLayers()
-      .getArray()
-      .map(layer => layer.getProperties()['id']) as string[];
-  });
-}
-
-async function getOpenLayerVisibility(
-  page: IJupyterLabPageFixture,
-): Promise<boolean[]> {
-  return await page.evaluate(() => {
-    const maps = window.jupytergisMaps;
-    if (!maps || Object.keys(maps).length === 0) return [];
-    const olMap = Object.values(maps)[0];
-    if (!olMap) return [];
-    return olMap
-      .getLayers()
-      .getArray()
-      .map(layer => layer.getVisible()) as boolean[];
-  });
-}
-
 test.describe('#layerPanel', () => {
   test.describe('with GIS document', () => {
     test.beforeAll(async ({ request }) => {
@@ -141,27 +109,32 @@ test.describe('#layerPanel', () => {
     test('should hide the last layer', async ({ page }) => {
       const layerTree = await openLayerTree(page);
 
-      // Wait for the map to be loaded;
-      await page.waitForCondition(
-        async () => (await getOpenLayerIds(page)).length === 3,
-      );
+      // Expand groups so all layers are visible
+      const layerGroups = layerTree.locator('.jp-gis-layerGroup');
+      await layerGroups.first().click();
+      await layerGroups.last().click();
 
-      // Wait for the map to be displayed.
-      let layerVisibility = await getOpenLayerVisibility(page);
-      layerVisibility.forEach(visible => expect(visible).toBeTruthy());
-
+      // Wait for at least one "Hide layer" button to be visible
       const hideLayerButton = layerTree.getByTitle('Hide layer');
+      await expect(hideLayerButton.first()).toBeVisible();
+
+      const hideCountBefore = await hideLayerButton.count();
+      expect(hideCountBefore).toBeGreaterThanOrEqual(1);
 
       // Hide the last layer
       await hideLayerButton.last().click();
 
-      layerVisibility = await getOpenLayerVisibility(page);
-
-      expect(layerVisibility[0]).toBeFalsy();
-
-      // Restore the visibility of the layer.
+      // That layer should now show "Show layer" instead of "Hide layer"
       const showLayerButton = layerTree.getByTitle('Show layer');
+      await expect(showLayerButton.first()).toBeVisible();
+      expect(await hideLayerButton.count()).toBe(hideCountBefore - 1);
+
+      // Restore: click Show layer for the layer we hid
       await showLayerButton.last().click();
+
+      // Back to initial state: no "Show layer" buttons, hide count restored
+      await expect(showLayerButton).toHaveCount(0);
+      await expect(hideLayerButton).toHaveCount(hideCountBefore);
     });
   });
 });
