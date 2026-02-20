@@ -1,0 +1,268 @@
+/* Specta presentation progress bar (segment stepper) */
+
+:root {
+  --jgis-specta-orange: #fe9000;
+  --jgis-specta-orange-light: #ffb732;
+  --jgis-specta-yellow: #ffdd4a;
+  --jgis-specta-blue-light: #5adbff;
+  --jgis-specta-blue: #3c6997;
+  --jgis-specta-bounce: cubic-bezier(0, 0, 0, 1.97);
+  --jgis-specta-smooth: cubic-bezier(0, 0.72, 0.58, 1);
+}
+
+.jgis-specta-progress .bar {
+  display: flex;
+  flex-direction: row-reverse;
+  margin: auto auto 0;
+  width: 300px;
+  max-width: calc(100% - 30px);
+}
+
+.jgis-specta-progress .bar-input {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+
+.jgis-specta-progress .bar-input:checked ~ .bar-view::after {
+  transform: scaleX(1);
+}
+
+.jgis-specta-progress .bar-input:checked ~ .bar-view .bar-button::before {
+  transform: none;
+  opacity: 1;
+}
+
+.jgis-specta-progress .bar-input:checked ~ .bar-view:nth-child(2)::after {
+  transition-delay: 0.35s;
+}
+
+.jgis-specta-progress
+  .bar-input:checked
+  ~ .bar-view:nth-child(2)
+  .bar-button::before {
+  transition-delay: 0.41s;
+}
+
+.jgis-specta-progress .bar-input:checked ~ .bar-view:nth-child(4)::after {
+  transition-delay: 0.25s;
+}
+
+.jgis-specta-progress
+  .bar-input:checked
+  ~ .bar-view:nth-child(4)
+  .bar-button::before {
+  transition-delay: 0.31s;
+}
+
+.jgis-specta-progress .bar-input:checked ~ .bar-view:nth-child(6)::after {
+  transition-delay: 0.15s;
+}
+
+.jgis-specta-progress
+  .bar-input:checked
+  ~ .bar-view:nth-child(6)
+  .bar-button::before {
+  transition-delay: 0.21s;
+}
+
+.jgis-specta-progress .bar-input:checked ~ .bar-view:nth-child(8)::after {
+  transition-delay: 0.05s;
+}
+
+.jgis-specta-progress
+  .bar-input:checked
+  ~ .bar-view:nth-child(8)
+  .bar-button::before {
+  transition-delay: 0.11s;
+}
+
+.jgis-specta-progress .bar-input:checked ~ .bar-view:nth-child(10)::after {
+  transition-delay: -0.05s;
+}
+
+.jgis-specta-progress
+  .bar-input:checked
+  ~ .bar-view:nth-child(10)
+  .bar-button::before {
+  transition-delay: 0.01s;
+}
+
+.jgis-specta-progress .bar-input:checked + .bar-view .bar-button::after {
+  opacity: 1;
+  animation: jgis-specta-bouncing 0.6s cubic-bezier(0, 0, 0.74, 1.04) infinite;
+}
+
+.jgis-specta-progress .bar-view {
+  display: flex;
+  flex-grow: 1;
+  position: relative;
+}
+
+.jgis-specta-progress .bar-view::after {
+  height: 2px;
+  top: calc(50% - 1px);
+  transition: transform 0.06s var(--jgis-specta-smooth);
+  transform: scaleX(0);
+  background: var(--jgis-specta-orange-light);
+  transform-origin: left;
+  z-index: 1;
+}
+
+.jgis-specta-progress .bar-view:not(:last-child)::before,
+.jgis-specta-progress .bar-view:not(:last-child)::after {
+  content: '';
+  width: calc(100% - 24px);
+  position: absolute;
+  right: calc(50% + 12px);
+}
+
+.jgis-specta-progress .bar-view:not(:last-child)::before {
+  height: 6px;
+  top: calc(50% - 3px);
+  background: var(--jgis-specta-blue);
+}
+
+.jgis-specta-progress .bar-view:not(:last-child):nth-child(2)::after {
+  transition-delay: 0s;
+}
+
+.jgis-specta-progress
+  .bar-view:not(:last-child):nth-child(2)
+  .bar-button::before {
+  transition-delay: 0.06s;
+}
+
+.jgis-specta-progress .bar-view:not(:last-child):nth-child(4)::after {
+  transition-delay: 0.1s;
+}
+
+.jgis-specta-progress
+  .bar-view:not(:last-child):nth-child(4)
+  .bar-button::before {
+  transition-delay: 0.16s;
+}
+
+.jgis-specta-progress .bar-view:not(:last-child):nth-child(6)::after {
+  transition-delay: 0.2s;
+}
+
+.jgis-specta-progress
+  .bar-view:not(:last-child):nth-child(6)
+  .bar-button::before {
+  transition-delay: 0.26s;
+}
+
+.jgis-specta-progress .bar-view:not(:last-child):nth-child(8)::after {
+  transition-delay: 0.3s;
+}
+
+.jgis-specta-progress
+  .bar-view:not(:last-child):nth-child(8)
+  .bar-button::before {
+  transition-delay: 0.36s;
+}
+
+.jgis-specta-progress .bar-view:not(:last-child):nth-child(10)::after {
+  transition-delay: 0.4s;
+}
+
+.jgis-specta-progress
+  .bar-view:not(:last-child):nth-child(10)
+  .bar-button::before {
+  transition-delay: 0.46s;
+}
+
+.jgis-specta-progress .bar-button {
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: auto;
+  border-radius: 50%;
+  border: 3px solid var(--jgis-specta-blue);
+  position: relative;
+  cursor: pointer;
+  box-shadow:
+    inset 2px 2px 4px rgba(0, 0, 0, 0.3),
+    2px 2px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+.jgis-specta-progress .bar-button:hover::after {
+  transform: none;
+  opacity: 1;
+}
+
+.jgis-specta-progress .bar-button::before,
+.jgis-specta-progress .bar-button::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  box-sizing: inherit;
+}
+
+.jgis-specta-progress .bar-button::before {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    var(--jgis-specta-yellow),
+    var(--jgis-specta-orange)
+  );
+  transform: scale(0.3);
+  opacity: 0;
+  transition:
+    transform 0.2s var(--jgis-specta-smooth),
+    opacity 0.2s var(--jgis-specta-smooth);
+}
+
+.jgis-specta-progress .bar-button::after {
+  border: 8px solid transparent;
+  border-top-color: var(--jgis-specta-blue-light);
+  bottom: calc(100% + 10px);
+  left: calc(50% - 8px);
+  transform: translateY(-10px);
+  opacity: 0;
+  transition:
+    transform 0.2s var(--jgis-specta-bounce),
+    opacity 0.2s var(--jgis-specta-bounce);
+}
+
+.jgis-specta-progress-command {
+  font-family: 'Ubuntu Mono', monospace;
+  letter-spacing: 1px;
+  margin: 30px auto auto;
+  animation: jgis-specta-fade 1s ease infinite;
+}
+
+.jgis-specta-progress {
+  box-sizing: border-box;
+  /* position: fixed; */
+  bottom: 0.125rem;
+  width: 100%;
+}
+
+.jgis-specta-progress *,
+.jgis-specta-progress *::before,
+.jgis-specta-progress *::after {
+  box-sizing: inherit;
+}
+
+@keyframes jgis-specta-bouncing {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+@keyframes jgis-specta-fade {
+  50% {
+    opacity: 0.3;
+  }
+}

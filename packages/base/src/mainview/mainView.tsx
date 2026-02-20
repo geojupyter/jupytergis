@@ -124,6 +124,7 @@ import { MobileSpectaPanel } from '../panelview/story-maps/MobileSpectaPanel';
 import StoryViewerPanel, {
   IStoryViewerPanelHandle,
 } from '../panelview/story-maps/StoryViewerPanel';
+import SpectaPresentationProgressBar from '../statusbar/SpectaPresentationProgressBar';
 
 type OlLayerTypes =
   | TileLayer
@@ -2779,22 +2780,25 @@ export class MainView extends React.Component<IProps, IStates> {
                   (this.props.isMobile ? (
                     <MobileSpectaPanel model={this._model} />
                   ) : (
-                    <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
-                      <div
-                        ref={this.spectaContainerRef}
-                        className="jgis-specta-story-panel-container"
-                      >
-                        <StoryViewerPanel
-                          ref={this.storyViewerPanelRef}
-                          model={this._model}
-                          isSpecta={this.state.isSpectaPresentation}
-                          className="jgis-story-viewer-panel-specta-mod"
-                          onSegmentTransitionEnd={() =>
-                            this._clearStoryScrollGuard()
-                          }
-                        />
+                    <>
+                      <div className="jgis-specta-right-panel-container-mod jgis-right-panel-container">
+                        <div
+                          ref={this.spectaContainerRef}
+                          className="jgis-specta-story-panel-container"
+                        >
+                          <StoryViewerPanel
+                            ref={this.storyViewerPanelRef}
+                            model={this._model}
+                            isSpecta={this.state.isSpectaPresentation}
+                            className="jgis-story-viewer-panel-specta-mod"
+                            onSegmentTransitionEnd={() =>
+                              this._clearStoryScrollGuard()
+                            }
+                          />
+                        </div>
                       </div>
-                    </div>
+                      <SpectaPresentationProgressBar model={this._model} />
+                    </>
                   ))
                 )}
               </div>
