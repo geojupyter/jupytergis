@@ -73,7 +73,14 @@ class GISDocument(CommWidget):
 
         self.ydoc["layers"] = self._layers = Map()
         self.ydoc["sources"] = self._sources = Map()
-        self.ydoc["options"] = self._options = Map()
+        self.ydoc["options"] = self._options = Map({
+            "latitude": 0,
+            "longitude": 0,
+            "zoom": 0,
+            "bearing": 0,
+            "pitch": 0,
+            "projection": "EPSG:3857",
+        })
         self.ydoc["layerTree"] = self._layerTree = Array()
         self.ydoc["metadata"] = self._metadata = Map()
 
