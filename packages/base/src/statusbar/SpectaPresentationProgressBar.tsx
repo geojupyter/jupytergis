@@ -1,13 +1,13 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useEffect, useRef, useState } from 'react';
 
-interface SpectaPresentationProgressBarProps {
+interface ISpectaPresentationProgressBarProps {
   model: IJupyterGISModel;
 }
 
 function SpectaPresentationProgressBar({
   model,
-}: SpectaPresentationProgressBarProps) {
+}: ISpectaPresentationProgressBarProps) {
   const segmentCount =
     model.getSelectedStory().story?.storySegments?.length ?? 0;
   const [currentIndex, setCurrentIndex] = useState(() =>

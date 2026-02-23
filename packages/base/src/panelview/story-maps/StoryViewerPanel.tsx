@@ -286,12 +286,7 @@ const StoryViewerPanel = forwardRef<
       clearOverrideLayers();
       setSelectedLayerByIndex(currentIndex);
       overrideSymbology(currentIndex);
-    }, [
-      storyData,
-      currentIndex,
-      setSelectedLayerByIndex,
-      clearOverrideLayers,
-    ]);
+    }, [storyData, currentIndex, setSelectedLayerByIndex, clearOverrideLayers]);
 
     // Set selected layer on initial render and when story data changes
     useEffect(() => {
