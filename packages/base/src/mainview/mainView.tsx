@@ -2808,7 +2808,6 @@ export class MainView extends React.Component<IProps, IStates> {
               ></div>
             </div>
           </div>
-          <SpectaPresentationProgressBar model={this._model} />
           {!this.state.isSpectaPresentation && (
             <StatusBar
               jgisModel={this._model}

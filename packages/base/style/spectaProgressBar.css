@@ -1,21 +1,28 @@
 /* Specta presentation progress bar (segment stepper) */
 
 :root {
-  --jgis-specta-orange: #fe9000;
-  --jgis-specta-orange-light: #ffb732;
-  --jgis-specta-yellow: #ffdd4a;
-  --jgis-specta-blue-light: #5adbff;
-  --jgis-specta-blue: #3c6997;
+  /* outside of radio */
+  --jgis-specta-orange: var(--jp-accent-color0);
+
+  /* connecting bar */
+  --jgis-specta-orange-light: color-mix(in srgb, var(--jp-accent-color1) 80%, transparent);
+
+  /* inside of radio */
+  --jgis-specta-yellow: var(--jp-accent-color3);
+
+  --jgis-specta-blue: var(--jp-border-color0);
   --jgis-specta-bounce: cubic-bezier(0, 0, 0, 1.97);
   --jgis-specta-smooth: cubic-bezier(0, 0.72, 0.58, 1);
+  /* --jgis-specta-blue-light: #5adbff; */
 }
 
 .jgis-specta-progress .bar {
   display: flex;
   flex-direction: row-reverse;
   margin: auto auto 0;
-  width: 300px;
-  max-width: calc(100% - 30px);
+  width: 500px;
+  max-width: 40%;
+  /* max-width: calc(100% - 30px); */
 }
 
 .jgis-specta-progress .bar-input {
@@ -50,8 +57,8 @@
 }
 
 .jgis-specta-progress .bar-view::after {
-  height: 2px;
-  top: calc(50% - 1px);
+  height: 0.25rem;
+  top: calc(50% - 0.125rem);
   transition: transform 0.06s var(--jgis-specta-smooth);
   transform: scaleX(0);
   background: var(--jgis-specta-orange-light);
@@ -63,13 +70,15 @@
 .jgis-specta-progress .bar-view:not(:last-child)::after {
   content: '';
   width: calc(100% - 24px);
+  /* width: calc(100% - 1.5rem); */
   position: absolute;
+  /* right: calc(50% + 0.75rem); */
   right: calc(50% + 12px);
 }
 
 .jgis-specta-progress .bar-view:not(:last-child)::before {
-  height: 6px;
-  top: calc(50% - 3px);
+  height: 0.5rem;
+  top: calc(50% - 0.25rem);
   background: var(--jgis-specta-blue);
 }
 
@@ -167,7 +176,7 @@
     opacity 0.2s var(--jgis-specta-smooth);
 }
 
-.jgis-specta-progress .bar-button::after {
+/* .jgis-specta-progress .bar-button::after {
   border: 8px solid transparent;
   border-top-color: var(--jgis-specta-blue-light);
   bottom: calc(100% + 10px);
@@ -177,7 +186,7 @@
   transition:
     transform 0.2s var(--jgis-specta-bounce),
     opacity 0.2s var(--jgis-specta-bounce);
-}
+} */
 
 .jgis-specta-progress-command {
   font-family: 'Ubuntu Mono', monospace;
@@ -188,9 +197,10 @@
 
 .jgis-specta-progress {
   box-sizing: border-box;
-  /* position: fixed; */
-  bottom: 0.125rem;
+  position: fixed;
+  bottom: 0.25rem;
   width: 100%;
+  z-index: 40;
 }
 
 .jgis-specta-progress *,
