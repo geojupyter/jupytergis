@@ -1190,66 +1190,42 @@ export function addCommands(
     execute: async (args?: { filePath?: string }) => {
       const { filePath } = args ?? {};
 
-      // ----- PARAMETER MODE -----
-      if (filePath) {
-        const current = tracker.find(w => w.model.filePath === filePath);
-        if (!current) {
-          console.warn('No document found for provided filePath');
-          return;
-        }
+      // Resolve widget once
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
 
-        const viewModel = current.model;
-        const options = {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
-        };
-
-        const success = (pos: GeolocationPosition) => {
-          const location: Coordinate = fromLonLat([
-            pos.coords.longitude,
-            pos.coords.latitude,
-          ]);
-
-          const jgisLocation: JgisCoordinates = {
-            x: location[0],
-            y: location[1],
-          };
-
-          viewModel.geolocationChanged.emit(jgisLocation);
-        };
-
-        const error = (err: GeolocationPositionError) => {
-          console.warn(`Geolocation error (${err.code}): ${err.message}`);
-        };
-
-        navigator.geolocation.getCurrentPosition(success, error, options);
+      if (!current) {
+        console.warn('No document found');
         return;
       }
 
-      // ----- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR -----
-      const viewModel = tracker.currentWidget?.model;
-      const options = {
+      const viewModel = current.model;
+
+      const options: PositionOptions = {
         enableHighAccuracy: true,
         timeout: 5000,
         maximumAge: 0,
       };
-      const success = (pos: any) => {
+
+      const success = (pos: GeolocationPosition) => {
         const location: Coordinate = fromLonLat([
           pos.coords.longitude,
           pos.coords.latitude,
         ]);
-        const Jgislocation: JgisCoordinates = {
+
+        const jgisLocation: JgisCoordinates = {
           x: location[0],
           y: location[1],
         };
-        if (viewModel) {
-          viewModel.geolocationChanged.emit(Jgislocation);
-        }
+
+        viewModel.geolocationChanged.emit(jgisLocation);
       };
-      const error = (err: any) => {
-        console.warn(`ERROR(${err.code}): ${err.message}`);
+
+      const error = (err: GeolocationPositionError) => {
+        console.warn(`Geolocation error (${err.code}): ${err.message}`);
       };
+
       navigator.geolocation.getCurrentPosition(success, error, options);
     },
     icon: targetWithCenterIcon,
