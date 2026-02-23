@@ -3,14 +3,10 @@ import React, { useEffect, useRef, useState } from 'react';
 
 interface SpectaPresentationProgressBarProps {
   model: IJupyterGISModel;
-
-  /** Called when the user selects a segment. */
-  onSegmentSelect?: (index: number) => void;
 }
 
 function SpectaPresentationProgressBar({
   model,
-  onSegmentSelect,
 }: SpectaPresentationProgressBarProps) {
   const segmentCount =
     model.getSelectedStory().story?.storySegments?.length ?? 0;
@@ -66,31 +62,32 @@ function SpectaPresentationProgressBar({
     >
       <div className="jgis-specta-progress-bar bar">
         {Array.from({ length: safeCount }, (_, i) => safeCount - 1 - i).map(
-          (n) => (
-          <React.Fragment key={n}>
-            <input
-              type="radio"
-              name="jgis-specta-segment"
-              value={n}
-              id={`jgis-specta-segment-${n}`}
-              className="bar-input jgis-specta-progress-input"
-              checked={clampedIndex === n}
-              onChange={() => {
-                setCurrentIndex(n);
-                onSegmentSelect?.(n);
-              }}
-              aria-label={`Segment ${n + 1} of ${safeCount}`}
-            />
-            <div
-              className="bar-view"
-              style={{ '--segment-index': n } as React.CSSProperties}
-            >
-              <label
-                className="bar-button jgis-specta-progress-button"
-                htmlFor={`jgis-specta-segment-${n}`}
+          segmentIndex => (
+            <React.Fragment key={segmentIndex}>
+              <input
+                type="radio"
+                name="jgis-specta-segment"
+                value={segmentIndex}
+                id={`jgis-specta-segment-${segmentIndex}`}
+                className="bar-input jgis-specta-progress-input"
+                checked={clampedIndex === segmentIndex}
+                onChange={() => {
+                  model.setCurrentSegmentIndex(segmentIndex);
+                }}
+                aria-label={`Segment ${segmentIndex + 1} of ${safeCount}`}
               />
-            </div>
-          </React.Fragment>
+              <div
+                className="bar-view"
+                style={
+                  { '--segment-index': segmentIndex } as React.CSSProperties
+                }
+              >
+                <label
+                  className="bar-button jgis-specta-progress-button"
+                  htmlFor={`jgis-specta-segment-${segmentIndex}`}
+                />
+              </div>
+            </React.Fragment>
           ),
         )}
       </div>

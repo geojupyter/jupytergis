@@ -1,23 +1,23 @@
 /* Specta presentation progress bar (segment stepper) */
 
 :root {
-  /* outside of radio */
-  --jgis-specta-orange: var(--jp-accent-color0);
+  /* Filled segment dot gradient (outer) */
+  --jgis-specta-dot-fill-outer: var(--jp-accent-color0);
 
-  /* connecting bar */
-  --jgis-specta-orange-light: color-mix(
+  /* Filled segment dot gradient (inner/center) */
+  --jgis-specta-dot-fill-inner: var(--jp-accent-color3);
+
+  /* Progress track fill (connector bar between segments) */
+  --jgis-specta-track-fill: color-mix(
     in srgb,
     var(--jp-accent-color1) 80%,
     transparent
   );
 
-  /* inside of radio */
-  --jgis-specta-yellow: var(--jp-accent-color3);
+  /* Segment ring and unfilled track */
+  --jgis-specta-track-default: var(--jp-border-color0);
 
-  --jgis-specta-blue: var(--jp-border-color0);
-  --jgis-specta-bounce: cubic-bezier(0, 0, 0, 1.97);
   --jgis-specta-smooth: cubic-bezier(0, 0.72, 0.58, 1);
-  /* --jgis-specta-blue-light: #5adbff; */
 }
 
 .jgis-specta-progress .bar {
@@ -26,7 +26,6 @@
   margin: auto auto 0;
   width: 31.25rem;
   max-width: 40%;
-  /* max-width: calc(100% - 1.875rem); */
 }
 
 .jgis-specta-progress .bar-input {
@@ -48,12 +47,6 @@
   opacity: 1;
 }
 
-/* Bouncing arrow only on the current segment (+ = immediate next). */
-.jgis-specta-progress .bar-input:checked + .bar-view .bar-button::after {
-  opacity: 1;
-  animation: jgis-specta-bouncing 0.6s cubic-bezier(0, 0, 0.74, 1.04) infinite;
-}
-
 .jgis-specta-progress .bar-view {
   display: flex;
   flex-grow: 1;
@@ -66,7 +59,7 @@
   transition: transform var(--jgis-specta-transition-duration, 0.06s)
     var(--jgis-specta-smooth);
   transform: scaleX(0);
-  background: var(--jgis-specta-orange-light);
+  background: var(--jgis-specta-track-fill);
   transform-origin: left;
   z-index: 1;
 }
@@ -82,7 +75,7 @@
 .jgis-specta-progress .bar-view:not(:last-child)::before {
   height: 0.5rem;
   top: calc(50% - 0.25rem);
-  background: var(--jgis-specta-blue);
+  background: var(--jgis-specta-track-default);
 }
 
 /* No delay: progress bar fill starts as soon as segment index changes (runs in parallel with segment animation) */
@@ -106,7 +99,7 @@
   height: 1.875rem;
   margin: auto;
   border-radius: 50%;
-  border: 3px solid var(--jgis-specta-blue);
+  border: 3px solid var(--jgis-specta-track-default);
   position: relative;
   cursor: pointer;
   box-shadow:
@@ -134,33 +127,14 @@
   border-radius: 50%;
   background: radial-gradient(
     circle at center,
-    var(--jgis-specta-yellow),
-    var(--jgis-specta-orange)
+    var(--jgis-specta-dot-fill-inner),
+    var(--jgis-specta-dot-fill-outer)
   );
   transform: scale(0.3);
   opacity: 0;
   transition:
     transform 0.2s var(--jgis-specta-smooth),
     opacity 0.2s var(--jgis-specta-smooth);
-}
-
-/* .jgis-specta-progress .bar-button::after {
-  border: 8px solid transparent;
-  border-top-color: var(--jgis-specta-blue-light);
-  bottom: calc(100% + 0.625rem);
-  left: calc(50% - 0.5rem);
-  transform: translateY(-0.625rem);
-  opacity: 0;
-  transition:
-    transform 0.2s var(--jgis-specta-bounce),
-    opacity 0.2s var(--jgis-specta-bounce);
-} */
-
-.jgis-specta-progress-command {
-  font-family: 'Ubuntu Mono', monospace;
-  letter-spacing: 0.0625rem;
-  margin: 1.875rem auto auto;
-  animation: jgis-specta-fade 1s ease infinite;
 }
 
 .jgis-specta-progress {
@@ -175,20 +149,4 @@
 .jgis-specta-progress *::before,
 .jgis-specta-progress *::after {
   box-sizing: inherit;
-}
-
-@keyframes jgis-specta-bouncing {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(0.3125rem);
-  }
-}
-
-@keyframes jgis-specta-fade {
-  50% {
-    opacity: 0.3;
-  }
 }
