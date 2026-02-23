@@ -60,14 +60,13 @@ function SpectaPresentationProgressBar({
         } as React.CSSProperties
       }
     >
-      <div className="jgis-specta-progress-bar bar">
+      <div className="jgis-specta-progress-bar">
         {Array.from({ length: safeCount }, (_, i) => safeCount - 1 - i).map(
           segmentIndex => (
             <div
               key={segmentIndex}
               className="jgis-specta-bar-segment"
               data-filled={segmentIndex <= clampedIndex ? '' : undefined}
-              data-current={segmentIndex === clampedIndex ? '' : undefined}
               style={{ '--segment-index': segmentIndex } as React.CSSProperties}
             >
               <button
