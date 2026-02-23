@@ -1072,11 +1072,10 @@ export function addCommands(
         },
       },
     },
+
     isEnabled: () => {
-      const selectedLayer = getSingleSelectedLayer(tracker);
-      return selectedLayer
-        ? ['VectorLayer', 'ShapefileLayer'].includes(selectedLayer.type)
-        : false;
+      const layer = getSingleSelectedLayer(tracker);
+      return !!layer && ['VectorLayer', 'ShapefileLayer'].includes(layer.type);
     },
 
     execute: async (args?: {
@@ -1084,21 +1083,12 @@ export function addCommands(
       layerId?: string;
       exportFileName?: string;
     }) => {
-      const { filePath, layerId, exportFileName } = args ?? {};
-
-      // ----- PARAMETER MODE -----
-      if (filePath && layerId && exportFileName) {
-        const current = tracker.find(w => w.model.filePath === filePath);
-
-        if (!current || !current.model.sharedModel.editable) {
-          console.warn('Invalid or non-editable document');
-          return;
-        }
-
-        const model = current.model;
-        const layer = model.getLayer(layerId);
-
-        if (!layer || !['VectorLayer', 'ShapefileLayer'].includes(layer.type)) {
+      const exportLayer = async (
+        model: IJupyterGISModel,
+        layer: any,
+        exportFileName: string,
+      ) => {
+        if (!['VectorLayer', 'ShapefileLayer'].includes(layer.type)) {
           console.warn('Layer type not supported for GeoJSON export');
           return;
         }
@@ -1125,16 +1115,35 @@ export function addCommands(
           `${exportFileName}.geojson`,
           'application/geo+json',
         );
-        return;
+      };
+
+      const { filePath, layerId, exportFileName } = args ?? {};
+
+      // ----- PARAMETER MODE -----
+      if (filePath && layerId && exportFileName) {
+        const widget = tracker.find(w => w.model.filePath === filePath);
+        if (!widget || !widget.model.sharedModel.editable) {
+          console.warn('Invalid or non-editable document');
+          return;
+        }
+
+        const model = widget.model;
+        const layer = model.getLayer(layerId);
+        if (!layer) {
+          console.warn('Layer not found');
+          return;
+        }
+
+        return exportLayer(model, layer, exportFileName);
       }
 
-      // ----- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR -----
+      // ----- INTERACTIVE MODE -----
       const selectedLayer = getSingleSelectedLayer(tracker);
-      if (!selectedLayer) {
+      const model = tracker.currentWidget?.model as IJupyterGISModel;
+
+      if (!selectedLayer || !model) {
         return;
       }
-      const model = tracker.currentWidget?.model as IJupyterGISModel;
-      const sources = model.sharedModel.sources ?? {};
 
       const exportSchema = {
         ...(formSchemaRegistry
@@ -1163,16 +1172,7 @@ export function addCommands(
         return;
       }
 
-      const outName = formValues.exportFileName;
-      const sourceId = selectedLayer.parameters.source;
-      const source = sources[sourceId];
-
-      const geojsonString = await getGeoJSONDataFromLayerSource(source, model);
-      if (!geojsonString) {
-        return;
-      }
-
-      downloadFile(geojsonString, `${outName}.geojson`, 'application/geo+json');
+      return exportLayer(model, selectedLayer, formValues.exportFileName);
     },
   });
 
