@@ -63,31 +63,21 @@ function SpectaPresentationProgressBar({
       <div className="jgis-specta-progress-bar bar">
         {Array.from({ length: safeCount }, (_, i) => safeCount - 1 - i).map(
           segmentIndex => (
-            <React.Fragment key={segmentIndex}>
-              <input
-                type="radio"
-                name="jgis-specta-segment"
-                value={segmentIndex}
-                id={`jgis-specta-segment-${segmentIndex}`}
-                className="bar-input jgis-specta-progress-input"
-                checked={clampedIndex === segmentIndex}
-                onChange={() => {
-                  model.setCurrentSegmentIndex(segmentIndex);
-                }}
+            <div
+              key={segmentIndex}
+              className="jgis-specta-bar-segment"
+              data-filled={segmentIndex <= clampedIndex ? '' : undefined}
+              data-current={segmentIndex === clampedIndex ? '' : undefined}
+              style={{ '--segment-index': segmentIndex } as React.CSSProperties}
+            >
+              <button
+                type="button"
+                className="jgis-specta-progress-input"
+                onClick={() => model.setCurrentSegmentIndex(segmentIndex)}
                 aria-label={`Segment ${segmentIndex + 1} of ${safeCount}`}
+                aria-pressed={segmentIndex === clampedIndex}
               />
-              <div
-                className="bar-view"
-                style={
-                  { '--segment-index': segmentIndex } as React.CSSProperties
-                }
-              >
-                <label
-                  className="bar-button jgis-specta-progress-button"
-                  htmlFor={`jgis-specta-segment-${segmentIndex}`}
-                />
-              </div>
-            </React.Fragment>
+            </div>
           ),
         )}
       </div>
