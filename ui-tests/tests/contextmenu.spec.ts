@@ -10,7 +10,16 @@ test.describe('context menu', () => {
       '/testDir',
     );
   });
-  test.beforeEach(async ({ page }) => {
+
+  test.beforeEach(async ({ page, request }) => {
+    const content = galata.newContentsHelper(request);
+    // Ensure clean state
+    await content.deleteFile('/testDir/context-test.jGIS').catch(() => {});
+    // Upload fresh copy for every test
+    await content.uploadFile(
+      path.resolve(__dirname, './gis-files/context-test.jGIS'),
+      '/testDir/context-test.jGIS',
+    );
     await page.filebrowser.open('testDir/context-test.jGIS');
   });
 
@@ -24,14 +33,14 @@ test.describe('context menu', () => {
       .getByText('Open Topo Map')
       .click({ button: 'right' });
 
-    const text = page.getByRole('menu').getByText('Remove Layer');
+    const text = page.getByRole('menu').getByText('Remove');
     await expect(text).toBeVisible();
   });
 
   test('right click on group should open group menu', async ({ page }) => {
     await page.getByText('level 1 group').click({ button: 'right' });
 
-    const text = page.getByRole('menu').getByText('Remove Group');
+    const text = page.getByRole('menu').getByText('Remove');
     await expect(text).toBeVisible();
   });
 
@@ -74,7 +83,7 @@ test.describe('context menu', () => {
     await expect(page.getByText('new group', { exact: true })).toHaveCount(1);
   });
 
-  test('clicking remove layer should remove the layer from the tree', async ({
+  test('clicking remove should remove the layer from the tree', async ({
     page,
   }) => {
     // Create new layer first
@@ -102,12 +111,12 @@ test.describe('context menu', () => {
       button: 'right',
     });
 
-    await page.getByRole('menu').getByText('Remove Layer').click();
+    await page.getByRole('menu').getByText('Remove').click();
 
     expect(layerInTree).not.toBeVisible();
   });
 
-  test('clicking remove group should remove the group from the tree', async ({
+  test('clicking remove should remove the group from the tree', async ({
     page,
   }) => {
     const firstItem = page
@@ -119,7 +128,7 @@ test.describe('context menu', () => {
       .getByText('level 1 group')
       .click({ button: 'right' });
 
-    await page.getByRole('menu').getByText('Remove Group').click();
+    await page.getByRole('menu').getByText('Remove').click();
     await expect(firstItem).not.toBeVisible();
   });
 
@@ -136,7 +145,6 @@ test.describe('context menu', () => {
 
     // Select the layer
     await layerText.click();
-    await page.waitForTimeout(1000);
     await expect(layerItem).toHaveClass(/jp-mod-selected/);
 
     // Start rename with F2

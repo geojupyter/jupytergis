@@ -7,7 +7,6 @@ import {
   IJupyterGISModel,
   JgisCoordinates,
   LayerType,
-  SelectionType,
   SourceType,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -687,196 +686,44 @@ export function addCommands(
   /**
    * LAYERS and LAYER GROUP actions.
    */
-  commands.addCommand(CommandIDs.renameLayer, {
-    label: trans.__('Rename Layer'),
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {
-          filePath: {
-            type: 'string',
-            description: 'Optional path to the .jGIS file',
-          },
-          layerId: {
-            type: 'string',
-            description: 'Optional ID of the layer to rename',
-          },
-          newName: {
-            type: 'string',
-            description: 'Optional new name for the layer',
-          },
-        },
-      },
+  commands.addCommand(CommandIDs.renameSelected, {
+    label: trans.__('Rename'),
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+      return !!selected && Object.keys(selected).length === 1;
     },
+    execute: async () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
 
-    execute: async (args?: {
-      filePath?: string;
-      layerId?: string;
-      newName?: string;
-    }) => {
-      const { filePath, layerId, newName } = args ?? {};
-
-      const model = filePath
-        ? tracker.find(w => w.model.filePath === filePath)?.model
-        : tracker.currentWidget?.model;
-
-      if (!model || !model.sharedModel.editable) {
+      if (!model || !selected) {
         return;
       }
 
-      // ---- PARAMETER MODE ----
-      // If all args are present, use them
-      if (filePath && layerId && newName) {
-        const layer = model.sharedModel.layers[layerId];
-        if (!layer) {
-          return;
-        }
-        layer.name = newName;
-        model.sharedModel.updateLayer(layerId, layer);
-        return;
-      }
-
-      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
-      await Private.renameSelectedItem(model, 'layer');
+      await Private.renameSelectedItem(model);
     },
+    ...icons.get(CommandIDs.renameSelected),
   });
 
-  commands.addCommand(CommandIDs.removeLayer, {
-    label: trans.__('Remove Layer'),
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {
-          filePath: {
-            type: 'string',
-            description: 'Optional path to the .jGIS file',
-          },
-          layerId: {
-            type: 'string',
-            description: 'Optional ID of the layer to remove',
-          },
-        },
-      },
+  commands.addCommand(CommandIDs.removeSelected, {
+    label: trans.__('Remove'),
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+      return !!selected && Object.keys(selected).length > 0;
     },
+    execute: async () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
 
-    execute: (args?: { filePath?: string; layerId?: string }) => {
-      const { filePath, layerId } = args ?? {};
-
-      const model = filePath
-        ? tracker.find(w => w.model.filePath === filePath)?.model
-        : tracker.currentWidget?.model;
-
-      if (!model || !model.sharedModel.editable) {
+      if (!model || !selected) {
         return;
       }
 
-      // ---- PARAMETER MODE ----
-      if (filePath && layerId) {
-        const exists = model.sharedModel.layers[layerId];
-        if (!exists) {
-          return;
-        }
-        model.removeLayer(layerId);
-        return;
-      }
-
-      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
-      Private.removeSelectedItems(model, 'layer', selection => {
-        model?.removeLayer(selection);
-      });
-
-      commands.notifyCommandChanged(CommandIDs.toggleStoryPresentationMode);
+      await Private.removeSelectedItems(model);
     },
-  });
-
-  commands.addCommand(CommandIDs.renameGroup, {
-    label: trans.__('Rename Group'),
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {
-          filePath: {
-            type: 'string',
-            description: 'Optional .jGIS file path',
-          },
-          oldName: {
-            type: 'string',
-            description: 'Optional existing group name',
-          },
-          newName: {
-            type: 'string',
-            description: 'Optional new group name',
-          },
-        },
-      },
-    },
-
-    execute: async (args?: {
-      filePath?: string;
-      oldName?: string;
-      newName?: string;
-    }) => {
-      const { filePath, oldName, newName } = args ?? {};
-
-      const model = filePath
-        ? tracker.find(w => w.model.filePath === filePath)?.model
-        : tracker.currentWidget?.model;
-
-      if (!model || !model.sharedModel.editable) {
-        return;
-      }
-
-      // ---- PARAMETER MODE ----
-      if (filePath && oldName && newName) {
-        model.renameLayerGroup(oldName, newName);
-        return;
-      }
-
-      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
-      await Private.renameSelectedItem(model, 'group');
-    },
-  });
-
-  commands.addCommand(CommandIDs.removeGroup, {
-    label: trans.__('Remove Group'),
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {
-          filePath: {
-            type: 'string',
-            description: 'Optional .jGIS file path',
-          },
-          groupName: {
-            type: 'string',
-            description: 'Optional group name to remove',
-          },
-        },
-      },
-    },
-
-    execute: async (args?: { filePath?: string; groupName?: string }) => {
-      const { filePath, groupName } = args ?? {};
-
-      const model = filePath
-        ? tracker.find(w => w.model.filePath === filePath)?.model
-        : tracker.currentWidget?.model;
-
-      if (!model || !model.sharedModel.editable) {
-        return;
-      }
-
-      // ---- PARAMETER MODE ----
-      if (filePath && groupName) {
-        model.removeLayerGroup(groupName);
-        return;
-      }
-
-      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
-      await Private.removeSelectedItems(model, 'group', selection => {
-        model?.removeLayerGroup(selection);
-      });
-    },
+    ...icons.get(CommandIDs.removeSelected),
   });
 
   commands.addCommand(CommandIDs.moveLayersToGroup, {
@@ -1042,99 +889,17 @@ export function addCommands(
    */
   commands.addCommand(CommandIDs.renameSource, {
     label: trans.__('Rename Source'),
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {
-          filePath: { type: 'string' },
-          sourceId: { type: 'string' },
-          newName: { type: 'string' },
-        },
-      },
-    },
-
-    execute: async (args?: {
-      filePath?: string;
-      sourceId?: string;
-      newName?: string;
-    }) => {
-      const { filePath, sourceId, newName } = args ?? {};
-
-      const model = filePath
-        ? tracker.find(w => w.model.filePath === filePath)?.model
-        : tracker.currentWidget?.model;
-
-      if (!model || !model.sharedModel.editable) {
-        return;
-      }
-
-      // ---- PARAMETER MODE ----
-      if (filePath && sourceId && newName) {
-        const source = model.getSource(sourceId);
-        if (!source) {
-          console.warn(`Source with ID ${sourceId} not found`);
-          return;
-        }
-
-        source.name = newName;
-        model.sharedModel.updateSource(sourceId, source);
-        return;
-      }
-
-      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
-      await Private.renameSelectedItem(model, 'source');
+    execute: async () => {
+      const model = tracker.currentWidget?.model;
+      await Private.renameSelectedItem(model);
     },
   });
 
   commands.addCommand(CommandIDs.removeSource, {
     label: trans.__('Remove Source'),
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {
-          filePath: { type: 'string' },
-          sourceId: { type: 'string' },
-        },
-      },
-    },
-
-    execute: (args?: { filePath?: string; sourceId?: string }) => {
-      const { filePath, sourceId } = args ?? {};
-
-      const model = filePath
-        ? tracker.find(w => w.model.filePath === filePath)?.model
-        : tracker.currentWidget?.model;
-
-      if (!model || !model.sharedModel.editable) {
-        return;
-      }
-
-      // ---- PARAMETER MODE ----
-      if (filePath && sourceId) {
-        const layersUsingSource = model.getLayersBySource(sourceId);
-        if (layersUsingSource.length > 0) {
-          showErrorMessage(
-            'Remove source error',
-            'The source is used by a layer.',
-          );
-          return;
-        }
-
-        model.sharedModel.removeSource(sourceId);
-        return;
-      }
-
-      // ---- FALLBACK TO ORIGINAL INTERACTIVE BEHAVIOR ----
-      Private.removeSelectedItems(model, 'source', selection => {
-        if (!(model?.getLayersBySource(selection).length ?? true)) {
-          model?.sharedModel.removeSource(selection);
-        } else {
-          showErrorMessage(
-            'Remove source error',
-            'The source is used by a layer.',
-          );
-        }
-      });
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      Private.removeSelectedSources(model);
     },
   });
 
@@ -1899,52 +1664,71 @@ namespace Private {
     };
   }
 
-  export function removeSelectedItems(
-    model: IJupyterGISModel | undefined,
-    itemTypeToRemove: SelectionType,
-    removeFunction: (id: string) => void,
-  ) {
+  export function removeSelectedItems(model: IJupyterGISModel | undefined) {
     const selected = model?.localState?.selected?.value;
 
-    if (!selected) {
+    if (!selected || !model) {
       console.error('Failed to remove selected item -- nothing selected');
       return;
     }
 
-    for (const selection in selected) {
-      if (selected[selection].type === itemTypeToRemove) {
-        removeFunction(selection);
+    for (const id of Object.keys(selected)) {
+      const item = selected[id];
+
+      switch (item.type) {
+        case 'layer':
+          model.removeLayer(id);
+          break;
+        case 'group':
+          model.removeLayerGroup(id);
+          break;
       }
     }
   }
 
   export async function renameSelectedItem(
     model: IJupyterGISModel | undefined,
-    itemType: SelectionType,
   ) {
-    const selectedItems = model?.localState?.selected.value;
+    const selectedItems = model?.localState?.selected?.value;
 
     if (!selectedItems || !model) {
-      console.error(`No ${itemType} selected`);
+      console.error('No item selected');
       return;
     }
 
-    let itemId = '';
+    const ids = Object.keys(selectedItems);
+    if (ids.length === 0) {
+      return;
+    }
 
-    // If more then one item is selected, only rename the first
-    for (const id in selectedItems) {
-      if (selectedItems[id].type === itemType) {
-        itemId = id;
-        break;
+    const itemId = ids[0];
+    const item = selectedItems[itemId];
+
+    if (!item.type) {
+      return;
+    }
+
+    model.setEditingItem(item.type, itemId);
+  }
+
+  export function removeSelectedSources(model: IJupyterGISModel | undefined) {
+    const selected = model?.localState?.selected?.value;
+
+    if (!selected || !model) {
+      return;
+    }
+
+    for (const id of Object.keys(selected)) {
+      if (model.getLayersBySource(id).length > 0) {
+        showErrorMessage(
+          'Remove source error',
+          'The source is used by a layer.',
+        );
+        continue;
       }
-    }
 
-    if (!itemId) {
-      return;
+      model.sharedModel.removeSource(id);
     }
-
-    // Set editing state - component will show inline input
-    model.setEditingItem(itemType, itemId);
   }
 
   export function executeConsole(tracker: JupyterGISTracker): void {

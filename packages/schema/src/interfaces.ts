@@ -180,6 +180,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   storyMapsChanged: ISignal<IJupyterGISDoc, IJGISStoryMapDocChange>;
   layerTreeChanged: ISignal<IJupyterGISDoc, IJGISLayerTreeDocChange>;
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
+  initialSyncReady: Promise<void>;
 }
 
 export interface IJupyterGISDocChange extends DocumentChange {

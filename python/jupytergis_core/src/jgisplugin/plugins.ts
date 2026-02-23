@@ -3,12 +3,12 @@ import { CommandIDs, logoIcon, logoMiniIcon } from '@jupytergis/base';
 import {
   IAnnotationModel,
   IAnnotationToken,
+  DEFAULT_JGIS_DOCUMENT_CONTENT,
   IJGISExternalCommandRegistry,
   IJGISExternalCommandRegistryToken,
   IJupyterGISDocTracker,
   IJupyterGISWidget,
   JupyterGISDoc,
-  SCHEMA_VERSION,
   ProcessingMerge,
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
@@ -192,7 +192,7 @@ const activate = async (
         ...model,
         format: 'text',
         size: undefined,
-        content: `{\n\t"schemaVersion": "${SCHEMA_VERSION}",\n\t"layers": {},\n\t"sources": {},\n\t"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},\n\t"layerTree": [],\n\t"metadata": {}\n}`,
+        content: DEFAULT_JGIS_DOCUMENT_CONTENT,
       });
 
       // Open the newly created file with the 'Editor'

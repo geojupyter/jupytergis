@@ -558,6 +558,12 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     gisModel?.centerOnPosition(layerId);
   };
 
+  const handleDoubleClick = (e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    moveToExtent();
+  };
+
   const getSlideNumber = () => {
     if (!gisModel) {
       return;
@@ -652,7 +658,13 @@ const LayerComponent: React.FC<ILayerProps> = props => {
             autoFocus
           />
         ) : (
-          <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
+          <span
+            id={id}
+            className={LAYER_TEXT_CLASS}
+            tabIndex={-2}
+            onDoubleClick={handleDoubleClick}
+            title="Double-click to zoom to layer"
+          >
             {name}
           </span>
         )}

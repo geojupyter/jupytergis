@@ -29,10 +29,8 @@ export const openNewGeoTiffDialog = 'jupytergis:openNewGeoTiffDialog';
 export const openNewGeoParquetDialog = 'jupytergis:openNewGeoParquetDialog';
 
 // Layer and group actions
-export const renameLayer = 'jupytergis:renameLayer';
-export const removeLayer = 'jupytergis:removeLayer';
-export const renameGroup = 'jupytergis:renameGroup';
-export const removeGroup = 'jupytergis:removeGroup';
+export const renameSelected = 'jupytergis:renameSelected';
+export const removeSelected = 'jupytergis:removeSelected';
 export const moveLayersToGroup = 'jupytergis:moveLayersToGroup';
 export const moveLayerToNewGroup = 'jupytergis:moveLayerToNewGroup';
 
