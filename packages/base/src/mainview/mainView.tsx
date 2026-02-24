@@ -961,6 +961,7 @@ export class MainView extends React.Component<IProps, IStates> {
    * @param source - the source object.
    */
   async updateSource(id: string, source: IJGISSource): Promise<void> {
+    console.log('updating source');
     // get the layer id associated with this source
     const layerId = this._sourceToLayerMap.get(id);
     // get the OL layer
@@ -2648,12 +2649,17 @@ export class MainView extends React.Component<IProps, IStates> {
     // ? could send just the filters object and modify that instead of emitting whole layer
     const json = JSON.parse(args);
     const { layerId, layer: jgisLayer } = json;
+    const isSourceType =
+      typeof jgisLayer?.type === 'string' && jgisLayer.type.includes('Source');
     const olLayer = this.getLayer(layerId);
+
+    if (isSourceType) {
+      this.updateSource(layerId, jgisLayer);
+    }
     if (!jgisLayer || !olLayer) {
       console.error('Failed to update layer -- layer not found');
       return;
     }
-
     this.updateLayer(layerId, jgisLayer, olLayer);
   }
 

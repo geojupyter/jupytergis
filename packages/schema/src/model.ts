@@ -1007,7 +1007,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._updateLayerSignal;
   }
 
-  triggerLayerUpdate = (layerId: string, layer: IJGISLayer) => {
+  triggerLayerUpdate = (layerId: string, layer: IJGISLayer | IJGISSource) => {
     this.updateLayerSignal.emit(JSON.stringify({ layerId, layer }));
   };
 
