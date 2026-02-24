@@ -42,10 +42,10 @@ function createLayerCommand(
     describedBy: {
       args: {
         type: 'object',
-        required: ['filePath', 'Name', 'parameters'],
+        required: ['filePath', 'name', 'parameters'],
         properties: {
           filePath: { type: 'string', description: 'Path to the .jGIS file' },
-          Name: { type: 'string', description: 'Layer name' },
+          name: { type: 'string', description: 'Layer name' },
           parameters: {
             type: 'object',
             properties: {
@@ -58,10 +58,10 @@ function createLayerCommand(
     },
     execute: (async (args: {
       filePath: string;
-      Name: string;
+      name: string;
       parameters: Record<string, any>;
     }) => {
-      const { filePath, Name, parameters } = args;
+      const { filePath, name, parameters } = args;
       const current = tracker.find(w => w.model.filePath === filePath);
       if (!current || !current.model.sharedModel.editable) {
         console.warn('Invalid or non-editable document for', filePath);
@@ -75,14 +75,14 @@ function createLayerCommand(
 
       const sourceModel: IJGISSource = {
         type: spec.sourceType as any,
-        name: `${Name} Source`,
+        name: `${name} Source`,
         parameters: parameters.source,
       };
       sharedModel.addSource(sourceId, sourceModel);
 
       const layerModel: IJGISLayer = {
         type: spec.layerType as any,
-        name: Name,
+        name: name,
         visible: true,
         parameters: spec.buildParameters(parameters, sourceId),
       };
