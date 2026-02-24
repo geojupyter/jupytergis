@@ -1171,7 +1171,9 @@ export function addCommands(
     },
     execute: () => {
       const model = tracker.currentWidget?.model;
-      if (!model) {return;}
+      if (!model) {
+        return;
+      }
       const current = model.getCurrentSegmentIndex() ?? 0;
       model.setCurrentSegmentIndex(current - 1);
     },
@@ -1203,7 +1205,9 @@ export function addCommands(
     },
     execute: () => {
       const model = tracker.currentWidget?.model;
-      if (!model) {return;}
+      if (!model) {
+        return;
+      }
       const current = model.getCurrentSegmentIndex() ?? 0;
       model.setCurrentSegmentIndex(current + 1);
     },
