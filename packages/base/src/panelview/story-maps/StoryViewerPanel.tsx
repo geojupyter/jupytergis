@@ -140,9 +140,9 @@ const StoryViewerPanel = forwardRef<
         if (action === 'remove') {
           removeLayer?.(layerId);
         } else {
-          const layer = model.getLayer(layerId);
-          if (layer) {
-            model.triggerLayerUpdate(layerId, layer);
+          const layerOrSource = model.getLayerOrSource(layerId);
+          if (layerOrSource) {
+            model.triggerLayerUpdate(layerId, layerOrSource);
           }
         }
       });
@@ -427,6 +427,11 @@ const StoryViewerPanel = forwardRef<
                   ...sourceProperties,
                 };
               }
+
+              overrideLayerEntriesRef.current.push({
+                layerId: sourceId,
+                action: 'restore',
+              });
 
               model.triggerLayerUpdate(sourceId, source);
             }
