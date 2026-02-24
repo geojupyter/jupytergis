@@ -20,6 +20,7 @@ export namespace LayerCreationCommandIDs {
 type LayerCreationSpec = {
   id: string;
   label: string;
+  caption: string;
   sourceType: string;
   layerType: string;
   sourceSchema: Record<string, unknown>;
@@ -38,6 +39,7 @@ function createLayerCommand(
 ): void {
   commands.addCommand(spec.id, {
     label: trans.__(spec.label),
+    caption: trans.__(spec.caption),
     isEnabled: () => true,
     describedBy: {
       args: {
@@ -105,6 +107,7 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newGeoJSONWithParams,
       label: 'New GeoJSON Layer From Parameters',
+      caption: 'Create a GeoJSON vector layer from a file path or URL',
       sourceType: 'GeoJSONSource',
       layerType: 'VectorLayer',
       sourceSchema: {
@@ -127,6 +130,7 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newRasterWithParams,
       label: 'New Raster Layer From Parameters',
+      caption: 'Create a raster layer from a file path or URL',
       sourceType: 'RasterSource',
       layerType: 'RasterLayer',
       sourceSchema: {
@@ -143,6 +147,7 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newVectorTileWithParams,
       label: 'New Vector Tile Layer From Parameters',
+      caption: 'Create a vector tile layer from a URL',
       sourceType: 'VectorTileSource',
       layerType: 'VectorTileLayer',
       sourceSchema: {
@@ -163,6 +168,7 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newGeoParquetWithParams,
       label: 'New GeoParquet Layer From Parameters',
+      caption: 'Create a GeoParquet vector layer from a file path or URL',
       sourceType: 'GeoParquetSource',
       layerType: 'VectorLayer',
       sourceSchema: {
@@ -185,6 +191,7 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newHillshadeWithParams,
       label: 'New Hillshade Layer From Parameters',
+      caption: 'Create a hillshade layer from a DEM raster source',
       sourceType: 'RasterDemSource',
       layerType: 'HillshadeLayer',
       sourceSchema: {
@@ -203,6 +210,7 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newImageWithParams,
       label: 'New Image Layer From Parameters',
+      caption: 'Create an image layer from afile path or URL',
       sourceType: 'ImageSource',
       layerType: 'ImageLayer',
       sourceSchema: {
@@ -225,6 +233,7 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newVideoWithParams,
       label: 'New Video Layer From Parameters',
+      caption: 'Create a video layer from a file path or URL',
       sourceType: 'VideoSource',
       layerType: 'RasterLayer',
       sourceSchema: {
@@ -247,6 +256,7 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newGeoTiffWithParams,
       label: 'New GeoTIFF Layer From Parameters',
+      caption: 'Create a GeoTIFF layer from a file path or URL',
       sourceType: 'GeoTiffSource',
       layerType: 'WebGlLayer',
       sourceSchema: {
@@ -281,6 +291,7 @@ export function addLayerCreationCommands(options: {
     {
       id: LayerCreationCommandIDs.newShapefileWithParams,
       label: 'New Shapefile Layer From Parameters',
+      caption: 'Create a Shapefile vector layer from a file path or URL',
       sourceType: 'ShapefileSource',
       layerType: 'VectorLayer',
       sourceSchema: {
