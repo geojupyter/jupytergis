@@ -98,8 +98,8 @@ const StoryViewerPanel = forwardRef<
     },
     ref,
   ) => {
-    const [currentIndexDisplayed, setCurrentIndexDisplayed] = useState(() =>
-      model.getCurrentSegmentIndex(),
+    const [currentIndex, setCurrentIndex] = useState(
+      () => model.getCurrentSegmentIndex() ?? 0,
     );
     const [storyData, setStoryData] = useState<IJGISStoryMap | null>(
       model.getSelectedStory().story ?? null,
@@ -112,10 +112,19 @@ const StoryViewerPanel = forwardRef<
     const atTopRef = useRef(false);
     const atBottomRef = useRef(false);
 
+    useEffect(() => {
+      const onIndexChanged = (_: IJupyterGISModel, index: number) => {
+        setCurrentIndex(Math.max(0, index ?? 0));
+      };
+      model.currentSegmentIndexChanged.connect(onIndexChanged);
+      return () => {
+        model.currentSegmentIndexChanged.disconnect(onIndexChanged);
+      };
+    }, [model]);
+
     const setIndex = useCallback(
       (index: number) => {
         model.setCurrentSegmentIndex(index);
-        setCurrentIndexDisplayed(index);
       },
       [model],
     );
@@ -151,10 +160,10 @@ const StoryViewerPanel = forwardRef<
         .filter((layer): layer is IJGISLayer => layer !== undefined);
     }, [storyData, model]);
 
-    // Derive current story segment from story segments and currentIndexDisplayed
+    // Derive current story segment from story segments and currentIndex
     const currentStorySegment = useMemo(() => {
-      return storySegments[currentIndexDisplayed];
-    }, [storySegments, currentIndexDisplayed]);
+      return storySegments[currentIndex];
+    }, [storySegments, currentIndex]);
 
     // Derive active slide and layer name from current story segment
     const activeSlide = useMemo(() => {
@@ -168,11 +177,11 @@ const StoryViewerPanel = forwardRef<
 
     // Derive story segment ID for zooming
     const currentStorySegmentId = useMemo(() => {
-      return storyData?.storySegments?.[currentIndexDisplayed];
-    }, [storyData, currentIndexDisplayed]);
+      return storyData?.storySegments?.[currentIndex];
+    }, [storyData, currentIndex]);
 
-    const hasPrev = currentIndexDisplayed > 0;
-    const hasNext = currentIndexDisplayed < storySegments.length - 1;
+    const hasPrev = currentIndex > 0;
+    const hasNext = currentIndex < storySegments.length - 1;
 
     const zoomToCurrentLayer = () => {
       if (currentStorySegmentId) {
@@ -271,25 +280,20 @@ const StoryViewerPanel = forwardRef<
 
     // Set selected layer and apply symbology when segment changes; remove previous segment's override layers first.
     useEffect(() => {
-      if (!storyData?.storySegments || currentIndexDisplayed < 0) {
+      if (!storyData?.storySegments || currentIndex < 0) {
         return;
       }
       clearOverrideLayers();
-      setSelectedLayerByIndex(currentIndexDisplayed);
-      overrideSymbology(currentIndexDisplayed);
-    }, [
-      storyData,
-      currentIndexDisplayed,
-      setSelectedLayerByIndex,
-      clearOverrideLayers,
-    ]);
+      setSelectedLayerByIndex(currentIndex);
+      overrideSymbology(currentIndex);
+    }, [storyData, currentIndex, setSelectedLayerByIndex, clearOverrideLayers]);
 
     // Set selected layer on initial render and when story data changes
     useEffect(() => {
-      if (storyData?.storySegments && currentIndexDisplayed >= 0) {
-        setSelectedLayerByIndex(currentIndexDisplayed);
+      if (storyData?.storySegments && currentIndex >= 0) {
+        setSelectedLayerByIndex(currentIndex);
       }
-    }, [storyData, currentIndexDisplayed, setSelectedLayerByIndex]);
+    }, [storyData, currentIndex, setSelectedLayerByIndex]);
 
     // Apply story presentation colors (specta) to panel root
     useEffect(() => {
@@ -426,15 +430,15 @@ const StoryViewerPanel = forwardRef<
 
     const handlePrev = useCallback(() => {
       if (hasPrev) {
-        setIndex(currentIndexDisplayed - 1);
+        setIndex(currentIndex - 1);
       }
-    }, [currentIndexDisplayed, setIndex]);
+    }, [currentIndex, setIndex]);
 
     const handleNext = useCallback(() => {
       if (hasNext) {
-        setIndex(currentIndexDisplayed + 1);
+        setIndex(currentIndex + 1);
       }
-    }, [currentIndexDisplayed, storySegments.length, setIndex]);
+    }, [currentIndex, storySegments.length, setIndex]);
 
     if (!storyData || storyData?.storySegments?.length === 0) {
       return (
@@ -474,7 +478,7 @@ const StoryViewerPanel = forwardRef<
       observer.observe(topEl);
       observer.observe(bottomEl);
       return () => observer.disconnect();
-    }, [currentIndexDisplayed]);
+    }, [currentIndex]);
 
     // Expose methods via ref for parent component to use
     useImperativeHandle(
@@ -523,7 +527,7 @@ const StoryViewerPanel = forwardRef<
       };
       el.addEventListener('animationend', handleAnimationEnd);
       return () => el.removeEventListener('animationend', handleAnimationEnd);
-    }, [currentIndexDisplayed, onSegmentTransitionEnd]);
+    }, [currentIndex, onSegmentTransitionEnd]);
 
     return (
       <div
@@ -539,7 +543,7 @@ const StoryViewerPanel = forwardRef<
         />
         <div
           ref={segmentContainerRef}
-          key={currentIndexDisplayed}
+          key={currentIndex}
           className="jgis-story-segment-container"
           style={{
             animationDuration: `${transitionTime}s`,
@@ -547,14 +551,14 @@ const StoryViewerPanel = forwardRef<
         >
           <div id="jgis-story-segment-header">
             <h1 className="jgis-story-viewer-title">
-              {layerName ?? `Slide ${currentIndexDisplayed + 1}`}
+              {layerName ?? `Slide ${currentIndex + 1}`}
             </h1>
             {activeSlide?.content?.image && imageLoaded ? (
               <StoryImageSection
                 imageUrl={activeSlide.content.image}
                 imageLoaded={imageLoaded}
                 layerName={layerName ?? ''}
-                slideNumber={currentIndexDisplayed}
+                slideNumber={currentIndex}
                 navSlot={navPlacement === 'over-image' ? navSlot : null}
               />
             ) : (
