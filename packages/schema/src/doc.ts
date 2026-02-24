@@ -32,7 +32,8 @@ export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"sources": {},
 	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "EPSG:3857"},
 	"layerTree": [],
-	"metadata": {}
+	"metadata": {},
+  "storyMapPresentationMode": "false"
 }`;
 
 export class JupyterGISDoc
