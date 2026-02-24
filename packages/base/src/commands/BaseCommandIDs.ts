@@ -18,7 +18,7 @@ export const getGeolocation = 'jupytergis:getGeolocation';
 export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 
 // Layer and source
-export const opeNewRasterDialog = 'jupytergis:opeNewRasterDialog';
+export const openNewRasterDialog = 'jupytergis:openNewRasterDialog';
 export const openNewVectorTileDialog = 'jupytergis:openNewVectorTileDialog';
 export const openNewShapefileDialog = 'jupytergis:openNewShapefileDialog';
 export const openNewGeoJSONDialog = 'jupytergis:openNewGeoJSONDialog';
