@@ -66,8 +66,8 @@ export class YJupyterGISLuminoWidget extends Panel {
       if (args.stateChange) {
         args.stateChange.forEach((change: any) => {
           if (change.name === 'path') {
-            this.layout?.removeWidget(this._jgisWidget);
             this._jgisWidget.dispose();
+            this.layout?.removeWidget(this._jgisWidget);
             this._buildWidget(options);
           }
         });
