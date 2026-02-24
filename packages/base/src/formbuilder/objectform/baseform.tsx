@@ -1,4 +1,4 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
+import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import { Dialog } from '@jupyterlab/apputils';
 import { FormComponent } from '@jupyterlab/ui-components';
 import { Signal } from '@lumino/signaling';
@@ -15,6 +15,7 @@ import OpacitySlider from './components/OpacitySlider';
 export interface IJupyterGISFormContext<TFormData = IDict | undefined> {
   model: IJupyterGISModel;
   formData: TFormData;
+  formSchemaRegistry?: IJGISFormSchemaRegistry;
 }
 
 export interface IBaseFormStates {
@@ -74,6 +75,11 @@ export interface IBaseFormProps {
    * extra errors or not.
    */
   formErrorSignal?: Signal<Dialog<any>, boolean>;
+
+  /**
+   * Registry of form schemas for layers/sources; passed into formContext for custom fields.
+   */
+  formSchemaRegistry?: IJGISFormSchemaRegistry;
 }
 
 const WrappedFormComponent: React.FC<any> = props => {
@@ -283,6 +289,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
   }
 
   protected syncData(properties: IDict<any> | undefined) {
+    console.log('sync data');
     if (!properties) {
       return;
     }
@@ -363,6 +370,7 @@ export class BaseForm extends React.Component<IBaseFormProps, IBaseFormStates> {
                 {
                   model: this.props.model,
                   formData,
+                  formSchemaRegistry: this.props.formSchemaRegistry,
                 } satisfies IJupyterGISFormContext
               }
               onSubmit={this.onFormSubmit.bind(this)}
