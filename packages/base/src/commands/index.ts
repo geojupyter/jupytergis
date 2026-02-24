@@ -404,7 +404,7 @@ export function addCommands(
   /**
    * Source and layers
    */
-  commands.addCommand(CommandIDs.opeNewRasterDialog, {
+  commands.addCommand(CommandIDs.openNewRasterDialog, {
     label: trans.__('Open New Raster Tile Dialog'),
     describedBy: {
       args: {
@@ -431,7 +431,7 @@ export function addCommands(
       sourceType: 'RasterSource',
       layerType: 'RasterLayer',
     }),
-    ...icons.get(CommandIDs.opeNewRasterDialog),
+    ...icons.get(CommandIDs.openNewRasterDialog),
   });
 
   commands.addCommand(CommandIDs.openNewVectorTileDialog, {

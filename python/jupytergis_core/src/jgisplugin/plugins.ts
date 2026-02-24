@@ -227,7 +227,7 @@ const activate = async (
 
     // Layers and Sources
     palette.addItem({
-      command: CommandIDs.opeNewRasterDialog,
+      command: CommandIDs.openNewRasterDialog,
       category: 'JupyterGIS',
     });
 

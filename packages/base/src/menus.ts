@@ -43,7 +43,7 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
-    command: CommandIDs.opeNewRasterDialog,
+    command: CommandIDs.openNewRasterDialog,
   });
 
   subMenu.addItem({
