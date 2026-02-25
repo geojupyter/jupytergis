@@ -59,5 +59,10 @@ export function SourcePropertiesField(props: FieldProps): React.ReactElement {
     },
     sourceType: source?.type ?? 'GeoJSONSource',
   };
-  return <SourceForm {...formProps} />;
+  return (
+    <>
+      <div id="jgis-source-properties-field">Source Parameters</div>
+      <SourceForm {...formProps} />
+    </>
+  );
 }

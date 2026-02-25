@@ -472,14 +472,14 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   display: none;
 }
 
-.jGIS-property-panel .rjsf .control-label,
+/* .jGIS-property-panel .rjsf .control-label,
 .jGIS-property-panel .rjsf legend {
   margin: 0;
   padding: 0;
   font-weight: bold;
   position: relative;
   width: 100%;
-}
+} */
 
 .jGIS-property-panel .rjsf legend > :first-child,
 .jGIS-property-panel .rjsf .control-label > :first-child {
