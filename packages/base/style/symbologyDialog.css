@@ -23,7 +23,10 @@ select option {
 
 .jp-gis-symbology-row label {
   font-size: var(--jp-ui-font-size2);
-  flex: 0 1 20%;
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .jp-gis-symbology-row > .jp-select-wrapper,
@@ -74,6 +77,8 @@ select option {
   display: flex;
   flex-direction: column;
   gap: 13px;
+  border-top: 1px solid var(--jp-border-color2);
+  padding-top: 8px;
 }
 
 .jp-gis-stop-container {
